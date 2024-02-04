@@ -71,8 +71,15 @@ namespace CasaEngine.EditorUI.Controls.Common
             {
                 // Verify that this is a valid drop and then store the drop target
                 var item = GetNearestContainer(e.OriginalSource as UIElement);
-                e.Effects = CheckDropTarget(_draggedItem, item.DataContext) ? DragDropEffects.Move : DragDropEffects.None;
-                e.Handled = true;
+                if (item != null)
+                {
+                    e.Effects = CheckDropTarget(_draggedItem, item.DataContext) ? DragDropEffects.Move : DragDropEffects.None;
+                    e.Handled = true;
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
             }
             catch (Exception)
             {
@@ -108,19 +115,6 @@ namespace CasaEngine.EditorUI.Controls.Common
         {
             try
             {
-                //AddChild(sourceItem, targetItem);
-
-                //var parentItem = WpfUtils.FindVisualParentWithType<TreeViewItem>(sourceItem);
-                //if (parentItem == null)
-                //{
-                //    Items.Remove(sourceItem);
-                //}
-                //else
-                //{
-                //    parentItem.Items.Remove(sourceItem);
-                //}
-
-                //item to move, parent, old parent
                 ItemMoved?.Invoke(sourceItem, targetItem);
             }
             catch (Exception e)

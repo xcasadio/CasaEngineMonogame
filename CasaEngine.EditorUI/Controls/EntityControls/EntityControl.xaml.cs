@@ -55,7 +55,6 @@ public partial class EntityControl : UserControl
     private void OnGameStarted(object? sender, EventArgs e)
     {
         _game = (CasaEngineGame)sender;
-        //entityComponentsControl.Initialize(_game);
         _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
     }
 

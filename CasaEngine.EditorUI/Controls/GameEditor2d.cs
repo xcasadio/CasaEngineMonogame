@@ -16,6 +16,7 @@ public abstract class GameEditor2d : GameEditor
     protected AActor _entity;
     private InputComponent? _inputComponent;
     private Point _lastMousePosition;
+    private Camera3dIn2dAxisComponent _cameraComponent;
     protected AActor CameraEntity { get; private set; }
 
     public float Scale
@@ -37,34 +38,42 @@ public abstract class GameEditor2d : GameEditor
 
     protected override void LoadContent()
     {
-        CameraEntity = new AActor { Name = "camera GameEditor2d" };
-        var camera = new Camera3dIn2dAxisComponent();
-        CameraEntity.RootComponent = camera;
-        var screenXBy2 = Game.ScreenSizeWidth / 2f;
-        var screenYBy2 = Game.ScreenSizeHeight / 2f;
-        camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
-        CameraEntity.Initialize();
-        //CameraEntity.InitializeWithWorld(Game.GameManager.CurrentWorld);
-        Game.GameManager.ActiveCamera = camera;
+        Game.IsRunningInGameEditorMode = false;
+        Game.GameManager.CreateCameraComponentCallback = CreateCameraComponent;
 
         _inputComponent = Game.GetGameComponent<InputComponent>();
         Game.Components.Remove(Game.GetGameComponent<GridComponent>());
+
         Game.GameManager.SetWorldToLoad(new World());
-        //Game.GameManager.CurrentWorld.LoadContent(Game);
 
         _entity = new AActor { Name = "actor GameEditor2d" }; ;
         CreateEntityComponents(_entity);
         if (_entity.RootComponent != null)
         {
+            var screenXBy2 = Game.ScreenSizeWidth / 2f;
+            var screenYBy2 = Game.ScreenSizeHeight / 2f;
             _entity.RootComponent.Coordinates.Position = new Vector3(screenXBy2, screenYBy2, 0.0f);
         }
 
         _entity.Initialize();
-        Game.GameManager.CurrentWorld.AddEntity(_entity);
         Game.GameManager.CurrentWorld.LoadContent(Game);
         _entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
 
         base.LoadContent();
+
+        Game.GameManager.CurrentWorld.AddEntityWithEditor(_entity);
+    }
+
+    private CameraComponent CreateCameraComponent(AActor cameraEntity)
+    {
+        var screenXBy2 = Game.ScreenSizeWidth / 2f;
+        var screenYBy2 = Game.ScreenSizeHeight / 2f;
+
+        CameraEntity = cameraEntity;
+        _cameraComponent = new Camera3dIn2dAxisComponent();
+        _cameraComponent.Target = new Vector3(screenXBy2, screenYBy2, 0f);
+
+        return _cameraComponent;
     }
 
     protected override void Update(GameTime gameTime)
@@ -78,7 +87,7 @@ public abstract class GameEditor2d : GameEditor
         else if (_inputComponent.MouseRightButtonPressed)
         {
             var delta = _lastMousePosition - _inputComponent.MousePos;
-            _entity.RootComponent.Coordinates.Position += new Vector3(-delta.X, delta.Y, _entity.RootComponent.Coordinates.Position.Z);
+            _cameraComponent.Target += new Vector3(delta.X, -delta.Y, 0f);
             _lastMousePosition = _inputComponent.MousePos;
         }
 

@@ -160,14 +160,14 @@ public sealed class World : UObject
 
     private bool IsBoundingBoxDirty(AActor actor)
     {
-        if (actor.RootComponent?.IsWorldMatrixChange ?? false)
+        if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
         {
             return true;
         }
 
         foreach (var component in actor.Components)
         {
-            if (component is SceneComponent { IsWorldMatrixChange: true })
+            if (component is SceneComponent { IsBoundingBoxDirty: true })
             {
                 return true;
             }
@@ -293,7 +293,10 @@ public sealed class World : UObject
             }
             else
             {
-                GameplayProxy = ElementFactory.Create<GameplayProxy>(externalComponentNode.GetProperty("type").GetString());
+                if (externalComponentNode.ValueKind == JsonValueKind.Object || externalComponentNode.GetString() != "null")
+                {
+                    GameplayProxy = ElementFactory.Create<GameplayProxy>(externalComponentNode.GetProperty("type").GetString());
+                }
             }
         }
     }

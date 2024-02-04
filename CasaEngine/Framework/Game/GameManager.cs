@@ -93,14 +93,13 @@ public class GameManager
 
 #if EDITOR
         _cameraEditorEntity.Update(elapsedTime);
-        _cameraEditorEntity.GameplayProxy.Update(elapsedTime);
+        _cameraEditorEntity.GameplayProxy?.Update(elapsedTime);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
         CurrentWorld?.Update(elapsedTime);
-        //UiManager.Update(gameTime);
     }
 
     public void DrawWorld(GameTime gameTime)
@@ -138,7 +137,8 @@ public class GameManager
         _cameraEditorEntity = new AActor { Name = "Camera editor" };
         _cameraEditorEntity.IsVisible = false;
 
-        var cameraEditor = CreateCameraComponent();
+        var cameraEditor = CreateCameraComponentCallback != null ?
+            CreateCameraComponentCallback(_cameraEditorEntity) : CreateCameraComponent(_cameraEditorEntity);
 
         _cameraEditorEntity.AddComponent(cameraEditor);
         _cameraEditorEntity.Initialize();
@@ -147,11 +147,14 @@ public class GameManager
         ActiveCamera = cameraEditor;
     }
 
-    private ArcBallCameraComponent CreateCameraComponent()
+    public delegate CameraComponent CameraComponentCallback(AActor cameraEntity);
+    public CameraComponentCallback? CreateCameraComponentCallback;
+
+    private ArcBallCameraComponent CreateCameraComponent(AActor cameraEntity)
     {
         var cameraEditor = new ArcBallCameraComponent();
         cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        _cameraEditorEntity.GameplayProxy = new ScriptArcBallCamera();
+        cameraEntity.GameplayProxy = new ScriptArcBallCamera();
         return cameraEditor;
     }
 #endif

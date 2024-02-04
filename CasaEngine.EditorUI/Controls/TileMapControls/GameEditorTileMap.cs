@@ -41,12 +41,11 @@ public class GameEditorTileMap : GameEditor2d
 
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
     {
-        _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData; //(DataContext as TileMapDataViewModel).TileMapData;
+        _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
 
-        Game.GameManager.CurrentWorld.AddEntity(CameraEntity);
-        Game.GameManager.CurrentWorld.AddEntity(_entity);
-        _entity.Initialize();
-        _entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
+        Game.GameManager.CurrentWorld.AddEntityWithEditor(_entity);
+        //_entity.Initialize();
+        //_entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
     }
 
     public void RemoveAllEntities()

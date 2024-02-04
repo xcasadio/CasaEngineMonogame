@@ -144,7 +144,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
             }
 
             LocalPosition = value - position;
-            IsWorldMatrixChange = true;
+            IsBoundingBoxDirty = true;
         }
     }
 
@@ -181,7 +181,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
             }
 
             LocalOrientation = value * orientation;
-            IsWorldMatrixChange = true;
+            IsBoundingBoxDirty = true;
         }
     }
 
@@ -218,14 +218,14 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
             }
 
             LocalScale = value / scale;
-            IsWorldMatrixChange = true;
+            IsBoundingBoxDirty = true;
         }
     }
 
     public Vector3 Forward => Vector3.Transform(Vector3.Forward, Orientation);
     public Vector3 Up => Vector3.Transform(Vector3.Up, Orientation);
 
-    public bool IsWorldMatrixChange { get; protected set; }
+    public bool IsBoundingBoxDirty { get; protected set; }
 
     public BoundingBox BoundingBox => GetBoundingBox();
 
@@ -299,7 +299,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
 
         if (_lastWorldMatrix != WorldMatrixWithScale)
         {
-            IsWorldMatrixChange = true;
+            IsBoundingBoxDirty = true;
         }
 
         _lastWorldMatrix = WorldMatrixWithScale;

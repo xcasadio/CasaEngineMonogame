@@ -59,38 +59,41 @@
             </TreeView.ItemTemplate>
         </common:TreeViewEx>
 
-        <Grid Grid.Row="2"
-            DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
-            <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding }"/>
-        </Grid>
+        <ContentControl Grid.Row="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Content="{Binding SelectedComponent, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}"
+                        DataContext="{Binding SelectedComponent, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
+            <ContentControl.ContentTemplateSelector>
+                <entityControls:EntityDetailTemplateSelector>
+                    <entityControls:EntityDetailTemplateSelector.EntityTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
 
-        <!--Expander Grid.Row="2"
-                  DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
-            <Expander.Header>
-                <Grid HorizontalAlignment="Stretch">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Script class name" />
+                                <TextBlock Grid.Column="1" Text="{Binding EntityViewModel.Entity.GameplayProxyClassName}" />
+                            </Grid>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.EntityTemplate>
+                    <entityControls:EntityDetailTemplateSelector.ComponenTemplate>
+                        <DataTemplate>
+                            <entityControls:EntityComponentControl DataContext="{Binding Component}"/>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.ComponenTemplate>
+                    <entityControls:EntityDetailTemplateSelector.EmptyTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="Any item selected" FontStyle="Italic" HorizontalAlignment="Center" >
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.GrayTextColorKey}}"/>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.EmptyTemplate>
+                </entityControls:EntityDetailTemplateSelector>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
 
-                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}" HorizontalAlignment="Stretch"/>
-                    <Button Grid.Column="1" Click="ButtonDeleteComponentOnClick" 
-                            DataContext="{Binding SelectedComponent.Component, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
-                        <StackPanel Orientation="Horizontal">
-                            <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
-                            <Label Content="Delete" Padding="0"/>
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </Expander.Header>
-
-            <Grid HorizontalAlignment="Stretch">
-                <entityControls:EntityComponentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" DataContext="{Binding }"/>
-            </Grid>
-
-            <b:Interaction.Behaviors>
-                <entityControls:StretchingExpanderHeaderBehavior />
-            </b:Interaction.Behaviors>
-        </Expander-->
     </Grid>
 </UserControl>

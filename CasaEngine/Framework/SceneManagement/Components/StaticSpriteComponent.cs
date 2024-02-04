@@ -136,7 +136,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
-        IsWorldMatrixChange = true;
+        IsBoundingBoxDirty = true;
     }
 
     private void AddCollisions()

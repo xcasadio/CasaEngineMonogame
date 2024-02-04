@@ -257,7 +257,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     private void OnFrameChanged(object? sender, (Guid oldFrame, Guid newFrame) arg)
     {
-        IsWorldMatrixChange = true;
+        IsBoundingBoxDirty = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
         AddOrUdpateCollisionFromFrame(arg.newFrame, true);
 

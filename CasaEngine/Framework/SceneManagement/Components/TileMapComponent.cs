@@ -137,6 +137,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                 }
             }
         }
+
+        IsBoundingBoxDirty = true;
     }
 
     public override TileMapComponent Clone()

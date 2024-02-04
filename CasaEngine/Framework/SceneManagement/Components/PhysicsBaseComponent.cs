@@ -153,10 +153,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         //do nothing with _collisionObject
 
-        if (_rigidBody != null)
-        {
-            _rigidBody.ApplyImpulse(impulse, relativePosition);
-        }
+        _rigidBody?.ApplyImpulse(impulse, relativePosition);
     }
 
     public override void Load(JsonElement element)
