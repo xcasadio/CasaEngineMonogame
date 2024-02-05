@@ -1,21 +1,19 @@
 {
   "animation_type": "Loop",
-  "asset": {
-    "id": 2204,
-    "name": "rock"
-  },
+  "id": "4012f9d1-91cc-443f-99c0-fe95eb4c103c",
+  "name": "rock",
   "frames": [
     {
       "duration": 0.16,
-      "sprite_id": 1018
+      "sprite_id": "8436370b-3855-4a77-b4f0-fc37dff73075"
     },
     {
       "duration": 0.16,
-      "sprite_id": 1019
+      "sprite_id": "00072f51-4a84-4cb5-98fa-1181b6dfc623"
     },
     {
       "duration": 0.16,
-      "sprite_id": 1020
+      "sprite_id": "5a60f123-84f2-4d42-af1c-25bf3158953d"
     }
   ]
 }

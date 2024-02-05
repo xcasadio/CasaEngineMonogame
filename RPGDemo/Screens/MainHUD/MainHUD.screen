@@ -1,32 +1,9 @@
 {
-    "id": 11999,
-    "name": "MainHUD",
-  "version": 1,
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "scale": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
-  },
-  "root_component" : "null",
+  "id": "a4fd6c70-790e-4d51-b0e7-48515946495e",
+  "name": "MainHUD",
+  "root_component": "null",
   "components": [],
+  "script_class_name": null,
   "external_component": "null",
   "controls": [
     {
@@ -56,15 +33,15 @@
       "double_clicks": true,
       "enabled": true,
       "height": 64,
-      "left": 12,
-      "left_screen_ratio": 0.014616322,
+      "left": 11,
+      "left_screen_ratio": 0.01375,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 497,
       "maximum_width": 678,
       "minimum_height": 0,
       "minimum_width": 0,
@@ -82,7 +59,7 @@
       "passive": false,
       "resizable": true,
       "resize_edge": "All",
-      "resizer_size": 2,
+      "resizer_size": 4,
       "stay_on_back": false,
       "stay_on_top": false,
       "suspended": false,
@@ -93,11 +70,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 553,
+      "top": 420,
       "top_screen_ratio": 0.875,
       "visible": true,
       "width": 64,
-      "sprite_id": 11715,
+      "sprite_id": "bbf98f23-84a4-439f-8036-d71f9297e2c9",
       "size_mode": "Normal"
     },
     {
@@ -127,15 +104,15 @@
       "double_clicks": true,
       "enabled": true,
       "height": 16,
-      "left": 80,
-      "left_screen_ratio": 0.09744214,
+      "left": 77,
+      "left_screen_ratio": 0.09625,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 497,
       "maximum_width": 678,
       "minimum_height": 8,
       "minimum_width": 32,
@@ -153,7 +130,7 @@
       "passive": true,
       "resizable": true,
       "resize_edge": "All",
-      "resizer_size": 2,
+      "resizer_size": 4,
       "stay_on_back": false,
       "stay_on_top": false,
       "suspended": false,
@@ -164,7 +141,7 @@
         "b": 255,
         "a": 0
       },
-      "top": 553,
+      "top": 420,
       "top_screen_ratio": 0.875,
       "visible": true,
       "width": 128

@@ -1,9 +1,7 @@
 {
-  "asset": {
-    "id": 172,
-    "name": "sword_34"
-  },
-  "sprite_sheet_asset_id": 10005,
+  "id": "cf914995-9ef7-4ae7-aa93-737bbe03d684",
+  "name": "sword_34",
+  "sprite_sheet_asset_id": "fa0e0a74-2899-488d-a042-9c8ccdae574d",
   "location": {
     "x": 96,
     "y": 0,
@@ -17,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 17.0,
@@ -29,7 +26,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 9.0,
@@ -41,7 +37,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 1.0,

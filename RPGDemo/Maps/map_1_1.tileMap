@@ -1,14 +1,11 @@
 {
-  "asset": {
-    "id": 4000,
-    "name": "map_1_1",
-    "file_name": "Maps\\map_1_1.tileMap"
-  },
+  "id": "dcc80fbc-dc0b-4991-84ed-eb738f2f64b1",
+  "name": "map_1_1",
   "map_size": {
     "w": 30,
     "h": 11
   },
-  "tile_set_asset_id": 4001,
+  "tile_set_asset_id": "6fe30205-f939-46a4-b070-3a4c1fa1724e",
   "layers": [
     {
       "z_offset": 0.0,

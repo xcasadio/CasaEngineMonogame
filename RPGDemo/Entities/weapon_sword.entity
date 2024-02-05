@@ -1,59 +1,51 @@
 {
-  "id": 10272,
+  "id": "06abd08c-aa1e-42d8-8cb5-91ee6f72dcaf",
   "name": "weapon_sword",
-  "version": 1,
-  "script_class_name" : "ScriptPlayerWeapon",
-  "root_component": 
-    {
-      "version": 1,
-      "type": 6,
-      "id": "00000000-0000-0000-0000-000000000000",
-      "name": "AnimatedSpriteComponent",
-	  "coordinates": {
-		"position": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"center_of_rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"scale": {
-		  "x": 1.0,
-		  "y": 1.0,
-		  "z": 1.0
-		},
-		"rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0,
-		  "w": 1.0
-		}
-	  },
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
+  "root_component": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
       },
-      "sprite_effect": "None",
-      "animations": [
-        204,
-        205,
-        206,
-        207,
-        208,
-        209,
-        210,
-        211,
-        212,
-        213,
-        214,
-        215
-      ],
-	  "children_component" : []
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
     },
-  "components": []
+    "children_component": [],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "e6ce14f5-09f6-4b90-bea9-2fbb71a12b49",
+      "648cc62f-1f57-4e63-8aa6-0825a4aa8329",
+      "d4757f6c-d9c4-4d3b-b825-fa956146477d",
+      "248c1455-f096-4f28-bddb-762783b79e56",
+      "c571ac24-c40d-48ae-bd1e-a303fa1c3bb2",
+      "e9b27fda-d65b-4cf6-85ad-858ea196a29d",
+      "213ecbb2-22c4-48c2-a78e-07a2e41b1ec5",
+      "cf8fbdd1-43b5-40f3-9039-a59ac90ce240",
+      "161cc75c-e376-43ee-a8c8-486c0f8cd06f",
+      "b724e267-f55d-4bfa-97bf-54cafdb83ad2",
+      "9b7bb805-93f2-4b0f-b4e1-99d99fb43394",
+      "4350e607-b348-441a-9c04-e2da57e797ba"
+    ]
+  },
+  "components": [],
+  "script_class_name": "ScriptPlayerWeapon"
 }

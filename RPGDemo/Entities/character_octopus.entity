@@ -1,132 +1,109 @@
 {
-    "id": 10066,
-    "name": "character_octopus",
-  "version": 1,
-  "script_class_name" : "ScriptEnemy",
+  "id": "f2df15bc-46fa-4224-b74d-b25154a362b5",
+  "name": "character_octopus",
   "root_component": {
-      "version": 1,
-      "type": 6,
-          "id": "00000000-0000-0000-0000-000000000000",
-          "name": "AnimatedSpriteComponent",
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
     },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
+    "children_component": [
+      {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "CircleCollisionComponent",
+        "type": "CircleCollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 12.0,
+            "y": 12.0,
+            "z": 12.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "additional_angular_damping_factor": 0.01,
+          "additional_angular_damping_threshold_sqr": 0.01,
+          "additional_damping": false,
+          "additional_damping_factor": 0.005,
+          "additional_linear_damping_threshold_sqr": 0.01,
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "angular_sleeping_threshold": 0.0,
+          "friction": 0.0,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "linear_sleeping_threshold": 0.0,
+          "local_inertia": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "rolling_friction": 0.0,
+          "apply_gravity": false,
+          "debug_color": "null"
+        }
+      }
+    ],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
     },
-    "scale": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
+    "sprite_effect": "None",
+    "animations": [
+      "af823e33-44e2-4e1e-a5db-afb4619a3423",
+      "7a06f86f-9cd0-43dc-be3e-2b206e0030a2",
+      "b1e9846d-61f2-4d3c-8343-ed65dcae10f3",
+      "9019d09d-511d-4c42-9e54-d5d4fae55540",
+      "37250d0f-0563-4f18-86c4-2ad16af8805d",
+      "7cc1a5b3-6b1a-4e46-b024-d5359caff7c5",
+      "642172bb-3db7-4f34-a8b4-b838b852bee6",
+      "e2ca2175-9088-4355-95a6-9487049c9c65",
+      "c8fd5246-6824-4ed1-bd3c-377a91d1ac92",
+      "449d43e5-163c-4eda-a0ed-b962ea2609d4",
+      "267bf064-a5dd-4287-b8b2-f4a455c436f2",
+      "862544e6-81d4-4ad2-bbb8-25d5a67c9aa8"
+    ]
   },
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
-      },
-      "sprite_effect": "None",
-      "animations": [
-        216,
-        217,
-        218,
-        219,
-        220,
-        221,
-        222,
-        223,
-        224,
-        225,
-        226,
-        227
-      ],
-	  "children_component" : [
-		{
-          "id": "00000000-0000-0000-0000-000000000000",
-          "name": "CircleCollisionComponent",
-      "version": 1,
-      "type": 4,
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "scale": {
-      "x": 25.0,
-      "y": 25.0,
-      "z": 25.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
-  },
-      "physics_definition": {
-        "physics_type": "Dynamic",
-        "additional_angular_damping_factor": 0.01,
-        "additional_angular_damping_threshold_sqr": 0.01,
-        "additional_damping": false,
-        "additional_damping_factor": 0.005,
-        "additional_linear_damping_threshold_sqr": 0.01,
-        "angular_damping": 0.0,
-        "angular_factor": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "angular_sleeping_threshold": 0.0,
-        "friction": 0.0,
-        "linear_damping": 0.0,
-        "linear_factor": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 0.0
-        },
-        "linear_sleeping_threshold": 0.0,
-        "local_inertia": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
-        "mass": 10.0,
-        "restitution": 0.0,
-        "rolling_friction": 0.0,
-        "apply_gravity": false,
-        "debug_color": "null"
-      },
-      "shape": {
-        "version": 1,
-        "shape_type": "Circle",
-        "location": {
-          "x": 0.0,
-          "y": 0.0
-        },
-        "orientation": 0.0,
-        "radius": 25.0
-      },
-	  "children_component" : []
-    }
-	  ]
-    },
-  "components": [ ]
+  "components": [],
+  "script_class_name": "ScriptEnemy"
 }

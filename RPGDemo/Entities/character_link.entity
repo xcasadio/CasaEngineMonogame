@@ -1,157 +1,134 @@
 {
-    "id": 10065,
-    "name": "character_link",
-	"script_class_name" : "ScriptPlayer",
-  "version": 1,
+  "id": "7f24e1d7-8026-4492-8633-88a4197eb00e",
+  "name": "character_link",
   "root_component": {
-      "version": 1,
-      "type": 6,
-      "id": "00000000-0000-0000-0000-000000000000",
-      "name": "AnimatedSpriteComponent",
-	  "coordinates": {
-	  	"position": {
-	  	"x": 0.0,
-	  	"y": 0.0,
-	  	"z": 0.0
-	  	},
-	  	"center_of_rotation": {
-	  	"x": 0.0,
-	  	"y": 0.0,
-	  	"z": 0.0
-	  	},
-	  	"scale": {
-	  	"x": 1.0,
-	  	"y": 1.0,
-	  	"z": 1.0
-	  	},
-	  	"rotation": {
-	  	"x": 0.0,
-	  	"y": 0.0,
-	  	"z": 0.0,
-	  	"w": 1.0
-	  	}
-	  },
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
       },
-      "sprite_effect": "None",
-      "animations": [
-        228,
-        229,
-        230,
-        231,
-        232,
-        233,
-        234,
-        235,
-        236,
-        237,
-        238,
-        239,
-        240,
-        241,
-        242,
-        243,
-        244,
-        245,
-        246,
-        247,
-        248,
-        249,
-        250,
-        251,
-        252,
-        253,
-        254,
-        255,
-        256,
-        257,
-        258,
-        259,
-        260,
-        261,
-        262,
-        263,
-        264
-      ],
-		"children_component" : [
-			{
-			  "version": 1,
-			  "type": 4,
-			  "id": "00000000-0000-0000-0000-000000000000",
-			  "name": "CircleCollisionComponent",
-			  "coordinates": {
-			    "position": {
-			  	"x": 0.0,
-			  	"y": 0.0,
-			  	"z": 0.0
-			    },
-			    "center_of_rotation": {
-			  	"x": 0.0,
-			  	"y": 0.0,
-			  	"z": 0.0
-			    },
-			    "scale": {
-			  	"x": 1.0,
-			  	"y": 1.0,
-			  	"z": 1.0
-			    },
-			    "rotation": {
-			  	"x": 0.0,
-			  	"y": 0.0,
-			  	"z": 0.0,
-			  	"w": 1.0
-			    }
-			  },
-			  "physics_definition": {
-				"physics_type": "Dynamic",
-				"additional_angular_damping_factor": 0.01,
-				"additional_angular_damping_threshold_sqr": 0.01,
-				"additional_damping": false,
-				"additional_damping_factor": 0.005,
-				"additional_linear_damping_threshold_sqr": 0.01,
-				"angular_damping": 0.0,
-				"angular_factor": {
-				  "x": 0.0,
-				  "y": 0.0,
-				  "z": 0.0
-				},
-				"angular_sleeping_threshold": 0.0,
-				"friction": 0.0,
-				"linear_damping": 0.0,
-				"linear_factor": {
-				  "x": 1.0,
-				  "y": 1.0,
-				  "z": 0.0
-				},
-				"linear_sleeping_threshold": 0.0,
-				"local_inertia": {
-				  "x": 0.0,
-				  "y": 0.0,
-				  "z": 0.0
-				},
-				"mass": 10.0,
-				"restitution": 0.0,
-				"rolling_friction": 0.0,
-				"apply_gravity": false,
-				"debug_color": "null"
-			  },
-			  "shape": {
-				"version": 1,
-				"shape_type": "Circle",
-				"location": {
-				  "x": 0.0,
-				  "y": 0.0
-				},
-				"orientation": 0.0,
-				"radius": 25.0
-			  },
-			  "children_component" : []
-			}
-		]
-	},
-  "components": [ ]
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [
+      {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "CircleCollisionComponent",
+        "type": "CircleCollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 12.0,
+            "y": 12.0,
+            "z": 12.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "additional_angular_damping_factor": 0.01,
+          "additional_angular_damping_threshold_sqr": 0.01,
+          "additional_damping": false,
+          "additional_damping_factor": 0.005,
+          "additional_linear_damping_threshold_sqr": 0.01,
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "angular_sleeping_threshold": 0.0,
+          "friction": 0.0,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "linear_sleeping_threshold": 0.0,
+          "local_inertia": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "rolling_friction": 0.0,
+          "apply_gravity": false,
+          "debug_color": "null"
+        }
+      }
+    ],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "2d3a5cd8-53df-448d-a82a-ed658b1f1df4",
+      "787ea5ce-1648-4832-91a0-cf307cd6a026",
+      "e6c66bac-e16f-4597-93fe-eb3097e632fa",
+      "57e8c532-1277-4080-8d64-cd9b435d8397",
+      "b0e55546-067f-4d86-94de-c510c82ead32",
+      "9d670b8e-de13-4aed-afb8-912afff47920",
+      "a19ce676-8446-4c9f-909c-8c42b3a9654a",
+      "cfbc8e1a-f915-4f93-99a7-482917f7328e",
+      "1e678f3f-2611-4094-89e0-8e72c83d8c1e",
+      "5d675051-9059-48d9-8186-ec3841957d4c",
+      "7c3ac57e-8185-4e0e-ac25-a0cd74c38144",
+      "d0486e3a-6e5e-4de5-8524-e5f52f3775b4",
+      "b36a7100-d2f7-495d-b9b2-0af5965ab22c",
+      "38de56eb-7ad6-428e-bcf2-cf5883bf94f5",
+      "3437f00c-9650-43de-988b-cb556003c583",
+      "55669c68-5d22-48fc-b8cb-cedfd28542a1",
+      "cd6689b2-46eb-48f6-b54c-d47dc4a5dad1",
+      "13e85a3e-f268-460e-a605-b7a6816611ca",
+      "12ef4470-7d46-45e3-9db9-218f2acb93d8",
+      "f4c70c1f-a9bf-4ca8-8836-2a88defae211",
+      "2dd094c0-969a-4c5d-a634-29799830e81f",
+      "aaf39dd7-9d4a-42ca-9d69-f7d505843ffd",
+      "6f3169fd-3fe9-4330-9c0d-84a85b24144e",
+      "1efd32bf-be62-4c28-bb5a-e0a12ca193ed",
+      "0203781b-d46e-481f-9b43-8a98152d29db",
+      "a1a5586f-a3d5-4793-9f59-04f2b4c4f12f",
+      "de902e95-f5b3-46d6-b838-803a7ce2d050",
+      "5642a248-6da0-4cad-a3e0-ee81194d6086",
+      "3a237c3d-13fc-4f7b-8ebe-c088fc4f6189",
+      "7fdb71e5-c707-4530-a531-0293c54cadbc",
+      "74f32720-b78d-4c3e-b662-ff39cae8460b",
+      "0fc7e703-8588-42bf-ab86-4127e3a77585",
+      "ea0c1a6b-988f-4054-a0b2-493435c55a3d",
+      "784f72a8-40ad-4792-8e6f-eea0d028c287",
+      "586f9857-2af8-4dca-a07e-783177ecefdc",
+      "2f54da59-9065-4b49-8f3c-d7424cb175b7",
+      "1fafefb5-d780-46dd-ac83-4bd4ac82dd4b"
+    ]
+  },
+  "components": [],
+  "script_class_name": "ScriptPlayer"
 }

@@ -1,9 +1,7 @@
 {
-  "asset": {
-    "id": 170,
-    "name": "sword_32"
-  },
-  "sprite_sheet_asset_id": 10005,
+  "id": "b202b4bd-393e-45d7-80db-e7b0a1bd1cd2",
+  "name": "sword_32",
+  "sprite_sheet_asset_id": "fa0e0a74-2899-488d-a042-9c8ccdae574d",
   "location": {
     "x": 133,
     "y": 0,
@@ -17,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 15.0,
@@ -29,7 +26,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 7.0,
@@ -41,7 +37,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 0.0,
