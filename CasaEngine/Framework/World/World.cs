@@ -461,6 +461,8 @@ public sealed class World : UObject
             entitiesJArray.Add(entityObject);
         }
 
+        jObject.Add("entity_references", entitiesJArray);
+
         jObject.Add("script_class_name", GameplayProxyClassName);
     }
 
