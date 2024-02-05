@@ -79,6 +79,7 @@ public abstract class CameraComponent : SceneComponent
 
     protected abstract void ComputeProjectionMatrix();
     protected abstract void ComputeViewMatrix();
+    public abstract void SetPositionAndTarget(Vector3 position, Vector3 target);
 
     public override void OnScreenResized(int width, int height)
     {

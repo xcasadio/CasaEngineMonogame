@@ -78,7 +78,7 @@ public class ArcBallCameraComponent : Camera3dComponent
             return right;
         }
     }
-
+    /*
     public Vector3 Up
     {
         get
@@ -98,7 +98,7 @@ public class ArcBallCameraComponent : Camera3dComponent
             up.Z = 2.0f * (orientation.Y * orientation.Z + orientation.X * orientation.W);
             return up;
         }
-    }
+    }*/
 
     public Vector3 Target
     {
@@ -158,14 +158,17 @@ public class ArcBallCameraComponent : Camera3dComponent
         _viewMatrix = Matrix.CreateLookAt(position, _target, Up);
     }
 
+    public override void SetPositionAndTarget(Vector3 position, Vector3 target)
+    {
+        SetCamera(position, target, Up);
+    }
+
     /// <summary>
     /// Orbit directly upwards in Free camera or on
     /// the longitude line when roll constrained
     /// </summary>
     public void OrbitUp(float angle)
     {
-        _needToComputeViewMatrix = true;
-
         //update the yaw
         _pitch -= angle;
 
@@ -216,8 +219,6 @@ public class ArcBallCameraComponent : Camera3dComponent
 
     public void RotateTargetUp(float angle)
     {
-        _needToComputeViewMatrix = true;
-
         var rot = Quaternion.CreateFromAxisAngle(Right, angle);
         var dir = Direction * _distance;
         Vector3.Transform(ref dir, ref rot, out var vec);
@@ -228,8 +229,6 @@ public class ArcBallCameraComponent : Camera3dComponent
 
     public void RotateTargetRight(float angle)
     {
-        _needToComputeViewMatrix = true;
-
         var rot = Quaternion.CreateFromAxisAngle(Up, angle);
         var dir = Direction * _distance;
         Vector3.Transform(ref dir, ref rot, out var vec);

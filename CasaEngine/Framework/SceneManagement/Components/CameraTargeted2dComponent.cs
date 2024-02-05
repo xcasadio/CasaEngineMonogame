@@ -8,22 +8,11 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 [DisplayName("Camera Target 2d")]
 public class CameraTargeted2dComponent : Camera3dComponent
 {
-    private Vector3 _up = Vector3.Up;
     private Vector3 _target;
     Vector3 _offset;
 
     public Vector2 DeadZoneRatio { get; set; } = Vector2.One;
     public Rectangle Limits { get; set; }
-
-    public Vector3 Up
-    {
-        get => _up;
-        set
-        {
-            _needToComputeViewMatrix = true;
-            _up = value;
-        }
-    }
 
     public AActor? Target { get; set; }
 
@@ -34,7 +23,6 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
     public CameraTargeted2dComponent(CameraTargeted2dComponent other) : base(other)
     {
-        Up = other._up;
         Target = other.Target;
         _offset = other._offset;
     }
@@ -116,5 +104,10 @@ public class CameraTargeted2dComponent : Camera3dComponent
 
         _target = new(-_offset.X, -_offset.Y, 0.0f);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up); //Vector3 up = -Vector3::UnitY();
+    }
+
+    public override void SetPositionAndTarget(Vector3 position, Vector3 target)
+    {
+        //Do nothing
     }
 }

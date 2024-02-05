@@ -7,7 +7,6 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 [DisplayName("Camera 3d in 2d axis")]
 public class Camera3dIn2dAxisComponent : Camera3dComponent
 {
-    private Vector3 _up = Vector3.Up;
     private Vector3 _target;
 
     public Vector3 Target
@@ -20,16 +19,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         }
     }
 
-    public Vector3 Up
-    {
-        get => _up;
-        set
-        {
-            _needToComputeViewMatrix = true;
-            _up = value;
-        }
-    }
-
     public Camera3dIn2dAxisComponent()
     {
 
@@ -37,7 +26,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
 
     public Camera3dIn2dAxisComponent(Camera3dIn2dAxisComponent other) : base(other)
     {
-        _up = other._up;
         _target = other._target;
     }
 
@@ -52,6 +40,16 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
         float z = (Owner.World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
         Position = new(_target.X, _target.Y, _target.Z + z);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
+
+        var direction = Target - Position;
+        direction.Normalize();
+        Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, Vector3.Dot(Vector3.UnitX, direction));
+        IsBoundingBoxDirty = true;
+    }
+
+    public override void SetPositionAndTarget(Vector3 position, Vector3 target)
+    {
+        Target = target;
     }
 
     public override void OnScreenResized(int width, int height)

@@ -6,19 +6,8 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 [DisplayName("LookAt Camera")]
 public class CameraLookAtComponent : Camera3dComponent
 {
-    private Vector3 _up = Vector3.Up;
     private Vector3 _target;
     private Vector3 _lastPosition;
-
-    public Vector3 Up
-    {
-        get => _up;
-        set
-        {
-            _needToComputeViewMatrix = true;
-            _up = value;
-        }
-    }
 
     public Vector3 Target
     {
@@ -36,7 +25,6 @@ public class CameraLookAtComponent : Camera3dComponent
 
     public CameraLookAtComponent(CameraLookAtComponent other) : base(other)
     {
-        other._up = _up;
         other._target = _target;
         other._lastPosition = _lastPosition;
     }
@@ -66,5 +54,11 @@ public class CameraLookAtComponent : Camera3dComponent
     protected override void ComputeViewMatrix()
     {
         _viewMatrix = Matrix.CreateLookAt(Position, Target, Up);
+    }
+
+    public override void SetPositionAndTarget(Vector3 position, Vector3 target)
+    {
+        Position = position;
+        Target = target;
     }
 }

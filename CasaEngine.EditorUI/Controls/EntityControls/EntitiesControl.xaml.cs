@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Helpers;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Game;
@@ -195,9 +196,14 @@ public partial class EntitiesControl : UserControl
 
     private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is TreeViewItem treeViewItem)
+        if (TreeViewEntities.SelectedValue is EntityViewModel entityViewModel
+            && entityViewModel.Entity?.RootComponent != null)
         {
             //TODO : Camera in front of the Object
+            var sceneComponent = entityViewModel.Entity.RootComponent;
+            var boundingBox = sceneComponent.BoundingBox;
+            var offset = sceneComponent.Forward * boundingBox.GetRadius();
+            Game.GameManager.ActiveCamera.SetPositionAndTarget(sceneComponent.Position + offset, sceneComponent.Position);
         }
     }
 }
