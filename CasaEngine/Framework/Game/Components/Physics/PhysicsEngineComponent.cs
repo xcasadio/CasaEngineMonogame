@@ -178,7 +178,7 @@ public class PhysicsEngineComponent : GameComponent
                 break;
             case Shape2dType.Circle:
                 var circle = (shape as ShapeCircle);
-                collisionShape = new SphereShape(circle.Radius / 2f);
+                collisionShape = new SphereShape(circle.Radius);
                 break;
             //case Shape2dType.Polygone:
             //    var polygone = (shape as ShapePolygone);

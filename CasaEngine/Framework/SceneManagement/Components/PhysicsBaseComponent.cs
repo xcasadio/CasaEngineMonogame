@@ -47,6 +47,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         if (IsBoundingBoxDirty)
         {
             ComputeBoundingBox();
+            IsBoundingBoxDirty = false;
         }
 
         return _boundingBox;

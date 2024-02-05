@@ -21,7 +21,6 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
 
     public Camera3dIn2dAxisComponent()
     {
-
     }
 
     public Camera3dIn2dAxisComponent(Camera3dIn2dAxisComponent other) : base(other)

@@ -66,8 +66,8 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
 
         if (Owner != null)
         {
-            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixNoScale);
-            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixNoScale);
+            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
+            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
             _boundingBox = new BoundingBox(min, max);
         }
     }
