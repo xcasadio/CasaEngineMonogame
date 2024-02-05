@@ -50,7 +50,7 @@ public class EntityReference : ISerializable
 
         if (entityReference.Entity.RootComponent != null)
         {
-            entityReference.Entity.RootComponent.Coordinates.CopyFrom(entityReference.InitialCoordinates);
+            entityReference.Entity.RootComponent.CopyCoordinatesFrom(entityReference.InitialCoordinates);
         }
 
         return entityReference;

@@ -13,6 +13,7 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 public abstract class PhysicsBaseComponent : SceneComponent, ICollideableComponent
 {
     protected PhysicsEngineComponent? PhysicsEngineComponent;
+    protected BoundingBox _boundingBox;
     private bool _lock;
 
     //dynamic object
@@ -41,6 +42,16 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         }
     }
 
+    public override BoundingBox GetBoundingBox()
+    {
+        if (IsBoundingBoxDirty)
+        {
+            ComputeBoundingBox();
+        }
+
+        return _boundingBox;
+    }
+
     protected PhysicsBaseComponent()
     {
         PhysicsDefinition = new();
@@ -55,6 +66,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         _maxTurnRate = other._maxTurnRate;
         PhysicsDefinition = new(other.PhysicsDefinition);
     }
+
+    protected abstract void ComputeBoundingBox();
 
     protected override void InitializePrivate()
     {
@@ -203,26 +216,30 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = WorldMatrixWithScale;
+            _collisionObject.WorldTransform = WorldMatrixNoScale;
         }
 
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = WorldMatrixWithScale;
+            _rigidBody.WorldTransform = WorldMatrixNoScale;
         }
+
+        IsBoundingBoxDirty = true;
     }
 
     private void OnOrientationChanged(object? sender, EventArgs e)
     {
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = WorldMatrixWithScale;
+            _collisionObject.WorldTransform = WorldMatrixNoScale;
         }
 
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = WorldMatrixWithScale;
+            _rigidBody.WorldTransform = WorldMatrixNoScale;
         }
+
+        IsBoundingBoxDirty = true;
     }
 #endif
 }

@@ -24,6 +24,6 @@ public static class EntityLoader
         var entity = assetContentManager.Load<AActor>(entityReference.AssetId).Clone();
         entityReference.Entity = entity;
         entity.Name = entityReference.Name;
-        entity.RootComponent?.Coordinates.CopyFrom(entityReference.InitialCoordinates);
+        entity.RootComponent?.CopyCoordinatesFrom(entityReference.InitialCoordinates);
     }
 }

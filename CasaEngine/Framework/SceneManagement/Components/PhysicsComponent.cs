@@ -83,19 +83,14 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
         }
     }
 
-    public override BoundingBox GetBoundingBox()
-    {
-        return _boundingBox;
-    }
-
-    private void ComputeBoundingBox()
+    protected override void ComputeBoundingBox()
     {
         _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
 
         if (Owner != null)
         {
-            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
-            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
+            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixNoScale);
+            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixNoScale);
             _boundingBox = new BoundingBox(min, max);
         }
     }

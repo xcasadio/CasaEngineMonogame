@@ -266,8 +266,6 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
     {
         base.InitializePrivate();
 
-        _lastWorldMatrix = WorldMatrixWithScale;
-
         for (int i = 0; i < Children.Count; i++)
         {
             Children[i].InitializePrivate();
@@ -282,6 +280,9 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         {
             Children[i].InitializeWithWorld(world);
         }
+
+        _lastWorldMatrix = WorldMatrixWithScale;
+        IsBoundingBoxDirty = true;
     }
 
     public override void OnEnabledValueChange()
@@ -339,6 +340,12 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         component.Parent = null;
         Children.Remove(component);
         component.Detach();
+    }
+
+    public void CopyCoordinatesFrom(Coordinates otherCoordinates)
+    {
+        Coordinates.CopyFrom(otherCoordinates);
+        IsBoundingBoxDirty = true;
     }
 
     public override void Load(JsonElement element)

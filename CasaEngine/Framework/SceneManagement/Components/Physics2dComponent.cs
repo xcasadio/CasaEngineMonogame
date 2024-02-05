@@ -11,7 +11,6 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 public abstract class Physics2dComponent : PhysicsBaseComponent
 {
     private Shape2d? _shape;
-    private BoundingBox _boundingBox;
 
     protected Shape2d? Shape
     {
@@ -45,17 +44,12 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
             return;
         }
 
-        //_shape.Position = Position.ToVector2();
-        //_shape.Orientation = Owner.Coordinates.Orientation;
-
         var worldMatrix = WorldMatrixNoScale;
-        //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)
         {
             case PhysicsType.Static:
-                _collisionObject =
-                    PhysicsEngineComponent.AddStaticObject(_shape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
+                _collisionObject = PhysicsEngineComponent.AddStaticObject(_shape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
                 _collisionObject = PhysicsEngineComponent.AddGhostObject(_shape, LocalScale, ref worldMatrix, this);
@@ -66,19 +60,14 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public override BoundingBox GetBoundingBox()
-    {
-        return _boundingBox;
-    }
-
-    private void ComputeBoundingBox()
+    protected override void ComputeBoundingBox()
     {
         _boundingBox = _shape?.BoundingBox ?? new BoundingBox();
 
         if (Owner != null)
         {
-            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
-            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
+            var min = Vector3.Transform(_boundingBox.Min, WorldMatrixNoScale);
+            var max = Vector3.Transform(_boundingBox.Max, WorldMatrixNoScale);
             _boundingBox = new BoundingBox(min, max);
         }
     }
