@@ -15,8 +15,8 @@ public abstract class GameEditor2d : GameEditor
     protected AActor _entity;
     private InputComponent? _inputComponent;
     private Point _lastMousePosition;
-    private Camera3dIn2dAxisComponent _cameraComponent;
     protected AActor CameraEntity { get; private set; }
+    protected Camera3dIn2dAxisComponent CameraComponent { get; private set; }
 
     public float Scale
     {
@@ -33,7 +33,6 @@ public abstract class GameEditor2d : GameEditor
     }
 
     protected abstract void CreateEntityComponents(AActor entity);
-
 
     protected override void LoadContent()
     {
@@ -69,10 +68,10 @@ public abstract class GameEditor2d : GameEditor
         var screenYBy2 = Game.ScreenSizeHeight / 2f;
 
         CameraEntity = cameraEntity;
-        _cameraComponent = new Camera3dIn2dAxisComponent();
-        _cameraComponent.Target = new Vector3(screenXBy2, screenYBy2, 0f);
+        CameraComponent = new Camera3dIn2dAxisComponent();
+        CameraComponent.Target = new Vector3(screenXBy2, screenYBy2, 0f);
 
-        return _cameraComponent;
+        return CameraComponent;
     }
 
     protected override void Update(GameTime gameTime)
@@ -86,7 +85,7 @@ public abstract class GameEditor2d : GameEditor
         else if (_inputComponent.MouseRightButtonPressed)
         {
             var delta = _lastMousePosition - _inputComponent.MousePos;
-            _cameraComponent.Target += new Vector3(delta.X, -delta.Y, 0f);
+            CameraComponent.Target += new Vector3(delta.X, -delta.Y, 0f);
             _lastMousePosition = _inputComponent.MousePos;
         }
 

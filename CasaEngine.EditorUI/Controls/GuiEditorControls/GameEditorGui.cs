@@ -5,7 +5,6 @@ using System.Windows.Input;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Control = TomShane.Neoforce.Controls.Control;
 using DataFormats = System.Windows.DataFormats;
@@ -16,7 +15,6 @@ namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 public class GameEditorGui : GameEditor2d
 {
     private ScreenGui _screenGui;
-    private Camera3dIn2dAxisComponent _camera;
     private bool _keyDeletePressed = false;
 
     public GameEditorGui() : base(true)
@@ -46,15 +44,17 @@ public class GameEditorGui : GameEditor2d
     {
         base.OnRenderSizeChanged(sizeInfo);
 
-        var screenXBy2 = (float)sizeInfo.NewSize.Width / 2f;
-        var screenYBy2 = (float)sizeInfo.NewSize.Height / 2f;
-        _camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+        if (CameraComponent != null)
+        {
+            var screenXBy2 = (float)sizeInfo.NewSize.Width / 2f;
+            var screenYBy2 = (float)sizeInfo.NewSize.Height / 2f;
+            CameraComponent.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+        }
     }
 
     protected override void CreateEntityComponents(AActor entity)
     {
         Game.UiManager.SetSkin();
-        _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
     }
 
     private void OnDrop(object sender, DragEventArgs e)

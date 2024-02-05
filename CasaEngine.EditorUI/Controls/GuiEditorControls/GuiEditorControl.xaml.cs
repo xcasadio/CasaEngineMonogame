@@ -1,7 +1,8 @@
-﻿using System.Windows.Input;
+﻿using CasaEngine.Core.Log;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
+using System.Windows.Input;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -68,7 +69,9 @@ public partial class GuiEditorControl : EditorControlBase
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        (DataContext as ScreenViewModel).Save();
+        var screenViewModel = DataContext as ScreenViewModel;
+        screenViewModel.Save();
+        Logs.WriteInfo($"Gui screen {screenViewModel.ScreenGui.Name} saved ({screenViewModel.ScreenGui.FileName})");
         e.Handled = true;
     }
 }
