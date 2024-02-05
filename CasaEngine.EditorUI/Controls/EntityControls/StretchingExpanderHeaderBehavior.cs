@@ -14,14 +14,10 @@ public class StretchingExpanderHeaderBehavior : Behavior<Expander>
 
     private void StretchHeader(object sender, RoutedEventArgs e)
     {
-        DependencyObject header = AssociatedObject.Header as DependencyObject;
-        if (header != null)
+        if (AssociatedObject.Header is DependencyObject header
+            && VisualTreeHelper.GetParent(header) is ContentPresenter contentPresenter)
         {
-            ContentPresenter contentPresenter = VisualTreeHelper.GetParent(header) as ContentPresenter;
-            if (contentPresenter != null)
-            {
-                contentPresenter.HorizontalAlignment = HorizontalAlignment.Stretch;
-            }
+            contentPresenter.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
     }
 }

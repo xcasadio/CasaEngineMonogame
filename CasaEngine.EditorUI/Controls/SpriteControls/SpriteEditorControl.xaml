@@ -3,15 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
+             xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              xmlns:spriteControls="clr-namespace:CasaEngine.EditorUI.Controls.SpriteControls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-
+             d:DesignHeight="200" d:DesignWidth="400">
     <controls:EditorControlBase.CommandBindings>
         <CommandBinding Command="{StaticResource Commands.Sprite.Save}" Executed="SaveCommand_Executed" />
     </controls:EditorControlBase.CommandBindings>
+
+    <controls:EditorControlBase.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.Sprite.Save}" />
+    </controls:EditorControlBase.InputBindings>
 
     <Grid>
         <xcad:DockingManager x:Name="dockingManagerSprite" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">

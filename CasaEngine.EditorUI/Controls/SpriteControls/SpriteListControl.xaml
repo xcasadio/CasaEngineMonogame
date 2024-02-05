@@ -5,6 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="200">
+    <UserControl.InputBindings>
+        <KeyBinding Key="Control+S" Command="{StaticResource Commands.Sprite.Save}" />
+    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -20,10 +23,10 @@
 
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical">
             <Button>
-                <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/add-icon.png" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Button>
             <Button>
-                <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/delete-icon.png " Height="16" Width="16"/>
             </Button>
         </StackPanel>
 

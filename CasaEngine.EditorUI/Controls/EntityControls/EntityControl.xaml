@@ -3,18 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
-             xmlns:components="clr-namespace:CasaEngine.Framework.SceneManagement.Components;assembly=CasaEngine"
              xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
-             xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
     <UserControl.Resources>
         <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
-                            ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}">
-        </ObjectDataProvider>
+                            ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}" />
 
         <entityControls:ScriptClassNameConverter x:Key="ExternalComponentConverter" />
     </UserControl.Resources>

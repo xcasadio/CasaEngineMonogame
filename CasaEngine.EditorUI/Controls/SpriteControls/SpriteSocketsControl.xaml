@@ -13,10 +13,10 @@
 
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
             <Button ToolTip="Add socket">
-                <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/add-icon.png" Height="16" Width="16"/>
             </Button>
             <Button ToolTip="Remove socket">
-                <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/delete-icon.png" Height="16" Width="16"/>
             </Button>
         </StackPanel>
 

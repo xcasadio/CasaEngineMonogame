@@ -137,10 +137,6 @@
 			<SubType>Code</SubType>
 		</Compile>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Controls\EntityControls\ComponentControls\" />
-	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />
 		<Exec Command="dotnet tool restore" />
