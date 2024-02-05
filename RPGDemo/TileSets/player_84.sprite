@@ -1,7 +1,9 @@
 {
-  "id": "864a544d-51f0-473e-bc3d-5df0d7a4a9e8",
-  "name": "player_84",
-  "sprite_sheet_asset_id": "ff666801-5d32-4dcc-90e1-3526d089e1b0",
+  "asset": {
+    "id": 127,
+    "name": "player_84"
+  },
+  "sprite_sheet_asset_id": 10007,
   "location": {
     "x": 192,
     "y": 384,

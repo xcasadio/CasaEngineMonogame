@@ -1,19 +1,21 @@
 {
   "animation_type": "Once",
-  "id": "7a06f86f-9cd0-43dc-be3e-2b206e0030a2",
-  "name": "octopus_attack_left",
+  "asset": {
+    "id": 217,
+    "name": "octopus_attack_left"
+  },
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": "21caa233-9aa3-47a7-90a5-ae20183092d4"
+      "sprite_id": 21
     },
     {
       "duration": 0.15,
-      "sprite_id": "66418d05-4d8c-4839-9c78-5eafec313b54"
+      "sprite_id": 23
     },
     {
       "duration": 0.15,
-      "sprite_id": "a61bd366-b37c-4fd1-8ad4-e83984f5346f"
+      "sprite_id": 18
     }
   ]
 }

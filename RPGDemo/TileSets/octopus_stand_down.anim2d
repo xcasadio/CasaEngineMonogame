@@ -1,15 +1,17 @@
 {
   "animation_type": "Loop",
-  "id": "37250d0f-0563-4f18-86c4-2ad16af8805d",
-  "name": "octopus_stand_down",
+  "asset": {
+    "id": 220,
+    "name": "octopus_stand_down"
+  },
   "frames": [
     {
       "duration": 1.0,
-      "sprite_id": "32fad330-8055-437f-8789-18453a449f42"
+      "sprite_id": 34
     },
     {
       "duration": 1.0,
-      "sprite_id": "6909c4f8-6a69-46fc-a86f-36be76fba23a"
+      "sprite_id": 35
     }
   ]
 }

@@ -1,15 +1,17 @@
 {
   "animation_type": "Loop",
-  "id": "0fc7e703-8588-42bf-ab86-4127e3a77585",
-  "name": "swordman_stand_right",
+  "asset": {
+    "id": 259,
+    "name": "swordman_stand_right"
+  },
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": "1e9448c8-15c5-4ddb-8a74-49448827bc47"
+      "sprite_id": 54
     },
     {
       "duration": 0.15,
-      "sprite_id": "69554d62-0d1d-45d2-baca-7a67ea639a8e"
+      "sprite_id": 55
     }
   ]
 }

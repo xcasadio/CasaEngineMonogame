@@ -1,7 +1,9 @@
 {
-  "id": "5a60f123-84f2-4d42-af1c-25bf3158953d",
-  "name": "rock_2",
-  "sprite_sheet_asset_id": "f05efab0-bc82-4582-823c-8821389e4a78",
+  "asset": {
+    "id": 1020,
+    "name": "rock_2"
+  },
+  "sprite_sheet_asset_id": 10003,
   "location": {
     "x": 167,
     "y": 32,

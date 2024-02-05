@@ -1,7 +1,9 @@
 {
-  "id": "34dca0f4-14a4-4296-89e8-2b1d1506af07",
-  "name": "octopus_19",
-  "sprite_sheet_asset_id": "f05efab0-bc82-4582-823c-8821389e4a78",
+  "asset": {
+    "id": 29,
+    "name": "octopus_19"
+  },
+  "sprite_sheet_asset_id": 10003,
   "location": {
     "x": 96,
     "y": 31,
@@ -15,6 +17,7 @@
   "collisions": [
     {
       "collision_type": "Defense",
+      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 2.0,

@@ -1,35 +1,37 @@
 {
   "animation_type": "Once",
-  "id": "248c1455-f096-4f28-bddb-762783b79e56",
-  "name": "baton_attack_up",
+  "asset": {
+    "id": 207,
+    "name": "baton_attack_up"
+  },
   "frames": [
     {
       "duration": 0.03,
-      "sprite_id": "734dc8ae-08ab-44f4-8681-f1ec09d91e91"
+      "sprite_id": 201
     },
     {
       "duration": 0.03,
-      "sprite_id": "371aaa55-b66c-41c3-8a78-f7409dfcde90"
+      "sprite_id": 202
     },
     {
       "duration": 0.03,
-      "sprite_id": "e5381af5-2072-4fce-a123-555f15c778ea"
+      "sprite_id": 203
     },
     {
       "duration": 0.03,
-      "sprite_id": "63bf3efb-9ec6-4450-9889-252819c9f2ea"
+      "sprite_id": 146
     },
     {
       "duration": 0.03,
-      "sprite_id": "87713ba7-d98f-4d1b-9525-3b7ac1461537"
+      "sprite_id": 147
     },
     {
       "duration": 0.03,
-      "sprite_id": "21c9c8cd-a8a2-4615-bd27-acdbdd350f07"
+      "sprite_id": 148
     },
     {
       "duration": 0.03,
-      "sprite_id": "e87a1ef8-f0c3-4307-a1bc-9711ebb833fd"
+      "sprite_id": 149
     }
   ]
 }

@@ -1,15 +1,17 @@
 {
   "animation_type": "Loop",
-  "id": "7cc1a5b3-6b1a-4e46-b024-d5359caff7c5",
-  "name": "octopus_stand_left",
+  "asset": {
+    "id": 221,
+    "name": "octopus_stand_left"
+  },
   "frames": [
     {
       "duration": 1.0,
-      "sprite_id": "21a6ba8c-e8a9-4a98-8425-f2cbd5650cfd"
+      "sprite_id": 32
     },
     {
       "duration": 1.0,
-      "sprite_id": "66f5822e-9dbd-4113-8d0d-489df401e6c9"
+      "sprite_id": 33
     }
   ]
 }

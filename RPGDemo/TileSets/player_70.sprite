@@ -1,7 +1,9 @@
 {
-  "id": "942e1cf2-7a76-4be2-b319-7afb2322c681",
-  "name": "player_70",
-  "sprite_sheet_asset_id": "ff666801-5d32-4dcc-90e1-3526d089e1b0",
+  "asset": {
+    "id": 112,
+    "name": "player_70"
+  },
+  "sprite_sheet_asset_id": 10007,
   "location": {
     "x": 336,
     "y": 144,
@@ -15,6 +17,7 @@
   "collisions": [
     {
       "collision_type": "Attack",
+      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 9.0,

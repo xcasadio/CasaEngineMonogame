@@ -1,15 +1,17 @@
 {
   "animation_type": "Loop",
-  "id": "862544e6-81d4-4ad2-bbb8-25d5a67c9aa8",
-  "name": "octopus_walk_up",
+  "asset": {
+    "id": 227,
+    "name": "octopus_walk_up"
+  },
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": "8301a7ec-554f-4714-bc04-bc5ab6e4783a"
+      "sprite_id": 30
     },
     {
       "duration": 0.15,
-      "sprite_id": "e3735d4b-15bc-4481-b70b-22fb7c426802"
+      "sprite_id": 31
     }
   ]
 }

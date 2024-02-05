@@ -1,23 +1,25 @@
 {
   "animation_type": "Once",
-  "id": "b0e55546-067f-4d86-94de-c510c82ead32",
-  "name": "swordman_attack3_down",
+  "asset": {
+    "id": 232,
+    "name": "swordman_attack3_down"
+  },
   "frames": [
     {
       "duration": 0.03,
-      "sprite_id": "c1bb58b0-a1b2-4215-a5e6-a4de83108d6f"
+      "sprite_id": 123
     },
     {
       "duration": 0.03,
-      "sprite_id": "f5593506-b979-4517-8b1f-596afc0e8093"
+      "sprite_id": 124
     },
     {
       "duration": 0.03,
-      "sprite_id": "d28da699-b93b-43e7-b704-f546b963bd3b"
+      "sprite_id": 125
     },
     {
       "duration": 0.03,
-      "sprite_id": "34333240-be53-4ae0-8d14-00a0b0dbe03c"
+      "sprite_id": 126
     }
   ]
 }

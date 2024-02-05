@@ -1,7 +1,9 @@
 {
-  "id": "c0f5ee04-647d-46a2-91a8-5e1cd974de56",
-  "name": "smoke_ring_4",
-  "sprite_sheet_asset_id": "8e3ee18f-ee43-4499-a23c-d12eb10eaba4",
+  "asset": {
+    "id": 10690,
+    "name": "smoke_ring_4"
+  },
+  "sprite_sheet_asset_id": 10479,
   "location": {
     "x": 164,
     "y": 0,
