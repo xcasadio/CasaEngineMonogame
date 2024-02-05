@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Assets;
@@ -15,7 +16,7 @@ public partial class GameEditorEntityControl : UserControl
         InitializeComponent();
     }
 
-    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
+    private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
         if (EntityControlViewModel == null)
         {

@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
@@ -81,6 +82,7 @@ public partial class SpriteListControl : UserControl
         if (SelectedItem is SpriteDataViewModel spriteDataViewModel)
         {
             AssetSaver.SaveAsset(spriteDataViewModel.SpriteData.FileName, spriteDataViewModel.SpriteData);
+            Logs.WriteInfo($"Sprite {spriteDataViewModel.SpriteData.Name} saved ({spriteDataViewModel.SpriteData.FileName})");
         }
     }
 }

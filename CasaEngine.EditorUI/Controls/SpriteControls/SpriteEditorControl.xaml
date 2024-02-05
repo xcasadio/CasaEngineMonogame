@@ -8,6 +8,7 @@
              xmlns:spriteControls="clr-namespace:CasaEngine.EditorUI.Controls.SpriteControls"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="400">
+
     <controls:EditorControlBase.CommandBindings>
         <CommandBinding Command="{StaticResource Commands.Sprite.Save}" Executed="SaveCommand_Executed" />
     </controls:EditorControlBase.CommandBindings>

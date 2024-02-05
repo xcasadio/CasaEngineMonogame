@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using CasaEngine.Core.Log;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
@@ -42,11 +43,14 @@ public partial class TileMapEditorControl : EditorControlBase
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
         var tileMapDataViewModel = TileMapDetailsControl.DataContext as TileMapDataViewModel;
-        //Path.Combine(EngineEnvironment.ProjectPath, tileMapDataViewModel.TileMapData.FileName)
-        AssetSaver.SaveAsset(_tileMapFileName, tileMapDataViewModel.TileMapData);
 
-        //tileset ??
-        //autotileset ??
+        if (tileMapDataViewModel?.TileMapData == null)
+        {
+            return;
+        }
+
+        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
+        Logs.WriteInfo($"TileMap {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
 
         e.Handled = true;
     }

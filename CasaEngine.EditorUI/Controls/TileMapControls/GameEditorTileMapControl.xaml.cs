@@ -33,17 +33,4 @@ public partial class GameEditorTileMapControl : UserControl
     {
 
     }
-
-    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-    {
-        var tileMapDataViewModel = DataContext as TileMapDataViewModel;
-
-        if (tileMapDataViewModel?.TileMapData == null)
-        {
-            return;
-        }
-
-        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
-        Logs.WriteInfo($"Entity {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
-    }
 }

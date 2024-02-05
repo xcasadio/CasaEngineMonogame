@@ -15,7 +15,13 @@ public class SpriteData : UObject
 
     public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"));
+        //TODO remove
+        if (!element.TryGetProperty("asset", out var assetNode))
+        {
+            assetNode = element;
+        }
+
+        base.Load(assetNode);
 
         //TODO : remove
         if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)

@@ -3,7 +3,9 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Common;
+using CasaEngine.EditorUI.Controls.SpriteControls;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
@@ -105,6 +107,7 @@ public partial class Animation2dListControl : UserControl
         if (SelectedItem is Animation2dDataViewModel animation2dDataViewModel)
         {
             AssetSaver.SaveAsset(animation2dDataViewModel.Animation2dData.FileName, animation2dDataViewModel.Animation2dData);
+            Logs.WriteInfo($"Animation 2d {animation2dDataViewModel.Animation2dData.Name} saved ({animation2dDataViewModel.Animation2dData.FileName})");
         }
     }
 }
