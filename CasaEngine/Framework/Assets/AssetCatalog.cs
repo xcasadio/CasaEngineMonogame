@@ -134,8 +134,6 @@ public static class AssetCatalog
 
     public static void Save(string fileName)
     {
-        Logs.WriteInfo($"Asset infos saved in {fileName}");
-
         JObject root = new();
         var assetInfoJArray = new JArray();
 
@@ -153,6 +151,8 @@ public static class AssetCatalog
         using StreamWriter file = File.CreateText(fileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         root.WriteTo(writer);
+
+        Logs.WriteInfo($"Asset infos saved in {fileName}");
     }
 
 #endif

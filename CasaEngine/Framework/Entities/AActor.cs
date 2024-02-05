@@ -142,7 +142,7 @@ public class AActor : UObject
 
     private void OnEnabledValueChange()
     {
-        RootComponent.OnEnabledValueChange();
+        RootComponent?.OnEnabledValueChange();
 
         for (int i = 0; i < _components.Count; i++)
         {

@@ -82,18 +82,20 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
     {
         base.Load(element);
 
-        var shapeElement = element.GetProperty("shape");
-        if (shapeElement.GetRawText() != "\"null\"")
+        if (element.TryGetProperty("shape", out var shapeElement))
         {
-            var shape = ShapeLoader.LoadShape2d(shapeElement);
+            if (shapeElement.GetRawText() != "\"null\"")
+            {
+                var shape = ShapeLoader.LoadShape2d(shapeElement);
 
-            if (shape is ShapeCircle circle)
-            {
-                Scale = new Vector3(circle.Radius);
-            }
-            else if (shape is ShapeRectangle rectangle)
-            {
-                Scale = new Vector3(rectangle.Width, rectangle.Height, 1f);
+                if (shape is ShapeCircle circle)
+                {
+                    Scale = new Vector3(circle.Radius);
+                }
+                else if (shape is ShapeRectangle rectangle)
+                {
+                    Scale = new Vector3(rectangle.Width, rectangle.Height, 1f);
+                }
             }
         }
     }

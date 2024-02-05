@@ -150,6 +150,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _assetContentManager = Owner.World.Game.AssetContentManager;
         _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
 
+        Animations.Clear();
+
         foreach (var assetId in _animationAssetIds)
         {
             var animation2dData = Owner.World.Game.AssetContentManager.Load<Animation2dData>(assetId);

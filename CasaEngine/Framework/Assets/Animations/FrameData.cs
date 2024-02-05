@@ -16,8 +16,14 @@ public class FrameData
     {
         Duration = element.GetJsonPropertyByName("duration").Value.GetSingle();
         //TODO : remove
-        SpriteId = AssetInfo.GuidsById[element.GetJsonPropertyByName("sprite_id").Value.GetInt32()];
-        //SpriteId = element.GetJsonPropertyByName("sprite_id").Value.GetGuid();
+        if (element.GetProperty("sprite_id").ValueKind == JsonValueKind.Number)
+        {
+            SpriteId = AssetInfo.GuidsById[element.GetProperty("sprite_id").GetInt32()];
+        }
+        else
+        {
+            SpriteId = element.GetProperty("sprite_id").GetGuid();
+        }
     }
 
 #if EDITOR

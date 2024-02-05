@@ -22,8 +22,15 @@ public class TileSetData : UObject
     public override void Load(JsonElement element)
     {
         //TODO : remove
-        SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
-        //SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
+        if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)
+        {
+            SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
+        }
+        else
+        {
+            SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
+        }
+
         TileSize = element.GetProperty("tile_size").GetSize();
 
         foreach (var tileNode in element.GetProperty("tiles").EnumerateArray())
