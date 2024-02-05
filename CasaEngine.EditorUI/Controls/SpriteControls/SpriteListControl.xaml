@@ -6,7 +6,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="200">
     <UserControl.InputBindings>
-        <KeyBinding Key="Control+S" Command="{StaticResource Commands.Sprite.Save}" />
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.Sprite.Save}" />
     </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
