@@ -15,9 +15,9 @@ public class CpuPlayerController : AiController
         //character.IsPLayer = true;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void InitializePrivate(CasaEngineGame game)
     {
-        base.Initialize(game);
+        base.InitializePrivate(game);
 
         _game = game;
 

@@ -18,7 +18,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Grid.Column="1">
@@ -69,7 +69,7 @@
                 <entityControls:EntityDetailTemplateSelector>
                     <entityControls:EntityDetailTemplateSelector.EntityTemplate>
                         <DataTemplate>
-                            <Expander Header="Script" HorizontalAlignment="Stretch" IsExpanded="True">
+                            <Expander Header="Script" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto" />

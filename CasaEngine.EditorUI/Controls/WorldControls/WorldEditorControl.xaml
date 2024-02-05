@@ -9,6 +9,15 @@
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <controls:EditorControlBase.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.World.Save}" Executed="SaveCommand_Executed" />
+    </controls:EditorControlBase.CommandBindings>
+
+    <controls:EditorControlBase.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.World.Save}" />
+    </controls:EditorControlBase.InputBindings>
+
     <Grid>
         <xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <xcad:DockingManager.Theme>
@@ -50,9 +59,6 @@
                         <xcad:LayoutAnchorGroup>
                             <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
                                 <worldControls:PlaceActorsControl x:Name="PlaceActorsControl"/>
-                            </xcad:LayoutAnchorable>
-                            <xcad:LayoutAnchorable x:Name="WorldPropertiesLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="World Properties" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-                                <worldControls:WorldPropertiesControl x:Name="WorldPropertiesControlControl"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorGroup>
                     </xcad:LayoutAnchorSide>

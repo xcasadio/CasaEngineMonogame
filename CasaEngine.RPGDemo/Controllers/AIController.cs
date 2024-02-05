@@ -29,9 +29,8 @@ public class AiController : Controller
         //StateMachine.CurrentState = GetState(AIState.Idle);
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void InitializePrivate(CasaEngineGame game)
     {
-        base.Initialize(game);
     }
 
     public override void Update(float elapsedTime)

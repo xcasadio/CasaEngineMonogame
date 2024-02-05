@@ -55,11 +55,21 @@ public sealed class World : UObject
         entity.Destroy();
     }
 
-    public void ClearEntities()
+    public void ClearEntities(bool clearReferences = false)
     {
+        foreach (var entity in _entities)
+        {
+            entity.Destroy();
+        }
+
         _entities.Clear();
         _baseObjectsToAdd.Clear();
         _octree.Clear();
+
+        if (clearReferences)
+        {
+            _entityReferences.Clear();
+        }
 
 #if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
@@ -272,8 +282,7 @@ public sealed class World : UObject
 
     public void Load(JsonElement element)
     {
-        ClearEntities();
-        _entityReferences.Clear();
+        ClearEntities(true);
         base.Load(element);
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())

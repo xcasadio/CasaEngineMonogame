@@ -227,6 +227,13 @@ public class AActor : UObject
         return null;
     }
 
+    public void ReActivate()
+    {
+        ToBeRemoved = false;
+        IsEnabled = true;
+        IsVisible = true;
+    }
+
     public void Destroy()
     {
         ToBeRemoved = true;

@@ -58,13 +58,14 @@ public partial class EntityEditorControl : EditorControlBase
         }
     }
 
-    public void LoadEntity(string fileName)
+    public void OpenEntity(string fileName)
     {
         var game = GameEditorEntityControl.gameEntityEditor.Game;
-        game.GameManager.CurrentWorld.ClearEntities();
+        game.GameManager.CurrentWorld.ClearEntities(true);
 
         var assetInfo = AssetCatalog.GetByFileName(fileName);
         var entity = game.AssetContentManager.Load<AActor>(assetInfo.Id);
+        entity.ReActivate();
         game.GameManager.CurrentWorld.AddEntity(entity);
         SelectedItem = new EntityViewModel(entity);
     }

@@ -93,12 +93,12 @@ public partial class ContentBrowserControl : UserControl
             case Constants.FileNameExtensions.Entity:
                 var entityControl = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
-                entityControl.LoadEntity(fileRelativePath);
+                entityControl.OpenEntity(fileRelativePath);
                 break;
             /*case Constants.FileNameExtensions.EntityFlowGraph:
                 var entityControlFlowGraph = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
-                entityControlFlowGraph.LoadEntity(fileRelativePath);
+                entityControlFlowGraph.OpenEntity(fileRelativePath);
                 break;*/
             case Constants.FileNameExtensions.Sprite:
                 var spriteControl = window.GetEditorControl<SpriteEditorControl>();

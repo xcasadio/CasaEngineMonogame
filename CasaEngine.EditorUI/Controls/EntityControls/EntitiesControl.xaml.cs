@@ -145,9 +145,13 @@ public partial class EntitiesControl : UserControl
         var entityViewModel = e.NewValue as EntityViewModel;
         _gizmoComponent.Gizmo.Clear();
 
-        if (entityViewModel?.Entity?.RootComponent != null)
+        if (entityViewModel != null)
         {
-            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            if (entityViewModel?.Entity?.RootComponent != null)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            }
+
             SetSelectedItem(entityViewModel);
         }
 

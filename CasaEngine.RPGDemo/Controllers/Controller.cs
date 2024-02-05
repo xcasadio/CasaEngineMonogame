@@ -9,6 +9,7 @@ public abstract class Controller : IFsmCapable<Controller>
 {
     private readonly FiniteStateMachine<Controller> _fsm;
     private readonly Dictionary<int, IState<Controller>> _states = new();
+    private bool _isInitialized;
 
     public IFiniteStateMachine<Controller> StateMachine
     {
@@ -34,9 +35,19 @@ public abstract class Controller : IFsmCapable<Controller>
         _states.Add(stateId, state);
     }
 
-    public virtual void Initialize(CasaEngineGame game)
+    public void Initialize(CasaEngineGame game)
     {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        InitializePrivate(game);
+
+        _isInitialized = true;
     }
+
+    public abstract void InitializePrivate(CasaEngineGame game);
 
     public virtual void Update(float elapsedTime)
     {

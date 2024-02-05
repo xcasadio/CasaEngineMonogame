@@ -35,7 +35,7 @@
         <entityControls:ScriptClassNameConverter x:Key="ScriptClassNameConverter" />
 
         <DataTemplate x:Key="physicsDefinitionComponentTemplate" DataType="{x:Type physics:PhysicsDefinition}">
-            <Expander Header="Physics Definition" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Physics Definition" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -150,7 +150,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
-            <Expander Header="Box parameters" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Box parameters" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -166,7 +166,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="SphereTemplate" DataType="{x:Type shapes:Sphere}">
-            <Expander Header="Sphere parameters" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Sphere parameters" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -234,7 +234,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components:AnimatedSpriteComponent}">
-            <Expander Header="Animated sprite" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Animated sprite" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -263,7 +263,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components:StaticSpriteComponent}">
-            <Expander Header="Sprite" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Sprite" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -289,7 +289,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
-            <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -313,7 +313,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
-            <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>
@@ -377,7 +377,7 @@
         </DataTemplate>
 
         <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
-            <Expander Header="Tile map" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Header="Tile map" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
                 </Grid>
@@ -393,7 +393,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Expander Grid.Row="0" Header="Transform" HorizontalAlignment="Stretch" IsExpanded="True">
+            <Expander Grid.Row="0" Header="Transform" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto"/>

@@ -14,9 +14,9 @@ public class EnemyController : AiController
         //character.IsPLayer = false;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void InitializePrivate(CasaEngineGame game)
     {
-        base.Initialize(game);
+        base.InitializePrivate(game);
 
         StateMachine.GlobalState = new EnemyGlobalState();
         AddState((int)EnemyControllerState.Idle, new EnemyIdleState());

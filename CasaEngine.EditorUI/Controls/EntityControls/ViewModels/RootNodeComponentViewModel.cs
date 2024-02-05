@@ -17,6 +17,11 @@ public class RootNodeComponentViewModel : ComponentViewModel
 
     public override void AddComponent(ComponentViewModel componentViewModel)
     {
+        if (EntityViewModel.Entity != null) // if the world is selected
+        {
+            return;
+        }
+
         if (componentViewModel.Component is SceneComponent componentToAdd && EntityViewModel.Entity.RootComponent == null)
         {
             EntityViewModel.Entity.RootComponent = componentToAdd;

@@ -3,7 +3,6 @@ using CasaEngine.Framework.Game;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using static CasaEngine.RPGDemo.Controllers.Character;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
@@ -19,10 +18,8 @@ public class HumanPlayerController : Controller
         //character.IsPLayer = true;
     }
 
-    public override void Initialize(CasaEngineGame game)
+    public override void InitializePrivate(CasaEngineGame game)
     {
-        base.Initialize(game);
-
         _inputComponent = game.GetGameComponent<InputComponent>();
 
         StateMachine.GlobalState = new PlayerGlobalStateState();
@@ -79,16 +76,16 @@ public class HumanPlayerController : Controller
             direction.Normalize();
         }
 
-        return GetCharacterDirectionFromVector2(direction * new Vector2(1f, -1f));
+        return Character.GetCharacterDirectionFromVector2(direction * new Vector2(1f, -1f));
     }
 
     private static void ClampDirection(ref Vector2 direction)
     {
-        if (direction.X < -DeadZone)
+        if (direction.X < -Character.DeadZone)
         {
             direction.X = -1.0f;
         }
-        else if (direction.X > DeadZone)
+        else if (direction.X > Character.DeadZone)
         {
             direction.X = 1.0f;
         }
@@ -97,11 +94,11 @@ public class HumanPlayerController : Controller
             direction.X = 0;
         }
 
-        if (direction.Y < -DeadZone)
+        if (direction.Y < -Character.DeadZone)
         {
             direction.Y = -1.0f;
         }
-        else if (direction.Y > DeadZone)
+        else if (direction.Y > Character.DeadZone)
         {
             direction.Y = 1.0f;
         }
