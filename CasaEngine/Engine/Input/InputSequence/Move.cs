@@ -8,7 +8,6 @@
 
 using System.Text.Json;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input.InputSequence;

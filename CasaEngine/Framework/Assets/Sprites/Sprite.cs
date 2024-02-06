@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-using Texture = CasaEngine.Framework.Assets.Textures.Texture;
+﻿using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Assets.Sprites;
 

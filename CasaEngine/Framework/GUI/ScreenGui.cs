@@ -2,7 +2,6 @@
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
-using CasaEngine.Framework.SceneManagement;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.GUI

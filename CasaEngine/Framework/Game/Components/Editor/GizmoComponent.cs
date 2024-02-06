@@ -1,10 +1,7 @@
 ﻿#if EDITOR
 
 using CasaEngine.Engine.Input;
-using CasaEngine.Framework.SceneManagement;
-using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using XNAGizmo;
 
 namespace CasaEngine.Framework.Game.Components.Editor;

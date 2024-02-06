@@ -2,9 +2,7 @@
 using System.Reflection;
 using System.Text.Json;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using Newtonsoft.Json.Linq;
-using TomShane.Neoforce.Controls;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 

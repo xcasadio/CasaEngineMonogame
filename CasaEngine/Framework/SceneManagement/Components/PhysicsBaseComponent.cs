@@ -6,7 +6,6 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using SharpDX.Direct3D9;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 

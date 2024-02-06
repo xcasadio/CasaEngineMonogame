@@ -27,7 +27,6 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 */
 
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
