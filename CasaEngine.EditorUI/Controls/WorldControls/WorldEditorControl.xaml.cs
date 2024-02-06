@@ -65,7 +65,7 @@ public partial class WorldEditorControl : EditorControlBase
         AssetSaver.SaveAsset(world.FileName, world);
         Logs.WriteInfo($"World {world.Name} saved ({world.FileName})");
 
-        SaveEverything();
+        //SaveEverything();
     }
 
     private void SaveEverything()

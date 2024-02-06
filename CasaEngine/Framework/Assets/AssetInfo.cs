@@ -55,23 +55,9 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         return Id.GetHashCode();
     }
 
-    //To remove : used only for retro compatibility
-    public static readonly Dictionary<int, Guid> GuidsById = new();
-
     public void Load(JsonElement element)
     {
-        //TODO remove
-        if (element.GetProperty("id").ValueKind == JsonValueKind.Number)
-        {
-            var id = element.GetProperty("id").GetInt32();
-
-            GuidsById.Add(id, Guid.NewGuid());
-            Id = GuidsById[id];
-        }
-        else
-        {
-            Id = element.GetProperty("id").GetGuid();
-        }
+        Id = element.GetProperty("id").GetGuid();
 
         if (element.TryGetProperty("file_name", out var fileNameNode))
         {
@@ -84,9 +70,7 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         }
         else
         {
-            //TODO : remove this else
-            //System.Diagnostics.Debugger.Break();
-            Name = Path.GetFileNameWithoutExtension(FileName); //element.GetProperty("name").GetString();
+            Name = Path.GetFileNameWithoutExtension(FileName);
         }
     }
 

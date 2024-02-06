@@ -12,8 +12,7 @@ public class AnimationData : ObjectBase
     public override void Load(JsonElement element)
     {
         AnimationType = element.GetJsonPropertyByName("animation_type").Value.GetEnum<AnimationType>();
-        //TODO remove
-        base.Load(element.TryGetProperty("asset", out _) ? element.GetProperty("asset") : element);
+        base.Load(element);
     }
 
 #if EDITOR

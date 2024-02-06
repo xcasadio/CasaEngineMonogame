@@ -224,16 +224,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
     public override void Load(JsonElement element)
     {
         base.Load(element);
-
-        //TODO : remove
-        if (element.GetProperty("tile_map_data_asset_id").ValueKind == JsonValueKind.Number)
-        {
-            TileMapDataAssetId = AssetInfo.GuidsById[element.GetProperty("tile_map_data_asset_id").GetInt32()];
-        }
-        else
-        {
-            TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetGuid();
-        }
+        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetGuid();
     }
 
 #if EDITOR

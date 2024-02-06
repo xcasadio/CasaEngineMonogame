@@ -173,15 +173,7 @@ public class ImageBox : Control
     {
         base.Load(element);
 
-        //TODO remove
-        if (element.GetProperty("sprite_id").ValueKind == JsonValueKind.Number)
-        {
-            _spriteAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_id").GetInt32()];
-        }
-        else
-        {
-            _spriteAssetId = element.GetProperty("sprite_id").GetGuid();
-        }
+        _spriteAssetId = element.GetProperty("sprite_id").GetGuid();
 
         SizeMode = element.GetProperty("size_mode").GetEnum<SizeMode>();
     }

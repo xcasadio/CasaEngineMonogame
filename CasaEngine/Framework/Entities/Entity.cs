@@ -303,42 +303,14 @@ public class Entity : ObjectBase
 
     public override void Load(JsonElement element)
     {
-        if (element.TryGetProperty("asset", out _))
-        {
-            base.Load(element.GetProperty("asset"));
-        }
-        else
-        {
-            base.Load(element);
-        }
+        base.Load(element);
 
-        //TODO remove
-        if (element.TryGetProperty("script_class_name", out _))
-        {
-            GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
-        }
+        GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
 
         var node = element.GetProperty("root_component");
         if (node.ValueKind == JsonValueKind.Object)
         {
             RootComponent = ElementFactory.Load<SceneComponent>(node);
-        }
-
-        foreach (var componentNode in element.GetProperty("components").EnumerateArray())
-        {
-            if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
-                && componentNode.GetProperty("type").GetInt32() == 1
-                && componentNode.TryGetProperty("external_component", out _)
-                && componentNode.GetProperty("external_component").ValueKind == JsonValueKind.Object)
-            {
-                var typeName = componentNode.GetProperty("external_component").GetProperty("type").GetString();
-                GameplayProxyClassName = typeName;
-            }
-            else if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
-                     && componentNode.GetProperty("type").GetInt32() != 1)
-            {
-                AddComponent(ElementFactory.Load<EntityComponent>(componentNode));
-            }
         }
 
         /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())

@@ -15,23 +15,9 @@ public class SpriteData : ObjectBase
 
     public override void Load(JsonElement element)
     {
-        //TODO remove
-        if (!element.TryGetProperty("asset", out var assetNode))
-        {
-            assetNode = element;
-        }
+        base.Load(element);
 
-        base.Load(assetNode);
-
-        //TODO : remove
-        if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)
-        {
-            SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
-        }
-        else
-        {
-            SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
-        }
+        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
         PositionInTexture = element.GetJsonPropertyByName("location").Value.GetRectangle();
         Origin = element.GetJsonPropertyByName("hotspot").Value.GetPoint();
 

@@ -15,15 +15,7 @@ public class FrameData
     public void Load(JsonElement element)
     {
         Duration = element.GetJsonPropertyByName("duration").Value.GetSingle();
-        //TODO : remove
-        if (element.GetProperty("sprite_id").ValueKind == JsonValueKind.Number)
-        {
-            SpriteId = AssetInfo.GuidsById[element.GetProperty("sprite_id").GetInt32()];
-        }
-        else
-        {
-            SpriteId = element.GetProperty("sprite_id").GetGuid();
-        }
+        SpriteId = element.GetProperty("sprite_id").GetGuid();
     }
 
 #if EDITOR

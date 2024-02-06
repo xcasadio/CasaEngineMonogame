@@ -60,13 +60,7 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
             return;
         }
 
-        //TODO : _shape.Position & _shape.Orientation must be used
-        //in the worldmatrix or in the creation of the shape ?
-        //_shape.Position = Owner.Coordinates.LocalPosition;
-        //_shape.Orientation = Owner.Coordinates.Orientation;
-
         var worldMatrix = WorldMatrixNoScale;
-        //var worldMatrix = Matrix.CreateFromQuaternion(Orientation) * Matrix.CreateTranslation(Position);
 
         switch (PhysicsType)
         {

@@ -72,7 +72,7 @@ public class StaticMesh : ObjectBase
 
     public override void Load(JsonElement element)
     {
-        //base.Load(element.GetProperty("asset"));
+        base.Load(element);
 
         PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
 
@@ -82,15 +82,7 @@ public class StaticMesh : ObjectBase
         _indices.Clear();
         _indices.AddRange(element.GetElements("indices", o => o.GetUInt32()));
 
-        //TODO : remove
-        if (element.GetProperty("texture_asset_id").ValueKind == JsonValueKind.Number)
-        {
-            TextureAssetId = AssetInfo.GuidsById[element.GetProperty("texture_asset_id").GetInt32()];
-        }
-        else
-        {
-            TextureAssetId = element.GetProperty("texture_asset_id").GetGuid();
-        }
+        TextureAssetId = element.GetProperty("texture_asset_id").GetGuid();
     }
 
 #if EDITOR
@@ -100,9 +92,7 @@ public class StaticMesh : ObjectBase
 
     public override void Save(JObject jObject)
     {
-        var assetNode = new JObject();
-        base.Save(assetNode);
-        jObject.Add("asset", assetNode);
+        base.Save(jObject);
 
         jObject.Add("primitive_type", PrimitiveType.ConvertToString());
 

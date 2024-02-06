@@ -22,16 +22,7 @@ public class TileSetData : ObjectBase
     {
         base.Load(element);
 
-        //TODO : remove
-        if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)
-        {
-            SpriteSheetAssetId = AssetInfo.GuidsById[element.GetProperty("sprite_sheet_asset_id").GetInt32()];
-        }
-        else
-        {
-            SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
-        }
-
+        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
         TileSize = element.GetProperty("tile_size").GetSize();
 
         foreach (var tileNode in element.GetProperty("tiles").EnumerateArray())

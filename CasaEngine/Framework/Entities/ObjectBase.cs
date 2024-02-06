@@ -46,25 +46,7 @@ public class ObjectBase : ISerializable
 
     public virtual void Load(JsonElement element)
     {
-        //TODO : remove
-        if (element.GetProperty("id").ValueKind == JsonValueKind.Number)
-        {
-            var id = element.GetProperty("id").GetInt32();
-            if (AssetInfo.GuidsById.TryGetValue(id, out var guid))
-            {
-                Id = guid;
-            }
-            else
-            {
-                Id = Guid.NewGuid();
-                AssetInfo.GuidsById.Add(id, Id);
-            }
-        }
-        else
-        {
-            Id = element.GetProperty("id").GetGuid();
-        }
-
+        Id = element.GetProperty("id").GetGuid();
         Name = element.GetProperty("name").GetString();
     }
 

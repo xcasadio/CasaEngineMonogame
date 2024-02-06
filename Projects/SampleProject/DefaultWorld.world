@@ -89,10 +89,8 @@
             }
           ],
           "mesh": {
-            "asset": {
-              "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
-              "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2"
-            },
+            "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
+            "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2",
             "primitive_type": "TriangleList",
             "vertices": [
               {

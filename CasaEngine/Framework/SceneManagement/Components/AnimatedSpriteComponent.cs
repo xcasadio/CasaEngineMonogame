@@ -362,19 +362,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
         {
-            Guid id;
-
-            //TODO remove
-            if (animationNode.ValueKind == JsonValueKind.Number)
-            {
-                id = AssetInfo.GuidsById[animationNode.GetInt32()];
-            }
-            else
-            {
-                id = animationNode.GetGuid();
-            }
-
-            _animationAssetIds.Add(id);
+            _animationAssetIds.Add(animationNode.GetGuid());
         }
     }
 
