@@ -11,7 +11,7 @@
 		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.1.303" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
+		<ProjectReference Include="..\..\CasaEngine\CasaEngine.csproj" />
 	</ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Command="copy /y $(OutDir)CasaEngine.RPGDemo.dll $(ProjectDir)..\RPGDemo\CasaEngine.RPGDemo.dll&#xD;&#xA;copy /y $(OutDir)CasaEngine.RPGDemo.pdb $(ProjectDir)..\RPGDemo\CasaEngine.RPGDemo.pdb" />

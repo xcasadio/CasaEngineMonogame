@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine", "CasaEngine\CasaEngine.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.RPGDemo", "CasaEngine.RPGDemo\CasaEngine.RPGDemo.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.RPGDemo", "Projects\CasaEngine.RPGDemo\CasaEngine.RPGDemo.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Launcher", "CasaEngine.Launcher\CasaEngine.Launcher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "Projects\SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Demos", "CasaEngine.Demos\CasaEngine.Demos.csproj", "{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}"
 EndProject
