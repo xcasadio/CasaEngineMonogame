@@ -71,7 +71,7 @@ public class TileSetData : UObject
     {
         base.Save(jObject);
 
-        jObject.Add("sprite_sheet_file_name", SpriteSheetAssetId);
+        jObject.Add("sprite_sheet_asset_id", SpriteSheetAssetId);
 
         var newNode = new JObject();
         TileSize.Save(newNode);
