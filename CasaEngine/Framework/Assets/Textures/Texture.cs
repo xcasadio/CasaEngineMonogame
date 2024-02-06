@@ -108,7 +108,15 @@ public class Texture : UObject, IAssetable
 
     public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"));
+        //TODO remove
+        if (element.TryGetProperty("asset", out _))
+        {
+            base.Load(element.GetProperty("asset"));
+        }
+        else
+        {
+            base.Load(element);
+        }
 
         PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
         //TODO : remove
