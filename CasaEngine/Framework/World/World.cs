@@ -91,8 +91,7 @@ public sealed class World : ObjectBase
 
             foreach (var entityReference in _entityReferences)
             {
-                EntityLoader.LoadFromEntityReference(entityReference, Game.AssetContentManager);
-                AddEntity(entityReference.Entity);
+                LoadFromEntityReference(entityReference);
             }
         }
 
@@ -110,6 +109,12 @@ public sealed class World : ObjectBase
         }
 
         //GameplayProxy?.Initialize(this);
+    }
+
+    private void LoadFromEntityReference(EntityReference entityReference)
+    {
+        entityReference.Load(Game.AssetContentManager);
+        AddEntity(entityReference.Entity);
     }
 
     public void BeginPlay()
@@ -269,6 +274,7 @@ public sealed class World : ObjectBase
     }
 
     //TODO : remove it, use AssetContentManager
+    /*
     public void Load(string fileName)
     {
         Logs.WriteInfo($"Load world {fileName}");
@@ -277,7 +283,7 @@ public sealed class World : ObjectBase
         Load(jsonDocument.RootElement);
         Name = Path.GetFileNameWithoutExtension(fileName);
         FileName = fileName.Replace(EngineEnvironment.ProjectPath, string.Empty).TrimStart('\\');
-    }
+    }*/
 
     public override void Load(JsonElement element)
     {
@@ -291,37 +297,7 @@ public sealed class World : ObjectBase
             _entityReferences.Add(entityReference);
         }
 
-        /*
-        if (element.TryGetProperty("external_component", out var externalComponentNode)
-            && externalComponentNode.GetProperty("type").GetGuid() != Guid.Empty)
-        {
-            //GameplayProxy = GameSettings.ScriptLoader.Load(externalComponentNode);
-        }*/
-
-        //TODO : remove
-        if (element.TryGetProperty("external_component", out var externalComponentNode))
-        {
-            if (externalComponentNode.ValueKind == JsonValueKind.Object
-                && externalComponentNode.GetProperty("type").ValueKind == JsonValueKind.Number
-                && externalComponentNode.GetProperty("type").GetInt32() != -1)
-            {
-                GameplayProxyClassName = nameof(ScriptArcBallCamera);
-                //GameplayProxy = (GameplayProxy)ElementFactory.Create<ScriptArcBallCamera>(nameof(ScriptArcBallCamera));
-            }
-            else
-            {
-                if (externalComponentNode.ValueKind == JsonValueKind.Object || externalComponentNode.GetString() != "null")
-                {
-                    GameplayProxyClassName = externalComponentNode.GetProperty("type").GetString();
-                }
-            }
-        }
-
-        //TODO remove
-        if (element.TryGetProperty("script_class_name", out _))
-        {
-            GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
-        }
+        GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
     }
 
     public void AddScreen(ScreenGui screenGui)

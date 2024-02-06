@@ -26,7 +26,7 @@ public class ObjectBase : ISerializable
 
     public ObjectBase(ObjectBase other) : this()
     {
-        Name = $"Copy of {other.Name}";
+        Name = other.Name;
         FileName = other.FileName;
     }
 

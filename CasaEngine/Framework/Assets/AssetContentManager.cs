@@ -1,5 +1,7 @@
 ﻿using System.Collections;
+using System.Text.Json;
 using CasaEngine.Core.Log;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
@@ -112,6 +114,13 @@ public class AssetContentManager
 
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
+    }
+
+    public T Load<T>(JsonElement element) where T : class, ISerializable, new()
+    {
+        var asset = new T();
+        asset.Load(element);
+        return asset;
     }
 
     [Obsolete("Used only for neoforce controls")]

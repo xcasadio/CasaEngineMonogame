@@ -1,5 +1,9 @@
 {
   "asset_infos": [
+	{
+      "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+      "file_name": "DefaultWorld.world"
+    },
     {
       "id": "1961629e-6215-47be-961b-854befa6c235",
       "file_name": "Entities\\Box.entity"

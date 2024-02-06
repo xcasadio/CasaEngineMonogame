@@ -1,5 +1,6 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
@@ -65,9 +66,8 @@ public class GameManager
     {
         if (!string.IsNullOrEmpty(_worldToLoad))
         {
-            _currentWorld = new World.World();
-            var fileName = Path.Combine(EngineEnvironment.ProjectPath, GameSettings.ProjectSettings.FirstWorldLoaded);
-            _currentWorld.Load(fileName);
+            var assetInfo = AssetCatalog.GetByFileName(GameSettings.ProjectSettings.FirstWorldLoaded);
+            _currentWorld = _game.AssetContentManager.Load<World.World>(assetInfo.Id);
             _worldToLoad = null;
             _isNewWorld = true;
         }
