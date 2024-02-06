@@ -1,8 +1,8 @@
 {
-  "id": "2",
+  "id": 2,
   "name": "Box",
   "root_component": {
-    "id": "f1b6871a-2a14-437a-986f-1add6011f10a",
+    "id": 0,
     "name": "unknown",
     "type": "StaticMeshComponent",
     "coordinates": {
@@ -25,7 +25,7 @@
     },
     "children_component": [
       {
-        "id": "f1b6871a-2a14-437a-986f-1add6011f10a",
+        "id": 0,
         "name": "unknown",
         "type": "BoxCollisionComponent",
         "coordinates": {
@@ -512,7 +512,7 @@
         22,
         23
       ],
-      "texture_asset_id": "4a643a60-4ce1-4e15-ae1e-f6e0d53e10d8"
+      "texture_asset_id": 1001
     }
   },
   "components": [],

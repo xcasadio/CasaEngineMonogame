@@ -1,8 +1,8 @@
 {
-  "id": "25",
+  "id": 25,
   "name": "camera",
   "root_component": {
-    "id": "f1b6871a-2a14-437a-986f-1add6011f10a",
+    "id": 0,
     "name": "unknown",
     "type": "ArcBallCameraComponent",
     "coordinates": {

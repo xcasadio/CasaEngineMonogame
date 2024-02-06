@@ -12,6 +12,88 @@
 		  "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",
           "type": "StaticMeshComponent",
+		  "children_component": [
+			{
+		    "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
+            "name": "BoxCollisionComponent",
+            "type": "BoxCollisionComponent",
+			"children_component": [],
+		    "coordinates": {
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "center_of_rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "scale": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              }
+            },
+            "physics_definition": {
+              "physics_type": "Static",
+              "additional_angular_damping_factor": 0.01,
+              "additional_angular_damping_threshold_sqr": 0.01,
+              "additional_damping": false,
+              "additional_damping_factor": 0.005,
+              "additional_linear_damping_threshold_sqr": 0.01,
+              "angular_damping": 0.0,
+              "angular_factor": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "angular_sleeping_threshold": 1.0,
+              "friction": 0.5,
+              "linear_damping": 0.0,
+              "linear_factor": {
+                "x": 1.0,
+                "y": 1.0,
+                "z": 1.0
+              },
+              "linear_sleeping_threshold": 0.8,
+              "local_inertia": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "mass": 0.0,
+              "restitution": 0.0,
+              "rolling_friction": 0.0,
+              "apply_gravity": true,
+              "debug_color": "null"
+            },
+            "shape": {
+              "version": 1,
+              "shape_type": "Box",
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "orientation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "w": 100.0,
+              "h": 1.0,
+              "l": 100.0
+            }
+          }
+		  ],
 		  "coordinates": {
             "position": {
               "x": 0.0,
@@ -114,87 +196,7 @@
               "texture_asset_id": 1001
             }
 		},
-        "components": [
-          {
-		    "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
-            "name": "PhysicsComponent",
-            "type": "PhysicsComponent",
-		    "coordinates": {
-              "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "center_of_rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "scale": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0
-              }
-            },
-            "physics_definition": {
-              "physics_type": "Static",
-              "additional_angular_damping_factor": 0.01,
-              "additional_angular_damping_threshold_sqr": 0.01,
-              "additional_damping": false,
-              "additional_damping_factor": 0.005,
-              "additional_linear_damping_threshold_sqr": 0.01,
-              "angular_damping": 0.0,
-              "angular_factor": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "angular_sleeping_threshold": 1.0,
-              "friction": 0.5,
-              "linear_damping": 0.0,
-              "linear_factor": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "linear_sleeping_threshold": 0.8,
-              "local_inertia": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "mass": 0.0,
-              "restitution": 0.0,
-              "rolling_friction": 0.0,
-              "apply_gravity": true,
-              "debug_color": "null"
-            },
-            "shape": {
-              "version": 1,
-              "shape_type": "Box",
-              "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "orientation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0
-              },
-              "w": 100.0,
-              "h": 1.0,
-              "l": 100.0
-            }
-          }
-        ]
+        "components": [ ]
       }
     },
     {
