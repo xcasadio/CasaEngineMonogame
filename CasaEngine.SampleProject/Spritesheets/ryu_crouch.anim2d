@@ -1,14 +1,11 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 671,
-    "name": "ryu_crouch",
-    "file_name": "Spritesheets\\ryu_crouch.anim2d"
-  },
+  "id": "162df612-0ada-4bdd-bde5-5b94201ce354",
+  "name": "ryu_crouch",
   "frames": [
     {
       "duration": 0.015999999,
-      "sprite_id": 82
+      "sprite_id": "1a024993-0af0-41de-a8ec-43cf846a842e"
     }
   ]
 }

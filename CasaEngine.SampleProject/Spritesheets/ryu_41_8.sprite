@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 541,
-    "name": "ryu_41_8",
-    "file_name": "Spritesheets\\ryu_41_8.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "184b10f1-3a45-4862-97fd-549d0821e72a",
+  "name": "ryu_41_8",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 2288,
     "y": 1402,
@@ -18,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 6.0,

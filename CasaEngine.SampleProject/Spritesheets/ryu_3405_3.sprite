@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 452,
-    "name": "ryu_3405_3",
-    "file_name": "Spritesheets\\ryu_3405_3.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "a2de371b-30eb-4dbd-a211-adf9ad8f5b17",
+  "name": "ryu_3405_3",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 2307,
     "y": 857,

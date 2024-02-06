@@ -1,70 +1,67 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 784,
-    "name": "ryu_357",
-    "file_name": "Spritesheets\\ryu_357.anim2d"
-  },
+  "id": "f8007bb7-1f0b-4d22-b4fc-6e372b7b309e",
+  "name": "ryu_357",
   "frames": [
     {
       "duration": 0.048,
-      "sprite_id": 505
+      "sprite_id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
     },
     {
       "duration": 0.048,
-      "sprite_id": 504
+      "sprite_id": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
     },
     {
       "duration": 0.048,
-      "sprite_id": 503
+      "sprite_id": "13a193ca-78fa-4237-80ea-f959a4e200af"
     },
     {
       "duration": 0.096,
-      "sprite_id": 488
+      "sprite_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
     },
     {
       "duration": 0.096,
-      "sprite_id": 489
+      "sprite_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
     },
     {
       "duration": 0.096,
-      "sprite_id": 488
+      "sprite_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 489
+      "sprite_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
     },
     {
       "duration": 0.096,
-      "sprite_id": 498
+      "sprite_id": "e95bfc02-bb00-4155-8508-e8851f9999d6"
     },
     {
       "duration": 0.096,
-      "sprite_id": 499
+      "sprite_id": "9168301e-e6b2-41d2-a9ea-394eee3201bf"
     },
     {
       "duration": 0.096,
-      "sprite_id": 500
+      "sprite_id": "51471cbf-2531-47fd-8af5-0a149d1a11df"
     },
     {
       "duration": 0.096,
-      "sprite_id": 501
+      "sprite_id": "0efdf8da-2d49-4611-a650-bc06afaa4e84"
     },
     {
       "duration": 0.096,
-      "sprite_id": 502
+      "sprite_id": "a4fffda1-a314-4c62-b505-bc4758169aa1"
     },
     {
       "duration": 0.048,
-      "sprite_id": 503
+      "sprite_id": "13a193ca-78fa-4237-80ea-f959a4e200af"
     },
     {
       "duration": 0.048,
-      "sprite_id": 504
+      "sprite_id": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
     },
     {
       "duration": 0.048,
-      "sprite_id": 505
+      "sprite_id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
     }
   ]
 }

@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 1003,
-    "name": "ryu",
-    "file_name": "Spritesheets\\ryu.texture"
-  },
-  "texture_asset_id": 1002,
+  "id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "name": "ryu",
+  "texture_asset_id": "31f79cad-7d18-46a4-ba4c-af2d43d87f99",
   "sampler_state": {
     "texture_filter": "Anisotropic",
     "address_u": "Wrap",

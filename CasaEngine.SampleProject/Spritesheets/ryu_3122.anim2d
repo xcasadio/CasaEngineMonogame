@@ -1,22 +1,19 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 752,
-    "name": "ryu_3122",
-    "file_name": "Spritesheets\\ryu_3122.anim2d"
-  },
+  "id": "568f4f48-cb79-4a43-8b43-ebb2c1af5a5f",
+  "name": "ryu_3122",
   "frames": [
     {
       "duration": 0.048,
-      "sprite_id": 413
+      "sprite_id": "384c2ece-3371-4493-97b8-1314a2680817"
     },
     {
       "duration": 0.08,
-      "sprite_id": 615
+      "sprite_id": "898cd8b0-1351-4fdc-8a99-847afc4961f0"
     },
     {
       "duration": 0.048,
-      "sprite_id": 616
+      "sprite_id": "c98487f3-aa72-42dc-98cf-b33b4d3e4316"
     }
   ]
 }

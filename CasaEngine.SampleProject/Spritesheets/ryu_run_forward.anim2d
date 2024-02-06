@@ -1,34 +1,31 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 930,
-    "name": "ryu_run_forward",
-    "file_name": "Spritesheets\\ryu_run_forward.anim2d"
-  },
+  "id": "08e80932-9784-4444-b36f-90ab4e954548",
+  "name": "ryu_run_forward",
   "frames": [
     {
       "duration": 0.08,
-      "sprite_id": 52
+      "sprite_id": "6cbbc249-d85d-4a97-9091-9a8efb0fb87b"
     },
     {
       "duration": 0.096,
-      "sprite_id": 53
+      "sprite_id": "c84c9d2f-04f6-4155-b730-6ecf920b91e4"
     },
     {
       "duration": 0.08,
-      "sprite_id": 48
+      "sprite_id": "cad6c8ab-7e3c-4951-bafc-46837b2f9cc2"
     },
     {
       "duration": 0.096,
-      "sprite_id": 49
+      "sprite_id": "ad4213cc-6c94-4c83-b942-6a59d4d8ac22"
     },
     {
       "duration": 0.08,
-      "sprite_id": 50
+      "sprite_id": "bdef1d74-6d49-42e9-88e0-a0cf93939c35"
     },
     {
       "duration": 0.096,
-      "sprite_id": 51
+      "sprite_id": "07ab7ea7-3ff3-48db-b4db-21500bc2bc31"
     }
   ]
 }

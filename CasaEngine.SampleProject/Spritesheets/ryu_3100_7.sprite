@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 406,
-    "name": "ryu_3100_7",
-    "file_name": "Spritesheets\\ryu_3100_7.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "40a93edc-4d41-4218-8760-61cf28eec52f",
+  "name": "ryu_3100_7",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 603,
     "y": 495,

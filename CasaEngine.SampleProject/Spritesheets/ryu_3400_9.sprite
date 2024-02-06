@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 443,
-    "name": "ryu_3400_9",
-    "file_name": "Spritesheets\\ryu_3400_9.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "f75936d1-9b59-4aaf-8d15-8e0c844d75ad",
+  "name": "ryu_3400_9",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 237,
     "y": 1024,

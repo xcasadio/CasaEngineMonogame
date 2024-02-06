@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 622,
-    "name": "ryu_701_0",
-    "file_name": "Spritesheets\\ryu_701_0.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "ecbe84a3-f836-44b7-9211-aac36e193a5c",
+  "name": "ryu_701_0",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 2262,
     "y": 319,
@@ -18,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 5.0,
@@ -30,7 +26,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 5.0,
@@ -42,7 +37,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": -2.0,
@@ -54,7 +48,6 @@
     },
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 15.0,

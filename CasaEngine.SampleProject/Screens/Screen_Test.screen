@@ -1,35 +1,9 @@
 {
-  "asset": {
-    "id": 1044,
-    "name": "Screen_Test",
-    "file_name": "Screens\\Screen_Test.screen"
-  },
-  "version": 1,
+  "id": "3fd14c2a-111c-4b96-8ab8-ce2825e77502",
+  "name": "Screen_Test",
   "root_component": "null",
   "components": [],
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "scale": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
-  },
+  "script_class_name": null,
   "external_component": "null",
   "controls": []
 }

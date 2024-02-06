@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 662,
-    "name": "ryu_810_3",
-    "file_name": "Spritesheets\\ryu_810_3.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "95a52bd0-cfc5-44bb-ab23-419c1530fafe",
+  "name": "ryu_810_3",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 254,
     "y": 76,

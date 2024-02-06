@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 315,
-    "name": "ryu_225_7",
-    "file_name": "Spritesheets\\ryu_225_7.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "ce4f4d62-cc83-4d10-8743-28cb7446ee0e",
+  "name": "ryu_225_7",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 2507,
     "y": 1383,
@@ -18,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 5.0,

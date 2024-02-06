@@ -1,78 +1,75 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 822,
-    "name": "ryu_4000",
-    "file_name": "Spritesheets\\ryu_4000.anim2d"
-  },
+  "id": "c7fd9ff1-f0bb-425e-814b-5d5deb737298",
+  "name": "ryu_4000",
   "frames": [
     {
       "duration": 0.031999998,
-      "sprite_id": 617
+      "sprite_id": "87f867d5-9e42-4807-8bd5-8470cee733cf"
     },
     {
       "duration": 0.031999998,
-      "sprite_id": 618
+      "sprite_id": "03f00247-8201-4bfb-9ff1-32ef00e3bf82"
     },
     {
       "duration": 0.096,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 525
+      "sprite_id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 526
+      "sprite_id": "d471e145-faae-4382-94e5-aec511f20dfd"
     },
     {
       "duration": 0.031999998,
-      "sprite_id": 80
+      "sprite_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
     },
     {
       "duration": 0.9599999,
-      "sprite_id": 114
+      "sprite_id": "c23ca696-1191-44ff-b266-2b8c9a10342d"
     }
   ]
 }

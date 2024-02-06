@@ -1,14 +1,11 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 880,
-    "name": "ryu_5150",
-    "file_name": "Spritesheets\\ryu_5150.anim2d"
-  },
+  "id": "2efe6692-a721-4e7f-abef-3da98195c7c8",
+  "name": "ryu_5150",
   "frames": [
     {
       "duration": 0.015999999,
-      "sprite_id": 574
+      "sprite_id": "d0234d25-8c63-4d54-b711-d6a4f61769a8"
     }
   ]
 }

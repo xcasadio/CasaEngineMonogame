@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 424,
-    "name": "ryu_3160_0",
-    "file_name": "Spritesheets\\ryu_3160_0.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "d17a96d4-40df-4c1d-a783-1a41fc1de069",
+  "name": "ryu_3160_0",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 1169,
     "y": 1631,
@@ -18,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 6.0,

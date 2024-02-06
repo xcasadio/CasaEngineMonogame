@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 1001,
-    "name": "checkboard",
-    "file_name": "Textures\\checkboard.texture"
-  },
-  "texture_asset_id": 1000,
+  "id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+  "name": "checkboard",
+  "texture_asset_id": "cdf432c1-0e33-434f-8a96-466d519baa9b",
   "sampler_state": {
     "texture_filter": "Anisotropic",
     "address_u": "Wrap",

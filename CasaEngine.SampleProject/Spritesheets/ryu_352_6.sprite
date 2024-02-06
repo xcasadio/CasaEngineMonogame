@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 487,
-    "name": "ryu_352_6",
-    "file_name": "Spritesheets\\ryu_352_6.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "4e130503-bbea-4c8c-b8e4-7fe6025d910d",
+  "name": "ryu_352_6",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 2075,
     "y": 0,

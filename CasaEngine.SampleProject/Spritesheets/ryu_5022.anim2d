@@ -1,18 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 860,
-    "name": "ryu_5022",
-    "file_name": "Spritesheets\\ryu_5022.anim2d"
-  },
+  "id": "052b05ce-8566-4b3e-ac98-3c5606bbd0f7",
+  "name": "ryu_5022",
   "frames": [
     {
       "duration": 0.015999999,
-      "sprite_id": 564
+      "sprite_id": "d08c7123-df43-40a1-856e-7a6245cc42ce"
     },
     {
       "duration": 0.144,
-      "sprite_id": 565
+      "sprite_id": "42a747ab-64fb-4208-beb4-4bee7addecd8"
     }
   ]
 }

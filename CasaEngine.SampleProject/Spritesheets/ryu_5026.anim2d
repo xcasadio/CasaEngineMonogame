@@ -1,18 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 862,
-    "name": "ryu_5026",
-    "file_name": "Spritesheets\\ryu_5026.anim2d"
-  },
+  "id": "8f0bfcad-e2fe-468e-85c6-10fd5144f296",
+  "name": "ryu_5026",
   "frames": [
     {
       "duration": 0.048,
-      "sprite_id": 563
+      "sprite_id": "4cef2551-4f31-4420-89de-c2dc9a501cd2"
     },
     {
       "duration": 0.015999999,
-      "sprite_id": 562
+      "sprite_id": "635a1a1d-7c35-4276-896a-6f05f79f8e36"
     }
   ]
 }

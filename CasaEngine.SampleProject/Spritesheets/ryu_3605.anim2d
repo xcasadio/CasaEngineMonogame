@@ -1,18 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 793,
-    "name": "ryu_3605",
-    "file_name": "Spritesheets\\ryu_3605.anim2d"
-  },
+  "id": "043d729a-46be-48a5-a44f-a174813bdb49",
+  "name": "ryu_3605",
   "frames": [
     {
       "duration": 0.32,
-      "sprite_id": 455
+      "sprite_id": "c2f612e2-4728-4741-8044-92c1457316af"
     },
     {
       "duration": 0.015999999,
-      "sprite_id": 456
+      "sprite_id": "77f4f904-db3c-4722-8a9f-b7b154994ee1"
     }
   ]
 }

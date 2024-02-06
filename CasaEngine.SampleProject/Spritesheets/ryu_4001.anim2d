@@ -1,106 +1,103 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 823,
-    "name": "ryu_4001",
-    "file_name": "Spritesheets\\ryu_4001.anim2d"
-  },
+  "id": "f943235b-d8e4-4dbd-93d5-e44169708167",
+  "name": "ryu_4001",
   "frames": [
     {
       "duration": 0.51199996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.063999996,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.015999999,
-      "sprite_id": 650
+      "sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     },
     {
       "duration": 0.288,
-      "sprite_id": 514
+      "sprite_id": "5e3aa351-f473-450b-9120-dd25115b4676"
     },
     {
       "duration": 0.048,
-      "sprite_id": 513
+      "sprite_id": "aa33e9d3-040a-4454-ab2e-1dfeea26d0b3"
     },
     {
       "duration": 0.048,
-      "sprite_id": 512
+      "sprite_id": "d90f06a2-f62f-4bba-a593-866f9c079da1"
     },
     {
       "duration": 0.048,
-      "sprite_id": 511
+      "sprite_id": "4103ae69-299f-4068-b151-5c067e7578cd"
     },
     {
       "duration": 0.672,
-      "sprite_id": 510
+      "sprite_id": "e7505736-6658-4ccd-a909-522e8fc33013"
     },
     {
       "duration": 0.048,
-      "sprite_id": 507
+      "sprite_id": "978c3b16-2633-42df-b206-e344d7bda219"
     },
     {
       "duration": 0.048,
-      "sprite_id": 506
+      "sprite_id": "21bfb686-d74c-4a0b-bc70-47adfabef02d"
     },
     {
       "duration": 0.031999998,
-      "sprite_id": 212
+      "sprite_id": "f1ccb58c-d288-4456-84d6-f6c95980a918"
     }
   ]
 }

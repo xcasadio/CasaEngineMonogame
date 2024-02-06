@@ -1,14 +1,11 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 914,
-    "name": "ryu_7697",
-    "file_name": "Spritesheets\\ryu_7697.anim2d"
-  },
+  "id": "7b09d206-d22e-4fa4-9aed-e6f60ce0c8aa",
+  "name": "ryu_7697",
   "frames": [
     {
       "duration": 0.015999999,
-      "sprite_id": 644
+      "sprite_id": "cea13c9d-94fc-4b40-a916-d6b08cbfb76d"
     }
   ]
 }

@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 592,
-    "name": "ryu_5120_4",
-    "file_name": "Spritesheets\\ryu_5120_4.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "25f7522a-ce4a-443f-801f-63b924387f78",
+  "name": "ryu_5120_4",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 1539,
     "y": 1425,
@@ -18,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 8.0,

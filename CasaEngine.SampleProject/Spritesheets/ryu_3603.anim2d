@@ -1,42 +1,39 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 791,
-    "name": "ryu_3603",
-    "file_name": "Spritesheets\\ryu_3603.anim2d"
-  },
+  "id": "39c3f553-2ffd-41b0-85fa-d1e97cd97287",
+  "name": "ryu_3603",
   "frames": [
     {
       "duration": 0.64,
-      "sprite_id": 445
+      "sprite_id": "07fe0ed5-3bc6-4a2a-8e67-023d561d38b7"
     },
     {
       "duration": 0.16,
-      "sprite_id": 451
+      "sprite_id": "e77e6d90-747a-445c-93e1-615eebe1232d"
     },
     {
       "duration": 0.16,
-      "sprite_id": 445
+      "sprite_id": "07fe0ed5-3bc6-4a2a-8e67-023d561d38b7"
     },
     {
       "duration": 0.16,
-      "sprite_id": 451
+      "sprite_id": "e77e6d90-747a-445c-93e1-615eebe1232d"
     },
     {
       "duration": 0.16,
-      "sprite_id": 445
+      "sprite_id": "07fe0ed5-3bc6-4a2a-8e67-023d561d38b7"
     },
     {
       "duration": 0.16,
-      "sprite_id": 451
+      "sprite_id": "e77e6d90-747a-445c-93e1-615eebe1232d"
     },
     {
       "duration": 0.16,
-      "sprite_id": 452
+      "sprite_id": "a2de371b-30eb-4dbd-a211-adf9ad8f5b17"
     },
     {
       "duration": 0.16,
-      "sprite_id": 453
+      "sprite_id": "a8d6d552-542c-4ffe-9a97-628bf30e88c1"
     }
   ]
 }

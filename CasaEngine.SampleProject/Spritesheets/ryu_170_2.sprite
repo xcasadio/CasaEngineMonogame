@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 167,
-    "name": "ryu_170_2",
-    "file_name": "Spritesheets\\ryu_170_2.sprite"
-  },
-  "sprite_sheet_asset_id": 1003,
+  "id": "a6435000-355f-47e9-a307-d20186013a7a",
+  "name": "ryu_170_2",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
   "location": {
     "x": 1698,
     "y": 1139,

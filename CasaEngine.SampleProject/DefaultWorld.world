@@ -1,106 +1,18 @@
 {
-  "id": 0,
+  "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
   "name": "DefaultWorld",
-  "file_name": "DefaultWorld.world",
   "entity_references": [
     {
-      "asset_id": -1,
+      "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
-        "id": 1,
+        "id": "68a75d65-854e-4317-b414-36cc966254df",
         "name": "ground",
-		"root_component": {
-		  "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
+        "root_component": {
+          "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",
           "type": "StaticMeshComponent",
-		  "children_component": [
-			{
-		    "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
-            "name": "BoxCollisionComponent",
-            "type": "BoxCollisionComponent",
-			"children_component": [],
-		    "coordinates": {
-              "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "center_of_rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "scale": {
-                "x": 100.0,
-                "y": 100.0,
-                "z": 1.0
-              },
-              "rotation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0
-              }
-            },
-            "physics_definition": {
-              "physics_type": "Static",
-              "additional_angular_damping_factor": 0.01,
-              "additional_angular_damping_threshold_sqr": 0.01,
-              "additional_damping": false,
-              "additional_damping_factor": 0.005,
-              "additional_linear_damping_threshold_sqr": 0.01,
-              "angular_damping": 0.0,
-              "angular_factor": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "angular_sleeping_threshold": 1.0,
-              "friction": 0.5,
-              "linear_damping": 0.0,
-              "linear_factor": {
-                "x": 1.0,
-                "y": 1.0,
-                "z": 1.0
-              },
-              "linear_sleeping_threshold": 0.8,
-              "local_inertia": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "mass": 0.0,
-              "restitution": 0.0,
-              "rolling_friction": 0.0,
-              "apply_gravity": true,
-              "debug_color": "null"
-            },
-            "shape": {
-              "version": 1,
-              "shape_type": "Box",
-              "position": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0
-              },
-              "orientation": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0
-              },
-              "w": 100.0,
-              "h": 1.0,
-              "l": 100.0
-            }
-          }
-		  ],
-		  "coordinates": {
+          "coordinates": {
             "position": {
-              "x": 0.0,
-              "y": 0.0,
-              "z": 0.0
-            },
-            "center_of_rotation": {
               "x": 0.0,
               "y": 0.0,
               "z": 0.0
@@ -117,90 +29,154 @@
               "w": 1.0
             }
           },
-		  "mesh": {
-              "primitive_type": "TriangleList",
-              "vertices": [
-                {
-                  "position": {
-                    "x": -0.5,
-                    "y": 0.0,
-                    "z": -0.5
-                  },
-                  "normal": {
-                    "x": 0.0,
-                    "y": 1.0,
-                    "z": 0.0
-                  },
-                  "texture_coordinate": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
+          "children_component": [
+            {
+              "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
+              "name": "BoxCollisionComponent",
+              "type": "BoxCollisionComponent",
+              "coordinates": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
                 },
-                {
-                  "position": {
-                    "x": -0.5,
-                    "y": 0.0,
-                    "z": 0.5
-                  },
-                  "normal": {
-                    "x": 0.0,
-                    "y": 1.0,
-                    "z": 0.0
-                  },
-                  "texture_coordinate": {
-                    "x": 0.0,
-                    "y": 1.0
-                  }
+                "scale": {
+                  "x": 100.0,
+                  "y": 100.0,
+                  "z": 1.0
                 },
-                {
-                  "position": {
-                    "x": 0.5,
-                    "y": 0.0,
-                    "z": -0.5
-                  },
-                  "normal": {
-                    "x": 0.0,
-                    "y": 1.0,
-                    "z": 0.0
-                  },
-                  "texture_coordinate": {
-                    "x": 1.0,
-                    "y": 0.0
-                  }
-                },
-                {
-                  "position": {
-                    "x": 0.5,
-                    "y": 0.0,
-                    "z": 0.5
-                  },
-                  "normal": {
-                    "x": 0.0,
-                    "y": 1.0,
-                    "z": 0.0
-                  },
-                  "texture_coordinate": {
-                    "x": 1.0,
-                    "y": 1.0
-                  }
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
                 }
-              ],
-              "indices": [
-                0,
-                2,
-                1,
-                1,
-                2,
-                3
-              ],
-              "texture_asset_id": 1001
+              },
+              "children_component": [],
+              "physics_definition": {
+                "physics_type": "Static",
+                "additional_angular_damping_factor": 0.01,
+                "additional_angular_damping_threshold_sqr": 0.01,
+                "additional_damping": false,
+                "additional_damping_factor": 0.005,
+                "additional_linear_damping_threshold_sqr": 0.01,
+                "angular_damping": 0.0,
+                "angular_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "angular_sleeping_threshold": 1.0,
+                "friction": 0.5,
+                "linear_damping": 0.0,
+                "linear_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "linear_sleeping_threshold": 0.8,
+                "local_inertia": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "mass": 0.0,
+                "restitution": 0.0,
+                "rolling_friction": 0.0,
+                "apply_gravity": true,
+                "debug_color": "null"
+              }
             }
-		},
-        "components": [ ]
+          ],
+          "mesh": {
+            "asset": {
+              "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
+              "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2"
+            },
+            "primitive_type": "TriangleList",
+            "vertices": [
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.0,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.0,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "indices": [
+              0,
+              2,
+              1,
+              1,
+              2,
+              3
+            ],
+            "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131"
+          }
+        },
+        "components": [],
+        "script_class_name": null
       }
     },
     {
-      "asset_id": 2,
+      "asset_id": "1961629e-6215-47be-961b-854befa6c235",
       "name": "box",
       "initial_coordinates": {
         "position": {
@@ -208,11 +184,6 @@
           "y": 3.0,
           "z": 0.0
         },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
         "scale": {
           "x": 1.0,
           "y": 1.0,
@@ -227,7 +198,7 @@
       }
     },
     {
-      "asset_id": 2,
+      "asset_id": "1961629e-6215-47be-961b-854befa6c235",
       "name": "Box_24",
       "initial_coordinates": {
         "position": {
@@ -235,11 +206,6 @@
           "y": 3.0,
           "z": 0.0
         },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
         "scale": {
           "x": 1.0,
           "y": 1.0,
@@ -254,18 +220,13 @@
       }
     },
     {
-      "asset_id": 25,
+      "asset_id": "8abc0021-e27b-4c2b-aa58-640ea42369d1",
       "name": "camera",
       "initial_coordinates": {
         "position": {
           "x": -9.269146,
           "y": 0.6204097,
           "z": -7.5438976
-        },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
         },
         "scale": {
           "x": 1.0,
@@ -281,17 +242,12 @@
       }
     },
     {
-      "asset_id": 2,
+      "asset_id": "1961629e-6215-47be-961b-854befa6c235",
       "name": "Box_26",
       "initial_coordinates": {
         "position": {
           "x": 1.3648462,
           "y": 4.996814,
-          "z": 0.0
-        },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
           "z": 0.0
         },
         "scale": {
@@ -307,5 +263,6 @@
         }
       }
     }
-  ]
+  ],
+  "script_class_name": null
 }
