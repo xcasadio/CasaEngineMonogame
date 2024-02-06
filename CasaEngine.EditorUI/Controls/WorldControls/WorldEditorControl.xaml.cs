@@ -1,7 +1,17 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
@@ -55,5 +65,51 @@ public partial class WorldEditorControl : EditorControlBase
         var world = GameEditor.Game.GameManager.CurrentWorld;
         AssetSaver.SaveAsset(world.FileName, world);
         Logs.WriteInfo($"World {world.Name} saved ({world.FileName})");
+
+        SaveEverything();
+    }
+
+    private void SaveEverything()
+    {
+        foreach (var assetInfo in AssetCatalog.AssetInfos)
+        {
+            UObject actor = null;
+
+            switch (Path.GetExtension(assetInfo.FileName))
+            {
+                case Constants.FileNameExtensions.Entity:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<AActor>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.World:
+                    continue;
+                    //actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<World>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.Texture:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<Texture>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.Sprite:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<SpriteData>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.Animation2d:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<Animation2dData>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.TileMap:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
+                    break;
+                case ".tileset":
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<TileSetData>(assetInfo.Id);
+                    break;
+                case Constants.FileNameExtensions.Screen:
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
+                    break;
+                default:
+                    Logs.WriteWarning($"Object '{assetInfo.FileName}' skipped");
+                    continue;
+            }
+
+            AssetSaver.SaveAsset(actor.FileName, actor);
+        }
+
+        AssetCatalog.Save();
     }
 }

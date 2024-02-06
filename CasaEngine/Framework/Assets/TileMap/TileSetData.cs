@@ -21,6 +21,8 @@ public class TileSetData : UObject
 
     public override void Load(JsonElement element)
     {
+        base.Load(element);
+
         //TODO : remove
         if (element.GetProperty("sprite_sheet_asset_id").ValueKind == JsonValueKind.Number)
         {
@@ -67,6 +69,8 @@ public class TileSetData : UObject
 
     public override void Save(JObject jObject)
     {
+        base.Save(jObject);
+
         jObject.Add("sprite_sheet_file_name", SpriteSheetAssetId);
 
         var newNode = new JObject();

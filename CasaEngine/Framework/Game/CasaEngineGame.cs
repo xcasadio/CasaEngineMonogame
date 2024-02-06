@@ -233,7 +233,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
 
-        //AssetContentManager.RegisterAssetLoader(typeof(EntityFlowGraph), new AssetLoader<EntityFlowGraph>());
+        AssetContentManager.RegisterAssetLoader(typeof(UObject), new AssetLoader<UObject>());
         AssetContentManager.RegisterAssetLoader(typeof(AActor), new AssetLoader<AActor>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
@@ -241,6 +241,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
         AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
+        AssetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
     }
 
     private void InitializeGui()

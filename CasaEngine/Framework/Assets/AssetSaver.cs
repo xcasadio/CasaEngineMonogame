@@ -1,5 +1,7 @@
-﻿using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Log;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
+using CasaEngine.Framework.World;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,6 +20,8 @@ public static class AssetSaver
         using StreamWriter file = File.CreateText(fullFileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         rootObject.WriteTo(writer);
+
+        Logs.WriteInfo($"Save '{fileName}'");
     }
 
 #endif

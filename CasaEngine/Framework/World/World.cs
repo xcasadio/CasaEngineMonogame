@@ -280,7 +280,7 @@ public sealed class World : UObject
         FileName = fileName.Replace(EngineEnvironment.ProjectPath, string.Empty).TrimStart('\\');
     }
 
-    public void Load(JsonElement element)
+    public override void Load(JsonElement element)
     {
         ClearEntities(true);
         base.Load(element);
