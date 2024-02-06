@@ -31,7 +31,20 @@
       "a": 255
     },
     "sprite_effect": "None",
-    "animations": []
+    "animations": [
+      "225465f3-d68f-4ee1-b284-b40c411b6a0a",
+      "1b1f965d-5cf5-4527-a5dc-075288014e6d",
+      "7eb78512-0486-4eb7-b353-27f82275eea7",
+      "aa3057b1-f89f-46ff-9657-e4d721a68448",
+      "243de4b8-79dd-4986-9239-437daf4107f6",
+      "107571fa-2944-4e66-87b4-171ddcb5a3a4",
+      "ec69df61-eb47-4542-84cb-721d241a3c1a",
+      "f937aeb8-a46d-4fdd-9944-da0c353c50b2",
+      "9a2c367e-7a40-4b01-838c-3f9a3e0daead",
+      "7e8e73c7-d382-4866-9839-1764a2a386a6",
+      "7567e3e7-fdb4-40a1-9b6c-01d5c50ca72a",
+      "19b4b8c9-2bef-4420-a400-c3a408ae3863"
+    ]
   },
   "components": [],
   "script_class_name": "ScriptPlayerWeapon"

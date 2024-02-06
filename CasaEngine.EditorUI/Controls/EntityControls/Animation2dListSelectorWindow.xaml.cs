@@ -26,7 +26,7 @@ public partial class Animation2dListSelectorWindow : Window
 
         var assetInfos = AssetCatalog.AssetInfos
             .Where(x => string.Equals(Path.GetExtension(x.FileName), Constants.FileNameExtensions.Animation2d))
-            .Select(x => new AssetInfoViewModel(x));
+            .Select(x => new AssetInfoViewModel(x.Id));
 
         if (animationsToFilter != null)
         {

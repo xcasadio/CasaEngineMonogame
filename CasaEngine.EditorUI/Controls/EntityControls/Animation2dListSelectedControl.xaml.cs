@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Framework.Assets;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -35,9 +34,12 @@ public partial class Animation2dListSelectedControl : UserControl
 
         if (animation2dListSelectorWindow.ShowDialog() == true)
         {
+            var animatedSpriteComponent = DataContext as AnimatedSpriteComponent;
+            var assetContentManager = animatedSpriteComponent.Owner.World.Game.AssetContentManager;
+
             foreach (var assetInfoViewModel in animation2dListSelectorWindow.AssetInfoSelected)
             {
-                _animation2dSelectedListModelView.Add(assetInfoViewModel.AssetInfo);
+                _animation2dSelectedListModelView.Add(assetInfoViewModel.Id);
             }
         }
     }
@@ -54,33 +56,5 @@ public partial class Animation2dListSelectedControl : UserControl
         {
             _animation2dSelectedListModelView.Remove(assetInfoViewModel);
         }
-    }
-}
-
-internal class Animation2dSelectedListModelView
-{
-    private AnimatedSpriteComponent _animatedSpriteComponent;
-
-    public ObservableCollection<AssetInfoViewModel> Animations { get; } = new();
-
-    public Animation2dSelectedListModelView(AnimatedSpriteComponent animatedSpriteComponent)
-    {
-        _animatedSpriteComponent = animatedSpriteComponent;
-
-        foreach (var animationAssetId in _animatedSpriteComponent.AnimationAssetIds)
-        {
-            var assetInfo = AssetCatalog.Get(animationAssetId);
-            Add(assetInfo);
-        }
-    }
-
-    public void Add(AssetInfo assetInfo)
-    {
-        Animations.Add(new AssetInfoViewModel(assetInfo));
-    }
-
-    public void Remove(AssetInfoViewModel assetInfoViewModel)
-    {
-        Animations.Remove(assetInfoViewModel);
     }
 }

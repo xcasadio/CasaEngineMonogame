@@ -29,7 +29,7 @@ public partial class SpriteListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var spriteData = _gameEditor.Game.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo.Id);
+        var spriteData = _gameEditor.Game.AssetContentManager.Load<SpriteData>(selectedItem.Id);
         SelectedItem = new SpriteDataViewModel(spriteData);
     }
 
@@ -68,7 +68,7 @@ public partial class SpriteListControl : UserControl
 
         foreach (var assetInfoViewModel in spritesModelView.SpriteAssetInfos)
         {
-            if (fileName.EndsWith(assetInfoViewModel.AssetInfo.FileName))
+            if (fileName.EndsWith(assetInfoViewModel.FileName))
             {
                 var index = ListBox.Items.IndexOf(assetInfoViewModel);
                 Dispatcher.Invoke(() => ListBox.SelectedIndex = index);

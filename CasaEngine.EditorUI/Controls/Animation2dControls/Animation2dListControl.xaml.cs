@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Common;
-using CasaEngine.EditorUI.Controls.SpriteControls;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
@@ -32,7 +31,7 @@ public partial class Animation2dListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var animation2dData = LoadAnimation(selectedItem.AssetInfo.Id);
+        var animation2dData = LoadAnimation(selectedItem.Id);
         SelectedItem = new Animation2dDataViewModel(animation2dData);
     }
 
@@ -93,7 +92,7 @@ public partial class Animation2dListControl : UserControl
 
         foreach (var assetInfoViewModel in animation2dListModelView.Animation2dAssetInfos)
         {
-            if (fileName.EndsWith(assetInfoViewModel.AssetInfo.FileName))
+            if (fileName.EndsWith(assetInfoViewModel.FileName))
             {
                 var index = ListBox.Items.IndexOf(assetInfoViewModel);
                 Dispatcher.Invoke(() => ListBox.SelectedIndex = index);

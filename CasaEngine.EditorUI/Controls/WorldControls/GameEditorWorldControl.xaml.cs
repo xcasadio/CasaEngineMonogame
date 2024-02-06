@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
-using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 

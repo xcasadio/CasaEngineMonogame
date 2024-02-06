@@ -24,7 +24,7 @@ public class Animation2dAssetListModelView
     {
         foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
         {
-            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 
@@ -32,7 +32,7 @@ public class Animation2dAssetListModelView
     {
         if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Animation2d)
         {
-            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 

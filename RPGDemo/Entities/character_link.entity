@@ -35,9 +35,9 @@
             "z": 0.0
           },
           "scale": {
-            "x": 25.0,
-            "y": 25.0,
-            "z": 25.0
+            "x": 12.0,
+            "y": 12.0,
+            "z": 12.0
           },
           "rotation": {
             "x": 0.0,
@@ -89,7 +89,45 @@
       "a": 255
     },
     "sprite_effect": "None",
-    "animations": []
+    "animations": [
+      "31c67f46-bf68-4e5b-bb4c-ddb075f44905",
+      "a597ce00-3da7-4ac1-9370-0bb70ad31563",
+      "941891cf-9324-4c3f-9396-7602325c9058",
+      "9ca8a46c-d9cb-4d42-99e7-3068bf85badf",
+      "0016d892-9e0d-47fa-acf7-64e05e2e65a1",
+      "fd5c97d5-d8c5-456d-a8fc-67db0265a5c0",
+      "cd389284-5cd7-4aa2-8901-f1cfdb55011a",
+      "9224d65f-695b-4271-86d8-8fe9deebf9c1",
+      "8312ccd0-8a61-4203-8acd-a44a0a7326c0",
+      "1ea31372-b725-4a25-9705-46e5b32e52a9",
+      "32e3984c-74f8-45ba-a177-1b40cf5a78f5",
+      "055bd8ab-941c-4de1-8cf1-f59237972d17",
+      "d9ae23fb-7048-4dde-b1b7-55b073c27e5a",
+      "d342e22d-0a44-46d9-a267-f28d50f3b3ce",
+      "622cba9d-6abe-4429-9609-b4a810d73fe6",
+      "8fdd19a7-1e52-403d-8aec-c0bd306f8a65",
+      "cec47a92-032b-4e14-9f6e-f873dfd6e532",
+      "afb49889-9ad2-49a0-ad51-cc92e7e54ba2",
+      "6c3b0ce9-aa48-4faa-a0c8-ecab6b9c673d",
+      "a68f1d3c-9960-4f05-914f-8cedf4d7df53",
+      "84a401b0-8406-495f-ae5c-5c9749054098",
+      "ed4662cd-732f-44ff-814c-ba4082ae186a",
+      "eb907383-2bff-469d-9466-b8486227ad1a",
+      "cf0673a5-b30f-45f8-9828-c40c31281c73",
+      "789a01b0-8591-49b4-9260-aecfb6eff58d",
+      "7d30eeae-fffe-41b5-84c1-ccfb6c6c1a3b",
+      "bbf0db02-094b-43a4-9ac7-2af4efce434c",
+      "7e6f90e5-db05-4d6a-a72f-883d577a4811",
+      "63f54149-8a11-4d6c-a172-b54fe3a16387",
+      "6cd7aaab-b6a0-4fc0-bd14-d489a79c33ad",
+      "7d8e0540-3d05-4d8f-818c-cecb44e49717",
+      "0d5695a6-da15-468d-99c0-9d0e89dc3b02",
+      "573a3439-1b3d-4ebd-9797-6b9f2346fe30",
+      "49a14bfd-c8aa-4842-a32c-efa01228e6c0",
+      "d5e1f251-7484-4e18-82b9-51a62bed3447",
+      "6dc2c025-8ec2-40da-baf9-1f272f9eea1c",
+      "63c537e7-6954-4a74-9bd8-7e609f41c0ac"
+    ]
   },
   "components": [],
   "script_class_name": "ScriptPlayer"

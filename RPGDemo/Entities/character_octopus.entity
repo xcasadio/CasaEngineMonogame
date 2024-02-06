@@ -35,9 +35,9 @@
             "z": 0.0
           },
           "scale": {
-            "x": 25.0,
-            "y": 25.0,
-            "z": 25.0
+            "x": 12.0,
+            "y": 12.0,
+            "z": 12.0
           },
           "rotation": {
             "x": 0.0,
@@ -89,7 +89,20 @@
       "a": 255
     },
     "sprite_effect": "None",
-    "animations": []
+    "animations": [
+      "a3c81b9a-fe52-4a93-80da-e2d206303628",
+      "5f770544-fe6b-4cfb-a7ac-43f46c0c153c",
+      "723510d2-749f-41fd-9cd6-366ffb6b2d80",
+      "768e4f21-05f7-4fd6-a035-f84aa6cbc5af",
+      "07ba0fdf-1b58-4065-b501-d35df2332f6a",
+      "f0b91f3b-63b3-4c93-a860-0100561bc259",
+      "8e081c75-1783-4fee-842e-82d2523a86f9",
+      "bbc00fb4-3515-4354-b39b-b1fb3bc66325",
+      "bf35b58f-b616-4a26-b1d9-cc8a3f037e16",
+      "48f89e4e-5e24-4c43-92a2-c077f2110dc8",
+      "a64a7a36-d284-4525-a9cd-6d720b9da42d",
+      "49142dc9-779a-4284-ae7d-e2c0f26102cf"
+    ]
   },
   "components": [],
   "script_class_name": "ScriptEnemy"

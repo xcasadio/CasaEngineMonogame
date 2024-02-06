@@ -7,7 +7,6 @@ using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;

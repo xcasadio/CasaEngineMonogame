@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
@@ -11,7 +10,6 @@ using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;

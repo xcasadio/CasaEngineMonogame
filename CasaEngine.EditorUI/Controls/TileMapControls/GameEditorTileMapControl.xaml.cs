@@ -1,7 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Log;
-using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 

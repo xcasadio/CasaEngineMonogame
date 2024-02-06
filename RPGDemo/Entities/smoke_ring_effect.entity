@@ -31,7 +31,9 @@
       "a": 255
     },
     "sprite_effect": "None",
-    "animations": []
+    "animations": [
+      "476fdde7-7cf0-4bf8-a8a7-130d995b38f1"
+    ]
   },
   "components": [],
   "script_class_name": null

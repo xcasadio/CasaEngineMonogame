@@ -24,7 +24,7 @@ public class SpritesModelView
     {
         foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
         {
-            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 
@@ -32,7 +32,7 @@ public class SpritesModelView
     {
         if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Sprite)
         {
-            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 

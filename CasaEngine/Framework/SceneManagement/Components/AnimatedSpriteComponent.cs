@@ -393,9 +393,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         var animationsNode = new JArray();
 
-        foreach (var animation2d in Animations)
+        foreach (var animationId in AnimationAssetIds)
         {
-            animationsNode.Add(animation2d.Animation2dData.Id);
+            animationsNode.Add(animationId);
         }
 
         jObject.Add("animations", animationsNode);

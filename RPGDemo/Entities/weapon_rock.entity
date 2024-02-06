@@ -35,9 +35,9 @@
             "z": 0.0
           },
           "scale": {
-            "x": 20.0,
-            "y": 20.0,
-            "z": 20.0
+            "x": 10.0,
+            "y": 10.0,
+            "z": 10.0
           },
           "rotation": {
             "x": 0.0,
@@ -89,7 +89,9 @@
       "a": 255
     },
     "sprite_effect": "None",
-    "animations": []
+    "animations": [
+      "9364b17a-6956-4c5f-bc98-e869dda4e9dd"
+    ]
   },
   "components": [],
   "script_class_name": "ScriptEnemyWeapon"
