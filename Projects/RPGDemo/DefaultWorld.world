@@ -1,0 +1,128 @@
+{
+  "id": "9b366ad0-1edf-4025-9eff-b38d3af2b3f3",
+  "name": "DefaultWorld",
+  "entity_references": [
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "17c4ce45-b274-4282-b856-975d22d149e7",
+        "name": "tileMap",
+        "root_component": {
+          "id": "928dd2eb-c549-453f-b923-54e30dab5ab0",
+          "name": "TileMapComponent",
+          "type": "TileMapComponent",
+          "coordinates": {
+            "position": {
+              "x": 0.0,
+              "y": 700.0,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "tile_map_data_asset_id": "08498547-ed57-47ae-9736-1f4c246350f1"
+        },
+        "components": [],
+        "script_class_name": null
+      }
+    },
+    {
+      "asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
+      "name": "character_link",
+      "initial_coordinates": {
+        "position": {
+          "x": 60.0,
+          "y": 600.0,
+          "z": 0.3
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      }
+    },
+    {
+      "asset_id": "afd86c38-7a42-40e6-92b8-58b0d2def9d7",
+      "name": "character_octopus",
+      "initial_coordinates": {
+        "position": {
+          "x": 600.0,
+          "y": 600.0,
+          "z": 0.3
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "rotation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "bfa3d321-8f61-4af2-aa8f-8a365c26bc95",
+        "name": "camera",
+        "root_component": {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera3dIn2dAxisComponent",
+          "type": "Camera3dIn2dAxisComponent",
+          "coordinates": {
+            "position": {
+              "x": 3.0748892,
+              "y": 0.5550308,
+              "z": 2.5794868
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "view_distance": 0.0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 742,
+            "h": 342,
+            "min_depth": 1.0,
+            "max_depth": 1000.0
+          },
+          "fieldOfView": 0.64356077
+        },
+        "components": [],
+        "script_class_name": null
+      }
+    }
+  ],
+  "script_class_name": "ScriptWorld"
+}

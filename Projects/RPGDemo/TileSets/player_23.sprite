@@ -1,0 +1,29 @@
+{
+  "id": "d7e65a4d-5a6d-4af6-8f8f-a51605f251d8",
+  "name": "player_23",
+  "sprite_sheet_asset_id": "9df08fbb-7be3-49fc-add8-f2ed6776dd88",
+  "location": {
+    "x": 336,
+    "y": 96,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 23,
+    "y": 35
+  },
+  "collisions": [
+    {
+      "collision_type": "Attack",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 9.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 28,
+      "h": 36
+    }
+  ],
+  "sockets": []
+}

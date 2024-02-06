@@ -93,7 +93,7 @@ public class DepthFirstSearch<T, TK> : GraphSearchAlgorithm<T, TK>
             Route.Add(Node.NoParent);
         }
 
-        //Initialize the edges stack
+        //LoadContent the edges stack
         StackedEdges = new Stack<TK>();
 
         //Create a dummy edge to start the search

@@ -85,7 +85,7 @@ public class DijkstraSearch<T, TK> : GraphSearchAlgorithm<T, TK>
         ShortestPathTree = new List<TK>(Graph.NodeCount);
         Frontier = new List<TK>(Graph.NodeCount);
 
-        //Initialize the values
+        //LoadContent the values
         for (var i = 0; i < Graph.NodeCount; i++)
         {
             CostToNode.Add(double.MaxValue);
@@ -95,11 +95,11 @@ public class DijkstraSearch<T, TK> : GraphSearchAlgorithm<T, TK>
 
         CostToNode[source] = 0;
 
-        //Initialize the indexed priority queue and enqueue the first node
+        //LoadContent the indexed priority queue and enqueue the first node
         Queue = new IndexedPriorityQueue<double>(CostToNode);
         Queue.Enqueue(source);
 
-        //Initialize the base
+        //LoadContent the base
         base.Initialize(source, target);
     }
 

@@ -1,14 +1,11 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using TomShane.Neoforce.Controls;
-using Button = TomShane.Neoforce.Controls.Button;
+﻿using System.Text.Json;
 using Control = TomShane.Neoforce.Controls.Control;
 
 namespace CasaEngine.Framework.GUI;
 
 public static class ControlHelper
 {
-    static public IDictionary<string, Type> TypesByName { get; }
+    public static IDictionary<string, Type> TypesByName { get; }
 
     static ControlHelper()
     {

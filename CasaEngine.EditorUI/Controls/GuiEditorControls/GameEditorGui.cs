@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Input;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Control = TomShane.Neoforce.Controls.Control;
@@ -16,7 +15,6 @@ namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 public class GameEditorGui : GameEditor2d
 {
     private ScreenGui _screenGui;
-    private Camera3dIn2dAxisComponent _camera;
     private bool _keyDeletePressed = false;
 
     public GameEditorGui() : base(true)
@@ -27,7 +25,7 @@ public class GameEditorGui : GameEditor2d
         Cursor = Cursors.None;
     }
 
-    private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (DataContext is ScreenViewModel screenViewModel)
         {
@@ -36,19 +34,27 @@ public class GameEditorGui : GameEditor2d
             Game.GameManager.CurrentWorld.AddScreen(_screenGui);
         }
     }
+
+    protected override void InitializeGame()
+    {
+
+    }
+
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
 
-        var screenXBy2 = (float)sizeInfo.NewSize.Width / 2f;
-        var screenYBy2 = (float)sizeInfo.NewSize.Height / 2f;
-        _camera.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+        if (CameraComponent != null)
+        {
+            var screenXBy2 = (float)sizeInfo.NewSize.Width / 2f;
+            var screenYBy2 = (float)sizeInfo.NewSize.Height / 2f;
+            CameraComponent.Target = new Vector3(screenXBy2, screenYBy2, 0.0f);
+        }
     }
 
     protected override void CreateEntityComponents(Entity entity)
     {
-        Game.GameManager.UiManager.SetSkin();
-        _camera = Game.GameManager.ActiveCamera as Camera3dIn2dAxisComponent;
+        Game.UiManager.SetSkin();
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -68,7 +74,7 @@ public class GameEditorGui : GameEditor2d
                 var type = ControlHelper.TypesByName[dragAndDropInfo.Type];
                 var control = (Control)Activator.CreateInstance(type);
 
-                control.Initialize(Game.GameManager.UiManager);
+                control.Initialize(Game.UiManager);
                 control.SetPosition((int)position.X, (int)position.Y);
                 control.Movable = true;
                 control.Resizable = true;

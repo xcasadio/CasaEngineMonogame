@@ -9,7 +9,7 @@ public sealed class MessageManagerHandler : IMessageManager
 
     internal UniquePriorityQueue<Message> MessageQueue;
 
-    internal Dictionary<int, Dictionary<long, MessageHandlerDelegate>> RegisteredEntities;
+    internal Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>> RegisteredEntities;
 
 
 
@@ -18,7 +18,7 @@ public sealed class MessageManagerHandler : IMessageManager
     private MessageManagerHandler()
     {
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
-        RegisteredEntities = new Dictionary<int, Dictionary<long, MessageHandlerDelegate>>();
+        RegisteredEntities = new Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>>();
     }
 
 
@@ -29,15 +29,15 @@ public sealed class MessageManagerHandler : IMessageManager
     public void ResetManager(double precision)
     {
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
-        RegisteredEntities = new Dictionary<int, Dictionary<long, MessageHandlerDelegate>>();
+        RegisteredEntities = new Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>>();
     }
 
-    public void RegisterForMessage(int type, int entityId, MessageHandlerDelegate handler)
+    public void RegisterForMessage(int type, Guid entityId, MessageHandlerDelegate handler)
     {
         //If the table for this type of message didn´t exist we set it up and register ourselves
         if (RegisteredEntities[type] == null)
         {
-            RegisteredEntities[type] = new Dictionary<long, MessageHandlerDelegate>();
+            RegisteredEntities[type] = new Dictionary<Guid, MessageHandlerDelegate>();
             RegisteredEntities[type][entityId] = handler;
             return;
         }
@@ -46,7 +46,7 @@ public sealed class MessageManagerHandler : IMessageManager
         RegisteredEntities[type][entityId] = handler;
     }
 
-    public void UnregisterForMessage(int type, int entityId)
+    public void UnregisterForMessage(int type, Guid entityId)
     {
         if (RegisteredEntities[type] == null)
         {
@@ -56,11 +56,11 @@ public sealed class MessageManagerHandler : IMessageManager
         RegisteredEntities[type].Remove(entityId);
     }
 
-    public void SendMessage(long senderId, long recieverId, double delayTime, int type, object extraInfo)
+    public void SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo)
     {
         Message message;
 
-        message = new Message(senderId, recieverId, type, delayTime, extraInfo);
+        message = new Message(senderId, receiverId, type, delayTime, extraInfo);
 
         //If the message has no delay then call the delegate handler
         if (delayTime == 0)
@@ -70,12 +70,12 @@ public sealed class MessageManagerHandler : IMessageManager
                 return;
             }
 
-            if (RegisteredEntities[type][recieverId] == null)
+            if (RegisteredEntities[type][receiverId] == null)
             {
                 return;
             }
 
-            RegisteredEntities[type][recieverId](message);
+            RegisteredEntities[type][receiverId](message);
         }
 
         //If the messaged was a delayed one, calculate its future time and put it in the message queue
@@ -88,14 +88,11 @@ public sealed class MessageManagerHandler : IMessageManager
 
     public void Update()
     {
-        Message message;
-        double currentTime;
-
-        currentTime = DateTime.Now.Ticks;
+        double currentTime = DateTime.Now.Ticks;
 
         while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
         {
-            message = MessageQueue.Dequeue();
+            var message = MessageQueue.Dequeue();
 
             if (RegisteredEntities[message.Type] == null)
             {

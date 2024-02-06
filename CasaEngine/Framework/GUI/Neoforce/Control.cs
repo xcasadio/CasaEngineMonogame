@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -1576,13 +1577,13 @@ public class Control : Component
 
         if (Manager == null)
         {
-            Manager.Logger.WriteError("Control cannot be created. Manager instance is needed.");
+            Logs.WriteError("Control cannot be created. Manager instance is needed.");
             return;
         }
 
         if (Manager.Skin == null)
         {
-            Manager.Logger.WriteError("Control cannot be created. No skin loaded.");
+            Logs.WriteError("Control cannot be created. No skin loaded.");
             return;
         }
 
@@ -1616,7 +1617,7 @@ public class Control : Component
         }
         else
         {
-            Manager?.Logger.WriteError("Control skin cannot be initialized. No skin loaded.");
+            Logs.WriteError("Control skin cannot be initialized. No skin loaded.");
         }
     }
 
@@ -1673,7 +1674,7 @@ public class Control : Component
     {
         if (!(skin?.Layers?.Count > 0 && skin.Layers[layer] != null))
         {
-            Manager.Logger.WriteError("Unable to read skin layer \"" + layer + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
+            Logs.WriteError("Unable to read skin layer \"" + layer + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
         }
     }
 
@@ -1681,7 +1682,7 @@ public class Control : Component
     {
         if (!(skin?.Layers?.Count > 0 && skin.Layers[layer] != null))
         {
-            Manager.Logger.WriteError("Unable to read skin layer with index \"" + layer.ToString() + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
+            Logs.WriteError("Unable to read skin layer with index \"" + layer.ToString() + "\" for control \"" + Utilities.DeriveControlName(this) + "\".");
         }
     }
 

@@ -3,15 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <TreeView x:Name="TreeView" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown">
+        <common:TreeViewEx x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown"
+                           ItemsSource="{Binding Entities}" MouseDoubleClick="OnMouseDoubleClick">
             <TreeView.ItemTemplate>
-                <DataTemplate>
-                    <TreeViewItem Header="{Binding Name}" MouseDoubleClick="OnMouseDoubleClick"/>
-                </DataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:EntityViewModel}" ItemsSource="{Binding Children}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" Source="/Resources/actor_icon.png" Width="16" Height="16"/>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
+                    </Grid>
+                </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
-        </TreeView>
+
+        </common:TreeViewEx>
     </Grid>
 </UserControl>

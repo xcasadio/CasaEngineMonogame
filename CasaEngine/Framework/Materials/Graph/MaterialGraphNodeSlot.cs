@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-
-namespace CasaEngine.Framework.Materials.Graph;
+﻿namespace CasaEngine.Framework.Materials.Graph;
 
 public class MaterialGraphNodeSlot
 {

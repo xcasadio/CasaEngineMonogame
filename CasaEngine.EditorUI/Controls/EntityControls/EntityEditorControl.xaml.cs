@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Windows;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Scripting;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
@@ -23,14 +24,14 @@ public partial class EntityEditorControl : EditorControlBase
 
     public event EventHandler GameStarted;
 
-    public GameEditorEntity GameEditorEntity => GameScreenControl.gameEntityEditor;
+    public GameEditorEntity GameEditorEntity => GameEditorEntityControl.gameEntityEditor;
 
     public EntityEditorControl()
     {
         InitializeComponent();
 
-        GameScreenControl.gameEntityEditor.GameStarted += OnGameStarted;
-        EntityControl.InitializeFromGameEditor(GameScreenControl.gameEntityEditor);
+        GameEditorEntityControl.gameEntityEditor.GameStarted += OnGameStarted;
+        EntityControl.InitializeFromGameEditor(GameEditorEntityControl.gameEntityEditor);
     }
 
     private void OnGameStarted(object? sender, EventArgs e)
@@ -43,19 +44,29 @@ public partial class EntityEditorControl : EditorControlBase
         e.Content = e.Model.Title switch
         {
             "Details" => EntityControl,
-            "Game ScreenGui" => GameScreenControl,
+            "Entity Editor" => GameEditorEntityControl,
+            "Game ScreenGui" => GameEditorEntityControl, // TODO : remove
             "Logs" => this.FindParent<MainWindow>().LogsControl,
             "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
             _ => e.Content
         };
+
+        // TODO : remove
+        if (e.Model.Title == "Game ScreenGui")
+        {
+            e.Model.Title = "Entity Editor";
+        }
     }
 
-    public void LoadEntity(string fileName)
+    public void OpenEntity(string fileName)
     {
-        //EntityFlowGraph
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-        var entity = GameScreenControl.gameEntityEditor.Game.GameManager.AssetContentManager.Load<EntityFlowGraph>(assetInfo);
-        //var entity = EntityLoader.Load(fileName)
+        var game = GameEditorEntityControl.gameEntityEditor.Game;
+        game.GameManager.CurrentWorld.ClearEntities(true);
+
+        var assetInfo = AssetCatalog.GetByFileName(fileName);
+        var entity = game.AssetContentManager.Load<Entity>(assetInfo.Id);
+        entity.ReActivate();
+        game.GameManager.CurrentWorld.AddEntity(entity);
         SelectedItem = new EntityViewModel(entity);
     }
 }

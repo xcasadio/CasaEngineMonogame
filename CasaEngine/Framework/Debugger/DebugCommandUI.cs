@@ -220,7 +220,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
             throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2dComponent is null");
         }
 
-        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
+        _font = ((CasaEngineGame)Game).FontSystem.GetFont(10);
 
         base.LoadContent();
     }
@@ -558,7 +558,8 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         /*Matrix mtx = Matrix.CreateTranslation(
                     new Vector3(0, -rect.Height * (1.0f - stateTransition), 0));*/
 
-        ((CasaEngineGame)Game).GameManager.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
+        var casaEngineGame = ((CasaEngineGame)Game);
+        casaEngineGame.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
         //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
         _renderer2dComponent.DrawRectangle(ref rect, _backgroundColor, depth + 0.001f);
@@ -567,7 +568,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         var pos = new Vector2(leftMargin, topMargin);
         foreach (var line in _lines)
         {
-            ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, line, pos, Color.White);
+            casaEngineGame.SpriteBatch.DrawString(_font, line, pos, Color.White);
             pos.Y += _font.LineHeight;
         }
 
@@ -576,14 +577,14 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         var cursorPos = pos + _font.MeasureString(leftPart);
         cursorPos.Y = pos.Y;
 
-        ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, $"{Prompt}{_commandLine}", pos, Color.White);
-        ((CasaEngineGame)Game).GameManager.SpriteBatch.DrawString(_font, Cursor, cursorPos, Color.White);
+        casaEngineGame.SpriteBatch.DrawString(_font, $"{Prompt}{_commandLine}", pos, Color.White);
+        casaEngineGame.SpriteBatch.DrawString(_font, Cursor, cursorPos, Color.White);
 
-        ((CasaEngineGame)Game).GameManager.SpriteBatch.End();
+        casaEngineGame.SpriteBatch.End();
     }
 
 
-    public void OnResize(int width, int height)
+    public void OnScreenResized(int width, int height)
     {
 
     }

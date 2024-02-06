@@ -1,0 +1,29 @@
+{
+  "id": "6d4ca875-2a11-4173-a0e6-52eac7da1c16",
+  "name": "sword_51",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 73,
+    "y": 0,
+    "w": 23,
+    "h": 50
+  },
+  "hotspot": {
+    "x": 10,
+    "y": 7
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": 16.0
+      },
+      "orientation": 0.0,
+      "w": 7,
+      "h": 34
+    }
+  ],
+  "sockets": []
+}

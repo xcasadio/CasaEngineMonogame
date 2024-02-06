@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using BulletSharp;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -34,28 +33,33 @@ public class PhysicsDefinition
     public bool ApplyGravity { get; set; } = true;
     public Color? DebugColor { get; set; }
 
-    public void CopyFrom(PhysicsDefinition physicsDefinition)
+    public PhysicsDefinition()
     {
-        PhysicsType = physicsDefinition.PhysicsType;
-        AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
-        AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
-        AdditionalDamping = physicsDefinition.AdditionalDamping;
-        AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
-        AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
-        AngularDamping = physicsDefinition.AngularDamping;
-        AngularFactor = physicsDefinition.AngularFactor;
-        AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
-        //CollisionShape = physicsDefinition.CollisionShape?.Clone();
-        Friction = physicsDefinition.Friction;
-        LinearDamping = physicsDefinition.LinearDamping;
-        LinearFactor = physicsDefinition.LinearFactor;
-        LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
-        LocalInertia = physicsDefinition.LocalInertia;
-        Mass = physicsDefinition.Mass;
-        Restitution = physicsDefinition.Restitution;
-        RollingFriction = physicsDefinition.RollingFriction;
-        ApplyGravity = physicsDefinition.ApplyGravity;
-        DebugColor = physicsDefinition.DebugColor;
+
+    }
+
+    public PhysicsDefinition(PhysicsDefinition other)
+    {
+        PhysicsType = other.PhysicsType;
+        AdditionalAngularDampingFactor = other.AdditionalAngularDampingFactor;
+        AdditionalAngularDampingThresholdSqr = other.AdditionalAngularDampingThresholdSqr;
+        AdditionalDamping = other.AdditionalDamping;
+        AdditionalDampingFactor = other.AdditionalDampingFactor;
+        AdditionalLinearDampingThresholdSqr = other.AdditionalLinearDampingThresholdSqr;
+        AngularDamping = other.AngularDamping;
+        AngularFactor = other.AngularFactor;
+        AngularSleepingThreshold = other.AngularSleepingThreshold;
+        //CollisionShape = other.CollisionShape?.Clone();
+        Friction = other.Friction;
+        LinearDamping = other.LinearDamping;
+        LinearFactor = other.LinearFactor;
+        LinearSleepingThreshold = other.LinearSleepingThreshold;
+        LocalInertia = other.LocalInertia;
+        Mass = other.Mass;
+        Restitution = other.Restitution;
+        RollingFriction = other.RollingFriction;
+        ApplyGravity = other.ApplyGravity;
+        DebugColor = other.DebugColor;
     }
 
     public void Load(JsonElement element)

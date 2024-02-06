@@ -1,24 +1,23 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Sprites;
 
-public class SpriteData : Asset
+public class SpriteData : ObjectBase
 {
-    public long SpriteSheetAssetId { get; set; }
+    public Guid SpriteSheetAssetId { get; set; }
     public Rectangle PositionInTexture { get; set; }
     public Point Origin { get; set; }
     public List<Socket> Sockets { get; } = new();
     public List<Collision2d> CollisionShapes { get; } = new();
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"), option);
+        base.Load(element);
 
-        SpriteSheetAssetId = element.GetJsonPropertyByName("sprite_sheet_asset_id").Value.GetInt64();
+        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
         PositionInTexture = element.GetJsonPropertyByName("location").Value.GetRectangle();
         Origin = element.GetJsonPropertyByName("hotspot").Value.GetPoint();
 
@@ -45,9 +44,9 @@ public class SpriteData : Asset
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
         //jObject.Add("asset_name", Name);
         jObject.Add("sprite_sheet_asset_id", SpriteSheetAssetId);
 

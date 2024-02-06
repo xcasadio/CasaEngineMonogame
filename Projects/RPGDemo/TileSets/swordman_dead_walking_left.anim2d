@@ -1,0 +1,15 @@
+{
+  "animation_type": "Once",
+  "id": "afb49889-9ad2-49a0-ad51-cc92e7e54ba2",
+  "name": "swordman_dead_walking_left",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "82b1b03c-cda4-4201-93c3-47a8c5415c97"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "63c9fae0-e366-41dc-ade7-e6dd001fedaf"
+    }
+  ]
+}

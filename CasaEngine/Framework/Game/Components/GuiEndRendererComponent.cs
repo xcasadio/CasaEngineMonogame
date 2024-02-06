@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
@@ -26,10 +25,10 @@ public class GuiEndRendererComponent : DrawableGameComponent
 
     public override void Draw(GameTime gameTime)
     {
-        if (!_game.GameManager.UiManager.DeviceReset)
+        if (!_game.UiManager.DeviceReset)
         {
-            _game.GameManager.UiManager.EndDraw();
-            //_spriteRendererComponent.DrawDirectly(_game.GameManager.UiManager.RenderTarget);
+            _game.UiManager.EndDraw();
+            //_spriteRendererComponent.DrawDirectly(_Game.UiManager.RenderTarget);
         }
     }
 }

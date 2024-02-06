@@ -1,7 +1,8 @@
-﻿using System.Windows.Input;
-using CasaEngine.Framework.Game;
+﻿using CasaEngine.Core.Log;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
+using System.Windows.Input;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -34,9 +35,10 @@ public partial class GuiEditorControl : EditorControlBase
 
     public void OpenScreen(string fileName)
     {
-        var assetInfo = GameSettings.AssetInfoManager.GetByFileName(fileName);
-        var screen = GameEditorGuiControl.GameEditor.Game.GameManager.AssetContentManager.Load<ScreenGui>(assetInfo);
-        screen.Initialize(GameEditorGuiControl.GameEditor.Game);
+        var assetInfo = AssetCatalog.GetByFileName(fileName);
+        var screen = GameEditorGuiControl.GameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
+        screen.Initialize();
+        screen.InitializeWithWorld(GameEditorGuiControl.GameEditor.Game.GameManager.CurrentWorld);
 
         foreach (var control in screen.Controls)
         {
@@ -67,7 +69,9 @@ public partial class GuiEditorControl : EditorControlBase
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        (DataContext as ScreenViewModel).Save();
+        var screenViewModel = DataContext as ScreenViewModel;
+        screenViewModel.Save();
+        Logs.WriteInfo($"Gui screen {screenViewModel.ScreenGui.Name} saved ({screenViewModel.ScreenGui.FileName})");
         e.Handled = true;
     }
 }

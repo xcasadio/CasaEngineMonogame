@@ -1,0 +1,17 @@
+{
+  "id": "d27d3609-4ede-4d17-b139-cfa9105dfd3a",
+  "name": "player_100",
+  "sprite_sheet_asset_id": "9df08fbb-7be3-49fc-add8-f2ed6776dd88",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 23,
+    "y": 35
+  },
+  "collisions": [],
+  "sockets": []
+}

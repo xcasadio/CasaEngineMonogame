@@ -1,9 +1,8 @@
 ﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
-using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -11,10 +10,12 @@ namespace CasaEngine.Framework.Game.Components.Physics;
 
 public class PhysicsEngineComponent : GameComponent
 {
+    private readonly CasaEngineGame? _casaEngineGame;
     public PhysicsEngine PhysicsEngine { get; private set; }
 
     public PhysicsEngineComponent(CasaEngineGame game) : base(game)
     {
+        _casaEngineGame = Game as CasaEngineGame;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.Physics;
     }
@@ -28,7 +29,7 @@ public class PhysicsEngineComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
 #if EDITOR
-        if (!(Game as CasaEngineGame).GameManager.IsRunningInGameEditorMode)
+        if (_casaEngineGame.IsRunningInGameEditorMode)
         {
             return;
         }
@@ -39,22 +40,22 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject CreateGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
+    public CollisionObject CreateGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
     }
 
-    public CollisionObject AddGhostObject(Shape2d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public CollisionObject AddGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
 
-    public CollisionObject AddGhostObject(Shape3d shape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public CollisionObject AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionShape = ConvertToCollisionShape(shape);
+        var collisionShape = ConvertToCollisionShape(shape, localScale);
         var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
@@ -84,26 +85,26 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddStaticObject(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        return AddRigidBody(shape3d, ref worldMatrix, component, physicsDefinition);
+        return AddRigidBody(shape3d, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddStaticObject(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddStaticObject(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
         physicsDefinition.Mass = 0f;
-        return AddRigidBody(shape2d, ref worldMatrix, component, physicsDefinition);
+        return AddRigidBody(shape2d, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape3d shape3d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddRigidBody(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        var collisionShape = ConvertToCollisionShape(shape3d);
+        var collisionShape = ConvertToCollisionShape(shape3d, localScale);
         return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape2d shape2d, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddRigidBody(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        var collisionShape = ConvertToCollisionShape(shape2d);
+        var collisionShape = ConvertToCollisionShape(shape2d, localScale);
         return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
@@ -140,10 +141,15 @@ public class PhysicsEngineComponent : GameComponent
             AngularFactor = physicsDefinition.AngularFactor
         };
 
+#if EDITOR
+        body.CollisionFlags = CollisionFlags.None;
+#else
         if (!isDynamic)
         {
             body.CollisionFlags |= CollisionFlags.StaticObject;
         }
+#endif
+
 
         if (physicsDefinition.DebugColor.HasValue)
         {
@@ -160,7 +166,7 @@ public class PhysicsEngineComponent : GameComponent
         return body;
     }
 
-    private CollisionShape ConvertToCollisionShape(Shape2d shape)
+    private CollisionShape ConvertToCollisionShape(Shape2d shape, Vector3 localScale)
     {
         CollisionShape collisionShape;
 
@@ -172,7 +178,7 @@ public class PhysicsEngineComponent : GameComponent
                 break;
             case Shape2dType.Circle:
                 var circle = (shape as ShapeCircle);
-                collisionShape = new SphereShape(circle.Radius / 2f);
+                collisionShape = new SphereShape(circle.Radius);
                 break;
             //case Shape2dType.Polygone:
             //    var polygone = (shape as ShapePolygone);
@@ -182,11 +188,12 @@ public class PhysicsEngineComponent : GameComponent
                 throw new ArgumentOutOfRangeException();
         }
 
+        collisionShape.LocalScaling = localScale;
         collisionShape.UserObject = this;
         return collisionShape;
     }
 
-    private CollisionShape ConvertToCollisionShape(Shape3d shape)
+    private CollisionShape ConvertToCollisionShape(Shape3d shape, Vector3 localScale)
     {
         CollisionShape collisionShape;
 
@@ -213,6 +220,8 @@ public class PhysicsEngineComponent : GameComponent
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        collisionShape.LocalScaling = localScale;
 
         collisionShape.UserObject = this;
         return collisionShape;
@@ -244,7 +253,7 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.World.RemoveRigidBody(rigidBody);
     }
 
-    public void ClearCollisionDataOf(ICollideableComponent component)
+    public void ClearCollisionDataFrom(ICollideableComponent component)
     {
         PhysicsEngine.ClearCollisionDataOf(component);
     }

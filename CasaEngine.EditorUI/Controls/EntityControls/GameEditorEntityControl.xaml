@@ -5,7 +5,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch">
+             d:DesignHeight="200" d:DesignWidth="4 00" VerticalContentAlignment="Stretch">
+
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.Entity.Save}" Executed="SaveCommand_Executed" />
+    </UserControl.CommandBindings>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.Entity.Save}" />
+    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -14,7 +22,7 @@
 
         <ToolBarTray Grid.Row="0">
             <ToolBar>
-                <Button ToolTip="Save" Click="ButtonSave_OnClick">
+                <Button ToolTip="Save" Command="{StaticResource Commands.Entity.Save}">
                     <Image Source="/Resources/save-44-48.png" Height="16" />
                 </Button>
                 <Separator />

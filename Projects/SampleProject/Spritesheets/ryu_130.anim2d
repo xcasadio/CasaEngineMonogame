@@ -1,0 +1,11 @@
+{
+  "animation_type": "Once",
+  "id": "5b80ce5e-5818-409b-b168-76384c1af03d",
+  "name": "ryu_130",
+  "frames": [
+    {
+      "duration": 0.015999999,
+      "sprite_id": "fbcef0ee-280f-4f7f-b3d4-2a3ffd9d1a59"
+    }
+  ]
+}

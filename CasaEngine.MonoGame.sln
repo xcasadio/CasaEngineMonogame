@@ -5,17 +5,15 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine", "CasaEngine\CasaEngine.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.RPGDemo", "CasaEngine.RPGDemo\CasaEngine.RPGDemo.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.RPGDemo", "Projects\CasaEngine.RPGDemo\CasaEngine.RPGDemo.csproj", "{AE6C8A88-1E1D-48A9-99DF-81B43CFD2EFD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Launcher", "CasaEngine.Launcher\CasaEngine.Launcher.csproj", "{78DDC4C5-CF85-4A2F-87CA-0D3D53D0912B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SandBoxGame", "Projects\SandBoxGame\SandBoxGame.csproj", "{73962EDE-BEC1-4D15-A2D6-5BE521EFB147}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Demos", "CasaEngine.Demos\CasaEngine.Demos.csproj", "{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8C8DDDBD-3694-406B-96FC-081E97566702}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.Tests", "CasaEngine.Tests\CasaEngine.Tests\CasaEngine.Tests.csproj", "{8241764B-2A92-431C-A5C4-C832FA873316}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,14 +62,6 @@ Global
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.ActiveCfg = Release|Any CPU
 		{A12DFD15-E8C7-4B78-A77C-94F5F2744FE0}.Release|x64.Build.0 = Release|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Debug|x64.Build.0 = Debug|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|x64.ActiveCfg = Release|Any CPU
-		{8241764B-2A92-431C-A5C4-C832FA873316}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

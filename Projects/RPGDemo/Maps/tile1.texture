@@ -1,0 +1,22 @@
+{
+  "id": "f305df12-785a-499d-ab6e-7db38249bf12",
+  "name": "tile1",
+  "texture_asset_id": "36f92bf5-5f09-4954-9013-9a356c97a0c8",
+  "sampler_state": {
+    "texture_filter": "Anisotropic",
+    "address_u": "Wrap",
+    "address_v": "Wrap",
+    "address_w": "Wrap",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

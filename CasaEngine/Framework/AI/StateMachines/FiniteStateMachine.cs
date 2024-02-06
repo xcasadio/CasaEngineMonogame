@@ -1,4 +1,4 @@
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 
 namespace CasaEngine.Framework.AI.StateMachines;
 
@@ -51,7 +51,7 @@ public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : IFsmCapabl
 
     public void Transition(IState<T> newState)
     {
-        LogManager.Instance.WriteTrace($"FSM: transition {_currentState.Name} -> {newState.Name}");
+        Logs.WriteTrace($"FSM: transition {_currentState.Name} -> {newState.Name}");
 
         _currentState.Exit(Owner);
 

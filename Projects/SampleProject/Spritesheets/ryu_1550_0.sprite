@@ -1,0 +1,17 @@
+{
+  "id": "abfcbe5e-d386-4c3a-b3d3-2007b56c0ac1",
+  "name": "ryu_1550_0",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1172,
+    "y": 503,
+    "w": 90,
+    "h": 90
+  },
+  "hotspot": {
+    "x": 45,
+    "y": 83
+  },
+  "collisions": [],
+  "sockets": []
+}

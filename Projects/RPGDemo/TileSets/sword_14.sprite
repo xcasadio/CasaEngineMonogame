@@ -1,0 +1,29 @@
+{
+  "id": "3ad82e40-bdd4-4724-adbf-01d4db8bcd85",
+  "name": "sword_14",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 0,
+    "y": 0,
+    "w": 50,
+    "h": 23
+  },
+  "hotspot": {
+    "x": 44,
+    "y": 20
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 0.0,
+        "y": 8.0
+      },
+      "orientation": 0.0,
+      "w": 34,
+      "h": 7
+    }
+  ],
+  "sockets": []
+}

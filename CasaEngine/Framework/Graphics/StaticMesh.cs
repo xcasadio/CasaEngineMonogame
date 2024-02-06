@@ -1,16 +1,14 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Graphics;
 
-public class StaticMesh
+public class StaticMesh : ObjectBase
 {
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<uint> _indices = new();
@@ -18,7 +16,7 @@ public class StaticMesh
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
-    public long TextureAssetId { get; set; } = IdManager.InvalidId;
+    public Guid TextureAssetId { get; set; } = Guid.Empty;
     public Assets.Textures.Texture? Texture { get; set; }
 
     public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
@@ -36,10 +34,9 @@ public class StaticMesh
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
 
-        if (TextureAssetId != IdManager.InvalidId)
+        if (TextureAssetId != Guid.Empty)
         {
-            var assetInfo = GameSettings.AssetInfoManager.Get(TextureAssetId);
-            Texture = assetContentManager.Load<Assets.Textures.Texture>(assetInfo);
+            Texture = assetContentManager.Load<Assets.Textures.Texture>(TextureAssetId);
             Texture.Load(assetContentManager);
         }
 
@@ -73,8 +70,10 @@ public class StaticMesh
         return _vertices;
     }
 
-    public void Load(JsonElement element)
+    public override void Load(JsonElement element)
     {
+        base.Load(element);
+
         PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
 
         _vertices.Clear();
@@ -83,7 +82,7 @@ public class StaticMesh
         _indices.Clear();
         _indices.AddRange(element.GetElements("indices", o => o.GetUInt32()));
 
-        TextureAssetId = element.GetProperty("texture_asset_id").GetInt64();
+        TextureAssetId = element.GetProperty("texture_asset_id").GetGuid();
     }
 
 #if EDITOR
@@ -91,15 +90,16 @@ public class StaticMesh
     private bool _isInitialized;
 
 
-    public void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
+        base.Save(jObject);
+
         jObject.Add("primitive_type", PrimitiveType.ConvertToString());
 
         jObject.AddArray("vertices", _vertices, (v, o) => v.Save(o));
         jObject.AddArray("indices", _indices);
 
-        var textureJObject = new JObject();
-        jObject.Add("texture_asset_id", Texture == null ? IdManager.InvalidId : Texture.AssetInfo.Id);
+        jObject.Add("texture_asset_id", Texture?.Id ?? Guid.Empty);
     }
 #endif
 }

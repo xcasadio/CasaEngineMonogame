@@ -1,0 +1,109 @@
+{
+  "id": "afd86c38-7a42-40e6-92b8-58b0d2def9d7",
+  "name": "character_octopus",
+  "root_component": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [
+      {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "CircleCollisionComponent",
+        "type": "CircleCollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 12.0,
+            "y": 12.0,
+            "z": 12.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "additional_angular_damping_factor": 0.01,
+          "additional_angular_damping_threshold_sqr": 0.01,
+          "additional_damping": false,
+          "additional_damping_factor": 0.005,
+          "additional_linear_damping_threshold_sqr": 0.01,
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "angular_sleeping_threshold": 0.0,
+          "friction": 0.0,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "linear_sleeping_threshold": 0.0,
+          "local_inertia": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "rolling_friction": 0.0,
+          "apply_gravity": false,
+          "debug_color": "null"
+        }
+      }
+    ],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "a3c81b9a-fe52-4a93-80da-e2d206303628",
+      "5f770544-fe6b-4cfb-a7ac-43f46c0c153c",
+      "723510d2-749f-41fd-9cd6-366ffb6b2d80",
+      "768e4f21-05f7-4fd6-a035-f84aa6cbc5af",
+      "07ba0fdf-1b58-4065-b501-d35df2332f6a",
+      "f0b91f3b-63b3-4c93-a860-0100561bc259",
+      "8e081c75-1783-4fee-842e-82d2523a86f9",
+      "bbc00fb4-3515-4354-b39b-b1fb3bc66325",
+      "bf35b58f-b616-4a26-b1d9-cc8a3f037e16",
+      "48f89e4e-5e24-4c43-92a2-c077f2110dc8",
+      "a64a7a36-d284-4525-a9cd-6d720b9da42d",
+      "49142dc9-779a-4284-ae7d-e2c0f26102cf"
+    ]
+  },
+  "components": [],
+  "script_class_name": "ScriptEnemy"
+}

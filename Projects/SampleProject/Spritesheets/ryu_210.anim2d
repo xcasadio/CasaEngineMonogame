@@ -1,0 +1,35 @@
+{
+  "animation_type": "Once",
+  "id": "fcbc30be-ade6-453e-b01a-67bbf104e2b3",
+  "name": "ryu_210",
+  "frames": [
+    {
+      "duration": 0.048,
+      "sprite_id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "66444163-3b84-4dee-b7e4-cf616282acce"
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": "741157ca-f28a-4337-a5af-2b43a052a222"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "b77d85b0-55c4-4826-a355-1c70966184cd"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "77120a05-5acb-476c-be7f-b45e4cad6ae7"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "a68164e4-533f-4fac-810d-4261809e5cdd"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "2f27ee80-bfb8-4004-9edd-4e3d842e2751"
+    }
+  ]
+}

@@ -55,7 +55,7 @@ public class PathPlanner<T> where T : WeightedEdge
         //If the entity can reach the destination directly, there´s no need to request a search
         if (owner.CanMoveBetween(owner.Position, destination))
         {
-            MessageManagerRouter.Instance.SendMessage(0, owner.Owner.AssetInfo.Id, 0, (int)MessageType.PathReady, null);
+            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathReady, null);
             return true;
         }
 
@@ -73,7 +73,7 @@ public class PathPlanner<T> where T : WeightedEdge
             return false;
         }
 
-        //Initialize the search
+        //LoadContent the search
         search.Initialize(closestNodeToEntity, closestNodeTodestination);
 
         //Register the search in the PathManager
@@ -209,13 +209,13 @@ public class PathPlanner<T> where T : WeightedEdge
         //If the search failed inform the owner
         if (result == SearchState.CompletedAndNotFound)
         {
-            MessageManagerRouter.Instance.SendMessage(0, owner.Owner.AssetInfo.Id, 0, (int)MessageType.PathNotAvailable, null);
+            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathNotAvailable, null);
         }
 
         //If the search succeeded inform the owner
         if (result == SearchState.CompletedAndFound)
         {
-            MessageManagerRouter.Instance.SendMessage(0, owner.Owner.AssetInfo.Id, 0, (int)MessageType.PathReady, null);
+            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathReady, null);
         }
 
         return result;

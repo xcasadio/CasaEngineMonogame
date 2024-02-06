@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Maths;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
@@ -19,6 +20,24 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
 
     [Browsable(false)]
     public bool IsABox => _isABox;
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position.ToVector3();
+            Vector2 min = new Vector2(float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue);
+
+            foreach (var point in _points)
+            {
+                min = Vector2.Min(min, point);
+                max = Vector2.Max(max, point);
+            }
+
+            return new BoundingBox(position - min.ToVector3(), position + max.ToVector3());
+        }
+    }
 
     public ShapePolygone() : base(Shape2dType.Polygone)
     {

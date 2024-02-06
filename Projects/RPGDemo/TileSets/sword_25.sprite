@@ -1,0 +1,40 @@
+{
+  "id": "8bf0728c-4bff-485f-afe5-aafa70c04a01",
+  "name": "sword_25",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 298,
+    "y": 27,
+    "w": 48,
+    "h": 27
+  },
+  "hotspot": {
+    "x": 2,
+    "y": 7
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 17.0,
+        "y": 12.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 8
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 30.0,
+        "y": 19.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 8
+    }
+  ],
+  "sockets": []
+}

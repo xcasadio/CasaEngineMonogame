@@ -5,11 +5,12 @@
  Modify by: Schneider, José Ignacio
 */
 
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class LookupTable : Asset
+public class LookupTable : ObjectBase, IAssetable
 {
     private readonly AssetContentManager _assetContentManager;
     private static readonly string AssetContentManagerCategoryName = "LookupTableTemp";
@@ -25,11 +26,11 @@ public class LookupTable : Asset
     public LookupTable(GraphicsDevice graphicsDevice, string filename, AssetContentManager assetContentManager)
     {
         _assetContentManager = assetContentManager;
-        AssetInfo.Name = Path.GetFileName(filename);
-        AssetInfo.FileName = filename;
-        if (File.Exists(AssetInfo.FileName) == false)
+        //Name = Path.GetFileName(filename);
+        //FileName = filename;
+        if (File.Exists(FileName) == false)
         {
-            throw new ArgumentException($"Failed to load texture: File {AssetInfo.FileName} does not exists!", nameof(filename));
+            throw new ArgumentException($"Failed to load texture: File {FileName} does not exists!", nameof(filename));
         }
         try
         {
@@ -72,8 +73,8 @@ public class LookupTable : Asset
     public static LookupTable Identity(GraphicsDevice graphicsDevice, int size)
     {
         var lookupTable = new LookupTable { Resource = IdentityTexture(graphicsDevice, size), Size = size };
-        lookupTable.AssetInfo.Name = "Identity";
-        lookupTable.AssetInfo.FileName = "";
+        //lookupTable.Name = "Identity";
+        //lookupTable.FileName = "";
         return lookupTable;
     } // Identity
 
@@ -118,30 +119,34 @@ public class LookupTable : Asset
         lookupTable.Resource.GetData(colors);
         lookupTable2DTexture.SetData(colors);
         var texture = new Texture(lookupTable2DTexture);
-        texture.AssetInfo.Name = $"{lookupTable.AssetInfo.Name}-Texture";
+        //texture.Name = $"{lookupTable.Name}-Texture";
         return texture;
-    } // LookupTextureToTexture
+    }
 
-    protected override void DisposeManagedResources()
+    protected void DisposeManagedResources()
     {
         // This type of resource can be disposed ignoring the content manager.
-        base.DisposeManagedResources();
+        //base.DisposeManagedResources();
         Resource.Dispose();
-    } // DisposeManagedResources
+    }
 
-    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    public void Dispose()
     {
-        if (string.IsNullOrEmpty(AssetInfo.FileName))
+        DisposeManagedResources();
+    }
+
+    public void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    {
+        if (string.IsNullOrEmpty(FileName))
         {
             Resource = IdentityTexture(device, Size);
         }
         else
         {
-            Create(device, AssetInfo.FileName.Substring(30), assetContentManager); // Removes "Textures\\"
+            Create(device, FileName.Substring(30), assetContentManager); // Removes "Textures\\"
         }
 
         GraphicsDevice = device;
-    } // RecreateResource
+    }
 
-} // LookupTable
-// CasaEngine.Asset
+}

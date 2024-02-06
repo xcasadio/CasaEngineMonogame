@@ -75,7 +75,7 @@ public class ScreenLogComponent : DrawableGameComponent
 
     protected override void LoadContent()
     {
-        _font = ((CasaEngineGame)Game).GameManager.FontSystem.GetFont(10);
+        _font = ((CasaEngineGame)Game).FontSystem.GetFont(10);
         _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
         base.LoadContent();
     }

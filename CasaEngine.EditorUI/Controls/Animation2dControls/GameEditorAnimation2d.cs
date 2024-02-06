@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
@@ -11,6 +11,11 @@ public class GameEditorAnimation2d : GameEditor2d
     public GameEditorAnimation2d()
     {
         DataContextChanged += OnDataContextChanged;
+    }
+
+    protected override void InitializeGame()
+    {
+
     }
 
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
@@ -27,6 +32,6 @@ public class GameEditorAnimation2d : GameEditor2d
     protected override void CreateEntityComponents(Entity entity)
     {
         AnimatedSpriteComponent = new AnimatedSpriteComponent();
-        entity.ComponentManager.Add(AnimatedSpriteComponent);
+        entity.RootComponent = AnimatedSpriteComponent;
     }
 }

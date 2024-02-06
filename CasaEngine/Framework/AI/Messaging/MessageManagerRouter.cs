@@ -28,12 +28,12 @@ public sealed class MessageManagerRouter : IMessageManager
         MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
     }
 
-    public void SendMessage(long senderId, long recieverId, double delayTime, int type, object extraInfo)
+    public void SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo)
     {
         Message message;
         //IMessageable entity;
 
-        message = new Message(senderId, recieverId, type, delayTime, extraInfo);
+        message = new Message(senderId, receiverId, type, delayTime, extraInfo);
 
         //If the message has no delay then call the delegate handler
         if (delayTime == 0)
@@ -57,15 +57,11 @@ public sealed class MessageManagerRouter : IMessageManager
 
     public void Update()
     {
-        double currentTime;
-        Message message;
-        //IMessageable entity;
-
-        currentTime = DateTime.Now.Ticks;
+        double currentTime = DateTime.Now.Ticks;
 
         while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
         {
-            message = MessageQueue.Dequeue();
+            MessageQueue.Dequeue();
 
             //Test if the entity can handle the message
             throw new NotImplementedException();

@@ -16,6 +16,12 @@
         <RoutedUICommand x:Key="Commands.TileMap.Load" />
         <RoutedUICommand x:Key="Commands.TileMap.Save" />
 
+        <RoutedUICommand x:Key="Commands.Entity.Load" />
+        <RoutedUICommand x:Key="Commands.Entity.Save" />
+
+        <RoutedUICommand x:Key="Commands.World.Load" />
+        <RoutedUICommand x:Key="Commands.World.Save" />
+
         <!-- FlowGraph -->
         <xcad:BoolToVisibilityConverter x:Key="boolToVisibilityConverter" />
 

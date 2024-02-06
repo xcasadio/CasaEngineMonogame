@@ -1,0 +1,40 @@
+{
+  "id": "b2a6811b-54cb-4dc8-a759-3606342a9273",
+  "name": "sword_2",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 298,
+    "y": 0,
+    "w": 48,
+    "h": 27
+  },
+  "hotspot": {
+    "x": 56,
+    "y": 24
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 14.0,
+        "y": 7.0
+      },
+      "orientation": 0.0,
+      "w": 8,
+      "h": 18
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 8
+    }
+  ],
+  "sockets": []
+}

@@ -1,0 +1,29 @@
+{
+  "id": "6ccdbb03-89ac-4da6-907c-126a663f36a4",
+  "name": "octopus_4",
+  "sprite_sheet_asset_id": "8b61c98c-4107-48d0-a6c7-1e677a5e0fc8",
+  "location": {
+    "x": 124,
+    "y": 0,
+    "w": 32,
+    "h": 28
+  },
+  "hotspot": {
+    "x": 19,
+    "y": 14
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 2.0,
+        "y": 1.0
+      },
+      "orientation": 0.0,
+      "w": 24,
+      "h": 24
+    }
+  ],
+  "sockets": []
+}

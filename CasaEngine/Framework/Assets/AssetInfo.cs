@@ -1,40 +1,18 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
+public class AssetInfo : ISerializable, IEquatable<AssetInfo>
 {
-    public long Id { get; private set; }
+    public Guid Id { get; private set; }
     public string Name { get; set; }
     public string FileName { get; set; }
 
     public AssetInfo()
     {
-        Id = IdManager.GetId();
-        Name = "Asset_" + Id;
-    }
-
-    public virtual void Load(JsonElement element, SaveOption option)
-    {
-        Id = element.GetProperty("id").GetInt64();
-        IdManager.SetMax(Id);
-
-        if (element.TryGetProperty("file_name", out var fileNameNode))
-        {
-            FileName = fileNameNode.GetString();
-        }
-
-        if (element.TryGetProperty("name", out var nameNode))
-        {
-            Name = nameNode.GetString();
-        }
-        else
-        {
-            //TODO : remove this else
-            //System.Diagnostics.Debugger.Break();
-            Name = Path.GetFileNameWithoutExtension(FileName); //element.GetProperty("name").GetString();
-        }
+        Id = Guid.NewGuid();
     }
 
     public bool Equals(AssetInfo? other)
@@ -74,12 +52,36 @@ public class AssetInfo : ISaveLoad, IEquatable<AssetInfo>
 
     public override int GetHashCode()
     {
-        return (int)Id;
+        return Id.GetHashCode();
+    }
+
+    public void Load(JsonElement element)
+    {
+        Id = element.GetProperty("id").GetGuid();
+
+        if (element.TryGetProperty("file_name", out var fileNameNode))
+        {
+            FileName = fileNameNode.GetString();
+        }
+
+        if (element.TryGetProperty("name", out var nameNode))
+        {
+            Name = nameNode.GetString();
+        }
+        else
+        {
+            Name = Path.GetFileNameWithoutExtension(FileName);
+        }
     }
 
 #if EDITOR
 
-    public virtual void Save(JObject jObject, SaveOption option)
+    public AssetInfo(Guid id)
+    {
+        Id = id;
+    }
+
+    public void Save(JObject jObject)
     {
         var assetObject = new JObject(
             new JProperty("id", Id),

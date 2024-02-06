@@ -1,23 +1,15 @@
-﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using Newtonsoft.Json.Linq;
-
-#if EDITOR
-using CasaEngine.Framework.Entities.Components;
-using FlowGraph;
+﻿#if EDITOR
 #endif
 
 namespace CasaEngine.Framework.Scripting;
-
+/*
 public class EntityFlowGraph : Entity
 {
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element, option);
+        base.Load(element);
 
-        //FlowGraph.Load(element.GetElement("flow_graph"), option);
+        //FlowGraph.Load(element.GetElement("flow_graph"));
     }
 
 #if EDITOR
@@ -26,12 +18,12 @@ public class EntityFlowGraph : Entity
 
     public string CompiledCodeFileName { get; set; }
 
-    public ExternalComponent InstanciatedObject { get; private set; }
+    public GameplayProxy InstanciatedObject { get; private set; }
 
-    public void InitializeScript(ExternalComponent externalComponent)
+    public void InitializeScript(GameplayProxy externalComponent)
     {
         InstanciatedObject = externalComponent;
-        InstanciatedObject.Initialize(this);
+        InstanciatedObject.LoadContent(this);
 
         var gamePlayComponent = ComponentManager.GetComponent<GamePlayComponent>();
 
@@ -39,17 +31,17 @@ public class EntityFlowGraph : Entity
         {
             gamePlayComponent = new GamePlayComponent();
             ComponentManager.Add(gamePlayComponent);
-            gamePlayComponent.Initialize(this);
+            gamePlayComponent.LoadContent(this);
         }
 
-        gamePlayComponent.ExternalComponent = InstanciatedObject;
+        gamePlayComponent.GameplayProxy = InstanciatedObject;
     }
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
-        //FlowGraph.Save(jObject, option);
+        //FlowGraph.Save(jObject);
     }
 #endif
-}
+}*/

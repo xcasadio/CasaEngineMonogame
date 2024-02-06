@@ -5,24 +5,26 @@ namespace CasaEngine.EditorUI.Controls;
 
 public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfoViewModel>
 {
-    public AssetInfo AssetInfo { get; }
+    public Guid Id { get; }
 
     public string Name
     {
-        get => AssetInfo.Name;
+        get => AssetCatalog.Get(Id)?.Name ?? "Unknown asset name";
         set
         {
-            if (value != AssetInfo.Name)
+            if (value != AssetCatalog.Get(Id)?.Name)
             {
-                AssetInfo.Name = value;
+                AssetCatalog.Rename(Id, value);
                 OnPropertyChanged();
             }
         }
     }
 
-    public AssetInfoViewModel(AssetInfo assetInfo)
+    public string FileName => AssetCatalog.Get(Id)?.FileName ?? "Unknown asset file name";
+
+    public AssetInfoViewModel(Guid id)
     {
-        AssetInfo = assetInfo;
+        Id = id;
     }
 
     public bool Equals(AssetInfoViewModel? other)
@@ -37,7 +39,7 @@ public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfo
             return true;
         }
 
-        return AssetInfo.Equals(other.AssetInfo);
+        return Id == other.Id;
     }
 
     public override bool Equals(object? obj)
@@ -62,6 +64,6 @@ public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfo
 
     public override int GetHashCode()
     {
-        return AssetInfo.GetHashCode();
+        return Id.GetHashCode();
     }
 }

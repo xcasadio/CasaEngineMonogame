@@ -1,0 +1,29 @@
+{
+  "id": "38fe8bc0-525d-4d52-99ac-6ce0256ea005",
+  "name": "sword_6",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 73,
+    "y": 0,
+    "w": 23,
+    "h": 50
+  },
+  "hotspot": {
+    "x": 8,
+    "y": 4
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": 16.0
+      },
+      "orientation": 0.0,
+      "w": 7,
+      "h": 34
+    }
+  ],
+  "sockets": []
+}

@@ -1,0 +1,17 @@
+{
+  "id": "007570c3-10e1-432e-b9b8-63e3368c1311",
+  "name": "rock_0",
+  "sprite_sheet_asset_id": "8b61c98c-4107-48d0-a6c7-1e677a5e0fc8",
+  "location": {
+    "x": 136,
+    "y": 32,
+    "w": 16,
+    "h": 14
+  },
+  "hotspot": {
+    "x": 8,
+    "y": 8
+  },
+  "collisions": [],
+  "sockets": []
+}

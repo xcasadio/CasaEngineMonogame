@@ -2,35 +2,46 @@
 using System.Text.Json;
 using System.Windows;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public class GameEditorWorld : GameEditor
 {
+    private GizmoComponent? _gizmoComponent;
+    private World _world;
+
     public GameEditorWorld()
     {
         Drop += OnDrop;
     }
 
-    protected override void LoadContent()
+    protected override void InitializeGame()
     {
         var gizmoComponent = new GizmoComponent(Game);
         var gridComponent = new GridComponent(Game);
         var axisComponent = new AxisComponent(Game);
+    }
 
-        Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
-
+    protected override void LoadContent()
+    {
         base.LoadContent();
+        //must be open by content browser
+        Game.GameManager.SetWorldToLoad(GameSettings.ProjectSettings.FirstWorldLoaded);
+        Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
+        _gizmoComponent = Game.GetGameComponent<GizmoComponent>();
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -43,22 +54,16 @@ public class GameEditorWorld : GameEditor
             {
                 var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
 
-                var extension = Path.GetExtension(assetInfo.Name);
+                var extension = Path.GetExtension(assetInfo.FileName);
 
                 if (extension == Constants.FileNameExtensions.Entity)
                 {
-                    var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.GameManager.AssetContentManager);
-                    entityReference.Entity.Initialize(Game);
-                    Game.GameManager.CurrentWorld.AddEntityReference(entityReference);
-
-                    var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.Clear();
-                    gizmoComponent.Gizmo.Selection.Add(entityReference.Entity);
-                    gizmoComponent.Gizmo.RaiseSelectionChanged();
+                    var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, Game.AssetContentManager);
+                    CreateEntity(entityReference.Entity, e.GetPosition(this));
                 }
                 else
                 {
-                    LogManager.Instance.WriteWarning($"The asset with the type {extension} is not supported");
+                    Logs.WriteWarning($"The asset with the type {extension} is not supported");
                 }
 
                 return;
@@ -74,14 +79,7 @@ public class GameEditorWorld : GameEditor
             {
                 e.Handled = true;
 
-                var position = e.GetPosition(this);
-                var camera = Game?.GameManager.ActiveCamera;
-                var ray = RayHelper.CalculateRayFromScreenCoordinate(
-                    new Vector2((float)position.X, (float)position.Y),
-                    camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
-
                 var entity = new Entity();
-                entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
                 {
@@ -89,19 +87,42 @@ public class GameEditorWorld : GameEditor
                 }
                 else if (dragAndDropInfo.Type == DragAndDropInfoType.PlayerStart)
                 {
-                    entity.ComponentManager.Add(new PlayerStartComponent());
+                    entity.RootComponent = new PlayerStartComponent();
                 }
 
-                entity.Initialize(Game);
-
-                Game?.GameManager.CurrentWorld.AddEntityEditorMode(entity);
-
-                //select this entity
-                var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-                gizmoComponent.Gizmo.Clear();
-                gizmoComponent.Gizmo.Selection.Add(entity);
-                gizmoComponent.Gizmo.RaiseSelectionChanged();
+                CreateEntity(entity, e.GetPosition(this));
             }
+            else
+            {
+                Logs.WriteWarning($"The action {dragAndDropInfo.Action} is not supported");
+            }
+        }
+    }
+
+    private void CreateEntity(Entity entity, Point mousePosition)
+    {
+        entity.Initialize();
+        entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
+
+        var worldEditorViewModel = DataContext as WorldEditorViewModel;
+        worldEditorViewModel.EntitiesViewModel.Add(entity);
+        //Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
+
+        _gizmoComponent.Gizmo.Clear();
+        if (entity.RootComponent != null)
+        {
+            var position = mousePosition;
+            var camera = Game?.GameManager.ActiveCamera;
+            var ray = RayHelper.CalculateRayFromScreenCoordinate(
+                new Vector2((float)position.X, (float)position.Y),
+                camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);
+
+            //TODO : check intersection with object or the plane XZ
+            entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
+
+            //TODO : devrait etre selectionné tout seul avec le changement de dataContext
+            //_gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
+            //_gizmoComponent.Gizmo.RaiseSelectionChanged();
         }
     }
 }

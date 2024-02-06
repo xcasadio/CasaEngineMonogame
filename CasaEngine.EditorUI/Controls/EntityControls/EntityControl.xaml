@@ -3,64 +3,105 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
+             xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
+             xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              mc:Ignorable="d" 
-             d:DesignHeight="100" d:DesignWidth="800">
+             d:DesignHeight="200" d:DesignWidth="800">
+    <UserControl.Resources>
+        <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
+                            ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}" />
+
+        <entityControls:ScriptClassNameConverter x:Key="ExternalComponentConverter" />
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0" Grid.Column="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" VerticalAlignment="Center"/>
-
-                <Grid Grid.Row="0" Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
-                    <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
-                        <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
-                    </Button>
-                </Grid>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Position" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlPosition" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalPosition}"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Rotation" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:RotationEditor x:Name="RotationControl" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalRotation}"/>
-
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Scale" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                <wpfControls:Vector3Editor x:Name="Vector3ControlScale" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Stretch" Value="{Binding Entity.Coordinates.LocalScale}"/>
-            </Grid>
+            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" FontSize="14" />
+            <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
+                <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
+            </Button>
+            <Button Grid.Row="0" Grid.Column="1" Click="ButtonAddComponentClick">
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/Resources/add-icon.png" Height="12" Width="12" Margin="0,0,2,0"/>
+                    <TextBlock Text="Add" Padding="0"/>
+                </StackPanel>
+            </Button>
         </Grid>
 
-        <entityControls:EntityComponentsControl x:Name="entityComponentsControl" Grid.Row="1"/>
+        <common:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
+                  ItemsSource="{Binding ComponentListViewModel.ComponentsViewModel}" MinHeight="25"
+                  SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
+            <!--TreeView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
+                </ContextMenu>
+            </TreeView.ContextMenu-->
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:ComponentViewModel}" ItemsSource="{Binding Children}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="24"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" Source="/Resources/puzzle_icon.png" Width="16" Height="16"/>
+                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
+                    </Grid>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </common:TreeViewEx>
+
+        <ContentControl Grid.Row="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Content="{Binding SelectedComponent, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}"
+                        DataContext="{Binding SelectedComponent, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}">
+            <ContentControl.ContentTemplateSelector>
+                <entityControls:EntityDetailTemplateSelector>
+                    <entityControls:EntityDetailTemplateSelector.EntityTemplate>
+                        <DataTemplate>
+                            <Expander Header="Script" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Script classs name" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                              SelectionChanged="ComboBoxGameplayProxyClassName_OnSelectionChanged"
+                                              SelectedValue="{Binding Path=EntityViewModel.Entity.GameplayProxyClassName, Mode=OneWay}" 
+                                              ItemsSource="{Binding Source={StaticResource ExternalComponentRegistered}, Converter={StaticResource ExternalComponentConverter}}"/>
+                                </Grid>
+                            </Expander>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.EntityTemplate>
+                    <entityControls:EntityDetailTemplateSelector.ComponenTemplate>
+                        <DataTemplate>
+                            <entityControls:EntityComponentControl DataContext="{Binding Component}"/>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.ComponenTemplate>
+                    <entityControls:EntityDetailTemplateSelector.EmptyTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="Any item selected" FontStyle="Italic" HorizontalAlignment="Center" >
+                                <TextBlock.Foreground>
+                                    <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.GrayTextColorKey}}"/>
+                                </TextBlock.Foreground>
+                            </TextBlock>
+                        </DataTemplate>
+                    </entityControls:EntityDetailTemplateSelector.EmptyTemplate>
+                </entityControls:EntityDetailTemplateSelector>
+            </ContentControl.ContentTemplateSelector>
+        </ContentControl>
 
     </Grid>
 </UserControl>

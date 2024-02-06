@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -29,13 +27,13 @@ internal class CalculatorTokenSequence : CalculatorToken
         throw new InvalidOperationException("Don't use to evaluate");
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
         throw new InvalidOperationException("Can't save this object. It is a temporary objecte");
     }
 
 #if EDITOR
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
         throw new InvalidOperationException("Can't save this object. It is a temporary object");
     }

@@ -1,0 +1,23 @@
+{
+  "animation_type": "Once",
+  "id": "941891cf-9324-4c3f-9396-7602325c9058",
+  "name": "swordman_attack2_right",
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": "77904a7f-78da-43d3-a2f7-e02980d8040e"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "571d4dd1-75bb-4cb7-b27e-379c6446ffd1"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "a432888f-4022-4d19-9316-2c31cb8cd801"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "27216aea-e508-4355-83f9-34364ffcb4a8"
+    }
+  ]
+}

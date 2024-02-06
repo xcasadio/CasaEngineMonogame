@@ -1,58 +1,45 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Logs;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Scripting;
 
 namespace CasaEngine.Framework.Assets;
 
-public class ElementLoader<T> where T : ISaveLoad
+public static class ElementFactory
 {
-    private readonly Dictionary<int, Type> _TypesById = new();
-
-    public void Register<TU>(int id) where TU : new()
+    public static T Create<T>(string typeName) where T : class
     {
-        if (_TypesById.ContainsKey(id))
-        {
-            throw new ArgumentException("the id already exist");
-        }
-
-        _TypesById[id] = typeof(TU);
+        var type = FindTypeByName(typeName);
+        return Activator.CreateInstance(type) as T;
     }
 
-    public T Load(JsonElement element)
+    public static T Load<T>(JsonElement element) where T : class, ISerializable
     {
-        var id = element.GetJsonPropertyByName("type").Value.GetInt32();
+        var typeName = element.GetProperty("type").GetString();
+        var component = Create<T>(typeName);
+        component.Load(element);
+        return component;
+    }
 
-        if (!_TypesById.ContainsKey(id))
+    private static Type? FindTypeByName(string? typeName)
+    {
+        if (string.IsNullOrEmpty(typeName))
         {
-            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
+            return null;
         }
 
-        var component = (T)Activator.CreateInstance(_TypesById[id]);
-        component.Load(element, SaveOption.Editor);
-        return component;
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(x => x.GetTypes())
+            .FirstOrDefault(x => string.Equals(x.Name, typeName, StringComparison.InvariantCultureIgnoreCase));
     }
 
 #if EDITOR
 
-    public KeyValuePair<int, Type>[] TypesById => _TypesById.ToArray();
-
-    public Type GetTypeFromId(int id)
+    public static IEnumerable<Type> GetDerivedTypesFrom<T>() where T : class
     {
-        _TypesById.TryGetValue(id, out var type);
-        return type;
-    }
-
-    public ExternalComponent Create(int id)
-    {
-        if (!_TypesById.ContainsKey(id))
-        {
-            LogManager.Instance.WriteError($"The component with the type {id} is not supported. Please Register it before load it.");
-        }
-
-        var component = (ExternalComponent)Activator.CreateInstance(_TypesById[id]);
-        return component;
+        var type = typeof(T);
+        return AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(x => x.GetTypes())
+            .Where(x => x is { IsClass: true, IsGenericType: false, IsInterface: false, IsAbstract: false }
+                        && x.IsSubclassOf(type));
     }
 
 #endif

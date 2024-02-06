@@ -5,13 +5,13 @@ public class Message
 {
     public const int NoSenderId = -1;
 
-    protected long _senderId;
-    protected long _recieverId;
+    protected Guid _senderId;
+    protected Guid _recieverId;
     protected int _type;
     protected double _dispatchTime;
     protected object _extraInfo;
 
-    public Message(long senderId, long recieverId, int type, double dispatchTime, object extraInfo)
+    public Message(Guid senderId, Guid recieverId, int type, double dispatchTime, object extraInfo)
     {
         var message = string.Empty;
 
@@ -37,9 +37,7 @@ public class Message
         _extraInfo = extraInfo;
     }
 
-
-
-    public long SenderID
+    public Guid SenderID
     {
         get => _senderId;
         set
@@ -55,7 +53,7 @@ public class Message
         }
     }
 
-    public long RecieverID
+    public Guid RecieverID
     {
         get => _recieverId;
         set
@@ -101,9 +99,9 @@ public class Message
 
 
 
-    public static bool ValidateId(long id, ref string message)
+    public static bool ValidateId(Guid id, ref string message)
     {
-        if (id < -1)
+        if (id == Guid.Empty)
         {
             message = "ID must  be greater or equal than -1";
             return false;

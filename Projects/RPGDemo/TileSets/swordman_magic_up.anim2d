@@ -1,0 +1,11 @@
+{
+  "animation_type": "Once",
+  "id": "789a01b0-8591-49b4-9260-aecfb6eff58d",
+  "name": "swordman_magic_up",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "6df8de9a-8311-4057-8208-3114396db14d"
+    }
+  ]
+}

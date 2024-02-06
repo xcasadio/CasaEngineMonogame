@@ -81,20 +81,20 @@ public class WidthFirstSearch<T, TK> : GraphSearchAlgorithm<T, TK>
     {
         TK dummy;
 
-        //Initialize the base
+        //LoadContent the base
         base.Initialize(source, target);
 
         Visited = new List<Visibility>();
         Route = new List<int>();
 
-        //Initialize list values
+        //LoadContent list values
         for (var i = 0; i < Graph.NodeCount; i++)
         {
             Visited.Add(Visibility.Unvisited);
             Route.Add(Node.NoParent);
         }
 
-        //Initialize the edges queue
+        //LoadContent the edges queue
         QueuedEdges = new Queue<TK>();
 
         //Create a dummy edge that will start the search

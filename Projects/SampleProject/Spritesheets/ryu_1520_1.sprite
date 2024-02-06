@@ -1,0 +1,29 @@
+{
+  "id": "4b835dd1-6f41-417c-925b-ff4e5280305b",
+  "name": "ryu_1520_1",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1539,
+    "y": 1712,
+    "w": 60,
+    "h": 106
+  },
+  "hotspot": {
+    "x": 24,
+    "y": 105
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 13.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 40,
+      "h": 99
+    }
+  ],
+  "sockets": []
+}

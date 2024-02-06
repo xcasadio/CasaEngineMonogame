@@ -1,0 +1,11 @@
+{
+  "animation_type": "Once",
+  "id": "cf0673a5-b30f-45f8-9828-c40c31281c73",
+  "name": "swordman_magic_right",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "6df8de9a-8311-4057-8208-3114396db14d"
+    }
+  ]
+}

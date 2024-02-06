@@ -1,13 +1,12 @@
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
 [Serializable]
-public abstract class MovingObject : Component
+public abstract class MovingObject : EntityComponent
 {
     protected internal Vector3 position;
     protected internal Vector3 velocity;
@@ -88,11 +87,10 @@ public abstract class MovingObject : Component
 
     }
 
-    public override void Initialize(Entity entity)
+    public override void InitializeWithWorld(World.World world)
     {
-        base.Initialize(entity);
-
-        _physicsEngineComponent = Owner.Game.GetGameComponent<PhysicsEngineComponent>();
+        base.InitializeWithWorld(world);
+        _physicsEngineComponent = world.Game.GetGameComponent<PhysicsEngineComponent>();
     }
 
     public virtual bool CanMoveBetween(Vector3 start, Vector3 end)

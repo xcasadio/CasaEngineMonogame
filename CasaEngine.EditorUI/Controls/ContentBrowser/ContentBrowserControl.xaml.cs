@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls;
@@ -19,7 +19,6 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Point = System.Windows.Point;
@@ -49,7 +48,7 @@ public partial class ContentBrowserControl : UserControl
     {
         InitializeComponent();
 
-        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+        AssetCatalog.AssetRenamed += OnAssetRenamed;
     }
 
     public void InitializeFromGameEditor(GameEditor gameEditor)
@@ -61,8 +60,6 @@ public partial class ContentBrowserControl : UserControl
 
     private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        LogManager.Instance.WriteDebug("ContentBrowser.ListBoxItem_MouseDoubleClick()");
-
         if (sender is not FrameworkElement frameworkElement)
         {
             return;
@@ -93,11 +90,16 @@ public partial class ContentBrowserControl : UserControl
 
         switch (extension)
         {
-            case Constants.FileNameExtensions.EntityFlowGraph:
+            case Constants.FileNameExtensions.Entity:
                 var entityControl = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
-                entityControl.LoadEntity(fileRelativePath);
+                entityControl.OpenEntity(fileRelativePath);
                 break;
+            /*case Constants.FileNameExtensions.EntityFlowGraph:
+                var entityControlFlowGraph = window.GetEditorControl<EntityEditorControl>();
+                window.ActivateEditorControl<EntityEditorControl>();
+                entityControlFlowGraph.OpenEntity(fileRelativePath);
+                break;*/
             case Constants.FileNameExtensions.Sprite:
                 var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                 window.ActivateEditorControl<SpriteEditorControl>();
@@ -170,7 +172,7 @@ public partial class ContentBrowserControl : UserControl
 
             foreach (var fileName in fileNames)
             {
-                if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
+                if (_gameEditor.Game.AssetContentManager.IsFileSupported(fileName))
                 {
                     e.Effects = DragDropEffects.Copy;
                 }
@@ -188,7 +190,7 @@ public partial class ContentBrowserControl : UserControl
 
             foreach (var fileName in fileNames)
             {
-                if (_gameEditor.Game.GameManager.AssetContentManager.IsFileSupported(fileName))
+                if (_gameEditor.Game.AssetContentManager.IsFileSupported(fileName))
                 {
                     if (Texture2DLoader.IsTextureFile(fileName))
                     {
@@ -197,27 +199,27 @@ public partial class ContentBrowserControl : UserControl
                         {
                             //copy file
                             File.Copy(fileName, destFileName, true);
-                            LogManager.Instance.WriteTrace($"Copy {fileName} -> {destFileName}");
+                            Logs.WriteTrace($"Copy {fileName} -> {destFileName}");
 
-                            //create assetinfo
-                            var textureAssetInfo = new AssetInfo();
-                            textureAssetInfo.FileName = destFileName
+                            //create image file assetinfo
+                            var imageFileAssetInfo = new AssetInfo();
+                            imageFileAssetInfo.FileName = destFileName
                                 .Replace(EngineEnvironment.ProjectPath, string.Empty)
                                 .TrimStart(Path.DirectorySeparatorChar);
-                            textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                            imageFileAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                            AssetCatalog.Add(imageFileAssetInfo);
 
                             //Create texture asset
-                            var texture = new Texture(textureAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
-                            texture.AssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                            texture.AssetInfo.FileName = Path.Combine(
-                                    Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty)), texture.AssetInfo.Name + Constants.FileNameExtensions.Texture)
-                                .TrimStart(Path.DirectorySeparatorChar);
-                            //texture.Load(assetInfo, _gameEditor.Game.GameManager.AssetContentManager);
-                            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.AssetInfo.FileName), texture);
+                            var texture = new Texture(imageFileAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
+                            var textureAssetInfo = new AssetInfo(texture.Id);
+                            textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+                            var pathFileName = Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty));
+                            var textureFileName = textureAssetInfo.Name + Constants.FileNameExtensions.Texture;
+                            textureAssetInfo.FileName = Path.Combine(pathFileName, textureFileName).TrimStart(Path.DirectorySeparatorChar);
+                            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.FileName), texture);
+                            AssetCatalog.Add(textureAssetInfo);
 
-                            GameSettings.AssetInfoManager.Add(texture.AssetInfo);
-                            GameSettings.AssetInfoManager.Add(textureAssetInfo);
-                            GameSettings.AssetInfoManager.Save();
+                            AssetCatalog.Save();
 
                             ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
                         }
@@ -233,7 +235,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
     {
-        GameSettings.AssetInfoManager.Save();
+        AssetCatalog.Save();
     }
 
     private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
@@ -250,24 +252,27 @@ public partial class ContentBrowserControl : UserControl
         CreateAsset(new ScreenGui(), Constants.FileNameExtensions.Screen);
     }
 
-    private void CreateAsset(Asset asset, string extension)
+    private void CreateAsset(Entity actor, string extension)
     {
         var inputTextBox = new InputTextBox();
-        inputTextBox.Text = asset.AssetInfo.Name;
+
+        var assetInfo = new AssetInfo(actor.Id);
+
+        inputTextBox.Text = assetInfo.Name;
 
         if (inputTextBox.ShowDialog() == true)
         {
             //add
             var folderItem = treeViewFolders.SelectedItem as FolderItem;
-            var contentItem = new ContentItem(asset.AssetInfo);
+            var contentItem = new ContentItem(assetInfo);
             ListBoxFolderContent.SelectedItem = contentItem;
 
             //save asset
-            asset.AssetInfo.Name = inputTextBox.Text;
-            asset.AssetInfo.FileName = Path.Combine(folderItem.FullPath, asset.AssetInfo.Name + extension);
-            GameSettings.AssetInfoManager.Add(asset.AssetInfo);
-            AssetSaver.SaveAsset(asset.AssetInfo.FileName, asset);
-            GameSettings.AssetInfoManager.Save();
+            assetInfo.Name = inputTextBox.Text;
+            assetInfo.FileName = Path.Combine(folderItem.FullPath, assetInfo.Name + extension);
+            AssetCatalog.Add(assetInfo);
+            AssetSaver.SaveAsset(assetInfo.FileName, actor);
+            AssetCatalog.Save();
         }
     }
 
@@ -280,7 +285,7 @@ public partial class ContentBrowserControl : UserControl
 
         var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
 
-        GameSettings.AssetInfoManager.Remove(contentItem.AssetInfo.Id);
+        AssetCatalog.Remove(contentItem.AssetInfo.Id);
     }
 
     private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -320,20 +325,23 @@ public partial class ContentBrowserControl : UserControl
             ListBoxFolderContent.SelectedItem is ContentItem contentItem)
         {
             //TODO create an editor which find sprites
-            var assetContentManager = _gameEditor.Game.GameManager.AssetContentManager;
-            var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo);
+            var assetContentManager = _gameEditor.Game.AssetContentManager;
+
+            var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo.Id);
             texture.Load(assetContentManager);
             var spriteData = new SpriteData();
             spriteData.PositionInTexture = texture.Resource.Bounds;
             spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
 
-            spriteData.AssetInfo.Name = texture.AssetInfo.Name;
-            spriteData.AssetInfo.FileName = texture.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture,
-                Constants.FileNameExtensions.Sprite);
-            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, spriteData.AssetInfo.FileName), spriteData);
+            var assetInfo = new AssetInfo(spriteData.Id)
+            {
+                Name = contentItem.AssetInfo.Name,
+                FileName = contentItem.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture, Constants.FileNameExtensions.Sprite)
+            };
+            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
 
-            GameSettings.AssetInfoManager.Add(spriteData.AssetInfo);
-            GameSettings.AssetInfoManager.Save();
+            AssetCatalog.Add(assetInfo);
+            AssetCatalog.Save();
         }
     }
 

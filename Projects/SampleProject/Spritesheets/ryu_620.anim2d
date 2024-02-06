@@ -1,0 +1,47 @@
+{
+  "animation_type": "Once",
+  "id": "3bb4852f-fb25-4994-8422-72dc1186c951",
+  "name": "ryu_620",
+  "frames": [
+    {
+      "duration": 0.048,
+      "sprite_id": "84040d39-82fe-4549-bd17-ceda6c61534a"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "aa1ef719-f174-403d-983f-741bf84fa794"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "c7f9403d-cf1f-488e-aa2b-8986ba2e2600"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "c389af62-6919-4753-a9cf-3a2e89e72421"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "abee1709-c7df-4d86-b237-9258a838ea72"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "c389af62-6919-4753-a9cf-3a2e89e72421"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "9431b9c7-61a8-46e3-ad09-691ac8a82639"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "6d85954b-9ba7-4473-b742-208985938464"
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": "184b10f1-3a45-4862-97fd-549d0821e72a"
+    },
+    {
+      "duration": 0.015999999,
+      "sprite_id": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+    }
+  ]
+}

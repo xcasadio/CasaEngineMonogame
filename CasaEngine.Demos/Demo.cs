@@ -1,8 +1,7 @@
-﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos;
@@ -17,11 +16,10 @@ public abstract class Demo
     {
         var entity = new Entity();
         var camera = new ArcBallCameraComponent();
-        entity.ComponentManager.Add(camera);
-        var gamePlayComponent = new GamePlayComponent();
-        entity.ComponentManager.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
-        entity.Initialize(game);
+        entity.RootComponent = camera;
+        entity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
+        entity.Initialize();
+        //entity.InitializeWithWorld(game.GameManager.CurrentWorld);
         game.GameManager.CurrentWorld.AddEntity(entity);
 
         return camera;

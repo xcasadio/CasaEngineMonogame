@@ -92,7 +92,7 @@ public class AStarSearch<T, TK> : GraphSearchAlgorithm<T, TK>
         ShortestPathTree = new List<TK>(Graph.NodeCount);
         Frontier = new List<TK>(Graph.NodeCount);
 
-        //Initialize the values
+        //LoadContent the values
         for (var i = 0; i < Graph.NodeCount; i++)
         {
             FCosts.Add(0.0);
@@ -101,11 +101,11 @@ public class AStarSearch<T, TK> : GraphSearchAlgorithm<T, TK>
             Frontier.Add(default);
         }
 
-        //Initialize the indexed priority queue and enqueue the start node
+        //LoadContent the indexed priority queue and enqueue the start node
         Queue = new IndexedPriorityQueue<double>(FCosts);
         Queue.Enqueue(source);
 
-        //Initialize the base
+        //LoadContent the base
         base.Initialize(source, target);
     }
 

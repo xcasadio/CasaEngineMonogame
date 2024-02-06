@@ -69,7 +69,7 @@ public sealed class RenderTargetCube : TextureCube
 
     public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat, DepthFormat depthFormat, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
-        AssetInfo.Name = "Render Target";
+        //Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
@@ -78,11 +78,11 @@ public sealed class RenderTargetCube : TextureCube
         MipMap = mipMap;
 
         Create(graphicsDevice);
-    } // RenderTarget
+    }
 
     public RenderTargetCube(GraphicsDevice graphicsDevice, int size, SurfaceFormat surfaceFormat = SurfaceFormat.Color, bool hasDepthBuffer = true, RenderTarget.AntiAliasingType antiAliasingType = RenderTarget.AntiAliasingType.NoAntialiasing, bool mipMap = false)
     {
-        AssetInfo.Name = "Render Target";
+        //Name = "Render Target";
         Size = size;
 
         SurfaceFormat = surfaceFormat;
@@ -91,7 +91,7 @@ public sealed class RenderTargetCube : TextureCube
         MipMap = mipMap;
 
         Create(graphicsDevice);
-    } // RenderTarget
+    }
 
     private void Create(GraphicsDevice graphicsDevice)
     {
@@ -110,18 +110,18 @@ public sealed class RenderTargetCube : TextureCube
         {
             throw new InvalidOperationException("Render target creation failed", e);
         }
-    } // Create
+    }
 
     protected override void DisposeManagedResources()
     {
         base.DisposeManagedResources();
         _renderTarget.Dispose();
-    } // DisposeManagedResources
+    }
 
-    internal override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    public override void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
     {
         Create(device);
-    } // RecreateResource
+    }
 
     public void EnableRenderTarget(CubeMapFace cubeMapFace)
     {
@@ -133,7 +133,7 @@ public sealed class RenderTargetCube : TextureCube
         _graphicsDevice.SetRenderTarget(_renderTarget, cubeMapFace);
         _currentRenderTarget = this;
         _alreadyResolved = false;
-    } // EnableRenderTarget
+    }
 
     public void Clear(Color clearColor)
     {
@@ -154,7 +154,7 @@ public sealed class RenderTargetCube : TextureCube
         {
             _graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, clearColor, 1.0f, 0);
         }
-    } // Clear
+    }
 
     public static void ClearCurrentRenderTargets(Color clearColor)
     {
@@ -164,7 +164,7 @@ public sealed class RenderTargetCube : TextureCube
         }
 
         _currentRenderTarget.Clear(clearColor);
-    } // Clear
+    }
 
     public void DisableRenderTarget()
     {
@@ -240,7 +240,5 @@ public sealed class RenderTargetCube : TextureCube
         }
 
         RenderTargets.Clear();
-    } // ClearRenderTargetPool
-
-} // RenderTargetCube
-  // CasaEngine.Asset
+    }
+}

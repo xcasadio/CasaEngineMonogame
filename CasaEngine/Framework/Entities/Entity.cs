@@ -1,154 +1,357 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using Microsoft.Xna.Framework;
+using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Scripting;
 using Newtonsoft.Json.Linq;
-using BoundingBox = Microsoft.Xna.Framework.BoundingBox;
-using Vector3 = Microsoft.Xna.Framework.Vector3;
-
-#if EDITOR
-using XNAGizmo;
-#endif
 
 namespace CasaEngine.Framework.Entities;
 
-public class Entity : EntityBase
+//Entity is the base class for an Object that can be placed or spawned in a level.
+public class Entity : ObjectBase
 {
-    private Entity? _parent;
+    private bool _isEnabled = true;
+    private readonly List<EntityComponent> _components = new();
+    private readonly List<Entity> _children = new();
+    private SceneComponent? _rootComponent;
+    public World.World World { get; private set; }
 
-    public Entity? Parent
+    public bool IsInitialized { get; private set; }
+    public Entity? Parent { get; private set; }
+
+    public IEnumerable<Entity> Children => _children;
+
+    public IEnumerable<EntityComponent> Components => _components;
+
+    public SceneComponent? RootComponent
     {
-        get => _parent;
+        get => _rootComponent;
         set
         {
-            _parent = value;
-            Coordinates.Parent = _parent?.Coordinates;
+#if EDITOR
+            if (_rootComponent != null)
+            {
+                ComponentRemoved?.Invoke(this, _rootComponent);
+            }
+#endif
+
+            _rootComponent = value;
+
+            if (_rootComponent != null)
+            {
+                _rootComponent.Attach(this);
+#if EDITOR
+                ComponentAdded?.Invoke(this, _rootComponent);
+#endif
+            }
         }
     }
 
-    public ComponentManager ComponentManager { get; } = new();
+    public string GameplayProxyClassName { get; set; }
+    public GameplayProxy? GameplayProxy { get; private set; }
 
-    public override void Initialize(CasaEngineGame game)
+    public bool IsEnabled
     {
-        base.Initialize(game);
-        ComponentManager.Initialize(this);
+        get => _isEnabled;
+        set
+        {
+            _isEnabled = value;
+            //Logs.WriteTrace($"Entity {Name} is {(_isEnabled ? "enabled" : "disabled")}");
+            OnEnabledValueChange();
+        }
     }
 
-    protected override void UpdateInternal(float elapsedTime)
+    public bool IsVisible { get; set; } = true;
+
+    public bool ToBeRemoved { get; private set; }
+
+    public Entity()
     {
-        ComponentManager.Update(elapsedTime);
     }
 
-    protected override void DrawInternal()
+    public Entity(Entity actor) : base(actor)
     {
-        ComponentManager.Draw();
+        World = actor.World;
+        _isEnabled = actor._isEnabled;
+        Parent = actor.Parent;
+        RootComponent = actor.RootComponent?.Clone() as SceneComponent;
+        GameplayProxyClassName = actor.GameplayProxyClassName;
+        GameplayProxy = actor.GameplayProxy?.Clone();
+
+        foreach (var component in actor._components)
+        {
+            AddComponent(component.Clone());
+        }
+
+        foreach (var child in actor._children)
+        {
+            AddChild(child.Clone());
+        }
     }
 
     public Entity Clone()
     {
-        var entity = new Entity();
-        entity.CopyFrom(this);
-        return entity;
+        return new Entity(this);
     }
 
-    public void CopyFrom(Entity entity)
+    protected override void InitializePrivate()
     {
-        ComponentManager.CopyFrom(entity.ComponentManager);
-        Coordinates.CopyFrom(entity.Coordinates);
-        Parent = entity.Parent;
+        base.InitializePrivate();
 
-        base.CopyFrom(entity);
-    }
+        RootComponent?.Initialize();
 
-    public override void Load(JsonElement element, SaveOption option)
-    {
-        base.Load(element, option);
-
-        foreach (var item in element.GetJsonPropertyByName("components").Value.EnumerateArray())
+        for (int i = 0; i < _components.Count; i++)
         {
-            ComponentManager.Add(GameSettings.ComponentLoader.Load(item));
+            _components[i].Initialize();
         }
-    }
 
-    public override void ScreenResized(int width, int height)
-    {
-        ComponentManager.ScreenResized(width, height);
-        base.ScreenResized(width, height);
-    }
-
-    protected override void OnEnabledValueChange()
-    {
-        ComponentManager.OnEnabledValueChange();
-        base.OnEnabledValueChange();
-    }
-
-    public override void OnBeginPlay(World.World world)
-    {
-        foreach (var component in ComponentManager.Components)
+        for (int i = 0; i < _children.Count; i++)
         {
-            if (component is GamePlayComponent gamePlayComponent)
+            _children[i].Initialize();
+        }
+
+        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        {
+            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+        }
+
+        GameplayProxy?.Initialize(this);
+
+        IsInitialized = true;
+    }
+
+    public void InitializeWithWorld(World.World world)
+    {
+        World = world;
+
+        RootComponent?.InitializeWithWorld(world);
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            _components[i].InitializeWithWorld(world);
+        }
+
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].InitializeWithWorld(world);
+        }
+
+        GameplayProxy?.InitializeWithWorld(world);
+    }
+
+    private void OnEnabledValueChange()
+    {
+        RootComponent?.OnEnabledValueChange();
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i] is SceneComponent sceneComponent)
             {
-                gamePlayComponent.ExternalComponent?.OnBeginPlay(world);
+                sceneComponent.OnEnabledValueChange();
             }
         }
 
-        base.OnBeginPlay(world);
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].OnEnabledValueChange();
+        }
     }
 
-    public override void OnEndPlay(World.World world)
+    public void AddChild(Entity actor)
     {
-        foreach (var component in ComponentManager.Components)
+        _children.Add(actor);
+        actor.Parent = this;
+
+#if EDITOR
+        ChildAdded?.Invoke(this, actor);
+#endif
+    }
+
+    public void RemoveChild(Entity actor)
+    {
+        _children.Remove(actor);
+        actor.Parent = null;
+
+#if EDITOR
+        ChildRemoved?.Invoke(this, actor);
+#endif
+    }
+
+    public void AddComponent(EntityComponent component)
+    {
+        _components.Add(component);
+        component.Attach(this);
+
+#if EDITOR
+        ComponentAdded?.Invoke(this, component);
+#endif
+    }
+
+    public void RemoveComponent(EntityComponent component)
+    {
+        _components.Remove(component);
+        component.Detach();
+
+#if EDITOR
+        ComponentRemoved?.Invoke(this, component);
+#endif
+    }
+
+    public T? GetComponent<T>() where T : class
+    {
+        if (RootComponent != null)
         {
-            if (component is GamePlayComponent gamePlayComponent)
+            if (RootComponent is T component)
             {
-                gamePlayComponent.ExternalComponent?.OnEndPlay(world);
+                return component;
+            }
+
+            for (int i = 0; i < RootComponent.Children.Count; i++)
+            {
+                if (RootComponent.Children[i] is T child)
+                {
+                    return child;
+                }
             }
         }
 
-        base.OnEndPlay(world);
-    }
-
-    protected override BoundingBox ComputeBoundingBox()
-    {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-        bool found = false;
-
-        foreach (var component in ComponentManager.Components)
+        for (int i = 0; i < _components.Count; i++)
         {
-            if (component is IBoundingBoxable boundingBoxComputable)
+            if (_components[i] is T component)
             {
-                var boundingBox = boundingBoxComputable.BoundingBox;
-                min = Vector3.Min(min, boundingBox.Min);
-                max = Vector3.Max(max, boundingBox.Max);
-                found = true;
+                return component;
             }
         }
 
-        return found ? new BoundingBox(min, max) : new BoundingBox(Vector3.One / 2f, Vector3.One / 2f);
+        return null;
+    }
+
+    public void ReActivate()
+    {
+        ToBeRemoved = false;
+        IsEnabled = true;
+        IsVisible = true;
+    }
+
+    public void Destroy()
+    {
+        ToBeRemoved = true;
+        IsEnabled = false;
+        IsVisible = false;
+    }
+
+    public void Update(float elapsedTime)
+    {
+        RootComponent?.Update(elapsedTime);
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            _components[i].Update(elapsedTime);
+        }
+
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].Update(elapsedTime);
+        }
+
+#if EDITOR
+        if (!World.Game.IsRunningInGameEditorMode)
+        {
+            GameplayProxy?.Update(elapsedTime);
+        }
+#else
+        GameplayProxy?.Update(elapsedTime);
+#endif
+    }
+
+    public void Draw(float elapsedTime)
+    {
+        if (!IsVisible)
+        {
+            return;
+        }
+
+        RootComponent?.Draw(elapsedTime);
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i] is PrimitiveComponent sceneComponent)
+            {
+                sceneComponent.Draw(elapsedTime);
+            }
+        }
+
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].Draw(elapsedTime);
+        }
+
+        GameplayProxy?.Draw();
+    }
+
+    public void OnScreenResized(int width, int height)
+    {
+        RootComponent?.OnScreenResized(width, height);
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i] is SceneComponent sceneComponent)
+            {
+                sceneComponent.OnScreenResized(width, height);
+            }
+        }
+    }
+
+    public override void Load(JsonElement element)
+    {
+        base.Load(element);
+
+        GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
+
+        var node = element.GetProperty("root_component");
+        if (node.ValueKind == JsonValueKind.Object)
+        {
+            RootComponent = ElementFactory.Load<SceneComponent>(node);
+        }
+
+        /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())
+        {
+            //id of all child
+        }*/
     }
 
 #if EDITOR
-    private static readonly int Version = 1;
 
-    public override void Save(JObject jObject, SaveOption option)
+    public event EventHandler<Entity> ChildAdded;
+    public event EventHandler<Entity> ChildRemoved;
+
+    public event EventHandler<EntityComponent> ComponentAdded;
+    public event EventHandler<EntityComponent> ComponentRemoved;
+
+    public override void Save(JObject node)
     {
-        base.Save(jObject, option);
+        base.Save(node);
 
-        //jObject.Add("version", Version);
+        if (RootComponent != null)
+        {
+            JObject rootComponentNode = new();
+            RootComponent.Save(rootComponentNode);
+            node.Add("root_component", rootComponentNode);
+        }
+        else
+        {
+            node.Add("root_component", "null");
+        }
 
         var componentsJArray = new JArray();
-        foreach (var component in ComponentManager.Components)
+        foreach (var component in _components)
         {
             JObject componentObject = new();
-            component.Save(componentObject, option);
+            component.Save(componentObject);
             componentsJArray.Add(componentObject);
         }
-        jObject.Add("components", componentsJArray);
+        node.Add("components", componentsJArray);
+
+        node.Add("script_class_name", GameplayProxyClassName);
     }
 
 #endif

@@ -1,0 +1,35 @@
+{
+  "animation_type": "Once",
+  "id": "7eb78512-0486-4eb7-b353-27f82275eea7",
+  "name": "baton_attack_right",
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": "91dd9021-c4b7-4206-bce6-d8a4b861fbc2"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "987bbc3e-91b3-4ca1-ab50-4bf54632e4f5"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "188524ca-89fd-48a1-a35c-3ac8b2b3c05e"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "c35d25d6-8118-43a0-a84a-c01da64a3def"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "8bf0728c-4bff-485f-afe5-aafa70c04a01"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "55f66f76-70bd-413a-91f4-faadebf818ab"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "ed656e02-3659-472a-ba62-be7328bc3801"
+    }
+  ]
+}

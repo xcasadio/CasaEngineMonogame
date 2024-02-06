@@ -1,0 +1,117 @@
+{
+  "id": "c939570b-e45d-461e-a359-d21348911a86",
+  "name": "ryu_276_0",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1947,
+    "y": 1302,
+    "w": 60,
+    "h": 107
+  },
+  "hotspot": {
+    "x": 32,
+    "y": 110
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 28.0,
+        "y": 30.0
+      },
+      "orientation": 0.0,
+      "w": 27,
+      "h": 37
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 6.0,
+        "y": 1.0
+      },
+      "orientation": 0.0,
+      "w": 23,
+      "h": 100
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 30.0,
+        "y": 29.0
+      },
+      "orientation": 0.0,
+      "w": 27,
+      "h": 37
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": 2.0
+      },
+      "orientation": 0.0,
+      "w": 23,
+      "h": 100
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 30.0,
+        "y": 30.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 39
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 4.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 88
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 26.0,
+        "y": 30.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 39
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 0.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 26,
+      "h": 88
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 6.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 24,
+      "h": 88
+    }
+  ],
+  "sockets": []
+}

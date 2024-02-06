@@ -7,59 +7,63 @@
                             xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
                             xmlns:guiEditorControls="clr-namespace:CasaEngine.EditorUI.Controls.GuiEditorControls"
                             mc:Ignorable="d"
-                            d:DesignHeight="450" d:DesignWidth="800">
+                            d:DesignHeight="200" d:DesignWidth="400">
 
-	<controls:EditorControlBase.CommandBindings>
-		<CommandBinding Command="{StaticResource Commands.GUI.Save}" Executed="SaveCommand_Executed" />
-	</controls:EditorControlBase.CommandBindings>
+    <controls:EditorControlBase.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.GUI.Save}" Executed="SaveCommand_Executed" />
+    </controls:EditorControlBase.CommandBindings>
 
-	<Grid>
-		<xcad:DockingManager x:Name="dockingManagerGui" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<xcad:DockingManager.Theme>
-				<xcad:GenericTheme/>
-			</xcad:DockingManager.Theme>
+    <controls:EditorControlBase.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.GUI.Save}" />
+    </controls:EditorControlBase.InputBindings>
 
-			<xcad:LayoutRoot>
-				<xcad:LayoutRoot.RootPanel>
-					<xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+    <Grid>
+        <xcad:DockingManager x:Name="dockingManagerGui" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <xcad:DockingManager.Theme>
+                <xcad:GenericTheme/>
+            </xcad:DockingManager.Theme>
 
-						<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
-							<xcad:LayoutDocumentPane>
-								<xcad:LayoutDocument x:Name="guiViewLayout" Title="ScreenGui View" CanFloat="False" CanClose="False">
-									<guiEditorControls:GameEditorGuiControl x:Name="GameEditorGuiControl" AllowDrop="True"/>
-								</xcad:LayoutDocument>
-							</xcad:LayoutDocumentPane>
-						</xcad:LayoutDocumentPaneGroup>
+            <xcad:LayoutRoot>
+                <xcad:LayoutRoot.RootPanel>
+                    <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
-							<xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-								<xcad:LayoutAnchorable x:Name="guiLayout" Title="Components">
-									<guiEditorControls:ComponentListControl x:Name="ComponentListControl" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}" />
-								</xcad:LayoutAnchorable>
-							</xcad:LayoutAnchorablePane>
-							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-									<xcad:LayoutAnchorable x:Name="guiDetailsLayout" Title="Details">
-										<guiEditorControls:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding DataContext.SelectedControl, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}"/>
-									</xcad:LayoutAnchorable>
-								</xcad:LayoutAnchorablePane>
-							</xcad:LayoutAnchorablePaneGroup>
-						</xcad:LayoutAnchorablePaneGroup>
-					</xcad:LayoutPanel>
+                        <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+                            <xcad:LayoutDocumentPane>
+                                <xcad:LayoutDocument x:Name="guiViewLayout" Title="ScreenGui View" CanFloat="False" CanClose="False">
+                                    <guiEditorControls:GameEditorGuiControl x:Name="GameEditorGuiControl" AllowDrop="True"/>
+                                </xcad:LayoutDocument>
+                            </xcad:LayoutDocumentPane>
+                        </xcad:LayoutDocumentPaneGroup>
 
-				</xcad:LayoutRoot.RootPanel>
+                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                            <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
+                                <xcad:LayoutAnchorable x:Name="guiLayout" Title="Components">
+                                    <guiEditorControls:ComponentListControl x:Name="ComponentListControl" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}" />
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                    <xcad:LayoutAnchorable x:Name="guiDetailsLayout" Title="Details">
+                                        <guiEditorControls:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding DataContext.SelectedControl, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}"/>
+                                    </xcad:LayoutAnchorable>
+                                </xcad:LayoutAnchorablePane>
+                            </xcad:LayoutAnchorablePaneGroup>
+                        </xcad:LayoutAnchorablePaneGroup>
+                    </xcad:LayoutPanel>
 
-				<xcad:LayoutRoot.LeftSide>
-					<xcad:LayoutAnchorSide>
-						<xcad:LayoutAnchorGroup>
-							<xcad:LayoutAnchorable x:Name="PlaceComponentLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Components" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-								<guiEditorControls:PlaceComponentsControl x:Name="PlaceComponentsControl"/>
-							</xcad:LayoutAnchorable>
-						</xcad:LayoutAnchorGroup>
-					</xcad:LayoutAnchorSide>
-				</xcad:LayoutRoot.LeftSide>
+                </xcad:LayoutRoot.RootPanel>
 
-			</xcad:LayoutRoot>
-		</xcad:DockingManager>
-	</Grid>
+                <xcad:LayoutRoot.LeftSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="PlaceComponentLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Components" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
+                                <guiEditorControls:PlaceComponentsControl x:Name="PlaceComponentsControl"/>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.LeftSide>
+
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
+    </Grid>
 </controls:EditorControlBase>

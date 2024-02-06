@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -8,6 +10,15 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
 {
     public Point Start { get; set; }
     public Point End { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var position = Position.ToVector3();
+            return new BoundingBox(position - new Vector3(Start.X, Start.Y, 0f), position + new Vector3(End.X, End.Y, 0.1f));
+        }
+    }
 
     public ShapeLine() : base(Shape2dType.Line)
     {

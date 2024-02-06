@@ -1,0 +1,51 @@
+{
+  "id": "1ada43e4-a381-4380-a6af-71a3d9163257",
+  "name": "ryu_1100_10",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1825,
+    "y": 1155,
+    "w": 61,
+    "h": 126
+  },
+  "hotspot": {
+    "x": 29,
+    "y": 122
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 11.0,
+        "y": 21.0
+      },
+      "orientation": 0.0,
+      "w": 37,
+      "h": 103
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 6.0,
+        "y": 87.0
+      },
+      "orientation": 0.0,
+      "w": 13,
+      "h": 37
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 18.0,
+        "y": 26.0
+      },
+      "orientation": 0.0,
+      "w": 32,
+      "h": 97
+    }
+  ],
+  "sockets": []
+}

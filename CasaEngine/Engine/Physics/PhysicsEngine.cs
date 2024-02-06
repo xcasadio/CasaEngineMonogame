@@ -1,5 +1,5 @@
 ﻿using BulletSharp;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Physics;
@@ -318,8 +318,8 @@ public class PhysicsEngine
                 continue;
             }
 
-            collision.ColliderA.OnHitEnded(collision);
-            collision.ColliderB.OnHitEnded(collision);
+            collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
+            collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
 
             collision.ColliderA.Collisions.Remove(collision);
             collision.ColliderB.Collisions.Remove(collision);
@@ -361,8 +361,8 @@ public class PhysicsEngine
             collision.ColliderA.Collisions.Add(collision);
             collision.ColliderB.Collisions.Add(collision);
 
-            collision.ColliderA.OnHit(collision);
-            collision.ColliderB.OnHit(collision);
+            collision.ColliderA.Owner.GameplayProxy?.OnHit(collision);
+            collision.ColliderB.Owner.GameplayProxy?.OnHit(collision);
         }
 
         // Deprecated collisions don't need to send contact changes, move channels to the pool
@@ -393,8 +393,8 @@ public class PhysicsEngine
             // IncludeStaticAgainstStaticCollisions:
             // Can't do much if something is awaiting the end of a specific
             // static-static collision below though
-            collision.ColliderA.OnHitEnded(collision);
-            collision.ColliderB.OnHitEnded(collision);
+            collision.ColliderA.Owner.GameplayProxy?.OnHitEnded(collision);
+            collision.ColliderB.Owner.GameplayProxy?.OnHitEnded(collision);
 
             collision.ColliderA.Collisions.Remove(collision);
             collision.ColliderB.Collisions.Remove(collision);

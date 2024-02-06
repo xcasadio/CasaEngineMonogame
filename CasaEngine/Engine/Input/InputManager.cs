@@ -146,7 +146,7 @@ internal class InputManager
     internal static void Initialize()
     {
         //Wiimote.InitWiimotes();
-    } // Initialize
+    } // LoadContent
 
 
 

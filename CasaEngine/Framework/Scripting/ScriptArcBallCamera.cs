@@ -1,20 +1,13 @@
-using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using Newtonsoft.Json.Linq;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.Scripting;
 
-public class ScriptArcBallCamera : ExternalComponent
+public class ScriptArcBallCamera : GameplayProxy
 {
-    public override int ExternalComponentId => (int)ScriptIds.ArcBallCamera;
-
     private ArcBallCameraComponent? _arcBallCameraComponent;
     private InputComponent _inputComponent;
 
@@ -31,11 +24,16 @@ public class ScriptArcBallCamera : ExternalComponent
         InputDisplacementRate = 10.0f;
     }
 
-    public override void Initialize(EntityBase entityBase)
+    protected override void InitializePrivate()
     {
-        var entity = entityBase as Entity;
-        _arcBallCameraComponent = entity.ComponentManager.GetComponent<ArcBallCameraComponent>();
-        _inputComponent = entity.Game.GetGameComponent<InputComponent>();
+        base.InitializePrivate();
+
+        _arcBallCameraComponent = Owner.GetComponent<ArcBallCameraComponent>();
+    }
+
+    public override void InitializeWithWorld(World.World world)
+    {
+        _inputComponent = world.Game.GetGameComponent<InputComponent>();
     }
 
     public override void Update(float elapsedTime)
@@ -165,18 +163,8 @@ public class ScriptArcBallCamera : ExternalComponent
 
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override ScriptArcBallCamera Clone()
     {
-
+        return new ScriptArcBallCamera();
     }
-
-
-#if EDITOR
-
-    public override void Save(JObject jObject, SaveOption option)
-    {
-
-    }
-
-#endif
 }

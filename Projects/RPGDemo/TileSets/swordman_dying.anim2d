@@ -1,0 +1,55 @@
+{
+  "animation_type": "Once",
+  "id": "ed4662cd-732f-44ff-814c-ba4082ae186a",
+  "name": "swordman_dying",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+    }
+  ]
+}

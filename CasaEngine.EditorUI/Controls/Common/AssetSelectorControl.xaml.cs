@@ -1,10 +1,10 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.Common;
@@ -13,12 +13,12 @@ public partial class AssetSelectorControl : UserControl
 {
     private const string NoAssetDefined = "no asset defined";
 
-    public static readonly DependencyProperty AssetIdItemProperty = DependencyProperty.Register(nameof(AssetId), typeof(long), typeof(AssetSelectorControl), new FrameworkPropertyMetadata(IdManager.InvalidId, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
+    public static readonly DependencyProperty AssetIdItemProperty = DependencyProperty.Register(nameof(AssetId), typeof(Guid), typeof(AssetSelectorControl), new FrameworkPropertyMetadata(Guid.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
     public static readonly DependencyProperty AssetFullPathProperty = DependencyProperty.Register(nameof(AssetFullPath), typeof(string), typeof(AssetSelectorControl));
 
-    public long AssetId
+    public Guid AssetId
     {
-        get => (long)GetValue(AssetIdItemProperty);
+        get => (Guid)GetValue(AssetIdItemProperty);
         set => SetValue(AssetIdItemProperty, value);
     }
 
@@ -55,8 +55,8 @@ public partial class AssetSelectorControl : UserControl
             {
                 if (staticMeshComponent.Mesh != null)
                 {
-                    var assetContentManager = staticMeshComponent.Owner.Game.GameManager.AssetContentManager;
-                    staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem);
+                    var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
+                    staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem.Id);
 
                     if (staticMeshComponent.Mesh.Texture?.Resource == null)
                     {
@@ -82,7 +82,7 @@ public partial class AssetSelectorControl : UserControl
 
     private void OnComponentPropertyChanged(DependencyPropertyChangedEventArgs e)
     {
-        var assetInfo = GameSettings.AssetInfoManager.Get(AssetId);
+        var assetInfo = AssetCatalog.Get(AssetId);
         SetCurrentValue(AssetFullPathProperty, assetInfo != null ? assetInfo.FileName : NoAssetDefined);
 
         //var isInitializing = !_templateApplied && _initializingProperty == null;

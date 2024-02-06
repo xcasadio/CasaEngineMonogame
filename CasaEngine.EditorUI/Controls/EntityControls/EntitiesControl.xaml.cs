@@ -4,10 +4,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Helpers;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -31,6 +33,21 @@ public partial class EntitiesControl : UserControl
     public EntitiesControl()
     {
         InitializeComponent();
+
+        TreeViewEntities.ItemMoved = ItemMoved;
+    }
+
+    private void ItemMoved(object item, object newparent)
+    {
+        if (item is EntityViewModel entityViewModel && newparent is EntityViewModel parentEntityViewModel)
+        {
+            if (entityViewModel.Parent != null)
+            {
+                entityViewModel.Parent.RemoveActorChild(entityViewModel);
+            }
+
+            parentEntityViewModel.AddActorChild(entityViewModel);
+        }
     }
 
     public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
@@ -64,17 +81,23 @@ public partial class EntitiesControl : UserControl
         var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
 
-        foreach (var entity in entities.Cast<Entity>())
+        var actors = entities.Cast<SceneComponent>().Select(x => x.Owner).ToHashSet();
+
+        foreach (var entity in actors)
         {
             var newEntity = entity.Clone();
-            newEntity.Initialize(Game);
+            newEntity.Initialize();
+            newEntity.InitializeWithWorld(Game.GameManager.CurrentWorld);
             newEntities.Add(entitiesViewModel.Add(newEntity));
         }
 
         _gizmoComponent.Gizmo.Clear();
         foreach (var entityViewModel in newEntities)
         {
-            _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
+            if (entityViewModel.Entity.RootComponent != null)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            }
         }
 
         SetSelectedItem(newEntities[0]);
@@ -91,23 +114,24 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerActive = false;
 
         var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-        Entity? selectedEntity = null;
+        SceneComponent? selectedEntity = null;
         if (gizmoComponent.Gizmo.Selection.Count > 0)
         {
-            selectedEntity = (Entity)gizmoComponent.Gizmo.Selection[0];
+            selectedEntity = (SceneComponent)gizmoComponent.Gizmo.Selection[0];
         }
 
-        var entitiesViewModel = DataContext as EntityListViewModel;
-        SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity));
+        if (selectedEntity != null)
+        {
+            var entitiesViewModel = DataContext as EntityListViewModel;
+            SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
+        }
 
         _isSelectionTriggerActive = true;
     }
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        var entitiesViewModel = new EntityListViewModel(Game.GameManager.CurrentWorld);
-        DataContext = entitiesViewModel;
-        TreeView.ItemsSource = entitiesViewModel.Entities;
+        TreeViewEntities.ItemsSource = (DataContext as EntityListViewModel).Entities;
     }
 
     private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -119,21 +143,18 @@ public partial class EntitiesControl : UserControl
 
         _isSelectionTriggerFromGizmoActive = false;
 
-        var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-
         var entityViewModel = e.NewValue as EntityViewModel;
+        _gizmoComponent.Gizmo.Clear();
 
-        if (e.NewValue == null)
+        if (entityViewModel != null)
         {
-            gizmoComponent.Gizmo.Clear();
-        }
-        else
-        {
-            gizmoComponent.Gizmo.Clear(); // TODO
-            gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity);
-        }
+            if (entityViewModel?.Entity?.RootComponent != null)
+            {
+                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+            }
 
-        SetSelectedItem(entityViewModel);
+            SetSelectedItem(entityViewModel);
+        }
 
         _isSelectionTriggerFromGizmoActive = true;
     }
@@ -144,16 +165,16 @@ public partial class EntitiesControl : UserControl
         {
             SelectedItem = selectedEntity;
 
-            if (TreeView.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
+            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
             {
                 treeViewItem.IsSelected = true;
             }
         }
         else
         {
-            foreach (var item in TreeView.ItemContainerGenerator.Items)
+            foreach (var item in TreeViewEntities.ItemContainerGenerator.Items)
             {
-                if (TreeView.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
+                if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
                 {
                     treeViewItem.IsSelected = false;
                 }
@@ -161,12 +182,11 @@ public partial class EntitiesControl : UserControl
         }
     }
 
-    private void TreeView_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void TreeView_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Delete && e.IsToggled)
+        if (e is { Key: Key.Delete, IsToggled: true })
         {
-            if (TreeView.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem treeViewItem
-                && treeViewItem.DataContext is EntityViewModel entityViewModel)
+            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem { DataContext: EntityViewModel entityViewModel })
             {
                 var entitiesViewModel = DataContext as EntityListViewModel;
                 entitiesViewModel.Remove(entityViewModel);
@@ -176,9 +196,14 @@ public partial class EntitiesControl : UserControl
 
     private void OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if (sender is TreeViewItem treeViewItem)
+        if (TreeViewEntities.SelectedValue is EntityViewModel entityViewModel
+            && entityViewModel.Entity?.RootComponent != null)
         {
             //TODO : Camera in front of the Object
+            var sceneComponent = entityViewModel.Entity.RootComponent;
+            var boundingBox = sceneComponent.BoundingBox;
+            var offset = sceneComponent.Forward * boundingBox.GetRadius();
+            Game.GameManager.ActiveCamera.SetPositionAndTarget(sceneComponent.Position + offset, sceneComponent.Position);
         }
     }
 }

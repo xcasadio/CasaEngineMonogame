@@ -1,0 +1,40 @@
+{
+  "id": "7d40b4c5-2257-407c-9d4e-4d2e9bde4fc7",
+  "name": "sword_9",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 271,
+    "y": 0,
+    "w": 27,
+    "h": 48
+  },
+  "hotspot": {
+    "x": 16,
+    "y": 54
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 11.0,
+        "y": 14.0
+      },
+      "orientation": 0.0,
+      "w": 8,
+      "h": 18
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 19.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 8,
+      "h": 18
+    }
+  ],
+  "sockets": []
+}

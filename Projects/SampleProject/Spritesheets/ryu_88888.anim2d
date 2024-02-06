@@ -1,0 +1,15 @@
+{
+  "animation_type": "Once",
+  "id": "bea7f0bd-e783-4d02-bab0-bbba78ed3480",
+  "name": "ryu_88888",
+  "frames": [
+    {
+      "duration": 0.063999996,
+      "sprite_id": "20f5d6d0-ec22-4ee9-ba11-e7e64575a15e"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "591285be-3fd4-4fc5-8750-64a2b9d715b3"
+    }
+  ]
+}

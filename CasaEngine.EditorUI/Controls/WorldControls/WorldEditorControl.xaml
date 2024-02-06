@@ -9,56 +9,62 @@
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-	<Grid>
-		<xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-			<xcad:DockingManager.Theme>
-				<xcad:GenericTheme/>
-			</xcad:DockingManager.Theme>
 
-			<xcad:LayoutRoot>
-				<xcad:LayoutRoot.RootPanel>
-					<xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+    <controls:EditorControlBase.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.World.Save}" Executed="SaveCommand_Executed" />
+    </controls:EditorControlBase.CommandBindings>
 
-						<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
-							<xcad:LayoutDocumentPane>
-								<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game ScreenGui" CanFloat="False" CanClose="False">
-									<worldControls:GameEditorWorldControl x:Name="GameScreenControl" AllowDrop="True"/>
-								</xcad:LayoutDocument>
-							</xcad:LayoutDocumentPane>
-						</xcad:LayoutDocumentPaneGroup>
+    <controls:EditorControlBase.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.World.Save}" />
+    </controls:EditorControlBase.InputBindings>
 
-						<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
-							<xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
-								<xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities" >
-									<entityControls:EntitiesControl x:Name="EntitiesControl"/>
-								</xcad:LayoutAnchorable>
-							</xcad:LayoutAnchorablePane>
-							<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-								<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-									<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-										<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
-									</xcad:LayoutAnchorable>
-								</xcad:LayoutAnchorablePane>
-							</xcad:LayoutAnchorablePaneGroup>
-						</xcad:LayoutAnchorablePaneGroup>
-					</xcad:LayoutPanel>
+    <Grid>
+        <xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <xcad:DockingManager.Theme>
+                <xcad:GenericTheme/>
+            </xcad:DockingManager.Theme>
 
-				</xcad:LayoutRoot.RootPanel>
+            <xcad:LayoutRoot>
+                <xcad:LayoutRoot.RootPanel>
+                    <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-				<xcad:LayoutRoot.LeftSide>
-					<xcad:LayoutAnchorSide>
-						<xcad:LayoutAnchorGroup>
-							<xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-								<worldControls:PlaceActorsControl x:Name="PlaceActorsControl"/>
-							</xcad:LayoutAnchorable>
-							<xcad:LayoutAnchorable x:Name="WorldPropertiesLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="World Properties" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-								<worldControls:WorldPropertiesControl x:Name="WorldPropertiesControlControl"/>
-							</xcad:LayoutAnchorable>
-						</xcad:LayoutAnchorGroup>
-					</xcad:LayoutAnchorSide>
-				</xcad:LayoutRoot.LeftSide>
+                        <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+                            <xcad:LayoutDocumentPane>
+                                <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game ScreenGui" CanFloat="False" CanClose="False">
+                                    <worldControls:GameEditorWorldControl x:Name="GameScreenControl" AllowDrop="True"/>
+                                </xcad:LayoutDocument>
+                            </xcad:LayoutDocumentPane>
+                        </xcad:LayoutDocumentPaneGroup>
 
-			</xcad:LayoutRoot>
-		</xcad:DockingManager>
-	</Grid>
+                        <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                            <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
+                                <xcad:LayoutAnchorable x:Name="EntitiesLayout" Title="Entities" >
+                                    <entityControls:EntitiesControl x:Name="EntitiesControl" DataContext="{Binding ElementName=GameScreenControl, Path=DataContext.EntitiesViewModel}"/>
+                                </xcad:LayoutAnchorable>
+                            </xcad:LayoutAnchorablePane>
+                            <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                    <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+                                        <entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding ElementName=EntitiesControl, Path=SelectedItem}"/>
+                                    </xcad:LayoutAnchorable>
+                                </xcad:LayoutAnchorablePane>
+                            </xcad:LayoutAnchorablePaneGroup>
+                        </xcad:LayoutAnchorablePaneGroup>
+                    </xcad:LayoutPanel>
+
+                </xcad:LayoutRoot.RootPanel>
+
+                <xcad:LayoutRoot.LeftSide>
+                    <xcad:LayoutAnchorSide>
+                        <xcad:LayoutAnchorGroup>
+                            <xcad:LayoutAnchorable x:Name="PlaceActorsLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Actors" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
+                                <worldControls:PlaceEntitiesControl x:Name="PlaceEntitiesControl"/>
+                            </xcad:LayoutAnchorable>
+                        </xcad:LayoutAnchorGroup>
+                    </xcad:LayoutAnchorSide>
+                </xcad:LayoutRoot.LeftSide>
+
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
+    </Grid>
 </controls:EditorControlBase>

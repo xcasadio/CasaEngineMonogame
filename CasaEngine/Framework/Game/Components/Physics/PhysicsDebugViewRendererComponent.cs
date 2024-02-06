@@ -9,8 +9,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     private PhysicsDebugDraw _physicsDebugRenderer;
     private readonly CasaEngineGame _game;
 
-
-    public bool DisplayPhysics { get; set; }
+    public bool DisplayPhysics { get; set; } = true;
 
     public PhysicsDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -33,7 +32,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     {
         if (DisplayPhysics)
         {
-            _physicsDebugRenderer.DrawDebugWorld(_game.GameManager.PhysicsEngineComponent.PhysicsEngine.World);
+            _physicsDebugRenderer.DrawDebugWorld(_game.PhysicsEngineComponent.PhysicsEngine.World);
         }
     }
 }

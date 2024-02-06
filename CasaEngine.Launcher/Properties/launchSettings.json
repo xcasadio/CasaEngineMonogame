@@ -2,7 +2,7 @@
   "profiles": {
     "CasaEngineLauncher": {
       "commandName": "Project",
-      "commandLineArgs": "$(ProjectDir)..\\RPGDemo\\RPGDemo.json",
+      "commandLineArgs": "$(ProjectDir)..\\Projects\\RPGDemo\\RPGDemo.json",
       "remoteDebugEnabled": false
     }
   }

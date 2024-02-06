@@ -1,0 +1,35 @@
+{
+  "animation_type": "Once",
+  "id": "aa3057b1-f89f-46ff-9657-e4d721a68448",
+  "name": "baton_attack_up",
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": "8fe14e0c-b17c-4fb2-9fc9-ec6dc1c07190"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "4d8948a3-d121-4600-b3ca-faccc6b743a3"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "7d40b4c5-2257-407c-9d4e-4d2e9bde4fc7"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "a76a0515-f821-4002-964c-4c64a1b6f598"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "bef31017-8759-483f-9ed6-39a36f85c61d"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "23b527c6-5e97-49ec-a80d-23ed138bf785"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "6e4adc2f-7751-4023-906e-b23c3bb935e8"
+    }
+  ]
+}

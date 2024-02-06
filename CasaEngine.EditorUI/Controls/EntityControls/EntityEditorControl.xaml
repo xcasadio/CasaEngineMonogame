@@ -8,48 +8,49 @@
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:flowGraphControls="clr-namespace:CasaEngine.EditorUI.Controls.FlowGraphControls"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-	<Grid>
-		<TabControl>
-			<TabItem Header="Viewport">
-				<xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-					<xcad:DockingManager.Theme>
-						<xcad:GenericTheme/>
-					</xcad:DockingManager.Theme>
+             d:DesignHeight="200" d:DesignWidth="400">
 
-					<xcad:LayoutRoot>
-						<xcad:LayoutRoot.RootPanel>
-							<xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
+    <Grid>
+        <TabControl>
+            <TabItem Header="Viewport">
+                <xcad:DockingManager Grid.Row="1" x:Name="dockingManagerWorld" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <xcad:DockingManager.Theme>
+                        <xcad:GenericTheme/>
+                    </xcad:DockingManager.Theme>
 
-								<xcad:LayoutDocumentPaneGroup Orientation="Vertical">
-									<xcad:LayoutDocumentPane>
-										<xcad:LayoutDocument x:Name="gameScreenLayout" Title="Game ScreenGui" CanFloat="False" CanClose="False">
-											<entityControls:GameEditorEntityControl x:Name="GameScreenControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
-										</xcad:LayoutDocument>
-									</xcad:LayoutDocumentPane>
-								</xcad:LayoutDocumentPaneGroup>
+                    <xcad:LayoutRoot>
+                        <xcad:LayoutRoot.RootPanel>
+                            <xcad:LayoutPanel Orientation="Horizontal" DockWidth="1.6144200626959249*">
 
-								<xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
-									<xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-										<xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
-											<xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
-												<entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
-											</xcad:LayoutAnchorable>
-										</xcad:LayoutAnchorablePane>
-									</xcad:LayoutAnchorablePaneGroup>
-								</xcad:LayoutAnchorablePaneGroup>
-							</xcad:LayoutPanel>
+                                <xcad:LayoutDocumentPaneGroup Orientation="Vertical">
+                                    <xcad:LayoutDocumentPane>
+                                        <xcad:LayoutDocument x:Name="gameScreenLayout" Title="Entity Editor" CanFloat="False" CanClose="False">
+                                            <entityControls:GameEditorEntityControl x:Name="GameEditorEntityControl" DataContext="{Binding Path=SelectedItem, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+                                        </xcad:LayoutDocument>
+                                    </xcad:LayoutDocumentPane>
+                                </xcad:LayoutDocumentPaneGroup>
 
-						</xcad:LayoutRoot.RootPanel>
+                                <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
+                                    <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                        <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
+                                            <xcad:LayoutAnchorable x:Name="DetailsLayout" Title="Details">
+                                                <entityControls:EntityControl x:Name="EntityControl" DataContext="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}"/>
+                                            </xcad:LayoutAnchorable>
+                                        </xcad:LayoutAnchorablePane>
+                                    </xcad:LayoutAnchorablePaneGroup>
+                                </xcad:LayoutAnchorablePaneGroup>
+                            </xcad:LayoutPanel>
 
-					</xcad:LayoutRoot>
-				</xcad:DockingManager>
-			</TabItem>
+                        </xcad:LayoutRoot.RootPanel>
 
-			<TabItem Header="Flow Graph">
-				<flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
-			</TabItem>
+                    </xcad:LayoutRoot>
+                </xcad:DockingManager>
+            </TabItem>
 
-		</TabControl>
-	</Grid>
+            <TabItem Header="Flow Graph">
+                <flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
+            </TabItem>
+
+        </TabControl>
+    </Grid>
 </controls:EditorControlBase>

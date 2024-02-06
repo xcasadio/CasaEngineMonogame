@@ -178,12 +178,12 @@ using Microsoft.Xna.Framework;
 
 namespace generatedScope;
 
-public class GeneratedClass : ExternalComponent
+public class GeneratedClass : GameplayProxy
 {
     public override int ExternalComponentId => -1;
     public Entity Entity;
 
-    public override void Initialize(Entity entity)
+    public override void LoadContent(Entity entity)
     {
         Entity = entity;
     }
@@ -217,7 +217,7 @@ public class GeneratedClass : ExternalComponent
         ##OnEndPlay##
     }
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
 
     }

@@ -1,0 +1,29 @@
+{
+  "id": "f357f89d-f1d1-4bab-aedc-a9fb51fde34d",
+  "name": "sword_37",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 50,
+    "y": 0,
+    "w": 23,
+    "h": 50
+  },
+  "hotspot": {
+    "x": 20,
+    "y": 59
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": 0.0
+      },
+      "orientation": 0.0,
+      "w": 7,
+      "h": 34
+    }
+  ],
+  "sockets": []
+}

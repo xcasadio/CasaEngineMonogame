@@ -2,7 +2,6 @@
 
 using CasaEngine.Engine.Input;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using XNAGizmo;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
@@ -22,12 +21,11 @@ public class GizmoComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.Manipulator;
     }
 
-    protected override void LoadContent()
+    public override void Initialize()
     {
-        base.LoadContent();
-        var spriteBatch = new SpriteBatch(GraphicsDevice);
+        base.Initialize();
 
-        _game.GameManager.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
+        _game.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
         Gizmo = new Gizmo(Game.GraphicsDevice);
 
         Gizmo.TranslateEvent += GizmoTranslateEvent;
@@ -41,9 +39,10 @@ public class GizmoComponent : DrawableGameComponent
     {
         if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
         {
-            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.Entities);
+            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
         }
-        else if (Gizmo.GetSelectionPool() == null)
+
+        if (Gizmo.GetSelectionPool() == null)
         {
             return;
         }

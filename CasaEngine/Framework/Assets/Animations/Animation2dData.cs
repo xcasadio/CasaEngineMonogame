@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -10,9 +8,9 @@ public class Animation2dData : AnimationData
 {
     public List<FrameData> Frames { get; } = new();
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element, option);
+        base.Load(element);
 
         foreach (var jsonElement in element.GetJsonPropertyByName("frames").Value.EnumerateArray())
         {
@@ -24,9 +22,9 @@ public class Animation2dData : AnimationData
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         var jArray = new JArray();
         foreach (var frame in Frames)

@@ -1,0 +1,107 @@
+{
+  "animation_type": "Once",
+  "id": "5e0da61e-148d-437d-a278-316fd9188d56",
+  "name": "ryu_373",
+  "frames": [
+    {
+      "duration": 0.47999996,
+      "sprite_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "e95bfc02-bb00-4155-8508-e8851f9999d6"
+    },
+    {
+      "duration": 0.192,
+      "sprite_id": "9168301e-e6b2-41d2-a9ea-394eee3201bf"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "51471cbf-2531-47fd-8af5-0a149d1a11df"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "0efdf8da-2d49-4611-a650-bc06afaa4e84"
+    },
+    {
+      "duration": 0.352,
+      "sprite_id": "a4fffda1-a314-4c62-b505-bc4758169aa1"
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": "13a193ca-78fa-4237-80ea-f959a4e200af"
+    },
+    {
+      "duration": 0.08,
+      "sprite_id": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
+    },
+    {
+      "duration": 0.144,
+      "sprite_id": "a9cf9a17-3d25-44af-9593-8da0eeecda5a"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "25062899-9eb3-439e-8db7-6c2648502609"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "76d7950a-f59a-4c81-9fe1-060ef139b92f"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "af535a01-6f97-47f4-81cd-936cf0e08000"
+    },
+    {
+      "duration": 0.288,
+      "sprite_id": "975ae190-de5c-4af0-87d7-2e4871cbe797"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "e55b5d6a-b4fb-40c7-9418-ea046008f044"
+    },
+    {
+      "duration": 4.8,
+      "sprite_id": "d3464b37-e782-49fe-a119-b2f3c275ff02"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "87f867d5-9e42-4807-8bd5-8470cee733cf"
+    },
+    {
+      "duration": 0.031999998,
+      "sprite_id": "03f00247-8201-4bfb-9ff1-32ef00e3bf82"
+    },
+    {
+      "duration": 0.47999996,
+      "sprite_id": "d5e3a31c-c3e0-4bfb-b284-a0f86d7e8e27"
+    },
+    {
+      "duration": 0.096,
+      "sprite_id": "20f5d6d0-ec22-4ee9-ba11-e7e64575a15e"
+    },
+    {
+      "duration": 0.063999996,
+      "sprite_id": "591285be-3fd4-4fc5-8750-64a2b9d715b3"
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "id": "1472f75b-4896-4df9-9bf0-95cc5b2e3310",
+  "name": "ryu_1000_10",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 300,
+    "y": 843,
+    "w": 98,
+    "h": 95
+  },
+  "hotspot": {
+    "x": 27,
+    "y": 89
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 60.0,
+        "y": 50.0
+      },
+      "orientation": 0.0,
+      "w": 17,
+      "h": 40
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 35.0,
+        "y": 3.0
+      },
+      "orientation": 0.0,
+      "w": 31,
+      "h": 56
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 18.0,
+        "y": 52.0
+      },
+      "orientation": 0.0,
+      "w": 27,
+      "h": 21
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 0.0,
+        "y": 68.0
+      },
+      "orientation": 0.0,
+      "w": 24,
+      "h": 25
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 34.0,
+        "y": 36.0
+      },
+      "orientation": 0.0,
+      "w": 28,
+      "h": 26
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 6.0,
+        "y": 56.0
+      },
+      "orientation": 0.0,
+      "w": 35,
+      "h": 34
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 61.0,
+        "y": 46.0
+      },
+      "orientation": 0.0,
+      "w": 19,
+      "h": 44
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 37.0,
+        "y": 6.0
+      },
+      "orientation": 0.0,
+      "w": 59,
+      "h": 30
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 33.0,
+        "y": 11.0
+      },
+      "orientation": 0.0,
+      "w": 42,
+      "h": 80
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 49.0,
+        "y": 13.0
+      },
+      "orientation": 0.0,
+      "w": 42,
+      "h": 16
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 52.0,
+        "y": 2.0
+      },
+      "orientation": 0.0,
+      "w": 16,
+      "h": 16
+    }
+  ],
+  "sockets": []
+}

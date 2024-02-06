@@ -1,0 +1,19 @@
+{
+  "animation_type": "Once",
+  "id": "5f770544-fe6b-4cfb-a7ac-43f46c0c153c",
+  "name": "octopus_attack_left",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "65c6e973-60b9-4b4d-91ec-d46f2b5edcf4"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "4d1c7757-b93c-42e6-8399-5c99efb899c1"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "8123cb68-f5e0-451f-bd1b-efc16e082c4a"
+    }
+  ]
+}

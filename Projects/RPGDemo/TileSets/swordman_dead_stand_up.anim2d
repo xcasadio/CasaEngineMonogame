@@ -1,0 +1,15 @@
+{
+  "animation_type": "Once",
+  "id": "8fdd19a7-1e52-403d-8aec-c0bd306f8a65",
+  "name": "swordman_dead_stand_up",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "3bafb0b0-223b-448b-b6c2-fd8f14a7a9a8"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "4b01d8f4-e6f5-498c-b8fe-d223ab99f969"
+    }
+  ]
+}

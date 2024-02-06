@@ -1,0 +1,29 @@
+{
+  "id": "0457150e-e402-47b8-8b4d-69fd16f8e563",
+  "name": "ryu_720_3",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1080,
+    "y": 599,
+    "w": 90,
+    "h": 86
+  },
+  "hotspot": {
+    "x": 27,
+    "y": 77
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 9.0,
+        "y": 17.0
+      },
+      "orientation": 0.0,
+      "w": 36,
+      "h": 60
+    }
+  ],
+  "sockets": []
+}

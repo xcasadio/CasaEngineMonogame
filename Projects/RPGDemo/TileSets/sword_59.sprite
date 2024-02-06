@@ -1,0 +1,29 @@
+{
+  "id": "fd10d06e-0a5f-4cfd-a2fb-db304fcb8fdf",
+  "name": "sword_59",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
+  "location": {
+    "x": 0,
+    "y": 23,
+    "w": 50,
+    "h": 23
+  },
+  "hotspot": {
+    "x": -9,
+    "y": 19
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 16.0,
+        "y": 8.0
+      },
+      "orientation": 0.0,
+      "w": 34,
+      "h": 7
+    }
+  ],
+  "sockets": []
+}

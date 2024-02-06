@@ -2,12 +2,12 @@
 
 public class Animation2d : Animation
 {
-    public event EventHandler<(long oldFrame, long newFrame)>? FrameChanged;
+    public event EventHandler<(Guid oldFrame, Guid newFrame)>? FrameChanged;
 
-    private long _oldFrame;
-    private long _currentFrame;
+    private Guid _oldFrame;
+    private Guid _currentFrame;
 
-    public long CurrentFrame
+    public Guid CurrentFrame
     {
         get => _currentFrame;
         set

@@ -1,0 +1,518 @@
+{
+  "id": "1961629e-6215-47be-961b-854befa6c235",
+  "name": "Box",
+  "root_component": {
+    "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+    "name": "unknown",
+    "type": "StaticMeshComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [
+      {
+        "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+        "name": "unknown",
+        "type": "BoxCollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "additional_angular_damping_factor": 0.01,
+          "additional_angular_damping_threshold_sqr": 0.01,
+          "additional_damping": false,
+          "additional_damping_factor": 0.005,
+          "additional_linear_damping_threshold_sqr": 0.01,
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "angular_sleeping_threshold": 1.0,
+          "friction": 0.5,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "linear_sleeping_threshold": 0.8,
+          "local_inertia": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "rolling_friction": 0.0,
+          "apply_gravity": true,
+          "debug_color": "null"
+        }
+      }
+    ],
+    "mesh": {
+      "id": "ff8ec807-71f3-4807-a42a-a03c1371fcfb",
+      "name": "Object ff8ec807-71f3-4807-a42a-a03c1371fcfb",
+      "primitive_type": "TriangleList",
+      "vertices": [
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -0.0,
+            "z": -1.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -0.0,
+            "z": -1.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -0.0,
+            "z": -1.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -0.0,
+            "z": -1.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -1.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -1.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -1.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": -0.0,
+            "y": -1.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": 1.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -1.0,
+            "y": -0.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": -0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": -1.0,
+            "y": -0.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 0.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": -0.5
+          },
+          "normal": {
+            "x": -1.0,
+            "y": -0.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 0.0,
+            "y": 1.0
+          }
+        },
+        {
+          "position": {
+            "x": -0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "normal": {
+            "x": -1.0,
+            "y": -0.0,
+            "z": -0.0
+          },
+          "texture_coordinate": {
+            "x": 1.0,
+            "y": 1.0
+          }
+        }
+      ],
+      "indices": [
+        0,
+        2,
+        1,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        5,
+        7,
+        6,
+        8,
+        9,
+        10,
+        9,
+        11,
+        10,
+        12,
+        14,
+        13,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        17,
+        19,
+        18,
+        20,
+        22,
+        21,
+        21,
+        22,
+        23
+      ],
+      "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131"
+    }
+  },
+  "components": [],
+  "script_class_name": null
+}

@@ -1,32 +1,25 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Framework.Assets;
+using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
 public partial class GameEditorWorldControl : UserControl
 {
-    private GameScreenControlViewModel? ScreenControlViewModel => DataContext as GameScreenControlViewModel;
+    private WorldEditorViewModel? ScreenControlViewModel => DataContext as WorldEditorViewModel;
 
     public GameEditorWorldControl()
     {
         InitializeComponent();
-
-        DataContext = new GameScreenControlViewModel(gameEditor);
+        DataContext = new WorldEditorViewModel(gameEditor);
     }
 
     private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
     {
-        gameEditor.Game.GameManager.IsRunningInGameEditorMode = !gameEditor.Game.GameManager.IsRunningInGameEditorMode;
-        gameEditor.Game.GameManager.PhysicsEngineComponent.Enabled = gameEditor.Game.GameManager.IsRunningInGameEditorMode;
+        gameEditor.Game.IsRunningInGameEditorMode = !gameEditor.Game.IsRunningInGameEditorMode;
+        gameEditor.Game.PhysicsEngineComponent.Enabled = gameEditor.Game.IsRunningInGameEditorMode;
 
-        buttonLaunch.Content = gameEditor.Game.GameManager.IsRunningInGameEditorMode ? "Running" : "Launch";
-    }
-
-    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-    {
-        var world = gameEditor.Game.GameManager.CurrentWorld;
-        AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
+        buttonLaunch.Content = gameEditor.Game.IsRunningInGameEditorMode ? "Running" : "Launch";
     }
 
     private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

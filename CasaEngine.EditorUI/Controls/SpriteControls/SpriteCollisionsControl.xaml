@@ -13,10 +13,10 @@
 
         <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical">
             <Button ToolTip="Add collision shape">
-                <Image Source="/Resources/icon_Plus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/add-icon.png" Height="16" Width="16"/>
             </Button>
             <Button ToolTip="Remove collision shape">
-                <Image Source="/Resources/icon_Minus_16x16.png" Height="16" Width="16"/>
+                <Image Source="/Resources/delete-icon.png" Height="16" Width="16"/>
             </Button>
             <Button ToolTip="Add rectangle shape" Content="R" />
             <Button ToolTip="Add circle shape" Content="C" />

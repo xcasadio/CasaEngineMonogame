@@ -1,0 +1,22 @@
+{
+  "id": "8b61c98c-4107-48d0-a6c7-1e677a5e0fc8",
+  "name": "octopus_0_0",
+  "texture_asset_id": "51e8f887-1609-487e-b615-e74efc2966cf",
+  "sampler_state": {
+    "texture_filter": "Anisotropic",
+    "address_u": "Wrap",
+    "address_v": "Wrap",
+    "address_w": "Wrap",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

@@ -8,7 +8,6 @@ namespace CasaEngine.Framework.Project;
 
 public static class ProjectSettingsHelper
 {
-
     public static void Load(string fileName)
     {
 #if EDITOR
@@ -33,12 +32,10 @@ public static class ProjectSettingsHelper
 
         if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
         {
-            GameSettings.PluginManager.Load(GameSettings.ProjectSettings.GameplayDllName);
+            GameSettings.AssemblyManager.Load(GameSettings.ProjectSettings.GameplayDllName);
         }
 
 #if EDITOR
-        GameSettings.ExternalToolManager.Initialize(GameSettings.ProjectSettings.ExternalToolsDirectory);
-
         ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
 #endif
     }
@@ -50,9 +47,7 @@ public static class ProjectSettingsHelper
 
     public static void Clear()
     {
-        GameSettings.ExternalToolManager.Clear();
         GameSettings.ProjectSettings.ProjectFileOpened = null;
-
         ProjectClosed?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
     }
 
@@ -76,10 +71,10 @@ public static class ProjectSettingsHelper
         //
 
         var world = new World.World();
-        world.AssetInfo.Name = "DefaultWorld";
-        world.AssetInfo.FileName = world.AssetInfo.Name + Constants.FileNameExtensions.World;
-        GameSettings.ProjectSettings.FirstWorldLoaded = world.AssetInfo.FileName;
-        AssetSaver.SaveAsset(world.AssetInfo.FileName, world);
+        world.Name = "DefaultWorld";
+        world.FileName = world.Name + Constants.FileNameExtensions.World;
+        GameSettings.ProjectSettings.FirstWorldLoaded = world.FileName;
+        AssetSaver.SaveAsset(world.FileName, world);
 
         Save();
 

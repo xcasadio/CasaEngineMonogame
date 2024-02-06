@@ -1,0 +1,150 @@
+{
+  "id": "d73de0f6-8fd9-4491-9b56-712fa75c1cf7",
+  "name": "MainHUD",
+  "root_component": "null",
+  "components": [],
+  "script_class_name": null,
+  "external_component": "null",
+  "controls": [
+    {
+      "type": "ImageBox",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": false,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255
+      },
+      "detached": false,
+      "double_clicks": true,
+      "enabled": true,
+      "height": 64,
+      "left": 12,
+      "left_screen_ratio": 0.014616322,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 678,
+      "minimum_height": 0,
+      "minimum_width": 0,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "ImageBox",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": false,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "ImageBox",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 553,
+      "top_screen_ratio": 0.875,
+      "visible": true,
+      "width": 64,
+      "sprite_id": "b039042c-4b9d-4157-8be2-eed2d3c4f3bd",
+      "size_mode": "Normal"
+    },
+    {
+      "type": "ProgressBar",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": false,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": true,
+      "enabled": true,
+      "height": 16,
+      "left": 80,
+      "left_screen_ratio": 0.09744214,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 678,
+      "minimum_height": 8,
+      "minimum_width": 32,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "ProgressBar",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": true,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "ProgressBar",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 553,
+      "top_screen_ratio": 0.875,
+      "visible": true,
+      "width": 128
+    }
+  ]
+}

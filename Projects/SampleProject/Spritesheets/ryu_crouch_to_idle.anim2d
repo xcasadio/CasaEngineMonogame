@@ -1,0 +1,15 @@
+{
+  "animation_type": "Once",
+  "id": "b3516a28-5a3c-4a30-9ba5-2f7e2343ba98",
+  "name": "ryu_crouch_to_idle",
+  "frames": [
+    {
+      "duration": 0.048,
+      "sprite_id": "4f35dd70-819c-46bc-99ab-31d8a7c50694"
+    },
+    {
+      "duration": 0.048,
+      "sprite_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+    }
+  ]
+}

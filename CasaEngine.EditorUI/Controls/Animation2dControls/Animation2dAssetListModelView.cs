@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
@@ -14,18 +13,18 @@ public class Animation2dAssetListModelView
 
     public Animation2dAssetListModelView()
     {
-        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
-        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetCleared += OnAssetCleared;
 
         LoadAllAnimation2dAssetInfos();
     }
 
     private void LoadAllAnimation2dAssetInfos()
     {
-        foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
+        foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Animation2d))
         {
-            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 
@@ -33,7 +32,7 @@ public class Animation2dAssetListModelView
     {
         if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Animation2d)
         {
-            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            Animation2dAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 

@@ -73,7 +73,7 @@ public class AxisComponent : DrawableGameComponent, IGameComponentResizable
         base.Draw(gameTime);
     }
 
-    public void OnResize(int width, int height)
+    public void OnScreenResized(int width, int height)
     {
         _height = height;
         _width = width;

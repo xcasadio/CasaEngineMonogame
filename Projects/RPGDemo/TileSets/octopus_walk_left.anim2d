@@ -1,0 +1,15 @@
+{
+  "animation_type": "Loop",
+  "id": "48f89e4e-5e24-4c43-92a2-c077f2110dc8",
+  "name": "octopus_walk_left",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "6ccdbb03-89ac-4da6-907c-126a663f36a4"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
+    }
+  ]
+}

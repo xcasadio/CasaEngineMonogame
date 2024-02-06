@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
@@ -28,7 +29,7 @@ public partial class SpriteListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var spriteData = _gameEditor.Game.GameManager.AssetContentManager.Load<SpriteData>(selectedItem.AssetInfo);
+        var spriteData = _gameEditor.Game.AssetContentManager.Load<SpriteData>(selectedItem.Id);
         SelectedItem = new SpriteDataViewModel(spriteData);
     }
 
@@ -55,7 +56,7 @@ public partial class SpriteListControl : UserControl
 
             if (inputTextBox.ShowDialog() == true)
             {
-                //_gameEditor.Game.GameManager.AssetContentManager.Rename(spriteDataViewModel.Name, inputTextBox.Text);
+                //_gameEditor.Game.AssetContentManager.Rename(spriteDataViewModel.Name, inputTextBox.Text);
                 spriteDataViewModel.Name = inputTextBox.Text;
             }
         }
@@ -67,7 +68,7 @@ public partial class SpriteListControl : UserControl
 
         foreach (var assetInfoViewModel in spritesModelView.SpriteAssetInfos)
         {
-            if (fileName.EndsWith(assetInfoViewModel.AssetInfo.FileName))
+            if (fileName.EndsWith(assetInfoViewModel.FileName))
             {
                 var index = ListBox.Items.IndexOf(assetInfoViewModel);
                 Dispatcher.Invoke(() => ListBox.SelectedIndex = index);
@@ -80,7 +81,8 @@ public partial class SpriteListControl : UserControl
     {
         if (SelectedItem is SpriteDataViewModel spriteDataViewModel)
         {
-            AssetSaver.SaveAsset(spriteDataViewModel.AssetInfo.FileName, spriteDataViewModel.SpriteData);
+            AssetSaver.SaveAsset(spriteDataViewModel.SpriteData.FileName, spriteDataViewModel.SpriteData);
+            Logs.WriteInfo($"Sprite {spriteDataViewModel.SpriteData.Name} saved ({spriteDataViewModel.SpriteData.FileName})");
         }
     }
 }

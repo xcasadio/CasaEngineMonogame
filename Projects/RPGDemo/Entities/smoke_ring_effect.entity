@@ -1,0 +1,40 @@
+{
+  "id": "25bfa38b-a858-4ebd-bbdb-1dc8e304be2f",
+  "name": "smoke_ring_effect",
+  "root_component": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "476fdde7-7cf0-4bf8-a8a7-130d995b38f1"
+    ]
+  },
+  "components": [],
+  "script_class_name": null
+}

@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CasaEngine.EditorUI.Controls.PropertyGridTypeEditor;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 
@@ -12,25 +12,22 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
     private readonly SpriteData _spriteData;
 
     [Browsable(false)]
-    public AssetInfo AssetInfo => _spriteData.AssetInfo;
-
-    [Browsable(false)]
     public SpriteData SpriteData => _spriteData;
 
     [ReadOnly(true)]
     public string Name
     {
-        get => _spriteData.AssetInfo.Name;
+        get => _spriteData.Name;
         set
         {
-            if (value == _spriteData.AssetInfo.Name) return;
-            _spriteData.AssetInfo.Name = value;
+            if (value == _spriteData.Name) return;
+            _spriteData.Name = value;
             OnPropertyChanged();
         }
     }
 
     [ReadOnly(true)]
-    public long SpriteSheetAssetId
+    public Guid SpriteSheetAssetId
     {
         get => _spriteData.SpriteSheetAssetId;
         set

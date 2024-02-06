@@ -48,29 +48,4 @@ namespace XNAGizmo
 
         BoundingBox BoundingBox { get; }
     }
-
-    public interface ITransformable2
-    {
-#if USE_NAME
-        string Name { get; }
-#endif
-
-        Vector3 Position { get; set; }
-        Vector3 Scale { get; set; }
-
-#if USE_QUATERNION
-
-        Quaternion Orientation { get; set; }
-        Vector3 Forward { get; }
-        Vector3 Up { get; }
-
-#elif USE_ROTATIONMATRIX
-        Matrix Rotation { get; set; }
-#else
-        Vector3 Forward { get; set; }
-        Vector3 Up { get; set; }
-#endif
-
-        BoundingBox BoundingBox { get; }
-    }
 }

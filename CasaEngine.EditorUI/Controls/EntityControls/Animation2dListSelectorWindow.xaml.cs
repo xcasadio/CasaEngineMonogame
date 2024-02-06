@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -24,9 +24,9 @@ public partial class Animation2dListSelectorWindow : Window
     {
         InitializeComponent();
 
-        var assetInfos = GameSettings.AssetInfoManager.AssetInfos
+        var assetInfos = AssetCatalog.AssetInfos
             .Where(x => string.Equals(Path.GetExtension(x.FileName), Constants.FileNameExtensions.Animation2d))
-            .Select(x => new AssetInfoViewModel(x));
+            .Select(x => new AssetInfoViewModel(x.Id));
 
         if (animationsToFilter != null)
         {

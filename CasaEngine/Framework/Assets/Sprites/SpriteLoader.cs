@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
@@ -12,7 +10,7 @@ public class SpriteLoader
 {
     private const string SpriteDatasNodeName = "sprites";
 
-    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager, SaveOption option)
+    public static List<SpriteData> LoadFromFile(string fileName, AssetContentManager assetContentManager)
     {
         List<SpriteData> spriteDatas = new List<SpriteData>();
 
@@ -22,9 +20,8 @@ public class SpriteLoader
         foreach (var jsonElement in rootElement.GetJsonPropertyByName(SpriteDatasNodeName).Value.EnumerateArray())
         {
             var spriteData = new SpriteData();
-            spriteData.Load(jsonElement, option);
-            spriteData.AssetInfo.FileName = fileName;
-            assetContentManager.AddAsset(spriteData.AssetInfo, spriteData);
+            spriteData.Load(jsonElement);
+            assetContentManager.AddAsset(spriteData.Id, spriteData.Name, spriteData);
             spriteDatas.Add(spriteData);
         }
 
@@ -32,7 +29,7 @@ public class SpriteLoader
     }
 
 #if EDITOR
-    public static void SaveToFile(string fileName, IEnumerable<SpriteData> spriteDatas, SaveOption option)
+    public static void SaveToFile(string fileName, IEnumerable<SpriteData> spriteDatas)
     {
         JObject rootJObject = new();
         var spriteJArray = new JArray();
@@ -40,7 +37,7 @@ public class SpriteLoader
         foreach (var spriteData in spriteDatas)
         {
             JObject entityObject = new();
-            spriteData.Save(entityObject, option);
+            spriteData.Save(entityObject);
             spriteJArray.Add(entityObject);
         }
 

@@ -1,19 +1,15 @@
 ﻿using System.Windows;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public class GameEditorEntity : GameEditor
 {
-    private Entity _cameraEntity;
-    private ArcBallCameraComponent _camera;
+    private bool _isEntityMustBeLoaded;
 
     public GameEditorEntity()
     {
@@ -21,41 +17,55 @@ public class GameEditorEntity : GameEditor
         DataContextChanged += OnDataContextChanged;
     }
 
-    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    protected override void InitializeGame()
     {
-        if (DataContext != null)
+        var gizmoComponent = new GizmoComponent(Game);
+        var gridComponent = new GridComponent(Game);
+        new AxisComponent(Game);
+        Game.GameManager.WorldChanged += OnWorldChanged;
+    }
+
+    private void OnWorldChanged(object? sender, System.EventArgs e)
+    {
+        if (_isEntityMustBeLoaded)
         {
-            var entityViewModel = DataContext as EntityViewModel;
-            entityViewModel.Entity.Initialize(Game);
-            Game.GameManager.ActiveCamera = _camera;
-            Game.GameManager.CurrentWorld.ClearEntities();
-            Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
-            Game.GameManager.CurrentWorld.AddEntity(entityViewModel.Entity);
+            LoadEntityFromDataContext();
+            _isEntityMustBeLoaded = false;
         }
     }
 
     protected override void LoadContent()
     {
-        new AxisComponent(Game);
-
         base.LoadContent();
-
-        Game.GameManager.CurrentWorld = new World();
-        Game.GameManager.CurrentWorld.Initialize(Game);
-
-        _cameraEntity = new Entity();
-        _camera = new ArcBallCameraComponent();
-        _cameraEntity.ComponentManager.Add(_camera);
-        var gamePlayComponent = new GamePlayComponent();
-        _cameraEntity.ComponentManager.Add(gamePlayComponent);
-        gamePlayComponent.ExternalComponent = new ScriptArcBallCamera();
-        _cameraEntity.Initialize(Game);
-
-        _camera.SetCamera(new Vector3(0, 5f, -10f), Vector3.Zero, Vector3.Up);
-        Game.GameManager.ActiveCamera = _camera;
-        Game.GameManager.CurrentWorld.AddEntity(_cameraEntity);
-
+        Game.GameManager.SetWorldToLoad(new World());
         Game.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (DataContext == null)
+        {
+            return;
+        }
+
+        if (Game.GameManager.CurrentWorld?.Game != null)
+        {
+            LoadEntityFromDataContext();
+        }
+        else
+        {
+            _isEntityMustBeLoaded = true;
+        }
+    }
+
+    private void LoadEntityFromDataContext()
+    {
+        var entityViewModel = DataContext as EntityViewModel;
+        entityViewModel.Entity.Initialize();
+        var world = Game.GameManager.CurrentWorld;
+        entityViewModel.Entity.InitializeWithWorld(world);
+        world.ClearEntities();
+        world.AddEntityWithEditor(entityViewModel.Entity);
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -86,7 +96,7 @@ public class GameEditorEntity : GameEditor
         //                Name = "Entity " + new Random().NextInt64()
         //            };
         //            entity.Coordinates.LocalPosition = ray.Position + ray.Direction * 15.0f;//entity.BoundingBox.;
-        //            entity.Initialize(Game);
+        //            entity.LoadContent(Game);
         //            Game?.GameManager.CurrentWorld.AddEntityImmediately(entity);
         //
         //            //select this entity

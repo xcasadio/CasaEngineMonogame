@@ -1,0 +1,23 @@
+{
+  "animation_type": "Loop",
+  "id": "63c537e7-6954-4a74-9bd8-7e609f41c0ac",
+  "name": "swordman_walk_up",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "69a7c971-c7e7-4910-ae50-513131c0707f"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "143d03a2-90d1-401c-9787-c35687b6e649"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "2740ae19-566a-4466-b0a3-bb5a206b4d11"
+    },
+    {
+      "duration": 0.15,
+      "sprite_id": "65c151e1-858d-4fbd-8f7a-6eeb1fe7e775"
+    }
+  ]
+}

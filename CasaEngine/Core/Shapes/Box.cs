@@ -21,6 +21,15 @@ public class Box : Shape3d, IEquatable<Box>
         }
     }
 
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var halfSize = Size / 2f;
+            return new BoundingBox(halfSize, halfSize);
+        }
+    }
+
     public Box() : base(Shape3dType.Box)
     {
         Size = Vector3.One;
@@ -30,7 +39,7 @@ public class Box : Shape3d, IEquatable<Box>
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Type == other.Type && Position.Equals(other.Position) && Orientation.Equals(other.Orientation) && Size.Equals(other.Size);
+        return Type == other.Type && Size.Equals(other.Size);
     }
 
     public override bool Equals(object? obj)
@@ -43,7 +52,7 @@ public class Box : Shape3d, IEquatable<Box>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)Type, Position, Orientation, Size);
+        return HashCode.Combine((int)Type, Size);
     }
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Width: {Size.X} Height:{Size.Y} Length:{Size}}}";

@@ -1,0 +1,84 @@
+{
+  "id": "d87b3b68-26cd-472f-a36a-bd681db9f600",
+  "name": "ryu_1000_1",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 997,
+    "y": 969,
+    "w": 73,
+    "h": 99
+  },
+  "hotspot": {
+    "x": 25,
+    "y": 94
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 40.0,
+        "y": 59.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 36
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 8.0,
+        "y": -1.0
+      },
+      "orientation": 0.0,
+      "w": 33,
+      "h": 96
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 44.0,
+        "y": 63.0
+      },
+      "orientation": 0.0,
+      "w": 18,
+      "h": 33
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 10.0,
+        "y": 2.0
+      },
+      "orientation": 0.0,
+      "w": 35,
+      "h": 94
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 29.0,
+        "y": -2.0
+      },
+      "orientation": 0.0,
+      "w": 15,
+      "h": 18
+    },
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 11.0,
+        "y": 7.0
+      },
+      "orientation": 0.0,
+      "w": 37,
+      "h": 86
+    }
+  ],
+  "sockets": []
+}

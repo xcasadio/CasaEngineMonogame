@@ -1,6 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -32,9 +30,9 @@ internal abstract class CalculatorToken
         return _calculator.Parser.EvaluateKeyword(keyword);
     }
 
-    public abstract void Load(JsonElement element, SaveOption option);
+    public abstract void Load(JsonElement element);
 
 #if EDITOR
-    public abstract void Save(JObject jObject, SaveOption option);
+    public abstract void Save(JObject jObject);
 #endif
 }

@@ -1,0 +1,11 @@
+{
+  "animation_type": "Once",
+  "id": "7d30eeae-fffe-41b5-84c1-ccfb6c6c1a3b",
+  "name": "swordman_object_down",
+  "frames": [
+    {
+      "duration": 0.15,
+      "sprite_id": "6df8de9a-8311-4057-8208-3114396db14d"
+    }
+  ]
+}

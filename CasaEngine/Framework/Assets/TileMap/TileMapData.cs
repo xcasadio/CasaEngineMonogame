@@ -1,24 +1,23 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
-public class TileMapData : AssetInfo
+public class TileMapData : ObjectBase
 {
     public Size MapSize { get; set; }
-    public long TileSetDataAssetId { get; private set; } = IdManager.InvalidId;
+    public Guid TileSetDataAssetId { get; private set; } = Guid.Empty;
     public List<TileMapLayerData> Layers { get; } = new();
 
-    public override void Load(JsonElement element, SaveOption option)
+    public override void Load(JsonElement element)
     {
-        base.Load(element.GetProperty("asset"), option);
+        base.Load(element);
 
         MapSize = element.GetProperty("map_size").GetSize();
-        TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetInt64();
+        TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetGuid();
 
         Layers.AddRange(element.GetElements("layers", o =>
         {
@@ -30,9 +29,9 @@ public class TileMapData : AssetInfo
 
 #if EDITOR
 
-    public override void Save(JObject jObject, SaveOption option)
+    public override void Save(JObject jObject)
     {
-        base.Save(jObject, option);
+        base.Save(jObject);
 
         var newObject = new JObject();
         MapSize.Save(newObject);

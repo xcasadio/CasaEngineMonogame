@@ -1,8 +1,5 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -30,12 +27,12 @@ internal class Calculator
         return _root.Evaluate();
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
-        _root = CreateCalculatorToken(this, element.GetProperty("root"), option);
+        _root = CreateCalculatorToken(this, element.GetProperty("root"));
     }
 
-    public static CalculatorToken CreateCalculatorToken(Calculator calculator, JsonElement element, SaveOption option)
+    public static CalculatorToken CreateCalculatorToken(Calculator calculator, JsonElement element)
     {
         CalculatorToken token = null;
 
@@ -44,23 +41,23 @@ internal class Calculator
         switch (type)
         {
             case CalculatorTokenType.BinaryOperator:
-                token = new CalculatorTokenBinaryOperator(calculator, element, option);
+                token = new CalculatorTokenBinaryOperator(calculator, element);
                 break;
 
             case CalculatorTokenType.Keyword:
-                token = new CalculatorTokenKeyword(calculator, element, option);
+                token = new CalculatorTokenKeyword(calculator, element);
                 break;
 
             /*case CalculatorTokenType.UnaryOperator:
-                token = new CalculatorTokenUnaryOperator(el_, option_);
+                token = new CalculatorTokenUnaryOperator(el__);
                 break;*/
 
             case CalculatorTokenType.Value:
-                token = new CalculatorTokenValue(calculator, element, option);
+                token = new CalculatorTokenValue(calculator, element);
                 break;
 
             case CalculatorTokenType.Function:
-                token = new CalculatorTokenFunction(calculator, element, option);
+                token = new CalculatorTokenFunction(calculator, element);
                 break;
 
             default:
@@ -72,12 +69,12 @@ internal class Calculator
 
 #if EDITOR
 
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
         if (_root != null)
         {
             var rootObject = new JObject();
-            _root.Save(rootObject, option);
+            _root.Save(rootObject);
             jObject.Add("root", rootObject);
         }
     }

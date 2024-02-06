@@ -1,0 +1,48 @@
+{
+  "id": "8abc0021-e27b-4c2b-aa58-640ea42369d1",
+  "name": "camera",
+  "root_component": {
+    "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+    "name": "unknown",
+    "type": "ArcBallCameraComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 10.0,
+        "z": -8.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": -0.03551994,
+        "y": -0.95550317,
+        "z": -0.26282448,
+        "w": 0.12913339
+      }
+    },
+    "children_component": [],
+    "view_distance": 0.0,
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "w": 0,
+      "h": 0,
+      "min_depth": 0.0,
+      "max_depth": 0.0
+    },
+    "fieldOfView": 0.8377581,
+    "target": {
+      "x": -8.128628,
+      "y": -1.9367545,
+      "z": -3.401419
+    },
+    "distance": 5.0,
+    "yaw": 2.8729265,
+    "pitch": -0.53685135
+  },
+  "components": [],
+  "script_class_name": null
+}

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
@@ -20,9 +19,9 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         ContentItems.Add(new FolderItem { Name = "All" });
 
-        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
-        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetCleared += OnAssetCleared;
     }
 
     private void OnAssetAdded(object? sender, AssetInfo assetInfo)
@@ -96,7 +95,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void AddContent(FolderItem rootFolderItem)
     {
-        foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos)
+        foreach (var assetInfo in AssetCatalog.AssetInfos)
         {
             var folderItem = GetOrCreateFolders(rootFolderItem, assetInfo.FileName);
             var contentItem = new ContentItem(assetInfo) { Parent = folderItem };

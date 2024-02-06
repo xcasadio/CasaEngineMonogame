@@ -1,0 +1,19 @@
+{
+  "animation_type": "Loop",
+  "id": "9364b17a-6956-4c5f-bc98-e869dda4e9dd",
+  "name": "rock",
+  "frames": [
+    {
+      "duration": 0.16,
+      "sprite_id": "007570c3-10e1-432e-b9b8-63e3368c1311"
+    },
+    {
+      "duration": 0.16,
+      "sprite_id": "72365865-7569-4a17-b102-981883c60ffb"
+    },
+    {
+      "duration": 0.16,
+      "sprite_id": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
+    }
+  ]
+}

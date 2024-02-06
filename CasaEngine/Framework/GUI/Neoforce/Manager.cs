@@ -1,5 +1,5 @@
 using System.Media;
-using CasaEngine.Core.Logs;
+using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
@@ -61,8 +61,6 @@ public class Manager : DrawableGameComponent
     public CasaEngineGame CasaEngineGame { get; }
 
     public bool DeviceReset { get; private set; }
-
-    public ILogger Logger { get; }
 
     /// <summary>
     /// Gets a value indicating whether Manager is in the process of disposing.
@@ -428,8 +426,7 @@ public class Manager : DrawableGameComponent
     ///     The name of the skin being loaded at the start.
     /// </param>
     /// <param name="archiveManager"></param>
-    /// <param name="logger"></param>
-    public Manager(CasaEngineGame game, IGraphicsDeviceService graphics, string skin, IArchiveManager archiveManager, ILogger logger)
+    public Manager(CasaEngineGame game, IGraphicsDeviceService graphics, string skin, IArchiveManager archiveManager)
         : base(game)
     {
         CasaEngineGame = game;
@@ -447,7 +444,6 @@ public class Manager : DrawableGameComponent
 
         _skinName = skin;
         _archiveManager = archiveManager;
-        Logger = logger;
 
         _states.Buttons = new Control[32];
         _states.Click = -1;
@@ -483,7 +479,7 @@ public class Manager : DrawableGameComponent
     /// The name of the skin being loaded at the start.
     /// </param>
     public Manager(CasaEngineGame game, string skin, IArchiveManager archiveManager, ILogger logger)
-        : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin, archiveManager, logger)
+        : this(game, game.Services.GetService<IGraphicsDeviceService>(), skin, archiveManager)
     {
     }
 
@@ -498,7 +494,7 @@ public class Manager : DrawableGameComponent
     /// </param>
     /// <param name="archiveManager"></param>
     public Manager(CasaEngineGame game, IGraphicsDeviceService graphics, IArchiveManager archiveManager, ILogger logger)
-        : this(game, graphics, DefaultSkin, archiveManager, logger)
+        : this(game, graphics, DefaultSkin, archiveManager)
     {
     }
 
@@ -512,8 +508,7 @@ public class Manager : DrawableGameComponent
         : this(game,
             game.Services.GetService(typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager,
             DefaultSkin,
-            new ArchiveManager(game.Services),
-            logger)
+            new ArchiveManager(game.Services))
     {
     }
 
@@ -902,7 +897,7 @@ public class Manager : DrawableGameComponent
             else if (!(component is Control) && !_components.Contains(component))
             {
                 _components.Add(component);
-                //component.Initialize(this);
+                //component.LoadContent(this);
             }
         }
     }
@@ -1012,7 +1007,7 @@ public class Manager : DrawableGameComponent
         }
         else
         {
-            Logger.WriteError("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
+            Logs.WriteError("Manager.RenderTarget has to be specified. Assign a render target or set Manager.AutoCreateRenderTarget property to true.");
         }
     }
 

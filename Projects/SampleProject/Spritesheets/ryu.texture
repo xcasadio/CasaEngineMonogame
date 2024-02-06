@@ -1,0 +1,22 @@
+{
+  "id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "name": "ryu",
+  "texture_asset_id": "31f79cad-7d18-46a4-ba4c-af2d43d87f99",
+  "sampler_state": {
+    "texture_filter": "Anisotropic",
+    "address_u": "Wrap",
+    "address_v": "Wrap",
+    "address_w": "Wrap",
+    "border_color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "max_anisotropy": 4,
+    "max_mip_level": 0,
+    "mip_map_level_of_detail_bias": 0.0,
+    "comparison_function": "Never",
+    "filter_mode": "Default"
+  }
+}

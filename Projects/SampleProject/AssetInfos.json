@@ -1,0 +1,3660 @@
+{
+  "asset_infos": [
+	{
+      "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
+      "file_name": "DefaultWorld.world"
+    },
+    {
+      "id": "1961629e-6215-47be-961b-854befa6c235",
+      "file_name": "Entities\\Box.entity"
+    },
+    {
+      "id": "8abc0021-e27b-4c2b-aa58-640ea42369d1",
+      "file_name": "Entities\\camera.entity"
+    },
+    {
+      "id": "714a35c7-37b9-4897-a894-d226ba1f449e",
+      "file_name": "Spritesheets\\ryu_0_0.sprite"
+    },
+    {
+      "id": "e305cb9b-8760-4b20-a721-19cdcd4ad94a",
+      "file_name": "Spritesheets\\ryu_0_1.sprite"
+    },
+    {
+      "id": "516d4314-cd90-4fad-81a8-fe0a109de9ee",
+      "file_name": "Spritesheets\\ryu_0_2.sprite"
+    },
+    {
+      "id": "3e5b553b-1e23-4ff6-8f85-49d9d6e242eb",
+      "file_name": "Spritesheets\\ryu_0_3.sprite"
+    },
+    {
+      "id": "e0bb2afe-a99e-41f9-ab77-1598793912c6",
+      "file_name": "Spritesheets\\ryu_0_4.sprite"
+    },
+    {
+      "id": "8c424323-595e-42e0-afea-e5bd5407fe31",
+      "file_name": "Spritesheets\\ryu_0_5.sprite"
+    },
+    {
+      "id": "cfe7f39a-f0ac-490c-8b75-3997487ec65c",
+      "file_name": "Spritesheets\\ryu_0_6.sprite"
+    },
+    {
+      "id": "2de03bdf-e59a-42c3-80d2-4a72b7f5cff6",
+      "file_name": "Spritesheets\\ryu_1000_0.sprite"
+    },
+    {
+      "id": "d87b3b68-26cd-472f-a36a-bd681db9f600",
+      "file_name": "Spritesheets\\ryu_1000_1.sprite"
+    },
+    {
+      "id": "1472f75b-4896-4df9-9bf0-95cc5b2e3310",
+      "file_name": "Spritesheets\\ryu_1000_10.sprite"
+    },
+    {
+      "id": "ef44a930-abb9-4489-a1b4-72fcfcae5497",
+      "file_name": "Spritesheets\\ryu_1000_11.sprite"
+    },
+    {
+      "id": "f369c88d-5d19-45ce-bab1-e3027856bd61",
+      "file_name": "Spritesheets\\ryu_1000_12.sprite"
+    },
+    {
+      "id": "09705ad5-c9b0-418c-9bb4-9caaad8dc41c",
+      "file_name": "Spritesheets\\ryu_1000_13.sprite"
+    },
+    {
+      "id": "99dbfcda-d2ea-47df-9e34-62119c17e761",
+      "file_name": "Spritesheets\\ryu_1000_2.sprite"
+    },
+    {
+      "id": "1388f090-252e-49a3-8b82-8865f1980434",
+      "file_name": "Spritesheets\\ryu_1000_3.sprite"
+    },
+    {
+      "id": "76e83899-e908-4000-b785-fb9d68730683",
+      "file_name": "Spritesheets\\ryu_1000_4.sprite"
+    },
+    {
+      "id": "36176c7f-5946-4b34-a54a-cc3116a538d5",
+      "file_name": "Spritesheets\\ryu_1000_5.sprite"
+    },
+    {
+      "id": "5e06ec37-0c1c-48e7-afb9-f6c1b66ee1ca",
+      "file_name": "Spritesheets\\ryu_1000_6.sprite"
+    },
+    {
+      "id": "0c0b025e-4185-4f96-9540-61a0a3712fb8",
+      "file_name": "Spritesheets\\ryu_1000_7.sprite"
+    },
+    {
+      "id": "490346ba-6dba-45f2-b54a-e569997f4061",
+      "file_name": "Spritesheets\\ryu_1000_8.sprite"
+    },
+    {
+      "id": "b9ef844b-3c9c-4e42-b66f-7d08b9df2066",
+      "file_name": "Spritesheets\\ryu_1000_9.sprite"
+    },
+    {
+      "id": "cad6c8ab-7e3c-4951-bafc-46837b2f9cc2",
+      "file_name": "Spritesheets\\ryu_100_0.sprite"
+    },
+    {
+      "id": "ad4213cc-6c94-4c83-b942-6a59d4d8ac22",
+      "file_name": "Spritesheets\\ryu_100_1.sprite"
+    },
+    {
+      "id": "bdef1d74-6d49-42e9-88e0-a0cf93939c35",
+      "file_name": "Spritesheets\\ryu_100_2.sprite"
+    },
+    {
+      "id": "07ab7ea7-3ff3-48db-b4db-21500bc2bc31",
+      "file_name": "Spritesheets\\ryu_100_3.sprite"
+    },
+    {
+      "id": "6cbbc249-d85d-4a97-9091-9a8efb0fb87b",
+      "file_name": "Spritesheets\\ryu_100_4.sprite"
+    },
+    {
+      "id": "c84c9d2f-04f6-4155-b730-6ecf920b91e4",
+      "file_name": "Spritesheets\\ryu_100_5.sprite"
+    },
+    {
+      "id": "fd8b416f-985a-4dc7-8b8c-91f897659bf9",
+      "file_name": "Spritesheets\\ryu_101_0.sprite"
+    },
+    {
+      "id": "2524b2fd-5de5-40fb-b09e-0b248bf54ab0",
+      "file_name": "Spritesheets\\ryu_101_1.sprite"
+    },
+    {
+      "id": "459e5b0d-00e2-446e-bf0c-1092c148ced7",
+      "file_name": "Spritesheets\\ryu_101_2.sprite"
+    },
+    {
+      "id": "98247751-72a9-45d7-b555-3a825fb50018",
+      "file_name": "Spritesheets\\ryu_101_3.sprite"
+    },
+    {
+      "id": "fc25aa00-c41f-4556-bf44-42f9766cd4e9",
+      "file_name": "Spritesheets\\ryu_1050_0.sprite"
+    },
+    {
+      "id": "82da15fc-7442-4ae2-8fd0-02a12e153d9c",
+      "file_name": "Spritesheets\\ryu_1050_1.sprite"
+    },
+    {
+      "id": "9741619a-cde4-4436-95f5-fd03101ef601",
+      "file_name": "Spritesheets\\ryu_1050_2.sprite"
+    },
+    {
+      "id": "ca1d9872-b89e-4821-921f-77995f9ce7e7",
+      "file_name": "Spritesheets\\ryu_1050_3.sprite"
+    },
+    {
+      "id": "15559072-bee6-4a2a-a063-567643c63e48",
+      "file_name": "Spritesheets\\ryu_1050_4.sprite"
+    },
+    {
+      "id": "cfcbd390-b6ae-4717-bf4e-0aececaae8e1",
+      "file_name": "Spritesheets\\ryu_1050_5.sprite"
+    },
+    {
+      "id": "6e00d914-eba4-4f96-bba2-3cfaa1e44f14",
+      "file_name": "Spritesheets\\ryu_1050_6.sprite"
+    },
+    {
+      "id": "ae3efe8b-d4e9-4d9e-b911-39680dd49f3e",
+      "file_name": "Spritesheets\\ryu_1051_0.sprite"
+    },
+    {
+      "id": "1901a441-bfed-482c-af41-51bb37c2a298",
+      "file_name": "Spritesheets\\ryu_105_0.sprite"
+    },
+    {
+      "id": "83045926-2768-4144-baf3-e1ac4c44c163",
+      "file_name": "Spritesheets\\ryu_105_1.sprite"
+    },
+    {
+      "id": "3c6306c5-292f-4814-b915-e2aae677f144",
+      "file_name": "Spritesheets\\ryu_105_2.sprite"
+    },
+    {
+      "id": "178f47a5-3f83-4bd0-8571-7aba4c88de29",
+      "file_name": "Spritesheets\\ryu_1100_0.sprite"
+    },
+    {
+      "id": "81136034-6aa3-43f2-9a38-3a0cd4742716",
+      "file_name": "Spritesheets\\ryu_1100_1.sprite"
+    },
+    {
+      "id": "1ada43e4-a381-4380-a6af-71a3d9163257",
+      "file_name": "Spritesheets\\ryu_1100_10.sprite"
+    },
+    {
+      "id": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339",
+      "file_name": "Spritesheets\\ryu_1100_2.sprite"
+    },
+    {
+      "id": "f7d6cde6-de8e-4366-a366-ddb10c89f079",
+      "file_name": "Spritesheets\\ryu_1100_3.sprite"
+    },
+    {
+      "id": "202d5a26-fa72-48eb-892a-7f3b7b285ac8",
+      "file_name": "Spritesheets\\ryu_1100_4.sprite"
+    },
+    {
+      "id": "82d228ad-22d3-4cd2-a624-0b9b9aec89b3",
+      "file_name": "Spritesheets\\ryu_1100_5.sprite"
+    },
+    {
+      "id": "7aebdc66-8710-4475-9e94-ebfbdb6dd481",
+      "file_name": "Spritesheets\\ryu_1100_6.sprite"
+    },
+    {
+      "id": "00330e21-96d5-418c-8d2c-a0b832f511b8",
+      "file_name": "Spritesheets\\ryu_1100_7.sprite"
+    },
+    {
+      "id": "24aa96f5-2a9b-4ed8-97a7-28dc6b962a30",
+      "file_name": "Spritesheets\\ryu_1100_8.sprite"
+    },
+    {
+      "id": "3ff6f87a-5c5f-476f-a8fa-dfec9228713d",
+      "file_name": "Spritesheets\\ryu_1100_9.sprite"
+    },
+    {
+      "id": "6667ba6f-615a-4238-b5e7-f2b4d060174a",
+      "file_name": "Spritesheets\\ryu_11_0.sprite"
+    },
+    {
+      "id": "4f35dd70-819c-46bc-99ab-31d8a7c50694",
+      "file_name": "Spritesheets\\ryu_11_1.sprite"
+    },
+    {
+      "id": "1a024993-0af0-41de-a8ec-43cf846a842e",
+      "file_name": "Spritesheets\\ryu_11_2.sprite"
+    },
+    {
+      "id": "efe1c51c-70e8-4bcf-ae35-ebdb6f727e4f",
+      "file_name": "Spritesheets\\ryu_1201_0.sprite"
+    },
+    {
+      "id": "efb7163c-9b5c-41da-8592-01d2113471b5",
+      "file_name": "Spritesheets\\ryu_1201_1.sprite"
+    },
+    {
+      "id": "c68fe9af-7df6-4316-a0eb-9eae6584a432",
+      "file_name": "Spritesheets\\ryu_1201_2.sprite"
+    },
+    {
+      "id": "62929d76-7c6e-4ed6-b9b8-fd39427c5f13",
+      "file_name": "Spritesheets\\ryu_1201_3.sprite"
+    },
+    {
+      "id": "9d404dab-0040-4531-adfd-0f150a5de81e",
+      "file_name": "Spritesheets\\ryu_1201_4.sprite"
+    },
+    {
+      "id": "c4430da7-0c94-49d1-a19e-18fc4aef8ebe",
+      "file_name": "Spritesheets\\ryu_1201_5.sprite"
+    },
+    {
+      "id": "1964bbf2-277c-4df2-b871-0116236e945d",
+      "file_name": "Spritesheets\\ryu_1202_0.sprite"
+    },
+    {
+      "id": "a48e031d-5381-4981-b27c-c982207c052a",
+      "file_name": "Spritesheets\\ryu_1202_1.sprite"
+    },
+    {
+      "id": "9fb5e8f5-7c28-486a-bb65-55f26505874c",
+      "file_name": "Spritesheets\\ryu_1202_2.sprite"
+    },
+    {
+      "id": "4b31db61-56b7-4aa5-9c93-adfab210fd08",
+      "file_name": "Spritesheets\\ryu_1202_3.sprite"
+    },
+    {
+      "id": "91d61adc-2538-44cc-b267-e550f5724394",
+      "file_name": "Spritesheets\\ryu_1202_4.sprite"
+    },
+    {
+      "id": "4832d8f8-7a73-4baa-96e7-e9a91ebe9eec",
+      "file_name": "Spritesheets\\ryu_1202_5.sprite"
+    },
+    {
+      "id": "e046d5f1-5ec9-4ed6-aeeb-45b79a492681",
+      "file_name": "Spritesheets\\ryu_120_0.sprite"
+    },
+    {
+      "id": "fbcef0ee-280f-4f7f-b3d4-2a3ffd9d1a59",
+      "file_name": "Spritesheets\\ryu_120_1.sprite"
+    },
+    {
+      "id": "5364fbcf-3591-42d2-9c38-7ed05864b11d",
+      "file_name": "Spritesheets\\ryu_121_0.sprite"
+    },
+    {
+      "id": "db6a769c-9806-476e-ba82-21c1441009f5",
+      "file_name": "Spritesheets\\ryu_121_1.sprite"
+    },
+    {
+      "id": "8b4ad29e-21f4-4904-986c-3021034d9c51",
+      "file_name": "Spritesheets\\ryu_122_0.sprite"
+    },
+    {
+      "id": "f79980e2-8560-43e7-88de-0276de2fc5d9",
+      "file_name": "Spritesheets\\ryu_122_1.sprite"
+    },
+    {
+      "id": "b709b262-2c2c-41c9-be83-e08411dfcb8d",
+      "file_name": "Spritesheets\\ryu_123_0.sprite"
+    },
+    {
+      "id": "57808893-de40-440f-a912-9f2a160fb7e5",
+      "file_name": "Spritesheets\\ryu_123_1.sprite"
+    },
+    {
+      "id": "66abfe43-2d7a-4101-8066-d8670d7332f8",
+      "file_name": "Spritesheets\\ryu_1300_0.sprite"
+    },
+    {
+      "id": "8c07412e-9217-4a6b-9775-7d64a4efc2e2",
+      "file_name": "Spritesheets\\ryu_1300_1.sprite"
+    },
+    {
+      "id": "1be2adc2-abe0-450a-bb3e-c59bcbc2f557",
+      "file_name": "Spritesheets\\ryu_1300_10.sprite"
+    },
+    {
+      "id": "82973141-711f-44e2-8b10-4cb096d1edb9",
+      "file_name": "Spritesheets\\ryu_1300_2.sprite"
+    },
+    {
+      "id": "7f7d4969-4fe0-43e7-a016-9984a15b6b12",
+      "file_name": "Spritesheets\\ryu_1300_3.sprite"
+    },
+    {
+      "id": "533ba941-5350-4115-8dab-f8beb201888b",
+      "file_name": "Spritesheets\\ryu_1300_4.sprite"
+    },
+    {
+      "id": "c3dfe0b4-9ff7-47d5-912b-29f1f1a1f927",
+      "file_name": "Spritesheets\\ryu_1300_5.sprite"
+    },
+    {
+      "id": "9f6235bd-01d2-442e-b756-c5e4b0e610ce",
+      "file_name": "Spritesheets\\ryu_1300_6.sprite"
+    },
+    {
+      "id": "0669f9d8-aafe-45ef-aa9a-83641f44eddb",
+      "file_name": "Spritesheets\\ryu_1300_7.sprite"
+    },
+    {
+      "id": "7695ca74-b367-4ff5-880b-3162527f3bcb",
+      "file_name": "Spritesheets\\ryu_1300_8.sprite"
+    },
+    {
+      "id": "06323adf-05b3-4c35-bb6f-b09c48bf6057",
+      "file_name": "Spritesheets\\ryu_1300_9.sprite"
+    },
+    {
+      "id": "c23ca696-1191-44ff-b266-2b8c9a10342d",
+      "file_name": "Spritesheets\\ryu_1400_0.sprite"
+    },
+    {
+      "id": "03218c01-fdb4-4aaf-9e94-2ec8889275df",
+      "file_name": "Spritesheets\\ryu_1400_1.sprite"
+    },
+    {
+      "id": "ebc10ce0-e549-47de-a42d-e693b6c7dce1",
+      "file_name": "Spritesheets\\ryu_1500_1.sprite"
+    },
+    {
+      "id": "89277429-a93c-4e8e-b57c-fc0ad08259ec",
+      "file_name": "Spritesheets\\ryu_1500_2.sprite"
+    },
+    {
+      "id": "1728b626-cbea-4dad-82d9-007e7ab8b280",
+      "file_name": "Spritesheets\\ryu_1500_3.sprite"
+    },
+    {
+      "id": "e1fba9f6-b06f-4f75-891e-af6d3126ba55",
+      "file_name": "Spritesheets\\ryu_1500_4.sprite"
+    },
+    {
+      "id": "29d48fa7-5dba-4d31-a9b8-fc0527ea9791",
+      "file_name": "Spritesheets\\ryu_1500_5.sprite"
+    },
+    {
+      "id": "def3d8d9-9903-4aea-88fa-5d7952eb492e",
+      "file_name": "Spritesheets\\ryu_1510_1.sprite"
+    },
+    {
+      "id": "9673360f-e8e2-41f4-ae0a-84a12b04e3a3",
+      "file_name": "Spritesheets\\ryu_1510_2.sprite"
+    },
+    {
+      "id": "d8a9a491-1d32-49c0-900e-473a98d95817",
+      "file_name": "Spritesheets\\ryu_1510_3.sprite"
+    },
+    {
+      "id": "70d11c40-4cd3-4185-885d-0240ef4958f7",
+      "file_name": "Spritesheets\\ryu_1510_4.sprite"
+    },
+    {
+      "id": "fce5a666-fb57-45e0-85da-287520a4b7d1",
+      "file_name": "Spritesheets\\ryu_1510_5.sprite"
+    },
+    {
+      "id": "27ab9a1f-33dd-40e4-979c-e56e1d2bee10",
+      "file_name": "Spritesheets\\ryu_1510_6.sprite"
+    },
+    {
+      "id": "98e8f739-fecd-48f1-880a-11e50c6304d8",
+      "file_name": "Spritesheets\\ryu_1510_7.sprite"
+    },
+    {
+      "id": "b52d2d9a-afd2-4116-9f39-19713a9ba502",
+      "file_name": "Spritesheets\\ryu_1510_8.sprite"
+    },
+    {
+      "id": "8f97a93a-5090-4d57-a324-cd98a70c83a6",
+      "file_name": "Spritesheets\\ryu_1515_0.sprite"
+    },
+    {
+      "id": "bf585e08-4143-4a07-9a99-660bfc6402c5",
+      "file_name": "Spritesheets\\ryu_1515_1.sprite"
+    },
+    {
+      "id": "1af16225-39be-48c8-957e-1c1959ce2305",
+      "file_name": "Spritesheets\\ryu_1520_0.sprite"
+    },
+    {
+      "id": "4b835dd1-6f41-417c-925b-ff4e5280305b",
+      "file_name": "Spritesheets\\ryu_1520_1.sprite"
+    },
+    {
+      "id": "64ea925b-cb4a-4d0d-bafc-1b053a5ab503",
+      "file_name": "Spritesheets\\ryu_1520_2.sprite"
+    },
+    {
+      "id": "e303407a-f3e9-435b-a423-e9d19708af2e",
+      "file_name": "Spritesheets\\ryu_1520_3.sprite"
+    },
+    {
+      "id": "ad30db29-45a5-4a33-af3a-289c353340fe",
+      "file_name": "Spritesheets\\ryu_1520_4.sprite"
+    },
+    {
+      "id": "bd53cae4-b8bc-4afb-afa4-5fbbf428e159",
+      "file_name": "Spritesheets\\ryu_1520_5.sprite"
+    },
+    {
+      "id": "7cf77065-e936-43cc-b9eb-42b9cf7dbf69",
+      "file_name": "Spritesheets\\ryu_1520_6.sprite"
+    },
+    {
+      "id": "578aafb8-f69e-4422-abf9-9b69fcc404f3",
+      "file_name": "Spritesheets\\ryu_1520_7.sprite"
+    },
+    {
+      "id": "17b4ee75-f9ce-4181-a7b0-7c2ccd32f9a0",
+      "file_name": "Spritesheets\\ryu_1521_0.sprite"
+    },
+    {
+      "id": "36b7cbf6-8cd2-4fe6-a6c6-10a2a16e71a2",
+      "file_name": "Spritesheets\\ryu_1525_0.sprite"
+    },
+    {
+      "id": "ba9e55f1-035f-4f0b-822f-1b7425cab207",
+      "file_name": "Spritesheets\\ryu_1525_1.sprite"
+    },
+    {
+      "id": "6dcc40a0-a20c-4204-b0ec-2a29400da3a4",
+      "file_name": "Spritesheets\\ryu_1525_2.sprite"
+    },
+    {
+      "id": "f8ec9d5e-66cc-4b30-9029-eaf38bd7b9d2",
+      "file_name": "Spritesheets\\ryu_1525_3.sprite"
+    },
+    {
+      "id": "99ba1eb0-7fec-41a3-9ff2-24234c4c27ce",
+      "file_name": "Spritesheets\\ryu_1525_4.sprite"
+    },
+    {
+      "id": "d1bf9ac3-0661-4766-b0e5-efb207eec030",
+      "file_name": "Spritesheets\\ryu_1525_5.sprite"
+    },
+    {
+      "id": "d6ea9650-592b-4c43-85bb-8676062c4737",
+      "file_name": "Spritesheets\\ryu_1525_6.sprite"
+    },
+    {
+      "id": "b34ccf49-e94a-4c04-ab6c-3f2fefb22777",
+      "file_name": "Spritesheets\\ryu_1530_5.sprite"
+    },
+    {
+      "id": "c7ebd3f7-b59a-42c4-a355-e959ce1fb6f7",
+      "file_name": "Spritesheets\\ryu_1530_6.sprite"
+    },
+    {
+      "id": "d994c6f9-e7ea-4330-b5a8-995fdc846c4b",
+      "file_name": "Spritesheets\\ryu_1530_7.sprite"
+    },
+    {
+      "id": "93f97bd6-0f6f-4ac9-b2de-6ede661d93a3",
+      "file_name": "Spritesheets\\ryu_1535_0.sprite"
+    },
+    {
+      "id": "58d796ac-c4d6-40bf-b605-3e9c31685518",
+      "file_name": "Spritesheets\\ryu_1535_1.sprite"
+    },
+    {
+      "id": "2d353757-31db-481e-b08c-3f8cb0145326",
+      "file_name": "Spritesheets\\ryu_1535_2.sprite"
+    },
+    {
+      "id": "5e3f4e8f-689c-4679-8d2b-3dbf3be7fb72",
+      "file_name": "Spritesheets\\ryu_1540_0.sprite"
+    },
+    {
+      "id": "371dfcc6-663b-4c3e-a63b-1b5f205a0cb8",
+      "file_name": "Spritesheets\\ryu_1540_1.sprite"
+    },
+    {
+      "id": "10ecd58d-3171-4152-8289-5b42c3511f2b",
+      "file_name": "Spritesheets\\ryu_1540_2.sprite"
+    },
+    {
+      "id": "2f6f6cca-fe91-484e-871f-89631b9a0b64",
+      "file_name": "Spritesheets\\ryu_1540_3.sprite"
+    },
+    {
+      "id": "951198ae-923b-46c9-aff4-40db4be7d2ed",
+      "file_name": "Spritesheets\\ryu_1540_4.sprite"
+    },
+    {
+      "id": "abfcbe5e-d386-4c3a-b3d3-2007b56c0ac1",
+      "file_name": "Spritesheets\\ryu_1550_0.sprite"
+    },
+    {
+      "id": "0da1eed4-ce1a-4433-873f-d82968f07d0b",
+      "file_name": "Spritesheets\\ryu_1550_1.sprite"
+    },
+    {
+      "id": "ba4503a3-186c-497f-8ff6-3a3b762f6ac1",
+      "file_name": "Spritesheets\\ryu_1550_2.sprite"
+    },
+    {
+      "id": "8621090d-95bd-4e44-b344-2ac7a721cc8d",
+      "file_name": "Spritesheets\\ryu_1550_3.sprite"
+    },
+    {
+      "id": "f12ecd0c-708a-4021-ae03-7d2f00b46e3c",
+      "file_name": "Spritesheets\\ryu_1550_4.sprite"
+    },
+    {
+      "id": "4c9b7486-75a9-4c68-9159-8877b238cec5",
+      "file_name": "Spritesheets\\ryu_1550_5.sprite"
+    },
+    {
+      "id": "8459971f-3a8f-48ce-962e-0f424ce66f30",
+      "file_name": "Spritesheets\\ryu_1550_6.sprite"
+    },
+    {
+      "id": "5f163e98-c82c-4365-a247-d08b782ab061",
+      "file_name": "Spritesheets\\ryu_170_0.sprite"
+    },
+    {
+      "id": "a23ab06e-f4ff-4697-9ed8-660ce5162779",
+      "file_name": "Spritesheets\\ryu_170_1.sprite"
+    },
+    {
+      "id": "a6435000-355f-47e9-a307-d20186013a7a",
+      "file_name": "Spritesheets\\ryu_170_2.sprite"
+    },
+    {
+      "id": "12eb4209-718e-4161-9637-6cc3d0739c8f",
+      "file_name": "Spritesheets\\ryu_170_3.sprite"
+    },
+    {
+      "id": "0ad92bc5-ec4a-445a-ba7c-3e14fd27dd94",
+      "file_name": "Spritesheets\\ryu_170_4.sprite"
+    },
+    {
+      "id": "07ea296d-7a96-436b-81dd-67efdffbe576",
+      "file_name": "Spritesheets\\ryu_170_5.sprite"
+    },
+    {
+      "id": "783753c6-ff72-4f4b-9863-c2ce999906b4",
+      "file_name": "Spritesheets\\ryu_175_0.sprite"
+    },
+    {
+      "id": "30f87f82-9cc5-4f01-a160-7b6bb006e97b",
+      "file_name": "Spritesheets\\ryu_175_1.sprite"
+    },
+    {
+      "id": "d389663b-c9ab-41a1-b820-e8e855e3da20",
+      "file_name": "Spritesheets\\ryu_175_2.sprite"
+    },
+    {
+      "id": "5a4f9293-8df4-4a37-882a-4c7369736bda",
+      "file_name": "Spritesheets\\ryu_175_3.sprite"
+    },
+    {
+      "id": "a4720d01-0558-4830-9a22-8c9330b8b1f0",
+      "file_name": "Spritesheets\\ryu_175_4.sprite"
+    },
+    {
+      "id": "c1997f78-2c29-40fc-bfce-24755d5a6862",
+      "file_name": "Spritesheets\\ryu_195_0.sprite"
+    },
+    {
+      "id": "fa49cb19-e153-4ab2-92d2-1dd24ee8fc03",
+      "file_name": "Spritesheets\\ryu_195_1.sprite"
+    },
+    {
+      "id": "f19bb428-bfa8-4dcb-8362-faba08c79325",
+      "file_name": "Spritesheets\\ryu_195_2.sprite"
+    },
+    {
+      "id": "eea744e5-4b79-4499-abb4-289946ab9333",
+      "file_name": "Spritesheets\\ryu_1_0.sprite"
+    },
+    {
+      "id": "26a50803-be46-4441-9425-7995ded54151",
+      "file_name": "Spritesheets\\ryu_1_1.sprite"
+    },
+    {
+      "id": "ffd62f64-e29f-4cba-905f-8d503204117f",
+      "file_name": "Spritesheets\\ryu_1_2.sprite"
+    },
+    {
+      "id": "d5eed12d-553f-44e9-8453-8737c783aa65",
+      "file_name": "Spritesheets\\ryu_1_3.sprite"
+    },
+    {
+      "id": "6c4b51a7-beb6-4547-8a49-6aece96296a5",
+      "file_name": "Spritesheets\\ryu_1_4.sprite"
+    },
+    {
+      "id": "631d1dee-b4f7-4940-9961-e1c28db01000",
+      "file_name": "Spritesheets\\ryu_1_5.sprite"
+    },
+    {
+      "id": "47b9bcdb-c21a-43ba-af13-7c85b09683c6",
+      "file_name": "Spritesheets\\ryu_1_6.sprite"
+    },
+    {
+      "id": "c9376e0d-67ec-4687-b746-1d3fdaa4b3fa",
+      "file_name": "Spritesheets\\ryu_1_7.sprite"
+    },
+    {
+      "id": "9fdfdc6a-aa0e-4e45-88a3-d13bf6034423",
+      "file_name": "Spritesheets\\ryu_1_8.sprite"
+    },
+    {
+      "id": "645cdc85-9fae-47f0-806c-ec7b2bb83555",
+      "file_name": "Spritesheets\\ryu_1_9.sprite"
+    },
+    {
+      "id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2",
+      "file_name": "Spritesheets\\ryu_200_0.sprite"
+    },
+    {
+      "id": "022ab457-944a-4c16-997c-aeefcc64b16e",
+      "file_name": "Spritesheets\\ryu_200_1.sprite"
+    },
+    {
+      "id": "43066313-e310-4780-b18c-23344dcdf575",
+      "file_name": "Spritesheets\\ryu_200_2.sprite"
+    },
+    {
+      "id": "7e88574f-ebb5-4b38-84a8-d094968ca8db",
+      "file_name": "Spritesheets\\ryu_200_3.sprite"
+    },
+    {
+      "id": "44c829be-a98a-40d8-9e45-418f3270d3fa",
+      "file_name": "Spritesheets\\ryu_200_4.sprite"
+    },
+    {
+      "id": "a9634fb3-54de-45ef-af89-a7b2524a2bb5",
+      "file_name": "Spritesheets\\ryu_201_0.sprite"
+    },
+    {
+      "id": "ce3e83e3-1a28-4ef3-b65a-fe620ad9c1fa",
+      "file_name": "Spritesheets\\ryu_201_1.sprite"
+    },
+    {
+      "id": "1725d76b-10a0-41ce-b74b-735ca2f22049",
+      "file_name": "Spritesheets\\ryu_201_2.sprite"
+    },
+    {
+      "id": "ce2d0698-768f-4012-ab4f-1ab3c2446fc6",
+      "file_name": "Spritesheets\\ryu_201_3.sprite"
+    },
+    {
+      "id": "66444163-3b84-4dee-b7e4-cf616282acce",
+      "file_name": "Spritesheets\\ryu_205_0.sprite"
+    },
+    {
+      "id": "741157ca-f28a-4337-a5af-2b43a052a222",
+      "file_name": "Spritesheets\\ryu_205_1.sprite"
+    },
+    {
+      "id": "b77d85b0-55c4-4826-a355-1c70966184cd",
+      "file_name": "Spritesheets\\ryu_205_2.sprite"
+    },
+    {
+      "id": "77120a05-5acb-476c-be7f-b45e4cad6ae7",
+      "file_name": "Spritesheets\\ryu_205_3.sprite"
+    },
+    {
+      "id": "a68164e4-533f-4fac-810d-4261809e5cdd",
+      "file_name": "Spritesheets\\ryu_205_4.sprite"
+    },
+    {
+      "id": "2f27ee80-bfb8-4004-9edd-4e3d842e2751",
+      "file_name": "Spritesheets\\ryu_205_5.sprite"
+    },
+    {
+      "id": "4479d938-39ea-4a4a-8961-fbadc0fdd9e9",
+      "file_name": "Spritesheets\\ryu_206_0.sprite"
+    },
+    {
+      "id": "3261e178-a67f-4327-b24b-41e4497242a2",
+      "file_name": "Spritesheets\\ryu_206_1.sprite"
+    },
+    {
+      "id": "ca3a30f7-5dab-4f73-8954-9bd3f489ccc4",
+      "file_name": "Spritesheets\\ryu_206_2.sprite"
+    },
+    {
+      "id": "04387c78-ba90-4b37-b3a6-35d7b85e58ee",
+      "file_name": "Spritesheets\\ryu_206_3.sprite"
+    },
+    {
+      "id": "ad71e2bc-3e24-4155-b85d-e6c5839de977",
+      "file_name": "Spritesheets\\ryu_206_4.sprite"
+    },
+    {
+      "id": "4b1832f3-f756-4256-8234-667dd9e72b62",
+      "file_name": "Spritesheets\\ryu_206_5.sprite"
+    },
+    {
+      "id": "f91fc2cc-781d-4d53-bbfc-b119f6fe1366",
+      "file_name": "Spritesheets\\ryu_207_0.sprite"
+    },
+    {
+      "id": "cbb299c3-fd1c-49a5-9df7-54da3ff88114",
+      "file_name": "Spritesheets\\ryu_207_1.sprite"
+    },
+    {
+      "id": "f1ccb58c-d288-4456-84d6-f6c95980a918",
+      "file_name": "Spritesheets\\ryu_207_10.sprite"
+    },
+    {
+      "id": "5e8b7b0b-1eef-4ded-bae7-2bf2967211b4",
+      "file_name": "Spritesheets\\ryu_207_2.sprite"
+    },
+    {
+      "id": "0ae1fde2-1cdf-466c-b1f8-bce95684fc86",
+      "file_name": "Spritesheets\\ryu_207_3.sprite"
+    },
+    {
+      "id": "0576e3dc-d819-44df-b9b8-26e7df137bc6",
+      "file_name": "Spritesheets\\ryu_207_4.sprite"
+    },
+    {
+      "id": "7eb4c7a1-d4e4-423f-af4b-2df8bd493fd0",
+      "file_name": "Spritesheets\\ryu_207_5.sprite"
+    },
+    {
+      "id": "835e26eb-daf6-446c-896b-dd69c405964a",
+      "file_name": "Spritesheets\\ryu_207_6.sprite"
+    },
+    {
+      "id": "3285d645-cb6d-4649-9260-1b8e879b96de",
+      "file_name": "Spritesheets\\ryu_207_7.sprite"
+    },
+    {
+      "id": "361b4b03-9287-4c19-89e8-1f413c8ae23c",
+      "file_name": "Spritesheets\\ryu_207_8.sprite"
+    },
+    {
+      "id": "67d87095-497e-434d-bebe-132866e2f90a",
+      "file_name": "Spritesheets\\ryu_207_9.sprite"
+    },
+    {
+      "id": "2d1ad1f7-ca96-4276-a030-fd995a1f9072",
+      "file_name": "Spritesheets\\ryu_208_0.sprite"
+    },
+    {
+      "id": "f7f2ac0f-7066-4cfe-bfc0-b5aacdc27d80",
+      "file_name": "Spritesheets\\ryu_208_1.sprite"
+    },
+    {
+      "id": "2dcf84bb-7d8a-4fc4-b12b-fb2d8126b98f",
+      "file_name": "Spritesheets\\ryu_208_2.sprite"
+    },
+    {
+      "id": "f02ddd38-14ce-4f5b-b5cf-a13457cc40d9",
+      "file_name": "Spritesheets\\ryu_208_3.sprite"
+    },
+    {
+      "id": "0b7ecc0b-c004-4360-af47-1a6191e09259",
+      "file_name": "Spritesheets\\ryu_208_4.sprite"
+    },
+    {
+      "id": "e4303550-1622-4340-94e1-3f6b71a62dfb",
+      "file_name": "Spritesheets\\ryu_208_5.sprite"
+    },
+    {
+      "id": "06bf564b-f495-4a7e-b5d1-4a96d8a5515a",
+      "file_name": "Spritesheets\\ryu_20_0.sprite"
+    },
+    {
+      "id": "ef812e98-fdae-4d27-b5f6-c404d5c0e4cc",
+      "file_name": "Spritesheets\\ryu_20_1.sprite"
+    },
+    {
+      "id": "4edf339a-c8b9-4b61-818f-d004586caad9",
+      "file_name": "Spritesheets\\ryu_20_2.sprite"
+    },
+    {
+      "id": "decb6caf-4b01-43db-9894-32114130315a",
+      "file_name": "Spritesheets\\ryu_20_3.sprite"
+    },
+    {
+      "id": "ea0669d8-a66b-44b9-a59a-d32e2b13ad1c",
+      "file_name": "Spritesheets\\ryu_20_4.sprite"
+    },
+    {
+      "id": "cd996131-cbe2-4653-a94e-52cc30e46b45",
+      "file_name": "Spritesheets\\ryu_20_5.sprite"
+    },
+    {
+      "id": "b66c6f5f-27a0-40d7-89a5-08a3b925c6c5",
+      "file_name": "Spritesheets\\ryu_20_6.sprite"
+    },
+    {
+      "id": "05579ece-29b8-4d3a-b704-6613068e935b",
+      "file_name": "Spritesheets\\ryu_20_7.sprite"
+    },
+    {
+      "id": "5cb38d8c-40dc-44fb-aa71-01c66acc3cbb",
+      "file_name": "Spritesheets\\ryu_210_0.sprite"
+    },
+    {
+      "id": "91b19341-2120-4238-90b8-5ddb929f04db",
+      "file_name": "Spritesheets\\ryu_210_1.sprite"
+    },
+    {
+      "id": "7ee65e91-0665-4c6c-8d8e-c59d46df7ce9",
+      "file_name": "Spritesheets\\ryu_210_2.sprite"
+    },
+    {
+      "id": "5e59a728-d6f9-4f4a-92fa-7c46ca779195",
+      "file_name": "Spritesheets\\ryu_210_3.sprite"
+    },
+    {
+      "id": "3985b5c8-839b-43c5-92ff-3541e20cac61",
+      "file_name": "Spritesheets\\ryu_210_4.sprite"
+    },
+    {
+      "id": "79065a0f-7a21-48ea-9965-29599cfd04e6",
+      "file_name": "Spritesheets\\ryu_210_5.sprite"
+    },
+    {
+      "id": "01f1738d-6623-4e0a-80ff-fd91bf3b270b",
+      "file_name": "Spritesheets\\ryu_210_6.sprite"
+    },
+    {
+      "id": "cb55ccf8-e463-467a-8430-30294708a6ba",
+      "file_name": "Spritesheets\\ryu_210_7.sprite"
+    },
+    {
+      "id": "128bc5ed-aa97-4686-b98d-1f0e438dbf0c",
+      "file_name": "Spritesheets\\ryu_210_8.sprite"
+    },
+    {
+      "id": "00fffd94-3f0d-49a0-9250-ac430a213c8b",
+      "file_name": "Spritesheets\\ryu_211_0.sprite"
+    },
+    {
+      "id": "9cec74a9-c68a-4ff7-9428-29883d60a41f",
+      "file_name": "Spritesheets\\ryu_211_1.sprite"
+    },
+    {
+      "id": "2554f9da-98a1-4d59-975c-1fbb45064611",
+      "file_name": "Spritesheets\\ryu_211_2.sprite"
+    },
+    {
+      "id": "57d987b2-b9ec-42b2-a5ea-a81e5d5389b5",
+      "file_name": "Spritesheets\\ryu_211_3.sprite"
+    },
+    {
+      "id": "ba9bf8f8-0488-4a43-a81f-01da191c6304",
+      "file_name": "Spritesheets\\ryu_211_4.sprite"
+    },
+    {
+      "id": "d6697fd0-4276-429d-8139-2d0b35489d8d",
+      "file_name": "Spritesheets\\ryu_211_5.sprite"
+    },
+    {
+      "id": "69d74cdc-6805-4397-a0e0-382c0c8879df",
+      "file_name": "Spritesheets\\ryu_211_6.sprite"
+    },
+    {
+      "id": "0f2660ce-f938-4c7f-be27-f9c7d9620450",
+      "file_name": "Spritesheets\\ryu_211_7.sprite"
+    },
+    {
+      "id": "4957bbb0-397c-4977-bf27-9bec40463f31",
+      "file_name": "Spritesheets\\ryu_211_8.sprite"
+    },
+    {
+      "id": "75b6069a-b79e-4285-b629-eead6e3d0b3c",
+      "file_name": "Spritesheets\\ryu_212_0.sprite"
+    },
+    {
+      "id": "27d48f55-4c7b-43b3-af6b-01a58ce38ff9",
+      "file_name": "Spritesheets\\ryu_212_1.sprite"
+    },
+    {
+      "id": "c98ca399-3a61-40c2-8cdf-bb0197663c31",
+      "file_name": "Spritesheets\\ryu_212_10.sprite"
+    },
+    {
+      "id": "85d61883-1d86-4457-bb8b-f067dac9b2a0",
+      "file_name": "Spritesheets\\ryu_212_2.sprite"
+    },
+    {
+      "id": "a4697b44-5fa2-452c-b2c8-d4a2d7faeaaa",
+      "file_name": "Spritesheets\\ryu_212_3.sprite"
+    },
+    {
+      "id": "b02e8190-320f-425c-a713-ea45dfa59134",
+      "file_name": "Spritesheets\\ryu_212_4.sprite"
+    },
+    {
+      "id": "ff4f2781-31b3-4ca7-bb17-ed1f672fccdc",
+      "file_name": "Spritesheets\\ryu_212_5.sprite"
+    },
+    {
+      "id": "e8743a05-a23e-40c3-87ee-ea29068974a3",
+      "file_name": "Spritesheets\\ryu_212_6.sprite"
+    },
+    {
+      "id": "6576eafd-5b6e-441f-a7fd-85f9127b8ac1",
+      "file_name": "Spritesheets\\ryu_212_7.sprite"
+    },
+    {
+      "id": "02b0d930-c38d-492a-be34-ae8313d63a1f",
+      "file_name": "Spritesheets\\ryu_212_8.sprite"
+    },
+    {
+      "id": "e0d3f171-27ae-4097-8192-a361c926482a",
+      "file_name": "Spritesheets\\ryu_212_9.sprite"
+    },
+    {
+      "id": "b02c2f3b-95ff-41eb-8110-3866ee437a4b",
+      "file_name": "Spritesheets\\ryu_213_0.sprite"
+    },
+    {
+      "id": "b48b532e-b768-4111-85cb-617fbcba8b4c",
+      "file_name": "Spritesheets\\ryu_213_1.sprite"
+    },
+    {
+      "id": "3adde1eb-9aaa-4262-bcf1-6d15746426ba",
+      "file_name": "Spritesheets\\ryu_213_2.sprite"
+    },
+    {
+      "id": "8ac2cfbd-af7d-48d7-aeae-40118cb0dddd",
+      "file_name": "Spritesheets\\ryu_213_3.sprite"
+    },
+    {
+      "id": "277db0d0-81cc-42b0-889d-4c1cde468cc3",
+      "file_name": "Spritesheets\\ryu_213_4.sprite"
+    },
+    {
+      "id": "7357e1a9-2f14-41bf-8f2e-ab92aa069b0c",
+      "file_name": "Spritesheets\\ryu_213_5.sprite"
+    },
+    {
+      "id": "8f55b04e-c0d9-4bc5-8c6d-cf01ae0b8ed3",
+      "file_name": "Spritesheets\\ryu_213_6.sprite"
+    },
+    {
+      "id": "ffe43669-7a8f-47da-adad-ddad6f3a1768",
+      "file_name": "Spritesheets\\ryu_213_7.sprite"
+    },
+    {
+      "id": "8f76b17c-54c0-4a7e-aa52-93ace70e84fc",
+      "file_name": "Spritesheets\\ryu_215_0.sprite"
+    },
+    {
+      "id": "75c4fa41-6dc6-4dbe-aeec-9236bf9075b5",
+      "file_name": "Spritesheets\\ryu_215_1.sprite"
+    },
+    {
+      "id": "26c42b50-9fcc-4bfc-9a68-acd541391818",
+      "file_name": "Spritesheets\\ryu_215_2.sprite"
+    },
+    {
+      "id": "0db1079f-3f91-4e14-95e6-77ce2d7a1807",
+      "file_name": "Spritesheets\\ryu_215_3.sprite"
+    },
+    {
+      "id": "74c66148-e771-42a7-9fea-607f21dd0707",
+      "file_name": "Spritesheets\\ryu_215_4.sprite"
+    },
+    {
+      "id": "0f8475f8-9f25-44d2-b8b0-d90f5ea8083a",
+      "file_name": "Spritesheets\\ryu_21_0.sprite"
+    },
+    {
+      "id": "88ee7ce6-841d-49c7-beec-b3c237f02dca",
+      "file_name": "Spritesheets\\ryu_21_1.sprite"
+    },
+    {
+      "id": "fdaf2a62-77d2-44ff-b1a8-6f2402dc8215",
+      "file_name": "Spritesheets\\ryu_21_2.sprite"
+    },
+    {
+      "id": "bfe28ee6-c23e-46cf-a606-07749f8dd9f0",
+      "file_name": "Spritesheets\\ryu_21_3.sprite"
+    },
+    {
+      "id": "7f4e33d6-a4fa-4bba-a1d7-5ce5e012678b",
+      "file_name": "Spritesheets\\ryu_21_4.sprite"
+    },
+    {
+      "id": "1a552c99-8fc2-42e2-88d0-7a4013ef55bf",
+      "file_name": "Spritesheets\\ryu_21_5.sprite"
+    },
+    {
+      "id": "3d909876-55a3-4577-ad56-5b832d973f57",
+      "file_name": "Spritesheets\\ryu_21_6.sprite"
+    },
+    {
+      "id": "6283c613-a86b-460d-a0c8-61d7944fb3b9",
+      "file_name": "Spritesheets\\ryu_21_7.sprite"
+    },
+    {
+      "id": "c542a814-c543-4372-ab7b-bef7bdf5c0f0",
+      "file_name": "Spritesheets\\ryu_220_0.sprite"
+    },
+    {
+      "id": "370a2d5e-b25f-48a2-a23b-208de6a30689",
+      "file_name": "Spritesheets\\ryu_220_1.sprite"
+    },
+    {
+      "id": "9b62fac7-f47e-4337-ac7d-b12fc9bb7cf1",
+      "file_name": "Spritesheets\\ryu_220_2.sprite"
+    },
+    {
+      "id": "a50e8797-7ed3-4fd5-979a-6c48e60a905f",
+      "file_name": "Spritesheets\\ryu_220_3.sprite"
+    },
+    {
+      "id": "a303d1cb-2624-4559-8d66-30c309eb7f3b",
+      "file_name": "Spritesheets\\ryu_220_4.sprite"
+    },
+    {
+      "id": "0c062ff8-9dbe-4a23-bfd4-cd76f29d8693",
+      "file_name": "Spritesheets\\ryu_220_5.sprite"
+    },
+    {
+      "id": "32dc134f-11a3-4858-83a1-c36a841a82cb",
+      "file_name": "Spritesheets\\ryu_221_0.sprite"
+    },
+    {
+      "id": "3661c2ef-50fa-4a10-8e55-8906be91ca99",
+      "file_name": "Spritesheets\\ryu_221_1.sprite"
+    },
+    {
+      "id": "4dbca719-6f68-4446-8110-f47490470e7f",
+      "file_name": "Spritesheets\\ryu_221_2.sprite"
+    },
+    {
+      "id": "662e1d63-013b-4ad6-9f5b-4f77af82a05b",
+      "file_name": "Spritesheets\\ryu_221_3.sprite"
+    },
+    {
+      "id": "dd81ccee-f75b-4f79-b605-352f9230414b",
+      "file_name": "Spritesheets\\ryu_221_4.sprite"
+    },
+    {
+      "id": "84300cc3-11b2-4518-a80b-12c0e4f93663",
+      "file_name": "Spritesheets\\ryu_221_5.sprite"
+    },
+    {
+      "id": "bd2359ae-2e5a-46b4-9dae-ed9b60e52058",
+      "file_name": "Spritesheets\\ryu_221_6.sprite"
+    },
+    {
+      "id": "6c013e87-13b3-4416-bc97-0240cddb3500",
+      "file_name": "Spritesheets\\ryu_222_0.sprite"
+    },
+    {
+      "id": "ca5321d2-703e-426b-9480-84bed38a27d3",
+      "file_name": "Spritesheets\\ryu_222_1.sprite"
+    },
+    {
+      "id": "e464b772-e5d9-45a3-88f7-78b2b17e3d20",
+      "file_name": "Spritesheets\\ryu_222_2.sprite"
+    },
+    {
+      "id": "7c624914-7674-48b2-a5e8-5e3614a42740",
+      "file_name": "Spritesheets\\ryu_222_3.sprite"
+    },
+    {
+      "id": "6c1467c3-6eee-4a5a-bf6e-203609d8268e",
+      "file_name": "Spritesheets\\ryu_222_4.sprite"
+    },
+    {
+      "id": "4b0d2732-e759-4d28-8786-d1c1bba30072",
+      "file_name": "Spritesheets\\ryu_222_5.sprite"
+    },
+    {
+      "id": "6b0843e0-e3cd-4437-958e-04d5337211b8",
+      "file_name": "Spritesheets\\ryu_222_6.sprite"
+    },
+    {
+      "id": "35e72d59-db11-4222-8a8b-cbae1d608fa2",
+      "file_name": "Spritesheets\\ryu_222_7.sprite"
+    },
+    {
+      "id": "18c4cb04-d729-4333-af4c-2a6c8b8eb8ec",
+      "file_name": "Spritesheets\\ryu_222_8.sprite"
+    },
+    {
+      "id": "66a016c5-681a-4cc0-a439-8b519a5382d4",
+      "file_name": "Spritesheets\\ryu_222_9.sprite"
+    },
+    {
+      "id": "ced96428-e448-479e-a193-58c47dbfb342",
+      "file_name": "Spritesheets\\ryu_225_0.sprite"
+    },
+    {
+      "id": "1db5f88c-efe5-4ca0-bfa1-c6c10f86d915",
+      "file_name": "Spritesheets\\ryu_225_1.sprite"
+    },
+    {
+      "id": "30f41d11-cdbd-4138-a9fa-66c9d59ea887",
+      "file_name": "Spritesheets\\ryu_225_2.sprite"
+    },
+    {
+      "id": "afb6f669-9564-4e9c-a731-b5062403f3b6",
+      "file_name": "Spritesheets\\ryu_225_3.sprite"
+    },
+    {
+      "id": "59d83139-3cef-4694-878f-daf39288d365",
+      "file_name": "Spritesheets\\ryu_225_4.sprite"
+    },
+    {
+      "id": "83ac16ac-c535-4554-9f6c-97487aacfd48",
+      "file_name": "Spritesheets\\ryu_225_5.sprite"
+    },
+    {
+      "id": "45743ed7-086c-4f6f-ad2c-b9fb66ee2cd1",
+      "file_name": "Spritesheets\\ryu_225_6.sprite"
+    },
+    {
+      "id": "ce4f4d62-cc83-4d10-8743-28cb7446ee0e",
+      "file_name": "Spritesheets\\ryu_225_7.sprite"
+    },
+    {
+      "id": "52d0abae-8cfd-4e96-9ab2-ca923d241e56",
+      "file_name": "Spritesheets\\ryu_225_8.sprite"
+    },
+    {
+      "id": "5e29c6c3-00d1-4e9a-8ca7-c5bdcc91a305",
+      "file_name": "Spritesheets\\ryu_226_0.sprite"
+    },
+    {
+      "id": "be391e85-f9b8-4a9c-8f3a-1d90044981e9",
+      "file_name": "Spritesheets\\ryu_226_1.sprite"
+    },
+    {
+      "id": "0a98239f-3710-4a6c-a797-e7cd4b93d144",
+      "file_name": "Spritesheets\\ryu_226_2.sprite"
+    },
+    {
+      "id": "241efa57-893e-46cc-8fd2-daa2e257415b",
+      "file_name": "Spritesheets\\ryu_226_3.sprite"
+    },
+    {
+      "id": "8a6f68bf-ec0f-418c-be86-7f12f7c2b4e9",
+      "file_name": "Spritesheets\\ryu_226_4.sprite"
+    },
+    {
+      "id": "71aa6288-5c5b-4bc6-903c-8028f96509c5",
+      "file_name": "Spritesheets\\ryu_226_5.sprite"
+    },
+    {
+      "id": "6e224004-9bc7-40ed-a5fa-965a566f3855",
+      "file_name": "Spritesheets\\ryu_226_6.sprite"
+    },
+    {
+      "id": "18c45e39-c1fd-42c4-bd50-13991a1cc31d",
+      "file_name": "Spritesheets\\ryu_226_7.sprite"
+    },
+    {
+      "id": "0abe9987-26cd-49dc-971e-83cf085e552a",
+      "file_name": "Spritesheets\\ryu_230_0.sprite"
+    },
+    {
+      "id": "8a4ed3bf-430a-4513-9464-b4882b4fcc52",
+      "file_name": "Spritesheets\\ryu_230_1.sprite"
+    },
+    {
+      "id": "1d7a5b7d-6190-44ff-abad-d1f14ffe2878",
+      "file_name": "Spritesheets\\ryu_230_2.sprite"
+    },
+    {
+      "id": "91def4c9-ab39-45e6-babd-378f0251ade6",
+      "file_name": "Spritesheets\\ryu_235_0.sprite"
+    },
+    {
+      "id": "37763890-ae9e-4773-a580-1f065489c775",
+      "file_name": "Spritesheets\\ryu_235_1.sprite"
+    },
+    {
+      "id": "a03d5be4-dee8-42f1-97e7-d4e3feacd4ae",
+      "file_name": "Spritesheets\\ryu_235_2.sprite"
+    },
+    {
+      "id": "33c14ccd-6846-4fa9-ba1e-9525f5714fd7",
+      "file_name": "Spritesheets\\ryu_235_3.sprite"
+    },
+    {
+      "id": "93ac9434-bdee-4875-bb79-94fa85439558",
+      "file_name": "Spritesheets\\ryu_240_0.sprite"
+    },
+    {
+      "id": "67a532ea-794d-4b30-abdf-d125ba68a672",
+      "file_name": "Spritesheets\\ryu_240_1.sprite"
+    },
+    {
+      "id": "bb34d838-bee0-44d3-9cd4-35a6ffc8c6d4",
+      "file_name": "Spritesheets\\ryu_240_2.sprite"
+    },
+    {
+      "id": "7065acac-0813-4928-8360-a9feb68b2a4d",
+      "file_name": "Spritesheets\\ryu_240_3.sprite"
+    },
+    {
+      "id": "1c822536-5d9d-46fb-9d61-707ca6856616",
+      "file_name": "Spritesheets\\ryu_240_4.sprite"
+    },
+    {
+      "id": "3c14afbd-cbd5-4eeb-b4c9-a88f61e5e084",
+      "file_name": "Spritesheets\\ryu_240_5.sprite"
+    },
+    {
+      "id": "9ee96da5-799d-4767-a715-47608e990697",
+      "file_name": "Spritesheets\\ryu_240_6.sprite"
+    },
+    {
+      "id": "99dc1b9e-a78e-495f-a0ad-72b60cccaa90",
+      "file_name": "Spritesheets\\ryu_240_7.sprite"
+    },
+    {
+      "id": "b87b8ab3-a859-4382-b202-c7ddda88f664",
+      "file_name": "Spritesheets\\ryu_245_0.sprite"
+    },
+    {
+      "id": "cb6a37a2-0c93-4361-96b5-b8da0f504dd7",
+      "file_name": "Spritesheets\\ryu_245_1.sprite"
+    },
+    {
+      "id": "32d59874-23dd-4403-a0bf-2342a5f57c1d",
+      "file_name": "Spritesheets\\ryu_245_2.sprite"
+    },
+    {
+      "id": "388440b5-27d2-430a-ad15-7b81e41083a8",
+      "file_name": "Spritesheets\\ryu_245_3.sprite"
+    },
+    {
+      "id": "5d6ef3d5-2d0b-4590-a65f-02df4d14bd1d",
+      "file_name": "Spritesheets\\ryu_250_0.sprite"
+    },
+    {
+      "id": "7628c5ab-38a5-4b49-83af-45e63a198b9a",
+      "file_name": "Spritesheets\\ryu_250_1.sprite"
+    },
+    {
+      "id": "5f455bad-4b4b-447e-9ec2-cedc25601316",
+      "file_name": "Spritesheets\\ryu_250_2.sprite"
+    },
+    {
+      "id": "03d9a104-a1bb-42f3-af39-9946bfbe127a",
+      "file_name": "Spritesheets\\ryu_250_3.sprite"
+    },
+    {
+      "id": "6621f07b-bd26-4452-aa99-bd6dc72e254a",
+      "file_name": "Spritesheets\\ryu_250_4.sprite"
+    },
+    {
+      "id": "5bdba72b-a9eb-42fe-95a8-4db7e1e8fca8",
+      "file_name": "Spritesheets\\ryu_250_5.sprite"
+    },
+    {
+      "id": "7cd615d6-5b1a-44f4-bf00-3d216add91a7",
+      "file_name": "Spritesheets\\ryu_250_6.sprite"
+    },
+    {
+      "id": "f37fbf61-2756-4c76-a133-8375802be251",
+      "file_name": "Spritesheets\\ryu_255_0.sprite"
+    },
+    {
+      "id": "cada4234-0572-4c91-8d4a-f9304b675a98",
+      "file_name": "Spritesheets\\ryu_255_1.sprite"
+    },
+    {
+      "id": "05abade5-e812-459d-8c13-cde68279eee7",
+      "file_name": "Spritesheets\\ryu_255_2.sprite"
+    },
+    {
+      "id": "1734ccf2-d90e-41b7-b015-05bd530b86d6",
+      "file_name": "Spritesheets\\ryu_255_3.sprite"
+    },
+    {
+      "id": "0ee48a16-65f2-4112-bce7-f7a5c3fd8ac3",
+      "file_name": "Spritesheets\\ryu_255_4.sprite"
+    },
+    {
+      "id": "2f3cca70-fdad-4147-b2ab-95135fd21733",
+      "file_name": "Spritesheets\\ryu_255_5.sprite"
+    },
+    {
+      "id": "e9ba5e57-c9fb-4996-b2c0-0e3fd7604ca7",
+      "file_name": "Spritesheets\\ryu_255_6.sprite"
+    },
+    {
+      "id": "3a4317d5-d513-4c5d-a439-84798105c91d",
+      "file_name": "Spritesheets\\ryu_255_7.sprite"
+    },
+    {
+      "id": "55e8b6d0-a557-4d94-a3d6-6cf3a7b87ca2",
+      "file_name": "Spritesheets\\ryu_260_0.sprite"
+    },
+    {
+      "id": "c1cca87c-ae26-4fbe-882c-1af063e7dffe",
+      "file_name": "Spritesheets\\ryu_260_1.sprite"
+    },
+    {
+      "id": "2d411898-7160-454a-a15d-9b910002e121",
+      "file_name": "Spritesheets\\ryu_260_2.sprite"
+    },
+    {
+      "id": "5314dedd-a94f-4587-bdd2-55b0540969d2",
+      "file_name": "Spritesheets\\ryu_260_3.sprite"
+    },
+    {
+      "id": "dad9c36b-6b6f-4836-befb-6e7f1423a32d",
+      "file_name": "Spritesheets\\ryu_265_0.sprite"
+    },
+    {
+      "id": "fe640458-0d5c-4699-a18d-648033e09253",
+      "file_name": "Spritesheets\\ryu_265_1.sprite"
+    },
+    {
+      "id": "5c073942-ab51-4364-ac73-3c6ee8cc756e",
+      "file_name": "Spritesheets\\ryu_265_2.sprite"
+    },
+    {
+      "id": "be4463ab-43fe-4c27-bcf2-bb96bb2f89fd",
+      "file_name": "Spritesheets\\ryu_265_3.sprite"
+    },
+    {
+      "id": "84040d39-82fe-4549-bd17-ceda6c61534a",
+      "file_name": "Spritesheets\\ryu_270_0.sprite"
+    },
+    {
+      "id": "aa1ef719-f174-403d-983f-741bf84fa794",
+      "file_name": "Spritesheets\\ryu_270_1.sprite"
+    },
+    {
+      "id": "c7f9403d-cf1f-488e-aa2b-8986ba2e2600",
+      "file_name": "Spritesheets\\ryu_270_2.sprite"
+    },
+    {
+      "id": "c389af62-6919-4753-a9cf-3a2e89e72421",
+      "file_name": "Spritesheets\\ryu_270_3.sprite"
+    },
+    {
+      "id": "abee1709-c7df-4d86-b237-9258a838ea72",
+      "file_name": "Spritesheets\\ryu_270_4.sprite"
+    },
+    {
+      "id": "9431b9c7-61a8-46e3-ad09-691ac8a82639",
+      "file_name": "Spritesheets\\ryu_270_5.sprite"
+    },
+    {
+      "id": "6d85954b-9ba7-4473-b742-208985938464",
+      "file_name": "Spritesheets\\ryu_270_6.sprite"
+    },
+    {
+      "id": "4213745f-370a-415e-92de-a293aef90477",
+      "file_name": "Spritesheets\\ryu_275_0.sprite"
+    },
+    {
+      "id": "201398d2-dc13-4c39-bc98-ffaab4476389",
+      "file_name": "Spritesheets\\ryu_275_1.sprite"
+    },
+    {
+      "id": "b9111cd9-4ab1-4274-a999-401920f330e6",
+      "file_name": "Spritesheets\\ryu_275_2.sprite"
+    },
+    {
+      "id": "09c3a784-6409-4174-a3ae-5ee0cbf48b96",
+      "file_name": "Spritesheets\\ryu_275_3.sprite"
+    },
+    {
+      "id": "a6f2b84a-480f-4972-901f-3b7aba88c9b9",
+      "file_name": "Spritesheets\\ryu_275_4.sprite"
+    },
+    {
+      "id": "c939570b-e45d-461e-a359-d21348911a86",
+      "file_name": "Spritesheets\\ryu_276_0.sprite"
+    },
+    {
+      "id": "8dc50e66-b667-45d5-b199-b8ed6a04327a",
+      "file_name": "Spritesheets\\ryu_276_1.sprite"
+    },
+    {
+      "id": "38a7c311-ac12-42d2-8b9d-e2fd58134346",
+      "file_name": "Spritesheets\\ryu_276_2.sprite"
+    },
+    {
+      "id": "5417376d-7901-41b3-b241-58e20a48b4b0",
+      "file_name": "Spritesheets\\ryu_276_3.sprite"
+    },
+    {
+      "id": "5c043a68-d3e9-468a-ae5b-25e24a3dad03",
+      "file_name": "Spritesheets\\ryu_276_4.sprite"
+    },
+    {
+      "id": "4e130510-e5e7-4f09-b7ed-1ea21520de3a",
+      "file_name": "Spritesheets\\ryu_280_0.sprite"
+    },
+    {
+      "id": "246166ba-0ae0-4306-bb41-2646516d2ddd",
+      "file_name": "Spritesheets\\ryu_280_1.sprite"
+    },
+    {
+      "id": "7d078380-9d78-4ade-bc9c-6616ca8c0719",
+      "file_name": "Spritesheets\\ryu_280_2.sprite"
+    },
+    {
+      "id": "4eb84c28-787a-4488-8ee2-00394932bb37",
+      "file_name": "Spritesheets\\ryu_280_3.sprite"
+    },
+    {
+      "id": "346ea142-541e-42fd-89bd-4f6f6018bdbe",
+      "file_name": "Spritesheets\\ryu_280_4.sprite"
+    },
+    {
+      "id": "7df00659-cab4-49db-8787-bc80bd177ce9",
+      "file_name": "Spritesheets\\ryu_282_0.sprite"
+    },
+    {
+      "id": "50ab2514-885f-46b6-a172-de35452e4c69",
+      "file_name": "Spritesheets\\ryu_282_1.sprite"
+    },
+    {
+      "id": "10a06fd4-c0cd-4ee1-83c8-8a6b90f89f37",
+      "file_name": "Spritesheets\\ryu_282_2.sprite"
+    },
+    {
+      "id": "18af1b59-687f-4bb9-863e-62781fd41bee",
+      "file_name": "Spritesheets\\ryu_3004_0.sprite"
+    },
+    {
+      "id": "403394fc-447f-4cfe-80fa-4b854012f5a7",
+      "file_name": "Spritesheets\\ryu_3004_1.sprite"
+    },
+    {
+      "id": "efdbfc76-ec89-45c4-b680-df638a9cd2c4",
+      "file_name": "Spritesheets\\ryu_3020_0.sprite"
+    },
+    {
+      "id": "e694cd32-50d3-4520-bd9f-c1cbf3d848ef",
+      "file_name": "Spritesheets\\ryu_3020_1.sprite"
+    },
+    {
+      "id": "522768ec-f60e-44b8-9630-23212c6b9515",
+      "file_name": "Spritesheets\\ryu_3020_2.sprite"
+    },
+    {
+      "id": "df2128c4-acdb-42a2-838e-fd35067e2514",
+      "file_name": "Spritesheets\\ryu_3020_3.sprite"
+    },
+    {
+      "id": "d6efd1af-1d4f-4867-8551-a23fa05e978b",
+      "file_name": "Spritesheets\\ryu_3021_0.sprite"
+    },
+    {
+      "id": "5252c0a6-7e90-4da3-9c7b-3c885507342d",
+      "file_name": "Spritesheets\\ryu_3100_0.sprite"
+    },
+    {
+      "id": "235be426-e4fe-43e8-8106-4192424e23be",
+      "file_name": "Spritesheets\\ryu_3100_1.sprite"
+    },
+    {
+      "id": "d410a35a-44de-4dba-9380-93f36d84ab9f",
+      "file_name": "Spritesheets\\ryu_3100_2.sprite"
+    },
+    {
+      "id": "58e5920f-1afc-4b40-8090-8bd028c0f35d",
+      "file_name": "Spritesheets\\ryu_3100_3.sprite"
+    },
+    {
+      "id": "943db13b-198f-4499-a587-4f3f53a025a7",
+      "file_name": "Spritesheets\\ryu_3100_4.sprite"
+    },
+    {
+      "id": "3b1b1726-46a8-4d38-b508-fd4732a8d4d7",
+      "file_name": "Spritesheets\\ryu_3100_5.sprite"
+    },
+    {
+      "id": "8bbbe9dc-8eea-4133-8b26-d33803986aaa",
+      "file_name": "Spritesheets\\ryu_3100_6.sprite"
+    },
+    {
+      "id": "40a93edc-4d41-4218-8760-61cf28eec52f",
+      "file_name": "Spritesheets\\ryu_3100_7.sprite"
+    },
+    {
+      "id": "e26800e8-a178-45fb-9790-ac221614a13a",
+      "file_name": "Spritesheets\\ryu_3100_8.sprite"
+    },
+    {
+      "id": "853f72d7-3f2e-4f6f-bdfa-0027d27e54cd",
+      "file_name": "Spritesheets\\ryu_3120_0.sprite"
+    },
+    {
+      "id": "d2c2f279-d8d0-40ec-bc92-5f58a95b2ae7",
+      "file_name": "Spritesheets\\ryu_3120_1.sprite"
+    },
+    {
+      "id": "626990f5-86cb-4aef-9351-6bfc2a9115df",
+      "file_name": "Spritesheets\\ryu_3120_10.sprite"
+    },
+    {
+      "id": "54d36938-a357-44f5-b528-37bc2cd7c85a",
+      "file_name": "Spritesheets\\ryu_3120_11.sprite"
+    },
+    {
+      "id": "9ad00c34-b2c4-41b6-a486-cabe5323e4db",
+      "file_name": "Spritesheets\\ryu_3120_12.sprite"
+    },
+    {
+      "id": "384c2ece-3371-4493-97b8-1314a2680817",
+      "file_name": "Spritesheets\\ryu_3120_13.sprite"
+    },
+    {
+      "id": "50bf9f72-e24b-4d73-afc7-07d4db0d9e12",
+      "file_name": "Spritesheets\\ryu_3120_2.sprite"
+    },
+    {
+      "id": "1a6397ab-c3b4-4313-a5fa-3a44f4460b04",
+      "file_name": "Spritesheets\\ryu_3120_3.sprite"
+    },
+    {
+      "id": "2eb7604d-85c7-4ede-b755-f9cdbbaae41c",
+      "file_name": "Spritesheets\\ryu_3120_4.sprite"
+    },
+    {
+      "id": "614171de-800f-42a5-a751-6fdfdde040aa",
+      "file_name": "Spritesheets\\ryu_3120_5.sprite"
+    },
+    {
+      "id": "dad05fbd-4565-49e1-9c7d-08c60de8024b",
+      "file_name": "Spritesheets\\ryu_3120_6.sprite"
+    },
+    {
+      "id": "22150264-bed0-451b-9421-3c18db7a4051",
+      "file_name": "Spritesheets\\ryu_3120_7.sprite"
+    },
+    {
+      "id": "7afffab3-d4e3-4d9d-bcb7-584d0adbc8b0",
+      "file_name": "Spritesheets\\ryu_3120_8.sprite"
+    },
+    {
+      "id": "3915a660-1c34-4f6a-b9e5-b83add705b02",
+      "file_name": "Spritesheets\\ryu_3120_9.sprite"
+    },
+    {
+      "id": "5c5f5dcf-ef08-4e32-a1ab-8985669b2adb",
+      "file_name": "Spritesheets\\ryu_3124_0.sprite"
+    },
+    {
+      "id": "5f74ddde-0d55-4e8c-8498-aa338aa8f789",
+      "file_name": "Spritesheets\\ryu_3124_1.sprite"
+    },
+    {
+      "id": "d17a96d4-40df-4c1d-a783-1a41fc1de069",
+      "file_name": "Spritesheets\\ryu_3160_0.sprite"
+    },
+    {
+      "id": "7b0d52e2-6420-4b46-9eef-59a5eafbb512",
+      "file_name": "Spritesheets\\ryu_3160_1.sprite"
+    },
+    {
+      "id": "e136fcdf-df2d-46fd-bfd4-2374f2d99e74",
+      "file_name": "Spritesheets\\ryu_3200_0.sprite"
+    },
+    {
+      "id": "8effccfd-080b-4ce5-8fa1-00868ca93795",
+      "file_name": "Spritesheets\\ryu_3200_1.sprite"
+    },
+    {
+      "id": "96fd5349-5711-4d8b-a26f-9de4719c0ee0",
+      "file_name": "Spritesheets\\ryu_3200_2.sprite"
+    },
+    {
+      "id": "23dd163a-ef92-412f-abf1-7d57fb8c7ba9",
+      "file_name": "Spritesheets\\ryu_3400_0.sprite"
+    },
+    {
+      "id": "7a238935-73cb-45ea-8532-d7c8ea9d1125",
+      "file_name": "Spritesheets\\ryu_3400_1.sprite"
+    },
+    {
+      "id": "051501c2-15d2-4f8b-abd8-1e2d4ecb27c6",
+      "file_name": "Spritesheets\\ryu_3400_10.sprite"
+    },
+    {
+      "id": "a2a8b348-6c37-4cea-92c8-c8e9c7adcfb9",
+      "file_name": "Spritesheets\\ryu_3400_11.sprite"
+    },
+    {
+      "id": "0b1e0c52-f791-4503-8b92-680a27976762",
+      "file_name": "Spritesheets\\ryu_3400_12.sprite"
+    },
+    {
+      "id": "7cd7235f-504f-4176-b4f7-6e3d848743c0",
+      "file_name": "Spritesheets\\ryu_3400_13.sprite"
+    },
+    {
+      "id": "edcc3c9e-09c7-4b0f-bb16-45d80a5760cb",
+      "file_name": "Spritesheets\\ryu_3400_14.sprite"
+    },
+    {
+      "id": "2b04c602-dfa4-4b6d-8932-2092a7c8e427",
+      "file_name": "Spritesheets\\ryu_3400_15.sprite"
+    },
+    {
+      "id": "6a51301b-db62-4dfb-b629-5e36e224e0eb",
+      "file_name": "Spritesheets\\ryu_3400_2.sprite"
+    },
+    {
+      "id": "6bc4380d-26ae-4ec8-8fc6-f903849df4e1",
+      "file_name": "Spritesheets\\ryu_3400_3.sprite"
+    },
+    {
+      "id": "b66df12b-7df9-4608-81d8-bab191912fff",
+      "file_name": "Spritesheets\\ryu_3400_4.sprite"
+    },
+    {
+      "id": "90060d02-a568-4981-8b06-231c7c48918b",
+      "file_name": "Spritesheets\\ryu_3400_5.sprite"
+    },
+    {
+      "id": "1ff9abbf-811b-4b3f-b31c-f4bcfa21a60f",
+      "file_name": "Spritesheets\\ryu_3400_6.sprite"
+    },
+    {
+      "id": "5b1d95eb-4582-4d17-a948-e4a03c80a18b",
+      "file_name": "Spritesheets\\ryu_3400_7.sprite"
+    },
+    {
+      "id": "f75936d1-9b59-4aaf-8d15-8e0c844d75ad",
+      "file_name": "Spritesheets\\ryu_3400_9.sprite"
+    },
+    {
+      "id": "db8d0de2-6f83-46eb-bd49-0180e4664b9d",
+      "file_name": "Spritesheets\\ryu_3405_0.sprite"
+    },
+    {
+      "id": "07fe0ed5-3bc6-4a2a-8e67-023d561d38b7",
+      "file_name": "Spritesheets\\ryu_3405_1.sprite"
+    },
+    {
+      "id": "ff63c3d3-58b5-41c9-8ed8-2c3dc2d0e161",
+      "file_name": "Spritesheets\\ryu_3405_10.sprite"
+    },
+    {
+      "id": "e8656fc6-c6fc-45c0-9fa4-1a0a2b65f4bf",
+      "file_name": "Spritesheets\\ryu_3405_11.sprite"
+    },
+    {
+      "id": "645b512e-0bcb-406c-9ccf-0f37dd26b25f",
+      "file_name": "Spritesheets\\ryu_3405_12.sprite"
+    },
+    {
+      "id": "b4c54092-6046-4b6e-9b82-6b460a405242",
+      "file_name": "Spritesheets\\ryu_3405_13.sprite"
+    },
+    {
+      "id": "7e8a4d65-847c-49dd-8cf0-16ccff2d0252",
+      "file_name": "Spritesheets\\ryu_3405_14.sprite"
+    },
+    {
+      "id": "e77e6d90-747a-445c-93e1-615eebe1232d",
+      "file_name": "Spritesheets\\ryu_3405_2.sprite"
+    },
+    {
+      "id": "a2de371b-30eb-4dbd-a211-adf9ad8f5b17",
+      "file_name": "Spritesheets\\ryu_3405_3.sprite"
+    },
+    {
+      "id": "a8d6d552-542c-4ffe-9a97-628bf30e88c1",
+      "file_name": "Spritesheets\\ryu_3405_4.sprite"
+    },
+    {
+      "id": "31ae35b7-2f18-49fe-8994-a3da86d671ef",
+      "file_name": "Spritesheets\\ryu_3405_5.sprite"
+    },
+    {
+      "id": "c2f612e2-4728-4741-8044-92c1457316af",
+      "file_name": "Spritesheets\\ryu_3405_6.sprite"
+    },
+    {
+      "id": "77f4f904-db3c-4722-8a9f-b7b154994ee1",
+      "file_name": "Spritesheets\\ryu_3405_7.sprite"
+    },
+    {
+      "id": "2b570ad1-618b-4e9f-bc25-22103cfba36f",
+      "file_name": "Spritesheets\\ryu_3405_8.sprite"
+    },
+    {
+      "id": "5c416f2d-3cc5-4ba9-b634-54ac5794bb76",
+      "file_name": "Spritesheets\\ryu_3405_9.sprite"
+    },
+    {
+      "id": "17972f57-e978-411f-9053-945dc5395249",
+      "file_name": "Spritesheets\\ryu_350_0.sprite"
+    },
+    {
+      "id": "2d36cf69-5174-4c94-b378-44c3489ef9a1",
+      "file_name": "Spritesheets\\ryu_350_1.sprite"
+    },
+    {
+      "id": "a9cf9a17-3d25-44af-9593-8da0eeecda5a",
+      "file_name": "Spritesheets\\ryu_350_2.sprite"
+    },
+    {
+      "id": "25062899-9eb3-439e-8db7-6c2648502609",
+      "file_name": "Spritesheets\\ryu_350_3.sprite"
+    },
+    {
+      "id": "76d7950a-f59a-4c81-9fe1-060ef139b92f",
+      "file_name": "Spritesheets\\ryu_350_4.sprite"
+    },
+    {
+      "id": "af535a01-6f97-47f4-81cd-936cf0e08000",
+      "file_name": "Spritesheets\\ryu_350_5.sprite"
+    },
+    {
+      "id": "975ae190-de5c-4af0-87d7-2e4871cbe797",
+      "file_name": "Spritesheets\\ryu_350_6.sprite"
+    },
+    {
+      "id": "e55b5d6a-b4fb-40c7-9418-ea046008f044",
+      "file_name": "Spritesheets\\ryu_350_7.sprite"
+    },
+    {
+      "id": "d3464b37-e782-49fe-a119-b2f3c275ff02",
+      "file_name": "Spritesheets\\ryu_350_8.sprite"
+    },
+    {
+      "id": "76135ccb-3248-439a-a4c1-2d91b0b53650",
+      "file_name": "Spritesheets\\ryu_351_0.sprite"
+    },
+    {
+      "id": "5293e735-48d2-4f11-bb84-6e4842d31104",
+      "file_name": "Spritesheets\\ryu_351_1.sprite"
+    },
+    {
+      "id": "94ebfe07-43d6-455e-8ee9-e76d14a121fb",
+      "file_name": "Spritesheets\\ryu_351_10.sprite"
+    },
+    {
+      "id": "9765c449-f9d4-4892-8d03-1d742db24f32",
+      "file_name": "Spritesheets\\ryu_351_11.sprite"
+    },
+    {
+      "id": "652152ad-5256-4c43-b4f6-699698f1d969",
+      "file_name": "Spritesheets\\ryu_351_12.sprite"
+    },
+    {
+      "id": "d0f58cb6-1552-45f7-97d9-4b825d61492d",
+      "file_name": "Spritesheets\\ryu_351_2.sprite"
+    },
+    {
+      "id": "980bdb72-c8d2-40e6-aa75-9482808bd33a",
+      "file_name": "Spritesheets\\ryu_351_3.sprite"
+    },
+    {
+      "id": "802c1f96-fd26-4a09-8aac-626b48ac6f78",
+      "file_name": "Spritesheets\\ryu_351_4.sprite"
+    },
+    {
+      "id": "67e7eeaf-c7c4-4527-97a0-628f2f4f75a4",
+      "file_name": "Spritesheets\\ryu_351_5.sprite"
+    },
+    {
+      "id": "30916fef-1a7f-4b23-b94e-4a530342649f",
+      "file_name": "Spritesheets\\ryu_351_6.sprite"
+    },
+    {
+      "id": "e15b962f-9711-4f8b-87a7-32572c585bd9",
+      "file_name": "Spritesheets\\ryu_351_7.sprite"
+    },
+    {
+      "id": "b1a02159-3e80-4837-a9a9-4bcefd9bd5d3",
+      "file_name": "Spritesheets\\ryu_351_8.sprite"
+    },
+    {
+      "id": "2ef17e35-a105-4c2e-a70d-c49b0f8fc665",
+      "file_name": "Spritesheets\\ryu_351_9.sprite"
+    },
+    {
+      "id": "9759156d-9120-49a3-b333-94023c9aefa4",
+      "file_name": "Spritesheets\\ryu_352_0.sprite"
+    },
+    {
+      "id": "701bb818-77ad-48b8-8f6f-b3e9506b0e0d",
+      "file_name": "Spritesheets\\ryu_352_1.sprite"
+    },
+    {
+      "id": "3bba7816-c152-41e9-b071-24b4b7e444fa",
+      "file_name": "Spritesheets\\ryu_352_2.sprite"
+    },
+    {
+      "id": "feb27caf-84ad-43df-b68e-eb3c863d0668",
+      "file_name": "Spritesheets\\ryu_352_3.sprite"
+    },
+    {
+      "id": "582770d2-f069-4782-9f08-ad03d2fa17d8",
+      "file_name": "Spritesheets\\ryu_352_4.sprite"
+    },
+    {
+      "id": "a686d820-ab56-439e-8029-d1c100a2f567",
+      "file_name": "Spritesheets\\ryu_352_5.sprite"
+    },
+    {
+      "id": "4e130503-bbea-4c8c-b8e4-7fe6025d910d",
+      "file_name": "Spritesheets\\ryu_352_6.sprite"
+    },
+    {
+      "id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a",
+      "file_name": "Spritesheets\\ryu_353_0.sprite"
+    },
+    {
+      "id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa",
+      "file_name": "Spritesheets\\ryu_353_1.sprite"
+    },
+    {
+      "id": "c4447a0f-b763-4fa8-9682-07c83d1d6835",
+      "file_name": "Spritesheets\\ryu_353_10.sprite"
+    },
+    {
+      "id": "3a381e25-df29-4ad2-8b0f-3ad4de38b771",
+      "file_name": "Spritesheets\\ryu_353_11.sprite"
+    },
+    {
+      "id": "b3380b71-5521-4a7a-ae09-18802cc533c1",
+      "file_name": "Spritesheets\\ryu_353_12.sprite"
+    },
+    {
+      "id": "5c87c106-0bb0-4f6e-bfd3-6384ee21ca21",
+      "file_name": "Spritesheets\\ryu_353_13.sprite"
+    },
+    {
+      "id": "0a924851-435b-4fb0-8328-bfe3fc207c62",
+      "file_name": "Spritesheets\\ryu_353_14.sprite"
+    },
+    {
+      "id": "31c5d307-4c5e-49a8-8d0c-059ed81727fe",
+      "file_name": "Spritesheets\\ryu_353_15.sprite"
+    },
+    {
+      "id": "806fc8f1-4879-47d3-a2cb-32654fa478a8",
+      "file_name": "Spritesheets\\ryu_353_16.sprite"
+    },
+    {
+      "id": "e9960fe7-0987-4737-922d-b35d32acf07e",
+      "file_name": "Spritesheets\\ryu_353_17.sprite"
+    },
+    {
+      "id": "e95bfc02-bb00-4155-8508-e8851f9999d6",
+      "file_name": "Spritesheets\\ryu_353_2.sprite"
+    },
+    {
+      "id": "9168301e-e6b2-41d2-a9ea-394eee3201bf",
+      "file_name": "Spritesheets\\ryu_353_3.sprite"
+    },
+    {
+      "id": "51471cbf-2531-47fd-8af5-0a149d1a11df",
+      "file_name": "Spritesheets\\ryu_353_4.sprite"
+    },
+    {
+      "id": "0efdf8da-2d49-4611-a650-bc06afaa4e84",
+      "file_name": "Spritesheets\\ryu_353_5.sprite"
+    },
+    {
+      "id": "a4fffda1-a314-4c62-b505-bc4758169aa1",
+      "file_name": "Spritesheets\\ryu_353_6.sprite"
+    },
+    {
+      "id": "13a193ca-78fa-4237-80ea-f959a4e200af",
+      "file_name": "Spritesheets\\ryu_353_7.sprite"
+    },
+    {
+      "id": "068276f0-3cc3-4432-b1ec-31f7e9968d93",
+      "file_name": "Spritesheets\\ryu_353_8.sprite"
+    },
+    {
+      "id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772",
+      "file_name": "Spritesheets\\ryu_353_9.sprite"
+    },
+    {
+      "id": "21bfb686-d74c-4a0b-bc70-47adfabef02d",
+      "file_name": "Spritesheets\\ryu_354_0.sprite"
+    },
+    {
+      "id": "978c3b16-2633-42df-b206-e344d7bda219",
+      "file_name": "Spritesheets\\ryu_354_1.sprite"
+    },
+    {
+      "id": "5ced21a4-ecc2-42dc-82c0-c29fd139c56d",
+      "file_name": "Spritesheets\\ryu_354_10.sprite"
+    },
+    {
+      "id": "010f5ddc-5ed4-49bc-823a-4e94f71b7252",
+      "file_name": "Spritesheets\\ryu_354_11.sprite"
+    },
+    {
+      "id": "e7505736-6658-4ccd-a909-522e8fc33013",
+      "file_name": "Spritesheets\\ryu_354_2.sprite"
+    },
+    {
+      "id": "4103ae69-299f-4068-b151-5c067e7578cd",
+      "file_name": "Spritesheets\\ryu_354_3.sprite"
+    },
+    {
+      "id": "d90f06a2-f62f-4bba-a593-866f9c079da1",
+      "file_name": "Spritesheets\\ryu_354_4.sprite"
+    },
+    {
+      "id": "aa33e9d3-040a-4454-ab2e-1dfeea26d0b3",
+      "file_name": "Spritesheets\\ryu_354_5.sprite"
+    },
+    {
+      "id": "5e3aa351-f473-450b-9120-dd25115b4676",
+      "file_name": "Spritesheets\\ryu_354_6.sprite"
+    },
+    {
+      "id": "f8e09209-75e6-49af-867d-068920f65b4c",
+      "file_name": "Spritesheets\\ryu_354_7.sprite"
+    },
+    {
+      "id": "c102d4d8-74b8-4a8f-8b63-85cf7242ffb7",
+      "file_name": "Spritesheets\\ryu_354_8.sprite"
+    },
+    {
+      "id": "f50e1c87-7e85-4554-ac90-5f5198b84e39",
+      "file_name": "Spritesheets\\ryu_354_9.sprite"
+    },
+    {
+      "id": "073fe03c-cda5-456f-b52b-190704f4e4b8",
+      "file_name": "Spritesheets\\ryu_355_0.sprite"
+    },
+    {
+      "id": "bc09b297-d297-45df-a38b-1ffff94a19c8",
+      "file_name": "Spritesheets\\ryu_355_1.sprite"
+    },
+    {
+      "id": "2505bb05-6025-4def-a211-fdf9133bb10c",
+      "file_name": "Spritesheets\\ryu_355_2.sprite"
+    },
+    {
+      "id": "2fb88209-47bd-4c7e-b7a9-38a523567aa9",
+      "file_name": "Spritesheets\\ryu_356_0.sprite"
+    },
+    {
+      "id": "8be344d0-8f39-482d-9e64-a0b24924a574",
+      "file_name": "Spritesheets\\ryu_356_1.sprite"
+    },
+    {
+      "id": "d10c47ff-42ce-4291-ba03-cf61380556be",
+      "file_name": "Spritesheets\\ryu_356_2.sprite"
+    },
+    {
+      "id": "37988548-33f3-4b84-b2d0-b4a7e9cf967f",
+      "file_name": "Spritesheets\\ryu_356_3.sprite"
+    },
+    {
+      "id": "5c50e8b6-8bff-4b73-87c6-20d837ecbb52",
+      "file_name": "Spritesheets\\ryu_356_4.sprite"
+    },
+    {
+      "id": "d471e145-faae-4382-94e5-aec511f20dfd",
+      "file_name": "Spritesheets\\ryu_356_5.sprite"
+    },
+    {
+      "id": "aa341f7a-2791-439a-844f-dea0efed32a4",
+      "file_name": "Spritesheets\\ryu_357_0.sprite"
+    },
+    {
+      "id": "7be43585-5d84-47e5-9dbe-1a4cad0376b7",
+      "file_name": "Spritesheets\\ryu_357_1.sprite"
+    },
+    {
+      "id": "727ed139-583c-48e9-9b88-7986f0da153d",
+      "file_name": "Spritesheets\\ryu_357_2.sprite"
+    },
+    {
+      "id": "365a616d-bbdd-4ab5-92be-7a4b86871889",
+      "file_name": "Spritesheets\\ryu_358_0.sprite"
+    },
+    {
+      "id": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f",
+      "file_name": "Spritesheets\\ryu_358_1.sprite"
+    },
+    {
+      "id": "ac15c18b-2bbc-42b8-8128-faa68b9cd836",
+      "file_name": "Spritesheets\\ryu_358_2.sprite"
+    },
+    {
+      "id": "a92f2217-7d55-40ce-a313-ed8c26b81d52",
+      "file_name": "Spritesheets\\ryu_41_0.sprite"
+    },
+    {
+      "id": "b299b3c2-8d27-4ea2-a418-528896789f3d",
+      "file_name": "Spritesheets\\ryu_41_1.sprite"
+    },
+    {
+      "id": "4012ce9e-a7fc-419c-b9fd-a56d8b1fa9b9",
+      "file_name": "Spritesheets\\ryu_41_2.sprite"
+    },
+    {
+      "id": "7b762a35-3268-42dc-89b9-3e0fcb5ada7f",
+      "file_name": "Spritesheets\\ryu_41_3.sprite"
+    },
+    {
+      "id": "dd409267-1cf7-4d51-be31-8674942a0805",
+      "file_name": "Spritesheets\\ryu_41_4.sprite"
+    },
+    {
+      "id": "4ce9dd6c-0bb1-4ae7-8747-5f91241f426c",
+      "file_name": "Spritesheets\\ryu_41_5.sprite"
+    },
+    {
+      "id": "d960b6b5-2124-4993-9194-2d19ce1e78c4",
+      "file_name": "Spritesheets\\ryu_41_6.sprite"
+    },
+    {
+      "id": "7be826e3-bd72-4ca5-855e-d928dde7a0cd",
+      "file_name": "Spritesheets\\ryu_41_7.sprite"
+    },
+    {
+      "id": "184b10f1-3a45-4862-97fd-549d0821e72a",
+      "file_name": "Spritesheets\\ryu_41_8.sprite"
+    },
+    {
+      "id": "0aa506a9-3b5f-4a60-8030-52dc4038b829",
+      "file_name": "Spritesheets\\ryu_41_9.sprite"
+    },
+    {
+      "id": "1ffd999d-cef5-4dee-bd41-9c5574f09f23",
+      "file_name": "Spritesheets\\ryu_42_0.sprite"
+    },
+    {
+      "id": "3a64881b-30a0-4c71-b74b-73721224fc90",
+      "file_name": "Spritesheets\\ryu_42_1.sprite"
+    },
+    {
+      "id": "558dfb8f-df8e-4923-8d6f-b5d9a65af464",
+      "file_name": "Spritesheets\\ryu_42_2.sprite"
+    },
+    {
+      "id": "7ee5b896-96ec-46a8-bc82-46a72032414e",
+      "file_name": "Spritesheets\\ryu_42_3.sprite"
+    },
+    {
+      "id": "bc5489a3-7075-42a1-a9b7-d8f59dc108ba",
+      "file_name": "Spritesheets\\ryu_42_4.sprite"
+    },
+    {
+      "id": "30cbb994-3738-4cff-ab45-6fa4dc6f50ee",
+      "file_name": "Spritesheets\\ryu_42_5.sprite"
+    },
+    {
+      "id": "aacf88ac-e871-4588-ae7a-60ebacc0ae15",
+      "file_name": "Spritesheets\\ryu_42_6.sprite"
+    },
+    {
+      "id": "6975156f-60b3-4c63-b92f-ccd4b17bba16",
+      "file_name": "Spritesheets\\ryu_42_7.sprite"
+    },
+    {
+      "id": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e",
+      "file_name": "Spritesheets\\ryu_5000_0.sprite"
+    },
+    {
+      "id": "fd03e711-521a-46fa-b1e8-539b2d8316d4",
+      "file_name": "Spritesheets\\ryu_5000_10.sprite"
+    },
+    {
+      "id": "e91fde9c-5d97-46d2-a577-c36420646ec3",
+      "file_name": "Spritesheets\\ryu_5000_20.sprite"
+    },
+    {
+      "id": "419a76c8-864e-42fb-b633-0b30d0ecd72c",
+      "file_name": "Spritesheets\\ryu_5000_30.sprite"
+    },
+    {
+      "id": "543f38e4-a413-433f-a14d-ebf800cfc984",
+      "file_name": "Spritesheets\\ryu_5001_20.sprite"
+    },
+    {
+      "id": "768ddb96-d9b9-4292-9bb9-116f8b588516",
+      "file_name": "Spritesheets\\ryu_5002_0.sprite"
+    },
+    {
+      "id": "fba5a76b-7115-4f73-b777-591b9742a03f",
+      "file_name": "Spritesheets\\ryu_5010_0.sprite"
+    },
+    {
+      "id": "8484f066-3c7b-4c38-a736-fbd4fdc349c7",
+      "file_name": "Spritesheets\\ryu_5010_10.sprite"
+    },
+    {
+      "id": "3836964d-f385-46d2-a199-f316399ca10e",
+      "file_name": "Spritesheets\\ryu_5010_20.sprite"
+    },
+    {
+      "id": "a4d87f2a-7530-44af-89b5-96c21d813b3a",
+      "file_name": "Spritesheets\\ryu_5010_30.sprite"
+    },
+    {
+      "id": "32ac8070-703e-4e46-9401-9dad59093165",
+      "file_name": "Spritesheets\\ryu_5012_0.sprite"
+    },
+    {
+      "id": "635a1a1d-7c35-4276-896a-6f05f79f8e36",
+      "file_name": "Spritesheets\\ryu_5020_0.sprite"
+    },
+    {
+      "id": "4cef2551-4f31-4420-89de-c2dc9a501cd2",
+      "file_name": "Spritesheets\\ryu_5020_10.sprite"
+    },
+    {
+      "id": "d08c7123-df43-40a1-856e-7a6245cc42ce",
+      "file_name": "Spritesheets\\ryu_5020_20.sprite"
+    },
+    {
+      "id": "42a747ab-64fb-4208-beb4-4bee7addecd8",
+      "file_name": "Spritesheets\\ryu_5020_30.sprite"
+    },
+    {
+      "id": "65449872-a4e9-478f-8311-6ca77601a7c3",
+      "file_name": "Spritesheets\\ryu_5030_0.sprite"
+    },
+    {
+      "id": "61e5b272-73d2-48a4-b3f7-1fd64bc95b0f",
+      "file_name": "Spritesheets\\ryu_5030_20.sprite"
+    },
+    {
+      "id": "838042fc-d5f3-4b2f-9c10-03f4c45d3007",
+      "file_name": "Spritesheets\\ryu_5030_30.sprite"
+    },
+    {
+      "id": "5e182b4e-171a-45ae-8bbe-3ba3087eff35",
+      "file_name": "Spritesheets\\ryu_5030_40.sprite"
+    },
+    {
+      "id": "44211a80-e3c0-4060-81a9-f2bfbe42f823",
+      "file_name": "Spritesheets\\ryu_5030_50.sprite"
+    },
+    {
+      "id": "1512bf4d-2415-4c2b-a1f5-a63a9ca0bfd4",
+      "file_name": "Spritesheets\\ryu_5031_20.sprite"
+    },
+    {
+      "id": "87c1a53c-f57e-4521-b8b7-be77b5a6cab1",
+      "file_name": "Spritesheets\\ryu_5040_0.sprite"
+    },
+    {
+      "id": "4caf2ec9-d96a-487b-b22d-2601d8da105f",
+      "file_name": "Spritesheets\\ryu_5040_1.sprite"
+    },
+    {
+      "id": "d0234d25-8c63-4d54-b711-d6a4f61769a8",
+      "file_name": "Spritesheets\\ryu_5040_10.sprite"
+    },
+    {
+      "id": "a7ca09de-1f64-4767-a19c-29afeba2c425",
+      "file_name": "Spritesheets\\ryu_5040_11.sprite"
+    },
+    {
+      "id": "ad79b85b-23db-42ab-b627-ba6b773533e9",
+      "file_name": "Spritesheets\\ryu_5040_2.sprite"
+    },
+    {
+      "id": "b0eb4819-e82f-4f48-b4c6-a2d02f23d711",
+      "file_name": "Spritesheets\\ryu_5040_20.sprite"
+    },
+    {
+      "id": "261d8f5b-202d-4f32-b458-3154e9398d54",
+      "file_name": "Spritesheets\\ryu_5052_0.sprite"
+    },
+    {
+      "id": "8260529d-758b-4731-a819-dce3a86a75a9",
+      "file_name": "Spritesheets\\ryu_5052_1.sprite"
+    },
+    {
+      "id": "b2924f37-066e-4828-a2eb-3315ea4bbff7",
+      "file_name": "Spritesheets\\ryu_5052_2.sprite"
+    },
+    {
+      "id": "35deed32-570b-4e3d-9724-4f2ab5ab6618",
+      "file_name": "Spritesheets\\ryu_5060_0.sprite"
+    },
+    {
+      "id": "06d3c968-d0aa-480b-938b-418174390f0f",
+      "file_name": "Spritesheets\\ryu_5070_0.sprite"
+    },
+    {
+      "id": "7c0e2aec-1991-41ec-a1f0-62da843e7711",
+      "file_name": "Spritesheets\\ryu_5070_10.sprite"
+    },
+    {
+      "id": "04dae6b5-5618-4a5f-8cc6-aab21a375963",
+      "file_name": "Spritesheets\\ryu_5070_20.sprite"
+    },
+    {
+      "id": "32794e27-6c34-43bc-81d2-25b7f9ee52fa",
+      "file_name": "Spritesheets\\ryu_5071_20.sprite"
+    },
+    {
+      "id": "eeb28011-bc06-4f17-99db-891205a0cad1",
+      "file_name": "Spritesheets\\ryu_5080_0.sprite"
+    },
+    {
+      "id": "e36f6b8a-8dbc-45ce-a731-cb05c9e81103",
+      "file_name": "Spritesheets\\ryu_5080_1.sprite"
+    },
+    {
+      "id": "edced84b-87df-4300-bf79-38d21666a231",
+      "file_name": "Spritesheets\\ryu_5120_0.sprite"
+    },
+    {
+      "id": "6bd7ccbc-e5bc-4f0e-a0b3-f692e6455996",
+      "file_name": "Spritesheets\\ryu_5120_1.sprite"
+    },
+    {
+      "id": "fd8e5fa6-ed8e-434b-b78b-32feb4b8573a",
+      "file_name": "Spritesheets\\ryu_5120_2.sprite"
+    },
+    {
+      "id": "cd0e7eb7-f53a-4e12-8973-e0ccf859dce4",
+      "file_name": "Spritesheets\\ryu_5120_3.sprite"
+    },
+    {
+      "id": "25f7522a-ce4a-443f-801f-63b924387f78",
+      "file_name": "Spritesheets\\ryu_5120_4.sprite"
+    },
+    {
+      "id": "b354e142-97ed-4f0d-b1bd-9e2198b30883",
+      "file_name": "Spritesheets\\ryu_5130_0.sprite"
+    },
+    {
+      "id": "6ae71183-1591-4601-8de4-649197b6e275",
+      "file_name": "Spritesheets\\ryu_5130_1.sprite"
+    },
+    {
+      "id": "cc3a7c96-ca5a-4581-a959-3727d32315d0",
+      "file_name": "Spritesheets\\ryu_5130_2.sprite"
+    },
+    {
+      "id": "c8606b13-762a-4519-96fb-e9fe833487bb",
+      "file_name": "Spritesheets\\ryu_5300_0.sprite"
+    },
+    {
+      "id": "e44ee088-7674-43b3-9976-925db4132b39",
+      "file_name": "Spritesheets\\ryu_5300_1.sprite"
+    },
+    {
+      "id": "11a4aadb-cda3-4c04-b016-aa4c04371c4b",
+      "file_name": "Spritesheets\\ryu_5300_2.sprite"
+    },
+    {
+      "id": "dd586240-7f4d-42d8-b7bf-3ca144c66b1f",
+      "file_name": "Spritesheets\\ryu_5300_3.sprite"
+    },
+    {
+      "id": "f8fdbe03-63d8-43a9-9001-0a36f7845e5f",
+      "file_name": "Spritesheets\\ryu_5300_4.sprite"
+    },
+    {
+      "id": "6ac364b7-7b1a-49f6-bfec-5fae0ed9a822",
+      "file_name": "Spritesheets\\ryu_5300_5.sprite"
+    },
+    {
+      "id": "c7775a8d-a203-425e-b5c3-49071437a7f2",
+      "file_name": "Spritesheets\\ryu_5910_0.sprite"
+    },
+    {
+      "id": "667a18fc-b2d1-427e-aa89-304390e29230",
+      "file_name": "Spritesheets\\ryu_5910_1.sprite"
+    },
+    {
+      "id": "5267c8c1-b31f-415c-8203-abdcd23218d1",
+      "file_name": "Spritesheets\\ryu_5910_2.sprite"
+    },
+    {
+      "id": "1854dc7d-ba5d-4aa7-b212-3da8d17c752d",
+      "file_name": "Spritesheets\\ryu_5911_0.sprite"
+    },
+    {
+      "id": "e72310b7-caa5-437d-9567-27157a795ef1",
+      "file_name": "Spritesheets\\ryu_5911_1.sprite"
+    },
+    {
+      "id": "a63fdba8-445e-4c24-b9a0-824921b5946b",
+      "file_name": "Spritesheets\\ryu_5920_0.sprite"
+    },
+    {
+      "id": "1f395ebb-b08a-4635-b7d8-ae547001493f",
+      "file_name": "Spritesheets\\ryu_5920_1.sprite"
+    },
+    {
+      "id": "f289691a-5ff0-4758-8e45-7181186402a5",
+      "file_name": "Spritesheets\\ryu_5920_2.sprite"
+    },
+    {
+      "id": "8ea36832-d933-4c8c-976f-60384e151fd8",
+      "file_name": "Spritesheets\\ryu_5921_0.sprite"
+    },
+    {
+      "id": "c0452165-1060-472c-9d94-5c7857ab90ca",
+      "file_name": "Spritesheets\\ryu_5_0.sprite"
+    },
+    {
+      "id": "52c1292a-fb32-427c-8ef6-71053b10c6a5",
+      "file_name": "Spritesheets\\ryu_5_1.sprite"
+    },
+    {
+      "id": "729a64b1-8342-4170-8391-43b5c788f98b",
+      "file_name": "Spritesheets\\ryu_5_2.sprite"
+    },
+    {
+      "id": "d633b845-46d0-4dbe-ae63-c7b7c828eaa4",
+      "file_name": "Spritesheets\\ryu_6_0.sprite"
+    },
+    {
+      "id": "898cd8b0-1351-4fdc-8a99-847afc4961f0",
+      "file_name": "Spritesheets\\ryu_6_1.sprite"
+    },
+    {
+      "id": "c98487f3-aa72-42dc-98cf-b33b4d3e4316",
+      "file_name": "Spritesheets\\ryu_6_2.sprite"
+    },
+    {
+      "id": "87f867d5-9e42-4807-8bd5-8470cee733cf",
+      "file_name": "Spritesheets\\ryu_700_0.sprite"
+    },
+    {
+      "id": "03f00247-8201-4bfb-9ff1-32ef00e3bf82",
+      "file_name": "Spritesheets\\ryu_700_1.sprite"
+    },
+    {
+      "id": "d5e3a31c-c3e0-4bfb-b284-a0f86d7e8e27",
+      "file_name": "Spritesheets\\ryu_700_2.sprite"
+    },
+    {
+      "id": "20f5d6d0-ec22-4ee9-ba11-e7e64575a15e",
+      "file_name": "Spritesheets\\ryu_700_3.sprite"
+    },
+    {
+      "id": "591285be-3fd4-4fc5-8750-64a2b9d715b3",
+      "file_name": "Spritesheets\\ryu_700_4.sprite"
+    },
+    {
+      "id": "ecbe84a3-f836-44b7-9211-aac36e193a5c",
+      "file_name": "Spritesheets\\ryu_701_0.sprite"
+    },
+    {
+      "id": "9e4eab7a-fe99-49e0-ac13-45181b52fcf0",
+      "file_name": "Spritesheets\\ryu_701_1.sprite"
+    },
+    {
+      "id": "9aa4b105-947a-4601-a554-bb0e756af57c",
+      "file_name": "Spritesheets\\ryu_702_0.sprite"
+    },
+    {
+      "id": "0a8ba784-73b1-44f5-a0f8-0f17180f2d4a",
+      "file_name": "Spritesheets\\ryu_702_1.sprite"
+    },
+    {
+      "id": "62b33889-fb65-4d71-b9b6-22a83c96de5b",
+      "file_name": "Spritesheets\\ryu_710_0.sprite"
+    },
+    {
+      "id": "b3df6d54-6f83-4983-bbda-f8c9d34dd190",
+      "file_name": "Spritesheets\\ryu_710_1.sprite"
+    },
+    {
+      "id": "3a96be89-a6cc-4bd7-a656-e55cd4c16a98",
+      "file_name": "Spritesheets\\ryu_710_2.sprite"
+    },
+    {
+      "id": "602a3a80-e221-4221-b4d0-fec6ee967959",
+      "file_name": "Spritesheets\\ryu_720_0.sprite"
+    },
+    {
+      "id": "84a618fc-9f36-48a8-bd58-c5ba387d7a32",
+      "file_name": "Spritesheets\\ryu_720_1.sprite"
+    },
+    {
+      "id": "d5156205-fed0-4dc4-a103-b2485e6e19d1",
+      "file_name": "Spritesheets\\ryu_720_2.sprite"
+    },
+    {
+      "id": "0457150e-e402-47b8-8b4d-69fd16f8e563",
+      "file_name": "Spritesheets\\ryu_720_3.sprite"
+    },
+    {
+      "id": "3ff7b208-930a-43cb-aae5-3f54b0e9e043",
+      "file_name": "Spritesheets\\ryu_720_4.sprite"
+    },
+    {
+      "id": "4ef7ef8d-e7b6-43d8-82a0-6734966486c7",
+      "file_name": "Spritesheets\\ryu_720_5.sprite"
+    },
+    {
+      "id": "1f851426-e1bd-4ab1-ab72-509d82151e15",
+      "file_name": "Spritesheets\\ryu_720_6.sprite"
+    },
+    {
+      "id": "2adf9d80-d34e-47a5-aea7-4cac3903300b",
+      "file_name": "Spritesheets\\ryu_740_0.sprite"
+    },
+    {
+      "id": "aec7b67c-624f-479d-9869-ad3798eac2cf",
+      "file_name": "Spritesheets\\ryu_740_1.sprite"
+    },
+    {
+      "id": "463937db-797c-46a4-9641-b13facf7bafc",
+      "file_name": "Spritesheets\\ryu_750_0.sprite"
+    },
+    {
+      "id": "8fbdb25d-9277-4363-9acd-39deb00e083b",
+      "file_name": "Spritesheets\\ryu_750_1.sprite"
+    },
+    {
+      "id": "1f95eaba-bb72-48c5-86e9-c2e415d4e731",
+      "file_name": "Spritesheets\\ryu_7689_0.sprite"
+    },
+    {
+      "id": "fc27cd27-3e85-4e01-b78a-cade81eecfb1",
+      "file_name": "Spritesheets\\ryu_7689_1.sprite"
+    },
+    {
+      "id": "a13ef65a-9857-4875-8051-42fbe20b401b",
+      "file_name": "Spritesheets\\ryu_7689_2.sprite"
+    },
+    {
+      "id": "e5b773ff-8399-465d-9a01-947895435eeb",
+      "file_name": "Spritesheets\\ryu_7689_3.sprite"
+    },
+    {
+      "id": "cea13c9d-94fc-4b40-a916-d6b08cbfb76d",
+      "file_name": "Spritesheets\\ryu_7697_0.sprite"
+    },
+    {
+      "id": "c0721c24-6e9f-45c7-af94-ecf3695e82e5",
+      "file_name": "Spritesheets\\ryu_800_0.sprite"
+    },
+    {
+      "id": "104c7507-74a8-4050-b429-ea132ec7e504",
+      "file_name": "Spritesheets\\ryu_800_1.sprite"
+    },
+    {
+      "id": "969e06ed-d007-4958-b94e-c189f5d95b5e",
+      "file_name": "Spritesheets\\ryu_800_2.sprite"
+    },
+    {
+      "id": "ba63d73e-c141-425d-9a61-e981ef153ad2",
+      "file_name": "Spritesheets\\ryu_800_3.sprite"
+    },
+    {
+      "id": "dad740d3-66cf-45cc-944e-57d79160f120",
+      "file_name": "Spritesheets\\ryu_800_4.sprite"
+    },
+    {
+      "id": "63a32e56-ac71-4943-9a51-0e4f35f412cd",
+      "file_name": "Spritesheets\\ryu_801_0.sprite"
+    },
+    {
+      "id": "bd49f7c6-2eb4-418e-ab1f-0f3dfd992b45",
+      "file_name": "Spritesheets\\ryu_805_0.sprite"
+    },
+    {
+      "id": "b9b8ed94-08dc-4410-b6f4-2d518385cd55",
+      "file_name": "Spritesheets\\ryu_805_1.sprite"
+    },
+    {
+      "id": "ef9790e0-3e90-487c-bb7a-2488b5330dcb",
+      "file_name": "Spritesheets\\ryu_805_2.sprite"
+    },
+    {
+      "id": "16db2cb6-0088-44e1-a84c-068dba6eeb01",
+      "file_name": "Spritesheets\\ryu_805_3.sprite"
+    },
+    {
+      "id": "e0d27ee6-7b0a-4bbc-beea-ad3c3f4012f4",
+      "file_name": "Spritesheets\\ryu_805_4.sprite"
+    },
+    {
+      "id": "9acca2ef-0b70-4d76-9bb8-a46b694c116e",
+      "file_name": "Spritesheets\\ryu_805_5.sprite"
+    },
+    {
+      "id": "0aed3df2-a558-4b00-b675-39196044fa0d",
+      "file_name": "Spritesheets\\ryu_805_6.sprite"
+    },
+    {
+      "id": "0cd4536c-f934-4af6-b876-8dd8eed8376f",
+      "file_name": "Spritesheets\\ryu_805_7.sprite"
+    },
+    {
+      "id": "1ac92e99-59f9-4c26-9045-8f2224ffd4d9",
+      "file_name": "Spritesheets\\ryu_810_0.sprite"
+    },
+    {
+      "id": "4821faa3-166c-4a72-810d-484647eee1f7",
+      "file_name": "Spritesheets\\ryu_810_1.sprite"
+    },
+    {
+      "id": "5f8c467b-4cdf-4bf3-ad07-eac3096041d2",
+      "file_name": "Spritesheets\\ryu_810_2.sprite"
+    },
+    {
+      "id": "95a52bd0-cfc5-44bb-ab23-419c1530fafe",
+      "file_name": "Spritesheets\\ryu_810_3.sprite"
+    },
+    {
+      "id": "994bb575-084e-4233-84db-be446c5a898d",
+      "file_name": "Spritesheets\\ryu_810_4.sprite"
+    },
+    {
+      "id": "91a5dcf1-ab12-478c-8a38-efc8abea8b56",
+      "file_name": "Spritesheets\\ryu_810_5.sprite"
+    },
+    {
+      "id": "14c73533-deee-4e1b-bb37-e87b94a06b73",
+      "file_name": "Spritesheets\\ryu_810_6.sprite"
+    },
+    {
+      "id": "cd8e8780-363d-4531-adc6-dd9d0aa64a3d",
+      "file_name": "Spritesheets\\ryu_810_7.sprite"
+    },
+    {
+      "id": "1317b650-5e56-414b-ad12-61f64fe8a5e2",
+      "file_name": "Spritesheets\\ryu_9010_0.sprite"
+    },
+    {
+      "id": "79e8d032-95e2-4f87-bba0-93f81611ae76",
+      "file_name": "Spritesheets\\ryu_9010_1.sprite"
+    },
+    {
+      "id": "8a788e30-451c-4e9f-a940-c23f59dc410a",
+      "file_name": "Spritesheets\\ryu_hit.anim2d"
+    },
+    {
+      "id": "c96a5148-d854-4eaa-bc3f-45df57129f32",
+      "file_name": "Spritesheets\\ryu_104.anim2d"
+    },
+    {
+      "id": "162df612-0ada-4bdd-bde5-5b94201ce354",
+      "file_name": "Spritesheets\\ryu_crouch.anim2d"
+    },
+    {
+      "id": "29adc37a-4d47-4259-aa0a-648bc3da99b3",
+      "file_name": "Spritesheets\\ryu_1100.anim2d"
+    },
+    {
+      "id": "013f9794-ec4d-4359-93e7-dc675562d7f8",
+      "file_name": "Spritesheets\\ryu_1101.anim2d"
+    },
+    {
+      "id": "88045976-2d21-4813-8ec4-ac7b446821d2",
+      "file_name": "Spritesheets\\ryu_1102.anim2d"
+    },
+    {
+      "id": "b3516a28-5a3c-4a30-9ba5-2f7e2343ba98",
+      "file_name": "Spritesheets\\ryu_crouch_to_idle.anim2d"
+    },
+    {
+      "id": "8c63d383-f914-4aae-9e56-1d5f37c01706",
+      "file_name": "Spritesheets\\ryu_120.anim2d"
+    },
+    {
+      "id": "3a4dd40d-0d29-4ab6-86ab-b9e7e7c3f147",
+      "file_name": "Spritesheets\\ryu_1200.anim2d"
+    },
+    {
+      "id": "e1358250-1f1a-4034-b240-8f2ce4f48b9c",
+      "file_name": "Spritesheets\\ryu_1201.anim2d"
+    },
+    {
+      "id": "0d82392f-fdaf-479a-8600-ba25c43903d3",
+      "file_name": "Spritesheets\\ryu_1205.anim2d"
+    },
+    {
+      "id": "cd084bf0-476a-4596-8fee-65621631810c",
+      "file_name": "Spritesheets\\ryu_1207.anim2d"
+    },
+    {
+      "id": "338b97b7-189b-4eb3-916e-a7459d977854",
+      "file_name": "Spritesheets\\ryu_1208.anim2d"
+    },
+    {
+      "id": "1a27e2c5-afac-485c-986b-1c4b835206e8",
+      "file_name": "Spritesheets\\ryu_121.anim2d"
+    },
+    {
+      "id": "a597743e-5f3b-4556-8580-60ff098ff205",
+      "file_name": "Spritesheets\\ryu_1210.anim2d"
+    },
+    {
+      "id": "b8400fd5-1bad-414a-82d4-602bb98cd615",
+      "file_name": "Spritesheets\\ryu_122.anim2d"
+    },
+    {
+      "id": "4f4ccd1d-4db5-42f4-9c65-ab8f515d5b0c",
+      "file_name": "Spritesheets\\ryu_1250.anim2d"
+    },
+    {
+      "id": "22442802-2646-46b2-bbdd-20a7e4e934c2",
+      "file_name": "Spritesheets\\ryu_1260.anim2d"
+    },
+    {
+      "id": "094783b0-62e0-49c5-80c5-224216eea74c",
+      "file_name": "Spritesheets\\ryu_1270.anim2d"
+    },
+    {
+      "id": "5b80ce5e-5818-409b-b168-76384c1af03d",
+      "file_name": "Spritesheets\\ryu_130.anim2d"
+    },
+    {
+      "id": "8adae538-a4d5-408c-9272-2472a690e9fc",
+      "file_name": "Spritesheets\\ryu_1300.anim2d"
+    },
+    {
+      "id": "4c529996-85e0-41fb-85e9-fb15a8a85fc0",
+      "file_name": "Spritesheets\\ryu_1301.anim2d"
+    },
+    {
+      "id": "941bc304-d604-4ef4-b532-d3b96abda950",
+      "file_name": "Spritesheets\\ryu_1302.anim2d"
+    },
+    {
+      "id": "7562b45c-0ff2-43b3-ad45-2d0b416c8d94",
+      "file_name": "Spritesheets\\ryu_131.anim2d"
+    },
+    {
+      "id": "0e8d019f-2340-4042-b0ff-dff7e9f7d999",
+      "file_name": "Spritesheets\\ryu_132.anim2d"
+    },
+    {
+      "id": "70074eab-4f41-4d55-a7b3-10ea6c1db945",
+      "file_name": "Spritesheets\\ryu_1350.anim2d"
+    },
+    {
+      "id": "10388319-c50c-4606-9a5e-d59502d355d4",
+      "file_name": "Spritesheets\\ryu_1351.anim2d"
+    },
+    {
+      "id": "5a6ccdc4-5372-486c-adf9-4624949166bd",
+      "file_name": "Spritesheets\\ryu_1352.anim2d"
+    },
+    {
+      "id": "c93284fd-0f1f-4b9b-bb08-c233582a4904",
+      "file_name": "Spritesheets\\ryu_1360.anim2d"
+    },
+    {
+      "id": "ba892811-70d3-4ea6-9a22-f69edece1a0a",
+      "file_name": "Spritesheets\\ryu_140.anim2d"
+    },
+    {
+      "id": "fab8a512-275f-4781-ad27-5ce53a30f25c",
+      "file_name": "Spritesheets\\ryu_1400.anim2d"
+    },
+    {
+      "id": "1985c71e-f260-404a-9502-fd52c6215ad9",
+      "file_name": "Spritesheets\\ryu_141.anim2d"
+    },
+    {
+      "id": "9dabc887-d9c4-49ff-8497-4f4715afadbc",
+      "file_name": "Spritesheets\\ryu_142.anim2d"
+    },
+    {
+      "id": "16a8fb98-8fe8-4ff1-9c3f-dd6b03d42a6e",
+      "file_name": "Spritesheets\\ryu_150.anim2d"
+    },
+    {
+      "id": "73ea7b62-e1db-40a0-ada3-4010d90ee2a6",
+      "file_name": "Spritesheets\\ryu_1500.anim2d"
+    },
+    {
+      "id": "2683491b-b50d-4b6a-b1e6-5ff97fe0e017",
+      "file_name": "Spritesheets\\ryu_151.anim2d"
+    },
+    {
+      "id": "fa1831e5-1590-445d-90fa-e082140092c2",
+      "file_name": "Spritesheets\\ryu_152.anim2d"
+    },
+    {
+      "id": "65dba96b-4756-49ca-bff5-6f0a93cead3f",
+      "file_name": "Spritesheets\\ryu_1550.anim2d"
+    },
+    {
+      "id": "933c90cc-81eb-46b4-8c72-6aea3f13b8ca",
+      "file_name": "Spritesheets\\ryu_1600.anim2d"
+    },
+    {
+      "id": "f78733b5-112e-4617-9631-a1a7d7b03087",
+      "file_name": "Spritesheets\\ryu_1601.anim2d"
+    },
+    {
+      "id": "032e9816-b084-410b-8f77-70545f597719",
+      "file_name": "Spritesheets\\ryu_1602.anim2d"
+    },
+    {
+      "id": "92575d15-a077-42f0-8520-d41ef5495312",
+      "file_name": "Spritesheets\\ryu_1605.anim2d"
+    },
+    {
+      "id": "062eef8c-e313-410a-af8f-231d95d37acd",
+      "file_name": "Spritesheets\\ryu_1650.anim2d"
+    },
+    {
+      "id": "9f062830-6582-4065-8c36-df6a3cede058",
+      "file_name": "Spritesheets\\ryu_1651.anim2d"
+    },
+    {
+      "id": "81e5388c-f1f5-482b-b27e-357f80d49d45",
+      "file_name": "Spritesheets\\ryu_1652.anim2d"
+    },
+    {
+      "id": "aae6dc4f-40e8-4859-b5c8-31872a76ad73",
+      "file_name": "Spritesheets\\ryu_170.anim2d"
+    },
+    {
+      "id": "f3f82121-c599-48a6-b071-755e747db57d",
+      "file_name": "Spritesheets\\ryu_175.anim2d"
+    },
+    {
+      "id": "c5d7500d-42be-46cd-b12b-079981f46053",
+      "file_name": "Spritesheets\\ryu_192.anim2d"
+    },
+    {
+      "id": "f8b7d3fd-914e-43ab-a2f0-15db0d4fc8f0",
+      "file_name": "Spritesheets\\ryu_195.anim2d"
+    },
+    {
+      "id": "2959f67e-f5eb-4523-a1ed-c393c65a4752",
+      "file_name": "Spritesheets\\ryu_197.anim2d"
+    },
+    {
+      "id": "48b81143-cd02-4016-baa6-ec33295dfb12",
+      "file_name": "Spritesheets\\ryu_198.anim2d"
+    },
+    {
+      "id": "a540efa9-e39a-4ed5-916e-ae1bfe648fc0",
+      "file_name": "Spritesheets\\ryu_200.anim2d"
+    },
+    {
+      "id": "5efb01be-b0a7-44ea-b575-be83825354af",
+      "file_name": "Spritesheets\\ryu_201.anim2d"
+    },
+    {
+      "id": "ff7104ee-1f1b-478b-bc18-72545488c4e0",
+      "file_name": "Spritesheets\\ryu_208.anim2d"
+    },
+    {
+      "id": "fcbc30be-ade6-453e-b01a-67bbf104e2b3",
+      "file_name": "Spritesheets\\ryu_210.anim2d"
+    },
+    {
+      "id": "182254dc-9765-47a4-8a07-c754017e2b5e",
+      "file_name": "Spritesheets\\ryu_211.anim2d"
+    },
+    {
+      "id": "6a5450fb-5adb-4022-b0d6-57af225425dd",
+      "file_name": "Spritesheets\\ryu_213.anim2d"
+    },
+    {
+      "id": "8b90e606-f2fb-44e4-9d37-9a7c26c0e386",
+      "file_name": "Spritesheets\\ryu_214.anim2d"
+    },
+    {
+      "id": "caf1c48b-dd3b-4f03-a4e3-3b03c71cd1e1",
+      "file_name": "Spritesheets\\ryu_215.anim2d"
+    },
+    {
+      "id": "1745fc52-b5d4-415c-8722-efb90b88183e",
+      "file_name": "Spritesheets\\ryu_220.anim2d"
+    },
+    {
+      "id": "a9cd4c19-2c20-44fa-9050-c5a8333482cd",
+      "file_name": "Spritesheets\\ryu_221.anim2d"
+    },
+    {
+      "id": "17b6abd7-ff2b-4963-83d4-e30f0713f509",
+      "file_name": "Spritesheets\\ryu_225.anim2d"
+    },
+    {
+      "id": "54a1d58d-cc38-4f8b-8f73-4939e5f6218e",
+      "file_name": "Spritesheets\\ryu_230.anim2d"
+    },
+    {
+      "id": "80cde10a-7574-4051-a62f-4865ac99aff6",
+      "file_name": "Spritesheets\\ryu_240.anim2d"
+    },
+    {
+      "id": "c852259f-ebc2-41e1-a70f-d755a85eb2cc",
+      "file_name": "Spritesheets\\ryu_241.anim2d"
+    },
+    {
+      "id": "92a795bd-f5a5-407f-93f6-ae7106a66172",
+      "file_name": "Spritesheets\\ryu_250.anim2d"
+    },
+    {
+      "id": "b79cd6ff-6543-4025-97de-17288e7fea60",
+      "file_name": "Spritesheets\\ryu_251.anim2d"
+    },
+    {
+      "id": "4d272796-4d19-4fbc-be63-af73d51fe9cb",
+      "file_name": "Spritesheets\\ryu_255.anim2d"
+    },
+    {
+      "id": "c3bc011c-6341-4bef-a724-59efd8a93b73",
+      "file_name": "Spritesheets\\ryu_3000.anim2d"
+    },
+    {
+      "id": "8099e5c5-4687-401e-b536-57e21829c5ba",
+      "file_name": "Spritesheets\\ryu_3001.anim2d"
+    },
+    {
+      "id": "b67fc66a-4b51-4adb-895d-69eaa782517a",
+      "file_name": "Spritesheets\\ryu_3002.anim2d"
+    },
+    {
+      "id": "69e689de-97ce-4006-8a8b-fd4ff0727b92",
+      "file_name": "Spritesheets\\ryu_3020.anim2d"
+    },
+    {
+      "id": "4772da40-3e5d-4748-bff0-8b02f39b460b",
+      "file_name": "Spritesheets\\ryu_3021.anim2d"
+    },
+    {
+      "id": "07dad07d-ed57-43b5-8f85-6c37e3431838",
+      "file_name": "Spritesheets\\ryu_3040.anim2d"
+    },
+    {
+      "id": "81d3dfd8-fd87-468c-9954-8ad82ce7a9a8",
+      "file_name": "Spritesheets\\ryu_3041.anim2d"
+    },
+    {
+      "id": "a69c4a7a-be84-473a-b431-8f7be7922ab0",
+      "file_name": "Spritesheets\\ryu_3050.anim2d"
+    },
+    {
+      "id": "7ae976fc-4c25-48f0-b718-0c24418d9bc1",
+      "file_name": "Spritesheets\\ryu_3051.anim2d"
+    },
+    {
+      "id": "d27dfd5b-c7be-4d82-a276-2a731b866fc1",
+      "file_name": "Spritesheets\\ryu_3100.anim2d"
+    },
+    {
+      "id": "99dcce58-044e-4e8a-aa6b-1193496907f2",
+      "file_name": "Spritesheets\\ryu_3101.anim2d"
+    },
+    {
+      "id": "791bd246-d159-47cb-90b5-7138070a0dea",
+      "file_name": "Spritesheets\\ryu_3102.anim2d"
+    },
+    {
+      "id": "6b08cb08-6413-45e1-ab71-22726fa0856f",
+      "file_name": "Spritesheets\\ryu_3105.anim2d"
+    },
+    {
+      "id": "d6a83e20-b064-47c4-8db4-c20bc1fcd599",
+      "file_name": "Spritesheets\\ryu_3120.anim2d"
+    },
+    {
+      "id": "7a0bca54-c496-4939-a132-aa71c3b86bbe",
+      "file_name": "Spritesheets\\ryu_3121.anim2d"
+    },
+    {
+      "id": "568f4f48-cb79-4a43-8b43-ebb2c1af5a5f",
+      "file_name": "Spritesheets\\ryu_3122.anim2d"
+    },
+    {
+      "id": "eaf474e2-c6e7-46e5-9729-7142c3d69533",
+      "file_name": "Spritesheets\\ryu_3140.anim2d"
+    },
+    {
+      "id": "7a6f2278-1173-4af6-9f76-976c56907763",
+      "file_name": "Spritesheets\\ryu_3160.anim2d"
+    },
+    {
+      "id": "608da9f8-ff85-486c-8507-543eb14c5fc5",
+      "file_name": "Spritesheets\\ryu_3161.anim2d"
+    },
+    {
+      "id": "17c25f7a-588b-4370-8703-3e96779a2eb4",
+      "file_name": "Spritesheets\\ryu_3180.anim2d"
+    },
+    {
+      "id": "5b53a4f6-2fad-433b-9161-4d035328c797",
+      "file_name": "Spritesheets\\ryu_3200.anim2d"
+    },
+    {
+      "id": "e1dd9de1-185d-4dee-a271-0ac927fa29d8",
+      "file_name": "Spritesheets\\ryu_3201.anim2d"
+    },
+    {
+      "id": "ece7d025-635c-4f3b-853e-c02713f1b8d8",
+      "file_name": "Spritesheets\\ryu_3202.anim2d"
+    },
+    {
+      "id": "ae6d7313-b61b-471a-992d-9a07bffd5dbf",
+      "file_name": "Spritesheets\\ryu_3250.anim2d"
+    },
+    {
+      "id": "fad3279b-77fe-400e-b475-1a4cbc96282f",
+      "file_name": "Spritesheets\\ryu_3300.anim2d"
+    },
+    {
+      "id": "066e59c3-3665-4195-8c7f-9c32437702c1",
+      "file_name": "Spritesheets\\ryu_3306.anim2d"
+    },
+    {
+      "id": "6506a800-75a0-48c7-9994-2e71566b3490",
+      "file_name": "Spritesheets\\ryu_3307.anim2d"
+    },
+    {
+      "id": "e024f67e-8e7a-430e-8611-c4f1fc9b3246",
+      "file_name": "Spritesheets\\ryu_3350.anim2d"
+    },
+    {
+      "id": "a80a4687-5a7c-4df5-a156-64d774ca10f3",
+      "file_name": "Spritesheets\\ryu_3352.anim2d"
+    },
+    {
+      "id": "c2732455-c89f-4f2d-938a-2ddd4392426c",
+      "file_name": "Spritesheets\\ryu_3355.anim2d"
+    },
+    {
+      "id": "1ded2679-7abe-4817-ba2f-85f0476b128b",
+      "file_name": "Spritesheets\\ryu_3362.anim2d"
+    },
+    {
+      "id": "282503db-d78d-4156-8a5d-6c255eae6136",
+      "file_name": "Spritesheets\\ryu_3363.anim2d"
+    },
+    {
+      "id": "a90e9835-812f-4465-b664-e447a59a56bb",
+      "file_name": "Spritesheets\\ryu_3400.anim2d"
+    },
+    {
+      "id": "585e4929-1912-40fd-a00c-1ac441f98eb2",
+      "file_name": "Spritesheets\\ryu_3401.anim2d"
+    },
+    {
+      "id": "d72ba07f-86ec-46b5-a876-984fdb7e9659",
+      "file_name": "Spritesheets\\ryu_3402.anim2d"
+    },
+    {
+      "id": "bc62d7dd-4043-46f6-b0ec-fb8999bf51ca",
+      "file_name": "Spritesheets\\ryu_3403.anim2d"
+    },
+    {
+      "id": "5ef35a8e-882a-416b-aa2a-4af5dbafc6c9",
+      "file_name": "Spritesheets\\ryu_3404.anim2d"
+    },
+    {
+      "id": "36c6f06b-6e08-4d2d-99b4-0cb01062e067",
+      "file_name": "Spritesheets\\ryu_350.anim2d"
+    },
+    {
+      "id": "cdc417e6-d682-4782-b594-370dd38ef8a5",
+      "file_name": "Spritesheets\\ryu_351.anim2d"
+    },
+    {
+      "id": "2dfae6a5-ecd3-438a-90ca-1104293f4aa6",
+      "file_name": "Spritesheets\\ryu_352.anim2d"
+    },
+    {
+      "id": "ab819318-94f2-4fc6-b79e-fd0925261351",
+      "file_name": "Spritesheets\\ryu_353.anim2d"
+    },
+    {
+      "id": "429a80c0-bba9-4c9f-bd78-0b1858c599fb",
+      "file_name": "Spritesheets\\ryu_354.anim2d"
+    },
+    {
+      "id": "059b6b68-c6bf-4892-933c-17f543f8467a",
+      "file_name": "Spritesheets\\ryu_355.anim2d"
+    },
+    {
+      "id": "81bfedc3-caca-453a-b9b7-e9f0642b0563",
+      "file_name": "Spritesheets\\ryu_3550.anim2d"
+    },
+    {
+      "id": "72f73d66-fa0b-4b50-9023-629b6f5803f2",
+      "file_name": "Spritesheets\\ryu_3558.anim2d"
+    },
+    {
+      "id": "330a5be3-a797-4018-8061-3e6056676270",
+      "file_name": "Spritesheets\\ryu_356.anim2d"
+    },
+    {
+      "id": "85f0dace-bf02-41ae-ad1b-94c92881465a",
+      "file_name": "Spritesheets\\ryu_3560.anim2d"
+    },
+    {
+      "id": "f8007bb7-1f0b-4d22-b4fc-6e372b7b309e",
+      "file_name": "Spritesheets\\ryu_357.anim2d"
+    },
+    {
+      "id": "797e37be-f1e1-40f5-8275-bf3282fa3d0a",
+      "file_name": "Spritesheets\\ryu_358.anim2d"
+    },
+    {
+      "id": "26b6eab9-e9db-46ec-8cae-b04ec773506c",
+      "file_name": "Spritesheets\\ryu_359.anim2d"
+    },
+    {
+      "id": "bc39b504-5929-48a5-a573-21bb10bfdaf6",
+      "file_name": "Spritesheets\\ryu_360.anim2d"
+    },
+    {
+      "id": "4ecfc9eb-c323-486e-bb62-d06b322530fe",
+      "file_name": "Spritesheets\\ryu_3600.anim2d"
+    },
+    {
+      "id": "3b16d07e-2f2e-4441-8e15-1ac0091aa358",
+      "file_name": "Spritesheets\\ryu_3601.anim2d"
+    },
+    {
+      "id": "8f087d82-1b33-466c-bcbb-6c5ee4cb9c7b",
+      "file_name": "Spritesheets\\ryu_3602.anim2d"
+    },
+    {
+      "id": "39c3f553-2ffd-41b0-85fa-d1e97cd97287",
+      "file_name": "Spritesheets\\ryu_3603.anim2d"
+    },
+    {
+      "id": "3692a6cc-f3ae-4099-acbb-52dfe644c1ff",
+      "file_name": "Spritesheets\\ryu_3604.anim2d"
+    },
+    {
+      "id": "043d729a-46be-48a5-a44f-a174813bdb49",
+      "file_name": "Spritesheets\\ryu_3605.anim2d"
+    },
+    {
+      "id": "0d286f7e-6e4a-4325-ac86-5665a4fa563a",
+      "file_name": "Spritesheets\\ryu_3607.anim2d"
+    },
+    {
+      "id": "457fe797-8a03-4e06-b985-a6c783af8285",
+      "file_name": "Spritesheets\\ryu_361.anim2d"
+    },
+    {
+      "id": "7aeb8a85-7114-4b5a-88e6-9cccbfb46847",
+      "file_name": "Spritesheets\\ryu_362.anim2d"
+    },
+    {
+      "id": "295dab78-5d4b-41f8-a809-aa87985d32b3",
+      "file_name": "Spritesheets\\ryu_363.anim2d"
+    },
+    {
+      "id": "86a4cb9b-46c7-49d0-8b48-2790d53651c3",
+      "file_name": "Spritesheets\\ryu_364.anim2d"
+    },
+    {
+      "id": "18f604ae-a0c6-4f58-ac03-decac36496c0",
+      "file_name": "Spritesheets\\ryu_365.anim2d"
+    },
+    {
+      "id": "0a02e7f1-f375-4e84-86a8-667fd31c90b0",
+      "file_name": "Spritesheets\\ryu_366.anim2d"
+    },
+    {
+      "id": "530f6012-49a7-4667-8e6f-9ec4827c5068",
+      "file_name": "Spritesheets\\ryu_368.anim2d"
+    },
+    {
+      "id": "8f6fb377-69ce-4b2c-a0c5-7e8693069f92",
+      "file_name": "Spritesheets\\ryu_369.anim2d"
+    },
+    {
+      "id": "53bffb98-828d-4447-983f-de2cd9087963",
+      "file_name": "Spritesheets\\ryu_370.anim2d"
+    },
+    {
+      "id": "f7c8a78c-793b-4c97-b064-883791aba2e9",
+      "file_name": "Spritesheets\\ryu_3700.anim2d"
+    },
+    {
+      "id": "ddfc5690-6694-486b-993c-178985f6ca8a",
+      "file_name": "Spritesheets\\ryu_3701.anim2d"
+    },
+    {
+      "id": "e111a730-aa26-404e-a7eb-4de54fc60a85",
+      "file_name": "Spritesheets\\ryu_3702.anim2d"
+    },
+    {
+      "id": "fcade8bc-71bc-42ec-84d7-54958cdc2adf",
+      "file_name": "Spritesheets\\ryu_371.anim2d"
+    },
+    {
+      "id": "79b9eb2c-a9bc-4ef3-bc47-b46491358fc5",
+      "file_name": "Spritesheets\\ryu_372.anim2d"
+    },
+    {
+      "id": "5e0da61e-148d-437d-a278-316fd9188d56",
+      "file_name": "Spritesheets\\ryu_373.anim2d"
+    },
+    {
+      "id": "7a51757b-00ce-44a8-9988-f8f848fbb4e4",
+      "file_name": "Spritesheets\\ryu_374.anim2d"
+    },
+    {
+      "id": "044be776-35be-4b57-b900-5b53db60647f",
+      "file_name": "Spritesheets\\ryu_375.anim2d"
+    },
+    {
+      "id": "10ca49c9-059d-4b7a-b469-12a855fe4b54",
+      "file_name": "Spritesheets\\ryu_3750.anim2d"
+    },
+    {
+      "id": "b13ae55a-dac9-4f3a-b19f-9af3d8a39c11",
+      "file_name": "Spritesheets\\ryu_3751.anim2d"
+    },
+    {
+      "id": "149b2bc5-4eeb-47e8-8a39-c88fbd7ae393",
+      "file_name": "Spritesheets\\ryu_3752.anim2d"
+    },
+    {
+      "id": "9d19622e-e771-4ce4-b160-e405cc48f50d",
+      "file_name": "Spritesheets\\ryu_3755.anim2d"
+    },
+    {
+      "id": "a7e777f4-1513-4238-8bd2-c4467012772c",
+      "file_name": "Spritesheets\\ryu_3756.anim2d"
+    },
+    {
+      "id": "1793fe9a-b125-4a8e-8cfa-2a5a7fc96534",
+      "file_name": "Spritesheets\\ryu_380.anim2d"
+    },
+    {
+      "id": "a2dcad5c-3776-4aff-8a82-affb472fd22d",
+      "file_name": "Spritesheets\\ryu_381.anim2d"
+    },
+    {
+      "id": "28071801-8287-4dee-be13-b620a7c2be75",
+      "file_name": "Spritesheets\\ryu_382.anim2d"
+    },
+    {
+      "id": "de08fe39-5907-47f7-b26f-2bf4ba8051c9",
+      "file_name": "Spritesheets\\ryu_40.anim2d"
+    },
+    {
+      "id": "a84638da-67ca-4103-b917-8dae268eb16e",
+      "file_name": "Spritesheets\\ryu_400.anim2d"
+    },
+    {
+      "id": "c7fd9ff1-f0bb-425e-814b-5d5deb737298",
+      "file_name": "Spritesheets\\ryu_4000.anim2d"
+    },
+    {
+      "id": "f943235b-d8e4-4dbd-93d5-e44169708167",
+      "file_name": "Spritesheets\\ryu_4001.anim2d"
+    },
+    {
+      "id": "d7cce12c-f545-485d-aaa4-1dc8f243194f",
+      "file_name": "Spritesheets\\ryu_4002.anim2d"
+    },
+    {
+      "id": "08fac51b-5fc5-48f6-bc97-173ec52973fc",
+      "file_name": "Spritesheets\\ryu_4003.anim2d"
+    },
+    {
+      "id": "ac1daf2f-044e-42b6-b34d-40d06e2e5161",
+      "file_name": "Spritesheets\\ryu_4021.anim2d"
+    },
+    {
+      "id": "6f437049-c04f-4436-9f8a-f8b3350c6ece",
+      "file_name": "Spritesheets\\ryu_4045.anim2d"
+    },
+    {
+      "id": "64f15df0-3c0f-4452-a085-28f772fd355e",
+      "file_name": "Spritesheets\\ryu_4046.anim2d"
+    },
+    {
+      "id": "277d3694-4120-46a8-9456-1563bd8c37d5",
+      "file_name": "Spritesheets\\ryu_4047.anim2d"
+    },
+    {
+      "id": "af5eb690-7e47-4a4b-a476-d8d427bc7508",
+      "file_name": "Spritesheets\\ryu_4048.anim2d"
+    },
+    {
+      "id": "cbbafec3-d483-471d-adac-48e926245e7e",
+      "file_name": "Spritesheets\\ryu_4050.anim2d"
+    },
+    {
+      "id": "8e17bb28-fa3b-4da8-aa8d-74eac83f35b5",
+      "file_name": "Spritesheets\\ryu_4058.anim2d"
+    },
+    {
+      "id": "8d161cee-e6d7-4afc-a2e0-df01d626ec9c",
+      "file_name": "Spritesheets\\ryu_4059.anim2d"
+    },
+    {
+      "id": "495ca0f2-9b81-4733-8648-777db8704088",
+      "file_name": "Spritesheets\\ryu_41.anim2d"
+    },
+    {
+      "id": "14b92520-f337-4cd3-a58e-103af7a327e8",
+      "file_name": "Spritesheets\\ryu_410.anim2d"
+    },
+    {
+      "id": "a2fb4569-9518-4fe0-92e9-e6c42d6c88e2",
+      "file_name": "Spritesheets\\ryu_42.anim2d"
+    },
+    {
+      "id": "bb4babec-a8dc-409a-8081-9c7048b27b6c",
+      "file_name": "Spritesheets\\ryu_420.anim2d"
+    },
+    {
+      "id": "b7b4e45a-334b-44a0-8f8e-4fed31d10c52",
+      "file_name": "Spritesheets\\ryu_43.anim2d"
+    },
+    {
+      "id": "2f006b98-dbe7-4a1d-b175-9621fa7c3808",
+      "file_name": "Spritesheets\\ryu_430.anim2d"
+    },
+    {
+      "id": "5ccb87f3-9770-42c8-930b-b173caf96ddc",
+      "file_name": "Spritesheets\\ryu_440.anim2d"
+    },
+    {
+      "id": "e3a0ce02-1eae-47c9-aa3b-3ed490445a99",
+      "file_name": "Spritesheets\\ryu_4400.anim2d"
+    },
+    {
+      "id": "0f9ad9dc-a74d-40a2-9818-7359f98ce9a0",
+      "file_name": "Spritesheets\\ryu_450.anim2d"
+    },
+    {
+      "id": "9c0c7d55-4152-4cd2-b5e0-2979dd6697a3",
+      "file_name": "Spritesheets\\ryu_47.anim2d"
+    },
+    {
+      "id": "5301c63d-dd00-4a28-8d3f-87bec01d0f1f",
+      "file_name": "Spritesheets\\ryu_48.anim2d"
+    },
+    {
+      "id": "36f49201-efd0-4224-846c-3d27ac142551",
+      "file_name": "Spritesheets\\ryu_5.anim2d"
+    },
+    {
+      "id": "bfc9672e-5601-4a34-b0ae-b50f7ba9004c",
+      "file_name": "Spritesheets\\ryu_5000.anim2d"
+    },
+    {
+      "id": "22e3339f-0346-42ee-bd5e-8212b9a84c58",
+      "file_name": "Spritesheets\\ryu_5001.anim2d"
+    },
+    {
+      "id": "a336770c-7b6d-48e0-b710-4d9c0b4d9b63",
+      "file_name": "Spritesheets\\ryu_5002.anim2d"
+    },
+    {
+      "id": "9bdcac80-1bef-4931-a1c3-2a0896c79cb1",
+      "file_name": "Spritesheets\\ryu_5005.anim2d"
+    },
+    {
+      "id": "059199c7-0b97-4d5b-a625-6b15c439ef31",
+      "file_name": "Spritesheets\\ryu_5006.anim2d"
+    },
+    {
+      "id": "f3d76225-b9b5-4cf7-a03d-3248aea9bf55",
+      "file_name": "Spritesheets\\ryu_5007.anim2d"
+    },
+    {
+      "id": "88086565-f22a-4fe0-ad78-15b1bdc5d4e8",
+      "file_name": "Spritesheets\\ryu_5010.anim2d"
+    },
+    {
+      "id": "334cf8ae-ffda-4112-acd5-f76e11f384a2",
+      "file_name": "Spritesheets\\ryu_5011.anim2d"
+    },
+    {
+      "id": "0a8f3bb1-51f2-497d-8017-0e013ad354cf",
+      "file_name": "Spritesheets\\ryu_5012.anim2d"
+    },
+    {
+      "id": "59f09e06-ca22-48d5-8f6b-ff2ad3d0a662",
+      "file_name": "Spritesheets\\ryu_5015.anim2d"
+    },
+    {
+      "id": "b6c814ae-fa8d-47a9-8af1-4177765216c1",
+      "file_name": "Spritesheets\\ryu_5016.anim2d"
+    },
+    {
+      "id": "10ed17cd-976d-40cf-86b9-a54d40930c37",
+      "file_name": "Spritesheets\\ryu_5017.anim2d"
+    },
+    {
+      "id": "b8305ec9-eecb-4ff2-ac96-f680af95c4db",
+      "file_name": "Spritesheets\\ryu_5020.anim2d"
+    },
+    {
+      "id": "5a353ee9-918f-4ae5-bd58-4c79153ac988",
+      "file_name": "Spritesheets\\ryu_5021.anim2d"
+    },
+    {
+      "id": "052b05ce-8566-4b3e-ac98-3c5606bbd0f7",
+      "file_name": "Spritesheets\\ryu_5022.anim2d"
+    },
+    {
+      "id": "68a64170-4d83-40bb-ba01-8aa00f168ca7",
+      "file_name": "Spritesheets\\ryu_5025.anim2d"
+    },
+    {
+      "id": "8f0bfcad-e2fe-468e-85c6-10fd5144f296",
+      "file_name": "Spritesheets\\ryu_5026.anim2d"
+    },
+    {
+      "id": "5ee5dbab-4516-458b-825a-50ca221ddd4b",
+      "file_name": "Spritesheets\\ryu_5027.anim2d"
+    },
+    {
+      "id": "86c9350a-d4a7-40b1-ba8f-142581a44f28",
+      "file_name": "Spritesheets\\ryu_5030.anim2d"
+    },
+    {
+      "id": "ff9ba308-56ee-417a-b78a-89ffdd0b7bd3",
+      "file_name": "Spritesheets\\ryu_5035.anim2d"
+    },
+    {
+      "id": "7894b3ff-a50f-4087-992c-c952598ae89a",
+      "file_name": "Spritesheets\\ryu_5040.anim2d"
+    },
+    {
+      "id": "768b9f65-eb1d-4d4c-88d0-5999e9adf859",
+      "file_name": "Spritesheets\\ryu_5050.anim2d"
+    },
+    {
+      "id": "7fa455d1-88bc-43c5-858b-83c67da196f4",
+      "file_name": "Spritesheets\\ryu_5051.anim2d"
+    },
+    {
+      "id": "42950b00-4e88-4ec3-b627-a2c3da3dfd50",
+      "file_name": "Spritesheets\\ryu_5061.anim2d"
+    },
+    {
+      "id": "063457c1-76b8-4bb4-8b64-1980001f9c39",
+      "file_name": "Spritesheets\\ryu_5070.anim2d"
+    },
+    {
+      "id": "925a837c-6f09-415a-b992-a9b6d52cce1b",
+      "file_name": "Spritesheets\\ryu_5080.anim2d"
+    },
+    {
+      "id": "73a29cb4-e3e5-43b2-aa94-340c706a1687",
+      "file_name": "Spritesheets\\ryu_5081.anim2d"
+    },
+    {
+      "id": "2510acaf-b67e-4c0d-aa3e-73398f3593b7",
+      "file_name": "Spritesheets\\ryu_51.anim2d"
+    },
+    {
+      "id": "5316139a-fcee-4dc5-9908-fc41019c2f5a",
+      "file_name": "Spritesheets\\ryu_5100.anim2d"
+    },
+    {
+      "id": "0dc0c1cc-f8fe-417b-8a81-366ef79771eb",
+      "file_name": "Spritesheets\\ryu_5101.anim2d"
+    },
+    {
+      "id": "63ae45db-2848-44ec-8a50-6c3f4f064b38",
+      "file_name": "Spritesheets\\ryu_5110.anim2d"
+    },
+    {
+      "id": "4dc2ae2d-7c72-45b5-a7ca-bb5bf4f11aeb",
+      "file_name": "Spritesheets\\ryu_5120.anim2d"
+    },
+    {
+      "id": "7f4215ab-78b2-45de-9d61-00803343d919",
+      "file_name": "Spritesheets\\ryu_5130.anim2d"
+    },
+    {
+      "id": "3e07524a-c675-497b-82fd-9e2a0f26f871",
+      "file_name": "Spritesheets\\ryu_5131.anim2d"
+    },
+    {
+      "id": "2efe6692-a721-4e7f-abef-3da98195c7c8",
+      "file_name": "Spritesheets\\ryu_5150.anim2d"
+    },
+    {
+      "id": "ef4d5add-b4c3-449c-8c3a-05464918b5e1",
+      "file_name": "Spritesheets\\ryu_5160.anim2d"
+    },
+    {
+      "id": "6c779f2e-cbba-4b95-81e8-4dd906bd9008",
+      "file_name": "Spritesheets\\ryu_5170.anim2d"
+    },
+    {
+      "id": "638bf355-09cc-4d23-8346-89eb9b5b8d76",
+      "file_name": "Spritesheets\\ryu_52.anim2d"
+    },
+    {
+      "id": "85153afe-a3ca-4cb9-bd8d-1af921cf6671",
+      "file_name": "Spritesheets\\ryu_5200.anim2d"
+    },
+    {
+      "id": "ca873e0d-4c3b-4c23-999c-8b790e983284",
+      "file_name": "Spritesheets\\ryu_5210.anim2d"
+    },
+    {
+      "id": "01d09ca8-0b35-4ee3-b3cd-7931c0f67800",
+      "file_name": "Spritesheets\\ryu_53.anim2d"
+    },
+    {
+      "id": "d3ec3ebf-e467-4d05-b218-de5b81dafe32",
+      "file_name": "Spritesheets\\ryu_5300.anim2d"
+    },
+    {
+      "id": "19e54dee-d7b6-4213-ad9a-f5fd1b78a954",
+      "file_name": "Spritesheets\\ryu_5301.anim2d"
+    },
+    {
+      "id": "56166da4-7fa7-4759-bfa3-c2ccbd6cffd9",
+      "file_name": "Spritesheets\\ryu_5500.anim2d"
+    },
+    {
+      "id": "92c1a719-5560-4ad7-99c0-9547fb691d88",
+      "file_name": "Spritesheets\\ryu_5910.anim2d"
+    },
+    {
+      "id": "d12d0626-83d4-4d2f-b246-9b4a65c8adc2",
+      "file_name": "Spritesheets\\ryu_5911.anim2d"
+    },
+    {
+      "id": "9eacfe99-16f8-41ef-9db3-ba201fb3b73f",
+      "file_name": "Spritesheets\\ryu_5940.anim2d"
+    },
+    {
+      "id": "0d4e42ad-00dd-48d7-9c55-5f641a2422f9",
+      "file_name": "Spritesheets\\ryu_5945.anim2d"
+    },
+    {
+      "id": "c408fafa-7e79-4212-a458-92a0e08439e4",
+      "file_name": "Spritesheets\\ryu_5950.anim2d"
+    },
+    {
+      "id": "7ed4c155-0e9e-420b-8d4a-9d451a49c8cf",
+      "file_name": "Spritesheets\\ryu_6.anim2d"
+    },
+    {
+      "id": "75b20fc9-6bb7-491d-b3dd-03c0e64cc416",
+      "file_name": "Spritesheets\\ryu_600.anim2d"
+    },
+    {
+      "id": "8ddef0f4-f54e-448e-8626-a4401345f274",
+      "file_name": "Spritesheets\\ryu_6080.anim2d"
+    },
+    {
+      "id": "206013be-6d4c-45cb-88b1-d58394247216",
+      "file_name": "Spritesheets\\ryu_6081.anim2d"
+    },
+    {
+      "id": "1ff033a7-14cd-4cdf-b232-48de727b4e49",
+      "file_name": "Spritesheets\\ryu_6082.anim2d"
+    },
+    {
+      "id": "2bc98625-dcb9-4e9e-9219-f9802b911258",
+      "file_name": "Spritesheets\\ryu_610.anim2d"
+    },
+    {
+      "id": "3bb4852f-fb25-4994-8422-72dc1186c951",
+      "file_name": "Spritesheets\\ryu_620.anim2d"
+    },
+    {
+      "id": "3e019c6b-be35-48fc-ad09-434d97102fd6",
+      "file_name": "Spritesheets\\ryu_630.anim2d"
+    },
+    {
+      "id": "b2c11452-1cc5-43f3-a691-3ef374af06fb",
+      "file_name": "Spritesheets\\ryu_631.anim2d"
+    },
+    {
+      "id": "61056fad-82c2-4cdf-a111-147c22195f97",
+      "file_name": "Spritesheets\\ryu_640.anim2d"
+    },
+    {
+      "id": "7be95ddf-ddb6-44a5-94cc-b5454dc8a5c3",
+      "file_name": "Spritesheets\\ryu_641.anim2d"
+    },
+    {
+      "id": "18d04222-74ab-4f99-8952-7a2f6be10d14",
+      "file_name": "Spritesheets\\ryu_650.anim2d"
+    },
+    {
+      "id": "9062b81c-f803-4048-b513-41110e0c6a7b",
+      "file_name": "Spritesheets\\ryu_710.anim2d"
+    },
+    {
+      "id": "3bc9efed-7266-498f-9776-f6510f2008dd",
+      "file_name": "Spritesheets\\ryu_720.anim2d"
+    },
+    {
+      "id": "33d15348-8350-4691-95e2-b3d6ea34cd0c",
+      "file_name": "Spritesheets\\ryu_760.anim2d"
+    },
+    {
+      "id": "774fc144-d745-40cf-a246-e067b315fee0",
+      "file_name": "Spritesheets\\ryu_761.anim2d"
+    },
+    {
+      "id": "0949b507-db24-45ea-bad2-de4ea733b93c",
+      "file_name": "Spritesheets\\ryu_762.anim2d"
+    },
+    {
+      "id": "4abf8263-658e-4caa-a752-80f49d4ff6d7",
+      "file_name": "Spritesheets\\ryu_7689.anim2d"
+    },
+    {
+      "id": "fc8c7a97-01f1-4a15-87ee-f91bf9a1db50",
+      "file_name": "Spritesheets\\ryu_7696.anim2d"
+    },
+    {
+      "id": "7b09d206-d22e-4fa4-9aed-e6f60ce0c8aa",
+      "file_name": "Spritesheets\\ryu_7697.anim2d"
+    },
+    {
+      "id": "96ca15c6-367d-4593-bafc-5ea8298aae16",
+      "file_name": "Spritesheets\\ryu_800.anim2d"
+    },
+    {
+      "id": "12962983-217e-400c-bcb7-df1c013fa5fe",
+      "file_name": "Spritesheets\\ryu_801.anim2d"
+    },
+    {
+      "id": "811c8b68-b439-433e-8bde-d4119ea893ef",
+      "file_name": "Spritesheets\\ryu_802.anim2d"
+    },
+    {
+      "id": "48a6a200-8029-4df2-a4ea-02c6a2756e1b",
+      "file_name": "Spritesheets\\ryu_803.anim2d"
+    },
+    {
+      "id": "25b2c08d-7c90-4dca-a254-c9994c0f4ba3",
+      "file_name": "Spritesheets\\ryu_804.anim2d"
+    },
+    {
+      "id": "ad2fa1b3-3589-49ce-ae7e-c41b49713d31",
+      "file_name": "Spritesheets\\ryu_805.anim2d"
+    },
+    {
+      "id": "ea112e62-b9c0-4cf4-a8fe-d50106defac0",
+      "file_name": "Spritesheets\\ryu_810.anim2d"
+    },
+    {
+      "id": "0c20f953-bf6e-4e52-8a84-d1fb1a76b878",
+      "file_name": "Spritesheets\\ryu_88885.anim2d"
+    },
+    {
+      "id": "bd5ba734-8778-4ada-a54a-ac9e263b110d",
+      "file_name": "Spritesheets\\ryu_88887.anim2d"
+    },
+    {
+      "id": "bea7f0bd-e783-4d02-bab0-bbba78ed3480",
+      "file_name": "Spritesheets\\ryu_88888.anim2d"
+    },
+    {
+      "id": "b1c2befa-8a19-4e63-8edf-8703dd009ee0",
+      "file_name": "Spritesheets\\ryu_9010.anim2d"
+    },
+    {
+      "id": "8d4fdd8b-9000-4143-98a1-a153e1e1cb1f",
+      "file_name": "Spritesheets\\ryu_hadoken.anim2d"
+    },
+    {
+      "id": "b930111a-2d6f-4a00-92b7-10fc4db6cdb9",
+      "file_name": "Spritesheets\\ryu_idle.anim2d"
+    },
+    {
+      "id": "ab19ac56-b2df-4b9e-98ea-0e8def46cf96",
+      "file_name": "Spritesheets\\ryu_idle_tired.anim2d"
+    },
+    {
+      "id": "cfe9829a-7150-4436-be8b-92a7775e0961",
+      "file_name": "Spritesheets\\ryu_idle_to_down.anim2d"
+    },
+    {
+      "id": "08e80932-9784-4444-b36f-90ab4e954548",
+      "file_name": "Spritesheets\\ryu_run_forward.anim2d"
+    },
+    {
+      "id": "3ffa4546-1f09-428d-8945-6d89216f97eb",
+      "file_name": "Spritesheets\\ryu_walk_backward.anim2d"
+    },
+    {
+      "id": "2bd4c4dc-4f7f-48e6-b37b-745f51119574",
+      "file_name": "Spritesheets\\ryu_walk_forward.anim2d"
+    },
+    {
+      "id": "cdf432c1-0e33-434f-8a96-466d519baa9b",
+      "file_name": "Textures\\checkboard.png"
+    },
+    {
+      "id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+      "file_name": "Textures\\checkboard.texture"
+    },
+    {
+      "id": "31f79cad-7d18-46a4-ba4c-af2d43d87f99",
+      "file_name": "Spritesheets\\ryu.png"
+    },
+    {
+      "id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+      "file_name": "Spritesheets\\ryu.texture"
+    },
+    {
+      "id": "3fd14c2a-111c-4b96-8ab8-ce2825e77502",
+      "file_name": "Screens\\Screen_Test.screen"
+    }
+  ]
+}

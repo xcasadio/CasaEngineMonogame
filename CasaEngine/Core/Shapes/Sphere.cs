@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
@@ -6,6 +7,15 @@ namespace CasaEngine.Core.Shapes;
 public class Sphere : Shape3d
 {
     public float Radius { get; set; }
+
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var radiusVector = new Vector3(Radius);
+            return new BoundingBox(radiusVector, radiusVector);
+        }
+    }
 
     public Sphere() : base(Shape3dType.Sphere)
     {
@@ -16,7 +26,7 @@ public class Sphere : Shape3d
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Type == other.Type && Position.Equals(other.Position) && Orientation.Equals(other.Orientation) && Radius.Equals(other.Radius);
+        return Type == other.Type && Radius.Equals(other.Radius);
     }
 
     public override bool Equals(object? obj)
@@ -29,7 +39,7 @@ public class Sphere : Shape3d
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)Type, Position, Orientation, Radius);
+        return HashCode.Combine((int)Type, Radius);
     }
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";

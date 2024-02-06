@@ -1,5 +1,5 @@
 ﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
@@ -12,6 +12,11 @@ public class GameEditorSprite : GameEditor2d
         DataContextChanged += OnDataContextChanged;
     }
 
+    protected override void InitializeGame()
+    {
+
+    }
+
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         var spriteData = DataContext as SpriteDataViewModel;
@@ -21,6 +26,6 @@ public class GameEditorSprite : GameEditor2d
     protected override void CreateEntityComponents(Entity entity)
     {
         StaticSpriteComponent = new StaticSpriteComponent();
-        entity.ComponentManager.Add(StaticSpriteComponent);
+        entity.RootComponent = StaticSpriteComponent;
     }
 }

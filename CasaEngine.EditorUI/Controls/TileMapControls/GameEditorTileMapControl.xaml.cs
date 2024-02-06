@@ -1,7 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.Core.Logs;
-using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
@@ -32,18 +30,5 @@ public partial class GameEditorTileMapControl : UserControl
     private void ButtonNextFrame_OnClick(object sender, RoutedEventArgs e)
     {
 
-    }
-
-    private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
-    {
-        var tileMapDataViewModel = DataContext as TileMapDataViewModel;
-
-        if (tileMapDataViewModel?.TileMapData == null)
-        {
-            return;
-        }
-
-        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
-        LogManager.Instance.WriteInfo($"Entity {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
@@ -35,6 +34,6 @@ public class FrameDataViewModel : NotifyPropertyChangeBase
     public FrameDataViewModel(FrameData frameData)
     {
         FrameData = frameData;
-        _assetInfo = GameSettings.AssetInfoManager.Get(frameData.SpriteId);
+        _assetInfo = AssetCatalog.Get(frameData.SpriteId);
     }
 }

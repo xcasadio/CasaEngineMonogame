@@ -1,7 +1,9 @@
 ﻿using System.Collections;
-using CasaEngine.Core.Logs;
+using System.Text.Json;
+using CasaEngine.Core.Log;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets;
@@ -11,6 +13,7 @@ public class AssetContentManager
     public const string DefaultCategory = "default";
     private readonly Dictionary<Type, IAssetLoader> _assetLoaderByType = new();
     private readonly Dictionary<string, AssetDictionary> _assetsDictionaryByCategory = new();
+
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public string RootDirectory { get; set; }
@@ -20,7 +23,7 @@ public class AssetContentManager
         RootDirectory = Environment.CurrentDirectory;
 
 #if EDITOR
-        GameSettings.AssetInfoManager.AssetRenamed += OnAssetRenamed;
+        AssetCatalog.AssetRenamed += OnAssetRenamed;
 #endif
     }
 
@@ -40,7 +43,7 @@ public class AssetContentManager
         AddAsset(assetInfo.Id, assetInfo.Name, asset, categoryName);
     }
 
-    public void AddAsset(long id, string name, object asset, string categoryName = DefaultCategory)
+    public void AddAsset(Guid id, string name, object asset, string categoryName = DefaultCategory)
     {
         if (!_assetsDictionaryByCategory.ContainsKey(categoryName))
         {
@@ -56,34 +59,18 @@ public class AssetContentManager
         return (T?)asset;
     }
 
-    public T? GetAsset<T>(long id, string categoryName = DefaultCategory)
+    public T? GetAsset<T>(Guid id, string categoryName = DefaultCategory)
     {
         _assetsDictionaryByCategory[categoryName].Get(id, out object? asset);
         return (T?)asset;
     }
-
-    /*
-    public bool Rename(string oldName, string newName, string categoryName = DefaultCategory)
-    {
-        if (!_assetsDictionaryByCategory.ContainsKey(categoryName) || !_assetsDictionaryByCategory[categoryName].ContainsKey(oldName))
-        {
-            return false;
-        }
-
-        var asset = _assetsDictionaryByCategory[categoryName][oldName];
-        _assetsDictionaryByCategory[categoryName][newName] = asset;
-        _assetsDictionaryByCategory[categoryName].Remove(oldName);
-
-        return true;
-    }
-    */
 
     public bool IsFileSupported(string fileName)
     {
         return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
     }
 
-    public T Load<T>(AssetInfo assetInfo, string categoryName = DefaultCategory)
+    public T Load<T>(Guid id, string categoryName = DefaultCategory) where T : class
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -95,7 +82,7 @@ public class AssetContentManager
             _assetsDictionaryByCategory.Add(categoryName, categoryAssetList);
         }
 
-        if (categoryAssetList.Get(assetInfo.Id, out var asset))
+        if (categoryAssetList.Get(id, out var asset))
         {
             return (T)asset;
         }
@@ -104,14 +91,36 @@ public class AssetContentManager
 
         if (!_assetLoaderByType.ContainsKey(type))
         {
-            throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
+            throw new InvalidOperationException($"IAssetLoader not found for the type {type.FullName}");
+        }
+
+        var assetInfo = AssetCatalog.Get(id);
+
+        if (assetInfo == null)
+        {
+            throw new InvalidOperationException($"Asset not found with id '{id}'");
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-        LogManager.Instance.WriteTrace($"Load asset {fullFileName}");
+        Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+
+        if (newAsset is ObjectBase gameObject)
+        {
+            gameObject.AssetId = assetInfo.Id;
+            gameObject.Name = assetInfo.Name;
+            gameObject.FileName = assetInfo.FileName;
+        }
+
         AddAsset(assetInfo, newAsset, categoryName);
         return newAsset;
+    }
+
+    public T Load<T>(JsonElement element) where T : class, ISerializable, new()
+    {
+        var asset = new T();
+        asset.Load(element);
+        return asset;
     }
 
     [Obsolete("Used only for neoforce controls")]
@@ -125,7 +134,7 @@ public class AssetContentManager
         }
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetFileName);
-        LogManager.Instance.WriteTrace($"Load asset {fullFileName}");
+        Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         return newAsset;
     }
@@ -158,18 +167,11 @@ public class AssetContentManager
 
     internal void OnDeviceReset(object? sender, EventArgs e)
     {
-        //GraphicsDevice = sender as GraphicsDevice;
-
         foreach (var assetDictionaryByCategory in _assetsDictionaryByCategory)
         {
             foreach (var o in assetDictionaryByCategory.Value)
             {
-                /*if (assetByFileName.Value is IDisposable) //TODO : useful or buggy ?
-                {
-                    ((IDisposable)pair2.Value).Dispose();
-                }*/
-
-                if (o is Asset asset)
+                if (o is IAssetable asset)
                 {
                     asset.OnDeviceReset(GraphicsDevice, this);
                 }
@@ -204,15 +206,15 @@ public class AssetContentManager
     private class AssetDictionary : IEnumerable<object>
     {
         private readonly Dictionary<string, object> _assetsByName = new();
-        private readonly Dictionary<long, object> _assetsById = new();
+        private readonly Dictionary<Guid, object> _assetsById = new();
 
-        public void Add(long id, string name, object asset)
+        public void Add(Guid id, string name, object asset)
         {
             _assetsById[id] = asset;
             _assetsByName[name] = asset;
         }
 
-        public bool Get(long id, out object asset)
+        public bool Get(Guid id, out object asset)
         {
             return _assetsById.TryGetValue(id, out asset);
         }
@@ -222,7 +224,7 @@ public class AssetContentManager
             return _assetsByName.TryGetValue(name, out asset);
         }
 
-        public object Remove(long id, string name)
+        public object Remove(Guid id, string name)
         {
             _assetsById.Remove(id);
             return _assetsByName.Remove(name);

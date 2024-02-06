@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using Newtonsoft.Json.Linq;

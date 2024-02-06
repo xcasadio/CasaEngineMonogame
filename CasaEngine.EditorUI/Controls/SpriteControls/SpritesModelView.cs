@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
 using Path = System.IO.Path;
 
 namespace CasaEngine.EditorUI.Controls.SpriteControls;
@@ -14,18 +13,18 @@ public class SpritesModelView
 
     public SpritesModelView()
     {
-        GameSettings.AssetInfoManager.AssetAdded += OnAssetAdded;
-        GameSettings.AssetInfoManager.AssetRemoved += OnAssetRemoved;
-        GameSettings.AssetInfoManager.AssetCleared += OnAssetCleared;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetCleared += OnAssetCleared;
 
         LoadAllSpriteAssetInfos();
     }
 
     private void LoadAllSpriteAssetInfos()
     {
-        foreach (var assetInfo in GameSettings.AssetInfoManager.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
+        foreach (var assetInfo in AssetCatalog.AssetInfos.Where(x => Path.GetExtension(x.FileName) == Constants.FileNameExtensions.Sprite))
         {
-            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 
@@ -33,7 +32,7 @@ public class SpritesModelView
     {
         if (Path.GetExtension(assetInfo.FileName) == Constants.FileNameExtensions.Sprite)
         {
-            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo));
+            SpriteAssetInfos.Add(new AssetInfoViewModel(assetInfo.Id));
         }
     }
 

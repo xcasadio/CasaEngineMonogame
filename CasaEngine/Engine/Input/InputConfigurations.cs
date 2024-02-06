@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
-using CasaEngine.Core.Design;
 using CasaEngine.Engine.Input.InputSequence;
-using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input;
@@ -43,12 +41,12 @@ public class InputConfigurations
         _configs.Remove(name);
     }
 
-    public void Save(JObject jObject, SaveOption option)
+    public void Save(JObject jObject)
     {
 
     }
 
-    public void Load(JsonElement element, SaveOption option)
+    public void Load(JsonElement element)
     {
 
     }

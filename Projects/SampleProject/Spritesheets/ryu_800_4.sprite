@@ -1,0 +1,29 @@
+{
+  "id": "dad740d3-66cf-45cc-944e-57d79160f120",
+  "name": "ryu_800_4",
+  "sprite_sheet_asset_id": "8b0fba89-8a96-4a9e-b14b-fe2b602aef79",
+  "location": {
+    "x": 1807,
+    "y": 1394,
+    "w": 61,
+    "h": 99
+  },
+  "hotspot": {
+    "x": 30,
+    "y": 95
+  },
+  "collisions": [
+    {
+      "collision_type": "Defense",
+      "shape_type": "Rectangle",
+      "location": {
+        "x": 10.0,
+        "y": -3.0
+      },
+      "orientation": 0.0,
+      "w": 44,
+      "h": 98
+    }
+  ],
+  "sockets": []
+}

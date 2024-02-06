@@ -2,7 +2,6 @@ using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -14,11 +13,11 @@ namespace TomShane.Neoforce.Controls;
 public class ImageBox : Control
 {
     private Texture2D? _image;
-    private long _spriteAssetId = IdManager.InvalidId;
+    private Guid _spriteAssetId = Guid.Empty;
     private SizeMode _sizeMode = SizeMode.Normal;
     private Rectangle _sourceRect = Rectangle.Empty;
 
-    public long SpriteAssetId
+    public Guid SpriteAssetId
     {
         get => _spriteAssetId;
         set
@@ -174,18 +173,17 @@ public class ImageBox : Control
     {
         base.Load(element);
 
-        _spriteAssetId = element.GetProperty("sprite_id").GetInt64();
+        _spriteAssetId = element.GetProperty("sprite_id").GetGuid();
+
         SizeMode = element.GetProperty("size_mode").GetEnum<SizeMode>();
     }
 
     private void LoadImage()
     {
-        var assetInfo = GameSettings.AssetInfoManager.Get(_spriteAssetId);
-
-        if (assetInfo != null && Manager != null)
+        if (_spriteAssetId != Guid.Empty && Manager != null)
         {
-            var spriteData = Manager.CasaEngineGame.GameManager.AssetContentManager.Load<SpriteData>(assetInfo);
-            var sprite = Sprite.Create(spriteData, Manager.CasaEngineGame.GameManager.AssetContentManager);
+            var spriteData = Manager.CasaEngineGame.AssetContentManager.Load<SpriteData>(_spriteAssetId);
+            var sprite = Sprite.Create(spriteData, Manager.CasaEngineGame.AssetContentManager);
             Image = sprite.Texture.Resource;
             SourceRect = sprite.SpriteData.PositionInTexture;
         }

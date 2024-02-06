@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using CasaEngine.EditorUI.Inputs;
 using CasaEngine.Framework.Game;
@@ -10,15 +8,15 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.EditorUI.Controls;
 
-public class GameEditor : WpfGame
+public abstract class GameEditor : WpfGame
 {
-    private bool _isInitialized;
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
     public bool UseGui { get; protected init; }
+    protected bool IsGameInitialized { get; private set; }
 
-    protected override bool CanRender => _isInitialized && IsVisible;
+    protected override bool CanRender => IsGameInitialized && IsVisible;
 
     protected GameEditor(bool useGui = false)
     {
@@ -29,40 +27,63 @@ public class GameEditor : WpfGame
     {
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
-        Game.GameManager.IsRunningInGameEditorMode = true;
-
-        Game.GameManager.UseGui = UseGui;
-
-        Game.GameManager.Initialize();
+        Game.IsRunningInGameEditorMode = true;
+        Game.UseGui = UseGui;
+        Game.GameManager.WorldChanged += OnWorldChanged;
+        InitializeGame();
+        Game.InitializeWithEditor();
 
         if (UseGui)
         {
-            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+            Game.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
         }
 
-        Game.GameManager.SetInputProvider(
+        //In editor mode the game is in idle mode so we don't update physics
+        Game.PhysicsEngineComponent.Enabled = false;
+
+        Game.SetInputProvider(
             new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
-
-        //In editor mode the game is in idle mode so we don't update physics
-        Game.GameManager.PhysicsEngineComponent.Enabled = false;
 
         base.Initialize();
     }
 
+    protected abstract void InitializeGame();
+
     protected override void LoadContent()
     {
-        Game.GameManager.BeginLoadContent();
-        base.LoadContent();
-        Game.GameManager.EndLoadContent();
-
-        foreach (var component in Game.Components)
-        {
-            component.Initialize();
-        }
+        Game.LoadContentWithEditor();
 
         GameStarted?.Invoke(Game, EventArgs.Empty);
-        _isInitialized = true;
+        IsGameInitialized = true;
+    }
+
+    private void OnWorldChanged(object? sender, EventArgs e)
+    {
+        if (ActualWidth > 0 && ActualHeight > 0)
+        {
+            OnScreenResized((int)ActualWidth, (int)ActualHeight);
+        }
+    }
+
+    protected override void Update(GameTime gameTime)
+    {
+        Game.UpdateWithEditor(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        Game.DrawWithEditor(gameTime);
+    }
+
+    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
+    {
+        base.CreateGraphicsDeviceDependentResources(pp);
+
+        if (UseGui && Game?.UiManager != null)
+        {
+            Game.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+        }
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
@@ -70,57 +91,14 @@ public class GameEditor : WpfGame
         var newSizeWidth = (int)sizeInfo.NewSize.Width;
         var newSizeHeight = (int)sizeInfo.NewSize.Height;
 
-        //in editor the camera is an element of the world
-        Game?.GameManager.ActiveCamera?.ScreenResized(newSizeWidth, newSizeHeight);
-        Game?.GameManager.OnScreenResized(newSizeWidth, newSizeHeight);
+        OnScreenResized(newSizeWidth, newSizeHeight);
         base.OnRenderSizeChanged(sizeInfo);
     }
 
-    protected override void Update(GameTime gameTime)
+    private void OnScreenResized(int width, int height)
     {
-        Game.GameManager.BeginUpdate(gameTime);
-
-        var sortedGameComponents = new List<GameComponent>(Game.Components.Count);
-        sortedGameComponents.AddRange(Game.Components
-            .Where(x => x is IUpdateable { Enabled: true })
-            .Cast<GameComponent>()
-            .OrderBy(x => x.UpdateOrder));
-
-        foreach (var component in sortedGameComponents)
-        {
-            component.Update(gameTime);
-        }
-
-        base.Update(gameTime);
-        Game.GameManager.EndUpdate(gameTime);
-    }
-
-    protected override void Draw(GameTime gameTime)
-    {
-        Game.GameManager.BeginDraw(gameTime);
-
-        var sortedGameComponents = new List<IDrawable>(Game.Components.Count);
-        sortedGameComponents.AddRange(Game.Components
-            .Where(x => x is IDrawable { Visible: true })
-            .Cast<IDrawable>()
-            .OrderBy(x => x.DrawOrder));
-
-        foreach (var component in sortedGameComponents)
-        {
-            component.Draw(gameTime);
-        }
-
-        base.Draw(gameTime);
-        Game.GameManager.EndDraw(gameTime);
-    }
-
-    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
-    {
-        base.CreateGraphicsDeviceDependentResources(pp);
-
-        if (UseGui && Game?.GameManager?.UiManager != null)
-        {
-            Game.GameManager.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
-        }
+        //in editor the camera is an element of the wornewSizeHeightld
+        Game?.GameManager.ActiveCamera?.OnScreenResized(width, height);
+        Game?.OnScreenResized(width, height);
     }
 }

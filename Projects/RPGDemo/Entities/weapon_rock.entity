@@ -1,0 +1,98 @@
+{
+  "id": "4355f57c-040c-404f-9576-7a6c7ca51d43",
+  "name": "weapon_rock",
+  "root_component": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [
+      {
+        "id": "00000000-0000-0000-0000-000000000000",
+        "name": "CircleCollisionComponent",
+        "type": "CircleCollisionComponent",
+        "coordinates": {
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "scale": {
+            "x": 10.0,
+            "y": 10.0,
+            "z": 10.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        },
+        "children_component": [],
+        "physics_definition": {
+          "physics_type": "Dynamic",
+          "additional_angular_damping_factor": 0.01,
+          "additional_angular_damping_threshold_sqr": 0.01,
+          "additional_damping": false,
+          "additional_damping_factor": 0.005,
+          "additional_linear_damping_threshold_sqr": 0.01,
+          "angular_damping": 0.0,
+          "angular_factor": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0
+          },
+          "angular_sleeping_threshold": 1.0,
+          "friction": 0.0,
+          "linear_damping": 0.0,
+          "linear_factor": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 0.0
+          },
+          "linear_sleeping_threshold": 0.1,
+          "local_inertia": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "mass": 10.0,
+          "restitution": 0.0,
+          "rolling_friction": 0.0,
+          "apply_gravity": false,
+          "debug_color": "null"
+        }
+      }
+    ],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "9364b17a-6956-4c5f-bc98-e869dda4e9dd"
+    ]
+  },
+  "components": [],
+  "script_class_name": "ScriptEnemyWeapon"
+}

@@ -1,0 +1,23 @@
+{
+  "animation_type": "Once",
+  "id": "7e8e73c7-d382-4866-9839-1764a2a386a6",
+  "name": "baton_attack3_left",
+  "frames": [
+    {
+      "duration": 0.03,
+      "sprite_id": "7f77a0bc-3aa7-465f-abc6-e8e1ad2d70fc"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "e7ed8cfb-a13a-4eb9-b995-981d64a6b7e3"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "5dac4da8-b9d0-415c-ab63-7163d7b6dff4"
+    },
+    {
+      "duration": 0.03,
+      "sprite_id": "6d4ca875-2a11-4173-a0e6-52eac7da1c16"
+    }
+  ]
+}
