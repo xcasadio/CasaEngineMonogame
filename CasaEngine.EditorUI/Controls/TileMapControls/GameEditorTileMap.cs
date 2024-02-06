@@ -7,18 +7,18 @@ namespace CasaEngine.EditorUI.Controls.TileMapControls;
 public class GameEditorTileMap : GameEditor2d
 {
     private TileMapComponent _tileMapComponent;
-    private Entity _entity;
+    //private Entity _entity;
 
     public GameEditorTileMap()
     {
-        DataContextChanged += OnDataContextChanged;
+        //DataContextChanged += OnDataContextChanged;
     }
 
     protected override void InitializeGame()
     {
 
     }
-
+    /*
     private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
     {
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
@@ -30,10 +30,9 @@ public class GameEditorTileMap : GameEditor2d
             _tileMapComponent.InitializeWithWorld(Game.GameManager.CurrentWorld);
         }
     }
-
+    */
     protected override void CreateEntityComponents(Entity entity)
     {
-        _entity = entity;
         _tileMapComponent = new TileMapComponent();
         entity.RootComponent = _tileMapComponent;
     }
@@ -41,15 +40,11 @@ public class GameEditorTileMap : GameEditor2d
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
     {
         _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
-
-        Game.GameManager.CurrentWorld.AddEntityWithEditor(_entity);
-        //_entity.Initialize();
-        //_entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
     }
-
+    /*
     public void RemoveAllEntities()
     {
         Game.GameManager.CurrentWorld.ClearEntities();
         Game.AssetContentManager.Unload(AssetContentManager.DefaultCategory);
-    }
+    }*/
 }

@@ -44,7 +44,7 @@ public abstract class GameEditor2d : GameEditor
 
         Game.GameManager.SetWorldToLoad(new World());
 
-        _entity = new Entity { Name = "actor GameEditor2d" }; ;
+        _entity = new Entity { Name = "actor GameEditor2d" };
         CreateEntityComponents(_entity);
         if (_entity.RootComponent != null)
         {
@@ -59,7 +59,8 @@ public abstract class GameEditor2d : GameEditor
 
         base.LoadContent();
 
-        Game.GameManager.CurrentWorld.AddEntityWithEditor(_entity);
+        Game.GameManager.CurrentWorld.AddEntity(_entity);
+        //Game.GameManager.CurrentWorld.AddEntityWithEditor(_entity);
     }
 
     private CameraComponent CreateCameraComponent(Entity cameraEntity)

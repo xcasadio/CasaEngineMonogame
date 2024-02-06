@@ -33,6 +33,11 @@ public class EntityReference
 
     public void Load(AssetContentManager assetContentManager)
     {
+        if (Entity != null)
+        {
+            return;
+        }
+
         if (AssetId == Guid.Empty)
         {
             Entity = assetContentManager.Load<Entity>(_nodeToLoad.Value);

@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
@@ -223,6 +225,21 @@ public class Entity : ObjectBase
         }
 
         return null;
+    }
+
+    public BoundingBox GetBoundingBox()
+    {
+        var boundingBox = RootComponent?.BoundingBox ?? new BoundingBox();
+
+        foreach (var component in Components)
+        {
+            if (component is SceneComponent sceneComponent)
+            {
+                boundingBox.ExpandBy(sceneComponent.BoundingBox);
+            }
+        }
+
+        return boundingBox;
     }
 
     public void ReActivate()

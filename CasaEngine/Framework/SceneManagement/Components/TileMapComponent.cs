@@ -39,7 +39,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
     {
         base.InitializeWithWorld(world);
 
-        AssetInfo assetInfo;
+        Layers.Clear();
 
         if (TileMapDataAssetId != Guid.Empty)
         {

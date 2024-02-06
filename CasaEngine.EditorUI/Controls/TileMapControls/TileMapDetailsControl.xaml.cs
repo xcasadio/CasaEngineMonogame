@@ -88,6 +88,6 @@ public partial class TileMapDetailsControl : UserControl
     {
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
         tileMapDataViewModel.Clear();
-        _gameEditor.RemoveAllEntities();
+        //_gameEditor.RemoveAllEntities();
     }
 }

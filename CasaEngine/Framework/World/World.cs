@@ -86,7 +86,7 @@ public sealed class World : ObjectBase
         if (withReference)
         {
 #if EDITOR
-            ClearEntities();
+            //ClearEntities();
 #endif
 
             foreach (var entityReference in _entityReferences)
@@ -153,7 +153,7 @@ public sealed class World : ObjectBase
 
                 if (IsBoundingBoxDirty(entity))
                 {
-                    _octree.MoveItem(entity, GetBoundingBox(entity));
+                    _octree.MoveItem(entity, entity.GetBoundingBox());
                 }
             }
         }
@@ -198,21 +198,6 @@ public sealed class World : ObjectBase
         return false;
     }
 
-    private BoundingBox GetBoundingBox(Entity actor)
-    {
-        var boundingBox = actor.RootComponent?.BoundingBox ?? new BoundingBox();
-
-        foreach (var component in actor.Components)
-        {
-            if (component is SceneComponent sceneComponent)
-            {
-                boundingBox.ExpandBy(sceneComponent.BoundingBox);
-            }
-        }
-
-        return boundingBox;
-    }
-
     private void InternalAddEntities()
     {
         foreach (var entityToAdd in _baseObjectsToAdd)
@@ -231,7 +216,7 @@ public sealed class World : ObjectBase
 
     private void AddInSpacePartitioning(Entity actor)
     {
-        _octree.AddItem(GetBoundingBox(actor), actor);
+        _octree.AddItem(actor.GetBoundingBox(), actor);
     }
 
     public void Draw(Matrix viewProjection)
