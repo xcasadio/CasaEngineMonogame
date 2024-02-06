@@ -64,7 +64,7 @@ public partial class EntityEditorControl : EditorControlBase
         game.GameManager.CurrentWorld.ClearEntities(true);
 
         var assetInfo = AssetCatalog.GetByFileName(fileName);
-        var entity = game.AssetContentManager.Load<AActor>(assetInfo.Id);
+        var entity = game.AssetContentManager.Load<Entity>(assetInfo.Id);
         entity.ReActivate();
         game.GameManager.CurrentWorld.AddEntity(entity);
         SelectedItem = new EntityViewModel(entity);

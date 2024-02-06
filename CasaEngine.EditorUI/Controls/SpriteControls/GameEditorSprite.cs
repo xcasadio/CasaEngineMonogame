@@ -23,7 +23,7 @@ public class GameEditorSprite : GameEditor2d
         StaticSpriteComponent.TryLoadSpriteData(spriteData?.Name);
     }
 
-    protected override void CreateEntityComponents(AActor entity)
+    protected override void CreateEntityComponents(Entity entity)
     {
         StaticSpriteComponent = new StaticSpriteComponent();
         entity.RootComponent = StaticSpriteComponent;

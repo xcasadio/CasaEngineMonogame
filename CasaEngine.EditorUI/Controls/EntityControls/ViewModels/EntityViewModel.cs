@@ -13,7 +13,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
         get => Entity.Name;
     }
 
-    public AActor Entity { get; }
+    public Entity Entity { get; }
 
     public EntityViewModel? Parent
     {
@@ -24,7 +24,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
     public ObservableCollection<EntityViewModel> Children { get; } = new();
     public ComponentListViewModel ComponentListViewModel { get; }
 
-    public EntityViewModel(AActor entity)
+    public EntityViewModel(Entity entity)
     {
         Entity = entity;
         ComponentListViewModel = new ComponentListViewModel(this);

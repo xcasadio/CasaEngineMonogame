@@ -10,13 +10,13 @@ namespace CasaEngine.Demos.Demos;
 
 public class SceneManagementDemo : Demo
 {
-    private AActor _entityCube;
-    private List<AActor> _entities;
+    private Entity _entityCube;
+    private List<Entity> _entities;
     public override string Title => "Scene management demo";
 
     public override void Initialize(CasaEngineGame game)
     {
-        _entities = new List<AActor>();
+        _entities = new List<Entity>();
         var world = game.GameManager.CurrentWorld;
 
         var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
@@ -30,7 +30,7 @@ public class SceneManagementDemo : Demo
         {
             for (var j = -gridSize; j <= gridSize; ++j)
             {
-                var entity = new AActor { Name = $"Cube[{i}, {j}]" };
+                var entity = new Entity { Name = $"Cube[{i}, {j}]" };
                 var staticMeshComponent = new StaticMeshComponent();
                 entity.RootComponent = staticMeshComponent;
                 entity.RootComponent.Position = new Vector3(transF * i, transF * j, 10.0f);
@@ -41,7 +41,7 @@ public class SceneManagementDemo : Demo
             }
         }
 
-        _entityCube = new AActor { Name = "Moving cube" };
+        _entityCube = new Entity { Name = "Moving cube" };
         var staticMeshComponent2 = new StaticMeshComponent();
         staticMeshComponent2.Mesh = staticMesh;
         _entityCube.RootComponent = staticMeshComponent2;

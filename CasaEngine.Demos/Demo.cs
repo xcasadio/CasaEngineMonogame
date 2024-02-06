@@ -14,7 +14,7 @@ public abstract class Demo
 
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {
-        var entity = new AActor();
+        var entity = new Entity();
         var camera = new ArcBallCameraComponent();
         entity.RootComponent = camera;
         entity.GameplayProxyClassName = nameof(ScriptArcBallCamera);

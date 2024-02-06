@@ -19,7 +19,7 @@ public class Collision3dBasicDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ Create ground ===============
-        var entity = new AActor { Name = "ground" };
+        var entity = new Entity { Name = "ground" };
         //===
         var physicsComponent = new BoxCollisionComponent();
         entity.AddComponent(physicsComponent);
@@ -52,7 +52,7 @@ public class Collision3dBasicDemo : Demo
             {
                 for (int j = 0; j < ArraySizeZ; j++)
                 {
-                    entity = new AActor { Name = $"box {i}-{k}" };
+                    entity = new Entity { Name = $"box {i}-{k}" };
                     //===
                     physicsComponent = new BoxCollisionComponent();
                     physicsComponent.Position = start + new Vector3(i, k, j);

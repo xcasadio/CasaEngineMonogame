@@ -18,7 +18,7 @@ public static class ElementRegister
 
     private static void SetEntityComponentNames()
     {
-        var componentType = typeof(ActorComponent);
+        var componentType = typeof(EntityComponent);
 
         EntityComponentNames = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(x => x.GetTypes())

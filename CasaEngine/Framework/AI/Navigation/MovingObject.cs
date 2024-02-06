@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.AI.Navigation;
 
 [Serializable]
-public abstract class MovingObject : ActorComponent
+public abstract class MovingObject : EntityComponent
 {
     protected internal Vector3 position;
     protected internal Vector3 velocity;

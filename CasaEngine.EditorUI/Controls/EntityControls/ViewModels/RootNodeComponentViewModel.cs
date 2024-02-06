@@ -7,7 +7,7 @@ namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 public class RootNodeComponentViewModel : ComponentViewModel
 {
     public EntityViewModel EntityViewModel { get; }
-    public override AActor Owner => EntityViewModel.Entity;
+    public override Entity Owner => EntityViewModel.Entity;
 
     public RootNodeComponentViewModel(EntityViewModel entityViewModel) : base(null)
     {

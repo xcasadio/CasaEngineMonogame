@@ -75,7 +75,7 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
     private void OnAnimationFinished(object sender, Framework.Assets.Animations.Animation2d animation2d)
     {
-        if (sender is ActorComponent component)
+        if (sender is EntityComponent component)
         {
             Controller.StateMachine.HandleMessage(new Message(component.Owner.Id, component.Owner.Id,
                 (int)MessageType.AnimationChanged, 0.0f, animation2d));

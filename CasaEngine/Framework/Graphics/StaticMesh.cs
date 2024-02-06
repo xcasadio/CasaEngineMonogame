@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Graphics;
 
-public class StaticMesh : UObject
+public class StaticMesh : ObjectBase
 {
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<uint> _indices = new();

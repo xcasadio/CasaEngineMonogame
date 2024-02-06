@@ -6,19 +6,19 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
 
-//Actor Components (class UActorComponent) are most useful for abstract behaviors such as movement, 
+//Entity Components (class EntityComponent) are most useful for abstract behaviors such as movement, 
 //inventory or attribute management, and other non-physical concepts.
-//Actor Components do not have a transform, meaning they do not have any physical location or rotation in the world.
-public abstract class ActorComponent : UObject
+//Entity Components do not have a transform, meaning they do not have any physical location or rotation in the world.
+public abstract class EntityComponent : ObjectBase
 {
-    public AActor? Owner { get; private set; }
+    public Entity? Owner { get; private set; }
 
-    protected ActorComponent()
+    protected EntityComponent()
     {
         //Do nothing
     }
 
-    protected ActorComponent(ActorComponent other)
+    protected EntityComponent(EntityComponent other)
     {
         Owner = other.Owner;
     }
@@ -40,9 +40,9 @@ public abstract class ActorComponent : UObject
         //Do nothing
     }
 
-    public abstract ActorComponent Clone();
+    public abstract EntityComponent Clone();
 
-    public virtual void Attach(AActor actor)
+    public virtual void Attach(Entity actor)
     {
         Owner = actor;
     }

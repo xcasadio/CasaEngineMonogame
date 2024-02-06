@@ -158,10 +158,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         Logs.WriteException((e.ExceptionObject as Exception)!);
     }
 
-    public AActor SpawnEntity(string assetName)
+    public Entity SpawnEntity(string assetName)
     {
         var assetInfo = AssetCatalog.Get(assetName);
-        var entity = AssetContentManager.Load<AActor>(assetInfo.Id).Clone();
+        var entity = AssetContentManager.Load<Entity>(assetInfo.Id).Clone();
         GameManager.CurrentWorld.AddEntity(entity);
         return entity;
     }
@@ -232,8 +232,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
 
-        AssetContentManager.RegisterAssetLoader(typeof(UObject), new AssetLoader<UObject>());
-        AssetContentManager.RegisterAssetLoader(typeof(AActor), new AssetLoader<AActor>());
+        AssetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());
+        AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());

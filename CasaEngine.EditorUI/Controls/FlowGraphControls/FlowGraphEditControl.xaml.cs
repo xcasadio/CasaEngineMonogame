@@ -9,7 +9,7 @@ public partial class FlowGraphEditControl : UserControl
 {
     public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(EntityViewModel), typeof(FlowGraphEditControl), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
 
-    public AActor EntityFlowGraph { get; private set; }
+    public Entity EntityFlowGraph { get; private set; }
 
     public EntityViewModel SelectedItem
     {

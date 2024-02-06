@@ -5,9 +5,9 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 
 public class ChildActorComponent : SceneComponent
 {
-    private AActor? _actor;
+    private Entity? _actor;
 
-    private AActor? Actor
+    private Entity? Actor
     {
         get => _actor;
         set

@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class Texture : UObject, IAssetable
+public class Texture : ObjectBase, IAssetable
 {
     public static readonly string DefaultTextureName = "defaultTexture";
 

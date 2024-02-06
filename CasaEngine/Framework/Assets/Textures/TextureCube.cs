@@ -31,7 +31,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class TextureCube : UObject, IAssetable
+public class TextureCube : ObjectBase, IAssetable
 {
     // XNA Texture.
     protected Microsoft.Xna.Framework.Graphics.TextureCube XnaTextureCube;

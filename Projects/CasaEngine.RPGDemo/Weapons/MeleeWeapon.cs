@@ -8,7 +8,7 @@ public class MeleeWeapon : Weapon
 {
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
-    public MeleeWeapon(CasaEngineGame game, AActor entity) : base(game, entity)
+    public MeleeWeapon(CasaEngineGame game, Entity entity) : base(game, entity)
     {
     }
 

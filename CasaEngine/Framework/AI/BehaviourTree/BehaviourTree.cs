@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Framework.AI.BehaviourTree;
 
-public class BehaviourTree<T> where T : AActor
+public class BehaviourTree<T> where T : Entity
 {
     protected internal T Owner;
 

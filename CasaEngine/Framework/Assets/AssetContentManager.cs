@@ -103,7 +103,7 @@ public class AssetContentManager
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
 
-        if (newAsset is UObject gameObject)
+        if (newAsset is ObjectBase gameObject)
         {
             gameObject.AssetId = assetInfo.Id;
             gameObject.Name = assetInfo.Name;

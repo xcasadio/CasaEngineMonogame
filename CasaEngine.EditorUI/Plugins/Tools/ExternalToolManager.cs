@@ -89,9 +89,9 @@ public class ExternalToolManager
         return res.ToArray();
     }*/
 
-    public AActor CreateCustomObjectByName(string name)
+    public Entity CreateCustomObjectByName(string name)
     {
-        return (AActor)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
+        return (Entity)_customObjects[name].Assembly.CreateInstance(_customObjects[name].FullName);
     }
 
     /*public void RunTool(System.Windows.Forms.Form parent, string name_)
@@ -119,7 +119,7 @@ public class ExternalToolManager
         _customObjectAssembly.Clear();
     }
 
-    public void RunSubEditor(string path, AActor obj)
+    public void RunSubEditor(string path, Entity obj)
     {
         if (obj == null)
         {

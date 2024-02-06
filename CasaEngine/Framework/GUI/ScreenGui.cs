@@ -6,7 +6,7 @@ using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.GUI
 {
-    public class ScreenGui : AActor
+    public class ScreenGui : Entity
     {
         private readonly List<Control> _controls = new();
 

@@ -6,7 +6,7 @@ using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
-public class TileMapData : UObject
+public class TileMapData : ObjectBase
 {
     public Size MapSize { get; set; }
     public Guid TileSetDataAssetId { get; private set; } = Guid.Empty;

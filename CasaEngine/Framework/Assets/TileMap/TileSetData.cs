@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
-public class TileSetData : UObject
+public class TileSetData : ObjectBase
 {
     private readonly Dictionary<int, TileData> _tileById = new();
 

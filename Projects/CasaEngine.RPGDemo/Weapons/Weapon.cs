@@ -9,7 +9,7 @@ public abstract class Weapon
     protected CasaEngineGame Game { get; }
     private Character _character;
 
-    public AActor Entity { get; }
+    public Entity Entity { get; }
 
     public Character Character
     {
@@ -21,7 +21,7 @@ public abstract class Weapon
         }
     }
 
-    protected Weapon(CasaEngineGame game, AActor entity)
+    protected Weapon(CasaEngineGame game, Entity entity)
     {
         Game = game;
         Entity = entity;

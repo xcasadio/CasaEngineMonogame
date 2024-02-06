@@ -19,7 +19,7 @@ public class TileCollisionManager : ICollideableComponent
         _y = y;
     }
 
-    public AActor? Owner => _tileMapComponent.Owner;
+    public Entity? Owner => _tileMapComponent.Owner;
 
     public PhysicsType PhysicsType { get; }
 

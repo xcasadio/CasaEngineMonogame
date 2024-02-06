@@ -107,7 +107,7 @@ public partial class EntityControl : UserControl
         if (inputComboBox.ShowDialog() == true && inputComboBox.SelectedItem != null)
         {
             var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
-            var component = (ActorComponent)Activator.CreateInstance(componentType);
+            var component = (EntityComponent)Activator.CreateInstance(componentType);
             var componentViewModel = new ComponentViewModel(component);
 
             if (treeViewComponents.SelectedItem is ComponentViewModel selectedComponentViewModel)
@@ -137,7 +137,7 @@ public partial class EntityControl : UserControl
 
     private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { DataContext: ActorComponent component })
+        if (sender is FrameworkElement { DataContext: EntityComponent component })
         {
             var entityViewModel = DataContext as EntityViewModel;
             entityViewModel.ComponentListViewModel.RemoveComponent(component);

@@ -3,11 +3,11 @@ using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Framework.Scripting;
 
-public abstract class GameplayProxy : UObject
+public abstract class GameplayProxy : ObjectBase
 {
-    protected AActor Owner { get; private set; }
+    protected Entity Owner { get; private set; }
 
-    public void Initialize(AActor owner)
+    public void Initialize(Entity owner)
     {
         Owner = owner;
         InitializePrivate();

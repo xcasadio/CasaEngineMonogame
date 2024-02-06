@@ -33,7 +33,7 @@ public class Collision2dBasicDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ Create ground ===============
-        var entity = new AActor { Name = "ground" };
+        var entity = new Entity { Name = "ground" };
         var size = new Vector3(150, 1, 1f);
         //====
         var meshComponent = new StaticMeshComponent();
@@ -83,7 +83,7 @@ public class Collision2dBasicDemo : Demo
                 const int boxSize = 2;
 
                 //TODO
-                entity = new AActor { Name = $"shape 2d {j}-{i}" };
+                entity = new Entity { Name = $"shape 2d {j}-{i}" };
                 //====
                 meshComponent = new StaticMeshComponent();
                 entity.RootComponent = meshComponent;

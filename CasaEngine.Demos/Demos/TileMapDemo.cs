@@ -26,7 +26,7 @@ public class TileMapDemo : Demo
         var assetInfo = AssetCatalog.GetByFileName(@"Maps\map_1_1.tileMap");
         var tileMapData = game.AssetContentManager.Load<TileMapData>(assetInfo.Id);
 
-        var entity = new AActor { Name = "TileMap" };
+        var entity = new Entity { Name = "TileMap" };
         var tileMapComponent = new TileMapComponent();
         entity.RootComponent = tileMapComponent;
         entity.RootComponent.Position = new Vector3(0, 700, 0.0f);
@@ -35,7 +35,7 @@ public class TileMapDemo : Demo
         world.AddEntity(entity);
 
         //============ player ===============
-        entity = new AActor { Name = "Link" };
+        entity = new Entity { Name = "Link" };
         //===
         var animatedSprite = new AnimatedSpriteComponent();
         entity.RootComponent = animatedSprite;
@@ -90,7 +90,7 @@ public class TileMapDemo : Demo
 
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
-        var entity = new AActor();
+        var entity = new Entity();
         var camera = new Camera3dIn2dAxisComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.AddComponent(camera);

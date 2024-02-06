@@ -29,7 +29,7 @@ public class GameEditorAnimation2d : GameEditor2d
         }
     }
 
-    protected override void CreateEntityComponents(AActor entity)
+    protected override void CreateEntityComponents(Entity entity)
     {
         AnimatedSpriteComponent = new AnimatedSpriteComponent();
         entity.RootComponent = AnimatedSpriteComponent;

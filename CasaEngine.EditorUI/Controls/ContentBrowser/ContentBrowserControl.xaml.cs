@@ -245,14 +245,14 @@ public partial class ContentBrowserControl : UserControl
 
     private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
     {
-        CreateAsset(new AActor(), Constants.FileNameExtensions.Entity);
+        CreateAsset(new Entity(), Constants.FileNameExtensions.Entity);
     }
     private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new ScreenGui(), Constants.FileNameExtensions.Screen);
     }
 
-    private void CreateAsset(AActor actor, string extension)
+    private void CreateAsset(Entity actor, string extension)
     {
         var inputTextBox = new InputTextBox();
 

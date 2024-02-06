@@ -5,9 +5,9 @@ namespace CasaEngine.Framework.Entities;
 
 public static class EntityLoader
 {
-    public static AActor Load(JsonElement element)
+    public static Entity Load(JsonElement element)
     {
-        var entity = new AActor();
+        var entity = new Entity();
         entity.Load(element);
         return entity;
     }
@@ -20,7 +20,7 @@ public static class EntityLoader
             return;
         }
 
-        var entity = assetContentManager.Load<AActor>(entityReference.AssetId).Clone();
+        var entity = assetContentManager.Load<Entity>(entityReference.AssetId).Clone();
         entityReference.Entity = entity;
         entity.Name = entityReference.Name;
         entity.RootComponent?.CopyCoordinatesFrom(entityReference.InitialCoordinates);

@@ -7,5 +7,5 @@ public interface IExternalTool : IContainerControl
 {
     ExternalTool ExternalTool { get; }
 
-    void SetCurrentObject(string path, AActor obj);
+    void SetCurrentObject(string path, Entity obj);
 }

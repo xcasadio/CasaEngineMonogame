@@ -17,7 +17,7 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 //Scene Components (class USceneComponent, a child of UActorComponent) support location-based behaviors that do not require
 //a geometric representation.
 //This includes spring arms, cameras, physical forces and constraints (but not physical objects), and even audio.
-public abstract class SceneComponent : ActorComponent, IBoundingBoxable, IComponentDrawable
+public abstract class SceneComponent : EntityComponent, IBoundingBoxable, IComponentDrawable
 #if EDITOR
     , ITransformable
 #endif
@@ -242,7 +242,7 @@ public abstract class SceneComponent : ActorComponent, IBoundingBoxable, ICompon
         }
     }
 
-    public override void Attach(AActor actor)
+    public override void Attach(Entity actor)
     {
         base.Attach(actor);
 

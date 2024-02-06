@@ -71,7 +71,7 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         }
     }
 
-    public override void Attach(AActor actor)
+    public override void Attach(Entity actor)
     {
         base.Attach(actor);
         ComputeBoundingBox();

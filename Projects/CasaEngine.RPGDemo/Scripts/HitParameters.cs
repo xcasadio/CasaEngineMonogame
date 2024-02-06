@@ -9,7 +9,7 @@ public class HitParameters
     public int Precision;
     public int MagicStrength;
 
-    public AActor Entity;
+    public Entity Entity;
 
     public Vector3 ContactPoint;
 }

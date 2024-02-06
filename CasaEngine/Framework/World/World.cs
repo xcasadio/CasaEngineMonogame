@@ -17,21 +17,21 @@ using XNAGizmo;
 
 namespace CasaEngine.Framework.World;
 
-public sealed class World : UObject
+public sealed class World : ObjectBase
 {
     private readonly List<EntityReference> _entityReferences = new();
-    private readonly List<AActor> _entities = new();
-    private readonly List<AActor> _baseObjectsToAdd = new();
+    private readonly List<Entity> _entities = new();
+    private readonly List<Entity> _baseObjectsToAdd = new();
     private readonly List<ScreenGui> _screens = new();
 
-    private readonly Octree<AActor> _octree;
-    private readonly List<AActor> _entitiesVisible = new(1000);
+    private readonly Octree<Entity> _octree;
+    private readonly List<Entity> _entitiesVisible = new(1000);
 
     public CasaEngineGame Game { get; private set; }
     public IEnumerable<ScreenGui> Screens => _screens;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
-    public IList<AActor> Entities => _entities;
+    public IList<Entity> Entities => _entities;
 
     public bool DisplaySpacePartitioning { get; set; }
 
@@ -40,16 +40,16 @@ public sealed class World : UObject
 
     public World()
     {
-        _octree = new Octree<AActor>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
+        _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
     }
 
-    public void AddEntity(AActor entity)
+    public void AddEntity(Entity entity)
     {
         System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
         _baseObjectsToAdd.Add(entity);
     }
 
-    public void RemoveEntity(AActor entity)
+    public void RemoveEntity(Entity entity)
     {
         entity.Destroy();
     }
@@ -131,7 +131,7 @@ public sealed class World : UObject
 
     public void Update(float elapsedTime)
     {
-        var toRemove = new List<AActor>();
+        var toRemove = new List<Entity>();
 
         InternalAddEntities();
 
@@ -175,7 +175,7 @@ public sealed class World : UObject
         }
     }
 
-    private bool IsBoundingBoxDirty(AActor actor)
+    private bool IsBoundingBoxDirty(Entity actor)
     {
         if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
         {
@@ -193,7 +193,7 @@ public sealed class World : UObject
         return false;
     }
 
-    private BoundingBox GetBoundingBox(AActor actor)
+    private BoundingBox GetBoundingBox(Entity actor)
     {
         var boundingBox = actor.RootComponent?.BoundingBox ?? new BoundingBox();
 
@@ -224,7 +224,7 @@ public sealed class World : UObject
         _baseObjectsToAdd.Clear();
     }
 
-    private void AddInSpacePartitioning(AActor actor)
+    private void AddInSpacePartitioning(Entity actor)
     {
         _octree.AddItem(GetBoundingBox(actor), actor);
     }
@@ -364,8 +364,8 @@ public sealed class World : UObject
 #if EDITOR
 
     public event EventHandler? EntitiesClear;
-    public event EventHandler<AActor> EntityAdded;
-    public event EventHandler<AActor> EntityRemoved;
+    public event EventHandler<Entity> EntityAdded;
+    public event EventHandler<Entity> EntityRemoved;
 
     public IEnumerable<ITransformable> GetSelectableComponents()
     {
@@ -379,7 +379,7 @@ public sealed class World : UObject
         return selectables;
     }
 
-    private void AddSelectablesFromActor(AActor actor, List<ITransformable> selectables)
+    private void AddSelectablesFromActor(Entity actor, List<ITransformable> selectables)
     {
         if (actor.RootComponent != null)
         {
@@ -400,7 +400,7 @@ public sealed class World : UObject
         }
     }
 
-    public void AddEntityWithEditor(AActor entity)
+    public void AddEntityWithEditor(Entity entity)
     {
         var entityReference = new EntityReference();
         entityReference.Name = entity.Name;
@@ -414,7 +414,7 @@ public sealed class World : UObject
         AddEntityReferenceWithEditor(entityReference, entityReference.Entity);
     }
 
-    private void AddEntityReferenceWithEditor(EntityReference entityReference, AActor entity)
+    private void AddEntityReferenceWithEditor(EntityReference entityReference, Entity entity)
     {
         _entityReferences.Add(entityReference);
         _entities.Add(entity);
@@ -424,7 +424,7 @@ public sealed class World : UObject
         EntityAdded?.Invoke(this, entity);
     }
 
-    public void RemoveEntityWithEditor(AActor entity)
+    public void RemoveEntityWithEditor(Entity entity)
     {
         foreach (var entityReference in _entityReferences)
         {

@@ -7,7 +7,7 @@ namespace CasaEngine.EditorUI.Controls.TileMapControls;
 public class GameEditorTileMap : GameEditor2d
 {
     private TileMapComponent _tileMapComponent;
-    private AActor _entity;
+    private Entity _entity;
 
     public GameEditorTileMap()
     {
@@ -31,7 +31,7 @@ public class GameEditorTileMap : GameEditor2d
         }
     }
 
-    protected override void CreateEntityComponents(AActor entity)
+    protected override void CreateEntityComponents(Entity entity)
     {
         _entity = entity;
         _tileMapComponent = new TileMapComponent();

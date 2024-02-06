@@ -6,21 +6,21 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
 
-//Actor is the base class for an Object that can be placed or spawned in a level.
-public class AActor : UObject
+//Entity is the base class for an Object that can be placed or spawned in a level.
+public class Entity : ObjectBase
 {
     private bool _isEnabled = true;
-    private readonly List<ActorComponent> _components = new();
-    private readonly List<AActor> _children = new();
+    private readonly List<EntityComponent> _components = new();
+    private readonly List<Entity> _children = new();
     private SceneComponent? _rootComponent;
     public World.World World { get; private set; }
 
     public bool IsInitialized { get; private set; }
-    public AActor? Parent { get; private set; }
+    public Entity? Parent { get; private set; }
 
-    public IEnumerable<AActor> Children => _children;
+    public IEnumerable<Entity> Children => _children;
 
-    public IEnumerable<ActorComponent> Components => _components;
+    public IEnumerable<EntityComponent> Components => _components;
 
     public SceneComponent? RootComponent
     {
@@ -64,11 +64,11 @@ public class AActor : UObject
 
     public bool ToBeRemoved { get; private set; }
 
-    public AActor()
+    public Entity()
     {
     }
 
-    public AActor(AActor actor) : base(actor)
+    public Entity(Entity actor) : base(actor)
     {
         World = actor.World;
         _isEnabled = actor._isEnabled;
@@ -88,9 +88,9 @@ public class AActor : UObject
         }
     }
 
-    public AActor Clone()
+    public Entity Clone()
     {
-        return new AActor(this);
+        return new Entity(this);
     }
 
     protected override void InitializePrivate()
@@ -156,7 +156,7 @@ public class AActor : UObject
         }
     }
 
-    public void AddChild(AActor actor)
+    public void AddChild(Entity actor)
     {
         _children.Add(actor);
         actor.Parent = this;
@@ -166,7 +166,7 @@ public class AActor : UObject
 #endif
     }
 
-    public void RemoveChild(AActor actor)
+    public void RemoveChild(Entity actor)
     {
         _children.Remove(actor);
         actor.Parent = null;
@@ -176,7 +176,7 @@ public class AActor : UObject
 #endif
     }
 
-    public void AddComponent(ActorComponent component)
+    public void AddComponent(EntityComponent component)
     {
         _components.Add(component);
         component.Attach(this);
@@ -186,7 +186,7 @@ public class AActor : UObject
 #endif
     }
 
-    public void RemoveComponent(ActorComponent component)
+    public void RemoveComponent(EntityComponent component)
     {
         _components.Remove(component);
         component.Detach();
@@ -337,7 +337,7 @@ public class AActor : UObject
             else if (componentNode.GetProperty("type").ValueKind == JsonValueKind.Number
                      && componentNode.GetProperty("type").GetInt32() != 1)
             {
-                AddComponent(ElementFactory.Load<ActorComponent>(componentNode));
+                AddComponent(ElementFactory.Load<EntityComponent>(componentNode));
             }
         }
 
@@ -349,11 +349,11 @@ public class AActor : UObject
 
 #if EDITOR
 
-    public event EventHandler<AActor> ChildAdded;
-    public event EventHandler<AActor> ChildRemoved;
+    public event EventHandler<Entity> ChildAdded;
+    public event EventHandler<Entity> ChildRemoved;
 
-    public event EventHandler<ActorComponent> ComponentAdded;
-    public event EventHandler<ActorComponent> ComponentRemoved;
+    public event EventHandler<EntityComponent> ComponentAdded;
+    public event EventHandler<EntityComponent> ComponentRemoved;
 
     public override void Save(JObject node)
     {

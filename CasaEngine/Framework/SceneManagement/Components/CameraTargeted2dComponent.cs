@@ -14,7 +14,7 @@ public class CameraTargeted2dComponent : Camera3dComponent
     public Vector2 DeadZoneRatio { get; set; } = Vector2.One;
     public Rectangle Limits { get; set; }
 
-    public AActor? Target { get; set; }
+    public Entity? Target { get; set; }
 
     public CameraTargeted2dComponent()
     {

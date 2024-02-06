@@ -12,8 +12,8 @@ public class ComponentViewModel : NotifyPropertyChangeBase
     private ComponentViewModel? _parent;
     public string Name { get; internal set; }
     public bool OnlyForEditor { get; set; }
-    public ActorComponent Component { get; }
-    public virtual AActor Owner => Component.Owner;
+    public EntityComponent Component { get; }
+    public virtual Entity Owner => Component.Owner;
 
     public ComponentViewModel? Parent
     {
@@ -23,7 +23,7 @@ public class ComponentViewModel : NotifyPropertyChangeBase
 
     public ObservableCollection<ComponentViewModel> Children { get; } = new();
 
-    public ComponentViewModel(ActorComponent component)
+    public ComponentViewModel(EntityComponent component)
     {
         Component = component;
         var displayNameAttribute = component?.GetType().GetCustomAttribute<DisplayNameAttribute>();

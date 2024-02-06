@@ -6,9 +6,9 @@ using CasaEngine.EditorUI.DragAndDrop;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
 
-public partial class PlaceActorsControl : UserControl
+public partial class PlaceEntitiesControl : UserControl
 {
-    public PlaceActorsControl()
+    public PlaceEntitiesControl()
     {
         InitializeComponent();
     }

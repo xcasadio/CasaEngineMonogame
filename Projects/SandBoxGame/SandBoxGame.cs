@@ -26,7 +26,7 @@ namespace SandBoxGame
 {
     public class SandBoxGame : CasaEngineGame
     {
-        private AActor _boxEntity;
+        private Entity _boxEntity;
         private StaticMesh _staticMesh;
 
         private Effect _effectColor;
@@ -57,7 +57,7 @@ namespace SandBoxGame
             GameManager.SetWorldToLoad(world);
 
             //============ Camera ===============
-            var entity = new AActor(); // { Name = "camera" };
+            var entity = new Entity(); // { Name = "camera" };
             var camera = new ArcBallCameraComponent();
             //var camera = new Camera3dIn2dAxisComponent(entity);
             //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
@@ -66,7 +66,7 @@ namespace SandBoxGame
             world.AddEntity(entity);
 
             //============ Box ===============
-            _boxEntity = new AActor(); // { Name = "box" };
+            _boxEntity = new Entity(); // { Name = "box" };
             var meshComponent = new StaticMeshComponent();
             _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
             _boxEntity.AddComponent(meshComponent);

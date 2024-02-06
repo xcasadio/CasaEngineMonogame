@@ -128,11 +128,11 @@ public class GameManager
 
     public event EventHandler? WorldChanged;
 
-    private AActor _cameraEditorEntity;
+    private Entity _cameraEditorEntity;
 
     private void SetCameraWithEditor(World.World world)
     {
-        _cameraEditorEntity = new AActor { Name = "Camera editor" };
+        _cameraEditorEntity = new Entity { Name = "Camera editor" };
         _cameraEditorEntity.IsVisible = false;
 
         var cameraEditor = CreateCameraComponentCallback != null ?
@@ -145,10 +145,10 @@ public class GameManager
         ActiveCamera = cameraEditor;
     }
 
-    public delegate CameraComponent CameraComponentCallback(AActor cameraEntity);
+    public delegate CameraComponent CameraComponentCallback(Entity cameraEntity);
     public CameraComponentCallback? CreateCameraComponentCallback;
 
-    private ArcBallCameraComponent CreateCameraComponent(AActor cameraEntity)
+    private ArcBallCameraComponent CreateCameraComponent(Entity cameraEntity)
     {
         var cameraEditor = new ArcBallCameraComponent();
         cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);

@@ -12,7 +12,7 @@ public class EntityReference : ISerializable
     public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
     public Coordinates InitialCoordinates { get; } = new();
-    public AActor Entity { get; internal set; }
+    public Entity Entity { get; internal set; }
 
     public void Load(JsonElement element)
     {
@@ -45,7 +45,7 @@ public class EntityReference : ISerializable
         var entityReference = new EntityReference();
         entityReference.AssetId = assetInfo.Id;
         entityReference.Name = assetInfo.Name;
-        entityReference.Entity = assetContentManager.Load<AActor>(assetInfo.Id).Clone();
+        entityReference.Entity = assetContentManager.Load<Entity>(assetInfo.Id).Clone();
 
         if (entityReference.Entity.RootComponent != null)
         {

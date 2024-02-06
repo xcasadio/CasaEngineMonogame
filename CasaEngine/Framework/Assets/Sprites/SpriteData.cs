@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Sprites;
 
-public class SpriteData : UObject
+public class SpriteData : ObjectBase
 {
     public Guid SpriteSheetAssetId { get; set; }
     public Rectangle PositionInTexture { get; set; }

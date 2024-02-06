@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
 
-public class UObject : ISerializable
+public class ObjectBase : ISerializable
 {
     private bool _isInitialized;
 
@@ -18,13 +18,13 @@ public class UObject : ISerializable
     //if this object comes from an asset (example an actor created in the content browser)
     public Guid AssetId { get; set; }
 
-    public UObject()
+    public ObjectBase()
     {
         Id = Guid.NewGuid();
         Name = "Object " + Id;
     }
 
-    public UObject(UObject other) : this()
+    public ObjectBase(ObjectBase other) : this()
     {
         Name = $"Copy of {other.Name}";
         FileName = other.FileName;

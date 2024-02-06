@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
 
-public class LookupTable : UObject, IAssetable
+public class LookupTable : ObjectBase, IAssetable
 {
     private readonly AssetContentManager _assetContentManager;
     private static readonly string AssetContentManagerCategoryName = "LookupTableTemp";

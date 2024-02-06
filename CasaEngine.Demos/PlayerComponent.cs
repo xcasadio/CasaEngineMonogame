@@ -10,7 +10,7 @@ using Microsoft.Xna.Framework.Input;
 namespace CasaEngine.Demos;
 
 [DisplayName("PlayerComponent")]
-public class PlayerComponent : ActorComponent
+public class PlayerComponent : EntityComponent
 {
     private Physics2dComponent _physics2dComponent;
     private AnimatedSpriteComponent _animatedSpriteComponent;

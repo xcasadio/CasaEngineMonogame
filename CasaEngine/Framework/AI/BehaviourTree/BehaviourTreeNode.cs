@@ -2,7 +2,7 @@
 
 namespace CasaEngine.Framework.AI.BehaviourTree;
 
-public abstract class BehaviourTreeNode<T> : AActor
+public abstract class BehaviourTreeNode<T> : Entity
 {
     private readonly string _name;
     private readonly BehaviourTreeNode<T> _parent = null;

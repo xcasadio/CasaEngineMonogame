@@ -52,7 +52,7 @@ public class GameEditorGui : GameEditor2d
         }
     }
 
-    protected override void CreateEntityComponents(AActor entity)
+    protected override void CreateEntityComponents(Entity entity)
     {
         Game.UiManager.SetSkin();
     }

@@ -46,7 +46,8 @@ public partial class WorldEditorControl : EditorControlBase
             "Entities" => EntitiesControl,
             "Details" => EntityControl,
             "Game ScreenGui" => GameScreenControl,
-            "Place Actors" => PlaceActorsControl,
+            "Place Actors" => PlaceEntitiesControl,
+            "Place Entities" => PlaceEntitiesControl,
             "Logs" => this.FindParent<MainWindow>().LogsControl,
             "Content Browser" => this.FindParent<MainWindow>().ContentBrowserControl,
             _ => e.Content
@@ -71,12 +72,12 @@ public partial class WorldEditorControl : EditorControlBase
     {
         foreach (var assetInfo in AssetCatalog.AssetInfos)
         {
-            UObject actor = null;
+            ObjectBase actor = null;
 
             switch (Path.GetExtension(assetInfo.FileName))
             {
                 case Constants.FileNameExtensions.Entity:
-                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<AActor>(assetInfo.Id);
+                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<Entity>(assetInfo.Id);
                     break;
                 case Constants.FileNameExtensions.World:
                     continue;

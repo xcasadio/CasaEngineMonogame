@@ -28,7 +28,7 @@ public class ThrowableWeapon : Weapon
         InitializeEntity(entity);
     }
 
-    private void InitializeEntity(AActor entity)
+    private void InitializeEntity(Entity entity)
     {
         //TODO : remove it => must be set by editor
         entity.GameplayProxyClassName = nameof(ScriptEnemyWeapon);

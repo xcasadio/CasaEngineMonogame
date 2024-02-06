@@ -25,7 +25,7 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
         }
     }
 
-    private void CreateComponentHierarchy(AActor actor)
+    private void CreateComponentHierarchy(Entity actor)
     {
         if (actor.RootComponent != null)
         {
@@ -67,7 +67,7 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public void RemoveComponent(ActorComponent component)
+    public void RemoveComponent(EntityComponent component)
     {
         if (EntityViewModel.Entity.RootComponent == component)
         {

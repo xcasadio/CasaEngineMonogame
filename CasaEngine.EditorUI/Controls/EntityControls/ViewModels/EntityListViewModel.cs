@@ -33,7 +33,7 @@ public class EntityListViewModel
         Entities.Clear();
     }
 
-    private void OnEntityRemoved(object? sender, AActor entity)
+    private void OnEntityRemoved(object? sender, Entity entity)
     {
         if (!_lock)
         {
@@ -49,7 +49,7 @@ public class EntityListViewModel
         }
     }
 
-    private void OnEntityAdded(object? sender, AActor entity)
+    private void OnEntityAdded(object? sender, Entity entity)
     {
         if (!_lock)
         {
@@ -59,7 +59,7 @@ public class EntityListViewModel
         }
     }
 
-    public EntityViewModel? GetFromEntity(AActor entity)
+    public EntityViewModel? GetFromEntity(Entity entity)
     {
         foreach (var entityViewModel in Entities)
         {
@@ -72,7 +72,7 @@ public class EntityListViewModel
         return null;
     }
 
-    public EntityViewModel Add(AActor entity)
+    public EntityViewModel Add(Entity entity)
     {
         _lock = true;
         _worldViewModel.AddActorChild(new EntityViewModel(entity));

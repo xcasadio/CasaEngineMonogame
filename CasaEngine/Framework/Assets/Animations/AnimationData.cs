@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Animations;
 
-public class AnimationData : UObject
+public class AnimationData : ObjectBase
 {
     public AnimationType AnimationType { get; set; }
 

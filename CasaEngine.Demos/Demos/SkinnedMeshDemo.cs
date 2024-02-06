@@ -17,7 +17,7 @@ public class SkinnedMeshDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         //============ Create skinned mesh ===============
-        var entity = new AActor { Name = "Skinned mesh" };
+        var entity = new Entity { Name = "Skinned mesh" };
         var skinnedMeshComponent = new SkinnedMeshComponent();
         entity.RootComponent = skinnedMeshComponent;
         entity.RootComponent.LocalPosition = new Vector3(0, 0, 0);

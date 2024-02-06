@@ -79,7 +79,7 @@ public class GameEditorWorld : GameEditor
             {
                 e.Handled = true;
 
-                var entity = new AActor();
+                var entity = new Entity();
 
                 if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
                 {
@@ -99,7 +99,7 @@ public class GameEditorWorld : GameEditor
         }
     }
 
-    private void CreateEntity(AActor entity, Point mousePosition)
+    private void CreateEntity(Entity entity, Point mousePosition)
     {
         entity.Initialize();
         entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
