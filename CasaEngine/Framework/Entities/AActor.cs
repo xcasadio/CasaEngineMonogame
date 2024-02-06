@@ -267,6 +267,11 @@ public class AActor : UObject
 
     public void Draw(float elapsedTime)
     {
+        if (!IsVisible)
+        {
+            return;
+        }
+
         RootComponent?.Draw(elapsedTime);
 
         for (int i = 0; i < _components.Count; i++)
