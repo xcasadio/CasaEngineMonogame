@@ -6,8 +6,10 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Entities;
 
-public class EntityReference : ISerializable
+public class EntityReference
 {
+    private JsonElement? _nodeToLoad;
+
     //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
@@ -16,25 +18,29 @@ public class EntityReference : ISerializable
 
     public void Load(JsonElement element)
     {
-        //TODO : remove
-        if (element.GetProperty("asset_id").ValueKind == JsonValueKind.Number)
-        {
-            var id = element.GetProperty("asset_id").GetInt32();
-            AssetId = id >= 0 ? AssetInfo.GuidsById[id] : Guid.Empty;
-        }
-        else
-        {
-            AssetId = element.GetProperty("asset_id").GetGuid();
-        }
+        AssetId = element.GetProperty("asset_id").GetGuid();
 
         if (AssetId == Guid.Empty)
         {
-            Entity = EntityLoader.Load(element.GetProperty("entity"));
+            _nodeToLoad = element.GetProperty("entity");
         }
         else
         {
             Name = element.GetProperty("name").GetString();
             InitialCoordinates.Load(element.GetProperty("initial_coordinates"));
+        }
+    }
+
+    public void Load(AssetContentManager assetContentManager)
+    {
+        if (AssetId == Guid.Empty)
+        {
+            Entity = assetContentManager.Load<Entity>(_nodeToLoad.Value);
+        }
+        else
+        {
+            Entity = assetContentManager.Load<Entity>(AssetId).Clone();
+            Entity.RootComponent?.CopyCoordinatesFrom(InitialCoordinates);
         }
     }
 
