@@ -305,7 +305,14 @@ public class AActor : UObject
 
     public override void Load(JsonElement element)
     {
-        base.Load(element);
+        if (element.TryGetProperty("asset", out _))
+        {
+            base.Load(element.GetProperty("asset"));
+        }
+        else
+        {
+            base.Load(element);
+        }
 
         //TODO remove
         if (element.TryGetProperty("script_class_name", out _))
