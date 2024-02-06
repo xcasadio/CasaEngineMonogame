@@ -5,6 +5,8 @@
     "file_name": "Screens\\Screen_Test.screen"
   },
   "version": 1,
+  "root_component": "null",
+  "components": [],
   "coordinates": {
     "position": {
       "x": 0.0,
