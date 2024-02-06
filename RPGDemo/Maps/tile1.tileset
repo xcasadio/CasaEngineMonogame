@@ -1,1184 +1,1305 @@
 {
-    "sprite_sheet_asset_id": 10001,
-	"id": 4001,
-	"version": 1,
-	"name": "tile1",
-	"file_name": "Maps\\tile1.tileset", 
-	"tile_size": {
+  "id": "5ce2b467-f3e2-4a92-b5f7-69e5538aec9a",
+  "name": "tile1",
+  "sprite_sheet_asset_id": "f305df12-785a-499d-ab6e-7db38249bf12",
+  "tile_size": {
+    "w": 32,
+    "h": 32
+  },
+  "tiles": [
+    {
+      "type": "Static",
+      "id": 2906,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
+      "location": {
+        "x": 0,
+        "y": 0,
         "w": 32,
         "h": 32
+      }
     },
-	"tiles": [
-		{
-		  "collision_type": "None",
-			"id": 2906,
-			"is_breakable": false,
-			"type": "static",
-			"location": {
-				"x": 0,
-				"y": 0,
-				"w": 32,
-				"h": 32
-			  },
-		  "collision": "null"
-		},
-		{
-			"collision_type": "None",
-			"id": 2907,
-			"is_breakable": false,
-			"type": "static",
-			"location": {
-				"x": 32,
-				"y": 0,
-				"w": 32,
-				"h": 32
-			  },
-		  "collision": "null"
-		},
-		{
-			"collision_type": "None",
-			"id": 2908,
-			"is_breakable": false,
-			"type": "static",
-			"location": {
-				"x": 64,
-				"y": 0,
-				"w": 32,
-				"h": 32
-			  },
-		  "collision": "null"
-		},
-		{
-			"collision_type": "None",
-			"id": 2909,
-			"is_breakable": false,
-			"type": "static",
-			"location": {
-				"x": 96,
-				"y": 0,
-				"w": 32,
-				"h": 32
-			  },
-		  "collision": "null"
-		},
-		{
-			"collision_type": "Blocked",
-			"id": 2910,
-			"is_breakable": false,
-			"type": "static",
-			"location": {
-				"x": 128,
-				"y": 0,
-				"w": 32,
-				"h": 32
-			  },
-		  "collision": "null"
-		},
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2911,
+      "type": "Static",
+      "id": 2907,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
+      "location": {
+        "x": 32,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "type": "Static",
+      "id": 2908,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
+      "location": {
+        "x": 64,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "type": "Static",
+      "id": 2909,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
+      "location": {
+        "x": 96,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "type": "Static",
+      "id": 2910,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
+      "location": {
+        "x": 128,
+        "y": 0,
+        "w": 32,
+        "h": 32
+      }
+    },
+    {
+      "type": "Static",
+      "id": 2911,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2912,
+      "type": "Static",
+      "id": 2912,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2913,
+      "type": "Static",
+      "id": 2913,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2914,
+      "type": "Static",
+      "id": 2914,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2915,
+      "type": "Static",
+      "id": 2915,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2916,
+      "type": "Static",
+      "id": 2916,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2917,
+      "type": "Static",
+      "id": 2917,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "Blocked",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2918,
+      "type": "Static",
+      "id": 2918,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2919,
+      "type": "Static",
+      "id": 2919,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2920,
+      "type": "Static",
+      "id": 2920,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2921,
+      "type": "Static",
+      "id": 2921,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 480,
         "y": 0,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2922,
+      "type": "Static",
+      "id": 2922,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2923,
+      "type": "Static",
+      "id": 2923,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 32,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2924,
+      "type": "Static",
+      "id": 2924,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 64,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2925,
+      "type": "Static",
+      "id": 2925,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 96,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2926,
+      "type": "Static",
+      "id": 2926,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 128,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2927,
+      "type": "Static",
+      "id": 2927,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "Blocked",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2928,
+      "type": "Static",
+      "id": 2928,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2929,
+      "type": "Static",
+      "id": 2929,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2930,
+      "type": "Static",
+      "id": 2930,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2931,
+      "type": "Static",
+      "id": 2931,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2932,
+      "type": "Static",
+      "id": 2932,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2933,
+      "type": "Static",
+      "id": 2933,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2934,
+      "type": "Static",
+      "id": 2934,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "Blocked",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2935,
+      "type": "Static",
+      "id": 2935,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "Blocked",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2936,
+      "type": "Static",
+      "id": 2936,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "Blocked",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2937,
+      "type": "Static",
+      "id": 2937,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 480,
         "y": 32,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-			"collision_type": "None",
-			"is_breakable": false,
-			"type": "static",
-        "id": 2938,
+      "type": "Static",
+      "id": 2938,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2939,
+      "type": "Static",
+      "id": 2939,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 32,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2940,
+      "type": "Static",
+      "id": 2940,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 64,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2941,
+      "type": "Static",
+      "id": 2941,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 96,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2942,
+      "type": "Static",
+      "id": 2942,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 128,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2943,
+      "type": "Static",
+      "id": 2943,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2944,
+      "type": "Static",
+      "id": 2944,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2945,
+      "type": "Static",
+      "id": 2945,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2946,
+      "type": "Static",
+      "id": 2946,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2947,
+      "type": "Static",
+      "id": 2947,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2948,
+      "type": "Static",
+      "id": 2948,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2949,
+      "type": "Static",
+      "id": 2949,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2950,
+      "type": "Static",
+      "id": 2950,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2951,
+      "type": "Static",
+      "id": 2951,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2952,
+      "type": "Static",
+      "id": 2952,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2953,
+      "type": "Static",
+      "id": 2953,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 480,
         "y": 64,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2954,
+      "type": "Static",
+      "id": 2954,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2955,
+      "type": "Static",
+      "id": 2955,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 32,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2956,
+      "type": "Static",
+      "id": 2956,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 64,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2957,
+      "type": "Static",
+      "id": 2957,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 96,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2958,
+      "type": "Static",
+      "id": 2958,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 128,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2959,
+      "type": "Static",
+      "id": 2959,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2960,
+      "type": "Static",
+      "id": 2960,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2961,
+      "type": "Static",
+      "id": 2961,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2962,
+      "type": "Static",
+      "id": 2962,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2963,
+      "type": "Static",
+      "id": 2963,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2964,
+      "type": "Static",
+      "id": 2964,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2965,
+      "type": "Static",
+      "id": 2965,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2966,
+      "type": "Static",
+      "id": 2966,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2967,
+      "type": "Static",
+      "id": 2967,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2968,
+      "type": "Static",
+      "id": 2968,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2969,
+      "type": "Static",
+      "id": 2969,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 480,
         "y": 96,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2970,
+      "type": "Static",
+      "id": 2970,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2971,
+      "type": "Static",
+      "id": 2971,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 32,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2972,
+      "type": "Static",
+      "id": 2972,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 64,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2973,
+      "type": "Static",
+      "id": 2973,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 96,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2974,
+      "type": "Static",
+      "id": 2974,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 128,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2975,
+      "type": "Static",
+      "id": 2975,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2976,
+      "type": "Static",
+      "id": 2976,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2977,
+      "type": "Static",
+      "id": 2977,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2978,
+      "type": "Static",
+      "id": 2978,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2979,
+      "type": "Static",
+      "id": 2979,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2980,
+      "type": "Static",
+      "id": 2980,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2981,
+      "type": "Static",
+      "id": 2981,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2982,
+      "type": "Static",
+      "id": 2982,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2983,
+      "type": "Static",
+      "id": 2983,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2984,
+      "type": "Static",
+      "id": 2984,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2985,
+      "type": "Static",
+      "id": 2985,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 480,
         "y": 128,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2986,
+      "type": "Static",
+      "id": 2986,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2987,
+      "type": "Static",
+      "id": 2987,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 32,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "Blocked", "is_breakable": false, "type": "static",
-        "id": 2988,
+      "type": "Static",
+      "id": 2988,
+      "collision_type": "Blocked",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 64,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2989,
+      "type": "Static",
+      "id": 2989,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 96,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2990,
+      "type": "Static",
+      "id": 2990,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 128,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2991,
+      "type": "Static",
+      "id": 2991,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 160,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2992,
+      "type": "Static",
+      "id": 2992,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 192,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2993,
+      "type": "Static",
+      "id": 2993,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 224,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2994,
+      "type": "Static",
+      "id": 2994,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 256,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2995,
+      "type": "Static",
+      "id": 2995,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 288,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2996,
+      "type": "Static",
+      "id": 2996,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 320,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2997,
+      "type": "Static",
+      "id": 2997,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 352,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2998,
+      "type": "Static",
+      "id": 2998,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 384,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 2999,
+      "type": "Static",
+      "id": 2999,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 416,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 3000,
+      "type": "Static",
+      "id": 3000,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 448,
         "y": 160,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
     {
-      "collision_type": "None", "is_breakable": false, "type": "static",
-        "id": 3001,
+      "type": "Static",
+      "id": 3001,
+      "collision_type": "None",
+      "is_breakable": false,
+      "collision": "null",
       "location": {
         "x": 0,
         "y": 192,
         "w": 32,
         "h": 32
-      },
-      "collision": "null"
+      }
     },
-	
-	
-	
     {
-      "collision_type": "NoContactResponse", 
-	  "is_breakable": true, 
-	  "type": "auto",
-	  "auto_tile_index": 0,
+      "type": "Auto",
       "id": 3098,
+      "collision_type": "NoContactResponse",
+      "is_breakable": true,
+      "collision": "null",
+      "auto_tile_index": 0,
       "locations": [
-	  {
-	   "x": 448,
-	   "y": 160,
-	   "w": 32,
-	   "h": 32
-	    },
-		{
+        {
+          "x": 448,
+          "y": 160,
+          "w": 32,
+          "h": 32
+        },
+        {
           "x": 480,
           "y": 160,
           "w": 32,
           "h": 32
         },
-	   {
+        {
           "x": 448,
           "y": 192,
           "w": 32,
           "h": 32
         },
-	    {
+        {
           "x": 480,
           "y": 192,
           "w": 32,
           "h": 32
         },
-	    {
+        {
           "x": 448,
           "y": 224,
           "w": 32,
           "h": 32
         },
-	    {
+        {
           "x": 480,
           "y": 224,
           "w": 32,
           "h": 32
         }
-	  ],
-      "collision": "null"
+      ]
     }
   ]
 }

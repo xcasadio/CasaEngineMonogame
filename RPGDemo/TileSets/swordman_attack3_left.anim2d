@@ -1,25 +1,23 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 233,
-    "name": "swordman_attack3_left"
-  },
+  "id": "fd5c97d5-d8c5-456d-a8fc-67db0265a5c0",
+  "name": "swordman_attack3_left",
   "frames": [
     {
       "duration": 0.03,
-      "sprite_id": 114
+      "sprite_id": "5a69a97c-2462-408b-8469-77e0588c1226"
     },
     {
       "duration": 0.03,
-      "sprite_id": 115
+      "sprite_id": "82320cb8-c506-4290-8075-ac5b4a0bedef"
     },
     {
       "duration": 0.03,
-      "sprite_id": 116
+      "sprite_id": "5dcfd73d-930d-42e6-856b-f69583e363c5"
     },
     {
       "duration": 0.03,
-      "sprite_id": 117
+      "sprite_id": "c26507bd-927d-4536-a674-f72474bc2064"
     }
   ]
 }

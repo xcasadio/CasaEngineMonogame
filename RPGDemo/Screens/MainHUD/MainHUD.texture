@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 11432,
-    "name": "Item",
-    "file_name": "Screens\\MainHUD\\MainHUD.texture"
-  },
-  "texture_asset_id": 11431,
+  "id": "1ccb84ed-be84-4dcf-bb19-995cfbb384c9",
+  "name": "MainHUD",
+  "texture_asset_id": "e7e6e709-958a-4f5b-998d-cba4c6ebd25b",
   "sampler_state": {
     "texture_filter": "Anisotropic",
     "address_u": "Wrap",

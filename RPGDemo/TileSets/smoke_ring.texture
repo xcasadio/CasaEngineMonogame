@@ -1,9 +1,7 @@
 {
-  "asset": {
-    "id": 10479,
-    "name": "smoke_ring"
-  },
-  "texture_asset_id": 10478,
+  "id": "18d08ef3-e0a1-4c75-86be-2b7c35f2693f",
+  "name": "smoke_ring",
+  "texture_asset_id": "2f392a86-bb60-42b6-b1f7-a64966d9e1df",
   "sampler_state": {
     "texture_filter": "Anisotropic",
     "address_u": "Wrap",

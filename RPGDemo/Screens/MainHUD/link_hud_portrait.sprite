@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 11715,
-    "name": "link_hud_portrait",
-    "file_name": "Screens\\MainHUD\\link_hud_portrait.sprite"
-  },
-  "sprite_sheet_asset_id": 11432,
+  "id": "b039042c-4b9d-4157-8be2-eed2d3c4f3bd",
+  "name": "link_hud_portrait",
+  "sprite_sheet_asset_id": "1ccb84ed-be84-4dcf-bb19-995cfbb384c9",
   "location": {
     "x": 41,
     "y": 0,

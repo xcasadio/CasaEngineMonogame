@@ -1,48 +1,43 @@
 {
   "id": "9b366ad0-1edf-4025-9eff-b38d3af2b3f3",
-  "name": "DefaultWorld"
-  ,
+  "name": "DefaultWorld",
   "entity_references": [
     {
-      "asset_id": -1,
+      "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
-          "id": 4026,
-          "name": "tileMap",
+        "id": "17c4ce45-b274-4282-b856-975d22d149e7",
+        "name": "tileMap",
         "root_component": {
-			"id": 1,
-			"name": "TileMapComponent",
-			"coordinates": {
-			  "position": {
-				"x": 0.0,
-				"y": 700.0,
-				"z": 0.0
-			  },
-			  "center_of_rotation": {
-				"x": 0.0,
-				"y": 0.0,
-				"z": 0.0
-			  },
-			  "scale": {
-				"x": 1.0,
-				"y": 1.0,
-				"z": 1.0
-			  },
-			  "rotation": {
-				"x": 0.0,
-				"y": 0.0,
-				"z": 0.0,
-				"w": 1.0
-			  }
-			},
-			"children_component": [],
-			"type": 8,
-			"tile_map_data_asset_id": 4000
-		  },
-		"components": []
+          "id": "928dd2eb-c549-453f-b923-54e30dab5ab0",
+          "name": "TileMapComponent",
+          "type": "TileMapComponent",
+          "coordinates": {
+            "position": {
+              "x": 0.0,
+              "y": 700.0,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "tile_map_data_asset_id": "08498547-ed57-47ae-9736-1f4c246350f1"
+        },
+        "components": [],
+        "script_class_name": null
       }
     },
     {
-      "asset_id": 10065,
+      "asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
       "name": "character_link",
       "initial_coordinates": {
         "position": {
@@ -50,11 +45,6 @@
           "y": 600.0,
           "z": 0.3
         },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
         "scale": {
           "x": 1.0,
           "y": 1.0,
@@ -69,7 +59,7 @@
       }
     },
     {
-      "asset_id": 10066,
+      "asset_id": "afd86c38-7a42-40e6-92b8-58b0d2def9d7",
       "name": "character_octopus",
       "initial_coordinates": {
         "position": {
@@ -77,11 +67,6 @@
           "y": 600.0,
           "z": 0.3
         },
-        "center_of_rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0
-        },
         "scale": {
           "x": 1.0,
           "y": 1.0,
@@ -96,56 +81,48 @@
       }
     },
     {
-      "asset_id": -1,
+      "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
-        "id": 11181,
+        "id": "bfa3d321-8f61-4af2-aa8f-8a365c26bc95",
         "name": "camera",
-        "version": 1,
         "root_component": {
-            "version": 1,
-            "type": 11,
-		    "id": "00000000-0000-0000-0000-000000000000",
-		    "name": "Camera3dIn2dAxisComponent",
-			"coordinates": {
-			  "position": {
-				"x": 3.0748892,
-				"y": 0.5550308,
-				"z": 2.5794868
-			  },
-			  "center_of_rotation": {
-				"x": 0.0,
-				"y": 0.0,
-				"z": 0.0
-			  },
-			  "scale": {
-				"x": 1.0,
-				"y": 1.0,
-				"z": 1.0
-			  },
-			  "rotation": {
-				"x": 0.0,
-				"y": 0.0,
-				"z": 0.0,
-				"w": 1.0
-			  }
-			},
-            "view_distance": 0.0,
-            "viewport": {
-              "x": 0,
-              "y": 0,
-              "w": 800,
-              "h": 480,
-              "min_depth": 1.0,
-              "max_depth": 1000.0
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Camera3dIn2dAxisComponent",
+          "type": "Camera3dIn2dAxisComponent",
+          "coordinates": {
+            "position": {
+              "x": 3.0748892,
+              "y": 0.5550308,
+              "z": 2.5794868
             },
-            "fieldOfView": 0.8377581,
-			"children_component" : []
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
           },
-        "components": []
+          "children_component": [],
+          "view_distance": 0.0,
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "w": 742,
+            "h": 342,
+            "min_depth": 1.0,
+            "max_depth": 1000.0
+          },
+          "fieldOfView": 0.64356077
+        },
+        "components": [],
+        "script_class_name": null
       }
     }
   ],
-  "external_component": {
-    "type": "ScriptWorld"
-  }
+  "script_class_name": "ScriptWorld"
 }

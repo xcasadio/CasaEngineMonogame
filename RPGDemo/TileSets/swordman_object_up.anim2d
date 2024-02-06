@@ -1,13 +1,11 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 256,
-    "name": "swordman_object_up"
-  },
+  "id": "63f54149-8a11-4d6c-a172-b54fe3a16387",
+  "name": "swordman_object_up",
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 38
+      "sprite_id": "6df8de9a-8311-4057-8208-3114396db14d"
     }
   ]
 }

@@ -1,32 +1,9 @@
 {
-    "id": 11999,
-    "name": "MainHUD",
-  "version": 1,
-  "coordinates": {
-    "position": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "center_of_rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0
-    },
-    "scale": {
-      "x": 1.0,
-      "y": 1.0,
-      "z": 1.0
-    },
-    "rotation": {
-      "x": 0.0,
-      "y": 0.0,
-      "z": 0.0,
-      "w": 1.0
-    }
-  },
-  "root_component" : "null",
+  "id": "d73de0f6-8fd9-4491-9b56-712fa75c1cf7",
+  "name": "MainHUD",
+  "root_component": "null",
   "components": [],
+  "script_class_name": null,
   "external_component": "null",
   "controls": [
     {
@@ -97,7 +74,7 @@
       "top_screen_ratio": 0.875,
       "visible": true,
       "width": 64,
-      "sprite_id": 11715,
+      "sprite_id": "b039042c-4b9d-4157-8be2-eed2d3c4f3bd",
       "size_mode": "Normal"
     },
     {

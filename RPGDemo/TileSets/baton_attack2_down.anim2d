@@ -1,25 +1,23 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 208,
-    "name": "baton_attack2_down"
-  },
+  "id": "243de4b8-79dd-4986-9239-437daf4107f6",
+  "name": "baton_attack2_down",
   "frames": [
     {
       "duration": 0.03,
-      "sprite_id": 179
+      "sprite_id": "2aeef842-a044-46d9-a2e1-de408d6f51e2"
     },
     {
       "duration": 0.03,
-      "sprite_id": 180
+      "sprite_id": "2d47d3ba-3476-4c87-935f-1de36a8446e5"
     },
     {
       "duration": 0.03,
-      "sprite_id": 181
+      "sprite_id": "ef6422df-830b-4ee9-b1b3-80692d7004c6"
     },
     {
       "duration": 0.03,
-      "sprite_id": 182
+      "sprite_id": "786e91da-336c-4c1e-993a-e6afd90daa2e"
     }
   ]
 }

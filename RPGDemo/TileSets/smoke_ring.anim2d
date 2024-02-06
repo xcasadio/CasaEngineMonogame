@@ -1,45 +1,43 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 10695,
-    "name": "smoke_ring"
-  },
+  "id": "476fdde7-7cf0-4bf8-a8a7-130d995b38f1",
+  "name": "smoke_ring",
   "frames": [
     {
       "duration": 0.07,
-      "sprite_id": 10686
+      "sprite_id": "cd5d1655-4de0-4d20-8509-127d5a428269"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10687
+      "sprite_id": "8785ccf4-aa84-4bb0-b2ab-b40bec910490"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10688
+      "sprite_id": "212ae78b-69a2-41a3-be21-10cea8d2efc4"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10689
+      "sprite_id": "2875ba92-a042-46d2-b3cf-10163cb6f62e"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10690
+      "sprite_id": "a367627e-3ed7-404f-8c39-9767d076acbe"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10691
+      "sprite_id": "9d11c7eb-9529-4903-8659-711cfb901cb5"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10692
+      "sprite_id": "d1eb3b79-f72d-4cdd-839b-275fa6eaa0ed"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10693
+      "sprite_id": "f1106519-f6de-42ef-a4f1-88dffe635a80"
     },
     {
       "duration": 0.07,
-      "sprite_id": 10694
+      "sprite_id": "d74be063-e7da-4e6a-9bc3-9aad9500e131"
     }
   ]
 }

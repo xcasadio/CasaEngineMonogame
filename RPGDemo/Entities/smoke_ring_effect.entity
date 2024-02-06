@@ -1,46 +1,38 @@
 {
-    "id": 10901,
-    "name": "smoke_ring_effect",
-  "version": 1,
+  "id": "25bfa38b-a858-4ebd-bbdb-1dc8e304be2f",
+  "name": "smoke_ring_effect",
   "root_component": {
-      "version": 1,
-      "type": 6,
-	  "coordinates": {
-		"position": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"center_of_rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"scale": {
-		  "x": 1.0,
-		  "y": 1.0,
-		  "z": 1.0
-		},
-		"rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0,
-		  "w": 1.0
-		}
-	  },
-      "id": "00000000-0000-0000-0000-000000000000",
-      "name": "AnimatedSpriteComponent",
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
       },
-      "sprite_effect": "None",
-      "animations": [
-        10695
-      ],
-	  "children_component" : []
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
     },
-  "components": []
+    "children_component": [],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": []
+  },
+  "components": [],
+  "script_class_name": null
 }

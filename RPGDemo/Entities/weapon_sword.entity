@@ -1,59 +1,38 @@
 {
-  "id": 10272,
+  "id": "7435323a-ac29-48b0-8c53-8798839a7063",
   "name": "weapon_sword",
-  "version": 1,
-  "script_class_name" : "ScriptPlayerWeapon",
-  "root_component": 
-    {
-      "version": 1,
-      "type": 6,
-      "id": "00000000-0000-0000-0000-000000000000",
-      "name": "AnimatedSpriteComponent",
-	  "coordinates": {
-		"position": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"center_of_rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0
-		},
-		"scale": {
-		  "x": 1.0,
-		  "y": 1.0,
-		  "z": 1.0
-		},
-		"rotation": {
-		  "x": 0.0,
-		  "y": 0.0,
-		  "z": 0.0,
-		  "w": 1.0
-		}
-	  },
-      "color": {
-        "r": 255,
-        "g": 255,
-        "b": 255,
-        "a": 255
+  "root_component": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
       },
-      "sprite_effect": "None",
-      "animations": [
-        204,
-        205,
-        206,
-        207,
-        208,
-        209,
-        210,
-        211,
-        212,
-        213,
-        214,
-        215
-      ],
-	  "children_component" : []
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
     },
-  "components": []
+    "children_component": [],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": []
+  },
+  "components": [],
+  "script_class_name": "ScriptPlayerWeapon"
 }
