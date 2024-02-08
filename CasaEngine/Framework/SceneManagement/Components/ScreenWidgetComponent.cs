@@ -7,7 +7,12 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 [DisplayName("Screen Widget")]
 public class ScreenWidgetComponent : SceneComponent
 {
-    public ScreenGui ScreenGui { get; set; }
+    public ScreenGui? ScreenGui => Owner as ScreenGui;
+
+    public ScreenWidgetComponent()
+    {
+
+    }
 
     public ScreenWidgetComponent(ScreenWidgetComponent? other = null) : base(other)
     {

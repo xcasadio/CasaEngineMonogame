@@ -15,7 +15,8 @@ namespace CasaEngine.Framework.GUI
 
         public ScreenGui()
         {
-            //ScreenWidgetComponent = new ScreenWidgetComponent(this);
+            ScreenWidgetComponent = new ScreenWidgetComponent();
+            RootComponent = ScreenWidgetComponent;
         }
 
         public void Add(Control control)

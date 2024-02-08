@@ -56,7 +56,7 @@ public partial class WorldEditorControl : EditorControlBase
 
     public void OpenWorld(string fileName)
     {
-        //GameEditor.Game.GameManager.CurrentWorld = 
+        GameEditor.Game.GameManager.SetWorldToLoad(fileName);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)

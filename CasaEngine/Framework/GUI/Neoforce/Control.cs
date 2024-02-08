@@ -1587,7 +1587,10 @@ public class Control : Component
             return;
         }
 
-        _text = Utilities.DeriveControlName(this);
+        if (string.IsNullOrEmpty(_text))
+        {
+            _text = Utilities.DeriveControlName(this);
+        }
         _root = this;
 
         InitializeSkin();
