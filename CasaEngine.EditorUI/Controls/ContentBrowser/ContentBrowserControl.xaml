@@ -5,10 +5,12 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:contentBrowser="clr-namespace:CasaEngine.EditorUI.Controls.ContentBrowser"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" >
+             d:DesignHeight="200" d:DesignWidth="400" >
     <UserControl.Resources>
         <RoutedUICommand x:Key="Commands.CreateSpritesFromTexture" />
         <RoutedUICommand x:Key="Commands.NewFolder" />
+        <RoutedUICommand x:Key="Commands.RenameFolder" />
+        <RoutedUICommand x:Key="Commands.DeleteFolder" />
 
         <DataTemplate x:Key="FolderItemDataTemplate" DataType="{x:Type contentBrowser:FolderItem}">
             <Image Width="246" Height="246" 
@@ -37,6 +39,8 @@
     <UserControl.CommandBindings>
         <CommandBinding Command="{StaticResource Commands.CreateSpritesFromTexture}" Executed="MenuItemCreateSprites_Click" />
         <CommandBinding Command="{StaticResource Commands.NewFolder}" Executed="MenuItemNewFolder_Click" />
+        <CommandBinding Command="{StaticResource Commands.RenameFolder}" Executed="MenuItemRenameFolder_Click" />
+        <CommandBinding Command="{StaticResource Commands.DeleteFolder}" Executed="MenuItemDeleteFolder_Click" />
     </UserControl.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -58,14 +62,18 @@
             </ToolBar>
         </ToolBarTray>
 
-        <TreeView x:Name="treeViewFolders" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding ContentItems}">
+        <TreeView x:Name="treeViewFolders" Grid.Row="1" Grid.Column="0" ItemsSource="{Binding ContentItems}"
+                  KeyDown="TreeViewFolders_OnKeyDown" PreviewMouseRightButtonDown="TreeViewFolders_OnPreviewMouseRightButtonDown">
             <TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
+                    <MenuItem Header="Rename" Command="{StaticResource Commands.RenameFolder}"/>
+                    <MenuItem Header="Delete" Command="{StaticResource Commands.DeleteFolder}"/>
                 </ContextMenu>
             </TreeView.ContextMenu>
             <TreeView.ItemTemplate>
-                <HierarchicalDataTemplate DataType="{x:Type contentBrowser:FolderItem}" ItemsSource="{Binding Folders}">
+                <HierarchicalDataTemplate DataType="{x:Type contentBrowser:FolderItem}" 
+                                          ItemsSource="{Binding Folders}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="24"/>
@@ -73,7 +81,11 @@
                         </Grid.ColumnDefinitions>
 
                         <Image Grid.Column="0" Source="/Resources/file-folder-48.png" Width="24" Height="24"/>
-                        <Label Grid.Column="1" Content="{Binding Name}" VerticalAlignment="Center"/>
+                        <Label Grid.Column="1" x:Name="label" Content="{Binding Name}" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding Name, Mode = TwoWay}" 
+                                 HorizontalAlignment="Center" MinWidth="{Binding ActualWidth, ElementName=label}"
+                                 Width="Auto" Visibility="Collapsed" LostFocus="TextBoxRename_LostFocus"
+                                 KeyDown="TextBoxRename_OnKeyDown"/>
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
@@ -95,6 +107,7 @@
                     <MenuItem Header="Create">
                         <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
                         <MenuItem Header="ScreenGui" Click="MenuItemCreateScreen_OnClick" />
+                        <MenuItem Header="World" Click="MenuItemCreateWorld_OnClick" />
                     </MenuItem>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
                 </ContextMenu>

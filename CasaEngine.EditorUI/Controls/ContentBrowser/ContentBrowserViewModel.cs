@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
+using FlowGraph.Attributes;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
@@ -17,10 +18,10 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     public ContentBrowserViewModel()
     {
-        ContentItems.Add(new FolderItem { Name = "All" });
+        ContentItems.Add(new FolderItem("All", null));
 
-        AssetCatalog.AssetAdded += OnAssetAdded;
-        AssetCatalog.AssetRemoved += OnAssetRemoved;
+        //AssetCatalog.AssetAdded += OnAssetAdded;
+        //AssetCatalog.AssetRemoved += OnAssetRemoved;
         AssetCatalog.AssetCleared += OnAssetCleared;
     }
 
@@ -132,7 +133,7 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         if (parentFolderItem.Folders.FirstOrDefault(x => x.Name == folderName && x is FolderItem) is not FolderItem folderItem)
         {
-            folderItem = new FolderItem { Name = folderName, Parent = parentFolderItem };
+            folderItem = new FolderItem(folderName, parentFolderItem);
             parentFolderItem.Contents.Add(folderItem);
         }
 

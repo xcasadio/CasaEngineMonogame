@@ -129,11 +129,7 @@ public static class AssetCatalog
 
     public static void Save()
     {
-        Save(Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json"));
-    }
-
-    public static void Save(string fileName)
-    {
+        string fileName = Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json");
         JObject root = new();
         var assetInfoJArray = new JArray();
 

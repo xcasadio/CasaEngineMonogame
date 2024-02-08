@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
@@ -20,7 +21,9 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using Utils;
 using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
@@ -247,31 +250,64 @@ public partial class ContentBrowserControl : UserControl
     {
         CreateAsset(new Entity(), Constants.FileNameExtensions.Entity);
     }
+
     private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new ScreenGui(), Constants.FileNameExtensions.Screen);
     }
 
-    private void CreateAsset(Entity actor, string extension)
+    private void MenuItemCreateWorld_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateAsset(new World(), Constants.FileNameExtensions.World);
+    }
+
+    private void CreateAsset(ObjectBase objectBase, string extension)
     {
         var inputTextBox = new InputTextBox();
 
-        var assetInfo = new AssetInfo(actor.Id);
+        var assetInfo = new AssetInfo(objectBase.Id);
 
         inputTextBox.Text = assetInfo.Name;
 
         if (inputTextBox.ShowDialog() == true)
         {
             //add
-            var folderItem = treeViewFolders.SelectedItem as FolderItem;
             var contentItem = new ContentItem(assetInfo);
             ListBoxFolderContent.SelectedItem = contentItem;
+            var folderItem = treeViewFolders.SelectedItem as FolderItem;
+            folderItem.AddContent(contentItem);
 
             //save asset
             assetInfo.Name = inputTextBox.Text;
             assetInfo.FileName = Path.Combine(folderItem.FullPath, assetInfo.Name + extension);
             AssetCatalog.Add(assetInfo);
-            AssetSaver.SaveAsset(assetInfo.FileName, actor);
+            AssetSaver.SaveAsset(assetInfo.FileName, objectBase);
+            AssetCatalog.Save();
+        }
+    }
+
+    private void MenuItemCreateSprites_Click(object sender, RoutedEventArgs e)
+    {
+        if (ListBoxFolderContent.SelectedItem is not FolderItem &&
+            ListBoxFolderContent.SelectedItem is ContentItem contentItem)
+        {
+            //TODO create an editor which find sprites
+            var assetContentManager = _gameEditor.Game.AssetContentManager;
+
+            var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo.Id);
+            texture.Load(assetContentManager);
+            var spriteData = new SpriteData();
+            spriteData.PositionInTexture = texture.Resource.Bounds;
+            spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
+
+            var assetInfo = new AssetInfo(spriteData.Id)
+            {
+                Name = contentItem.AssetInfo.Name,
+                FileName = contentItem.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture, Constants.FileNameExtensions.Sprite)
+            };
+            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
+
+            AssetCatalog.Add(assetInfo);
             AssetCatalog.Save();
         }
     }
@@ -284,8 +320,7 @@ public partial class ContentBrowserControl : UserControl
         }
 
         var contentItem = ListBoxFolderContent.SelectedItem as ContentItem;
-
-        AssetCatalog.Remove(contentItem.AssetInfo.Id);
+        DeleteContentItem(contentItem);
     }
 
     private void ListBoxFolderContent_OnContextMenuOpening(object sender, ContextMenuEventArgs e)
@@ -319,32 +354,6 @@ public partial class ContentBrowserControl : UserControl
         }
     }
 
-    private void MenuItemCreateSprites_Click(object sender, RoutedEventArgs e)
-    {
-        if (ListBoxFolderContent.SelectedItem is not FolderItem &&
-            ListBoxFolderContent.SelectedItem is ContentItem contentItem)
-        {
-            //TODO create an editor which find sprites
-            var assetContentManager = _gameEditor.Game.AssetContentManager;
-
-            var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo.Id);
-            texture.Load(assetContentManager);
-            var spriteData = new SpriteData();
-            spriteData.PositionInTexture = texture.Resource.Bounds;
-            spriteData.SpriteSheetAssetId = contentItem.AssetInfo.Id;
-
-            var assetInfo = new AssetInfo(spriteData.Id)
-            {
-                Name = contentItem.AssetInfo.Name,
-                FileName = contentItem.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture, Constants.FileNameExtensions.Sprite)
-            };
-            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
-
-            AssetCatalog.Add(assetInfo);
-            AssetCatalog.Save();
-        }
-    }
-
     private void ListBox_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (sender is ListBoxItem listBoxItem && listBoxItem.DataContext is ContentItem contentItem)
@@ -367,7 +376,7 @@ public partial class ContentBrowserControl : UserControl
             e.Handled = true;
         }
     }
-
+    /*
     private static object GetDataFromListBox(ListBox source, Point point)
     {
         if (source.InputHitTest(point) is FrameworkElement { DataContext: ContentItem { AssetInfo: { } } contentItem })
@@ -376,7 +385,7 @@ public partial class ContentBrowserControl : UserControl
         }
 
         return null;
-    }
+    }*/
 
     private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
     {
@@ -404,7 +413,102 @@ public partial class ContentBrowserControl : UserControl
                 newFolderName = $"New_Folder_{++index}";
             }
 
-            folderItem.Contents.Add(new FolderItem { Name = newFolderName });
+            var newFolderItem = new FolderItem(newFolderName, folderItem);
+            folderItem.AddContent(newFolderItem);
+            Directory.CreateDirectory(Path.Combine(EngineEnvironment.ProjectPath, newFolderItem.FullPath));
+
+            Logs.WriteDebug($"Create new folder '{newFolderItem.FullPath}'");
+        }
+    }
+
+
+
+
+    private void TreeViewFolders_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F2)
+        {
+            var textBox = FindVisualChild<TextBox>(e.OriginalSource as DependencyObject);
+
+            if (textBox != null)
+            {
+                textBox.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
+    private void MenuItemRenameFolder_Click(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.OriginalSource is TreeViewItem { DataContext: FolderItem folderItem } treeViewItem)
+        {
+            var tempTextBox = FindVisualChild<TextBox>(treeViewItem);
+            tempTextBox.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void MenuItemDeleteFolder_Click(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (e.OriginalSource is TreeViewItem { DataContext: FolderItem folderItem } treeViewItem)
+        {
+            DeleteContentItem(folderItem);
+        }
+    }
+
+    private static void DeleteContentItem(ContentItem contentItem)
+    {
+        if (MessageBox.Show(Application.Current.MainWindow,
+                $"Do you want to delete {contentItem.Name} ?",
+                "Delete",
+                MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+        {
+            contentItem.Delete();
+        }
+    }
+
+    private T FindVisualChild<T>(DependencyObject obj) where T : DependencyObject
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(obj); i++)
+        {
+            DependencyObject child = VisualTreeHelper.GetChild(obj, i);
+
+            if (child != null & child is T)
+            {
+                return (T)child;
+            }
+
+            T childOfChild = FindVisualChild<T>(child);
+
+            if (childOfChild != null)
+            {
+                return childOfChild;
+            }
+        }
+
+        return null;
+    }
+
+    // This event occurs when TextBox loses focus
+    private void TextBoxRename_LostFocus(object sender, RoutedEventArgs e)
+    {
+        (sender as FrameworkElement).Visibility = Visibility.Collapsed;
+    }
+
+    private void TextBoxRename_OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key is Key.Enter or Key.Escape or Key.Return)
+        {
+            var treeViewItem = WpfUtils.FindParentWithType<TreeViewItem>(sender as FrameworkElement);
+            treeViewItem.Focus();
+        }
+    }
+
+    private void TreeViewFolders_OnPreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        var treeViewItem = WpfUtils.FindParentWithType<TreeViewItem>(e.OriginalSource as FrameworkElement);
+        if (treeViewItem != null)
+        {
+            treeViewItem.Focus();
+            e.Handled = true;
         }
     }
 }

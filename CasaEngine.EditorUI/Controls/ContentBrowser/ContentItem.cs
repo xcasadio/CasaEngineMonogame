@@ -1,4 +1,6 @@
 ﻿using System;
+using CasaEngine.Core.Log;
+using System.IO;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 
@@ -38,10 +40,18 @@ public class ContentItem : NotifyPropertyChangeBase
         get => AssetInfo.Name;
         set
         {
+            var oldFullPath = FullPath;
             if (AssetInfo.Name != value)
             {
                 AssetInfo.Name = value;
                 OnPropertyChanged();
+
+                var sourceFullPath = System.IO.Path.Combine(EngineEnvironment.ProjectPath, oldFullPath);
+                var newFullPath = System.IO.Path.Combine(EngineEnvironment.ProjectPath, FullPath);
+                File.Move(sourceFullPath, newFullPath);
+                Logs.WriteTrace($"Rename file '{oldFullPath}' to '{FullPath}'");
+
+                AssetCatalog.Save();
             }
         }
     }
@@ -54,5 +64,13 @@ public class ContentItem : NotifyPropertyChangeBase
     private bool IsRoot(FolderItem parent)
     {
         return parent is { Name: "All", Parent: null };
+    }
+
+    public virtual void Delete()
+    {
+        Parent.RemoveContent(this);
+        AssetCatalog.Remove(AssetInfo.Id);
+
+        Logs.WriteTrace($"Remove file '{FullPath}'");
     }
 }
