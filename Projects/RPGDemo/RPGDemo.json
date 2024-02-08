@@ -5,7 +5,7 @@
   "AllowUserResizing": true,
   "IsFixedTimeStep": false,
   "IsMouseVisible": true,
-  "FirstWorldLoaded": "DefaultWorld.world",
+  "FirstWorldLoaded": "TitleScreenWorld.world",
   "GameplayDllName": "CasaEngine.RPGDemo.dll",
   "DebugIsFullScreen": false,
   "DebugWidth": 1024,

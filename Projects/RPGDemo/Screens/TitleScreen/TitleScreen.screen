@@ -1,0 +1,240 @@
+{
+  "id": "85745e0e-3f97-4126-9c82-da65d483999a",
+  "name": "TitleScreen",
+  "root_component": {
+    "id": "ce186ff4-c140-459f-b152-d64d603b86f6",
+    "name": "Object ce186ff4-c140-459f-b152-d64d603b86f6",
+    "type": "ScreenWidgetComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": []
+  },
+  "components": [],
+  "script_class_name": null,
+  "external_component": "null",
+  "controls": [
+    {
+      "type": "Label",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": false,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": true,
+      "enabled": true,
+      "height": 16,
+      "left": 239,
+      "left_screen_ratio": 0.4030354,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 593,
+      "minimum_height": 0,
+      "minimum_width": 0,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "Label",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": true,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "Rpg Demo",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 53,
+      "top_screen_ratio": 0.08386076,
+      "visible": true,
+      "width": 64
+    },
+    {
+      "type": "Button",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": true,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": false,
+      "enabled": true,
+      "height": 24,
+      "left": 239,
+      "left_screen_ratio": 0.4030354,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 593,
+      "minimum_height": 0,
+      "minimum_width": 0,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "ButtonStartGame",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": false,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "Start Game",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 313,
+      "top_screen_ratio": 0.49525318,
+      "visible": true,
+      "width": 72
+    },
+    {
+      "type": "Button",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": true,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": false,
+      "enabled": true,
+      "height": 24,
+      "left": 238,
+      "left_screen_ratio": 0.40134907,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 632,
+      "maximum_width": 593,
+      "minimum_height": 0,
+      "minimum_width": 0,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "ButtonExit",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": false,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "Exit",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 345,
+      "top_screen_ratio": 0.5458861,
+      "visible": true,
+      "width": 72
+    }
+  ]
+}

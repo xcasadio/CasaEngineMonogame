@@ -1,0 +1,6 @@
+{
+  "id": "faf1033d-2dfc-4d70-bc8b-333e9e6b6d3d",
+  "name": "TitleScreenWorld",
+  "entity_references": [],
+  "script_class_name": "ScriptTitleScreenWorld"
+}

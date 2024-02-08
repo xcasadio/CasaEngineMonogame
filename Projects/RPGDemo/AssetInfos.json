@@ -1131,6 +1131,14 @@
     {
       "id": "d73de0f6-8fd9-4491-9b56-712fa75c1cf7",
       "file_name": "Screens\\MainHUD\\MainHUD.screen"
+    },
+    {
+      "id": "85745e0e-3f97-4126-9c82-da65d483999a",
+      "file_name": "Screens\\TitleScreen\\TitleScreen.screen"
+    },
+    {
+      "id": "faf1033d-2dfc-4d70-bc8b-333e9e6b6d3d",
+      "file_name": "TitleScreenWorld.world"
     }
   ]
 }
