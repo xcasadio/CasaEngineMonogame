@@ -55,6 +55,7 @@ public class DemosGame : CasaEngineGame
     private void ChangeDemo(int index)
     {
         GameManager.CurrentWorld.ClearEntities();
+        GameManager.CurrentWorld.ClearScreens();
         _currentDemo?.Clean();
 
         _currentDemo = _demos[index];

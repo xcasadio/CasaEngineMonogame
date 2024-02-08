@@ -66,7 +66,11 @@ public class GameManager
     {
         if (!string.IsNullOrEmpty(_worldToLoad))
         {
-            //var assetInfo = AssetCatalog.GetByFileName(GameSettings.ProjectSettings.FirstWorldLoaded);
+            if (_currentWorld != null)
+            {
+                _currentWorld.Clear();
+            }
+
             var assetInfo = AssetCatalog.GetByFileName(_worldToLoad);
             _currentWorld = _game.AssetContentManager.Load<World.World>(assetInfo.Id);
             _worldToLoad = null;

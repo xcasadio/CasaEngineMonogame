@@ -218,6 +218,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
 
     public void RemoveTile(int layer, int x, int y)
     {
+        var tile = Layers[layer].Tiles[x + y * TileMapData.MapSize.Width];
+
+        //TODO : remove the physics and other stuff
+
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
     }
 

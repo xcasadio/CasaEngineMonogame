@@ -21,7 +21,7 @@ public class SpriteRendererComponent : DrawableGameComponent
         public Rectangle ScissorRectangle;
     }
 
-    private const int NbSprites = 5000;
+    private const int NbSprites = 10000;
     private readonly VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
     private readonly List<SpriteDisplayData> _spriteDatas = new(NbSprites);
     private readonly Stack<SpriteDisplayData> _freeSpriteDatas = new(NbSprites);
@@ -38,10 +38,10 @@ public class SpriteRendererComponent : DrawableGameComponent
     private Line3dRendererComponent? _line3dRendererComponent;
     private readonly DepthStencilState _depthStencilState;
     private readonly BlendState _blendState;
-    private readonly Vector3 _verticeTopLeft;
-    private readonly Vector3 _verticeTopRight;
-    private readonly Vector3 _verticeBottomRight;
-    private readonly Vector3 _verticeBottomLeft;
+    private readonly Vector3 _vertexTopLeft;
+    private readonly Vector3 _vertexTopRight;
+    private readonly Vector3 _vertexBottomRight;
+    private readonly Vector3 _vertexBottomLeft;
 
     public SpriteRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -73,10 +73,10 @@ public class SpriteRendererComponent : DrawableGameComponent
             AlphaDestinationBlend = Blend.DestinationAlpha
         };
 
-        _verticeTopLeft = new Vector3(-0.5f, 0.5f, 0);
-        _verticeTopRight = new Vector3(0.5f, 0.5f, 0);
-        _verticeBottomRight = new Vector3(0.5f, -0.5f, 0);
-        _verticeBottomLeft = new Vector3(-0.5f, -0.5f, 0);
+        _vertexTopLeft = new Vector3(-0.5f, 0.5f, 0);
+        _vertexTopRight = new Vector3(0.5f, 0.5f, 0);
+        _vertexBottomRight = new Vector3(0.5f, -0.5f, 0);
+        _vertexBottomLeft = new Vector3(-0.5f, -0.5f, 0);
     }
 
     protected override void LoadContent()
@@ -359,10 +359,10 @@ public class SpriteRendererComponent : DrawableGameComponent
         uvBottomLeft /= textureSize;
 
         GetSpriteDisplayData(out var spriteDisplayData);
-        spriteDisplayData.TopLeft = new(_verticeTopLeft, uvTopLeft);
-        spriteDisplayData.TopRight = new(_verticeTopRight, uvTopRight);
-        spriteDisplayData.BottomRight = new(_verticeBottomRight, uvBottomRight);
-        spriteDisplayData.BottomLeft = new(_verticeBottomLeft, uvBottomLeft);
+        spriteDisplayData.TopLeft = new(_vertexTopLeft, uvTopLeft);
+        spriteDisplayData.TopRight = new(_vertexTopRight, uvTopRight);
+        spriteDisplayData.BottomRight = new(_vertexBottomRight, uvBottomRight);
+        spriteDisplayData.BottomLeft = new(_vertexBottomLeft, uvBottomLeft);
         spriteDisplayData.Texture = texture2d;
         spriteDisplayData.Color = color;
         spriteDisplayData.WorldMatrix = MatrixExtensions.Transformation(

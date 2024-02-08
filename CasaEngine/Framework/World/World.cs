@@ -43,6 +43,12 @@ public sealed class World : ObjectBase
         _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
     }
 
+    public void Clear()
+    {
+        ClearEntities(true);
+        ClearScreens();
+    }
+
     public void AddEntity(Entity entity)
     {
         System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
@@ -99,7 +105,14 @@ public sealed class World : ObjectBase
 
 #if !EDITOR
         //TODO : remove this, use a script to set active camera
-        var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).First(x => x != null);
+        var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).FirstOrDefault(x => x != null);
+
+        if (camera == null)
+        {
+            camera = CreateDefaultCamera();
+            Logs.WriteWarning($"No camera found in the world {Name}. Create default one");
+        }
+
         Game.GameManager.ActiveCamera = camera;
 #endif
 
@@ -109,6 +122,19 @@ public sealed class World : ObjectBase
         }
 
         //GameplayProxy?.Initialize(this);
+    }
+
+    private CameraComponent? CreateDefaultCamera()
+    {
+        var entityCamera = new Entity();
+        var camera = new CameraLookAtComponent();
+        entityCamera.RootComponent = camera;
+        camera.SetPositionAndTarget(Vector3.Forward * -10, Vector3.Zero);
+
+        entityCamera.Initialize();
+        entityCamera.InitializeWithWorld(this);
+
+        return camera;
     }
 
     private void LoadFromEntityReference(EntityReference entityReference)
@@ -273,6 +299,7 @@ public sealed class World : ObjectBase
     public override void Load(JsonElement element)
     {
         ClearEntities(true);
+        ClearScreens();
         base.Load(element);
 
         foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())

@@ -163,16 +163,19 @@ public partial class EntityControl : UserControl
 
     private void ComboBoxGameplayProxyClassName_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is ComboBox comboBox
-            && sender is FrameworkElement { DataContext: ComponentViewModel componentViewModel })
+        if (sender is ComboBox { DataContext: ComponentViewModel componentViewModel } comboBox
+            && !string.IsNullOrEmpty(comboBox.SelectedValue as string))
         {
+            var gameplayScriptClassName = comboBox.SelectedValue as string;
+
             if (componentViewModel is RootNodeComponentViewModel rootNodeComponentViewModel)
             {
-                rootNodeComponentViewModel.EntityViewModel.Entity.GameplayProxyClassName = comboBox.SelectedValue as string;
+                var rootNodeEntityViewModel = (rootNodeComponentViewModel.EntityViewModel as RootNodeEntityViewModel);
+                rootNodeEntityViewModel.World.GameplayProxyClassName = gameplayScriptClassName;
             }
             else
             {
-                componentViewModel.Owner.GameplayProxyClassName = comboBox.SelectedValue as string;
+                componentViewModel.Owner.GameplayProxyClassName = gameplayScriptClassName;
             }
         }
     }
