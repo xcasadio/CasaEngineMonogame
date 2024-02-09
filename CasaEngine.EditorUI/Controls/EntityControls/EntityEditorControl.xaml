@@ -48,7 +48,7 @@
             </TabItem>
 
             <TabItem Header="Flow Graph">
-                <flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode = OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
+                <flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode=OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
             </TabItem>
 
         </TabControl>

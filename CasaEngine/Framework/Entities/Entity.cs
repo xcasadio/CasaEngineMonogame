@@ -3,6 +3,7 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
+using FlowGraph;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -343,6 +344,8 @@ public class Entity : ObjectBase
 
     public event EventHandler<EntityComponent> ComponentAdded;
     public event EventHandler<EntityComponent> ComponentRemoved;
+
+    public FlowGraphManager FlowGraph { get; } = new();
 
     public override void Save(JObject node)
     {

@@ -1,10 +1,11 @@
-﻿using System;
+﻿using System.Collections;
+using CSharpSyntax;
+using CSharpSyntax.Printer;
+using FlowGraph;
+using System.IO;
+using Syntax = CSharpSyntax.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.FlowGraphNodes;
-using DotNetCodeGenerator;
-using DotNetCodeGenerator.Ast;
-using FlowGraph;
 using FlowGraph.Nodes;
 
 namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
@@ -13,150 +14,67 @@ public static class FlowGraphToCSharp
 {
     private const string MethodsToken = "##GeneratedMethods##";
 
-    public static GeneratedClassInformations GenerateClassCode(FlowGraphManager flowGraph)
+    public static string GenerateClassCode(FlowGraphManager flowGraph)
     {
-        var dotNetWriter = new CSharpWriter();
-        /*
-        var methodsAstByEventNode = flowGraph.Sequence.Nodes
-            .Where(x => x is EventNode)
-            .ToDictionary(x => x, x => x.GenerateAst());
-
-        var methodsStatement = new List<Statement>
-        {
-            new PropertyDeclaration(nameof(Int32), "ExternalComponentId"),
-            GenerateUpdateFunction(methodsAstByEventNode),
-            //GenerateOnHitFunction(eventNode),
-            //GenerateOnHitEndedFunction(eventNode),
-            GenerateOnBeginPlayFunction(methodsAstByEventNode),
-            GenerateOnEndPlayFunction(methodsAstByEventNode)
-        };
-        
-        methodsStatement.AddRange(methodsAstByEventNode.Select(statement => statement.Value));
-
-        return dotNetWriter.GenerateClassCode(methodsStatement);
-        */
-
-        var StatementByNodeType = new Dictionary<string, List<Statement>>();
+        var compilationUnit = Syntax.CompilationUnit(null, GetUsings());
+        var classDeclaration = Syntax.ClassDeclaration(null, Modifiers.Public, "MyClass",
+            null, new BaseListSyntax { Types = { Syntax.ParseName("GameplayProxy") } });
 
         foreach (var sequenceNode in flowGraph.Sequence.Nodes.Where(x => x is EventNode))
         {
-            if (!StatementByNodeType.TryGetValue(sequenceNode.GetType().FullName, out var statements))
-            {
-                statements = new List<Statement>();
-                StatementByNodeType.Add(sequenceNode.GetType().FullName, statements);
-            }
+            classDeclaration.Members.Add((MemberDeclarationSyntax)sequenceNode.GenerateAst());
 
-            statements.Add(sequenceNode.GenerateAst());
         }
 
-        var functionCode = dotNetWriter.GenerateClassCode2(StatementByNodeType.SelectMany(x => x.Value));
+        compilationUnit.Members.Add(classDeclaration);
 
-        var generatedCode = CodeTemplate.Replace(MethodsToken, functionCode);
+        /*
+        Syntax.MethodDeclaration(
+            identifier: "Method",
+            returnType: Syntax.ParseName("void"),
+            modifiers: Modifiers.Public,
+            parameterList: Syntax.ParameterList(),
+            body: Syntax.Block()
+        )*/
 
-        generatedCode = GenerateFunctionCalls(generatedCode, "##TickEvent##", StatementByNodeType, "elapsedTime", typeof(TickEventNode));
-        generatedCode = generatedCode.Replace("##OnHit##", string.Empty).Replace("##OnHitEnded##", string.Empty);
-        //generatedCode = GenerateFunctionCalls(generatedCode, "##OnHit##", StatementByNodeType, "collision", typeof(HitEventNode));
-        //generatedCode = GenerateFunctionCalls(generatedCode, "##OnHitEnded##", StatementByNodeType, "collision", typeof(HitEndedEventNode));
-        generatedCode = GenerateFunctionCalls(generatedCode, "##OnBeginPlay##", StatementByNodeType, "world", typeof(BeginPlayEventNode));
-        generatedCode = GenerateFunctionCalls(generatedCode, "##OnEndPlay##", StatementByNodeType, "world", typeof(EndPlayEventNode));
+        return GenerateClassCode(compilationUnit);
+    }
 
-        return new GeneratedClassInformations
+    private static string GenerateClassCode(SyntaxNode syntaxNode)
+    {
+        var configuration = new CSharpSyntax.Printer.Configuration.SyntaxPrinterConfiguration();
+
+        using var writer = new StringWriter();
+        using (var printer = new SyntaxPrinter(new SyntaxWriter(writer, configuration)))
         {
-            Namespace = "generatedScope",
-            ClassName = "GeneratedClass",
-            Code = generatedCode
+            printer.Visit(syntaxNode);
+        }
+
+        return writer.GetStringBuilder().ToString();
+    }
+
+    private static IEnumerable<UsingDirectiveSyntax> GetUsings()
+    {
+        return new List<UsingDirectiveSyntax>
+        {
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("System")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("System.Collections")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("Microsoft.Xna.Framework")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Core.Design")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Core.Logger")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Core.Maths")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Engine")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Engine.Physics")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.Assets")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.Entities")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.Entities.Components")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.Game")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.Scripting")),
+            Syntax.UsingDirective((NameSyntax)Syntax.ParseName("CasaEngine.Framework.World")),
         };
     }
 
-    private static string GenerateFunctionCalls(string code, string token, Dictionary<string, List<Statement>> statementByNodeType, string parameters, Type type)
-    {
-        string value = string.Empty;
-        if (statementByNodeType.TryGetValue(type.FullName, out var statements)
-            && statements.Count >= 0)
-        {
-            value = string.Join(Environment.NewLine,
-                statements.Select(x => $"{((FunctionDeclaration)x).Name.Literal}({parameters});{Environment.NewLine}"));
-        }
-
-        return code.Replace(token, value);
-    }
-
-    private static Statement GenerateUpdateFunction(IDictionary<SequenceNode, Statement> methodsAstByNode)
-    {
-        var elapsedTimeToken = new Token(TokenType.Var, "float", "elapsedTime");
-        var parameters = new List<Token> { elapsedTimeToken };
-        var functionDeclaration = new FunctionDeclaration("Update", parameters) { IsOverride = true };
-
-        foreach (var nodeWithAst in methodsAstByNode.Where(x => x.Key.GetType().FullName == typeof(TickEventNode).FullName))
-        {
-            var methodAst = nodeWithAst.Value;
-            var variableStatement = new LiteralAccessor(elapsedTimeToken);
-            var functionCall = new FunctionCall((methodAst as FunctionDeclaration).Name.Literal.ToString(), new[] { variableStatement });
-            functionDeclaration.Body.Statements.Add(functionCall);
-        }
-
-        return functionDeclaration;
-    }
-    /*
-    private static Statement GenerateOnHitFunction(List<SequenceNode> nodes)
-    {
-        var parameters = new List<Token> { new Token(TokenType.Var, "Collision", "collision") };
-        var functionDeclaration = new FunctionDeclaration("OnHit", parameters) { IsOverride = true };
-
-        foreach (var tickEventNode in nodes.Where(x => x is OnHitEventNode))
-        {
-            functionDeclaration.Body.Statements.Add(tickEventNode.GenerateAst());
-        }
-
-        return functionDeclaration;
-    }
-
-    private static Statement GenerateOnHitEndedFunction(List<SequenceNode> nodes)
-    {
-        var parameters = new List<Token> { new Token(TokenType.Var, "Collision", "collision") };
-        var functionDeclaration = new FunctionDeclaration("OnHitEnded", parameters) { IsOverride = true };
-
-        foreach (var tickEventNode in nodes.Where(x => x is OnHitEndedEventNode))
-        {
-            functionDeclaration.Body.Statements.Add(tickEventNode.GenerateAst());
-        }
-
-        return functionDeclaration;
-    }
-    */
-    private static Statement GenerateOnBeginPlayFunction(IDictionary<SequenceNode, Statement> methodsAstByNode)
-    {
-        var worldToken = new Token(TokenType.Var, "World", "world");
-        var parameters = new List<Token> { worldToken };
-        var functionDeclaration = new FunctionDeclaration("OnBeginPlay", parameters) { IsOverride = true };
-
-        foreach (var nodeWithAst in methodsAstByNode.Where(x => x.Key is TickEventNode))
-        {
-            var methodAst = nodeWithAst.Value;
-            var variableStatement = new LiteralAccessor(worldToken);
-            var functionCall = new FunctionCall((methodAst as FunctionDeclaration).Name.Literal.ToString(), new[] { variableStatement });
-            functionDeclaration.Body.Statements.Add(functionCall);
-        }
-
-        return functionDeclaration;
-    }
-
-    private static Statement GenerateOnEndPlayFunction(IDictionary<SequenceNode, Statement> methodsAstByNode)
-    {
-        var worldToken = new Token(TokenType.Var, "World", "world");
-        var parameters = new List<Token> { worldToken };
-        var functionDeclaration = new FunctionDeclaration("OnEndPlay", parameters) { IsOverride = true };
-
-        foreach (var nodeWithAst in methodsAstByNode.Where(x => x.Key is TickEventNode))
-        {
-            var methodAst = nodeWithAst.Value;
-            var variableStatement = new LiteralAccessor(worldToken);
-            var functionCall = new FunctionCall((methodAst as FunctionDeclaration).Name.Literal.ToString(), new[] { variableStatement });
-            functionDeclaration.Body.Statements.Add(functionCall);
-        }
-
-        return functionDeclaration;
-    }
 
     private static readonly string CodeTemplate = @"using System;
 using System.Collections;
@@ -180,7 +98,6 @@ namespace generatedScope;
 
 public class GeneratedClass : GameplayProxy
 {
-    public override int ExternalComponentId => -1;
     public Entity Entity;
 
     public override void LoadContent(Entity entity)
@@ -215,11 +132,6 @@ public class GeneratedClass : GameplayProxy
     public override void OnEndPlay(World world)
     {
         ##OnEndPlay##
-    }
-
-    public override void Load(JsonElement element)
-    {
-
     }
 
     " + MethodsToken + @"

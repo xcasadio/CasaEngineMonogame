@@ -98,7 +98,7 @@ public partial class ContentBrowserControl : UserControl
                 window.ActivateEditorControl<EntityEditorControl>();
                 entityControl.OpenEntity(fileRelativePath);
                 break;
-            /*case Constants.FileNameExtensions.EntityFlowGraph:
+            /*case Constants.FileNameExtensions.Entity:
                 var entityControlFlowGraph = window.GetEditorControl<EntityEditorControl>();
                 window.ActivateEditorControl<EntityEditorControl>();
                 entityControlFlowGraph.OpenEntity(fileRelativePath);

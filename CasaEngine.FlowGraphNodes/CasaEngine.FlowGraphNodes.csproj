@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlowGraph\Controls\Logger\Logger.csproj" />
-    <ProjectReference Include="..\FlowGraph\DotNetCodeGenerator\DotNetCodeGenerator.csproj" />
     <ProjectReference Include="..\FlowGraph\FlowGraph\FlowGraph.csproj" />
   </ItemGroup>
 

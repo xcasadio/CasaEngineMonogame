@@ -1,5 +1,5 @@
 ﻿using System.Xml;
-using DotNetCodeGenerator.Ast;
+using CSharpSyntax;
 using FlowGraph.Attributes;
 using FlowGraph.Logger;
 using FlowGraph.Nodes;
@@ -74,9 +74,9 @@ public class LogMessageNode : ActionNode
         return new LogMessageNode();
     }
 
-    public override Statement GenerateAst()
+    public override SyntaxNode GenerateAst()
     {
-        Statement message = null;
+        ArgumentSyntax message = null;
         var slot = GetSlotById((int)NodeSlotId.Message);
 
         if (slot.ConnectedNodes.Count > 0)
@@ -87,12 +87,17 @@ public class LogMessageNode : ActionNode
             // Connected directly to a NodeSlot value (VarOut) ?
             if (dstSlot is NodeSlotVar @var)
             {
-                message = new LiteralAccessor(var.Value);
+                message = new ArgumentSyntax
+                {
+                    Expression = new LiteralExpressionSyntax { Value = var.Value }
+                };
             }
-
-            if (node is VariableNode variableNode)
+            else if (node is VariableNode variableNode)
             {
-                message = variableNode.GenerateAst();
+                message = new ArgumentSyntax
+                {
+                    Expression = variableNode.GenerateAst()
+                };
             }
 
             throw new InvalidOperationException($"Node({Id}) GetValueFromSlot({(int)NodeSlotId.Message}) : type of link not supported");
@@ -101,11 +106,25 @@ public class LogMessageNode : ActionNode
         // if no node is connected, we take the nested value of the slot
         if (slot is NodeSlotVar slotVar)
         {
-            message = new LiteralAccessor(slotVar.Value);
+            message = new ArgumentSyntax
+            {
+                Expression = new LiteralExpressionSyntax { Value = slotVar.Value }
+            };
         }
 
-        var parameters = new List<Statement> { message };
+        var parameters = new ArgumentListSyntax();
+        parameters.Arguments.Add(message);
 
-        return new FunctionCall("LogManager.Instance.WriteLineDebug", parameters);
+        var invocationExpressionSyntax = new InvocationExpressionSyntax
+        {
+            Expression = new MemberAccessExpressionSyntax
+            {
+                Expression = Syntax.ParseName("Logs"),
+                Name = (SimpleNameSyntax)Syntax.ParseName("WriteLineDebug")
+            },
+            ArgumentList = parameters
+        };
+
+        return invocationExpressionSyntax;
     }
 }
