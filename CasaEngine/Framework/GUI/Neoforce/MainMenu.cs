@@ -13,14 +13,14 @@ public class MainMenu : MenuBase
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         Left = 0;
         Top = 0;
         Height = 24;
         Detached = false;
         DoubleClicks = false;
         StayOnBack = true;
+
+        base.Initialize(manager);
     }
 
     protected override void Dispose(bool disposing)

@@ -130,13 +130,14 @@ public class ComboBox : TextBox
         _btnDown.Glyph.Color = manager.Skin.Controls["ComboBox.Button"].Layers["Control"].Text.Colors.Enabled;
         _btnDown.Glyph.SizeMode = SizeMode.Centered;
 
-        base.Initialize(manager);
-
-        Add(_btnDown, false);
-
-        ReadOnly = true;
         Height = 20;
         Width = 64;
+
+        base.Initialize(manager);
+
+        ReadOnly = true;
+
+        Add(_btnDown, false);
     }
 
     protected internal override void InitializeSkin()

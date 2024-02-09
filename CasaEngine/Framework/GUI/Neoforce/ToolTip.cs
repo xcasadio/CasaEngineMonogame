@@ -28,11 +28,11 @@ public class ToolTip : Control
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         Text = "";
         CanFocus = false;
         Passive = true;
+
+        base.Initialize(manager);
     }
 
     protected internal override void InitializeSkin()

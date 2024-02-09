@@ -122,9 +122,10 @@ public class ImageBox : Control
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
         CanFocus = false;
         Color = Color.White;
+
+        base.Initialize(manager);
 
         LoadImage();
     }

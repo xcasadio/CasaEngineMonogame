@@ -9,11 +9,16 @@ public class ExitDialog : Dialog
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         var msg = "Do you really want to exit " + Manager.Game.Window.Title + "?";
         ClientWidth = (int)Manager.Skin.Controls["Label"].Layers[0].Text.Font.Resource.MeasureString(msg).X + 48 + 16 + 16 + 16;
         Text = Manager.Game.Window.Title;
+
+        ClientHeight = 120;
+        TopPanel.Visible = false;
+        IconVisible = true;
+        Resizable = false;
+
+        base.Initialize(manager);
 
         _imgIcon = new ImageBox();
         _imgIcon.Initialize(Manager);
@@ -55,10 +60,6 @@ public class ExitDialog : Dialog
 
         DefaultControl = BtnNo;
 
-        ClientHeight = 120;
-        TopPanel.Visible = false;
-        IconVisible = true;
-        Resizable = false;
         Center();
     }
 

@@ -610,6 +610,12 @@ public class Control : Component
     // position in the screen : between 0 and 1. Use to adapt in any resolution
     public float TopScreenRatio { get; set; }
 
+    // between 0 and 1. Use to adapt in any resolution
+    public float WidthScreenRatio { get; set; }
+
+    //between 0 and 1. Use to adapt in any resolution
+    public float HeightScreenRatio { get; set; }
+
     /// <summary>
     /// Gets or sets the distance, in pixels, between the left edge of the control and the left edge of its parent.
     /// </summary>
@@ -1604,11 +1610,23 @@ public class Control : Component
             ResizerSize = _skin.ResizerSize;
         }
 
-        _left = (int)(LeftScreenRatio * (float)Manager.CasaEngineGame.ScreenSizeWidth);
-        _top = (int)(TopScreenRatio * (float)Manager.CasaEngineGame.ScreenSizeHeight);
+        ComputePositionAndSizeWithRatio(Manager.ScreenWidth, Manager.ScreenHeight);
 
         OnMove(new MoveEventArgs());
         OnResize(new ResizeEventArgs());
+    }
+
+    public void ComputePositionAndSizeWithRatio(int width, int height)
+    {
+        if (Manager == null)
+        {
+            return;
+        }
+
+        _left = (int)(LeftScreenRatio * (float)width);
+        _top = (int)(TopScreenRatio * (float)height);
+        _width = (int)(WidthScreenRatio * (float)width);
+        _height = (int)(HeightScreenRatio * (float)height);
     }
 
     protected internal virtual void InitializeSkin()
@@ -1628,6 +1646,14 @@ public class Control : Component
     {
         Width = _skin?.DefaultSize.Width > 0 ? _skin.DefaultSize.Width : width;
         Height = _skin?.DefaultSize.Height > 0 ? _skin.DefaultSize.Height : height;
+
+#if EDITOR
+        if (Manager != null)
+        {
+            WidthScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
+            HeightScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeHeight;
+        }
+#endif
     }
 
     protected void SetMinimumSize(int minimumWidth, int minimumHeight)
@@ -2649,6 +2675,14 @@ public class Control : Component
 
     protected virtual void OnResize(ResizeEventArgs e)
     {
+#if EDITOR
+        if (Manager != null)
+        {
+            WidthScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
+            HeightScreenRatio = (float)Height / (float)Manager.CasaEngineGame.ScreenSizeHeight;
+        }
+#endif
+
         Invalidate();
         Resize?.Invoke(this, e);
     }
@@ -2824,6 +2858,7 @@ public class Control : Component
         DoubleClicks = element.GetProperty("double_clicks").GetBoolean();
         Enabled = element.GetProperty("enabled").GetBoolean();
         Height = element.GetProperty("height").GetInt32();
+        HeightScreenRatio = element.GetProperty("height_screen_ratio").GetSingle();
         Left = element.GetProperty("left").GetInt32();
         LeftScreenRatio = element.GetProperty("left_screen_ratio").GetSingle();
         Margins = element.GetProperty("margins").GetMargins();
@@ -2850,6 +2885,7 @@ public class Control : Component
         TopScreenRatio = element.GetProperty("top_screen_ratio").GetSingle();
         Visible = element.GetProperty("visible").GetBoolean();
         Width = element.GetProperty("width").GetInt32();
+        WidthScreenRatio = element.GetProperty("width_screen_ratio").GetSingle();
     }
 
 #if EDITOR
@@ -2871,6 +2907,7 @@ public class Control : Component
         node.Add("double_clicks", DoubleClicks);
         node.Add("enabled", Enabled);
         node.Add("height", Height);
+        node.Add("height_screen_ratio", HeightScreenRatio);
         node.Add("left", Left);
         node.Add("left_screen_ratio", LeftScreenRatio);
         node.Add("margins", Margins);
@@ -2901,6 +2938,7 @@ public class Control : Component
         node.Add("top_screen_ratio", TopScreenRatio);
         node.Add("visible", Visible);
         node.Add("width", Width);
+        node.Add("width_screen_ratio", WidthScreenRatio);
     }
 #endif
 }

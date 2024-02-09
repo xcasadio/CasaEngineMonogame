@@ -7,10 +7,10 @@ public class ToolBarPanel : Control
 {
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         Width = 64;
         Height = 25;
+
+        base.Initialize(manager);
     }
 
     protected internal override void InitializeSkin()

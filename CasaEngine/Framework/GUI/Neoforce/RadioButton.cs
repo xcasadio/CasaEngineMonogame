@@ -3,12 +3,6 @@ using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
-public enum RadioButtonMode
-{
-    Auto,
-    Manual
-}
-
 public class RadioButton : CheckBox
 {
     private const string SkRadioButton = "RadioButton";

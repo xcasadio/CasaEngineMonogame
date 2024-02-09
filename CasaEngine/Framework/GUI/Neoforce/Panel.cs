@@ -89,12 +89,12 @@ public class Panel : Container
         _bevel.Visible = _bevelBorder != BevelBorder.None;
         _bevel.Anchor = Anchors.Left | Anchors.Top | Anchors.Right | Anchors.Bottom;
 
-        base.Initialize(manager);
-
         Passive = false;
         CanFocus = false;
         Width = 64;
         Height = 64;
+
+        base.Initialize(manager);
 
         Add(_bevel, false);
         AdjustMargins();

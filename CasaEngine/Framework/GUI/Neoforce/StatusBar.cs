@@ -6,13 +6,13 @@ public class StatusBar : Control
 {
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         Left = 0;
         Top = 0;
         Width = 64;
         Height = 24;
         CanFocus = false;
+
+        base.Initialize(manager);
     }
 
     protected internal override void InitializeSkin()

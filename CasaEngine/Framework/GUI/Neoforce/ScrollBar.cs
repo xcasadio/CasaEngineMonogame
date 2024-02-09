@@ -175,8 +175,6 @@ public class ScrollBar : Control
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         if (_orientation == Orientation.Horizontal)
         {
             _strButton = "ScrollBar.ButtonHorz";
@@ -205,6 +203,8 @@ public class ScrollBar : Control
             Width = 16;
             Height = 64;
         }
+
+        base.Initialize(manager);
 
         _btnMinus = new Button();
         _btnMinus.Initialize(Manager);

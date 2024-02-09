@@ -4,12 +4,6 @@ using TomShane.Neoforce.Controls.Input;
 
 namespace TomShane.Neoforce.Controls;
 
-public struct ScrollBarValue
-{
-    public int Vertical;
-    public int Horizontal;
-}
-
 public class Container : ClipControl
 {
     private MainMenu _mainMenu;

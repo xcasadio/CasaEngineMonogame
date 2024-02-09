@@ -50,13 +50,6 @@ public class Button : ButtonBase
         base.Dispose(disposing);
     }
 
-    public override void Initialize(Manager manager)
-    {
-        base.Initialize(manager);
-
-        SetDefaultSize(72, 24);
-    }
-
     protected internal override void InitializeSkin()
     {
         base.InitializeSkin();

@@ -6,13 +6,6 @@ using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
-public enum TextBoxMode
-{
-    Normal,
-    Password,
-    Multiline
-}
-
 public class TextBox : ClipControl
 {
     private struct Selection

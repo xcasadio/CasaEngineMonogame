@@ -14,7 +14,7 @@ using Mouse = Microsoft.Xna.Framework.Input.Mouse;
 
 namespace TomShane.Neoforce.Controls;
 
-public class Manager : DrawableGameComponent
+public class Manager : DrawableGameComponent, IGameComponentResizable
 {
     private struct ControlStates
     {
@@ -291,9 +291,9 @@ public class Manager : DrawableGameComponent
     {
         get
         {
-            if (GraphicsDevice != null)
+            if (CasaEngineGame != null)
             {
-                return GraphicsDevice.PresentationParameters.BackBufferWidth;
+                return CasaEngineGame.ScreenSizeWidth;
             }
 
             return 0;
@@ -308,9 +308,9 @@ public class Manager : DrawableGameComponent
     {
         get
         {
-            if (GraphicsDevice != null)
+            if (CasaEngineGame != null)
             {
-                return GraphicsDevice.PresentationParameters.BackBufferHeight;
+                return CasaEngineGame.ScreenSizeHeight;
             }
 
             return 0;
@@ -633,8 +633,8 @@ public class Manager : DrawableGameComponent
 
     public void OnScreenResized(int width, int height)
     {
-        GraphicsDevice.PresentationParameters.BackBufferWidth = width;
-        GraphicsDevice.PresentationParameters.BackBufferHeight = height;
+        //GraphicsDevice.PresentationParameters.BackBufferWidth = width;
+        //GraphicsDevice.PresentationParameters.BackBufferHeight = height;
 
         InvalidateRenderTarget();
         OnScreenResize(width, height);
@@ -648,22 +648,24 @@ public class Manager : DrawableGameComponent
         }
     }
 
-    private void SetMaxSize(Control c, int w, int h)
+    private void SetMaxSize(Control c, int width, int height)
     {
-        if (c.Width > w)
+        c.ComputePositionAndSizeWithRatio(width, height);
+        /*
+        if (c.Width > width)
         {
-            w -= c.Skin != null ? c.Skin.OriginMargins.Horizontal : 0;
-            c.Width = w;
+            width -= c.Skin != null ? c.Skin.OriginMargins.Horizontal : 0;
+            c.Width = width;
         }
-        if (c.Height > h)
+        if (c.Height > height)
         {
-            h -= c.Skin != null ? c.Skin.OriginMargins.Vertical : 0;
-            c.Height = h;
-        }
+            height -= c.Skin != null ? c.Skin.OriginMargins.Vertical : 0;
+            c.Height = height;
+        }*/
 
         foreach (var cx in c.Controls)
         {
-            SetMaxSize(cx, w, h);
+            SetMaxSize(cx, width, height);
         }
     }
 

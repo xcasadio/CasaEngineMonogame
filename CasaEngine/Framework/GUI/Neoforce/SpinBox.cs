@@ -4,12 +4,6 @@ using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
-public enum SpinBoxMode
-{
-    Range,
-    List
-}
-
 public class SpinBox : TextBox
 {
     private Button _btnUp;
@@ -121,7 +115,12 @@ public class SpinBox : TextBox
 
     public override void Initialize(Manager manager)
     {
+        Height = 20;
+        Width = 64;
+
         base.Initialize(manager);
+
+        ReadOnly = true;
 
         _btnUp = new Button();
         _btnUp.Initialize(Manager);
@@ -147,11 +146,6 @@ public class SpinBox : TextBox
         _btnDown.Glyph = new Glyph(Manager.Skin.Images["Shared.ArrowDown"].Resource);
         _btnDown.Glyph.SizeMode = SizeMode.Centered;
         _btnDown.Glyph.Color = Manager.Skin.Controls["Button"].Layers["Control"].Text.Colors.Enabled;
-
-        ReadOnly = true;
-
-        Height = 20;
-        Width = 64;
     }
 
     protected internal override void InitializeSkin()

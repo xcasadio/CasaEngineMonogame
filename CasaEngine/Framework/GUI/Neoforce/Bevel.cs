@@ -7,26 +7,6 @@ using EventHandler = TomShane.Neoforce.Controls.EventHandler;
 
 namespace CasaEngine.Framework.GUI.Neoforce;
 
-public enum BevelStyle
-{
-    None,
-    Flat,
-    Etched,
-    Bumped,
-    Lowered,
-    Raised
-}
-
-public enum BevelBorder
-{
-    None,
-    Left,
-    Top,
-    Right,
-    Bottom,
-    All
-}
-
 public class Bevel : Control
 {
     private BevelBorder _border = BevelBorder.All;

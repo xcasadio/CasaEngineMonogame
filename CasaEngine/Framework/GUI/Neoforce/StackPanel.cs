@@ -26,11 +26,11 @@ public class StackPanel : Container
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         Color = Color.Transparent;
         AutoRefresh = true;
         _refreshTimer = new TimeSpan(0, 0, 0, 0, RefreshTime);
+
+        base.Initialize(manager);
     }
 
     private void CalcLayout()

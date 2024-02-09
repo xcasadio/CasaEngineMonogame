@@ -124,6 +124,10 @@ public class TrackBar : Control
 
     public override void Initialize(Manager manager)
     {
+        Width = 64;
+        Height = 20;
+        CanFocus = false;
+
         base.Initialize(manager);
 
         _btnSlider = new Button();
@@ -138,10 +142,6 @@ public class TrackBar : Control
         _btnSlider.KeyPress += btnSlider_KeyPress;
         _btnSlider.GamePadPress += btnSlider_GamePadPress;
         _btnSlider.Skin = new SkinControl(Manager.Skin.Controls["TrackBar.Button"]);
-
-        Width = 64;
-        Height = 20;
-        CanFocus = false;
     }
 
     protected internal override void InitializeSkin()

@@ -6,12 +6,6 @@ using TomShane.Neoforce.Controls.Skins;
 
 namespace TomShane.Neoforce.Controls;
 
-public class WindowGamePadActions : GamePadActions
-{
-    public readonly GamePadButton Accept = GamePadButton.Start;
-    public readonly GamePadButton Cancel = GamePadButton.Back;
-}
-
 ///  <include file='Documents/Window.xml' path='Window/Class[@name="Window"]/*' />          
 public class Window : ModalContainer
 {
@@ -102,6 +96,13 @@ public class Window : ModalContainer
 
     public override void Initialize(Manager manager)
     {
+        SetMinimumSize(100, 75);
+        SetDefaultSize(640, 480);
+
+        AutoScroll = true;
+        Movable = true;
+        Resizable = true;
+
         base.Initialize(manager);
 
         _oldAlpha = Alpha;
@@ -132,14 +133,8 @@ public class Window : ModalContainer
         CheckLayer(Manager.Skin.Controls[SkButton], LrButton);
         CheckLayer(Manager.Skin.Controls[SkShadow], LrShadow);
 
-        SetDefaultSize(640, 480);
-        SetMinimumSize(100, 75);
-
         AdjustMargins();
 
-        AutoScroll = true;
-        Movable = true;
-        Resizable = true;
         Center();
     }
 

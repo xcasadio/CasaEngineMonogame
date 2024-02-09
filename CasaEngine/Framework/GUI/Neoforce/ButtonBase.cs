@@ -49,9 +49,8 @@ public abstract class ButtonBase : Control
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         SetDefaultSize(72, 24);
+        base.Initialize(manager);
     }
 
     protected override void OnClick(EventArgs e)

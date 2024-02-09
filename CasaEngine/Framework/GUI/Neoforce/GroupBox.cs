@@ -3,12 +3,6 @@ using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
-public enum GroupBoxType
-{
-    Normal,
-    Flat
-}
-
 public class GroupBox : Container
 {
 
@@ -22,8 +16,6 @@ public class GroupBox : Container
 
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         CheckLayer(Skin, "Control");
         CheckLayer(Skin, "Flat");
 
@@ -32,6 +24,8 @@ public class GroupBox : Container
         Width = 64;
         Height = 64;
         BackColor = Color.Transparent;
+
+        base.Initialize(manager);
     }
 
     private void AdjustClientMargins()

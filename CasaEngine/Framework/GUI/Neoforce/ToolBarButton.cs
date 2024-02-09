@@ -6,10 +6,10 @@ public class ToolBarButton : Button
 {
     public override void Initialize(Manager manager)
     {
-        base.Initialize(manager);
-
         CanFocus = false;
         Text = "";
+
+        base.Initialize(manager);
     }
 
     protected internal override void InitializeSkin()

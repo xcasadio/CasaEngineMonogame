@@ -7,7 +7,6 @@ namespace TomShane.Neoforce.Controls;
 ///  <include file='Documents/ListBox.xml' path='ListBox/Class[@name="ListBox"]/*' />          
 public class ListBox : Control
 {
-
     private List<object> _items = new();
     private ScrollBar _sbVert;
     private ClipBox _pane;
@@ -96,14 +95,14 @@ public class ListBox : Control
         _pane = new ClipBox();
         _pane.Initialize(manager);
 
-        base.Initialize(manager);
-
         Width = 64;
         Height = 64;
         MinimumHeight = 16;
 
         CanFocus = true;
         Passive = false;
+
+        base.Initialize(manager);
 
         _sbVert.Parent = this;
         _sbVert.Left = Left + Width - _sbVert.Width - Skin.Layers["Control"].ContentMargins.Right;

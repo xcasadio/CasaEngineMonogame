@@ -3,12 +3,6 @@ using TomShane.Neoforce.Controls.Graphics;
 
 namespace TomShane.Neoforce.Controls;
 
-public enum ProgressBarMode
-{
-    Default,
-    Infinite
-}
-
 public class ProgressBar : Control
 {
     private int _range = 100;
