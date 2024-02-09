@@ -421,9 +421,6 @@ public partial class ContentBrowserControl : UserControl
         }
     }
 
-
-
-
     private void TreeViewFolders_OnKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.F2)

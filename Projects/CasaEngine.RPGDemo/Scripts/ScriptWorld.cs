@@ -1,23 +1,32 @@
 ﻿using System.Linq;
+using System.Windows.Forms;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
+using CasaEngine.RPGDemo.Controllers;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptWorld : GameplayProxy
 {
+    private Character _playerCharacter;
+    private World _world;
+
     public override void InitializeWithWorld(World world)
     {
-
+        _world = world;
     }
 
     public override void Update(float elapsedTime)
     {
+        if (_playerCharacter.IsDead)
+        {
+            _world.Game.GameManager.SetWorldToLoad("TitleScreenWorld.world");
+        }
     }
 
     public override void Draw()
@@ -45,6 +54,12 @@ public class ScriptWorld : GameplayProxy
         screen.Initialize();
         screen.InitializeWithWorld(world);
         world.AddScreen(screen);
+
+
+        //TODO : put in gamemode
+        var entity = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
+        var scriptPlayer = entity.GameplayProxy as ScriptPlayer;
+        _playerCharacter = scriptPlayer.Character;
     }
 
     public override void OnEndPlay(World world)

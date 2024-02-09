@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using CasaEngine.Core.Collections;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,11 +9,20 @@ public class Line3dRendererComponent : DrawableGameComponent
 {
     private class Line3d
     {
-        public Vector3 Start { get; }
-        public Vector3 End { get; }
-        public Color Color { get; }
+        public Vector3 Start { get; private set; }
+        public Vector3 End { get; private set; }
+        public Color Color { get; private set; }
+
+        public Line3d()
+        {
+        }
 
         public Line3d(Vector3 start, Vector3 end, Color color)
+        {
+            Set(start, end, color);
+        }
+
+        public void Set(Vector3 start, Vector3 end, Color color)
         {
             Start = start;
             End = end;
@@ -20,10 +30,10 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
     }
 
-    private const int NbLines = 50000;
+    private const int NbLines = 5000;
     private readonly List<Line3d> _lines = new(NbLines);
-    private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
     private readonly Stack<Line3d> _freeLines = new(NbLines);
+    private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
 
     private VertexBuffer? _vertexBuffer;
     private BasicEffect? _basicEffect;
@@ -114,7 +124,16 @@ public class Line3dRendererComponent : DrawableGameComponent
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddLine(ref Vector3 start, ref Vector3 end, ref Color color)
     {
-        _lines.Add(new Line3d(start, end, color));
+        if (_freeLines.TryPop(out var line3d))
+        {
+            line3d.Set(start, end, color);
+        }
+        else
+        {
+            line3d = new Line3d(start, end, color);
+        }
+
+        _lines.Add(line3d);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

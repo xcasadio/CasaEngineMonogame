@@ -72,7 +72,7 @@ public class GameManager
             }
 
             var assetInfo = AssetCatalog.GetByFileName(_worldToLoad);
-            _currentWorld = _game.AssetContentManager.Load<World.World>(assetInfo.Id);
+            _currentWorld = _game.AssetContentManager.Load<World.World>(assetInfo.Id, cache: false);
             _worldToLoad = null;
             _isNewWorld = true;
         }

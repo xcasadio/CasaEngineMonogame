@@ -55,16 +55,17 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 16,
-      "left": 239,
-      "left_screen_ratio": 0.4030354,
+      "height": 118,
+      "height_screen_ratio": 0.13333334,
+      "left": 363,
+      "left_screen_ratio": 0.35,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 480,
       "maximum_width": 593,
       "minimum_height": 0,
       "minimum_width": 0,
@@ -93,10 +94,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 53,
-      "top_screen_ratio": 0.08386076,
+      "top": 40,
+      "top_screen_ratio": 0.045833334,
       "visible": true,
-      "width": 64
+      "width": 83,
+      "width_screen_ratio": 0.08
     },
     {
       "type": "Button",
@@ -124,16 +126,17 @@
       "detached": false,
       "double_clicks": false,
       "enabled": true,
-      "height": 24,
-      "left": 239,
-      "left_screen_ratio": 0.4030354,
+      "height": 45,
+      "height_screen_ratio": 0.09375,
+      "left": 271,
+      "left_screen_ratio": 0.33875,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 480,
       "maximum_width": 593,
       "minimum_height": 0,
       "minimum_width": 0,
@@ -162,10 +165,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 313,
-      "top_screen_ratio": 0.49525318,
+      "top": 236,
+      "top_screen_ratio": 0.49166667,
       "visible": true,
-      "width": 72
+      "width": 253,
+      "width_screen_ratio": 0.31625
     },
     {
       "type": "Button",
@@ -193,16 +197,17 @@
       "detached": false,
       "double_clicks": false,
       "enabled": true,
-      "height": 24,
-      "left": 238,
-      "left_screen_ratio": 0.40134907,
+      "height": 44,
+      "height_screen_ratio": 0.09166667,
+      "left": 273,
+      "left_screen_ratio": 0.34125,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 480,
       "maximum_width": 593,
       "minimum_height": 0,
       "minimum_width": 0,
@@ -231,10 +236,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 345,
-      "top_screen_ratio": 0.5458861,
+      "top": 284,
+      "top_screen_ratio": 0.59166664,
       "visible": true,
-      "width": 72
+      "width": 251,
+      "width_screen_ratio": 0.31375
     }
   ]
 }

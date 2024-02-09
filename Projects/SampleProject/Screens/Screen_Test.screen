@@ -1,7 +1,30 @@
 {
   "id": "3fd14c2a-111c-4b96-8ab8-ce2825e77502",
   "name": "Screen_Test",
-  "root_component": "null",
+  "root_component": {
+    "id": "a5f8132d-bb5b-4448-bc84-7e56920eeadf",
+    "name": "Object a5f8132d-bb5b-4448-bc84-7e56920eeadf",
+    "type": "ScreenWidgetComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": []
+  },
   "components": [],
   "script_class_name": null,
   "external_component": "null",

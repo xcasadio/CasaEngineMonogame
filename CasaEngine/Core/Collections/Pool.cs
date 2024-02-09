@@ -130,17 +130,17 @@ public class Pool<T> where T : new()
 
         // To accomplish our second objective (memory locality) the last available element will be moved to the place where the released element resided.
         // First swap elements values.
-        var accesorPoolElement = Elements[accessor.Index]; // If T is a type by reference we can lost its value
-        Elements[accessor.Index] = Elements[Count - 1];
-        Elements[Count - 1] = accesorPoolElement;
+        (Elements[accessor.Index], Elements[Count - 1]) = (Elements[Count - 1], Elements[accessor.Index]);
+
         // The indices have the wrong value.The last has to index its new place and vice versa.
-        var accesorOldIndex = accessor.Index;
+        var accessorOldIndex = accessor.Index;
         accessor.Index = Count - 1;
-        _accessors[Count - 1].Index = accesorOldIndex;
+        _accessors[Count - 1].Index = accessorOldIndex;
+
         // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
         var lastActiveAccessor = _accessors[Count - 1]; // Accessor is a reference type.
         _accessors[Count - 1] = accessor;
-        _accessors[accesorOldIndex] = lastActiveAccessor;
+        _accessors[accessorOldIndex] = lastActiveAccessor;
 
         Count--;
     }
@@ -149,10 +149,11 @@ public class Pool<T> where T : new()
     {
         (Elements[i], Elements[j]) = (Elements[j], Elements[i]);
         // The indices have the wrong value.The last has to index its new place and vice versa.
-        var accesorOldIndex = _accessors[i].Index;
+        var accessorOldIndex = _accessors[i].Index;
         _accessors[i].Index = j;
-        _accessors[j].Index = accesorOldIndex;
+        _accessors[j].Index = accessorOldIndex;
+
         // Also the accessor array has to be sorted. If not the fetch method will give a used accessor element.
         (_accessors[i], _accessors[j]) = (_accessors[j], _accessors[i]);
-    } // Swap
+    }
 }

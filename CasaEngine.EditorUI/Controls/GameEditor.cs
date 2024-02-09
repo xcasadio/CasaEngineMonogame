@@ -97,7 +97,7 @@ public abstract class GameEditor : WpfGame
 
     private void OnScreenResized(int width, int height)
     {
-        //in editor the camera is an element of the wornewSizeHeightld
+        //in editor the camera is not an element of the world
         Game?.GameManager.ActiveCamera?.OnScreenResized(width, height);
         Game?.OnScreenResized(width, height);
     }

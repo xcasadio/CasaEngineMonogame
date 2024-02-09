@@ -5,6 +5,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
@@ -28,15 +29,15 @@ public sealed class World : ObjectBase
     private readonly List<Entity> _entitiesVisible = new(1000);
 
     public CasaEngineGame Game { get; private set; }
+    public IList<Entity> Entities => _entities;
     public IEnumerable<ScreenGui> Screens => _screens;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
-    public IList<Entity> Entities => _entities;
-
-    public bool DisplaySpacePartitioning { get; set; }
+    public string GameModeClassName { get; set; }
+    public GameMode GameMode { get; private set; }
 
     //UGameViewportClient ViewportClient
-
+    public bool DisplaySpacePartitioning { get; set; }
 
     public World()
     {
@@ -121,7 +122,26 @@ public sealed class World : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
-        //GameplayProxy?.Initialize(this);
+        //TODO create gamemode
+        if (!string.IsNullOrWhiteSpace(GameModeClassName))
+        {
+            GameMode = ElementFactory.Create<GameMode>(GameModeClassName);
+        }
+        else // TODO remove this
+        {
+            GameMode = new GameMode();
+        }
+
+        GameMode.InitGame(this);
+        GameMode.MatchState = GameMode.EnteringMap;
+
+#if EDITOR
+        if (Game.IsRunningInGameEditorMode)
+#endif
+        {
+            GameplayProxy?.Initialize(null);
+            GameplayProxy?.InitializeWithWorld(this);
+        }
     }
 
     private CameraComponent? CreateDefaultCamera()
@@ -151,6 +171,7 @@ public sealed class World : ObjectBase
             return;
         }
 #endif
+        GameMode.StartPlay();
 
         GameplayProxy?.OnBeginPlay(this);
 
@@ -162,6 +183,13 @@ public sealed class World : ObjectBase
 
     public void Update(float elapsedTime)
     {
+        GameMode.Tick(elapsedTime);
+
+        if (GameMode.HasMatchEnded())
+        {
+            //??
+        }
+
         var toRemove = new List<Entity>();
 
         InternalAddEntities();

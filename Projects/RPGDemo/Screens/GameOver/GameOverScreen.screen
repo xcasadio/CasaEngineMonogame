@@ -1,0 +1,104 @@
+{
+  "id": "37d88f5f-f1d5-4e65-b7a4-edba40da0aaf",
+  "name": "GameOverScreen",
+  "root_component": {
+    "id": "9812367b-22c0-4fce-bcb4-38aebc8cc9d7",
+    "name": "Object 9812367b-22c0-4fce-bcb4-38aebc8cc9d7",
+    "type": "ScreenWidgetComponent",
+    "coordinates": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": []
+  },
+  "components": [],
+  "script_class_name": null,
+  "external_component": "null",
+  "controls": [
+    {
+      "type": "Label",
+      "alpha": 255,
+      "anchor": null,
+      "back_color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 0
+      },
+      "can_focus": false,
+      "client_margins": {
+        "l": 0,
+        "r": 0,
+        "t": 0,
+        "b": 0
+      },
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "detached": false,
+      "double_clicks": true,
+      "enabled": true,
+      "height": 64,
+      "height_screen_ratio": 0.13333334,
+      "left": 236,
+      "left_screen_ratio": 0.295,
+      "margins": {
+        "l": 4,
+        "r": 4,
+        "t": 4,
+        "b": 4
+      },
+      "maximum_height": 480,
+      "maximum_width": 800,
+      "minimum_height": 0,
+      "minimum_width": 0,
+      "movable": true,
+      "movable_area": {
+        "x": 0,
+        "y": 0,
+        "w": 800,
+        "h": 480
+      },
+      "name": "Label",
+      "outline_moving": false,
+      "outline_resizing": false,
+      "partial_outline": true,
+      "passive": true,
+      "resizable": true,
+      "resize_edge": "All",
+      "resizer_size": 2,
+      "stay_on_back": false,
+      "stay_on_top": false,
+      "suspended": false,
+      "text": "GAME OVER",
+      "text_color": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0
+      },
+      "top": 214,
+      "top_screen_ratio": 0.44583333,
+      "visible": true,
+      "width": 64,
+      "width_screen_ratio": 0.08
+    }
+  ]
+}

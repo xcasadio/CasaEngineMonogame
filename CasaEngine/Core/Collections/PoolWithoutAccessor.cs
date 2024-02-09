@@ -109,10 +109,7 @@ public class PoolWithoutAccessor<T> where T : new()
             throw new ArgumentNullException(nameof(element), "Pool: Element value not found.");
         }
 
-        var temp = Elements[i];
-        Elements[i] = Elements[Count - 1];
-        Elements[Count - 1] = temp;
-
+        (Elements[i], Elements[Count - 1]) = (Elements[Count - 1], Elements[i]);
         Count--;
     }
 

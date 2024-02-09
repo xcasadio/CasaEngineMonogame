@@ -70,7 +70,7 @@ public class AssetContentManager
         return _assetLoaderByType.Values.Any(assetLoader => assetLoader.IsFileSupported(fileName));
     }
 
-    public T Load<T>(Guid id, string categoryName = DefaultCategory) where T : class
+    public T Load<T>(Guid id, string categoryName = DefaultCategory, bool cache = true) where T : class
     {
         if (_assetsDictionaryByCategory.TryGetValue(categoryName, out var categoryAssetList))
         {
@@ -112,7 +112,11 @@ public class AssetContentManager
             gameObject.FileName = assetInfo.FileName;
         }
 
-        AddAsset(assetInfo, newAsset, categoryName);
+        if (cache)
+        {
+            AddAsset(assetInfo, newAsset, categoryName);
+        }
+
         return newAsset;
     }
 
