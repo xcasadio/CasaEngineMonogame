@@ -20,12 +20,6 @@ public class LogMessageNode : ActionNode
 
     public override string Title => "Log Message";
 
-    public LogMessageNode(XmlNode node)
-        : base(node)
-    {
-
-    }
-
     public LogMessageNode()
     {
 
@@ -125,6 +119,6 @@ public class LogMessageNode : ActionNode
             ArgumentList = parameters
         };
 
-        return invocationExpressionSyntax;
+        return Syntax.ExpressionStatement(invocationExpressionSyntax);
     }
 }

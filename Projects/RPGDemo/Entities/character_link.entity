@@ -130,5 +130,53 @@
     ]
   },
   "components": [],
-  "script_class_name": "ScriptPlayer"
+  "script_class_name": "ScriptPlayer",
+  "flow_graph": {
+    "type": "sequence",
+    "id": 10,
+    "name": "sequence",
+    "description": null,
+    "nodes": [
+      {
+        "comment": null,
+        "id": 1,
+        "type": "CasaEngine.FlowGraphNodes.BeginPlayEventNode, CasaEngine.FlowGraphNodes",
+        "slots": [
+          {
+            "index": 0
+          }
+        ],
+        "connections": [
+          {
+            "source_node_id": 1,
+            "source_node_slot_id": 0,
+            "destination_node_id": 2,
+            "destination_node_slot_id": 0
+          }
+        ]
+      },
+      {
+        "comment": null,
+        "id": 2,
+        "type": "CasaEngine.FlowGraphNodes.LogMessageNode, CasaEngine.FlowGraphNodes",
+        "slots": [
+          {
+            "index": 0
+          },
+          {
+            "index": 1
+          },
+          {
+            "index": 2,
+            "saveValue": true,
+            "value_container": {
+              "type": "System.String, System.Private.CoreLib",
+              "value": ""
+            }
+          }
+        ],
+        "connections": []
+      }
+    ]
+  }
 }

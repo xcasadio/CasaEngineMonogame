@@ -6,6 +6,7 @@ using CasaEngine.Framework.Scripting;
 using FlowGraph;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using TomShane.Neoforce.Controls.Serialization;
 
 namespace CasaEngine.Framework.Entities;
 
@@ -272,7 +273,7 @@ public class Entity : ObjectBase
         }
 
 #if EDITOR
-        if (!World.Game.IsRunningInGameEditorMode)
+        if (World?.Game?.IsRunningInGameEditorMode ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
@@ -331,10 +332,19 @@ public class Entity : ObjectBase
             RootComponent = ElementFactory.Load<SceneComponent>(node);
         }
 
-        /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())
+        foreach (var componentNode in element.GetProperty("components").EnumerateArray())
         {
-            //id of all child
-        }*/
+            _components.Add(ElementFactory.Load<EntityComponent>(componentNode));
+        }
+
+        GameplayProxyClassName = node.GetProperty("script_class_name").GetString();
+
+#if EDITOR
+        if (node.TryGetProperty("flow_graph", out var flowGraphNode))
+        {
+            //FlowGraph.Load(flowGraphNode);
+        }
+#endif
     }
 
 #if EDITOR
@@ -372,6 +382,11 @@ public class Entity : ObjectBase
         node.Add("components", componentsJArray);
 
         node.Add("script_class_name", GameplayProxyClassName);
+
+        //TODO only in editor
+        var flowGraphNode = new JObject();
+        FlowGraph.Save(flowGraphNode);
+        node.Add("flow_graph", flowGraphNode);
     }
 
 #endif

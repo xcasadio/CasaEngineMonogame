@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using CasaEngine.Core.Log;
 using CasaEngine.DotNetCompiler;
 using CasaEngine.DotNetCompiler.CSharp;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Scripting;
 using FlowGraphUI;
@@ -65,5 +68,17 @@ public partial class FlowGraphEditControl : UserControl
         Entity.GameplayProxyClassName = className;
 
         return result.Success;
+    }
+
+    private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+    {
+        if (Entity == null)
+        {
+            return;
+        }
+
+        var fileName = Entity.FileName;
+        AssetSaver.SaveAsset(fileName, Entity);
+        Logs.WriteInfo($"Entity {Entity.Name} saved ({fileName})");
     }
 }
