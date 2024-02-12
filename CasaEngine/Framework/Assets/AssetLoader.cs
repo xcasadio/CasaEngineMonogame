@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -8,9 +9,9 @@ public class AssetLoader<T> : IAssetLoader where T : ISerializable, new()
 {
     public object LoadAsset(string fileName, GraphicsDevice device)
     {
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        JObject jsonDocument = JObject.Parse(File.ReadAllText(fileName));
         var asset = new T();
-        asset.Load(jsonDocument.RootElement);
+        asset.Load(jsonDocument);
         return asset;
     }
 

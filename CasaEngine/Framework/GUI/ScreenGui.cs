@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
@@ -55,21 +56,21 @@ namespace CasaEngine.Framework.GUI
             //do nothing
         }
 
-        public override void Load(JsonElement element)
+        public override void Load(JObject element)
         {
             base.Load(element);
 
-            var externalComponentElement = element.GetProperty("external_component");
+            var externalComponentElement = element["external_component"];
             if (externalComponentElement.GetString() != "null")
             {
                 //GameplayProxy = ;
             }
 
-            foreach (var controlElement in element.GetProperty("controls").EnumerateArray())
+            foreach (var controlElement in element["controls"])
             {
-                var typeName = controlElement.GetProperty("type").GetString();
+                var typeName = controlElement["type"].GetString();
 
-                var control = ControlHelper.Load(typeName, controlElement);
+                var control = ControlHelper.Load(typeName, (JObject)controlElement);
                 _controls.Add(control);
             }
         }

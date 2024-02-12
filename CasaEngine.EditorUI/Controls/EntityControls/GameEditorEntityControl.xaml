@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="4 00" VerticalContentAlignment="Stretch">
+             d:DesignHeight="200" d:DesignWidth="400" VerticalContentAlignment="Stretch">
 
     <UserControl.CommandBindings>
         <CommandBinding Command="{StaticResource Commands.Entity.Save}" Executed="SaveCommand_Executed" />

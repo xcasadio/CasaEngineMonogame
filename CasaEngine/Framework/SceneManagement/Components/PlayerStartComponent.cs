@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -29,7 +29,7 @@ public class PlayerStartComponent : SceneComponent
         return new BoundingBox(min, max);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
     }

@@ -90,9 +90,4 @@ public class PlayerComponent : EntityComponent
             _animatedSpriteComponent.SetCurrentAnimation(index, true);
         }
     }
-
-    public override void Load(JsonElement element)
-    {
-
-    }
 }

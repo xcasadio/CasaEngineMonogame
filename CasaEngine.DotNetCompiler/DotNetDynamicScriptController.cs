@@ -61,7 +61,7 @@ public abstract class DotNetDynamicScriptController : IDynamicScriptController<D
 
         using (var ms = new MemoryStream())
         {
-            string resourcesFileLocation = Path.Combine(Path.GetDirectoryName(this.GetType().Assembly.Location), "resources.resx");
+            //string resourcesFileLocation = Path.Combine(Path.GetDirectoryName(this.GetType().Assembly.Location), "resources.resx");
 
             var result = compilation.Emit(ms, pdbStream: null);
 

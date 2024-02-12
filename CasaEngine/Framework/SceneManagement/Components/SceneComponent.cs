@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
@@ -348,14 +348,14 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         IsBoundingBoxDirty = true;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Coordinates.Load(element.GetProperty("coordinates"));
+        Coordinates.Load((JObject)element["coordinates"]);
 
-        foreach (var childComponentNode in element.GetProperty("children_component").EnumerateArray())
+        foreach (var childComponentNode in element["children_component"])
         {
-            AddChildComponent(ElementFactory.Load<SceneComponent>(childComponentNode));
+            AddChildComponent(ElementFactory.Load<SceneComponent>((JObject)childComponentNode));
         }
     }
 

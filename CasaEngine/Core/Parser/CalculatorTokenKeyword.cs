@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -14,7 +14,7 @@ internal class CalculatorTokenKeyword : CalculatorToken
         _keyword = keyword;
     }
 
-    public CalculatorTokenKeyword(Calculator calculator, JsonElement element)
+    public CalculatorTokenKeyword(Calculator calculator, JObject element)
         : base(calculator)
     {
         Load(element);
@@ -25,9 +25,9 @@ internal class CalculatorTokenKeyword : CalculatorToken
         return Calculator.Parser.EvaluateKeyword(_keyword);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
-        _keyword = element.GetProperty("keyword").GetString();
+        _keyword = element["keyword"].GetString();
     }
 
 #if EDITOR

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using BulletSharp;
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Log;
@@ -353,14 +353,14 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         return new BoundingBox(min, max);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        Color = element.GetProperty("color").GetColor();
-        SpriteEffect = element.GetProperty("sprite_effect").GetEnum<SpriteEffects>();
+        Color = element["color"].GetColor();
+        SpriteEffect = element["sprite_effect"].GetEnum<SpriteEffects>();
 
-        foreach (var animationNode in element.GetProperty("animations").EnumerateArray())
+        foreach (var animationNode in element["animations"])
         {
             _animationAssetIds.Add(animationNode.GetGuid());
         }

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
@@ -94,11 +94,11 @@ public abstract class PhysicsComponent : PhysicsBaseComponent
         ComputeBoundingBox();
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        /*var shapeElement = element.GetProperty("shape");
+        /*var shapeElement = element["shape");
         if (shapeElement.GetRawText() != "null")
         {
             Shape = ShapeLoader.LoadShape3d(shapeElement);

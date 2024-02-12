@@ -9,6 +9,7 @@ using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
+using FlowGraph;
 using FlowGraphUI;
 using TabItem = System.Windows.Controls.TabItem;
 

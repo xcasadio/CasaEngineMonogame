@@ -1,11 +1,14 @@
-﻿using System.Text.Json;
-using CasaEngine.Core.Helpers;
+﻿using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
-using FlowGraph;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+
+#if EDITOR
+using FlowGraph;
+#endif
 
 namespace CasaEngine.Framework.Entities;
 
@@ -69,26 +72,33 @@ public class Entity : ObjectBase
 
     public Entity()
     {
+#if EDITOR
+        FlowGraph = new();
+#endif
     }
 
-    public Entity(Entity actor) : base(actor)
+    public Entity(Entity entity) : base(entity)
     {
-        World = actor.World;
-        _isEnabled = actor._isEnabled;
-        Parent = actor.Parent;
-        RootComponent = actor.RootComponent?.Clone() as SceneComponent;
-        GameplayProxyClassName = actor.GameplayProxyClassName;
-        GameplayProxy = actor.GameplayProxy?.Clone();
+        World = entity.World;
+        _isEnabled = entity._isEnabled;
+        Parent = entity.Parent;
+        RootComponent = entity.RootComponent?.Clone() as SceneComponent;
+        GameplayProxyClassName = entity.GameplayProxyClassName;
+        GameplayProxy = entity.GameplayProxy?.Clone();
 
-        foreach (var component in actor._components)
+        foreach (var component in entity._components)
         {
             AddComponent(component.Clone());
         }
 
-        foreach (var child in actor._children)
+        foreach (var child in entity._children)
         {
             AddChild(child.Clone());
         }
+
+#if EDITOR
+        FlowGraph = entity.FlowGraph; //.Clone(); bug!!!
+#endif
     }
 
     public Entity Clone()
@@ -272,7 +282,7 @@ public class Entity : ObjectBase
         }
 
 #if EDITOR
-        if (!World.Game.IsRunningInGameEditorMode)
+        if (!World?.Game?.IsRunningInGameEditorMode ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
@@ -319,22 +329,29 @@ public class Entity : ObjectBase
         }
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
+        GameplayProxyClassName = element["script_class_name"].GetString();
 
-        var node = element.GetProperty("root_component");
-        if (node.ValueKind == JsonValueKind.Object)
+        var node = element["root_component"];
+        if (node.Type == JTokenType.Object)
         {
-            RootComponent = ElementFactory.Load<SceneComponent>(node);
+            RootComponent = ElementFactory.Load<SceneComponent>((JObject)node);
         }
 
-        /*foreach (var item in element.GetJsonPropertyByName("childen").Value.EnumerateArray())
+        foreach (var componentNode in element["components"])
         {
-            //id of all child
-        }*/
+            _components.Add(ElementFactory.Load<EntityComponent>((JObject)componentNode));
+        }
+
+#if EDITOR
+        if (element.TryGetValue("flow_graph", out var flowGraphNode))
+        {
+            FlowGraph.Load((JObject)flowGraphNode);
+        }
+#endif
     }
 
 #if EDITOR
@@ -345,7 +362,7 @@ public class Entity : ObjectBase
     public event EventHandler<EntityComponent> ComponentAdded;
     public event EventHandler<EntityComponent> ComponentRemoved;
 
-    public FlowGraphManager FlowGraph { get; } = new();
+    public FlowGraphManager FlowGraph { get; private set; }
 
     public override void Save(JObject node)
     {
@@ -372,6 +389,11 @@ public class Entity : ObjectBase
         node.Add("components", componentsJArray);
 
         node.Add("script_class_name", GameplayProxyClassName);
+
+        //TODO only in editor
+        var flowGraphNode = new JObject();
+        FlowGraph.Save(flowGraphNode);
+        node.Add("flow_graph", flowGraphNode);
     }
 
 #endif

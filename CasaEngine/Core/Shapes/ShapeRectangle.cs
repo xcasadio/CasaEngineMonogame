@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -52,11 +53,11 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         return HashCode.Combine(Width, Height);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Width = element.GetProperty("w").GetInt32();
-        Height = element.GetProperty("h").GetInt32();
+        Width = element["w"].GetInt32();
+        Height = element["h"].GetInt32();
     }
 
 #if EDITOR

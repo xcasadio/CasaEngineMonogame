@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -46,11 +47,11 @@ public class Capsule : Shape3d, IEquatable<Capsule>
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius} Length:{Length}}}";
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Radius = element.GetProperty("radius").GetSingle();
-        Length = element.GetProperty("length").GetSingle();
+        Radius = element["radius"].GetSingle();
+        Length = element["length"].GetSingle();
     }
 
 #if EDITOR

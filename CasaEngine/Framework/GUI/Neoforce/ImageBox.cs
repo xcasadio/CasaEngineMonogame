@@ -1,4 +1,4 @@
-using System.Text.Json;
+
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
@@ -170,13 +170,13 @@ public class ImageBox : Control
         SizeModeChanged?.Invoke(this, e);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        _spriteAssetId = element.GetProperty("sprite_id").GetGuid();
+        _spriteAssetId = element["sprite_id"].GetGuid();
 
-        SizeMode = element.GetProperty("size_mode").GetEnum<SizeMode>();
+        SizeMode = element["size_mode"].GetEnum<SizeMode>();
     }
 
     private void LoadImage()

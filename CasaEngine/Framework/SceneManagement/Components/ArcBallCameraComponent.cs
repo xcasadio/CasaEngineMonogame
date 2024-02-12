@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -277,14 +277,14 @@ public class ArcBallCameraComponent : Camera3dComponent
         Orientation = q1 * q2;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        _target = element.GetProperty("target").GetVector3();
-        _distance = element.GetProperty("distance").GetSingle();
-        _yaw = element.GetProperty("yaw").GetSingle();
-        _pitch = element.GetProperty("pitch").GetSingle();
+        _target = element["target"].GetVector3();
+        _distance = element["distance"].GetSingle();
+        _yaw = element["yaw"].GetSingle();
+        _pitch = element["pitch"].GetSingle();
     }
 
 #if EDITOR

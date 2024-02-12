@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using Newtonsoft.Json.Linq;
@@ -44,10 +44,10 @@ public class ObjectBase : ISerializable
         //Do nothing
     }
 
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JObject element)
     {
-        Id = element.GetProperty("id").GetGuid();
-        Name = element.GetProperty("name").GetString();
+        Id = element["id"].GetGuid();
+        Name = element["name"].GetString();
     }
 
 #if EDITOR

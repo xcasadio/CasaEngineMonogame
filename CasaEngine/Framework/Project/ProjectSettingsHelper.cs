@@ -1,8 +1,10 @@
 ﻿using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
-using System.Text.Json;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace CasaEngine.Framework.Project;
 
@@ -16,19 +18,17 @@ public static class ProjectSettingsHelper
         EngineEnvironment.ProjectPath = Path.GetDirectoryName(fileName);
 #endif
 
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        var rootElement = JObject.Parse(File.ReadAllText(fileName));
 
-        var rootElement = jsonDocument.RootElement;
+        GameSettings.ProjectSettings.WindowTitle = rootElement["WindowTitle"].GetString();
+        GameSettings.ProjectSettings.ProjectName = rootElement["ProjectName"].GetString();
+        GameSettings.ProjectSettings.FirstScreenName = rootElement["FirstScreenName"].GetString();
+        GameSettings.ProjectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"].GetBoolean();
+        GameSettings.ProjectSettings.DebugHeight = rootElement["DebugHeight"].GetInt32();
+        GameSettings.ProjectSettings.DebugWidth = rootElement["DebugWidth"].GetInt32();
 
-        GameSettings.ProjectSettings.WindowTitle = rootElement.GetJsonPropertyByName("WindowTitle").Value.GetString();
-        GameSettings.ProjectSettings.ProjectName = rootElement.GetJsonPropertyByName("ProjectName").Value.GetString();
-        GameSettings.ProjectSettings.FirstScreenName = rootElement.GetJsonPropertyByName("FirstScreenName").Value.GetString();
-        GameSettings.ProjectSettings.DebugIsFullScreen = rootElement.GetJsonPropertyByName("DebugIsFullScreen").Value.GetBoolean();
-        GameSettings.ProjectSettings.DebugHeight = rootElement.GetJsonPropertyByName("DebugHeight").Value.GetInt32();
-        GameSettings.ProjectSettings.DebugWidth = rootElement.GetJsonPropertyByName("DebugWidth").Value.GetInt32();
-
-        GameSettings.ProjectSettings.FirstWorldLoaded = rootElement.GetJsonPropertyByName("FirstWorldLoaded").Value.GetString();
-        GameSettings.ProjectSettings.GameplayDllName = rootElement.GetJsonPropertyByName("GameplayDllName").Value.GetString();
+        GameSettings.ProjectSettings.FirstWorldLoaded = rootElement["FirstWorldLoaded"].GetString();
+        GameSettings.ProjectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
 
         if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
         {
@@ -91,8 +91,10 @@ public static class ProjectSettingsHelper
 
     public static void Save()
     {
-        string jsonString = JsonSerializer.Serialize(GameSettings.ProjectSettings, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(GameSettings.ProjectSettings.ProjectFileOpened, jsonString);
+        using StreamWriter file = File.CreateText(GameSettings.ProjectSettings.ProjectFileOpened);
+        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
+        var jsonSerializer = new JsonSerializer();
+        jsonSerializer.Serialize(writer, GameSettings.ProjectSettings);
     }
 
 #endif

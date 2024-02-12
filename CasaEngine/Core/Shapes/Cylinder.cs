@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -49,11 +50,11 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius} Length:{Length}}}";
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        _radius = element.GetProperty("radius").GetSingle();
-        _length = element.GetProperty("length").GetSingle();
+        _radius = element["radius"].GetSingle();
+        _length = element["length"].GetSingle();
     }
 
 #if EDITOR

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -24,7 +24,7 @@ internal class CalculatorTokenValue : CalculatorToken
         _type = 1;
     }
 
-    public CalculatorTokenValue(Calculator calculator, JsonElement element)
+    public CalculatorTokenValue(Calculator calculator, JObject element)
         : base(calculator)
     {
         Load(element);
@@ -44,17 +44,17 @@ internal class CalculatorTokenValue : CalculatorToken
 
 #endif
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
-        _type = (int)element.GetProperty("type").GetEnum<CalculatorTokenType>();
+        _type = (int)element["type"].GetEnum<CalculatorTokenType>();
 
         if (_type == 0)
         {
-            _value = element.GetProperty("value").GetSingle();
+            _value = element["value"].GetSingle();
         }
         else
         {
-            _string = element.GetProperty("value").GetString();
+            _string = element["value"].GetString();
         }
     }
 }

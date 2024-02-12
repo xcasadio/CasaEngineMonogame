@@ -3,7 +3,7 @@ using CasaEngine.Framework.Entities;
 
 namespace CasaEngine.Framework.Gameplay
 {
-    public class GameMode : ObjectBase
+    public class GameMode : Entity
     {
         private string _matchState = EnteringMap;
         public const string EnteringMap = "EnteringMap";
@@ -166,7 +166,7 @@ namespace CasaEngine.Framework.Gameplay
 
         public void Tick(float elapsedTime)
         {
-            //base.Update(elapsedTime);
+            Update(elapsedTime);
 
             if (MatchState == WaitingToStart)
             {

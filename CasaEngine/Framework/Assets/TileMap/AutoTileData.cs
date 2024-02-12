@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -12,13 +12,13 @@ public class AutoTileData : TileData
     public AutoTileData() : base(TileType.Auto)
     { }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        AutoTileIndex = element.GetProperty("auto_tile_index").GetInt32();
+        AutoTileIndex = element["auto_tile_index"].GetInt32();
 
         var index = 0;
-        foreach (var locationNode in element.GetProperty("locations").EnumerateArray())
+        foreach (var locationNode in element["locations"])
         {
             Locations[index] = locationNode.GetRectangle();
             index++;

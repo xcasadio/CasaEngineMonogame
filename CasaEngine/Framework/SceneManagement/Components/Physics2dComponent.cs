@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
@@ -77,15 +78,15 @@ public abstract class Physics2dComponent : PhysicsBaseComponent
         ComputeBoundingBox();
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        if (element.TryGetProperty("shape", out var shapeElement))
+        if (element.TryGetValue("shape", out var shapeElement))
         {
-            if (shapeElement.GetRawText() != "\"null\"")
+            if (shapeElement.GetString() != "\"null\"")
             {
-                var shape = ShapeLoader.LoadShape2d(shapeElement);
+                var shape = ShapeLoader.LoadShape2d((JObject)shapeElement);
 
                 if (shape is ShapeCircle circle)
                 {

@@ -6,7 +6,7 @@
 //-----------------------------------------------------------------------------
 
 
-using System.Text.Json;
+
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -28,7 +28,7 @@ public class Move
         Name = name;
     }
 
-    public Move(JsonElement element)
+    public Move(JObject element)
     {
         Load(element);
     }
@@ -55,20 +55,20 @@ public class Move
         return x == Sequence[index].Count;
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        Name = element.GetProperty("name").GetString();
+        Name = element["name"].GetString();
 
-        foreach (var sequenceElement in element.GetProperty("sequences").EnumerateArray())
+        foreach (var sequenceElement in element["sequences"])
         {
             Sequence.Add(new List<InputManager.KeyState>());
 
-            foreach (var buttonElement in sequenceElement.EnumerateArray())
+            foreach (var buttonElement in sequenceElement)
             {
                 var keyState = new InputManager.KeyState();
-                keyState.Key = buttonElement.GetProperty("key").GetInt32();
-                keyState.State = buttonElement.GetProperty("key").GetEnum<ButtonState>();
-                keyState.Time = buttonElement.GetProperty("time").GetSingle();
+                keyState.Key = buttonElement["key"].GetInt32();
+                keyState.State = buttonElement["key"].GetEnum<ButtonState>();
+                keyState.Time = buttonElement["time"].GetSingle();
             }
         }
     }

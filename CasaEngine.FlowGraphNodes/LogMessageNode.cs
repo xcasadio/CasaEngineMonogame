@@ -20,12 +20,6 @@ public class LogMessageNode : ActionNode
 
     public override string Title => "Log Message";
 
-    public LogMessageNode(XmlNode node)
-        : base(node)
-    {
-
-    }
-
     public LogMessageNode()
     {
 
@@ -74,7 +68,7 @@ public class LogMessageNode : ActionNode
         return new LogMessageNode();
     }
 
-    public override SyntaxNode GenerateAst()
+    public override SyntaxNode GenerateAst(ClassDeclarationSyntax classDeclaration)
     {
         ArgumentSyntax message = null;
         var slot = GetSlotById((int)NodeSlotId.Message);
@@ -96,7 +90,7 @@ public class LogMessageNode : ActionNode
             {
                 message = new ArgumentSyntax
                 {
-                    Expression = variableNode.GenerateAst()
+                    Expression = (ExpressionSyntax)variableNode.GenerateAst(classDeclaration)
                 };
             }
 
@@ -125,6 +119,6 @@ public class LogMessageNode : ActionNode
             ArgumentList = parameters
         };
 
-        return invocationExpressionSyntax;
+        return Syntax.ExpressionStatement(invocationExpressionSyntax);
     }
 }

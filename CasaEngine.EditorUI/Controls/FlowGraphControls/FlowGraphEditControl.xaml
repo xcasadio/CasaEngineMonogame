@@ -7,8 +7,21 @@
              xmlns:flowGraphUi="clr-namespace:FlowGraphUI;assembly=FlowGraphUI"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.CommandBindings>
+        <CommandBinding Command="{StaticResource Commands.Entity.Save}" Executed="SaveCommand_Executed" />
+    </UserControl.CommandBindings>
+
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{StaticResource Commands.Entity.Save}" />
+    </UserControl.InputBindings>
+
     <DockPanel>
         <ToolBar DockPanel.Dock="Top" >
+            <Button ToolTip="Save" Command="{StaticResource Commands.Entity.Save}">
+                <Image Source="/Resources/save-44-48.png" Height="16" />
+            </Button>
+            <Separator />
             <Button Content="Compile" Click="ButtonCompile_OnClick"/>
         </ToolBar>
 

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
@@ -96,13 +96,13 @@ public class SkinnedMeshComponent : PrimitiveComponent
         return new BoundingBox(min, max);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        var meshElement = element.GetProperty("skinned_mesh");
+        var meshElement = element["skinned_mesh"];
 
-        if (meshElement.ToString() != "null")
+        if (meshElement.GetString() != "null")
         {
             //_mesh = new SkinModel();
             //_mesh.Load(meshElement);

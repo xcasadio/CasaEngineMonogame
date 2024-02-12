@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.SceneManagement.Components;
@@ -31,7 +31,7 @@ public abstract class PrimitiveComponent : SceneComponent
         base.Draw(elapsedTime);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
     }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using Newtonsoft.Json.Linq;
 using Control = TomShane.Neoforce.Controls.Control;
 
 namespace CasaEngine.Framework.GUI;
@@ -16,7 +17,7 @@ public static class ControlHelper
             .ToDictionary(x => x.Name, x => x);
     }
 
-    public static Control Load(string typeName, JsonElement element)
+    public static Control Load(string typeName, JObject element)
     {
         var control = (Control)Activator.CreateInstance(TypesByName[typeName]);
         control.Load(element);

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -44,10 +45,10 @@ public class Sphere : Shape3d
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Radius = element.GetProperty("radius").GetSingle();
+        Radius = element["radius"].GetSingle();
     }
 
 #if EDITOR

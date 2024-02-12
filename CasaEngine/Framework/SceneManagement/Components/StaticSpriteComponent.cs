@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using BulletSharp;
 using CasaEngine.Core.Design;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
@@ -124,11 +125,11 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        var spriteDataName = element.GetProperty("spriteDataName").GetString();
+        var spriteDataName = element["spriteDataName"].GetString();
 
         if (!string.Equals(spriteDataName, "null", StringComparison.CurrentCultureIgnoreCase))
         {

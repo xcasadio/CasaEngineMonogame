@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -225,7 +225,7 @@ public abstract class Parser
     }
 #endif
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
         _calculator.Load(element);
     }

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using BulletSharp;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
@@ -62,31 +62,31 @@ public class PhysicsDefinition
         DebugColor = other.DebugColor;
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        PhysicsType = element.GetJsonPropertyByName("physics_type").Value.GetEnum<PhysicsType>();
-        AdditionalAngularDampingFactor = element.GetJsonPropertyByName("additional_angular_damping_factor").Value.GetSingle();
-        AdditionalAngularDampingThresholdSqr = element.GetJsonPropertyByName("additional_angular_damping_threshold_sqr").Value.GetSingle();
-        AdditionalDamping = element.GetJsonPropertyByName("additional_damping").Value.GetBoolean();
-        AdditionalDampingFactor = element.GetJsonPropertyByName("additional_damping_factor").Value.GetSingle();
-        AdditionalLinearDampingThresholdSqr = element.GetJsonPropertyByName("additional_linear_damping_threshold_sqr").Value.GetSingle();
-        AngularDamping = element.GetJsonPropertyByName("angular_damping").Value.GetSingle();
-        AngularFactor = element.GetJsonPropertyByName("angular_factor").Value.GetVector3();
-        AngularSleepingThreshold = element.GetJsonPropertyByName("angular_sleeping_threshold").Value.GetSingle();
-        Friction = element.GetJsonPropertyByName("friction").Value.GetSingle();
-        LinearDamping = element.GetJsonPropertyByName("linear_damping").Value.GetSingle();
-        LinearFactor = element.GetJsonPropertyByName("linear_factor").Value.GetVector3();
-        LinearSleepingThreshold = element.GetJsonPropertyByName("linear_sleeping_threshold").Value.GetSingle();
-        LocalInertia = element.GetJsonPropertyByName("local_inertia").Value.GetVector3();
-        Mass = element.GetProperty("mass").GetSingle();
-        Restitution = element.GetJsonPropertyByName("restitution").Value.GetSingle();
-        RollingFriction = element.GetJsonPropertyByName("rolling_friction").Value.GetSingle();
-        ApplyGravity = element.GetJsonPropertyByName("apply_gravity").Value.GetBoolean();
+        PhysicsType = element["physics_type"].GetEnum<PhysicsType>();
+        AdditionalAngularDampingFactor = element["additional_angular_damping_factor"].GetSingle();
+        AdditionalAngularDampingThresholdSqr = element["additional_angular_damping_threshold_sqr"].GetSingle();
+        AdditionalDamping = element["additional_damping"].GetBoolean();
+        AdditionalDampingFactor = element["additional_damping_factor"].GetSingle();
+        AdditionalLinearDampingThresholdSqr = element["additional_linear_damping_threshold_sqr"].GetSingle();
+        AngularDamping = element["angular_damping"].GetSingle();
+        AngularFactor = element["angular_factor"].GetVector3();
+        AngularSleepingThreshold = element["angular_sleeping_threshold"].GetSingle();
+        Friction = element["friction"].GetSingle();
+        LinearDamping = element["linear_damping"].GetSingle();
+        LinearFactor = element["linear_factor"].GetVector3();
+        LinearSleepingThreshold = element["linear_sleeping_threshold"].GetSingle();
+        LocalInertia = element["local_inertia"].GetVector3();
+        Mass = element["mass"].GetSingle();
+        Restitution = element["restitution"].GetSingle();
+        RollingFriction = element["rolling_friction"].GetSingle();
+        ApplyGravity = element["apply_gravity"].GetBoolean();
 
-        var debugColorElement = element.GetProperty("debug_color");
+        var debugColorElement = element["debug_color"];
         if (debugColorElement.GetString() != "null")
         {
-            DebugColor = element.GetJsonPropertyByName("debug_color").Value.GetColor();
+            DebugColor = element["debug_color"].GetColor();
         }
     }
 

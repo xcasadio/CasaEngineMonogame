@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -16,7 +16,7 @@ internal class CalculatorTokenFunction : CalculatorToken
         _args = args;
     }
 
-    public CalculatorTokenFunction(Calculator calculator, JsonElement element)
+    public CalculatorTokenFunction(Calculator calculator, JObject element)
         : base(calculator)
     {
         Load(element);
@@ -27,12 +27,12 @@ internal class CalculatorTokenFunction : CalculatorToken
         return Calculator.Parser.EvaluateFunction(_functionName, _args);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
-        _functionName = element.GetProperty("FunctionName").GetString();
+        _functionName = element["FunctionName"].GetString();
         var args = new List<string>();
 
-        foreach (var arrayElement in element.GetProperty("arguments").EnumerateArray())
+        foreach (var arrayElement in element["arguments"])
         {
             args.Add(arrayElement.GetString());
         }

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -45,7 +45,7 @@ internal class CalculatorTokenBinaryOperator : CalculatorToken
         _operator = @operator;
     }
 
-    public CalculatorTokenBinaryOperator(Calculator calculator, JsonElement element)
+    public CalculatorTokenBinaryOperator(Calculator calculator, JObject element)
         : base(calculator)
     {
         Load(element);
@@ -129,11 +129,11 @@ internal class CalculatorTokenBinaryOperator : CalculatorToken
     }
 #endif
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
-        _operator = element.GetProperty("operator").GetEnum<BinaryOperator>();
-        _left = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("left"));
-        _right = Calculator.CreateCalculatorToken(Calculator, element.GetProperty("right"));
+        _operator = element["operator"].GetEnum<BinaryOperator>();
+        _left = Calculator.CreateCalculatorToken(Calculator, (JObject)element["left"]);
+        _right = Calculator.CreateCalculatorToken(Calculator, (JObject)element["right"]);
 
     }
 }

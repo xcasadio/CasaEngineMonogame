@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -11,9 +12,9 @@ public static class ElementFactory
         return Activator.CreateInstance(type) as T;
     }
 
-    public static T Load<T>(JsonElement element) where T : class, ISerializable
+    public static T Load<T>(JObject element) where T : class, ISerializable
     {
-        var typeName = element.GetProperty("type").GetString();
+        var typeName = element["type"].GetString();
         var component = Create<T>(typeName);
         component.Load(element);
         return component;

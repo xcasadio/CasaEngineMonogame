@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
@@ -225,10 +226,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        TileMapDataAssetId = element.GetProperty("tile_map_data_asset_id").GetGuid();
+        TileMapDataAssetId = element["tile_map_data_asset_id"].GetGuid();
     }
 
 #if EDITOR

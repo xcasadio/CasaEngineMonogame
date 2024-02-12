@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Engine.Input.InputSequence;
 using Newtonsoft.Json.Linq;
 
@@ -46,7 +46,7 @@ public class InputConfigurations
 
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
 
     }

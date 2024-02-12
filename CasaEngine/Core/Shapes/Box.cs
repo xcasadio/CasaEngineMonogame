@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -57,12 +58,12 @@ public class Box : Shape3d, IEquatable<Box>
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Width: {Size.X} Height:{Size.Y} Length:{Size}}}";
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        var w = element.GetProperty("w").GetSingle();
-        var h = element.GetProperty("h").GetSingle();
-        var l = element.GetProperty("l").GetSingle();
+        var w = element["w"].GetSingle();
+        var h = element["h"].GetSingle();
+        var l = element["l"].GetSingle();
 
         Size = new Vector3(w, h, l);
     }

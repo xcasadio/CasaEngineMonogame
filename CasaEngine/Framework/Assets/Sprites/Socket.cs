@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -9,10 +9,10 @@ public class Socket
     public string Name;
     public Point Position;
 
-    public void Load(JsonElement jsonElement)
+    public void Load(JObject JObject)
     {
-        Name = jsonElement.GetJsonPropertyByName("name").Value.GetString();
-        Position = jsonElement.GetJsonPropertyByName("position").Value.GetPoint();
+        Name = JObject["name"].GetString();
+        Position = JObject["position"].GetPoint();
     }
 
     public void Save(JObject jObject)

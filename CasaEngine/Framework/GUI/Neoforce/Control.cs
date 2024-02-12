@@ -1,4 +1,4 @@
-using System.Text.Json;
+
 using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
@@ -2842,50 +2842,50 @@ public class Control : Component
         MouseScroll?.Invoke(this, e);
     }
 
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JObject element)
     {
-        Alpha = element.GetProperty("alpha").GetByte();
-        if (!string.IsNullOrEmpty(element.GetProperty("anchor").GetString()))
+        Alpha = element["alpha"].GetByte();
+        if (!string.IsNullOrEmpty(element["anchor"].GetString()))
         {
-            Anchor = element.GetProperty("anchor").GetAnchors();
+            Anchor = element["anchor"].GetAnchors();
         }
-        BackColor = element.GetProperty("back_color").GetColor();
-        CanFocus = element.GetProperty("can_focus").GetBoolean();
-        ClientMargins = element.GetProperty("client_margins").GetMargins();
-        Color = element.GetProperty("color").GetColor();
-        //DesignMode = element.GetProperty("design_mode").GetBoolean();
-        Detached = element.GetProperty("detached").GetBoolean();
-        DoubleClicks = element.GetProperty("double_clicks").GetBoolean();
-        Enabled = element.GetProperty("enabled").GetBoolean();
-        Height = element.GetProperty("height").GetInt32();
-        HeightScreenRatio = element.GetProperty("height_screen_ratio").GetSingle();
-        Left = element.GetProperty("left").GetInt32();
-        LeftScreenRatio = element.GetProperty("left_screen_ratio").GetSingle();
-        Margins = element.GetProperty("margins").GetMargins();
-        MaximumHeight = element.GetProperty("maximum_height").GetInt32();
-        MaximumWidth = element.GetProperty("maximum_width").GetInt32();
-        MinimumHeight = element.GetProperty("minimum_height").GetInt32();
-        MinimumWidth = element.GetProperty("minimum_width").GetInt32();
-        Movable = element.GetProperty("movable").GetBoolean();
-        MovableArea = element.GetProperty("movable_area").GetRectangle();
-        Name = element.GetProperty("name").GetString();
-        OutlineMoving = element.GetProperty("outline_moving").GetBoolean();
-        OutlineResizing = element.GetProperty("outline_resizing").GetBoolean();
-        PartialOutline = element.GetProperty("partial_outline").GetBoolean();
-        Passive = element.GetProperty("passive").GetBoolean();
-        Resizable = element.GetProperty("resizable").GetBoolean();
-        ResizeEdge = element.GetProperty("resize_edge").GetAnchors();
-        ResizerSize = element.GetProperty("resizer_size").GetInt32();
-        StayOnBack = element.GetProperty("stay_on_back").GetBoolean();
-        StayOnTop = element.GetProperty("stay_on_top").GetBoolean();
-        Suspended = element.GetProperty("suspended").GetBoolean();
-        Text = element.GetProperty("text").GetString();
-        TextColor = element.GetProperty("text_color").GetColor();
-        Top = element.GetProperty("top").GetInt32();
-        TopScreenRatio = element.GetProperty("top_screen_ratio").GetSingle();
-        Visible = element.GetProperty("visible").GetBoolean();
-        Width = element.GetProperty("width").GetInt32();
-        WidthScreenRatio = element.GetProperty("width_screen_ratio").GetSingle();
+        BackColor = element["back_color"].GetColor();
+        CanFocus = element["can_focus"].GetBoolean();
+        ClientMargins = element["client_margins"].GetMargins();
+        Color = element["color"].GetColor();
+        //DesignMode = element["design_mode"].GetBoolean();
+        Detached = element["detached"].GetBoolean();
+        DoubleClicks = element["double_clicks"].GetBoolean();
+        Enabled = element["enabled"].GetBoolean();
+        Height = element["height"].GetInt32();
+        HeightScreenRatio = element["height_screen_ratio"].GetSingle();
+        Left = element["left"].GetInt32();
+        LeftScreenRatio = element["left_screen_ratio"].GetSingle();
+        Margins = element["margins"].GetMargins();
+        MaximumHeight = element["maximum_height"].GetInt32();
+        MaximumWidth = element["maximum_width"].GetInt32();
+        MinimumHeight = element["minimum_height"].GetInt32();
+        MinimumWidth = element["minimum_width"].GetInt32();
+        Movable = element["movable"].GetBoolean();
+        MovableArea = element["movable_area"].GetRectangle();
+        Name = element["name"].GetString();
+        OutlineMoving = element["outline_moving"].GetBoolean();
+        OutlineResizing = element["outline_resizing"].GetBoolean();
+        PartialOutline = element["partial_outline"].GetBoolean();
+        Passive = element["passive"].GetBoolean();
+        Resizable = element["resizable"].GetBoolean();
+        ResizeEdge = element["resize_edge"].GetAnchors();
+        ResizerSize = element["resizer_size"].GetInt32();
+        StayOnBack = element["stay_on_back"].GetBoolean();
+        StayOnTop = element["stay_on_top"].GetBoolean();
+        Suspended = element["suspended"].GetBoolean();
+        Text = element["text"].GetString();
+        TextColor = element["text_color"].GetColor();
+        Top = element["top"].GetInt32();
+        TopScreenRatio = element["top_screen_ratio"].GetSingle();
+        Visible = element["visible"].GetBoolean();
+        Width = element["width"].GetInt32();
+        WidthScreenRatio = element["width_screen_ratio"].GetSingle();
     }
 
 #if EDITOR

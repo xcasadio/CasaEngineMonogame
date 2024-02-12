@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Maths;
 using CasaEngine.Core.Serialization;
@@ -63,21 +63,21 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         return HashCode.Combine(_isABox, _points);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        _isABox = element.GetProperty("isABox").GetBoolean();
+        _isABox = element["isABox"].GetBoolean();
 
-        var pointsElement = element.GetJsonPropertyByName("points").Value;
+        var pointsElement = element["points"];
 
 #if EDITOR
         _points.Clear();
 #else
-        _points = new Vector2[pointsElement.GetArrayLength()];
+        _points = new Vector2[pointsElement.Children().Count()];
         int i = 0;
 #endif
 
-        foreach (var pointElement in pointsElement.EnumerateArray())
+        foreach (var pointElement in pointsElement)
         {
             var point = pointElement.GetVector2();
 

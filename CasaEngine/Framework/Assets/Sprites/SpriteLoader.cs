@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using Newtonsoft.Json;
@@ -14,13 +14,12 @@ public class SpriteLoader
     {
         List<SpriteData> spriteDatas = new List<SpriteData>();
 
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
-        var rootElement = jsonDocument.RootElement;
+        JObject rootElement = JObject.Parse(File.ReadAllText(fileName));
 
-        foreach (var jsonElement in rootElement.GetJsonPropertyByName(SpriteDatasNodeName).Value.EnumerateArray())
+        foreach (var spriteNode in rootElement["sprites"])
         {
             var spriteData = new SpriteData();
-            spriteData.Load(jsonElement);
+            spriteData.Load((JObject)spriteNode);
             assetContentManager.AddAsset(spriteData.Id, spriteData.Name, spriteData);
             spriteDatas.Add(spriteData);
         }

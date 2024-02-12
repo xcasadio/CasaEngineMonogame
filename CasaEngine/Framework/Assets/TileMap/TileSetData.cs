@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
@@ -18,16 +18,16 @@ public class TileSetData : ObjectBase
         return _tileById[tileId];
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        SpriteSheetAssetId = element.GetProperty("sprite_sheet_asset_id").GetGuid();
-        TileSize = element.GetProperty("tile_size").GetSize();
+        SpriteSheetAssetId = element["sprite_sheet_asset_id"].GetGuid();
+        TileSize = element["tile_size"].GetSize();
 
-        foreach (var tileNode in element.GetProperty("tiles").EnumerateArray())
+        foreach (var tileNode in element["tiles"])
         {
-            var type = tileNode.GetJsonPropertyByName("type").Value.GetEnum<TileType>();
+            var type = tileNode["type"].GetEnum<TileType>();
             TileData tileData;
             switch (type)
             {
@@ -43,7 +43,7 @@ public class TileSetData : ObjectBase
                 default: throw new Exception($"TileSetData.Load() : TileSetData, tile type {type} not supported");
             }
 
-            tileData.Load(tileNode);
+            tileData.Load((JObject)tileNode);
 
             AddTile(tileData);
         }
