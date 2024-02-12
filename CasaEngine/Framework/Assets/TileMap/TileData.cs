@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets.Sprites;
 using Newtonsoft.Json.Linq;
@@ -20,18 +20,18 @@ public class TileData
         CollisionType = TileCollisionType.None;
     }
 
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JObject element)
     {
-        Type = element.GetProperty("type").GetEnum<TileType>();
-        Id = element.GetProperty("id").GetInt32();
-        CollisionType = element.GetProperty("collision_type").GetEnum<TileCollisionType>();
-        IsBreakable = element.GetProperty("is_breakable").GetBoolean();
+        Type = element["type"].GetEnum<TileType>();
+        Id = element["id"].GetInt32();
+        CollisionType = element["collision_type"].GetEnum<TileCollisionType>();
+        IsBreakable = element["is_breakable"].GetBoolean();
 
-        var collisionNode = element.GetProperty("collision");
+        var collisionNode = element["collision"];
         if (collisionNode.ToString() != "null")
         {
             CollisionShape = new Collision2d();
-            CollisionShape.Load(collisionNode);
+            CollisionShape.Load((JObject)collisionNode);
         }
     }
 

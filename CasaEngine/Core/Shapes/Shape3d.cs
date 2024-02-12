@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -18,7 +18,7 @@ public abstract class Shape3d
         Type = type;
     }
 
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JObject element)
     {
         //Do nothing
     }

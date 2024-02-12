@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -55,18 +55,18 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         return Id.GetHashCode();
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        Id = element.GetProperty("id").GetGuid();
+        Id = element["id"].GetGuid();
 
-        if (element.TryGetProperty("file_name", out var fileNameNode))
+        if (element.ContainsKey("file_name"))
         {
-            FileName = fileNameNode.GetString();
+            FileName = element["file_name"].GetString();
         }
 
-        if (element.TryGetProperty("name", out var nameNode))
+        if (element.ContainsKey("name"))
         {
-            Name = nameNode.GetString();
+            Name = element["name"].GetString();
         }
         else
         {

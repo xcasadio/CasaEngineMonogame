@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
+
 using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
@@ -171,10 +171,10 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         _rigidBody?.ApplyImpulse(impulse, relativePosition);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        PhysicsDefinition.Load(element.GetProperty("physics_definition"));
+        PhysicsDefinition.Load((JObject)element["physics_definition"]);
     }
 
     protected void ReCreatePhysicsObject()

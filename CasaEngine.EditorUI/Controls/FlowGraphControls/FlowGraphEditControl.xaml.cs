@@ -60,10 +60,10 @@ public partial class FlowGraphEditControl : UserControl
         var namespaceName = "myNameSpace";
         var className = "className";
 
+        //just check if everything is OK
         var gameplayProxy = (GameplayProxy)controller.CreateInstance(namespaceName, className);
 
-        //sauvegarder le fichier .cs
-        //Entity.InitializeScript(externalComponent);
+        //TODo : sauvegarder le fichier .cs, the Dll file ??
         //Entity.GameplayProxy = gameplayProxy;
         Entity.GameplayProxyClassName = className;
 

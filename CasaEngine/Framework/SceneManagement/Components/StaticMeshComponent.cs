@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
+
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
@@ -87,16 +87,16 @@ public class StaticMeshComponent : PrimitiveComponent
         return new BoundingBox(min, max);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        var meshElement = element.GetProperty("mesh");
+        var meshElement = element["mesh"];
 
         if (meshElement.ToString() != "null")
         {
             Mesh = new StaticMesh();
-            Mesh.Load(meshElement);
+            Mesh.Load((JObject)meshElement);
         }
 
         //material

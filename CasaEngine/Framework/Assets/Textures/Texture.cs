@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
@@ -105,12 +105,12 @@ public class Texture : ObjectBase, IAssetable
         GraphicsDevice = device;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        PreferredSamplerState = element.GetProperty("sampler_state").GetSamplerState();
-        _texture2dAssetId = element.GetProperty("texture_asset_id").GetGuid();
+        PreferredSamplerState = element["sampler_state"].GetSamplerState();
+        _texture2dAssetId = element["texture_asset_id"].GetGuid();
 
         //if (!string.IsNullOrEmpty(AssetInfo.FileName) && File.Exists(AssetInfo.FileName))
         //{

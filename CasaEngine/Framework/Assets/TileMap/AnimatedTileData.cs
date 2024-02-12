@@ -1,5 +1,6 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
@@ -10,9 +11,9 @@ public class AnimatedTileData : TileData
     public AnimatedTileData() : base(TileType.Animated)
     { }
 
-    public virtual void Load(JsonElement jObject)
+    public virtual void Load(JObject jObject)
     {
         base.Load(jObject);
-        Animation2dId = jObject.GetJsonPropertyByName("animation_2d_id").Value.GetString();
+        Animation2dId = jObject["animation_2d_id"].GetString();
     }
 }

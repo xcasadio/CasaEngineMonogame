@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
 using Newtonsoft.Json.Linq;
@@ -10,10 +10,10 @@ public class Collision2d
     public CollisionHitType CollisionHitType;
     public Shape2d Shape;
 
-    public void Load(JsonElement jsonElement)
+    public void Load(JObject JObject)
     {
-        CollisionHitType = jsonElement.GetJsonPropertyByName("collision_type").Value.GetEnum<CollisionHitType>();
-        Shape = ShapeLoader.LoadShape2d(jsonElement);
+        CollisionHitType = JObject["collision_type"].GetEnum<CollisionHitType>();
+        Shape = ShapeLoader.LoadShape2d(JObject);
     }
 
 #if EDITOR

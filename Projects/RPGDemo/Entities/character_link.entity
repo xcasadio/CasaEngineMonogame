@@ -140,10 +140,13 @@
       {
         "comment": null,
         "id": 1,
+        "x": 122.0,
+        "y": 99.0,
+        "z": 9,
         "type": "CasaEngine.FlowGraphNodes.BeginPlayEventNode, CasaEngine.FlowGraphNodes",
         "slots": [
           {
-            "index": 0
+            "id": 0
           }
         ],
         "connections": [
@@ -158,20 +161,23 @@
       {
         "comment": null,
         "id": 2,
+        "x": 378.0,
+        "y": 197.0,
+        "z": 10,
         "type": "CasaEngine.FlowGraphNodes.LogMessageNode, CasaEngine.FlowGraphNodes",
         "slots": [
           {
-            "index": 0
+            "id": 0
           },
           {
-            "index": 1
+            "id": 1
           },
           {
-            "index": 2,
+            "id": 2,
             "saveValue": true,
             "value_container": {
               "type": "System.String, System.Private.CoreLib",
-              "value": ""
+              "value": "test message log"
             }
           }
         ],

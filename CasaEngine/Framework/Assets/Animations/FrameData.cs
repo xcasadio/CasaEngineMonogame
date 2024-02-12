@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -12,10 +12,10 @@ public class FrameData
     //flip
     //blending
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        Duration = element.GetJsonPropertyByName("duration").Value.GetSingle();
-        SpriteId = element.GetProperty("sprite_id").GetGuid();
+        Duration = element["duration"].GetSingle();
+        SpriteId = element["sprite_id"].GetGuid();
     }
 
 #if EDITOR

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Maths;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Entities;
 
 public class EntityReference
 {
-    private JsonElement? _nodeToLoad;
+    private JObject? _nodeToLoad;
 
     //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
@@ -16,18 +16,18 @@ public class EntityReference
     public Coordinates InitialCoordinates { get; } = new();
     public Entity Entity { get; internal set; }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        AssetId = element.GetProperty("asset_id").GetGuid();
+        AssetId = element["asset_id"].GetGuid();
 
         if (AssetId == Guid.Empty)
         {
-            _nodeToLoad = element.GetProperty("entity");
+            _nodeToLoad = (JObject)element["entity"];
         }
         else
         {
-            Name = element.GetProperty("name").GetString();
-            InitialCoordinates.Load(element.GetProperty("initial_coordinates"));
+            Name = element["name"].GetString();
+            InitialCoordinates.Load((JObject)element["initial_coordinates"]);
         }
     }
 
@@ -40,7 +40,7 @@ public class EntityReference
 
         if (AssetId == Guid.Empty)
         {
-            Entity = assetContentManager.Load<Entity>(_nodeToLoad.Value);
+            Entity = assetContentManager.Load<Entity>(_nodeToLoad);
         }
         else
         {

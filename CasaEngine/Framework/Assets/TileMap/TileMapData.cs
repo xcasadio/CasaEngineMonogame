@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
@@ -12,17 +12,17 @@ public class TileMapData : ObjectBase
     public Guid TileSetDataAssetId { get; private set; } = Guid.Empty;
     public List<TileMapLayerData> Layers { get; } = new();
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        MapSize = element.GetProperty("map_size").GetSize();
-        TileSetDataAssetId = element.GetProperty("tile_set_asset_id").GetGuid();
+        MapSize = element["map_size"].GetSize();
+        TileSetDataAssetId = element["tile_set_asset_id"].GetGuid();
 
-        Layers.AddRange(element.GetElements("layers", o =>
+        Layers.AddRange(element.GetElements("layers", jToken =>
         {
             var tileMapLayerData = new TileMapLayerData();
-            tileMapLayerData.Load(o);
+            tileMapLayerData.Load((JObject)jToken);
             return tileMapLayerData;
         }));
     }

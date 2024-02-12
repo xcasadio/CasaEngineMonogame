@@ -1,4 +1,5 @@
-using System.Text.Json;
+
+using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
 namespace TomShane.Neoforce.Controls.Serialization;
@@ -46,18 +47,18 @@ public static class JsonExtension
 
 
 
-    public static Margins GetMargins(this JsonElement element)
+    public static Margins GetMargins(this JToken element)
     {
         return new Margins
         {
-            Left = element.GetProperty("l").GetByte(),
-            Right = element.GetProperty("r").GetByte(),
-            Top = element.GetProperty("t").GetByte(),
-            Bottom = element.GetProperty("b").GetByte()
+            Left = element["l"].GetByte(),
+            Right = element["r"].GetByte(),
+            Top = element["t"].GetByte(),
+            Bottom = element["b"].GetByte()
         };
     }
 
-    public static Anchors GetAnchors(this JsonElement element)
+    public static Anchors GetAnchors(this JToken element)
     {
         return Enum.Parse<Anchors>(element.GetString(), true);
     }

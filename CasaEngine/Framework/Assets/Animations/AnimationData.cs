@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
@@ -9,9 +9,9 @@ public class AnimationData : ObjectBase
 {
     public AnimationType AnimationType { get; set; }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
-        AnimationType = element.GetJsonPropertyByName("animation_type").Value.GetEnum<AnimationType>();
+        AnimationType = element["animation_type"].GetEnum<AnimationType>();
         base.Load(element);
     }
 

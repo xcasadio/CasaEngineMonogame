@@ -1,10 +1,11 @@
 ﻿using System.Collections;
-using System.Text.Json;
+
 using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -120,7 +121,7 @@ public class AssetContentManager
         return newAsset;
     }
 
-    public T Load<T>(JsonElement element) where T : class, ISerializable, new()
+    public T Load<T>(JObject element) where T : class, ISerializable, new()
     {
         var asset = new T();
         asset.Load(element);

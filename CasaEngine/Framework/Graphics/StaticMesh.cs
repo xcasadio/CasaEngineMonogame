@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
@@ -70,11 +70,11 @@ public class StaticMesh : ObjectBase
         return _vertices;
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
 
-        PrimitiveType = element.GetProperty("primitive_type").GetEnum<PrimitiveType>();
+        PrimitiveType = element["primitive_type"].GetEnum<PrimitiveType>();
 
         _vertices.Clear();
         _vertices.AddRange(element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()));
@@ -82,7 +82,7 @@ public class StaticMesh : ObjectBase
         _indices.Clear();
         _indices.AddRange(element.GetElements("indices", o => o.GetUInt32()));
 
-        TextureAssetId = element.GetProperty("texture_asset_id").GetGuid();
+        TextureAssetId = element["texture_asset_id"].GetGuid();
     }
 
 #if EDITOR

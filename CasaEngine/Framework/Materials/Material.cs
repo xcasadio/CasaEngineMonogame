@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
@@ -82,16 +82,16 @@ public class Material : ISerializable
         return content.Load<Texture>(assetId);
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        TextureBaseColorAssetId = element.GetProperty("texture_base_color_asset_id").GetGuid();
-        TextureOpacityAssetId = element.GetProperty("texture_opacity_asset_id").GetGuid();
-        TextureNormalAssetId = element.GetProperty("texture_normal_asset_id").GetGuid();
-        TextureSpecularAssetId = element.GetProperty("texture_specular_asset_id").GetGuid();
-        TextureRoughnessAssetId = element.GetProperty("texture_roughness_asset_id").GetGuid();
-        TextureTangentAssetId = element.GetProperty("texture_tangent_asset_id").GetGuid();
-        TextureHeightAssetId = element.GetProperty("texture_height_asset_id").GetGuid();
-        TextureReflectionAssetId = element.GetProperty("texture_reflection_asset_id").GetGuid();
+        TextureBaseColorAssetId = element["texture_base_color_asset_id"].GetGuid();
+        TextureOpacityAssetId = element["texture_opacity_asset_id"].GetGuid();
+        TextureNormalAssetId = element["texture_normal_asset_id"].GetGuid();
+        TextureSpecularAssetId = element["texture_specular_asset_id"].GetGuid();
+        TextureRoughnessAssetId = element["texture_roughness_asset_id"].GetGuid();
+        TextureTangentAssetId = element["texture_tangent_asset_id"].GetGuid();
+        TextureHeightAssetId = element["texture_height_asset_id"].GetGuid();
+        TextureReflectionAssetId = element["texture_reflection_asset_id"].GetGuid();
     }
 
 #if EDITOR

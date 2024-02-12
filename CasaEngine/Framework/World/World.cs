@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
@@ -312,32 +313,20 @@ public sealed class World : ObjectBase
         }
     }
 
-    //TODO : remove it, use AssetContentManager
-    /*
-    public void Load(string fileName)
-    {
-        Logs.WriteInfo($"Load world {fileName}");
-        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fullFileName));
-        Load(jsonDocument.RootElement);
-        Name = Path.GetFileNameWithoutExtension(fileName);
-        FileName = fileName.Replace(EngineEnvironment.ProjectPath, string.Empty).TrimStart('\\');
-    }*/
-
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         ClearEntities(true);
         ClearScreens();
         base.Load(element);
 
-        foreach (var entityReferenceNode in element.GetProperty("entity_references").EnumerateArray())
+        foreach (var entityReferenceNode in element["entity_references"])
         {
             var entityReference = new EntityReference();
-            entityReference.Load(entityReferenceNode);
+            entityReference.Load((JObject)entityReferenceNode);
             _entityReferences.Add(entityReference);
         }
 
-        GameplayProxyClassName = element.GetProperty("script_class_name").GetString();
+        GameplayProxyClassName = element["script_class_name"].GetString();
     }
 
     public void AddScreen(ScreenGui screenGui)

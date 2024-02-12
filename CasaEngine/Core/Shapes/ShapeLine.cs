@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
@@ -45,11 +45,11 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Start: {Start} End:{End}}}";
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Start = element.GetProperty("start").GetPoint();
-        End = element.GetProperty("end").GetPoint();
+        Start = element["start"].GetPoint();
+        End = element["end"].GetPoint();
     }
 
 #if EDITOR

@@ -1,13 +1,14 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
 
 public class ShapeLoader
 {
-    public static Shape2d LoadShape2d(JsonElement jsonElement)
+    public static Shape2d LoadShape2d(JObject JObject)
     {
-        var shapeType = jsonElement.GetProperty("shape_type").GetEnum<Shape2dType>();
+        var shapeType = JObject["shape_type"].GetEnum<Shape2dType>();
 
         Shape2d shape = shapeType switch
         {
@@ -19,14 +20,14 @@ public class ShapeLoader
             _ => throw new InvalidOperationException($"{Enum.GetName(shapeType)} is not supported")
         };
 
-        shape.Load(jsonElement);
+        shape.Load(JObject);
 
         return shape;
     }
 
-    public static Shape3d LoadShape3d(JsonElement jsonElement)
+    public static Shape3d LoadShape3d(JObject JObject)
     {
-        var shapeType = jsonElement.GetProperty("shape_type").GetEnum<Shape3dType>();
+        var shapeType = JObject["shape_type"].GetEnum<Shape3dType>();
 
         Shape3d shape = shapeType switch
         {
@@ -38,7 +39,7 @@ public class ShapeLoader
             _ => throw new InvalidOperationException($"{Enum.GetName(shapeType)} is not supported")
         };
 
-        shape.Load(jsonElement);
+        shape.Load(JObject);
 
         return shape;
     }

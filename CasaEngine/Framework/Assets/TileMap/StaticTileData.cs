@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
@@ -11,10 +11,10 @@ public class StaticTileData : TileData
     public StaticTileData() : base(TileType.Static)
     { }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        Location = element.GetProperty("location").GetRectangle();
+        Location = element["location"].GetRectangle();
     }
 
 #if EDITOR

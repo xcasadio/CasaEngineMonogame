@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -93,11 +93,11 @@ public abstract class CameraComponent : SceneComponent
         return new BoundingBox(-Vector3.One, Vector3.One);
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
-        _viewDistance = element.GetProperty("view_distance").GetSingle();
-        _viewport = element.GetJsonPropertyByName("viewport").Value.GetViewPort();
+        _viewDistance = element["view_distance"].GetSingle();
+        _viewport = element["viewport"].GetViewPort();
     }
 
 #if EDITOR

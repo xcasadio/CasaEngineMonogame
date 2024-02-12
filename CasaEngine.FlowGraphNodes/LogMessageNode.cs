@@ -68,7 +68,7 @@ public class LogMessageNode : ActionNode
         return new LogMessageNode();
     }
 
-    public override SyntaxNode GenerateAst()
+    public override SyntaxNode GenerateAst(ClassDeclarationSyntax classDeclaration)
     {
         ArgumentSyntax message = null;
         var slot = GetSlotById((int)NodeSlotId.Message);
@@ -90,7 +90,7 @@ public class LogMessageNode : ActionNode
             {
                 message = new ArgumentSyntax
                 {
-                    Expression = variableNode.GenerateAst()
+                    Expression = (ExpressionSyntax)variableNode.GenerateAst(classDeclaration)
                 };
             }
 

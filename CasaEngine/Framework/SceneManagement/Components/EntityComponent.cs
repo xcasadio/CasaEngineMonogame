@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Reflection;
-using System.Text.Json;
+
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 
@@ -57,7 +57,7 @@ public abstract class EntityComponent : ObjectBase
 
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         base.Load(element);
     }

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -17,10 +17,10 @@ public abstract class Shape2d
         Type = type;
     }
 
-    public virtual void Load(JsonElement element)
+    public virtual void Load(JObject element)
     {
-        Position = element.GetProperty("location").GetVector2();
-        Rotation = element.GetProperty("orientation").GetSingle();
+        Position = element["location"].GetVector2();
+        Rotation = element["orientation"].GetSingle();
     }
 
 #if EDITOR

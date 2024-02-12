@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -110,11 +110,11 @@ public class Coordinates
         }
     }
 
-    public void Load(JsonElement element)
+    public void Load(JObject element)
     {
-        Position = element.GetProperty("position").GetVector3();
-        Scale = element.GetProperty("scale").GetVector3();
-        Orientation = element.GetProperty("rotation").GetQuaternion();
+        Position = element["position"].GetVector3();
+        Scale = element["scale"].GetVector3();
+        Orientation = element["rotation"].GetQuaternion();
         SetDirtyMatrix();
     }
 

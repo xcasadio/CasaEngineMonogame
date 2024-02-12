@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using CasaEngine.Core.Design;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
@@ -50,12 +50,12 @@ public static class AssetCatalog
 
     public static void Load(string fileName)
     {
-        var jsonDocument = JsonDocument.Parse(File.ReadAllText(fileName));
+        var rootElement = JObject.Parse(File.ReadAllText(fileName));
 
-        foreach (var assetInfoNode in jsonDocument.RootElement.GetProperty("asset_infos").EnumerateArray())
+        foreach (var assetInfoNode in rootElement["asset_infos"])
         {
             var assetInfo = new AssetInfo();
-            assetInfo.Load(assetInfoNode);
+            assetInfo.Load((JObject)assetInfoNode);
             Add(assetInfo);
         }
 

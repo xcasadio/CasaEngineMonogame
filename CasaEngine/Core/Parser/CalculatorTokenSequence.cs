@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Parser;
@@ -27,7 +27,7 @@ internal class CalculatorTokenSequence : CalculatorToken
         throw new InvalidOperationException("Don't use to evaluate");
     }
 
-    public override void Load(JsonElement element)
+    public override void Load(JObject element)
     {
         throw new InvalidOperationException("Can't save this object. It is a temporary objecte");
     }
