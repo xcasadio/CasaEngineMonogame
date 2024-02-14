@@ -1,9 +1,7 @@
 {
-  "asset": {
-    "id": 157,
-    "name": "sword_20"
-  },
-  "sprite_sheet_asset_id": 10003,
+  "id": "7aa5dda1-b6bd-49d0-8d39-332bc4950427",
+  "name": "sword_20",
+  "sprite_sheet_asset_id": "851ab024-bb70-49e8-a746-8581491c993c",
   "location": {
     "x": 0,
     "y": 23,
@@ -17,7 +15,6 @@
   "collisions": [
     {
       "collision_type": "Defense",
-      "version": 1,
       "shape_type": "Rectangle",
       "location": {
         "x": 16.0,

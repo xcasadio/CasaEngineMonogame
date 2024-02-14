@@ -1,0 +1,17 @@
+{
+  "id": "8785ccf4-aa84-4bb0-b2ab-b40bec910490",
+  "name": "smoke_ring_1",
+  "sprite_sheet_asset_id": "18d08ef3-e0a1-4c75-86be-2b7c35f2693f",
+  "location": {
+    "x": 30,
+    "y": 0,
+    "w": 32,
+    "h": 32
+  },
+  "hotspot": {
+    "x": 16,
+    "y": 16
+  },
+  "collisions": [],
+  "sockets": []
+}

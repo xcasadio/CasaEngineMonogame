@@ -1,10 +1,7 @@
 {
-  "asset": {
-    "id": 10007,
-    "name": "Swordman_1",
-    "file_name": "TileSets\\Swordman_1.texture"
-  },
-  "texture_asset_id": 10006,
+  "id": "9df08fbb-7be3-49fc-add8-f2ed6776dd88",
+  "name": "Swordman_1",
+  "texture_asset_id": "aabe2263-3460-4441-acd4-966be32cfc85",
   "sampler_state": {
     "texture_filter": "Anisotropic",
     "address_u": "Wrap",

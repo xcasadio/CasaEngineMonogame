@@ -1,37 +1,35 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 239,
-    "name": "swordman_attack_up"
-  },
+  "id": "055bd8ab-941c-4de1-8cf1-f59237972d17",
+  "name": "swordman_attack_up",
   "frames": [
     {
       "duration": 0.03,
-      "sprite_id": 69
+      "sprite_id": "54905c36-36c4-47bd-a56f-dc69d7e404ae"
     },
     {
       "duration": 0.03,
-      "sprite_id": 70
+      "sprite_id": "12acf137-1e51-450c-a97e-8fd467690ce3"
     },
     {
       "duration": 0.03,
-      "sprite_id": 71
+      "sprite_id": "2f28d5d6-a798-4b43-8398-4f7c87deac18"
     },
     {
       "duration": 0.03,
-      "sprite_id": 72
+      "sprite_id": "7a1411dd-cb4c-49c3-a861-76daa0914c79"
     },
     {
       "duration": 0.03,
-      "sprite_id": 73
+      "sprite_id": "b41f1b1b-88a5-4f75-b453-0dcf16e11adf"
     },
     {
       "duration": 0.03,
-      "sprite_id": 74
+      "sprite_id": "5f521ea5-ee59-4851-825f-58f45e4c06af"
     },
     {
       "duration": 0.03,
-      "sprite_id": 75
+      "sprite_id": "630f4d0a-3008-4438-9d83-b299f6e832b6"
     }
   ]
 }

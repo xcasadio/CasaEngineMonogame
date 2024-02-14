@@ -1,17 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 241,
-    "name": "swordman_dead_stand_left"
-  },
+  "id": "d342e22d-0a44-46d9-a267-f28d50f3b3ce",
+  "name": "swordman_dead_stand_left",
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 134
+      "sprite_id": "73c3e598-3b66-408e-a37e-4d426ca0ed23"
     },
     {
       "duration": 0.15,
-      "sprite_id": 135
+      "sprite_id": "b1cf0e5e-008a-4b4e-8559-cafdcd9aea0b"
     }
   ]
 }

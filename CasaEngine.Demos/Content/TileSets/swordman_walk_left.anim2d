@@ -1,25 +1,23 @@
 {
   "animation_type": "Loop",
-  "asset": {
-    "id": 262,
-    "name": "swordman_walk_left"
-  },
+  "id": "d5e1f251-7484-4e18-82b9-51a62bed3447",
+  "name": "swordman_walk_left",
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 48
+      "sprite_id": "3f3f759b-2c18-4a40-aa26-759c068b1d00"
     },
     {
       "duration": 0.15,
-      "sprite_id": 49
+      "sprite_id": "cd876f6e-e61f-44d8-b89a-e880bc84b530"
     },
     {
       "duration": 0.15,
-      "sprite_id": 50
+      "sprite_id": "48ef42d2-1185-49a0-bf5b-01fc33d439ee"
     },
     {
       "duration": 0.15,
-      "sprite_id": 51
+      "sprite_id": "73871558-be11-40c4-a65b-4e19f74b7c12"
     }
   ]
 }

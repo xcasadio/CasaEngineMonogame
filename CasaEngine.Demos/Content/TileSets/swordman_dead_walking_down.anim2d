@@ -1,17 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 244,
-    "name": "swordman_dead_walking_down"
-  },
+  "id": "cec47a92-032b-4e14-9f6e-f873dfd6e532",
+  "name": "swordman_dead_walking_down",
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 142
+      "sprite_id": "ef18c122-47fb-4830-97f4-76c364e3ec0b"
     },
     {
       "duration": 0.15,
-      "sprite_id": 143
+      "sprite_id": "66c9d531-412e-4b5b-91b0-090460ff4f7f"
     }
   ]
 }

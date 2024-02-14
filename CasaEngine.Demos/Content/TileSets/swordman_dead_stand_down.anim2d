@@ -1,17 +1,15 @@
 {
   "animation_type": "Once",
-  "asset": {
-    "id": 240,
-    "name": "swordman_dead_stand_down"
-  },
+  "id": "d9ae23fb-7048-4dde-b1b7-55b073c27e5a",
+  "name": "swordman_dead_stand_down",
   "frames": [
     {
       "duration": 0.15,
-      "sprite_id": 127
+      "sprite_id": "ebab8299-aca3-493f-9323-6fde419ccc4e"
     },
     {
       "duration": 0.15,
-      "sprite_id": 128
+      "sprite_id": "2123f765-8e43-496d-92af-6d20361e544d"
     }
   ]
 }
