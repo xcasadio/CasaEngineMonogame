@@ -98,13 +98,12 @@ public static class RayHelper
             for (int i = 0; i < vertices.Length; i += 3)
             {
                 // Perform a ray to triangle intersection test.
-                float? intersection;
 
                 RayIntersectsTriangle(ref ray,
                     ref vertices[i],
                     ref vertices[i + 1],
                     ref vertices[i + 2],
-                    out intersection);
+                    out var intersection);
 
                 // Does the ray intersect this triangle?
                 if (intersection != null)
@@ -153,17 +152,14 @@ public static class RayHelper
         ref Vector3 vertex3, out float? result)
     {
         // Compute vectors along two edges of the triangle.
-        Vector3 edge1, edge2;
 
-        Vector3.Subtract(ref vertex2, ref vertex1, out edge1);
-        Vector3.Subtract(ref vertex3, ref vertex1, out edge2);
+        Vector3.Subtract(ref vertex2, ref vertex1, out var edge1);
+        Vector3.Subtract(ref vertex3, ref vertex1, out var edge2);
 
         // Compute the determinant.
-        Vector3 directionCrossEdge2;
-        Vector3.Cross(ref ray.Direction, ref edge2, out directionCrossEdge2);
+        Vector3.Cross(ref ray.Direction, ref edge2, out var directionCrossEdge2);
 
-        float determinant;
-        Vector3.Dot(ref edge1, ref directionCrossEdge2, out determinant);
+        Vector3.Dot(ref edge1, ref directionCrossEdge2, out var determinant);
 
         // If the ray is parallel to the triangle plane, there is no collision.
         if (determinant > -float.Epsilon && determinant < float.Epsilon)
@@ -175,11 +171,9 @@ public static class RayHelper
         float inverseDeterminant = 1.0f / determinant;
 
         // Calculate the U parameter of the intersection point.
-        Vector3 distanceVector;
-        Vector3.Subtract(ref ray.Position, ref vertex1, out distanceVector);
+        Vector3.Subtract(ref ray.Position, ref vertex1, out var distanceVector);
 
-        float triangleU;
-        Vector3.Dot(ref distanceVector, ref directionCrossEdge2, out triangleU);
+        Vector3.Dot(ref distanceVector, ref directionCrossEdge2, out var triangleU);
         triangleU *= inverseDeterminant;
 
         // Make sure it is inside the triangle.
@@ -190,11 +184,9 @@ public static class RayHelper
         }
 
         // Calculate the V parameter of the intersection point.
-        Vector3 distanceCrossEdge1;
-        Vector3.Cross(ref distanceVector, ref edge1, out distanceCrossEdge1);
+        Vector3.Cross(ref distanceVector, ref edge1, out var distanceCrossEdge1);
 
-        float triangleV;
-        Vector3.Dot(ref ray.Direction, ref distanceCrossEdge1, out triangleV);
+        Vector3.Dot(ref ray.Direction, ref distanceCrossEdge1, out var triangleV);
         triangleV *= inverseDeterminant;
 
         // Make sure it is inside the triangle.
@@ -205,8 +197,7 @@ public static class RayHelper
         }
 
         // Compute the distance along the ray to the triangle.
-        float rayDistance;
-        Vector3.Dot(ref edge2, ref distanceCrossEdge1, out rayDistance);
+        Vector3.Dot(ref edge2, ref distanceCrossEdge1, out var rayDistance);
         rayDistance *= inverseDeterminant;
 
         // Is the triangle behind the ray origin?

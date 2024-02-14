@@ -273,8 +273,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         var cmdText = args[0];
         args.RemoveAt(0);
 
-        CommandInfo cmd;
-        if (_commandTable.TryGetValue(cmdText.ToLower(), out cmd))
+        if (_commandTable.TryGetValue(cmdText.ToLower(), out var cmd))
         {
             try
             {
@@ -432,8 +431,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
                 continue;
             }
 
-            char ch;
-            if (KeyboardUtils.KeyToString(key, shift, out ch))
+            if (KeyboardUtils.KeyToString(key, shift, out var ch))
             {
                 // Handle typical character input.
                 _commandLine = _commandLine.Insert(_cursorIndex, new string(ch, 1));

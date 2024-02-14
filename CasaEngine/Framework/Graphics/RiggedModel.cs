@@ -33,7 +33,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 /// https://github.com/willmotil/MonoGameUtilityClasses
 
-namespace CasaEngine.Engine.Animations;
+namespace CasaEngine.Framework.Graphics;
 
 /// <summary>
 /// The rigged model  i stuffed the classes the rigged model uses in it as nested classes just to keep it all together.
@@ -44,8 +44,6 @@ namespace CasaEngine.Engine.Animations;
 /// </summary>
 public class RiggedModel
 {
-    public bool ConsoleDebug = true;
-
     public Effect Effect;
     public int NumberOfBonesInUse = 0;
     public int NumberOfNodesInUse = 0;
@@ -89,11 +87,11 @@ public class RiggedModel
     /// <summary>
     /// As stated
     /// </summary>
-    public void SetEffect(Effect effect, Texture2D t, Matrix world, Matrix view, Matrix projection)
+    public void SetEffect(Effect effect, Texture2D texture, Matrix world, Matrix view, Matrix projection)
     {
         Effect = effect;
-        //texture = t;
-        Effect.Parameters["TextureA"].SetValue(t);
+        //texture = texture;
+        Effect.Parameters["TextureA"].SetValue(texture);
         Effect.Parameters["World"].SetValue(world);
         Effect.Parameters["View"].SetValue(view);
         Effect.Parameters["Projection"].SetValue(projection);
@@ -103,9 +101,9 @@ public class RiggedModel
     /// <summary>
     /// As stated
     /// </summary>
-    public void SetEffectTexture(Texture2D t)
+    public void SetEffectTexture(Texture2D texture)
     {
-        Effect.Parameters["TextureA"].SetValue(t);
+        Effect.Parameters["TextureA"].SetValue(texture);
     }
 
     /// <summary>

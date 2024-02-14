@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Assimp.Configs;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
@@ -15,11 +16,13 @@ using CasaEngine.EditorUI.Controls.SpriteControls;
 using CasaEngine.EditorUI.Controls.TileMapControls;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Engine;
+using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
@@ -189,50 +192,80 @@ public partial class ContentBrowserControl : UserControl
         {
             var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
             var folderItem = treeViewFolders.SelectedItem as FolderItem;
-            var folderPath = folderItem.FullPath;
+            var destinationFolderPath = folderItem.FullPath;
+            var assetContentManager = _gameEditor.Game.AssetContentManager;
 
             foreach (var fileName in fileNames)
             {
-                if (_gameEditor.Game.AssetContentManager.IsFileSupported(fileName))
-                {
-                    if (Texture2DLoader.IsTextureFile(fileName))
-                    {
-                        var destFileName = Path.Combine(EngineEnvironment.ProjectPath, folderPath, Path.GetFileName(fileName));
-                        if (!File.Exists(destFileName))
-                        {
-                            //copy file
-                            File.Copy(fileName, destFileName, true);
-                            Logs.WriteTrace($"Copy {fileName} -> {destFileName}");
-
-                            //create image file assetinfo
-                            var imageFileAssetInfo = new AssetInfo();
-                            imageFileAssetInfo.FileName = destFileName
-                                .Replace(EngineEnvironment.ProjectPath, string.Empty)
-                                .TrimStart(Path.DirectorySeparatorChar);
-                            imageFileAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                            AssetCatalog.Add(imageFileAssetInfo);
-
-                            //Create texture asset
-                            var texture = new Texture(imageFileAssetInfo.Id, _gameEditor.Game.GraphicsDevice);
-                            var textureAssetInfo = new AssetInfo(texture.Id);
-                            textureAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
-                            var pathFileName = Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty));
-                            var textureFileName = textureAssetInfo.Name + Constants.FileNameExtensions.Texture;
-                            textureAssetInfo.FileName = Path.Combine(pathFileName, textureFileName).TrimStart(Path.DirectorySeparatorChar);
-                            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, texture.FileName), texture);
-                            AssetCatalog.Add(textureAssetInfo);
-
-                            AssetCatalog.Save();
-
-                            ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
-                        }
-                        else
-                        {
-                            MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fileName)} already exists!", "File already exists", MessageBoxButton.OK);
-                        }
-                    }
-                }
+                ImportAssetFile(assetContentManager, fileName, destinationFolderPath);
             }
+
+            ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
+        }
+    }
+
+    private void ImportAssetFile(AssetContentManager assetContentManager, string fullFileName, string destinationFolderPath)
+    {
+        if (assetContentManager.IsFileSupported(fullFileName))
+        {
+            var destFileName = Path.Combine(EngineEnvironment.ProjectPath, destinationFolderPath, Path.GetFileName(fullFileName));
+
+            if (File.Exists(destFileName))
+            {
+                MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fullFileName)} already exists!", "File already exists", MessageBoxButton.OK);
+                return;
+            }
+
+            File.Copy(fullFileName, destFileName, true);
+            Logs.WriteTrace($"Copy {fullFileName} -> {destFileName}");
+
+            //create image file assetinfo
+            var assetFromImportFile = new AssetInfo();
+            assetFromImportFile.FileName = destFileName
+                .Replace(EngineEnvironment.ProjectPath, string.Empty)
+                .TrimStart(Path.DirectorySeparatorChar);
+            assetFromImportFile.Name = Path.GetFileNameWithoutExtension(destFileName);
+            string assetExtension;
+            ObjectBase newAsset;
+
+            var modelLoader = new ModelLoader();
+            if (modelLoader.IsFileSupported(fullFileName))
+            {
+                var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
+                CreateAllAssetsFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                var skinnedMesh = new SkinnedMesh();
+                skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
+                skinnedMesh.Initialize(assetContentManager);
+                newAsset = skinnedMesh;
+                assetExtension = Constants.FileNameExtensions.Model;
+            }
+            else if (Texture2DLoader.IsTextureFile(fullFileName))
+            {
+                newAsset = new Texture(assetFromImportFile.Id, _gameEditor.Game.GraphicsDevice);
+                assetExtension = Constants.FileNameExtensions.Texture;
+            }
+            else
+            {
+                return;
+            }
+
+            var newAssetInfo = new AssetInfo(newAsset.Id);
+            newAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
+            var pathFileName = Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty));
+            var assetFullName = newAssetInfo.Name + assetExtension;
+            newAssetInfo.FileName = Path.Combine(pathFileName, assetFullName).TrimStart(Path.DirectorySeparatorChar);
+            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAsset.FileName), newAsset);
+            AssetCatalog.Add(assetFromImportFile);
+            AssetCatalog.Add(newAssetInfo);
+            AssetCatalog.Save();
+        }
+    }
+
+    private void CreateAllAssetsFromModel(RiggedModel riggedModel, AssetContentManager assetContentManager, string destinationFolderPath)
+    {
+        foreach (var textureFileName in riggedModel.Meshes.Select(x => x.TextureName).Distinct())
+        {
+            ImportAssetFile(assetContentManager, textureFileName, destinationFolderPath);
         }
     }
 
@@ -376,16 +409,6 @@ public partial class ContentBrowserControl : UserControl
             e.Handled = true;
         }
     }
-    /*
-    private static object GetDataFromListBox(ListBox source, Point point)
-    {
-        if (source.InputHitTest(point) is FrameworkElement { DataContext: ContentItem { AssetInfo: { } } contentItem })
-        {
-            return contentItem.AssetInfo;
-        }
-
-        return null;
-    }*/
 
     private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
     {

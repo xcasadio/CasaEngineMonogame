@@ -1,5 +1,4 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
@@ -19,7 +18,7 @@ public class StaticMesh : ObjectBase
     public Guid TextureAssetId { get; set; } = Guid.Empty;
     public Assets.Textures.Texture? Texture { get; set; }
 
-    public void Initialize(GraphicsDevice graphicsDevice, AssetContentManager assetContentManager)
+    public void Initialize(AssetContentManager assetContentManager)
     {
 #if EDITOR
         if (_isInitialized)
@@ -28,10 +27,11 @@ public class StaticMesh : ObjectBase
         }
 #endif
 
-        VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
+        VertexBuffer = new VertexBuffer(assetContentManager.GraphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count,
+            BufferUsage.None);
         VertexBuffer.SetData(_vertices.ToArray());
 
-        IndexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
+        IndexBuffer = new IndexBuffer(assetContentManager.GraphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
 
         if (TextureAssetId != Guid.Empty)

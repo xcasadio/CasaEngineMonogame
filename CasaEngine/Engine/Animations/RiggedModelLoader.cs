@@ -1,10 +1,11 @@
 ﻿using Assimp;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Graphics;
 
 namespace CasaEngine.Engine.Animations;
 
@@ -37,10 +38,10 @@ namespace CasaEngine.Engine.Animations;
 
 public class RiggedModelLoader
 {
-    Scene _scene;
+    private Scene _scene;
+    private AssetContentManager _assetContentManager;
+    private readonly Effect _effectToUse;
 
-    public static ContentManager Content;
-    public static Effect EffectToUse;
     public static Texture2D DefaultTexture { get; set; }
 
     /// <summary>
@@ -60,7 +61,7 @@ public class RiggedModelLoader
     /// </summary>
     public readonly float AddedLoopingDuration = .5f;
 
-    public readonly bool StartupConsoleinfo = true;
+    public readonly bool StartupLogInfo = true;
     public readonly bool StartupMinimalConsoleinfo = true;
     public readonly bool StartUpMatrixInfo = true;
     public readonly bool StartupAnimationConsoleInfo = false;
@@ -76,10 +77,10 @@ public class RiggedModelLoader
     /// <summary>
     /// Loading content here is just for visualizing but it wont be requisite if we load all the textures in from xnb's at runtime in completed model.
     /// </summary>
-    public RiggedModelLoader(ContentManager content, Effect defaulteffect)
+    public RiggedModelLoader(AssetContentManager content, Effect defaultEffect)
     {
-        EffectToUse = defaulteffect;
-        Content = content;
+        _effectToUse = defaultEffect;
+        _assetContentManager = content;
     }
 
     public RiggedModel LoadAsset(string filePathorFileName)
@@ -87,15 +88,15 @@ public class RiggedModelLoader
         return LoadAsset(filePathorFileName, _defaultAnimatedFramesPerSecondLod);
     }
 
-    public RiggedModel LoadAsset(string filePathorFileName, ContentManager content)
+    public RiggedModel LoadAsset(string filePathorFileName, AssetContentManager content)
     {
-        Content = content;
+        _assetContentManager = content;
         return LoadAsset(filePathorFileName, _defaultAnimatedFramesPerSecondLod);
     }
 
-    public RiggedModel LoadAsset(string filePathorFileName, int defaultAnimatedFramesPerSecondLod, ContentManager content)
+    public RiggedModel LoadAsset(string filePathorFileName, int defaultAnimatedFramesPerSecondLod, AssetContentManager content)
     {
-        Content = content;
+        _assetContentManager = content;
         return LoadAsset(filePathorFileName, defaultAnimatedFramesPerSecondLod);
     }
 
@@ -183,9 +184,9 @@ public class RiggedModelLoader
         RiggedModel model = new RiggedModel();
 
         // set the models effect to use.
-        if (EffectToUse != null)
+        if (_effectToUse != null)
         {
-            model.Effect = EffectToUse;
+            model.Effect = _effectToUse;
         }
 
         // prep to build a models tree.
@@ -194,7 +195,7 @@ public class RiggedModelLoader
 
         // create the models meshes
         Logs.WriteTrace("\n@@@CreateModelMeshesSetUpMeshMaterialsAndTextures");
-        CreateModelMeshesSetUpMeshMaterialsAndTextures(model, _scene, 0);
+        CreateModelMeshesSetUpMeshMaterialsAndTextures(model, _scene, 0, filePath);
 
         // set up a dummy bone.
         Logs.WriteTrace("\n@@@CreateDummyFlatListNodeZero");
@@ -264,7 +265,7 @@ public class RiggedModelLoader
 
     /// <summary>We create model mesh instances for each mesh in scene.meshes. This is just set up it doesn't load any data.
     /// </summary>
-    public void CreateModelMeshesSetUpMeshMaterialsAndTextures(RiggedModel model, Scene scene, int meshIndex)
+    public void CreateModelMeshesSetUpMeshMaterialsAndTextures(RiggedModel model, Scene scene, int meshIndex, string fullFileName)
     {
         model.Meshes = new RiggedModel.RiggedModelMesh[scene.Meshes.Count];
 
@@ -324,22 +325,8 @@ public class RiggedModelLoader
                 var ttype = textureSlots[j].TextureType.ToString();
                 var tfilepath = textureSlots[j].FilePath;
 
-                var tfilename = GetFileName(tfilepath, true);
-                var tfullfilepath = Path.Combine(Content.RootDirectory, tfilename + ".xnb");
-                var tfileexists = File.Exists(tfullfilepath);
-
-                if (!tfileexists)
-                {
-                    var files = Directory.GetFiles(Content.RootDirectory, tfilename + ".xnb", SearchOption.AllDirectories);
-
-                    if (files.Length > 0)
-                    {
-                        tfilename = files[0]
-                            .Replace(Content.RootDirectory + Path.DirectorySeparatorChar, string.Empty)
-                            .Replace(".xnb", string.Empty);
-                        tfileexists = true;
-                    }
-                }
+                var tfilename = Path.Combine(Path.GetDirectoryName(fullFileName), Path.GetFileName(tfilepath));
+                var tfileexists = File.Exists(tfilename);
 
                 if (StartupMaterialConsoleInfo)
                 {
@@ -348,9 +335,9 @@ public class RiggedModelLoader
 
                 Texture2D texture = null;
 
-                if (Content != null && tfileexists)
+                if (_assetContentManager != null && tfileexists)
                 {
-                    texture = Content.Load<Texture2D>(tfilename);
+                    texture = _assetContentManager.LoadDirectly<Texture2D>(tfilename);
                     Logs.WriteTrace("      ...Texture loaded: ... " + tfilename);
                 }
 
@@ -407,7 +394,9 @@ public class RiggedModelLoader
     {
         string ntab = "";
         for (int i = 0; i < tabLevel; i++)
+        {
             ntab += "  ";
+        }
 
         // set the nodes name.
         modelnode.Name = curAssimpNode.Name;
@@ -416,7 +405,7 @@ public class RiggedModelLoader
 
         if (StartupNodeTreeConsoleInfo)
         {
-            Console.Write(ntab + "  Name: " + modelnode.Name);
+            Logs.WriteTrace(ntab + "  Name: " + modelnode.Name);
         }
 
         // model structure creation building here.
@@ -426,7 +415,7 @@ public class RiggedModelLoader
         {
             if (StartupNodeTreeConsoleInfo)
             {
-                Console.Write("  Is a Bone.  ");
+                Logs.WriteTrace("  Is a Bone.  ");
             }
 
             // mark this a bone.
@@ -453,7 +442,7 @@ public class RiggedModelLoader
             // if its a node that represents a mesh it should also have references to a node for animations.
             if (StartupNodeTreeConsoleInfo)
             {
-                Console.Write(" HasMeshes ... MeshIndices For This Node:  ");
+                Logs.WriteTrace(" HasMeshes ... MeshIndices For This Node:  ");
             }
 
             // the mesh node doesn't normally have or need a bind pose matrix however im going to make one here because im actually going to need it.
@@ -465,7 +454,7 @@ public class RiggedModelLoader
             {
                 if (StartupNodeTreeConsoleInfo)
                 {
-                    Console.Write("  mesh[" + mi + "] nameOfMesh: " + model.Meshes[mi].NameOfMesh);
+                    Logs.WriteTrace("  mesh[" + mi + "] nameOfMesh: " + model.Meshes[mi].NameOfMesh);
                 }
 
                 // get the applicable model mesh reference.
@@ -477,7 +466,7 @@ public class RiggedModelLoader
                 {
                     if (modelnode.IsThisARealBone)
                     {
-                        Console.Write("  LinkedNodesOffset IsABone: ");
+                        Logs.WriteTrace("  LinkedNodesOffset IsABone: ");
                     }
                     //Console.GenerateClassCode("  LinkedNodesOffset: " + modelnode.OffsetMatrixMg.ToAssimpTransposed().SrtInfoToString(""));
                 }
@@ -486,7 +475,7 @@ public class RiggedModelLoader
 
                 if (StartupNodeTreeConsoleInfo)
                 {
-                    Console.Write(" " + " Is a mesh ... Mesh nodeReference Set.");
+                    Logs.WriteTrace(" " + " Is a mesh ... Mesh nodeReference Set.");
                 }
             }
         }
@@ -531,7 +520,7 @@ public class RiggedModelLoader
         for (int mloop = 0; mloop < scene.Meshes.Count; mloop++)
         {
             Mesh mesh = scene.Meshes[mloop];
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace(
                 "\n" + "__________________________" +
@@ -547,7 +536,7 @@ public class RiggedModelLoader
             for (int i = 0; i < mesh.UVComponentCount.Length; i++)
             {
                 int val = mesh.UVComponentCount[i];
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("       mesh.UVComponentCount[" + i + "] : " + val);
                 }
@@ -625,7 +614,9 @@ public class RiggedModelLoader
             else
             {
                 for (int k = 0; k < mesh.VertexColorChannels[0].Count; k++)
+                {
                     v[k].Color = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                }
             }
 
 
@@ -686,7 +677,7 @@ public class RiggedModelLoader
             if (mesh.HasBones)
             {
                 var meshBones = mesh.Bones;
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("meshBones.Count: " + meshBones.Count);
                 }
@@ -697,7 +688,7 @@ public class RiggedModelLoader
                     var boneInMeshName = meshBones[meshBoneIndex].Name;
                     var correspondingFlatBoneListIndex = GetFlatBoneIndexInModel(model, scene, boneInMeshName);
 
-                    if (StartupConsoleinfo)
+                    if (StartupLogInfo)
                     {
                         string str = "  mesh.Name: " + mesh.Name + "mesh[" + mloop + "] " + " bone.Name: " + boneInMeshName.PadRight(17) + "     meshLocalBoneListIndex: " + meshBoneIndex.ToString().PadRight(4) + " flatBoneListIndex: " + correspondingFlatBoneListIndex.ToString().PadRight(4) + " WeightCount: " + boneInMesh.VertexWeightCount;
                         Logs.WriteTrace(str);
@@ -993,7 +984,7 @@ public class RiggedModelLoader
         }
         if (index == -1)
         {
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("**** No Index found for the named bone (" + nameToFind + ") this is not good ");
             }
@@ -1216,7 +1207,9 @@ public class RiggedModelLoader
     {
         string ntab = "";
         for (int i = 0; i < tabLevel; i++)
+        {
             ntab += "  ";
+        }
 
         string msg = ntab + $"Name: {n.Name}  ".PadRight(30) + " ";
         if (n.IsTheRootNode)
@@ -1262,7 +1255,7 @@ public class RiggedModelLoader
     public void InfoForAnimData(Scene scene)
     {
         //int i;
-        if (StartupConsoleinfo)
+        if (StartupLogInfo)
         {
             string str = "\n\n AssimpSceneConsoleOutput ========= Animation Data========= \n\n";
             Logs.WriteTrace(str);
@@ -1271,7 +1264,7 @@ public class RiggedModelLoader
         for (int i = 0; i < scene.Animations.Count; i++)
         {
             var anim = scene.Animations[i];
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace($"_________________________________");
                 Logs.WriteTrace($"Anim #[{i}] Name: {anim.Name}");
@@ -1282,7 +1275,7 @@ public class RiggedModelLoader
             }
             foreach (var chan in anim.MeshAnimationChannels)
             {
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
                     Logs.WriteTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
@@ -1290,14 +1283,14 @@ public class RiggedModelLoader
                                                                                      //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
                 }
             }
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
             }
 
             foreach (var chan in anim.MeshMorphAnimationChannels)
             {
-                if (StartupConsoleinfo && (TargetNodeConsoleName != "" || TargetNodeConsoleName == chan.Name))
+                if (StartupLogInfo && (TargetNodeConsoleName != "" || TargetNodeConsoleName == chan.Name))
                 {
                     Logs.WriteTrace($"  Channel {chan.Name}");
                     Logs.WriteTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
@@ -1305,9 +1298,9 @@ public class RiggedModelLoader
                                                                                                 //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
                 }
             }
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace($"  HasNodeAnimations: {anim.HasNodeAnimations} ");
                     Logs.WriteTrace($"   Node Channels: {anim.NodeAnimationChannelCount}");
@@ -1315,22 +1308,22 @@ public class RiggedModelLoader
             }
             foreach (var chan in anim.NodeAnimationChannels)
             {
-                if (StartupConsoleinfo && (TargetNodeConsoleName == "" || TargetNodeConsoleName == chan.NodeName))
+                if (StartupLogInfo && (TargetNodeConsoleName == "" || TargetNodeConsoleName == chan.NodeName))
                 {
-                    Console.Write($"   Channel {chan.NodeName}".PadRight(35));        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
-                    Console.Write($"     Position Keys: {chan.PositionKeyCount}".PadRight(25));         // access via chan.PositionKeys
-                    Console.Write($"     Rotation Keys: {chan.RotationKeyCount}".PadRight(25));      // 
+                    Logs.WriteTrace($"   Channel {chan.NodeName}".PadRight(35));        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
+                    Logs.WriteTrace($"     Position Keys: {chan.PositionKeyCount}".PadRight(25));         // access via chan.PositionKeys
+                    Logs.WriteTrace($"     Rotation Keys: {chan.RotationKeyCount}".PadRight(25));      // 
                     Logs.WriteTrace($"     Scaling  Keys: {chan.ScalingKeyCount}".PadRight(25));        // 
                 }
             }
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("\n");
                 Logs.WriteTrace("\n Ok so this is all gonna go into our model class basically as is kinda. frownzers i needed it like this after all.");
             }
             foreach (var anode in anim.NodeAnimationChannels)
             {
-                if (StartupConsoleinfo && (TargetNodeConsoleName == "" || TargetNodeConsoleName == anode.NodeName))
+                if (StartupLogInfo && (TargetNodeConsoleName == "" || TargetNodeConsoleName == anode.NodeName))
                 {
                     Logs.WriteTrace($"   Channel {anode.NodeName}\n   (time is in animation ticks it shouldn't exceed anim.DurationInTicks {anim.DurationInTicks} or total duration in seconds: {anim.DurationInTicks / anim.TicksPerSecond})");        // the node name has to be used to tie this channel to the originally printed hierarchy.  node names must be unique.
                     Logs.WriteTrace($"     Position Keys: {anode.PositionKeyCount}");       // access via chan.PositionKeys
@@ -1338,12 +1331,12 @@ public class RiggedModelLoader
                     for (int j = 0; j < anode.PositionKeys.Count; j++)
                     {
                         var key = anode.PositionKeys[j];
-                        if (StartupConsoleinfo)
+                        if (StartupLogInfo)
                         {
                             Logs.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToString().PadRight(17) + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Position: {" + key.Value.ToStringTrimed() + "}");
                         }
                     }
-                    if (StartupConsoleinfo)
+                    if (StartupLogInfo)
                     {
                         Logs.WriteTrace($"     Rotation Keys: {anode.RotationKeyCount}");       // 
                     }
@@ -1351,12 +1344,12 @@ public class RiggedModelLoader
                     for (int j = 0; j < anode.RotationKeys.Count; j++)
                     {
                         var key = anode.RotationKeys[j];
-                        if (StartupConsoleinfo)
+                        if (StartupLogInfo)
                         {
                             Logs.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  QRotation: {" + key.Value.ToStringTrimed() + "}");
                         }
                     }
-                    if (StartupConsoleinfo)
+                    if (StartupLogInfo)
                     {
                         Logs.WriteTrace($"     Scaling  Keys: {anode.ScalingKeyCount}");        // 
                     }
@@ -1364,7 +1357,7 @@ public class RiggedModelLoader
                     for (int j = 0; j < anode.ScalingKeys.Count; j++)
                     {
                         var key = anode.ScalingKeys[j];
-                        if (StartupConsoleinfo)
+                        if (StartupLogInfo)
                         {
                             Logs.WriteTrace("       index[" + (j + "]").PadRight(5) + " Time: " + key.Time.ToStringTrimed() + " secs: " + (key.Time / anim.TicksPerSecond).ToStringTrimed() + "  Scaling: {" + key.Value.ToStringTrimed() + "}");
                         }
@@ -1384,7 +1377,7 @@ public class RiggedModelLoader
     public void InfoFlatBones(RiggedModel model)
     {
         // just print out the flat node bones before we start so i can see whats up.
-        if (StartupConsoleinfo)
+        if (StartupLogInfo)
         {
             Logs.WriteTrace("");
             Logs.WriteTrace("Flat bone nodes count: " + model.FlatListToBoneNodes.Count());
@@ -1405,7 +1398,7 @@ public class RiggedModelLoader
         {
             Mesh mesh = scene.Meshes[mloop];
 
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace(
                 "\n" + "__________________________" +
@@ -1422,14 +1415,14 @@ public class RiggedModelLoader
             for (int i = 0; i < mesh.UVComponentCount.Length; i++)
             {
                 int val = mesh.UVComponentCount[i];
-                if (StartupConsoleinfo && val > 0)
+                if (StartupLogInfo && val > 0)
                 {
                     Logs.WriteTrace("     mesh.UVComponentCount[" + i + "] : int value: " + val);
                 }
             }
             var tcc = mesh.TextureCoordinateChannelCount;
             var tc = mesh.TextureCoordinateChannels;
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("  mesh.HasMeshAnimationAttachments: " + mesh.HasMeshAnimationAttachments);
                 Logs.WriteTrace("  mesh.TextureCoordinateChannelCount: " + mesh.TextureCoordinateChannelCount);
@@ -1438,7 +1431,7 @@ public class RiggedModelLoader
             for (int i = 0; i < mesh.TextureCoordinateChannels.Length; i++)
             {
                 var channel = mesh.TextureCoordinateChannels[i];
-                if (StartupConsoleinfo && channel.Count > 0)
+                if (StartupLogInfo && channel.Count > 0)
                 {
                     Logs.WriteTrace("     mesh.TextureCoordinateChannels[" + i + "]  count " + channel.Count);
                 }
@@ -1449,7 +1442,7 @@ public class RiggedModelLoader
                     //Console.GenerateClassCode(" channel[" + j + "].Count: " + channel.Count);
                 }
             }
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("");
             }
@@ -1475,7 +1468,7 @@ public class RiggedModelLoader
         {
             var texturescount = scene.TextureCount;
             var textures = scene.Textures;
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("\nTextures " + " Count " + texturescount + "\n");
             }
@@ -1483,7 +1476,7 @@ public class RiggedModelLoader
             for (int i = 0; i < textures.Count; i++)
             {
                 var name = textures[i];
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("Textures[" + i + "] " + name);
                 }
@@ -1491,7 +1484,7 @@ public class RiggedModelLoader
         }
         else
         {
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("\nTextures " + " None ");
             }
@@ -1499,14 +1492,14 @@ public class RiggedModelLoader
 
         if (scene.HasMaterials)
         {
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("\nMaterials scene.MaterialCount " + scene.MaterialCount + "\n");
             }
 
             for (int i = 0; i < scene.Materials.Count; i++)
             {
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("");
                     Logs.WriteTrace("Material[" + i + "] ");
@@ -1515,13 +1508,13 @@ public class RiggedModelLoader
                 var m = scene.Materials[i];
                 if (m.HasName)
                 {
-                    if (StartupConsoleinfo)
+                    if (StartupLogInfo)
                     {
-                        Console.Write(" Name: " + m.Name);
+                        Logs.WriteTrace(" Name: " + m.Name);
                     }
                 }
                 var t = m.GetAllMaterialTextures();
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("  GetAllMaterialTextures Length " + t.Length);
                     Logs.WriteTrace("");
@@ -1533,18 +1526,18 @@ public class RiggedModelLoader
                     var ttype = t[j].TextureType.ToString();
                     var tfilepath = t[j].FilePath;
                     // J matches up to the texture coordinate channel uv count it looks like.
-                    if (StartupConsoleinfo)
+                    if (StartupLogInfo)
                     {
                         Logs.WriteTrace("   Texture[" + j + "] " + "   Index:" + tindex + "   Type: " + ttype + "   Filepath: " + tfilepath);
                     }
                 }
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("");
                 }
 
                 // added info
-                if (StartupConsoleinfo)
+                if (StartupLogInfo)
                 {
                     Logs.WriteTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasBlendMode + "  HasBumpScaling: " + m.HasBumpScaling + "  HasOpacity: " + m.HasOpacity + "  HasShadingMode: " + m.HasShadingMode + "  HasTwoSided: " + m.HasTwoSided + "  IsTwoSided: " + m.IsTwoSided);
                     Logs.WriteTrace("   Material[" + i + "] " + "  HasBlendMode:" + m.HasShininess + "  HasTextureDisplacement:" + m.HasTextureDisplacement + "  HasTextureEmissive:" + m.HasTextureEmissive + "  HasTextureReflection:" + m.HasTextureReflection);
@@ -1553,26 +1546,24 @@ public class RiggedModelLoader
                     Logs.WriteTrace("   Material[" + i + "] " + "  ColorReflective:" + m.ColorReflective + "  ColorEmissive: " + m.ColorEmissive + "  ColorTransparent: " + m.ColorTransparent);
                 }
             }
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("");
             }
         }
         else
         {
-            if (StartupConsoleinfo)
+            if (StartupLogInfo)
             {
                 Logs.WriteTrace("\n   No Materials Present. \n");
             }
         }
     }
-
-}
-
-public class TempWeightVert
-{
-    public int CountOfBoneEntrysForThisVertice = 0;
-    public readonly List<float> VerticesFlatBoneId = new();
-    public readonly List<int> VerticeIndexs = new();
-    public readonly List<float> VerticeBoneWeights = new();
+    private class TempWeightVert
+    {
+        public int CountOfBoneEntrysForThisVertice = 0;
+        public readonly List<float> VerticesFlatBoneId = new();
+        public readonly List<int> VerticeIndexs = new();
+        public readonly List<float> VerticeBoneWeights = new();
+    }
 }

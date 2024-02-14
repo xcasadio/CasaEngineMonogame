@@ -20,10 +20,7 @@ internal class ParserTokenDelimiter
 
     public override bool Check(string sentence)
     {
-        string res;
-        string outside;
-
-        if (GetStringBetweenDelimiter(sentence, Token, _close, out res, out outside))
+        if (GetStringBetweenDelimiter(sentence, Token, _close, out var res, out var outside))
         {
             var r = true;
 

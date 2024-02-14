@@ -24,7 +24,7 @@ public class SkinnedMeshDemo : Demo
         entity.RootComponent.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
         entity.RootComponent.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        var skinModelLoader = new RiggedModelLoader(game.Content, game.Content.Load<Effect>("Shaders\\skinEffect"));
+        var skinModelLoader = new RiggedModelLoader(game.AssetContentManager, game.Content.Load<Effect>("Shaders\\skinEffect"));
         var debugTexture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName).Resource;
         RiggedModelLoader.DefaultTexture = debugTexture;
         var skinModel = skinModelLoader.LoadAsset("Content/SkinnedMesh/kid_idle.fbx");//dude kid_idle

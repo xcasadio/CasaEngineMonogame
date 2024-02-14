@@ -13,7 +13,7 @@ internal class NeoForceCursorLoader : IAssetLoader
 
     // Thanks Hans Passant!
     // http://stackoverflow.com/questions/4305800/using-custom-colored-cursors-in-a-c-windows-application
-    public object LoadAsset(string fileName, GraphicsDevice device)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         var tPath = Path.GetTempFileName();
 
@@ -29,7 +29,7 @@ internal class NeoForceCursorLoader : IAssetLoader
         {
             using (var b = icon.ToBitmap())
             {
-                neoForceCursor.CursorTexture = new Texture2D(device, w, h);
+                neoForceCursor.CursorTexture = new Texture2D(assetContentManager.GraphicsDevice, w, h);
                 var pixels = new Color[w * h];
                 for (int y = 0; y < h; y++)
                 {

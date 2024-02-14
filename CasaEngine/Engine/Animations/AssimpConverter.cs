@@ -7,7 +7,7 @@ public static class AssimpConverter
 {
     public static float CheckVal(float n)
     {
-        if (float.IsNaN(n) || n == float.NaN || float.IsInfinity(n))
+        if (float.IsNaN(n) || float.IsInfinity(n))
         {
             return 0.0f;
         }
@@ -92,12 +92,8 @@ public static class AssimpConverter
         // this can fail if the determinante is invalid.
         if (checkdeterminatevalid == false)
         {
-            Vector3D scale;
-            Assimp.Quaternion rot;
-            Vector3D rotAngles;
-            Vector3D trans;
-            m.Decompose(out scale, out rot, out trans);
-            QuatToEulerXyz(ref rot, out rotAngles);
+            m.Decompose(out var scale, out var rot, out var trans);
+            QuatToEulerXyz(ref rot, out var rotAngles);
             var rotDeg = rotAngles * (float)(180d / Math.PI);
             int padamt = 2;
             str += "\n" + tabspaces + "    " + "As Quaternion     ".PadRight(padamt) + rot.ToStringTrimed();
@@ -124,12 +120,8 @@ public static class AssimpConverter
         // this can fail if the determinante is invalid.
         if (checkdeterminatevalid == false)
         {
-            Vector3D scale;
-            Assimp.Quaternion rot;
-            Vector3D rotAngles;
-            Vector3D trans;
-            m.Decompose(out scale, out rot, out trans);
-            QuatToEulerXyz(ref rot, out rotAngles);
+            m.Decompose(out var scale, out var rot, out var trans);
+            QuatToEulerXyz(ref rot, out var rotAngles);
             var rotDeg = rotAngles * (float)(180d / Math.PI);
             str += "\n" + tabspaces + " Rot (deg)".PadRight(pamt) + ":" + rotDeg.ToStringTrimed();// + "   radians: " + rotAngles.ToStringTrimed();
             if (scale.X != scale.Y || scale.Y != scale.Z || scale.Z != scale.X)
@@ -158,12 +150,8 @@ public static class AssimpConverter
         // this can fail if the determinante is invalid.
         if (checkdeterminatevalid == false)
         {
-            Vector3D scale3d = new Vector3D();
-            Assimp.Quaternion rot = new Assimp.Quaternion();
-            Vector3D rotAngles = new Vector3D();
-            Vector3D trans = new Vector3D();
-            m.Decompose(out scale3d, out rot, out trans);
-            QuatToEulerXyz(ref rot, out rotAngles);
+            m.Decompose(out var scale3d, out var rot, out var trans);
+            QuatToEulerXyz(ref rot, out var rotAngles);
             var rotDeg = rotAngles * (float)(180d / Math.PI);
             scale = scale3d.ToMonoGame();
             degRot = rotDeg.ToMonoGame();

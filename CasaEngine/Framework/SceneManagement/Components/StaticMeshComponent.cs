@@ -39,7 +39,7 @@ public class StaticMeshComponent : PrimitiveComponent
         base.InitializeWithWorld(world);
 
         _meshRendererComponent = world.Game.GetGameComponent<StaticMeshRendererComponent>();
-        Mesh?.Initialize(world.Game.GraphicsDevice, world.Game.AssetContentManager);
+        Mesh?.Initialize(world.Game.AssetContentManager);
     }
 
     public override StaticMeshComponent Clone()

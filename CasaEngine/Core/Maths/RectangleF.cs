@@ -132,8 +132,7 @@ public struct RectangleF
 
     public bool Intersects(RectangleF value)
     {
-        bool result;
-        Intersects(ref value, out result);
+        Intersects(ref value, out var result);
         return result;
     }
 
@@ -144,8 +143,7 @@ public struct RectangleF
 
     public static RectangleF Intersect(RectangleF value1, RectangleF value2)
     {
-        RectangleF result;
-        Intersect(ref value1, ref value2, out result);
+        Intersect(ref value1, ref value2, out var result);
         return result;
     }
 
@@ -167,8 +165,7 @@ public struct RectangleF
 
     public static RectangleF Union(RectangleF value1, RectangleF value2)
     {
-        RectangleF result;
-        Union(ref value1, ref value2, out result);
+        Union(ref value1, ref value2, out var result);
         return result;
     }
 

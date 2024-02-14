@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Engine.Animations;
+﻿namespace CasaEngine.Framework.Graphics;
 
 /// <summary>
 /// This is a helper struct for tallying byte offsets

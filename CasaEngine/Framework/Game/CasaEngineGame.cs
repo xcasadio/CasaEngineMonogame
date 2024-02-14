@@ -10,11 +10,13 @@ using Microsoft.Xna.Framework.Graphics;
 using TomShane.Neoforce.Controls;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Engine;
+using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
@@ -198,6 +200,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 #endif
 
         AssetContentManager.RootDirectory = ContentPath;
+        AssetContentManager.Initialize(GraphicsDevice);
 
         Content.RootDirectory = ContentPath;
         Window.Title = GameSettings.ProjectSettings.WindowTitle;
@@ -211,7 +214,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
 
         DebugSystem.Initialize(this);
-        AssetContentManager.Initialize(GraphicsDevice);
 
 #if EDITOR
         if (UseGui)
@@ -229,6 +231,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     private void RegisterLoaders()
     {
         AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
         //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
         AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
 

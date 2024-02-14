@@ -98,7 +98,7 @@ public partial class EntityComponentControl : UserControl
             var graphicsDevice = staticMeshComponent.Owner.RootComponent.Owner.World.Game.GraphicsDevice;
 
             staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
-            staticMeshComponent.Mesh.Initialize(graphicsDevice, staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
+            staticMeshComponent.Mesh.Initialize(staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
             staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         }
     }

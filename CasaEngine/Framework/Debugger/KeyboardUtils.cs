@@ -30,7 +30,6 @@ public static class KeyboardUtils
     {
         var result = false;
         character = ' ';
-        CharPair charPair;
 
         if (Keys.A <= key && key <= Keys.Z || key == Keys.Space)
         {
@@ -38,7 +37,7 @@ public static class KeyboardUtils
             character = shitKeyPressed ? (char)key : char.ToLower((char)key);
             result = true;
         }
-        else if (KeyMap.TryGetValue(key, out charPair))
+        else if (KeyMap.TryGetValue(key, out var charPair))
         {
             // Otherwise, convert by key map.
             if (!shitKeyPressed)

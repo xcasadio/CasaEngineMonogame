@@ -11,7 +11,7 @@ internal class CursorLoader : IAssetLoader
 
     // Thanks Hans Passant!
     // http://stackoverflow.com/questions/4305800/using-custom-colored-cursors-in-a-c-windows-application
-    public object LoadAsset(string fileName, GraphicsDevice device)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         IntPtr? handle = LoadCursorFromFile(fileName);
 

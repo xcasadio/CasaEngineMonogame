@@ -3,6 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

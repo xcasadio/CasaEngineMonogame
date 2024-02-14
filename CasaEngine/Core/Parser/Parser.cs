@@ -110,8 +110,7 @@ public abstract class Parser
 
         if (Check(sentence))
         {
-            CalculatorToken root;
-            CompileCalculatorToken(out root, 0);
+            CompileCalculatorToken(out var root, 0);
 
             _calculator.Root = root;
             return true;
@@ -164,8 +163,7 @@ public abstract class Parser
         }
         else if (token is CalculatorTokenSequence)
         {
-            CalculatorToken res;
-            index = CompileSequence(token as CalculatorTokenSequence, out res, index + 1);
+            index = CompileSequence(token as CalculatorTokenSequence, out var res, index + 1);
             token = res;
         }
 
@@ -174,9 +172,8 @@ public abstract class Parser
 
     private int CompileBinaryOperator(CalculatorTokenBinaryOperator parent, int index)
     {
-        CalculatorToken left, right;
-        CompileCalculatorToken(out left, index);
-        index = CompileCalculatorToken(out right, index + 1);
+        CompileCalculatorToken(out var left, index);
+        index = CompileCalculatorToken(out var right, index + 1);
 
         parent.Left = left;
         parent.Right = right;

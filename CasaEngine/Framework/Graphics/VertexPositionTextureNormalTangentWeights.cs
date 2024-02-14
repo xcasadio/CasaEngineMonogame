@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Engine.Animations;
+namespace CasaEngine.Framework.Graphics;
 
 /// <summary>
 /// basically a wide spectrum vertice structure.

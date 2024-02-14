@@ -433,8 +433,7 @@ namespace CasaEngine.Framework.Debugger
                 }
 
                 // Gets registered marker.
-                int markerId;
-                if (!markerNameToIdMap.TryGetValue(markerName, out markerId))
+                if (!markerNameToIdMap.TryGetValue(markerName, out var markerId))
                 {
                     // Register this if this marker is not registered.
                     markerId = markers.Count;
@@ -485,8 +484,7 @@ namespace CasaEngine.Framework.Debugger
                         "Call BeingMark method before call EndMark method.");
                 }
 
-                int markerId;
-                if (!markerNameToIdMap.TryGetValue(markerName, out markerId))
+                if (!markerNameToIdMap.TryGetValue(markerName, out var markerId))
                 {
                     throw new InvalidOperationException(
                         string.Format("Maker '{0}' is not registered." +
@@ -520,8 +518,7 @@ namespace CasaEngine.Framework.Debugger
             }
 
             float result = 0;
-            int markerId;
-            if (markerNameToIdMap.TryGetValue(markerName, out markerId))
+            if (markerNameToIdMap.TryGetValue(markerName, out var markerId))
             {
                 result = markers[markerId].Logs[barIndex].Avg;
             }

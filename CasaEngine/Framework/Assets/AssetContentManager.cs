@@ -104,7 +104,7 @@ public class AssetContentManager
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
-        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
 
         if (newAsset is ObjectBase gameObject)
         {
@@ -140,7 +140,7 @@ public class AssetContentManager
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetFileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
-        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, GraphicsDevice) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+        var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         return newAsset;
     }
 
