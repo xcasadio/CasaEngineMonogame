@@ -25,6 +25,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
+using CSharpSyntax;
 using Microsoft.Xna.Framework;
 using Utils;
 using Point = System.Windows.Point;
@@ -200,7 +201,8 @@ public partial class ContentBrowserControl : UserControl
                 ImportAssetFile(assetContentManager, fileName, destinationFolderPath);
             }
 
-            ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
+            AssetCatalog.Save();
+            //ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
         }
     }
 
@@ -215,9 +217,6 @@ public partial class ContentBrowserControl : UserControl
                 MessageBox.Show(Application.Current.MainWindow, $"The file {Path.GetFileName(fullFileName)} already exists!", "File already exists", MessageBoxButton.OK);
                 return;
             }
-
-            File.Copy(fullFileName, destFileName, true);
-            Logs.WriteTrace($"Copy {fullFileName} -> {destFileName}");
 
             //create image file assetinfo
             var assetFromImportFile = new AssetInfo();
@@ -234,8 +233,9 @@ public partial class ContentBrowserControl : UserControl
                 var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
                 CreateAllAssetsFromModel(riggedModel, assetContentManager, destinationFolderPath);
                 var skinnedMesh = new SkinnedMesh();
-                skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
                 skinnedMesh.Initialize(assetContentManager);
+                skinnedMesh.SetRiggedModel(riggedModel);
+                skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
                 newAsset = skinnedMesh;
                 assetExtension = Constants.FileNameExtensions.Model;
             }
@@ -246,24 +246,28 @@ public partial class ContentBrowserControl : UserControl
             }
             else
             {
+                Logs.WriteInfo($"Can't import {fullFileName}, file '{Path.GetExtension(fullFileName)}' is not supported");
                 return;
             }
+
+            File.Copy(fullFileName, destFileName, true);
+            Logs.WriteTrace($"Copy {fullFileName} -> {destFileName}");
 
             var newAssetInfo = new AssetInfo(newAsset.Id);
             newAssetInfo.Name = Path.GetFileNameWithoutExtension(destFileName);
             var pathFileName = Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty));
             var assetFullName = newAssetInfo.Name + assetExtension;
             newAssetInfo.FileName = Path.Combine(pathFileName, assetFullName).TrimStart(Path.DirectorySeparatorChar);
-            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAsset.FileName), newAsset);
+            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAssetInfo.FileName), newAsset);
             AssetCatalog.Add(assetFromImportFile);
             AssetCatalog.Add(newAssetInfo);
-            AssetCatalog.Save();
         }
     }
 
     private void CreateAllAssetsFromModel(RiggedModel riggedModel, AssetContentManager assetContentManager, string destinationFolderPath)
     {
-        foreach (var textureFileName in riggedModel.Meshes.Select(x => x.TextureName).Distinct())
+        foreach (var textureFileName in riggedModel.Meshes.SelectMany(x => new[] { x.TextureName, x.TextureNormalMapName, x.TextureHeightMapName, x.TextureReflectionMapName })
+                     .Where(x => x != null).Distinct())
         {
             ImportAssetFile(assetContentManager, textureFileName, destinationFolderPath);
         }

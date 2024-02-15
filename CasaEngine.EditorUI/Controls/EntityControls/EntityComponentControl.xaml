@@ -312,6 +312,14 @@
             </Expander>
         </DataTemplate>
 
+        <DataTemplate x:Key="skinnedMeshComponentTemplate" DataType="{x:Type components:SkinnedMeshComponent}">
+            <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <Grid>
+                    <common:AssetSelectorControl AssetId="{Binding SkinnedMesh.RiggedModelAssetId, Mode=TwoWay}"/>
+                </Grid>
+            </Expander>
+        </DataTemplate>
+
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
             <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
@@ -423,6 +431,7 @@
                     <entityControls:EntityComponentTemplateSelector
                         ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
                         MeshComponenTemplate="{StaticResource meshComponentTemplate}"
+                        SkinnedMeshComponenTemplate="{StaticResource skinnedMeshComponentTemplate}"
                         PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
                         Physics2dComponenTemplate="{StaticResource physics2dComponentTemplate}"
                         TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"

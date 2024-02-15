@@ -30,7 +30,7 @@ public class Collision3dBasicDemo : Demo
         var meshComponent = new StaticMeshComponent();
         entity.RootComponent = meshComponent;
         meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
-        meshComponent.Mesh.Initialize(game.GraphicsDevice, game.AssetContentManager);
+        meshComponent.Mesh.Initialize(game.AssetContentManager);
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
@@ -64,7 +64,7 @@ public class Collision3dBasicDemo : Demo
                     meshComponent = new StaticMeshComponent();
                     entity.RootComponent = meshComponent;
                     meshComponent.Mesh = boxPrimitive;
-                    meshComponent.Mesh.Initialize(game.GraphicsDevice, game.AssetContentManager);
+                    meshComponent.Mesh.Initialize(game.AssetContentManager);
                     fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
                     meshComponent.Mesh.Texture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 

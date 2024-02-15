@@ -21,7 +21,7 @@ public class SceneManagementDemo : Demo
 
         var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
         var staticMesh = boxPrimitive.CreateMesh();
-        staticMesh.Initialize(game.GraphicsDevice, null);
+        staticMesh.Initialize(game.AssetContentManager);
         staticMesh.Texture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
 
         var gridSize = 10;

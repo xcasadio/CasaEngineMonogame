@@ -39,6 +39,11 @@ public class SkinnedMesh : ObjectBase
 
     private bool _isInitialized;
 
+    public void SetRiggedModel(RiggedModel riggedModel)
+    {
+        RiggedModel = riggedModel;
+    }
+
     public override void Save(JObject jObject)
     {
         base.Save(jObject);

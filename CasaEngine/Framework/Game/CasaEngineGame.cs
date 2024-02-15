@@ -238,6 +238,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         AssetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
+        AssetContentManager.RegisterAssetLoader(typeof(SkinnedMesh), new AssetLoader<SkinnedMesh>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
         AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());

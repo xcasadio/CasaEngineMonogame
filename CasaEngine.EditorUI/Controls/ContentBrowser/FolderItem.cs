@@ -16,7 +16,18 @@ public class FolderItem : ContentItem
     public IEnumerable<FolderItem> Folders => Contents.Where(x => x is FolderItem).Cast<FolderItem>();
     public ObservableCollection<ContentItem> Contents { get; } = new();
 
-    public override string FullPath => Parent == null ? string.Empty : System.IO.Path.Combine(Parent.Name, Name);
+    public override string FullPath
+    {
+        get
+        {
+            if (Parent.IsRoot())
+            {
+                return Name;
+            }
+
+            return IsRoot() ? string.Empty : System.IO.Path.Combine(Parent.Name, Name);
+        }
+    }
 
     private bool IsRoot()
     {
@@ -44,8 +55,12 @@ public class FolderItem : ContentItem
             {
                 var sourceFullPath = System.IO.Path.Combine(EngineEnvironment.ProjectPath, oldFullPath);
                 var newFullPath = System.IO.Path.Combine(EngineEnvironment.ProjectPath, FullPath);
-                Directory.Move(sourceFullPath, newFullPath);
-                Logs.WriteTrace($"Rename folder '{oldFullPath}' to '{FullPath}'");
+
+                if (!Directory.Exists(newFullPath))
+                {
+                    Directory.Move(sourceFullPath, newFullPath);
+                    Logs.WriteTrace($"Rename folder '{oldFullPath}' to '{FullPath}'");
+                }
 
                 AssetCatalog.Save();
             }

@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
@@ -13,16 +12,9 @@ namespace CasaEngine.Framework.SceneManagement.Components;
 public class SkinnedMeshComponent : PrimitiveComponent
 {
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
-    private RiggedModel? _skinnedMesh;
 
-    public RiggedModel? SkinnedMesh
-    {
-        get { return _skinnedMesh; }
-        set
-        {
-            _skinnedMesh = value;
-        }
-    }
+    public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
+    public SkinnedMesh? SkinnedMesh { get; set; }
 
     public SkinnedMeshComponent()
     {
@@ -31,7 +23,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public SkinnedMeshComponent(SkinnedMeshComponent other) : base(other)
     {
-        _skinnedMesh = other._skinnedMesh;
+        SkinnedMesh = other.SkinnedMesh;
     }
 
     public override void InitializeWithWorld(World.World world)
@@ -39,8 +31,11 @@ public class SkinnedMeshComponent : PrimitiveComponent
         base.InitializeWithWorld(world);
 
         _skinnedMeshRendererComponent = Owner.World.Game.GetGameComponent<SkinnedMeshRendererComponent>();
-        //Mesh?.LoadContent(game.GraphicsDevice);
-        //Mesh?.Texture?.LoadContent(game.GraphicsDevice, game.AssetContentManager);
+
+        if (SkinnedMeshAssetId != Guid.Empty)
+        {
+            SkinnedMesh?.Initialize(Owner.World.Game.AssetContentManager);
+        }
     }
 
     public override SkinnedMeshComponent Clone()
@@ -50,21 +45,21 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override void Update(float elapsedTime)
     {
-        SkinnedMesh?.Update(elapsedTime);
+        SkinnedMesh?.RiggedModel?.Update(elapsedTime);
 
         base.Update(elapsedTime);
     }
 
     public override void Draw(float elapsedTime)
     {
-        if (SkinnedMesh == null)
+        if (SkinnedMesh?.RiggedModel == null)
         {
             return;
         }
 
         var camera = Owner.World.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
-            SkinnedMesh,
+            SkinnedMesh.RiggedModel,
             WorldMatrixWithScale,
             camera.ViewMatrix,
             camera.ProjectionMatrix,
@@ -76,9 +71,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
         var min = Vector3.One * int.MaxValue;
         var max = Vector3.One * int.MinValue;
 
-        if (SkinnedMesh != null)
+        if (SkinnedMesh?.RiggedModel != null)
         {
-            foreach (var mesh in SkinnedMesh.Meshes)
+            foreach (var mesh in SkinnedMesh.RiggedModel.Meshes)
             {
                 min = Vector3.Min(min, mesh.Min);
                 max = Vector3.Max(max, mesh.Max);
@@ -101,12 +96,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
     {
         base.Load(element);
 
-        var meshElement = element["skinned_mesh"];
-
-        if (meshElement.GetString() != "null")
+        if (element.ContainsKey("skinned_mesh_id"))
         {
-            //_mesh = new SkinModel();
-            //_mesh.Load(meshElement);
+            SkinnedMeshAssetId = element["skinned_mesh_id"].GetGuid();
         }
     }
 
@@ -115,17 +107,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
-
-        JObject newJObject = new();
-        //if (SkinnedMesh != null)
-        //{
-        //    SkinnedMesh.Save(newJObject);
-        //    jObject.Add("skinned_mesh", newJObject);
-        //}
-        //else
-        //{
-        //    jObject.Add("mesh", "null");
-        //}
+        jObject.Add("skinned_mesh_id", SkinnedMesh?.RiggedModelAssetId ?? Guid.Empty);
     }
 #endif
 }

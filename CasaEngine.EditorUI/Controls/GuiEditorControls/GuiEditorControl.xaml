@@ -38,13 +38,13 @@
                         <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="0.38557993730407525*">
                             <xcad:LayoutAnchorablePane DockHeight="0.9512773799940686*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1399" FloatingTop="530">
                                 <xcad:LayoutAnchorable x:Name="guiLayout" Title="Components">
-                                    <guiEditorControls:ComponentListControl x:Name="ComponentListControl" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}" />
+                                    <guiEditorControls:ControlListControl x:Name="ComponentListControl" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}" />
                                 </xcad:LayoutAnchorable>
                             </xcad:LayoutAnchorablePane>
                             <xcad:LayoutAnchorablePaneGroup Orientation="Horizontal" DockHeight="1.0487226200059314*" FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                 <xcad:LayoutAnchorablePane FloatingWidth="1194" FloatingHeight="378" FloatingLeft="1125" FloatingTop="563">
                                     <xcad:LayoutAnchorable x:Name="guiDetailsLayout" Title="Details">
-                                        <guiEditorControls:ComponentDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding DataContext.SelectedControl, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}"/>
+                                        <guiEditorControls:ControlDetailsControl x:Name="ComponentDetailsControl" DataContext="{Binding DataContext.SelectedControl, RelativeSource={RelativeSource AncestorType=guiEditorControls:GuiEditorControl}}"/>
                                     </xcad:LayoutAnchorable>
                                 </xcad:LayoutAnchorablePane>
                             </xcad:LayoutAnchorablePaneGroup>
@@ -57,7 +57,7 @@
                     <xcad:LayoutAnchorSide>
                         <xcad:LayoutAnchorGroup>
                             <xcad:LayoutAnchorable x:Name="PlaceComponentLayout" AutoHideMinWidth="100" AutoHideMinHeight="100" Title="Place Components" FloatingWidth="960" FloatingHeight="1040" CanClose="False" >
-                                <guiEditorControls:PlaceComponentsControl x:Name="PlaceComponentsControl"/>
+                                <guiEditorControls:PlaceControlsControl x:Name="PlaceComponentsControl"/>
                             </xcad:LayoutAnchorable>
                         </xcad:LayoutAnchorGroup>
                     </xcad:LayoutAnchorSide>

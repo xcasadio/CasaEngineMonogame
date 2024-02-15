@@ -53,7 +53,7 @@ public partial class GuiEditorControl : EditorControlBase
         }
 
         DataContext = new ScreenViewModel(screen);
-        //ComponentListControl.DataContext = DataContext;
+        //ControlListControl.DataContext = DataContext;
     }
 
     private void Control_FocusLost(object sender, TomShane.Neoforce.Controls.EventArgs e)

@@ -1091,6 +1091,46 @@
     {
       "id": "476fdde7-7cf0-4bf8-a8a7-130d995b38f1",
       "file_name": "TileSets\\smoke_ring.anim2d"
+    },
+    {
+      "id": "38927128-fe3b-47ba-a863-17724ccb9207",
+      "file_name": "SkinnedMesh\\Kid_Body2.png"
+    },
+    {
+      "id": "8b35522e-a8e6-4cda-a2f4-0b7ce3cd1389",
+      "file_name": "SkinnedMesh\\Kid_Body2.texture"
+    },
+    {
+      "id": "13465e20-062e-4ac9-98f4-661a6c69f6d0",
+      "file_name": "SkinnedMesh\\Kid_Hair.png"
+    },
+    {
+      "id": "82f9dd6c-cd29-4fec-912b-9edb5b04afe7",
+      "file_name": "SkinnedMesh\\Kid_Hair.texture"
+    },
+    {
+      "id": "4a6d34b9-ef7a-4b9f-893b-a358d86e777f",
+      "file_name": "SkinnedMesh\\kid_face_2_1.png"
+    },
+    {
+      "id": "08a78aa3-4580-474e-8236-68aecc9ddd41",
+      "file_name": "SkinnedMesh\\kid_face_2_1.texture"
+    },
+    {
+      "id": "af6a55df-62fc-44bd-adc7-a3d4823eb051",
+      "file_name": "SkinnedMesh\\Kid_Eye.png"
+    },
+    {
+      "id": "51852e3e-51da-4431-8edc-f6d9f588b652",
+      "file_name": "SkinnedMesh\\Kid_Eye.texture"
+    },
+    {
+      "id": "e6a898ce-3e56-4d33-a0dc-cdab14badbe3",
+      "file_name": "SkinnedMesh\\kid_idle.FBX"
+    },
+    {
+      "id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b",
+      "file_name": "SkinnedMesh\\kid_idle.model"
     }
   ]
 }

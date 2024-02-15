@@ -46,20 +46,35 @@
 #begin SkinnedMesh/Kid_Body2.png
 /copy:SkinnedMesh/Kid_Body2.png
 
+#begin SkinnedMesh/Kid_Body2.texture
+/copy:SkinnedMesh/Kid_Body2.texture
+
 #begin SkinnedMesh/Kid_Eye_Normals.png
 /copy:SkinnedMesh/Kid_Eye_Normals.png
 
 #begin SkinnedMesh/Kid_Eye.png
 /copy:SkinnedMesh/Kid_Eye.png
 
+#begin SkinnedMesh/Kid_Eye.texture
+/copy:SkinnedMesh/Kid_Eye.texture
+
 #begin SkinnedMesh/kid_face_2_1.png
 /copy:SkinnedMesh/kid_face_2_1.png
+
+#begin SkinnedMesh/kid_face_2_1.texture
+/copy:SkinnedMesh/kid_face_2_1.texture
 
 #begin SkinnedMesh/Kid_Hair.png
 /copy:SkinnedMesh/Kid_Hair.png
 
+#begin SkinnedMesh/Kid_Hair.texture
+/copy:SkinnedMesh/Kid_Hair.texture
+
 #begin SkinnedMesh/kid_idle.FBX
 /copy:SkinnedMesh/kid_idle.FBX
+
+#begin SkinnedMesh/kid_idle.model
+/copy:SkinnedMesh/kid_idle.model
 
 #begin SkinnedMesh/kid_run.FBX
 /copy:SkinnedMesh/kid_run.FBX

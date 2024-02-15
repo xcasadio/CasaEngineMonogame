@@ -245,6 +245,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     public override void Attach(Entity actor)
     {
         base.Attach(actor);
+        IsBoundingBoxDirty = true;
 
         for (int i = 0; i < Children.Count; i++)
         {
@@ -255,6 +256,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     public override void Detach()
     {
         base.Detach();
+        IsBoundingBoxDirty = true;
 
         for (int i = 0; i < Children.Count; i++)
         {

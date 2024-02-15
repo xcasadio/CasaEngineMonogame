@@ -7,6 +7,7 @@ namespace CasaEngine.EditorUI.Controls.EntityControls;
 public class EntityComponentTemplateSelector : DataTemplateSelector
 {
     public DataTemplate MeshComponenTemplate { get; set; }
+    public DataTemplate SkinnedMeshComponenTemplate { get; set; }
     public DataTemplate ArcBallCameraComponenTemplate { get; set; }
     public DataTemplate PhysicsComponenTemplate { get; set; }
     public DataTemplate Physics2dComponenTemplate { get; set; }
@@ -20,6 +21,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
         switch (item)
         {
             case StaticMeshComponent: return MeshComponenTemplate;
+            case SkinnedMeshComponent: return SkinnedMeshComponenTemplate;
             case ArcBallCameraComponent: return ArcBallCameraComponenTemplate;
             case PhysicsComponent: return PhysicsComponenTemplate;
             case Physics2dComponent: return Physics2dComponenTemplate;

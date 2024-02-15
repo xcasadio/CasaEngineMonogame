@@ -11,14 +11,15 @@ public class ModelLoader : IAssetLoader
 
     public bool IsFileSupported(string fileName)
     {
-        return _assimpContext.GetSupportedImportFormats().Contains(Path.GetExtension(fileName));
+        return _assimpContext.GetSupportedImportFormats().Contains(Path.GetExtension(fileName).ToLower());
     }
 
     public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {
-            var riggedModelLoader = new RiggedModelLoader(assetContentManager, assetContentManager.LoadDirectly<Effect>("Shaders\\skinEffect.mgfxc"));
+            Effect defaultEffect = null; //assetContentManager.LoadDirectly<Effect>("Shaders\\skinEffect.mgfxc");
+            var riggedModelLoader = new RiggedModelLoader(assetContentManager, defaultEffect);
             return riggedModelLoader.LoadAsset(fileName, assetContentManager);
         }
         catch (Exception e)

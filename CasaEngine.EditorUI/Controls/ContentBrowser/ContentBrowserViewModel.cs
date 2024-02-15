@@ -20,8 +20,8 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         ContentItems.Add(new FolderItem("All", null));
 
-        //AssetCatalog.AssetAdded += OnAssetAdded;
-        //AssetCatalog.AssetRemoved += OnAssetRemoved;
+        AssetCatalog.AssetAdded += OnAssetAdded;
+        AssetCatalog.AssetRemoved += OnAssetRemoved;
         AssetCatalog.AssetCleared += OnAssetCleared;
     }
 

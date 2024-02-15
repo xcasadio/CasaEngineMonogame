@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.SceneManagement.Components;
 using Microsoft.Xna.Framework;
 
@@ -65,6 +66,16 @@ public partial class AssetSelectorControl : UserControl
 
                     SetAssetInfoDescription(contentBrowserControl.SelectedItem);
                 }
+            }
+            else if (frameworkElement.DataContext is SkinnedMeshComponent skinnedMeshComponent
+                      && System.IO.Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
+                      Constants.FileNameExtensions.Model)
+            {
+                var assetContentManager = skinnedMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
+                skinnedMeshComponent.SkinnedMeshAssetId = contentBrowserControl.SelectedItem.Id;
+                skinnedMeshComponent.SkinnedMesh = assetContentManager.Load<SkinnedMesh>(contentBrowserControl.SelectedItem.Id);
+                skinnedMeshComponent.SkinnedMesh.Initialize(assetContentManager);
+                SetAssetInfoDescription(contentBrowserControl.SelectedItem);
             }
         }
     }

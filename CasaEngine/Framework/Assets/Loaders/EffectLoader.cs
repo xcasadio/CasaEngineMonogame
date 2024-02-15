@@ -16,10 +16,10 @@ public class EffectLoader : IAssetLoader
 
     public bool IsFileSupported(string fileName)
     {
-        return IsModelFile(fileName);
+        return IsEffectFile(fileName);
     }
 
-    public static bool IsModelFile(string fileName)
+    public static bool IsEffectFile(string fileName)
     {
         var extension = Path.GetExtension(fileName);
         return _extensionSupported.Any(x => string.Equals(extension, x, StringComparison.InvariantCultureIgnoreCase));
