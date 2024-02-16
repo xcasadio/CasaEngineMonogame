@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +11,9 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;
+using Microsoft.Xna.Framework;
+using Xceed.Wpf.Toolkit.Primitives;
+using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -55,6 +59,88 @@ public partial class EntityControl : UserControl
     {
         _game = (CasaEngineGame)sender;
         _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
+        _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
+        _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+    }
+
+    private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
+    {
+        //if (!_isSelectionTriggerFromGizmoActive)
+        //{
+        //    return;
+        //}
+        //_isSelectionTriggerActive = false;
+
+        SceneComponent? selectedSceneComponent = null;
+        if (_gizmoComponent.Gizmo.Selection.Count > 0)
+        {
+            selectedSceneComponent = (SceneComponent)_gizmoComponent.Gizmo.Selection[0];
+        }
+
+        if (selectedSceneComponent != null)
+        {
+            var entityViewModel = DataContext as EntityViewModel;
+            SetSelectedItem(entityViewModel.GetFromComponent(selectedSceneComponent));
+        }
+
+        //_isSelectionTriggerActive = true;
+    }
+
+
+    private void SetSelectedItem(ComponentViewModel? componentViewModel)
+    {
+        if (componentViewModel != null && SelectedComponent != componentViewModel)
+        {
+            SelectedComponent = componentViewModel;
+            SelectTreeViewItem(SelectedComponent);
+        }
+        else
+        {
+            foreach (var item in treeViewComponents.ItemContainerGenerator.Items)
+            {
+                SelectTreeViewItem(item as ComponentViewModel, false, false, true, false);
+            }
+        }
+    }
+
+    private void SelectTreeViewItem(ComponentViewModel componentViewModel, bool alterExpand = true, bool expand = true, bool alterSelect = true, bool select = true)
+    {
+        Stack<ComponentViewModel> parents = new();
+        parents.Push(componentViewModel);
+        var root = componentViewModel;
+
+        while (root != null)
+        {
+            parents.Push(root);
+            root = root.Parent;
+        }
+
+        ItemsControl itemsControl = treeViewComponents;
+
+        while (parents.TryPop(out var entity))
+        {
+            if (itemsControl.ItemContainerGenerator.ContainerFromItem(entity) is TreeViewItem treeViewItem)
+            {
+                itemsControl = treeViewItem;
+
+                if (alterExpand)
+                {
+                    treeViewItem.IsExpanded = expand;
+                }
+
+                if (alterSelect)
+                {
+                    treeViewItem.IsSelected = select;
+
+                    if (select)
+                    {
+                        treeViewItem.BringIntoView(); 
+                    }
+                }
+
+                treeViewItem.UpdateLayout();
+            }
+        }
     }
 
     private void ButtonRenameEntity_OnClick(object sender, RoutedEventArgs e)

@@ -844,8 +844,8 @@ public class RiggedModelLoader
                 foreach (var keyList in nodeAnimLists.RotationKeys)
                 {
                     var oaq = keyList.Value;
-                    nodeAnim.QrotTime.Add(keyList.Time / assimpAnim.TicksPerSecond);
-                    nodeAnim.Qrot.Add(oaq.ToMonoGame());
+                    nodeAnim.RotationTime.Add(keyList.Time / assimpAnim.TicksPerSecond);
+                    nodeAnim.Rotation.Add(oaq.ToMonoGame());
                 }
                 foreach (var keyList in nodeAnimLists.PositionKeys)
                 {

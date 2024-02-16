@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Helpers;
+using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Game;
@@ -113,17 +114,16 @@ public partial class EntitiesControl : UserControl
         }
         _isSelectionTriggerActive = false;
 
-        var gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-        SceneComponent? selectedEntity = null;
-        if (gizmoComponent.Gizmo.Selection.Count > 0)
+        SceneComponent? selectedSceneComponent = null;
+        if (_gizmoComponent.Gizmo.Selection.Count > 0)
         {
-            selectedEntity = (SceneComponent)gizmoComponent.Gizmo.Selection[0];
+            selectedSceneComponent = (SceneComponent)_gizmoComponent.Gizmo.Selection[0];
         }
 
-        if (selectedEntity != null)
+        if (selectedSceneComponent != null)
         {
             var entitiesViewModel = DataContext as EntityListViewModel;
-            SetSelectedItem(entitiesViewModel.GetFromEntity(selectedEntity.Owner));
+            SetSelectedItem(entitiesViewModel.GetFromEntity(selectedSceneComponent.Owner));
         }
 
         _isSelectionTriggerActive = true;
@@ -161,23 +161,56 @@ public partial class EntitiesControl : UserControl
 
     private void SetSelectedItem(EntityViewModel? selectedEntity)
     {
-        if (selectedEntity != null)
+        if (selectedEntity != null && SelectedItem != selectedEntity)
         {
             SelectedItem = selectedEntity;
-
-            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(selectedEntity) is TreeViewItem treeViewItem)
-            {
-                treeViewItem.IsSelected = true;
-            }
+            SelectTreeViewItem(SelectedItem);
         }
         else
         {
             foreach (var item in TreeViewEntities.ItemContainerGenerator.Items)
             {
-                if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(item) is TreeViewItem treeViewItem)
+                SelectTreeViewItem(item as EntityViewModel, false, false, true, false);
+            }
+        }
+    }
+
+    private void SelectTreeViewItem(EntityViewModel entityViewModel, bool alterExpand = true, bool expand = true, bool alterSelect = true, bool select = true)
+    {
+        Stack<EntityViewModel> parents = new();
+        parents.Push(entityViewModel);
+        var root = entityViewModel;
+
+        while (root != null)
+        {
+            parents.Push(root);
+            root = root.Parent;
+        }
+
+        ItemsControl itemsControl = TreeViewEntities;
+
+        while (parents.TryPop(out var entity))
+        {
+            if (itemsControl.ItemContainerGenerator.ContainerFromItem(entity) is TreeViewItem treeViewItem)
+            {
+                itemsControl = treeViewItem;
+
+                if (alterExpand)
                 {
-                    treeViewItem.IsSelected = false;
+                    treeViewItem.IsExpanded = expand;
                 }
+
+                if (alterSelect)
+                {
+                    treeViewItem.IsSelected = select;
+
+                    if (select)
+                    {
+                        treeViewItem.BringIntoView();
+                    }
+                }
+
+                treeViewItem.UpdateLayout();
             }
         }
     }

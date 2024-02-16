@@ -83,6 +83,7 @@ public partial class AssetSelectorControl : UserControl
     private void SetAssetInfoDescription(AssetInfo assetInfo)
     {
         AssetFullPath = assetInfo.FileName;
+        AssetId = assetInfo.Id;
     }
 
     protected static void OnComponentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)

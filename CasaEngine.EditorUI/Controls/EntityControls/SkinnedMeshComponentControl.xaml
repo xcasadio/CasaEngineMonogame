@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="CasaEngine.EditorUI.Controls.EntityControls.SkinnedMeshComponentControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
+             xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto" MinHeight="40"/>
+        </Grid.RowDefinitions>
+
+        <common:AssetSelectorControl Grid.Row="0" AssetId="{Binding SkinnedMeshComponentViewModel.RiggedModelAssetId, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}, Mode=TwoWay}"/>
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <TextBlock Text="Number of bones " />
+            <TextBlock Text="{Binding SkinnedMeshComponentViewModel.NumberOfBones, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}}" />
+        </StackPanel>
+        <TextBlock Grid.Row="2" Text="Animations" />
+        <ListBox Grid.Row="3" ItemsSource="{Binding SkinnedMeshComponentViewModel.Animations, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}}" 
+                 DisplayMemberPath="Name">
+
+        </ListBox>
+    </Grid>
+</UserControl>

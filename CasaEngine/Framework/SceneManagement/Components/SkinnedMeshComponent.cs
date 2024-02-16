@@ -34,6 +34,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
         if (SkinnedMeshAssetId != Guid.Empty)
         {
+            SkinnedMesh = world.Game.AssetContentManager.Load<SkinnedMesh>(SkinnedMeshAssetId);
             SkinnedMesh?.Initialize(Owner.World.Game.AssetContentManager);
         }
     }

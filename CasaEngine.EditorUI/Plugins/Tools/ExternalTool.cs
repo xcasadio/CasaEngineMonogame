@@ -1,23 +1,18 @@
 ﻿using System;
-using System.Windows.Forms;
+using System.Windows;
 
 namespace CasaEngine.EditorUI.Plugins.Tools;
 
 public class ExternalTool
 {
-    public Form Window
+    public Window Window
     {
         get;
         private set;
     }
 
-    public ExternalTool(Form @for)
+    public ExternalTool(Window? window)
     {
-        if (@for == null)
-        {
-            throw new ArgumentNullException("ExternalTool() : Form is null");
-        }
-
-        Window = @for;
+        Window = window ?? throw new ArgumentNullException(nameof(window));
     }
 }

@@ -491,18 +491,18 @@ public class RiggedModel
 
             var nodeAnim = n;
             // 
-            Quaternion q2 = nodeAnim.Qrot[0];
+            Quaternion q2 = nodeAnim.Rotation[0];
             Vector3 p2 = nodeAnim.Position[0];
             Vector3 s2 = nodeAnim.Scale[0];
-            double tq2 = nodeAnim.QrotTime[0];
+            double tq2 = nodeAnim.RotationTime[0];
             double tp2 = nodeAnim.PositionTime[0]; ;
             double ts2 = nodeAnim.ScaleTime[0];
             // 
             int i1 = 0;
-            Quaternion q1 = nodeAnim.Qrot[i1];
+            Quaternion q1 = nodeAnim.Rotation[i1];
             Vector3 p1 = nodeAnim.Position[i1];
             Vector3 s1 = nodeAnim.Scale[i1];
-            double tq1 = nodeAnim.QrotTime[i1];
+            double tq1 = nodeAnim.RotationTime[i1];
             double tp1 = nodeAnim.PositionTime[i1];
             double ts1 = nodeAnim.ScaleTime[i1];
             // 
@@ -510,40 +510,40 @@ public class RiggedModel
             int pindex2 = 0; int pindex1 = 0;
             int sindex2 = 0; int sindex1 = 0;
             //
-            var qiat = nodeAnim.QrotTime[^1];
+            var qiat = nodeAnim.RotationTime[^1];
             if (animTime > qiat)
             {
-                tq1 = nodeAnim.QrotTime[^1];
-                q1 = nodeAnim.Qrot[^1];
-                tq2 = nodeAnim.QrotTime[0] + durationSecs;
-                q2 = nodeAnim.Qrot[0];
-                qindex1 = nodeAnim.Qrot.Count - 1;
+                tq1 = nodeAnim.RotationTime[^1];
+                q1 = nodeAnim.Rotation[^1];
+                tq2 = nodeAnim.RotationTime[0] + durationSecs;
+                q2 = nodeAnim.Rotation[0];
+                qindex1 = nodeAnim.Rotation.Count - 1;
                 qindex2 = 0;
             }
             else
             {
                 //
-                for (int frame2 = nodeAnim.Qrot.Count - 1; frame2 > -1; frame2--)
+                for (int frame2 = nodeAnim.Rotation.Count - 1; frame2 > -1; frame2--)
                 {
-                    var t = nodeAnim.QrotTime[frame2];
+                    var t = nodeAnim.RotationTime[frame2];
                     if (animTime <= t)
                     {
                         //1___
-                        q2 = nodeAnim.Qrot[frame2];
-                        tq2 = nodeAnim.QrotTime[frame2];
+                        q2 = nodeAnim.Rotation[frame2];
+                        tq2 = nodeAnim.RotationTime[frame2];
                         qindex2 = frame2; // for output to console only
                                           //2___
                         var frame1 = frame2 - 1;
                         if (frame1 < 0)
                         {
-                            frame1 = nodeAnim.Qrot.Count - 1;
-                            tq1 = nodeAnim.QrotTime[frame1] - durationSecs;
+                            frame1 = nodeAnim.Rotation.Count - 1;
+                            tq1 = nodeAnim.RotationTime[frame1] - durationSecs;
                         }
                         else
                         {
-                            tq1 = nodeAnim.QrotTime[frame1];
+                            tq1 = nodeAnim.RotationTime[frame1];
                         }
-                        q1 = nodeAnim.Qrot[frame1];
+                        q1 = nodeAnim.Rotation[frame1];
                         qindex1 = frame1; // for output to console only
                     }
                 }
@@ -709,10 +709,10 @@ public class RiggedModel
         // in model tick time
         public readonly List<double> PositionTime = new();
         public readonly List<double> ScaleTime = new();
-        public readonly List<double> QrotTime = new();
+        public readonly List<double> RotationTime = new();
         public readonly List<Vector3> Position = new();
         public readonly List<Vector3> Scale = new();
-        public readonly List<Quaternion> Qrot = new();
+        public readonly List<Quaternion> Rotation = new();
 
         // the actual calculated interpolation orientation matrice based on time.
         public double[] FrameOrientationTimes;

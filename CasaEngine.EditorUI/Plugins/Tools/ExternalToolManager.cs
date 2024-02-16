@@ -142,7 +142,7 @@ public class ExternalToolManager
             }
 
             if (tool == null
-                || tool.ExternalTool.Window.IsDisposed)
+                || tool.ExternalTool.Window.IsActive)
             {
 #if !DEBUG
                 try
@@ -176,7 +176,7 @@ public class ExternalToolManager
 
     private void CloseAllSubEditor()
     {
-        foreach (var p in _customEditors.Where(p => p.Value.ExternalTool.Window is { IsDisposed: false }))
+        foreach (var p in _customEditors.Where(p => p.Value.ExternalTool.Window is { IsActive: true }))
         {
             p.Value.ExternalTool.Window.Close();
         }

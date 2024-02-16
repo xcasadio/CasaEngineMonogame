@@ -170,7 +170,14 @@
           }
         },
         "components": [],
-        "script_class_name": null
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 8,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
       }
     },
     {
@@ -178,14 +185,14 @@
       "name": "box",
       "initial_coordinates": {
         "position": {
-          "x": 0.0,
-          "y": 3.0,
+          "x": -7.888364,
+          "y": 0.0,
           "z": 0.0
         },
         "scale": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 1.0
+          "x": 0.09999993,
+          "y": 0.09999993,
+          "z": 0.09999993
         },
         "rotation": {
           "x": 0.0,
@@ -258,6 +265,225 @@
           "y": 0.0,
           "z": 0.0,
           "w": 1.0
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "68a75d65-854e-4317-b414-36cc966254df",
+        "name": "ground",
+        "root_component": {
+          "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
+          "name": "StaticMeshComponent",
+          "type": "StaticMeshComponent",
+          "coordinates": {
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 100.0,
+              "y": 1.0,
+              "z": 100.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [
+            {
+              "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
+              "name": "BoxCollisionComponent",
+              "type": "BoxCollisionComponent",
+              "coordinates": {
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "scale": {
+                  "x": 100.0,
+                  "y": 1.0,
+                  "z": 100.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0
+                }
+              },
+              "children_component": [],
+              "physics_definition": {
+                "physics_type": "Static",
+                "additional_angular_damping_factor": 0.01,
+                "additional_angular_damping_threshold_sqr": 0.01,
+                "additional_damping": false,
+                "additional_damping_factor": 0.005,
+                "additional_linear_damping_threshold_sqr": 0.01,
+                "angular_damping": 0.0,
+                "angular_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "angular_sleeping_threshold": 1.0,
+                "friction": 0.5,
+                "linear_damping": 0.0,
+                "linear_factor": {
+                  "x": 1.0,
+                  "y": 1.0,
+                  "z": 1.0
+                },
+                "linear_sleeping_threshold": 0.8,
+                "local_inertia": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "mass": 0.0,
+                "restitution": 0.0,
+                "rolling_friction": 0.0,
+                "apply_gravity": true,
+                "debug_color": "null"
+              }
+            }
+          ],
+          "mesh": {
+            "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
+            "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2",
+            "primitive_type": "TriangleList",
+            "vertices": [
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.0,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": -0.5,
+                  "y": 0.0,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 0.0,
+                  "y": 1.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": -0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 0.0
+                }
+              },
+              {
+                "position": {
+                  "x": 0.5,
+                  "y": 0.0,
+                  "z": 0.5
+                },
+                "normal": {
+                  "x": 0.0,
+                  "y": 1.0,
+                  "z": 0.0
+                },
+                "texture_coordinate": {
+                  "x": 1.0,
+                  "y": 1.0
+                }
+              }
+            ],
+            "indices": [
+              0,
+              2,
+              1,
+              1,
+              2,
+              3
+            ],
+            "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131"
+          }
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 8,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "0c87b1c8-fa4a-415c-8d44-88f1e39f2858",
+        "name": "Box",
+        "root_component": {
+          "id": "e7182541-0efa-455c-a1cb-26f6c6d8b43a",
+          "name": "Object e7182541-0efa-455c-a1cb-26f6c6d8b43a",
+          "type": "SkinnedMeshComponent",
+          "coordinates": {
+            "position": {
+              "x": -7.888364,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 0.09999993,
+              "y": 0.09999993,
+              "z": 0.09999993
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "skinned_mesh_id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b"
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 9,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
         }
       }
     }

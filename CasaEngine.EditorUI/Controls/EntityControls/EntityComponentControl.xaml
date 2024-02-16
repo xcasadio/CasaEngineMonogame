@@ -314,9 +314,7 @@
 
         <DataTemplate x:Key="skinnedMeshComponentTemplate" DataType="{x:Type components:SkinnedMeshComponent}">
             <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <common:AssetSelectorControl AssetId="{Binding SkinnedMesh.RiggedModelAssetId, Mode=TwoWay}"/>
-                </Grid>
+                <entityControls:SkinnedMeshComponentControl/>
             </Expander>
         </DataTemplate>
 

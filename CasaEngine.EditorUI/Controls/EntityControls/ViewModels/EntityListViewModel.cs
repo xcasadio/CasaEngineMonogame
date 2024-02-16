@@ -61,11 +61,23 @@ public class EntityListViewModel
 
     public EntityViewModel? GetFromEntity(Entity entity)
     {
-        foreach (var entityViewModel in Entities)
+        return GetFromEntity(Entities[0], entity); // start with root
+    }
+
+    private EntityViewModel? GetFromEntity(EntityViewModel entityViewModel, Entity entity)
+    {
+        if (entityViewModel.Entity == entity)
         {
-            if (entityViewModel.Entity == entity)
+            return entityViewModel;
+        }
+
+        foreach (var childEntityViewModel in entityViewModel.Children)
+        {
+            var found = GetFromEntity(childEntityViewModel, entity);
+
+            if (found != null)
             {
-                return entityViewModel;
+                return found;
             }
         }
 
