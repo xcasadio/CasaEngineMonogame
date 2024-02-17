@@ -8,13 +8,14 @@ I developed this engine with the aim of migrating all my game projects to the sa
 You are welcome, you can contact me with [GitHub Discussions](https://github.com/xcasadio/CasaEngineMonogame/discussions).
 
 ## Features
-* Editor (based on [Stride3d](https://github.com/stride3d/stride))
+* Editor (based on [Unreal Engine](https://www.unrealengine.com) & [Stride3d](https://github.com/stride3d/stride))
   - World & Entity editor
   - 2D Graphics
     - Visualization : Sprites, Animations, Tiled map
   - Asset Manager
   - WPF Controls
     * [EditableTextBlock](https://www.codeproject.com/script/Articles/ViewDownloads.aspx?aid=31592)
+    * Vector, Quaternion control from [Stride3d](https://github.com/stride3d/stride)
 * UI
   - Neoforce ([NeoforceControls/Neoforce-Mono](https://github.com/NeoforceControls/Neoforce-Mono))
 * 2D
