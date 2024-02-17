@@ -185,14 +185,14 @@
       "name": "box",
       "initial_coordinates": {
         "position": {
-          "x": -7.888364,
-          "y": 0.0,
+          "x": 3.8999984,
+          "y": 2.0,
           "z": 0.0
         },
         "scale": {
-          "x": 0.09999993,
-          "y": 0.09999993,
-          "z": 0.09999993
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
         },
         "rotation": {
           "x": 0.0,
@@ -450,7 +450,7 @@
       "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
         "id": "0c87b1c8-fa4a-415c-8d44-88f1e39f2858",
-        "name": "Box",
+        "name": "Kid",
         "root_component": {
           "id": "e7182541-0efa-455c-a1cb-26f6c6d8b43a",
           "name": "Object e7182541-0efa-455c-a1cb-26f6c6d8b43a",

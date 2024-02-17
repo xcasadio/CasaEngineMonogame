@@ -514,5 +514,12 @@
     }
   },
   "components": [],
-  "script_class_name": null
+  "script_class_name": null,
+  "flow_graph": {
+    "type": "sequence",
+    "id": 13,
+    "name": "sequence",
+    "description": null,
+    "nodes": []
+  }
 }

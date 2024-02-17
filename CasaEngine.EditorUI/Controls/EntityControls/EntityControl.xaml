@@ -6,6 +6,7 @@
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
     <UserControl.Resources>
@@ -25,13 +26,14 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" FontSize="14" />
+            <wpfControls:EditableTextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" FontSize="14" />
             <Button Grid.Column="1" Click="ButtonRenameEntity_OnClick">
                 <Image Source="/Resources/icon_edit_16x16.png" Width="16" Height="16"/>
             </Button>
-            <Button Grid.Row="0" Grid.Column="1" Click="ButtonAddComponentClick">
+            <Button Grid.Column="2" Click="ButtonAddComponentClick">
                 <StackPanel Orientation="Horizontal">
                     <Image Source="/Resources/add-icon.png" Height="12" Width="12" Margin="0,0,2,0"/>
                     <TextBlock Text="Add" Padding="0"/>
@@ -39,7 +41,7 @@
             </Button>
         </Grid>
 
-        <common:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
+        <wpfControls:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
                   ItemsSource="{Binding ComponentListViewModel.ComponentsViewModel}" MinHeight="25"
                   SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
             <!--TreeView.ContextMenu>
@@ -60,7 +62,7 @@
                     </Grid>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
-        </common:TreeViewEx>
+        </wpfControls:TreeViewEx>
 
         <ContentControl Grid.Row="2" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                         Content="{Binding SelectedComponent, RelativeSource={RelativeSource AncestorType=entityControls:EntityControl}}"

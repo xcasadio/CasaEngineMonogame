@@ -38,7 +38,7 @@ public class ComponentViewModel : NotifyPropertyChangeBase
             sceneComponent.AddChildComponent(componentToAdd);
             Children.Add(componentViewModel);
         }
-        else
+        else if (componentViewModel.Component != null)
         {
             Logs.WriteError($"Can't add the component {componentViewModel.Component.GetType().Name} to the actor {componentViewModel.Owner.Name}");
         }

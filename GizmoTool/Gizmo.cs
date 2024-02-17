@@ -213,9 +213,6 @@ namespace XNAGizmo
         private KeyboardState _currentKeys;
         private MouseState _lastMouseState, _currentMouseState;
 
-        public event EventHandler<List<ITransformable>> SelectionChanged;
-        public event EventHandler<List<ITransformable>> CopyTriggered;
-
         public Gizmo(GraphicsDevice graphics)
             : this(graphics, Matrix.Identity) { }
 
@@ -423,7 +420,11 @@ namespace XNAGizmo
             {
                 _lastIntersectionPosition = _intersectPosition;
 
-                if (WasButtonHeld(MouseButtons.Left) && ActiveAxis != GizmoAxis.None)
+                if (IsDeleteKeyPressed())
+                {
+                    DeleteSelectionEvent?.Invoke(this, Selection);
+                }
+                else if (WasButtonHeld(MouseButtons.Left) && ActiveAxis != GizmoAxis.None)
                 {
                     if (IsCopyKeyPressed())
                     {
@@ -749,6 +750,11 @@ namespace XNAGizmo
         //           _currentKeys.IsKeyDown(Keys.LeftShift) || _currentKeys.IsKeyDown(Keys.RightShift) ||
         //           _currentKeys.IsKeyDown(Keys.LeftAlt) || _currentKeys.IsKeyDown(Keys.RightAlt);
         //}
+
+        private bool IsDeleteKeyPressed()
+        {
+            return _currentKeys.IsKeyDown(Keys.Delete);
+        }
 
         private bool IsCopyKeyPressed()
         {
@@ -1554,6 +1560,10 @@ namespace XNAGizmo
 
         public event EventHandler GizmoModeChangedEvent;
         public event EventHandler TransformSpaceChangedEvent;
+
+        public event EventHandler<List<ITransformable>> DeleteSelectionEvent;
+        public event EventHandler<List<ITransformable>> SelectionChanged;
+        public event EventHandler<List<ITransformable>> CopyTriggered;
 
         private void OnTranslateEvent(ITransformable transformable, Vector3 delta)
         {

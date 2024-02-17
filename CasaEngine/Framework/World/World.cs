@@ -442,6 +442,7 @@ public sealed class World : ObjectBase
 
         _entities.Remove(entity);
         _octree.RemoveItem(entity);
+        entity.Destroy();
 
         EntityRemoved?.Invoke(this, entity);
     }

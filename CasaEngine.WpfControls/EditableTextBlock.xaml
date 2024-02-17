@@ -1,0 +1,36 @@
+﻿<UserControl x:Class="CasaEngine.WpfControls.EditableTextBlock"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CasaEngine.WpfControls"
+             mc:Ignorable="d" 
+             x:Name="mainControl"
+             d:DesignHeight="200" d:DesignWidth="2000"
+             
+             KeyDown="OnKeyDown"
+             MouseDoubleClick="OnMouseDoubleClick">
+    <UserControl.Resources>
+
+        <DataTemplate x:Key="EditModeTemplate">
+            <TextBox KeyDown="TextBox_KeyDown" Loaded="TextBox_Loaded" LostFocus="TextBox_LostFocus"
+                     Text="{Binding ElementName=mainControl, Path=Text, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0" BorderThickness="1" />
+        </DataTemplate>
+
+        <DataTemplate x:Key="DisplayModeTemplate">
+            <TextBlock Text="{Binding ElementName=mainControl, Path=Text}" Margin="5,3,5,3" />
+        </DataTemplate>
+
+        <Style TargetType="{x:Type local:EditableTextBlock}">
+            <Style.Triggers>
+                <Trigger Property="IsInEditMode" Value="True">
+                    <Setter Property="ContentTemplate" Value="{StaticResource EditModeTemplate}" />
+                </Trigger>
+                <Trigger Property="IsInEditMode" Value="False">
+                    <Setter Property="ContentTemplate" Value="{StaticResource DisplayModeTemplate}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+</UserControl>

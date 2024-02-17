@@ -11,8 +11,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.SceneManagement.Components;
-using Microsoft.Xna.Framework;
-using Xceed.Wpf.Toolkit.Primitives;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -33,7 +31,6 @@ public partial class EntityControl : UserControl
     public EntityControl()
     {
         InitializeComponent();
-
         treeViewComponents.ItemMoved = ItemMoved;
     }
 
@@ -134,7 +131,7 @@ public partial class EntityControl : UserControl
 
                     if (select)
                     {
-                        treeViewItem.BringIntoView(); 
+                        treeViewItem.BringIntoView();
                     }
                 }
 
@@ -156,7 +153,8 @@ public partial class EntityControl : UserControl
 
         if (inputTextBox.ShowDialog() == true)
         {
-            AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
+            entity.Name = inputTextBox.Text;
+            //AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
         }
     }
 
@@ -220,7 +218,7 @@ public partial class EntityControl : UserControl
         _gizmoComponent.Gizmo.Clear();
         _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
     }
-
+    /*
     private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: EntityComponent component })
@@ -228,7 +226,7 @@ public partial class EntityControl : UserControl
             var entityViewModel = DataContext as EntityViewModel;
             entityViewModel.ComponentListViewModel.RemoveComponent(component);
         }
-    }
+    }*/
 
     private void TreeView_KeyDown(object sender, KeyEventArgs e)
     {

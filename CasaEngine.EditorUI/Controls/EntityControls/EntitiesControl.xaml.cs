@@ -68,9 +68,28 @@ public partial class EntitiesControl : UserControl
 
         _gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
         _gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
+
+
+        _gizmoComponent.Gizmo.DeleteSelectionEvent -= OnDeleteSelectionEvent;
+        _gizmoComponent.Gizmo.DeleteSelectionEvent += OnDeleteSelectionEvent;
     }
 
-    private void OnCopyTriggered(object? sender, List<ITransformable> entities)
+    private void OnDeleteSelectionEvent(object? sender, List<ITransformable> selectionPool)
+    {
+        var entitiesViewModel = DataContext as EntityListViewModel;
+
+        var entities = selectionPool.Cast<SceneComponent>().Select(x => x.Owner).ToHashSet();
+
+        foreach (var entity in entities)
+        {
+            entitiesViewModel.Remove(entity);
+        }
+
+        _gizmoComponent.Gizmo.Clear();
+        SetSelectedItem(null);
+    }
+
+    private void OnCopyTriggered(object? sender, List<ITransformable> selectionPool)
     {
         if (!_isSelectionTriggerFromGizmoActive)
         {
@@ -82,9 +101,9 @@ public partial class EntitiesControl : UserControl
         var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
 
-        var actors = entities.Cast<SceneComponent>().Select(x => x.Owner).ToHashSet();
+        var entities = selectionPool.Cast<SceneComponent>().Select(x => x.Owner).ToHashSet();
 
-        foreach (var entity in actors)
+        foreach (var entity in entities)
         {
             var newEntity = entity.Clone();
             newEntity.Initialize();
@@ -141,6 +160,7 @@ public partial class EntitiesControl : UserControl
             return;
         }
 
+        _isSelectionTriggerActive = false;
         _isSelectionTriggerFromGizmoActive = false;
 
         var entityViewModel = e.NewValue as EntityViewModel;
@@ -156,6 +176,7 @@ public partial class EntitiesControl : UserControl
             SetSelectedItem(entityViewModel);
         }
 
+        _isSelectionTriggerActive = true;
         _isSelectionTriggerFromGizmoActive = true;
     }
 
@@ -209,8 +230,6 @@ public partial class EntitiesControl : UserControl
                         treeViewItem.BringIntoView();
                     }
                 }
-
-                treeViewItem.UpdateLayout();
             }
         }
     }
@@ -219,10 +238,15 @@ public partial class EntitiesControl : UserControl
     {
         if (e is { Key: Key.Delete, IsToggled: true })
         {
-            if (TreeViewEntities.ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem { DataContext: EntityViewModel entityViewModel })
+            if (TreeViewEntities.SelectedItem is EntityViewModel entityViewModel)
             {
                 var entitiesViewModel = DataContext as EntityListViewModel;
                 entitiesViewModel.Remove(entityViewModel);
+
+                if (entityViewModel.ComponentListViewModel?.RootComponentViewModel?.Component is SceneComponent sceneComponent)
+                {
+                    _gizmoComponent.Gizmo.Selection.Remove(sceneComponent);
+                }
             }
         }
     }
@@ -235,7 +259,8 @@ public partial class EntitiesControl : UserControl
             //TODO : Camera in front of the Object
             var sceneComponent = entityViewModel.Entity.RootComponent;
             var boundingBox = sceneComponent.BoundingBox;
-            var offset = sceneComponent.Forward * boundingBox.GetRadius();
+            //var offset = sceneComponent.Forward * boundingBox.GetRadius();
+            var offset = Game.GameManager.ActiveCamera.Forward * boundingBox.GetRadius();
             Game.GameManager.ActiveCamera.SetPositionAndTarget(sceneComponent.Position + offset, sceneComponent.Position);
         }
     }

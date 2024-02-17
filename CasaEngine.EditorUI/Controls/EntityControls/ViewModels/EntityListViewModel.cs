@@ -93,6 +93,17 @@ public class EntityListViewModel
         return new EntityViewModel(entity);
     }
 
+    public void Remove(Entity entity)
+    {
+        _lock = true;
+        var entityViewModel = GetFromEntity(entity);
+        if (entityViewModel != null)
+        {
+            _worldViewModel.RemoveActorChild(entityViewModel);
+        }
+        _lock = false;
+    }
+
     public void Remove(EntityViewModel entityViewModel)
     {
         _lock = true;

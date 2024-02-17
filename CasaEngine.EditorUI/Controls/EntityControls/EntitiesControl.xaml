@@ -5,10 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <common:TreeViewEx x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown"
+        <wpfControls:TreeViewEx x:Name="TreeViewEntities" SelectedItemChanged="OnSelectedItemChanged" KeyDown="TreeView_KeyDown"
                            ItemsSource="{Binding Entities}" MouseDoubleClick="OnMouseDoubleClick">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type viewModels:EntityViewModel}" ItemsSource="{Binding Children}">
@@ -24,6 +25,6 @@
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
 
-        </common:TreeViewEx>
+        </wpfControls:TreeViewEx>
     </Grid>
 </UserControl>

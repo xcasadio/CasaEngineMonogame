@@ -13,6 +13,15 @@ public class EntityViewModel : NotifyPropertyChangeBase
     public virtual string Name
     {
         get => Entity.Name;
+        set
+        {
+            if (value != Entity.Name && AssetCatalog.CanRename(value))
+            {
+                AssetCatalog.Rename(Entity.Id, value);
+                Entity.Name = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     public Entity Entity { get; }
