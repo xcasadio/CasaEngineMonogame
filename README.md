@@ -10,6 +10,8 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
 ## Features
 * Editor (based on [Unreal Engine](https://www.unrealengine.com) & [Stride3d](https://github.com/stride3d/stride))
   - World & Entity editor
+  - FlowGraph
+    * Create dynamically C# source code from graph (work in progress) (use [Flowgraph](https://github.com/xcasadio/FlowGraph) & [CSharpSyntax](https://github.com/pvginkel/CSharpSyntax))
   - 2D Graphics
     - Visualization : Sprites, Animations, Tiled map
   - Asset Manager
