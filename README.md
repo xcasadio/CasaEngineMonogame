@@ -13,6 +13,8 @@ You are welcome, you can contact me with [GitHub Discussions](https://github.com
   - 2D Graphics
     - Visualization : Sprites, Animations, Tiled map
   - Asset Manager
+  - WPF Controls
+    * [EditableTextBlock](https://www.codeproject.com/script/Articles/ViewDownloads.aspx?aid=31592)
 * UI
   - Neoforce ([NeoforceControls/Neoforce-Mono](https://github.com/NeoforceControls/Neoforce-Mono))
 * 2D
