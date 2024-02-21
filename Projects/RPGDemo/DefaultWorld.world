@@ -33,7 +33,14 @@
           "tile_map_data_asset_id": "08498547-ed57-47ae-9736-1f4c246350f1"
         },
         "components": [],
-        "script_class_name": null
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 18,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
       }
     },
     {
@@ -112,17 +119,98 @@
           "viewport": {
             "x": 0,
             "y": 0,
-            "w": 742,
-            "h": 342,
+            "w": 737,
+            "h": 380,
             "min_depth": 1.0,
             "max_depth": 1000.0
           },
-          "fieldOfView": 0.64356077
+          "fieldOfView": 0.7199188
         },
         "components": [],
-        "script_class_name": null
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 19,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "a2cdcc3b-6b27-459c-a629-72feabb1db00",
+        "name": "boxCollisionSign",
+        "root_component": {
+          "id": "e57b51ac-2c8f-431a-bf50-4350afd002d8",
+          "name": "Object e57b51ac-2c8f-431a-bf50-4350afd002d8",
+          "type": "BoxCollisionComponent",
+          "coordinates": {
+            "position": {
+              "x": 949.30865,
+              "y": 461.91608,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 32.0,
+              "y": 32.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "physics_definition": {
+            "physics_type": "Kinetic",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 0.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": false,
+            "debug_color": "null"
+          }
+        },
+        "components": [],
+        "script_class_name": "ScriptSign",
+        "flow_graph": {
+          "type": "sequence",
+          "id": 22,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
       }
     }
   ],
-  "script_class_name": "ScriptWorld"
+  "script_class_name": "ScriptWorld",
+  "game_mode_asset_id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb"
 }

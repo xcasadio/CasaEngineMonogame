@@ -1,12 +1,4 @@
-﻿//-----------------------------------------------------------------------------
-// Direction.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
-
-using Microsoft.Xna.Framework.Input;
+﻿using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Engine.Input.InputSequence;
 

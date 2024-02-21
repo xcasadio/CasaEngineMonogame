@@ -29,11 +29,11 @@ public class InputComponent : GameComponent
 
     //InputConfigurations _InputConfigurations = new InputConfigurations();
     private ButtonConfiguration _buttonConfiguration;
-    private InputSequence.InputManager.KeyState[] _keysState;
+    private InputManager.KeyState[] _keysState;
 
-    private readonly InputSequence.InputManager[] _inputManager;
+    private readonly InputManager[] _inputManager;
 
-    public InputSequence.InputManager.KeyState[] KeysState => _keysState;
+    public InputManager.KeyState[] KeysState => _keysState;
 
     public Point MousePos => new(_mouseState.X, _mouseState.Y);
 
@@ -64,6 +64,8 @@ public class InputComponent : GameComponent
     public bool MouseLeftButtonJustPressed => _mouseState.LeftButton == ButtonState.Pressed && _mouseStateLastFrame.LeftButton == ButtonState.Released;
     public bool MouseRightButtonJustPressed => _mouseState.RightButton == ButtonState.Pressed && _mouseStateLastFrame.RightButton == ButtonState.Released;
     public Point MouseDraggingAmount => new(_startDraggingPos.X - MousePos.X, _startDraggingPos.Y - MousePos.Y);
+
+    public InputBindingsManager InputBindingsManager { get; } = new();
 
     public void ResetMouseDraggingAmount()
     {
@@ -606,7 +608,7 @@ public class InputComponent : GameComponent
     public void SetCurrentConfiguration(ButtonConfiguration buttonConfiguration)
     {
         _buttonConfiguration = buttonConfiguration;
-        _keysState = new InputSequence.InputManager.KeyState[_buttonConfiguration.ButtonCount];
+        _keysState = new InputManager.KeyState[_buttonConfiguration.ButtonCount];
     }
 
     /*public bool InputConfigButtonJustPressed(PlayerIndex index_, int code_)
@@ -634,11 +636,11 @@ public class InputComponent : GameComponent
 
         UpdateOrder = (int)ComponentUpdateOrder.Input;
 
-        _inputManager = new InputSequence.InputManager[4];
+        _inputManager = new InputManager[4];
 
         for (var i = 0; i < _inputManager.Length; i++)
         {
-            _inputManager[i] = new InputSequence.InputManager();
+            _inputManager[i] = new InputManager();
         }
 
         //TODO : add default config
@@ -683,6 +685,8 @@ public class InputComponent : GameComponent
         _mouseStateLastFrame = _mouseState;
         _mouseState = _mouseStateProvider.GetState();
 #endif
+
+        InputBindingsManager.Update(GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime));
 
         // Update mouseXMovement and mouseYMovement
         _lastMouseXMovement += _mouseState.X - _mouseStateLastFrame.X;
@@ -761,7 +765,7 @@ public class InputComponent : GameComponent
         base.Update(gameTime);
     }
 
-    public InputSequence.InputManager GetInputManager(PlayerIndex index)
+    public InputManager GetInputManager(PlayerIndex index)
     {
         return _inputManager[(int)index];
     }

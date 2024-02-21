@@ -2,6 +2,7 @@ using System;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using Microsoft.Xna.Framework;
@@ -12,7 +13,7 @@ public class ThrowableWeapon : Weapon
 {
     private readonly string _entityName;
 
-    public ThrowableWeapon(CasaEngineGame game, string entityName) : base(game, null)
+    public ThrowableWeapon(World world, string entityName) : base(world, null)
     {
         _entityName = entityName;
     }
@@ -24,7 +25,7 @@ public class ThrowableWeapon : Weapon
 
     public override void Attach()
     {
-        var entity = Game.SpawnEntity(_entityName);
+        var entity = World.SpawnEntity<Entity>(_entityName);
         InitializeEntity(entity);
     }
 

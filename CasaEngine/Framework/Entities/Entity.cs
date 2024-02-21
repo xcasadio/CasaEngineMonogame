@@ -101,7 +101,7 @@ public class Entity : ObjectBase
 #endif
     }
 
-    public Entity Clone()
+    public virtual Entity Clone()
     {
         return new Entity(this);
     }

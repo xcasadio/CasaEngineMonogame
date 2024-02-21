@@ -85,7 +85,7 @@ public class AssetContentManager
 
         if (categoryAssetList.Get(id, out var asset))
         {
-            return (T)asset;
+            //return (T)asset;
         }
 
         var type = typeof(T);

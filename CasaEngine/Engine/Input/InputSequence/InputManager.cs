@@ -1,13 +1,6 @@
-﻿//-----------------------------------------------------------------------------
-// InputManager.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
+﻿namespace CasaEngine.Engine.Input.InputSequence;
 
-namespace CasaEngine.Engine.Input.InputSequence;
-
-public partial class InputManager
+public class InputManager
 {
     public struct KeyState
     {
@@ -77,12 +70,12 @@ public partial class InputManager
         GamePadState lastGamePadState = GamePadState;
         KeyboardState lastKeyboardState = KeyboardState;
         GamePadState = GamePad.GetState(PlayerIndex);
-#if WINDOWS
+    #if WINDOWS
         if (PlayerIndex == PlayerIndex.One)
         {
             KeyboardState = Keyboard.GetState(PlayerIndex);
         }
-#endif            
+    #endif            
 
         // Expire old input.
         //TimeSpan time = gameTime.TotalRealTime;

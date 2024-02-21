@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Textures;
@@ -16,6 +17,10 @@ public partial class AssetSelectorControl : UserControl
 
     public static readonly DependencyProperty AssetIdItemProperty = DependencyProperty.Register(nameof(AssetId), typeof(Guid), typeof(AssetSelectorControl), new FrameworkPropertyMetadata(Guid.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnComponentPropertyChanged, null));
     public static readonly DependencyProperty AssetFullPathProperty = DependencyProperty.Register(nameof(AssetFullPath), typeof(string), typeof(AssetSelectorControl));
+
+    public delegate bool ValidateAssetDelegate(object owner, Guid assetId, string assetFullName);
+
+    public ValidateAssetDelegate? ValidateAsset { get; set; }
 
     public Guid AssetId
     {
@@ -39,43 +44,13 @@ public partial class AssetSelectorControl : UserControl
     private void SetAssetInfo_OnClick(object sender, RoutedEventArgs e)
     {
         var contentBrowserControl = this.FindParent<MainWindow>().ContentBrowserControl;
+        var selectedItem = contentBrowserControl.SelectedItem;
 
-        if (contentBrowserControl.SelectedItem != null && sender is FrameworkElement frameworkElement)
+        if (selectedItem != null && sender is FrameworkElement frameworkElement)
         {
-            if (frameworkElement.DataContext is TileMapComponent tileMapComponent
-                && System.IO.Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
-                Constants.FileNameExtensions.TileMap)
+            if (ValidateAsset?.Invoke(frameworkElement.DataContext, selectedItem.Id, selectedItem.FileName) ?? false)
             {
-                tileMapComponent.TileMapDataAssetId = contentBrowserControl.SelectedItem.Id;
-
-                SetAssetInfoDescription(contentBrowserControl.SelectedItem);
-            }
-            else if (frameworkElement.DataContext is StaticMeshComponent staticMeshComponent
-                     && System.IO.Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
-                     Constants.FileNameExtensions.Texture)
-            {
-                if (staticMeshComponent.Mesh != null)
-                {
-                    var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
-                    staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(contentBrowserControl.SelectedItem.Id);
-
-                    if (staticMeshComponent.Mesh.Texture?.Resource == null)
-                    {
-                        staticMeshComponent.Mesh.Texture.Load(assetContentManager);
-                    }
-
-                    SetAssetInfoDescription(contentBrowserControl.SelectedItem);
-                }
-            }
-            else if (frameworkElement.DataContext is SkinnedMeshComponent skinnedMeshComponent
-                      && System.IO.Path.GetExtension(contentBrowserControl.SelectedItem.FileName) ==
-                      Constants.FileNameExtensions.Model)
-            {
-                var assetContentManager = skinnedMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
-                skinnedMeshComponent.SkinnedMeshAssetId = contentBrowserControl.SelectedItem.Id;
-                skinnedMeshComponent.SkinnedMesh = assetContentManager.Load<SkinnedMesh>(contentBrowserControl.SelectedItem.Id);
-                skinnedMeshComponent.SkinnedMesh.Initialize(assetContentManager);
-                SetAssetInfoDescription(contentBrowserControl.SelectedItem);
+                SetAssetInfoDescription(selectedItem);
             }
         }
     }
@@ -86,7 +61,7 @@ public partial class AssetSelectorControl : UserControl
         AssetId = assetInfo.Id;
     }
 
-    protected static void OnComponentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+    private static void OnComponentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
     {
         var assetSelectorControl = (AssetSelectorControl)sender;
         assetSelectorControl.OnComponentPropertyChanged(e);
@@ -96,25 +71,5 @@ public partial class AssetSelectorControl : UserControl
     {
         var assetInfo = AssetCatalog.Get(AssetId);
         SetCurrentValue(AssetFullPathProperty, assetInfo != null ? assetInfo.FileName : NoAssetDefined);
-
-        //var isInitializing = !_templateApplied && _initializingProperty == null;
-        //if (isInitializing)
-        //{
-        //    _initializingProperty = e.Property;
-        //}
-        //
-        //if (!_interlock)
-        //{
-        //    _interlock = true;
-        //    Value = UpdateValueFromComponent(e.Property);
-        //    SetCurrentValue(XProperty, GetDisplayValue(_decomposedRotation.X));
-        //    _interlock = false;
-        //}
-        //
-        //UpdateBinding(e.Property);
-        //if (isInitializing)
-        //{
-        //    _initializingProperty = null;
-        //}
     }
 }

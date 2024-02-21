@@ -12,7 +12,8 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Column="0" Text="{Binding AssetFullPath, RelativeSource={RelativeSource AncestorType=common:AssetSelectorControl}}"/>
+        <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                   Text="{Binding AssetFullPath, RelativeSource={RelativeSource AncestorType=common:AssetSelectorControl}}"/>
         <Button Grid.Column="1" ToolTip="Put Selected Item in Content Browser" Click="SetAssetInfo_OnClick">
             <Image HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                    Source="/Resources/icon_left_arrow.png" />

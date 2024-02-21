@@ -6,8 +6,10 @@ using CasaEngine.Core.Maths;
 using CasaEngine.Core.Shapes;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
+using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
@@ -51,7 +53,6 @@ public partial class EntityComponentControl : UserControl
             expression?.UpdateTarget();
         }
     }
-
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
@@ -150,4 +151,38 @@ public partial class EntityComponentControl : UserControl
         }
     }
 
+    public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is StaticMeshComponent staticMeshComponent
+            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Texture)
+        {
+            if (staticMeshComponent.Mesh != null)
+            {
+                var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
+                staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(assetId);
+
+                if (staticMeshComponent.Mesh.Texture?.Resource == null)
+                {
+                    staticMeshComponent.Mesh.Texture.Load(assetContentManager);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool ValidateTileMapAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is TileMapComponent tileMapComponent
+            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.TileMap)
+        {
+            tileMapComponent.TileMapDataAssetId = assetId;
+
+            return true;
+        }
+
+        return false;
+    }
 }

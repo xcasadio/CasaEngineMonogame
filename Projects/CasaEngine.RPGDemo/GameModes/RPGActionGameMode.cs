@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.Gameplay;
+﻿using CasaEngine.Framework.GameFramework;
 
 namespace CasaEngine.RPGDemo.GameModes
 {

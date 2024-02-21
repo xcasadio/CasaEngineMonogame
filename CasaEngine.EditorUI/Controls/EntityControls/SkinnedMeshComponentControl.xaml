@@ -15,7 +15,8 @@
             <RowDefinition Height="auto" MinHeight="40"/>
         </Grid.RowDefinitions>
 
-        <common:AssetSelectorControl Grid.Row="0" AssetId="{Binding SkinnedMeshComponentViewModel.RiggedModelAssetId, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}, Mode=TwoWay}"/>
+        <common:AssetSelectorControl Grid.Row="0"  ValidateAsset="ValidateSkinnedMeshAsset"
+                                     AssetId="{Binding SkinnedMeshComponentViewModel.RiggedModelAssetId, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}, Mode=TwoWay}" />
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <TextBlock Text="Number of bones " />
             <TextBlock Text="{Binding SkinnedMeshComponentViewModel.NumberOfBones, RelativeSource={RelativeSource AncestorType=local:SkinnedMeshComponentControl}}" />

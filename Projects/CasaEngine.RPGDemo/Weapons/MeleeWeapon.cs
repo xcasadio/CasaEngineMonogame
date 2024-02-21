@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Weapons;
 
@@ -8,7 +9,7 @@ public class MeleeWeapon : Weapon
 {
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
-    public MeleeWeapon(CasaEngineGame game, Entity entity) : base(game, entity)
+    public MeleeWeapon(World world, Entity entity) : base(world, entity)
     {
     }
 

@@ -1,0 +1,36 @@
+﻿<Window x:Class="CasaEngine.EditorUI.Windows.Import3dFileOptionsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CasaEngine.EditorUI.Windows"
+        mc:Ignorable="d"
+        Title="Import 3d File Options" Height="auto" Width="211" Margin="5 0 5 5"
+        WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Model"/>
+        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="importModelCheckBox" IsChecked="true"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="1" Text="Animations"/>
+        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="importAnimationsCheckBox" IsChecked="true"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="Textures"/>
+        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="importTexturesCheckBox" IsChecked="true"/>
+
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="2" Orientation="Horizontal" FlowDirection="RightToLeft">
+            <Button Content="Cancel" Width="50" Click="ButtonCancelOnClick"/>
+            <Button Content="Ok" Width="50" Margin="5 0 0 0" Click="ButtonOkOnClick"/>
+        </StackPanel>
+    </Grid>
+</Window>

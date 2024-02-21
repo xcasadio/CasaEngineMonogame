@@ -1143,6 +1143,10 @@
     {
       "id": "37d88f5f-f1d5-4e65-b7a4-edba40da0aaf",
       "file_name": "Screens\\GameOver\\GameOverScreen.screen"
+    },
+    {
+      "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
+      "file_name": "RpgGameMode.gameMode"
     }
   ]
 }

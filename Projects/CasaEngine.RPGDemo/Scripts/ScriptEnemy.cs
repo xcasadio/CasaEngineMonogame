@@ -57,7 +57,7 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
         var animatedSprite = Owner.GetComponent<AnimatedSpriteComponent>();
         animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
 
-        Character.SetWeapon(new ThrowableWeapon(world.Game, "weapon_rock"));
+        Character.SetWeapon(new ThrowableWeapon(world, "weapon_rock"));
 
         var entity = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
         (Controller as EnemyController).PlayerHunted = (entity.GameplayProxy as IScriptCharacter).Character;

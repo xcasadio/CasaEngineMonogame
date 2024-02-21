@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
@@ -57,8 +58,8 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
         animatedSprite.SetCurrentAnimation("swordman_stand_right", true);
 
         //weapon
-        var weaponEntity = world.Game.SpawnEntity("weapon_sword");
-        Character.SetWeapon(new MeleeWeapon(world.Game, weaponEntity));
+        var weaponEntity = world.SpawnEntity<Entity>("weapon_sword");
+        Character.SetWeapon(new MeleeWeapon(world, weaponEntity));
         weaponEntity.IsVisible = false;
         weaponEntity.IsEnabled = false;
     }

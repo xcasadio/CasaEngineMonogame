@@ -106,8 +106,9 @@
                 <ContextMenu>
                     <MenuItem Header="Create">
                         <MenuItem Header="Entity" Click="MenuItemCreateEntity_OnClick" />
-                        <MenuItem Header="ScreenGui" Click="MenuItemCreateScreen_OnClick" />
+                        <MenuItem Header="Screen gui" Click="MenuItemCreateScreen_OnClick" />
                         <MenuItem Header="World" Click="MenuItemCreateWorld_OnClick" />
+                        <MenuItem Header="Game mode" Click="MenuItemCreateGameMode_OnClick" />
                     </MenuItem>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
                 </ContextMenu>

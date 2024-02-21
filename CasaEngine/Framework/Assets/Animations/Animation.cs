@@ -37,7 +37,6 @@ public class Animation
         }
 
         bool isFinished = false;
-        float lastTime = CurrentTime;
         CurrentTime += elapsedTime;
         float currentTime = CurrentTime;
 

@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Log;
+using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -83,7 +84,7 @@ public class RiggedModel
             GlobalShaderMatrixs[i] = Matrix.Identity;
         }
     }
-
+    /*
     /// <summary>
     /// As stated
     /// </summary>
@@ -104,7 +105,7 @@ public class RiggedModel
     public void SetEffectTexture(Texture2D texture)
     {
         Effect.Parameters["TextureA"].SetValue(texture);
-    }
+    }*/
 
     /// <summary>
     /// Convienience method pass the node let it set itself.
@@ -371,7 +372,7 @@ public class RiggedModel
     {
         public string Name = "";
         public int BoneShaderFinalTransformIndex = -1;
-        public RiggedModelNode Parent;
+        public RiggedModelNode? Parent;
         public readonly List<RiggedModelNode> Children = new();
 
         // probably don't need most of these they are from the debug phase.
@@ -461,7 +462,7 @@ public class RiggedModel
                 AnimatedNodes[i].FrameOrientationTimes = new double[TotalFrames];
 
                 // print name of node as we loop
-                Logs.WriteTrace("name " + AnimatedNodes[i].NodeName);
+                Logs.WriteTrace("name " + AnimatedNodes[i].Name);
 
                 // Loop destination frames.
                 for (int j = 0; j < TotalFrames; j++)
@@ -495,7 +496,7 @@ public class RiggedModel
             Vector3 p2 = nodeAnim.Position[0];
             Vector3 s2 = nodeAnim.Scale[0];
             double tq2 = nodeAnim.RotationTime[0];
-            double tp2 = nodeAnim.PositionTime[0]; ;
+            double tp2 = nodeAnim.PositionTime[0];
             double ts2 = nodeAnim.ScaleTime[0];
             // 
             int i1 = 0;
@@ -702,10 +703,10 @@ public class RiggedModel
     /// This is done for the simple reason of efficiency and scalable computational look up speed. 
     /// The trade off is a larger memory footprint per model that however can be mitigated.
     /// </summary>
-    public class RiggedAnimationNodes
+    public class RiggedAnimationNodes : ObjectBase
     {
         public RiggedModelNode NodeRef;
-        public string NodeName = "";
+
         // in model tick time
         public readonly List<double> PositionTime = new();
         public readonly List<double> ScaleTime = new();

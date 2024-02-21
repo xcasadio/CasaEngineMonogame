@@ -16,6 +16,7 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using EventArgs = System.EventArgs;
@@ -160,14 +161,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         Logs.WriteException((e.ExceptionObject as Exception)!);
     }
 
-    public Entity SpawnEntity(string assetName)
-    {
-        var assetInfo = AssetCatalog.Get(assetName);
-        var entity = AssetContentManager.Load<Entity>(assetInfo.Id).Clone();
-        GameManager.CurrentWorld.AddEntity(entity);
-        return entity;
-    }
-
     protected override void Initialize()
     {
         if (!string.IsNullOrWhiteSpace(_projectFileName))
@@ -238,6 +231,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         AssetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
+        AssetContentManager.RegisterAssetLoader(typeof(Pawn), new AssetLoader<Pawn>());
         AssetContentManager.RegisterAssetLoader(typeof(SkinnedMesh), new AssetLoader<SkinnedMesh>());
         AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
@@ -246,6 +240,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
         AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
         AssetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
+        AssetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
     }
 
     private void InitializeGui()

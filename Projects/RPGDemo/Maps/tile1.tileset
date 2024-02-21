@@ -1180,7 +1180,7 @@
     {
       "type": "Static",
       "id": 2996,
-      "collision_type": "None",
+      "collision_type": "Blocked",
       "is_breakable": false,
       "collision": "null",
       "location": {

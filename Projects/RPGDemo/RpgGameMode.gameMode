@@ -1,0 +1,7 @@
+{
+  "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
+  "name": "Object 42454808-0e3a-4c44-98a6-e3485e7ec9fb",
+  "default_pawn_asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
+  "player_controller_class": "PlayerController",
+  "hud_classClass": null
+}

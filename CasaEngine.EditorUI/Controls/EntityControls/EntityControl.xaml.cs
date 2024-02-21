@@ -7,6 +7,7 @@ using System.Windows.Input;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
+using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
@@ -252,9 +253,9 @@ public partial class EntityControl : UserControl
         {
             var gameplayScriptClassName = comboBox.SelectedValue as string;
 
-            if (componentViewModel is RootNodeComponentViewModel rootNodeComponentViewModel)
+            if (componentViewModel is RootNodeComponentViewModel rootNodeComponentViewModel
+                && rootNodeComponentViewModel.EntityViewModel is RootNodeEntityViewModel rootNodeEntityViewModel)
             {
-                var rootNodeEntityViewModel = (rootNodeComponentViewModel.EntityViewModel as RootNodeEntityViewModel);
                 rootNodeEntityViewModel.World.GameplayProxyClassName = gameplayScriptClassName;
             }
             else
@@ -262,5 +263,31 @@ public partial class EntityControl : UserControl
                 componentViewModel.Owner.GameplayProxyClassName = gameplayScriptClassName;
             }
         }
+    }
+
+    public bool ValidateDefaultPawnAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is RootNodeComponentViewModel rootNodeComponentViewModel
+            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Entity)
+        {
+            var rootNodeEntityViewModel = rootNodeComponentViewModel.EntityViewModel as RootNodeEntityViewModel;
+            rootNodeEntityViewModel.World.GameMode.DefaultPawnAssetId = assetId;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool ValidateGameModeAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is RootNodeComponentViewModel rootNodeComponentViewModel
+            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.GameMode)
+        {
+            var rootNodeEntityViewModel = rootNodeComponentViewModel.EntityViewModel as RootNodeEntityViewModel;
+            rootNodeEntityViewModel.World.GameModeAssetId = assetId;
+            return true;
+        }
+
+        return false;
     }
 }

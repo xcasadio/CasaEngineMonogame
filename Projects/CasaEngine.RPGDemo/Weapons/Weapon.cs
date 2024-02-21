@@ -1,12 +1,13 @@
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 
 namespace CasaEngine.RPGDemo.Weapons;
 
 public abstract class Weapon
 {
-    protected CasaEngineGame Game { get; }
+    protected World World { get; }
     private Character _character;
 
     public Entity Entity { get; }
@@ -21,9 +22,9 @@ public abstract class Weapon
         }
     }
 
-    protected Weapon(CasaEngineGame game, Entity entity)
+    protected Weapon(World world, Entity entity)
     {
-        Game = game;
+        World = world;
         Entity = entity;
     }
 

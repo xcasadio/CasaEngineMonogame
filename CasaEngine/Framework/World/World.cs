@@ -6,7 +6,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
@@ -29,12 +29,14 @@ public sealed class World : ObjectBase
     private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
 
+    private readonly List<PlayerController> _playerControllers = new();
+
     public CasaEngineGame Game { get; private set; }
     public IList<Entity> Entities => _entities;
     public IEnumerable<ScreenGui> Screens => _screens;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
-    public string GameModeClassName { get; set; }
+    public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
 
     //UGameViewportClient ViewportClient
@@ -49,6 +51,21 @@ public sealed class World : ObjectBase
     {
         ClearEntities(true);
         ClearScreens();
+    }
+
+    public Entity SpawnEntity<T>(string assetName) where T : Entity
+    {
+        var assetInfo = AssetCatalog.Get(assetName);
+        var entity = Game.AssetContentManager.Load<Entity>(assetInfo.Id).Clone();
+        AddEntity(entity);
+        return entity;
+    }
+
+    public T SpawnEntity<T>(Guid id) where T : Entity
+    {
+        var entity = Game.AssetContentManager.Load<T>(id).Clone();
+        AddEntity(entity);
+        return (T)entity;
     }
 
     public void AddEntity(Entity entity)
@@ -91,6 +108,18 @@ public sealed class World : ObjectBase
 
     private void LoadContent(bool withReference)
     {
+        if (GameModeAssetId != Guid.Empty)
+        {
+            GameMode = Game.AssetContentManager.Load<GameMode>(GameModeAssetId);
+        }
+        else // TODO remove this
+        {
+            GameMode = new GameMode();
+        }
+
+        GameMode.InitGame(this);
+        GameMode.MatchState = GameMode.EnteringMap;
+
         if (withReference)
         {
 #if EDITOR
@@ -103,6 +132,14 @@ public sealed class World : ObjectBase
             }
         }
 
+#if EDITOR
+        if (!Game.IsRunningInGameEditorMode)
+#endif
+        {
+            InitializePlayerControllers();
+        }
+
+        //after all entities are added
         InternalAddEntities();
 
 #if !EDITOR
@@ -123,19 +160,6 @@ public sealed class World : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
-        //TODO create gamemode
-        if (!string.IsNullOrWhiteSpace(GameModeClassName))
-        {
-            GameMode = ElementFactory.Create<GameMode>(GameModeClassName);
-        }
-        else // TODO remove this
-        {
-            GameMode = new GameMode();
-        }
-
-        GameMode.InitGame(this);
-        GameMode.MatchState = GameMode.EnteringMap;
-
 #if EDITOR
         if (Game.IsRunningInGameEditorMode)
 #endif
@@ -145,7 +169,19 @@ public sealed class World : ObjectBase
         }
     }
 
-    private CameraComponent? CreateDefaultCamera()
+    private void InitializePlayerControllers()
+    {
+        if (GameMode.DefaultPawnAssetId != Guid.Empty)
+        {
+            var pawn = SpawnEntity<Pawn>(GameMode.DefaultPawnAssetId);
+            var playerController = ElementFactory.Create<PlayerController>(GameMode.PlayerControllerClass);
+            playerController.Pawn = pawn;
+            playerController.Player = new LocalPlayer(); // TODO
+            _playerControllers.Add(playerController);
+        }
+    }
+
+    private CameraComponent CreateDefaultCamera()
     {
         var entityCamera = new Entity();
         var camera = new CameraLookAtComponent();
@@ -327,6 +363,11 @@ public sealed class World : ObjectBase
         }
 
         GameplayProxyClassName = element["script_class_name"].GetString();
+
+        if (element.ContainsKey("game_mode_asset_id"))
+        {
+            GameModeAssetId = element["game_mode_asset_id"].GetGuid();
+        }
     }
 
     public void AddScreen(ScreenGui screenGui)
@@ -364,6 +405,24 @@ public sealed class World : ObjectBase
         }
 
         _screens.Clear();
+    }
+
+    public bool IsPlayerController(Entity entity)
+    {
+        return GetPlayerController(entity) != null;
+    }
+
+    public PlayerController? GetPlayerController(Entity entity)
+    {
+        foreach (var playerController in _playerControllers)
+        {
+            if (playerController.Pawn == entity)
+            {
+                return playerController;
+            }
+        }
+
+        return null;
     }
 
 #if EDITOR
@@ -469,6 +528,8 @@ public sealed class World : ObjectBase
         jObject.Add("entity_references", entitiesJArray);
 
         jObject.Add("script_class_name", GameplayProxyClassName);
+
+        jObject.Add("game_mode_asset_id", GameModeAssetId);
     }
 
 #endif

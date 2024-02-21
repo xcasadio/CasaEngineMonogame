@@ -833,11 +833,11 @@ public class RiggedModelLoader
             {
                 var nodeAnimLists = assimpAnim.NodeAnimationChannels[j];
                 var nodeAnim = new RiggedModel.RiggedAnimationNodes();
-                nodeAnim.NodeName = nodeAnimLists.NodeName;
+                nodeAnim.Name = nodeAnimLists.NodeName;
 
                 // Set the reference to the node for node name by the model method that searches for it.
                 var modelnoderef = ModelGetRefToNode(nodeAnimLists.NodeName, model.RootNodeOfTree);
-                //var modelnoderef = model.SearchNodeTreeByNameGetRefToNode(nodeAnimLists.NodeName);
+                //var modelnoderef = model.SearchNodeTreeByNameGetRefToNode(nodeAnimLists.Name);
                 nodeAnim.NodeRef = modelnoderef;
 
                 // Place all the different keys lists rot scale pos into this nodes elements lists.
@@ -865,29 +865,7 @@ public class RiggedModelLoader
             // Place the animation into the model.
             model.OriginalAnimations.Add(modelAnim);
         }
-        //return model;
     }
-
-    /*  well need this later on if we want these other standard types of animations
-            Logs.WriteTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
-            Logs.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
-            foreach (var chan in anim.MeshAnimationChannels)
-            {
-                Logs.WriteTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
-                Logs.WriteTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
-                Logs.WriteTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
-                //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
-            }
-            Logs.WriteTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
-            foreach (var chan in anim.MeshMorphAnimationChannels)
-            {
-                Logs.WriteTrace($"  Channel {chan.Name}");
-                Logs.WriteTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
-                Logs.WriteTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
-                //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
-            }
-     */
-
 
     /*
        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1184,6 +1162,26 @@ public class RiggedModelLoader
             Logs.WriteTrace($"  Node Animation Channels: {anim.NodeAnimationChannelCount} ");
             Logs.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
             Logs.WriteTrace($"  Mesh Morph     Channels: {anim.MeshMorphAnimationChannelCount} ");
+
+            //TODO
+            //  well need this later on if we want these other standard types of animations
+            Logs.WriteTrace($"  HasMeshAnimations: {anim.HasMeshAnimations} ");
+            Logs.WriteTrace($"  Mesh Animation Channels: {anim.MeshAnimationChannelCount} ");
+            foreach (var chan in anim.MeshAnimationChannels)
+            {
+                Logs.WriteTrace($"  Channel MeshName {chan.MeshName}");        // the node name has to be used to tie this channel to the originally printed hierarchy.  BTW, node names must be unique.
+                Logs.WriteTrace($"    HasMeshKeys: {chan.HasMeshKeys}");       // access via chan.PositionKeys
+                Logs.WriteTrace($"    MeshKeyCount: {chan.MeshKeyCount}");       // 
+                //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshKeys}");        // 
+            }
+            Logs.WriteTrace($"  Mesh Morph Channels: {anim.MeshMorphAnimationChannelCount} ");
+            foreach (var chan in anim.MeshMorphAnimationChannels)
+            {
+                Logs.WriteTrace($"  Channel {chan.Name}");
+                Logs.WriteTrace($"    HasMeshMorphKeys: {chan.HasMeshMorphKeys}");       // 
+                Logs.WriteTrace($"     MeshMorphKeyCount: {chan.MeshMorphKeyCount}");       // 
+                //Logs.WriteTrace($"    Scaling  Keys: {chan.MeshMorphKeys}");        // 
+            }
         }
         Logs.WriteTrace("");
         Logs.WriteTrace("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -1366,11 +1364,6 @@ public class RiggedModelLoader
             }
         }
     }
-
-
-
-    /*
-   */
 
     //=============================================================================
     /// <summary> Can be removed later or disregarded this is mainly for debuging. </summary>

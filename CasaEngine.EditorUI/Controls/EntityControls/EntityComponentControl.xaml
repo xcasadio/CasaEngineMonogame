@@ -307,7 +307,9 @@
                         <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
                     </StackPanel>
 
-                    <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"/>
+                    <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                                 AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"
+                                                 ValidateAsset="ValidateStaticMeshAsset"/>
                 </Grid>
             </Expander>
         </DataTemplate>
@@ -385,7 +387,8 @@
         <DataTemplate x:Key="tileMapComponentTemplate" DataType="{x:Type components:TileMapComponent}">
             <Expander Header="Tile map" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <Grid>
-                    <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"/>
+                    <common:AssetSelectorControl AssetId="{Binding TileMapDataAssetId, Mode=TwoWay}"
+                                                 ValidateAsset="ValidateTileMapAsset"/>
                 </Grid>
             </Expander>
         </DataTemplate>

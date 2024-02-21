@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
@@ -20,12 +21,17 @@ public class FolderItem : ContentItem
     {
         get
         {
+            if (IsRoot())
+            {
+                return string.Empty;
+            }
+
             if (Parent.IsRoot())
             {
                 return Name;
             }
 
-            return IsRoot() ? string.Empty : System.IO.Path.Combine(Parent.Name, Name);
+            return System.IO.Path.Combine(Parent.Name, Name);
         }
     }
 

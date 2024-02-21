@@ -73,16 +73,27 @@
                         <DataTemplate>
                             <Expander Header="Script" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                                 <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Script classs name" VerticalAlignment="Center"/>
-                                    <ComboBox Grid.Row="1" Grid.Column="1" 
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Script class name" VerticalAlignment="Center"/>
+                                    <ComboBox Grid.Row="0" Grid.Column="1" 
                                               SelectionChanged="ComboBoxGameplayProxyClassName_OnSelectionChanged"
                                               SelectedValue="{Binding Path=EntityViewModel.Entity.GameplayProxyClassName, Mode=OneWay}" 
                                               ItemsSource="{Binding Source={StaticResource ExternalComponentRegistered}, Converter={StaticResource ExternalComponentConverter}}"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Game Mode" VerticalAlignment="Center"/>
+                                    <common:AssetSelectorControl Grid.Row="1" Grid.Column="1" ValidateAsset="ValidateGameModeAsset" AssetId="{Binding EntityViewModel.World.GameModeAssetId, Mode=TwoWay}"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Default Pawn" VerticalAlignment="Center"/>
+                                    <common:AssetSelectorControl Grid.Row="2" Grid.Column="1" ValidateAsset="ValidateDefaultPawnAsset" AssetId="{Binding EntityViewModel.World.GameMode.DefaultPawnAssetId, Mode=TwoWay}"/>
                                 </Grid>
                             </Expander>
                         </DataTemplate>

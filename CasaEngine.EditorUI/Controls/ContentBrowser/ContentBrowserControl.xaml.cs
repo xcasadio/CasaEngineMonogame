@@ -6,29 +6,28 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Assimp.Configs;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls;
+using CasaEngine.EditorUI.Controls.GameModeControls;
 using CasaEngine.EditorUI.Controls.GuiEditorControls;
 using CasaEngine.EditorUI.Controls.SpriteControls;
 using CasaEngine.EditorUI.Controls.TileMapControls;
 using CasaEngine.EditorUI.Controls.WorldControls;
+using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
-using CSharpSyntax;
 using Microsoft.Xna.Framework;
 using Utils;
-using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
@@ -132,6 +131,11 @@ public partial class ContentBrowserControl : UserControl
                 window.ActivateEditorControl<GuiEditorControl>();
                 guiEditorControl.OpenScreen(fileRelativePath);
                 break;
+            case Constants.FileNameExtensions.GameMode:
+                var gameModeEditorControl = window.GetEditorControl<GameModeEditorControl>();
+                window.ActivateEditorControl<GameModeEditorControl>();
+                gameModeEditorControl.OpenGameMode(fileRelativePath);
+                break;
         }
     }
 
@@ -230,14 +234,41 @@ public partial class ContentBrowserControl : UserControl
             var modelLoader = new ModelLoader();
             if (modelLoader.IsFileSupported(fullFileName))
             {
-                var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
-                CreateAllAssetsFromModel(riggedModel, assetContentManager, destinationFolderPath);
-                var skinnedMesh = new SkinnedMesh();
-                skinnedMesh.Initialize(assetContentManager);
-                skinnedMesh.SetRiggedModel(riggedModel);
-                skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
-                newAsset = skinnedMesh;
-                assetExtension = Constants.FileNameExtensions.Model;
+                var import3dFileOptionsWindow = new Import3dFileOptionsWindow();
+                import3dFileOptionsWindow.Owner = Application.Current.MainWindow;
+
+                if (import3dFileOptionsWindow.ShowDialog() == true)
+                {
+                    var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
+
+                    if (import3dFileOptionsWindow.ImportTextures)
+                    {
+                        ImportTexturesFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                    }
+
+                    if (import3dFileOptionsWindow.ImportAnimations)
+                    {
+                        ImportAnimationsFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                    }
+
+                    ImportAnimationsFromModel(riggedModel, assetContentManager, destinationFolderPath);
+
+                    if (import3dFileOptionsWindow.ImportModel == false)
+                    {
+                        return;
+                    }
+
+                    var skinnedMesh = new SkinnedMesh();
+                    skinnedMesh.Initialize(assetContentManager);
+                    skinnedMesh.SetRiggedModel(riggedModel);
+                    skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
+                    newAsset = skinnedMesh;
+                    assetExtension = Constants.FileNameExtensions.Model;
+                }
+                else
+                {
+                    return;
+                }
             }
             else if (Texture2DLoader.IsTextureFile(fullFileName))
             {
@@ -264,12 +295,22 @@ public partial class ContentBrowserControl : UserControl
         }
     }
 
-    private void CreateAllAssetsFromModel(RiggedModel riggedModel, AssetContentManager assetContentManager, string destinationFolderPath)
+    private void ImportTexturesFromModel(RiggedModel riggedModel, AssetContentManager assetContentManager,
+        string destinationFolderPath)
     {
         foreach (var textureFileName in riggedModel.Meshes.SelectMany(x => new[] { x.TextureName, x.TextureNormalMapName, x.TextureHeightMapName, x.TextureReflectionMapName })
                      .Where(x => x != null).Distinct())
         {
             ImportAssetFile(assetContentManager, textureFileName, destinationFolderPath);
+        }
+    }
+
+    private void ImportAnimationsFromModel(RiggedModel riggedModel, AssetContentManager assetContentManager, string destinationFolderPath)
+    {
+        foreach (var riggedAnimation in riggedModel.OriginalAnimations)
+        {
+            var animFileName = Path.Combine(destinationFolderPath, riggedAnimation.AnimationName + Constants.FileNameExtensions.SkeletonAnimation);
+            AssetSaver.SaveSkeletonAnimationFromRiggedModel(animFileName, riggedAnimation);
         }
     }
 
@@ -296,6 +337,11 @@ public partial class ContentBrowserControl : UserControl
     private void MenuItemCreateWorld_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new World(), Constants.FileNameExtensions.World);
+    }
+
+    private void MenuItemCreateGameMode_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateAsset(new GameMode(), Constants.FileNameExtensions.GameMode);
     }
 
     private void CreateAsset(ObjectBase objectBase, string extension)
@@ -511,7 +557,6 @@ public partial class ContentBrowserControl : UserControl
         return null;
     }
 
-    // This event occurs when TextBox loses focus
     private void TextBoxRename_LostFocus(object sender, RoutedEventArgs e)
     {
         (sender as FrameworkElement).Visibility = Visibility.Collapsed;

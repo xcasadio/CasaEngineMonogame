@@ -1,49 +1,15 @@
-
-/*
-Copyright (c) 2008-2012, Laboratorio de Investigación y Desarrollo en Visualización y Computación Gráfica - 
-                         Departamento de Ciencias e Ingeniería de la Computación - Universidad Nacional del Sur.
-All rights reserved.
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-•	Redistributions of source code must retain the above copyright, this list of conditions and the following disclaimer.
-
-•	Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
-    in the documentation and/or other materials provided with the distribution.
-
-•	Neither the name of the Universidad Nacional del Sur nor the names of its contributors may be used to endorse or promote products derived
-    from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
-TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
------------------------------------------------------------------------------------------------------------------------------------------------
-Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
------------------------------------------------------------------------------------------------------------------------------------------------
-
-*/
-
-
 using CasaEngine.Core.Design;
 using Microsoft.Xna.Framework;
-//using XNAFinalEngine.EngineCore;
 
 namespace CasaEngine.Engine.Input;
 
 public class Axis : Disposable
 {
-
-
     public enum AxisBehaviors
     {
         DigitalInput,
         AnalogInput,
-    } // AxisBehaviors
-
-
+    }
 
     // The value of the axis.
     private float _value;
@@ -55,8 +21,6 @@ public class Axis : Disposable
 
     // Previous values. Used for smooth input calculations.
     private readonly float[] _previousValues = new float[] { 0, 0 };
-
-
 
     public static List<Axis> Axes { get; set; }
 
@@ -88,34 +52,26 @@ public class Axis : Disposable
 
     public bool TemporalSmoothing { get; set; }
 
-
-
     public Axis()
     {
         DeadZone = 0.2f;
         Sensitivity = 2;
         Gravity = 2;
         Axes.Add(this);
-    } // Axis
+    }
 
     static Axis()
     {
         Axes = new List<Axis>();
-    } // Axis
-
-
+    }
 
     protected override void DisposeManagedResources()
     {
         Axes.Remove(this);
-    } // DisposeManagedResources
-
-
+    }
 
     internal void Update(float elapsedTime)
     {
-
-
         if (AxisBehavior == AxisBehaviors.DigitalInput)
         {
             // Check if the buttons were pressed.
@@ -171,13 +127,9 @@ public class Axis : Disposable
                 _value = MathHelper.Clamp(_value, -1, 1);
             }
         }
-
-
-
         else if (AxisBehavior == AxisBehaviors.AnalogInput)
         {
             _valueRaw = 0;
-
 
             if (AnalogAxis == AnalogAxes.MouseX)
             {
@@ -191,8 +143,6 @@ public class Axis : Disposable
             {
                 _valueRaw = Mouse.WheelDelta;
             }
-
-
 
             else if (AnalogAxis == AnalogAxes.LeftStickX)
             {
@@ -280,7 +230,6 @@ public class Axis : Disposable
                 }
             }
 
-
             // Invert if necessary.
             if (Invert)
             {
@@ -310,7 +259,6 @@ public class Axis : Disposable
             }
         }
 
-
         if (TemporalSmoothing)
         {
             // Average the input of the current frame with the previous values.
@@ -320,9 +268,7 @@ public class Axis : Disposable
             _previousValues[0] = storeValue;
         }
 
-    } // Update
-
-
+    }
 
     public static float Value(string axisName)
     {
@@ -342,7 +288,7 @@ public class Axis : Disposable
         }
 
         return maxValue;
-    } // Value
+    }
 
     public static float ValueRaw(string axisName)
     {
@@ -362,8 +308,6 @@ public class Axis : Disposable
         }
 
         return maxValue;
-    } // ValueRaw
+    }
 
-
-} // Axis
-  // XNAFinalEngine.Input
+}
