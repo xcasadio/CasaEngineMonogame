@@ -83,9 +83,10 @@ public class AssetContentManager
             _assetsDictionaryByCategory.Add(categoryName, categoryAssetList);
         }
 
-        if (categoryAssetList.Get(id, out var asset))
+        //TODO entity can be cache ?
+        if (typeof(T) != typeof(Entity) && categoryAssetList.Get(id, out var asset))
         {
-            //return (T)asset;
+            return (T)asset;
         }
 
         var type = typeof(T);
@@ -108,7 +109,7 @@ public class AssetContentManager
 
         if (newAsset is ObjectBase gameObject)
         {
-            gameObject.AssetId = assetInfo.Id;
+            gameObject.AssetId = id;
             gameObject.Name = assetInfo.Name;
             gameObject.FileName = assetInfo.FileName;
         }

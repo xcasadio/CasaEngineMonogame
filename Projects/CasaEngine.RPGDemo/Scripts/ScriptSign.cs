@@ -19,7 +19,7 @@ public class ScriptSign : GameplayProxy
         button.Name = "Action";
         button.KeyButton = new KeyButton(Keys.Enter);
         button.AlternativeKeyButton = new KeyButton(Buttons.A);
-        button.ButtonBehavior = Button.ButtonBehaviors.AnalogInput;
+        button.ButtonBehavior = Button.ButtonBehaviors.DigitalInput;
         Button.Buttons.Add(button);
     }
 
@@ -33,14 +33,16 @@ public class ScriptSign : GameplayProxy
 
     public override void OnHit(Collision collision)
     {
-        if (collision.ColliderA.Owner == Owner
-            && Owner.World.IsPlayerController(collision.ColliderB.Owner))
+        var otherEntity = collision.ColliderA.Owner == Owner ? collision.ColliderB.Owner : collision.ColliderA.Owner;
+        var playerController = Owner.World.GetPlayerController(otherEntity);
+
+        if (playerController != null)
         {
             if (_inputComponent.InputBindingsManager.GetInput("Action").IsKeyPressed)
             {
                 //create widget
-                var playerController = Owner.World.GetPlayerController(collision.ColliderB.Owner);
                 playerController.IsInputEnable = false;
+                System.Diagnostics.Debug.WriteLine("Read sign");
             }
         }
     }

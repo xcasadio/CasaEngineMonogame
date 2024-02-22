@@ -24,8 +24,9 @@ public class ObjectBase : ISerializable
         Name = "Object " + Id;
     }
 
-    public ObjectBase(ObjectBase other) : this()
+    public ObjectBase(ObjectBase other)
     {
+        Id = Guid.NewGuid();
         Name = other.Name;
         FileName = other.FileName;
     }

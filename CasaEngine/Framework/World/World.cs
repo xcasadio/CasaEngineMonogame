@@ -63,7 +63,7 @@ public sealed class World : ObjectBase
 
     public T SpawnEntity<T>(Guid id) where T : Entity
     {
-        var entity = Game.AssetContentManager.Load<T>(id).Clone();
+        var entity = Game.AssetContentManager.Load<T>(id, cache: false);
         AddEntity(entity);
         return (T)entity;
     }
@@ -122,15 +122,14 @@ public sealed class World : ObjectBase
 
         if (withReference)
         {
-#if EDITOR
-            //ClearEntities();
-#endif
-
             foreach (var entityReference in _entityReferences)
             {
                 LoadFromEntityReference(entityReference);
             }
         }
+
+        //after all entities are added
+        InternalAddEntities();
 
 #if EDITOR
         if (!Game.IsRunningInGameEditorMode)
@@ -138,9 +137,6 @@ public sealed class World : ObjectBase
         {
             InitializePlayerControllers();
         }
-
-        //after all entities are added
-        InternalAddEntities();
 
 #if !EDITOR
         //TODO : remove this, use a script to set active camera
@@ -178,6 +174,11 @@ public sealed class World : ObjectBase
             playerController.Pawn = pawn;
             playerController.Player = new LocalPlayer(); // TODO
             _playerControllers.Add(playerController);
+
+            var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
+            pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+
+            InternalAddEntities();
         }
     }
 
@@ -216,6 +217,24 @@ public sealed class World : ObjectBase
         {
             entity.GameplayProxy?.OnBeginPlay(this);
         }
+    }
+
+    private PlayerStartComponent GetPlayerStart(int playerIndex)
+    {
+        PlayerStartComponent playerStartComponent = null;
+
+        foreach (var entity in _entities)
+        {
+            playerStartComponent = entity.GetComponent<PlayerStartComponent>();
+
+            if (playerStartComponent != null)
+            {
+                //TODO : check player index
+                return playerStartComponent;
+            }
+        }
+
+        return playerStartComponent;
     }
 
     public void Update(float elapsedTime)
@@ -490,13 +509,20 @@ public sealed class World : ObjectBase
 
     public void RemoveEntityWithEditor(Entity entity)
     {
+        var entitiesToRemove = new List<EntityReference>();
+
         foreach (var entityReference in _entityReferences)
         {
-            if (entityReference.AssetId == entity.Id)
+            if (entityReference.Entity.Id == entity.Id)
             {
-                _entityReferences.Remove(entityReference);
+                entitiesToRemove.Add(entityReference);
                 break;
             }
+        }
+
+        foreach (var entityReference in entitiesToRemove)
+        {
+            _entityReferences.Remove(entityReference);
         }
 
         _entities.Remove(entity);

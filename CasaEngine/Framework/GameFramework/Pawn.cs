@@ -17,7 +17,7 @@ public class Pawn : Entity // , INavAgentInterface
 
     }
 
-    private Pawn(Pawn other)
+    private Pawn(Pawn other) : base(other)
     {
         _inputEnabled = other._inputEnabled;
     }

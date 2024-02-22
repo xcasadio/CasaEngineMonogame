@@ -44,28 +44,6 @@
       }
     },
     {
-      "asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
-      "name": "character_link",
-      "initial_coordinates": {
-        "position": {
-          "x": 60.0,
-          "y": 600.0,
-          "z": 0.3
-        },
-        "scale": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 1.0
-        },
-        "rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0,
-          "w": 1.0
-        }
-      }
-    },
-    {
       "asset_id": "afd86c38-7a42-40e6-92b8-58b0d2def9d7",
       "name": "character_octopus",
       "initial_coordinates": {
@@ -204,6 +182,46 @@
         "flow_graph": {
           "type": "sequence",
           "id": 22,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "319b6abd-e94a-45bd-a46a-a1cd1f5d12c1",
+        "name": "Player1 start",
+        "root_component": {
+          "id": "e21f83a2-e485-454f-bd67-07f992e5d73e",
+          "name": "Object e21f83a2-e485-454f-bd67-07f992e5d73e",
+          "type": "PlayerStartComponent",
+          "coordinates": {
+            "position": {
+              "x": 60.0,
+              "y": 600.0,
+              "z": 0.3
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": []
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 24,
           "name": "sequence",
           "description": null,
           "nodes": []

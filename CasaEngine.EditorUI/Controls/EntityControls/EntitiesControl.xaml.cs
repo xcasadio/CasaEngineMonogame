@@ -38,15 +38,13 @@ public partial class EntitiesControl : UserControl
         TreeViewEntities.ItemMoved = ItemMoved;
     }
 
-    private void ItemMoved(object item, object newparent)
+    private void ItemMoved(object item, object newParent)
     {
-        if (item is EntityViewModel entityViewModel && newparent is EntityViewModel parentEntityViewModel)
+        if (item is EntityViewModel entityViewModel
+            && entityViewModel is not RootNodeEntityViewModel
+            && newParent is EntityViewModel parentEntityViewModel)
         {
-            if (entityViewModel.Parent != null)
-            {
-                entityViewModel.Parent.RemoveActorChild(entityViewModel);
-            }
-
+            entityViewModel.Parent?.RemoveActorChild(entityViewModel);
             parentEntityViewModel.AddActorChild(entityViewModel);
         }
     }

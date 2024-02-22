@@ -170,12 +170,12 @@ public class Button : Disposable
         var foundValue = false;
         var foundAxis = false;
 
-        foreach (var axis in Buttons)
+        foreach (var button in Buttons)
         {
-            if (axis.Name == buttonName)
+            if (button.Name == buttonName)
             {
                 foundAxis = true;
-                foundValue = foundValue || axis._pressed;
+                foundValue = foundValue || button._pressed;
             }
         }
 
