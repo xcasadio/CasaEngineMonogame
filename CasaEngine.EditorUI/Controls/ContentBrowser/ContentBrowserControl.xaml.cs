@@ -17,6 +17,7 @@ using CasaEngine.EditorUI.Controls.TileMapControls;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
+using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
@@ -101,11 +102,6 @@ public partial class ContentBrowserControl : UserControl
                 window.ActivateEditorControl<EntityEditorControl>();
                 entityControl.OpenEntity(fileRelativePath);
                 break;
-            /*case Constants.FileNameExtensions.Entity:
-                var entityControlFlowGraph = window.GetEditorControl<EntityEditorControl>();
-                window.ActivateEditorControl<EntityEditorControl>();
-                entityControlFlowGraph.OpenEntity(fileRelativePath);
-                break;*/
             case Constants.FileNameExtensions.Sprite:
                 var spriteControl = window.GetEditorControl<SpriteEditorControl>();
                 window.ActivateEditorControl<SpriteEditorControl>();
@@ -135,6 +131,11 @@ public partial class ContentBrowserControl : UserControl
                 var gameModeEditorControl = window.GetEditorControl<GameModeEditorControl>();
                 window.ActivateEditorControl<GameModeEditorControl>();
                 gameModeEditorControl.OpenGameMode(fileRelativePath);
+                break;
+            case Constants.FileNameExtensions.ButtonsMapping:
+                var buttonsMappingControl = window.GetEditorControl<ButtonsMappingControl>();
+                window.ActivateEditorControl<ButtonsMappingControl>();
+                buttonsMappingControl.OpenButtonsMapping(fileRelativePath);
                 break;
         }
     }
@@ -342,6 +343,11 @@ public partial class ContentBrowserControl : UserControl
     private void MenuItemCreateGameMode_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new GameMode(), Constants.FileNameExtensions.GameMode);
+    }
+
+    private void MenuItemCreateButtonsMapping_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateAsset(new ButtonsMapping(), Constants.FileNameExtensions.ButtonsMapping);
     }
 
     private void CreateAsset(ObjectBase objectBase, string extension)

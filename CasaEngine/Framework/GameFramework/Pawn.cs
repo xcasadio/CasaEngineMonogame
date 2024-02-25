@@ -10,7 +10,9 @@ namespace CasaEngine.Framework.GameFramework;
  */
 public class Pawn : Entity // , INavAgentInterface
 {
-    bool _inputEnabled = true;
+    public bool InputEnabled { get; set; } = true;
+
+    public Controller Controller { get; set; }
 
     public Pawn()
     {
@@ -19,7 +21,7 @@ public class Pawn : Entity // , INavAgentInterface
 
     private Pawn(Pawn other) : base(other)
     {
-        _inputEnabled = other._inputEnabled;
+        InputEnabled = other.InputEnabled;
     }
 
     public override Pawn Clone()

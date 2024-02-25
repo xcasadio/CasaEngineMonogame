@@ -109,6 +109,7 @@
                         <MenuItem Header="Screen gui" Click="MenuItemCreateScreen_OnClick" />
                         <MenuItem Header="World" Click="MenuItemCreateWorld_OnClick" />
                         <MenuItem Header="Game mode" Click="MenuItemCreateGameMode_OnClick" />
+                        <MenuItem Header="Buttons mapping" Click="MenuItemCreateButtonsMapping_OnClick" />
                     </MenuItem>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>
                 </ContextMenu>

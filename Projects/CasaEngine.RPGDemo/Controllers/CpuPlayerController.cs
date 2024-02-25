@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers.CpuPlayerState;
 using Microsoft.Xna.Framework;
 using static CasaEngine.RPGDemo.Controllers.Character;
@@ -7,7 +8,7 @@ namespace CasaEngine.RPGDemo.Controllers;
 
 public class CpuPlayerController : AiController
 {
-    private CasaEngineGame _game;
+    private World world;
 
     public CpuPlayerController(Character character)
         : base(character)
@@ -15,11 +16,11 @@ public class CpuPlayerController : AiController
         //character.IsPLayer = true;
     }
 
-    public override void InitializePrivate(CasaEngineGame game)
+    public override void InitializePrivate(World world)
     {
-        base.InitializePrivate(game);
+        base.InitializePrivate(world);
 
-        _game = game;
+        world = world;
 
         AddState(0, new CpuPlayerIdleState());
         StateMachine.Transition(GetState(0));
@@ -35,7 +36,7 @@ public class CpuPlayerController : AiController
         var dir = Vector2.UnitX;
         var character2dDirection = Character2dDirection.Right;
 
-        if (Character.Position.X > _game.GraphicsDevice.Viewport.Width - 50)
+        if (Character.Position.X > world.Game.GraphicsDevice.Viewport.Width - 50)
         {
             Character.SetAnimation(AnimationIndices.Walk);
         }

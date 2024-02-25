@@ -1,0 +1,111 @@
+{
+  "id": "15eedf05-d2ad-4a26-b7f2-1f95c482fb17",
+  "name": "Button mapping swordman",
+  "buttons": [
+    {
+      "id": "e1d2480f-f8e1-45db-afa8-208dc915cdbd",
+      "name": "Action",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Enter",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "A",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "5735c014-2e68-4074-b86b-10259eaad6b1",
+      "name": "MoveRight",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "D",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftThumbstickRight",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "58d7ea93-2288-471c-a52f-196385b5bd3f",
+      "name": "MoveLeft",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Q",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftThumbstickLeft",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ccb71f27-856a-4869-9e99-0242248c141d",
+      "name": "MoveUp",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "Z",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftThumbstickUp",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    },
+    {
+      "id": "ba0c5466-c743-48a2-a22a-d5b67edfe692",
+      "name": "MoveDown",
+      "game_pad_number": "One",
+      "button_behavior": "DigitalInput",
+      "analog_axis": "MouseX",
+      "invert": false,
+      "dead_zone": 0.75,
+      "key_button": {
+        "key": "S",
+        "game_pad_button": "None",
+        "mouse_button": "LeftButton",
+        "input_device": "Keyboard"
+      },
+      "alternative_key_button": {
+        "key": "None",
+        "game_pad_button": "LeftThumbstickDown",
+        "mouse_button": "LeftButton",
+        "input_device": "GamePad"
+      }
+    }
+  ]
+}

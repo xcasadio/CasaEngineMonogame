@@ -19,7 +19,35 @@ public class ScriptSign : GameplayProxy
         button.Name = "Action";
         button.KeyButton = new KeyButton(Keys.Enter);
         button.AlternativeKeyButton = new KeyButton(Buttons.A);
-        button.ButtonBehavior = Button.ButtonBehaviors.DigitalInput;
+        button.ButtonBehavior = ButtonBehaviors.DigitalInput;
+        Button.Buttons.Add(button);
+
+        button = new Button();
+        button.Name = "MoveRight";
+        button.KeyButton = new KeyButton(Keys.D);
+        button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickRight);
+        button.ButtonBehavior = ButtonBehaviors.DigitalInput;
+        Button.Buttons.Add(button);
+
+        button = new Button();
+        button.Name = "MoveLeft";
+        button.KeyButton = new KeyButton(Keys.Q);
+        button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickLeft);
+        button.ButtonBehavior = ButtonBehaviors.DigitalInput;
+        Button.Buttons.Add(button);
+
+        button = new Button();
+        button.Name = "MoveUp";
+        button.KeyButton = new KeyButton(Keys.Z);
+        button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickUp);
+        button.ButtonBehavior = ButtonBehaviors.DigitalInput;
+        Button.Buttons.Add(button);
+
+        button = new Button();
+        button.Name = "MoveDown";
+        button.KeyButton = new KeyButton(Keys.S);
+        button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickDown);
+        button.ButtonBehavior = ButtonBehaviors.DigitalInput;
         Button.Buttons.Add(button);
     }
 

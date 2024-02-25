@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Controllers;
@@ -29,7 +30,7 @@ public class AiController : Controller
         //StateMachine.CurrentState = GetState(AIState.Idle);
     }
 
-    public override void InitializePrivate(CasaEngineGame game)
+    public override void InitializePrivate(World world)
     {
     }
 

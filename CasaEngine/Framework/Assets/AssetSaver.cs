@@ -7,10 +7,10 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
 
-public static class AssetSaver
-{
 #if EDITOR
 
+public static class AssetSaver
+{
     public static void SaveAsset(string fileName, ISerializable asset)
     {
         JObject rootObject = new();
@@ -56,6 +56,6 @@ public static class AssetSaver
 
         Logs.WriteInfo($"Save '{fileName}'");
     }
+}
 
 #endif
-}

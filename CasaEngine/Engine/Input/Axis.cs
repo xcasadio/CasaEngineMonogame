@@ -20,7 +20,7 @@ public class Axis : Disposable
     private float _valueRaw;
 
     // Previous values. Used for smooth input calculations.
-    private readonly float[] _previousValues = new float[] { 0, 0 };
+    private readonly float[] _previousValues = { 0, 0 };
 
     public static List<Axis> Axes { get; set; }
 
@@ -28,7 +28,7 @@ public class Axis : Disposable
 
     public AxisBehaviors AxisBehavior { get; set; }
 
-    public AnalogAxes AnalogAxis { get; set; }
+    public AnalogAxis AnalogAxis { get; set; }
 
     public KeyButton NegativeKeyButton { get; set; }
 
@@ -48,7 +48,7 @@ public class Axis : Disposable
 
     public bool Invert { get; set; }
 
-    public int GamePadNumber { get; set; }
+    public PlayerIndex GamePadNumber { get; set; }
 
     public bool TemporalSmoothing { get; set; }
 
@@ -110,11 +110,11 @@ public class Axis : Disposable
             {
                 if (_value > Gravity * elapsedTime)
                 {
-                    _value = _value - Gravity * elapsedTime;
+                    _value -= Gravity * elapsedTime;
                 }
                 else if (_value < -Gravity * elapsedTime)
                 {
-                    _value = _value + Gravity * elapsedTime;
+                    _value += Gravity * elapsedTime;
                 }
                 else
                 {
@@ -123,112 +123,25 @@ public class Axis : Disposable
             }
             else // Sensitivity: Speed in units per second that the the axis will move toward the target value. This is for digital devices only.
             {
-                _value = _value + Sensitivity * elapsedTime * _valueRaw;
+                _value += Sensitivity * elapsedTime * _valueRaw;
                 _value = MathHelper.Clamp(_value, -1, 1);
             }
         }
         else if (AxisBehavior == AxisBehaviors.AnalogInput)
         {
-            _valueRaw = 0;
-
-            if (AnalogAxis == AnalogAxes.MouseX)
+            _valueRaw = AnalogAxis switch
             {
-                _valueRaw = Mouse.DeltaX;
-            }
-            else if (AnalogAxis == AnalogAxes.MouseY)
-            {
-                _valueRaw = Mouse.DeltaY;
-            }
-            else if (AnalogAxis == AnalogAxes.MouseWheel)
-            {
-                _valueRaw = Mouse.WheelDelta;
-            }
-
-            else if (AnalogAxis == AnalogAxes.LeftStickX)
-            {
-                if (GamePadNumber > 0 && GamePadNumber < 5)
-                {
-                    _valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickX;
-                }
-                else
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
-                        if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickX))
-                        {
-                            _valueRaw = GamePad.Player(i).LeftStickX;
-                        }
-                    }
-                }
-            }
-            else if (AnalogAxis == AnalogAxes.LeftStickY)
-            {
-                if (GamePadNumber > 0 && GamePadNumber < 5)
-                {
-                    _valueRaw = GamePad.Player(GamePadNumber - 1).LeftStickY;
-                }
-                else
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
-                        if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).LeftStickY))
-                        {
-                            _valueRaw = GamePad.Player(i).LeftStickY;
-                        }
-                    }
-                }
-            }
-            else if (AnalogAxis == AnalogAxes.RightStickX)
-            {
-                if (GamePadNumber > 0 && GamePadNumber < 5)
-                {
-                    _valueRaw = GamePad.Player(GamePadNumber - 1).RightStickX;
-                }
-                else
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
-                        if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickX))
-                        {
-                            _valueRaw = GamePad.Player(i).RightStickX;
-                        }
-                    }
-                }
-            }
-            else if (AnalogAxis == AnalogAxes.RightStickY)
-            {
-                if (GamePadNumber > 0 && GamePadNumber < 5)
-                {
-                    _valueRaw = GamePad.Player(GamePadNumber - 1).RightStickY;
-                }
-                else
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
-                        if (Math.Abs(_valueRaw) < Math.Abs(GamePad.Player(i).RightStickY))
-                        {
-                            _valueRaw = GamePad.Player(i).RightStickY;
-                        }
-                    }
-                }
-            }
-            else if (AnalogAxis == AnalogAxes.Triggers)
-            {
-                if (GamePadNumber > 0 && GamePadNumber < 5)
-                {
-                    _valueRaw = -GamePad.Player(GamePadNumber - 1).LeftTrigger + GamePad.Player(GamePadNumber - 1).RightTrigger;
-                }
-                else
-                {
-                    for (var i = 0; i < 4; i++)
-                    {
-                        if (Math.Abs(_valueRaw) < Math.Abs(-GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger))
-                        {
-                            _valueRaw = -GamePad.Player(i).LeftTrigger + GamePad.Player(i).RightTrigger;
-                        }
-                    }
-                }
-            }
+                AnalogAxis.MouseX => Mouse.DeltaX,
+                AnalogAxis.MouseY => Mouse.DeltaY,
+                AnalogAxis.MouseWheel => Mouse.WheelDelta,
+                AnalogAxis.LeftStickX => GamePad.GetByPlayerIndex(GamePadNumber).LeftStickX,
+                AnalogAxis.LeftStickY => GamePad.GetByPlayerIndex(GamePadNumber).LeftStickY,
+                AnalogAxis.RightStickX => GamePad.GetByPlayerIndex(GamePadNumber).RightStickX,
+                AnalogAxis.RightStickY => GamePad.GetByPlayerIndex(GamePadNumber).RightStickY,
+                AnalogAxis.Triggers => -GamePad.GetByPlayerIndex(GamePadNumber).LeftTrigger +
+                                       GamePad.GetByPlayerIndex(GamePadNumber).RightTrigger,
+                _ => 0
+            };
 
             // Invert if necessary.
             if (Invert)
@@ -237,7 +150,7 @@ public class Axis : Disposable
             }
 
             // Mouse
-            if (AnalogAxis == AnalogAxes.MouseX || AnalogAxis == AnalogAxes.MouseY || AnalogAxis == AnalogAxes.MouseWheel)
+            if (AnalogAxis == AnalogAxis.MouseX || AnalogAxis == AnalogAxis.MouseY || AnalogAxis == AnalogAxis.MouseWheel)
             {
                 _value = _valueRaw * Sensitivity;
             }

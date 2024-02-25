@@ -1,6 +1,6 @@
 namespace CasaEngine.Engine.Input;
 
-public enum AnalogAxes
+public enum AnalogAxis
 {
     MouseX,
     MouseY,

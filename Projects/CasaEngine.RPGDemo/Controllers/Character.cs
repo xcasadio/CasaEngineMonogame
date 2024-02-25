@@ -6,7 +6,9 @@ using CasaEngine.Core.Log;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
@@ -56,11 +58,11 @@ public class Character
     public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
-    public Entity Owner { get; }
+    public Pawn Owner { get; }
     public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
     public Vector3 Position => Owner.RootComponent?.Position ?? Vector3.Zero;
-    public string AnimatationPrefix { get; set; }
+    public string AnimationPrefix { get; set; }
 
     public bool CanAttack => _delayBeforeNewAttack <= 0.0f;
     public bool IsDead => HP <= 0;
@@ -75,9 +77,9 @@ public class Character
     public int ExperienceBeforeNextLevel { get; set; } = 10;
 
 
-    public Character(Entity entity)
+    public Character(Pawn pawn)
     {
-        Owner = entity;
+        Owner = pawn;
 
         SetAnimationDirectionOffset(Character2dDirection.Down, (int)AnimationDirectionOffset.Down);
         //SetAnimationDirectionOffset(Character2dDirection.DownLeft, (int)AnimationDirectionOffset.DownLeft);
@@ -90,7 +92,7 @@ public class Character
         SetAnimationParameters(4, -1);
     }
 
-    public void Initialize(CasaEngineGame game)
+    public void Initialize(World world)
     {
         _physics2dComponent = Owner.GetComponent<Physics2dComponent>();
         AnimatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
@@ -203,7 +205,7 @@ public class Character
         }
 
         return string.Format(format,
-            prefix == null ? AnimatationPrefix : prefix,
+            prefix == null ? AnimationPrefix : prefix,
             Enum.GetName(animationIndex),
             Enum.GetName(CurrentDirection))
             .ToLower();

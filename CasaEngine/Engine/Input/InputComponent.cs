@@ -14,20 +14,13 @@ public class InputComponent : GameComponent
     private KeyboardState _keyboardPreviousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
     private KeyboardState _keyboardState;
 
-    //private List<Keys> keysPressedLastFrame = new List<Keys>();
-
     private readonly GamePadState[] _gamePadState = new GamePadState[4];
     private readonly GamePadState[] _gamePadStateLastFrame = new GamePadState[4];
     private readonly GamePadDeadZone[] _gamePadDeadZoneMode = new GamePadDeadZone[4];
     private readonly GamePadCapabilities[] _gamePadCapabilities = new GamePadCapabilities[4];
 
-    //private PlayerIndex playerIndex = PlayerIndex.One;
-
     private Point _startDraggingPos;
 
-    public readonly float Deadzone = 0.2f;
-
-    //InputConfigurations _InputConfigurations = new InputConfigurations();
     private ButtonConfiguration _buttonConfiguration;
     private InputManager.KeyState[] _keysState;
 
@@ -39,6 +32,7 @@ public class InputComponent : GameComponent
 
     private float _mouseXMovement, _mouseYMovement;
     private float _lastMouseXMovement, _lastMouseYMovement;
+    private float _deadZone = 0.75f;
 
     public float MouseXMovement => _mouseXMovement;
 
@@ -73,27 +67,6 @@ public class InputComponent : GameComponent
     }
 
     public int MouseWheelDelta => _mouseWheelDelta;
-
-    public bool MouseInBox(Rectangle rect)
-    {
-        var ret = _mouseState.X >= rect.X && _mouseState.Y >= rect.Y && _mouseState.X < rect.Right && _mouseState.Y < rect.Bottom;
-        var lastRet = _mouseStateLastFrame.X >= rect.X && _mouseStateLastFrame.Y >= rect.Y
-                                                       && _mouseStateLastFrame.X < rect.Right && _mouseStateLastFrame.Y < rect.Bottom;
-
-        return ret;
-    }
-
-    public bool MouseInBoxRelative(Rectangle rect)
-    {
-        /*float widthFactor = BaseGame.Width / 1024.0f;
-        float heightFactor = BaseGame.Height / 640.0f;
-        return MouseInBox(new Rectangle(
-            (int)System.Math.Round(rect.X * widthFactor),
-            (int)System.Math.Round(rect.Y * heightFactor),
-            (int)System.Math.Round(rect.Right * widthFactor),
-            (int)System.Math.Round(rect.Bottom * heightFactor)));*/
-        return false;
-    }
 
     public KeyboardState Keyboard => _keyboardState;
     public MouseState MouseState => _mouseState;
@@ -194,8 +167,7 @@ public class InputComponent : GameComponent
 
     public bool IsKeyJustPressed(Keys key)
     {
-        return _keyboardState.IsKeyDown(key)
-               && _keyboardPreviousState.IsKeyDown(key) == false;
+        return _keyboardState.IsKeyDown(key) && _keyboardPreviousState.IsKeyDown(key) == false;
     }
 
     public bool IsKeyPressed(Keys key)
@@ -205,14 +177,12 @@ public class InputComponent : GameComponent
 
     public bool IsKeyReleased(Keys key)
     {
-        return _keyboardState.IsKeyUp(key)
-               && _keyboardPreviousState.IsKeyDown(key);
+        return _keyboardState.IsKeyUp(key) && _keyboardPreviousState.IsKeyDown(key);
     }
 
     public bool IsKeyHeld(Keys key)
     {
-        return _keyboardState.IsKeyDown(key)
-               && _keyboardPreviousState.IsKeyDown(key);
+        return _keyboardState.IsKeyDown(key) && _keyboardPreviousState.IsKeyDown(key);
     }
 
     public GamePadState GamePadState(PlayerIndex index)
@@ -281,11 +251,11 @@ public class InputComponent : GameComponent
                        _gamePadStateLastFrame[(int)index].Buttons.RightStick == ButtonState.Released;
 
             case Buttons.LeftTrigger:
-                return _gamePadState[(int)index].Triggers.Left > 0.75f &&
+                return _gamePadState[(int)index].Triggers.Left > _deadZone &&
                        _gamePadStateLastFrame[(int)index].Triggers.Left == 0.0f;
 
             case Buttons.RightTrigger:
-                return _gamePadState[(int)index].Triggers.Right > 0.75f &&
+                return _gamePadState[(int)index].Triggers.Right > _deadZone &&
                        _gamePadStateLastFrame[(int)index].Triggers.Right == 0.0f;
         }
 
@@ -296,32 +266,32 @@ public class InputComponent : GameComponent
     {
         return _gamePadState[(int)index].DPad.Left == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Left == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.X < -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X > -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X < -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X > -_deadZone;
     }
 
     public bool GamePadRightJustPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Right == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Right == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.X > 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X < 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X > _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X < _deadZone;
     }
 
     public bool GamePadUpJustPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Up == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Up == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y > 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y < 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y > _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y < _deadZone;
     }
 
     public bool GamePadDownJustPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Down == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Down == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y < -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y > -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y < -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y > -_deadZone;
     }
 
     public bool GamePadDPadUpPressed(PlayerIndex index)
@@ -361,25 +331,25 @@ public class InputComponent : GameComponent
     public bool GamePadLeftPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Left == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.X <= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X <= -_deadZone;
     }
 
     public bool GamePadRightPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Right == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.X >= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X >= _deadZone;
     }
 
     public bool GamePadUpPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Up == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y >= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y >= _deadZone;
     }
 
     public bool GamePadDownPressed(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Down == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y <= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y <= -_deadZone;
     }
 
     public bool IsButtonJustReleased(PlayerIndex index, Buttons button)
@@ -427,11 +397,11 @@ public class InputComponent : GameComponent
                        _gamePadStateLastFrame[(int)index].Buttons.RightStick == ButtonState.Pressed;
 
             case Buttons.LeftTrigger:
-                return _gamePadStateLastFrame[(int)index].Triggers.Left > 0.75f &&
+                return _gamePadStateLastFrame[(int)index].Triggers.Left > _deadZone &&
                        _gamePadState[(int)index].Triggers.Left == 0.0f; // 0.1f ??
 
             case Buttons.RightTrigger:
-                return _gamePadStateLastFrame[(int)index].Triggers.Right > 0.75f &&
+                return _gamePadStateLastFrame[(int)index].Triggers.Right > _deadZone &&
                        _gamePadState[(int)index].Triggers.Right == 0.0f; // 0.1f ??
         }
 
@@ -442,32 +412,32 @@ public class InputComponent : GameComponent
     {
         return _gamePadState[(int)index].DPad.Left == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Left == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.X <= -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X <= -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= -_deadZone;
     }
 
     public bool GamePadRightReleased(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Right == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Right == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.X >= 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X <= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X >= _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X <= _deadZone;
     }
 
     public bool GamePadUpReleased(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Up == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Up == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y >= 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y <= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y >= _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y <= _deadZone;
     }
 
     public bool GamePadDownReleased(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Down == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Down == ButtonState.Released ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y <= -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y <= -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= -_deadZone;
     }
 
     public bool GamePadDPadUpReleased(PlayerIndex index)
@@ -538,12 +508,12 @@ public class InputComponent : GameComponent
                        _gamePadStateLastFrame[(int)index].Buttons.RightStick == ButtonState.Pressed;
 
             case Buttons.LeftTrigger:
-                return _gamePadState[(int)index].Triggers.Left >= 0.75f &&
-                       _gamePadStateLastFrame[(int)index].Triggers.Left >= 0.75f;
+                return _gamePadState[(int)index].Triggers.Left >= _deadZone &&
+                       _gamePadStateLastFrame[(int)index].Triggers.Left >= _deadZone;
 
             case Buttons.RightTrigger:
-                return _gamePadState[(int)index].Triggers.Right >= 0.75f &&
-                       _gamePadStateLastFrame[(int)index].Triggers.Right >= 0.75f;
+                return _gamePadState[(int)index].Triggers.Right >= _deadZone &&
+                       _gamePadStateLastFrame[(int)index].Triggers.Right >= _deadZone;
         }
 
         throw new Exception("Button not supported : " + button);
@@ -553,32 +523,32 @@ public class InputComponent : GameComponent
     {
         return _gamePadState[(int)index].DPad.Left == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Left == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.X >= -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X >= -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= -_deadZone;
     }
 
     public bool GamePadRightHeld(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Right == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Right == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.X >= 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.X >= _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.X >= _deadZone;
     }
 
     public bool GamePadUpHeld(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Up == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Up == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y >= 0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= 0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y >= _deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= _deadZone;
     }
 
     public bool GamePadDownHeld(PlayerIndex index)
     {
         return _gamePadState[(int)index].DPad.Down == ButtonState.Pressed &&
                _gamePadStateLastFrame[(int)index].DPad.Down == ButtonState.Pressed ||
-               _gamePadState[(int)index].ThumbSticks.Left.Y >= -0.75f &&
-               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= -0.75f;
+               _gamePadState[(int)index].ThumbSticks.Left.Y >= -_deadZone &&
+               _gamePadStateLastFrame[(int)index].ThumbSticks.Left.Y >= -_deadZone;
     }
 
     public bool GamePadDPadDownHeld(PlayerIndex index)

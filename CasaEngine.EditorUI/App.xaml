@@ -22,6 +22,9 @@
         <RoutedUICommand x:Key="Commands.World.Load" />
         <RoutedUICommand x:Key="Commands.World.Save" />
 
+        <RoutedUICommand x:Key="Commands.ButtonsMapping.Load" />
+        <RoutedUICommand x:Key="Commands.ButtonsMapping.Save" />
+
         <!-- FlowGraph -->
         <xcad:BoolToVisibilityConverter x:Key="boolToVisibilityConverter" />
 

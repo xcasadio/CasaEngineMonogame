@@ -1,5 +1,7 @@
 ﻿using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GameFramework;
+using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -18,9 +20,9 @@ public class HumanPlayerController : Controller
         //character.IsPLayer = true;
     }
 
-    public override void InitializePrivate(CasaEngineGame game)
+    public override void InitializePrivate(World world)
     {
-        _inputComponent = game.GetGameComponent<InputComponent>();
+        _inputComponent = world.Game.GetGameComponent<InputComponent>();
 
         StateMachine.GlobalState = new PlayerGlobalStateState();
         AddState((int)PlayerControllerState.Idle, new PlayerIdleState());
@@ -37,6 +39,12 @@ public class HumanPlayerController : Controller
     public override void Update(float elapsedTime)
     {
         base.Update(elapsedTime);
+
+        //check button/action mapping
+        if (Character.Owner.InputEnabled)
+        {
+            _inputComponent.InputBindingsManager.GetInput("");
+        }
     }
 
     public Character2dDirection GetDirectionFromInput(out Vector2 direction)

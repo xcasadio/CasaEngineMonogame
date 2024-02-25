@@ -5,10 +5,8 @@ namespace CasaEngine.Engine.Input;
 
 public class GamePad
 {
-    // Gamepad state, set every frame in the update method.
     private GamePadState _currentState, _previousState;
 
-    // The id number of the gamepad.
     private readonly PlayerIndex _playerIndex;
 
     public GamePadState CurrentState => _currentState;
@@ -19,7 +17,7 @@ public class GamePad
 
     public GamePadCapabilities Capabilities => Microsoft.Xna.Framework.Input.GamePad.GetCapabilities(_playerIndex);
 
-    public bool Iddle => _currentState.PacketNumber == _previousState.PacketNumber;
+    public bool Idle => _currentState.PacketNumber == _previousState.PacketNumber;
 
     public GamePadDeadZone DeadZone { get; set; }
 
@@ -117,29 +115,23 @@ public class GamePad
         _currentState = Microsoft.Xna.Framework.Input.GamePad.GetState(_playerIndex, DeadZone);
     }
 
-    // The four possible gamepads.
-    private static readonly GamePad PlayerOneGamePad = new(PlayerIndex.One),
-        PlayerTwoGamePad = new(PlayerIndex.Two),
-        PlayerThreeGamePad = new(PlayerIndex.Three),
-        PlayerFourGamePad = new(PlayerIndex.Four);
+    public static GamePad PlayerOne { get; } = new(PlayerIndex.One);
 
-    public static GamePad PlayerOne => PlayerOneGamePad;
+    public static GamePad PlayerTwo { get; } = new(PlayerIndex.Two);
 
-    public static GamePad PlayerTwo => PlayerTwoGamePad;
+    public static GamePad PlayerThree { get; } = new(PlayerIndex.Three);
 
-    public static GamePad PlayerThree => PlayerThreeGamePad;
+    public static GamePad PlayerFour { get; } = new(PlayerIndex.Four);
 
-    public static GamePad PlayerFour => PlayerFourGamePad;
-
-    public static GamePad Player(int playerIndex)
+    public static GamePad GetByPlayerIndex(PlayerIndex playerIndex)
     {
-        switch (playerIndex)
+        return playerIndex switch
         {
-            case 0: return PlayerOneGamePad;
-            case 1: return PlayerTwoGamePad;
-            case 2: return PlayerThreeGamePad;
-            case 3: return PlayerFourGamePad;
-            default: throw new ArgumentOutOfRangeException(nameof(playerIndex), "GamePad: The number has to be between 0 and 3.");
-        }
+            PlayerIndex.One => PlayerOne,
+            PlayerIndex.Two => PlayerTwo,
+            PlayerIndex.Three => PlayerThree,
+            PlayerIndex.Four => PlayerFour,
+            _ => throw new ArgumentOutOfRangeException(nameof(playerIndex), "GamePad: The number has to be between 0 and 3.")
+        };
     }
 }

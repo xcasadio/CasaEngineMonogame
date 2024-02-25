@@ -1,4 +1,6 @@
-﻿namespace CasaEngine.Framework.GameFramework;
+﻿using Microsoft.Xna.Framework;
+
+namespace CasaEngine.Framework.GameFramework;
 
 /**
  *	Each player that is active on the current client has a LocalPlayer. It stays active across maps
@@ -7,9 +9,11 @@
  */
 public class LocalPlayer : Player
 {
-    //UGameViewportClient
-    //int32 ControllerId = INVALID_CONTROLLERID;
+    //UGameViewportClient ViewportClient
+    public PlayerIndex ControllerId { get; set; } = PlayerIndex.One;
 
     /** The platform user this player is assigned to, could correspond to multiple input devices */
     //FPlatformUserId PlatformUserId;
+
+
 }

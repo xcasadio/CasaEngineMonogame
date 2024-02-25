@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
@@ -8,6 +9,7 @@ using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;
+using Controller = CasaEngine.RPGDemo.Controllers.Controller;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -23,12 +25,12 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
     public override void InitializeWithWorld(World world)
     {
-        Character = new Character(Owner);
+        Character = new Character(Owner as Pawn);
         Controller = new HumanPlayerController(Character, PlayerIndex.One);
 
-        Character.AnimatationPrefix = "swordman";
-        Character.Initialize(world.Game);
-        Controller.Initialize(world.Game);
+        Character.AnimationPrefix = "swordman";
+        Character.Initialize(world);
+        Controller.Initialize(world);
         Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
     }
 

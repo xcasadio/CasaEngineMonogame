@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
 using static CasaEngine.RPGDemo.Controllers.Character;
 
@@ -14,9 +14,9 @@ public class EnemyController : AiController
         //character.IsPLayer = false;
     }
 
-    public override void InitializePrivate(CasaEngineGame game)
+    public override void InitializePrivate(World world)
     {
-        base.InitializePrivate(game);
+        base.InitializePrivate(world);
 
         StateMachine.GlobalState = new EnemyGlobalState();
         AddState((int)EnemyControllerState.Idle, new EnemyIdleState());

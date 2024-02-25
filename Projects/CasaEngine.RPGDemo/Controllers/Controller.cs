@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CasaEngine.Framework.AI.StateMachines;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
@@ -35,19 +36,19 @@ public abstract class Controller : IFsmCapable<Controller>
         _states.Add(stateId, state);
     }
 
-    public void Initialize(CasaEngineGame game)
+    public void Initialize(World world)
     {
         if (_isInitialized)
         {
             return;
         }
 
-        InitializePrivate(game);
+        InitializePrivate(world);
 
         _isInitialized = true;
     }
 
-    public abstract void InitializePrivate(CasaEngineGame game);
+    public abstract void InitializePrivate(World world);
 
     public virtual void Update(float elapsedTime)
     {

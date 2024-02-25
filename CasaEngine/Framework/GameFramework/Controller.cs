@@ -19,7 +19,7 @@ namespace CasaEngine.Framework.GameFramework;
  *
  * @see https://docs.unrealengine.com/latest/INT/Gameplay/Framework/Controller/
  */
-public class Controller : Entity
+public class Controller : ObjectBase //Entity
 {
     public Pawn Pawn { get; set; }
 }

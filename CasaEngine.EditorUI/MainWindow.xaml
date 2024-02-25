@@ -65,6 +65,9 @@
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>
             </TabItem>
+            <TabItem Header="Buttons Mapping">
+                <controls:ButtonsMappingControl x:Name="ButtonsMappingControl"/>
+            </TabItem>
 
         </TabControl>
 

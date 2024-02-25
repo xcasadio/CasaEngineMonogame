@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
 using CasaEngine.RPGDemo.Weapons;
+using Controller = CasaEngine.RPGDemo.Controllers.Controller;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -19,16 +21,16 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
     {
         base.InitializePrivate();
 
-        Character = new Character(Owner);
+        Character = new Character(Owner as Pawn);
         Controller = new EnemyController(Character);
     }
 
     public override void InitializeWithWorld(World world)
     {
-        Character.Initialize(world.Game);
-        Controller.Initialize(world.Game);
+        Character.Initialize(world);
+        Controller.Initialize(world);
 
-        Character.AnimatationPrefix = "octopus";
+        Character.AnimationPrefix = "octopus";
         Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
     }
 

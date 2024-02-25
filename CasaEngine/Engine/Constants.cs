@@ -6,9 +6,9 @@ public static class Constants
     {
         //world
         public const string Entity = ".entity";
-        //public const string EntityFlowGraph = ".flowgraph";
         public const string World = ".world";
         public const string GameMode = ".gameMode";
+        public const string ButtonsMapping = ".buttonsMapping";
 
         //asset
         public const string Texture = ".texture";

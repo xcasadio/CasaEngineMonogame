@@ -1,15 +1,16 @@
+using CasaEngine.Core.Serialization;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Engine.Input;
 
-public struct KeyButton
+public class KeyButton : ISerializable
 {
-    public Keys Key;
-    public Buttons GamePadButton;
-    public Mouse.MouseButtons MouseButton;
-
-    // 0 = no key or button, 1 = keyboard, 2 = gamepad, 3 = mouse.
-    public InputDevices InputDevice;
+    public Keys Key { get; set; }
+    public Buttons GamePadButton { get; set; }
+    public MouseButtons MouseButton { get; set; }
+    public InputDevices InputDevice { get; set; }
 
     public KeyButton(Keys key)
     {
@@ -27,7 +28,7 @@ public struct KeyButton
         MouseButton = 0;
     }
 
-    public KeyButton(Mouse.MouseButtons mouseButton)
+    public KeyButton(MouseButtons mouseButton)
     {
         InputDevice = InputDevices.Mouse;
         Key = 0;
@@ -35,46 +36,35 @@ public struct KeyButton
         MouseButton = mouseButton;
     }
 
-    public bool Pressed(int gamePadNumber)
+    public bool Pressed(PlayerIndex playerIndex)
     {
-        if (InputDevice == InputDevices.NoDevice)
+        return InputDevice switch
         {
-            return false;
-        }
-
-        if (InputDevice == InputDevices.Keyboard)
-        {
-            return Keyboard.KeyPressed(Key);
-        }
-
-        if (InputDevice == InputDevices.GamePad)
-        {
-            if (gamePadNumber == 1)
-            {
-                return GamePad.PlayerOne.ButtonPressed(GamePadButton);
-            }
-
-            if (gamePadNumber == 2)
-            {
-                return GamePad.PlayerTwo.ButtonPressed(GamePadButton);
-            }
-
-            if (gamePadNumber == 3)
-            {
-                return GamePad.PlayerThree.ButtonPressed(GamePadButton);
-            }
-
-            if (gamePadNumber == 4)
-            {
-                return GamePad.PlayerFour.ButtonPressed(GamePadButton);
-            }
-
-            // if (gamepadNumber == 0) // All gamepads at the same time.
-            return GamePad.PlayerOne.ButtonPressed(GamePadButton) || GamePad.PlayerTwo.ButtonPressed(GamePadButton) ||
-                   GamePad.PlayerThree.ButtonPressed(GamePadButton) || GamePad.PlayerFour.ButtonPressed(GamePadButton);
-        }
-
-        // if (keyButton.Device == Devices.Mouse)
-        return Mouse.ButtonPressed(MouseButton);
+            InputDevices.NoDevice => false,
+            InputDevices.Keyboard => Keyboard.KeyPressed(Key),
+            InputDevices.GamePad => GamePad.GetByPlayerIndex(playerIndex).ButtonPressed(GamePadButton),
+            InputDevices.Mouse => Mouse.ButtonPressed(MouseButton),
+            _ => throw new ArgumentOutOfRangeException(nameof(InputDevice))
+        };
     }
+
+    public void Load(JObject element)
+    {
+        Key = element["key"].GetEnum<Keys>();
+        GamePadButton = element["game_pad_button"].GetEnum<Buttons>();
+        MouseButton = element["mouse_button"].GetEnum<MouseButtons>();
+        InputDevice = element["input_device"].GetEnum<InputDevices>();
+    }
+
+#if EDITOR
+
+    public void Save(JObject node)
+    {
+        node.Add("key", Key.ToString());
+        node.Add("game_pad_button", GamePadButton.ToString());
+        node.Add("mouse_button", MouseButton.ToString());
+        node.Add("input_device", InputDevice.ToString());
+    }
+
+#endif
 }

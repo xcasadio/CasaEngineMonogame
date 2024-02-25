@@ -167,19 +167,21 @@ public sealed class World : ObjectBase
 
     private void InitializePlayerControllers()
     {
-        if (GameMode.DefaultPawnAssetId != Guid.Empty)
+        if (GameMode.DefaultPawnAssetId == Guid.Empty)
         {
-            var pawn = SpawnEntity<Pawn>(GameMode.DefaultPawnAssetId);
-            var playerController = ElementFactory.Create<PlayerController>(GameMode.PlayerControllerClass);
-            playerController.Pawn = pawn;
-            playerController.Player = new LocalPlayer(); // TODO
-            _playerControllers.Add(playerController);
-
-            var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
-            pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
-
-            InternalAddEntities();
+            return;
         }
+
+        var pawn = SpawnEntity<Pawn>(GameMode.DefaultPawnAssetId);
+        var playerController = ElementFactory.Create<PlayerController>(GameMode.PlayerControllerClass);
+        playerController.Pawn = pawn;
+        playerController.Player = new LocalPlayer(); // TODO
+        _playerControllers.Add(playerController);
+
+        var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
+        pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+
+        InternalAddEntities();
     }
 
     private CameraComponent CreateDefaultCamera()
