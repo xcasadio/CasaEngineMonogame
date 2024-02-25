@@ -49,37 +49,37 @@ public class ScriptArcBallCamera : GameplayProxy
         const float step = 1.0f;
 
 
-        if (_inputComponent.IsKeyPressed(Keys.Right))
+        if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Right))
         {
             rightAxis = step;
         }
-        else if (_inputComponent.IsKeyPressed(Keys.Left))
+        else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Left))
         {
             rightAxis = -step;
         }
 
-        if (_inputComponent.IsKeyPressed(Keys.Up))
+        if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Up))
         {
             forwardAxis = -step;
         }
-        else if (_inputComponent.IsKeyPressed(Keys.Down))
+        else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Down))
         {
             forwardAxis = step;
         }
 
-        if (_inputComponent.IsKeyPressed(Keys.PageUp))
+        if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.PageUp))
         {
             upAxis = -step;
         }
-        else if (_inputComponent.IsKeyPressed(Keys.PageDown))
+        else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.PageDown))
         {
             upAxis = step;
         }
 
-        if (_inputComponent.MouseRightButtonPressed)
+        if (_inputComponent.MouseManager.RightButtonPressed)
         {
-            horizontalOrbit = _inputComponent.MouseXMovement;
-            verticalOrbit = -_inputComponent.MouseYMovement;
+            horizontalOrbit = _inputComponent.MouseManager.DeltaX;
+            verticalOrbit = -_inputComponent.MouseManager.DeltaY;
         }
 
         //#if EDITOR

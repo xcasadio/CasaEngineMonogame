@@ -67,7 +67,7 @@ public class Move
             {
                 var keyState = new InputManager.KeyState();
                 keyState.Key = buttonElement["key"].GetInt32();
-                keyState.State = buttonElement["key"].GetEnum<ButtonState>();
+                keyState.State = buttonElement["key"].GetEnum<Microsoft.Xna.Framework.Input.ButtonState>();
                 keyState.Time = buttonElement["time"].GetSingle();
             }
         }

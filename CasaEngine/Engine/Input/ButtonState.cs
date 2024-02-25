@@ -1,6 +1,6 @@
 ﻿namespace CasaEngine.Engine.Input;
 
-public class ButtonMapperState
+public class ButtonState
 {
     public bool IsKeyPressed;
     public bool IsKeyJustPressed;

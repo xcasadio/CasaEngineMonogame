@@ -31,4 +31,14 @@ public class ButtonConfiguration
     {
         _buttonsConfig.Remove(code);
     }
+
+    public void Update(InputComponent inputComponent, float elapsedTime)
+    {
+        foreach (var pair in _buttonsConfig)
+        {
+            //_keysState[i].Time = elapsedTime;
+            //_keysState[i].Key = enumerator.Current.Key;
+            //_keysState[i].State = IsButtonPressed(_buttonConfiguration.PlayerIndex, enumerator.Current.Value.Buttons) ? Microsoft.Xna.Framework.Input.ButtonState.Pressed : Microsoft.Xna.Framework.Input.ButtonState.Released;
+        }
+    }
 }

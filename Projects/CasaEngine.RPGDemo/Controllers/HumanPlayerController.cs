@@ -43,7 +43,7 @@ public class HumanPlayerController : Controller
         //check button/action mapping
         if (Character.Owner.InputEnabled)
         {
-            _inputComponent.InputBindingsManager.GetInput("");
+            //_inputComponent.InputMappingManager.GetButtonState("");
         }
     }
 
@@ -51,28 +51,28 @@ public class HumanPlayerController : Controller
     {
         direction = Vector2.Zero;
 
-        if (_inputComponent.IsGamePadConnected(_playerIndex))
+        if (_inputComponent.GamePadManager.IsGamePadConnected(_playerIndex))
         {
-            direction = _inputComponent.GamePadState(_playerIndex).ThumbSticks.Left;
+            direction = _inputComponent.GamePadManager.GetGamePad(_playerIndex).CurrentState.ThumbSticks.Left;
             ClampDirection(ref direction);
             direction.Y = -direction.Y;
         }
         else
         {
-            if (_inputComponent.IsKeyPressed(Keys.Up))
+            if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Up))
             {
                 direction.Y = -1.0f;
             }
-            else if (_inputComponent.IsKeyPressed(Keys.Down))
+            else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Down))
             {
                 direction.Y = 1.0f;
             }
 
-            if (_inputComponent.IsKeyPressed(Keys.Right))
+            if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Right))
             {
                 direction.X = 1.0f;
             }
-            else if (_inputComponent.IsKeyPressed(Keys.Left))
+            else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Left))
             {
                 direction.X = -1.0f;
             }
@@ -118,11 +118,11 @@ public class HumanPlayerController : Controller
 
     public bool IsAttackButtonPressed()
     {
-        if (_inputComponent.IsGamePadConnected(_playerIndex))
+        if (_inputComponent.GamePadManager.IsGamePadConnected(_playerIndex))
         {
-            return _inputComponent.IsButtonJustPressed(_playerIndex, Buttons.A);
+            return _inputComponent.GamePadManager.GetGamePad(_playerIndex).ButtonJustPressed(Buttons.A);
         }
 
-        return _inputComponent.IsKeyJustPressed(Keys.Space);
+        return _inputComponent.KeyboardManager.IsKeyJustPressed(Keys.Space);
     }
 }

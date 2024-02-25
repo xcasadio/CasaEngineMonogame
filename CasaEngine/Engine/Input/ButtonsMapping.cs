@@ -6,7 +6,7 @@ namespace CasaEngine.Engine.Input;
 
 public class ButtonsMapping : ObjectBase
 {
-    public List<Button> Buttons { get; } = new();
+    public List<InputMapping> Buttons { get; } = new();
 
     public override void Load(JObject element)
     {
@@ -14,7 +14,7 @@ public class ButtonsMapping : ObjectBase
 
         var buttons = element.GetElements("buttons", t =>
         {
-            var button = new Button();
+            var button = new InputMapping();
             button.Load((JObject)t);
             return button;
         });

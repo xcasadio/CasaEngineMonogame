@@ -1,6 +1,7 @@
 using System.Media;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

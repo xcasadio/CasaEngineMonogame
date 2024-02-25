@@ -15,40 +15,40 @@ public class ScriptSign : GameplayProxy
         _inputComponent = world.Game.InputComponent;
 
         //TODO : do it somewhere else, only fot testing purpose
-        var button = new Button();
+        var button = new InputMapping();
         button.Name = "Action";
         button.KeyButton = new KeyButton(Keys.Enter);
         button.AlternativeKeyButton = new KeyButton(Buttons.A);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
-        Button.Buttons.Add(button);
+        _inputComponent.InputMappingManager.AddInputMapping(button);
 
-        button = new Button();
+        button = new InputMapping();
         button.Name = "MoveRight";
         button.KeyButton = new KeyButton(Keys.D);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickRight);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
-        Button.Buttons.Add(button);
+        _inputComponent.InputMappingManager.AddInputMapping(button);
 
-        button = new Button();
+        button = new InputMapping();
         button.Name = "MoveLeft";
         button.KeyButton = new KeyButton(Keys.Q);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickLeft);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
-        Button.Buttons.Add(button);
+        _inputComponent.InputMappingManager.AddInputMapping(button);
 
-        button = new Button();
+        button = new InputMapping();
         button.Name = "MoveUp";
         button.KeyButton = new KeyButton(Keys.Z);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickUp);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
-        Button.Buttons.Add(button);
+        _inputComponent.InputMappingManager.AddInputMapping(button);
 
-        button = new Button();
+        button = new InputMapping();
         button.Name = "MoveDown";
         button.KeyButton = new KeyButton(Keys.S);
         button.AlternativeKeyButton = new KeyButton(Buttons.LeftThumbstickDown);
         button.ButtonBehavior = ButtonBehaviors.DigitalInput;
-        Button.Buttons.Add(button);
+        _inputComponent.InputMappingManager.AddInputMapping(button);
     }
 
     public override void Update(float elapsedTime)
@@ -66,7 +66,7 @@ public class ScriptSign : GameplayProxy
 
         if (playerController != null)
         {
-            if (_inputComponent.InputBindingsManager.GetInput("Action").IsKeyPressed)
+            if (_inputComponent.InputMappingManager.GetButtonState("Action").IsKeyPressed)
             {
                 //create widget
                 playerController.IsInputEnable = false;

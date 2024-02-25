@@ -5,7 +5,7 @@ public class InputManager
     public struct KeyState
     {
         public int Key;
-        public ButtonState State;
+        public Microsoft.Xna.Framework.Input.ButtonState State;
         public float Time;
 
         public bool Match(KeyState other)
@@ -170,7 +170,7 @@ public class InputManager
 
         foreach (var k in keysState)
         {
-            if (k.State != ButtonState.Released)
+            if (k.State != Microsoft.Xna.Framework.Input.ButtonState.Released)
             {
                 isEntryEmpty = false;
                 break;
@@ -215,7 +215,7 @@ public class InputManager
                 }
 
                 if (found == false
-                    && k2.State == ButtonState.Pressed)
+                    && k2.State == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                 {
                     //verif elapsedTime
                     _buffer[last].KeysState.Add(k2);
@@ -242,8 +242,8 @@ public class InputManager
                             found = true;
 
                             // merge
-                            if (k1.State == ButtonState.Pressed
-                                && k2.State == ButtonState.Pressed
+                            if (k1.State == Microsoft.Xna.Framework.Input.ButtonState.Pressed
+                                && k2.State == Microsoft.Xna.Framework.Input.ButtonState.Pressed
                                 /*&& verif released == false*/)
                             {
                                 tmp.Add(i, k1);
@@ -267,7 +267,7 @@ public class InputManager
                     }
 
                     if (found == false
-                        && k2.State == ButtonState.Pressed)
+                        && k2.State == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                     {
                         keysToAdd.Add(k2);
                     }
@@ -324,7 +324,7 @@ public class InputManager
             {
                 foreach (var k in keyStateList)
                 {
-                    if (k.State == ButtonState.Pressed)
+                    if (k.State == Microsoft.Xna.Framework.Input.ButtonState.Pressed)
                     {
                         keysToAdd.Add(k);
                     }

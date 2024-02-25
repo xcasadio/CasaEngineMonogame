@@ -4,9 +4,6 @@ using System.Windows;
 
 namespace Microsoft.Xna.Framework.Input
 {
-    /// <summary>
-    /// WpfKeyboard
-    /// </summary>
     public class WpfKeyboard
     {
         [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]

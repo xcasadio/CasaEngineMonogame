@@ -1,5 +1,4 @@
 using CasaEngine.Core.Serialization;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
 
@@ -11,6 +10,10 @@ public class KeyButton : ISerializable
     public Buttons GamePadButton { get; set; }
     public MouseButtons MouseButton { get; set; }
     public InputDevices InputDevice { get; set; }
+
+    public KeyButton()
+    {
+    }
 
     public KeyButton(Keys key)
     {
@@ -36,14 +39,14 @@ public class KeyButton : ISerializable
         MouseButton = mouseButton;
     }
 
-    public bool Pressed(PlayerIndex playerIndex)
+    public bool IsPressed(KeyboardManager keyboardManager, MouseManager mouseManager, GamePad gamePad)
     {
         return InputDevice switch
         {
             InputDevices.NoDevice => false,
-            InputDevices.Keyboard => Keyboard.KeyPressed(Key),
-            InputDevices.GamePad => GamePad.GetByPlayerIndex(playerIndex).ButtonPressed(GamePadButton),
-            InputDevices.Mouse => Mouse.ButtonPressed(MouseButton),
+            InputDevices.Keyboard => keyboardManager.IsKeyPressed(Key),
+            InputDevices.GamePad => gamePad.ButtonPressed(GamePadButton),
+            InputDevices.Mouse => mouseManager.ButtonPressed(MouseButton),
             _ => throw new ArgumentOutOfRangeException(nameof(InputDevice))
         };
     }

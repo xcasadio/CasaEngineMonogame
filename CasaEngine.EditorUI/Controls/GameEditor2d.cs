@@ -79,22 +79,22 @@ public abstract class GameEditor2d : GameEditor
     {
         base.Update(gameTime);
 
-        if (_inputComponent.MouseRightButtonJustPressed)
+        if (_inputComponent.MouseManager.RightButtonJustPressed)
         {
-            _lastMousePosition = _inputComponent.MousePos;
+            _lastMousePosition = _inputComponent.MouseManager.Position;
         }
-        else if (_inputComponent.MouseRightButtonPressed)
+        else if (_inputComponent.MouseManager.RightButtonPressed)
         {
-            var delta = _lastMousePosition - _inputComponent.MousePos;
+            var delta = _lastMousePosition - _inputComponent.MouseManager.Position;
             CameraComponent.Target += new Vector3(delta.X, -delta.Y, 0f);
-            _lastMousePosition = _inputComponent.MousePos;
+            _lastMousePosition = _inputComponent.MouseManager.Position;
         }
 
-        if (_inputComponent.MouseWheelDelta > 0 && _scale < 8.0f)
+        if (_inputComponent.MouseManager.WheelDelta > 0 && _scale < 8.0f)
         {
             _scale *= 2.0f;
         }
-        else if (_inputComponent.MouseWheelDelta > 0 && _scale > 1.0f)
+        else if (_inputComponent.MouseManager.WheelDelta > 0 && _scale > 1.0f)
         {
             _scale /= 2.0f;
         }

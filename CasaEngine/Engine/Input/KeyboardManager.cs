@@ -2,25 +2,36 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Engine.Input;
 
-public static class Keyboard
+public class KeyboardManager
 {
-    private static KeyboardState _currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
-    private static KeyboardState _previousState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+    private KeyboardState _currentState;
+    private KeyboardState _previousState;
 
-    public static KeyboardState State => _currentState;
-    public static KeyboardState PreviousState => _previousState;
+#if EDITOR
+    public KeyboardState State => _currentState;
+#endif
 
-    public static bool KeyJustPressed(Keys key)
+    public bool IsKeyJustPressed(Keys key)
     {
         return _currentState.IsKeyDown(key) && !_previousState.IsKeyDown(key);
     }
 
-    public static bool KeyPressed(Keys key)
+    public bool IsKeyPressed(Keys key)
     {
         return _currentState.IsKeyDown(key);
     }
 
-    public static bool IsSpecialKey(Keys key)
+    public bool IsKeyReleased(Keys key)
+    {
+        return _currentState.IsKeyUp(key) && _previousState.IsKeyDown(key);
+    }
+
+    public bool IsKeyHeld(Keys key)
+    {
+        return _currentState.IsKeyDown(key) && _previousState.IsKeyDown(key);
+    }
+
+    public bool IsSpecialKey(Keys key)
     {
         // ~_|{}:"<>? !@#$%^&*().
         var keyNum = (int)key;
@@ -45,21 +56,14 @@ public static class Keyboard
         return true;
     }
 
-    public static string KeyToString(Keys key, bool shift, bool caps)
+    public string KeyToString(Keys key, bool shift, bool caps)
     {
         var uppercase = caps && !shift || !caps && shift;
 
         var keyNum = (int)key;
         if (keyNum >= (int)Keys.A && keyNum <= (int)Keys.Z)
         {
-            if (uppercase)
-            {
-                return key.ToString();
-            }
-            else
-            {
-                return key.ToString().ToLower();
-            }
+            return uppercase ? key.ToString() : key.ToString().ToLower();
         }
 
         switch (key)
@@ -104,9 +108,39 @@ public static class Keyboard
         }
     }
 
-    internal static void Update()
+    internal void Update(KeyboardState keyboardState)
     {
         _previousState = _currentState;
-        _currentState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        _currentState = keyboardState;
     }
+
+    /*public void HandleKeyboardInput(ref string inputText)
+    {
+        // Is a shift key pressed (we have to check both, left and right)
+        bool isShiftPressed =
+            keyboardState.IsKeyDown(Keys.LeftShift) ||
+            keyboardState.IsKeyDown(Keys.RightShift);
+
+        // Go through all pressed keys
+        foreach (Keys pressedKey in keyboardState.GetPressedKeys())
+            // Only process if it was not pressed last frame
+            if (keysPressedLastFrame.Contains(pressedKey) == false)
+            {
+                // No special key?
+                if (IsSpecialKey(pressedKey) == false &&
+                    // Max. allow 32 chars
+                    inputText.Length < 32)
+                {
+                    // Then add the letter to our inputText.
+                    // Check also the shift state!
+                    inputText += KeyToChar(pressedKey, isShiftPressed);
+                }
+                else if (pressedKey == Keys.Back &&
+                    inputText.Length > 0)
+                {
+                    // IsRemoved 1 character at end
+                    inputText = inputText.Substring(0, inputText.Length - 1);
+                }
+            }
+    }*/
 }

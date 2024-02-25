@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Engine.Input;
+using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.EditorUI.Inputs;

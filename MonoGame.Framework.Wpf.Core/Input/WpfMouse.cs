@@ -4,9 +4,6 @@ using System.Windows.Media;
 
 namespace Microsoft.Xna.Framework.Input
 {
-    /// <summary>
-    /// WpfMouse
-    /// </summary>
     public class WpfMouse
     {
         [DllImport("User32.dll")]

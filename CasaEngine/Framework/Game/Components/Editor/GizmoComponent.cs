@@ -56,34 +56,34 @@ public class GizmoComponent : DrawableGameComponent
                 camera.Position);
         }
 
-        if (_inputComponent.MouseLeftButtonJustPressed)
+        if (_inputComponent.MouseManager.LeftButtonJustPressed)
         {
-            Gizmo.SelectEntities(new Vector2(_inputComponent.MousePos.X, _inputComponent.MousePos.Y),
-                _inputComponent.IsKeyPressed(Keys.LeftControl) || _inputComponent.IsKeyPressed(Keys.RightControl),
-                _inputComponent.IsKeyPressed(Keys.LeftAlt) || _inputComponent.IsKeyPressed(Keys.RightAlt));
+            Gizmo.SelectEntities(new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
+                _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
+                _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.D1))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D1))
         {
             Gizmo.ActiveMode = GizmoMode.Translate;
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.D2))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D2))
         {
             Gizmo.ActiveMode = GizmoMode.Rotate;
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.D3))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D3))
         {
             Gizmo.ActiveMode = GizmoMode.NonUniformScale;
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.D4))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D4))
         {
             Gizmo.ActiveMode = GizmoMode.UniformScale;
         }
 
-        if (_inputComponent.IsKeyPressed(Keys.LeftShift) || _inputComponent.IsKeyPressed(Keys.RightShift))
+        if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftShift) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightShift))
         {
             Gizmo.PrecisionModeEnabled = true;
         }
@@ -92,22 +92,22 @@ public class GizmoComponent : DrawableGameComponent
             Gizmo.PrecisionModeEnabled = false;
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.O))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.O))
         {
             Gizmo.ToggleActiveSpace();
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.I))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.I))
         {
             Gizmo.SnapEnabled = !Gizmo.SnapEnabled;
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.P))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.P))
         {
             Gizmo.NextPivotType();
         }
 
-        if (_inputComponent.IsKeyJustPressed(Keys.Escape))
+        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.Escape))
         {
             Gizmo.Clear();
         }

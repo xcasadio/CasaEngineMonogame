@@ -11,18 +11,16 @@ public class Axis : Disposable
         AnalogInput,
     }
 
+    // Previous values. Used for smooth input calculations.
+    private readonly float[] _previousValues = { 0, 0 };
+
     // The value of the axis.
-    private float _value;
+    public float Value { get; private set; }
 
     // The value of the axis with no smoothing filtering applied.
     // The value will be in the range -1...1 for keyboard and joystick input.
     // Since input is not smoothed, keyboard input will always be either -1, 0 or 1. 
-    private float _valueRaw;
-
-    // Previous values. Used for smooth input calculations.
-    private readonly float[] _previousValues = { 0, 0 };
-
-    public static List<Axis> Axes { get; set; }
+    public float ValueRaw { get; private set; }
 
     public string Name { get; set; }
 
@@ -57,117 +55,108 @@ public class Axis : Disposable
         DeadZone = 0.2f;
         Sensitivity = 2;
         Gravity = 2;
-        Axes.Add(this);
     }
 
-    static Axis()
-    {
-        Axes = new List<Axis>();
-    }
-
-    protected override void DisposeManagedResources()
-    {
-        Axes.Remove(this);
-    }
-
-    internal void Update(float elapsedTime)
+    internal void Update(KeyboardManager keyboardManager, MouseManager mouseManager, GamePad gamePad, float elapsedTime)
     {
         if (AxisBehavior == AxisBehaviors.DigitalInput)
         {
             // Check if the buttons were pressed.
-            var positiveButtonPressed = PositiveKeyButton.Pressed(GamePadNumber) || AlternativePositiveKeyButton.Pressed(GamePadNumber);
-            var negativeButtonPressed = NegativeKeyButton.Pressed(GamePadNumber) || AlternativeNegativeKeyButton.Pressed(GamePadNumber);
+            var positiveButtonPressed = PositiveKeyButton.IsPressed(keyboardManager, mouseManager, gamePad)
+                                        || AlternativePositiveKeyButton.IsPressed(keyboardManager, mouseManager, gamePad);
+            var negativeButtonPressed = NegativeKeyButton.IsPressed(keyboardManager, mouseManager, gamePad)
+                                        || AlternativeNegativeKeyButton.IsPressed(keyboardManager, mouseManager, gamePad);
 
             // Raw value.
-            _valueRaw = 0;
+            ValueRaw = 0;
             if (positiveButtonPressed)
             {
-                _valueRaw += 1;
+                ValueRaw += 1;
             }
 
             if (negativeButtonPressed)
             {
-                _valueRaw -= 1;
+                ValueRaw -= 1;
             }
 
             // Invert if necessary.
             if (Invert)
             {
-                _valueRaw *= -1;
+                ValueRaw *= -1;
             }
 
             // Snap: If enabled, the axis value will reset to zero when pressing a button of the opposite direction.
             if (Snap)
             {
-                if (_value > 0 && _valueRaw == -1 || _value < 0 && _valueRaw == 1) // Opposite direction
+                if (Value > 0 && ValueRaw == -1 || Value < 0 && ValueRaw == 1) // Opposite direction
                 {
-                    _value = 0;
+                    Value = 0;
                 }
             }
 
             // Gravity: Speed in units per second that the axis falls toward neutral when no buttons are pressed. 
-            if (_valueRaw == 0)
+            if (ValueRaw == 0)
             {
-                if (_value > Gravity * elapsedTime)
+                if (Value > Gravity * elapsedTime)
                 {
-                    _value -= Gravity * elapsedTime;
+                    Value -= Gravity * elapsedTime;
                 }
-                else if (_value < -Gravity * elapsedTime)
+                else if (Value < -Gravity * elapsedTime)
                 {
-                    _value += Gravity * elapsedTime;
+                    Value += Gravity * elapsedTime;
                 }
                 else
                 {
-                    _value = 0;
+                    Value = 0;
                 }
             }
             else // Sensitivity: Speed in units per second that the the axis will move toward the target value. This is for digital devices only.
             {
-                _value += Sensitivity * elapsedTime * _valueRaw;
-                _value = MathHelper.Clamp(_value, -1, 1);
+                Value += Sensitivity * elapsedTime * ValueRaw;
+                Value = MathHelper.Clamp(Value, -1, 1);
             }
         }
         else if (AxisBehavior == AxisBehaviors.AnalogInput)
         {
-            _valueRaw = AnalogAxis switch
+            ValueRaw = AnalogAxis switch
             {
-                AnalogAxis.MouseX => Mouse.DeltaX,
-                AnalogAxis.MouseY => Mouse.DeltaY,
-                AnalogAxis.MouseWheel => Mouse.WheelDelta,
-                AnalogAxis.LeftStickX => GamePad.GetByPlayerIndex(GamePadNumber).LeftStickX,
-                AnalogAxis.LeftStickY => GamePad.GetByPlayerIndex(GamePadNumber).LeftStickY,
-                AnalogAxis.RightStickX => GamePad.GetByPlayerIndex(GamePadNumber).RightStickX,
-                AnalogAxis.RightStickY => GamePad.GetByPlayerIndex(GamePadNumber).RightStickY,
-                AnalogAxis.Triggers => -GamePad.GetByPlayerIndex(GamePadNumber).LeftTrigger +
-                                       GamePad.GetByPlayerIndex(GamePadNumber).RightTrigger,
+                AnalogAxis.MouseX => mouseManager.DeltaX,
+                AnalogAxis.MouseY => mouseManager.DeltaY,
+                AnalogAxis.MouseWheel => mouseManager.WheelDelta,
+                AnalogAxis.LeftStickX => gamePad.LeftStickX,
+                AnalogAxis.LeftStickY => gamePad.LeftStickY,
+                AnalogAxis.RightStickX => gamePad.RightStickX,
+                AnalogAxis.RightStickY => gamePad.RightStickY,
+                AnalogAxis.Triggers => -gamePad.LeftTrigger +
+                                       gamePad.RightTrigger,
                 _ => 0
             };
 
             // Invert if necessary.
             if (Invert)
             {
-                _valueRaw *= -1;
+                ValueRaw *= -1;
             }
 
             // Mouse
             if (AnalogAxis == AnalogAxis.MouseX || AnalogAxis == AnalogAxis.MouseY || AnalogAxis == AnalogAxis.MouseWheel)
             {
-                _value = _valueRaw * Sensitivity;
+                Value = ValueRaw * Sensitivity;
             }
             // GamePad
             else
             {
-                var valueRawWithDeadZone = _valueRaw;
+                var valueRawWithDeadZone = ValueRaw;
                 // Dead Zone: Size of the analog dead zone. All analog device values within this range result map to neutral.
-                if (_valueRaw > -DeadZone && _valueRaw < DeadZone)
+                if (ValueRaw > -DeadZone && ValueRaw < DeadZone)
                 {
                     valueRawWithDeadZone = 0;
                 }
                 // For gamepad axes, sensitivity is an inverted exponential value that transforms the axis curve from linear to gamma (rawvalue ^ (1 / sensitivity)).
-                _value = (float)Math.Pow(Math.Abs(valueRawWithDeadZone), 1 / Sensitivity);
+                Value = (float)Math.Pow(Math.Abs(valueRawWithDeadZone), 1 / Sensitivity);
                 if (valueRawWithDeadZone < 0)
                 {
-                    _value *= -1;
+                    Value *= -1;
                 }
             }
         }
@@ -175,52 +164,10 @@ public class Axis : Disposable
         if (TemporalSmoothing)
         {
             // Average the input of the current frame with the previous values.
-            var storeValue = _value;
-            _value = (_previousValues[0] + _previousValues[1] + _value) / (_previousValues.Length + 1);
+            var storeValue = Value;
+            Value = (_previousValues[0] + _previousValues[1] + Value) / (_previousValues.Length + 1);
             _previousValues[1] = _previousValues[0];
             _previousValues[0] = storeValue;
         }
-
     }
-
-    public static float Value(string axisName)
-    {
-        float maxValue = 0;
-        var foundAxis = false;
-        foreach (var axis in Axes)
-        {
-            if (axis.Name == axisName && Math.Abs(axis._value) >= Math.Abs(maxValue))
-            {
-                foundAxis = true;
-                maxValue = axis._value;
-            }
-        }
-        if (!foundAxis)
-        {
-            throw new InvalidOperationException("Input: the axis named " + axisName + " does not exist.");
-        }
-
-        return maxValue;
-    }
-
-    public static float ValueRaw(string axisName)
-    {
-        float maxValue = 0;
-        var foundAxis = false;
-        foreach (var axis in Axes)
-        {
-            if (axis.Name == axisName && Math.Abs(axis._valueRaw) >= Math.Abs(maxValue))
-            {
-                foundAxis = true;
-                maxValue = axis._valueRaw;
-            }
-        }
-        if (!foundAxis)
-        {
-            throw new InvalidOperationException("Input: the axis named " + axisName + " does not exist.");
-        }
-
-        return maxValue;
-    }
-
 }

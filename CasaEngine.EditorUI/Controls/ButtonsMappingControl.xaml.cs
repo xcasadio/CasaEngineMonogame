@@ -37,7 +37,8 @@ namespace CasaEngine.EditorUI.Controls
         {
             var assetLoader = new AssetLoader<ButtonsMapping>();
             var buttonsMapping = (ButtonsMapping)assetLoader.LoadAsset(Path.Combine(EngineEnvironment.ProjectPath, fileName), null);
-            buttonsMapping.Buttons.Add(new Button() { Name = "test" });
+            //TODO remove
+            buttonsMapping.Buttons.Add(new InputMapping { Name = "test" });
             DataContext = buttonsMapping.Buttons[0];
         }
 

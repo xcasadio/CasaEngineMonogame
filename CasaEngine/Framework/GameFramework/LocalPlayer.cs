@@ -15,5 +15,5 @@ public class LocalPlayer : Player
     /** The platform user this player is assigned to, could correspond to multiple input devices */
     //FPlatformUserId PlatformUserId;
 
-
+    //UCommonInputSubsystem
 }

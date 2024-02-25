@@ -11,6 +11,7 @@ using TomShane.Neoforce.Controls;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Animations;
+using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
@@ -366,7 +367,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
-        InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider);
+        InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
 
         if (UseGui)
         {

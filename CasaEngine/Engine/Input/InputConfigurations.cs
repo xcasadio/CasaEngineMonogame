@@ -94,6 +94,19 @@ public class InputConfigurations : ISerializable
         _configurations.Remove(name);
     }
 
+    public void Update(InputComponent inputComponent, float elapsedTime)
+    {
+        foreach (var pair in _configurations)
+        {
+            pair.Value.Update(inputComponent, elapsedTime);
+        }
+    }
+
+    public void Load(JObject element)
+    {
+
+    }
+
     public void Save(JObject jObject)
     {
         var configurationNodes = new JArray();
@@ -122,10 +135,5 @@ public class InputConfigurations : ISerializable
         }
 
         jObject.Add("configurations", configurationNodes);
-    }
-
-    public void Load(JObject element)
-    {
-
     }
 }
