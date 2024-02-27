@@ -8,9 +8,9 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
-using CasaEngine.Framework.SceneManagement.Components;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;

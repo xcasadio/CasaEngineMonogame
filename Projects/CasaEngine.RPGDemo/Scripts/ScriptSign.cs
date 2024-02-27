@@ -14,7 +14,7 @@ public class ScriptSign : GameplayProxy
     {
         _inputComponent = world.Game.InputComponent;
 
-        //TODO : do it somewhere else, only fot testing purpose
+        //TODO : remove do it somewhere else, only fot testing purpose
         var button = new InputMapping();
         button.Name = "Action";
         button.KeyButton = new KeyButton(Keys.Enter);

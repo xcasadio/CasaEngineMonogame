@@ -1,6 +1,7 @@
 ﻿
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Objects;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
 

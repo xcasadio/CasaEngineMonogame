@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
@@ -11,15 +10,26 @@ public class CapsulePrimitive : GeometricPrimitive
     private int _tessellation;
 #endif
 
-    public CapsulePrimitive(GraphicsDevice graphicsDevice, float length = 1.0f, float radius = 0.5f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false) : base(GeometricPrimitiveType.Sphere)
+    public CapsulePrimitive(float length = 1.0f, float radius = 0.5f, int tessellation = 8,
+        float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
     {
+        length -= radius;
+
+        if (length <= 0.0f)
+        {
+            throw new ArgumentOutOfRangeException(nameof(length), "(length - radius) must be > 0");
+        }
+
 #if EDITOR
         _length = length;
         _radius = radius;
         _tessellation = tessellation;
 #endif
 
-        if (tessellation < 3) tessellation = 3;
+        if (tessellation < 3)
+        {
+            tessellation = 3;
+        }
 
         uint verticalSegments = 2 * (uint)tessellation;
         uint horizontalSegments = 4 * (uint)tessellation;
@@ -87,7 +97,5 @@ public class CapsulePrimitive : GeometricPrimitive
                 AddIndex(nextI * stride + nextJ);
             }
         }
-
-        InitializePrimitive(graphicsDevice);
     }
 }

@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Controllers.PlayerState;

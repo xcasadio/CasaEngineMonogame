@@ -33,6 +33,11 @@ public partial class SelectStaticMeshWindow : Window
         SetType(typeof(CylinderPrimitive));
     }
 
+    private void ButtonCone_Click(object sender, RoutedEventArgs e)
+    {
+        SetType(typeof(ConePrimitive));
+    }
+
     private void ButtonPlane_Click(object sender, RoutedEventArgs e)
     {
         SetType(typeof(PlanePrimitive));

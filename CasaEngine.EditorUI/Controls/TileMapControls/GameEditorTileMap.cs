@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 

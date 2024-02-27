@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 

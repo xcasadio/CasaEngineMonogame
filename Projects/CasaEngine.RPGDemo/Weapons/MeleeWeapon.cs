@@ -1,6 +1,6 @@
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Weapons;

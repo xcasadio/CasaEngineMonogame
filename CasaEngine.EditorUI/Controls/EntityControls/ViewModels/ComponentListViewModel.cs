@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 

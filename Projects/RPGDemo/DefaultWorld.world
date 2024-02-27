@@ -227,6 +227,79 @@
           "nodes": []
         }
       }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "1087a62c-6dde-4c41-8691-f50679848dc7",
+        "name": "EnemySpawner",
+        "root_component": {
+          "id": "ff5b2b9b-9b48-44fe-a9ed-7b060fd6c180",
+          "name": "Object ff5b2b9b-9b48-44fe-a9ed-7b060fd6c180",
+          "type": "BoxCollisionComponent",
+          "coordinates": {
+            "position": {
+              "x": 600.0,
+              "y": 600.0,
+              "z": 0.3
+            },
+            "scale": {
+              "x": 32.0,
+              "y": 32.0,
+              "z": 32.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "physics_definition": {
+            "physics_type": "Kinetic",
+            "additional_angular_damping_factor": 0.01,
+            "additional_angular_damping_threshold_sqr": 0.01,
+            "additional_damping": false,
+            "additional_damping_factor": 0.005,
+            "additional_linear_damping_threshold_sqr": 0.01,
+            "angular_damping": 0.0,
+            "angular_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "angular_sleeping_threshold": 1.0,
+            "friction": 0.5,
+            "linear_damping": 0.0,
+            "linear_factor": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "linear_sleeping_threshold": 0.8,
+            "local_inertia": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "mass": 0.0,
+            "restitution": 0.0,
+            "rolling_friction": 0.0,
+            "apply_gravity": false,
+            "debug_color": "null"
+          }
+        },
+        "components": [],
+        "script_class_name": null,
+        "flow_graph": {
+          "type": "sequence",
+          "id": 26,
+          "name": "sequence",
+          "description": null,
+          "nodes": []
+        }
+      }
     }
   ],
   "script_class_name": "ScriptWorld",

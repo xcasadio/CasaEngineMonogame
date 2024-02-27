@@ -1,14 +1,12 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Core.Shapes;
 
-public abstract class Shape3d
+public abstract class Shape3d : ObjectBase
 {
-    public event EventHandler<string> PropertyChanged;
-
     public Shape3dType Type { get; }
 
     public abstract BoundingBox BoundingBox { get; }
@@ -18,20 +16,13 @@ public abstract class Shape3d
         Type = type;
     }
 
-    public virtual void Load(JObject element)
-    {
-        //Do nothing
-    }
-
-    protected void OnPropertyChange(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, propertyName);
-    }
-
 #if EDITOR
-    public virtual void Save(JObject jObject)
+
+    public override void Save(JObject jObject)
     {
+        base.Save(jObject);
         jObject.Add("shape_type", Type.ConvertToString());
     }
+
 #endif
 }

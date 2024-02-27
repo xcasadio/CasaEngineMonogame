@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.SceneManagement.Components;
+﻿using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.Engine.Physics;
 

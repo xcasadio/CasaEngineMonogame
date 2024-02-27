@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -27,8 +27,7 @@ public class StaticMesh : ObjectBase
         }
 #endif
 
-        VertexBuffer = new VertexBuffer(assetContentManager.GraphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count,
-            BufferUsage.None);
+        VertexBuffer = new VertexBuffer(assetContentManager.GraphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
         VertexBuffer.SetData(_vertices.ToArray());
 
         IndexBuffer = new IndexBuffer(assetContentManager.GraphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
@@ -59,6 +58,10 @@ public class StaticMesh : ObjectBase
     {
         _vertices.AddRange(vertices);
     }
+    public void AddIndex(uint index)
+    {
+        _indices.Add(index);
+    }
 
     public void AddIndices(List<uint> indices)
     {
@@ -88,7 +91,6 @@ public class StaticMesh : ObjectBase
 #if EDITOR
 
     private bool _isInitialized;
-
 
     public override void Save(JObject jObject)
     {

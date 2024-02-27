@@ -20,6 +20,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Objects;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -356,7 +357,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         DebugSystem.Instance.TimeRuler.EndMark("Draw");
 #endif
     }
-
 
 #if EDITOR
 

@@ -4,23 +4,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
-public abstract class GeometricPrimitive : IDisposable
+public abstract class GeometricPrimitive
 {
-    private GeometricPrimitiveType _type;
-
     private readonly List<VertexPositionNormalTexture> _vertices = new();
     private readonly List<uint> _indices = new();
 
-    private VertexBuffer? _vertexBuffer;
-    private IndexBuffer? _indexBuffer;
-    private BasicEffect? _basicEffect;
-
     protected uint CurrentVertex => (uint)_vertices.Count;
-
-    protected GeometricPrimitive(GeometricPrimitiveType type)
-    {
-        _type = type;
-    }
 
     public StaticMesh CreateMesh()
     {
@@ -46,117 +35,66 @@ public abstract class GeometricPrimitive : IDisposable
         _indices.Add((uint)index);
     }
 
-    protected void InitializePrimitive(GraphicsDevice graphicsDevice)
+    protected static Vector3 GetCircleVector(uint i, int tessellation)
     {
-        _vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Count, BufferUsage.None);
-        _vertexBuffer.SetData(_vertices.ToArray());
+        var angle = (float)(i * 2.0 * Math.PI / tessellation);
+        var dx = (float)Math.Sin(angle);
+        var dz = (float)Math.Cos(angle);
 
-        _indexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
-        _indexBuffer.SetData(_indices.ToArray());
-
-        _basicEffect = new BasicEffect(graphicsDevice);
-
-        _basicEffect.EnableDefaultLighting();
-        _basicEffect.PreferPerPixelLighting = true;
+        return new Vector3(dx, 0, dz);
     }
 
-    ~GeometricPrimitive()
+    protected void CreateCylinderCap(int tessellation, float height, float radius, bool isTop)
     {
-        Dispose(false);
-    }
-
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposing)
+        // Create cap indices.
+        for (uint i = 0; i < tessellation - 2; i++)
         {
-            return;
+            uint i1 = (i + 1) % (uint)tessellation;
+            uint i2 = (i + 2) % (uint)tessellation;
+
+            if (isTop)
+            {
+                (i1, i2) = (i2, i1);
+            }
+
+            uint currentIndex = CurrentVertex;
+            AddIndex(currentIndex);
+            AddIndex(currentIndex + i1);
+            AddIndex(currentIndex + i2);
         }
 
-        _vertexBuffer?.Dispose();
-        _indexBuffer?.Dispose();
-        _basicEffect?.Dispose();
-    }
+        // Which end of the cylinder is this?
+        var normal = Vector3.UnitY;
+        var textureScale = new Vector2(-0.5f);
 
-    /// <summary>
-    /// Draws the primitive model, using the specified effect. Unlike the other
-    /// Draw overload where you just specify the world/view/projection matrices
-    /// and color, this method does not set any renderstates, so you must make
-    /// sure all states are set to sensible values before you call it.
-    /// </summary>
-    public void Draw(Effect effect)
-    {
-        var graphicsDevice = effect.GraphicsDevice;
-
-        graphicsDevice.SetVertexBuffer(_vertexBuffer);
-        graphicsDevice.Indices = _indexBuffer;
-
-        //effect.Parameters["WorldViewProj"] = ;
-
-        foreach (var effectPass in effect.CurrentTechnique.Passes)
+        if (!isTop)
         {
-            effectPass.Apply();
-            var primitiveCount = _indices.Count / 3;
-            graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
+            normal = -normal;
+            textureScale.X = -textureScale.X;
         }
-    }
 
-    /// <summary>
-    /// Draws the primitive model, using a BasicEffect shader with default
-    /// lighting. Unlike the other Draw overload where you specify a custom
-    /// effect, this method sets important renderstates to sensible values
-    /// for 3D model rendering, so you do not need to set these states before
-    /// you call it.
-    /// </summary>
-    public void Draw(Matrix world, Matrix view, Matrix projection, Color color)
-    {
-        // Set BasicEffect parameters.
-        _basicEffect.World = world;
-        _basicEffect.View = view;
-        _basicEffect.Projection = projection;
-        _basicEffect.DiffuseColor = color.ToVector3();
-        _basicEffect.Alpha = color.A / 255.0f;
-
-        // Set important renderstates.
-        /*RenderState renderState = basicEffect.GraphicsDevice.RenderState;
-
-        renderState.AlphaTestEnable = false;
-        renderState.DepthBufferEnable = true;
-        renderState.DepthBufferFunction = CompareFunction.LessEqual;
-
-        if (color.A < 255)
+        // Create cap vertices.
+        for (uint i = 0; i < tessellation; i++)
         {
-            // Set renderstates for alpha blended rendering.
-            renderState.AlphaBlendEnable = true;
-            renderState.AlphaBlendOperation = BlendFunction.Add;
-            renderState.SourceBlend = Blend.SourceAlpha;
-            renderState.DestinationBlend = Blend.InverseSourceAlpha;
-            renderState.SeparateAlphaBlendEnabled = false;
-            renderState.DepthBufferWriteEnable = false;
+            var circleVector = GetCircleVector(i, tessellation);
+            var position = (circleVector * radius) + (normal * height);
+            var textureCoordinate = new Vector2(circleVector.X * textureScale.X + 0.5f, circleVector.Z * textureScale.Y + 0.5f);
+
+            AddVertex(position, normal, textureCoordinate);
         }
-        else
-        {
-            // Set renderstates for opaque rendering.
-            renderState.AlphaBlendEnable = false;
-            renderState.DepthBufferWriteEnable = true;
-        }*/
-
-        // Draw the model, using BasicEffect.
-        Draw(_basicEffect);
     }
 
 #if EDITOR
-    public List<Vector3> Vertex
+    public List<Vector3> Points
     {
         get
         {
             return _vertices.Select(v => v.Position).ToList();
         }
     }
+
+    public List<VertexPositionNormalTexture> Vertices => _vertices;
+    public List<uint> Indices => _indices;
+
 #endif
 }

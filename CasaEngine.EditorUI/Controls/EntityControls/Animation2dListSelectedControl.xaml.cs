@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 

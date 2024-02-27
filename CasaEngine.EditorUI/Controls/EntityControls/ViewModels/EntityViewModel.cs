@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Assets;
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 using static Assimp.Metadata;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;

@@ -7,4 +7,5 @@ public enum Shape3dType
     Capsule,
     Cylinder,
     Sphere,
+    Cone
 }

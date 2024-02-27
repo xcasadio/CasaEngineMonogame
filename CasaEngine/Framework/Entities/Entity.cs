@@ -1,7 +1,8 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -127,7 +128,9 @@ public class Entity : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
+#if !EDITOR
         GameplayProxy?.Initialize(this);
+#endif
 
         IsInitialized = true;
     }
@@ -148,7 +151,9 @@ public class Entity : ObjectBase
             _children[i].InitializeWithWorld(world);
         }
 
+#if !EDITOR
         GameplayProxy?.InitializeWithWorld(world);
+#endif
     }
 
     private void OnEnabledValueChange()

@@ -1,8 +1,8 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GameFramework;
-using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
@@ -18,14 +18,9 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
     public Character Character { get; private set; }
     public Controller Controller { get; private set; }
 
-    protected override void InitializePrivate()
-    {
-        base.InitializePrivate();
-    }
-
     public override void InitializeWithWorld(World world)
     {
-        Character = new Character(Owner as Pawn);
+        Character = new Character((Pawn)Owner);
         Controller = new HumanPlayerController(Character, PlayerIndex.One);
 
         Character.AnimationPrefix = "swordman";

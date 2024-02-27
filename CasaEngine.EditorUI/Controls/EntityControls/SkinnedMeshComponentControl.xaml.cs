@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 

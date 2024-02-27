@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
@@ -10,12 +9,7 @@ public class PlanePrimitive : GeometricPrimitive
     private int _tessellationHorizontal, _tessellationVertical;
 #endif
 
-    /// <summary>
-    /// Constructs a new plane primitive,
-    /// with the specified horizontal and vertical tessellation level.
-    /// </summary>
-    public PlanePrimitive(GraphicsDevice graphicsDevice, float sizeH = 1.0f, float sizeV = 1.0f, int tessellationHorizontal = 1, int tessellationVertical = 1)
-        : base(GeometricPrimitiveType.Plane)
+    public PlanePrimitive(float sizeH = 1.0f, float sizeV = 1.0f, int tessellationHorizontal = 1, int tessellationVertical = 1)
     {
         if (tessellationHorizontal < 1)
         {
@@ -78,7 +72,5 @@ public class PlanePrimitive : GeometricPrimitive
                 AddIndex((iy + 1) * horizontalSegments + ix + 1);
             }
         }
-
-        InitializePrimitive(graphicsDevice);
     }
 }

@@ -7,7 +7,6 @@ namespace CasaEngine.Core.Shapes;
 
 public class Cylinder : Shape3d, IEquatable<Cylinder>
 {
-    private float _radius;
     private float _length;
 
     public float Radius { get; set; }
@@ -17,14 +16,16 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         get
         {
-            var halfSize = new Vector3(Length / 2f + Radius, Radius, Radius); // X oriented
-            return new BoundingBox(halfSize, halfSize);
+            var halfSize = new Vector3(Length / 2f, Radius, Radius); // X oriented
+            return new BoundingBox(
+                new Vector3(-Length / 2f, Radius, Radius),
+                new Vector3(Length / 2f, Radius, Radius));
         }
     }
 
     public Cylinder() : base(Shape3dType.Cylinder)
     {
-        Radius = 1f;
+        Radius = 0.5f;
         Length = 1f;
     }
 
@@ -53,7 +54,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     public override void Load(JObject element)
     {
         base.Load(element);
-        _radius = element["radius"].GetSingle();
+        Radius = element["radius"].GetSingle();
         _length = element["length"].GetSingle();
     }
 

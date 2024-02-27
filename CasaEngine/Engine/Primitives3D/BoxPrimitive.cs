@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
@@ -9,8 +8,7 @@ public class BoxPrimitive : GeometricPrimitive
     private float _width, _height, _length;
 #endif
 
-    public BoxPrimitive(GraphicsDevice graphicsDevice, float width = 1, float height = 1, float length = 1)
-        : base(GeometricPrimitiveType.Cube)
+    public BoxPrimitive(float width = 1, float height = 1, float length = 1)
     {
 #if EDITOR
         _width = width;
@@ -59,8 +57,6 @@ public class BoxPrimitive : GeometricPrimitive
         AddVertex((Vector3.UnitZ * length - Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.UnitX);
         AddVertex((-Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.UnitY);
         AddVertex((Vector3.UnitZ * length + Vector3.UnitY * height - Vector3.UnitX * width) / 2, -Vector3.UnitX, Vector2.One);
-
-        InitializePrimitive(graphicsDevice);
     }
 
     private void AddVertex(bool dir)

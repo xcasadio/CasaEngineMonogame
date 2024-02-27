@@ -1,8 +1,8 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.SceneManagement.Components;
 
 namespace CasaEngine.Framework.Scripting;
 
@@ -11,7 +11,7 @@ public class ScriptArcBallCamera : GameplayProxy
     private ArcBallCameraComponent? _arcBallCameraComponent;
     private InputComponent _inputComponent;
 
-    private readonly float _inputTurnRate;
+    public float InputTurnRate { get; set; }
 
     public float InputDistanceRate { get; set; }
 
@@ -20,8 +20,8 @@ public class ScriptArcBallCamera : GameplayProxy
     public ScriptArcBallCamera()
     {
         InputDistanceRate = 3.0f;
-        _inputTurnRate = 0.3f;
-        InputDisplacementRate = 10.0f;
+        InputTurnRate = 0.3f;
+        InputDisplacementRate = 100.0f;
     }
 
     protected override void InitializePrivate()
@@ -47,7 +47,6 @@ public class ScriptArcBallCamera : GameplayProxy
         var zoom = 0.0f;
 
         const float step = 1.0f;
-
 
         if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Right))
         {
@@ -109,8 +108,8 @@ public class ScriptArcBallCamera : GameplayProxy
         var upOffset = upAxis * elapsedTime * InputDisplacementRate;
         var forwardOffset = forwardAxis * elapsedTime * InputDisplacementRate;
 
-        var horizontalOrbitOffset = horizontalOrbit * elapsedTime * _inputTurnRate;
-        var verticalOrbitOffset = verticalOrbit * elapsedTime * _inputTurnRate;
+        var horizontalOrbitOffset = horizontalOrbit * elapsedTime * InputTurnRate;
+        var verticalOrbitOffset = verticalOrbit * elapsedTime * InputTurnRate;
         //float dR = rollOrbit_ * elapsedTime * _inputTurnRate;
 
         if (horizontalOrbitOffset != 0.0f)

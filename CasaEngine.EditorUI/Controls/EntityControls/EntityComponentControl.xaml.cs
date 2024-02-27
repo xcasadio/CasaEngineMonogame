@@ -8,9 +8,9 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.SceneManagement.Components;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -144,6 +144,11 @@ public partial class EntityComponentControl : UserControl
             case Shape3dType.Sphere:
                 var sphere = shape as Sphere;
                 sphere.Radius = Math.Min(boundingBox.Max.X - boundingBox.Min.X,
+                    Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z));
+                break;
+            case Shape3dType.Cone:
+                var cone = shape as Cone;
+                cone.Radius = Math.Min(boundingBox.Max.X - boundingBox.Min.X,
                     Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z));
                 break;
             default:

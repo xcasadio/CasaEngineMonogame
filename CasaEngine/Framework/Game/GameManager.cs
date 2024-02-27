@@ -2,7 +2,7 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.SceneManagement.Components;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using EventArgs = System.EventArgs;
@@ -145,7 +145,9 @@ public class GameManager
 
         _cameraEditorEntity.AddComponent(cameraEditor);
         _cameraEditorEntity.Initialize();
+        _cameraEditorEntity.GameplayProxy?.Initialize(_cameraEditorEntity);
         _cameraEditorEntity.InitializeWithWorld(world);
+        _cameraEditorEntity.GameplayProxy?.InitializeWithWorld(world);
 
         ActiveCamera = cameraEditor;
     }
@@ -160,5 +162,6 @@ public class GameManager
         cameraEntity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
         return cameraEditor;
     }
+
 #endif
 }

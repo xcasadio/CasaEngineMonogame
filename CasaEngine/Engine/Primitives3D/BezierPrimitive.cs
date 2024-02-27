@@ -1,10 +1,3 @@
-//-----------------------------------------------------------------------------
-// BezierPrimitive.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
 using System.Diagnostics;
 using Microsoft.Xna.Framework;
 
@@ -16,18 +9,6 @@ namespace CasaEngine.Engine.Primitives3D;
 /// </summary>
 public abstract class BezierPrimitive : GeometricPrimitive
 {
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="type"></param>
-    protected BezierPrimitive(GeometricPrimitiveType type)
-        : base(type)
-    {
-    }
-
-    /// <summary>
-    /// Creates indices for a patch that is tessellated at the specified level.
-    /// </summary>
     protected void CreatePatchIndices(int tessellation, bool isMirrored)
     {
         uint stride = (uint)tessellation + 1;
@@ -55,7 +36,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
                     Array.Reverse(indices);
                 }
 
-                // Create the indices.
                 foreach (var index in indices)
                 {
                     AddIndex(CurrentVertex + index);
@@ -64,9 +44,6 @@ public abstract class BezierPrimitive : GeometricPrimitive
         }
     }
 
-    /// <summary>
-    /// Creates vertices for a patch that is tessellated at the specified level.
-    /// </summary>
     protected void CreatePatchVertices(Vector3[] patch, int tessellation, bool isMirrored)
     {
         Debug.Assert(patch.Length == 16);

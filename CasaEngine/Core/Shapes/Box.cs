@@ -7,20 +7,7 @@ namespace CasaEngine.Core.Shapes;
 
 public class Box : Shape3d, IEquatable<Box>
 {
-    private Vector3 _size;
-
-    public Vector3 Size
-    {
-        get => _size;
-        set
-        {
-            if (value != _size)
-            {
-                OnPropertyChange(nameof(Size));
-            }
-            _size = value;
-        }
-    }
+    public Vector3 Size { get; set; }
 
     public override BoundingBox BoundingBox
     {

@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Entities;
 using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Objects;
 
 namespace CasaEngine.Engine.Input;
 

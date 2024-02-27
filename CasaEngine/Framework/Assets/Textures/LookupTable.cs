@@ -6,6 +6,7 @@
 */
 
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;

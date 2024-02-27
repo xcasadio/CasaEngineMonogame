@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Objects;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.GameFramework;
@@ -19,6 +20,8 @@ public class GameMode : ObjectBase
     public event EventHandler<string> GameStateChanged;
     public Guid DefaultPawnAssetId { get; set; } = Guid.Empty;
     public string PlayerControllerClass { get; set; } = nameof(PlayerController);
+    public string AIControllerClass { get; set; } = nameof(AIController);
+
     public string HUDClass { get; set; }
     public World.World World { get; private set; }
 
@@ -422,6 +425,7 @@ public class GameMode : ObjectBase
 
         DefaultPawnAssetId = element["default_pawn_asset_id"].GetGuid();
         PlayerControllerClass = element["player_controller_class"].GetString();
+        //AIControllerClass = element["ai_controller_class"].GetString();
         HUDClass = element["hud_classClass"].GetString();
     }
 
@@ -432,6 +436,7 @@ public class GameMode : ObjectBase
 
         node.Add("default_pawn_asset_id", DefaultPawnAssetId);
         node.Add("player_controller_class", PlayerControllerClass);
+        node.Add("ai_controller_class", AIControllerClass);
         node.Add("hud_classClass", HUDClass);
     }
 

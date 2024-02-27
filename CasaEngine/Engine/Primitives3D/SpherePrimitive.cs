@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
@@ -10,7 +9,7 @@ public class SpherePrimitive : GeometricPrimitive
     private int _tessellation;
 #endif
 
-    public SpherePrimitive(GraphicsDevice graphicsDevice, float diameter = 1f, int tessellation = 16) : base(GeometricPrimitiveType.Sphere)
+    public SpherePrimitive(float diameter = 1f, int tessellation = 16)
     {
         if (tessellation < 3)
         {
@@ -74,7 +73,5 @@ public class SpherePrimitive : GeometricPrimitive
                 AddIndex(nextI * stride + nextJ);
             }
         }
-
-        InitializePrimitive(graphicsDevice);
     }
 }

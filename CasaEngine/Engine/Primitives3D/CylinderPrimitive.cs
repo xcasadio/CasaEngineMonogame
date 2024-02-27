@@ -5,8 +5,7 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class CylinderPrimitive : GeometricPrimitive
 {
-    public CylinderPrimitive(GraphicsDevice graphicsDevice, float height = 1f, float diameter = 1f, int tessellation = 32) :
-        base(GeometricPrimitiveType.Cylinder)
+    public CylinderPrimitive(float height = 1f, float diameter = 1f, int tessellation = 32)
     {
         if (tessellation < 3)
         {
@@ -44,56 +43,5 @@ public class CylinderPrimitive : GeometricPrimitive
         // Create flat triangle fan caps to seal the top and bottom.
         CreateCylinderCap(tessellation, height, radius, true);
         CreateCylinderCap(tessellation, height, radius, false);
-
-        InitializePrimitive(graphicsDevice);
-    }
-
-    private static Vector3 GetCircleVector(uint i, int tessellation)
-    {
-        var angle = (float)(i * 2.0 * Math.PI / tessellation);
-        var dx = (float)Math.Sin(angle);
-        var dz = (float)Math.Cos(angle);
-
-        return new Vector3(dx, 0, dz);
-    }
-
-    private void CreateCylinderCap(int tessellation, float height, float radius, bool isTop)
-    {
-        // Create cap indices.
-        for (uint i = 0; i < tessellation - 2; i++)
-        {
-            uint i1 = (i + 1) % (uint)tessellation;
-            uint i2 = (i + 2) % (uint)tessellation;
-
-            if (isTop)
-            {
-                (i1, i2) = (i2, i1);
-            }
-
-            uint vbase = CurrentVertex;
-            AddIndex(vbase);
-            AddIndex(vbase + i1);
-            AddIndex(vbase + i2);
-        }
-
-        // Which end of the cylinder is this?
-        var normal = Vector3.UnitY;
-        var textureScale = new Vector2(-0.5f);
-
-        if (!isTop)
-        {
-            normal = -normal;
-            textureScale.X = -textureScale.X;
-        }
-
-        // Create cap vertices.
-        for (uint i = 0; i < tessellation; i++)
-        {
-            var circleVector = GetCircleVector(i, tessellation);
-            var position = (circleVector * radius) + (normal * height);
-            var textureCoordinate = new Vector2(circleVector.X * textureScale.X + 0.5f, circleVector.Z * textureScale.Y + 0.5f);
-
-            AddVertex(position, normal, textureCoordinate);
-        }
     }
 }

@@ -15,7 +15,7 @@ public class Capsule : Shape3d, IEquatable<Capsule>
         get
         {
             var halfSize = new Vector3(Length / 2f + Radius, Radius, Radius); // X oriented
-            return new BoundingBox(halfSize, halfSize);
+            return new BoundingBox(-halfSize, halfSize);
         }
     }
 

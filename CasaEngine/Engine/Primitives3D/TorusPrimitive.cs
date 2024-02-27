@@ -1,11 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
 public class TorusPrimitive : GeometricPrimitive
 {
-    public TorusPrimitive(GraphicsDevice graphicsDevice, float diameter = 1, float thickness = 0.333f, int tessellation = 32) : base(GeometricPrimitiveType.Torus)
+    public TorusPrimitive(float diameter = 1, float thickness = 0.333f, int tessellation = 32)
     {
         if (tessellation < 3)
         {
@@ -56,7 +55,5 @@ public class TorusPrimitive : GeometricPrimitive
                 AddIndex(nextI * stride + j);
             }
         }
-
-        InitializePrimitive(graphicsDevice);
     }
 }

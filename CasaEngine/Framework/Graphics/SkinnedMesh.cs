@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Objects;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Graphics;

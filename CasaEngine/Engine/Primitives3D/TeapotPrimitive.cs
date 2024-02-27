@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
 public class TeapotPrimitive : BezierPrimitive
 {
-    public TeapotPrimitive(GraphicsDevice graphicsDevice, float size = 1, int tessellation = 8) : base(GeometricPrimitiveType.Teapot)
+    public TeapotPrimitive(float size = 1, int tessellation = 8)
     {
         if (tessellation < 1)
         {
@@ -29,8 +28,6 @@ public class TeapotPrimitive : BezierPrimitive
                 TessellatePatch(patch, tessellation, new Vector3(-size, size, -size));
             }
         }
-
-        InitializePrimitive(graphicsDevice);
     }
 
     private void TessellatePatch(TeapotPatch patch, int tessellation, Vector3 scale)

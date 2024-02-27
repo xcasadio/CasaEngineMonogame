@@ -26,6 +26,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Utils;
