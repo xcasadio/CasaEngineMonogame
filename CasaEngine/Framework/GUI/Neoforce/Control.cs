@@ -1,4 +1,3 @@
-
 using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;

@@ -19,7 +19,7 @@ public class SceneManagementDemo : Demo
         _entities = new List<Entity>();
         var world = game.GameManager.CurrentWorld;
 
-        var boxPrimitive = new BoxPrimitive(game.GraphicsDevice);
+        var boxPrimitive = new BoxPrimitive();
         var staticMesh = boxPrimitive.CreateMesh();
         staticMesh.Initialize(game.AssetContentManager);
         staticMesh.Texture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);

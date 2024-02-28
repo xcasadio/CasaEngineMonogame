@@ -28,7 +28,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
     public PhysicsDefinition PhysicsDefinition { get; }
 
-    public bool SimulatePhysics { get; set; }
+    public bool SimulatePhysics { get; set; } = true;
 
     public Vector3 Velocity
     {

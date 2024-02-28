@@ -44,28 +44,6 @@
       }
     },
     {
-      "asset_id": "afd86c38-7a42-40e6-92b8-58b0d2def9d7",
-      "name": "character_octopus",
-      "initial_coordinates": {
-        "position": {
-          "x": 600.0,
-          "y": 600.0,
-          "z": 0.3
-        },
-        "scale": {
-          "x": 1.0,
-          "y": 1.0,
-          "z": 1.0
-        },
-        "rotation": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 0.0,
-          "w": 1.0
-        }
-      }
-    },
-    {
       "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
         "id": "bfa3d321-8f61-4af2-aa8f-8a365c26bc95",
@@ -126,8 +104,8 @@
           "type": "BoxCollisionComponent",
           "coordinates": {
             "position": {
-              "x": 949.30865,
-              "y": 461.91608,
+              "x": 944.0,
+              "y": 460.0,
               "z": 0.0
             },
             "scale": {
@@ -246,7 +224,7 @@
             "scale": {
               "x": 32.0,
               "y": 32.0,
-              "z": 32.0
+              "z": 0.01
             },
             "rotation": {
               "x": 0.0,
@@ -291,7 +269,7 @@
           }
         },
         "components": [],
-        "script_class_name": null,
+        "script_class_name": "ScriptEnemySpawner",
         "flow_graph": {
           "type": "sequence",
           "id": 26,

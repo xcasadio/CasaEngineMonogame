@@ -19,6 +19,8 @@ public class ArrowComponent : StaticMeshComponent
         Mesh = other.Mesh;
     }
 
+#if EDITOR
+
     protected override void InitializePrivate()
     {
         base.InitializePrivate();
@@ -61,6 +63,7 @@ public class ArrowComponent : StaticMeshComponent
         Mesh.Texture = world.Game.AssetContentManager.GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
         base.InitializeWithWorld(world);
     }
+#endif
 
     public override ArrowComponent Clone()
     {

@@ -23,14 +23,16 @@ public class Collision3dBasicDemo : Demo
         //===
         var physicsComponent = new BoxCollisionComponent();
         entity.AddComponent(physicsComponent);
-        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
-        physicsComponent.LocalScale = new Vector3(50, 1, 50);
-        physicsComponent.PhysicsDefinition.Mass = 0.0f;
         //===
         var meshComponent = new StaticMeshComponent();
         entity.RootComponent = meshComponent;
-        meshComponent.Mesh = new BoxPrimitive(game.GraphicsDevice, 50, 1, 50).CreateMesh();
+        meshComponent.Mesh = new BoxPrimitive(50, 1, 50).CreateMesh();
         meshComponent.Mesh.Initialize(game.AssetContentManager);
+        //===
+        physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
+        physicsComponent.LocalScale = new Vector3(50, 1, 50);
+        physicsComponent.PhysicsDefinition.Mass = 0.0f;
+
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
@@ -44,7 +46,9 @@ public class Collision3dBasicDemo : Demo
             ArraySizeY + 10,
             -(float)ArraySizeZ + (float)ArraySizeZ / 2f);
 
-        var boxPrimitive = new BoxPrimitive(game.GraphicsDevice, 1, 1, 1).CreateMesh();
+        var boxPrimitive = new BoxPrimitive().CreateMesh();
+        fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
+        var meshTexture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
         for (int k = 0; k < ArraySizeY; k++)
         {
@@ -54,19 +58,17 @@ public class Collision3dBasicDemo : Demo
                 {
                     entity = new Entity { Name = $"box {i}-{k}" };
                     //===
-                    physicsComponent = new BoxCollisionComponent();
-                    physicsComponent.Position = start + new Vector3(i, k, j);
-                    entity.AddComponent(physicsComponent);
-                    physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
-                    physicsComponent.LocalScale = Vector3.One;
-                    physicsComponent.PhysicsDefinition.Mass = mass;
-                    //===
                     meshComponent = new StaticMeshComponent();
                     entity.RootComponent = meshComponent;
+                    meshComponent.Position = start + new Vector3(i, k, j);
                     meshComponent.Mesh = boxPrimitive;
                     meshComponent.Mesh.Initialize(game.AssetContentManager);
-                    fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
-                    meshComponent.Mesh.Texture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+                    meshComponent.Mesh.Texture = meshTexture;
+                    //===
+                    physicsComponent = new BoxCollisionComponent();
+                    meshComponent.AddChildComponent(physicsComponent);
+                    physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+                    physicsComponent.PhysicsDefinition.Mass = mass;
 
                     world.AddEntity(entity);
                 }

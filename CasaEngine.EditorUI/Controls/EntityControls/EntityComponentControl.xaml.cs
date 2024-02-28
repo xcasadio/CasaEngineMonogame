@@ -10,7 +10,6 @@ using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

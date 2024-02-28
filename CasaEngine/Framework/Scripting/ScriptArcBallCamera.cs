@@ -21,7 +21,7 @@ public class ScriptArcBallCamera : GameplayProxy
     {
         InputDistanceRate = 3.0f;
         InputTurnRate = 0.3f;
-        InputDisplacementRate = 100.0f;
+        InputDisplacementRate = 10.0f;
     }
 
     protected override void InitializePrivate()

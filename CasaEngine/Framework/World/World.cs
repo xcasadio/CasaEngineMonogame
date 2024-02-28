@@ -180,7 +180,10 @@ public sealed class World : ObjectBase
         _playerControllers.Add(playerController);
 
         var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
-        pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+        if (playerStartComponent != null)
+        {
+            pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+        }
 
         InternalAddEntities();
     }
@@ -313,7 +316,10 @@ public sealed class World : ObjectBase
 
     private void InternalAddEntities()
     {
-        foreach (var entityToAdd in _baseObjectsToAdd)
+        var entitiesToAdd = new List<Entity>(_baseObjectsToAdd);
+        _baseObjectsToAdd.Clear();
+
+        foreach (var entityToAdd in entitiesToAdd)
         {
             entityToAdd.Initialize();
             entityToAdd.InitializeWithWorld(this);
@@ -323,8 +329,7 @@ public sealed class World : ObjectBase
 #endif
         }
 
-        _entities.AddRange(_baseObjectsToAdd);
-        _baseObjectsToAdd.Clear();
+        _entities.AddRange(entitiesToAdd);
     }
 
     private void AddInSpacePartitioning(Entity actor)

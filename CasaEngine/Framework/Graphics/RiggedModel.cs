@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Core.Log;
-using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -51,7 +50,7 @@ public class RiggedModel
     public int NumberOfNodesInUse = 0;
     public readonly int MaxGlobalBones = 128; // 78       
     public readonly Matrix[] GlobalShaderMatrixs; // these are the real final bone matrices they end up on the shader.
-    public readonly List<RiggedModelNode> FlatListToBoneNodes = new();
+    public readonly List<RiggedModel.RiggedModelNode> FlatListToBoneNodes = new();
     public readonly List<RiggedModelNode> FlatListToAllNodes = new();
     public RiggedModelMesh[] Meshes;
     public RiggedModelNode RootNodeOfTree; // The actual model root node the base node of the model from here we can locate any node in the chain.

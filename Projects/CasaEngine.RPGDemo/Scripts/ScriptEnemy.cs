@@ -32,6 +32,14 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
 
         Character.AnimationPrefix = "octopus";
         Character.AnimatedSpriteComponent.AnimationFinished += OnAnimationFinished;
+
+        var animatedSprite = Owner.GetComponent<AnimatedSpriteComponent>();
+        animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
+
+        Character.SetWeapon(new ThrowableWeapon(world, "weapon_rock"));
+
+        var entity = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
+        (Controller as EnemyController).PlayerHunted = (entity.GameplayProxy as IScriptCharacter).Character;
     }
 
     public override void Update(float elapsedTime)
@@ -56,13 +64,6 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
 
     public override void OnBeginPlay(World world)
     {
-        var animatedSprite = Owner.GetComponent<AnimatedSpriteComponent>();
-        animatedSprite.SetCurrentAnimation("octopus_stand_right", true);
-
-        Character.SetWeapon(new ThrowableWeapon(world, "weapon_rock"));
-
-        var entity = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
-        (Controller as EnemyController).PlayerHunted = (entity.GameplayProxy as IScriptCharacter).Character;
     }
 
     public override void OnEndPlay(World world)

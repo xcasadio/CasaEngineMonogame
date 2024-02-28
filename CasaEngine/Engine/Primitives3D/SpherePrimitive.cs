@@ -19,7 +19,7 @@ public class SpherePrimitive : GeometricPrimitive
         uint verticalSegments = (uint)tessellation;
         uint horizontalSegments = (uint)tessellation * 2;
 
-        var radius = diameter / 2;
+        var radius = diameter / 2f;
 
 #if EDITOR
         _diameter = diameter;

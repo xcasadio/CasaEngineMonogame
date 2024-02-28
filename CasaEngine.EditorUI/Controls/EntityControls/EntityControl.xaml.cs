@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,16 +36,22 @@ public partial class EntityControl : UserControl
         treeViewComponents.ItemMoved = ItemMoved;
     }
 
-    private void ItemMoved(object item, object newparent)
+    private void ItemMoved(object item, object newParent)
     {
-        if (item is ComponentViewModel componentViewModel && newparent is ComponentViewModel parentComponentViewModel)
+        //TODO : bug when set parent as a new child of it s own child
+        if (item is ComponentViewModel componentViewModel && newParent is ComponentViewModel newParentComponentViewModel)
         {
-            if (componentViewModel.Parent != null)
+            //case when we want to invert child and parent
+            if (newParentComponentViewModel.Parent == componentViewModel)
             {
-                componentViewModel.Parent.RemoveComponent(componentViewModel);
+                componentViewModel.RemoveComponent(newParentComponentViewModel);
+            }
+            else
+            {
+                componentViewModel.Parent?.RemoveComponent(componentViewModel);
             }
 
-            parentComponentViewModel.AddComponent(componentViewModel);
+            newParentComponentViewModel.AddComponent(componentViewModel);
         }
     }
 
@@ -63,12 +70,6 @@ public partial class EntityControl : UserControl
 
     private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
     {
-        //if (!_isSelectionTriggerFromGizmoActive)
-        //{
-        //    return;
-        //}
-        //_isSelectionTriggerActive = false;
-
         SceneComponent? selectedSceneComponent = null;
         if (_gizmoComponent.Gizmo.Selection.Count > 0)
         {
@@ -80,10 +81,7 @@ public partial class EntityControl : UserControl
             var entityViewModel = DataContext as EntityViewModel;
             SetSelectedItem(entityViewModel.GetFromComponent(selectedSceneComponent));
         }
-
-        //_isSelectionTriggerActive = true;
     }
-
 
     private void SetSelectedItem(ComponentViewModel? componentViewModel)
     {
@@ -155,7 +153,6 @@ public partial class EntityControl : UserControl
         if (inputTextBox.ShowDialog() == true)
         {
             entity.Name = inputTextBox.Text;
-            //AssetCatalog.Rename(entity.Entity.Id, inputTextBox.Text);
         }
     }
 
@@ -219,15 +216,6 @@ public partial class EntityControl : UserControl
         _gizmoComponent.Gizmo.Clear();
         _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
     }
-    /*
-    private void ButtonDeleteComponentOnClick(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement { DataContext: EntityComponent component })
-        {
-            var entityViewModel = DataContext as EntityViewModel;
-            entityViewModel.ComponentListViewModel.RemoveComponent(component);
-        }
-    }*/
 
     private void TreeView_KeyDown(object sender, KeyEventArgs e)
     {

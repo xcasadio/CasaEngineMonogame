@@ -37,6 +37,7 @@ public class Entity : ObjectBase
 #if EDITOR
             if (_rootComponent != null)
             {
+                _rootComponent.Detach();
                 ComponentRemoved?.Invoke(this, _rootComponent);
             }
 #endif

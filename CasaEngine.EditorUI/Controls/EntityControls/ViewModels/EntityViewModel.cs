@@ -2,13 +2,14 @@
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using static Assimp.Metadata;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 public class EntityViewModel : NotifyPropertyChangeBase
 {
     private EntityViewModel? _parent;
+
+    public Entity Entity { get; }
 
     public virtual string Name
     {
@@ -17,14 +18,12 @@ public class EntityViewModel : NotifyPropertyChangeBase
         {
             if (value != Entity.Name && AssetCatalog.CanRename(value))
             {
-                AssetCatalog.Rename(Entity.Id, value);
                 Entity.Name = value;
+                AssetCatalog.Rename(Entity.Id, value);
                 OnPropertyChanged();
             }
         }
     }
-
-    public Entity Entity { get; }
 
     public EntityViewModel? Parent
     {
@@ -52,7 +51,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
     {
         if (e.Value.Id == Entity.Id)
         {
-            OnPropertyChanged("Name");
+            OnPropertyChanged(nameof(Name));
         }
     }
 
