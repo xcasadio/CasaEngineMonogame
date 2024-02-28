@@ -5,8 +5,8 @@ namespace CasaEngine.Engine.Physics;
 
 public struct ContactPoint : IEquatable<ContactPoint>
 {
-    public PhysicsComponent ColliderA;
-    public PhysicsComponent ColliderB;
+    public PhysicsBaseComponent ColliderA;
+    public PhysicsBaseComponent ColliderB;
     public float Distance;
     public Vector3 Normal;
     public Vector3 PositionOnA;

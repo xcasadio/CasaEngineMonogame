@@ -437,8 +437,8 @@ public class PhysicsEngine
 
             // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
             // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
-            var collA = collisionObjectB.UserObject as PhysicsComponent;
-            var collB = collisionObjectB.UserObject as PhysicsComponent;
+            var collA = collisionObjectB.UserObject as PhysicsBaseComponent;
+            var collB = collisionObjectB.UserObject as PhysicsBaseComponent;
 
             if (false == (coll.ColliderA == collA && coll.ColliderB == collB
                           || coll.ColliderA == collB && coll.ColliderB == collA))
@@ -1107,7 +1107,7 @@ public class PhysicsEngine
             return new HitResult
             {
                 Succeeded = true,
-                Collider = obj.UserObject as PhysicsComponent,
+                Collider = obj.UserObject as PhysicsBaseComponent,
                 Point = Vector3.Lerp(_rayFromWorld, _rayToWorld, rayResult.HitFraction),
                 Normal = normal,
                 HitFraction = rayResult.HitFraction,
@@ -1165,7 +1165,7 @@ public class PhysicsEngine
             return new HitResult
             {
                 Succeeded = true,
-                Collider = obj.UserObject as PhysicsComponent,
+                Collider = obj.UserObject as PhysicsBaseComponent,
                 Point = convexResult.HitPointLocal,
                 Normal = normal,
                 HitFraction = convexResult.HitFraction,

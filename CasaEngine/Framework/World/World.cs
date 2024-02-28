@@ -72,6 +72,7 @@ public sealed class World : ObjectBase
     public void AddEntity(Entity entity)
     {
         System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
+        Logs.WriteTrace($"Entity waiting to be added : {entity.Name} {entity.Id}");
         _baseObjectsToAdd.Add(entity);
     }
 
@@ -319,13 +320,14 @@ public sealed class World : ObjectBase
         var entitiesToAdd = new List<Entity>(_baseObjectsToAdd);
         _baseObjectsToAdd.Clear();
 
-        foreach (var entityToAdd in entitiesToAdd)
+        foreach (var entity in entitiesToAdd)
         {
-            entityToAdd.Initialize();
-            entityToAdd.InitializeWithWorld(this);
-            AddInSpacePartitioning(entityToAdd);
+            entity.Initialize();
+            entity.InitializeWithWorld(this);
+            AddInSpacePartitioning(entity);
+            Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
 #if EDITOR
-            EntityAdded?.Invoke(this, entityToAdd);
+            EntityAdded?.Invoke(this, entity);
 #endif
         }
 

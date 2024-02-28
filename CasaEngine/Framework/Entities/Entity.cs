@@ -6,6 +6,10 @@ using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using CasaEngine.Core.Log;
+
+using static Assimp.Metadata;
+
 
 #if EDITOR
 using FlowGraph;
@@ -264,6 +268,7 @@ public class Entity : ObjectBase
         ToBeRemoved = false;
         IsEnabled = true;
         IsVisible = true;
+        Logs.WriteTrace($"Entity reactivated : {Name} {Id}");
     }
 
     public void Destroy()
@@ -271,6 +276,7 @@ public class Entity : ObjectBase
         ToBeRemoved = true;
         IsEnabled = false;
         IsVisible = false;
+        Logs.WriteTrace($"Entity destroyed : {Name} {Id}");
     }
 
     public void Update(float elapsedTime)

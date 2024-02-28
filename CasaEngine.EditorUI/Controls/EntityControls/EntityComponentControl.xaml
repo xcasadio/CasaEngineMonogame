@@ -370,7 +370,7 @@
             </Expander>
         </DataTemplate>
 
-        <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsComponent}">
+        <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsBaseComponent}">
             <Grid>
                 <ContentControl Content="{Binding PhysicsDefinition}"
                                 ContentTemplate="{StaticResource physicsDefinitionComponentTemplate}"/>

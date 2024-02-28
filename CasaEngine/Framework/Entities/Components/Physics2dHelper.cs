@@ -14,17 +14,20 @@ public static class Physics2dHelper
     {
         switch (collisionShape.Shape.Type)
         {
-            case Shape2dType.Compound:
-                break;
-            case Shape2dType.Polygone:
-                break;
+            //case Shape2dType.Compound:
+            //    break;
+            //case Shape2dType.Polygone:
+            //    break;
             case Shape2dType.Rectangle:
                 var rectangle = collisionShape.Shape as ShapeRectangle;
-                return physicsEngineComponent.CreateGhostObject(rectangle, localScale, ref worldMatrix, collideableComponent, color);
-            case Shape2dType.Circle:
-                break;
-            case Shape2dType.Line:
-                break;
+                var box = new BoxShape(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
+                box.LocalScaling = localScale;
+                box.UserObject = collideableComponent;
+                return physicsEngineComponent.CreateGhostObject(worldMatrix, collideableComponent, box, color);
+            //case Shape2dType.Circle:
+            //    break;
+            //case Shape2dType.Line:
+            //    break;
             default:
                 throw new ArgumentOutOfRangeException();
         }

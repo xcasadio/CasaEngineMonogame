@@ -11,7 +11,7 @@ namespace CasaEngine.Framework.Entities.Components;
 public abstract class PhysicsBaseComponent : SceneComponent, ICollideableComponent
 {
     protected PhysicsEngineComponent? PhysicsEngineComponent;
-    protected BoundingBox _boundingBox;
+    private BoundingBox _boundingBox;
     private bool _lock;
 
     //dynamic object
@@ -42,17 +42,6 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         }
     }
 
-    public override BoundingBox GetBoundingBox()
-    {
-        if (IsBoundingBoxDirty)
-        {
-            ComputeBoundingBox();
-            IsBoundingBoxDirty = false;
-        }
-
-        return _boundingBox;
-    }
-
     protected PhysicsBaseComponent()
     {
         PhysicsDefinition = new();
@@ -68,8 +57,6 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         PhysicsDefinition = new(other.PhysicsDefinition);
     }
 
-    protected abstract void ComputeBoundingBox();
-
     public override void InitializeWithWorld(World.World world)
     {
         base.InitializeWithWorld(world);
@@ -84,6 +71,33 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 #endif
 
         CreatePhysicsObject();
+    }
+
+    protected abstract BoundingBox ComputeBoundingBox();
+
+    public override BoundingBox GetBoundingBox()
+    {
+        if (IsBoundingBoxDirty)
+        {
+            _boundingBox = ComputeBoundingBox();
+
+            if (Owner != null)
+            {
+                var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
+                var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
+                _boundingBox = new BoundingBox(min, max);
+            }
+
+            IsBoundingBoxDirty = false;
+        }
+
+        return _boundingBox;
+    }
+
+    public override void Attach(Entity actor)
+    {
+        base.Attach(actor);
+        ComputeBoundingBox();
     }
 
     public override void Detach()
@@ -137,7 +151,34 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         DestroyPhysicsObject();
     }
 
-    protected abstract void CreatePhysicsObject();
+    private void CreatePhysicsObject()
+    {
+        if (PhysicsEngineComponent == null || !SimulatePhysics)
+        {
+            return;
+        }
+
+        var worldMatrix = WorldMatrixNoScale;
+
+        var collisionShape = ConvertToCollisionShape();
+        collisionShape.LocalScaling = LocalScale;
+        collisionShape.UserObject = this;
+
+        switch (PhysicsType)
+        {
+            case PhysicsType.Static:
+                _collisionObject = PhysicsEngineComponent.AddStaticObject(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
+                break;
+            case PhysicsType.Kinetic:
+                _collisionObject = PhysicsEngineComponent.AddGhostObject(collisionShape, ref worldMatrix, this);
+                break;
+            default:
+                _rigidBody = PhysicsEngineComponent.AddRigidBody(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
+                break;
+        }
+    }
+
+    protected abstract CollisionShape ConvertToCollisionShape();
 
     private void DestroyPhysicsObject()
     {

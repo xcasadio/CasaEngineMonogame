@@ -23,8 +23,8 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
             case StaticMeshComponent: return MeshComponenTemplate;
             case SkinnedMeshComponent: return SkinnedMeshComponenTemplate;
             case ArcBallCameraComponent: return ArcBallCameraComponenTemplate;
-            case PhysicsComponent: return PhysicsComponenTemplate;
-            case Physics2dComponent: return Physics2dComponenTemplate;
+            case PhysicsBaseComponent: return PhysicsComponenTemplate;
+            //case Physics2dComponent: return Physics2dComponenTemplate;
             case TileMapComponent: return TileMapComponentTemplate;
             case AnimatedSpriteComponent: return AnimatedSpriteComponentTemplate;
             case StaticSpriteComponent: return StaticSpriteComponentTemplate;

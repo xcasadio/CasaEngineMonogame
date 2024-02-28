@@ -13,5 +13,5 @@ public struct HitResult
 
     public bool Succeeded;
 
-    public PhysicsComponent? Collider;
+    public PhysicsBaseComponent? Collider;
 }

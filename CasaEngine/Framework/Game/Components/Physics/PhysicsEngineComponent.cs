@@ -1,6 +1,5 @@
 ﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -40,22 +39,8 @@ public class PhysicsEngineComponent : GameComponent
         PhysicsEngine.SendEvents();
     }
 
-    public CollisionObject CreateGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color color)
+    public CollisionObject AddGhostObject(CollisionShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionShape = ConvertToCollisionShape(shape, localScale);
-        return CreateGhostObject(worldMatrix, collideableComponent, collisionShape);
-    }
-
-    public CollisionObject AddGhostObject(Shape2d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
-    {
-        var collisionShape = ConvertToCollisionShape(shape, localScale);
-        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
-        return collisionObject;
-    }
-
-    public CollisionObject AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
-    {
-        var collisionShape = ConvertToCollisionShape(shape, localScale);
         var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
         return collisionObject;
     }
@@ -67,7 +52,7 @@ public class PhysicsEngineComponent : GameComponent
         return collisionObject;
     }
 
-    private PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
+    public PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
     {
         var ghostObject = new PairCachingGhostObject
         {
@@ -85,26 +70,14 @@ public class PhysicsEngineComponent : GameComponent
         return ghostObject;
     }
 
-    public RigidBody AddStaticObject(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
-    {
-        return AddRigidBody(shape3d, localScale, ref worldMatrix, component, physicsDefinition);
-    }
-
-    public RigidBody AddStaticObject(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddStaticObject(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
         physicsDefinition.Mass = 0f;
-        return AddRigidBody(shape2d, localScale, ref worldMatrix, component, physicsDefinition);
+        return AddRigidBody(collisionShape, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
-    public RigidBody AddRigidBody(Shape3d shape3d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+    public RigidBody AddRigidBody(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        var collisionShape = ConvertToCollisionShape(shape3d, localScale);
-        return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
-    }
-
-    public RigidBody AddRigidBody(Shape2d shape2d, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
-    {
-        var collisionShape = ConvertToCollisionShape(shape2d, localScale);
         return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
     }
 
@@ -164,67 +137,6 @@ public class PhysicsEngineComponent : GameComponent
         }
 
         return body;
-    }
-
-    private CollisionShape ConvertToCollisionShape(Shape2d shape, Vector3 localScale)
-    {
-        CollisionShape collisionShape;
-
-        switch (shape.Type)
-        {
-            case Shape2dType.Rectangle:
-                var rectangle = (shape as ShapeRectangle);
-                collisionShape = new BoxShape(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
-                break;
-            case Shape2dType.Circle:
-                var circle = (shape as ShapeCircle);
-                collisionShape = new SphereShape(circle.Radius);
-                break;
-            //case Shape2dType.Polygone:
-            //    var polygone = (shape as ShapePolygone);
-            //    collisionShape = new BulletSharp.CylinderShape(cylinder.Radius, cylinder.Radius, cylinder.Length);
-            //    break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        collisionShape.LocalScaling = localScale;
-        collisionShape.UserObject = this;
-        return collisionShape;
-    }
-
-    private CollisionShape ConvertToCollisionShape(Shape3d shape, Vector3 localScale)
-    {
-        CollisionShape collisionShape;
-
-        switch (shape.Type)
-        {
-            case Shape3dType.Compound:
-                throw new ArgumentOutOfRangeException();
-            case Shape3dType.Box:
-                var box = (shape as Box);
-                collisionShape = new BoxShape(box.Size.X / 2.0f, box.Size.Y / 2.0f, box.Size.Z / 2.0f);
-                break;
-            case Shape3dType.Capsule:
-                var capsule = (shape as Capsule);
-                collisionShape = new CapsuleShape(capsule.Radius, capsule.Length);
-                break;
-            case Shape3dType.Cylinder:
-                var cylinder = (shape as Cylinder);
-                collisionShape = new CylinderShape(cylinder.Radius, cylinder.Radius, cylinder.Length);
-                break;
-            case Shape3dType.Sphere:
-                var sphere = (shape as Sphere);
-                collisionShape = new SphereShape(sphere.Radius);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-
-        collisionShape.LocalScaling = localScale;
-
-        collisionShape.UserObject = this;
-        return collisionShape;
     }
 
     public void AddCollisionObject(CollisionObject collisionObject)

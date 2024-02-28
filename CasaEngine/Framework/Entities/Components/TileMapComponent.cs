@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Core.Shapes;
@@ -15,10 +16,12 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent
 {
+    private List<CollisionObject> _collisionObjects = new();
+    private List<TileMapLayer> Layers { get; } = new();
+
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
     public TileSetData TileSetData { get; set; }
-    private List<TileMapLayer> Layers { get; } = new();
     public PhysicsType PhysicsType { get; }
     public HashSet<Collision> Collisions { get; } = new();
 
@@ -114,17 +117,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                                     x * tileSize.Width + tileSize.Width / 2f,
                                     -y * tileSize.Height - tileSize.Height / 2f,
                                     0f);
-                                var rectangle = new ShapeRectangle(0, 0, tileSize.Width,
-                                    tileSize.Height);
+                                var box = new BoxShape(tileSize.Width / 2f, tileSize.Height / 2f, 0.5f);
+                                box.LocalScaling = LocalScale;
+                                box.UserObject = this;
                                 var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
                                 if (tileData.CollisionType == TileCollisionType.NoContactResponse)
                                 {
-                                    var collisionObject = physicsEngineComponent.AddGhostObject(rectangle, LocalScale, ref worldMatrix, tileCollisionManager);
+                                    var collisionObject = physicsEngineComponent.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
+                                    _collisionObjects.Add(collisionObject);
                                 }
                                 else
                                 {
-                                    var rigidBody = physicsEngineComponent.AddStaticObject(rectangle, LocalScale, ref worldMatrix, tileCollisionManager,
+                                    var rigidBody = physicsEngineComponent.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
                                         new PhysicsDefinition { Friction = 0f });
+                                    _collisionObjects.Add(rigidBody);
                                 }
 
                                 break;
@@ -192,7 +198,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         }
 
         var translation = Position;
-        var scale = Scale.ToVector2();//new Vector2(Owner.Coordinates.Scale.X, Owner.Coordinates.Scale.Y);
+        var scale = Scale.ToVector2();
 
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;

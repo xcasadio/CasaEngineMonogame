@@ -85,6 +85,14 @@
                 "rolling_friction": 0.0,
                 "apply_gravity": true,
                 "debug_color": "null"
+              },
+              "box": {
+                "id": "08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
+                "name": "Object 08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
+                "shape_type": "Box",
+                "w": 1.0,
+                "h": 1.0,
+                "l": 1.0
               }
             }
           ],
@@ -351,6 +359,14 @@
                 "rolling_friction": 0.0,
                 "apply_gravity": true,
                 "debug_color": "null"
+              },
+              "box": {
+                "id": "3921ff06-7d1d-4b11-94df-f5425f0f0c54",
+                "name": "Object 3921ff06-7d1d-4b11-94df-f5425f0f0c54",
+                "shape_type": "Box",
+                "w": 1.0,
+                "h": 1.0,
+                "l": 1.0
               }
             }
           ],
@@ -474,7 +490,7 @@
             }
           },
           "children_component": [],
-          "skinned_mesh_id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b"
+          "skinned_mesh_id": "e6a898ce-3e56-4d33-a0dc-cdab14badbe3"
         },
         "components": [],
         "script_class_name": null,
@@ -488,5 +504,6 @@
       }
     }
   ],
-  "script_class_name": null
+  "script_class_name": null,
+  "game_mode_asset_id": "00000000-0000-0000-0000-000000000000"
 }
