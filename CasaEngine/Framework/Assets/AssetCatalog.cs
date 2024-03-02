@@ -1,7 +1,7 @@
-﻿
-using CasaEngine.Core.Design;
+﻿using CasaEngine.Core.Design;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Framework.Objects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,10 +15,16 @@ public static class AssetCatalog
 
     public static IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
 
+    public static void Add(ObjectBase objectBase)
+    {
+        Add(objectBase.Id, objectBase.Name, objectBase.FileName);
+    }
+
     public static void Add(Guid id, string name, string fileName)
     {
-        var assetInfo = new AssetInfo();
-
+        var assetInfo = new AssetInfo(id);
+        assetInfo.Name = name;
+        assetInfo.FileName = fileName;
         _assetInfos.Add(assetInfo.Id, assetInfo);
     }
 

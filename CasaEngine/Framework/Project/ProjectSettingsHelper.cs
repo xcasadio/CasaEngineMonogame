@@ -60,23 +60,25 @@ public static class ProjectSettingsHelper
 
         Clear();
 
+        EngineEnvironment.ProjectPath = path;
         var fullFileName = Path.Combine(path, projectName + Constants.FileNameExtensions.Project);
         GameSettings.ProjectSettings.WindowTitle = projectName;
         GameSettings.ProjectSettings.ProjectName = projectName;
         GameSettings.ProjectSettings.ProjectFileOpened = fullFileName;
-        EngineEnvironment.ProjectPath = path;
+        var worldName = "DefaultWorld";
+        var worldFileName = worldName + Constants.FileNameExtensions.World;
+        GameSettings.ProjectSettings.FirstWorldLoaded = worldFileName;
 
         //CREATE hiera folders
         //create default settings
-        //
-
         var world = new World.World();
-        world.Name = "DefaultWorld";
-        world.FileName = world.Name + Constants.FileNameExtensions.World;
-        GameSettings.ProjectSettings.FirstWorldLoaded = world.FileName;
+        world.Name = worldName;
+        world.FileName = worldFileName;
         AssetSaver.SaveAsset(world.FileName, world);
+        AssetCatalog.Add(world);
 
         Save();
+        AssetCatalog.Save();
 
         ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
 

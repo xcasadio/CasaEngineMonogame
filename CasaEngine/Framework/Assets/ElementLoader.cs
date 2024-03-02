@@ -27,6 +27,7 @@ public static class ElementFactory
             return null;
         }
 
+        //TODO : cache types
         return AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(x => x.GetTypes())
             .FirstOrDefault(x => string.Equals(x.Name, typeName, StringComparison.InvariantCultureIgnoreCase));

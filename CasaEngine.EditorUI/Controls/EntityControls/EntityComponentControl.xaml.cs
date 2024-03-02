@@ -8,11 +8,11 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -95,64 +95,15 @@ public partial class EntityComponentControl : UserControl
         if (selectStaticMeshWindow.ShowDialog() == true
             && sender is FrameworkElement { DataContext: StaticMeshComponent staticMeshComponent })
         {
-            var graphicsDevice = staticMeshComponent.Owner.RootComponent.Owner.World.Game.GraphicsDevice;
-
-            staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType, graphicsDevice).CreateMesh();
+            staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType).CreateMesh();
             staticMeshComponent.Mesh.Initialize(staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
             staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         }
     }
 
-    private static GeometricPrimitive CreateGeometricPrimitive(Type type, GraphicsDevice graphicsDevice)
+    private static GeometricPrimitive CreateGeometricPrimitive(Type type)
     {
-        return (GeometricPrimitive)Activator.CreateInstance(type,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.CreateInstance |
-            BindingFlags.OptionalParamBinding,
-            null, new object[] { graphicsDevice }, null, null);
-    }
-
-    private static BoundingBox CreateDefaultBoundingBox()
-    {
-        return new BoundingBox(-Vector3.One / 2f, Vector3.One / 2f);
-    }
-
-    private void SetParametersFromBoundingBox(Shape3d shape, BoundingBox boundingBox)
-    {
-        switch (shape.Type)
-        {
-            case Shape3dType.Compound:
-                throw new ArgumentOutOfRangeException();
-                break;
-            case Shape3dType.Box:
-                var box = shape as Box;
-                var x = boundingBox.Max.X - boundingBox.Min.X;
-                var y = boundingBox.Max.Y - boundingBox.Min.Y;
-                var z = boundingBox.Max.Z - boundingBox.Min.Z;
-                box.Size = new Vector3(x, y, z);
-                break;
-            case Shape3dType.Capsule:
-                var capsule = shape as Capsule;
-                capsule.Length = boundingBox.Max.X - boundingBox.Min.X;
-                capsule.Radius = Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z);
-                break;
-            case Shape3dType.Cylinder:
-                var cylinder = shape as Cylinder;
-                cylinder.Length = boundingBox.Max.X - boundingBox.Min.X;
-                cylinder.Radius = Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z);
-                break;
-            case Shape3dType.Sphere:
-                var sphere = shape as Sphere;
-                sphere.Radius = Math.Min(boundingBox.Max.X - boundingBox.Min.X,
-                    Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z));
-                break;
-            case Shape3dType.Cone:
-                var cone = shape as Cone;
-                cone.Radius = Math.Min(boundingBox.Max.X - boundingBox.Min.X,
-                    Math.Min(boundingBox.Max.Y - boundingBox.Min.Y, boundingBox.Max.Z - boundingBox.Min.Z));
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+        return Activator.CreateInstance(type) as GeometricPrimitive;
     }
 
     public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)
