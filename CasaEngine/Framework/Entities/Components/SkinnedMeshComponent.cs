@@ -76,21 +76,14 @@ public class SkinnedMeshComponent : PrimitiveComponent
         {
             foreach (var mesh in SkinnedMesh.RiggedModel.Meshes)
             {
-                min = Vector3.Min(min, mesh.Min);
-                max = Vector3.Max(max, mesh.Max);
+                min = Vector3.Min(min, Vector3.Transform(mesh.Min, WorldMatrixWithScale));
+                max = Vector3.Max(max, Vector3.Transform(mesh.Max, WorldMatrixWithScale));
             }
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            min = Vector3.One * -length;
-            max = Vector3.One * length;
+
+            return new BoundingBox(min, max);
         }
 
-        min = Vector3.Transform(min, WorldMatrixWithScale);
-        max = Vector3.Transform(max, WorldMatrixWithScale);
-
-        return new BoundingBox(min, max);
+        return base.GetBoundingBox();
     }
 
     public override void Load(JObject element)

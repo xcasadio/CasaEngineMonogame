@@ -35,6 +35,16 @@ public static class ProjectSettingsHelper
             GameSettings.AssemblyManager.Load(GameSettings.ProjectSettings.GameplayDllName);
         }
 
+        var assetInfoFileName = Path.Combine(Path.GetDirectoryName(fileName), "AssetInfos.json");
+
+        //#if !EDITOR
+        if (!File.Exists(assetInfoFileName))
+        {
+            return;
+        }
+        //#endif
+        AssetCatalog.Load(assetInfoFileName);
+
 #if EDITOR
         ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
 #endif
@@ -48,6 +58,7 @@ public static class ProjectSettingsHelper
     public static void Clear()
     {
         GameSettings.ProjectSettings.ProjectFileOpened = null;
+        AssetCatalog.Clear();
         ProjectClosed?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
     }
 

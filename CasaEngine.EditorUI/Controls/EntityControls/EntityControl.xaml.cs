@@ -206,8 +206,11 @@ public partial class EntityControl : UserControl
 
             if (componentViewModel.Component is SceneComponent sceneComponent)
             {
+                _gizmoComponent.Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
                 SelectInGizmo(sceneComponent);
             }
+
+            SelectTreeViewItem(componentViewModel);
         }
     }
 

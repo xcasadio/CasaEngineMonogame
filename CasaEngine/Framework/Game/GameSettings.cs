@@ -11,20 +11,4 @@ public static class GameSettings
     public static AssemblyManager AssemblyManager { get; } = new();
     public static GraphicsSettings GraphicsSettings { get; } = new();
     public static PhysicsEngineSettings PhysicsEngineSettings { get; } = new();
-
-    public static void Load(string projectFileName)
-    {
-        ProjectSettingsHelper.Load(projectFileName);
-
-        var assetInfoFileName = Path.Combine(Path.GetDirectoryName(projectFileName), "AssetInfos.json");
-
-        //#if !EDITOR
-        if (!File.Exists(assetInfoFileName))
-        {
-            return;
-        }
-        //#endif
-        AssetCatalog.Load(assetInfoFileName);
-    }
-
 }

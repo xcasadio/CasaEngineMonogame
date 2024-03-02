@@ -223,7 +223,17 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 
     public BoundingBox BoundingBox => GetBoundingBox();
 
-    public abstract BoundingBox GetBoundingBox();
+    public virtual BoundingBox GetBoundingBox()
+    {
+        const float length = 0.5f;
+        var min = Vector3.Transform(Vector3.One * -length, WorldMatrixWithScale);
+        var max = Vector3.Transform(Vector3.One * length, WorldMatrixWithScale);
+
+        min = Vector3.Min(min, max);
+        max = Vector3.Max(min, max);
+
+        return new BoundingBox(min, max);
+    }
 
     protected SceneComponent()
     {

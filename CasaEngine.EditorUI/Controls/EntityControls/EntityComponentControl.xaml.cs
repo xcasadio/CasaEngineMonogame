@@ -3,16 +3,13 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Maths;
-using CasaEngine.Core.Shapes;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;
-using Microsoft.Xna.Framework;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -27,6 +24,7 @@ public partial class EntityComponentControl : UserControl
 
         InitializeComponent();
     }
+
     public void InitializeFromGameEditor(GameEditor gameEditor)
     {
         gameEditor.GameStarted += OnGameStarted;
@@ -103,7 +101,9 @@ public partial class EntityComponentControl : UserControl
 
     private static GeometricPrimitive CreateGeometricPrimitive(Type type)
     {
-        return Activator.CreateInstance(type) as GeometricPrimitive;
+        return (GeometricPrimitive)Activator.CreateInstance(type,
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding,
+            null, null, null, null);
     }
 
     public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)

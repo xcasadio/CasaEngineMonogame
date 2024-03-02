@@ -30,14 +30,14 @@ public class RootNodeEntityViewModel : EntityViewModel
     public override void AddActorChild(EntityViewModel entityViewModel)
     {
         entityViewModel.Parent = this;
-        World.AddEntityWithEditor(entityViewModel.Entity);
         Children.Add(entityViewModel);
+        World.AddEntityWithEditor(entityViewModel.Entity);
     }
 
     public override void RemoveActorChild(EntityViewModel entityViewModel)
     {
         entityViewModel.Parent = null;
-        World.RemoveEntityWithEditor(entityViewModel.Entity);
         Children.Remove(entityViewModel);
+        World.RemoveEntityWithEditor(entityViewModel.Entity);
     }
 }

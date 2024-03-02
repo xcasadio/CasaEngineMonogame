@@ -14,6 +14,7 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using XNAGizmo;
 using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
@@ -21,7 +22,6 @@ namespace CasaEngine.EditorUI.Controls.WorldControls;
 public class GameEditorWorld : GameEditor
 {
     private GizmoComponent? _gizmoComponent;
-    private World _world;
 
     public GameEditorWorld()
     {
@@ -101,14 +101,16 @@ public class GameEditorWorld : GameEditor
 
     private void CreateEntity(Entity entity, Point mousePosition)
     {
+        _gizmoComponent.Gizmo.Clear();
+
         entity.Initialize();
         entity.InitializeWithWorld(Game.GameManager.CurrentWorld);
 
         var worldEditorViewModel = DataContext as WorldEditorViewModel;
         worldEditorViewModel.EntitiesViewModel.Add(entity);
-        //Game?.GameManager.CurrentWorld.AddEntityWithEditor(entity);
 
-        _gizmoComponent.Gizmo.Clear();
+        _gizmoComponent.Gizmo.SetSelectionPool(Game.GameManager.CurrentWorld.GetSelectableComponents());
+
         if (entity.RootComponent != null)
         {
             var position = mousePosition;

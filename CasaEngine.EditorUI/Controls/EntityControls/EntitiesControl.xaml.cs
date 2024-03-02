@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -66,7 +67,6 @@ public partial class EntitiesControl : UserControl
         _gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
         _gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
 
-
         _gizmoComponent.Gizmo.DeleteSelectionEvent -= OnDeleteSelectionEvent;
         _gizmoComponent.Gizmo.DeleteSelectionEvent += OnDeleteSelectionEvent;
     }
@@ -93,7 +93,7 @@ public partial class EntitiesControl : UserControl
             return;
         }
 
-        _isSelectionTriggerActive = false;
+        _isSelectionTriggerFromGizmoActive = false;
 
         var entitiesViewModel = DataContext as EntityListViewModel;
         var newEntities = new List<EntityViewModel>();
@@ -119,7 +119,7 @@ public partial class EntitiesControl : UserControl
 
         SetSelectedItem(newEntities[0]);
 
-        _isSelectionTriggerActive = true;
+        _isSelectionTriggerFromGizmoActive = true;
     }
 
     private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
@@ -128,7 +128,7 @@ public partial class EntitiesControl : UserControl
         {
             return;
         }
-        _isSelectionTriggerActive = false;
+        _isSelectionTriggerFromGizmoActive = false;
 
         SceneComponent? selectedSceneComponent = null;
         if (_gizmoComponent.Gizmo.Selection.Count > 0)
@@ -142,12 +142,26 @@ public partial class EntitiesControl : UserControl
             SetSelectedItem(entitiesViewModel.GetFromEntity(selectedSceneComponent.Owner));
         }
 
-        _isSelectionTriggerActive = true;
+        _isSelectionTriggerFromGizmoActive = true;
     }
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        TreeViewEntities.ItemsSource = (DataContext as EntityListViewModel).Entities;
+        var entityListViewModel = (DataContext as EntityListViewModel);
+        TreeViewEntities.ItemsSource = entityListViewModel.Entities;
+
+        Game.GameManager.CurrentWorld.EntityAdded += OnEntityAdded;
+        Game.GameManager.CurrentWorld.EntityRemoved += OnEntityRemoved;
+    }
+
+    private void OnEntityAdded(object? sender, Framework.Entities.Entity entity)
+    {
+        var entityListViewModel = (DataContext as EntityListViewModel);
+        SetSelectedItem(entityListViewModel.GetFromEntity(entity));
+    }
+
+    private void OnEntityRemoved(object? sender, Framework.Entities.Entity e)
+    {
     }
 
     private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
@@ -157,7 +171,6 @@ public partial class EntitiesControl : UserControl
             return;
         }
 
-        _isSelectionTriggerActive = false;
         _isSelectionTriggerFromGizmoActive = false;
 
         var entityViewModel = e.NewValue as EntityViewModel;
@@ -173,12 +186,13 @@ public partial class EntitiesControl : UserControl
             SetSelectedItem(entityViewModel);
         }
 
-        _isSelectionTriggerActive = true;
         _isSelectionTriggerFromGizmoActive = true;
     }
 
     private void SetSelectedItem(EntityViewModel? selectedEntity)
     {
+        _isSelectionTriggerActive = false;
+
         if (selectedEntity != null && SelectedItem != selectedEntity)
         {
             SelectedItem = selectedEntity;
@@ -191,6 +205,8 @@ public partial class EntitiesControl : UserControl
                 SelectTreeViewItem(item as EntityViewModel, false, false, true, false);
             }
         }
+
+        _isSelectionTriggerActive = true;
     }
 
     private void SelectTreeViewItem(EntityViewModel entityViewModel, bool alterExpand = true, bool expand = true, bool alterSelect = true, bool select = true)

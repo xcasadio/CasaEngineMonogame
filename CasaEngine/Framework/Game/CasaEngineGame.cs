@@ -21,6 +21,7 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Objects;
+using CasaEngine.Framework.Project;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -167,7 +168,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     {
         if (!string.IsNullOrWhiteSpace(_projectFileName))
         {
-            GameSettings.Load(_projectFileName);
+            ProjectSettingsHelper.Load(_projectFileName);
         }
 
         Line3dRendererComponent = new Line3dRendererComponent(this);

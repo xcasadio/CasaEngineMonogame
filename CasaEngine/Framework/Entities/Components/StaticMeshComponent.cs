@@ -71,15 +71,11 @@ public class StaticMeshComponent : PrimitiveComponent
                 min = Vector3.Min(min, position);
                 max = Vector3.Max(max, position);
             }
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            min = Vector3.One * -length;
-            max = Vector3.One * length;
+
+            return new BoundingBox(min, max);
         }
 
-        return new BoundingBox(min, max);
+        return base.GetBoundingBox();
     }
 
     public override void Load(JObject element)

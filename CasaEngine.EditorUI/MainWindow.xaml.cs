@@ -73,7 +73,7 @@ public partial class MainWindow : Window
 
         Logs.WriteInfo($"Project opened {projectFileName}");
 
-        GameSettings.Load(projectFileName);
+        ProjectSettingsHelper.Load(projectFileName);
         RegisterFlowGraphNodes();
     }
 
