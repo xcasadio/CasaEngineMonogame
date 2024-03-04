@@ -109,6 +109,7 @@ public class GameEditorWorld : GameEditor
         var worldEditorViewModel = DataContext as WorldEditorViewModel;
         worldEditorViewModel.EntitiesViewModel.Add(entity);
 
+        //TODO : Gizmo must call Game.GameManager.CurrentWorld.GetSelectableComponents() or World use a cached list
         _gizmoComponent.Gizmo.SetSelectionPool(Game.GameManager.CurrentWorld.GetSelectableComponents());
 
         if (entity.RootComponent != null)
@@ -121,10 +122,6 @@ public class GameEditorWorld : GameEditor
 
             //TODO : check intersection with object or the plane XZ
             entity.RootComponent.Coordinates.Position = ray.Position + ray.Direction * 5.0f;
-
-            //TODO : devrait etre selectionné tout seul avec le changement de dataContext
-            //_gizmoComponent.Gizmo.Selection.Add(entity.RootComponent);
-            //_gizmoComponent.Gizmo.RaiseSelectionChanged();
         }
     }
 }

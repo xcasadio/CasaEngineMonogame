@@ -3,7 +3,7 @@ using CasaEngine.Core.Log;
 using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TomShane.Neoforce.Controls.Skins;
+namespace CasaEngine.Framework.GUI.Neoforce.Skins;
 
 public class Skin : Component
 {

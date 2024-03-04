@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class CursorReader : ContentTypeReader<Cursor>
 {

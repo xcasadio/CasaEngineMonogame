@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class MenuItem : Unknown
 {

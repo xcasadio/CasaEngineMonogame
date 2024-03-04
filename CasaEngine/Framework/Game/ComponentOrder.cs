@@ -4,6 +4,7 @@ public enum ComponentUpdateOrder
 {
     DebugManager,
     Input,
+    GUI,
     Manipulator,
     ScreenManagerComponent,
     ScreenLogComponent,
@@ -13,7 +14,6 @@ public enum ComponentUpdateOrder
     MeshComponent,
     SkinnedMeshComponent,
     ParticleComponent,
-    GUI,
     Physics,
     DebugPhysics,
     Default
@@ -25,8 +25,8 @@ public enum ComponentUpdateOrder
 
 public enum ComponentDrawOrder
 {
-    GUIBegin,
     DebugManager,
+    GUIBegin,
     MeshComponent,
     SkinnedMeshComponent,
     Renderer2dComponent,
@@ -35,6 +35,6 @@ public enum ComponentDrawOrder
     ParticleComponent,
     DebugPhysics,
     Manipulator,
-    GUIEnd,
+    GUI,
     ScreenLogComponent
 }

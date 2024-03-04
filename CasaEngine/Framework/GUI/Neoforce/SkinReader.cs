@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Content;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class SkinReader : ContentTypeReader<SkinXmlDocument>
 {

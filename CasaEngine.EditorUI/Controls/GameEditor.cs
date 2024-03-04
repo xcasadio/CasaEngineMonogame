@@ -28,14 +28,14 @@ public abstract class GameEditor : WpfGame
         var graphicsDeviceService = new WpfGraphicsDeviceService(this);
         Game = new CasaEngineGame(null, graphicsDeviceService);
         Game.IsRunningInGameEditorMode = true;
-        Game.UseGui = UseGui;
         Game.GameManager.WorldChanged += OnWorldChanged;
         InitializeGame();
         Game.InitializeWithEditor();
+        Game.UserInterfaceComponent.Enabled = UseGui;
 
         if (UseGui)
         {
-            Game.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+            Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
         }
 
         //In editor mode the game is in idle mode so we don't update physics
@@ -80,9 +80,9 @@ public abstract class GameEditor : WpfGame
     {
         base.CreateGraphicsDeviceDependentResources(pp);
 
-        if (UseGui && Game?.UiManager != null)
+        if (UseGui && Game?.UserInterfaceComponent.UINeoForceManager != null)
         {
-            Game.UiManager.DefaultRenderTarget = RenderTargetBackBuffer;
+            Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
         }
     }
 

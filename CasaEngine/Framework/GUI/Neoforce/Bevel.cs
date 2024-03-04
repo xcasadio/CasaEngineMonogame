@@ -1,9 +1,8 @@
+using CasaEngine.Framework.GUI.Neoforce.Graphics;
 using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls;
-using TomShane.Neoforce.Controls.Graphics;
-using Control = TomShane.Neoforce.Controls.Control;
-using EventArgs = TomShane.Neoforce.Controls.EventArgs;
-using EventHandler = TomShane.Neoforce.Controls.EventHandler;
+using Control = CasaEngine.Framework.GUI.Neoforce.Control;
+using EventArgs = CasaEngine.Framework.GUI.Neoforce.EventArgs;
+using EventHandler = CasaEngine.Framework.GUI.Neoforce.EventHandler;
 
 namespace CasaEngine.Framework.GUI.Neoforce;
 

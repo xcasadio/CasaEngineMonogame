@@ -6,7 +6,7 @@ using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
-using Control = TomShane.Neoforce.Controls.Control;
+using Control = CasaEngine.Framework.GUI.Neoforce.Control;
 using DataFormats = System.Windows.DataFormats;
 using DragEventArgs = System.Windows.DragEventArgs;
 
@@ -54,7 +54,7 @@ public class GameEditorGui : GameEditor2d
 
     protected override void CreateEntityComponents(Entity entity)
     {
-        Game.UiManager.SetSkin();
+        Game.UserInterfaceComponent.UINeoForceManager.SetSkin();
     }
 
     private void OnDrop(object sender, DragEventArgs e)
@@ -74,7 +74,7 @@ public class GameEditorGui : GameEditor2d
                 var type = ControlHelper.TypesByName[dragAndDropInfo.Type];
                 var control = (Control)Activator.CreateInstance(type);
 
-                control.Initialize(Game.UiManager);
+                control.Initialize(Game.UserInterfaceComponent.UINeoForceManager);
                 control.SetPosition((int)position.X, (int)position.Y);
                 control.Movable = true;
                 control.Resizable = true;

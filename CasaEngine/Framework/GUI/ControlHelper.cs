@@ -1,6 +1,6 @@
 ﻿
 using Newtonsoft.Json.Linq;
-using Control = TomShane.Neoforce.Controls.Control;
+using Control = CasaEngine.Framework.GUI.Neoforce.Control;
 
 namespace CasaEngine.Framework.GUI;
 

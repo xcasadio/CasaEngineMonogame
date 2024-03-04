@@ -1,7 +1,6 @@
-using CasaEngine.Framework.GUI.Neoforce;
-using TomShane.Neoforce.Controls.Skins;
+using CasaEngine.Framework.GUI.Neoforce.Skins;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class Dialog : Window
 {

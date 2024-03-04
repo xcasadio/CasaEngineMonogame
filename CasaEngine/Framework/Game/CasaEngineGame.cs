@@ -7,10 +7,7 @@ using CasaEngine.Framework.Graphics2D;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TomShane.Neoforce.Controls;
 using CasaEngine.Framework.Debugger;
-using CasaEngine.Engine;
-using CasaEngine.Engine.Animations;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
@@ -22,6 +19,7 @@ using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Project;
+using Cursor = CasaEngine.Framework.GUI.Neoforce.Cursor;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -32,11 +30,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 {
     private readonly string? _projectFileName;
     public GameManager GameManager { get; }
-
+    public UserInterfaceComponent UserInterfaceComponent { get; private set; }
     public AssetContentManager AssetContentManager { get; } = new();
-    public Manager UiManager { get; private set; }
-    public GuiEndRendererComponent UiManagerEnd { get; private set; }
-
     public FontSystem FontSystem { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
@@ -101,12 +96,12 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         else
         {
             graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
-            if (this.Services.GetService<IGraphicsDeviceService>() != null)
+            if (Services.GetService<IGraphicsDeviceService>() != null)
             {
-                this.Services.RemoveService(typeof(IGraphicsDeviceService));
+                Services.RemoveService(typeof(IGraphicsDeviceService));
             }
-            this.Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
-            this.Services.AddService(typeof(IGraphicsDeviceManager), graphicsDeviceService as IGraphicsDeviceManager);
+            Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
+            Services.AddService(typeof(IGraphicsDeviceManager), graphicsDeviceService as IGraphicsDeviceManager);
         }
     }
 
@@ -142,16 +137,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         {
             SetViewport(GameManager.ActiveCamera.Viewport.Bounds);
         }
-
-#if EDITOR
-        if (UseGui)
-        {
-            UiManager.OnScreenResized(width, height);
-        }
-#else
-        UiManager.OnScreenResized(width, height);
-#endif
-
     }
 
     public void SetViewport(Rectangle viewportBounds)
@@ -181,6 +166,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         PhysicsEngineComponent = new PhysicsEngineComponent(this);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(this);
         FontSystem = new FontSystem();
+        UserInterfaceComponent = new UserInterfaceComponent(this);
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
@@ -211,16 +197,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         DebugSystem.Initialize(this);
 
-#if EDITOR
-        if (UseGui)
-        {
-            InitializeGui();
-        }
-#else
-        InitializeGui();
-#endif
-
-
         base.Initialize();
     }
 
@@ -230,7 +206,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         AssetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
         AssetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
         //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(TomShane.Neoforce.Controls.Cursor), new NeoForceCursorLoader());
+        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new NeoForceCursorLoader());
 
         AssetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());
         AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
@@ -244,28 +220,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
         AssetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
         AssetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
-    }
-
-    private void InitializeGui()
-    {
-        UiManager = new Manager(this, Services.GetService<IGraphicsDeviceService>(), "Default",
-            new AssetContentManagerAdapter(AssetContentManager));
-        UiManager.UpdateOrder = (int)ComponentUpdateOrder.GUI;
-        UiManager.DrawOrder = (int)ComponentDrawOrder.GUIBegin;
-        Components.Add(UiManager);
-        //UiManager.Visible = false;
-        UiManager.SkinDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Skins");
-        UiManager.LayoutDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Layout");
-
-        UiManager.AutoCreateRenderTarget = true;
-        UiManager.TargetFrames = 60;
-        UiManager.ShowSoftwareCursor = true;
-        //UiManager.GlobalDepth = 1.0f;
-
-        UiManager.OnScreenResize(GraphicsDevice.PresentationParameters.BackBufferWidth,
-            GraphicsDevice.PresentationParameters.BackBufferWidth);
-
-        UiManagerEnd = new GuiEndRendererComponent(this);
     }
 
     protected override void LoadContent()
@@ -359,21 +313,17 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 #endif
     }
 
+
 #if EDITOR
 
     public event EventHandler? FrameComputed;
 
     public bool IsRunningInGameEditorMode { get; set; }
-    public bool UseGui { get; set; }
 
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
-
-        if (UseGui)
-        {
-            UiManager.SetProviders(keyboardStateProvider, mouseStateProvider);
-        }
+        UserInterfaceComponent.UINeoForceManager.SetProviders(keyboardStateProvider, mouseStateProvider);
     }
 
     public void InitializeWithEditor()

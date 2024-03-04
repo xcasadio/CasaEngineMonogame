@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class Component : Disposable
 {

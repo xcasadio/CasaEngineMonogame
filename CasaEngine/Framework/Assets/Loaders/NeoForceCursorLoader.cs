@@ -22,7 +22,7 @@ internal class NeoForceCursorLoader : IAssetLoader
         var hs = new Vector2(c.HotSpot.X, c.HotSpot.Y);
         var w = c.Size.Width;
         var h = c.Size.Height;
-        var neoForceCursor = new TomShane.Neoforce.Controls.Cursor(tPath, hs, w, h);
+        var neoForceCursor = new GUI.Neoforce.Cursor(tPath, hs, w, h);
         c.Dispose();
 
         using (var icon = Icon.ExtractAssociatedIcon(fileName))

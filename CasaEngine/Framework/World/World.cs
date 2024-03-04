@@ -407,9 +407,9 @@ public sealed class World : ObjectBase
         {
             if (!control.Initialized)
             {
-                control.Initialize(Game.UiManager);
+                control.Initialize(Game.UserInterfaceComponent.UINeoForceManager);
             }
-            Game.UiManager.Add(control);
+            Game.UserInterfaceComponent.UINeoForceManager.Add(control);
         }
     }
 
@@ -419,7 +419,7 @@ public sealed class World : ObjectBase
 
         foreach (var control in screenGui.Controls)
         {
-            Game.UiManager.Remove(control);
+            Game.UserInterfaceComponent.UINeoForceManager.Remove(control);
         }
     }
 
@@ -429,7 +429,7 @@ public sealed class World : ObjectBase
         {
             foreach (var control in screen.Controls)
             {
-                Game.UiManager.Remove(control);
+                Game.UserInterfaceComponent.UINeoForceManager.Remove(control);
             }
         }
 

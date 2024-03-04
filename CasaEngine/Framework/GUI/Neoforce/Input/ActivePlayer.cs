@@ -1,4 +1,4 @@
-namespace TomShane.Neoforce.Controls.Input;
+namespace CasaEngine.Framework.GUI.Neoforce.Input;
 
 public enum ActivePlayer
 {

@@ -1,8 +1,7 @@
-
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
-namespace TomShane.Neoforce.Controls.Serialization;
+namespace CasaEngine.Framework.GUI.Neoforce.Serialization;
 
 public static class JsonExtension
 {

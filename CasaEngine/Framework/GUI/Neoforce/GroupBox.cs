@@ -1,7 +1,7 @@
+using CasaEngine.Framework.GUI.Neoforce.Graphics;
 using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls.Graphics;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class GroupBox : Container
 {

@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls.Skins;
+﻿using CasaEngine.Framework.GUI.Neoforce.Skins;
+using Microsoft.Xna.Framework;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class ToolBarPanel : Control
 {

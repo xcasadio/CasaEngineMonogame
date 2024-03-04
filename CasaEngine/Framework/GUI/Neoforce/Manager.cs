@@ -1,19 +1,18 @@
 using System.Media;
 using CasaEngine.Core.Log;
-using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GUI.Neoforce.Graphics;
+using CasaEngine.Framework.GUI.Neoforce.Input;
+using CasaEngine.Framework.GUI.Neoforce.Skins;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using TomShane.Neoforce.Controls.Graphics;
-using TomShane.Neoforce.Controls.Input;
-using TomShane.Neoforce.Controls.Skins;
 using Mouse = Microsoft.Xna.Framework.Input.Mouse;
 
 [assembly: CLSCompliant(false)]
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class Manager : DrawableGameComponent, IGameComponentResizable
 {

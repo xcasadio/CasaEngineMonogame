@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using System.Windows.Input;
+using CasaEngine.Framework.GUI.Neoforce;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -56,15 +57,15 @@ public partial class GuiEditorControl : EditorControlBase
         //ControlListControl.DataContext = DataContext;
     }
 
-    private void Control_FocusLost(object sender, TomShane.Neoforce.Controls.EventArgs e)
+    private void Control_FocusLost(object sender, EventArgs e)
     {
         (DataContext as ScreenViewModel).SelectedControl = null;
     }
 
-    private void Control_FocusGained(object sender, TomShane.Neoforce.Controls.EventArgs e)
+    private void Control_FocusGained(object sender, EventArgs e)
     {
         var screenViewModel = (DataContext as ScreenViewModel);
-        screenViewModel.SelectedControl = screenViewModel.FindControlViewModel(sender as TomShane.Neoforce.Controls.Control);
+        screenViewModel.SelectedControl = screenViewModel.FindControlViewModel(sender as Control);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)

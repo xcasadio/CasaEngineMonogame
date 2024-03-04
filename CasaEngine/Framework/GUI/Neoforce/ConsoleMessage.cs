@@ -1,4 +1,4 @@
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public struct ConsoleMessage
 {

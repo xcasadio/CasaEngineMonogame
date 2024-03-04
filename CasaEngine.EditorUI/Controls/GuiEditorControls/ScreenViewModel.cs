@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
-using TomShane.Neoforce.Controls;
+using CasaEngine.Framework.GUI.Neoforce;
 
 namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 

@@ -1,9 +1,8 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using Newtonsoft.Json.Linq;
-using Control = TomShane.Neoforce.Controls.Control;
+using Control = CasaEngine.Framework.GUI.Neoforce.Control;
 
 namespace CasaEngine.Framework.GUI;
 
@@ -25,7 +24,7 @@ public class ScreenGui : Entity
         _controls.Add(control);
 
 #if EDITOR
-        ScreenWidgetComponent.Owner.World.Game.UiManager.Add(control);
+        ScreenWidgetComponent.Owner.World.Game.UserInterfaceComponent.UINeoForceManager.Add(control);
 #endif
     }
 
@@ -34,7 +33,7 @@ public class ScreenGui : Entity
         _controls.Remove(control);
 
 #if EDITOR
-        ScreenWidgetComponent.Owner.World.Game.UiManager.Remove(control);
+        ScreenWidgetComponent.Owner.World.Game.UserInterfaceComponent.UINeoForceManager.Remove(control);
 #endif
     }
 

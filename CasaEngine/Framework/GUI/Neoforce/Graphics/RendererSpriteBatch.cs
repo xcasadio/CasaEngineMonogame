@@ -1,9 +1,9 @@
+using CasaEngine.Framework.GUI.Neoforce.Skins;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using TomShane.Neoforce.Controls.Skins;
 
-namespace TomShane.Neoforce.Controls.Graphics;
+namespace CasaEngine.Framework.GUI.Neoforce.Graphics;
 
 public class RendererSpriteBatch : Component, IRenderer
 {

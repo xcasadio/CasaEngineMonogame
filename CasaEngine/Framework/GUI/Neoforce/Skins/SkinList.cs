@@ -1,4 +1,4 @@
-namespace TomShane.Neoforce.Controls.Skins;
+namespace CasaEngine.Framework.GUI.Neoforce.Skins;
 
 public class SkinList<T> : List<T>
 {

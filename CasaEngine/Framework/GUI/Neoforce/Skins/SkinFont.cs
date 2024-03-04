@@ -1,6 +1,6 @@
 using FontStashSharp;
 
-namespace TomShane.Neoforce.Controls.Skins;
+namespace CasaEngine.Framework.GUI.Neoforce.Skins;
 
 public class SkinFont : SkinBase
 {

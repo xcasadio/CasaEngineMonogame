@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 [Obsolete("Native methods should be avoided at all times")]
 internal static class NativeMethods

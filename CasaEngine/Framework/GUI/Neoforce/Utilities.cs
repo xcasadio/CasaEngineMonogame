@@ -1,6 +1,4 @@
-using CasaEngine.Framework.GUI.Neoforce;
-
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 static class Utilities
 {

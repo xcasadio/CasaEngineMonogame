@@ -1,7 +1,7 @@
-using System.Xml;
 using System.Reflection;
+using System.Xml;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public static class Layout
 {

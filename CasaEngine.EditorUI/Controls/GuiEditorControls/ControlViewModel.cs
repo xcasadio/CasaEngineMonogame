@@ -1,4 +1,4 @@
-﻿using TomShane.Neoforce.Controls;
+﻿using CasaEngine.Framework.GUI.Neoforce;
 
 namespace CasaEngine.EditorUI.Controls.GuiEditorControls;
 

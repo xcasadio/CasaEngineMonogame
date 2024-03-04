@@ -30,7 +30,7 @@ public class ScreenWidgetComponent : SceneComponent
 
         foreach (var control in ScreenGui.Controls)
         {
-            control.Initialize(Owner.World.Game.UiManager);
+            control.Initialize(Owner.World.Game.UserInterfaceComponent.UINeoForceManager);
         }
     }
 

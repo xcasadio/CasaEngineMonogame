@@ -1,4 +1,4 @@
-namespace TomShane.Neoforce.Controls.Input;
+namespace CasaEngine.Framework.GUI.Neoforce.Input;
 
 [Flags]
 public enum InputMethods

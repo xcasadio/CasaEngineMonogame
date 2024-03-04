@@ -1,4 +1,3 @@
-using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -6,7 +5,7 @@ using GamePad = Microsoft.Xna.Framework.Input.GamePad;
 using Keyboard = Microsoft.Xna.Framework.Input.Keyboard;
 using Mouse = Microsoft.Xna.Framework.Input.Mouse;
 
-namespace TomShane.Neoforce.Controls.Input;
+namespace CasaEngine.Framework.GUI.Neoforce.Input;
 
 public class InputSystem : Disposable
 {

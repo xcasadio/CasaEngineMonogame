@@ -1,6 +1,6 @@
-using TomShane.Neoforce.Controls.Input;
+using CasaEngine.Framework.GUI.Neoforce.Input;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class TabControlGamePadActions : GamePadActions
 {

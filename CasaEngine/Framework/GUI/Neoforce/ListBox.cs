@@ -1,8 +1,8 @@
+using CasaEngine.Framework.GUI.Neoforce.Graphics;
+using CasaEngine.Framework.GUI.Neoforce.Input;
 using Microsoft.Xna.Framework;
-using TomShane.Neoforce.Controls.Graphics;
-using TomShane.Neoforce.Controls.Input;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 ///  <include file='Documents/ListBox.xml' path='ListBox/Class[@name="ListBox"]/*' />          
 public class ListBox : Control

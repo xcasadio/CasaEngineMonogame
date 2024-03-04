@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace TomShane.Neoforce.Controls.Input;
+namespace CasaEngine.Framework.GUI.Neoforce.Input;
 
 public struct GamePadVectors
 {

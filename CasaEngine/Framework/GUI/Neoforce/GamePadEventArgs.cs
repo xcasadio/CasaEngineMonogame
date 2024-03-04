@@ -1,8 +1,8 @@
+using CasaEngine.Framework.GUI.Neoforce.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using TomShane.Neoforce.Controls.Input;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class GamePadEventArgs : EventArgs
 {

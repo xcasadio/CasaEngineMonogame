@@ -1,14 +1,12 @@
-
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.GUI.Neoforce.Graphics;
+using CasaEngine.Framework.GUI.Neoforce.Serialization;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using TomShane.Neoforce.Controls.Graphics;
-using TomShane.Neoforce.Controls.Serialization;
 
-namespace TomShane.Neoforce.Controls;
+namespace CasaEngine.Framework.GUI.Neoforce;
 
 public class ImageBox : Control
 {

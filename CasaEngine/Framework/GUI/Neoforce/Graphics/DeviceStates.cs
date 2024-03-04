@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TomShane.Neoforce.Controls.Graphics;
+namespace CasaEngine.Framework.GUI.Neoforce.Graphics;
 
 public class DeviceStates
 {

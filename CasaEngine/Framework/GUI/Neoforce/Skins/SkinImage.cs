@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework.Graphics;
 
-namespace TomShane.Neoforce.Controls.Skins;
+namespace CasaEngine.Framework.GUI.Neoforce.Skins;
 
 public class SkinImage : SkinBase
 {

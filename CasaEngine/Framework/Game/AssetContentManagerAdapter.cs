@@ -1,6 +1,6 @@
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using TomShane.Neoforce.Controls.Skins;
+using CasaEngine.Framework.GUI.Neoforce.Skins;
 
 namespace CasaEngine.Framework.Game;
 
