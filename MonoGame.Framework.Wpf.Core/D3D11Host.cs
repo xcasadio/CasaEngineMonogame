@@ -312,6 +312,7 @@ namespace Microsoft.Xna.Framework
             var window = this.FindParent<Window>();
             if (window == null)
             {
+                MessageBox.Show("The game control does not have a parent window, this is currently not supported");
                 throw new NotSupportedException("The game control does not have a parent window, this is currently not supported");
             }
 

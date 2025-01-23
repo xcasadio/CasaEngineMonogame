@@ -12,7 +12,7 @@ namespace CasaEngine.EditorUI.Controls
 {
     public partial class ButtonsMappingControl : EditorControlBase
     {
-        protected override string LayoutFileName { get; }
+        protected override string LayoutFileName => "buttonsMappingEditorLayout.xml";
         public override DockingManager DockingManager { get; }
 
         public ButtonsMappingControl()

@@ -1,8 +1,6 @@
-﻿using CasaEngine.Core.Log;
-using CasaEngine.Engine;
+﻿using CasaEngine.Engine;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Diagnostics;
 using CasaEngine.Framework.GUI.Neoforce;
 
 namespace CasaEngine.Framework.Game.Components;
@@ -39,8 +37,7 @@ public class UserInterfaceComponent : DrawableGameComponent, IGameComponentResiz
         UINeoForceManager.ShowSoftwareCursor = true;
         //UINeoForceManager.GlobalDepth = 1.0f;
 
-        UINeoForceManager.OnScreenResize(GraphicsDevice.PresentationParameters.BackBufferWidth,
-            GraphicsDevice.PresentationParameters.BackBufferWidth);
+        OnScreenResized(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
 
         base.Initialize();
     }
@@ -64,28 +61,5 @@ public class UserInterfaceComponent : DrawableGameComponent, IGameComponentResiz
     public void OnScreenResized(int width, int height)
     {
         UINeoForceManager.OnScreenResized(width, height);
-    }
-
-    private static void NoesisGUIErrorMessageReceivedHandler(string errorMessage)
-    {
-        if (errorMessage.IndexOf("Binding", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            // binding error
-            //Global.Logger.Write("NoesisGUI error: " + errorMessage, LogSeverity.Info);
-            return;
-        }
-
-        if (errorMessage.IndexOf("fallback texture", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            // async texture loading
-            return;
-        }
-
-        Logs.WriteError("NoesisGUI error: " + errorMessage);
-    }
-
-    private static void NoesisGUIUnhandledExceptionHandler(Exception exception)
-    {
-        Logs.WriteException(exception);
     }
 }
