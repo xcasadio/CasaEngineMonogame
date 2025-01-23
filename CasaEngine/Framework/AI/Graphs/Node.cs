@@ -6,7 +6,6 @@ namespace CasaEngine.Framework.AI.Graphs;
 [Serializable]
 public class Node : ICloneable
 {
-
     public const int NoParent = -1;
 
     protected internal int index;
@@ -47,29 +46,11 @@ public class Node : ICloneable
 
     public object Clone()
     {
-        MemoryStream memory;
-        BinaryFormatter formater;
-        object clone;
-
-        using (memory = new MemoryStream())
-        {
-            //Serialize ourselves
-            formater = new BinaryFormatter();
-            formater.Serialize(memory, this);
-
-            //Move the memory buffer to the start
-            memory.Seek(0, SeekOrigin.Begin);
-
-            //Undo the serialization in the new clone object
-            clone = formater.Deserialize(memory);
-
-            return clone;
-        }
+        return (Node)MemberwiseClone();
     }
 
     protected internal virtual bool IsNeighbour(int spacePartitionSector, Vector3 searchPosition, float searchRange)
     {
         return true;
     }
-
 }

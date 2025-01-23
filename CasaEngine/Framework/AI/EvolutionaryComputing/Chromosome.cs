@@ -47,7 +47,6 @@ public class Chromosome<T> : ICloneable
     {
         Chromosome<T> newChrom;
         MemoryStream memory;
-        BinaryFormatter formater;
         object clone;
 
         //Best scenario, T is a ValueType
@@ -76,25 +75,6 @@ public class Chromosome<T> : ICloneable
             }
 
             return newChrom;
-        }
-
-        // Worst scenario, serialization (SLOW) is needed
-        if (typeof(T).IsSerializable)
-        {
-            using (memory = new MemoryStream())
-            {
-                //Serialize ourselves
-                formater = new BinaryFormatter();
-                formater.Serialize(memory, this);
-
-                //Move the memory buffer to the start
-                memory.Seek(0, SeekOrigin.Begin);
-
-                //Undo the serialization in the new clone object
-                clone = formater.Deserialize(memory);
-
-                return clone;
-            }
         }
 
         //It wasn´t possible to clone the object, return ourself
