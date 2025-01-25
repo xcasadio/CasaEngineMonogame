@@ -175,6 +175,8 @@ namespace Microsoft.Xna.Framework
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
+            GraphicsDevice.PresentationParameters.BackBufferWidth = (int)sizeInfo.NewSize.Width;
+            GraphicsDevice.PresentationParameters.BackBufferHeight = (int)sizeInfo.NewSize.Height;
             _resetBackBuffer = true;
             base.OnRenderSizeChanged(sizeInfo);
         }
@@ -259,12 +261,14 @@ namespace Microsoft.Xna.Framework
                 sampleCount = _cachedRenderTarget.MultiSampleCount;
                 _toBeDisposedNextFrame.Add(_cachedRenderTarget);
             }
-            CreateGraphicsDeviceDependentResources(new PresentationParameters
+
+            var presentationParameters = new PresentationParameters
             {
                 BackBufferWidth = Math.Max((int)ActualWidth, 1),
                 BackBufferHeight = Math.Max((int)ActualHeight, 1),
                 MultiSampleCount = sampleCount
-            });
+            };
+            CreateGraphicsDeviceDependentResources(presentationParameters);
         }
 
         protected virtual void CreateGraphicsDeviceDependentResources(PresentationParameters pp)

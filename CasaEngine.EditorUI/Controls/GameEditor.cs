@@ -88,11 +88,12 @@ public abstract class GameEditor : WpfGame
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
+        base.OnRenderSizeChanged(sizeInfo);
+
         var newSizeWidth = (int)sizeInfo.NewSize.Width;
         var newSizeHeight = (int)sizeInfo.NewSize.Height;
 
         OnScreenResized(newSizeWidth, newSizeHeight);
-        base.OnRenderSizeChanged(sizeInfo);
     }
 
     private void OnScreenResized(int width, int height)

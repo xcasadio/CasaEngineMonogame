@@ -27,6 +27,13 @@
   },
   "components": [],
   "script_class_name": null,
+  "flow_graph": {
+    "type": "sequence",
+    "id": 5,
+    "name": "sequence",
+    "description": null,
+    "nodes": []
+  },
   "external_component": "null",
   "controls": [
     {
@@ -55,10 +62,10 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 118,
-      "height_screen_ratio": 0.13333334,
-      "left": 363,
-      "left_screen_ratio": 0.35,
+      "height": 35,
+      "height_screen_ratio": 0.056179777,
+      "left": 288,
+      "left_screen_ratio": 0.39614856,
       "margins": {
         "l": 4,
         "r": 4,
@@ -94,11 +101,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 40,
-      "top_screen_ratio": 0.045833334,
+      "top": 28,
+      "top_screen_ratio": 0.04494382,
       "visible": true,
-      "width": 83,
-      "width_screen_ratio": 0.08
+      "width": 137,
+      "width_screen_ratio": 0.18844567
     },
     {
       "type": "Button",
@@ -126,10 +133,10 @@
       "detached": false,
       "double_clicks": false,
       "enabled": true,
-      "height": 45,
-      "height_screen_ratio": 0.09375,
-      "left": 271,
-      "left_screen_ratio": 0.33875,
+      "height": 36,
+      "height_screen_ratio": 0.05778491,
+      "left": 236,
+      "left_screen_ratio": 0.32462174,
       "margins": {
         "l": 4,
         "r": 4,
@@ -165,11 +172,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 236,
-      "top_screen_ratio": 0.49166667,
+      "top": 389,
+      "top_screen_ratio": 0.62439805,
       "visible": true,
-      "width": 253,
-      "width_screen_ratio": 0.31625
+      "width": 225,
+      "width_screen_ratio": 0.30949107
     },
     {
       "type": "Button",
@@ -197,10 +204,10 @@
       "detached": false,
       "double_clicks": false,
       "enabled": true,
-      "height": 44,
-      "height_screen_ratio": 0.09166667,
-      "left": 273,
-      "left_screen_ratio": 0.34125,
+      "height": 37,
+      "height_screen_ratio": 0.05939005,
+      "left": 236,
+      "left_screen_ratio": 0.32462174,
       "margins": {
         "l": 4,
         "r": 4,
@@ -236,11 +243,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 284,
-      "top_screen_ratio": 0.59166664,
+      "top": 431,
+      "top_screen_ratio": 0.6918138,
       "visible": true,
-      "width": 251,
-      "width_screen_ratio": 0.31375
+      "width": 227,
+      "width_screen_ratio": 0.3122421
     }
   ]
 }

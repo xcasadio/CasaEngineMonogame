@@ -27,6 +27,13 @@
   },
   "components": [],
   "script_class_name": null,
+  "flow_graph": {
+    "type": "sequence",
+    "id": 7,
+    "name": "sequence",
+    "description": null,
+    "nodes": []
+  },
   "external_component": "null",
   "controls": [
     {
@@ -55,17 +62,17 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 64,
-      "height_screen_ratio": 0.13333334,
-      "left": 11,
-      "left_screen_ratio": 0.01375,
+      "height": 49,
+      "height_screen_ratio": 0.118136436,
+      "left": 17,
+      "left_screen_ratio": 0.023097826,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 418,
       "maximum_width": 593,
       "minimum_height": 0,
       "minimum_width": 0,
@@ -73,8 +80,8 @@
       "movable_area": {
         "x": 0,
         "y": 0,
-        "w": 800,
-        "h": 480
+        "w": 684,
+        "h": 237
       },
       "name": "ImageBox",
       "outline_moving": false,
@@ -94,11 +101,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 420,
-      "top_screen_ratio": 0.875,
+      "top": 345,
+      "top_screen_ratio": 0.82535887,
       "visible": true,
-      "width": 64,
-      "width_screen_ratio": 0.08,
+      "width": 52,
+      "width_screen_ratio": 0.07192374,
       "sprite_id": "b039042c-4b9d-4157-8be2-eed2d3c4f3bd",
       "size_mode": "Normal"
     },
@@ -128,17 +135,17 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 16,
-      "height_screen_ratio": 0.033333335,
-      "left": 77,
-      "left_screen_ratio": 0.09625,
+      "height": 11,
+      "height_screen_ratio": 0.028286189,
+      "left": 74,
+      "left_screen_ratio": 0.10054348,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 632,
+      "maximum_height": 418,
       "maximum_width": 593,
       "minimum_height": 8,
       "minimum_width": 32,
@@ -146,8 +153,8 @@
       "movable_area": {
         "x": 0,
         "y": 0,
-        "w": 800,
-        "h": 480
+        "w": 684,
+        "h": 237
       },
       "name": "ProgressBar",
       "outline_moving": false,
@@ -167,11 +174,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 420,
-      "top_screen_ratio": 0.875,
+      "top": 346,
+      "top_screen_ratio": 0.8277512,
       "visible": true,
-      "width": 128,
-      "width_screen_ratio": 0.16
+      "width": 83,
+      "width_screen_ratio": 0.1135182
     }
   ]
 }
