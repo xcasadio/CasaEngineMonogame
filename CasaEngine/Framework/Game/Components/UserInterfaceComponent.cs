@@ -24,18 +24,20 @@ public class UserInterfaceComponent : DrawableGameComponent, IGameComponentResiz
     public override void Initialize()
     {
         UINeoForceManager = new Manager(_game, Game.Services.GetService<IGraphicsDeviceService>(), "Default",
-            new AssetContentManagerAdapter(_game.AssetContentManager));
-        UINeoForceManager.UpdateOrder = (int)ComponentUpdateOrder.GUI;
-        UINeoForceManager.DrawOrder = (int)ComponentDrawOrder.GUIBegin;
-        _game.Components.Add(UINeoForceManager);
+            new AssetContentManagerAdapter(_game.AssetContentManager))
+        {
+            UpdateOrder = (int)ComponentUpdateOrder.GUI,
+            DrawOrder = (int)ComponentDrawOrder.GUIBegin,
+            SkinDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Skins"),
+            LayoutDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Layout"),
+            AutoCreateRenderTarget = true,
+            TargetFrames = 60,
+            ShowSoftwareCursor = true
+        };
         //UINeoForceManager.Visible = false;
-        UINeoForceManager.SkinDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Skins");
-        UINeoForceManager.LayoutDirectory = Path.Combine(EngineEnvironment.ProjectPath, "Layout");
-
-        UINeoForceManager.AutoCreateRenderTarget = true;
-        UINeoForceManager.TargetFrames = 60;
-        UINeoForceManager.ShowSoftwareCursor = true;
         //UINeoForceManager.GlobalDepth = 1.0f;
+        
+        _game.Components.Add(UINeoForceManager);
 
         OnScreenResized(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
 

@@ -1572,7 +1572,9 @@ public class Control : Component
         var oldWidth = _width;
         var oldHeight = _height;
 
-        _isComputeRationEnabled = false;
+#if EDITOR
+        _isComputeRatioEnabled = false;
+ #endif
 
         _left = (int)(LeftScreenRatio * newScreenWidth);
         _top = (int)(TopScreenRatio * newScreenHeight);
@@ -1590,8 +1592,10 @@ public class Control : Component
             }
         }
 
-        _isComputeRationEnabled = true;
-        System.Diagnostics.Debug.WriteLine($"Resize control {Name} : ({oldLeft},{oldTop},{oldWidth},{oldHeight}) => ({_left},{_top},{_width},{_height})");
+#if EDITOR
+        _isComputeRatioEnabled = true;
+        //System.Diagnostics.Debug.WriteLine($"Resize control {Name} : ({oldLeft},{oldTop},{oldWidth},{oldHeight}) => ({_left},{_top},{_width},{_height})");
+#endif
     }
     
     private bool ComputeWidthValue(int value)
@@ -2697,7 +2701,7 @@ public class Control : Component
     protected void OnMove(MoveEventArgs e)
     {
 #if EDITOR
-        if (Manager != null && _isComputeRationEnabled)
+        if (Manager != null && _isComputeRatioEnabled)
         {
             LeftScreenRatio = (float)Left / (float)Manager.CasaEngineGame.ScreenSizeWidth;
             TopScreenRatio = (float)Top / (float)Manager.CasaEngineGame.ScreenSizeHeight;
@@ -2710,7 +2714,7 @@ public class Control : Component
     protected virtual void OnResize(ResizeEventArgs e)
     {
 #if EDITOR
-        if (Manager != null && _isComputeRationEnabled)
+        if (Manager != null && _isComputeRatioEnabled)
         {
             WidthScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
             HeightScreenRatio = (float)Height / (float)Manager.CasaEngineGame.ScreenSizeHeight;
@@ -2923,7 +2927,7 @@ public class Control : Component
 
 #if EDITOR
 
-    private bool _isComputeRationEnabled = true;
+    private bool _isComputeRatioEnabled = true;
 
     public virtual void Save(JObject node)
     {

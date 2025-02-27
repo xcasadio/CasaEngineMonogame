@@ -22,15 +22,15 @@ namespace CasaEngine.Framework.World;
 
 public sealed class World : ObjectBase
 {
-    private readonly List<EntityReference> _entityReferences = new();
-    private readonly List<Entity> _entities = new();
-    private readonly List<Entity> _baseObjectsToAdd = new();
-    private readonly List<ScreenGui> _screens = new();
+    private readonly List<EntityReference> _entityReferences = [];
+    private readonly List<Entity> _entities = [];
+    private readonly List<Entity> _baseObjectsToAdd = [];
+    private readonly List<ScreenGui> _screens = [];
 
     private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
 
-    private readonly List<PlayerController> _playerControllers = new();
+    private readonly List<PlayerController> _playerControllers = [];
 
     public CasaEngineGame Game { get; private set; }
     public IList<Entity> Entities => _entities;

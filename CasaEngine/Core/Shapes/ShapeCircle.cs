@@ -45,6 +45,11 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         return Equals((ShapeCircle)obj);
     }
 
+    public override int GetHashCode()
+    {
+        return Radius.GetHashCode();
+    }
+
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
 
     public override void Load(JObject element)

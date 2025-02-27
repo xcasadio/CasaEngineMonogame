@@ -12,9 +12,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
-using XNAGizmo;
 using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
