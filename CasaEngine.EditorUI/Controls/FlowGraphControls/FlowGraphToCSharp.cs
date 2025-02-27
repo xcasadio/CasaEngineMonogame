@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using CSharpSyntax;
+﻿using CSharpSyntax;
 using CSharpSyntax.Printer;
 using FlowGraph;
 using System.IO;
@@ -9,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using CasaEngine.FlowGraphNodes;
 using FlowGraph.Nodes;
-using CasaEngine.Framework.World;
 
 namespace CasaEngine.EditorUI.Controls.FlowGraphControls;
 

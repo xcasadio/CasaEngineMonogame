@@ -175,6 +175,8 @@ namespace Microsoft.Xna.Framework
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
+            GraphicsDevice.PresentationParameters.BackBufferWidth = (int)sizeInfo.NewSize.Width;
+            GraphicsDevice.PresentationParameters.BackBufferHeight = (int)sizeInfo.NewSize.Height;
             _resetBackBuffer = true;
             base.OnRenderSizeChanged(sizeInfo);
         }
@@ -259,12 +261,14 @@ namespace Microsoft.Xna.Framework
                 sampleCount = _cachedRenderTarget.MultiSampleCount;
                 _toBeDisposedNextFrame.Add(_cachedRenderTarget);
             }
-            CreateGraphicsDeviceDependentResources(new PresentationParameters
+
+            var presentationParameters = new PresentationParameters
             {
                 BackBufferWidth = Math.Max((int)ActualWidth, 1),
                 BackBufferHeight = Math.Max((int)ActualHeight, 1),
                 MultiSampleCount = sampleCount
-            });
+            };
+            CreateGraphicsDeviceDependentResources(presentationParameters);
         }
 
         protected virtual void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
@@ -312,6 +316,7 @@ namespace Microsoft.Xna.Framework
             var window = this.FindParent<Window>();
             if (window == null)
             {
+                MessageBox.Show("The game control does not have a parent window, this is currently not supported");
                 throw new NotSupportedException("The game control does not have a parent window, this is currently not supported");
             }
 

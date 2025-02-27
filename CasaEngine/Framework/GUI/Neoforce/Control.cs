@@ -39,9 +39,9 @@ public class Control : Component
 
     private readonly ControlsList _controls = new();
     private bool _invalidated = true;
-    private int _minimumWidth;
+    private int _minimumWidth = 1;
     private int _maximumWidth = 4096;
-    private int _minimumHeight;
+    private int _minimumHeight = 1;
     private int _maximumHeight = 4096;
     private int _topModifier;
     private int _leftModifier;
@@ -669,36 +669,10 @@ public class Control : Component
         get => _width;
         set
         {
-            if (value < 0 && Parent != null && value > int.MinValue)
+            var old = _width;
+
+            if (ComputeWidthValue(value))
             {
-                var mult = value / -100f;
-                value = (int)(_parent.Width * mult);
-            }
-
-            if (_width != value)
-            {
-                var old = _width;
-                _width = value;
-
-                if (_skin != null)
-                {
-                    if (_width + _skin.OriginMargins.Horizontal > MaximumWidth)
-                    {
-                        _width = MaximumWidth - _skin.OriginMargins.Horizontal;
-                    }
-                }
-                else
-                {
-                    if (_width > MaximumWidth)
-                    {
-                        _width = MaximumWidth;
-                    }
-                }
-                if (_width < MinimumWidth)
-                {
-                    _width = MinimumWidth;
-                }
-
                 if (_width > 0)
                 {
                     SetAnchorMargins();
@@ -720,37 +694,10 @@ public class Control : Component
         get => _height;
         set
         {
-            if (value < 0 && Parent != null && value > int.MinValue)
+            var old = _height;
+
+            if (ComputeHeightValue(value))
             {
-                var mult = value / -100f;
-                value = (int)(_parent.Height * mult);
-            }
-
-            if (_height != value)
-            {
-                var old = _height;
-
-                _height = value;
-
-                if (_skin != null)
-                {
-                    if (_height + _skin.OriginMargins.Vertical > MaximumHeight)
-                    {
-                        _height = MaximumHeight - _skin.OriginMargins.Vertical;
-                    }
-                }
-                else
-                {
-                    if (_height > MaximumHeight)
-                    {
-                        _height = MaximumHeight;
-                    }
-                }
-                if (_height < MinimumHeight)
-                {
-                    _height = MinimumHeight;
-                }
-
                 if (_height > 0)
                 {
                     SetAnchorMargins();
@@ -761,9 +708,7 @@ public class Control : Component
                     OnResize(new ResizeEventArgs(_width, _height, _width, old));
                 }
             }
-
         }
-
     }
 
     /// <summary>
@@ -1611,21 +1556,117 @@ public class Control : Component
 
         ComputePositionAndSizeWithRatio(Manager.ScreenWidth, Manager.ScreenHeight);
 
-        OnMove(new MoveEventArgs());
-        OnResize(new ResizeEventArgs());
+        //OnMove(new MoveEventArgs());
+        //OnResize(new ResizeEventArgs());
     }
 
-    public void ComputePositionAndSizeWithRatio(int width, int height)
+    public void ComputePositionAndSizeWithRatio(int newScreenWidth, int newScreenHeight)
     {
         if (Manager == null)
         {
             return;
         }
 
-        _left = (int)(LeftScreenRatio * (float)width);
-        _top = (int)(TopScreenRatio * (float)height);
-        _width = (int)(WidthScreenRatio * (float)width);
-        _height = (int)(HeightScreenRatio * (float)height);
+        var oldLeft = _left;
+        var oldTop = _top;
+        var oldWidth = _width;
+        var oldHeight = _height;
+
+#if EDITOR
+        _isComputeRatioEnabled = false;
+ #endif
+
+        _left = (int)(LeftScreenRatio * newScreenWidth);
+        _top = (int)(TopScreenRatio * newScreenHeight);
+        bool isResized = ComputeWidthValue((int)(WidthScreenRatio * newScreenWidth));
+        isResized |= ComputeHeightValue((int)(HeightScreenRatio * newScreenHeight));
+
+        SetAnchorMargins();
+
+        if (!Suspended)
+        {
+            OnMove(new MoveEventArgs(_left, _top, oldLeft, oldTop));
+            if (isResized)
+            {
+                OnResize(new ResizeEventArgs(_width, _height, oldWidth, oldHeight));
+            }
+        }
+
+#if EDITOR
+        _isComputeRatioEnabled = true;
+        //System.Diagnostics.Debug.WriteLine($"Resize control {Name} : ({oldLeft},{oldTop},{oldWidth},{oldHeight}) => ({_left},{_top},{_width},{_height})");
+#endif
+    }
+    
+    private bool ComputeWidthValue(int value)
+    {
+        if (value < 0 && Parent != null && value > int.MinValue)
+        {
+            var mult = value / -100f;
+            value = (int)(_parent.Width * mult);
+        }
+
+        if (_width == value)
+        {
+            return false;
+        }
+
+        _width = value;
+
+        if (_skin != null)
+        {
+            if (_width + _skin.OriginMargins.Horizontal > MaximumWidth)
+            {
+                _width = MaximumWidth - _skin.OriginMargins.Horizontal;
+            }
+        }
+        else if (_width > MaximumWidth)
+        {
+            _width = MaximumWidth;
+        }
+
+        if (_width < MinimumWidth)
+        {
+            _width = MinimumWidth;
+        }
+
+        return true;
+
+    }
+
+    private bool ComputeHeightValue(int value)
+    {
+        if (value < 0 && Parent != null && value > int.MinValue)
+        {
+            var mult = value / -100f;
+            value = (int)(_parent.Height * mult);
+        }
+
+        if (_height == value)
+        {
+            return false;
+        }
+
+        _height = value;
+
+        if (_skin != null)
+        {
+            if (_height + _skin.OriginMargins.Vertical > MaximumHeight)
+            {
+                _height = MaximumHeight - _skin.OriginMargins.Vertical;
+            }
+        }
+        else if (_height > MaximumHeight)
+        {
+            _height = MaximumHeight;
+        }
+
+        if (_height < MinimumHeight)
+        {
+            _height = MinimumHeight;
+        }
+
+        return true;
     }
 
     protected internal virtual void InitializeSkin()
@@ -1649,8 +1690,8 @@ public class Control : Component
 #if EDITOR
         if (Manager != null)
         {
-            WidthScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
-            HeightScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeHeight;
+            WidthScreenRatio = Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
+            HeightScreenRatio = Width / (float)Manager.CasaEngineGame.ScreenSizeHeight;
         }
 #endif
     }
@@ -2660,28 +2701,25 @@ public class Control : Component
     protected void OnMove(MoveEventArgs e)
     {
 #if EDITOR
-        if (Manager != null)
+        if (Manager != null && _isComputeRatioEnabled)
         {
             LeftScreenRatio = (float)Left / (float)Manager.CasaEngineGame.ScreenSizeWidth;
             TopScreenRatio = (float)Top / (float)Manager.CasaEngineGame.ScreenSizeHeight;
         }
 #endif
-
         _parent?.Invalidate();
-
         Move?.Invoke(this, e);
     }
 
     protected virtual void OnResize(ResizeEventArgs e)
     {
 #if EDITOR
-        if (Manager != null)
+        if (Manager != null && _isComputeRatioEnabled)
         {
             WidthScreenRatio = (float)Width / (float)Manager.CasaEngineGame.ScreenSizeWidth;
             HeightScreenRatio = (float)Height / (float)Manager.CasaEngineGame.ScreenSizeHeight;
         }
 #endif
-
         Invalidate();
         Resize?.Invoke(this, e);
     }
@@ -2888,6 +2926,9 @@ public class Control : Component
     }
 
 #if EDITOR
+
+    private bool _isComputeRatioEnabled = true;
+
     public virtual void Save(JObject node)
     {
         node.Add("type", GetType().Name);

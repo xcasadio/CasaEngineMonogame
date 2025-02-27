@@ -27,6 +27,13 @@
   },
   "components": [],
   "script_class_name": null,
+  "flow_graph": {
+    "type": "sequence",
+    "id": 8,
+    "name": "sequence",
+    "description": null,
+    "nodes": []
+  },
   "external_component": "null",
   "controls": [
     {
@@ -55,26 +62,26 @@
       "detached": false,
       "double_clicks": true,
       "enabled": true,
-      "height": 64,
-      "height_screen_ratio": 0.13333334,
-      "left": 236,
-      "left_screen_ratio": 0.295,
+      "height": 63,
+      "height_screen_ratio": 0.15311004,
+      "left": 311,
+      "left_screen_ratio": 0.42255434,
       "margins": {
         "l": 4,
         "r": 4,
         "t": 4,
         "b": 4
       },
-      "maximum_height": 480,
-      "maximum_width": 800,
+      "maximum_height": 418,
+      "maximum_width": 736,
       "minimum_height": 0,
       "minimum_width": 0,
       "movable": true,
       "movable_area": {
         "x": 0,
         "y": 0,
-        "w": 800,
-        "h": 480
+        "w": 736,
+        "h": 418
       },
       "name": "Label",
       "outline_moving": false,
@@ -94,11 +101,11 @@
         "b": 255,
         "a": 0
       },
-      "top": 214,
-      "top_screen_ratio": 0.44583333,
+      "top": 181,
+      "top_screen_ratio": 0.43301436,
       "visible": true,
       "width": 64,
-      "width_screen_ratio": 0.08
+      "width_screen_ratio": 0.08695652
     }
   ]
 }

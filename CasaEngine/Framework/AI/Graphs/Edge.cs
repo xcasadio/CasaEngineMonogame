@@ -82,24 +82,7 @@ public class Edge : ICloneable
 
     public object Clone()
     {
-        MemoryStream memory;
-        BinaryFormatter formater;
-        object clone;
-
-        using (memory = new MemoryStream())
-        {
-            //Serialize ourselves
-            formater = new BinaryFormatter();
-            formater.Serialize(memory, this);
-
-            //Move the memory buffer to the start
-            memory.Seek(0, SeekOrigin.Begin);
-
-            //Undo the serialization in the new clone object
-            clone = formater.Deserialize(memory);
-
-            return clone;
-        }
+        return (Edge)MemberwiseClone();
     }
 
 }

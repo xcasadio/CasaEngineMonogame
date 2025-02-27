@@ -7,10 +7,8 @@ using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Windows;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 using FlowGraph;
-using FlowGraphUI;
 using TabItem = System.Windows.Controls.TabItem;
 
 namespace CasaEngine.EditorUI;
@@ -18,8 +16,6 @@ namespace CasaEngine.EditorUI;
 public partial class MainWindow : Window
 {
     private readonly string _projectFileName;
-    private bool _isWindowLoaded;
-    private bool _isGameReadyToStart;
     public ContentBrowserControl ContentBrowserControl { get; }
     public LogsControl LogsControl { get; }
 
@@ -45,26 +41,15 @@ public partial class MainWindow : Window
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        //_isGameReadyToStart = true;
-        //OpenProject(_projectFileName);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         LoadWorkSpace();
-
-        _isWindowLoaded = true;
-        //OpenProject(_projectFileName);
     }
 
     private void OpenProject(string projectFileName)
     {
-        //if (!_isWindowLoaded || !_isGameReadyToStart)
-        //{
-        //    //MessageBox.Show(this, "Open project only after the window is loaded and the game is initialized");
-        //    return;
-        //}
-
         if (!File.Exists(projectFileName))
         {
             Logs.WriteError($"Can't open project {projectFileName}");
@@ -175,7 +160,6 @@ public partial class MainWindow : Window
     private void OpenProject_OnClick(object sender, RoutedEventArgs e)
     {
         //select project
-
         //OpenProject(string projectFileName)
     }
 

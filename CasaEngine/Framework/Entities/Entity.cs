@@ -21,8 +21,8 @@ namespace CasaEngine.Framework.Entities;
 public class Entity : ObjectBase
 {
     private bool _isEnabled = true;
-    private readonly List<EntityComponent> _components = new();
-    private readonly List<Entity> _children = new();
+    private readonly List<EntityComponent> _components = [];
+    private readonly List<Entity> _children = [];
     private SceneComponent? _rootComponent;
     public World.World World { get; private set; }
 
