@@ -18,13 +18,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldViewProj, Vector3 cameraPosition)
+    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldInvertTranspose, Matrix worldViewProj, Vector3 cameraPosition)
     {
         _meshInfos.Add(new MeshInfo
         {
             StaticMesh = staticMesh,
             Material = material,
             World = world,
+            WorldInvertTranspose = world,
             WorldViewProj = worldViewProj,
             CameraPosition = cameraPosition
         });
@@ -35,7 +36,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
         _effect.CurrentTechnique = _effect.Techniques["BasicEffect_PixelLighting_Texture"];
 
-        //_effect.Parameters["AmbientColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
@@ -72,7 +72,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
             _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource);
             _effect.Parameters["EyePosition"].SetValue(meshInfo.CameraPosition);
             _effect.Parameters["World"].SetValue(meshInfo.World);
-            _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.World.Invert().Transpose());
+            _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
             _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
@@ -92,6 +92,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         public Material? Material;
         public Vector3 CameraPosition;
         public Matrix World;
+        public Matrix WorldInvertTranspose;
         public Matrix WorldViewProj;
     }
 }

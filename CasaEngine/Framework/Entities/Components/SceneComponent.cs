@@ -3,6 +3,7 @@ using CasaEngine.Core.Maths;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
+using CasaEngine.Core.Helpers;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -21,6 +22,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 #endif
 {
     private Matrix _lastWorldMatrix;
+    private Matrix _lastWorldInvertTransposeMatrix;
     public Coordinates Coordinates { get; }
 
     /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
@@ -81,6 +83,26 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
             if (Owner.Parent?.RootComponent != null)
             {
                 result *= Owner.Parent.RootComponent.WorldMatrixNoScale;
+            }
+
+            return result;
+        }
+    }
+
+    public Matrix WorldInvertTransposeMatrix
+    {
+        get
+        {
+            var result = Coordinates.LocalMatrixWithScale;
+
+            if (Parent != null)
+            {
+                result *= Parent.WorldMatrixWithScale;
+            }
+
+            if (Owner.Parent?.RootComponent != null)
+            {
+                result *= Owner.Parent.RootComponent.WorldMatrixWithScale;
             }
 
             return result;
@@ -292,6 +314,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         }
 
         _lastWorldMatrix = WorldMatrixWithScale;
+        _lastWorldInvertTransposeMatrix = _lastWorldMatrix.Invert().Transpose();
         IsBoundingBoxDirty = true;
     }
 
@@ -319,10 +342,10 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 
         if (_lastWorldMatrix != WorldMatrixWithScale)
         {
+            _lastWorldMatrix = WorldMatrixWithScale;
+            _lastWorldInvertTransposeMatrix = _lastWorldMatrix.Invert().Transpose();
             IsBoundingBoxDirty = true;
         }
-
-        _lastWorldMatrix = WorldMatrixWithScale;
 
         for (int i = 0; i < Children.Count; i++)
         {

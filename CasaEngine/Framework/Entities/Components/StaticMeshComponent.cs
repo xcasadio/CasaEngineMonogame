@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Entities.Components;
 [DisplayName("Static Mesh")]
 public class StaticMeshComponent : PrimitiveComponent
 {
-    private StaticMeshRendererComponent? _meshRendererComponent;
+    private StaticMeshRendererComponent _meshRendererComponent;
 
     public StaticMesh? Mesh { get; set; }
 
@@ -33,7 +33,7 @@ public class StaticMeshComponent : PrimitiveComponent
     {
         base.InitializeWithWorld(world);
 
-        _meshRendererComponent = world.Game.GetGameComponent<StaticMeshRendererComponent>();
+        _meshRendererComponent = world.Game.GetGameComponent<StaticMeshRendererComponent>()!;
         Mesh?.Initialize(world.Game.AssetContentManager);
     }
 
@@ -51,9 +51,10 @@ public class StaticMeshComponent : PrimitiveComponent
             return;
         }
 
-        var camera = Owner.World.Game.GameManager.ActiveCamera;
+        var camera = Owner!.World.Game.GameManager.ActiveCamera!;
         var worldViewProj = WorldMatrixWithScale * camera.ViewMatrix * camera.ProjectionMatrix;
-        _meshRendererComponent.AddMesh(Mesh, Material, WorldMatrixWithScale, worldViewProj, camera.Position);
+        _meshRendererComponent.AddMesh(Mesh, Material, 
+            WorldMatrixWithScale, WorldInvertTransposeMatrix, worldViewProj, camera.Position);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -82,7 +83,7 @@ public class StaticMeshComponent : PrimitiveComponent
     {
         base.Load(element);
 
-        var meshElement = element["mesh"];
+        var meshElement = element["mesh"]!;
 
         if (meshElement.ToString() != "null")
         {
