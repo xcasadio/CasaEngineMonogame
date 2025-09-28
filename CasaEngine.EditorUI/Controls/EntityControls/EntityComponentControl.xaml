@@ -290,27 +290,7 @@
 
         <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
             <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
-                        <TextBlock Text="Mesh : " />
-                        <TextBlock Text="nb vertices = " />
-                        <TextBlock Text="{Binding Mesh.VertexBuffer.VertexCount}" />
-                        <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
-                    </StackPanel>
-
-                    <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                                                 AssetId="{Binding Mesh.TextureAssetId, Mode=TwoWay}"
-                                                 ValidateAsset="ValidateStaticMeshAsset"/>
-                </Grid>
+                <entityControls:StaticMeshComponentControl/>
             </Expander>
         </DataTemplate>
 

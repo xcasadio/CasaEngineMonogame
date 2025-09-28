@@ -33,11 +33,7 @@ public class StaticMesh : ObjectBase
         IndexBuffer = new IndexBuffer(assetContentManager.GraphicsDevice, typeof(uint), _indices.Count, BufferUsage.None);
         IndexBuffer.SetData(_indices.ToArray());
 
-        if (TextureAssetId != Guid.Empty)
-        {
-            Texture = assetContentManager.Load<Assets.Textures.Texture>(TextureAssetId);
-            Texture.Load(assetContentManager);
-        }
+        LoadTexture(TextureAssetId, assetContentManager);
 
 #if EDITOR
         _isInitialized = true;
@@ -86,6 +82,16 @@ public class StaticMesh : ObjectBase
         _indices.AddRange(element.GetElements("indices", o => o.GetUInt32()));
 
         TextureAssetId = element["texture_asset_id"].GetGuid();
+    }
+
+    public void LoadTexture(Guid textureAssetId, AssetContentManager assetContentManager)
+    {
+        if (textureAssetId != Guid.Empty)
+        {
+            TextureAssetId = textureAssetId;
+            Texture = assetContentManager.Load<Assets.Textures.Texture>(TextureAssetId);
+            Texture.Load(assetContentManager);
+        }
     }
 
 #if EDITOR

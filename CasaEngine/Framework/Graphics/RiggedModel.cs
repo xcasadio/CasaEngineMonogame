@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 /*  TODO 
 //  lots to do still and think about.
-// Fix the amimations there is a small discrepancy between my animations and visual studios model viewer which also isn't perfect it is irking me.
+// Fix the animations there is a small discrepancy between my animations and visual studios model viewer which also isn't perfect it is irking me.
 // link the textures to the shader in the model 
 //  a) change the texture for diffuse to a list so a model can allow for multi texturing i dunno how many or if any models actually use this.
 //     ... however assimp holds texture arrays for diffuse uv textures and others so it seems to be something that exists ill have to go back and change that.

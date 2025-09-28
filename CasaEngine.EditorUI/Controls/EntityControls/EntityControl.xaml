@@ -100,7 +100,7 @@
                     </entityControls:EntityDetailTemplateSelector.EntityTemplate>
                     <entityControls:EntityDetailTemplateSelector.ComponenTemplate>
                         <DataTemplate>
-                            <entityControls:EntityComponentControl DataContext="{Binding Component}"/>
+                            <entityControls:EntityComponentControl DataContext="{Binding }"/>
                         </DataTemplate>
                     </entityControls:EntityDetailTemplateSelector.ComponenTemplate>
                     <entityControls:EntityDetailTemplateSelector.EmptyTemplate>

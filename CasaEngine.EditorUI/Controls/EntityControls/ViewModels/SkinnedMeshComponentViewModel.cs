@@ -4,7 +4,7 @@ using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
-public class SkinnedMeshComponentViewModel : NotifyPropertyChangeBase
+public class SkinnedMeshComponentViewModel : SceneComponentViewModel
 {
     private readonly SkinnedMeshComponent _skinnedMeshComponent;
 
@@ -27,7 +27,7 @@ public class SkinnedMeshComponentViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public SkinnedMeshComponentViewModel(SkinnedMeshComponent skinnedMeshComponent)
+    public SkinnedMeshComponentViewModel(SkinnedMeshComponent skinnedMeshComponent) : base(skinnedMeshComponent)
     {
         _skinnedMeshComponent = skinnedMeshComponent;
         UpdateAnimations();

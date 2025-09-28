@@ -130,7 +130,7 @@ public sealed class World : ObjectBase
             }
         }
 
-        //after all entities are added
+        //after everything initialized entities are added
         InternalAddEntities();
 
 #if EDITOR
@@ -322,13 +322,20 @@ public sealed class World : ObjectBase
 
         foreach (var entity in entitiesToAdd)
         {
-            entity.Initialize();
-            entity.InitializeWithWorld(this);
-            AddInSpacePartitioning(entity);
-            Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
+            try
+            {
+                entity.Initialize();
+                entity.InitializeWithWorld(this);
+                AddInSpacePartitioning(entity);
+                Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
 #if EDITOR
-            EntityAdded?.Invoke(this, entity);
+                EntityAdded?.Invoke(this, entity);
 #endif
+            }
+            catch (Exception e)
+            {
+                Logs.WriteException(e);
+            }
         }
 
         _entities.AddRange(entitiesToAdd);

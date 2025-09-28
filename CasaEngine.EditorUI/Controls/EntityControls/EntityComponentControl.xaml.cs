@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Maths;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
-using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;
-using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -85,47 +81,6 @@ public partial class EntityComponentControl : UserControl
     {
         var coordinates = sender as Coordinates;
         Vector3ControlScale.Value = coordinates.Scale;
-    }
-
-    private void StaticMeshComponent_MeshSelection_OnClick(object sender, RoutedEventArgs e)
-    {
-        var selectStaticMeshWindow = new SelectStaticMeshWindow();
-        if (selectStaticMeshWindow.ShowDialog() == true
-            && sender is FrameworkElement { DataContext: StaticMeshComponent staticMeshComponent })
-        {
-            staticMeshComponent.Mesh = CreateGeometricPrimitive(selectStaticMeshWindow.SelectedType).CreateMesh();
-            staticMeshComponent.Mesh.Initialize(staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
-            staticMeshComponent.Mesh.Texture = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
-        }
-    }
-
-    private static GeometricPrimitive CreateGeometricPrimitive(Type type)
-    {
-        return (GeometricPrimitive)Activator.CreateInstance(type,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.CreateInstance | BindingFlags.OptionalParamBinding,
-            null, null, null, null);
-    }
-
-    public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)
-    {
-        if (owner is StaticMeshComponent staticMeshComponent
-            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Texture)
-        {
-            if (staticMeshComponent.Mesh != null)
-            {
-                var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
-                staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(assetId);
-
-                if (staticMeshComponent.Mesh.Texture?.Resource == null)
-                {
-                    staticMeshComponent.Mesh.Texture.Load(assetContentManager);
-                }
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     public bool ValidateTileMapAsset(object owner, Guid assetId, string assetFullName)

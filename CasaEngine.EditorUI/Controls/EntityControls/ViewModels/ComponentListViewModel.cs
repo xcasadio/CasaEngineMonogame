@@ -29,7 +29,7 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
     {
         if (actor.RootComponent != null)
         {
-            var componentViewModel = new ComponentViewModel(actor.RootComponent);
+            var componentViewModel = ComponentViewModelFactory.Create(actor.RootComponent);
             componentViewModel.Parent = RootComponentViewModel;
             RootComponentViewModel.Children.Add(componentViewModel);
 
@@ -41,7 +41,7 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
 
         foreach (var component in actor.Components)
         {
-            var componentViewModel = new ComponentViewModel(component);
+            var componentViewModel = ComponentViewModelFactory.Create(component);
             componentViewModel.Parent = RootComponentViewModel;
             RootComponentViewModel.Children.Add(componentViewModel);
 
@@ -57,7 +57,7 @@ public class ComponentListViewModel : NotifyPropertyChangeBase
 
     private void AddChild(ComponentViewModel parentComponentViewModel, SceneComponent componentChild)
     {
-        var childComponentViewModel = new ComponentViewModel(componentChild);
+        var childComponentViewModel = ComponentViewModelFactory.Create(componentChild);
         childComponentViewModel.Parent = parentComponentViewModel;
         parentComponentViewModel.Children.Add(childComponentViewModel);
 

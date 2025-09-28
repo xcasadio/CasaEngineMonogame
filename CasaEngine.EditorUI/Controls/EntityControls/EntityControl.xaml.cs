@@ -189,7 +189,7 @@ public partial class EntityControl : UserControl
         {
             var componentType = ElementRegister.EntityComponentNames[inputComboBox.SelectedItem];
             var component = (EntityComponent)Activator.CreateInstance(componentType);
-            var componentViewModel = new ComponentViewModel(component);
+            var componentViewModel = ComponentViewModelFactory.Create(component);
 
             if (treeViewComponents.SelectedItem is ComponentViewModel selectedComponentViewModel)
             {
