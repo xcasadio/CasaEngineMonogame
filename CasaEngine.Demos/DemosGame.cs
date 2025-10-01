@@ -26,9 +26,10 @@ public class DemosGame : CasaEngineGame
         Logs.Verbosity = LogVerbosity.Trace;
 
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
-        GameSettings.ProjectSettings.IsMouseVisible = true;
-        GameSettings.ProjectSettings.WindowTitle = "CasaEngine demos";
-        GameSettings.ProjectSettings.AllowUserResizing = true;
+        var projectSettings = GameSettings.ProjectSettings;
+        projectSettings.IsMouseVisible = true;
+        projectSettings.WindowTitle = "CasaEngine demos";
+        projectSettings.AllowUserResizing = true;
 
         new AxisComponent(this);
 
@@ -54,14 +55,15 @@ public class DemosGame : CasaEngineGame
 
     private void ChangeDemo(int index)
     {
-        GameManager.CurrentWorld.ClearEntities();
-        GameManager.CurrentWorld.ClearScreens();
+        var currentWorld = GameManager.CurrentWorld;
+        currentWorld.ClearEntities();
+        currentWorld.ClearScreens();
         _currentDemo?.Clean();
 
         _currentDemo = _demos[index];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
-        GameManager.CurrentWorld.LoadContent(this);
+        currentWorld.LoadContent(this);
         _currentDemo.InitializeCamera(camera);
         GameManager.ActiveCamera = camera;
 

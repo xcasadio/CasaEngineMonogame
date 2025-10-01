@@ -52,7 +52,6 @@ namespace SandBoxGame
         protected override void LoadContent()
         {
             var world = new World();
-            world.LoadContent(this);
             GameManager.SetWorldToLoad(world);
 
             //============ Camera ===============
@@ -67,8 +66,8 @@ namespace SandBoxGame
             //============ Box ===============
             _boxEntity = new Entity(); // { Name = "box" };
             var meshComponent = new StaticMeshComponent();
+            _boxEntity.RootComponent = meshComponent;
             _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
-            _boxEntity.AddComponent(meshComponent);
             meshComponent.Mesh = new BoxPrimitive().CreateMesh();
             meshComponent.Mesh.Initialize(AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
@@ -115,6 +114,7 @@ namespace SandBoxGame
             */
             base.LoadContent();
 
+            world.LoadContent(this);
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
             GameManager.ActiveCamera = camera;
         }

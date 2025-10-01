@@ -27,9 +27,9 @@ public class SkinnedMeshComponentViewModel : SceneComponentViewModel
         }
     }
 
-    public SkinnedMeshComponentViewModel(SkinnedMeshComponent skinnedMeshComponent) : base(skinnedMeshComponent)
+    public SkinnedMeshComponentViewModel(EntityComponent entityComponent) : base(entityComponent)
     {
-        _skinnedMeshComponent = skinnedMeshComponent;
+        _skinnedMeshComponent = (SkinnedMeshComponent)entityComponent;
         UpdateAnimations();
     }
 

@@ -16,19 +16,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="400">
     <Control.Resources>
-
-        <ObjectDataProvider x:Key="PhysicsTypeEnumValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="physics:PhysicsType" />
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-
-        <ObjectDataProvider x:Key="SpriteEffectsEnumValues" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="graphics:SpriteEffects" />
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-
         <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
                             ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}" />
 
@@ -36,116 +23,7 @@
 
         <DataTemplate x:Key="physicsDefinitionComponentTemplate" DataType="{x:Type physics:PhysicsDefinition}">
             <Expander Header="Physics Definition" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Type" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <ComboBox x:Name="comboBoxType" Grid.Row="0" Grid.Column="1" SelectedItem="{Binding Path=PhysicsType}" 
-                                  ItemsSource="{Binding Source={StaticResource PhysicsTypeEnumValues}}"/>
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mass" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Value="{Binding Mass}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Additional Angular Damping Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding AdditionalAngularDampingFactor}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Additional Angular Damping Threshold Sqr" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="3" Grid.Column="1" Value="{Binding AdditionalAngularDampingThresholdSqr}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Additional Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="4" Grid.Column="1" Value="{Binding AdditionalDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Additional Damping Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="5" Grid.Column="1" Value="{Binding AdditionalDampingFactor}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Additional LinearDamping Threshold Sqr" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="6" Grid.Column="1" Value="{Binding AdditionalLinearDampingThresholdSqr}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Angular Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding AngularDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Angular Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:Vector3Editor Grid.Row="8" Grid.Column="1" Value="{Binding AngularFactor}"/>
-
-                    <TextBlock Grid.Row="9" Grid.Column="0" Text="Angular Sleeping Threshold" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="9" Grid.Column="1" Value="{Binding AngularSleepingThreshold}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="10" Grid.Column="0" Text="Friction" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="10" Grid.Column="1" Value="{Binding Friction}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="11" Grid.Column="0" Text="Linear Damping" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="11" Grid.Column="1" Value="{Binding LinearDamping}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="12" Grid.Column="0" Text="Linear Factor" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:Vector3Editor Grid.Row="12" Grid.Column="1" Value="{Binding LinearFactor}"/>
-
-                    <TextBlock Grid.Row="13" Grid.Column="0" Text="Linear Sleeping Threshold" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="13" Grid.Column="1" Value="{Binding LinearSleepingThreshold}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="14" Grid.Column="0" Text="Local Inertia" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <wpfControls:Vector3Editor Grid.Row="14" Grid.Column="1" Value="{Binding LocalInertia}"/>
-
-                    <TextBlock Grid.Row="15" Grid.Column="0" Text="Restitution" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="15" Grid.Column="1" Value="{Binding Restitution}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="16" Grid.Column="0" Text="Rolling Friction" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <xctk:DecimalUpDown Grid.Row="16" Grid.Column="1" Value="{Binding RollingFriction}" Increment="0.1" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="17" Grid.Column="0" Text="Apply Gravity" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <CheckBox Grid.Row="17" Grid.Column="1" IsChecked="{Binding ApplyGravity}" HorizontalAlignment="Stretch"/>
-
-                    <TextBlock Grid.Row="18" Grid.Column="0" Text="Debug Color" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <ContentControl Grid.Row="18" Grid.Column="1" DataContext="{Binding DebugColor}">
-                        <ContentControl.Style>
-                            <Style TargetType="{x:Type ContentControl}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding DebugColor}" Value="{x:Null}">
-                                        <Setter Property="ContentTemplate" >
-                                            <Setter.Value>
-                                                <DataTemplate>
-                                                    <Button Content="Create"/>
-                                                </DataTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding DebugColor}" Value="{x:Type xna:Color}">
-                                        <Setter Property="ContentTemplate" >
-                                            <Setter.Value>
-                                                <DataTemplate>
-                                                    <wpfControls:ColorEditor Value="{Binding DebugColor}"/>
-                                                </DataTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ContentControl.Style>
-                    </ContentControl>
-                </Grid>
+                <entityControls:PhysicsDefinitionComponentControl/>
             </Expander>
         </DataTemplate>
 
@@ -235,56 +113,13 @@
 
         <DataTemplate x:Key="animatedSpriteComponentTemplate" DataType="{x:Type components:AnimatedSpriteComponent}">
             <Expander Header="Animated sprite" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Color" />
-                    <wpfControls:ColorEditor Grid.Row="0" Grid.Column="1" Value="{Binding Color}"/>
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Sprite Effect" />
-                    <ComboBox Grid.Row="1" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
-                          ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Animations" />
-                    <Grid Grid.Row="2" Grid.Column="1">
-                        <entityControls:Animation2dListSelectedControl DataContext="{Binding}"/>
-                    </Grid>
-
-                </Grid>
+                <entityControls:AnimatedSpriteComponentControl/>
             </Expander>
         </DataTemplate>
 
         <DataTemplate x:Key="staticSpriteComponentTemplate" DataType="{x:Type components:StaticSpriteComponent}">
             <Expander Header="Sprite" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Sprite" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SpriteData.Name}" />
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Color" />
-                    <wpfControls:ColorEditor Grid.Row="1" Grid.Column="1" Value="{Binding Color}"/>
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Sprite Effect" />
-                    <ComboBox Grid.Row="2" Grid.Column="1"  x:Name="comboBoxType" SelectedItem="{Binding Path=SpriteEffect}" 
-                          ItemsSource="{Binding Source={StaticResource SpriteEffectsEnumValues}}"/>
-                </Grid>
+                <entityControls:StaticSpriteComponentControl />
             </Expander>
         </DataTemplate>
 
@@ -302,51 +137,7 @@
 
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
             <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Position" Margin="0,0,5,0"/>
-                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1"  Value="{Binding Position, Mode=OneWay}" />
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Distance" Margin="0,0,5,0"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Distance}" />
-
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Field Of View" Margin="0,0,5,0"/>
-                    <xctk:DecimalUpDown Grid.Row="2" Grid.Column="1" Value="{Binding FieldOfView, Mode=TwoWay}" Increment="0.05"/>
-
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Viewport X" Margin="0,0,5,0"/>
-                    <xctk:IntegerUpDown Grid.Row="3" Grid.Column="1" Value="{Binding Viewport.X, Mode=TwoWay}" Increment="10"/>
-
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Viewport Y" Margin="0,0,5,0"/>
-                    <xctk:IntegerUpDown Grid.Row="4" Grid.Column="1" Value="{Binding Viewport.Y, Mode=TwoWay}" Increment="10"/>
-
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="Viewport Width" Margin="0,0,5,0"/>
-                    <xctk:IntegerUpDown Grid.Row="5" Grid.Column="1" Value="{Binding Viewport.Width, Mode=TwoWay}" Increment="10"/>
-
-                    <TextBlock Grid.Row="6" Grid.Column="0" Text="Viewport Height" Margin="0,0,5,0"/>
-                    <xctk:IntegerUpDown Grid.Row="6" Grid.Column="1" Value="{Binding Viewport.Height, Mode=TwoWay}" Increment="10"/>
-
-                    <TextBlock Grid.Row="7" Grid.Column="0" Text="Viewport Min Depth" Margin="0,0,5,0"/>
-                    <xctk:DecimalUpDown Grid.Row="7" Grid.Column="1" Value="{Binding Viewport.MinDepth, Mode=TwoWay}" Increment="10"/>
-
-                    <TextBlock Grid.Row="8" Grid.Column="0" Text="Viewport Max Depth" Margin="0,0,5,0"/>
-                    <xctk:DecimalUpDown Grid.Row="8" Grid.Column="1" Value="{Binding Viewport.MaxDepth, Mode=TwoWay}" Increment="10"/>
-
-                </Grid>
+                <entityControls:ArcBallCameraComponentControl/>
             </Expander>
         </DataTemplate>
 
@@ -357,10 +148,9 @@
             </Grid>
         </DataTemplate>
 
-        <DataTemplate x:Key="physics2dComponentTemplate" DataType="{x:Type components:Physics2dComponent}">
+        <DataTemplate x:Key="box2dCollisionComponentTemplate" DataType="{x:Type components:Box2dCollisionComponent}">
             <Grid>
-                <ContentControl Content="{Binding PhysicsDefinition}"
-                                ContentTemplate="{StaticResource physicsDefinitionComponentTemplate}"/>
+                <entityControls:Box2dCollisionComponentControl/>
             </Grid>
         </DataTemplate>
 
@@ -414,7 +204,7 @@
                         MeshComponenTemplate="{StaticResource meshComponentTemplate}"
                         SkinnedMeshComponenTemplate="{StaticResource skinnedMeshComponentTemplate}"
                         PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
-                        Physics2dComponenTemplate="{StaticResource physics2dComponentTemplate}"
+                        Box2dCollisionComponentTemplate="{StaticResource box2dCollisionComponentTemplate}"
                         TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
                         StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
                         AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}" />

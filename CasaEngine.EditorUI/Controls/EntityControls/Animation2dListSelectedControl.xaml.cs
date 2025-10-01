@@ -21,7 +21,8 @@ public partial class Animation2dListSelectedControl : UserControl
     {
         if (DataContext != null)
         {
-            var animatedSpriteComponent = DataContext as AnimatedSpriteComponent;
+            var animatedSpriteComponentViewModel = (AnimatedSpriteComponentViewModel)DataContext;
+            var animatedSpriteComponent = (AnimatedSpriteComponent)animatedSpriteComponentViewModel.Component;
             _animation2dSelectedListModelView = new Animation2dSelectedListModelView(animatedSpriteComponent);
             animation2dList.ItemsSource = _animation2dSelectedListModelView.Animations;
         }

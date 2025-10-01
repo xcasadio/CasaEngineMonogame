@@ -8,8 +8,8 @@ namespace CasaEngine.Core.Shapes;
 
 public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
 {
-    public int Width { get; set; }
-    public int Height { get; set; }
+    public float Width { get; set; }
+    public float Height { get; set; }
 
     public override BoundingBox BoundingBox
     {
@@ -21,13 +21,13 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         }
     }
 
-    public ShapeRectangle(int width = 1, int height = 1) : base(Shape2dType.Rectangle)
+    public ShapeRectangle(float width = 1, float height = 1) : base(Shape2dType.Rectangle)
     {
         Width = width;
         Height = height;
     }
 
-    public ShapeRectangle(int x, int y, int w, int h)
+    public ShapeRectangle(float x, float y, float w, float h)
         : this(w, h)
     {
         Position = new Vector2(x, y);
@@ -56,8 +56,8 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
     public override void Load(JObject element)
     {
         base.Load(element);
-        Width = element["w"].GetInt32();
-        Height = element["h"].GetInt32();
+        Width = element["w"].GetSingle();
+        Height = element["h"].GetSingle();
     }
 
 #if EDITOR

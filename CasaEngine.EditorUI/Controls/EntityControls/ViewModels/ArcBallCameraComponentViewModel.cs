@@ -3,9 +3,10 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
-public class ArcBallCameraComponentViewModel : SceneComponentViewModel
+public class ArcBallCameraComponentViewModel : Camera3dComponentViewModel
 {
     private readonly ArcBallCameraComponent _arcBallCameraComponent;
+
     public ArcBallCameraComponentViewModel(EntityComponent entityComponent) : base(entityComponent)
     {
         _arcBallCameraComponent = (ArcBallCameraComponent)entityComponent;
