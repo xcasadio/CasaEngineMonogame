@@ -219,9 +219,9 @@ public partial class EntityControl : UserControl
         _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
     }
 
-    private void TreeView_KeyDown(object sender, KeyEventArgs e)
+    private void TreeView_KeyUp(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Delete && e.IsToggled)
+        if (e.Key == Key.Delete)
         {
             if (treeViewComponents.SelectedItem is ComponentViewModel componentViewModel)
             {

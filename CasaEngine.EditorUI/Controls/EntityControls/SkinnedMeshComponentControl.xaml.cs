@@ -10,33 +10,17 @@ namespace CasaEngine.EditorUI.Controls.EntityControls;
 
 public partial class SkinnedMeshComponentControl : UserControl
 {
-    public static readonly DependencyProperty SkinnedMeshComponentViewModelProperty = DependencyProperty.Register(nameof(SkinnedMeshComponentViewModel), typeof(SkinnedMeshComponentViewModel), typeof(SkinnedMeshComponentControl));
-
-    public SkinnedMeshComponentViewModel? SkinnedMeshComponentViewModel
-    {
-        get => (SkinnedMeshComponentViewModel)GetValue(SkinnedMeshComponentViewModelProperty);
-        set => SetValue(SkinnedMeshComponentViewModelProperty, value);
-    }
-
     public SkinnedMeshComponentControl()
     {
-        DataContextChanged += OnDataContextChanged;
         InitializeComponent();
-    }
-
-    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        if (DataContext is SkinnedMeshComponent skinnedMeshComponent)
-        {
-            SkinnedMeshComponentViewModel = new SkinnedMeshComponentViewModel(skinnedMeshComponent);
-        }
     }
 
     public bool ValidateSkinnedMeshAsset(object owner, Guid assetId, string assetFullName)
     {
-        if (owner is SkinnedMeshComponent skinnedMeshComponent
+        if (owner is SkinnedMeshComponentViewModel skinnedMeshComponentViewModel
             && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Model)
         {
+            var skinnedMeshComponent = skinnedMeshComponentViewModel.Component as SkinnedMeshComponent;
             var assetContentManager = skinnedMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
             skinnedMeshComponent.SkinnedMeshAssetId = assetId;
             skinnedMeshComponent.SkinnedMesh = assetContentManager.Load<SkinnedMesh>(assetId);

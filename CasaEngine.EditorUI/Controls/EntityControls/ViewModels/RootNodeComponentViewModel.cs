@@ -48,5 +48,10 @@ public class RootNodeComponentViewModel : ComponentViewModel
 
         componentViewModel.Parent = null;
         Children.Remove(componentViewModel);
+
+        if (Children.Count != 0 && Children[0].Component is SceneComponent sceneComponent)
+        {
+            Owner.RootComponent = sceneComponent;
+        }
     }
 }

@@ -195,10 +195,10 @@ public partial class ContentBrowserControl : UserControl
 
     private void OnDrop(object sender, DragEventArgs e)
     {
-        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        if (treeViewFolders.SelectedItem is FolderItem folderItem 
+            && e.Data.GetDataPresent(DataFormats.FileDrop))
         {
             var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
-            var folderItem = treeViewFolders.SelectedItem as FolderItem;
             var destinationFolderPath = folderItem.FullPath;
             var assetContentManager = _gameEditor.Game.AssetContentManager;
 

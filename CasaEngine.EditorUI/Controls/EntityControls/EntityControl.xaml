@@ -43,7 +43,7 @@
 
         <wpfControls:TreeViewEx Grid.Row="1" Grid.ColumnSpan="2" x:Name="treeViewComponents" 
                   ItemsSource="{Binding ComponentListViewModel.ComponentsViewModel}" MinHeight="25"
-                  SelectedItemChanged="OnComponentSelectedItemChanged" KeyDown="TreeView_KeyDown">
+                  SelectedItemChanged="OnComponentSelectedItemChanged" KeyUp="TreeView_KeyUp">
             <!--TreeView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="New Folder" Command="{StaticResource Commands.NewFolder}"/>

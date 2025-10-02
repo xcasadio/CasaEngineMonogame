@@ -246,9 +246,9 @@ public partial class EntitiesControl : UserControl
         }
     }
 
-    private void TreeView_KeyDown(object sender, KeyEventArgs e)
+    private void TreeView_KeyUp(object sender, KeyEventArgs e)
     {
-        if (e is { Key: Key.Delete, IsToggled: true })
+        if (e.Key == Key.Delete)
         {
             if (TreeViewEntities.SelectedItem is EntityViewModel entityViewModel)
             {

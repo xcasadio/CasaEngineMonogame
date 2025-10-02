@@ -25,7 +25,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent
             StaticMesh = staticMesh,
             Material = material,
             World = world,
-            WorldInvertTranspose = world,
+            WorldInvertTranspose = worldInvertTranspose,
             WorldViewProj = worldViewProj,
             CameraPosition = cameraPosition
         });
