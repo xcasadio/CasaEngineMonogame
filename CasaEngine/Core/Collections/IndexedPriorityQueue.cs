@@ -15,18 +15,18 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <summary>
     /// The elements indexed
     /// </summary>
-    protected List<T> indexedElements = new();
+    protected List<T> _indexedElements = new();
 
     /// <summary>
     /// The comparer for the indexes
     /// </summary>
-    protected IComparer<T> indexComparer;
+    protected IComparer<T> IndexComparer;
 
     /// <summary>
     /// This list gives us the index where an element from the indexedPriority list is in the heapElements list. It allows
     /// to move through the priority queue in the 2 ways (from index to indexed element and viceversa)
     /// </summary>
-    protected List<int> reversedIndexes;
+    protected List<int> ReversedIndexes;
 
 
 
@@ -41,7 +41,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexComparer">The specific IComparer used to compare the indexed elements</param>
     public IndexedPriorityQueue(IComparer<T> indexComparer)
     {
-        this.indexComparer = indexComparer;
+        this.IndexComparer = indexComparer;
     }
 
     /// <summary>
@@ -50,16 +50,16 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexedElements">The list where we are going to index the priority queue</param>
     public IndexedPriorityQueue(List<T> indexedElements) : this(Comparer<T>.Default)
     {
-        this.indexedElements = indexedElements;
+        this._indexedElements = indexedElements;
 
         //Create and initialize the reversed indexes list
-        reversedIndexes = new List<int>(indexedElements.Count);
+        ReversedIndexes = new List<int>(indexedElements.Count);
         for (int i = 0; i < indexedElements.Count; i++)
         {
-            reversedIndexes.Add(-1);
+            ReversedIndexes.Add(-1);
         }
 
-        heapElements.Capacity = indexedElements.Count;
+        HeapElements.Capacity = indexedElements.Count;
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexedElements">The list where we are going to index the priority queue</param>
     public IndexedPriorityQueue(IComparer<T> indexComparer, List<T> indexedElements) : this(indexedElements)
     {
-        this.indexComparer = indexComparer;
+        this.IndexComparer = indexComparer;
     }
 
 
@@ -79,15 +79,15 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// </summary>
     public List<T> IndexedElements
     {
-        get => indexedElements;
+        get => _indexedElements;
         set
         {
-            indexedElements = value;
-            reversedIndexes = new List<int>(indexedElements.Count);
+            _indexedElements = value;
+            ReversedIndexes = new List<int>(_indexedElements.Count);
 
-            for (int i = 0; i < indexedElements.Count; i++)
+            for (int i = 0; i < _indexedElements.Count; i++)
             {
-                reversedIndexes.Add(-1);
+                ReversedIndexes.Add(-1);
             }
         }
     }
@@ -103,9 +103,9 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     {
         int p, p2;
 
-        p = heapElements.Count;
-        heapElements.Add(element);
-        reversedIndexes[element] = p;
+        p = HeapElements.Count;
+        HeapElements.Add(element);
+        ReversedIndexes[element] = p;
 
         //Heapify up
         do
@@ -142,17 +142,17 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
         int p, p1, p2, pn;
 
         //Get the smallest element
-        result = heapElements[0];
-        reversedIndexes[result] = -1;
+        result = HeapElements[0];
+        ReversedIndexes[result] = -1;
 
         //Heapify down
         p = 0;
-        heapElements[0] = heapElements[heapElements.Count - 1];
-        heapElements.RemoveAt(heapElements.Count - 1);
+        HeapElements[0] = HeapElements[HeapElements.Count - 1];
+        HeapElements.RemoveAt(HeapElements.Count - 1);
 
-        if (heapElements.Count != 0)
+        if (HeapElements.Count != 0)
         {
-            reversedIndexes[heapElements[0]] = 0;
+            ReversedIndexes[HeapElements[0]] = 0;
         }
 
         do
@@ -161,12 +161,12 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
             p1 = 2 * p + 1;
             p2 = 2 * p + 2;
 
-            if (heapElements.Count > p1 && Compare(p, p1) > 0)
+            if (HeapElements.Count > p1 && Compare(p, p1) > 0)
             {
                 p = p1;
             }
 
-            if (heapElements.Count > p2 && Compare(p, p2) > 0)
+            if (HeapElements.Count > p2 && Compare(p, p2) > 0)
             {
                 p = p2;
             }
@@ -193,9 +193,9 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     {
         int h;
 
-        h = reversedIndexes[heapElements[i]];
-        reversedIndexes[heapElements[i]] = reversedIndexes[heapElements[j]];
-        reversedIndexes[heapElements[j]] = h;
+        h = ReversedIndexes[HeapElements[i]];
+        ReversedIndexes[HeapElements[i]] = ReversedIndexes[HeapElements[j]];
+        ReversedIndexes[HeapElements[j]] = h;
 
         base.Swap(i, j);
     }
@@ -207,7 +207,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="j">The second index compare</param>
     protected override int Compare(int i, int j)
     {
-        return indexComparer.Compare(indexedElements[heapElements[i]], indexedElements[heapElements[j]]);
+        return IndexComparer.Compare(_indexedElements[HeapElements[i]], _indexedElements[HeapElements[j]]);
     }
 
 
@@ -219,7 +219,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="i">The element we have updated</param>
     public void ChangePriority(int i)
     {
-        Update(reversedIndexes[i]);
+        Update(ReversedIndexes[i]);
     }
 
 }

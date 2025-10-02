@@ -55,29 +55,29 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     [Serializable()]
     private class Node
     {
-        private T value;
+        private T _value;
 
-        private Node previous = null;
+        private Node _previous = null;
 
-        private Node next = null;
+        private Node _next = null;
 
         public Node(T value)
         {
-            this.value = value;
+            this._value = value;
         }
 
-        public T Value => value;
+        public T Value => _value;
 
         public Node Previous
         {
-            get => previous;
-            set => previous = value;
+            get => _previous;
+            set => _previous = value;
         }
 
         public Node Next
         {
-            get => next;
-            set => next = value;
+            get => _next;
+            set => _next = value;
         }
     }
 
@@ -86,43 +86,43 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     [Serializable()]
     private class Enumerator : IEnumerator<T>
     {
-        private Deque<T> owner;
+        private Deque<T> _owner;
 
-        private Node currentNode;
+        private Node _currentNode;
 
-        private T current = default;
+        private T _current = default;
 
-        private bool moveResult = false;
+        private bool _moveResult = false;
 
-        private long version;
+        private long _version;
 
         // A value indicating whether the enumerator has been disposed.
-        private bool disposed = false;
+        private bool _disposed = false;
 
         public Enumerator(Deque<T> owner)
         {
-            this.owner = owner;
-            currentNode = owner.front;
-            version = owner.version;
+            this._owner = owner;
+            _currentNode = owner._front;
+            _version = owner._version;
         }
 
 
         public void Reset()
         {
 
-            if (disposed)
+            if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
-            else if (version != owner.version)
+            else if (_version != _owner._version)
             {
                 throw new InvalidOperationException(
                     "The Deque was modified after the enumerator was created.");
             }
 
 
-            currentNode = owner.front;
-            moveResult = false;
+            _currentNode = _owner._front;
+            _moveResult = false;
         }
 
         public object Current
@@ -130,11 +130,11 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
             get
             {
 
-                if (disposed)
+                if (_disposed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }
-                else if (!moveResult)
+                else if (!_moveResult)
                 {
                     throw new InvalidOperationException(
                         "The enumerator is positioned before the first " +
@@ -142,37 +142,37 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
                 }
 
 
-                return current;
+                return _current;
             }
         }
 
         public bool MoveNext()
         {
 
-            if (disposed)
+            if (_disposed)
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
-            else if (version != owner.version)
+            else if (_version != _owner._version)
             {
                 throw new InvalidOperationException(
                     "The Deque was modified after the enumerator was created.");
             }
 
 
-            if (currentNode != null)
+            if (_currentNode != null)
             {
-                current = currentNode.Value;
-                currentNode = currentNode.Next;
+                _current = _currentNode.Value;
+                _currentNode = _currentNode.Next;
 
-                moveResult = true;
+                _moveResult = true;
             }
             else
             {
-                moveResult = false;
+                _moveResult = false;
             }
 
-            return moveResult;
+            return _moveResult;
         }
 
 
@@ -182,11 +182,11 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
             get
             {
 
-                if (disposed)
+                if (_disposed)
                 {
                     throw new ObjectDisposedException(GetType().Name);
                 }
-                else if (!moveResult)
+                else if (!_moveResult)
                 {
                     throw new InvalidOperationException(
                         "The enumerator is positioned before the first " +
@@ -194,7 +194,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
                 }
 
 
-                return current;
+                return _current;
             }
         }
 
@@ -202,7 +202,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
         public void Dispose()
         {
-            disposed = true;
+            _disposed = true;
         }
 
     }
@@ -211,16 +211,16 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
 
     // The node at the front of the deque.
-    private Node front = null;
+    private Node _front = null;
 
     // The node at the back of the deque.
-    private Node back = null;
+    private Node _back = null;
 
     // The number of elements in the deque.
-    private int count = 0;
+    private int _count = 0;
 
     // The version of the deque.
-    private long version = 0;
+    private long _version = 0;
 
 
 
@@ -260,11 +260,11 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     /// </summary>
     public virtual void Clear()
     {
-        count = 0;
+        _count = 0;
 
-        front = back = null;
+        _front = _back = null;
 
-        version++;
+        _version++;
     }
 
     /// <summary>
@@ -303,29 +303,29 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
         // Link the new node to the front node. The current front node at 
         // the front of the deque is now the second node in the deque.
-        newNode.Next = front;
+        newNode.Next = _front;
 
         // If the deque isn't empty.
         if (Count > 0)
         {
             // Link the current front to the new node.
-            front.Previous = newNode;
+            _front.Previous = newNode;
         }
 
         // Make the new node the front of the deque.
-        front = newNode;
+        _front = newNode;
 
         // Keep track of the number of elements in the deque.
-        count++;
+        _count++;
 
         // If this is the first element in the deque.
         if (Count == 1)
         {
             // The front and back nodes are the same.
-            back = front;
+            _back = _front;
         }
 
-        version++;
+        _version++;
     }
 
     /// <summary>
@@ -342,29 +342,29 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
         // Link the new node to the back node. The current back node at 
         // the back of the deque is now the second to the last node in the
         // deque.
-        newNode.Previous = back;
+        newNode.Previous = _back;
 
         // If the deque is not empty.
         if (Count > 0)
         {
             // Link the current back node to the new node.
-            back.Next = newNode;
+            _back.Next = newNode;
         }
 
         // Make the new node the back of the deque.
-        back = newNode;
+        _back = newNode;
 
         // Keep track of the number of elements in the deque.
-        count++;
+        _count++;
 
         // If this is the first element in the deque.
         if (Count == 1)
         {
             // The front and back nodes are the same.
-            front = back;
+            _front = _back;
         }
 
-        version++;
+        _version++;
     }
 
     /// <summary>
@@ -386,28 +386,28 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
 
         // Get the object at the front of the deque.
-        T item = front.Value;
+        T item = _front.Value;
 
         // Move the front back one node.
-        front = front.Next;
+        _front = _front.Next;
 
         // Keep track of the number of nodes in the deque.
-        count--;
+        _count--;
 
         // If the deque is not empty.
         if (Count > 0)
         {
             // Tie off the previous link in the front node.
-            front.Previous = null;
+            _front.Previous = null;
         }
         // Else the deque is empty.
         else
         {
             // Indicate that there is no back node.
-            back = null;
+            _back = null;
         }
 
-        version++;
+        _version++;
 
         return item;
     }
@@ -431,28 +431,28 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
 
         // Get the object at the back of the deque.
-        T item = back.Value;
+        T item = _back.Value;
 
         // Move back node forward one node.
-        back = back.Previous;
+        _back = _back.Previous;
 
         // Keep track of the number of nodes in the deque.
-        count--;
+        _count--;
 
         // If the deque is not empty.
         if (Count > 0)
         {
             // Tie off the next link in the back node.
-            back.Next = null;
+            _back.Next = null;
         }
         // Else the deque is empty.
         else
         {
             // Indicate that there is no front node.
-            front = null;
+            _front = null;
         }
 
-        version++;
+        _version++;
 
 
         return item;
@@ -476,7 +476,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
         }
 
 
-        return front.Value;
+        return _front.Value;
     }
 
     /// <summary>
@@ -497,7 +497,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
         }
 
 
-        return back.Value;
+        return _back.Value;
     }
 
     /// <summary>
@@ -532,7 +532,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     /// <summary>
     /// Gets the number of elements contained in the Deque.
     /// </summary>
-    public virtual int Count => count;
+    public virtual int Count => _count;
 
     /// <summary>
     /// Copies the Deque elements to an existing one-dimensional Array, 
@@ -613,7 +613,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
     {
         Deque<T> clone = new Deque<T>(this);
 
-        clone.version = version;
+        clone._version = _version;
 
         return clone;
     }

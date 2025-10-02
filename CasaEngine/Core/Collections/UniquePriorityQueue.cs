@@ -47,9 +47,9 @@ public class UniquePriorityQueue<T> : PriorityQueue<T>
     public override int Enqueue(T element)
     {
         //Lineal search of the element
-        for (int i = 0; i < heapElements.Count; i++)
+        for (int i = 0; i < HeapElements.Count; i++)
         {
-            if (comparer.Compare(heapElements[i], element) == 0)
+            if (Comparer.Compare(HeapElements[i], element) == 0)
             {
                 return -1;
             }

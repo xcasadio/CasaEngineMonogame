@@ -16,12 +16,12 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <summary>
     /// The elements in the heap
     /// </summary>
-    protected List<T> heapElements = new();
+    protected List<T> HeapElements = new();
 
     /// <summary>
     /// Used to compare elements when reordering the heap
     /// </summary>
-    protected IComparer<T> comparer;
+    protected IComparer<T> Comparer;
 
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the priority queue
@@ -34,7 +34,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="comparer">The specific IComparer used used to compare elements</param>
     public PriorityQueue(IComparer<T> comparer)
     {
-        this.comparer = comparer;
+        this.Comparer = comparer;
     }
 
     /// <summary>
@@ -50,8 +50,8 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="capacity">The initial capacity of the queue</param>
     public PriorityQueue(IComparer<T> comparer, int capacity)
     {
-        this.comparer = comparer;
-        heapElements.Capacity = capacity;
+        this.Comparer = comparer;
+        HeapElements.Capacity = capacity;
     }
 
     /// <summary>
@@ -63,8 +63,8 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     {
         int p, p2;
 
-        p = heapElements.Count;
-        heapElements.Add(element);
+        p = HeapElements.Count;
+        HeapElements.Add(element);
 
         //Heapify up
         do
@@ -100,18 +100,18 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         T result;
         int p, p1, p2, pn;
 
-        if (heapElements.Count == 0)
+        if (HeapElements.Count == 0)
         {
             return default;
         }
 
         //Get the smallest element
-        result = heapElements[0];
+        result = HeapElements[0];
 
         //Heapify down
         p = 0;
-        heapElements[0] = heapElements[heapElements.Count - 1];
-        heapElements.RemoveAt(heapElements.Count - 1);
+        HeapElements[0] = HeapElements[HeapElements.Count - 1];
+        HeapElements.RemoveAt(HeapElements.Count - 1);
 
         do
         {
@@ -119,12 +119,12 @@ public class PriorityQueue<T> : IPriorityQueue<T>
             p1 = 2 * p + 1;
             p2 = 2 * p + 2;
 
-            if (heapElements.Count > p1 && Compare(p, p1) > 0)
+            if (HeapElements.Count > p1 && Compare(p, p1) > 0)
             {
                 p = p1;
             }
 
-            if (heapElements.Count > p2 && Compare(p, p2) > 0)
+            if (HeapElements.Count > p2 && Compare(p, p2) > 0)
             {
                 p = p2;
             }
@@ -146,9 +146,9 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>The smallest object</returns>
     public T Peek()
     {
-        if (heapElements.Count > 0)
+        if (HeapElements.Count > 0)
         {
-            return heapElements[0];
+            return HeapElements[0];
         }
 
         return default;
@@ -163,9 +163,9 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     {
         T h;
 
-        h = heapElements[i];
-        heapElements[i] = heapElements[j];
-        heapElements[j] = h;
+        h = HeapElements[i];
+        HeapElements[i] = HeapElements[j];
+        HeapElements[j] = h;
     }
 
     /// <summary>
@@ -176,7 +176,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>The result of the compare method</returns>
     protected virtual int Compare(int i, int j)
     {
-        return comparer.Compare(heapElements[i], heapElements[j]);
+        return Comparer.Compare(HeapElements[i], HeapElements[j]);
     }
 
     /// <summary>
@@ -225,12 +225,12 @@ public class PriorityQueue<T> : IPriorityQueue<T>
             p1 = 2 * p + 1;
             p2 = 2 * p + 2;
 
-            if (heapElements.Count > p1 && Compare(p, p1) > 0)
+            if (HeapElements.Count > p1 && Compare(p, p1) > 0)
             {
                 p = p1;
             }
 
-            if (heapElements.Count > p2 && Compare(p, p2) > 0)
+            if (HeapElements.Count > p2 && Compare(p, p2) > 0)
             {
                 p = p2;
             }
@@ -250,7 +250,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>The enumerator used to iterate the priority queue</returns>
     public IEnumerator<T> GetEnumerator()
     {
-        return heapElements.GetEnumerator();
+        return HeapElements.GetEnumerator();
     }
 
     /// <summary>
@@ -265,7 +265,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <summary>
     /// Number of elements in the heap
     /// </summary>
-    public int Count => heapElements.Count;
+    public int Count => HeapElements.Count;
 
     /// <summary>
     /// Indicates if the collection is readonly. Always returns false
@@ -279,7 +279,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>True if the value was in the PQ, false otherwise</returns>
     public bool Contains(T value)
     {
-        return heapElements.Contains(value);
+        return HeapElements.Contains(value);
     }
 
     /// <summary>
@@ -287,7 +287,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// </summary>
     public void Clear()
     {
-        heapElements.Clear();
+        HeapElements.Clear();
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="arrayIndex">The index to start copying the elements</param>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        heapElements.CopyTo(array, arrayIndex);
+        HeapElements.CopyTo(array, arrayIndex);
     }
 
     /// <summary>
@@ -326,7 +326,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>The index of the element</returns>
     public int IndexOf(T item)
     {
-        return heapElements.IndexOf(item);
+        return HeapElements.IndexOf(item);
     }
 
     /// <summary>
@@ -355,11 +355,11 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns>The element on the index</returns>
     public T this[int index]
     {
-        get => heapElements[index];
+        get => HeapElements[index];
 
         set
         {
-            heapElements[index] = value;
+            HeapElements[index] = value;
             Update(index);
         }
     }
