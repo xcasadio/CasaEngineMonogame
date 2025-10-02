@@ -355,7 +355,9 @@ public class Entity : ObjectBase
 
         foreach (var componentNode in element["components"])
         {
-            _components.Add(ElementFactory.Load<EntityComponent>((JObject)componentNode));
+            var entityComponent = ElementFactory.Load<EntityComponent>((JObject)componentNode);
+            //_components.Add(entityComponent);
+            AddComponent(entityComponent);
         }
 
 #if EDITOR

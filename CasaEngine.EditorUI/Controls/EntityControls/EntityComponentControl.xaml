@@ -27,72 +27,6 @@
             </Expander>
         </DataTemplate>
 
-        <DataTemplate x:Key="BoxTemplate" DataType="{x:Type shapes:Box}">
-            <Expander Header="Box parameters" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Size" />
-                    <wpfControls:Vector3Editor Grid.Row="0" Grid.Column="1" Value="{Binding Size}" />
-                </Grid>
-            </Expander>
-        </DataTemplate>
-
-        <DataTemplate x:Key="SphereTemplate" DataType="{x:Type shapes:Sphere}">
-            <Expander Header="Sphere parameters" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
-                    <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
-                </Grid>
-            </Expander>
-        </DataTemplate>
-
-        <DataTemplate x:Key="CapsuleTemplate" DataType="{x:Type shapes:Capsule}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
-                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Length" />
-                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
-            </Grid>
-        </DataTemplate>
-
-        <DataTemplate x:Key="CylinderTemplate" DataType="{x:Type shapes:Cylinder}">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto" />
-                    <RowDefinition Height="auto" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Radius" />
-                <xctk:DecimalUpDown Grid.Row="0" Grid.Column="1" Increment="0.1" Value="{Binding Radius, Mode=TwoWay}" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Length" />
-                <xctk:DecimalUpDown Grid.Row="1" Grid.Column="1" Increment="0.1" Value="{Binding Length, Mode=TwoWay}" />
-            </Grid>
-        </DataTemplate>
-
         <DataTemplate x:Key="CompoundTemplate" DataType="{x:Type shapes:Shape3dCompound}">
             <ItemsControl ItemsSource="{Binding Shapes}" >
                 <ItemsControl.ItemTemplate>
@@ -138,6 +72,57 @@
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
             <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <entityControls:ArcBallCameraComponentControl/>
+            </Expander>
+        </DataTemplate>
+
+        <DataTemplate x:Key="camera3dIn2dAxisComponentTemplate" DataType="{x:Type components:Camera3dIn2dAxisComponent}" >
+            <Expander Header="Camera 3d in 2d axis" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:Camera3dIn2dAxisComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="cameraLookAtComponentTemplate" DataType="{x:Type components:CameraLookAtComponent}" >
+            <Expander Header="Camera look at" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:CameraLookAtComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="cameraTargeted2dComponentTemplate" DataType="{x:Type components:CameraTargeted2dComponent}" >
+            <Expander Header="Camera targeted 2d" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:CameraTargeted2dComponentComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="boxCollisionComponentTemplate" DataType="{x:Type components:BoxCollisionComponent}" >
+            <Expander Header="Box collision" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:BoxCollisionComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="capsuleCollisionComponentTemplate" DataType="{x:Type components:CapsuleCollisionComponent}" >
+            <Expander Header="Capsule collision" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:CapsuleCollisionComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="circleCollisionComponentTemplate" DataType="{x:Type components:CircleCollisionComponent}" >
+            <Expander Header="Camera 3d in 2d axis" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:CircleCollisionComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="cylinderCollisionComponentTemplate" DataType="{x:Type components:CylinderCollisionComponent}" >
+            <Expander Header="Cylinder collision" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:CylinderCollisionComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="sphereCollisionComponentTemplate" DataType="{x:Type components:SphereCollisionComponent}" >
+            <Expander Header="Sphere collision" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:SphereCollisionComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="playerStartComponentTemplate" DataType="{x:Type components:PlayerStartComponent}" >
+            <Expander Header="Player start" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:PlayerStartComponentControl/>
+            </Expander>
+        </DataTemplate>
+        <DataTemplate x:Key="screenWidgetComponentTemplate" DataType="{x:Type components:ScreenWidgetComponent}" >
+            <Expander Header="Screen widget" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:ScreenWidgetComponentControl/>
             </Expander>
         </DataTemplate>
 
@@ -200,11 +185,21 @@
                         HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                 <ContentControl.ContentTemplateSelector>
                     <entityControls:EntityComponentTemplateSelector
-                        ArcBallCameraComponenTemplate="{StaticResource arcBallCameraComponentTemplate}"
-                        MeshComponenTemplate="{StaticResource meshComponentTemplate}"
-                        SkinnedMeshComponenTemplate="{StaticResource skinnedMeshComponentTemplate}"
-                        PhysicsComponenTemplate="{StaticResource physicsComponentTemplate}"
+                        ArcBallCameraComponentTemplate="{StaticResource arcBallCameraComponentTemplate}"
+                        Camera3dIn2dAxisComponentTemplate="{StaticResource camera3dIn2dAxisComponentTemplate}"
+                        CameraLookAtComponentTemplate="{StaticResource cameraLookAtComponentTemplate}"
+                        CameraTargeted2dComponentTemplate="{StaticResource cameraTargeted2dComponentTemplate}"
+                        MeshComponentTemplate="{StaticResource meshComponentTemplate}"
+                        SkinnedMeshComponentTemplate="{StaticResource skinnedMeshComponentTemplate}"
+                        PhysicsComponentTemplate="{StaticResource physicsComponentTemplate}"
                         Box2dCollisionComponentTemplate="{StaticResource box2dCollisionComponentTemplate}"
+                        BoxCollisionComponentTemplate="{StaticResource boxCollisionComponentTemplate}"
+                        CapsuleCollisionComponentTemplate="{StaticResource capsuleCollisionComponentTemplate}"
+                        CircleCollisionComponentTemplate="{StaticResource circleCollisionComponentTemplate}"
+                        CylinderCollisionComponentTemplate="{StaticResource cylinderCollisionComponentTemplate}"
+                        SphereCollisionComponentTemplate="{StaticResource sphereCollisionComponentTemplate}"
+                        PlayerStartComponentTemplate="{StaticResource playerStartComponentTemplate}"
+                        ScreenWidgetComponentTemplate="{StaticResource screenWidgetComponentTemplate}"
                         TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
                         StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
                         AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}" />

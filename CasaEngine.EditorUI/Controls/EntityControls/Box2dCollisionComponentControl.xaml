@@ -19,7 +19,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0">Rectangle</Label>
+            <TextBlock Grid.Column="0" Text="Rectangle"/>
             <wpfControls:RectangleEditor Grid.Column="1" Value="{Binding Rectangle}"/>
         </Grid>
         <local:PhysicsDefinitionComponentControl Grid.Row="1"/>
