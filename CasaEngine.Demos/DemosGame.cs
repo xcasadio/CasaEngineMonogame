@@ -68,7 +68,6 @@ public class DemosGame : CasaEngineGame
         GameManager.ActiveCamera = camera;
 
         Window.Title = _currentDemo.Title;
-        //GameManager.CurrentWorld.Initialize(this);
     }
 
     protected override void Update(GameTime gameTime)

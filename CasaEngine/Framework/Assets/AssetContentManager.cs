@@ -249,9 +249,8 @@ public class AssetContentManager
 
         public void Rename(AssetInfo assetInfo, string oldName)
         {
-            if (_assetsByName.ContainsKey(oldName))
+            if (_assetsByName.Remove(oldName))
             {
-                _assetsByName.Remove(oldName);
                 _assetsByName[assetInfo.Name] = assetInfo;
             }
         }

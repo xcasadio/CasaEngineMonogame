@@ -6,6 +6,7 @@ using CasaEngine.Framework.Graphics;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.Framework.Assets.Textures;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -18,40 +19,43 @@ public partial class StaticMeshComponentControl : UserControl
 
     public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)
     {
-        if (owner is StaticMeshComponent StaticMeshComponent
+        if (owner is StaticMeshComponentViewModel staticMeshComponentViewModel
             && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Model)
         {
-            var assetContentManager = StaticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
-            StaticMeshComponent.AssetId = assetId;
-            StaticMeshComponent.Mesh = assetContentManager.Load<StaticMesh>(assetId);
-            StaticMeshComponent.Mesh.Initialize(assetContentManager);
+            var staticMeshComponent = (StaticMeshComponent)staticMeshComponentViewModel.Component;
+            var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
+            staticMeshComponent.AssetId = assetId;
+            staticMeshComponent.Mesh = assetContentManager.Load<StaticMesh>(assetId);
+            staticMeshComponent.Mesh.Initialize(assetContentManager);
             return true;
         }
 
         return false;
     }
 
-    //public bool ValidateStaticMeshAsset(object owner, Guid assetId, string assetFullName)
-    //{
-    //    if (owner is StaticMeshComponent staticMeshComponent
-    //        && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Texture)
-    //    {
-    //        if (staticMeshComponent.Mesh != null)
-    //        {
-    //            var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
-    //            staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(assetId);
-    //
-    //            if (staticMeshComponent.Mesh.Texture?.Resource == null)
-    //            {
-    //                staticMeshComponent.Mesh.Texture.Load(assetContentManager);
-    //            }
-    //        }
-    //
-    //        return true;
-    //    }
-    //
-    //    return false;
-    //}
+    public bool ValidateTextureAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is StaticMeshComponentViewModel staticMeshComponentViewModel
+            && System.IO.Path.GetExtension(assetFullName) == Constants.FileNameExtensions.Texture)
+        {
+            var staticMeshComponent = (StaticMeshComponent)staticMeshComponentViewModel.Component;
+
+            if (staticMeshComponent.Mesh != null)
+            {
+                var assetContentManager = staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager;
+                staticMeshComponent.Mesh.Texture = assetContentManager.Load<Texture>(assetId);
+    
+                if (staticMeshComponent.Mesh.Texture?.Resource == null)
+                {
+                    staticMeshComponent.Mesh.Texture.Load(assetContentManager);
+                }
+            }
+    
+            return true;
+        }
+    
+        return false;
+    }
 
     private void StaticMeshComponent_MeshSelection_OnClick(object sender, RoutedEventArgs e)
     {

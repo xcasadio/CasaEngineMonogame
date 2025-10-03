@@ -89,25 +89,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         }
     }
 
-    public Matrix WorldInvertTransposeMatrix
-    {
-        get
-        {
-            var result = Coordinates.LocalMatrixWithScale;
-
-            if (Parent != null)
-            {
-                result *= Parent.WorldMatrixWithScale;
-            }
-
-            if (Owner.Parent?.RootComponent != null)
-            {
-                result *= Owner.Parent.RootComponent.WorldMatrixWithScale;
-            }
-
-            return result;
-        }
-    }
+    public Matrix WorldInvertTransposeMatrix => WorldMatrixWithScale.Invert().Transpose();
 
     public Vector3 LocalPosition
     {

@@ -9,10 +9,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Stretch">
@@ -22,8 +23,14 @@
             <Button Content="Select Mesh" Click="StaticMeshComponent_MeshSelection_OnClick"/>
         </StackPanel>
 
-        <common:AssetSelectorControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
-                                     AssetId="{Binding TextureAssetId, Mode=TwoWay}"
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Mesh" />
+        <common:AssetSelectorControl Grid.Row="1" Grid.Column="1"
+                                     AssetId="{Binding MeshAssetId, Mode=TwoWay}"
                                      ValidateAsset="ValidateStaticMeshAsset"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Texture" />
+        <common:AssetSelectorControl Grid.Row="2" Grid.Column="1"
+                                     AssetId="{Binding TextureAssetId, Mode=TwoWay}"
+                                     ValidateAsset="ValidateTextureAsset"/>
     </Grid>
 </UserControl>
