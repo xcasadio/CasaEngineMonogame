@@ -195,7 +195,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         //default font
         FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
 
-        DebugSystem.Initialize(this);
+        //DebugSystem.Initialize(this);
 
         base.Initialize();
     }
@@ -245,8 +245,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     protected override void Update(GameTime gameTime)
     {
 #if !FINAL
-        DebugSystem.Instance.TimeRuler.StartFrame();
-        DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
+        //DebugSystem.Instance.TimeRuler.StartFrame();
+        //DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
 #endif
 
         GameManager.UpdateWorld(gameTime);
@@ -267,7 +267,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 #endif
 
 #if !FINAL
-        DebugSystem.Instance.TimeRuler.EndMark("Update");
+        //DebugSystem.Instance.TimeRuler.EndMark("Update");
 #endif
 
 #if EDITOR
@@ -284,33 +284,40 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
     protected override void Draw(GameTime gameTime)
     {
+        try
+        {
 #if !FINAL
-        DebugSystem.Instance.TimeRuler.StartFrame();
-        DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
+            //DebugSystem.Instance.TimeRuler.StartFrame();
+            //DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-        GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.Clear(Color.Black);
 
-        GameManager.DrawWorld(gameTime);
+            GameManager.DrawWorld(gameTime);
 
 #if EDITOR
-        var sortedGameComponents = new List<IDrawable>(Components.Count);
-        sortedGameComponents.AddRange(Components
-            .Where(x => x is IDrawable { Visible: true })
-            .Cast<IDrawable>()
-            .OrderBy(x => x.DrawOrder));
+            var sortedGameComponents = new List<IDrawable>(Components.Count);
+            sortedGameComponents.AddRange(Components
+                .Where(x => x is IDrawable { Visible: true })
+                .Cast<IDrawable>()
+                .OrderBy(x => x.DrawOrder));
 
-        foreach (var component in sortedGameComponents)
-        {
-            component.Draw(gameTime);
-        }
+            foreach (var component in sortedGameComponents)
+            {
+                component.Draw(gameTime);
+            }
 #else
         base.Draw(gameTime);
 #endif
 
 #if !FINAL
-        DebugSystem.Instance.TimeRuler.EndMark("Draw");
+            //DebugSystem.Instance.TimeRuler.EndMark("Draw");
 #endif
+        }
+        catch (Exception e)
+        {
+            Logs.WriteException(e);
+        }
     }
 
 

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.GUI.Neoforce;
+using EventArgs = System.EventArgs;
 
 namespace CasaEngine.Framework.Game.Components;
 
@@ -42,6 +43,16 @@ public class UserInterfaceComponent : DrawableGameComponent, IGameComponentResiz
         OnScreenResized(GraphicsDevice.PresentationParameters.BackBufferWidth, GraphicsDevice.PresentationParameters.BackBufferHeight);
 
         base.Initialize();
+    }
+
+    protected override void OnEnabledChanged(object sender, EventArgs args)
+    {
+        UINeoForceManager.Enabled = Enabled;
+    }
+
+    protected override void OnVisibleChanged(object sender, EventArgs args)
+    {
+        UINeoForceManager.Visible = Visible;
     }
 
     protected override void LoadContent()

@@ -31,12 +31,10 @@ public abstract class GameEditor : WpfGame
         Game.GameManager.WorldChanged += OnWorldChanged;
         InitializeGame();
         Game.InitializeWithEditor();
-        Game.UserInterfaceComponent.Enabled = UseGui;
 
-        if (UseGui)
-        {
-            Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
-        }
+        Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
+        Game.UserInterfaceComponent.Enabled = UseGui;
+        Game.UserInterfaceComponent.Visible = UseGui;
 
         //In editor mode the game is in idle mode so we don't update physics
         Game.PhysicsEngineComponent.Enabled = false;
