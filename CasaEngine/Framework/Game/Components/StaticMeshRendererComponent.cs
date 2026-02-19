@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Log;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
@@ -40,15 +41,15 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularPower"].SetValue(5.0f);
-
+        
         _effect.Parameters["DirLight0Direction"].SetValue(new Vector3(-0.5265408f, -0.5735765f, -0.6275069f));
         _effect.Parameters["DirLight0DiffuseColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
         _effect.Parameters["DirLight0SpecularColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
-
+        
         _effect.Parameters["DirLight1Direction"].SetValue(new Vector3(0.7198464f, 0.3420201f, 0.6040227f));
         _effect.Parameters["DirLight1DiffuseColor"].SetValue(new Vector3(0.9647059f, 0.7607844f, 0.4078432f));
         _effect.Parameters["DirLight1SpecularColor"].SetValue(Vector3.Zero);
-
+        
         _effect.Parameters["DirLight2Direction"].SetValue(new Vector3(0.4545195f, -0.7660444f, 0.4545195f));
         _effect.Parameters["DirLight2DiffuseColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
         _effect.Parameters["DirLight2SpecularColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
@@ -64,12 +65,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         graphicsDevice.BlendState = BlendState.Opaque;
         graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
+        var defaultTexture = (Game as CasaEngineGame)?.AssetContentManager.GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
+
         foreach (var meshInfo in _meshInfos)
         {
             graphicsDevice.SetVertexBuffer(meshInfo.StaticMesh.VertexBuffer);
             graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
 
-            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource);
+            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource ?? defaultTexture?.Resource);
             _effect.Parameters["EyePosition"].SetValue(meshInfo.CameraPosition);
             _effect.Parameters["World"].SetValue(meshInfo.World);
             _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
