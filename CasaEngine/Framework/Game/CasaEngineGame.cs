@@ -179,13 +179,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         UserInterfaceComponent = new UserInterfaceComponent(this);
 
         // Initialize the multi-view render pipeline (disabled by default — see UseRenderPipeline).
+        // SpriteBatch is passed so that viewport-scoped color clears work correctly on the
+        // backbuffer (GraphicsDevice.Clear ignores the current viewport).
         _renderPipeline = new RenderPipeline(GraphicsDevice, new IViewFlushableRenderer[]
         {
             MeshRendererComponent,
             SkinnedMeshRendererComponent,
             SpriteRendererComponent,
             Line3dRendererComponent,
-        });
+        }, SpriteBatch!);
 
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
