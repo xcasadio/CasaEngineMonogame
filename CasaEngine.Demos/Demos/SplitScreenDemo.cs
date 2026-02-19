@@ -51,11 +51,6 @@ public class SplitScreenDemo : Demo
         var camera1 = (ArcBallCameraComponent)base.CreateCamera(game);
 
         // Camera 2 — side view
-        // IMPORTANT: entity2 must be added to the world so that InitializeWithWorld()
-        // is called on _camera2 during LoadContent -> InternalAddEntities().
-        // Without it, _viewport.MinDepth/MaxDepth stay at 0/1 (XNA defaults) and
-        // ComputeProjectionMatrix() uses them as near/far clip planes -> invalid
-        // frustum -> no entity passes culling -> empty screen.
         var entity2 = new Entity { Name = "Camera 2 (side)" };
         _camera2 = new ArcBallCameraComponent();
         entity2.RootComponent = _camera2;
@@ -78,13 +73,10 @@ public class SplitScreenDemo : Demo
 
         // ---- Camera 1: front-left view ----
         var cam1 = (ArcBallCameraComponent)camera;
-        //cam1.SetCamera(Vector3.Backward * 18 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        // Adjust projection to match the half-width viewport aspect ratio
         cam1.OnScreenResized(rects[0].Width, rects[0].Height);
 
         // ---- Camera 2: side view ----
-        //_camera2!.SetCamera(Vector3.Right * 18 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        _camera2.SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
+        _camera2!.SetCamera(Vector3.Right * 18 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
         _camera2.OnScreenResized(rects[1].Width, rects[1].Height);
 
         // ---- Register views ----
@@ -92,11 +84,11 @@ public class SplitScreenDemo : Demo
         var viewManager = game.GameManager.ViewManager;
 
         viewManager.Clear();
-        //viewManager.Add(new RenderView(world, cam1, new BackBufferSurface(rects[0]))
-        //{
-        //    Name = "View 1 (front)",
-        //    ClearColor = Color.CornflowerBlue,
-        //});
+        viewManager.Add(new RenderView(world, cam1, new BackBufferSurface(rects[0]))
+        {
+            Name = "View 1 (front)",
+            ClearColor = Color.CornflowerBlue,
+        });
         viewManager.Add(new RenderView(world, _camera2, new BackBufferSurface(rects[1]))
         {
             Name = "View 2 (side)",
