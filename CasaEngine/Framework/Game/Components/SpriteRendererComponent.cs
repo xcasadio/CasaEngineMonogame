@@ -2,12 +2,13 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class SpriteRendererComponent : DrawableGameComponent
+public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private struct SpriteDisplayData
     {
@@ -89,7 +90,8 @@ public class SpriteRendererComponent : DrawableGameComponent
         _line3dRendererComponent = _game.GetGameComponent<Line3dRendererComponent>();
     }
 
-    public override void Draw(GameTime gameTime)
+    /// <inheritdoc/>
+    public void Flush(in RenderFrame frame)
     {
         if (_spriteDatas.Count == 0)
         {
@@ -97,11 +99,17 @@ public class SpriteRendererComponent : DrawableGameComponent
         }
 
         UpdateBuffer();
-
-        var camera = _game.GameManager.ActiveCamera;
-        Draw(camera.ViewMatrix, camera.ProjectionMatrix);
-
+        Draw(frame.View, frame.Projection);
         Clear();
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        // Fallback: build a frame from the active camera and flush.
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera == null) return;
+        var frame = RenderFrameFactory.From(camera);
+        Flush(in frame);
     }
 
     private void Draw(Matrix view, Matrix projection)

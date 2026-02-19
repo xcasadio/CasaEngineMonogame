@@ -1,11 +1,12 @@
 ﻿using System.Runtime.CompilerServices;
 using CasaEngine.Core.Collections;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class Line3dRendererComponent : DrawableGameComponent
+public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private class Line3d
     {
@@ -59,7 +60,8 @@ public class Line3dRendererComponent : DrawableGameComponent
         _basicEffect = new BasicEffect(GraphicsDevice);
     }
 
-    public override void Draw(GameTime gameTime)
+    /// <inheritdoc/>
+    public void Flush(in RenderFrame frame)
     {
         if (_lines.Count == 0)
         {
@@ -76,14 +78,18 @@ public class Line3dRendererComponent : DrawableGameComponent
         }
 
         _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));
-        var camera = _game.GameManager.ActiveCamera;
-        Draw(Matrix.Identity, camera.ViewMatrix, camera.ProjectionMatrix);
-        //Draw(Matrix.Identity, Matrix.CreateTranslation(-_game.Window.ClientBounds.Width / 2f, 0, 0.0f),
-        //    Matrix.CreateOrthographic(_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Height,
-        //    //Matrix.CreateOrthographicOffCenter(-_game.Window.ClientBounds.Width, _game.Window.ClientBounds.Width, -_game.Window.ClientBounds.Height, _game.Window.ClientBounds.Height,
-        //    0.0f, 1.0f));
+        Draw(Matrix.Identity, frame.View, frame.Projection);
 
         Clear();
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        // Fallback: build a frame from the active camera and flush.
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera == null) return;
+        var frame = RenderFrameFactory.From(camera);
+        Flush(in frame);
     }
 
     private void Draw(Matrix world, Matrix view, Matrix projection)

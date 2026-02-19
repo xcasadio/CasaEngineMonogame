@@ -2,12 +2,13 @@
 using CasaEngine.Core.Log;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class StaticMeshRendererComponent : DrawableGameComponent
+public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
@@ -57,7 +58,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         base.LoadContent();
     }
 
-    public override void Draw(GameTime gameTime)
+    /// <inheritdoc/>
+    /// <remarks>
+    /// Camera data for static meshes is baked into each <c>MeshInfo</c> at queue time (via AddMesh);
+    /// the <paramref name="frame"/> argument is accepted for interface compliance but not used here.
+    /// </remarks>
+    public void Flush(in RenderFrame frame)
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -87,6 +93,13 @@ public class StaticMeshRendererComponent : DrawableGameComponent
         }
 
         _meshInfos.Clear();
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        // Fallback: active camera data is already baked inside each MeshInfo, just flush.
+        var frame = default(RenderFrame);
+        Flush(in frame);
     }
 
     private class MeshInfo

@@ -1,11 +1,12 @@
 ﻿using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class SkinnedMeshRendererComponent : DrawableGameComponent
+public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private readonly List<SkinnedMeshInfo> _meshInfos = new();
     private Effect _effect;
@@ -37,7 +38,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
         base.LoadContent();
     }
 
-    public override void Draw(GameTime gameTime)
+    /// <inheritdoc/>
+    public void Flush(in RenderFrame frame)
     {
         if (_meshInfos.Count == 0)
         {
@@ -53,17 +55,11 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
         GraphicsDevice.SetVertexBuffer(null);
         GraphicsDevice.Indices = null;
 
-        var camera = _game.GameManager.ActiveCamera;
-        if (camera == null)
-        {
-            return;
-        }
-
         _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
 
-        _effect.Parameters["View"].SetValue(camera.ViewMatrix);
-        _effect.Parameters["Projection"].SetValue(camera.ProjectionMatrix);
-        _effect.Parameters["CameraPosition"].SetValue(camera.Position);
+        _effect.Parameters["View"].SetValue(frame.View);
+        _effect.Parameters["Projection"].SetValue(frame.Projection);
+        _effect.Parameters["CameraPosition"].SetValue(frame.CameraPosition);
 
         // set up the effect initially to change how you want the shader to behave
         _effect.Parameters["AmbientAmt"].SetValue(.15f);
@@ -82,6 +78,15 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent
         }
 
         _meshInfos.Clear();
+    }
+
+    public override void Draw(GameTime gameTime)
+    {
+        // Fallback: build a frame from the active camera and flush.
+        var camera = _game.GameManager.ActiveCamera;
+        if (camera == null) return;
+        var frame = RenderFrameFactory.From(camera);
+        Flush(in frame);
     }
 
     private class SkinnedMeshInfo
