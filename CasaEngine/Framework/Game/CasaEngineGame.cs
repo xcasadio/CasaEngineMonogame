@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
+using CasaEngine.Framework.Rendering;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -42,6 +43,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
+
+    // ---- Multi-view render pipeline ----
+    /// <summary>
+    /// When true, CasaEngineGame.Draw() uses <see cref="RenderPipeline"/> instead of the
+    /// legacy single-camera path. Set to false (default) to preserve existing behavior.
+    /// </summary>
+    public bool UseRenderPipeline { get; set; } = false;
+
+    private RenderPipeline? _renderPipeline;
 
 #if !FINAL
     public string ContentPath = string.Empty;
@@ -168,6 +178,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         FontSystem = new FontSystem();
         UserInterfaceComponent = new UserInterfaceComponent(this);
 
+        // Initialize the multi-view render pipeline (disabled by default — see UseRenderPipeline).
+        _renderPipeline = new RenderPipeline(GraphicsDevice, new IViewFlushableRenderer[]
+        {
+            MeshRendererComponent,
+            SkinnedMeshRendererComponent,
+            SpriteRendererComponent,
+            Line3dRendererComponent,
+        });
+
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
 
@@ -291,24 +310,72 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             //DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-            GraphicsDevice.Clear(Color.Black);
+            if (UseRenderPipeline && _renderPipeline != null)
+            {
+                // ---- Multi-view pipeline path ----
+                var views = GameManager.ViewManager.Views;
+                if (views.Count == 0)
+                {
+                    // Implicit fallback: single full-screen view from ActiveCamera
+                    var activeCamera = GameManager.ActiveCamera;
+                    var currentWorld = GameManager.CurrentWorld;
+                    if (activeCamera != null && currentWorld != null)
+                    {
+                        var pp = GraphicsDevice.PresentationParameters;
+                        var fullScreen = new Rectangle(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
+                        var implicitView = new RenderView(currentWorld, activeCamera, new BackBufferSurface(fullScreen));
+                        _renderPipeline.Render(new[] { implicitView });
+                    }
+                    else
+                    {
+                        // Nothing to render: at least clear the screen
+                        GraphicsDevice.Clear(Color.Black);
+                    }
+                }
+                else
+                {
+                    _renderPipeline.Render(views);
+                }
 
-            GameManager.DrawWorld(gameTime);
+                // Let remaining non-renderer components (Axis, Grid, UI, etc.) draw normally.
+                // Renderer components will see empty queues and return early.
+#if EDITOR
+                var sortedGameComponents = new List<IDrawable>(Components.Count);
+                sortedGameComponents.AddRange(Components
+                    .Where(x => x is IDrawable { Visible: true })
+                    .Cast<IDrawable>()
+                    .OrderBy(x => x.DrawOrder));
+
+                foreach (var component in sortedGameComponents)
+                {
+                    component.Draw(gameTime);
+                }
+#else
+                base.Draw(gameTime);
+#endif
+            }
+            else
+            {
+                // ---- Legacy single-camera path (unchanged) ----
+                GraphicsDevice.Clear(Color.Black);
+
+                GameManager.DrawWorld(gameTime);
 
 #if EDITOR
-            var sortedGameComponents = new List<IDrawable>(Components.Count);
-            sortedGameComponents.AddRange(Components
-                .Where(x => x is IDrawable { Visible: true })
-                .Cast<IDrawable>()
-                .OrderBy(x => x.DrawOrder));
+                var sortedGameComponents = new List<IDrawable>(Components.Count);
+                sortedGameComponents.AddRange(Components
+                    .Where(x => x is IDrawable { Visible: true })
+                    .Cast<IDrawable>()
+                    .OrderBy(x => x.DrawOrder));
 
-            foreach (var component in sortedGameComponents)
-            {
-                component.Draw(gameTime);
-            }
+                foreach (var component in sortedGameComponents)
+                {
+                    component.Draw(gameTime);
+                }
 #else
-        base.Draw(gameTime);
+                base.Draw(gameTime);
 #endif
+            }
 
 #if !FINAL
             //DebugSystem.Instance.TimeRuler.EndMark("Draw");

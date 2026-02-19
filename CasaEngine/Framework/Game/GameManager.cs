@@ -3,6 +3,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using EventArgs = System.EventArgs;
@@ -22,6 +23,9 @@ public class GameManager
     {
         get => _currentWorld;
     }
+
+    /// <summary>Manages active render views for the multi-view render pipeline.</summary>
+    public ViewManager ViewManager { get; } = new ViewManager();
 
     public CameraComponent? ActiveCamera
     {
