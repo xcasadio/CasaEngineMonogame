@@ -313,6 +313,32 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             if (UseRenderPipeline && _renderPipeline != null)
             {
                 // ---- Multi-view pipeline path ----
+                //
+                // Draw order issue: some game components (e.g. UINeoForceManager at DrawOrder=GUIBegin=1)
+                // run before the mesh renderer (DrawOrder=MeshComponent=2) and may clear the backbuffer.
+                // In the legacy path the mesh renderer draws AFTER them (via base.Draw).
+                // In the pipeline path we must do the same: let GUIBegin components run first, THEN
+                // render the 3D pipeline, THEN let the remaining components run.
+                //
+                // We therefore iterate components manually and split at ComponentDrawOrder.MeshComponent.
+
+                var sortedComponents = Components
+                    .Where(x => x is IDrawable { Visible: true })
+                    .Cast<IDrawable>()
+                    .OrderBy(x => x.DrawOrder)
+                    .ToList();
+
+                // Phase 1 — components whose DrawOrder < MeshComponent (e.g. GUIBegin / UI setup).
+                int meshDrawOrder = (int)ComponentDrawOrder.MeshComponent;
+                foreach (var component in sortedComponents)
+                {
+                    if (component.DrawOrder < meshDrawOrder)
+                    {
+                        component.Draw(gameTime);
+                    }
+                }
+
+                // Phase 2 — 3D pipeline rendering (fills backbuffer via viewports).
                 var views = GameManager.ViewManager.Views;
                 if (views.Count == 0)
                 {
@@ -341,22 +367,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
                 // (e.g. SpriteBatch.Draw for render-to-texture thumbnails)
                 AfterRenderPipeline(gameTime);
 
-                // Let remaining non-renderer components (Axis, Grid, UI, etc.) draw normally.
-                // Renderer components will see empty queues and return early.
-#if EDITOR
-                var sortedGameComponents = new List<IDrawable>(Components.Count);
-                sortedGameComponents.AddRange(Components
-                    .Where(x => x is IDrawable { Visible: true })
-                    .Cast<IDrawable>()
-                    .OrderBy(x => x.DrawOrder));
-
-                foreach (var component in sortedGameComponents)
+                // Phase 3 — remaining components (renderer fallbacks see empty queues,
+                // Line3d, PhysicsDebug, Axis, UI EndDraw, etc.).
+                foreach (var component in sortedComponents)
                 {
-                    component.Draw(gameTime);
+                    if (component.DrawOrder >= meshDrawOrder)
+                    {
+                        component.Draw(gameTime);
+                    }
                 }
-#else
-                base.Draw(gameTime);
-#endif
             }
             else
             {
