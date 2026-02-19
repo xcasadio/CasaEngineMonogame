@@ -337,6 +337,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
                     _renderPipeline.Render(views);
                 }
 
+                // Hook for derived classes to draw overlays after the pipeline
+                // (e.g. SpriteBatch.Draw for render-to-texture thumbnails)
+                AfterRenderPipeline(gameTime);
+
                 // Let remaining non-renderer components (Axis, Grid, UI, etc.) draw normally.
                 // Renderer components will see empty queues and return early.
 #if EDITOR
@@ -387,6 +391,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         }
     }
 
+    /// <summary>
+    /// Called after the render pipeline has run (and before game components are drawn).
+    /// Override in derived classes to add overlay rendering (SpriteBatch, etc.).
+    /// </summary>
+    protected virtual void AfterRenderPipeline(GameTime gameTime)
+    {
+    }
 
 #if EDITOR
 

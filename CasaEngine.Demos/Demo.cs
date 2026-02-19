@@ -32,5 +32,13 @@ public abstract class Demo
 
     public abstract void Update(GameTime gameTime);
 
+    /// <summary>
+    /// Called after the render pipeline has run, before the frame is presented.
+    /// Override to draw 2D overlays (SpriteBatch, render-to-texture thumbnails, etc.).
+    /// </summary>
+    public virtual void PostDraw(CasaEngineGame game, GameTime gameTime)
+    {
+    }
+
     public abstract void Clean();
 }

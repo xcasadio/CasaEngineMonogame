@@ -52,6 +52,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new SceneManagementDemo());
         _demos.Add(new SplitScreenDemo());
+        _demos.Add(new RenderToTextureDemo());
 
         ChangeDemo(0);
     }
@@ -72,6 +73,11 @@ public class DemosGame : CasaEngineGame
         GameManager.ActiveCamera = camera;
 
         Window.Title = _currentDemo.Title;
+    }
+
+    protected override void AfterRenderPipeline(GameTime gameTime)
+    {
+        _currentDemo?.PostDraw(this, gameTime);
     }
 
     protected override void Update(GameTime gameTime)
