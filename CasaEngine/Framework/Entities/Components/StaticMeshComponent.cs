@@ -51,10 +51,11 @@ public class StaticMeshComponent : PrimitiveComponent
             return;
         }
 
-        var camera = Owner!.World.Game.GameManager.ActiveCamera!;
-        var worldViewProj = WorldMatrixWithScale * camera.ViewMatrix * camera.ProjectionMatrix;
-        _meshRendererComponent.AddMesh(Mesh, Material, 
-            WorldMatrixWithScale, WorldInvertTransposeMatrix, worldViewProj, camera.Position);
+        // Only world-space matrices are enqueued here.
+        // WorldViewProj and CameraPosition are resolved per-view inside
+        // StaticMeshRendererComponent.Flush(RenderFrame) — no ActiveCamera dependency.
+        _meshRendererComponent.AddMesh(Mesh, Material,
+            WorldMatrixWithScale, WorldInvertTransposeMatrix);
     }
 
     public override BoundingBox GetBoundingBox()

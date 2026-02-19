@@ -20,7 +20,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldInvertTranspose, Matrix worldViewProj, Vector3 cameraPosition)
+    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldInvertTranspose)
     {
         _meshInfos.Add(new MeshInfo
         {
@@ -28,8 +28,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Material = material,
             World = world,
             WorldInvertTranspose = worldInvertTranspose,
-            WorldViewProj = worldViewProj,
-            CameraPosition = cameraPosition
         });
     }
 
@@ -60,8 +58,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Camera data for static meshes is baked into each <c>MeshInfo</c> at queue time (via AddMesh);
-    /// the <paramref name="frame"/> argument is accepted for interface compliance but not used here.
+    /// WorldViewProj and EyePosition are computed from <paramref name="frame"/> at flush time,
+    /// so each view correctly uses its own camera data.
     /// </remarks>
     public void Flush(in RenderFrame frame)
     {
@@ -79,10 +77,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
 
             _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource ?? defaultTexture?.Resource);
-            _effect.Parameters["EyePosition"].SetValue(meshInfo.CameraPosition);
+            _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
             _effect.Parameters["World"].SetValue(meshInfo.World);
             _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
-            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.WorldViewProj);
+            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
 
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
@@ -97,8 +95,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     public override void Draw(GameTime gameTime)
     {
-        // Fallback: active camera data is already baked inside each MeshInfo, just flush.
-        var frame = default(RenderFrame);
+        // Fallback: build a frame from the active camera and flush.
+        var camera = (Game as CasaEngineGame)?.GameManager.ActiveCamera;
+        if (camera == null)
+        {
+            _meshInfos.Clear();
+            return;
+        }
+        var frame = RenderFrameFactory.From(camera);
         Flush(in frame);
     }
 
@@ -106,9 +110,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     {
         public StaticMesh? StaticMesh;
         public Material? Material;
-        public Vector3 CameraPosition;
         public Matrix World;
         public Matrix WorldInvertTranspose;
-        public Matrix WorldViewProj;
     }
 }

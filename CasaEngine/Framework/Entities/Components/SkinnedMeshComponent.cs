@@ -58,6 +58,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
             return;
         }
 
+        // TODO: camera data passed to AddMesh is no longer used in SkinnedMeshRendererComponent.Flush();
+        // View/Projection/CameraPosition come from the RenderFrame at flush time.
+        // The ActiveCamera read here is a legacy remnant that can be removed.
         var camera = Owner.World.Game.GameManager.ActiveCamera;
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
