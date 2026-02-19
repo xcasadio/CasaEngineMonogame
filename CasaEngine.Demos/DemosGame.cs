@@ -18,6 +18,8 @@ public class DemosGame : CasaEngineGame
 {
     private readonly List<Demo> _demos = new();
     private Demo _currentDemo;
+    private int _currentDemoIndex;
+    private KeyboardState _prevKeyboard;
 
     protected override void Initialize()
     {
@@ -49,18 +51,20 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new TileMapDemo());
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new SceneManagementDemo());
+        _demos.Add(new SplitScreenDemo());
 
-        ChangeDemo(1);
+        ChangeDemo(0);
     }
 
     private void ChangeDemo(int index)
     {
+        _currentDemoIndex = Math.Clamp(index, 0, _demos.Count - 1);
         var currentWorld = GameManager.CurrentWorld;
         currentWorld.ClearEntities();
         currentWorld.ClearScreens();
         _currentDemo?.Clean();
 
-        _currentDemo = _demos[index];
+        _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
         currentWorld.LoadContent(this);
@@ -74,16 +78,30 @@ public class DemosGame : CasaEngineGame
     {
         _currentDemo.Update(gameTime);
 
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        var kb = Keyboard.GetState();
+
+        // Navigate demos with Left/Right arrow keys
+        if (kb.IsKeyDown(Keys.Right) && !_prevKeyboard.IsKeyDown(Keys.Right))
+        {
+            ChangeDemo((_currentDemoIndex + 1) % _demos.Count);
+        }
+        else if (kb.IsKeyDown(Keys.Left) && !_prevKeyboard.IsKeyDown(Keys.Left))
+        {
+            ChangeDemo((_currentDemoIndex - 1 + _demos.Count) % _demos.Count);
+        }
+
+        _prevKeyboard = kb;
+
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || kb.IsKeyDown(Keys.Escape))
         {
             Exit();
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Add))
+        if (kb.IsKeyDown(Keys.Add))
         {
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
+        if (kb.IsKeyDown(Keys.Subtract))
         {
         }
 
