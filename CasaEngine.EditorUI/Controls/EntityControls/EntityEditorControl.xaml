@@ -6,7 +6,6 @@
              xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
              xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
-             xmlns:flowGraphControls="clr-namespace:CasaEngine.EditorUI.Controls.FlowGraphControls"
              mc:Ignorable="d"
              d:DesignHeight="200" d:DesignWidth="400">
 
@@ -46,11 +45,6 @@
                     </xcad:LayoutRoot>
                 </xcad:DockingManager>
             </TabItem>
-
-            <TabItem Header="Flow Graph">
-                <flowGraphControls:FlowGraphEditControl x:Name="FlowGraphControl" SelectedItem="{Binding Path=SelectedItem, Mode=OneWay, RelativeSource={RelativeSource AncestorType=entityControls:EntityEditorControl}}" />
-            </TabItem>
-
         </TabControl>
     </Grid>
 </controls:EditorControlBase>

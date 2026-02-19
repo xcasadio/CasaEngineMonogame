@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
-using FlowGraph.Attributes;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 

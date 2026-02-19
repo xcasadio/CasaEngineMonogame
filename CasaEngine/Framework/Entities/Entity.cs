@@ -10,11 +10,6 @@ using CasaEngine.Core.Log;
 
 using static Assimp.Metadata;
 
-
-#if EDITOR
-using FlowGraph;
-#endif
-
 namespace CasaEngine.Framework.Entities;
 
 //Entity is the base class for an Object that can be placed or spawned in a level.
@@ -78,9 +73,6 @@ public class Entity : ObjectBase
 
     public Entity()
     {
-#if EDITOR
-        FlowGraph = new();
-#endif
     }
 
     public Entity(Entity entity) : base(entity)
@@ -101,10 +93,6 @@ public class Entity : ObjectBase
         {
             AddChild(child.Clone());
         }
-
-#if EDITOR
-        FlowGraph = entity.FlowGraph; //.Clone(); bug!!!
-#endif
     }
 
     public virtual Entity Clone()
@@ -359,13 +347,6 @@ public class Entity : ObjectBase
             //_components.Add(entityComponent);
             AddComponent(entityComponent);
         }
-
-#if EDITOR
-        if (element.TryGetValue("flow_graph", out var flowGraphNode))
-        {
-            FlowGraph.Load((JObject)flowGraphNode);
-        }
-#endif
     }
 
 #if EDITOR
@@ -375,8 +356,6 @@ public class Entity : ObjectBase
 
     public event EventHandler<EntityComponent> ComponentAdded;
     public event EventHandler<EntityComponent> ComponentRemoved;
-
-    public FlowGraphManager FlowGraph { get; private set; }
 
     public override void Save(JObject node)
     {
@@ -403,11 +382,6 @@ public class Entity : ObjectBase
         node.Add("components", componentsJArray);
 
         node.Add("script_class_name", GameplayProxyClassName);
-
-        //TODO only in editor
-        var flowGraphNode = new JObject();
-        FlowGraph.Save(flowGraphNode);
-        node.Add("flow_graph", flowGraphNode);
     }
 
 #endif

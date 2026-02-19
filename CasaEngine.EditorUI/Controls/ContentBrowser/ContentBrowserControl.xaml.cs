@@ -29,7 +29,6 @@ using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
-using Utils;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 

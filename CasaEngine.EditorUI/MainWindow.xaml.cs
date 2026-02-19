@@ -8,7 +8,6 @@ using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Framework.Project;
-using FlowGraph;
 using TabItem = System.Windows.Controls.TabItem;
 
 namespace CasaEngine.EditorUI;
@@ -59,19 +58,6 @@ public partial class MainWindow : Window
         Logs.WriteInfo($"Project opened {projectFileName}");
 
         ProjectSettingsHelper.Load(projectFileName);
-        RegisterFlowGraphNodes();
-    }
-
-    private static void RegisterFlowGraphNodes()
-    {
-        NodeRegister.Clear();
-
-        var dllFileName = Path.Combine(Environment.CurrentDirectory, "FlowGraph.dll");
-        NodeRegister.Register(Assembly.LoadFrom(dllFileName));
-
-        //TODO : register nodes from plugin
-        dllFileName = Path.Combine(Environment.CurrentDirectory, "CasaEngine.FlowGraphNodes.dll");
-        NodeRegister.Register(Assembly.LoadFile(dllFileName));
     }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
