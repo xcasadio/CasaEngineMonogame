@@ -83,15 +83,6 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         Clear();
     }
 
-    public override void Draw(GameTime gameTime)
-    {
-        // Fallback: build a frame from the active camera and flush.
-        var camera = _game.GameManager.ActiveCamera;
-        if (camera == null) return;
-        var frame = RenderFrameFactory.From(camera);
-        Flush(in frame);
-    }
-
     private void Draw(Matrix world, Matrix view, Matrix projection)
     {
         _basicEffect.World = world;
