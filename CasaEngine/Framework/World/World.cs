@@ -153,16 +153,19 @@ public sealed class World : ObjectBase
 
         Game.GameManager.ActiveCamera = camera;
 
-        // Reset views and register a default full-screen RenderView so the pipeline always
-        // has at least one view. Game code can replace these in InitializeCamera or scripts.
-        Game.GameManager.ViewManager.Clear();
-        var pp2 = Game.GraphicsDevice.PresentationParameters;
-        var fullScreen = new Rectangle(0, 0, pp2.BackBufferWidth, pp2.BackBufferHeight);
-        Game.GameManager.ViewManager.Add(new RenderView(this, camera, new BackBufferSurface(fullScreen))
+        // Register a default full-screen view only if no views have been configured yet.
+        // On a re-load triggered by GameManager._isNewWorld, InitializeCamera may have
+        // already registered custom views (e.g. split-screen) — leave them intact.
+        if (Game.GameManager.ViewManager.Views.Count == 0)
         {
-            Name = "Default view",
-            ClearColor = Color.CornflowerBlue,
-        });
+            var pp2 = Game.GraphicsDevice.PresentationParameters;
+            var fullScreen = new Rectangle(0, 0, pp2.BackBufferWidth, pp2.BackBufferHeight);
+            Game.GameManager.ViewManager.Add(new RenderView(this, camera, new BackBufferSurface(fullScreen))
+            {
+                Name = "Default view",
+                ClearColor = Color.CornflowerBlue,
+            });
+        }
 #endif
 
         if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
