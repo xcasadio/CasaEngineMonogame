@@ -107,8 +107,6 @@ public class RenderToTextureDemo : Demo
             Name = "Top-down RT",
             ClearColor = new Color(0.05f, 0.05f, 0.15f),
         });
-
-        game.UseRenderPipeline = true;
     }
 
     /// <summary>
@@ -153,7 +151,6 @@ public class RenderToTextureDemo : Demo
         if (_game != null)
         {
             _game.GameManager.ViewManager.Clear();
-            _game.UseRenderPipeline = false;
         }
 
         _rtSurface?.Dispose();

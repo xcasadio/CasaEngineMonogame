@@ -94,8 +94,6 @@ public class SplitScreenDemo : Demo
             Name = "View 2 (side)",
             ClearColor = new Color(0.12f, 0.12f, 0.20f),
         });
-
-        game.UseRenderPipeline = true;
     }
 
     public override void Update(GameTime gameTime)
@@ -107,7 +105,6 @@ public class SplitScreenDemo : Demo
         if (_game != null)
         {
             _game.GameManager.ViewManager.Clear();
-            _game.UseRenderPipeline = false;
         }
 
         _camera2 = null;

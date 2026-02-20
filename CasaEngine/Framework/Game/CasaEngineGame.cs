@@ -45,12 +45,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
 
     // ---- Multi-view render pipeline ----
-    /// <summary>
-    /// When true, CasaEngineGame.Draw() uses <see cref="RenderPipeline"/> instead of the
-    /// legacy single-camera path. Set to false (default) to preserve existing behavior.
-    /// </summary>
-    public bool UseRenderPipeline { get; set; } = false;
-
     private RenderPipeline? _renderPipeline;
 
 #if !FINAL
@@ -178,7 +172,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         FontSystem = new FontSystem();
         UserInterfaceComponent = new UserInterfaceComponent(this);
 
-        // Initialize the multi-view render pipeline (disabled by default — see UseRenderPipeline).
+        // Initialize the multi-view render pipeline.
         // SpriteBatch is passed so that viewport-scoped color clears work correctly on the
         // backbuffer (GraphicsDevice.Clear ignores the current viewport).
         _renderPipeline = new RenderPipeline(GraphicsDevice, new IViewFlushableRenderer[]
@@ -312,7 +306,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             //DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
 #endif
 
-            if (UseRenderPipeline && _renderPipeline != null)
+            if (_renderPipeline != null)
             {
                 // ---- Multi-view pipeline path ----
                 //
@@ -378,28 +372,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
                         component.Draw(gameTime);
                     }
                 }
-            }
-            else
-            {
-                // ---- Legacy single-camera path (unchanged) ----
-                GraphicsDevice.Clear(Color.Black);
-
-                GameManager.DrawWorld(gameTime);
-
-#if EDITOR
-                var sortedGameComponents = new List<IDrawable>(Components.Count);
-                sortedGameComponents.AddRange(Components
-                    .Where(x => x is IDrawable { Visible: true })
-                    .Cast<IDrawable>()
-                    .OrderBy(x => x.DrawOrder));
-
-                foreach (var component in sortedGameComponents)
-                {
-                    component.Draw(gameTime);
-                }
-#else
-                base.Draw(gameTime);
-#endif
             }
 
 #if !FINAL
