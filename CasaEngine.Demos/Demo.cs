@@ -40,5 +40,12 @@ public abstract class Demo
     {
     }
 
+    /// <summary>
+    /// Called when the game window is resized. Override to recompute multi-view
+    /// split-screen layouts (camera projection + BackBufferSurface rects).
+    /// The default implementation is a no-op.
+    /// </summary>
+    public virtual void OnScreenResized(CasaEngineGame game, int width, int height) { }
+
     public abstract void Clean();
 }

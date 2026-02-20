@@ -134,10 +134,10 @@ public class RenderToTextureDemo : Demo
         var border = new Rectangle(dest.X - 2, dest.Y - 2, dest.Width + 4, dest.Height + 4);
 
         var sb = game.SpriteBatch!;
-        sb.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp,
+        // Use BlendState.Opaque so the thumbnail is always fully opaque regardless of
+        // the alpha channel content of the RT (3D effects may write alpha != 1).
+        sb.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.LinearClamp,
             DepthStencilState.None, RasterizerState.CullNone);
-        // Border (use the 1x1 default white pixel from SpriteBatch if available,
-        // or just skip — the RT has its own clear color as visible border)
         sb.Draw(_rtSurface.Texture, dest, Color.White);
         sb.End();
     }

@@ -135,6 +135,7 @@ public class ViewManagerSandbox : Demo
         var world       = game.GameManager.CurrentWorld;
         var viewManager = game.GameManager.ViewManager;
         viewManager.Clear();
+        viewManager.AutoLayoutMode = SplitMode.Grid4;
         _rtSurfaces.Clear();
 
         var clearColors = new[]
@@ -159,7 +160,6 @@ public class ViewManagerSandbox : Demo
                     0 => ViewUpdateMode.RealTime,
                     1 => ViewUpdateMode.Throttled,
                     2 => ViewUpdateMode.OnDemand,
-                    3 => ViewUpdateMode.RealTime,
                     _ => ViewUpdateMode.RealTime,
                 },
                 TargetFrameRate = 5f,   // Throttled view: 5 fps
@@ -176,6 +176,8 @@ public class ViewManagerSandbox : Demo
         }
     }
 
+
+
     public override void Update(GameTime gameTime)
     {
         var kb  = Keyboard.GetState();
@@ -188,27 +190,13 @@ public class ViewManagerSandbox : Demo
             var views = vm.Views;
             if (views.Count < MaxViews)
             {
-                var pp    = _game.GraphicsDevice.PresentationParameters;
-                int count = views.Count + 1;
-                var rects = SplitScreenLayout.Compute(pp.BackBufferWidth, pp.BackBufferHeight, count, SplitMode.Vertical);
+                var pp = _game.GraphicsDevice.PresentationParameters;
 
-                // Reposition all existing BB views
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (views[i].Surface is BackBufferSurface bbs)
-                    {
-                        bbs.ViewportRect = rects[i];
-                        views[i].Camera.OnScreenResized(rects[i].Width, rects[i].Height);
-                    }
-                }
-
-                // Add new view
+                // Add new view (surface rect will be set by ApplyBackBufferLayout below)
                 var camIdx = views.Count;
                 if (camIdx < _cameras.Count)
                 {
-                    var newRect = rects[^1];
-                    _cameras[camIdx].OnScreenResized(newRect.Width, newRect.Height);
-                    var newView = new RenderView(world, _cameras[camIdx], new BackBufferSurface(newRect))
+                    var newView = new RenderView(world, _cameras[camIdx], new BackBufferSurface(Rectangle.Empty))
                     {
                         Name       = $"View {camIdx + 1} (dynamic)",
                         ClearColor = new Color(0.3f, 0.15f, 0.3f),
@@ -217,6 +205,10 @@ public class ViewManagerSandbox : Demo
                     vm.Add(newView);
                     _rtSurfaces.Add(null);
                 }
+
+                // Update layout mode and recompute all viewport rects
+                vm.AutoLayoutMode = vm.Views.Count == MaxViews ? SplitMode.Grid4 : SplitMode.Vertical;
+                vm.ApplyBackBufferLayout(pp.BackBufferWidth, pp.BackBufferHeight);
             }
         }
 
@@ -229,17 +221,10 @@ public class ViewManagerSandbox : Demo
                 vm.Remove(views[^1]);
                 if (_rtSurfaces.Count > 0) _rtSurfaces.RemoveAt(_rtSurfaces.Count - 1);
 
-                // Re-layout remaining views
-                var pp    = _game.GraphicsDevice.PresentationParameters;
-                var rects = SplitScreenLayout.Compute(pp.BackBufferWidth, pp.BackBufferHeight, views.Count, SplitMode.Vertical);
-                for (int i = 0; i < views.Count; i++)
-                {
-                    if (views[i].Surface is BackBufferSurface bbs)
-                    {
-                        bbs.ViewportRect = rects[i];
-                        views[i].Camera.OnScreenResized(rects[i].Width, rects[i].Height);
-                    }
-                }
+                // Update layout mode and recompute all viewport rects
+                var pp = _game.GraphicsDevice.PresentationParameters;
+                vm.AutoLayoutMode = vm.Views.Count == MaxViews ? SplitMode.Grid4 : SplitMode.Vertical;
+                vm.ApplyBackBufferLayout(pp.BackBufferWidth, pp.BackBufferHeight);
             }
         }
 

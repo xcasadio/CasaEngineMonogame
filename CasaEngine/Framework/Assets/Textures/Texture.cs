@@ -95,7 +95,13 @@ public class Texture : ObjectBase, IAssetable
 
         if (string.IsNullOrEmpty(FileName))
         {
-            Texture2d = new Texture2D(device, Texture2d.Width, Texture2d.Height);
+            // Only recreate if actually disposed (e.g. DX9/OpenGL).
+            // In DX11, static textures survive a swap-chain reset; recreating here
+            // would overwrite valid pixel data with a blank (black) texture.
+            if (Texture2d is { IsDisposed: true })
+            {
+                Texture2d = new Texture2D(device, Texture2d.Width, Texture2d.Height);
+            }
         }
         else if (Texture2d is { IsDisposed: true })
         {

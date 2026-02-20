@@ -78,6 +78,11 @@ public class DemosGame : CasaEngineGame
         Window.Title = _currentDemo.Title;
     }
 
+    protected override void OnViewsResized(int width, int height)
+    {
+        _currentDemo?.OnScreenResized(this, width, height);
+    }
+
     protected override void AfterRenderPipeline(GameTime gameTime)
     {
         _currentDemo?.PostDraw(this, gameTime);

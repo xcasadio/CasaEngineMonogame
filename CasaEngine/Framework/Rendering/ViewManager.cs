@@ -41,6 +41,37 @@ public sealed class ViewManager
     public IReadOnlyList<RenderView> Views => _views;
 
     /// <summary>
+    /// When set, <see cref="ApplyBackBufferLayout"/> automatically distributes all
+    /// BackBuffer views across the screen according to this split mode.
+    /// Set to null to disable automatic layout (manual or custom split only).
+    /// </summary>
+    public SplitMode? AutoLayoutMode { get; set; }
+
+    /// <summary>
+    /// Distributes all BackBuffer views across a screen of the given size using
+    /// <see cref="AutoLayoutMode"/>. Updates each view's <see cref="BackBufferSurface.ViewportRect"/>
+    /// and notifies the camera via <c>OnScreenResized</c>.
+    /// Does nothing if <see cref="AutoLayoutMode"/> is null or there are no BackBuffer views.
+    /// </summary>
+    public void ApplyBackBufferLayout(int screenWidth, int screenHeight)
+    {
+        if (AutoLayoutMode == null) return;
+
+        var bbViews = new System.Collections.Generic.List<RenderView>();
+        foreach (var v in _views)
+            if (v.Surface is BackBufferSurface) bbViews.Add(v);
+
+        if (bbViews.Count == 0) return;
+
+        var rects = SplitScreenLayout.Compute(screenWidth, screenHeight, bbViews.Count, AutoLayoutMode.Value);
+        for (int i = 0; i < bbViews.Count; i++)
+        {
+            ((BackBufferSurface)bbViews[i].Surface).ViewportRect = rects[i];
+            bbViews[i].Camera?.OnScreenResized(rects[i].Width, rects[i].Height);
+        }
+    }
+
+    /// <summary>
     /// The primary view used for editor overlays and UI interaction (gizmo, grid, axes,
     /// screen resize, entity focus, drag-drop raycasting).
     /// Automatically set to the first view added. Can be overridden with <see cref="SetActive"/>.

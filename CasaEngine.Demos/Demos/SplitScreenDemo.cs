@@ -84,15 +84,18 @@ public class SplitScreenDemo : Demo
         var viewManager = game.GameManager.ViewManager;
 
         viewManager.Clear();
+        viewManager.AutoLayoutMode = SplitMode.Vertical;
         viewManager.Add(new RenderView(world, cam1, new BackBufferSurface(rects[0]))
         {
             Name = "View 1 (front)",
             ClearColor = Color.CornflowerBlue,
+            ShowDebugOverlay = true,
         });
         viewManager.Add(new RenderView(world, _camera2, new BackBufferSurface(rects[1]))
         {
             Name = "View 2 (side)",
             ClearColor = new Color(0.12f, 0.12f, 0.20f),
+            ShowDebugOverlay = true,
         });
     }
 

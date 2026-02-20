@@ -137,26 +137,52 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         GameManager.CurrentWorld?.OnScreenResized(width, height);
 
-        // Resize the camera of the active view (covers the editor camera which is not
-        // part of the world and would otherwise not receive OnScreenResized).
-        GameManager.ViewManager.ActiveView?.Camera?.OnScreenResized(width, height);
+        var views    = GameManager.ViewManager.Views;
+        var bbViews  = new System.Collections.Generic.List<RenderView>();
 
-        // Update full-screen BackBufferSurface views to the new dimensions so the
-        // pipeline renders to the correct viewport after a window or panel resize.
-        foreach (var view in GameManager.ViewManager.Views)
+        foreach (var v in views)
         {
-            if (view.Surface is BackBufferSurface bbs)
-            {
-                var pp = GraphicsDevice.PresentationParameters;
-                var isFullScreen = bbs.ViewportRect.X == 0 && bbs.ViewportRect.Y == 0
-                    && bbs.ViewportRect.Width != 0 && bbs.ViewportRect.Height != 0;
-                if (isFullScreen)
-                {
-                    bbs.ViewportRect = new Rectangle(0, 0, width, height);
-                }
-            }
+            if (v.Surface is BackBufferSurface) bbViews.Add(v);
+        }
+
+        // Single full-screen backbuffer view: auto-resize both the surface and its camera.
+        if (bbViews.Count == 1 && bbViews[0].Surface is BackBufferSurface single)
+        {
+            single.ViewportRect = new Rectangle(0, 0, width, height);
+            bbViews[0].Camera?.OnScreenResized(width, height);
+        }
+        else if (GameManager.ViewManager.AutoLayoutMode != null)
+        {
+            // Multi-view with a declared AutoLayoutMode: ViewManager handles rect recomputation.
+            // OnViewsResized() is still called below so demos can do extra work (e.g. update
+            // RenderTarget surfaces), but they no longer need to recompute BackBuffer viewports.
+            GameManager.ViewManager.ApplyBackBufferLayout(width, height);
+        }
+        else
+        {
+            // No auto-layout (editor or custom split): just resize the active camera.
+            GameManager.ViewManager.ActiveView?.Camera?.OnScreenResized(width, height);
+        }
+
+        // Allow derived games (e.g. DemosGame) to propagate the resize to the current
+        // demo so that multi-view layouts can be recomputed.
+        OnViewsResized(width, height);
+
+        // After all surfaces/cameras have been updated, automatically invalidate every
+        // OnDemand view so it re-renders once with the new dimensions.
+        // (Harmless on RealTime/Throttled views — IsDirty is only checked for OnDemand.)
+        foreach (var v in GameManager.ViewManager.Views)
+        {
+            v.Invalidate();
         }
     }
+
+    /// <summary>
+    /// Called at the end of <see cref="OnScreenResized"/> after single-view surfaces
+    /// and cameras have been updated. Override to recompute multi-view / split-screen
+    /// layouts (e.g. forward the call to the active demo).
+    /// </summary>
+    protected virtual void OnViewsResized(int width, int height) { }
 
     private void HandleUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
     {
