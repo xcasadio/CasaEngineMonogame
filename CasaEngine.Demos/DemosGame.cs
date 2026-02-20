@@ -48,10 +48,10 @@ public class DemosGame : CasaEngineGame
 
         _demos.Add(new Collision3dBasicDemo());
         _demos.Add(new Collision2dBasicDemo());
-        _demos.Add(new TileMapDemo());
+        //_demos.Add(new TileMapDemo()); // 2
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new SceneManagementDemo());
-        _demos.Add(new SplitScreenDemo());
+        _demos.Add(new SplitScreenDemo()); // 5
         _demos.Add(new RenderToTextureDemo());
 
         ChangeDemo(0);
@@ -70,7 +70,6 @@ public class DemosGame : CasaEngineGame
         var camera = _currentDemo.CreateCamera(this);
         currentWorld.LoadContent(this);
         _currentDemo.InitializeCamera(camera);
-        GameManager.ActiveCamera = camera;
 
         Window.Title = _currentDemo.Title;
     }
@@ -87,14 +86,14 @@ public class DemosGame : CasaEngineGame
         var kb = Keyboard.GetState();
 
         // Navigate demos with Left/Right arrow keys
-        //if (kb.IsKeyDown(Keys.Right) && !_prevKeyboard.IsKeyDown(Keys.Right))
-        //{
-        //    ChangeDemo((_currentDemoIndex + 1) % _demos.Count);
-        //}
-        //else if (kb.IsKeyDown(Keys.Left) && !_prevKeyboard.IsKeyDown(Keys.Left))
-        //{
-        //    ChangeDemo((_currentDemoIndex - 1 + _demos.Count) % _demos.Count);
-        //}
+        if (kb.IsKeyDown(Keys.Right) && !_prevKeyboard.IsKeyDown(Keys.Right))
+        {
+            ChangeDemo((_currentDemoIndex + 1) % _demos.Count);
+        }
+        else if (kb.IsKeyDown(Keys.Left) && !_prevKeyboard.IsKeyDown(Keys.Left))
+        {
+            ChangeDemo((_currentDemoIndex - 1 + _demos.Count) % _demos.Count);
+        }
 
         _prevKeyboard = kb;
 

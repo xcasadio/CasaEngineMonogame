@@ -151,8 +151,6 @@ public sealed class World : ObjectBase
             Logs.WriteWarning($"No camera found in the world {Name}. Create default one");
         }
 
-        Game.GameManager.ActiveCamera = camera;
-
         // Register a default full-screen view only if no views have been configured yet.
         // On a re-load triggered by GameManager._isNewWorld, InitializeCamera may have
         // already registered custom views (e.g. split-screen) — leave them intact.

@@ -116,7 +116,6 @@ namespace SandBoxGame
 
             world.LoadContent(this);
             camera.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-            GameManager.ActiveCamera = camera;
         }
         /*
         private byte[] CompileShaderFromMaterial(Material material)
@@ -199,7 +198,8 @@ namespace SandBoxGame
             //_effect.Parameters["World"].SetValue(_boxEntity.Coordinates.WorldMatrix);
             //_effect.Parameters["WorldInverseTranspose"].SetValue((_boxEntity.Coordinates.WorldMatrix.Invert().Transpose());
 
-            effect.Parameters["WorldViewProj"].SetValue(world * GameManager.ActiveCamera.ViewMatrix * GameManager.ActiveCamera.ProjectionMatrix);
+            var activeCam = GameManager.ViewManager.ActiveView?.Camera;
+            effect.Parameters["WorldViewProj"].SetValue(world * (activeCam?.ViewMatrix ?? Matrix.Identity) * (activeCam?.ProjectionMatrix ?? Matrix.Identity));
 
             foreach (EffectPass effectPass in effect.CurrentTechnique.Passes)
             {
