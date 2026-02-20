@@ -93,19 +93,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _meshInfos.Clear();
     }
 
-    public override void Draw(GameTime gameTime)
-    {
-        // Fallback: build a frame from the active camera and flush.
-        var camera = (Game as CasaEngineGame)?.GameManager.ActiveCamera;
-        if (camera == null)
-        {
-            _meshInfos.Clear();
-            return;
-        }
-        var frame = RenderFrameFactory.From(camera);
-        Flush(in frame);
-    }
-
     private class MeshInfo
     {
         public StaticMesh? StaticMesh;
