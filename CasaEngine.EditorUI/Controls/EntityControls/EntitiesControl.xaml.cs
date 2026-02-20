@@ -272,8 +272,8 @@ public partial class EntitiesControl : UserControl
             var sceneComponent = entityViewModel.Entity.RootComponent;
             var boundingBox = sceneComponent.BoundingBox;
             //var offset = sceneComponent.Forward * boundingBox.GetRadius();
-            var offset = Game.GameManager.ActiveCamera.Forward * boundingBox.GetRadius();
-            Game.GameManager.ActiveCamera.SetPositionAndTarget(sceneComponent.Position + offset, sceneComponent.Position);
+            var offset = Game.GameManager.ViewManager.ActiveView?.Camera.Forward * boundingBox.GetRadius() ?? Vector3.Forward;
+            Game.GameManager.ViewManager.ActiveView?.Camera.SetPositionAndTarget(sceneComponent.Position + offset, sceneComponent.Position);
         }
     }
 }

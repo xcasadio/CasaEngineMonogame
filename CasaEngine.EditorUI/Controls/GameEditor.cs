@@ -96,8 +96,8 @@ public abstract class GameEditor : WpfGame
 
     private void OnScreenResized(int width, int height)
     {
-        //in editor the camera is not an element of the world
-        Game?.GameManager.ActiveCamera?.OnScreenResized(width, height);
+        // CasaEngineGame.OnScreenResized notifies all resizable components, the world,
+        // and ViewManager.ActiveView?.Camera (covers the editor camera not in the world).
         Game?.OnScreenResized(width, height);
     }
 }
