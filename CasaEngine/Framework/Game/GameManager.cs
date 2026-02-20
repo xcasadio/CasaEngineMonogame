@@ -14,7 +14,6 @@ namespace CasaEngine.Framework.Game;
 public class GameManager
 {
     private readonly CasaEngineGame _game;
-    private CameraComponent? _activeCamera;
     private World.World? _currentWorld;
     private string? _worldToLoad;
     private bool _isNewWorld;
@@ -26,29 +25,6 @@ public class GameManager
 
     /// <summary>Manages active render views for the multi-view render pipeline.</summary>
     public ViewManager ViewManager { get; } = new ViewManager();
-
-    /// <summary>
-    /// The currently active camera. Used by editor components and as a fallback
-    /// when <see cref="ViewManager"/> has no views registered.
-    /// </summary>
-    public CameraComponent? ActiveCamera
-    {
-        get => _activeCamera;
-        set
-        {
-            _activeCamera = value;
-            if (_activeCamera != null)
-            {
-                if (_activeCamera.Owner.IsInitialized == false)
-                {
-                    throw new InvalidOperationException("LoadContent the camera before activate it");
-                }
-
-                //TODO: why change min an max depth create bugs ?
-                _game.SetViewport(_activeCamera.Viewport.Bounds);
-            }
-        }
-    }
 
     public GameManager(CasaEngineGame game)
     {

@@ -158,11 +158,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         }
     }
 
-    public void SetViewport(Rectangle viewportBounds)
-    {
-        GraphicsDevice.Viewport = new Viewport(viewportBounds);
-    }
-
     private void HandleUnhandledExceptions(object sender, UnhandledExceptionEventArgs e)
     {
         Logs.WriteException((e.ExceptionObject as Exception)!);
