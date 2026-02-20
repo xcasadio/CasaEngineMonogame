@@ -153,6 +153,17 @@ public class GameManager
         _cameraEditorEntity.GameplayProxy?.InitializeWithWorld(world);
 
         ActiveCamera = cameraEditor;
+
+        // Register the editor camera as the sole default view. Always reset so that
+        // loading a new world replaces the previous world's view cleanly.
+        ViewManager.Clear();
+        var pp = _game.GraphicsDevice.PresentationParameters;
+        var fullScreen = new Rectangle(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
+        ViewManager.Add(new RenderView(world, cameraEditor, new BackBufferSurface(fullScreen))
+        {
+            Name = "Editor default view",
+            ClearColor = Color.CornflowerBlue,
+        });
     }
 
     public delegate CameraComponent CameraComponentCallback(Entity cameraEntity);
