@@ -47,7 +47,7 @@ public class GizmoComponent : DrawableGameComponent
             return;
         }
 
-        var camera = _game.GameManager.ActiveCamera;
+        var camera = _game.GameManager.ViewManager.ActiveView?.Camera;
         if (camera != null)
         {
             Gizmo.UpdateCameraProperties(

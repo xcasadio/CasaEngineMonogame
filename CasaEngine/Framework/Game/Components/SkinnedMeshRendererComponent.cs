@@ -20,15 +20,12 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(RiggedModel mesh, Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition)
+    public void AddMesh(RiggedModel mesh, Matrix world)
     {
         _meshInfos.Add(new SkinnedMeshInfo
         {
             SkinnedMesh = mesh,
             World = world,
-            View = view,
-            ViewProjection = view * projection,
-            CameraPosition = cameraPosition
         });
     }
 
@@ -84,8 +81,5 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     {
         public RiggedModel? SkinnedMesh;
         public Matrix World { get; set; }
-        public Matrix View { get; set; }
-        public Matrix ViewProjection { get; set; }
-        public Vector3 CameraPosition { get; set; }
     }
 }

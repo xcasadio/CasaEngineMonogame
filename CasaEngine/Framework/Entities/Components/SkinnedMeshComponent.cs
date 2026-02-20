@@ -58,16 +58,10 @@ public class SkinnedMeshComponent : PrimitiveComponent
             return;
         }
 
-        // NOTE: View/Projection/CameraPosition passed to AddMesh are stored in SkinnedMeshInfo
-        // but are NOT used by SkinnedMeshRendererComponent.Flush() — it takes those values from
-        // the RenderFrame instead. Consider removing these parameters from AddMesh in a future cleanup.
-        var camera = Owner.World.Game.GameManager.ActiveCamera;
+        // Flush() takes view/projection/cameraPosition from RenderFrame directly.
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
-            WorldMatrixWithScale,
-            camera.ViewMatrix,
-            camera.ProjectionMatrix,
-            camera.Position);
+            WorldMatrixWithScale);
     }
 
     public override BoundingBox GetBoundingBox()

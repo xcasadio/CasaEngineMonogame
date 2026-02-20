@@ -137,9 +137,24 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         GameManager.CurrentWorld?.OnScreenResized(width, height);
 
-        if (GameManager.ActiveCamera != null)
+        // Resize the camera of the active view (covers the editor camera which is not
+        // part of the world and would otherwise not receive OnScreenResized).
+        GameManager.ViewManager.ActiveView?.Camera?.OnScreenResized(width, height);
+
+        // Update full-screen BackBufferSurface views to the new dimensions so the
+        // pipeline renders to the correct viewport after a window or panel resize.
+        foreach (var view in GameManager.ViewManager.Views)
         {
-            SetViewport(GameManager.ActiveCamera.Viewport.Bounds);
+            if (view.Surface is BackBufferSurface bbs)
+            {
+                var pp = GraphicsDevice.PresentationParameters;
+                var isFullScreen = bbs.ViewportRect.X == 0 && bbs.ViewportRect.Y == 0
+                    && bbs.ViewportRect.Width != 0 && bbs.ViewportRect.Height != 0;
+                if (isFullScreen)
+                {
+                    bbs.ViewportRect = new Rectangle(0, 0, width, height);
+                }
+            }
         }
     }
 

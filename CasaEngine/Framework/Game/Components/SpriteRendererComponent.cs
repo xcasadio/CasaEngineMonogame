@@ -138,8 +138,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         graphicsDevice.ScissorRectangle = scissorRectangle;
     }
 
-    // TODO: DrawDirectly still reads ActiveCamera directly. Refactor to accept a RenderFrame
-    // argument (or a view/projection pair) so it works correctly in all multi-view scenarios.
+    // DrawDirectly reads the active view camera for ViewProjection. It is used for
+    // full-screen texture display and always applies to the primary (active) view.
     public void DrawDirectly(Texture2D texture)
     {
         var graphicsDevice = _effect.GraphicsDevice;
@@ -147,23 +147,9 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         graphicsDevice.DepthStencilState = DepthStencilState.None;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
         graphicsDevice.BlendState = BlendState.AlphaBlend; //BlendState.AlphaBlend; //_blendState
-        /*var BlendState = new BlendState();
-        BlendState.AlphaBlendFunction = BlendState.AlphaBlend.AlphaBlendFunction;
-        BlendState.AlphaDestinationBlend = BlendState.AlphaBlend.AlphaDestinationBlend;
-        BlendState.AlphaSourceBlend = BlendState.AlphaBlend.AlphaSourceBlend;
-        BlendState.BlendFactor = BlendState.AlphaBlend.BlendFactor;
-        BlendState.ColorBlendFunction = BlendState.AlphaBlend.ColorBlendFunction;
-        BlendState.ColorDestinationBlend = BlendState.AlphaBlend.ColorDestinationBlend;
-        BlendState.ColorSourceBlend = BlendState.AlphaBlend.ColorSourceBlend;
-        BlendState.ColorWriteChannels = BlendState.AlphaBlend.ColorWriteChannels;
-        BlendState.ColorWriteChannels1 = BlendState.AlphaBlend.ColorWriteChannels1;
-        BlendState.ColorWriteChannels2 = BlendState.AlphaBlend.ColorWriteChannels2;
-        BlendState.ColorWriteChannels3 = BlendState.AlphaBlend.ColorWriteChannels3;
-        BlendState.MultiSampleMask = BlendState.AlphaBlend.MultiSampleMask;
-        graphicsDevice.BlendState = BlendState;*/
-        graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
-        var camera = _game.GameManager.ActiveCamera;
+        var camera = _game.GameManager.ViewManager.ActiveView?.Camera;
+        if (camera == null) return;
         _effect.Parameters["ViewProj"].SetValue(camera.ViewMatrix * camera.ProjectionMatrix);
         _effect.Parameters["Texture"].SetValue(texture);
         _effect.Parameters["Color"].SetValue(Color.White.ToVector4());
