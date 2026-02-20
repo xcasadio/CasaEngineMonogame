@@ -28,12 +28,8 @@ public class GameManager
     public ViewManager ViewManager { get; } = new ViewManager();
 
     /// <summary>
-    /// The currently active camera. Used as a backward-compatible fallback when
-    /// <see cref="UseRenderPipeline"/> is false or when <see cref="ViewManager"/> has no views.
-    /// <para/>
-    /// TODO: Deprecate once multi-view pipeline is the default path.
-    /// Prefer adding views to <see cref="ViewManager"/> and letting each
-    /// <see cref="RenderView"/> carry its own camera.
+    /// The currently active camera. Used by editor components and as a fallback
+    /// when <see cref="ViewManager"/> has no views registered.
     /// </summary>
     public CameraComponent? ActiveCamera
     {
@@ -115,17 +111,6 @@ public class GameManager
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
 
         CurrentWorld?.Update(elapsedTime);
-    }
-
-    /// <summary>
-    /// Draws the current world using the legacy single-camera path.
-    /// Called only when <see cref="CasaEngineGame.UseRenderPipeline"/> is false.
-    /// <para/>
-    /// TODO: This method becomes a no-op when multi-view pipeline is the default.
-    /// </summary>
-    public void DrawWorld(GameTime gameTime)
-    {
-        CurrentWorld?.Draw(ActiveCamera.ViewMatrix * ActiveCamera.ProjectionMatrix);
     }
 
     public void SetWorldToLoad(string worldNameToLoad)
