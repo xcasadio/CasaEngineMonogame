@@ -1,31 +1,118 @@
+using CasaEngine.Core.Helpers;
+using Microsoft.Xna.Framework;
+
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Manages the list of active <see cref="RenderView"/> instances for the multi-view render pipeline.
+///
+/// v2 additions:
+/// <list type="bullet">
+///   <item>Stable <see cref="ViewId"/> keys — use <see cref="CreateView"/> / <see cref="TryGetView"/>.</item>
+///   <item>Events: <see cref="ViewAdded"/>, <see cref="ViewRemoved"/>, <see cref="ViewResized"/>, <see cref="ViewInvalidated"/>.</item>
+///   <item>Per-view input: <see cref="ScreenToView"/>, <see cref="ViewToWorldRay"/>, <see cref="CaptureInput"/>.</item>
+/// </list>
 /// </summary>
 public sealed class ViewManager
 {
-    private readonly List<RenderView> _views = new();
+    private readonly List<RenderView>              _views  = new();
+    private readonly Dictionary<ViewId, RenderView> _byId   = new();
 
-    /// <summary>Active render views (read-only).</summary>
+    // ---- Events ----
+
+    /// <summary>Fired when a view is added to the manager.</summary>
+    public event Action<RenderView>? ViewAdded;
+
+    /// <summary>Fired when a view is removed from the manager.</summary>
+    public event Action<RenderView>? ViewRemoved;
+
+    /// <summary>
+    /// Fired when a view's host notifies a resize.
+    /// Parameters: (view, newWidth, newHeight).
+    /// </summary>
+    public event Action<RenderView, int, int>? ViewResized;
+
+    /// <summary>Fired when <see cref="RenderView.Invalidate"/> causes a re-render.</summary>
+    public event Action<RenderView>? ViewInvalidated;
+
+    // ---- Views ----
+
+    /// <summary>Active render views (read-only, ordered by insertion).</summary>
     public IReadOnlyList<RenderView> Views => _views;
 
     /// <summary>
     /// The primary view used for editor overlays and UI interaction (gizmo, grid, axes,
     /// screen resize, entity focus, drag-drop raycasting).
-    /// Automatically set to the first view added. Can be overridden with
-    /// <see cref="SetActive"/>.
+    /// Automatically set to the first view added. Can be overridden with <see cref="SetActive"/>.
     /// </summary>
     public RenderView? ActiveView { get; private set; }
 
+    // ---- Input capture ----
+
     /// <summary>
-    /// Adds a view. If no <see cref="ActiveView"/> is set yet, this view becomes the active one.
+    /// The view that is currently capturing all input events (e.g. during a gizmo drag).
+    /// Null when no capture is active.
+    /// </summary>
+    public RenderView? InputCaptureView { get; private set; }
+
+    // ---- Factory / registry ----
+
+    /// <summary>
+    /// Creates and registers a new <see cref="RenderView"/> from the provided definition,
+    /// assigning it a stable <see cref="ViewId"/>.
+    /// </summary>
+    /// <returns>The stable ViewId for the newly created view.</returns>
+    public ViewId CreateView(ViewDefinition def)
+    {
+        var id   = ViewId.Next();
+        var view = new RenderView(def.World, def.Camera, def.Surface)
+        {
+            Id              = id,
+            Name            = def.Name,
+            ClearColor      = def.ClearColor,
+            ClearColorBuffer = def.ClearColorBuffer,
+            ClearDepthBuffer = def.ClearDepthBuffer,
+            UpdateMode      = def.UpdateMode,
+            TargetFrameRate = def.TargetFrameRate,
+            ResolutionScale = def.ResolutionScale,
+            Pipeline        = def.Pipeline,
+            Presenter       = def.Presenter,
+        };
+
+        RegisterView(view);
+        return id;
+    }
+
+    /// <summary>
+    /// Adds a pre-constructed view. If it has no ViewId yet, one is assigned.
+    /// If no <see cref="ActiveView"/> is set yet, this view becomes the active one.
     /// </summary>
     public void Add(RenderView view)
     {
         ArgumentNullException.ThrowIfNull(view);
-        _views.Add(view);
-        ActiveView ??= view;
+
+        if (view.Id.IsEmpty)
+        {
+            view.Id = ViewId.Next();
+        }
+
+        RegisterView(view);
+    }
+
+    /// <summary>
+    /// Tries to retrieve the view registered under <paramref name="id"/>.
+    /// Returns false if the id is not registered.
+    /// </summary>
+    public bool TryGetView(ViewId id, out RenderView view)
+    {
+        if (_byId.TryGetValue(id, out var v))
+        {
+            view = v;
+            return true;
+        }
+
+        view = null!;
+        return false;
     }
 
     /// <summary>
@@ -35,7 +122,10 @@ public sealed class ViewManager
     public void SetActive(RenderView view)
     {
         ArgumentNullException.ThrowIfNull(view);
+
+        if (ActiveView != null) ActiveView.IsActive = false;
         ActiveView = view;
+        view.IsActive = true;
     }
 
     /// <summary>
@@ -45,17 +135,160 @@ public sealed class ViewManager
     public bool Remove(RenderView view)
     {
         var removed = _views.Remove(view);
-        if (removed && ActiveView == view)
+        if (removed)
         {
-            ActiveView = _views.Count > 0 ? _views[0] : null;
+            _byId.Remove(view.Id);
+            UnhookHost(view);
+
+            if (InputCaptureView == view) InputCaptureView = null;
+            if (ActiveView == view)
+            {
+                ActiveView = _views.Count > 0 ? _views[0] : null;
+                if (ActiveView != null) ActiveView.IsActive = true;
+            }
+
+            ViewRemoved?.Invoke(view);
         }
+
         return removed;
     }
 
     /// <summary>Removes all views and resets <see cref="ActiveView"/> to null.</summary>
     public void Clear()
     {
+        foreach (var view in _views)
+        {
+            UnhookHost(view);
+            ViewRemoved?.Invoke(view);
+        }
+
         _views.Clear();
-        ActiveView = null;
+        _byId.Clear();
+        ActiveView        = null;
+        InputCaptureView  = null;
+    }
+
+    // ---- Input mapping ----
+
+    /// <summary>
+    /// Finds the topmost view whose viewport contains <paramref name="screenPoint"/> and
+    /// returns the view plus the point expressed in the view's local space (0,0 = top-left).
+    ///
+    /// Uses <see cref="InputCaptureView"/> first if a capture is active.
+    ///
+    /// Returns (null, default) if no view contains the point.
+    /// </summary>
+    public (RenderView? view, Vector2 localPoint) ScreenToView(Point screenPoint)
+    {
+        // If a view has captured input, always route to it.
+        if (InputCaptureView != null)
+        {
+            var vp   = InputCaptureView.Surface.ViewportRect;
+            var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
+            return (InputCaptureView, local);
+        }
+
+        // Iterate in reverse insertion order so the last-added view is tested first.
+        for (int i = _views.Count - 1; i >= 0; i--)
+        {
+            var view = _views[i];
+            if (!view.Enabled || !view.IsVisible) continue;
+
+            var vp = view.Surface.ViewportRect;
+            if (vp.Contains(screenPoint))
+            {
+                var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
+                return (view, local);
+            }
+        }
+
+        return (null, default);
+    }
+
+    /// <summary>
+    /// Computes a world-space ray from <paramref name="localPoint"/> (view-local pixels,
+    /// (0,0) = top-left of the view) using the view's camera and viewport.
+    /// </summary>
+    public Ray ViewToWorldRay(RenderView view, Vector2 localPoint)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        return RayHelper.CalculateRayFromScreenCoordinate(
+            localPoint,
+            view.Camera.ProjectionMatrix,
+            view.Camera.ViewMatrix,
+            view.Camera.Viewport);
+    }
+
+    // ---- Input capture ----
+
+    /// <summary>
+    /// Starts routing all screen input to <paramref name="view"/>,
+    /// regardless of the mouse cursor position.
+    /// Call <see cref="ReleaseInput"/> when the drag/interaction ends.
+    /// </summary>
+    public void CaptureInput(RenderView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        InputCaptureView = view;
+    }
+
+    /// <summary>
+    /// Ends the current input capture started by <see cref="CaptureInput"/>.
+    /// </summary>
+    public void ReleaseInput() => InputCaptureView = null;
+
+    // ---- Internal helpers ----
+
+    private void RegisterView(RenderView view)
+    {
+        _views.Add(view);
+        _byId[view.Id] = view;
+
+        // Wire host events
+        if (view.Host != null)
+        {
+            view.Host.Resized += OnHostResized;
+            view.Host.Closed  += OnHostClosed;
+        }
+
+        // The first view to be added (or the first after a Clear) becomes the active view.
+        if (ActiveView == null)
+        {
+            ActiveView       = view;
+            view.IsActive    = true;
+        }
+
+        // OnDemand views start as dirty so they render at least once.
+        if (view.UpdateMode == ViewUpdateMode.OnDemand)
+        {
+            view.IsDirty = true;
+        }
+
+        ViewAdded?.Invoke(view);
+    }
+
+    private void UnhookHost(RenderView view)
+    {
+        if (view.Host != null)
+        {
+            view.Host.Resized -= OnHostResized;
+            view.Host.Closed  -= OnHostClosed;
+        }
+    }
+
+    private void OnHostResized(IViewHost host, int w, int h)
+    {
+        if (_byId.TryGetValue(host.ViewId, out var view))
+        {
+            ViewResized?.Invoke(view, w, h);
+        }
+    }
+
+    private void OnHostClosed(IViewHost host)
+    {
+        if (_byId.TryGetValue(host.ViewId, out var view))
+        {
+            Remove(view);
+        }
     }
 }

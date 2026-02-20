@@ -6,15 +6,45 @@ namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Multi-view render pipeline. Iterates a list of <see cref="RenderView"/> instances
-/// and for each one: applies the surface, clears, enqueues world draw commands,
-/// then flushes all registered renderers using the view's camera frame.
+/// and for each enabled, visible, and due-to-render view:
+/// <list type="number">
+///   <item>Captures GPU state via <see cref="GraphicsStateGuard"/>.</item>
+///   <item>Applies the surface (SetRenderTarget + Viewport).</item>
+///   <item>Clears the surface.</item>
+///   <item>Delegates to the view's <see cref="IViewRenderPipeline"/> (or <see cref="DefaultViewPipeline"/>).</item>
+///   <item>Optionally calls the view's <see cref="IViewPresenter"/>.</item>
+///   <item>Optionally draws <see cref="DebugOverlay"/> if requested.</item>
+///   <item>Restores GPU state automatically when the guard is disposed.</item>
+/// </list>
+///
+/// <b>UpdateMode support:</b>
+/// <list type="bullet">
+///   <item><see cref="ViewUpdateMode.RealTime"/>   — rendered every frame.</item>
+///   <item><see cref="ViewUpdateMode.OnDemand"/>   — rendered only after <see cref="RenderView.Invalidate"/>.</item>
+///   <item><see cref="ViewUpdateMode.Throttled"/>  — rendered at <see cref="RenderView.TargetFrameRate"/> fps.</item>
+/// </list>
 /// </summary>
 public sealed class RenderPipeline
 {
-    private readonly GraphicsDevice _graphicsDevice;
+    private readonly GraphicsDevice                       _graphicsDevice;
     private readonly IReadOnlyList<IViewFlushableRenderer> _renderers;
-    private readonly SpriteBatch _spriteBatch;
-    private readonly Texture2D _pixel;
+    private readonly SpriteBatch                          _spriteBatch;
+    private readonly Texture2D                            _pixel;
+    private readonly DefaultViewPipeline                  _defaultPipeline = DefaultViewPipeline.Instance;
+
+    /// <summary>
+    /// Optional debug overlay drawn on views that have <see cref="RenderView.ShowDebugOverlay"/> = true.
+    /// Assign from the game's Initialize method (requires a FontSystem).
+    /// </summary>
+    public DebugOverlay? DebugOverlay { get; set; }
+
+#if DEBUG
+    /// <summary>
+    /// When true (debug builds only), logs a warning if a renderer leaves the
+    /// GraphicsDevice in a non-default blend/depth/rasterizer state after a flush.
+    /// </summary>
+    public bool ValidateStatePerView { get; set; }
+#endif
 
     /// <param name="graphicsDevice">The graphics device to draw on.</param>
     /// <param name="renderers">
@@ -27,11 +57,14 @@ public sealed class RenderPipeline
     /// and always clears the full render target; using SpriteBatch is the correct
     /// way to scope a color fill to a sub-rectangle of the backbuffer.
     /// </param>
-    public RenderPipeline(GraphicsDevice graphicsDevice, IReadOnlyList<IViewFlushableRenderer> renderers, SpriteBatch spriteBatch)
+    public RenderPipeline(
+        GraphicsDevice                        graphicsDevice,
+        IReadOnlyList<IViewFlushableRenderer> renderers,
+        SpriteBatch                           spriteBatch)
     {
         _graphicsDevice = graphicsDevice;
-        _renderers = renderers;
-        _spriteBatch = spriteBatch;
+        _renderers      = renderers;
+        _spriteBatch    = spriteBatch;
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
@@ -39,47 +72,57 @@ public sealed class RenderPipeline
     }
 
     /// <summary>
-    /// Renders all enabled views.
-    /// RenderTarget views are processed first so that transitions between RT and
-    /// backbuffer surfaces are handled correctly.
+    /// Renders all views that are enabled, visible, and due to render according
+    /// to their <see cref="ViewUpdateMode"/>.
+    ///
+    /// RenderTarget views are processed before BackBuffer views so that transitions
+    /// between RT and backbuffer surfaces are handled correctly.
     ///
     /// IMPORTANT — WPF editor compatibility:
     /// The D3D11Host sets a _cachedRenderTarget before calling Draw so that the
     /// scene is rendered into an off-screen texture shown in the WPF control.
     /// We must capture that initial render target and restore it whenever we need
     /// the "backbuffer" surface — not SetRenderTarget(null), which would lose the
-    /// WPF texture. BackBufferSurface.Apply() therefore only touches the Viewport
-    /// and relies on us to set the correct target beforehand.
+    /// WPF texture. BackBufferSurface.Apply() therefore only touches the Viewport.
     /// </summary>
-    public void Render(IReadOnlyList<RenderView> views)
+    /// <param name="views">The current list of views from <see cref="ViewManager"/>.</param>
+    /// <param name="deltaSeconds">Elapsed time (seconds) since last frame, used for throttling.</param>
+    public void Render(IReadOnlyList<RenderView> views, float deltaSeconds = 0f)
     {
         // Capture the render target that is active when Render() is entered.
         // Standalone : null  (real backbuffer)
         // WPF editor : _cachedRenderTarget  (off-screen WPF texture)
-        var initialTargets = _graphicsDevice.GetRenderTargets();
+        var initialTargets      = _graphicsDevice.GetRenderTargets();
         var initialRenderTarget = initialTargets.Length > 0
             ? initialTargets[0].RenderTarget as RenderTarget2D
             : null;
 
         // RenderTarget views first, then BackBuffer views.
-        // This ensures that the SetRenderTarget(initialRenderTarget) restore that
-        // follows each RT view happens before any BackBuffer view is drawn.
         var orderedViews = views
-            .Where(v => v.Enabled && !v.Surface.IsBackBuffer)
-            .Concat(views.Where(v => v.Enabled && v.Surface.IsBackBuffer));
+            .Where(v => v.Enabled && v.IsVisible && !v.Surface.IsBackBuffer)
+            .Concat(views.Where(v => v.Enabled && v.IsVisible && v.Surface.IsBackBuffer));
 
         foreach (var view in orderedViews)
         {
-            // 1. Apply surface:
-            //    - RT view : SetRenderTarget(rt) + Viewport (done inside Apply)
-            //    - BB view : restore initial target first, then Apply sets only Viewport
+            // ---- UpdateMode check ----
+            if (!ShouldRenderThisFrame(view, deltaSeconds))
+            {
+                continue;
+            }
+
+            // ---- Capture full GPU state (restore on scope exit) ----
+            using var guard = new GraphicsStateGuard(_graphicsDevice);
+
+            // 1. Restore the initial target for BB views; RT views set their own.
             if (view.Surface.IsBackBuffer)
             {
                 _graphicsDevice.SetRenderTarget(initialRenderTarget);
             }
+
+            // 2. Apply surface (SetRenderTarget for RT, or Viewport-only for BB)
             view.Surface.Apply(_graphicsDevice);
 
-            // 2. Clear
+            // 3. Clear
             //
             // IMPORTANT: GraphicsDevice.Clear() always clears the FULL render target,
             // ignoring the current viewport. For split-screen BackBufferSurface views
@@ -95,45 +138,69 @@ public sealed class RenderPipeline
             // independent textures, not shared with other views).
             if (view.ClearColorBuffer && view.Surface.IsBackBuffer)
             {
-                // Fill this viewport's rectangle with the clear color.
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                     null, DepthStencilState.None, RasterizerState.CullNone);
                 _spriteBatch.Draw(_pixel, new Rectangle(0, 0, vp.Width, vp.Height), view.ClearColor);
                 _spriteBatch.End();
 
-                // Clear depth/stencil only (full-target, but that is acceptable).
                 _graphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Stencil,
                     view.ClearColor, 1.0f, 0);
             }
             else
             {
                 var clearOptions = ClearOptions.DepthBuffer | ClearOptions.Stencil;
-                if (view.ClearColorBuffer)
-                {
-                    clearOptions |= ClearOptions.Target;
-                }
+                if (view.ClearColorBuffer) clearOptions |= ClearOptions.Target;
                 _graphicsDevice.Clear(clearOptions, view.ClearColor, 1.0f, 0);
             }
 
-            // 3. Build the camera frame for this view
+            // 4. Build the camera frame for this view
             var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect);
 
-            // 4. Enqueue world draw commands (fills renderer queues)
-            view.World.Draw(frame.ViewProjection);
+            // 5. Delegate to the per-view pipeline (or the shared default)
+            var pipeline = view.Pipeline ?? _defaultPipeline;
+            pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
 
-            // 5. Flush all renderers for this view (drains their queues)
-            foreach (var renderer in _renderers)
-            {
-                renderer.Flush(in frame);
-            }
-
-            // 6. After a RT view, restore the initial render target so the next
+            // 6. After an RT view, restore the initial render target so the next
             //    view (BB or another RT) starts from the expected surface.
             if (!view.Surface.IsBackBuffer)
             {
                 _graphicsDevice.SetRenderTarget(initialRenderTarget);
             }
+
+            // 7. Optional debug overlay (drawn into the view's surface)
+            if (view.ShowDebugOverlay && DebugOverlay != null)
+            {
+                // Re-apply the surface so the overlay lands in the right target
+                if (view.Surface.IsBackBuffer)
+                {
+                    _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                }
+                view.Surface.Apply(_graphicsDevice);
+                DebugOverlay.Draw(view, view.Surface.ViewportRect, deltaSeconds);
+
+                if (!view.Surface.IsBackBuffer)
+                {
+                    _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                }
+            }
+
+            // 8. Optional presenter (blit RT → backbuffer, expose texture to UI, etc.)
+            view.Presenter?.Present(_graphicsDevice, view);
+
+            // Reset OnDemand dirty flag after successful render
+            if (view.UpdateMode == ViewUpdateMode.OnDemand)
+            {
+                view.IsDirty = false;
+            }
+
+#if DEBUG
+            if (ValidateStatePerView)
+            {
+                ValidateDeviceState(view);
+            }
+#endif
+            // GraphicsStateGuard.Dispose() restores all state here (using block end).
         }
 
         // After all views: restore initial target + full-screen viewport.
@@ -141,4 +208,47 @@ public sealed class RenderPipeline
         var pp = _graphicsDevice.PresentationParameters;
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }
+
+    // ---- Throttle / update mode ----
+
+    private static bool ShouldRenderThisFrame(RenderView view, float deltaSeconds)
+    {
+        switch (view.UpdateMode)
+        {
+            case ViewUpdateMode.RealTime:
+                return true;
+
+            case ViewUpdateMode.OnDemand:
+                return view.IsDirty;
+
+            case ViewUpdateMode.Throttled:
+                view.ThrottleAccumulator += deltaSeconds;
+                var interval = view.TargetFrameRate > 0f ? 1f / view.TargetFrameRate : 0f;
+                if (view.ThrottleAccumulator >= interval)
+                {
+                    view.ThrottleAccumulator = 0f;
+                    return true;
+                }
+                return false;
+
+            default:
+                return true;
+        }
+    }
+
+#if DEBUG
+    private void ValidateDeviceState(RenderView view)
+    {
+        // Log warnings if the pipeline left the device in a unexpected state.
+        // (Blend/Depth/Rasterizer should be back to defaults after the guard restores them,
+        //  but this check runs BEFORE the guard disposes, to catch renderer bugs.)
+        if (_graphicsDevice.BlendState != BlendState.Opaque &&
+            _graphicsDevice.BlendState != BlendState.AlphaBlend &&
+            _graphicsDevice.BlendState != BlendState.NonPremultiplied)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[RenderPipeline] View '{view.Name}': BlendState left dirty after flush.");
+        }
+    }
+#endif
 }

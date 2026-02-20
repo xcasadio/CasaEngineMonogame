@@ -5,15 +5,33 @@ namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Render surface that targets a RenderTarget2D (e.g. for MGUI editor panels).
-/// Supports dynamic resizing via <see cref="EnsureSize"/>.
+///
+/// v2 improvements:
+/// <list type="bullet">
+///   <item>
+///     Integrates with <see cref="RenderTargetPool.Shared"/> when available —
+///     old RTs are returned to the pool instead of being disposed.
+///   </item>
+///   <item>
+///     Debounced resize: if the requested size changes more than once per frame
+///     (common during docking operations) the RT is only recreated once per Draw call.
+///     Call <see cref="RequestResize"/> from a UI resize handler and
+///     <see cref="EnsureSize"/> will apply the pending size on the next render.
+///   </item>
+/// </list>
 /// </summary>
 public sealed class RenderTargetSurface : IRenderSurface, IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
-    private readonly SurfaceFormat _surfaceFormat;
-    private readonly DepthFormat _depthFormat;
-    private RenderTarget2D? _renderTarget;
-    private bool _disposed;
+    private readonly SurfaceFormat  _surfaceFormat;
+    private readonly DepthFormat    _depthFormat;
+    private RenderTarget2D?         _renderTarget;
+    private bool                    _disposed;
+
+    // Debounce state
+    private int  _pendingWidth;
+    private int  _pendingHeight;
+    private bool _resizeDirty;
 
     public bool IsBackBuffer => false;
 
@@ -28,50 +46,69 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
 
     public RenderTargetSurface(
         GraphicsDevice graphicsDevice,
-        int width,
-        int height,
-        SurfaceFormat surfaceFormat = SurfaceFormat.Color,
-        DepthFormat depthFormat = DepthFormat.Depth24)
+        int            width,
+        int            height,
+        SurfaceFormat  surfaceFormat = SurfaceFormat.Color,
+        DepthFormat    depthFormat   = DepthFormat.Depth24)
     {
         _graphicsDevice = graphicsDevice;
-        _surfaceFormat = surfaceFormat;
-        _depthFormat = depthFormat;
+        _surfaceFormat  = surfaceFormat;
+        _depthFormat    = depthFormat;
         CreateTarget(width, height);
+    }
+
+    // ---- Resize API ----
+
+    /// <summary>
+    /// Schedules a resize to be applied on the next call to <see cref="EnsureSize"/>.
+    /// Safe to call many times per frame (e.g. from a WPF SizeChanged handler) —
+    /// the RT is only recreated once when <see cref="EnsureSize"/> is invoked.
+    /// </summary>
+    public void RequestResize(int width, int height)
+    {
+        int w = Math.Max(1, width);
+        int h = Math.Max(1, height);
+
+        if (_renderTarget == null || _renderTarget.Width != w || _renderTarget.Height != h)
+        {
+            _pendingWidth  = w;
+            _pendingHeight = h;
+            _resizeDirty   = true;
+        }
     }
 
     /// <summary>
     /// Ensures the RenderTarget matches the requested size.
-    /// Recreates the texture if dimensions change.
+    /// If a pending resize is queued (via <see cref="RequestResize"/>) it is applied now.
+    /// Recreates the texture only if dimensions actually changed.
     /// </summary>
     public void EnsureSize(int width, int height)
     {
-        if (_renderTarget != null &&
-            _renderTarget.Width == width &&
-            _renderTarget.Height == height)
-        {
-            return;
-        }
-
-        _renderTarget?.Dispose();
-        CreateTarget(width, height);
+        // Merge an explicit call with any pending debounced resize
+        RequestResize(width, height);
+        ApplyPendingResize();
     }
 
-    private void CreateTarget(int width, int height)
+    /// <summary>
+    /// Applies a pending debounced resize if one is queued.
+    /// Called automatically at the start of <see cref="Apply"/> so the RT is always
+    /// up-to-date before a new render pass begins.
+    /// </summary>
+    public void ApplyPendingResize()
     {
-        _renderTarget = new RenderTarget2D(
-            _graphicsDevice,
-            Math.Max(1, width),
-            Math.Max(1, height),
-            false,
-            _surfaceFormat,
-            _depthFormat,
-            0,
-            RenderTargetUsage.PreserveContents);
+        if (!_resizeDirty) return;
+        _resizeDirty = false;
+        ReplaceTarget(_pendingWidth, _pendingHeight);
     }
+
+    // ---- IRenderSurface ----
 
     /// <inheritdoc/>
     public void Apply(GraphicsDevice graphicsDevice)
     {
+        // Consume any pending debounced resize before rendering into the RT
+        ApplyPendingResize();
+
         graphicsDevice.SetRenderTarget(_renderTarget);
         graphicsDevice.Viewport = new Viewport(0, 0, _renderTarget!.Width, _renderTarget.Height);
     }
@@ -85,12 +122,64 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
         graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }
 
+    // ---- Private helpers ----
+
+    private void CreateTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        if (pool != null)
+        {
+            _renderTarget = pool.Acquire(
+                Math.Max(1, width), Math.Max(1, height),
+                _surfaceFormat, _depthFormat);
+        }
+        else
+        {
+            _renderTarget = new RenderTarget2D(
+                _graphicsDevice,
+                Math.Max(1, width),
+                Math.Max(1, height),
+                false,
+                _surfaceFormat,
+                _depthFormat,
+                0,
+                RenderTargetUsage.PreserveContents);
+        }
+    }
+
+    private void ReplaceTarget(int width, int height)
+    {
+        var pool = RenderTargetPool.Shared;
+        if (_renderTarget != null)
+        {
+            if (pool != null)
+                pool.Release(_renderTarget);
+            else
+                _renderTarget.Dispose();
+
+            _renderTarget = null;
+        }
+
+        CreateTarget(width, height);
+    }
+
+    // ---- IDisposable ----
+
     public void Dispose()
     {
         if (!_disposed)
         {
-            _renderTarget?.Dispose();
-            _renderTarget = null;
+            var pool = RenderTargetPool.Shared;
+            if (_renderTarget != null)
+            {
+                if (pool != null)
+                    pool.Release(_renderTarget);
+                else
+                    _renderTarget.Dispose();
+
+                _renderTarget = null;
+            }
+
             _disposed = true;
         }
     }

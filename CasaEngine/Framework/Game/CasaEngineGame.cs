@@ -193,6 +193,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             Line3dRendererComponent,
         }, SpriteBatch!);
 
+        // Initialize the shared RT pool so RenderTargetSurface can return obsolete
+        // targets to the pool instead of disposing them immediately.
+        RenderTargetPool.Shared = new RenderTargetPool(GraphicsDevice);
+
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
 
@@ -219,6 +223,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         //default font
         FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+
+        // Wire optional debug overlay into the render pipeline.
+        // Toggle per-view with RenderView.ShowDebugOverlay = true.
+        if (_renderPipeline != null)
+        {
+            _renderPipeline.DebugOverlay = new DebugOverlay(SpriteBatch!, FontSystem);
+        }
 
         //DebugSystem.Initialize(this);
 
@@ -355,7 +366,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
                 }
                 else
                 {
-                    _renderPipeline.Render(views);
+                    _renderPipeline.Render(views, (float)gameTime.ElapsedGameTime.TotalSeconds);
                 }
 
                 // Hook for derived classes to draw overlays after the pipeline
