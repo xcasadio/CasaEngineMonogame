@@ -335,24 +335,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
                 }
 
                 // Phase 2 — 3D pipeline rendering (fills backbuffer via viewports).
+                // World.LoadContent always registers at least one default RenderView, so
+                // views.Count == 0 only happens before a world is loaded (loading screen, etc.).
                 var views = GameManager.ViewManager.Views;
                 if (views.Count == 0)
                 {
-                    // Implicit fallback: single full-screen view from ActiveCamera
-                    var activeCamera = GameManager.ActiveCamera;
-                    var currentWorld = GameManager.CurrentWorld;
-                    if (activeCamera != null && currentWorld != null)
-                    {
-                        var pp = GraphicsDevice.PresentationParameters;
-                        var fullScreen = new Rectangle(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
-                        var implicitView = new RenderView(currentWorld, activeCamera, new BackBufferSurface(fullScreen));
-                        _renderPipeline.Render(new[] { implicitView });
-                    }
-                    else
-                    {
-                        // Nothing to render: at least clear the screen
-                        GraphicsDevice.Clear(Color.Black);
-                    }
+                    // Safety net: no world loaded yet — just clear the screen.
+                    GraphicsDevice.Clear(Color.Black);
                 }
                 else
                 {
