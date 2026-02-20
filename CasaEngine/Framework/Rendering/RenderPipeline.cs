@@ -40,21 +40,43 @@ public sealed class RenderPipeline
 
     /// <summary>
     /// Renders all enabled views.
-    /// RenderTarget views are processed first so that the final SetRenderTarget(null)
-    /// used to restore the backbuffer happens before any BackBuffer view is drawn.
-    /// (On D3D11/MonoGame, SetRenderTarget(null) after a RT invalidates backbuffer
-    /// content, so BackBuffer views must always be last.)
+    /// RenderTarget views are processed first so that transitions between RT and
+    /// backbuffer surfaces are handled correctly.
+    ///
+    /// IMPORTANT — WPF editor compatibility:
+    /// The D3D11Host sets a _cachedRenderTarget before calling Draw so that the
+    /// scene is rendered into an off-screen texture shown in the WPF control.
+    /// We must capture that initial render target and restore it whenever we need
+    /// the "backbuffer" surface — not SetRenderTarget(null), which would lose the
+    /// WPF texture. BackBufferSurface.Apply() therefore only touches the Viewport
+    /// and relies on us to set the correct target beforehand.
     /// </summary>
     public void Render(IReadOnlyList<RenderView> views)
     {
+        // Capture the render target that is active when Render() is entered.
+        // Standalone : null  (real backbuffer)
+        // WPF editor : _cachedRenderTarget  (off-screen WPF texture)
+        var initialTargets = _graphicsDevice.GetRenderTargets();
+        var initialRenderTarget = initialTargets.Length > 0
+            ? initialTargets[0].RenderTarget as RenderTarget2D
+            : null;
+
         // RenderTarget views first, then BackBuffer views.
+        // This ensures that the SetRenderTarget(initialRenderTarget) restore that
+        // follows each RT view happens before any BackBuffer view is drawn.
         var orderedViews = views
             .Where(v => v.Enabled && !v.Surface.IsBackBuffer)
             .Concat(views.Where(v => v.Enabled && v.Surface.IsBackBuffer));
 
         foreach (var view in orderedViews)
         {
-            // 1. Apply surface: SetRenderTarget + Viewport
+            // 1. Apply surface:
+            //    - RT view : SetRenderTarget(rt) + Viewport (done inside Apply)
+            //    - BB view : restore initial target first, then Apply sets only Viewport
+            if (view.Surface.IsBackBuffer)
+            {
+                _graphicsDevice.SetRenderTarget(initialRenderTarget);
+            }
             view.Surface.Apply(_graphicsDevice);
 
             // 2. Clear
@@ -106,15 +128,16 @@ public sealed class RenderPipeline
                 renderer.Flush(in frame);
             }
 
-            // 6. If the view targeted a RenderTarget, restore the backbuffer
+            // 6. After a RT view, restore the initial render target so the next
+            //    view (BB or another RT) starts from the expected surface.
             if (!view.Surface.IsBackBuffer)
             {
-                view.Surface.Restore(_graphicsDevice);
+                _graphicsDevice.SetRenderTarget(initialRenderTarget);
             }
         }
 
-        // After all views: reset to backbuffer + full-screen viewport
-        _graphicsDevice.SetRenderTarget(null);
+        // After all views: restore initial target + full-screen viewport.
+        _graphicsDevice.SetRenderTarget(initialRenderTarget);
         var pp = _graphicsDevice.PresentationParameters;
         _graphicsDevice.Viewport = new Viewport(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
     }

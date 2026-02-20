@@ -20,9 +20,10 @@ public sealed class BackBufferSurface : IRenderSurface
     /// <inheritdoc/>
     public void Apply(GraphicsDevice graphicsDevice)
     {
-        // Ensure we are on the backbuffer
-        graphicsDevice.SetRenderTarget(null);
-
+        // Do NOT call SetRenderTarget here.
+        // RenderPipeline.Render() sets the correct render target before calling Apply()
+        // so that both standalone mode (null = real backbuffer) and WPF editor mode
+        // (_cachedRenderTarget) work correctly.
         graphicsDevice.Viewport = new Viewport(
             ViewportRect.X,
             ViewportRect.Y,
