@@ -68,6 +68,9 @@ public class DemosGame : CasaEngineGame
         _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
+        // Clear any views registered by the previous demo so that World.LoadContent
+        // can register a fresh default view (it only does so when Views.Count == 0).
+        GameManager.ViewManager.Clear();
         currentWorld.LoadContent(this);
         _currentDemo.InitializeCamera(camera);
 

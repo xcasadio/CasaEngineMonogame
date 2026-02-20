@@ -90,6 +90,7 @@ public class SceneManagementDemo : Demo
 
     public override void Clean()
     {
-
+        _rotatingEntities.Clear();
+        _entities.Clear();
     }
 }

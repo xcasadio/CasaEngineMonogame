@@ -10,6 +10,7 @@ using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using Microsoft.Xna.Framework;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
