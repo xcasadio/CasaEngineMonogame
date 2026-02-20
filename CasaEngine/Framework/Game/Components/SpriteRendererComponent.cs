@@ -138,8 +138,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         graphicsDevice.ScissorRectangle = scissorRectangle;
     }
 
-    // TODO: DrawDirectly still reads ActiveCamera. Refactor to accept an explicit
-    // RenderFrame argument so it works correctly in multi-view scenarios.
+    // TODO: DrawDirectly still reads ActiveCamera directly. Refactor to accept a RenderFrame
+    // argument (or a view/projection pair) so it works correctly in all multi-view scenarios.
     public void DrawDirectly(Texture2D texture)
     {
         var graphicsDevice = _effect.GraphicsDevice;

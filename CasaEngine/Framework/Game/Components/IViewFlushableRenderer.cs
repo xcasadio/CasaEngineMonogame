@@ -3,9 +3,9 @@ using CasaEngine.Framework.Rendering;
 namespace CasaEngine.Framework.Game.Components;
 
 /// <summary>
-/// Implemented by renderer components that support per-view flushing.
-/// Instead of reading GameManager.ActiveCamera, they receive a <see cref="RenderFrame"/>
-/// containing the camera data for the current view.
+/// Implemented by renderer components that support per-view flushing via <see cref="RenderPipeline"/>.
+/// Each view provides a <see cref="RenderFrame"/> with the camera data for that view,
+/// removing the need for renderers to read any global camera state.
 /// </summary>
 public interface IViewFlushableRenderer
 {
