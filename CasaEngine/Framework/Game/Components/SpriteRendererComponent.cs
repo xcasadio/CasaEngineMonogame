@@ -103,15 +103,6 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         Clear();
     }
 
-    public override void Draw(GameTime gameTime)
-    {
-        // Fallback: build a frame from the active camera and flush.
-        var camera = _game.GameManager.ActiveCamera;
-        if (camera == null) return;
-        var frame = RenderFrameFactory.From(camera);
-        Flush(in frame);
-    }
-
     private void Draw(Matrix view, Matrix projection)
     {
         var graphicsDevice = _effect.GraphicsDevice;
