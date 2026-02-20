@@ -39,17 +39,21 @@ public sealed class RenderPipeline
     }
 
     /// <summary>
-    /// Renders all enabled views in order.
+    /// Renders all enabled views.
+    /// RenderTarget views are processed first so that the final SetRenderTarget(null)
+    /// used to restore the backbuffer happens before any BackBuffer view is drawn.
+    /// (On D3D11/MonoGame, SetRenderTarget(null) after a RT invalidates backbuffer
+    /// content, so BackBuffer views must always be last.)
     /// </summary>
     public void Render(IReadOnlyList<RenderView> views)
     {
-        foreach (var view in views)
-        {
-            if (!view.Enabled)
-            {
-                continue;
-            }
+        // RenderTarget views first, then BackBuffer views.
+        var orderedViews = views
+            .Where(v => v.Enabled && !v.Surface.IsBackBuffer)
+            .Concat(views.Where(v => v.Enabled && v.Surface.IsBackBuffer));
 
+        foreach (var view in orderedViews)
+        {
             // 1. Apply surface: SetRenderTarget + Viewport
             view.Surface.Apply(_graphicsDevice);
 
