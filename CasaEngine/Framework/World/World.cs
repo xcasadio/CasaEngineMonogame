@@ -11,6 +11,7 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -151,6 +152,17 @@ public sealed class World : ObjectBase
         }
 
         Game.GameManager.ActiveCamera = camera;
+
+        // Reset views and register a default full-screen RenderView so the pipeline always
+        // has at least one view. Game code can replace these in InitializeCamera or scripts.
+        Game.GameManager.ViewManager.Clear();
+        var pp2 = Game.GraphicsDevice.PresentationParameters;
+        var fullScreen = new Rectangle(0, 0, pp2.BackBufferWidth, pp2.BackBufferHeight);
+        Game.GameManager.ViewManager.Add(new RenderView(this, camera, new BackBufferSurface(fullScreen))
+        {
+            Name = "Default view",
+            ClearColor = Color.CornflowerBlue,
+        });
 #endif
 
         if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
