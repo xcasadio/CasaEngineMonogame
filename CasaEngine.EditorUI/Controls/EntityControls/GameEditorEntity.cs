@@ -78,7 +78,7 @@ public class GameEditorEntity : GameEditor
         //
         //    e.Handled = true;
         //    var position = e.GetPosition(this);
-        //    var camera = Game?.GameManager.ActiveCamera;
+        //    var camera = Game?.GameManager.ViewManager.ActiveView?.Camera;
         //    var ray = RayHelper.CalculateRayFromScreenCoordinate(
         //        new Vector2((float)position.X, (float)position.Y),
         //        camera.ProjectionMatrix, camera.ViewMatrix, camera.Viewport);

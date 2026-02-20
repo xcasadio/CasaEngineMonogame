@@ -142,7 +142,7 @@ public sealed class World : ObjectBase
         }
 
 #if !EDITOR
-        //TODO : remove this, use a script to set active camera
+        //TODO : use a startup script to configure the camera and register custom views
         var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).FirstOrDefault(x => x != null);
 
         if (camera == null)

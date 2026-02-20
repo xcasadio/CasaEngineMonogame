@@ -53,7 +53,7 @@ public class StaticMeshComponent : PrimitiveComponent
 
         // Only world-space matrices are enqueued here.
         // WorldViewProj and CameraPosition are resolved per-view inside
-        // StaticMeshRendererComponent.Flush(RenderFrame) — no ActiveCamera dependency.
+        // StaticMeshRendererComponent.Flush(RenderFrame).
         _meshRendererComponent.AddMesh(Mesh, Material,
             WorldMatrixWithScale, WorldInvertTransposeMatrix);
     }

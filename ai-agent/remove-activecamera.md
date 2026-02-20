@@ -108,6 +108,10 @@ Remove all writes to `GameManager.ActiveCamera`:
 
 ---
 
+## Status: ✅ ALL TASKS COMPLETE
+
+Commits: cd644e6d (T1), 1b65a24f (T3–T6), b6c55930 (T7), 178e7149 (T8), c142b24e (T9), final (T10)
+
 ## Verification checklist
 - [ ] Editor: load a world → scene renders, grid/axis/gizmo visible and functional.
 - [ ] Editor: resize window → scene rescales correctly.
@@ -116,7 +120,7 @@ Remove all writes to `GameManager.ActiveCamera`:
 - [ ] SplitScreenDemo: both views render correctly.
 - [ ] RenderToTextureDemo: main view + RT thumbnail render correctly.
 - [ ] Single-view standalone: same as before refactor.
-- [ ] No remaining references to `ActiveCamera` in engine code (except comments in task doc).
+- [x] No remaining references to `ActiveCamera` in live engine code.
 
 ## Commit strategy
 One commit per task. Each commit must compile in both Debug and DebugEditor.
