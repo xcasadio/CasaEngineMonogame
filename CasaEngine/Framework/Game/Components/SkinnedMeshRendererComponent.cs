@@ -80,15 +80,6 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _meshInfos.Clear();
     }
 
-    public override void Draw(GameTime gameTime)
-    {
-        // Fallback: build a frame from the active camera and flush.
-        var camera = _game.GameManager.ActiveCamera;
-        if (camera == null) return;
-        var frame = RenderFrameFactory.From(camera);
-        Flush(in frame);
-    }
-
     private class SkinnedMeshInfo
     {
         public RiggedModel? SkinnedMesh;
