@@ -665,10 +665,43 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ## 10. AI system analysis
 
-- [ ] **10.1** Review overall AI structure — there are 12+ sub-modules (BehaviourTree, FuzzyLogic, Graphs, Pathfinding, StateMachines, NeuralNets, Reinforcement Learning, etc.). Are they all actually used or is this dead/aspirational code?
-- [ ] **10.2** Check if AI modules depend on engine/framework types or stay self-contained.
-- [ ] **10.3** Evaluate `Navigation/` and `Pathfinding/` — is there duplication between them?
-- [ ] **10.4** Check if `Messaging/` and `Goals/` are properly integrated with the entity system.
+- [x] **10.1** Review overall AI structure — there are 12+ sub-modules (BehaviourTree, FuzzyLogic, Graphs, Pathfinding, StateMachines, NeuralNets, Reinforcement Learning, etc.). Are they all actually used or is this dead/aspirational code?
+- [x] **10.2** Check if AI modules depend on engine/framework types or stay self-contained.
+- [x] **10.3** Evaluate `Navigation/` and `Pathfinding/` — is there duplication between them?
+- [x] **10.4** Check if `Messaging/` and `Goals/` are properly integrated with the entity system.
+
+### Résultats de l'analyse — Task 10
+
+**10.1 Usage réel des modules AI**
+
+❌ **Zéro référence externe** : aucun fichier hors de `Framework/AI/` ne contient `using CasaEngine.Framework.AI`. L'ensemble des 12 modules AI (~100 fichiers) est du code **aspirationnel non utilisé** — confirmant le pattern déjà observé sur `GameFramework`.
+
+Modules présents : `BehaviourTree` (3), `StateMachines` (5), `Goals` (3), `Messaging` (8), `Graphs` (11), `Pathfinding` (12), `Navigation` (2), `FuzzyLogic` (12), `EvolutionaryComputing` (38 dont Crossover/Mutation/Replacement/Scaling/Selection), `NeuralNets` (4), `Reinforcement Learning/QLearning` (4), `Probability` (1), `SteeringsBehaviors` (12).
+
+**10.2 Auto-contenance des modules AI**
+
+✅ Les modules AI ne dépendent que d'eux-mêmes (`using CasaEngine.Framework.AI.*` inter-modules uniquement). Aucune dépendance vers `CasaEngine.Engine.*` ou `CasaEngine.Core.*`. Architecturalement propre — les modules pourraient être extraits dans une lib séparée.
+
+**10.3 Navigation vs Pathfinding**
+
+✅ Pas de duplication — responsabilités distinctes :
+- `Navigation/` (2 fichiers) : primitives de mouvement (`MovingObject`, `NavigationEdge`)
+- `Pathfinding/` (12 fichiers) : algorithmes de recherche graphe (A*, BFS, DFS, Dijkstra, PathPlanner, PathSmoother)
+- `Pathfinding` dépend de `Navigation` + `Graphs` — couplage juste et directionnel
+
+**10.4 Messaging et Goals**
+
+❌ Non intégrés avec le système d'entités. `Goals/Goal.cs` importe `CasaEngine.Framework.AI.Messaging` mais aucune entité (`Entity`, `Component`) n'utilise ces modules. Ils existent en isolation complète.
+
+### Violations identifiées — Task 10
+
+| # | Sévérité | Problème |
+|---|---|---|
+| V10-1 | 🟡 | ~100 fichiers AI entièrement inutilisés — code mort à documenter/supprimer |
+
+### Recommandation — Task 10
+
+Marquer `Framework/AI/` comme **feature flags désactivées** ou **code de référence non activé**. Si non prévu d'être utilisé dans les 2 prochains cycles, déplacer dans un projet séparé `CasaEngine.AI.csproj` ou supprimer pour réduire la maintenance.
 
 ---
 
