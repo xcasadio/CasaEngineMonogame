@@ -608,11 +608,58 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ## 9. Asset system analysis
 
-- [ ] **9.1** Review `AssetContentManager.cs` / `AssetContentManagerAdapter.cs` — is the asset loading pipeline clean?
-- [ ] **9.2** Review `IAssetable`, `IAssetLoader`, `AssetLoader`, `AssetSaver` — are assets loaded/saved uniformly?
-- [ ] **9.3** Check `AssetCatalog.cs` / `AssetInfo.cs` — is there a proper manifest system?
-- [ ] **9.4** Evaluate specialized asset folders (`Animations/`, `Fonts/`, `Sprites/`, `Textures/`, `TileMap/`) — are they consistent in structure?
-- [ ] **9.5** Check `ElementLoader.cs` — is this a generic loader or a misplaced utility?
+- [x] **9.1** Review `AssetContentManager.cs` / `AssetContentManagerAdapter.cs` — is the asset loading pipeline clean?
+- [x] **9.2** Review `IAssetable`, `IAssetLoader`, `AssetLoader`, `AssetSaver` — are assets loaded/saved uniformly?
+- [x] **9.3** Check `AssetCatalog.cs` / `AssetInfo.cs` — is there a proper manifest system?
+- [x] **9.4** Evaluate specialized asset folders (`Animations/`, `Fonts/`, `Sprites/`, `Textures/`, `TileMap/`) — are they consistent in structure?
+- [x] **9.5** Check `ElementLoader.cs` — is this a generic loader or a misplaced utility?
+
+### Résultats de l'analyse — Task 9
+
+**9.1 AssetContentManager.cs (265 lignes)**
+
+✅ Cache d'assets par catégorie (double index Guid+Name via `AssetDictionary`). Chargeurs typés enregistrables (`RegisterAssetLoader`). `Unload(category)` + `UnloadAll()` avec `IDisposable`. Récupération de device via `IAssetable.OnDeviceReset`. Code clair et cohérent.
+
+⚠️ Méthode `Load<T>` : commentaire `//TODO entity can be cache ?` non résolu — les `Entity` ne sont jamais cachées (contournement hardcodé par type `typeof(Entity)`).
+
+**9.2 IAssetable / IAssetLoader / AssetLoader**
+
+✅ `IAssetLoader` minimal (2 méthodes : `LoadAsset`, `IsFileSupported`). `AssetLoader<T>` générique: parse JSON + `ISerializable.Load(JObject)`. Extension propre par type spécialisé (`Texture2DLoader`, `EffectLoader`, etc.).
+
+**9.3 AssetCatalog / AssetInfo**
+
+✅ `AssetInfo` : `Id (Guid)`, `Name`, `FileName` — `ISerializable`, `IEquatable<AssetInfo>`. Manifest JSON bien structuré.
+
+❌ `AssetCatalog` : classe **statique** (état global). `Get(string name)` et `GetByFileName(string)` font une **recherche linéaire O(N)** via `FirstOrDefault`. Avec des projets contenant >500 assets, c'est une régression de performance à chaque chargement.
+
+**9.4 Dossiers d'assets spécialisés**
+
+✅ Structure cohérente entre `Animations/`, `Sprites/`, `Textures/`, `TileMap/` : chaque sous-dossier a ses Data, Loader et types métier.
+
+❌ `Animations/RiggedModelLoader.cs` : **1616 lignes** — God Class évidente. Un loader de 1600 lignes indique des responsabilités multiples (parsing, conversion, UV-unwrapping, bone extraction). Doit être décomposé.
+
+**9.5 ElementLoader.cs**
+
+❌ Nom de fichier `ElementLoader.cs` mais classe interne nommée `ElementFactory` — **mismatch de nommage**.
+
+❌ `FindTypeByName()` : scan de **tous les assemblies chargés** (`AppDomain.CurrentDomain.GetAssemblies()`) à chaque appel. Un `TODO: cache types` est en commentaire depuis longtemps mais non implémenté. En production avec des centaines d'entités à charger, c'est une régression critique.
+
+### Violations identifiées — Task 9
+
+| # | Sévérité | Fichier | Problème |
+|---|---|---|---|
+| V9-1 | 🔴 | `Assets/ElementLoader.cs` | Nom de fichier ≠ nom de classe (`ElementFactory`) |
+| V9-2 | 🔴 | `Assets/ElementLoader.cs` | `FindTypeByName()` non-caché — scan O(N×A) à chaque deserialisation |
+| V9-3 | 🔴 | `Animations/RiggedModelLoader.cs` | God Class 1616 lignes — doit être décomposée |
+| V9-4 | 🟡 | `Assets/AssetCatalog.cs` | `GetByFileName`/`Get(string name)` : recherche linéaire O(N) |
+| V9-5 | 🟡 | `AssetContentManager.cs` | TODO `entity can be cache ?` non résolu — contournement hardcodé par type |
+
+### Corrections recommandées — Task 9
+
+1. **V9-1** : Renommer `ElementLoader.cs` → `ElementFactory.cs`.
+2. **V9-2** : Ajouter un `Dictionary<string, Type> _typeCache` statique dans `ElementFactory.FindTypeByName()`.
+3. **V9-3** : Décomposer `RiggedModelLoader.cs` en `BoneExtractor`, `MeshConverter`, `AnimationParser`, etc.
+4. **V9-4** : Ajouter `Dictionary<string, AssetInfo> _byName` et `Dictionary<string, AssetInfo> _byFileName` dans `AssetCatalog`.
 
 ---
 
