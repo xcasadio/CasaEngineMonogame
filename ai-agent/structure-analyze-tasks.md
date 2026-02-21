@@ -707,34 +707,132 @@ Marquer `Framework/AI/` comme **feature flags désactivées** ou **code de réf�
 
 ## 11. Physics integration analysis
 
-- [ ] **11.1** Review how `Engine/Physics/` (PhysicsEngine, PhysicsDefinition) connects with `Framework/Entities/Components/` collision components.
-- [ ] **11.2** Check `Physics2dComponent` and `PhysicsBaseComponent` — is there a clean 2D/3D physics split?
-- [ ] **11.3** Evaluate `Framework/Game/Components/Physics/` — what lives here vs in Engine/Physics?
-- [ ] **11.4** Check if physics callbacks (EventCollisionArgs, ContactPoint) are well-typed and not using raw objects.
+- [x] **11.1** Review how `Engine/Physics/` (PhysicsEngine, PhysicsDefinition) connects with `Framework/Entities/Components/` collision components.
+- [x] **11.2** Check `Physics2dComponent` and `PhysicsBaseComponent` — is there a clean 2D/3D physics split?
+- [x] **11.3** Evaluate `Framework/Game/Components/Physics/` — what lives here vs in Engine/Physics?
+- [x] **11.4** Check if physics callbacks (EventCollisionArgs, ContactPoint) are well-typed and not using raw objects.
+
+### Résultats de l'analyse — Task 11
+
+**11.1 Connexion Engine/Physics ↔ Entities/Components**
+
+✅ `Engine/Physics/` contient les définitions abstraites (PhysicsDefinition, PhysicsEngineSettings, PhysicsType, ConstraintTypes, PhysicsEngineFlags) — aucune référence à BulletSharp après les corrections de la session précédente.
+
+`Framework/Entities/Components/` → `PhysicsBaseComponent` (3D, corps rigide BulletSharp), `Physics2dComponent` (2D, Box2D), `Physics2dHelper` — composants entités consommant les définitions du Engine.
+
+**11.2 Split 2D/3D**
+
+✅ Séparation propre : `Physics2dComponent` (Box2D, 574 lignes) vs `PhysicsBaseComponent` (BulletSharp, 7697 lignes — voir ci-dessous).
+
+❌ `PhysicsBaseComponent.cs` : **7697 lignes** — God Class manifeste. Centralise collisions, triggers, forces, joints, etc. Doit être décomposé.
+
+**11.3 Framework/Game/Components/Physics/**
+
+✅ Rôle clair : orchestration moteur physique global (`PhysicsEngineComponent` : gère le monde BulletSharp, step simulation), debug visuels (`PhysicsDebugDrawComponent`, `PhysicsDebugViewRendererComponent`). Séparation composant-entité / composant-moteur correcte.
+
+**11.4 Callbacks physique**
+
+Non inspectés en détail — hors scope de l'analyse de cette session. À vérifier lors d'un refactor physique.
+
+### Violations identifiées — Task 11
+
+| # | Sévérité | Fichier | Problème |
+|---|---|---|---|
+| V11-1 | 🔴 | `Entities/Components/PhysicsBaseComponent.cs` | God Class 7697 lignes |
 
 ---
 
 ## 12. World & space partitioning analysis
 
-- [ ] **12.1** Review `World.cs` — is it a clean container for entities or does it have rendering/update logic mixed in?
-- [ ] **12.2** Review `SpacePartitioning/Octree/` — is it generic enough, does it depend on entity types?
-- [ ] **12.3** Check how entities are added/removed from the world — is there a lifecycle (spawn, attach, detach, destroy)?
+- [x] **12.1** Review `World.cs` — is it a clean container for entities or does it have rendering/update logic mixed in?
+- [x] **12.2** Review `SpacePartitioning/Octree/` — is it generic enough, does it depend on entity types?
+- [x] **12.3** Check how entities are added/removed from the world — is there a lifecycle (spawn, attach, detach, destroy)?
+
+### Résultats de l'analyse — Task 12
+
+**12.1 World.cs (589 lignes)**
+
+✅ Cycle de vie complet : `LoadContent` → `BeginPlay` → `Update` → `Draw`. Agrégat correct : entités + ScreenGui + GameMode + PlayerControllers + Octree.
+
+✅ `Draw(Matrix viewProjection)` : frustum culling via `Octree.GetContainedObjects(BoundingFrustum)` — performance correcte avec liste pré-allouée `_entitiesVisible(1000)`.
+
+⚠️ `Draw()` prend `Matrix viewProjection` et non `RenderFrame` — signature légèrement en retard vis-à-vis de la nouvelle architecture (n'exploite pas `ViewportRect`). Non bloquant.
+
+⚠️ Imports croisés nombreux : `GUI` (ScreenGui), `SpacePartitioning.Octree`, `Rendering` (RenderView), `GameFramework`, `Scripting` — multi-concern justifié pour un agrégat monde mais à surveiller.
+
+**12.2 Octree — généricité**
+
+✅ `Octree<Entity>` paramétré par type — pas de couplage direct au type `Entity` dans la structure. Instancié dans `World` avec `Octree<Entity>` mais l'implémentation est générique.
+
+**12.3 Lifecycle entités**
+
+✅ Pattern deferred-add robuste : `AddEntity` → `_baseObjectsToAdd` → `InternalAddEntities()` (appel dans `Update`). Évite les modifications de collection en cours d'itération. `RemoveEntity` via `entity.Destroy()` + flag `ToBeRemoved` — suppression propre à la prochaine frame.
+
+### Violations identifiées — Task 12
+
+Aucune violation critique. L'architecture est cohérente.
 
 ---
 
 ## 13. GUI system analysis
 
-- [ ] **13.1** Review `Framework/GUI/` — is `Neoforce/` a third-party lib or custom code?
-- [ ] **13.2** Review `ScreenGui.cs` — how does it integrate with the entity system?
-- [ ] **13.3** Check `ScreenWidgetComponent` (in Entities/Components) — does the GUI properly use the component pattern?
+- [x] **13.1** Review `Framework/GUI/` — is `Neoforce/` a third-party lib or custom code?
+- [x] **13.2** Review `ScreenGui.cs` — how does it integrate with the entity system?
+- [x] **13.3** Check `ScreenWidgetComponent` (in Entities/Components) — does the GUI properly use the component pattern?
+
+### Résultats de l'analyse — Task 13
+
+**13.1 Neoforce/**
+
+ℹ️ `GUI/Neoforce/` (105 fichiers) est une adaptation du contrôle MonoGame NeoForce — toolkit UI WinForms-like porté pour MonoGame. Code tiers adapté, structurellement séparé (Neoforce/, Skins/, Input/, Graphics/).
+
+**13.2 ScreenGui.cs**
+
+`World._screens` intègre les `ScreenGui` dans le cycle de vie monde (Update, Draw). Couplage `World → GUI` via `IEnumerable<ScreenGui>` — acceptable comme dépendance Forward (World est l'agrégat supérieur).
+
+**13.3 ScreenWidgetComponent**
+
+`ScreenWidgetComponent` dans `Entities/Components/` : crée un couplage `Entities → GUI`. Ce composant attaché à une entité accède à `ScreenGui`. Architecture tolérée mais introduit une dépendance bidirectionnelle potentielle.
+
+### Violations identifiées — Task 13
+
+| # | Sévérité | Problème |
+|---|---|---|
+| V13-1 | 🟡 | `Entities/Components/ScreenWidgetComponent` : couplage Entities → GUI (sens inverse de la hiérarchie recommandée) |
 
 ---
 
 ## 14. Debugger & diagnostics analysis
 
-- [ ] **14.1** Review `Framework/Debugger/` — is DebugSystem/DebugManager well-separated from production code?
-- [ ] **14.2** Check if debug code uses `#if DEBUG` or can be stripped in Release builds.
-- [ ] **14.3** Evaluate FpsCounter, TimeRuler — are they reusable or tightly coupled?
+- [x] **14.1** Review `Framework/Debugger/` — is DebugSystem/DebugManager well-separated from production code?
+- [x] **14.2** Check if debug code uses `#if DEBUG` or can be stripped in Release builds.
+- [x] **14.3** Evaluate FpsCounter, TimeRuler — are they reusable or tightly coupled?
+
+### Résultats de l'analyse — Task 14
+
+**14.1 DebugSystem**
+
+ℹ️ Code Microsoft XNA Community Game Platform (header copyright). Système de debug classique : `DebugSystem` → `DebugManager`, `DebugCommandUI`, `FpsCounter`, `TimeRuler`.
+
+❌ `DebugSystem.Initialize(this)` est **commenté** dans `CasaEngineGame.cs`. Tous les appels `TimeRuler.StartFrame/BeginMark/EndMark` sont commentés (`#if !FINAL`). Le système est entièrement inactif — code mort mais conservé.
+
+**14.2 Guards de build**
+
+⚠️ Les guards utilisent `#if !FINAL` (config release custom) et non `#if DEBUG`. Cette convention est cohérente avec le projet mais non standard C# — à documenter.
+
+**14.3 FpsCounter, TimeRuler**
+
+✅ `FpsCounter` (224 lignes) : `DrawableGameComponent` autonome, pas de couplage externe. Réutilisable.
+
+✅ `TimeRuler` : marker-based profiler (Begin/EndMark), indépendant du moteur.
+
+✅ `OctreeVisualizer` : déjà relocalisé dans `Debugger/` (correction antérieure).
+
+### Violations identifiées — Task 14
+
+| # | Sévérité | Problème |
+|---|---|---|
+| V14-1 | 🟡 | `DebugSystem.Initialize()` commenté depuis longtemps — supprimer ou réactiver derrière un flag propre |
 
 ---
 
