@@ -560,11 +560,49 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ## 8. Game management & lifecycle
 
-- [ ] **8.1** Review `GameManager.cs` — is it a clean orchestrator or a god object with too many static/global responsibilities?
-- [ ] **8.2** Review `CasaEngineGame.cs` — is the game loop well structured (Initialize, LoadContent, Update, Draw)?
-- [ ] **8.3** Check `ComponentOrder.cs` — is draw/update ordering explicit and manageable?
-- [ ] **8.4** Check `GameSettings.cs` / `GraphicsSettings.cs` — clean separation of concerns?
-- [ ] **8.5** Check `GameExtension.cs` — what extension points exist, are they well-defined?
+- [x] **8.1** Review `GameManager.cs` — is it a clean orchestrator or a god object with too many static/global responsibilities?
+- [x] **8.2** Review `CasaEngineGame.cs` — is the game loop well structured (Initialize, LoadContent, Update, Draw)?
+- [x] **8.3** Check `ComponentOrder.cs` — is draw/update ordering explicit and manageable?
+- [x] **8.4** Check `GameSettings.cs` / `GraphicsSettings.cs` — clean separation of concerns?
+- [x] **8.5** Check `GameExtension.cs` — what extension points exist, are they well-defined?
+
+### Résultats de l'analyse — Task 8
+
+**8.1 GameManager.cs (154 lignes)**
+
+✅ Pas un god object. Responsabilités uniques et cohérentes : cycle de vie du monde (chargement, `UpdateWorld`, `SetWorldToLoad`) + `ViewManager`. Aucun état statique — instance propre. Sections `#if EDITOR` bien délimitées (caméra éditeur, callback `CreateCameraComponentCallback`).
+
+**8.2 CasaEngineGame.cs (463 lignes)**
+
+✅ Game loop bien structuré (Initialize → LoadContent → Update → Draw). Pattern multi-vue intégré proprement dans `Draw()` :
+- Phase 1 : composants DrawOrder < MeshComponent (UI setup)
+- Phase 2 : `_renderPipeline.Render()` (pipeline 3D multi-vue)
+- Phase 3 : composants DrawOrder ≥ MeshComponent (overlays, debug physics, etc.)
+- Hook `AfterRenderPipeline()` pour les classes dérivées ✅
+- `OnScreenResized()` proprement délégué à tous les composants + ViewManager ✅
+
+❌ **Chemin de police hardcodé Windows-only** : `@"C:\\Windows\\Fonts\\Tahoma.ttf"` dans `Initialize()`. Violation cross-platform, doit utiliser une police livrée dans `Content/`.
+
+⚠️ `RegisterLoaders()` contient 12+ enregistrements inline. Acceptable, mais pourrait être externalisé dans une classe dédiée `AssetLoaderRegistry` pour faciliter l'extension.
+
+**8.3 ComponentOrder.cs**
+
+✅ Deux enums explicites (`ComponentUpdateOrder`, `ComponentDrawOrder`) avec valeurs auto-incrémentées. Clair et maintenable. Extension `#if EDITOR` propre pour l'ordre éditeur.
+
+**8.4 GameSettings.cs**
+
+⚠️ Classe statique singleton avec 4 sous-objets : `ProjectSettings`, `AssemblyManager`, `GraphicsSettings`, `PhysicsEngineSettings`. Crée un état global mutable partagé. Acceptable pour un moteur de jeu mais introduit un couplage implicite (tout le code peut modifier les settings sans passer par injection). À documenter comme contrainte acceptée.
+
+**8.5 GameExtension.cs**
+
+✅ Extension methods utilitaires propres pour `Microsoft.Xna.Framework.Game` : `GetService<T>`, `GetGameComponent<T>`, `GetDrawableGameComponent<T>`, `RemoveGameComponent<T>`, `EnableAllGameComponent`, `SetVisibleAllDrawableGameComponent`. Bien conçues, sans couplage moteur.
+
+### Violations identifiées — Task 8
+
+| # | Sévérité | Fichier | Problème |
+|---|---|---|---|
+| V8-1 | 🔴 | `Game/CasaEngineGame.cs` | Chemin Windows absolu hardcodé : `@"C:\\Windows\\Fonts\\Tahoma.ttf"` |
+| V8-2 | 🟡 | `Game/GameSettings.cs` | Singleton statique global — acceptable mais à documenter comme contrainte |
 
 ---
 
