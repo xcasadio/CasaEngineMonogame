@@ -485,12 +485,76 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ## 7. Rendering system analysis
 
-- [ ] **7.1** Review renderer components (`SpriteRendererComponent`, `Line3dRendererComponent`, `SkinnedMeshRendererComponent`, `StaticMeshRendererComponent`, `Renderer2DComponent`) — do they follow a consistent pattern?
-- [ ] **7.2** Evaluate `IViewFlushableRenderer` — is the flush interface well-defined and consistently implemented across all renderers?
-- [ ] **7.3** Review the `Framework/Rendering/` folder — is the multi-view rendering pipeline (RenderView, RenderPipeline, ViewManager, IRenderSurface) clean and well-abstracted?
-- [ ] **7.4** Check if rendering code in `Framework/Graphics/` (StaticMesh, SkinnedMesh, RiggedModel) is properly separated from the component system.
-- [ ] **7.5** Evaluate `Framework/Graphics2D/` — is 2D rendering well-separated from 3D? Is `Renderer2DComponent` redundant with `SpriteRendererComponent`?
-- [ ] **7.6** Check `Framework/Materials/` — is the material system (Material, MaterialAsset, ShaderWriter) well-designed? Is `ShaderWriter2` a code smell (copy for v2)?
+- [x] **7.1** Review renderer components (`SpriteRendererComponent`, `Line3dRendererComponent`, `SkinnedMeshRendererComponent`, `StaticMeshRendererComponent`, `Renderer2DComponent`) — do they follow a consistent pattern?
+- [x] **7.2** Evaluate `IViewFlushableRenderer` — is the flush interface well-defined and consistently implemented across all renderers?
+- [x] **7.3** Review the `Framework/Rendering/` folder — is the multi-view rendering pipeline (RenderView, RenderPipeline, ViewManager, IRenderSurface) clean and well-abstracted?
+- [x] **7.4** Check if rendering code in `Framework/Graphics/` (StaticMesh, SkinnedMesh, RiggedModel) is properly separated from the component system.
+- [x] **7.5** Evaluate `Framework/Graphics2D/` — is 2D rendering well-separated from 3D? Is `Renderer2DComponent` redundant with `SpriteRendererComponent`?
+- [x] **7.6** Check `Framework/Materials/` — is the material system (Material, MaterialAsset, ShaderWriter) well-designed? Is `ShaderWriter2` a code smell (copy for v2)?
+
+### Résultats de l'analyse — Task 7
+
+**7.1 Renderer components**
+
+✅ `SpriteRendererComponent`, `Line3dRendererComponent`, `StaticMeshRendererComponent`, `SkinnedMeshRendererComponent` : tous dans `Game/Components/`, tous `DrawableGameComponent + IViewFlushableRenderer`, pattern accumulate→`Flush(frame)` cohérent. Pools pré-alloués (`NbSprites=10000`, `NbLines=5000`).
+
+⚠️ `StaticMeshRendererComponent` et `SkinnedMeshRendererComponent` : **valeurs d'éclairage hardcodées** en constantes magiques dans `LoadContent` / `Flush()` (3 lumières directionnelles RGB hardcodées, coefficients ambiants/diffus/speculaires fixes). Ces valeurs doivent passer dans un `LightingSettings` ou une propriété configurable.
+
+❌ `Renderer2DComponent` : **n'implémente pas `IViewFlushableRenderer`**. Non-compatible avec le pipeline multi-vue. Localisé dans `Graphics2D/` alors que tous les autres renderers sont dans `Game/Components/`.
+
+**7.2 IViewFlushableRenderer**
+
+✅ Interface propre, méthode unique `void Flush(in RenderFrame frame)`. Bien définie.
+
+❌ `Renderer2DComponent` manquant → impossible de l'intégrer dans `RenderPipeline` sans modification.
+
+**7.3 Framework/Rendering/ (27 fichiers)**
+
+✅ Architecture multi-vue solide et bien documentée :
+- `RenderFrame` : struct readonly (View, Projection, ViewProjection, CameraPosition, ViewportRect) — transfert zéro-allocation des données caméra
+- `IRenderSurface` / `BackBufferSurface` / `RenderTargetSurface` : abstraction propre backbuffer↔render target (Apply/Restore)
+- `RenderView` : lifecycle complet (Enabled, IsVisible, UpdateMode, ResolutionScale, Id, hooks Pipeline/Presenter/Host)
+- `RenderPipeline` : trie les vues RT avant backbuffer, gère throttled/on-demand/realtime, `GraphicsStateGuard`, `DebugOverlay` optionnel
+- `ViewManager` : stable `ViewId`, events (ViewAdded/Removed/Resized/Invalidated), AutoLayoutMode, ScreenToView, CaptureInput
+
+✅ Les commentaires XML sont détaillés et explicites — c'est du code de production bien pensé.
+
+**7.4 Framework/Graphics/**
+
+✅ `StaticMesh`, `SkinnedMesh`, `RiggedModel` : conteneurs de données mesh uniquement. Dépendances : `Core.Serialization`, `Engine.Primitives3D`, `Framework.Assets`. Aucun couplage avec `DrawableGameComponent` ou le système de composants. Séparation correcte modèle/renderer.
+
+**7.5 Framework/Graphics2D/**
+
+⚠️ `Renderer2DComponent` (469 lignes) gère sprites 2D + texte + lignes 2D — recouvrement partiel avec `SpriteRendererComponent` (399 lignes, sprites 3D). Ces deux classes ne sont pas strictement redondantes (la 2D gère `SpriteBatch` screen-space + texte + scissor) mais la séparation n'est pas formalisée.
+
+❌ Problèmes identifiés :
+1. `Renderer2DComponent` ne peut pas être utilisé dans le pipeline multi-vue (pas d'`IViewFlushableRenderer`)
+2. Convention de nommage incohérente : `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent`
+3. Localisation incohérente : devrait être dans `Game/Components/` comme les autres renderers
+
+**7.6 Framework/Materials/**
+
+✅ `ShaderWriter` : implémente `IMaterialAssetVisitor`, compile un `Material` (arbre d'assets) — design visitor correct.
+
+⚠️ `ShaderWriter2` : **code smell de nommage**. N'implémente pas `IMaterialAssetVisitor`, compile un `MaterialGraph` (système de nœuds graphe). Fonctionnellement différent de `ShaderWriter`, mais le nom `ShaderWriter2` suggère une copie incrémentale alors qu'il s'agit d'un compilateur pour un système de matériaux différent. **Doit être renommé `ShaderGraphWriter` ou `MaterialGraphCompiler`**.
+
+### Violations identifiées — Task 7
+
+| # | Sévérité | Fichier | Problème |
+|---|---|---|---|
+| V7-1 | 🔴 | `Graphics2D/Renderer2DComponent.cs` | N'implémente pas `IViewFlushableRenderer` — incompatible multi-vue |
+| V7-2 | 🟡 | `Graphics2D/Renderer2DComponent.cs` | Mauvais répertoire (`Graphics2D/` au lieu de `Game/Components/`) |
+| V7-3 | 🟡 | `Graphics2D/Renderer2DComponent.cs` | Nommage incohérent (`Renderer2dComponent` vs `Renderer`) |
+| V7-4 | 🟡 | `StaticMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
+| V7-5 | 🟡 | `SkinnedMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
+| V7-6 | 🟡 | `Materials/ShaderWriter2.cs` | Nommage trompeur — compiler GrapheMatériau ≠ ShaderWriter v2 |
+
+### Corrections recommandées — Task 7
+
+1. **V7-1 (prioritaire)** : Faire implémenter `IViewFlushableRenderer` à `Renderer2DComponent` — déplacer la logique de rendu dans `Flush(in RenderFrame frame)`, conserver `Draw()` comme fallback temporaire.
+2. **V7-2** : Déplacer `Renderer2DComponent.cs` dans `Game/Components/` (renommer classe en `Renderer2DComponent` avec majuscule).
+3. **V7-4/V7-5** : Extraire les constantes d'éclairage hardcodées vers une classe `DefaultLightingSettings` (const fields ou propriétés configurables).
+4. **V7-6** : Renommer `ShaderWriter2` → `ShaderGraphWriter` (ou `MaterialGraphCompiler`).
 
 ---
 
