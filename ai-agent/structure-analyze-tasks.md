@@ -838,18 +838,154 @@ Aucune violation critique. L'architecture est cohérente.
 
 ## 15. Cross-cutting concerns
 
-- [ ] **15.1** Review how `static` / `singleton` patterns are used across the codebase (GameManager, AssetContentManager, etc.) — are they appropriately scoped or creating hidden global state?
-- [ ] **15.2** Check for proper use of interfaces vs concrete types in public APIs.
-- [ ] **15.3** Check for proper separation of editor-only code (`CasaEngine.WithEditor.csproj` vs `CasaEngine.csproj`) — are there `#if EDITOR` guards?
-- [ ] **15.4** Check naming conventions consistency across layers.
-- [ ] **15.5** Evaluate if the project could benefit from splitting into multiple assemblies (CasaEngine.Core.dll, CasaEngine.Engine.dll, CasaEngine.Framework.dll) to enforce layer boundaries at compile time.
+- [x] **15.1** Review how `static` / `singleton` patterns are used across the codebase (GameManager, AssetContentManager, etc.) — are they appropriately scoped or creating hidden global state?
+- [x] **15.2** Check for proper use of interfaces vs concrete types in public APIs.
+- [x] **15.3** Check for proper separation of editor-only code (`CasaEngine.WithEditor.csproj` vs `CasaEngine.csproj`) — are there `#if EDITOR` guards?
+- [x] **15.4** Check naming conventions consistency across layers.
+- [x] **15.5** Evaluate if the project could benefit from splitting into multiple assemblies (CasaEngine.Core.dll, CasaEngine.Engine.dll, CasaEngine.Framework.dll) to enforce layer boundaries at compile time.
+
+### Résultats de l'analyse — Task 15
+
+**15.1 Statics et singletons**
+
+Classes statiques globales identifiées :
+- `GameSettings` (static class) — 4 sous-objets : ProjectSettings, AssemblyManager, GraphicsSettings, PhysicsEngineSettings
+- `AssetCatalog` (static class) — registre d'assets global
+- `EngineEnvironment` (static class) — chemins moteur
+
+✅ `GameManager` et `AssetContentManager` : **instances** (appartiennent à `CasaEngineGame`), pas de singleton global.
+
+⚠️ Pattern cohérent pour l'approche MonoGame, mais `GameSettings` et `AssetCatalog` créent un état implicitement partagé entre threads/tests.
+
+**15.2 Interfaces vs types concrets**
+
+⚠️ `CasaEngineGame` expose toutes les propriétés de renderers en types concrets (`Renderer2dComponent`, `SpriteRendererComponent`, etc.) plutôt que via interfaces. Les consommateurs externes sont couplés aux implémentations concrètes.
+
+✅ `IViewFlushableRenderer` existe et est bien utilisé dans `RenderPipeline` — le pipeline lui-même est proprement abstrait.
+
+**15.3 Guards éditeur**
+
+✅ Mécanisme propre : deux fichiers projet pour le même code source :
+- `CasaEngine.csproj` : aucun define éditeur
+- `CasaEngine.WithEditor.csproj` : `EDITOR` défini dans toutes les configurations (Debug, Release, AnyCPU, x64)
+
+Le flag `#if EDITOR` est utilisé correctement tout au long du code (World, GameManager, CasaEngineGame, Assets, etc.). La convention est cohérente.
+
+**15.4 Conventions de nommage**
+
+⚠️ Incohérences identifiées :
+- `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent`, `StaticMeshRendererComponent` (standard)
+- `ElementLoader.cs` (fichier) vs classe interne `ElementFactory`
+- `ShaderWriter2` (suffixe numérique) vs nommage sémantique attendu
+- `Line2dRenderer` vs `Line3dRendererComponent` (suffixes inconsistants)
+
+**15.5 Découpage en assemblies**
+
+💡 Les couches Core/Engine/Framework sont séparées par namespace uniquement — aucune frontière assembly. Une violation de dépendance (ex: Core → Framework) passerait inaperçue à la compilation.
+
+Impact d'un split : élevé (déplacer des centaines de fichiers), bénéfice : boundaries compile-time garanties. Recommandé à moyen terme si le projet grossit.
+
+### Violations identifiées — Task 15
+
+| # | Sévérité | Problème |
+|---|---|---|
+| V15-1 | 🟡 | `CasaEngineGame` : propriétés renderers en types concrets (pas d'interfaces) |
+| V15-2 | 🟡 | Incohérences de nommage (`Renderer2dComponent`, `ElementLoader/Factory`, `ShaderWriter2`) |
+| V15-3 | 🟢 | `GameSettings`/`AssetCatalog` : état global partagé — acceptable mais à documenter |
 
 ---
 
 ## 16. Summary & recommendations
 
-- [ ] **16.1** Create a dependency violation report listing every case where a lower layer references a higher layer.
-- [ ] **16.2** Create a "god class" report for classes with too many responsibilities or too many lines.
-- [ ] **16.3** Create a dead code / unused feature report (especially in AI/).
-- [ ] **16.4** Propose a namespace restructuring plan if violations are found.
-- [ ] **16.5** Propose concrete next steps prioritized by impact (quick wins vs large refactors).
+- [x] **16.1** Create a dependency violation report listing every case where a lower layer references a higher layer.
+- [x] **16.2** Create a "god class" report for classes with too many responsibilities or too many lines.
+- [x] **16.3** Create a dead code / unused feature report (especially in AI/).
+- [x] **16.4** Propose a namespace restructuring plan if violations are found.
+- [x] **16.5** Propose concrete next steps prioritized by impact (quick wins vs large refactors).
+
+### 16.1 Rapport de violations de dépendances
+
+Toutes les violations de dépendance inter-couches ont été **corrigées dans cette session** :
+
+| Violation | Statut | Commit |
+|---|---|---|
+| `Engine/PhysicsDefinition` importait `BulletSharp` | ✅ Corrigé | `ea1290fd` |
+| `Core/Helpers/Extensions.cs` violait la séparation | ✅ Corrigé | `5c42545c` |
+| `Framework/SpacePartitioning/OctreeVisualizer` mal localisé | ✅ Corrigé | `4aea6732` |
+
+Aucune violation de dépendance Core←Engine←Framework non corrigée identifiée lors de la tâche 2.
+
+---
+
+### 16.2 Rapport God Classes
+
+| Fichier | Lignes | Problème |
+|---|---|---|
+| `Animations/RiggedModelLoader.cs` | 1616 | Loader monolithique — parsing + conversion + animation + bone extraction |
+| `Entities/Components/PhysicsBaseComponent.cs` | 7697 | God Component — collisions, triggers, forces, joints, callbacks |
+| `Framework/Assets/Fonts/Font.cs` | 654 | Police avec rendu inline |
+
+---
+
+### 16.3 Rapport code mort / fonctionnalités inutilisées
+
+| Module | Fichiers | État | Recommandation |
+|---|---|---|---|
+| `Framework/AI/` (12 sous-modules) | ~100 | Zéro référence externe | Extraire en `CasaEngine.AI.csproj` ou documenter comme fonctionnalité désactivée |
+| `Framework/GameFramework/` | ~20 | Zéro référence externe (`Possess()` non implémenté) | Implémenter ou marquer comme scaffold |
+| `Framework/Debugger/DebugSystem` | 77 | `Initialize()` commenté | Réactiver avec flag propre ou supprimer |
+
+---
+
+### 16.4 Plan de restructuration
+
+Restructurations de nommage recommandées (impact minimal, gain immédiat) :
+
+| Avant | Après | Justification |
+|---|---|---|
+| `ElementLoader.cs` | `ElementFactory.cs` | Nom de fichier ≠ classe |
+| `ShaderWriter2.cs` → classe | `ShaderGraphWriter` | Nommage ambigu |
+| `Renderer2dComponent` | `Renderer2DComponent` | Cohérence PascalCase |
+
+---
+
+### 16.5 Étapes prioritaires — classées par impact
+
+#### 🔴 Quick wins (< 1 jour chacun)
+
+| Priorité | Action | Fichier |
+|---|---|---|
+| 1 | Renommer `ElementLoader.cs` → `ElementFactory.cs` | `Assets/ElementFactory.cs` |
+| 2 | Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()` | `Assets/ElementFactory.cs` |
+| 3 | Ajouter index `_byName` + `_byFileName` dans `AssetCatalog` | `Assets/AssetCatalog.cs` |
+| 4 | Renommer `ShaderWriter2` → `ShaderGraphWriter` | `Materials/ShaderGraphWriter.cs` |
+| 5 | Fixer chemin de police hardcodé Windows dans `CasaEngineGame.Initialize()` | `Game/CasaEngineGame.cs` |
+| 6 | Implémenter `IViewFlushableRenderer` sur `Renderer2DComponent` | `Graphics2D/Renderer2DComponent.cs` |
+
+#### 🟡 Refactors moyens (1–3 jours)
+
+| Priorité | Action |
+|---|---|
+| 7 | Extraire les constantes d'éclairage hardcodées (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`) vers un `DefaultLightingSettings` |
+| 8 | Déplacer `Renderer2DComponent` de `Graphics2D/` vers `Game/Components/` |
+| 9 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement |
+
+#### 🟢 Refactors lourds (> 1 semaine)
+
+| Priorité | Action |
+|---|---|
+| 10 | Décomposer `RiggedModelLoader.cs` (1616 lignes) en sous-composants |
+| 11 | Décomposer `PhysicsBaseComponent.cs` (7697 lignes) en composants spécialisés |
+| 12 | Implémenter le GameFramework (Possess, PlayerController actif) ou le supprimer |
+| 13 | Découper le projet en assemblies séparés (Core/Engine/Framework) pour boundary compile-time |
+| 14 | Décider du sort du code AI (200+ fichiers) : activer, isoler ou supprimer |
+
+---
+
+### Bilan global de l'analyse
+
+- **16 tâches d'analyse** : toutes ✅ complétées
+- **3 violations de dépendance** : toutes corrigées
+- **Violations sans correction** : 20 identifiées (V7 à V15), priorités documentées ci-dessus
+- **Points forts** : architecture multi-vue (`Rendering/`), ECS Unreal-style propre, cycle de vie World robuste
+- **Points faibles** : God Classes (PhysicsBaseComponent), code mort (AI), nommage incohérent
