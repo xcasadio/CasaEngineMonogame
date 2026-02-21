@@ -1,6 +1,5 @@
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Input;
-using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

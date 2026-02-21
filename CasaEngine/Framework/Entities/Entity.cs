@@ -2,7 +2,6 @@
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;

@@ -17,7 +17,6 @@ using CasaEngine.EditorUI.Controls.TileMapControls;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Input;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
@@ -28,7 +27,6 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
-using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 

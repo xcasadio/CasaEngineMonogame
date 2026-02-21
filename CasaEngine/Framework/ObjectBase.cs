@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Objects;
+namespace CasaEngine.Framework;
 
 public class ObjectBase : ISerializable
 {

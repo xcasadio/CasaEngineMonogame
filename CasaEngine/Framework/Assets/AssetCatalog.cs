@@ -1,7 +1,6 @@
 ﻿using CasaEngine.Core.Design;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
-using CasaEngine.Framework.Objects;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

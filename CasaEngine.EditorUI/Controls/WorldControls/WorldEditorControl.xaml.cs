@@ -2,7 +2,6 @@
 using System.IO;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
-using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -11,7 +10,6 @@ using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;

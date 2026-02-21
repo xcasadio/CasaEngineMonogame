@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
-using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Input;
 using Microsoft.Xna.Framework;

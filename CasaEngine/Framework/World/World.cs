@@ -6,7 +6,6 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;

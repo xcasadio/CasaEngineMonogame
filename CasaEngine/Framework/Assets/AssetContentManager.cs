@@ -4,7 +4,6 @@ using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 

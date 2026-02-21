@@ -1,6 +1,4 @@
-﻿using CasaEngine.Framework.Objects;
-
-namespace CasaEngine.Framework.GameFramework;
+﻿namespace CasaEngine.Framework.GameFramework;
 
 /**
  * Controllers are non-physical actors that can possess a Pawn to control

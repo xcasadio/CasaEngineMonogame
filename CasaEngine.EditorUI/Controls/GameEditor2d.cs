@@ -1,5 +1,4 @@
-﻿using CasaEngine.Engine.Input;
-using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;

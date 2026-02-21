@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Assets.Textures;
-using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI.Controls.Common;

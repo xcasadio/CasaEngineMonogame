@@ -1,6 +1,5 @@
 ﻿using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Windows;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Graphics;
 using System;

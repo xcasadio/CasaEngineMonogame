@@ -5,7 +5,6 @@ using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
-using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;

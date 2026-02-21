@@ -18,7 +18,6 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
-using CasaEngine.Framework.Objects;
 using CasaEngine.Framework.Project;
 using Cursor = CasaEngine.Framework.GUI.Neoforce.Cursor;
 using EventArgs = System.EventArgs;

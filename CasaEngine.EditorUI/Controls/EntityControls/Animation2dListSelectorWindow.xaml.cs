@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Windows;
-using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 

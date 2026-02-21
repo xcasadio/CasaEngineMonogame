@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;

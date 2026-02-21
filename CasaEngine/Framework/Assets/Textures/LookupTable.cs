@@ -5,7 +5,6 @@
  Modify by: Schneider, José Ignacio
 */
 
-using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Textures;
