@@ -51,7 +51,7 @@ public class ScriptMainHUDScreen : GameplayProxy
 
     }
 
-    public override ScriptMainHUDScreen Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptMainHUDScreen();
     }

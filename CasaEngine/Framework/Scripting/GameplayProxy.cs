@@ -1,10 +1,9 @@
-﻿using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities;
+﻿using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Physics;
 
 namespace CasaEngine.Framework.Scripting;
 
-public abstract class GameplayProxy : ObjectBase
+public abstract class GameplayProxy : ObjectBase, IGameplayProxy
 {
     protected Entity Owner { get; private set; }
 
@@ -24,5 +23,5 @@ public abstract class GameplayProxy : ObjectBase
     public abstract void OnBeginPlay(World.World world);
     public abstract void OnEndPlay(World.World world);
 
-    public abstract GameplayProxy Clone();
+    public abstract IGameplayProxy Clone();
 }

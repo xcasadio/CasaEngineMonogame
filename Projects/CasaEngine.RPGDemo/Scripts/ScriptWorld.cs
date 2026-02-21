@@ -67,7 +67,7 @@ public class ScriptWorld : GameplayProxy
 
     }
 
-    public override ScriptWorld Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptWorld();
     }

@@ -51,7 +51,7 @@ public class Entity : ObjectBase
     }
 
     public string GameplayProxyClassName { get; set; }
-    public GameplayProxy? GameplayProxy { get; private set; }
+    public IGameplayProxy? GameplayProxy { get; private set; }
 
     public bool IsEnabled
     {

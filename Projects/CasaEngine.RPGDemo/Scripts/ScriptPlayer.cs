@@ -67,7 +67,7 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
     }
 
-    public override ScriptPlayer Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptPlayer();
     }

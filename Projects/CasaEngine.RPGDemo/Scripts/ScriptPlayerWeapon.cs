@@ -97,7 +97,7 @@ public class ScriptPlayerWeapon : GameplayProxy
 
     }
 
-    public override ScriptPlayerWeapon Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptPlayerWeapon();
     }

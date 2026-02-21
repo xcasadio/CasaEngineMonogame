@@ -72,7 +72,7 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
 
     }
 
-    public override ScriptEnemy Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptEnemy();
     }

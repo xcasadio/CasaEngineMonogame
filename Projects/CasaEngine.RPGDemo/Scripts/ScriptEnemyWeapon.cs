@@ -103,7 +103,7 @@ public class ScriptEnemyWeapon : GameplayProxy
 
     }
 
-    public override ScriptEnemyWeapon Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptEnemyWeapon();
     }

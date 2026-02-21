@@ -89,7 +89,7 @@ public class ScriptSign : GameplayProxy
     {
     }
 
-    public override GameplayProxy Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptSign();
     }

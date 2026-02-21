@@ -1,6 +1,4 @@
 using CasaEngine.Core.Helpers;
-using CasaEngine.Engine.Input;
-using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Input;
@@ -164,7 +162,7 @@ public class ScriptArcBallCamera : GameplayProxy
 
     }
 
-    public override ScriptArcBallCamera Clone()
+    public override IGameplayProxy Clone()
     {
         return new ScriptArcBallCamera();
     }
