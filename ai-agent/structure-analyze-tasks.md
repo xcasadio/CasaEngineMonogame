@@ -210,13 +210,13 @@ Aucune violation détectée. Toutes les erreurs précédentes ont été corrigé
 
 ---
 
-### Résultats — Tâche 4 : Analyse structurelle de la couche Framework
+### Résultats — Tâche 4 : Analyse structurelle de la couche Framework _(état final)_
 
 ---
 
 ### ✅ Bien implémenté
 
-#### 4.1 — Inventaire des modules Framework
+#### 4.1 — Inventaire des modules Framework (état actuel)
 
 | Module | Rôle | Catégorie |
 |---|---|---|
@@ -224,7 +224,7 @@ Aucune violation détectée. Toutes les erreurs précédentes ont été corrigé
 | `Assets/` | Animation, fonts, loaders (Assimp), sprites, textures, tiles | Feature — Assets |
 | `Audio/` | Sons, musiques | Feature — Audio |
 | `Constants.cs` | Extensions de fichiers (.entity, .world, .material…) | Utilitaire |
-| `Debugger/` | Debug visuel, DebugManager | Utilitaire |
+| `Debugger/` | Debug visuel, DebugManager, **OctreeVisualizer** | Utilitaire |
 | `Entities/` | ECS : `Entity`, composants (Camera, Physics, Mesh, Input…) | Cœur — ECS |
 | `Game/` | `CasaEngineGame`, `GameManager`, GameComponents | Cœur — Runtime |
 | `GameFramework/` | `DemoGame`, `SceneManagement`, `GameMode`, `Player`, `Controller` | Feature — Gameplay |
@@ -233,61 +233,56 @@ Aucune violation détectée. Toutes les erreurs précédentes ont été corrigé
 | `GUI/` | Interface MGUI, screens | Feature — UI |
 | `Input/` | `InputComponent`, `InputManager` (wrapper MonoGame) | Système |
 | `Materials/` | `Material`, `MaterialAsset`, `ShaderWriter` | Feature — Matériaux |
-| `Objects/` | `ObjectBase` (Id, Name, AssetId, Initialize/Load/Save) | Utilitaire — Base |
+| `ObjectBase.cs` | `ObjectBase` (Id, Name, AssetId, Initialize/Load/Save) — **à la racine Framework** | Utilitaire — Base |
 | `Physics/` | Types de collision, `Collision`, `EventCollisionArgs` | Feature — Physique |
 | `Project/` | `ProjectSettings` | Utilitaire |
 | `Rendering/` | `RenderFrame`, `IRenderSurface`, `RenderPipeline`, `ViewManager` | Système — Multi-vues |
-| `Scripting/` | `GameplayProxy` (base), `ScriptArcBallCamera` (concret) | Feature — Scripts |
-| `SpacePartitioning/` | `Octree`, queries spatiales | Système |
+| `Scripting/` | `IGameplayProxy`, `GameplayProxy` (base), `ScriptArcBallCamera` | Feature — Scripts |
+| `SpacePartitioning/` | `Octree`, queries spatiales — **Core uniquement** | Système |
 | `World/` | `World` : container d'entités, gestion de scène | Feature — Monde |
 
 #### 4.3 — ObjectBase
 
 - Classe de base minimale et propre : `Id` (Guid), `Name`, `FileName`, `AssetId` + `Initialize()` / `Load()` / `Save()`.
-- N'entre **pas** en conflit avec l'ECS : ce n'est pas une entité, c'est une base identitaire pour tous les assets/objets persistables. La hiérarchie `ObjectBase → Entity` est cohérente.
+- **[✅ Fait]** Déplacée du dossier `Objects/` vers la racine de `Framework/` (`namespace CasaEngine.Framework`) — plus aucun module ne dépend du namespace `Objects`.
 - `Save()` correctement protégé par `#if EDITOR`.
 
 #### 4.4 — Scripting/
 
-- Seulement 2 fichiers — pas un "dumping ground".
-- `GameplayProxy` : pattern gameplay clair (comparable aux Blueprints Unreal en plus léger) — Owner, lifecycle callbacks (Update, Draw, OnHit, OnBeginPlay…).
-- `ScriptArcBallCamera` : script concret, bien ciblé, dépendances légitimes (`Entities.Components`, `Game`, `Input`).
+- `IGameplayProxy` introduite — `Entity` dépend de l'interface et non de la classe concrète.
+- `ScriptArcBallCamera` : script concret, bien ciblé.
+
+#### Corrections appliquées depuis l'analyse initiale
+
+| Problème (état initial) | Correction |
+|---|---|
+| `SpacePartitioning → Game` (mineur) | ✅ `OctreeVisualizer` déplacé dans `Debugger/` (commit `4aea6732`). `SpacePartitioning` est maintenant Core-only. |
+| `Objects/` namespace trop fin (mineur) | ✅ `ObjectBase.cs` déplacé à la racine `Framework/`.  `Objects/` supprimé. |
 
 ---
 
-### ❌ Erreurs identifiées
+### ❌ Erreurs identifiées _(restantes)_
 
-#### `Entities → Scripting` — dépendance cyclique (majeur)
+#### `Entities → Scripting` — cycle résiduel (majeur)
 
-`Entity.cs` possède une propriété `GameplayProxy?` (type `Scripting.GameplayProxy`) et l'instancie via `ElementFactory.Create<GameplayProxy>()`. Or `Scripting.GameplayProxy` dépend de `Entities.Entity`. Cela crée un cycle :
+`IGameplayProxy` est définie dans `Scripting/IGameplayProxy.cs` et dépend elle-même de `Entities` (`void Initialize(Entity owner)`) et retourne le type concret `GameplayProxy Clone()`. Le cycle reste :
 
 ```
-Entities → Scripting → Entities
+Entities → Scripting.IGameplayProxy → Entities
 ```
 
-Le compilateur l'accepte (même assembly), mais ce cycle empêche de séparer proprement les deux namespaces et complique les tests unitaires.
-
-**Correction suggérée** : extraire l'interface `IGameplayProxy` dans `Entities/` — `Entity` dépend de l'interface, `Scripting.GameplayProxy` l'implémente.
+Pour le briser complètement : déplacer `IGameplayProxy` dans `Entities/` (ou supprimer `GameplayProxy Clone()` du contrat — le Clone appartient à l'implémentation).
 
 #### `Entities → GUI` — couplage discutable (mineur)
 
-`ScreenWidgetComponent.cs` importe `using CasaEngine.Framework.GUI`. Sémantiquement acceptable (composant qui embarque un widget UI dans l'espace 3D), mais `Entities` dépend désormais de `GUI`, ce qui inverse le sens naturel (GUI devrait dépendre d'Entities pour accéder aux données à afficher).
-
-#### `SpacePartitioning → Game` — couplage trop haut (mineur)
-
-Un module de structure spatiale pure (Octree) ne devrait pas dépendre de la couche `Game`. Probablement pour accéder à `GameManager` ou `GraphicsDevice`. Idéalement, `SpacePartitioning` ne devrait dépendre que d'`Entities` (pour requêter des entités) et de Core/MonoGame (pour les types géométriques).
-
-#### `Objects/` — namespace trop fin (mineur)
-
-`Framework/Objects/` ne contient qu'un seul fichier (`ObjectBase.cs`). Ce dossier/namespace est peut-être trop fin pour justifier son existence. `ObjectBase` pourrait vivre à la racine de `Framework/` ou dans `Entities/`.
+`ScreenWidgetComponent.cs` importe `using CasaEngine.Framework.GUI`. Sémantiquement acceptable mais crée une dépendance bidirectionnelle `Entities ↔ GUI`.
 
 ---
 
 ### 💡 Pistes d'amélioration
 
-- **[Refactoring ciblé — cycle Scripting/Entities]** Extraire `IGameplayProxy` dans `Entities/` — interface légère avec `Initialize(Entity)`, `Update(float)`, `Draw()`, `OnHit(Collision)`, `Clone()`. Quick win si `Entity.cs` ne garde que la ref à l'interface.
-- **[Quick win — SpacePartitioning]** Supprimer la dépendance vers `Game` dans `SpacePartitioning/` — vérifier quel type précis est importé et le remplacer par un type plus bas niveau si possible.
-- **[Réflexion — Objects/]** Si `ObjectBase` est la seule classe du namespace, envisager de la déplacer dans le namespace `CasaEngine.Framework` directement (fichier racine) ou dans `Entities/`.
+- **[Refactoring — cycle Scripting]** Déplacer `IGameplayProxy` dans `Entities/` et retirer `GameplayProxy Clone()` du contrat (remplacer par `IGameplayProxy Clone()`).
+- **[Réflexion — Entities→GUI]** Évaluer si `ScreenWidgetComponent` doit rester dans `Entities/` ou migrer dans `GUI/`.
 
 ---
 
@@ -295,16 +290,123 @@ Un module de structure spatiale pure (Octree) ne devrait pas dépendre de la cou
 
 The ECS is inspired by Unreal Engine (entity + components, not pure ECS with archetypes).
 
-- [ ] **5.1** Review `Entity.cs` — what does it hold? Is it a lean container for components, or a monolithic class with too many responsibilities?
-- [ ] **5.2** Review `EntityComponent.cs` — is the base component well-defined (lifecycle: Init, Update, Draw, Destroy)?
-- [ ] **5.3** Catalog all components in `Framework/Entities/Components/` — are they single-responsibility? Are there components trying to do too much?
-- [ ] **5.4** Check `SceneComponent.cs` vs `EntityComponent.cs` — is there a clear hierarchy (SceneComponent = spatial, EntityComponent = abstract)? Like Unreal's ActorComponent vs SceneComponent?
-- [ ] **5.5** Review `PrimitiveComponent.cs` — does it properly extend SceneComponent for renderable primitives?
-- [ ] **5.6** Check collision components (Box, Sphere, Capsule, Circle, Cylinder, Box2d) — are they consistent, do they share a common base? Is there code duplication?
-- [ ] **5.7** Review camera components (CameraComponent, Camera3dComponent, ArcBallCameraComponent, CopyTargeted2d, CameraLookAtComponent) — is the camera hierarchy clean or over-engineered?
-- [ ] **5.8** Check `ChildActorComponent.cs` — is the parent/child entity relationship well implemented?
-- [ ] **5.9** Evaluate `ICollideableComponent.cs` and `IComponentDrawable.cs` — are interfaces used properly to decouple systems?
-- [ ] **5.10** Check `EntityReference.cs` — how are cross-entity references handled? Is it safe (weak refs, IDs) or fragile (direct pointers)?
+- [x] **5.1** Review `Entity.cs` — what does it hold? Is it a lean container for components, or a monolithic class with too many responsibilities?
+- [x] **5.2** Review `EntityComponent.cs` — is the base component well-defined (lifecycle: Init, Update, Draw, Destroy)?
+- [x] **5.3** Catalog all components in `Framework/Entities/Components/` — are they single-responsibility? Are there components trying to do too much?
+- [x] **5.4** Check `SceneComponent.cs` vs `EntityComponent.cs` — is there a clear hierarchy (SceneComponent = spatial, EntityComponent = abstract)? Like Unreal's ActorComponent vs SceneComponent?
+- [x] **5.5** Review `PrimitiveComponent.cs` — does it properly extend SceneComponent for renderable primitives?
+- [x] **5.6** Check collision components (Box, Sphere, Capsule, Circle, Cylinder, Box2d) — are they consistent, do they share a common base? Is there code duplication?
+- [x] **5.7** Review camera components (CameraComponent, Camera3dComponent, ArcBallCameraComponent, CopyTargeted2d, CameraLookAtComponent) — is the camera hierarchy clean or over-engineered?
+- [x] **5.8** Check `ChildActorComponent.cs` — is the parent/child entity relationship well implemented?
+- [x] **5.9** Evaluate `ICollideableComponent.cs` and `IComponentDrawable.cs` — are interfaces used properly to decouple systems?
+- [x] **5.10** Check `EntityReference.cs` — how are cross-entity references handled? Is it safe (weak refs, IDs) or fragile (direct pointers)?
+
+---
+
+### Résultats — Tâche 5 : Analyse du système ECS
+
+---
+
+### ✅ Bien implémenté
+
+#### Hiérarchie miroir de Unreal Engine
+
+```
+ObjectBase (namespace CasaEngine.Framework)
+└── EntityComponent  (abstract — sans transform, comme UActorComponent)
+    ├── ScreenWidgetComponent
+    ├── PlayerStartComponent
+    ├── Physics2dComponent
+    └── SceneComponent  (abstract — avec transform, comme USceneComponent)
+        ├── CameraComponent  (abstract — lazy ViewMatrix/ProjectionMatrix)
+        │   ├── Camera3dComponent
+        │   ├── Camera3dIn2dAxisComponent
+        │   ├── ArcBallCameraComponent
+        │   ├── CameraLookAtComponent
+        │   └── CameraTargeted2dComponent
+        ├── ChildActorComponent
+        └── PrimitiveComponent  (abstract — représentation géométrique, comme UPrimitiveComponent)
+            ├── StaticMeshComponent
+            ├── SkinnedMeshComponent
+            ├── StaticSpriteComponent
+            ├── AnimatedSpriteComponent
+            ├── TileMapComponent
+            ├── ArrowComponent
+            └── PhysicsBaseComponent  (abstract)
+                ├── BoxCollisionComponent
+                ├── SphereCollisionComponent
+                ├── CapsuleCollisionComponent
+                └── CylinderCollisionComponent
+```
+
+Les commentaires dans les fichiers citent explicitement les classes UE (`UActorComponent`, `USceneComponent`, `UPrimitiveComponent`) — l'intention architecturale est documentée.
+
+#### EntityComponent
+
+- Lifecycle clair : `Attach(Entity)` / `Detach()` / `InitializeWithWorld()` / `Update()` / `Clone()`.
+- `Clone()` abstract : chaque composant est responsable de sa propre copie.
+
+#### SceneComponent
+
+- Hiérarchie parent/enfant via `Parent` + `List<SceneComponent> Children` — identique à UE.
+- Calcul de `WorldMatrixWithScale` / `WorldMatrixNoScale` par chaînage jusqu'aux parents.
+
+#### CameraComponent
+
+- Lazy computation : `_needToComputeViewMatrix` / `_needToComputeProjectionMatrix` — recalcul uniquement quand nécessaire.
+
+#### Composants de collision
+
+- Tous héritent de `PhysicsBaseComponent : SceneComponent, ICollideableComponent`.
+- Pattern uniforme : `ConvertToCollisionShape()` abstract + `ComputeBoundingBox()` abstract.
+- `ICollideableComponent` : contrat minimal (`Owner`, `PhysicsType`, `Collisions`) — découple le système physique des composants concrets.
+
+#### EntityReference
+
+- Approche hybride explicite : `AssetId == Guid.Empty` → entité inline dans le world JSON ; sinon référence par GUID + `InitialCoordinates`. Design documenté par des commentaires.
+
+#### IComponentDrawable
+
+- Interface minimale : `GetBoundingBox()` + `Draw(float)`. Implémentée par `SceneComponent` — toute scène est dessinable et a une bounding box.
+
+#### ChildActorComponent
+
+- Pattern simple et direct : enveloppe une `Entity?` enfant dans un composant. Cohérent avec la hiérarchie.
+
+---
+
+### ❌ Erreurs identifiées
+
+#### `IGameplayProxy` dans `Scripting/` — cycle résiduel (majeur)
+
+`IGameplayProxy.cs` (dans `Scripting/`) déclare `GameplayProxy Clone()` — type concret. L'interface retourne sa propre implémentation concrète, ce qui viole le principe d'inversion des dépendances et maintient le cycle `Entities ↔ Scripting`.
+
+```csharp
+// Problème dans IGameplayProxy.cs :
+GameplayProxy Clone();  // retourne le type concret → dependency circulaire
+```
+
+**Fix** : remplacer par `IGameplayProxy Clone()` dans l'interface.
+
+#### `SceneComponent.cs` — classe volumineuse (mineur)
+
+399 lignes gérant : transform + parent-child + WorldMatrix (3 variantes) + BoundingBox + Draw + editor `ITransformable`. Plusieurs responsabilités agrégées dans une seule classe. Acceptable pour une base ECS, mais tend vers un god object.
+
+#### `PhysicsBaseComponent` — dépendance directe à BulletSharp (acceptable dans Framework)
+
+`PhysicsBaseComponent` importe `using BulletSharp` directement (`RigidBody`, `CollisionObject`, `CollisionShape`). C'est **acceptable** — `PhysicsBaseComponent` est dans Framework qui peut utiliser BulletSharp. Ce n'est pas une violation de couche.
+
+#### `StaticMeshComponent` résout son renderer via `world.Game.GetGameComponent<>()` (mineur)
+
+Les composants mesh récupèrent leur renderer dans `InitializeWithWorld()` en appelant `world.Game.GetGameComponent<StaticMeshRendererComponent>()`. C'est un couplage au système de rendu concret — fonctionne, mais difficile à tester ou à remplacer le renderer.
+
+---
+
+### 💡 Pistes d'amélioration
+
+- **[Quick win — cycle Scripting]** Dans `IGameplayProxy`, remplacer `GameplayProxy Clone()` par `IGameplayProxy Clone()`. Casse le dernier lien concret vers `Scripting` depuis l'interface.
+- **[Refactoring moyen — Scripting]** Déplacer `IGameplayProxy` de `Scripting/` dans `Entities/` — `Scripting.GameplayProxy` l'implémente, `Entities.Entity` l'utilise, sans dépendance inverse.
+- **[Réflexion — GetGameComponent dans InitializeWithWorld]** Envisager un système d'injection de dépendances léger (passer les services au constructeur ou via une interface `IWorldServices`) plutôt que de résoudre les GameComponents dynamiquement.
 
 ---
 
