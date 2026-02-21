@@ -1,9 +1,8 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
 public abstract class Shape2d
 {

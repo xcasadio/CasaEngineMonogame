@@ -1,16 +1,15 @@
 ﻿using BulletSharp;
-using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Engine.Physics;
+namespace CasaEngine.Framework.Game.Components.Physics;
 
-public class PhysicsDebugDraw : DebugDraw
+public class PhysicsDebugDrawComponent : DebugDraw
 {
     private readonly Line3dRendererComponent _line3dRendererComponent;
 
     public override DebugDrawModes DebugMode { get; set; }
 
-    public PhysicsDebugDraw(Line3dRendererComponent line3dRendererComponent)
+    public PhysicsDebugDrawComponent(Line3dRendererComponent line3dRendererComponent)
     {
         _line3dRendererComponent = line3dRendererComponent;
     }

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Graphics.Shapes;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

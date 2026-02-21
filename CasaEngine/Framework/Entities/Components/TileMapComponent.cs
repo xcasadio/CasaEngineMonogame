@@ -2,11 +2,11 @@
 using BulletSharp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;

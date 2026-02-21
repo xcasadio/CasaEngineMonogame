@@ -1,6 +1,7 @@
 ﻿using Assimp;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine.Animations;
+using CasaEngine.Framework.Assets.Animations;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Loaders;

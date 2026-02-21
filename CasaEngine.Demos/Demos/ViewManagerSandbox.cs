@@ -1,14 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -69,7 +70,7 @@ public class ViewManagerSandbox : Demo
         var ground = new Entity { Name = "Ground" };
         var gm     = new StaticMeshComponent();
         ground.RootComponent = gm;
-        gm.Mesh = new BoxPrimitive(30, 1, 30).CreateMesh();
+        gm.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(30, 1, 30));
         gm.Mesh.Initialize(game.AssetContentManager);
         gm.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(ground);
@@ -82,7 +83,7 @@ public class ViewManagerSandbox : Demo
             var box = new Entity { Name = $"Box {i}" };
             var bm  = new StaticMeshComponent();
             box.RootComponent = bm;
-            bm.Mesh = new BoxPrimitive(1.5f, 2f, 1.5f).CreateMesh();
+            bm.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(1.5f, 2f, 1.5f));
             bm.Mesh.Initialize(game.AssetContentManager);
             bm.LocalPosition = new Vector3(MathF.Cos(angle) * 8f, 1f, MathF.Sin(angle) * 8f);
             world.AddEntity(box);

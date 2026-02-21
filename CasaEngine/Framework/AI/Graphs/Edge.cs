@@ -1,5 +1,3 @@
-using System.Runtime.Serialization.Formatters.Binary;
-
 namespace CasaEngine.Framework.AI.Graphs;
 
 [Serializable]

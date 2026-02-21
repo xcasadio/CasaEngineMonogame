@@ -1,12 +1,11 @@
 ﻿using BulletSharp;
-using CasaEngine.Engine.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Game.Components.Physics;
 
 public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 {
-    private PhysicsDebugDraw _physicsDebugRenderer;
+    private PhysicsDebugDrawComponent _physicsDebugRenderer;
     private readonly CasaEngineGame _game;
 
     public bool DisplayPhysics { get; set; } = true;
@@ -24,7 +23,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
         base.LoadContent();
         var line3dRendererComponent = Game.GetGameComponent<Line3dRendererComponent>();
         var physicsEngineComponent = Game.GetGameComponent<PhysicsEngineComponent>();
-        _physicsDebugRenderer = new PhysicsDebugDraw(line3dRendererComponent) { DebugMode = DebugDrawModes.MaxDebugDrawMode };
+        _physicsDebugRenderer = new PhysicsDebugDrawComponent(line3dRendererComponent) { DebugMode = DebugDrawModes.MaxDebugDrawMode };
         physicsEngineComponent.PhysicsEngine.World.DebugDrawer = _physicsDebugRenderer;
     }
 

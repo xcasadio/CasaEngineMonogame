@@ -1,4 +1,3 @@
-using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Graphs;

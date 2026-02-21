@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CasaEngine.Framework.GameFramework;
+﻿namespace CasaEngine.Framework.GameFramework;
 
 /**
  * PlayerControllers are used by human players to control Pawns.

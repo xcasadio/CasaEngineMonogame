@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Serialization;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
@@ -92,6 +93,14 @@ public class StaticMesh : ObjectBase
             Texture = assetContentManager.Load<Assets.Textures.Texture>(TextureAssetId);
             Texture.Load(assetContentManager);
         }
+    }
+
+    public static StaticMesh CreateFromGeometricPrimitive(GeometricPrimitive geometricPrimitive)
+    {
+        var staticMesh = new StaticMesh();
+        staticMesh.AddVertices(geometricPrimitive.Vertices);
+        staticMesh.AddIndices(geometricPrimitive.Indices);
+        return staticMesh;
     }
 
 #if EDITOR

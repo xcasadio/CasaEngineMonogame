@@ -1,8 +1,8 @@
 ﻿using BulletSharp;
 using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.Graphics.Shapes;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Entities.Components;

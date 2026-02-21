@@ -1,9 +1,10 @@
 ﻿using CasaEngine.Core.Serialization;
+using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Input.InputSequence;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Engine.Input;
+namespace CasaEngine.Framework.Input;
 
 public class InputConfigurations : ISerializable
 {

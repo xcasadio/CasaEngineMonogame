@@ -1,14 +1,11 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
-public class Cylinder : Shape3d, IEquatable<Cylinder>
+public class Capsule : Shape3d, IEquatable<Capsule>
 {
-    private float _length;
-
     public float Radius { get; set; }
     public float Length { get; set; }
 
@@ -16,20 +13,18 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         get
         {
-            var halfSize = new Vector3(Length / 2f, Radius, Radius); // X oriented
-            return new BoundingBox(
-                new Vector3(-Length / 2f, Radius, Radius),
-                new Vector3(Length / 2f, Radius, Radius));
+            var halfSize = new Vector3(Length / 2f + Radius, Radius, Radius); // X oriented
+            return new BoundingBox(-halfSize, halfSize);
         }
     }
 
-    public Cylinder() : base(Shape3dType.Cylinder)
+    public Capsule() : base(Shape3dType.Capsule)
     {
-        Radius = 0.5f;
-        Length = 1f;
+        Radius = 1.0f;
+        Length = 1.0f;
     }
 
-    public bool Equals(Cylinder? other)
+    public bool Equals(Capsule? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -41,7 +36,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((Cylinder)obj);
+        return Equals((Capsule)obj);
     }
 
     public override int GetHashCode()
@@ -55,7 +50,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         base.Load(element);
         Radius = element["radius"].GetSingle();
-        _length = element["length"].GetSingle();
+        Length = element["length"].GetSingle();
     }
 
 #if EDITOR
@@ -64,7 +59,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
     {
         base.Save(jObject);
         jObject.Add("radius", Radius);
-        jObject.Add("length", _length);
+        jObject.Add("length", Length);
     }
 #endif
 }

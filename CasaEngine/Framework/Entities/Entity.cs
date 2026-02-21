@@ -8,8 +8,6 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Log;
 
-using static Assimp.Metadata;
-
 namespace CasaEngine.Framework.Entities;
 
 //Entity is the base class for an Object that can be placed or spawned in a level.

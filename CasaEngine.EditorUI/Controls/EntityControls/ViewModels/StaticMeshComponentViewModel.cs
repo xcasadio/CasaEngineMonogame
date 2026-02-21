@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Graphics;
 using System;
 using System.Reflection;
 
@@ -45,7 +46,8 @@ public class StaticMeshComponentViewModel : SceneComponentViewModel
 
     public void CreateMesh(Type meshType)
     {
-        _staticMeshComponent.Mesh = CreateGeometricPrimitive(meshType).CreateMesh();
+        var geometricPrimitive = CreateGeometricPrimitive(meshType);
+        _staticMeshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(geometricPrimitive);
         _staticMeshComponent.Mesh.Initialize(_staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager);
         _staticMeshComponent.Mesh.Texture = _staticMeshComponent.Owner.RootComponent.Owner.World.Game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
         

@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Objects;
+using CasaEngine.Framework.Physics;
 
 namespace CasaEngine.Framework.Scripting;
 

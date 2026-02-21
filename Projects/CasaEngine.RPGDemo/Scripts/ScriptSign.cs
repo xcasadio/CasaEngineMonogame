@@ -1,5 +1,7 @@
 ﻿using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework.Input;

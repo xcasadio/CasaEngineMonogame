@@ -1,10 +1,9 @@
-﻿
-using CasaEngine.Core.Helpers;
+﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
 public class ShapeLine : Shape2d, IEquatable<ShapeLine>
 {

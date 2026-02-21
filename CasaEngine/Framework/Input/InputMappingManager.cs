@@ -1,6 +1,6 @@
-using Microsoft.Xna.Framework;
+using CasaEngine.Engine.Input;
 
-namespace CasaEngine.Engine.Input;
+namespace CasaEngine.Framework.Input;
 
 public class InputMappingManager
 {
@@ -24,9 +24,9 @@ public class InputMappingManager
         }
     }
 
-    public ButtonState GetButtonState(string name)
+    public Engine.Input.ButtonState GetButtonState(string name)
     {
-        return new ButtonState
+        return new Engine.Input.ButtonState
         {
             IsKeyPressed = IsPressed(name),
             IsKeyJustPressed = IsJustPressed(name),

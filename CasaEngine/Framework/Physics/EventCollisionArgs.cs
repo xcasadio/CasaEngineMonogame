@@ -1,6 +1,6 @@
 ﻿using CasaEngine.Framework.Entities.Components;
 
-namespace CasaEngine.Engine.Physics;
+namespace CasaEngine.Framework.Physics;
 
 public class EventCollisionArgs : EventArgs
 {

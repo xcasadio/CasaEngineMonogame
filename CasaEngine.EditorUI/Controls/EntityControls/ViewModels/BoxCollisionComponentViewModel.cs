@@ -1,8 +1,8 @@
 ﻿using System;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Core.Shapes;
 using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Graphics.Shapes.Shapes;
 using CasaEngine.Framework.GUI;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;

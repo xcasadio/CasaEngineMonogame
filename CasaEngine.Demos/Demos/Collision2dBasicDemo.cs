@@ -6,6 +6,7 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -41,7 +42,7 @@ public class Collision2dBasicDemo : Demo
         //====
         var meshComponent = new StaticMeshComponent();
         entity.RootComponent = meshComponent;
-        meshComponent.Mesh = new BoxPrimitive(size.X, size.Y, size.Z).CreateMesh();
+        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(size.X, size.Y, size.Z));
         meshComponent.Mesh.Initialize(game.AssetContentManager);
         meshComponent.Mesh.Texture = meshTexture;
         entity.RootComponent.Position = new Vector3(0, 0, 0);
@@ -97,13 +98,13 @@ public class Collision2dBasicDemo : Demo
                     case 0:
                         physics2dComponent = new Box2dCollisionComponent();
                         physics2dComponent.Scale = new Vector3(boxSize, boxSize, 1f);
-                        meshComponent.Mesh = new BoxPrimitive(boxSize, boxSize, 1.0f).CreateMesh();
+                        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(boxSize, boxSize, 1.0f));
                         break;
 
                     case 1:
                         physics2dComponent = new CircleCollisionComponent();
                         physics2dComponent.Scale = new Vector3(boxSize / 2f, boxSize / 2f, boxSize / 2f);
-                        meshComponent.Mesh = new SpherePrimitive(boxSize).CreateMesh();
+                        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new SpherePrimitive(boxSize));
                         break;
                 }
 

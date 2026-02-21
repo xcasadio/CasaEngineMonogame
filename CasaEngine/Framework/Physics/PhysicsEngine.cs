@@ -1,8 +1,9 @@
 ﻿using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Engine.Physics;
+namespace CasaEngine.Framework.Physics;
 
 public class PhysicsEngine
 {

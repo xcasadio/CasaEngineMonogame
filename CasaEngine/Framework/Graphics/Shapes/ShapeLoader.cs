@@ -1,8 +1,7 @@
-﻿
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
 public class ShapeLoader
 {

@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.World;
+﻿using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.RPGDemo.Controllers;

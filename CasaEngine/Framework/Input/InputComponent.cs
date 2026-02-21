@@ -1,10 +1,11 @@
 ﻿using CasaEngine.Core.Helpers;
+using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
-using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Game;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
-namespace CasaEngine.Engine.Input;
+namespace CasaEngine.Framework.Input;
 
 public class InputComponent : GameComponent
 {
@@ -19,7 +20,7 @@ public class InputComponent : GameComponent
     public KeyboardManager KeyboardManager { get; } = new();
     public GamePadManager GamePadManager { get; } = new();
 
-    public InputComponent(Game game)
+    public InputComponent(Microsoft.Xna.Framework.Game game)
         : base(game)
     {
         if (game == null)

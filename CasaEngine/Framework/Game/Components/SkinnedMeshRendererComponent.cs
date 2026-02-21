@@ -1,5 +1,4 @@
-﻿using CasaEngine.Engine.Animations;
-using CasaEngine.Framework.Graphics;
+﻿using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

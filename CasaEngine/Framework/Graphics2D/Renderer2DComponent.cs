@@ -1,9 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics.Shapes;
 
 namespace CasaEngine.Framework.Graphics2D;
 

@@ -68,7 +68,7 @@ namespace SandBoxGame
             var meshComponent = new StaticMeshComponent();
             _boxEntity.RootComponent = meshComponent;
             _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
-            meshComponent.Mesh = new BoxPrimitive().CreateMesh();
+            meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
             meshComponent.Mesh.Initialize(AssetContentManager);
             meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
             _staticMesh = meshComponent.Mesh;

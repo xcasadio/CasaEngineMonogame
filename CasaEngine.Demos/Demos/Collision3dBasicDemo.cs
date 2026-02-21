@@ -1,12 +1,13 @@
-﻿using System.IO;
-using CasaEngine.Engine;
+﻿using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.IO;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -26,7 +27,7 @@ public class Collision3dBasicDemo : Demo
         //===
         var meshComponent = new StaticMeshComponent();
         entity.RootComponent = meshComponent;
-        meshComponent.Mesh = new BoxPrimitive(50, 1, 50).CreateMesh();
+        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(50, 1, 50));
         meshComponent.Mesh.Initialize(game.AssetContentManager);
         //===
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
@@ -46,7 +47,7 @@ public class Collision3dBasicDemo : Demo
             ArraySizeY + 10,
             -(float)ArraySizeZ + (float)ArraySizeZ / 2f);
 
-        var boxPrimitive = new BoxPrimitive().CreateMesh();
+        var boxPrimitive = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
         fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
         var meshTexture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using BulletSharp;
-using CasaEngine.Core.Shapes;
+using CasaEngine.Framework.Graphics.Shapes;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

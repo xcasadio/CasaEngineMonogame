@@ -2,25 +2,33 @@
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
-public class Cone : Shape3d, IEquatable<Cone>
+public class Cylinder : Shape3d, IEquatable<Cylinder>
 {
     private float _length;
 
     public float Radius { get; set; }
     public float Length { get; set; }
 
-    public override BoundingBox BoundingBox => new(
-        new Vector3(Radius, 0, Radius), new Vector3(Radius, Length, Radius));
+    public override BoundingBox BoundingBox
+    {
+        get
+        {
+            var halfSize = new Vector3(Length / 2f, Radius, Radius); // X oriented
+            return new BoundingBox(
+                new Vector3(-Length / 2f, Radius, Radius),
+                new Vector3(Length / 2f, Radius, Radius));
+        }
+    }
 
-    public Cone() : base(Shape3dType.Cone)
+    public Cylinder() : base(Shape3dType.Cylinder)
     {
         Radius = 0.5f;
         Length = 1f;
     }
 
-    public bool Equals(Cone? other)
+    public bool Equals(Cylinder? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
@@ -32,7 +40,7 @@ public class Cone : Shape3d, IEquatable<Cone>
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((Cone)obj);
+        return Equals((Cylinder)obj);
     }
 
     public override int GetHashCode()

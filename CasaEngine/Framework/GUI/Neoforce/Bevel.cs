@@ -1,8 +1,5 @@
 using CasaEngine.Framework.GUI.Neoforce.Graphics;
 using Microsoft.Xna.Framework;
-using Control = CasaEngine.Framework.GUI.Neoforce.Control;
-using EventArgs = CasaEngine.Framework.GUI.Neoforce.EventArgs;
-using EventHandler = CasaEngine.Framework.GUI.Neoforce.EventHandler;
 
 namespace CasaEngine.Framework.GUI.Neoforce;
 

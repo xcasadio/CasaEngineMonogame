@@ -1,8 +1,7 @@
 ﻿using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
 public class Shape3dCompound : Shape3d
 {

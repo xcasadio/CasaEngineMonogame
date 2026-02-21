@@ -1,6 +1,5 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Plugins;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
 
 namespace CasaEngine.Framework.Game;

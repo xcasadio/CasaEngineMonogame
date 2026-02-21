@@ -1,8 +1,5 @@
-﻿
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Log;
+﻿using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -10,8 +7,8 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Objects;
-using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
@@ -54,8 +53,7 @@ public class StaticMeshComponent : PrimitiveComponent
         // Only world-space matrices are enqueued here.
         // WorldViewProj and CameraPosition are resolved per-view inside
         // StaticMeshRendererComponent.Flush(RenderFrame).
-        _meshRendererComponent.AddMesh(Mesh, Material,
-            WorldMatrixWithScale, WorldInvertTransposeMatrix);
+        _meshRendererComponent.AddMesh(Mesh, Material, WorldMatrixWithScale, WorldInvertTransposeMatrix);
     }
 
     public override BoundingBox GetBoundingBox()

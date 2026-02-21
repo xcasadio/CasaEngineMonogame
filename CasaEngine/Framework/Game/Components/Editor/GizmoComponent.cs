@@ -1,6 +1,7 @@
 ﻿#if EDITOR
 
 using CasaEngine.Engine.Input;
+using CasaEngine.Framework.Input;
 using Microsoft.Xna.Framework;
 using XNAGizmo;
 

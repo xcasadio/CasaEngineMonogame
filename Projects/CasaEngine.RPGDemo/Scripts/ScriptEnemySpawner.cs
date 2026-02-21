@@ -1,6 +1,7 @@
 ﻿using System;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.GameFramework;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 

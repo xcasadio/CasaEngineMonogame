@@ -2,6 +2,7 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 

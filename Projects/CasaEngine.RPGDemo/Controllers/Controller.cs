@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using CasaEngine.Framework.AI.StateMachines;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Controllers;

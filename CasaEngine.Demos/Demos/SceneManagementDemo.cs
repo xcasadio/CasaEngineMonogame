@@ -28,8 +28,7 @@ public class SceneManagementDemo : Demo
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var meshTexture = new Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
-        var boxPrimitive = new BoxPrimitive();
-        var staticMesh = boxPrimitive.CreateMesh();
+        var staticMesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
         staticMesh.Initialize(game.AssetContentManager);
         staticMesh.Texture = meshTexture;
 

@@ -1,5 +1,4 @@
 using CasaEngine.Core.Helpers;
-using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;

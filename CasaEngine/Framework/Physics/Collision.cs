@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.Entities.Components;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Engine.Physics;
+namespace CasaEngine.Framework.Physics;
 
 /// <summary>
 /// A pair of component colliding with each other.

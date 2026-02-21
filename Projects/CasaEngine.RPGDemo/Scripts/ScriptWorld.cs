@@ -3,6 +3,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;

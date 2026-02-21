@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows;
-using CasaEngine.Core.Shapes;
+using CasaEngine.Framework.Graphics.Shapes.Shapes;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.WpfControls;

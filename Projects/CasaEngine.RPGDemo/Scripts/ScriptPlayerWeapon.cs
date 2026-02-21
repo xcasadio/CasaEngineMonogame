@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 

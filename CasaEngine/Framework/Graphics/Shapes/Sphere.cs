@@ -1,40 +1,32 @@
-﻿
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
-public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
+public class Sphere : Shape3d
 {
-    public float Radius { get; set; } = 1f;
+    public float Radius { get; set; }
 
     public override BoundingBox BoundingBox
     {
         get
         {
-            var position = Position.ToVector3();
             var radiusVector = new Vector3(Radius);
-            return new BoundingBox(position - radiusVector, position + radiusVector);
+            return new BoundingBox(radiusVector, radiusVector);
         }
     }
 
-    public ShapeCircle() : base(Shape2dType.Circle)
+    public Sphere() : base(Shape3dType.Sphere)
     {
-
+        Radius = 1f;
     }
 
-    public ShapeCircle(int radius) : this()
-    {
-        Radius = radius;
-    }
-
-    public bool Equals(ShapeCircle? other)
+    public bool Equals(Sphere? other)
     {
         if (ReferenceEquals(null, other)) return false;
         if (ReferenceEquals(this, other)) return true;
-        return Radius == other.Radius;
+        return Type == other.Type && Radius.Equals(other.Radius);
     }
 
     public override bool Equals(object? obj)
@@ -42,12 +34,12 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((ShapeCircle)obj);
+        return Equals((Sphere)obj);
     }
 
     public override int GetHashCode()
     {
-        return Radius.GetHashCode();
+        return HashCode.Combine((int)Type, Radius);
     }
 
     public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius}}}";
@@ -59,6 +51,7 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
     }
 
 #if EDITOR
+
     public override void Save(JObject jObject)
     {
         base.Save(jObject);

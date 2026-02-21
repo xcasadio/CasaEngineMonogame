@@ -1,7 +1,6 @@
 using System;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;

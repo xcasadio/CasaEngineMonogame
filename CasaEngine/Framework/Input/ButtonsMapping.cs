@@ -1,9 +1,8 @@
-using CasaEngine.Framework.Entities;
-using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Objects;
+using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Engine.Input;
+namespace CasaEngine.Framework.Input;
 
 public class ButtonsMapping : ObjectBase
 {

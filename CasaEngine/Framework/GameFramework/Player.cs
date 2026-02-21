@@ -1,5 +1,4 @@
-﻿using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Objects;
+﻿using CasaEngine.Framework.Objects;
 
 namespace CasaEngine.Framework.GameFramework;
 

@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using CasaEngine.Core.Collections;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

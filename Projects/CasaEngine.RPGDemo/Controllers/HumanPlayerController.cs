@@ -1,6 +1,5 @@
-﻿using CasaEngine.Engine.Input;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.GameFramework;
+﻿using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
 using Microsoft.Xna.Framework;

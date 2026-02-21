@@ -1,10 +1,10 @@
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Entities;
+using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Engine.Input;
+namespace CasaEngine.Framework.Input;
 
 public class InputMapping : ObjectBase
 {

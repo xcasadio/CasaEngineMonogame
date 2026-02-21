@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.Loaders;
 

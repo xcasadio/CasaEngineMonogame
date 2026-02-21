@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Physics;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 

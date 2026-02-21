@@ -2,6 +2,7 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.GUI.Neoforce;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using CasaEngine.RPGDemo.Controllers;

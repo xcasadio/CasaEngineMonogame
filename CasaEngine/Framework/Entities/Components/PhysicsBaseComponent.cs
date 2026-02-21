@@ -3,6 +3,7 @@ using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

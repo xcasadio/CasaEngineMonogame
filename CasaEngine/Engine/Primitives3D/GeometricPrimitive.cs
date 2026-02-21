@@ -1,28 +1,18 @@
-﻿using CasaEngine.Framework.Graphics;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Engine.Primitives3D;
 
 public abstract class GeometricPrimitive
 {
-    private readonly List<VertexPositionNormalTexture> _vertices = new();
-    private readonly List<uint> _indices = new();
+    public readonly List<VertexPositionNormalTexture> Vertices = new();
+    public readonly List<uint> Indices = new();
 
-    protected uint CurrentVertex => (uint)_vertices.Count;
-
-    public StaticMesh CreateMesh()
-    {
-        var mesh = new StaticMesh();
-        mesh.AddVertices(_vertices);
-        mesh.AddIndices(_indices);
-
-        return mesh;
-    }
+    protected uint CurrentVertex => (uint)Vertices.Count;
 
     protected void AddVertex(Vector3 position, Vector3 normal, Vector2 uv)
     {
-        _vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
+        Vertices.Add(new VertexPositionNormalTexture(position, normal, uv));
     }
 
     protected void AddIndex(uint index)
@@ -32,7 +22,7 @@ public abstract class GeometricPrimitive
             throw new ArgumentOutOfRangeException(nameof(index));
         }
 
-        _indices.Add((uint)index);
+        Indices.Add((uint)index);
     }
 
     protected static Vector3 GetCircleVector(uint i, int tessellation)
@@ -85,16 +75,14 @@ public abstract class GeometricPrimitive
     }
 
 #if EDITOR
+
     public List<Vector3> Points
     {
         get
         {
-            return _vertices.Select(v => v.Position).ToList();
+            return Vertices.Select(v => v.Position).ToList();
         }
     }
-
-    public List<VertexPositionNormalTexture> Vertices => _vertices;
-    public List<uint> Indices => _indices;
 
 #endif
 }

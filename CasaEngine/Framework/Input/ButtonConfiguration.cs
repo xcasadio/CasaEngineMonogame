@@ -1,6 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Engine.Input.InputSequence;
+using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Engine.Input.InputSequence;
+namespace CasaEngine.Framework.Input;
 
 public class ButtonConfiguration
 {

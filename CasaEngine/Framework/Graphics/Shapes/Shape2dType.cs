@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Core.Shapes;
+﻿namespace CasaEngine.Framework.Graphics.Shapes;
 
 public enum Shape2dType
 {

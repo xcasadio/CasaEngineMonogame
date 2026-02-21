@@ -2,6 +2,7 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -36,7 +37,7 @@ public class RenderToTextureDemo : Demo
         var groundEntity = new Entity { Name = "Ground" };
         var groundMesh = new StaticMeshComponent();
         groundEntity.RootComponent = groundMesh;
-        groundMesh.Mesh = new BoxPrimitive(20, 1, 20).CreateMesh();
+        groundMesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(20, 1, 20));
         groundMesh.Mesh.Initialize(game.AssetContentManager);
         groundMesh.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(groundEntity);
@@ -47,7 +48,7 @@ public class RenderToTextureDemo : Demo
             var boxEntity = new Entity { Name = $"Box {i}" };
             var boxMesh = new StaticMeshComponent();
             boxEntity.RootComponent = boxMesh;
-            boxMesh.Mesh = new BoxPrimitive(2, 2, 2).CreateMesh();
+            boxMesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(2, 2, 2));
             boxMesh.Mesh.Initialize(game.AssetContentManager);
             boxMesh.LocalPosition = new Vector3((i - 1) * 4, 1, 0);
             world.AddEntity(boxEntity);

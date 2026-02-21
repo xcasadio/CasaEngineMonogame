@@ -1,13 +1,13 @@
-﻿using Assimp;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Assimp;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
-using CasaEngine.Framework.Assets;
+using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Graphics;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace CasaEngine.Engine.Animations;
+namespace CasaEngine.Framework.Assets.Animations;
 
 // TODO's  see the model class for more.  
 //

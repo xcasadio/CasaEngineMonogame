@@ -1,9 +1,7 @@
-﻿using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Objects;
+﻿using CasaEngine.Framework.Objects;
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Core.Shapes;
+namespace CasaEngine.Framework.Graphics.Shapes;
 
 public abstract class Shape3d : ObjectBase
 {

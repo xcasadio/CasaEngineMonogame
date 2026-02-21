@@ -1,6 +1,4 @@
-﻿using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Log;
-using CasaEngine.Framework.Graphics;
+﻿using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;

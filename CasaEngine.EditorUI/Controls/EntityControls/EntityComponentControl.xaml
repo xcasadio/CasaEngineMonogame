@@ -7,12 +7,12 @@
              xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:physics="clr-namespace:CasaEngine.Engine.Physics;assembly=CasaEngine"
              xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
-             xmlns:shapes="clr-namespace:CasaEngine.Core.Shapes;assembly=CasaEngine"
              xmlns:xna="clr-namespace:Microsoft.Xna.Framework;assembly=MonoGame.Framework"
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
              xmlns:components="clr-namespace:CasaEngine.Framework.Entities.Components;assembly=CasaEngine"
+             xmlns:shapes="clr-namespace:CasaEngine.Framework.Graphics.Shapes.Shapes;assembly=CasaEngine"
              mc:Ignorable="d" 
              d:DesignHeight="150" d:DesignWidth="400">
     <Control.Resources>
@@ -30,7 +30,7 @@
         <DataTemplate x:Key="CompoundTemplate" DataType="{x:Type shapes:Shape3dCompound}">
             <ItemsControl ItemsSource="{Binding Shapes}" >
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="shapes:Shape3d">
+                    <DataTemplate DataType="{x:Type shapes:Shape3d}">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="auto" />

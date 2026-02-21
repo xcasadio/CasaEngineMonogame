@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Data;
-using CasaEngine.Core.Shapes;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Graphics.Shapes.Shapes;
 using CasaEngine.WpfControls;
 using Xceed.Wpf.Toolkit.PropertyGrid;
 using Xceed.Wpf.Toolkit.PropertyGrid.Editors;

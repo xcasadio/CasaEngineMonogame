@@ -3,6 +3,8 @@ using CasaEngine.Engine.Input;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Physics;
 
 namespace CasaEngine.Framework.Scripting;
 
