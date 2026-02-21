@@ -216,6 +216,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             SkinnedMeshRendererComponent,
             SpriteRendererComponent,
             Line3dRendererComponent,
+            Renderer2dComponent,
         }, SpriteBatch!);
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
