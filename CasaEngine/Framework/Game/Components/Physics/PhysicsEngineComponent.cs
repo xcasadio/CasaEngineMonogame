@@ -84,7 +84,7 @@ public class PhysicsEngineComponent : GameComponent
 
     public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
     {
-        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, physicsDefinition.MotionState, collisionShape);
+        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, null, collisionShape);
         rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
         rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
         rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;

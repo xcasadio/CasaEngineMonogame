@@ -1,6 +1,4 @@
 ﻿using System.ComponentModel;
-
-using BulletSharp;
 using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -18,7 +16,6 @@ public class PhysicsDefinition
     public float AngularDamping { get; set; } = 0f;
     public Vector3 AngularFactor { get; set; } = Vector3.One;
     public float AngularSleepingThreshold { get; set; } = 1f;
-    public CollisionShape? CollisionShape { get; set; }
     public float Friction { get; set; } = 0.5f;
     public float LinearDamping { get; set; } = 0f;
     public Vector3 LinearFactor { get; set; } = Vector3.One;
@@ -26,8 +23,6 @@ public class PhysicsDefinition
     public Vector3 LocalInertia { get; set; }
     public float Mass { get; set; } = 0f;
 
-    [Browsable(false)]
-    public MotionState? MotionState { get; set; }
     public float Restitution { get; set; } = 0f;
     public float RollingFriction { get; set; } = 0f;
     public bool ApplyGravity { get; set; } = true;
@@ -49,7 +44,6 @@ public class PhysicsDefinition
         AngularDamping = other.AngularDamping;
         AngularFactor = other.AngularFactor;
         AngularSleepingThreshold = other.AngularSleepingThreshold;
-        //CollisionShape = other.CollisionShape?.Clone();
         Friction = other.Friction;
         LinearDamping = other.LinearDamping;
         LinearFactor = other.LinearFactor;
