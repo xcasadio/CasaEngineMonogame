@@ -1,5 +1,5 @@
 ﻿using Assimp;
-using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Animations;
