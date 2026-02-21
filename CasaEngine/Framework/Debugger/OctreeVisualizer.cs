@@ -1,7 +1,8 @@
-﻿using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.SpacePartitioning.Octree;
+namespace CasaEngine.Framework.Debugger;
 
 public static class OctreeVisualizer
 {

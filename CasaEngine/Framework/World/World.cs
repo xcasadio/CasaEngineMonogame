@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
