@@ -1,7 +1,4 @@
-﻿
-using CasaEngine.Core.Serialization;
-using Microsoft.Xna.Framework;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Maths;
 
@@ -110,33 +107,11 @@ public class Coordinates
         }
     }
 
-    public void Load(JObject element)
-    {
-        Position = element["position"].GetVector3();
-        Scale = element["scale"].GetVector3();
-        Orientation = element["rotation"].GetQuaternion();
-        SetDirtyMatrix();
-    }
-
 #if EDITOR
+
     public event EventHandler? PositionChanged;
     public event EventHandler? OrientationChanged;
     public event EventHandler? ScaleChanged;
-
-    public void Save(JObject jObject)
-    {
-        var newObject = new JObject();
-        Position.Save(newObject);
-        jObject.Add("position", newObject);
-
-        newObject = new JObject();
-        Scale.Save(newObject);
-        jObject.Add("scale", newObject);
-
-        newObject = new JObject();
-        Orientation.Save(newObject);
-        jObject.Add("rotation", newObject);
-    }
 
 #endif
 }

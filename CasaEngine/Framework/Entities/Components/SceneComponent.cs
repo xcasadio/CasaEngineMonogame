@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Helpers;
+using CasaEngine.Core.Serialization;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -23,7 +24,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 {
     private Matrix _lastWorldMatrix;
     private Matrix _lastWorldInvertTransposeMatrix;
-    public Coordinates Coordinates { get; }
+    public Coordinates Coordinates { get; protected set; }
 
     /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
     public SceneComponent? Parent { get; set; }
@@ -366,7 +367,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     public override void Load(JObject element)
     {
         base.Load(element);
-        Coordinates.Load((JObject)element["coordinates"]);
+        Coordinates = element["coordinates"].GetCoordinates();
 
         foreach (var childComponentNode in element["children_component"])
         {

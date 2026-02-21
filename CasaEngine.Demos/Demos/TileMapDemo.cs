@@ -2,6 +2,7 @@
 using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;

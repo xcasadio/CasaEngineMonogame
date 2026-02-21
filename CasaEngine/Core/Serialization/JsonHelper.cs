@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Core.Maths;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using Size = CasaEngine.Core.Maths.Size;
@@ -162,6 +163,15 @@ public static class JsonHelper
         return samplerState;
     }
 
+    public static Coordinates GetCoordinates(this JToken element)
+    {
+        var c = new Coordinates();
+        c.Position    = element["position"].GetVector3();
+        c.Scale       = element["scale"].GetVector3();
+        c.Orientation = element["rotation"].GetQuaternion();
+        return c;
+    }
+
     public static IEnumerable<T> GetElements<T>(this JToken element, string arrayName, Func<JToken, T> loadElementFunc)
     {
         return element[arrayName].Select(loadElementFunc);
@@ -171,6 +181,8 @@ public static class JsonHelper
     {
         return Enum.Parse<T>(element.GetString(), true);
     }
+
+    #if EDITOR
 
     //================================ Save ======================================
     public static void Save(this Rectangle obj, JObject jObject)
@@ -290,6 +302,13 @@ public static class JsonHelper
         jObject.Add("filter_mode", samplerState.FilterMode.ConvertToString());
     }
 
+    public static void Save(this Coordinates coordinates, JObject jObject)
+    {
+        var pos = new JObject(); coordinates.Position.Save(pos);    jObject.Add("position", pos);
+        var scl = new JObject(); coordinates.Scale.Save(scl);       jObject.Add("scale", scl);
+        var rot = new JObject(); coordinates.Orientation.Save(rot); jObject.Add("rotation", rot);
+    }
+
     public static void AddArray<T>(this JObject jObject, string arrayName, IEnumerable<T> elements, Action<T, JObject> saveFunc)
     {
         var jArray = new JArray();
@@ -318,4 +337,6 @@ public static class JsonHelper
     {
         return Enum.GetName(value.GetType(), value);
     }
+    
+    #endif
 }

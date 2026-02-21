@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;

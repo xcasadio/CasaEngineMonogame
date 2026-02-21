@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Core.Design;
+namespace CasaEngine.Framework.Entities;
 
 public interface IBoundingBoxable
 {

@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using CasaEngine.Engine;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using Path = System.IO.Path;
 

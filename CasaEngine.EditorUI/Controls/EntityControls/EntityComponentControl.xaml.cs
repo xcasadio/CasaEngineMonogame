@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using CasaEngine.Core.Maths;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Engine;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.WpfControls;

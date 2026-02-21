@@ -13,7 +13,7 @@ public class EntityReference
     //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
-    public Coordinates InitialCoordinates { get; } = new();
+    public Coordinates InitialCoordinates { get; private set; } = new();
     public Entity Entity { get; internal set; }
 
     public void Load(JObject element)
@@ -27,7 +27,7 @@ public class EntityReference
         else
         {
             Name = element["name"].GetString();
-            InitialCoordinates.Load((JObject)element["initial_coordinates"]);
+            InitialCoordinates = element["initial_coordinates"].GetCoordinates();
         }
     }
 

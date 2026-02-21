@@ -6,6 +6,7 @@ using CasaEngine.Framework.Graphics;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets.Textures;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;

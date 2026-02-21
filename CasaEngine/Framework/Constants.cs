@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Engine;
+﻿namespace CasaEngine.Framework;
 
 public static class Constants
 {
