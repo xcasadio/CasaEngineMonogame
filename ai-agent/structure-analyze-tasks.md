@@ -412,10 +412,74 @@ Les composants mesh récupèrent leur renderer dans `InitializeWithWorld()` en a
 
 ## 6. GameFramework analysis (Unreal-style gameplay layer)
 
-- [ ] **6.1** Review `GameMode.cs`, `Player.cs`, `LocalPlayer.cs`, `Pawn.cs`, `Controller.cs`, `PlayerController.cs`, `AIController.cs` — does this follow the Unreal pattern properly?
-- [ ] **6.2** Check if GameMode is properly separated from World management.
-- [ ] **6.3** Check if Controller/Pawn possession model works cleanly.
-- [ ] **6.4** Check if there is tight coupling between GameFramework and specific component types.
+- [x] **6.1** Review `GameMode.cs`, `Player.cs`, `LocalPlayer.cs`, `Pawn.cs`, `Controller.cs`, `PlayerController.cs`, `AIController.cs` — does this follow the Unreal pattern properly?
+- [x] **6.2** Check if GameMode is properly separated from World management.
+- [x] **6.3** Check if Controller/Pawn possession model works cleanly.
+- [x] **6.4** Check if there is tight coupling between GameFramework and specific component types.
+
+---
+
+### Résultats — Tâche 6 : Analyse GameFramework (couche gameplay Unreal-style)
+
+---
+
+### ✅ Bien implémenté
+
+#### Hiérarchie des classes — conforme au pattern Unreal
+
+```
+ObjectBase
+├── GameMode           (machine à états de match : EnteringMap → WaitingToStart → InProgress → WaitingPostMatch → LeavingMap)
+├── Player             (représente un joueur, physique ou réseau)
+│   └── LocalPlayer    (joueur local, ControllerId: PlayerIndex)
+└── Controller         (non-physique, pilote un Pawn)
+    ├── PlayerController   (humain + Player ref)
+    └── AIController       (IA)
+
+Entity
+└── Pawn               (représentation physique d'un joueur ou créature, InputEnabled, Controller ref)
+```
+
+Les classes sont correctement documentées (liens vers la doc UE dans les commentaires).
+
+#### 6.2 — GameMode séparé de World ✅
+
+`World.cs` ne contient **aucune référence** à `GameFramework`. `GameMode` stocke une ref `World.World World { get; private set; }` (sens normal : le mode de jeu connaît le monde où il s'exécute). La séparation est propre.
+
+#### 6.4 — Couplage GameFramework → composants ✅
+
+`GameFramework/` ne dépend que de `Entities` (via `Pawn : Entity`). Aucune dépendance vers des composants spécifiques (`Game.Components`, `Graphics`, etc.). Propre.
+
+---
+
+### ❌ Erreurs identifiées
+
+#### `GameFramework` — couche entièrement non câblée (majeur)
+
+**Aucun fichier hors de `GameFramework/` ne référence ce namespace.** Les 7 classes sont du code mort en production :
+
+| Classe | État |
+|---|---|
+| `GameMode` | 442 lignes dont ~250 commentées (code C++ UE traduit). `ReadyToStartMatch()` retourne toujours `false` → le match ne commence jamais. |
+| `Controller` | 1 propriété : `Pawn Pawn { get; set; }`. Pas de méthode `Possess()` / `UnPossess()`. |
+| `PlayerController` | 2 propriétés : `Player`, `IsInputEnable`. Aucune logique. |
+| `AIController` | Corps entièrement commenté (stubs C++). Classe vide. |
+| `Player` | Classe vide. |
+| `LocalPlayer` | 1 propriété : `ControllerId`. |
+| `Pawn` | `InputEnabled` + `Controller` ref. Pas de méthode de possession. |
+
+#### 6.3 — Modèle Possess/UnPossess non implémenté (majeur)
+
+`Controller.Possess()` n'existe pas. Le lien Controller↔Pawn est une simple propriété assignée à la main. Aucun appel à `Possess` / `UnPossess` dans toute la codebase.
+
+---
+
+### 💡 Pistes d'amélioration
+
+- **[Réflexion — code aspirationnel]** Décider si ce layer doit être activement développé ou rester un scaffold pour l'avenir. Si non prioritaire, ajouter un commentaire `// SCAFFOLD - not yet integrated` dans chaque fichier pour éviter la confusion.
+- **[Quick win si activé]** Ajouter `Possess(Pawn pawn)` / `UnPossess()` sur `Controller` — 5 lignes pour rendre le modèle fonctionnel.
+- **[Quick win si activé]** Câbler `GameMode` dans `World.InitGame()` et dans `CasaEngineGame` pour que la machine à états de match s'exécute réellement.
+- **[Nettoyage]** Supprimer les 200+ lignes de code C++ commenté dans `GameMode.cs` — elles n'apportent rien et alourdissent la lisibilité.
 
 ---
 
