@@ -377,16 +377,9 @@ Les commentaires dans les fichiers citent explicitement les classes UE (`UActorC
 
 ### ❌ Erreurs identifiées
 
-#### `IGameplayProxy` dans `Scripting/` — cycle résiduel (majeur)
+#### ~~`IGameplayProxy` dans `Scripting/` — cycle résiduel~~ ✅ CORRIGÉ
 
-`IGameplayProxy.cs` (dans `Scripting/`) déclare `GameplayProxy Clone()` — type concret. L'interface retourne sa propre implémentation concrète, ce qui viole le principe d'inversion des dépendances et maintient le cycle `Entities ↔ Scripting`.
-
-```csharp
-// Problème dans IGameplayProxy.cs :
-GameplayProxy Clone();  // retourne le type concret → dependency circulaire
-```
-
-**Fix** : remplacer par `IGameplayProxy Clone()` dans l'interface.
+`IGameplayProxy.Clone()` retourne maintenant `IGameplayProxy` (non plus le type concret `GameplayProxy`). Le cycle `Entities ↔ Scripting` est cassé.
 
 #### `SceneComponent.cs` — classe volumineuse (mineur)
 
@@ -404,8 +397,10 @@ Les composants mesh récupèrent leur renderer dans `InitializeWithWorld()` en a
 
 ### 💡 Pistes d'amélioration
 
-- **[Quick win — cycle Scripting]** Dans `IGameplayProxy`, remplacer `GameplayProxy Clone()` par `IGameplayProxy Clone()`. Casse le dernier lien concret vers `Scripting` depuis l'interface.
+- ~~**[Quick win — cycle Scripting]**~~ ✅ FAIT — `IGameplayProxy.Clone()` retourne `IGameplayProxy`.
 - **[Refactoring moyen — Scripting]** Déplacer `IGameplayProxy` de `Scripting/` dans `Entities/` — `Scripting.GameplayProxy` l'implémente, `Entities.Entity` l'utilise, sans dépendance inverse.
+- **[Nouveau]** `IBoundingBoxable` interface ajoutée dans `Framework/Entities/` — extrait le contrat BoundingBox de `SceneComponent`. Propre.
+- **[Nouveau]** `CircleCollisionComponent` ajouté à la hiérarchie de collision 2D (en complément de `Box2dCollisionComponent`).
 - **[Réflexion — GetGameComponent dans InitializeWithWorld]** Envisager un système d'injection de dépendances léger (passer les services au constructeur ou via une interface `IWorldServices`) plutôt que de résoudre les GameComponents dynamiquement.
 
 ---
@@ -500,13 +495,15 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ⚠️ `StaticMeshRendererComponent` et `SkinnedMeshRendererComponent` : **valeurs d'éclairage hardcodées** en constantes magiques dans `LoadContent` / `Flush()` (3 lumières directionnelles RGB hardcodées, coefficients ambiants/diffus/speculaires fixes). Ces valeurs doivent passer dans un `LightingSettings` ou une propriété configurable.
 
-❌ `Renderer2DComponent` : **n'implémente pas `IViewFlushableRenderer`**. Non-compatible avec le pipeline multi-vue. Localisé dans `Graphics2D/` alors que tous les autres renderers sont dans `Game/Components/`.
+✅ `Renderer2DComponent` : implémente maintenant `IViewFlushableRenderer` (`f9eb3185`). Déplacé de `Graphics2D/` vers `Game/Components/`. Compatible pipeline multi-vue.
+
+⚠️ Nommage résiduel : classe encore nommée `Renderer2dComponent` (d minuscule) — convention incohérente.
 
 **7.2 IViewFlushableRenderer**
 
 ✅ Interface propre, méthode unique `void Flush(in RenderFrame frame)`. Bien définie.
 
-❌ `Renderer2DComponent` manquant → impossible de l'intégrer dans `RenderPipeline` sans modification.
+✅ `Renderer2DComponent` implémente `IViewFlushableRenderer` et est intégré dans le `RenderPipeline`.
 
 **7.3 Framework/Rendering/ (27 fichiers)**
 
@@ -525,12 +522,12 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 **7.5 Framework/Graphics2D/**
 
-⚠️ `Renderer2DComponent` (469 lignes) gère sprites 2D + texte + lignes 2D — recouvrement partiel avec `SpriteRendererComponent` (399 lignes, sprites 3D). Ces deux classes ne sont pas strictement redondantes (la 2D gère `SpriteBatch` screen-space + texte + scissor) mais la séparation n'est pas formalisée.
+✅ `Renderer2DComponent` migré dans `Game/Components/` (`f9eb3185`). `Graphics2D/` contient désormais uniquement les primitives non-composants : `BmFontRenderer`, `Line2D`, `Line2DRenderer`. `ScreenLogComponent` aussi migré.
 
-❌ Problèmes identifiés :
-1. `Renderer2DComponent` ne peut pas être utilisé dans le pipeline multi-vue (pas d'`IViewFlushableRenderer`)
-2. Convention de nommage incohérente : `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent`
-3. Localisation incohérente : devrait être dans `Game/Components/` comme les autres renderers
+⚠️ Recouvrement partiel `Renderer2dComponent` (2D screen-space, texte, scissor) vs `SpriteRendererComponent` (sprites 3D) — non redondants mais séparation non formalisée.
+
+❌ Problèmes résiduels :
+1. Convention de nommage : `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent` — V7-3 toujours ouvert.
 
 **7.6 Framework/Materials/**
 
@@ -542,19 +539,18 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 | # | Sévérité | Fichier | Problème |
 |---|---|---|---|
-| V7-1 | 🔴 | `Graphics2D/Renderer2DComponent.cs` | N'implémente pas `IViewFlushableRenderer` — incompatible multi-vue |
-| V7-2 | 🟡 | `Graphics2D/Renderer2DComponent.cs` | Mauvais répertoire (`Graphics2D/` au lieu de `Game/Components/`) |
-| V7-3 | 🟡 | `Graphics2D/Renderer2DComponent.cs` | Nommage incohérent (`Renderer2dComponent` vs `Renderer`) |
+| ~~V7-1~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | `IViewFlushableRenderer` implémenté (`f9eb3185`) |
+| ~~V7-2~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | Déplacé de `Graphics2D/` vers `Game/Components/` (`f9eb3185`) |
+| V7-3 | 🟡 | `Game/Components/Renderer2DComponent.cs` | Nommage incohérent : `Renderer2dComponent` (d minuscule) |
 | V7-4 | 🟡 | `StaticMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
 | V7-5 | 🟡 | `SkinnedMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
 | V7-6 | 🟡 | `Materials/ShaderWriter2.cs` | Nommage trompeur — compiler GrapheMatériau ≠ ShaderWriter v2 |
 
 ### Corrections recommandées — Task 7
 
-1. **V7-1 (prioritaire)** : Faire implémenter `IViewFlushableRenderer` à `Renderer2DComponent` — déplacer la logique de rendu dans `Flush(in RenderFrame frame)`, conserver `Draw()` comme fallback temporaire.
-2. **V7-2** : Déplacer `Renderer2DComponent.cs` dans `Game/Components/` (renommer classe en `Renderer2DComponent` avec majuscule).
-3. **V7-4/V7-5** : Extraire les constantes d'éclairage hardcodées vers une classe `DefaultLightingSettings` (const fields ou propriétés configurables).
-4. **V7-6** : Renommer `ShaderWriter2` → `ShaderGraphWriter` (ou `MaterialGraphCompiler`).
+1. **V7-3** : Renommer la classe `Renderer2dComponent` → `Renderer2DComponent` (majuscule D).
+2. **V7-4/V7-5** : Extraire les constantes d'éclairage hardcodées vers une classe `DefaultLightingSettings` (const fields ou propriétés configurables).
+3. **V7-6** : Renommer `ShaderWriter2` → `ShaderGraphWriter` (ou `MaterialGraphCompiler`).
 
 ---
 
@@ -722,9 +718,9 @@ Marquer `Framework/AI/` comme **feature flags désactivées** ou **code de réf�
 
 **11.2 Split 2D/3D**
 
-✅ Séparation propre : `Physics2dComponent` (Box2D, 574 lignes) vs `PhysicsBaseComponent` (BulletSharp, 7697 lignes — voir ci-dessous).
+✅ Séparation propre : `Physics2dComponent` (Box2D, 574 lignes) vs `PhysicsBaseComponent` (BulletSharp, 283 lignes).
 
-❌ `PhysicsBaseComponent.cs` : **7697 lignes** — God Class manifeste. Centralise collisions, triggers, forces, joints, etc. Doit être décomposé.
+✅ `PhysicsBaseComponent.cs` : **283 lignes** — classe abstraite propre. Responsabilités : gestion cycle de vie `RigidBody`/`CollisionObject`, `BoundingBox`, position sync Update. Méthodes abstraites : `ConvertToCollisionShape()`, `ComputeBoundingBox()` — pattern Template Method correct. V11-1 résolu.
 
 **11.3 Framework/Game/Components/Physics/**
 
@@ -738,7 +734,7 @@ Non inspectés en détail — hors scope de l'analyse de cette session. À véri
 
 | # | Sévérité | Fichier | Problème |
 |---|---|---|---|
-| V11-1 | 🔴 | `Entities/Components/PhysicsBaseComponent.cs` | God Class 7697 lignes |
+| ~~V11-1~~ | ✅ RÉSOLU | `Entities/Components/PhysicsBaseComponent.cs` | Classe refactorisée — 283 lignes, design propre |
 
 ---
 
@@ -874,7 +870,7 @@ Le flag `#if EDITOR` est utilisé correctement tout au long du code (World, Game
 **15.4 Conventions de nommage**
 
 ⚠️ Incohérences identifiées :
-- `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent`, `StaticMeshRendererComponent` (standard)
+- `Renderer2dComponent` (d minuscule) — class name non corrigé (fichier renommé `Renderer2DComponent.cs` mais classe interne encore `Renderer2dComponent`)
 - `ElementLoader.cs` (fichier) vs classe interne `ElementFactory`
 - `ShaderWriter2` (suffixe numérique) vs nommage sémantique attendu
 - `Line2dRenderer` vs `Line3dRendererComponent` (suffixes inconsistants)
@@ -922,7 +918,7 @@ Aucune violation de dépendance Core←Engine←Framework non corrigée identifi
 | Fichier | Lignes | Problème |
 |---|---|---|
 | `Animations/RiggedModelLoader.cs` | 1616 | Loader monolithique — parsing + conversion + animation + bone extraction |
-| `Entities/Components/PhysicsBaseComponent.cs` | 7697 | God Component — collisions, triggers, forces, joints, callbacks |
+| ~~`Entities/Components/PhysicsBaseComponent.cs`~~ | ~~7697~~ → **283** | ✅ RÉSOLU — refactorisé en classe abstraite propre |
 | `Framework/Assets/Fonts/Font.cs` | 654 | Police avec rendu inline |
 
 ---
@@ -953,22 +949,23 @@ Restructurations de nommage recommandées (impact minimal, gain immédiat) :
 
 #### 🔴 Quick wins (< 1 jour chacun)
 
-| Priorité | Action | Fichier |
-|---|---|---|
-| 1 | Renommer `ElementLoader.cs` → `ElementFactory.cs` | `Assets/ElementFactory.cs` |
-| 2 | Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()` | `Assets/ElementFactory.cs` |
-| 3 | Ajouter index `_byName` + `_byFileName` dans `AssetCatalog` | `Assets/AssetCatalog.cs` |
-| 4 | Renommer `ShaderWriter2` → `ShaderGraphWriter` | `Materials/ShaderGraphWriter.cs` |
-| 5 | Fixer chemin de police hardcodé Windows dans `CasaEngineGame.Initialize()` | `Game/CasaEngineGame.cs` |
-| 6 | Implémenter `IViewFlushableRenderer` sur `Renderer2DComponent` | `Graphics2D/Renderer2DComponent.cs` |
+| Priorité | Action | Fichier | Statut |
+|---|---|---|---|
+| 1 | Renommer `ElementLoader.cs` → `ElementFactory.cs` | `Assets/ElementFactory.cs` | ⬜ |
+| 2 | Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()` | `Assets/ElementFactory.cs` | ⬜ |
+| 3 | Ajouter index `_byName` + `_byFileName` dans `AssetCatalog` | `Assets/AssetCatalog.cs` | ⬜ |
+| 4 | Renommer `ShaderWriter2` → `ShaderGraphWriter` | `Materials/ShaderGraphWriter.cs` | ⬜ |
+| 5 | Fixer chemin de police hardcodé Windows dans `CasaEngineGame.Initialize()` | `Game/CasaEngineGame.cs` | ⬜ |
+| ~~6~~ | ~~Implémenter `IViewFlushableRenderer` sur `Renderer2DComponent`~~ | — | ✅ FAIT |
+| 6 | Renommer classe `Renderer2dComponent` → `Renderer2DComponent` (casing) | `Game/Components/Renderer2DComponent.cs` | ⬜ |
 
 #### 🟡 Refactors moyens (1–3 jours)
 
-| Priorité | Action |
-|---|---|
-| 7 | Extraire les constantes d'éclairage hardcodées (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`) vers un `DefaultLightingSettings` |
-| 8 | Déplacer `Renderer2DComponent` de `Graphics2D/` vers `Game/Components/` |
-| 9 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement |
+| Priorité | Action | Statut |
+|---|---|---|
+| 7 | Extraire les constantes d'éclairage hardcodées (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`) vers un `DefaultLightingSettings` | ⬜ |
+| ~~8~~ | ~~Déplacer `Renderer2DComponent` de `Graphics2D/` vers `Game/Components/`~~ | ✅ FAIT |
+| 8 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement | ⬜ |
 
 #### 🟢 Refactors lourds (> 1 semaine)
 
@@ -982,10 +979,14 @@ Restructurations de nommage recommandées (impact minimal, gain immédiat) :
 
 ---
 
-### Bilan global de l'analyse
+### Bilan global de l'analyse _(mis à jour 22/02/2026)_
 
 - **16 tâches d'analyse** : toutes ✅ complétées
-- **3 violations de dépendance** : toutes corrigées
-- **Violations sans correction** : 20 identifiées (V7 à V15), priorités documentées ci-dessus
-- **Points forts** : architecture multi-vue (`Rendering/`), ECS Unreal-style propre, cycle de vie World robuste
-- **Points faibles** : God Classes (PhysicsBaseComponent), code mort (AI), nommage incohérent
+- **Violations corrigées** :
+  - 3 violations de dépendance inter-couches
+  - V7-1 + V7-2 : `Renderer2DComponent` — `IViewFlushableRenderer` + migration `Game/Components/` (`f9eb3185`)
+  - V11-1 : `PhysicsBaseComponent` refactorisé 7697 → 283 lignes
+  - `IGameplayProxy.Clone()` : cycle `Entities ↔ Scripting` cassé
+- **Violations ouvertes** : 14 (V7-3, V7-4, V7-5, V7-6, V8-1, V9-1 à V9-5, V13-1, V14-1, V15-1 à V15-2)
+- **Points forts** : architecture multi-vue (`Rendering/`), ECS Unreal-style propre, cycle de vie World robuste, PhysicsBaseComponent assaini
+- **Points faibles** : `RiggedModelLoader` God Class (1616 lignes), code mort (AI, GameFramework), nommage incohérent
