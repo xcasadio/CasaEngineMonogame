@@ -1,9 +1,9 @@
-﻿using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.GUI;
+﻿using System.Linq;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
+using CasaEngine.RPGDemo.Scripts.Screens;
 
 namespace CasaEngine.RPGDemo.Scripts;
 
@@ -11,7 +11,6 @@ public class ScriptTitleScreenWorld : GameplayProxy
 {
     public override void InitializeWithWorld(World world)
     {
-
     }
 
     public override void Update(float elapsedTime)
@@ -32,22 +31,25 @@ public class ScriptTitleScreenWorld : GameplayProxy
 
     public override void OnBeginPlay(World world)
     {
-        //title screen
-        var assetInfo = AssetCatalog.GetByFileName("Screens\\TitleScreen\\TitleScreen.screen");
-        var screen = world.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
-        screen.GameplayProxyClassName = nameof(ScriptTitleScreen);
-        screen.Initialize();
-        screen.InitializeWithWorld(world);
-        world.AddScreen(screen);
+        var uiRoot = world.Game.GameManager.ViewManager.Views
+            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
+        if (uiRoot == null) return;
+
+        void OnStartGame() => world.Game.GameManager.SetWorldToLoad("DefaultWorld.world");
+        void OnExit()      => world.Game.Exit();
+
+        uiRoot.PushScreen(new TitleScreen(OnStartGame, OnExit));
     }
 
     public override void OnEndPlay(World world)
     {
-
+        var uiRoot = world.Game.GameManager.ViewManager.Views
+            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
+        uiRoot?.ScreenStack.Clear();
     }
 
     public override IGameplayProxy Clone()
     {
-        return new ScriptWorld();
+        return new ScriptTitleScreenWorld();
     }
 }
