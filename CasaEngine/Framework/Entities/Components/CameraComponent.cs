@@ -72,8 +72,8 @@ public abstract class CameraComponent : SceneComponent
 
         _viewport.Width = Owner.World.Game.ScreenSizeWidth;
         _viewport.Height = Owner.World.Game.ScreenSizeHeight;
-        _viewport.MinDepth = 0.0f;  // normalized depth buffer range [0,1]
-        _viewport.MaxDepth = 1.0f;  // near/far clip planes are in ProjectionMatrix
+        _viewport.MinDepth = 1.0f;
+        _viewport.MaxDepth = 1000.0f;
     }
 
     protected abstract void ComputeProjectionMatrix();
