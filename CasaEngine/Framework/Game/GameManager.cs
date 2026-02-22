@@ -62,6 +62,11 @@ public class GameManager
 
         if (_isNewWorld)
         {
+#if !EDITOR
+            // Clear views so the incoming world can register a fresh camera view.
+            // In editor mode SetCameraWithEditor() handles this instead.
+            ViewManager.Clear();
+#endif
             CurrentWorld.LoadContent(_game);
             CurrentWorld.BeginPlay();
 
