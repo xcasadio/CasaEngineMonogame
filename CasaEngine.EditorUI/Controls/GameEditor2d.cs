@@ -28,7 +28,7 @@ public abstract class GameEditor2d : GameEditor
         }
     }
 
-    protected GameEditor2d(bool useGui = false) : base(useGui)
+    protected GameEditor2d(bool useGui = false) : base()
     {
     }
 

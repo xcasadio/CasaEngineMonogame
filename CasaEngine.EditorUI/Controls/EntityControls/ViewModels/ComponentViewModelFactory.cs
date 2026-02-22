@@ -19,7 +19,6 @@ public static class ComponentViewModelFactory
             CircleCollisionComponent => new CircleCollisionComponentViewModel(componentChild),
             CylinderCollisionComponent => new CylinderCollisionComponentViewModel(componentChild),
             PlayerStartComponent => new PlayerStartComponentViewModel(componentChild),
-            ScreenWidgetComponent => new ScreenWidgetComponentViewModel(componentChild),
             SphereCollisionComponent => new SphereCollisionComponentViewModel(componentChild),
             SkinnedMeshComponent => new SkinnedMeshComponentViewModel(componentChild),
             StaticMeshComponent => new StaticMeshComponentViewModel(componentChild),

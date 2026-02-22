@@ -288,18 +288,6 @@ public class PlayerStartComponentViewModel : SceneComponentViewModel
     }
 }
 
-public class ScreenWidgetComponentViewModel : PhysicsBaseComponentViewModel
-{
-    private readonly ScreenWidgetComponent _screenWidgetComponent;
-
-    public ScreenWidgetComponentViewModel(EntityComponent entityComponent) : base(entityComponent)
-    {
-        _screenWidgetComponent = (ScreenWidgetComponent)entityComponent;
-    }
-
-    public ScreenGui? ScreenGui => _screenWidgetComponent.ScreenGui;
-}
-
 public class SphereCollisionComponentViewModel : PhysicsBaseComponentViewModel
 {
     private readonly SphereCollisionComponent _sphereCollisionComponent;

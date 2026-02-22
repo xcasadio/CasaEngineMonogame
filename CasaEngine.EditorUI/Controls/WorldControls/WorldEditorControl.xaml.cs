@@ -99,7 +99,8 @@ public partial class WorldEditorControl : EditorControlBase
                     actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<TileSetData>(assetInfo.Id);
                     break;
                 case Constants.FileNameExtensions.Screen:
-                    actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
+                    throw new NotSupportedException("Constants.FileNameExtensions.Screen");
+                    //actor = GameScreenControl.gameEditor.Game.AssetContentManager.Load<ScreenGui>(assetInfo.Id);
                     break;
                 default:
                     Logs.WriteWarning($"Object '{assetInfo.FileName}' skipped");

@@ -11,7 +11,6 @@ using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls;
 using CasaEngine.EditorUI.Controls.GameModeControls;
-using CasaEngine.EditorUI.Controls.GuiEditorControls;
 using CasaEngine.EditorUI.Controls.SpriteControls;
 using CasaEngine.EditorUI.Controls.TileMapControls;
 using CasaEngine.EditorUI.Controls.WorldControls;
@@ -123,9 +122,10 @@ public partial class ContentBrowserControl : UserControl
                 worldEditorControl.OpenWorld(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.Screen:
-                var guiEditorControl = window.GetEditorControl<GuiEditorControl>();
-                window.ActivateEditorControl<GuiEditorControl>();
-                guiEditorControl.OpenScreen(fileRelativePath);
+                throw new NotImplementedException("Screen editor is not implemented yet");
+                //var guiEditorControl = window.GetEditorControl<GuiEditorControl>();
+                //window.ActivateEditorControl<GuiEditorControl>();
+                //guiEditorControl.OpenScreen(fileRelativePath);
                 break;
             case Constants.FileNameExtensions.GameMode:
                 var gameModeEditorControl = window.GetEditorControl<GameModeEditorControl>();
@@ -328,11 +328,6 @@ public partial class ContentBrowserControl : UserControl
     private void MenuItemCreateEntity_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new Entity(), Constants.FileNameExtensions.Entity);
-    }
-
-    private void MenuItemCreateScreen_OnClick(object sender, RoutedEventArgs e)
-    {
-        CreateAsset(new ScreenGui(), Constants.FileNameExtensions.Screen);
     }
 
     private void MenuItemCreateWorld_OnClick(object sender, RoutedEventArgs e)

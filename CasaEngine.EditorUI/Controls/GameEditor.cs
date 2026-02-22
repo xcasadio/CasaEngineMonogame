@@ -13,15 +13,9 @@ public abstract class GameEditor : WpfGame
     public event EventHandler? GameStarted;
 
     public CasaEngineGame? Game { get; private set; }
-    public bool UseGui { get; protected init; }
     protected bool IsGameInitialized { get; private set; }
 
     protected override bool CanRender => IsGameInitialized && IsVisible;
-
-    protected GameEditor(bool useGui = false)
-    {
-        UseGui = useGui;
-    }
 
     protected override void Initialize()
     {
@@ -31,10 +25,6 @@ public abstract class GameEditor : WpfGame
         Game.GameManager.WorldChanged += OnWorldChanged;
         InitializeGame();
         Game.InitializeWithEditor();
-
-        Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
-        Game.UserInterfaceComponent.Enabled = UseGui;
-        Game.UserInterfaceComponent.Visible = UseGui;
 
         //In editor mode the game is in idle mode so we don't update physics
         Game.PhysicsEngineComponent.Enabled = false;
@@ -72,16 +62,6 @@ public abstract class GameEditor : WpfGame
     protected override void Draw(GameTime gameTime)
     {
         Game.DrawWithEditor(gameTime);
-    }
-
-    protected override void CreateGraphicsDeviceDependentResources(PresentationParameters pp)
-    {
-        base.CreateGraphicsDeviceDependentResources(pp);
-
-        if (UseGui && Game?.UserInterfaceComponent.UINeoForceManager != null)
-        {
-            Game.UserInterfaceComponent.UINeoForceManager.DefaultRenderTarget = RenderTargetBackBuffer;
-        }
     }
 
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)

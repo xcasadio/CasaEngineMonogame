@@ -1,10 +1,9 @@
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.GUI.Neoforce.Skins;
 
 namespace CasaEngine.Framework.Game;
 
-public class AssetContentManagerAdapter : IArchiveManager
+public class AssetContentManagerAdapter
 {
     private readonly AssetContentManager _assetContentManager;
 

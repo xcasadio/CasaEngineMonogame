@@ -120,11 +120,6 @@
                 <entityControls:PlayerStartComponentControl/>
             </Expander>
         </DataTemplate>
-        <DataTemplate x:Key="screenWidgetComponentTemplate" DataType="{x:Type components:ScreenWidgetComponent}" >
-            <Expander Header="Screen widget" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <entityControls:ScreenWidgetComponentControl/>
-            </Expander>
-        </DataTemplate>
 
         <DataTemplate x:Key="physicsComponentTemplate" DataType="{x:Type components:PhysicsBaseComponent}">
             <Grid>
@@ -199,7 +194,6 @@
                         CylinderCollisionComponentTemplate="{StaticResource cylinderCollisionComponentTemplate}"
                         SphereCollisionComponentTemplate="{StaticResource sphereCollisionComponentTemplate}"
                         PlayerStartComponentTemplate="{StaticResource playerStartComponentTemplate}"
-                        ScreenWidgetComponentTemplate="{StaticResource screenWidgetComponentTemplate}"
                         TileMapComponentTemplate="{StaticResource tileMapComponentTemplate}"
                         StaticSpriteComponentTemplate="{StaticResource staticSpriteComponentTemplate}"
                         AnimatedSpriteComponentTemplate="{StaticResource animatedSpriteComponentTemplate}" />

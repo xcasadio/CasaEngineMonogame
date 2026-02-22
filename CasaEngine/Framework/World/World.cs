@@ -23,7 +23,6 @@ public sealed class World : ObjectBase
     private readonly List<EntityReference> _entityReferences = [];
     private readonly List<Entity> _entities = [];
     private readonly List<Entity> _baseObjectsToAdd = [];
-    private readonly List<ScreenGui> _screens = [];
 
     private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
@@ -32,7 +31,6 @@ public sealed class World : ObjectBase
 
     public CasaEngineGame Game { get; private set; }
     public IList<Entity> Entities => _entities;
-    public IEnumerable<ScreenGui> Screens => _screens;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
@@ -54,7 +52,6 @@ public sealed class World : ObjectBase
             entity.GameplayProxy?.OnEndPlay(this);
 
         ClearEntities(true);
-        ClearScreens();
     }
 
     public Entity SpawnEntity<T>(string assetName) where T : Entity
@@ -305,11 +302,6 @@ public sealed class World : ObjectBase
 #else
         GameplayProxy?.Update(elapsedTime);
 #endif
-
-        foreach (var screen in _screens)
-        {
-            screen.Update(elapsedTime);
-        }
     }
 
     private bool IsBoundingBoxDirty(Entity actor)
@@ -380,11 +372,6 @@ public sealed class World : ObjectBase
         {
             OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.Line3dRendererComponent);
         }
-
-        foreach (var screen in _screens)
-        {
-            screen.Draw();
-        }
     }
 
     public void OnScreenResized(int width, int height)
@@ -398,7 +385,6 @@ public sealed class World : ObjectBase
     public override void Load(JObject element)
     {
         ClearEntities(true);
-        ClearScreens();
         base.Load(element);
 
         foreach (var entityReferenceNode in element["entity_references"])
@@ -414,43 +400,6 @@ public sealed class World : ObjectBase
         {
             GameModeAssetId = element["game_mode_asset_id"].GetGuid();
         }
-    }
-
-    public void AddScreen(ScreenGui screenGui)
-    {
-        _screens.Add(screenGui);
-
-        foreach (var control in screenGui.Controls)
-        {
-            if (!control.Initialized)
-            {
-                control.Initialize(Game.UserInterfaceComponent.UINeoForceManager);
-            }
-            Game.UserInterfaceComponent.UINeoForceManager.Add(control);
-        }
-    }
-
-    public void RemoveScreen(ScreenGui screenGui)
-    {
-        _screens.Remove(screenGui);
-
-        foreach (var control in screenGui.Controls)
-        {
-            Game.UserInterfaceComponent.UINeoForceManager.Remove(control);
-        }
-    }
-
-    public void ClearScreens()
-    {
-        foreach (var screen in _screens)
-        {
-            foreach (var control in screen.Controls)
-            {
-                Game.UserInterfaceComponent.UINeoForceManager.Remove(control);
-            }
-        }
-
-        _screens.Clear();
     }
 
     public bool IsPlayerController(Entity entity)

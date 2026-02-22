@@ -8,7 +8,6 @@
         xmlns:spriteControls="clr-namespace:CasaEngine.EditorUI.Controls.SpriteControls"
         xmlns:animation2dControls="clr-namespace:CasaEngine.EditorUI.Controls.Animation2dControls"
         xmlns:tileMapControls="clr-namespace:CasaEngine.EditorUI.Controls.TileMapControls"
-        xmlns:guiEditorControls="clr-namespace:CasaEngine.EditorUI.Controls.GuiEditorControls"
         xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
         mc:Ignorable="d"
         Title="CasaEngine Editor" d:DesignWidth="800" d:DesignHeight="600" Width="1200" Height="800" >
@@ -58,9 +57,6 @@
             </TabItem>
             <TabItem Header="Tile Map">
                 <tileMapControls:TileMapEditorControl/>
-            </TabItem>
-            <TabItem Header="ScreenGui">
-                <guiEditorControls:GuiEditorControl/>
             </TabItem>
             <TabItem Header="Settings">
                 <controls:SettingsControl x:Name="SettingsControl"/>

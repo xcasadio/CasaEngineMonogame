@@ -127,9 +127,6 @@
 		<Compile Update="Controls\EntityControls\GameEditorEntityControl.xaml.cs">
 			<SubType>Code</SubType>
 		</Compile>
-		<Compile Update="Controls\GuiEditorControls\GuiEditorControl.xaml.cs">
-			<SubType>Code</SubType>
-		</Compile>
 	</ItemGroup>
 	<Target Name="RestoreDotnetTools" BeforeTargets="Restore">
 		<Message Text="Restoring dotnet tools" Importance="High" />

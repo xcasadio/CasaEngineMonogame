@@ -20,7 +20,6 @@ using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Project;
 using MGUI.Shared.Rendering;
-using Cursor = CasaEngine.Framework.GUI.Neoforce.Cursor;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -31,7 +30,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 {
     private readonly string? _projectFileName;
     public GameManager GameManager { get; }
-    public UserInterfaceComponent UserInterfaceComponent { get; private set; }
 
     // ---- IObservableUpdate (required by MGUI's GameRenderHost/ViewRenderHost) ----
 
@@ -214,7 +212,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         PhysicsEngineComponent = new PhysicsEngineComponent(this);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(this);
         FontSystem = new FontSystem();
-        UserInterfaceComponent = new UserInterfaceComponent(this);
 
         // Initialize the multi-view render pipeline.
         // SpriteBatch is passed so that viewport-scoped color clears work correctly on the
@@ -463,7 +460,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
         InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
-        UserInterfaceComponent.UINeoForceManager.SetProviders(keyboardStateProvider, mouseStateProvider);
     }
 
     public void InitializeWithEditor()

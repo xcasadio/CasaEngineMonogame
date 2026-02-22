@@ -64,7 +64,6 @@ public class DemosGame : CasaEngineGame
         _currentDemoIndex = Math.Clamp(index, 0, _demos.Count - 1);
         var currentWorld = GameManager.CurrentWorld;
         currentWorld.ClearEntities();
-        currentWorld.ClearScreens();
         _currentDemo?.Clean();
 
         _currentDemo = _demos[_currentDemoIndex];
