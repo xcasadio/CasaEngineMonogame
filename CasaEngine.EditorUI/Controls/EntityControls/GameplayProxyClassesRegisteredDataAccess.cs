@@ -8,7 +8,7 @@ public class GameplayProxyClassesRegisteredDataAccess
 {
     ObservableCollection<string> ExternalComponentsById = new();
 
-    public ObservableCollection<string> GetDatas()
+    public ObservableCollection<string> GetData()
     {
         foreach (var type in ElementFactory.GetDerivedTypesFrom<GameplayProxy>())
         {

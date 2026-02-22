@@ -10,7 +10,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800">
     <UserControl.Resources>
-        <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetDatas" 
+        <ObjectDataProvider x:Key="ExternalComponentRegistered" MethodName="GetData" 
                             ObjectType="{x:Type entityControls:GameplayProxyClassesRegisteredDataAccess}" />
 
         <entityControls:ScriptClassNameConverter x:Key="ExternalComponentConverter" />

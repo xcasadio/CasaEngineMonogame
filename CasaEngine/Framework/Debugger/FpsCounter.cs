@@ -11,6 +11,7 @@ using CasaEngine.Core.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
 using FontStashSharp;
 
@@ -44,7 +45,7 @@ public class FpsCounter : DrawableGameComponent
     // stringBuilder for FPS counter draw.
     private readonly StringBuilder _stringBuilder = new(16);
 
-    private Renderer2dComponent _renderer2dComponent;
+    private Renderer2DComponent _renderer2DComponent;
 
     private readonly Color _colorBackground = new(0, 0, 0, 128);
 
@@ -90,9 +91,9 @@ public class FpsCounter : DrawableGameComponent
     {
         _font = ((CasaEngineGame)Game).FontSystem.GetFont(10);
         _spriteBatch = ((CasaEngineGame)Game).SpriteBatch;
-        _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
+        _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
 
-        if (_renderer2dComponent == null)
+        if (_renderer2DComponent == null)
         {
             throw new InvalidOperationException("FpsCounter.LoadContent() : Renderer2dComponent is null");
         }
@@ -193,7 +194,7 @@ public class FpsCounter : DrawableGameComponent
         var pos = layout.Place(size, 0, 0.1f, Alignment.Center);
 
         // Draw
-        _renderer2dComponent.DrawRectangle(pos.X, pos.Y, rc.Width, rc.Height, _colorBackground, 0.001f);
+        _renderer2DComponent.DrawRectangle(pos.X, pos.Y, rc.Width, rc.Height, _colorBackground, 0.001f);
         //_renderer2dComponent.DrawText(_font, _stringBuilder.ToString(), pos, 0.0f, Vector2.One, Color.White, 0f);
 
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);

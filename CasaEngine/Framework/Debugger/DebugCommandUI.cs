@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Game.Components.Physics;
 using FontStashSharp;
@@ -87,7 +88,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
     // Selecting command history index.
     private int _commandHistoryIndex;
 
-    private Renderer2dComponent _renderer2dComponent;
+    private Renderer2DComponent _renderer2DComponent;
 
     private readonly Color _backgroundColor = new(0, 0, 0, 200);
 
@@ -213,9 +214,9 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
 
     protected override void LoadContent()
     {
-        _renderer2dComponent = Game.GetGameComponent<Renderer2dComponent>();
+        _renderer2DComponent = Game.GetGameComponent<Renderer2DComponent>();
 
-        if (_renderer2dComponent == null)
+        if (_renderer2DComponent == null)
         {
             throw new InvalidOperationException("DebugCommandUI.LoadContent() : Renderer2dComponent is null");
         }
@@ -560,7 +561,7 @@ public class DebugCommandUi : DrawableGameComponent, IDebugCommandHost, IGameCom
         casaEngineGame.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend);
 
         //spriteBatch.Draw(whiteTexture, rect, new Color(0, 0, 0, 200));
-        _renderer2dComponent.DrawRectangle(ref rect, _backgroundColor, depth + 0.001f);
+        _renderer2DComponent.DrawRectangle(ref rect, _backgroundColor, depth + 0.001f);
 
         // Draw each lines.
         var pos = new Vector2(leftMargin, topMargin);

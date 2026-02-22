@@ -9,6 +9,8 @@ namespace CasaEngine.Framework.Assets;
 public static class AssetCatalog
 {
     private static readonly Dictionary<Guid, AssetInfo> _assetInfos = new();
+    private static readonly Dictionary<string, AssetInfo> _assetInfosByName = new();
+    private static readonly Dictionary<string, AssetInfo> _assetInfosByFileName = new();
 
     public static bool IsLoaded { get; private set; }
 
@@ -17,6 +19,8 @@ public static class AssetCatalog
     public static void Add(AssetInfo assetInfo)
     {
         _assetInfos.Add(assetInfo.Id, assetInfo);
+        _assetInfosByName[assetInfo.Name] = assetInfo;
+        _assetInfosByFileName[assetInfo.FileName] = assetInfo;
 
 #if EDITOR
         Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
@@ -32,12 +36,14 @@ public static class AssetCatalog
 
     public static AssetInfo? Get(string name)
     {
-        return _assetInfos.Values.FirstOrDefault(x => x.Name == name);
+        _assetInfosByName.TryGetValue(name, out var assetInfo);
+        return assetInfo;
     }
 
     public static AssetInfo? GetByFileName(string fileName)
     {
-        return _assetInfos.Values.FirstOrDefault(x => x.FileName == fileName);
+        _assetInfosByFileName.TryGetValue(fileName, out var assetInfo);
+        return assetInfo;
     }
 
     public static void Load(string fileName)
@@ -72,6 +78,8 @@ public static class AssetCatalog
         assetInfo.Name = name;
         assetInfo.FileName = fileName;
         _assetInfos.Add(assetInfo.Id, assetInfo);
+        _assetInfosByName[assetInfo.Name] = assetInfo;
+        _assetInfosByFileName[assetInfo.FileName] = assetInfo;
     }
 
     public static void Remove(Guid id)
@@ -79,6 +87,8 @@ public static class AssetCatalog
         _assetInfos.TryGetValue(id, out var assetInfo);
         Logs.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
+        _assetInfosByName.Remove(assetInfo.Name);
+        _assetInfosByFileName.Remove(assetInfo.FileName);
         DeleteFile(assetInfo);
         Save();
         AssetRemoved?.Invoke(null, assetInfo);
@@ -98,6 +108,8 @@ public static class AssetCatalog
         Logs.WriteTrace("Clear all assets");
 
         _assetInfos.Clear();
+        _assetInfosByName.Clear();
+        _assetInfosByFileName.Clear();
         AssetCleared?.Invoke(null, EventArgs.Empty);
     }
 
@@ -117,7 +129,9 @@ public static class AssetCatalog
         }
 
         var oldName = assetInfo.Name;
+        _assetInfosByName.Remove(oldName);
         assetInfo.Name = newName;
+        _assetInfosByName[newName] = assetInfo;
 
         AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
 
@@ -127,7 +141,9 @@ public static class AssetCatalog
     public static void Rename(AssetInfo assetInfo, string newName)
     {
         var oldName = assetInfo.Name;
+        _assetInfosByName.Remove(oldName);
         assetInfo.Name = newName;
+        _assetInfosByName[newName] = assetInfo;
 
         AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
     }

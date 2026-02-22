@@ -79,7 +79,7 @@ public class EditorViewPipeline : IViewRenderPipeline
         in RenderFrame                        frame,
         IReadOnlyList<IViewFlushableRenderer> renderers)
     {
-        view.World.Draw(frame.ViewProjection);
+        view.World.Draw(in frame);
 
         foreach (var renderer in renderers)
         {

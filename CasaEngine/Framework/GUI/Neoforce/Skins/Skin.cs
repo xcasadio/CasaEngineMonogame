@@ -143,7 +143,7 @@ public class Skin : Component
 
             //TODO
             var fontSystem = new FontSystem();
-            fontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+            fontSystem.AddFont(File.ReadAllBytes(@"Content\Fonts\tahoma.ttf"));
             SpriteFontBase font8 = fontSystem.GetFont(12);
             _fonts[i].Resource = font8;
             //(fonts[i].Resource) = content.Load<SpriteFont>(asset);

@@ -28,7 +28,7 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
         IReadOnlyList<IViewFlushableRenderer> renderers)
     {
         // 1. Enqueue world geometry into renderer queues.
-        view.World.Draw(frame.ViewProjection);
+        view.World.Draw(in frame);
 
         // 2. Flush each renderer for this view's camera frame.
         foreach (var renderer in renderers)

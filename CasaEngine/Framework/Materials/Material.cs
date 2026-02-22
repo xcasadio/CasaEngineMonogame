@@ -8,8 +8,6 @@ namespace CasaEngine.Framework.Materials;
 
 public class Material : ISerializable
 {
-    public MaterialAsset Diffuse;
-
     public Guid TextureBaseColorAssetId { get; set; }
     public Texture TextureBaseColor;
 

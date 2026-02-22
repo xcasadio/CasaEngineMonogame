@@ -38,7 +38,6 @@ public sealed class World : ObjectBase
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
 
-    //UGameViewportClient ViewportClient
     public bool DisplaySpacePartitioning { get; set; }
 
     public World()
@@ -356,9 +355,9 @@ public sealed class World : ObjectBase
         _octree.AddItem(actor.GetBoundingBox(), actor);
     }
 
-    public void Draw(Matrix viewProjection)
+    public void Draw(in RenderFrame frame)
     {
-        var boundingFrustum = new BoundingFrustum(viewProjection);
+        var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
         _octree.GetContainedObjects(boundingFrustum, _entitiesVisible);
 
         foreach (var entityBase in _entitiesVisible)
@@ -368,11 +367,6 @@ public sealed class World : ObjectBase
                 entityBase.Draw(0f);
             }
         }
-        /*
-        foreach (var entity in _entities)
-        {
-            entity.Draw(0f);
-        }*/
 
         _entitiesVisible.Clear();
 
@@ -571,7 +565,6 @@ public sealed class World : ObjectBase
             {
                 entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.RootComponent?.Coordinates);
             }
-            //entityReference.Name = entityReference.Entity.Name;
 
             JObject entityObject = new();
             entityReference.Save(entityObject);

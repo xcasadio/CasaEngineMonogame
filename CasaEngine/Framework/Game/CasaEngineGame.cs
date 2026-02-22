@@ -35,7 +35,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     public FontSystem FontSystem { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
-    public Renderer2dComponent Renderer2dComponent { get; private set; }
+    public Renderer2DComponent Renderer2DComponent { get; private set; }
     public SpriteRendererComponent SpriteRendererComponent { get; private set; }
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
@@ -197,7 +197,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 
         Line3dRendererComponent = new Line3dRendererComponent(this);
         SpriteBatch = new SpriteBatch(GraphicsDevice);
-        Renderer2dComponent = new Renderer2dComponent(this) { SpriteBatch = SpriteBatch };
+        Renderer2DComponent = new Renderer2DComponent(this) { SpriteBatch = SpriteBatch };
         SpriteRendererComponent = new SpriteRendererComponent(this);
         InputComponent = new InputComponent(this);
         MeshRendererComponent = new StaticMeshRendererComponent(this);
@@ -216,7 +216,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
             SkinnedMeshRendererComponent,
             SpriteRendererComponent,
             Line3dRendererComponent,
-            Renderer2dComponent,
+            Renderer2DComponent,
         }, SpriteBatch!);
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
@@ -245,10 +245,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
         IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
 
-        RegisterLoaders();
+        AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 
         //default font
-        FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Tahoma.ttf"));
+        FontSystem.AddFont(File.ReadAllBytes(@"Content\Fonts\tahoma.ttf"));
 
         // Wire optional debug overlay into the render pipeline.
         // Toggle per-view with RenderView.ShowDebugOverlay = true.
@@ -260,28 +260,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         //DebugSystem.Initialize(this);
 
         base.Initialize();
-    }
-
-    private void RegisterLoaders()
-    {
-        AssetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
-        //AssetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
-        AssetContentManager.RegisterAssetLoader(typeof(Cursor), new NeoForceCursorLoader());
-
-        AssetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());
-        AssetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
-        AssetContentManager.RegisterAssetLoader(typeof(Pawn), new AssetLoader<Pawn>());
-        AssetContentManager.RegisterAssetLoader(typeof(SkinnedMesh), new AssetLoader<SkinnedMesh>());
-        AssetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
-        AssetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
-        AssetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
-        AssetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
-        AssetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
-        AssetContentManager.RegisterAssetLoader(typeof(ScreenGui), new AssetLoader<ScreenGui>());
-        AssetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
-        AssetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
     }
 
     protected override void LoadContent()

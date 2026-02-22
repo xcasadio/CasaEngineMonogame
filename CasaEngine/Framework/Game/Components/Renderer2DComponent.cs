@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components;
 
-public class Renderer2dComponent : DrawableGameComponent, IViewFlushableRenderer
+public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private struct SpriteDisplayData
     {
@@ -71,7 +71,7 @@ public class Renderer2dComponent : DrawableGameComponent, IViewFlushableRenderer
 
     public SpriteBatch SpriteBatch { get; set; }
 
-    public Renderer2dComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public Renderer2DComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
         {
@@ -98,7 +98,7 @@ public class Renderer2dComponent : DrawableGameComponent, IViewFlushableRenderer
         {
             lock (this)
             {
-                Game.RemoveGameComponent<Renderer2dComponent>();
+                Game.RemoveGameComponent<Renderer2DComponent>();
             }
         }
 

@@ -8,7 +8,6 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
-using CasaEngine.Framework.Materials.Graph;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
@@ -77,9 +76,11 @@ namespace SandBoxGame
 
             //============ Effect ===============
             _materialColor = new Material();
-            var materialDiffuse = new MaterialColor();
-            materialDiffuse.Color = Color.Green;
-            _materialColor.Diffuse = materialDiffuse;
+            //var materialDiffuse = new MaterialColor();
+            //materialDiffuse.Color = Color.Green;
+            //_materialColor.Diffuse = materialDiffuse;
+
+
             /*
             var byteCode = CompileShaderFromMaterial(_materialColor);
             _effectColor = new Effect(GraphicsDevice, byteCode);
@@ -174,10 +175,10 @@ namespace SandBoxGame
 
         private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)
         {
-            if (material.Diffuse is MaterialTexture materialTexture)
-            {
-                effect.Parameters["Texture"].SetValue(materialTexture.Texture?.Resource);
-            }
+            //if (material.Diffuse is MaterialTexture materialTexture)
+            //{
+            //    effect.Parameters["Texture"].SetValue(materialTexture.Texture?.Resource);
+            //}
 
             EffectParameter param = effect.Parameters.FirstOrDefault(x => x.Name == "TotalElapsedTime");
             if (param != null)

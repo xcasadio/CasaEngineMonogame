@@ -34,7 +34,7 @@ public sealed class PreviewPipeline : IViewRenderPipeline
     {
         // TODO: Replace with a single-mesh, simplified-lighting pass.
         // For now, render the full world to keep the preview functional.
-        view.World.Draw(frame.ViewProjection);
+        view.World.Draw(in frame);
 
         foreach (var renderer in renderers)
         {
