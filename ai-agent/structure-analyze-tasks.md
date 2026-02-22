@@ -534,12 +534,8 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 | # | Sévérité | Fichier | Problème |
 |---|---|---|---|
-| ~~V7-1~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | `IViewFlushableRenderer` implémenté (`f9eb3185`) |
-| ~~V7-2~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | Déplacé de `Graphics2D/` vers `Game/Components/` (`f9eb3185`) |
-| V7-3 | 🟡 → ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | Classe renommée `Renderer2DComponent` (D majuscule) |
 | V7-4 | 🟡 | `StaticMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
 | V7-5 | 🟡 | `SkinnedMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
-| ~~V7-6~~ | ✅ CORRIGÉ | `Materials/` | `ShaderWriter.cs` + `ShaderWriter2.cs` supprimés entièrement |
 
 ### Corrections recommandées — Task 7
 
@@ -715,12 +711,6 @@ Marquer `Framework/AI/` comme **feature flags désactivées** ou **code de réf�
 
 Non inspectés en détail — hors scope de l'analyse de cette session. À vérifier lors d'un refactor physique.
 
-### Violations identifiées — Task 11
-
-| # | Sévérité | Fichier | Problème |
-|---|---|---|---|
-| ~~V11-1~~ | ✅ RÉSOLU | `Entities/Components/PhysicsBaseComponent.cs` | Classe refactorisée — 283 lignes, design propre |
-
 ---
 
 ## 12. World & space partitioning analysis
@@ -868,7 +858,6 @@ Impact d'un split : élevé (déplacer des centaines de fichiers), bénéfice : 
 | # | Sévérité | Problème |
 |---|---|---|
 | V15-1 | 🟡 | `CasaEngineGame` : propriétés renderers en types concrets (pas d'interfaces) |
-| ~~V15-2~~ | ✅ CORRIGÉ | Incohérences de nommage résolues (`Renderer2DComponent`, `ElementFactory`, `ShaderWriter2` supprimé) |
 | V15-3 | 🟢 | `GameSettings`/`AssetCatalog` : état global partagé — acceptable mais à documenter |
 
 ---
@@ -883,14 +872,6 @@ Impact d'un split : élevé (déplacer des centaines de fichiers), bénéfice : 
 
 ### 16.1 Rapport de violations de dépendances
 
-Toutes les violations de dépendance inter-couches ont été **corrigées dans cette session** :
-
-| Violation | Statut | Commit |
-|---|---|---|
-| `Engine/PhysicsDefinition` importait `BulletSharp` | ✅ Corrigé | `ea1290fd` |
-| `Core/Helpers/Extensions.cs` violait la séparation | ✅ Corrigé | `5c42545c` |
-| `Framework/SpacePartitioning/OctreeVisualizer` mal localisé | ✅ Corrigé | `4aea6732` |
-
 Aucune violation de dépendance Core←Engine←Framework non corrigée identifiée lors de la tâche 2.
 
 ---
@@ -900,7 +881,6 @@ Aucune violation de dépendance Core←Engine←Framework non corrigée identifi
 | Fichier | Lignes | Problème |
 |---|---|---|
 | `Animations/RiggedModelLoader.cs` | 1616 | Loader monolithique — parsing + conversion + animation + bone extraction |
-| ~~`Entities/Components/PhysicsBaseComponent.cs`~~ | ~~7697~~ → **283** | ✅ RÉSOLU — refactorisé en classe abstraite propre |
 | `Framework/Assets/Fonts/Font.cs` | 654 | Police avec rendu inline |
 
 ---
@@ -917,38 +897,17 @@ Aucune violation de dépendance Core←Engine←Framework non corrigée identifi
 
 ### 16.4 Plan de restructuration
 
-Toutes les restructurations de nommage identifiées sont **terminées** :
-
-| Avant | Après | Statut |
-|---|---|---|
-| `ElementLoader.cs` | `ElementFactory.cs` | ✅ FAIT |
-| `ShaderWriter2.cs` | supprimé | ✅ FAIT |
-| `Renderer2dComponent` | `Renderer2DComponent` | ✅ FAIT |
+Toutes les restructurations de nommage identifiées sont **terminées**
 
 ---
 
 ### 16.5 Étapes prioritaires — classées par impact
-
-#### 🔴 Quick wins (< 1 jour chacun)
-
-| Priorité | Action | Fichier | Statut |
-|---|---|---|---|
-| ~~1~~ | ~~Renommer `ElementLoader.cs` → `ElementFactory.cs`~~ | — | ✅ FAIT |
-| ~~2~~ | ~~Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()`~~ | — | ✅ FAIT |
-| ~~3~~ | ~~Ajouter index `_byName` + `_byFileName` dans `AssetCatalog`~~ | — | ✅ FAIT |
-| ~~4~~ | ~~Renommer `ShaderWriter2` → `ShaderGraphWriter`~~ | — | ✅ FAIT (supprimé) |
-| ~~5~~ | ~~Fixer chemin de police hardcodé Windows~~ | — | ✅ FAIT |
-| ~~6~~ | ~~Implémenter `IViewFlushableRenderer` sur `Renderer2DComponent`~~ | — | ✅ FAIT |
-| ~~7~~ | ~~Renommer classe `Renderer2dComponent` → `Renderer2DComponent`~~ | — | ✅ FAIT |
-
-**Tous les quick wins sont terminés.**
 
 #### 🟡 Refactors moyens (1–3 jours)
 
 | Priorité | Action | Statut |
 |---|---|---|
 | 7 | Extraire les constantes d'éclairage hardcodées (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`) vers un `DefaultLightingSettings` | ⬜ |
-| ~~8~~ | ~~Déplacer `Renderer2DComponent` de `Graphics2D/` vers `Game/Components/`~~ | ✅ FAIT |
 | 9 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement | ⬜ |
 
 #### 🟢 Refactors lourds (> 1 semaine)
@@ -956,7 +915,6 @@ Toutes les restructurations de nommage identifiées sont **terminées** :
 | Priorité | Action |
 |---|---|
 | 10 | Décomposer `RiggedModelLoader.cs` (1616 lignes) en sous-composants |
-| ~~11~~ | ~~Décomposer `PhysicsBaseComponent.cs` (7697 lignes)~~ → ✅ FAIT (283 lignes) |
 | 12 | Implémenter le GameFramework (Possess, PlayerController actif) ou le supprimer |
 | 13 | Découper le projet en assemblies séparés (Core/Engine/Framework) pour boundary compile-time |
 | 14 | Décider du sort du code AI (200+ fichiers) : activer, isoler ou supprimer |
@@ -965,15 +923,6 @@ Toutes les restructurations de nommage identifiées sont **terminées** :
 
 ### Bilan global de l'analyse _(mis à jour 22/02/2026)_
 
-- **16 tâches d'analyse** : toutes ✅ complétées
-- **Violations corrigées** :
-  - 3 violations de dépendance inter-couches
-  - V7-1, V7-2, V7-3, V7-6 : `Renderer2DComponent` complet
-  - V8-1 : chemin police cross-platform
-  - V9-1, V9-2, V9-4 : `ElementFactory` + cache + `AssetCatalog` O(1)
-  - V11-1 : `PhysicsBaseComponent` 7697 → 283 lignes
-  - `IGameplayProxy.Clone()` : cycle `Entities ↔ Scripting` cassé
-  - V15-2 : incohérences de nommage résolues
 - **Violations encore ouvertes** :
   - V7-4 + V7-5 : constantes d'éclairage hardcodées
   - V9-3 : `RiggedModelLoader.cs` God Class (1616 lignes)
