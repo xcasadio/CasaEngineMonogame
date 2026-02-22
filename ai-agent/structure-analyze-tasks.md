@@ -524,16 +524,11 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ✅ `Renderer2DComponent` migré dans `Game/Components/` (`f9eb3185`). `Graphics2D/` contient désormais uniquement les primitives non-composants : `BmFontRenderer`, `Line2D`, `Line2DRenderer`. `ScreenLogComponent` aussi migré.
 
-⚠️ Recouvrement partiel `Renderer2dComponent` (2D screen-space, texte, scissor) vs `SpriteRendererComponent` (sprites 3D) — non redondants mais séparation non formalisée.
-
-❌ Problèmes résiduels :
-1. Convention de nommage : `Renderer2dComponent` (d minuscule) vs `SpriteRendererComponent` — V7-3 toujours ouvert.
+✅ Class renommée `Renderer2DComponent` (D majuscule) — V7-3 résolu.
 
 **7.6 Framework/Materials/**
 
-✅ `ShaderWriter` : implémente `IMaterialAssetVisitor`, compile un `Material` (arbre d'assets) — design visitor correct.
-
-⚠️ `ShaderWriter2` : **code smell de nommage**. N'implémente pas `IMaterialAssetVisitor`, compile un `MaterialGraph` (système de nœuds graphe). Fonctionnellement différent de `ShaderWriter`, mais le nom `ShaderWriter2` suggère une copie incrémentale alors qu'il s'agit d'un compilateur pour un système de matériaux différent. **Doit être renommé `ShaderGraphWriter` ou `MaterialGraphCompiler`**.
+✅ `ShaderWriter.cs` et `ShaderWriter2.cs` supprimés entièrement. Seul `Material.cs` subsiste à la racine de `Materials/` (+ sous-dossier `Graph/`). V7-6 résolu.
 
 ### Violations identifiées — Task 7
 
@@ -541,16 +536,14 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 |---|---|---|---|
 | ~~V7-1~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | `IViewFlushableRenderer` implémenté (`f9eb3185`) |
 | ~~V7-2~~ | ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | Déplacé de `Graphics2D/` vers `Game/Components/` (`f9eb3185`) |
-| V7-3 | 🟡 | `Game/Components/Renderer2DComponent.cs` | Nommage incohérent : `Renderer2dComponent` (d minuscule) |
+| V7-3 | 🟡 → ✅ CORRIGÉ | `Game/Components/Renderer2DComponent.cs` | Classe renommée `Renderer2DComponent` (D majuscule) |
 | V7-4 | 🟡 | `StaticMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
 | V7-5 | 🟡 | `SkinnedMeshRendererComponent.cs` | Valeurs d'éclairage hardcodées (constantes magiques) |
-| V7-6 | 🟡 | `Materials/ShaderWriter2.cs` | Nommage trompeur — compiler GrapheMatériau ≠ ShaderWriter v2 |
+| ~~V7-6~~ | ✅ CORRIGÉ | `Materials/` | `ShaderWriter.cs` + `ShaderWriter2.cs` supprimés entièrement |
 
 ### Corrections recommandées — Task 7
 
-1. **V7-3** : Renommer la classe `Renderer2dComponent` → `Renderer2DComponent` (majuscule D).
-2. **V7-4/V7-5** : Extraire les constantes d'éclairage hardcodées vers une classe `DefaultLightingSettings` (const fields ou propriétés configurables).
-3. **V7-6** : Renommer `ShaderWriter2` → `ShaderGraphWriter` (ou `MaterialGraphCompiler`).
+1. **V7-4/V7-5 (ouvertes)** : Extraire les constantes d'éclairage hardcodées vers une classe `DefaultLightingSettings` (const fields ou propriétés configurables).
 
 ---
 
@@ -568,16 +561,11 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ✅ Pas un god object. Responsabilités uniques et cohérentes : cycle de vie du monde (chargement, `UpdateWorld`, `SetWorldToLoad`) + `ViewManager`. Aucun état statique — instance propre. Sections `#if EDITOR` bien délimitées (caméra éditeur, callback `CreateCameraComponentCallback`).
 
-**8.2 CasaEngineGame.cs (463 lignes)**
+**8.2 CasaEngineGame.cs**
 
-✅ Game loop bien structuré (Initialize → LoadContent → Update → Draw). Pattern multi-vue intégré proprement dans `Draw()` :
-- Phase 1 : composants DrawOrder < MeshComponent (UI setup)
-- Phase 2 : `_renderPipeline.Render()` (pipeline 3D multi-vue)
-- Phase 3 : composants DrawOrder ≥ MeshComponent (overlays, debug physics, etc.)
-- Hook `AfterRenderPipeline()` pour les classes dérivées ✅
-- `OnScreenResized()` proprement délégué à tous les composants + ViewManager ✅
+✅ Game loop bien structuré (Initialize → LoadContent → Update → Draw).
 
-❌ **Chemin de police hardcodé Windows-only** : `@"C:\\Windows\\Fonts\\Tahoma.ttf"` dans `Initialize()`. Violation cross-platform, doit utiliser une police livrée dans `Content/`.
+✅ **Chemin de police corrigé** : `@"C:\\Windows\\Fonts\\Tahoma.ttf"` remplacé par `@"Content\\Fonts\\tahoma.ttf"` — chemin relatif cross-platform.
 
 ⚠️ `RegisterLoaders()` contient 12+ enregistrements inline. Acceptable, mais pourrait être externalisé dans une classe dédiée `AssetLoaderRegistry` pour faciliter l'extension.
 
@@ -597,7 +585,7 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 | # | Sévérité | Fichier | Problème |
 |---|---|---|---|
-| V8-1 | 🔴 | `Game/CasaEngineGame.cs` | Chemin Windows absolu hardcodé : `@"C:\\Windows\\Fonts\\Tahoma.ttf"` |
+| ~~V8-1~~ | ✅ CORRIGÉ | `Game/CasaEngineGame.cs` | Chemin Windows remplacé par `Content\\Fonts\\tahoma.ttf` |
 | V8-2 | 🟡 | `Game/GameSettings.cs` | Singleton statique global — acceptable mais à documenter comme contrainte |
 
 ---
@@ -626,7 +614,7 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ✅ `AssetInfo` : `Id (Guid)`, `Name`, `FileName` — `ISerializable`, `IEquatable<AssetInfo>`. Manifest JSON bien structuré.
 
-❌ `AssetCatalog` : classe **statique** (état global). `Get(string name)` et `GetByFileName(string)` font une **recherche linéaire O(N)** via `FirstOrDefault`. Avec des projets contenant >500 assets, c'est une régression de performance à chaque chargement.
+✅ `AssetCatalog` : désormais trois index : `_assetInfos (Dictionary<Guid,AssetInfo>)`, `_assetInfosByName`, `_assetInfosByFileName` — toutes les recherches O(1). V9-4 résolu.
 
 **9.4 Dossiers d'assets spécialisés**
 
@@ -634,28 +622,25 @@ Les classes sont correctement documentées (liens vers la doc UE dans les commen
 
 ❌ `Animations/RiggedModelLoader.cs` : **1616 lignes** — God Class évidente. Un loader de 1600 lignes indique des responsabilités multiples (parsing, conversion, UV-unwrapping, bone extraction). Doit être décomposé.
 
-**9.5 ElementLoader.cs**
+**9.5 ElementFactory.cs** (anciennement ElementLoader.cs)
 
-❌ Nom de fichier `ElementLoader.cs` mais classe interne nommée `ElementFactory` — **mismatch de nommage**.
+✅ Fichier renommé `ElementFactory.cs`, classe `ElementFactory` — cohérence rétablie.
 
-❌ `FindTypeByName()` : scan de **tous les assemblies chargés** (`AppDomain.CurrentDomain.GetAssemblies()`) à chaque appel. Un `TODO: cache types` est en commentaire depuis longtemps mais non implémenté. En production avec des centaines d'entités à charger, c'est une régression critique.
+✅ `FindTypeByName()` : cache `Dictionary<string, Type> _typeCache` avec `RebuildCaches()` déclenché sur `AssemblyLoad` — scan O(1) après initialisation. V9-1 + V9-2 résolus.
 
 ### Violations identifiées — Task 9
 
 | # | Sévérité | Fichier | Problème |
 |---|---|---|---|
-| V9-1 | 🔴 | `Assets/ElementLoader.cs` | Nom de fichier ≠ nom de classe (`ElementFactory`) |
-| V9-2 | 🔴 | `Assets/ElementLoader.cs` | `FindTypeByName()` non-caché — scan O(N×A) à chaque deserialisation |
+| ~~V9-1~~ | ✅ CORRIGÉ | `Assets/ElementFactory.cs` | Renommé `ElementFactory.cs` |
+| ~~V9-2~~ | ✅ CORRIGÉ | `Assets/ElementFactory.cs` | Cache `_typeCache` + `RebuildCaches()` |
 | V9-3 | 🔴 | `Animations/RiggedModelLoader.cs` | God Class 1616 lignes — doit être décomposée |
-| V9-4 | 🟡 | `Assets/AssetCatalog.cs` | `GetByFileName`/`Get(string name)` : recherche linéaire O(N) |
+| ~~V9-4~~ | ✅ CORRIGÉ | `Assets/AssetCatalog.cs` | Trois index `Dictionary` — toutes recherches O(1) |
 | V9-5 | 🟡 | `AssetContentManager.cs` | TODO `entity can be cache ?` non résolu — contournement hardcodé par type |
 
 ### Corrections recommandées — Task 9
 
-1. **V9-1** : Renommer `ElementLoader.cs` → `ElementFactory.cs`.
-2. **V9-2** : Ajouter un `Dictionary<string, Type> _typeCache` statique dans `ElementFactory.FindTypeByName()`.
-3. **V9-3** : Décomposer `RiggedModelLoader.cs` en `BoneExtractor`, `MeshConverter`, `AnimationParser`, etc.
-4. **V9-4** : Ajouter `Dictionary<string, AssetInfo> _byName` et `Dictionary<string, AssetInfo> _byFileName` dans `AssetCatalog`.
+1. **V9-3 (ouvert)** : Décomposer `RiggedModelLoader.cs` en `BoneExtractor`, `MeshConverter`, `AnimationParser`, etc.
 
 ---
 
@@ -869,10 +854,7 @@ Le flag `#if EDITOR` est utilisé correctement tout au long du code (World, Game
 
 **15.4 Conventions de nommage**
 
-⚠️ Incohérences identifiées :
-- `Renderer2dComponent` (d minuscule) — class name non corrigé (fichier renommé `Renderer2DComponent.cs` mais classe interne encore `Renderer2dComponent`)
-- `ElementLoader.cs` (fichier) vs classe interne `ElementFactory`
-- `ShaderWriter2` (suffixe numérique) vs nommage sémantique attendu
+⚠️ Incohérence résiduelle :
 - `Line2dRenderer` vs `Line3dRendererComponent` (suffixes inconsistants)
 
 **15.5 Découpage en assemblies**
@@ -886,7 +868,7 @@ Impact d'un split : élevé (déplacer des centaines de fichiers), bénéfice : 
 | # | Sévérité | Problème |
 |---|---|---|
 | V15-1 | 🟡 | `CasaEngineGame` : propriétés renderers en types concrets (pas d'interfaces) |
-| V15-2 | 🟡 | Incohérences de nommage (`Renderer2dComponent`, `ElementLoader/Factory`, `ShaderWriter2`) |
+| ~~V15-2~~ | ✅ CORRIGÉ | Incohérences de nommage résolues (`Renderer2DComponent`, `ElementFactory`, `ShaderWriter2` supprimé) |
 | V15-3 | 🟢 | `GameSettings`/`AssetCatalog` : état global partagé — acceptable mais à documenter |
 
 ---
@@ -935,13 +917,13 @@ Aucune violation de dépendance Core←Engine←Framework non corrigée identifi
 
 ### 16.4 Plan de restructuration
 
-Restructurations de nommage recommandées (impact minimal, gain immédiat) :
+Toutes les restructurations de nommage identifiées sont **terminées** :
 
-| Avant | Après | Justification |
+| Avant | Après | Statut |
 |---|---|---|
-| `ElementLoader.cs` | `ElementFactory.cs` | Nom de fichier ≠ classe |
-| `ShaderWriter2.cs` → classe | `ShaderGraphWriter` | Nommage ambigu |
-| `Renderer2dComponent` | `Renderer2DComponent` | Cohérence PascalCase |
+| `ElementLoader.cs` | `ElementFactory.cs` | ✅ FAIT |
+| `ShaderWriter2.cs` | supprimé | ✅ FAIT |
+| `Renderer2dComponent` | `Renderer2DComponent` | ✅ FAIT |
 
 ---
 
@@ -951,13 +933,15 @@ Restructurations de nommage recommandées (impact minimal, gain immédiat) :
 
 | Priorité | Action | Fichier | Statut |
 |---|---|---|---|
-| 1 | Renommer `ElementLoader.cs` → `ElementFactory.cs` | `Assets/ElementFactory.cs` | ⬜ |
-| 2 | Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()` | `Assets/ElementFactory.cs` | ⬜ |
-| 3 | Ajouter index `_byName` + `_byFileName` dans `AssetCatalog` | `Assets/AssetCatalog.cs` | ⬜ |
-| 4 | Renommer `ShaderWriter2` → `ShaderGraphWriter` | `Materials/ShaderGraphWriter.cs` | ⬜ |
-| 5 | Fixer chemin de police hardcodé Windows dans `CasaEngineGame.Initialize()` | `Game/CasaEngineGame.cs` | ⬜ |
+| ~~1~~ | ~~Renommer `ElementLoader.cs` → `ElementFactory.cs`~~ | — | ✅ FAIT |
+| ~~2~~ | ~~Ajouter cache `Dictionary<string,Type>` dans `ElementFactory.FindTypeByName()`~~ | — | ✅ FAIT |
+| ~~3~~ | ~~Ajouter index `_byName` + `_byFileName` dans `AssetCatalog`~~ | — | ✅ FAIT |
+| ~~4~~ | ~~Renommer `ShaderWriter2` → `ShaderGraphWriter`~~ | — | ✅ FAIT (supprimé) |
+| ~~5~~ | ~~Fixer chemin de police hardcodé Windows~~ | — | ✅ FAIT |
 | ~~6~~ | ~~Implémenter `IViewFlushableRenderer` sur `Renderer2DComponent`~~ | — | ✅ FAIT |
-| 6 | Renommer classe `Renderer2dComponent` → `Renderer2DComponent` (casing) | `Game/Components/Renderer2DComponent.cs` | ⬜ |
+| ~~7~~ | ~~Renommer classe `Renderer2dComponent` → `Renderer2DComponent`~~ | — | ✅ FAIT |
+
+**Tous les quick wins sont terminés.**
 
 #### 🟡 Refactors moyens (1–3 jours)
 
@@ -965,14 +949,14 @@ Restructurations de nommage recommandées (impact minimal, gain immédiat) :
 |---|---|---|
 | 7 | Extraire les constantes d'éclairage hardcodées (`StaticMeshRendererComponent`, `SkinnedMeshRendererComponent`) vers un `DefaultLightingSettings` | ⬜ |
 | ~~8~~ | ~~Déplacer `Renderer2DComponent` de `Graphics2D/` vers `Game/Components/`~~ | ✅ FAIT |
-| 8 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement | ⬜ |
+| 9 | Réactiver `DebugSystem` derrière un flag ou le supprimer proprement | ⬜ |
 
 #### 🟢 Refactors lourds (> 1 semaine)
 
 | Priorité | Action |
 |---|---|
 | 10 | Décomposer `RiggedModelLoader.cs` (1616 lignes) en sous-composants |
-| 11 | Décomposer `PhysicsBaseComponent.cs` (7697 lignes) en composants spécialisés |
+| ~~11~~ | ~~Décomposer `PhysicsBaseComponent.cs` (7697 lignes)~~ → ✅ FAIT (283 lignes) |
 | 12 | Implémenter le GameFramework (Possess, PlayerController actif) ou le supprimer |
 | 13 | Découper le projet en assemblies séparés (Core/Engine/Framework) pour boundary compile-time |
 | 14 | Décider du sort du code AI (200+ fichiers) : activer, isoler ou supprimer |
@@ -984,9 +968,19 @@ Restructurations de nommage recommandées (impact minimal, gain immédiat) :
 - **16 tâches d'analyse** : toutes ✅ complétées
 - **Violations corrigées** :
   - 3 violations de dépendance inter-couches
-  - V7-1 + V7-2 : `Renderer2DComponent` — `IViewFlushableRenderer` + migration `Game/Components/` (`f9eb3185`)
-  - V11-1 : `PhysicsBaseComponent` refactorisé 7697 → 283 lignes
+  - V7-1, V7-2, V7-3, V7-6 : `Renderer2DComponent` complet
+  - V8-1 : chemin police cross-platform
+  - V9-1, V9-2, V9-4 : `ElementFactory` + cache + `AssetCatalog` O(1)
+  - V11-1 : `PhysicsBaseComponent` 7697 → 283 lignes
   - `IGameplayProxy.Clone()` : cycle `Entities ↔ Scripting` cassé
-- **Violations ouvertes** : 14 (V7-3, V7-4, V7-5, V7-6, V8-1, V9-1 à V9-5, V13-1, V14-1, V15-1 à V15-2)
-- **Points forts** : architecture multi-vue (`Rendering/`), ECS Unreal-style propre, cycle de vie World robuste, PhysicsBaseComponent assaini
-- **Points faibles** : `RiggedModelLoader` God Class (1616 lignes), code mort (AI, GameFramework), nommage incohérent
+  - V15-2 : incohérences de nommage résolues
+- **Violations encore ouvertes** :
+  - V7-4 + V7-5 : constantes d'éclairage hardcodées
+  - V9-3 : `RiggedModelLoader.cs` God Class (1616 lignes)
+  - V9-5 : TODO entity cache
+  - V10-1 : code AI mort (~100 fichiers)
+  - V13-1 : `ScreenWidgetComponent` couplage Entities→GUI
+  - V14-1 : `DebugSystem.Initialize()` commenté
+  - V15-1 : renderers exposés en types concrets dans `CasaEngineGame`
+- **Points forts** : architecture multi-vue (`Rendering/`), ECS Unreal-style propre, cycle de vie World robuste, PhysicsBaseComponent assaini, tous les quick wins terminés
+- **Points faibles** : `RiggedModelLoader` God Class, code mort (AI, GameFramework)
