@@ -47,6 +47,12 @@ public sealed class World : ObjectBase
 
     public void Clear()
     {
+        // Mirror BeginPlay: notify scripts before destroying anything.
+        GameplayProxy?.OnEndPlay(this);
+
+        foreach (var entity in _entities)
+            entity.GameplayProxy?.OnEndPlay(this);
+
         ClearEntities(true);
         ClearScreens();
     }
