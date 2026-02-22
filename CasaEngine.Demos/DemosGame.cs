@@ -54,6 +54,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new SplitScreenDemo()); // 5
         _demos.Add(new RenderToTextureDemo());
         _demos.Add(new ViewManagerSandbox());
+        _demos.Add(new UIOverlayDemo());
 
         ChangeDemo(0);
     }
