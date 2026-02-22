@@ -1,4 +1,7 @@
-﻿namespace CasaEngine.Framework.GameFramework;
+﻿using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Rendering;
+
+namespace CasaEngine.Framework.GameFramework;
 
 /**
  * PlayerControllers are used by human players to control Pawns.
@@ -16,6 +19,56 @@ public class PlayerController : Controller
 {
     public Player Player { get; set; }
     public bool IsInputEnable { get; set; }
-    //HUD
 
+    // ---- View assignment ----
+
+    /// <summary>
+    /// The <see cref="ViewId"/> of the <see cref="RenderView"/> assigned to this player.
+    /// Set by <see cref="ViewManager.AssignPlayer"/> (or equivalent) before gameplay begins.
+    /// <see cref="ViewId.Empty"/> means no view is assigned yet.
+    /// </summary>
+    public ViewId AssignedViewId { get; set; } = ViewId.Empty;
+
+    // ---- UI integration ----
+
+    /// <summary>
+    /// The <see cref="UIRoot"/> for this player's assigned view.
+    /// Set by the system when the player is assigned to a view (e.g. in GameMode.SpawnPlayerController).
+    /// Null until the player has a view and the UIRoot has been created.
+    /// </summary>
+    public UIRoot? UIRoot { get; set; }
+
+    /// <summary>
+    /// Adds <paramref name="screen"/> to this player's HUD layer
+    /// (<see cref="UILayer.HUD"/>) via the assigned <see cref="UIRoot"/>.
+    /// No-op if <see cref="UIRoot"/> is null.
+    /// </summary>
+    public void AddScreenToHUD(IUIScreen screen)
+    {
+        UIRoot?.ScreenStack.Push(screen);
+    }
+
+    /// <summary>Removes <paramref name="screen"/> from the HUD stack.</summary>
+    public void RemoveScreenFromHUD(IUIScreen screen)
+    {
+        UIRoot?.ScreenStack.Remove(screen);
+    }
+
+    /// <summary>
+    /// Pushes a pause menu screen onto the <see cref="UILayer.Menu"/> layer.
+    /// Override in derived classes to push a project-specific pause screen.
+    /// </summary>
+    public virtual void ShowPauseMenu()
+    {
+        // Derived classes should push a concrete IUIScreen with Layer == UILayer.Menu.
+    }
+
+    /// <summary>
+    /// Pops the topmost menu screen, resuming gameplay.
+    /// Override in derived classes to match the corresponding <see cref="ShowPauseMenu"/> logic.
+    /// </summary>
+    public virtual void HidePauseMenu()
+    {
+        // Derived classes should pop or remove the pause screen they pushed.
+    }
 }

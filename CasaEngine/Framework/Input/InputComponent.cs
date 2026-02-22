@@ -20,6 +20,12 @@ public class InputComponent : GameComponent
     public KeyboardManager KeyboardManager { get; } = new();
     public GamePadManager GamePadManager { get; } = new();
 
+    /// <summary>
+    /// Per-view input router. Set by <see cref="CasaEngineGame"/> after initialization.
+    /// Provides player → view mapping and UI-first arbitration helpers.
+    /// </summary>
+    public InputRouter? InputRouter { get; set; }
+
     public InputComponent(Microsoft.Xna.Framework.Game game)
         : base(game)
     {

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.GUI;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -118,6 +119,16 @@ public sealed class RenderView
 
     /// <summary>Optional host that owns this view's surface and handles resize/close.</summary>
     public IViewHost? Host { get; set; }
+
+    // ---- UI integration ----
+
+    /// <summary>
+    /// Per-view MGUI UI root (desktop + screen stack).
+    /// Automatically created by <see cref="ViewManager"/> when this view is added
+    /// and disposed when this view is removed.
+    /// Null before the view is registered or after it has been disposed.
+    /// </summary>
+    public UIRoot? UIRoot { get; set; }
 
     // ---- Debug ----
 

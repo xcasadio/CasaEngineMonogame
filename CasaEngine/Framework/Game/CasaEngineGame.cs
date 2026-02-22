@@ -19,6 +19,7 @@ using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Project;
+using MGUI.Shared.Rendering;
 using Cursor = CasaEngine.Framework.GUI.Neoforce.Cursor;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
@@ -26,11 +27,19 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Game;
 
-public class CasaEngineGame : Microsoft.Xna.Framework.Game
+public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 {
     private readonly string? _projectFileName;
     public GameManager GameManager { get; }
     public UserInterfaceComponent UserInterfaceComponent { get; private set; }
+
+    // ---- IObservableUpdate (required by MGUI's GameRenderHost/ViewRenderHost) ----
+
+    /// <summary>Fired at the very start of Update. MGUI desktops subscribe to refresh input state.</summary>
+    public event EventHandler<TimeSpan>? PreviewUpdate;
+
+    /// <summary>Fired at the very end of Update. MGUI desktops subscribe to finalize frame state.</summary>
+    public new event EventHandler<EventArgs>? EndUpdate;
     public AssetContentManager AssetContentManager { get; } = new();
     public FontSystem FontSystem { get; private set; }
     public SpriteBatch? SpriteBatch { get; set; }
@@ -223,6 +232,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         // targets to the pool instead of disposing them immediately.
         RenderTargetPool.Shared = new RenderTargetPool(GraphicsDevice);
 
+        // Wire UIRoot auto-creation/disposal for the MGUI per-view integration.
+        // A UIRoot (MGDesktop + ScreenStack) is created for every new RenderView
+        // and disposed when the view is removed.
+        GameManager.ViewManager.ViewAdded   += OnViewAddedCreateUIRoot;
+        GameManager.ViewManager.ViewRemoved += OnViewRemovedDisposeUIRoot;
+
+        // Create the per-view input router and make it available on InputComponent.
+        InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
+
 #if !FINAL
         var args = Environment.CommandLine.Split(' ');
 
@@ -289,6 +307,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
         //DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
 #endif
 
+        // Fire MGUI PreviewUpdate so all ViewRenderHost instances refresh their input state.
+        PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+
+        // Update all per-view UI roots BEFORE gameplay so the UI has first-chance input.
+        foreach (var view in GameManager.ViewManager.Views)
+            view.UIRoot?.Update(gameTime);
+
         GameManager.UpdateWorld(gameTime);
 
 #if EDITOR
@@ -309,6 +334,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
 #if !FINAL
         //DebugSystem.Instance.TimeRuler.EndMark("Update");
 #endif
+
+        // Fire MGUI EndUpdate to finalise frame state in all desktops.
+        EndUpdate?.Invoke(this, EventArgs.Empty);
 
 #if EDITOR
         FrameComputed?.Invoke(this, EventArgs.Empty);
@@ -404,6 +432,26 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game
     /// </summary>
     protected virtual void AfterRenderPipeline(GameTime gameTime)
     {
+    }
+
+    // ---- MGUI per-view UIRoot lifecycle ----
+
+    /// <summary>
+    /// Automatically creates a <see cref="UIRoot"/> for every newly registered view.
+    /// Subscribed to <see cref="ViewManager.ViewAdded"/> in <see cref="Initialize"/>.
+    /// </summary>
+    private void OnViewAddedCreateUIRoot(RenderView view)
+    {
+        view.UIRoot = new UIRoot(this, view.Surface);
+    }
+
+    /// <summary>
+    /// Disposes the <see cref="UIRoot"/> when its view is removed from the manager.
+    /// </summary>
+    private void OnViewRemovedDisposeUIRoot(RenderView view)
+    {
+        view.UIRoot?.Dispose();
+        view.UIRoot = null;
     }
 
 #if EDITOR
