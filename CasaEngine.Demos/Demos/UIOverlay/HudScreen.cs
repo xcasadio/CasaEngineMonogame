@@ -30,7 +30,7 @@ internal sealed class HudScreen : UIScreenBase
     protected override void OnInitialize(UIRoot root)
     {
         // Semi-transparent HUD window anchored to the top-left corner.
-        _window = new MGWindow(root.Desktop, 10, 10, 220, 130)
+        _window = new MGWindow(root.Desktop, 10, 10, 220, 155)
         {
             TitleText           = string.Empty,
             IsTitleBarVisible   = false,
