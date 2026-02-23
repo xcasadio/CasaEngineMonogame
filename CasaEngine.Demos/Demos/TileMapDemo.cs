@@ -18,6 +18,7 @@ namespace CasaEngine.Demos.Demos;
 public class TileMapDemo : Demo
 {
     public override string Title => "Tile map demo";
+    public override string Description => "Renders a tile map loaded from sprite and 2D animation assets using the CasaEngine tile map system.";
 
     public override void Initialize(CasaEngineGame game)
     {

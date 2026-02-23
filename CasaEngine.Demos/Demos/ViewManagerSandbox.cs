@@ -56,6 +56,7 @@ public class ViewManagerSandbox : Demo
     private float _displayFps;
 
     public override string Title => "ViewManager v2 Sandbox";
+    public override string Description => "Comprehensive sandbox for the ViewManager v2 system: multi-view split screen, dynamic add/remove views, UpdateMode cycling (RealTime/Throttled/OnDemand), and debug overlays.";
 
     // ---- Demo lifecycle ----
 

@@ -20,6 +20,7 @@ public class SceneManagementDemo : Demo
     private const int gridSize = 10;
     private const float transF = 1f;
     public override string Title => "Scene management demo";
+    public override string Description => "Shows scene management with a grid of rotating entities added and removed at runtime.";
 
     public override void Initialize(CasaEngineGame game)
     {

@@ -18,6 +18,7 @@ public class SplitScreenDemo : Demo
     private CasaEngineGame? _game;
 
     public override string Title => "Split-screen demo (2 views)";
+    public override string Description => "Demonstrates 2-view split-screen rendering: left half shows a front camera, right half shows a side camera of the same scene.";
 
     public override void Initialize(CasaEngineGame game)
     {

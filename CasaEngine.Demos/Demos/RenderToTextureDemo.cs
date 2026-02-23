@@ -27,6 +27,7 @@ public class RenderToTextureDemo : Demo
     private CasaEngineGame? _game;
 
     public override string Title => "Render-to-texture demo";
+    public override string Description => "Renders a 3D scene into a RenderTarget2D and then displays that texture on a quad in the main scene.";
 
     public override void Initialize(CasaEngineGame game)
     {

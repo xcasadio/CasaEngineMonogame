@@ -10,6 +10,9 @@ public abstract class Demo
 {
     public abstract string Title { get; }
 
+    /// <summary>Short English description of what this demo demonstrates.</summary>
+    public virtual string Description => string.Empty;
+
     public abstract void Initialize(CasaEngineGame game);
 
     public virtual CameraComponent CreateCamera(CasaEngineGame game)

@@ -34,6 +34,7 @@ public class UIOverlayDemo : Demo
     private PauseMenuScreen? _pauseScreen;
 
     public override string Title => "MGUI UI Overlay Demo (HUD + Modal Pause Menu)";
+    public override string Description => "Demonstrates the MGUI per-view UI overlay system: a persistent HUD panel with an elapsed-time counter, and a modal pause menu that blocks input to lower layers.";
 
     // ---- Demo lifecycle ----
 

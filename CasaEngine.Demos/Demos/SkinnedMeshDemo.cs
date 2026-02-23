@@ -12,6 +12,7 @@ namespace CasaEngine.Demos.Demos;
 public class SkinnedMeshDemo : Demo
 {
     public override string Title => "Skinned mesh demo";
+    public override string Description => "Displays an animated skinned mesh model loaded from content. Shows bone-based vertex skinning.";
 
     public override void Initialize(CasaEngineGame game)
     {

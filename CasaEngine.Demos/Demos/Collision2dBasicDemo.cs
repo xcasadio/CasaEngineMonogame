@@ -15,6 +15,7 @@ namespace CasaEngine.Demos.Demos;
 public class Collision2dBasicDemo : Demo
 {
     public override string Title => "Collision 2d basic demo";
+    public override string Description => "Demonstrates basic 2D collision detection and physics response between sprites and static surfaces.";
 
     const int ARRAY_SIZE_X = 5;
     const int ARRAY_SIZE_Y = 5;

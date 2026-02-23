@@ -14,6 +14,7 @@ namespace CasaEngine.Demos.Demos;
 public class Collision3dBasicDemo : Demo
 {
     public override string Title => "Collision 3d basic demo";
+    public override string Description => "Demonstrates basic 3D collision detection between dynamic rigid bodies (spheres, boxes) with gravity and restitution.";
 
     public override void Initialize(CasaEngineGame game)
     {
