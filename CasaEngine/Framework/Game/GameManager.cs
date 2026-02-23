@@ -77,6 +77,7 @@ public class GameManager
 
             _isNewWorld = false;
             OnWorldChange();
+            WorldLoaded?.Invoke(this, EventArgs.Empty);
         }
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
@@ -103,6 +104,12 @@ public class GameManager
         _currentWorld = world;
         _isNewWorld = true;
     }
+
+    /// <summary>
+    /// Fired (on all configurations) when a world finishes loading and its views are ready.
+    /// Subscribe to push UI screens that depend on a live <see cref="UIRoot"/>.
+    /// </summary>
+    public event EventHandler? WorldLoaded;
 
     private void OnWorldChange()
     {

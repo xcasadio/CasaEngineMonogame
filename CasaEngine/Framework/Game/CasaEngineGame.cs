@@ -308,7 +308,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
         // Update all per-view UI roots BEFORE gameplay so the UI has first-chance input.
-        foreach (var view in GameManager.ViewManager.Views)
+        // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
+        // does not throw "Collection was modified" during enumeration.
+        foreach (var view in GameManager.ViewManager.Views.ToArray())
             view.UIRoot?.Update(gameTime);
 
         GameManager.UpdateWorld(gameTime);

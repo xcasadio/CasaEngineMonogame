@@ -34,6 +34,12 @@ public class DemosGame : CasaEngineGame
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
 
+        // Push demo UI screens whenever the engine finishes building views for a world.
+        // This covers the first-frame case where GameManager.UpdateWorld rebuilds the
+        // views (because _isNewWorld=true from SetWorldToLoad), discarding the UIRoot
+        // that ChangeDemo created during LoadContentPrivate.
+        GameManager.WorldLoaded += (_, _) => RefreshDemoUI();
+
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
         var projectSettings = GameSettings.ProjectSettings;
         projectSettings.IsMouseVisible = true;
@@ -154,17 +160,5 @@ public class DemosGame : CasaEngineGame
         }
 
         base.Update(gameTime);
-
-        // base.Update calls GameManager.UpdateWorld, which on the very first frame
-        // sees _isNewWorld=true (set by SetWorldToLoad) and rebuilds the views,
-        // discarding every UIRoot that ChangeDemo set up during LoadContentPrivate.
-        // Detect this and re-push the demo UI screens onto the fresh UIRoot.
-        var uiRootAfter = GetUIRoot();
-        if (uiRootAfter != null
-            && _demoInfoScreen != null
-            && !uiRootAfter.ScreenStack.Screens.Contains(_demoInfoScreen))
-        {
-            RefreshDemoUI();
-        }
     }
 }
