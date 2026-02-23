@@ -20,20 +20,21 @@ namespace CasaEngine.Demos.Demos;
 /// <list type="bullet">
 ///   <item>4-camera split screen (Grid4 layout) on launch.</item>
 ///   <item>Dynamic view creation/removal (Tab = add, Backspace = remove last).</item>
-///   <item>UpdateMode cycling per view (F1..F4 = cycle mode on view 0..3).</item>
+///   <item>UpdateMode cycling per view (F6..F9 = cycle mode on view 0..3).</item>
 ///   <item>Debug overlay toggle (F5).</item>
 ///   <item>OnDemand invalidation (Space = invalidate all OnDemand views).</item>
 ///   <item>RenderTargetPool leak check — RT count stays stable after add/remove cycles.</item>
 ///   <item>HUD showing view count, RT pool stats, per-view modes.</item>
 /// </list>
 ///
-/// Navigation: Right/Left arrow keys to switch between demos.
+/// Navigation: use the MGUI demo navigator panel (top-right) to switch demos.
+///             Press F1 to toggle the panel visibility.
 ///
 /// Controls (while this demo is active):
 /// <code>
 /// Tab       — add a new view (up to 4)
 /// Backspace — remove the last view
-/// F1..F4    — cycle UpdateMode on view 1..4
+/// F6..F9    — cycle UpdateMode on view 1..4
 /// F5        — toggle debug overlay on view 1
 /// Space     — Invalidate() all OnDemand views
 /// </code>
@@ -230,8 +231,8 @@ public class ViewManagerSandbox : Demo
             }
         }
 
-        // ---- Cycle UpdateMode on view N (F1..F4) ----
-        var fKeys = new[] { Keys.F1, Keys.F2, Keys.F3, Keys.F4 };
+        // ---- Cycle UpdateMode on view N (F6..F9) ----
+        var fKeys = new[] { Keys.F6, Keys.F7, Keys.F8, Keys.F9 };
         var allViews = vm.Views;
         for (int i = 0; i < fKeys.Length && i < allViews.Count; i++)
         {
@@ -320,7 +321,7 @@ public class ViewManagerSandbox : Demo
         }
         lines.AppendLine();
         lines.AppendLine("[Tab]=AddView  [Bksp]=Remove");
-        lines.AppendLine("[F1-F4]=CycleMode  [F5]=Overlay");
+        lines.AppendLine("[F6-F9]=CycleMode  [F5]=Overlay");
         lines.AppendLine("[Space]=InvalidateOnDemand");
 
         // Render HUD in the top-left corner of the first view

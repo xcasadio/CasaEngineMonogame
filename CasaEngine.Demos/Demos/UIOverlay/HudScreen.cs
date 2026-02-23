@@ -50,7 +50,7 @@ internal sealed class HudScreen : UIScreenBase
         stack.TryAddChild(_timeLabel);
 
         // Separator hint
-        var hint = new MGTextBlock(_window, "[color=gray]← / → to switch demos[/color]");
+        var hint = new MGTextBlock(_window, "[color=gray]Press F1 to toggle the demo navigator[/color]");
         hint.Margin = new Thickness(0, 4, 0, 0);
         stack.TryAddChild(hint);
 

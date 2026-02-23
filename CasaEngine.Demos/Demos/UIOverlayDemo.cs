@@ -20,7 +20,7 @@ namespace CasaEngine.Demos.Demos;
 ///
 /// How to test:
 /// <list type="number">
-///   <item>Navigate to this demo with Left/Right arrow keys.</item>
+///   <item>Navigate to this demo via the MGUI demo navigator panel (top-right).</item>
 ///   <item>Verify the semi-transparent HUD panel appears in the top-left corner.</item>
 ///   <item>Click "Open Pause Menu" → the modal window should appear in the centre.</item>
 ///   <item>Click "Resume" → the modal closes; the HUD remains.</item>
