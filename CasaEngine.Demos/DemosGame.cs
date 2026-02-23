@@ -154,5 +154,17 @@ public class DemosGame : CasaEngineGame
         }
 
         base.Update(gameTime);
+
+        // base.Update calls GameManager.UpdateWorld, which on the very first frame
+        // sees _isNewWorld=true (set by SetWorldToLoad) and rebuilds the views,
+        // discarding every UIRoot that ChangeDemo set up during LoadContentPrivate.
+        // Detect this and re-push the demo UI screens onto the fresh UIRoot.
+        var uiRootAfter = GetUIRoot();
+        if (uiRootAfter != null
+            && _demoInfoScreen != null
+            && !uiRootAfter.ScreenStack.Screens.Contains(_demoInfoScreen))
+        {
+            RefreshDemoUI();
+        }
     }
 }
