@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CasaEngine.Core.Log;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
@@ -8,6 +9,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -20,6 +22,11 @@ public class DemosGame : CasaEngineGame
     private Demo _currentDemo;
     private int _currentDemoIndex;
     private KeyboardState _prevKeyboard;
+
+    // ---- Demo navigation UI ----
+    private DemoInfoScreen?  _demoInfoScreen;
+    private DemoHintOverlay? _demoHintOverlay;
+    private bool             _demoInfoVisible = true;
 
     protected override void Initialize()
     {
@@ -76,6 +83,35 @@ public class DemosGame : CasaEngineGame
         _currentDemo.InitializeCamera(camera);
 
         Window.Title = _currentDemo.Title;
+        RefreshDemoUI();
+    }
+
+    // ---- Demo navigation UI helpers ----
+
+    private UIRoot? GetUIRoot()
+        => GameManager.ViewManager.Views.FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
+
+    /// <summary>
+    /// (Re)creates the DemoInfoScreen and DemoHintOverlay on the current UIRoot.
+    /// Called after every demo change because ViewManager.Clear() tears down the old UIRoot.
+    /// </summary>
+    private void RefreshDemoUI()
+    {
+        var uiRoot = GetUIRoot();
+        if (uiRoot == null) return;
+
+        var entries = _demos
+            .Select(d => (d.Title, d.Description))
+            .ToList();
+
+        _demoInfoScreen  = new DemoInfoScreen(entries, _currentDemoIndex, ChangeDemo);
+        _demoHintOverlay = new DemoHintOverlay();
+
+        uiRoot.PushScreen(_demoInfoScreen);
+        uiRoot.PushScreen(_demoHintOverlay);
+
+        _demoInfoScreen.SetVisible(_demoInfoVisible);
+        _demoHintOverlay.SetVisible(!_demoInfoVisible);
     }
 
     protected override void OnViewsResized(int width, int height)
@@ -94,14 +130,12 @@ public class DemosGame : CasaEngineGame
 
         var kb = Keyboard.GetState();
 
-        // Navigate demos with Left/Right arrow keys
-        if (kb.IsKeyDown(Keys.Right) && !_prevKeyboard.IsKeyDown(Keys.Right))
+        // F1 — toggle demo info panel visibility
+        if (kb.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))
         {
-            ChangeDemo((_currentDemoIndex + 1) % _demos.Count);
-        }
-        else if (kb.IsKeyDown(Keys.Left) && !_prevKeyboard.IsKeyDown(Keys.Left))
-        {
-            ChangeDemo((_currentDemoIndex - 1 + _demos.Count) % _demos.Count);
+            _demoInfoVisible = !_demoInfoVisible;
+            _demoInfoScreen?.SetVisible(_demoInfoVisible);
+            _demoHintOverlay?.SetVisible(!_demoInfoVisible);
         }
 
         _prevKeyboard = kb;
