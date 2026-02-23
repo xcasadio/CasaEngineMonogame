@@ -56,7 +56,9 @@ internal sealed class DemoInfoScreen : UIScreenBase
     {
         var bounds = root.Desktop.ValidScreenBounds;
         int winW = 300;
-        int winH = 440;
+        // Cap height to the available viewport so the window is never taller than the screen.
+        // This matters for split-screen demos where each viewport is a fraction of the back-buffer.
+        int winH = Math.Min(440, bounds.Height - 20);
         int x = bounds.Width - winW - 10;
         int y = 10;
 
