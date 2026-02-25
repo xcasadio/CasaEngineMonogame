@@ -69,6 +69,12 @@
             </Expander>
         </DataTemplate>
 
+        <DataTemplate x:Key="staticModelComponentTemplate" DataType="{x:Type components:StaticModelComponent}">
+            <Expander Header="Static Model" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <entityControls:StaticModelComponentControl/>
+            </Expander>
+        </DataTemplate>
+
         <DataTemplate x:Key="arcBallCameraComponentTemplate" DataType="{x:Type components:ArcBallCameraComponent}">
             <Expander Header="Arc ball camera" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <entityControls:ArcBallCameraComponentControl/>
@@ -186,6 +192,7 @@
                         CameraTargeted2dComponentTemplate="{StaticResource cameraTargeted2dComponentTemplate}"
                         MeshComponentTemplate="{StaticResource meshComponentTemplate}"
                         SkinnedMeshComponentTemplate="{StaticResource skinnedMeshComponentTemplate}"
+                        StaticModelComponentTemplate="{StaticResource staticModelComponentTemplate}"
                         PhysicsComponentTemplate="{StaticResource physicsComponentTemplate}"
                         Box2dCollisionComponentTemplate="{StaticResource box2dCollisionComponentTemplate}"
                         BoxCollisionComponentTemplate="{StaticResource boxCollisionComponentTemplate}"
