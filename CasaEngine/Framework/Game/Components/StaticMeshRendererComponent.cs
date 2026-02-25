@@ -29,6 +29,17 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         });
     }
 
+    /// <summary>Enqueue a <see cref="StaticModelMesh"/> sub-mesh for rendering.</summary>
+    public void AddMesh(StaticModelMesh staticModelMesh, Matrix world, Matrix worldInvertTranspose)
+    {
+        _meshInfos.Add(new MeshInfo
+        {
+            StaticModelMesh = staticModelMesh,
+            World = world,
+            WorldInvertTranspose = worldInvertTranspose,
+        });
+    }
+
     protected override void LoadContent()
     {
         _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
@@ -71,10 +82,40 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         foreach (var meshInfo in _meshInfos)
         {
-            graphicsDevice.SetVertexBuffer(meshInfo.StaticMesh.VertexBuffer);
-            graphicsDevice.Indices = meshInfo.StaticMesh.IndexBuffer;
+            // Resolve GPU buffers, texture and primitive type from whichever mesh type is set
+            VertexBuffer? vb;
+            IndexBuffer? ib;
+            Texture2D? texture;
+            PrimitiveType primitiveType;
 
-            _effect.Parameters["Texture"].SetValue(meshInfo.StaticMesh.Texture?.Resource ?? defaultTexture?.Resource);
+            if (meshInfo.StaticMesh != null)
+            {
+                vb = meshInfo.StaticMesh.VertexBuffer;
+                ib = meshInfo.StaticMesh.IndexBuffer;
+                texture = meshInfo.StaticMesh.Texture?.Resource ?? defaultTexture?.Resource;
+                primitiveType = meshInfo.StaticMesh.PrimitiveType;
+            }
+            else if (meshInfo.StaticModelMesh != null)
+            {
+                vb = meshInfo.StaticModelMesh.VertexBuffer;
+                ib = meshInfo.StaticModelMesh.IndexBuffer;
+                texture = meshInfo.StaticModelMesh.Texture?.Resource ?? defaultTexture?.Resource;
+                primitiveType = meshInfo.StaticModelMesh.PrimitiveType;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (vb == null || ib == null)
+            {
+                continue;
+            }
+
+            graphicsDevice.SetVertexBuffer(vb);
+            graphicsDevice.Indices = ib;
+
+            _effect.Parameters["Texture"].SetValue(texture);
             _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
             _effect.Parameters["World"].SetValue(meshInfo.World);
             _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
@@ -83,8 +124,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                int primitiveCount = meshInfo.StaticMesh.IndexBuffer.IndexCount / 3;
-                graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticMesh.PrimitiveType, 0, 0, primitiveCount);
+                int primitiveCount = ib.IndexCount / 3;
+                graphicsDevice.DrawIndexedPrimitives(primitiveType, 0, 0, primitiveCount);
             }
         }
 
@@ -94,6 +135,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private class MeshInfo
     {
         public StaticMesh? StaticMesh;
+        public StaticModelMesh? StaticModelMesh;
         public Material? Material;
         public Matrix World;
         public Matrix WorldInvertTranspose;
