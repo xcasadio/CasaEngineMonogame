@@ -24,6 +24,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(Entity), new AssetLoader<Entity>());
         assetContentManager.RegisterAssetLoader(typeof(Pawn), new AssetLoader<Pawn>());
         assetContentManager.RegisterAssetLoader(typeof(SkinnedMesh), new AssetLoader<SkinnedMesh>());
+        assetContentManager.RegisterAssetLoader(typeof(StaticModel), new AssetLoader<StaticModel>());
         assetContentManager.RegisterAssetLoader(typeof(Animation2dData), new AssetLoader<Animation2dData>());
         assetContentManager.RegisterAssetLoader(typeof(SpriteData), new AssetLoader<SpriteData>());
         assetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
