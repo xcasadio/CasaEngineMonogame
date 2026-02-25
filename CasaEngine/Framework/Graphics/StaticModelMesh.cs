@@ -24,6 +24,13 @@ public class StaticModelMesh
     /// <summary>Asset ID of the texture bound to this mesh.</summary>
     public Guid TextureAssetId { get; set; } = Guid.Empty;
 
+    /// <summary>
+    /// Diffuse texture file path as resolved at import time (editor only).
+    /// Used by ContentBrowserControl to link the imported texture asset.
+    /// Not serialized.
+    /// </summary>
+    public string? DiffuseTextureFilePath { get; set; }
+
     /// <summary>Runtime texture (loaded via <see cref="LoadTexture"/>).</summary>
     public Assets.Textures.Texture? Texture { get; set; }
 
