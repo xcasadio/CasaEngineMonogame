@@ -240,31 +240,52 @@ public partial class ContentBrowserControl : UserControl
 
                 if (import3dFileOptionsWindow.ShowDialog() == true)
                 {
-                    var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
-
-                    if (import3dFileOptionsWindow.ImportTextures)
+                    if (import3dFileOptionsWindow.ImportAsStaticModel)
                     {
-                        ImportTexturesFromModel(riggedModel, assetContentManager, destinationFolderPath);
-                    }
+                        // ---- Static Model path ----
+                        var staticImporter = new StaticModelImporter();
+                        var staticModel = staticImporter.Import(fullFileName);
 
-                    if (import3dFileOptionsWindow.ImportAnimations)
+                        if (import3dFileOptionsWindow.ImportTextures)
+                        {
+                            ImportTexturesFromStaticModel(staticModel, assetContentManager, destinationFolderPath);
+                        }
+
+                        if (import3dFileOptionsWindow.ImportModel == false)
+                        {
+                            return;
+                        }
+
+                        newAsset = staticModel;
+                        assetExtension = Constants.FileNameExtensions.StaticModel;
+                    }
+                    else
                     {
-                        ImportAnimationsFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                        // ---- Skinned Model path (existing) ----
+                        var riggedModel = (RiggedModel)modelLoader.LoadAsset(fullFileName, assetContentManager);
+
+                        if (import3dFileOptionsWindow.ImportTextures)
+                        {
+                            ImportTexturesFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                        }
+
+                        if (import3dFileOptionsWindow.ImportAnimations)
+                        {
+                            ImportAnimationsFromModel(riggedModel, assetContentManager, destinationFolderPath);
+                        }
+
+                        if (import3dFileOptionsWindow.ImportModel == false)
+                        {
+                            return;
+                        }
+
+                        var skinnedMesh = new SkinnedMesh();
+                        skinnedMesh.Initialize(assetContentManager);
+                        skinnedMesh.SetRiggedModel(riggedModel);
+                        skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
+                        newAsset = skinnedMesh;
+                        assetExtension = Constants.FileNameExtensions.Model;
                     }
-
-                    ImportAnimationsFromModel(riggedModel, assetContentManager, destinationFolderPath);
-
-                    if (import3dFileOptionsWindow.ImportModel == false)
-                    {
-                        return;
-                    }
-
-                    var skinnedMesh = new SkinnedMesh();
-                    skinnedMesh.Initialize(assetContentManager);
-                    skinnedMesh.SetRiggedModel(riggedModel);
-                    skinnedMesh.RiggedModelAssetId = assetFromImportFile.Id;
-                    newAsset = skinnedMesh;
-                    assetExtension = Constants.FileNameExtensions.Model;
                 }
                 else
                 {
@@ -303,6 +324,18 @@ public partial class ContentBrowserControl : UserControl
                      .Where(x => x != null).Distinct())
         {
             ImportAssetFile(assetContentManager, textureFileName, destinationFolderPath);
+        }
+    }
+
+    private void ImportTexturesFromStaticModel(StaticModel staticModel, AssetContentManager assetContentManager,
+        string destinationFolderPath)
+    {
+        foreach (var mesh in staticModel.Meshes)
+        {
+            if (!string.IsNullOrEmpty(mesh.DiffuseTextureFilePath))
+            {
+                ImportAssetFile(assetContentManager, mesh.DiffuseTextureFilePath, destinationFolderPath);
+            }
         }
     }
 

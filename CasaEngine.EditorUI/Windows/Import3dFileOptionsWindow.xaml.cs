@@ -7,6 +7,7 @@ namespace CasaEngine.EditorUI.Windows
         public bool ImportModel => importModelCheckBox.IsChecked ?? false;
         public bool ImportAnimations => importAnimationsCheckBox.IsChecked ?? false;
         public bool ImportTextures => importTexturesCheckBox.IsChecked ?? false;
+        public bool ImportAsStaticModel => radioStaticModel.IsChecked ?? true;
 
         public Import3dFileOptionsWindow()
         {
