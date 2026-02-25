@@ -1,0 +1,69 @@
+using CasaEngine.Core.Serialization;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
+
+namespace CasaEngine.Framework.Graphics;
+
+/// <summary>
+/// A node in the hierarchy of a <see cref="StaticModel"/>.
+/// Each node has a local transform and may optionally reference a mesh
+/// (via <see cref="MeshIndex"/>).  Structural nodes with no geometry have
+/// MeshIndex == -1.
+/// </summary>
+public class StaticModelNode : ISerializable
+{
+    public string Name { get; set; } = string.Empty;
+
+    public Vector3 Position { get; set; } = Vector3.Zero;
+    public Quaternion Rotation { get; set; } = Quaternion.Identity;
+    public Vector3 Scale { get; set; } = Vector3.One;
+
+    /// <summary>Index into the parent <see cref="StaticModel.Meshes"/> list. -1 means no mesh.</summary>
+    public int MeshIndex { get; set; } = -1;
+
+    public List<StaticModelNode> Children { get; } = new();
+
+    /// <summary>Local-space transform matrix built from Position, Rotation and Scale.</summary>
+    public Matrix LocalTransform =>
+        Matrix.CreateScale(Scale)
+        * Matrix.CreateFromQuaternion(Rotation)
+        * Matrix.CreateTranslation(Position);
+
+    public void Load(JObject element)
+    {
+        Name = element["name"].GetString();
+        MeshIndex = element["mesh_index"].GetInt32();
+        Position = element["position"].GetVector3();
+        Rotation = element["rotation"].GetQuaternion();
+        Scale = element["scale"].GetVector3();
+
+        Children.Clear();
+        foreach (JObject childNode in element["children"])
+        {
+            var child = new StaticModelNode();
+            child.Load(childNode);
+            Children.Add(child);
+        }
+    }
+
+#if EDITOR
+    public void Save(JObject jObject)
+    {
+        jObject.Add("name", Name);
+        jObject.Add("mesh_index", MeshIndex);
+
+        var posObj = new JObject(); Position.Save(posObj); jObject.Add("position", posObj);
+        var rotObj = new JObject(); Rotation.Save(rotObj); jObject.Add("rotation", rotObj);
+        var sclObj = new JObject(); Scale.Save(sclObj); jObject.Add("scale", sclObj);
+
+        var childrenArray = new JArray();
+        foreach (var child in Children)
+        {
+            var childObj = new JObject();
+            child.Save(childObj);
+            childrenArray.Add(childObj);
+        }
+        jObject.Add("children", childrenArray);
+    }
+#endif
+}
