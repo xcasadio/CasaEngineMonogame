@@ -27,7 +27,7 @@ public class StaticModelComponent : PrimitiveComponent
     public Guid StaticModelAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Runtime reference to the loaded model.</summary>
-    public Graphics.StaticModel? StaticModel { get; private set; }
+    public Graphics.StaticModel? StaticModel { get; set; }
 
     // ------------------------------------------------------------------
     //  Constructors / Clone

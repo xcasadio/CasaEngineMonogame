@@ -137,6 +137,9 @@ public partial class ContentBrowserControl : UserControl
                 window.ActivateEditorControl<ButtonsMappingControl>();
                 buttonsMappingControl.OpenButtonsMapping(fileRelativePath);
                 break;
+            case Constants.FileNameExtensions.StaticModel:
+                // No dedicated editor for static models — asset is used via the EntityEditor
+                break;
         }
     }
 
