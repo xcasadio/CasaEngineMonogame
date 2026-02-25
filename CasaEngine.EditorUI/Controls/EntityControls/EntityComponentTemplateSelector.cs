@@ -20,6 +20,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
     public DataTemplate PhysicsComponentTemplate { get; set; }
     public DataTemplate PlayerStartComponentTemplate { get; set; }
     public DataTemplate SkinnedMeshComponentTemplate { get; set; }
+    public DataTemplate StaticModelComponentTemplate { get; set; }
     public DataTemplate SphereCollisionComponentTemplate { get; set; }
     public DataTemplate StaticSpriteComponentTemplate { get; set; }
     public DataTemplate TileMapComponentTemplate { get; set; }
@@ -41,6 +42,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
             case SphereCollisionComponentViewModel: return SphereCollisionComponentTemplate;
             case PlayerStartComponentViewModel: return PlayerStartComponentTemplate;
             case SkinnedMeshComponentViewModel: return SkinnedMeshComponentTemplate;
+            case StaticModelComponentViewModel: return StaticModelComponentTemplate;
             case StaticMeshComponentViewModel: return MeshComponentTemplate;
             case StaticSpriteComponentViewModel: return StaticSpriteComponentTemplate;
             case TileMapComponentViewModel: return TileMapComponentTemplate;
