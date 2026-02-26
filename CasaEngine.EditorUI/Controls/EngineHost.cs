@@ -165,6 +165,13 @@ public sealed class EngineHost : WpfGame
                             if (ViewManager != null &&
                                 ViewManager.TryGetView(viewId, out var v))
                                 ViewManager.SetActive(v);
+                            // Update IsActiveViewport so only the hovered viewport's
+                            // GizmoComponent reacts to mouse clicks.
+                            foreach (var (vid, vctx) in _viewContexts)
+                            {
+                                if (vctx.Gizmo != null)
+                                    vctx.Gizmo.IsActiveViewport = (vid == viewId);
+                            }
                         }
                         break;
                     }

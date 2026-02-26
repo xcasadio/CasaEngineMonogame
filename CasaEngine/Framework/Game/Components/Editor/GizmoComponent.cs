@@ -26,6 +26,13 @@ public class GizmoComponent : DrawableGameComponent
     /// </summary>
     public CameraComponent? ActiveCamera { get; set; }
 
+    /// <summary>
+    /// When <see langword="false"/> this gizmo skips all input processing so that
+    /// only the gizmo belonging to the viewport currently under the cursor reacts
+    /// to mouse clicks and keyboard shortcuts. Set by EngineHost.Update().
+    /// </summary>
+    public bool IsActiveViewport { get; set; }
+
     public GizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         _game = game as CasaEngineGame;
@@ -82,6 +89,9 @@ public class GizmoComponent : DrawableGameComponent
                 camera.ProjectionMatrix,
                 camera.Position);
         }
+
+        // Only process input for the viewport currently under the cursor.
+        if (!IsActiveViewport) return;
 
         var lbState = _inputComponent.MouseManager.LeftButtonJustPressed;
 

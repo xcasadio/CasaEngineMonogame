@@ -89,6 +89,7 @@ public partial class EntityControl : UserControl
         if (selectedSceneComponent != null)
         {
             var entityViewModel = DataContext as EntityViewModel;
+            if (entityViewModel == null) return;
             SetSelectedItem(entityViewModel.GetFromComponent(selectedSceneComponent));
         }
     }
