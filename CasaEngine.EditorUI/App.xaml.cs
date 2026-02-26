@@ -22,6 +22,7 @@ public partial class App : Application
         registry.Register(new EntityAssetDropHandler());
         registry.Register(new StaticModelAssetDropHandler());
         registry.Register(new SpriteAssetDropHandler());
+        registry.Register(new Animation2dAssetDropHandler());
 
         base.OnStartup(e);
     }
