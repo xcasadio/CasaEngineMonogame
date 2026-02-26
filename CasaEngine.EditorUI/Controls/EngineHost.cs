@@ -156,10 +156,10 @@ public sealed class EngineHost : WpfGame
     /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
     /// events from the hovered viewport rather than the EngineHost root element.
     /// </summary>
-    internal void SetActiveViewportInput(RawKeyboardProvider keyboard, WpfMouse mouse)
+    internal void SetActiveViewportInput(RawKeyboardProvider keyboard, RawMouseProvider mouse)
     {
         Logs.WriteDebug($"[InputDiag] EngineHost.SetActiveViewportInput called gameReady={_game != null}");
-        _game?.SetInputProvider(keyboard, new MouseStateProvider(mouse));
+        _game?.SetInputProvider(keyboard, mouse);
     }
 
     protected override void Dispose(bool disposing)

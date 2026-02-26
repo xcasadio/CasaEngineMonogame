@@ -17,8 +17,8 @@ namespace CasaEngine.EditorUI.Inputs;
 /// </summary>
 internal sealed class RawKeyboardProvider : IKeyboardStateProvider
 {
-    [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
-    private static extern bool NativeGetKeyboardState([Out] byte[] keyStates);
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int vKey);
 
     [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out POINT pt);
@@ -88,17 +88,12 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
         if (!IsCursorOverViewport())
             return new KeyboardState();
 
-        var keyStates = new byte[256];
-        if (!NativeGetKeyboardState(keyStates))
-        {
-            Logs.WriteDebug("[InputDiag] NativeGetKeyboardState failed");
-            return new KeyboardState();
-        }
-
+        // GetAsyncKeyState lit l'etat physique de la touche, independamment
+        // du thread appelant — contrairement a GetKeyboardState qui est thread-local.
         var pressed = new List<Keys>();
-        for (var i = 8; i < keyStates.Length; i++)
+        for (var i = 8; i < 256; i++)
         {
-            if ((keyStates[i] & 0x80) != 0)
+            if ((GetAsyncKeyState(i) & 0x8000) != 0)
                 pressed.Add((Keys)i);
         }
 
