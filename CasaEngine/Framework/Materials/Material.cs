@@ -1,110 +1,94 @@
-﻿
-using CasaEngine.Core.Serialization;
+
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Materials;
 
-public class Material : ISerializable
+/// <summary>
+/// Multi-channel material with 8 texture slots (BaseColor, Opacity, Normal, Specular,
+/// Roughness, Tangent, Height, Reflection). Inherits from <see cref="MaterialBase"/>.
+/// The BaseColor texture is used as Albedo in the current forward shader.
+/// </summary>
+public class Material : MaterialBase
 {
     public Guid TextureBaseColorAssetId { get; set; }
-    public Texture TextureBaseColor;
-
+    public Texture? TextureBaseColor { get; set; }
     public Guid TextureOpacityAssetId { get; set; }
-    public Texture TextureOpacityColor;
-
+    public Texture? TextureOpacityColor { get; set; }
     public Guid TextureNormalAssetId { get; set; }
-    public Texture TextureNormal;
-
+    public Texture? TextureNormal { get; set; }
     public Guid TextureSpecularAssetId { get; set; }
-    public Texture TextureSpecular;
-
+    public Texture? TextureSpecular { get; set; }
     public Guid TextureRoughnessAssetId { get; set; }
-    public Texture TextureRoughness;
-
+    public Texture? TextureRoughness { get; set; }
     public Guid TextureTangentAssetId { get; set; }
-    public Texture TextureTangent;
-
+    public Texture? TextureTangent { get; set; }
     public Guid TextureHeightAssetId { get; set; }
-    public Texture TextureHeight;
-
+    public Texture? TextureHeight { get; set; }
     public Guid TextureReflectionAssetId { get; set; }
-    public Texture TextureReflection;
+    public Texture? TextureReflection { get; set; }
 
-    public void Load(AssetContentManager content)
+    public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
     {
-        if (TextureBaseColorAssetId != Guid.Empty)
-        {
-            TextureBaseColor = LoadTexture(TextureBaseColorAssetId, content);
-        }
-
-        if (TextureOpacityAssetId != Guid.Empty)
-        {
-            TextureOpacityColor = LoadTexture(TextureOpacityAssetId, content);
-        }
-
-        if (TextureNormalAssetId != Guid.Empty)
-        {
-            TextureNormal = LoadTexture(TextureNormalAssetId, content);
-        }
-
-        if (TextureSpecularAssetId != Guid.Empty)
-        {
-            TextureSpecular = LoadTexture(TextureSpecularAssetId, content);
-        }
-
-        if (TextureRoughnessAssetId != Guid.Empty)
-        {
-            TextureRoughness = LoadTexture(TextureRoughnessAssetId, content);
-        }
-
-        if (TextureTangentAssetId != Guid.Empty)
-        {
-            TextureTangent = LoadTexture(TextureTangentAssetId, content);
-        }
-
-        if (TextureHeightAssetId != Guid.Empty)
-        {
-            TextureHeight = LoadTexture(TextureHeightAssetId, content);
-        }
-
-        if (TextureReflectionAssetId != Guid.Empty)
-        {
-            TextureReflection = LoadTexture(TextureReflectionAssetId, content);
-        }
+        var worldViewProj = world * context.Frame.ViewProjection;
+        shader.SetParameter(ShaderParameterNames.WorldViewProj, worldViewProj);
+        shader.SetParameter(ShaderParameterNames.World, world);
+        var wit = Matrix.Transpose(Matrix.Invert(world));
+        shader.SetParameter(ShaderParameterNames.WorldInverseTranspose, wit);
+        shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
+        shader.SetParameter(ShaderParameterNames.AlbedoTexture, TextureBaseColor?.Resource);
+        context.Lighting?.Bind(shader);
     }
 
-    private Texture LoadTexture(Guid assetId, AssetContentManager content)
+    public void LoadTextures(AssetContentManager content)
     {
-        return content.Load<Texture>(assetId);
+        if (TextureBaseColorAssetId  != Guid.Empty) TextureBaseColor   = content.Load<Texture>(TextureBaseColorAssetId);
+        if (TextureOpacityAssetId    != Guid.Empty) TextureOpacityColor= content.Load<Texture>(TextureOpacityAssetId);
+        if (TextureNormalAssetId     != Guid.Empty) TextureNormal      = content.Load<Texture>(TextureNormalAssetId);
+        if (TextureSpecularAssetId   != Guid.Empty) TextureSpecular    = content.Load<Texture>(TextureSpecularAssetId);
+        if (TextureRoughnessAssetId  != Guid.Empty) TextureRoughness   = content.Load<Texture>(TextureRoughnessAssetId);
+        if (TextureTangentAssetId    != Guid.Empty) TextureTangent     = content.Load<Texture>(TextureTangentAssetId);
+        if (TextureHeightAssetId     != Guid.Empty) TextureHeight      = content.Load<Texture>(TextureHeightAssetId);
+        if (TextureReflectionAssetId != Guid.Empty) TextureReflection  = content.Load<Texture>(TextureReflectionAssetId);
     }
 
-    public void Load(JObject element)
+    public override void Load(JObject element)
     {
-        TextureBaseColorAssetId = element["texture_base_color_asset_id"].GetGuid();
-        TextureOpacityAssetId = element["texture_opacity_asset_id"].GetGuid();
-        TextureNormalAssetId = element["texture_normal_asset_id"].GetGuid();
-        TextureSpecularAssetId = element["texture_specular_asset_id"].GetGuid();
-        TextureRoughnessAssetId = element["texture_roughness_asset_id"].GetGuid();
-        TextureTangentAssetId = element["texture_tangent_asset_id"].GetGuid();
-        TextureHeightAssetId = element["texture_height_asset_id"].GetGuid();
-        TextureReflectionAssetId = element["texture_reflection_asset_id"].GetGuid();
+        base.Load(element);
+        TextureBaseColorAssetId   = ParseGuid(element["texture_base_color_asset_id"]);
+        TextureOpacityAssetId     = ParseGuid(element["texture_opacity_asset_id"]);
+        TextureNormalAssetId      = ParseGuid(element["texture_normal_asset_id"]);
+        TextureSpecularAssetId    = ParseGuid(element["texture_specular_asset_id"]);
+        TextureRoughnessAssetId   = ParseGuid(element["texture_roughness_asset_id"]);
+        TextureTangentAssetId     = ParseGuid(element["texture_tangent_asset_id"]);
+        TextureHeightAssetId      = ParseGuid(element["texture_height_asset_id"]);
+        TextureReflectionAssetId  = ParseGuid(element["texture_reflection_asset_id"]);
     }
 
 #if EDITOR
-
-    public void Save(JObject jObject)
+    public override void Save(JObject jObject)
     {
-        jObject.Add("texture_base_color_asset_id", TextureBaseColorAssetId);
-        jObject.Add("texture_opacity_asset_id", TextureOpacityAssetId);
-        jObject.Add("texture_normal_asset_id", TextureNormalAssetId);
-        jObject.Add("texture_specular_asset_id", TextureSpecularAssetId);
-        jObject.Add("texture_roughness_asset_id", TextureRoughnessAssetId);
-        jObject.Add("texture_tangent_asset_id", TextureTangentAssetId);
-        jObject.Add("texture_height_asset_id", TextureHeightAssetId);
-        jObject.Add("texture_reflection_asset_id", TextureReflectionAssetId);
+        base.Save(jObject);
+        jObject["type"] = nameof(Material);
+        jObject["texture_base_color_asset_id"]  = TextureBaseColorAssetId;
+        jObject["texture_opacity_asset_id"]      = TextureOpacityAssetId;
+        jObject["texture_normal_asset_id"]       = TextureNormalAssetId;
+        jObject["texture_specular_asset_id"]     = TextureSpecularAssetId;
+        jObject["texture_roughness_asset_id"]    = TextureRoughnessAssetId;
+        jObject["texture_tangent_asset_id"]      = TextureTangentAssetId;
+        jObject["texture_height_asset_id"]       = TextureHeightAssetId;
+        jObject["texture_reflection_asset_id"]   = TextureReflectionAssetId;
     }
-
 #endif
+
+    private static Guid ParseGuid(JToken? token)
+    {
+        var s = token?.Value<string>();
+        return s != null && Guid.TryParse(s, out var g) ? g : Guid.Empty;
+    }
 }

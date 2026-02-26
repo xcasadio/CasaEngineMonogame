@@ -1,6 +1,8 @@
+using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -79,9 +81,35 @@ public class StaticModel : ObjectBase
         {
             mesh.Initialize(assetContentManager.GraphicsDevice);
 
-            if (mesh.TextureAssetId != Guid.Empty)
+            // Resolve material asset — takes priority over legacy texture slot
+            if (mesh.MaterialAssetId != Guid.Empty)
+            {
+                try
+                {
+                    mesh.Material = assetContentManager.Load<MaterialBase>(mesh.MaterialAssetId);
+                }
+                catch (Exception ex)
+                {
+                    Logs.WriteException(ex);
+                }
+            }
+            else if (mesh.TextureAssetId != Guid.Empty)
             {
                 mesh.LoadTexture(mesh.TextureAssetId, assetContentManager);
+            }
+
+            // Resolve per-submesh materials
+            foreach (var sub in mesh.SubMeshes)
+            {
+                if (sub.MaterialAssetId == Guid.Empty) continue;
+                try
+                {
+                    sub.Material = assetContentManager.Load<MaterialBase>(sub.MaterialAssetId);
+                }
+                catch (Exception ex)
+                {
+                    Logs.WriteException(ex);
+                }
             }
         }
 
