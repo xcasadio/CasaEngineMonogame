@@ -28,8 +28,8 @@ public sealed class ShaderBindCache
         // Per-frame global parameters
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
 
-        // Phase 5 will extend this to push directional lights and ambient colour.
-        // context.Lighting?.Bind(shader);
+        // Bind directional lights and ambient (Phase 5)
+        context.Lighting?.Bind(shader);
 
         if (context.Stats is not null)
             context.Stats.EffectBinds++;

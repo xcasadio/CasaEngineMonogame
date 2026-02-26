@@ -5,6 +5,7 @@ using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using DirLight = CasaEngine.Framework.Rendering.DirectionalLight;
 
 namespace CasaEngine.Framework.Game.Components;
 
@@ -18,6 +19,17 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly RenderStateCache _stateCache   = new();
     private readonly ShaderBindCache  _shaderCache  = new();
     private readonly List<RenderItem> _renderItems  = new();
+
+    /// <summary>
+    /// Default scene lighting used when no external <see cref="LightingContext"/> is supplied.
+    /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
+    /// Replace at runtime to change scene lighting (Phase 5).
+    /// </summary>
+    public LightingContext DefaultLighting { get; } = new LightingContext
+    {
+        ActiveDirectionalLightCount = 3,
+        AmbientColor = new Vector3(0.05f, 0.05f, 0.05f),
+    };
 
     public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -47,18 +59,21 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularPower"].SetValue(5.0f);
-        
-        _effect.Parameters["DirLight0Direction"].SetValue(new Vector3(-0.5265408f, -0.5735765f, -0.6275069f));
-        _effect.Parameters["DirLight0DiffuseColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
-        _effect.Parameters["DirLight0SpecularColor"].SetValue(new Vector3(1, 0.9607844f, 0.8078432f));
-        
-        _effect.Parameters["DirLight1Direction"].SetValue(new Vector3(0.7198464f, 0.3420201f, 0.6040227f));
-        _effect.Parameters["DirLight1DiffuseColor"].SetValue(new Vector3(0.9647059f, 0.7607844f, 0.4078432f));
-        _effect.Parameters["DirLight1SpecularColor"].SetValue(Vector3.Zero);
-        
-        _effect.Parameters["DirLight2Direction"].SetValue(new Vector3(0.4545195f, -0.7660444f, 0.4545195f));
-        _effect.Parameters["DirLight2DiffuseColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
-        _effect.Parameters["DirLight2SpecularColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+
+        // Initialise default lighting context to match the previous hardcoded values.
+        // External code can modify DefaultLighting to change scene illumination.
+        DefaultLighting.DirectionalLights[0] = new DirLight(
+            new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
+            new Vector3(1f, 0.9607844f, 0.8078432f),
+            new Vector3(1f, 0.9607844f, 0.8078432f));
+        DefaultLighting.DirectionalLights[1] = new DirLight(
+            new Vector3(0.7198464f, 0.3420201f, 0.6040227f),
+            new Vector3(0.9647059f, 0.7607844f, 0.4078432f),
+            Vector3.Zero);
+        DefaultLighting.DirectionalLights[2] = new DirLight(
+            new Vector3(0.4545195f, -0.7660444f, 0.4545195f),
+            new Vector3(0.3231373f, 0.3607844f, 0.3937255f),
+            new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
 
@@ -84,9 +99,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         var stats   = new RenderStats();
         var context = new RenderContext
         {
-            Device  = graphicsDevice,
-            Frame   = frame,
-            Stats   = stats,
+            Device   = graphicsDevice,
+            Frame    = frame,
+            Lighting = DefaultLighting,
+            Stats    = stats,
         };
 
         // --- Phase 4: build a sorted RenderItem list ---
@@ -218,6 +234,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         graphicsDevice.RasterizerState   = RasterizerState.CullCounterClockwise;
         graphicsDevice.BlendState         = BlendState.Opaque;
         graphicsDevice.SamplerStates[0]   = SamplerState.AnisotropicClamp;
+
+        // Bind lighting from DefaultLighting (Phase 5: replaces hardcoded values)
+        var sw = _legacyShaderWrapper!;
+        DefaultLighting.Bind(sw);
 
         var texture = mesh.Texture?.Resource ?? defaultTexture?.Resource;
         _effect.Parameters["Texture"].SetValue(texture);
