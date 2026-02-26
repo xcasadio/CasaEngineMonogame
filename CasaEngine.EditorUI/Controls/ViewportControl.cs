@@ -233,6 +233,12 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         if (_engineHost?.ViewManager == null || _viewId.IsEmpty) return;
         if (_engineHost.ViewManager.TryGetView(_viewId, out var view))
             _engineHost.ViewManager.SetActive(view);
+
+        // Route this viewport's keyboard/mouse into the shared InputComponent so
+        // that ScriptArcBallCamera and other navigation scripts read from the
+        // hovered viewport rather than the EngineHost root element.
+        if (_keyboard != null && _mouse != null)
+            _engineHost.SetActiveViewportInput(_keyboard, _mouse);
     }
 
     /// <summary>

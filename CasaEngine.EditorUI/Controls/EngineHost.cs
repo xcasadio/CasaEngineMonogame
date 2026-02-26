@@ -151,6 +151,20 @@ public sealed class EngineHost : WpfGame
         }
     }
 
+    /// <summary>
+    /// Switches the shared <see cref="InputComponent"/> to read keyboard and mouse
+    /// state from the specified WPF controls.
+    /// Called by <see cref="ViewportControl"/> on <c>MouseEnter</c> so that
+    /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
+    /// events from the hovered viewport rather than the EngineHost root element.
+    /// </summary>
+    internal void SetActiveViewportInput(WpfKeyboard keyboard, WpfMouse mouse)
+    {
+        _game?.SetInputProvider(
+            new KeyboardStateProvider(keyboard),
+            new MouseStateProvider(mouse));
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
