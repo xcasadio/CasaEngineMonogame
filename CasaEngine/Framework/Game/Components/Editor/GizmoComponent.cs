@@ -5,6 +5,7 @@ using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
+using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using XNAGizmo;
@@ -103,32 +104,22 @@ public class GizmoComponent : DrawableGameComponent
         // Only process input for the viewport currently under the cursor.
         if (!IsActiveViewport) return;
 
+        // Sync Gizmo's viewport once before Update() so ConvertMouseToRay uses the
+        // correct render-target dimensions for both hover detection and drag operations.
+        if (ActiveSurface != null)
+        {
+            var r = ActiveSurface.ViewportRect;
+            Gizmo.ActiveViewport = new Microsoft.Xna.Framework.Graphics.Viewport(r.X, r.Y, r.Width, r.Height);
+        }
+
         var lbState = _inputComponent.MouseManager.LeftButtonJustPressed;
 
         if (lbState)
         {
-            // Gizmo.ConvertMouseToRay uses GraphicsDevice.Viewport.Unproject.
-            // During Update() the viewport is the EngineHost back buffer, not the
-            // per-view render target — this makes the pick ray wrong.
-            // Temporarily override Viewport with the per-view surface dimensions.
-            var savedVp = _game.GraphicsDevice.Viewport;
-            if (ActiveSurface != null)
-            {
-                var r = ActiveSurface.ViewportRect;
-                _game.GraphicsDevice.Viewport = new Viewport(r.X, r.Y, r.Width, r.Height);
-                Logs.WriteDebug($"[InputDiag] GizmoComponent: LeftButtonJustPressed pos=({_inputComponent.MouseManager.Position.X},{_inputComponent.MouseManager.Position.Y}) viewportOverride={r.Width}x{r.Height}");
-            }
-            else
-            {
-                Logs.WriteDebug($"[InputDiag] GizmoComponent: LeftButtonJustPressed pos=({_inputComponent.MouseManager.Position.X},{_inputComponent.MouseManager.Position.Y}) (no surface override)");
-            }
-
+            Logs.WriteDebug($"[InputDiag] GizmoComponent: LeftButtonJustPressed pos=({_inputComponent.MouseManager.Position.X},{_inputComponent.MouseManager.Position.Y})");
             Gizmo.SelectEntities(new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));
-
-            if (ActiveSurface != null)
-                _game.GraphicsDevice.Viewport = savedVp;
         }
 
         if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D1))
