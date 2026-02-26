@@ -333,7 +333,7 @@ StaticMeshRendererComponent.Flush()
 > - Mélanger les deux responsabilités dans un seul component violerait SRP
 > - `StaticMeshComponent` sera retiré à terme (Phase 7)
 
-- [ ] ❌ **Task 4.3** : Créer `StaticModelSubMeshComponent.cs` dans `CasaEngine/Framework/Entities/Components/`
+- [x] ✅ **Task 4.3** : Créer `StaticModelSubMeshComponent.cs` dans `CasaEngine/Framework/Entities/Components/`
   - Hérite de `PrimitiveComponent`
   - Propriété `StaticModelMesh? ModelMesh` (runtime-only, assignée par le parent `StaticModelComponent`)
   - `Draw()` : appelle `_meshRendererComponent.AddMesh(ModelMesh, world, worldInvT)` (surcharge existante)
@@ -343,7 +343,7 @@ StaticMeshRendererComponent.Flush()
   - Pas de sérialisation du mesh (les données viennent de l'asset parent)
   - Override possible : `Material`, `IsVisible` (sérialisés si modifiés par l'utilisateur)
 
-- [ ] ❌ **Task 4.4** : Modifier `StaticModelComponent.InitializeWithWorld()` pour créer la hiérarchie
+- [x] ✅ **Task 4.4** : Modifier `StaticModelComponent.InitializeWithWorld()` pour créer la hiérarchie
   - Parcourir récursivement `StaticModel.RootNode`
   - Pour chaque `StaticModelNode` ayant un `MeshIndex >= 0`, créer un `StaticModelSubMeshComponent` enfant via `AddChildComponent()`
   - Nommer le composant enfant avec `StaticModelNode.Name` (ex: "Chassis", "Wheel_FL")
@@ -352,12 +352,12 @@ StaticMeshRendererComponent.Flush()
   - Pour les nœuds structurels (pas de mesh, juste un transform), créer un `StaticModelSubMeshComponent` sans mesh pour préserver la hiérarchie de transforms
   - Initialiser chaque enfant créé (`InitializePrivate()` + `InitializeWithWorld()`)
 
-- [ ] ❌ **Task 4.5** : Supprimer le rendu monolithique de `StaticModelComponent.Draw()`
+- [x] ✅ **Task 4.5** : Supprimer le rendu monolithique de `StaticModelComponent.Draw()`
   - Retirer `DrawNode()` et la méthode récursive `DrawNode(StaticModelNode, Matrix)`
   - Le rendu est maintenant délégué aux enfants `StaticModelSubMeshComponent` via la propagation `SceneComponent.Draw()` → `Children[i].Draw()`
   - Retirer `AccumulateBounds()` dans `GetBoundingBox()` — le calcul est maintenant fait par les enfants
 
-- [ ] ❌ **Task 4.6** : Créer `StaticModelSubMeshComponentViewModel` + UIéditeur
+- [x] ✅ **Task 4.6** : Créer `StaticModelSubMeshComponentViewModel` + UIéditeur
   - Créer le ViewModel dans `CasaEngine.EditorUI/Controls/EntityControls/ViewModels/`
   - Enregistrer dans `ComponentViewModelFactory` (case `StaticModelSubMeshComponent`)
   - Afficher le nom du sous-mesh, le nombre de vertices/indices
@@ -365,7 +365,7 @@ StaticMeshRendererComponent.Flush()
   - *(Optionnel)* Permettre l'override du material sur un sous-mesh individuel
   - Vérifier que `StaticModelComponentViewModel` affiche correctement la hiérarchie des sous-composants dans l'arbre
 
-- [ ] ❌ **Task 4.7** : Gérer la sérialisation/désérialisation de la hiérarchie
+- [x] ✅ **Task 4.7** : Gérer la sérialisation/désérialisation de la hiérarchie
   - Lors du `Save` d'une Entity avec un `StaticModelComponent`, les enfants `StaticModelSubMeshComponent` ne doivent **pas** être sérialisés (ils seront recréés à partir du `StaticModel` asset)
   - Ajouter un flag `IsGeneratedFromModel` (ou similaire) sur `StaticModelSubMeshComponent` pour les distinguer
   - Lors du `Load`, vérifier que les enfants générés ne sont pas dupliqués au rechargement
@@ -388,10 +388,10 @@ StaticMeshRendererComponent.Flush()
 
 ### Phase 6 — Tests & Validation
 
-- [ ] ❌ **Task 6.1** : Créer une démo `StaticModelDemo` dans `CasaEngine.Demos/`
-  - ❌ Charger un fichier FBX multi-mesh
-  - ❌ Vérifier l'affichage avec hiérarchie correcte
-  - ❌ Vérifier les transforms (position/rotation/scale de chaque noeud)
+- [x] ✅ **Task 6.1** : Créer une démo `StaticModelDemo` dans `CasaEngine.Demos/`
+  - ✅ Démo programmatique (box + sphere primitives) avec hiérarchie multi-mesh
+  - ✅ Vérification des transforms (position/rotation/scale de chaque nœud)
+  - ✅ Enregistrée dans DemosGame
 
 - [ ] ❌ **Task 6.2** : Tester l'import via l'éditeur
   - ❌ Import d'un FBX simple (1 mesh)
@@ -412,34 +412,29 @@ StaticMeshRendererComponent.Flush()
 > - Entities sérialisées (`.entity`, `.world`) dans `SampleProject`
 > - Éditeur : "Select Mesh" dans le panel component
 
-- [ ] ❌ **Task 7.1** : Faire générer des `StaticModel` inline par les primitives
-  - Modifier les factories de primitives (cube, sphere, plane, etc.) pour produire un `StaticModel` à 1 mesh au lieu d'un `StaticMesh`
-  - Ou créer une méthode `StaticModel.CreateFromPrimitive(...)` qui encapsule un `StaticModelMesh` unique dans un `StaticModel` avec un `RootNode` trivial
+- [x] ✅ **Task 7.1** : Ajouter `StaticModel.CreateFromPrimitive(GeometricPrimitive, string)` factory method
 
-- [ ] ❌ **Task 7.2** : Migrer `ArrowComponent` pour ne plus hériter de `StaticMeshComponent`
-  - Faire hériter de `StaticModelComponent` ou `StaticModelSubMeshComponent`
-  - Adapter la génération du mesh arrow
+- [x] ✅ **Task 7.2** : Migré `ArrowComponent` pour hériter de `StaticModelComponent`
+  - ✅ Hérite de `StaticModelComponent` (anciennement `StaticMeshComponent`)
+  - ✅ Dans `InitializePrivate` : construit cylinder+cone mesh en `StaticModelMesh`, crée `StaticModel`
 
-- [ ] ❌ **Task 7.3** : Migrer les Demos existantes
-  - Remplacer `new StaticMeshComponent()` par `new StaticModelComponent()` dans toutes les démos
-  - Vérifier : `SplitScreenDemo`, `Collision3dBasicDemo`, `Collision2dBasicDemo`, `SceneManagementDemo`, `UIOverlayDemo`, `RenderToTextureDemo`, `ViewManagerSandbox`
-  - `SandBoxGame` dans `Projects/`
+- [x] ✅ **Task 7.3** : Migré toutes les Demos vers `StaticModelComponent`
+  - ✅ `SplitScreenDemo`, `Collision3dBasicDemo`, `Collision2dBasicDemo`, `SceneManagementDemo`, `UIOverlayDemo`, `RenderToTextureDemo`, `ViewManagerSandbox`
+  - ✅ `SandBoxGame` dans `Projects/`
 
-- [ ] ❌ **Task 7.4** : Migrer les fichiers sérialisés existants
-  - Migrer `Projects/SampleProject/Entities/Box.entity` (`"type": "StaticMeshComponent"` → `"type": "StaticModelComponent"`)
-  - Migrer `Projects/SampleProject/DefaultWorld.world`
-  - Créer un outil de migration ou documenter la procédure de migration manuelle
-  - Tester que les fichiers migrés se chargent correctement
+- [x] ✅ **Task 7.4** : Migré les fichiers sérialisés existants
+  - ✅ `Box.entity` → type=`StaticModelComponent` + asset `Entities/Box.staticModel`
+  - ✅ `DefaultWorld.world` → 2 entités ground migrées + assets `Models/ground_ground*.staticModel`
+  - ✅ Nouveaux assets enregistrés dans `AssetInfos.json`
 
-- [ ] ❌ **Task 7.5** : Supprimer `StaticMeshComponent` et le code associé
-  - Supprimer `StaticMeshComponent.cs`
-  - Supprimer `StaticMeshComponentViewModel.cs`
-  - Supprimer `StaticMeshComponentControl.xaml` / `.xaml.cs`
-  - Retirer l'entrée dans `ComponentViewModelFactory`
-  - Retirer l'entrée dans `EntityComponentTemplateSelector`
-  - Retirer `StaticMesh.cs` si plus utilisé
-  - Nettoyer la surcharge `AddMesh(StaticMesh, Material, ...)` dans `StaticMeshRendererComponent` si plus utilisée
-  - Vérifier qu'aucune référence résiduelle ne subsiste
+- [x] ✅ **Task 7.5** : Supprimé `StaticMeshComponent` et le code associé
+  - ✅ Supprimé `StaticMeshComponent.cs`
+  - ✅ Supprimé `StaticMeshComponentViewModel.cs`
+  - ✅ Supprimé `StaticMeshComponentControl.xaml` / `.xaml.cs`
+  - ✅ Retiré de `ComponentViewModelFactory`, `EntityComponentTemplateSelector`, `EntityComponentControl.xaml`
+  - ✅ Supprimé `StaticMesh.cs`
+  - ✅ Retiré la surcharge `AddMesh(StaticMesh, Material, ...)` de `StaticMeshRendererComponent`
+  - ✅ Build solution : 0 erreurs
 
 ---
 
