@@ -60,12 +60,21 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public string[] Arguments { get; set; }
     private string ProjectFile { get; set; } = string.Empty;
 
+    // Per-instance screen dimensions, updated by OnScreenResized (editor) or Window.ClientBounds (runtime).
+    // In editor mode we cannot rely on GraphicsDevice.PresentationParameters when the device is shared
+    // across multiple tabs — each tab has its own size.
+    private int _screenSizeWidth;
+    private int _screenSizeHeight;
+
     public int ScreenSizeWidth
     {
         get
         {
 #if EDITOR
-            return GraphicsDevice.PresentationParameters.BackBufferWidth;
+            // Return the stored value (set by OnScreenResized or first-init from PP).
+            return _screenSizeWidth > 0
+                ? _screenSizeWidth
+                : GraphicsDevice.PresentationParameters.BackBufferWidth;
 #else
             return Window.ClientBounds.Width;
 #endif
@@ -77,7 +86,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         get
         {
 #if EDITOR
-            return GraphicsDevice.PresentationParameters.BackBufferHeight;
+            return _screenSizeHeight > 0
+                ? _screenSizeHeight
+                : GraphicsDevice.PresentationParameters.BackBufferHeight;
 #else
             return Window.ClientBounds.Height;
 #endif
@@ -133,6 +144,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
     public void OnScreenResized(int width, int height)
     {
+        // Keep per-instance dimensions so ScreenSizeWidth/Height return the correct value
+        // even when the GraphicsDevice is shared across multiple editor tabs.
+        _screenSizeWidth  = width;
+        _screenSizeHeight = height;
+
         foreach (var component in Components)
         {
             if (component is IGameComponentResizable resizable)

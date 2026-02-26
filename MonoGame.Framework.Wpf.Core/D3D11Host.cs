@@ -175,8 +175,17 @@ namespace Microsoft.Xna.Framework
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
-            GraphicsDevice.PresentationParameters.BackBufferWidth = (int)sizeInfo.NewSize.Width;
-            GraphicsDevice.PresentationParameters.BackBufferHeight = (int)sizeInfo.NewSize.Height;
+            // When sharing a single GraphicsDevice across multiple D3D11Host instances each
+            // instance manages its own _cachedRenderTarget sized from ActualWidth/ActualHeight.
+            // Writing BackBufferWidth/Height to the *shared* PresentationParameters would
+            // let the last-resized instance overwrite every other instance's reported size,
+            // corrupting CasaEngineGame.ScreenSizeWidth for all but one tab.
+            // In non-shared mode the device is per-instance so writing is safe.
+            if (!UseASingleSharedGraphicsDevice && _graphicsDeviceInitialized)
+            {
+                GraphicsDevice.PresentationParameters.BackBufferWidth  = (int)sizeInfo.NewSize.Width;
+                GraphicsDevice.PresentationParameters.BackBufferHeight = (int)sizeInfo.NewSize.Height;
+            }
             _resetBackBuffer = true;
             base.OnRenderSizeChanged(sizeInfo);
         }
