@@ -166,6 +166,16 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // navigation shortcuts and gizmo operations target the hovered viewport.
         MouseEnter += (_, _) => { _isMouseOver = true;  ActivateThisView(); };
         MouseLeave += (_, _) => { _isMouseOver = false; };
+
+        // Empêche WPF de router les touches de navigation (flèches, PageUp/Down, etc.)
+        // vers d'autres contrôles focusables quand la souris est sur ce viewport.
+        // Sans ça, appuyer sur une flèche sélectionne l'item suivant dans un ListBox
+        // ou déplace le focus ailleurs dans la fenêtre.
+        PreviewKeyDown += (_, e) =>
+        {
+            if (_isMouseOver)
+                e.Handled = true;
+        };
     }
 
     /// <inheritdoc/>

@@ -129,16 +129,13 @@ public sealed class EngineHost : WpfGame
         {
             _game!.UpdateWithEditor(gameTime);
 
-            // Drive per-view camera entity updates so ArcBall / 2-D navigation
-            // scripts (ScriptArcBallCamera etc.) receive their per-frame tick.
-            // These entities are not in any world's entity list, so they would
-            // otherwise never be updated.
+            // Met à jour uniquement la caméra du viewport actif (celui survolé par la souris).
+            // Mettre à jour TOUS les contextes faisait bouger toutes les caméras en même temps
+            // car elles partagent le même InputComponent.
             var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            foreach (var ctx in _viewContexts.Values)
-            {
-                ctx.CameraEntity?.Update(dt);
-                ctx.CameraEntity?.GameplayProxy?.Update(dt);
-            }
+            var activeCtx = _game.GameManager.ViewManager.ActiveView?.Tag as EditorViewContext;
+            activeCtx?.CameraEntity?.Update(dt);
+            activeCtx?.CameraEntity?.GameplayProxy?.Update(dt);
         }
     }
 
