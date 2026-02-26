@@ -31,6 +31,12 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
 
+    /// <summary>
+    /// Optional asset ID used to pre-configure the sprite when creating an entity
+    /// via drag-and-drop. Loaded during <see cref="InitializeWithWorld"/>.
+    /// </summary>
+    public Guid SpriteAssetId { get; set; } = Guid.Empty;
+
     public StaticSpriteComponent()
     {
 
@@ -39,6 +45,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     public StaticSpriteComponent(StaticSpriteComponent other) : base(other)
     {
         _spriteData = other._spriteData;
+        SpriteAssetId = other.SpriteAssetId;
     }
 
     protected override void InitializePrivate()
@@ -52,6 +59,18 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
         _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
         _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
+
+        if (SpriteAssetId != Guid.Empty && _spriteData == null)
+        {
+            var spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(SpriteAssetId);
+            if (spriteData != null)
+            {
+                _spriteData = spriteData;
+                _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
+                AddCollisions();
+                IsBoundingBoxDirty = true;
+            }
+        }
     }
 
     public override StaticSpriteComponent Clone()
