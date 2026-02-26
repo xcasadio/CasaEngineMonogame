@@ -24,6 +24,11 @@ public partial class App : Application
         registry.Register(new SpriteAssetDropHandler());
         registry.Register(new Animation2dAssetDropHandler());
 
+        // Register toolbox drop handlers
+        var toolboxRegistry = ToolboxDropHandlerRegistry.Instance;
+        toolboxRegistry.Register(new EmptyEntityToolboxHandler());
+        toolboxRegistry.Register(new PlayerStartToolboxHandler());
+
         base.OnStartup(e);
     }
 }

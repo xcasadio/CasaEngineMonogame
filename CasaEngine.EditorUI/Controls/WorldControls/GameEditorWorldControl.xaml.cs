@@ -3,7 +3,6 @@ using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
 using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -126,19 +125,16 @@ public partial class GameEditorWorldControl : UserControl
 
             if (dragAndDropInfo!.Action == DragAndDropInfoAction.Create)
             {
-                e.Handled = true;
-                var entity = new Entity();
-
-                if (dragAndDropInfo.Type == DragAndDropInfoType.Entity)
+                var handler = ToolboxDropHandlerRegistry.Instance.FindHandler(dragAndDropInfo);
+                if (handler != null)
                 {
-                    // empty entity — no root component needed
+                    e.Handled = true;
+                    CreateEntity(handler.CreateEntity(dragAndDropInfo), e.GetPosition(gameViewport));
                 }
-                else if (dragAndDropInfo.Type == DragAndDropInfoType.PlayerStart)
+                else
                 {
-                    entity.RootComponent = new PlayerStartComponent();
+                    Logs.WriteWarning($"The toolbox type {dragAndDropInfo.Type} is not supported");
                 }
-
-                CreateEntity(entity, e.GetPosition(gameViewport));
             }
             else
             {
