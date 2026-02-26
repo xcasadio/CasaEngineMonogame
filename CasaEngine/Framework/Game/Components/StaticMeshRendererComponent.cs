@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,6 +13,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
     private ShaderWrapper? _legacyShaderWrapper;
+
+    // Phase 4 — per-frame caches that minimise redundant state/shader changes
+    private readonly RenderStateCache _stateCache   = new();
+    private readonly ShaderBindCache  _shaderCache  = new();
+    private readonly List<RenderItem> _renderItems  = new();
 
     public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -68,76 +74,137 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
 
-        var defaultTexture = (Game as CasaEngineGame)?.AssetContentManager.GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
+        var defaultTexture = (Game as CasaEngineGame)?.AssetContentManager
+            .GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
 
-        // Build a lightweight RenderContext (no lighting yet — Phase 5 will fill it in)
+        // Reset per-frame state caches
+        _stateCache.ResetFrame();
+        _shaderCache.ResetFrame();
+
+        var stats   = new RenderStats();
         var context = new RenderContext
         {
             Device  = graphicsDevice,
             Frame   = frame,
+            Stats   = stats,
         };
+
+        // --- Phase 4: build a sorted RenderItem list ---
+        _renderItems.Clear();
 
         foreach (var meshInfo in _meshInfos)
         {
             if (meshInfo.StaticModelMesh == null) continue;
-
             var vb = meshInfo.StaticModelMesh.VertexBuffer;
             var ib = meshInfo.StaticModelMesh.IndexBuffer;
             if (vb == null || ib == null) continue;
-
-            graphicsDevice.SetVertexBuffer(vb);
-            graphicsDevice.Indices = ib;
 
             var mesh = meshInfo.StaticModelMesh;
 
             if (mesh.SubMeshes.Count > 0)
             {
-                // --- Multi-material path: one draw call per SubMesh ---
                 foreach (var subMesh in mesh.SubMeshes)
                 {
                     var mat = subMesh.Material ?? meshInfo.Material;
-                    if (mat != null)
-                    {
-                        ApplyRenderStates(graphicsDevice, mat);
-                        var shader = _legacyShaderWrapper!;
-                        mat.Bind(shader, in context, meshInfo.World);
+                    if (mat == null) continue; // legacy sub-path handled after sorting
 
-                        for (int p = 0; p < shader.PassCount; p++)
-                        {
-                            shader.ApplyPass(p);
-                            graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType,
-                                subMesh.VertexOffset, subMesh.IndexStart, subMesh.PrimitiveCount);
-                        }
-                    }
-                    else
+                    float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                    var item = new RenderItem
                     {
-                        // Legacy sub-path
-                        DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture,
-                            subMesh.VertexOffset, subMesh.IndexStart, subMesh.PrimitiveCount);
-                    }
+                        Mesh                  = mesh,
+                        SubMesh               = subMesh,
+                        Material              = mat,
+                        World                 = meshInfo.World,
+                        WorldInverseTranspose = meshInfo.WorldInvertTranspose,
+                        DistanceToCamera      = dist,
+                    };
+                    item.SortKey = SortKeyGenerator.Generate(
+                        mat.Queue,
+                        mat.ShaderAssetId.GetHashCode(),
+                        mat.Id.GetHashCode(),
+                        vb.GetHashCode(),
+                        dist);
+                    _renderItems.Add(item);
                 }
             }
             else if (meshInfo.Material != null)
             {
-                // --- Single-material path ---
-                ApplyRenderStates(graphicsDevice, meshInfo.Material);
+                var mat = meshInfo.Material;
+                float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                var item = new RenderItem
+                {
+                    Mesh                  = mesh,
+                    SubMesh               = null,
+                    Material              = mat,
+                    World                 = meshInfo.World,
+                    WorldInverseTranspose = meshInfo.WorldInvertTranspose,
+                    DistanceToCamera      = dist,
+                };
+                item.SortKey = SortKeyGenerator.Generate(
+                    mat.Queue,
+                    mat.ShaderAssetId.GetHashCode(),
+                    mat.Id.GetHashCode(),
+                    vb.GetHashCode(),
+                    dist);
+                _renderItems.Add(item);
+            }
+        }
 
-                var shader = _legacyShaderWrapper!;
-                meshInfo.Material.Bind(shader, in context, meshInfo.World);
+        // Sort opaque front-to-back, transparent back-to-front — the SortKey encodes this.
+        _renderItems.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
 
+        // --- Draw sorted material items ---
+        foreach (var item in _renderItems)
+        {
+            var vb = item.Mesh.VertexBuffer!;
+            var ib = item.Mesh.IndexBuffer!;
+            graphicsDevice.SetVertexBuffer(vb);
+            graphicsDevice.Indices = ib;
+
+            _stateCache.Apply(graphicsDevice, item.Material, stats);
+
+            var shader = _legacyShaderWrapper!;
+            _shaderCache.BindGlobals(shader, in context);
+            item.Material.Bind(shader, in context, item.World);
+
+            if (item.SubMesh is { } sub)
+            {
                 for (int p = 0; p < shader.PassCount; p++)
                 {
                     shader.ApplyPass(p);
-                    int primitiveCount = ib.IndexCount / 3;
-                    graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType, 0, 0, primitiveCount);
+                    graphicsDevice.DrawIndexedPrimitives(item.Mesh.PrimitiveType,
+                        sub.VertexOffset, sub.IndexStart, sub.PrimitiveCount);
                 }
             }
             else
             {
-                // --- Legacy path: hardcoded basicEffect (backwards compatibility) ---
                 int primitiveCount = ib.IndexCount / 3;
-                DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture, 0, 0, primitiveCount);
+                for (int p = 0; p < shader.PassCount; p++)
+                {
+                    shader.ApplyPass(p);
+                    graphicsDevice.DrawIndexedPrimitives(item.Mesh.PrimitiveType, 0, 0, primitiveCount);
+                }
             }
+            stats.DrawCalls++;
+        }
+
+        // --- Legacy fallback: items with no material at all ---
+        foreach (var meshInfo in _meshInfos)
+        {
+            if (meshInfo.StaticModelMesh == null) continue;
+            var vb = meshInfo.StaticModelMesh.VertexBuffer;
+            var ib = meshInfo.StaticModelMesh.IndexBuffer;
+            if (vb == null || ib == null) continue;
+
+            var mesh = meshInfo.StaticModelMesh;
+            bool hasAnyMaterial = meshInfo.Material != null || mesh.SubMeshes.Any(s => s.Material != null);
+            if (hasAnyMaterial) continue;
+
+            graphicsDevice.SetVertexBuffer(vb);
+            graphicsDevice.Indices = ib;
+
+            int primitiveCount = ib.IndexCount / 3;
+            DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture, 0, 0, primitiveCount);
         }
 
         _meshInfos.Clear();
@@ -164,14 +231,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             effectPass.Apply();
             graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType, baseVertex, startIndex, primitiveCount);
         }
-    }
-
-    private static void ApplyRenderStates(GraphicsDevice device, MaterialBase material)
-    {
-        device.BlendState         = material.BlendState         ?? BlendState.Opaque;
-        device.DepthStencilState  = material.DepthStencilState  ?? DepthStencilState.Default;
-        device.RasterizerState    = material.RasterizerState    ?? RasterizerState.CullCounterClockwise;
-        device.SamplerStates[0]   = material.SamplerState       ?? SamplerState.AnisotropicClamp;
     }
 
     private class MeshInfo
