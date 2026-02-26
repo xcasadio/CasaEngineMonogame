@@ -97,13 +97,16 @@ public sealed class EngineHost : WpfGame
         _game = new CasaEngineGame(null, service);
         _game.IsRunningInGameEditorMode = true;
 
+        // InitializeWithEditor() must come first: it calls CasaEngineGame.Initialize()
+        // which creates InputComponent. SetInputProvider() accesses InputComponent, so it
+        // must be called *after* InitializeWithEditor().
+        _game.InitializeWithEditor();
+
         // Wire default WPF input providers scoped to this EngineHost control.
         // PR 6 replaces this with per-view routing via InputRouter.InjectMouseState().
         _game.SetInputProvider(
             new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
-
-        _game.InitializeWithEditor();
 
         base.Initialize();
     }
