@@ -129,8 +129,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // _mouse peut être null ici si Initialize() n'a pas encore été appelé (ordre habituel).
         // Dans ce cas, Initialize() appellera SetActiveViewportInput lui-même une fois prêt.
         Logs.WriteDebug($"[InputDiag] ViewportControl.Attach() viewId={viewId} mouseReady={_mouse != null}");
-        if (_mouse != null)
-            host.SetActiveViewportInput(this, _mouse);
+        if (_rawKeyboard != null && _mouse != null)
+            host.SetActiveViewportInput(_rawKeyboard, _mouse);
     }
 
     /// <summary>Detaches from the current view without removing or disposing it.</summary>
@@ -195,7 +195,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         if (_engineHost != null)
         {
             Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() -> late SetActiveViewportInput viewId={_viewId}");
-            _engineHost.SetActiveViewportInput(this, _mouse);
+            _engineHost.SetActiveViewportInput(_rawKeyboard, _mouse);
         }
     }
 
@@ -274,8 +274,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // autres éléments WPF, et route les inputs vers l'InputComponent.
         var focusResult = Focus();
         Logs.WriteDebug($"[InputDiag] ActivateThisView() viewId={_viewId} Focus()={focusResult} WpfFocus={System.Windows.Input.Keyboard.FocusedElement?.GetType().Name ?? "null"}");
-        if (_mouse != null)
-            _engineHost.SetActiveViewportInput(this, _mouse);
+        if (_rawKeyboard != null && _mouse != null)
+            _engineHost.SetActiveViewportInput(_rawKeyboard, _mouse);
     }
 
     /// <summary>

@@ -49,6 +49,12 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
     {
         if (!GetCursorPos(out var pt))
             return false;
+
+        // PointFromScreen leve InvalidOperationException si le Visual n'est pas
+        // encore conecte a un PresentationSource (arbre visuel pas encore rendu).
+        if (System.Windows.PresentationSource.FromVisual(_viewport) == null)
+            return false;
+
         try
         {
             var local = _viewport.PointFromScreen(new Point(pt.X, pt.Y));

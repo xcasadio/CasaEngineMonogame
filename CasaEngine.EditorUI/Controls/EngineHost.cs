@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Windows;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
@@ -157,14 +156,10 @@ public sealed class EngineHost : WpfGame
     /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
     /// events from the hovered viewport rather than the EngineHost root element.
     /// </summary>
-    internal void SetActiveViewportInput(FrameworkElement viewport, WpfMouse mouse)
+    internal void SetActiveViewportInput(RawKeyboardProvider keyboard, WpfMouse mouse)
     {
-        // RawKeyboardProvider utilise GetCursorPos (Win32) + PointFromScreen:
-        // detection du survol independante du routing WPF et du hit-testing D3D11.
-        Logs.WriteDebug($"[InputDiag] EngineHost.SetActiveViewportInput called viewport={viewport.GetType().Name} gameReady={_game != null}");
-        _game?.SetInputProvider(
-            new RawKeyboardProvider(viewport),
-            new MouseStateProvider(mouse));
+        Logs.WriteDebug($"[InputDiag] EngineHost.SetActiveViewportInput called gameReady={_game != null}");
+        _game?.SetInputProvider(keyboard, new MouseStateProvider(mouse));
     }
 
     protected override void Dispose(bool disposing)
