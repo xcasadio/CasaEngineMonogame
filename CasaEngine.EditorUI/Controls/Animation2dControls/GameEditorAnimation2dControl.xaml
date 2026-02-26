@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
-             xmlns:animation2dControls="clr-namespace:CasaEngine.EditorUI.Controls.Animation2dControls"
+             xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -39,6 +39,6 @@
                 <xctk:SingleUpDown Value="1.0" Increment="0.1" Minimum="0.1" Maximum="4.0"/>
             </ToolBar>
         </ToolBarTray>
-        <animation2dControls:GameEditorAnimation2d Grid.Row="1" x:Name="gameEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <controls:ViewportControl Grid.Row="1" x:Name="gameViewport" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

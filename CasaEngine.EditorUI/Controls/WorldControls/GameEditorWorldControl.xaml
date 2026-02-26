@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:worldControls="clr-namespace:CasaEngine.EditorUI.Controls.WorldControls"
+             xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch">
     <Grid>
@@ -75,6 +75,6 @@
                 <Button Name="buttonLaunch" ToolTip="Launch game" Content="Launch" Click="ButtonLaunchGame_Click" IsEnabled="false"/>
             </ToolBar>
         </ToolBarTray>
-        <worldControls:GameEditorWorld Grid.Row="1" x:Name="gameEditor" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <controls:ViewportControl Grid.Row="1" x:Name="gameViewport" AllowDrop="True" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

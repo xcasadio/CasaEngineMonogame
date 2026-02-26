@@ -4,17 +4,20 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.Common;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.Animation2dControls;
 
 public partial class Animation2dListControl : UserControl
 {
     public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(Animation2dDataViewModel), typeof(Animation2dListControl));
-    private GameEditorAnimation2d _gameEditor;
+    private CasaEngineGame? _game;
 
     public Animation2dDataViewModel? SelectedItem
     {
@@ -37,8 +40,8 @@ public partial class Animation2dListControl : UserControl
 
     private Animation2dData LoadAnimation(Guid id)
     {
-        var assetContentManager = _gameEditor.Game.AssetContentManager;
-        var graphicsDevice = _gameEditor.Game.GraphicsDevice;
+        var assetContentManager = _game!.AssetContentManager;
+        var graphicsDevice = _game!.GraphicsDevice;
         var animation2dData = assetContentManager.Load<Animation2dData>(id);
 
         foreach (var frameData in animation2dData.Frames)
@@ -49,15 +52,12 @@ public partial class Animation2dListControl : UserControl
         return animation2dData;
     }
 
-    public void InitializeFromGameEditor(GameEditorAnimation2d gameEditor)
+    /// <summary>Shared-game overload.</summary>
+    public void InitializeFromEngineHost(EngineHost host)
     {
-        _gameEditor = gameEditor;
-        _gameEditor.GameStarted += OnGameStarted;
-    }
-
-    private void OnGameStarted(object? sender, EventArgs e)
-    {
-        DataContext = new Animation2dAssetListModelView();
+        void Wire() { _game = host.Game; DataContext = new Animation2dAssetListModelView(); }
+        if (host.IsStarted) Wire();
+        else host.Started += (_, _) => Wire();
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

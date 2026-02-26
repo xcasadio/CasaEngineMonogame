@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Plugins.Tools;
@@ -12,6 +13,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Rendering;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
@@ -54,17 +56,26 @@ public partial class EntityControl : UserControl
         }
     }
 
-    public void InitializeFromGameEditor(GameEditor gameEditor)
+    /// <summary>
+    /// Registers <paramref name="host"/> and <paramref name="viewId"/> as the source of
+    /// game state. Use this overload after migrating away from <see cref="GameEditor"/>.
+    /// </summary>
+    public void InitializeFromEngineHost(EngineHost host, ViewId viewId)
     {
-        gameEditor.GameStarted += OnGameStarted;
-    }
+        void Wire()
+        {
+            _game = host.Game;
+            _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
+                           ?? _game?.GetGameComponent<GizmoComponent>();
+            if (_gizmoComponent != null)
+            {
+                _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
+                _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+            }
+        }
 
-    private void OnGameStarted(object? sender, EventArgs e)
-    {
-        _game = (CasaEngineGame)sender;
-        _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
-        _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
-        _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+        if (host.IsStarted) Wire();
+        else host.Started += (_, _) => Wire();
     }
 
     private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)

@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.Animation2dControls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls;
@@ -33,7 +34,6 @@ namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
 public partial class ContentBrowserControl : UserControl
 {
-    private GameEditor _gameEditor;
     private object? _dragAndDropData;
 
     public AssetInfo? SelectedItem
@@ -57,11 +57,14 @@ public partial class ContentBrowserControl : UserControl
         AssetCatalog.AssetRenamed += OnAssetRenamed;
     }
 
-    public void InitializeFromGameEditor(GameEditor gameEditor)
+    /// <summary>
+    /// Registers <paramref name="host"/> as the source of game-started notification;
+    /// used in the multi-view architecture instead of <see cref="InitializeFromGameEditor"/>.
+    /// </summary>
+    public void InitializeFromEngineHost(EngineHost host)
     {
-        _gameEditor = gameEditor;
         var contentBrowserViewModel = DataContext as ContentBrowserViewModel;
-        contentBrowserViewModel.Initialize(gameEditor);
+        contentBrowserViewModel?.Initialize(host);
     }
 
     private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -187,7 +190,7 @@ public partial class ContentBrowserControl : UserControl
 
             foreach (var fileName in fileNames)
             {
-                if (_gameEditor.Game.AssetContentManager.IsFileSupported(fileName))
+                if (EngineHost.Instance?.Game?.AssetContentManager.IsFileSupported(fileName) == true)
                 {
                     e.Effects = DragDropEffects.Copy;
                 }
@@ -202,7 +205,7 @@ public partial class ContentBrowserControl : UserControl
         {
             var fileNames = e.Data.GetData(DataFormats.FileDrop) as string[];
             var destinationFolderPath = folderItem.FullPath;
-            var assetContentManager = _gameEditor.Game.AssetContentManager;
+            var assetContentManager = EngineHost.Instance!.Game.AssetContentManager;
 
             foreach (var fileName in fileNames)
             {
@@ -297,7 +300,7 @@ public partial class ContentBrowserControl : UserControl
             }
             else if (Texture2DLoader.IsTextureFile(fullFileName))
             {
-                newAsset = new Texture(assetFromImportFile.Id, _gameEditor.Game.GraphicsDevice);
+                newAsset = new Texture(assetFromImportFile.Id, EngineHost.Instance!.Game.GraphicsDevice);
                 assetExtension = Constants.FileNameExtensions.Texture;
             }
             else
@@ -412,7 +415,7 @@ public partial class ContentBrowserControl : UserControl
             ListBoxFolderContent.SelectedItem is ContentItem contentItem)
         {
             //TODO create an editor which find sprites
-            var assetContentManager = _gameEditor.Game.AssetContentManager;
+            var assetContentManager = EngineHost.Instance!.Game.AssetContentManager;
 
             var texture = assetContentManager.Load<Texture>(contentItem.AssetInfo.Id);
             texture.Load(assetContentManager);

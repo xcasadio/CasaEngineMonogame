@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Windows.Input;
 using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
@@ -15,7 +16,17 @@ public partial class Animation2dEditorControl : EditorControlBase
     public Animation2dEditorControl()
     {
         InitializeComponent();
-        Animation2dListControl.InitializeFromGameEditor(GameEditorAnimation2dControl.GameEditor);
+
+        if (EngineHost.Instance?.IsStarted == true)
+            Animation2dListControl.InitializeFromEngineHost(EngineHost.Instance);
+        else
+            EngineHost.InstanceStarted += OnEngineHostStarted;
+    }
+
+    private void OnEngineHostStarted(object? sender, EventArgs e)
+    {
+        if (EngineHost.Instance != null)
+            Animation2dListControl.InitializeFromEngineHost(EngineHost.Instance);
     }
 
     protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:spriteControls="clr-namespace:CasaEngine.EditorUI.Controls.SpriteControls"
+             xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -39,6 +39,6 @@
                 <Slider TickFrequency="1" Value="124" Minimum="0" Maximum="255" Width="150" ValueChanged="Transparency_OnValueChanged" ToolTip="SpriteSheet transparency"/>
             </ToolBar>
         </ToolBarTray>
-        <spriteControls:GameEditorSprite Grid.Row="1" x:Name="gameEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <controls:ViewportControl Grid.Row="1" x:Name="gameViewport" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

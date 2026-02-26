@@ -1,7 +1,8 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Windows.Input;
+using Microsoft.Xna.Framework;
 using CasaEngine.Core.Log;
 using CasaEngine.Framework.Assets;
-using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -18,7 +19,17 @@ public partial class TileMapEditorControl : EditorControlBase
     {
         InitializeComponent();
         DataContext = new TileMapDataViewModel();
-        TileMapDetailsControl.InitializeFromGameEditor(GameEditorControl.GameEditor);
+
+        if (EngineHost.Instance?.IsStarted == true)
+            TileMapDetailsControl.InitializeFromEngineHost(EngineHost.Instance);
+        else
+            EngineHost.InstanceStarted += OnEngineHostStarted;
+    }
+
+    private void OnEngineHostStarted(object? sender, EventArgs e)
+    {
+        if (EngineHost.Instance != null)
+            TileMapDetailsControl.InitializeFromEngineHost(EngineHost.Instance);
     }
 
     protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
@@ -38,6 +49,9 @@ public partial class TileMapEditorControl : EditorControlBase
     {
         _tileMapFileName = fileName;
         TileMapDetailsControl.OpenMap(fileName);
+        var tileMapDataVm = TileMapDetailsControl.DataContext as TileMapDataViewModel;
+        if (tileMapDataVm != null)
+            GameEditorControl.CreateMapEntities(tileMapDataVm);
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)

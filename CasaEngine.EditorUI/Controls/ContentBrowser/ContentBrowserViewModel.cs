@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
@@ -62,9 +63,17 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
         //_rootFolder.Clear();
     }
 
-    public void Initialize(GameEditor gameEditor)
+    /// <summary>
+    /// Subscribes to <paramref name="host"/>.<see cref="EngineHost.Started"/> so that
+    /// asset lists are populated once the shared engine finishes loading.
+    /// Use this overload in the multi-view architecture (no individual <see cref="GameEditor"/>).
+    /// </summary>
+    public void Initialize(EngineHost host)
     {
-        gameEditor.GameStarted += OnGameStarted;
+        if (host.IsStarted)
+            OnGameStarted(host.Game, EventArgs.Empty);
+        else
+            host.Started += (_, _) => OnGameStarted(host.Game, EventArgs.Empty);
     }
 
     private void OnGameStarted(object? sender, EventArgs e)

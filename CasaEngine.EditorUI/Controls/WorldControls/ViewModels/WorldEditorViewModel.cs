@@ -1,7 +1,9 @@
 ﻿using System;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Rendering;
 using XNAGizmo;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
@@ -68,22 +70,34 @@ public class WorldEditorViewModel : NotifyPropertyChangeBase
         }
     }
 
-    public WorldEditorViewModel(GameEditorWorld gameEditorWorld)
+    /// <summary>
+    /// Multi-view-architecture constructor.  Uses <paramref name="host"/> and
+    /// <paramref name="viewId"/> instead of an individual <see cref="GameEditorWorld"/>.
+    /// </summary>
+    public WorldEditorViewModel(EngineHost host, ViewId viewId)
     {
-        _game = gameEditorWorld.Game;
-        gameEditorWorld.GameStarted += OnGameGameStarted;
-    }
+        void Wire()
+        {
+            _game = host.Game;
+            _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
+                           ?? _game?.GetGameComponent<GizmoComponent>();
 
-    private void OnGameGameStarted(object? sender, EventArgs e)
-    {
-        _game = sender as CasaEngineGame;
-        _game.GameManager.WorldChanged += OnWorldChanged;
-        _gizmoComponent = _game.GetGameComponent<GizmoComponent>();
-        _gizmoComponent.Gizmo.GizmoModeChangedEvent += OnGizmoModeChangedEvent;
-        _gizmoComponent.Gizmo.TransformSpaceChangedEvent += OnTransformSpaceChangedEvent;
+            if (_game != null)
+                _game.GameManager.WorldChanged += OnWorldChanged;
 
-        OnGizmoModeChangedEvent(this, EventArgs.Empty);
-        OnTransformSpaceChangedEvent(this, EventArgs.Empty);
+            if (_gizmoComponent != null)
+            {
+                _gizmoComponent.Gizmo.GizmoModeChangedEvent   += OnGizmoModeChangedEvent;
+                _gizmoComponent.Gizmo.TransformSpaceChangedEvent += OnTransformSpaceChangedEvent;
+            }
+
+            OnGizmoModeChangedEvent(this, EventArgs.Empty);
+            OnTransformSpaceChangedEvent(this, EventArgs.Empty);
+            OnWorldChanged(this, EventArgs.Empty);
+        }
+
+        if (host.IsStarted) Wire();
+        else host.Started += (_, _) => Wire();
     }
 
     private void OnWorldChanged(object? sender, EventArgs e)

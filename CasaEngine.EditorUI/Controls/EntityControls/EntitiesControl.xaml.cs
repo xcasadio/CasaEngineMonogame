@@ -5,11 +5,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Helpers;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using XNAGizmo;
 
@@ -49,26 +51,35 @@ public partial class EntitiesControl : UserControl
         }
     }
 
-    public void InitializeFromGameEditor(GameEditorWorld gameEditorWorld)
+    /// <summary>
+    /// Registers <paramref name="host"/> and <paramref name="viewId"/> as the source of
+    /// game state. Use this overload after migrating away from <see cref="GameEditorWorld"/>.
+    /// </summary>
+    public void InitializeFromEngineHost(EngineHost host, ViewId viewId)
     {
-        gameEditorWorld.GameStarted += OnGameGameStarted;
-    }
+        void Wire()
+        {
+            Game = host.Game;
+            if (Game != null)
+            {
+                Game.GameManager.WorldChanged += OnWorldChanged;
 
-    private void OnGameGameStarted(object? sender, EventArgs e)
-    {
-        Game = (CasaEngineGame)sender;
-        Game.GameManager.WorldChanged += OnWorldChanged;
+                _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
+                               ?? Game.GetGameComponent<GizmoComponent>();
+                if (_gizmoComponent != null)
+                {
+                    _gizmoComponent.Gizmo.SelectionChanged   -= OnEntitiesSelectionChanged;
+                    _gizmoComponent.Gizmo.SelectionChanged   += OnEntitiesSelectionChanged;
+                    _gizmoComponent.Gizmo.CopyTriggered      -= OnCopyTriggered;
+                    _gizmoComponent.Gizmo.CopyTriggered      += OnCopyTriggered;
+                    _gizmoComponent.Gizmo.DeleteSelectionEvent -= OnDeleteSelectionEvent;
+                    _gizmoComponent.Gizmo.DeleteSelectionEvent += OnDeleteSelectionEvent;
+                }
+            }
+        }
 
-        _gizmoComponent = Game.GetGameComponent<GizmoComponent>();
-
-        _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
-        _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
-
-        _gizmoComponent.Gizmo.CopyTriggered -= OnCopyTriggered;
-        _gizmoComponent.Gizmo.CopyTriggered += OnCopyTriggered;
-
-        _gizmoComponent.Gizmo.DeleteSelectionEvent -= OnDeleteSelectionEvent;
-        _gizmoComponent.Gizmo.DeleteSelectionEvent += OnDeleteSelectionEvent;
+        if (host.IsStarted) Wire();
+        else host.Started += (_, _) => Wire();
     }
 
     private void OnDeleteSelectionEvent(object? sender, List<ITransformable> selectionPool)

@@ -3,9 +3,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Game;
 
 namespace CasaEngine.EditorUI.Controls.SpriteControls;
 
@@ -13,7 +15,7 @@ public partial class SpriteListControl : UserControl
 {
     public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(SpriteDataViewModel), typeof(SpriteListControl));
 
-    private GameEditorSprite _gameEditor;
+    private CasaEngineGame?  _game;  // set by InitializeFromEngineHost for shared-game mode
 
     public SpriteDataViewModel SelectedItem
     {
@@ -29,19 +31,20 @@ public partial class SpriteListControl : UserControl
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         var selectedItem = ListBox.SelectedItem as AssetInfoViewModel;
-        var spriteData = _gameEditor.Game.AssetContentManager.Load<SpriteData>(selectedItem.Id);
+        var spriteData = _game?.AssetContentManager.Load<SpriteData>(selectedItem.Id);
         SelectedItem = new SpriteDataViewModel(spriteData);
     }
 
-    public void InitializeFromGameEditor(GameEditorSprite gameEditorSprite)
+    /// <summary>Shared-game overload: subscribe to <paramref name="host"/>.<see cref="EngineHost.Started"/>.</summary>
+    public void InitializeFromEngineHost(EngineHost host)
     {
-        _gameEditor = gameEditorSprite;
-        _gameEditor.GameStarted += OnGameStarted;
-    }
-
-    private void OnGameStarted(object? sender, EventArgs e)
-    {
-        DataContext = new SpritesModelView();
+        void Wire()
+        {
+            _game = host.Game;
+            DataContext = new SpritesModelView();
+        }
+        if (host.IsStarted) Wire();
+        else host.Started += (_, _) => Wire();
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

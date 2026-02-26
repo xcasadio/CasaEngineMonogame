@@ -1,6 +1,8 @@
 #if EDITOR
 
+using System;
 using CasaEngine.EditorUI.Inputs;
+using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;

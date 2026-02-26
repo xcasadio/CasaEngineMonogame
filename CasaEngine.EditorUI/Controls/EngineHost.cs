@@ -1,6 +1,9 @@
 #if EDITOR
 
+using System;
+using System.Collections.Generic;
 using CasaEngine.EditorUI.Inputs;
+using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -56,6 +59,13 @@ public sealed class EngineHost : WpfGame
     public event EventHandler? Started;
 
     /// <summary>
+    /// Static version of <see cref="Started"/>: fired by the <see cref="Instance"/> as soon
+    /// as it finishes loading. Controls that are constructed before the host is loaded
+    /// can subscribe here and be notified whenever the shared engine becomes ready.
+    /// </summary>
+    public static event EventHandler? InstanceStarted;
+
+    /// <summary>
     /// Fired after every <see cref="Draw"/> call.
     /// <c>ViewportControl</c> instances subscribe to copy their view's
     /// <see cref="RenderTargetSurface.Texture"/> into their WPF-visible surface.
@@ -66,6 +76,9 @@ public sealed class EngineHost : WpfGame
 
     /// <summary>The shared engine game instance (available after <see cref="Started"/> fires).</summary>
     public CasaEngineGame? Game => _game;
+
+    /// <summary>Whether the engine has finished loading and <see cref="Started"/> has already fired.</summary>
+    public bool IsStarted => _initialized;
 
     /// <summary>Shortcut to the ViewManager of the shared game.</summary>
     public ViewManager? ViewManager => _game?.GameManager.ViewManager;
@@ -104,6 +117,7 @@ public sealed class EngineHost : WpfGame
         _game.PhysicsEngineComponent.Enabled = false;
 
         Started?.Invoke(this, EventArgs.Empty);
+        InstanceStarted?.Invoke(this, EventArgs.Empty);
     }
 
     protected override void Update(GameTime gameTime)

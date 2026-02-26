@@ -2,13 +2,13 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.EditorUI.Controls;
 
 namespace CasaEngine.EditorUI.Controls.TileMapControls;
 
 public partial class TileMapDetailsControl : UserControl
 {
     public static readonly DependencyProperty SelectedItemProperty = DependencyProperty.Register(nameof(SelectedItem), typeof(TileMapLayerDataViewModel), typeof(TileMapDetailsControl));
-    private GameEditorTileMap _gameEditor;
 
     public TileMapLayerDataViewModel? SelectedItem
     {
@@ -27,15 +27,10 @@ public partial class TileMapDetailsControl : UserControl
         SelectedItem = ListView.SelectedItem as TileMapLayerDataViewModel;
     }
 
-    public void InitializeFromGameEditor(GameEditorTileMap gameEditor)
+    /// <summary>Shared-game overload.</summary>
+    public void InitializeFromEngineHost(EngineHost host)
     {
-        _gameEditor = gameEditor;
-        _gameEditor.GameStarted += OnGameStarted;
-    }
-
-    private void OnGameStarted(object? sender, EventArgs e)
-    {
-        //Do nothing
+        // Nothing to do on start for TileMapDetails — content is set via DataContext.
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -61,9 +56,9 @@ public partial class TileMapDetailsControl : UserControl
         Clear();
 
         var tileMapDataViewModel = DataContext as TileMapDataViewModel;
-        tileMapDataViewModel.LoadMap(fileName, _gameEditor.Game.AssetContentManager);
+        tileMapDataViewModel.LoadMap(fileName, EngineHost.Instance!.Game.AssetContentManager);
 
-        //var assetContentManager = _gameEditor.Game.AssetContentManager;
+        //var assetContentManager = EngineHost.Instance?.Game?.AssetContentManager;
         //var projectPath = EngineEnvironment.ProjectPath;
 
         //foreach (var spriteSheetFileName in tileMapDataViewModel.TiledMapData.SpriteSheetFileNames)
@@ -80,8 +75,6 @@ public partial class TileMapDetailsControl : UserControl
         {
             Dispatcher.Invoke((Action)(() => ListView.SelectedIndex = 0));
         }
-
-        _gameEditor.CreateMapEntities(tileMapDataViewModel);
     }
 
     private void Clear()

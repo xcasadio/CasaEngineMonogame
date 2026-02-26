@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Maths;
+using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Entities.Components;
@@ -21,15 +22,16 @@ public partial class EntityComponentControl : UserControl
         InitializeComponent();
     }
 
-    public void InitializeFromGameEditor(GameEditor gameEditor)
+    public void InitializeFromEngineHost(EngineHost host)
     {
-        gameEditor.GameStarted += OnGameStarted;
+        if (host.IsStarted) OnGameStarted(host.Game, EventArgs.Empty);
+        else host.Started += OnGameStarted;
     }
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        _game = (CasaEngineGame)sender;
-        _game.FrameComputed += OnFrameComputed;
+        _game = sender as CasaEngineGame ?? (sender as EngineHost)?.Game;
+        if (_game != null) _game.FrameComputed += OnFrameComputed;
     }
 
     private void OnFrameComputed(object? sender, EventArgs e)

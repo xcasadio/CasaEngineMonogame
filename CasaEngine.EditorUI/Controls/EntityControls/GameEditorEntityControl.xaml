@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
+             xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="400" VerticalContentAlignment="Stretch">
 
@@ -28,6 +28,6 @@
                 <Separator />
             </ToolBar>
         </ToolBarTray>
-        <entityControls:GameEditorEntity Grid.Row="1" x:Name="gameEntityEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+        <controls:ViewportControl Grid.Row="1" x:Name="gameEntityEditor" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

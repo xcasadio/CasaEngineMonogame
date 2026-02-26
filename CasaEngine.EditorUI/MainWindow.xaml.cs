@@ -30,15 +30,18 @@ public partial class MainWindow : Window
 
         InitializeComponent();
 
-        WorldEditorControl.GameStarted += OnGameStarted;
-
-        ContentBrowserControl.InitializeFromGameEditor(WorldEditorControl.GameEditor);
+        // Subscribe to the static event so ContentBrowserControl is notified once the
+        // shared EngineHost has finished initializing.  (EngineHost.Instance is null at
+        // this point because the WPF visual tree hasn't been loaded yet.)
+        EngineHost.InstanceStarted += OnEngineHostStarted;
 
         OpenProject(_projectFileName);
     }
 
-    private void OnGameStarted(object? sender, EventArgs e)
+    private void OnEngineHostStarted(object? sender, EventArgs e)
     {
+        if (EngineHost.Instance != null)
+            ContentBrowserControl.InitializeFromEngineHost(EngineHost.Instance);
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)

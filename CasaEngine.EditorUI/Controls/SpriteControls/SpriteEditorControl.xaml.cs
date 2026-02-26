@@ -1,6 +1,7 @@
-﻿using System.Windows.Data;
-using System.Windows.Input;
+﻿using System;
+using System.Windows.Data;
 using Microsoft.Xna.Framework;
+using System.Windows.Input;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
@@ -17,9 +18,19 @@ public partial class SpriteEditorControl : EditorControlBase
     public SpriteEditorControl()
     {
         InitializeComponent();
-        SpriteListControl.InitializeFromGameEditor(GameEditorSpriteControl.GameEditor);
+
+        if (EngineHost.Instance?.IsStarted == true)
+            SpriteListControl.InitializeFromEngineHost(EngineHost.Instance);
+        else
+            EngineHost.InstanceStarted += OnEngineHostStarted;
 
         dockingManagerSprite.ActiveContentChanged += DockingManagerSprite_ActiveContentChanged;
+    }
+
+    private void OnEngineHostStarted(object? sender, EventArgs e)
+    {
+        if (EngineHost.Instance != null)
+            SpriteListControl.InitializeFromEngineHost(EngineHost.Instance);
     }
 
     private void DockingManagerSprite_ActiveContentChanged(object? sender, System.EventArgs e)
