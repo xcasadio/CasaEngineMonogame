@@ -5,58 +5,74 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 
 /// <summary>
 /// Manages a collection of compiled shader variants keyed by (<see cref="ShaderVariantKey"/>).
-/// Strategy: one variant = one compiled <c>.fx</c> asset registered by name pattern, or
-/// a technique inside a shared <c>.fx</c> (the library resolves by technique name first).
 ///
-/// Fallback chain for a <see cref="ShaderVariantKey"/> lookup:
-/// <list type="number">
-///   <item>Exact variant match cached in <c>_variants</c></item>
-///   <item>Exact variant asset found via <see cref="ShaderManager"/></item>
-///   <item>Base shader with a matching technique auto-selected by <see cref="BuildTechniqueName"/></item>
-///   <item>Base shader with no technique narrowing (log warning)</item>
-/// </list>
+/// Technique name conventions (Phase 8):
+/// Opaque, Opaque_Textured, AlphaTest, AlphaTest_Textured, Transparent, Skinned, Skinned_Textured.
+///
+/// Alias maps translate these canonical names to the actual technique names defined
+/// in each .fx file (e.g. BasicEffect_PixelLighting_Texture).
 /// </summary>
 public sealed class ShaderVariantLibrary
 {
     private readonly ShaderManager _shaderManager;
 
-    // Explicit variant registrations: key → asset Guid of the compiled effect
+    // Explicit variant registrations: key -> asset Guid of the compiled effect
     private readonly Dictionary<ShaderVariantKey, Guid> _variantAssets = new();
 
-    // Resolved cache: key → ready ShaderWrapper
+    // Resolved cache: key -> ready ShaderWrapper
     private readonly Dictionary<ShaderVariantKey, ShaderWrapper?> _resolved = new();
 
-    // -----------------------------------------------------------------------
-    //  Constructor
-    // -----------------------------------------------------------------------
+    // Per-shader alias maps: shaderBaseId -> (canonicalName -> actualTechniqueName)
+    private readonly Dictionary<Guid, Dictionary<string, string>> _aliasMap = new();
 
     public ShaderVariantLibrary(ShaderManager shaderManager)
     {
         _shaderManager = shaderManager ?? throw new ArgumentNullException(nameof(shaderManager));
     }
 
-    // -----------------------------------------------------------------------
-    //  Registration
-    // -----------------------------------------------------------------------
+    // Registration -------------------------------------------------------
 
-    /// <summary>
-    /// Registers an explicit compiled-effect asset for a variant key.
-    /// Takes priority over automatic technique resolution.
-    /// </summary>
     public void RegisterVariant(ShaderVariantKey key, Guid effectAssetId)
     {
         _variantAssets[key] = effectAssetId;
-        _resolved.Remove(key); // invalidate cache
+        _resolved.Remove(key);
     }
 
-    // -----------------------------------------------------------------------
-    //  Lookup
-    // -----------------------------------------------------------------------
+    /// <summary>
+    /// Registers technique name aliases for shaderBaseId.
+    /// Keys are canonical names (e.g. "Opaque_Textured"); values are actual .fx technique names.
+    /// </summary>
+    public void RegisterTechniqueAliases(Guid shaderBaseId, Dictionary<string, string> aliases)
+    {
+        if (!_aliasMap.TryGetValue(shaderBaseId, out var map))
+        {
+            map = new Dictionary<string, string>(aliases.Count, StringComparer.OrdinalIgnoreCase);
+            _aliasMap[shaderBaseId] = map;
+        }
+        foreach (var (canonical, actual) in aliases)
+            map[canonical] = actual;
+        _resolved.Clear();
+    }
+
+    /// <summary>Returns alias map for mapping canonical technique names to basicEffect.fx ones.</summary>
+    public static Dictionary<string, string> BuildBasicEffectAliases() =>
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Opaque"]             = "BasicEffect_PixelLighting",
+            ["Opaque_Textured"]    = "BasicEffect_PixelLighting_Texture",
+            ["AlphaTest"]          = "BasicEffect_PixelLighting",
+            ["AlphaTest_Textured"] = "BasicEffect_PixelLighting_Texture",
+            ["Transparent"]        = "BasicEffect_PixelLighting_Texture",
+            ["Skinned"]            = "BasicEffect_PixelLighting",
+            ["Skinned_Textured"]   = "BasicEffect_PixelLighting_Texture",
+        };
+
+    // Lookup -------------------------------------------------------------
 
     /// <summary>
-    /// Returns the best matching <see cref="ShaderWrapper"/> for <paramref name="key"/>.
+    /// Returns the best matching ShaderWrapper for key.
     /// Falls back to the base shader when no specific variant is registered.
-    /// Returns <c>null</c> when the base shader itself is unavailable.
+    /// Returns null when the base shader itself is unavailable.
     /// </summary>
     public ShaderWrapper? Get(ShaderVariantKey key)
     {
@@ -69,6 +85,8 @@ public sealed class ShaderVariantLibrary
         if (_variantAssets.TryGetValue(key, out var variantId))
         {
             result = _shaderManager.GetShader(variantId);
+            if (result is not null)
+                ApplyTechnique(result, key.ShaderBaseId, key.Features);
         }
 
         // 2. Try base shader + technique selection
@@ -76,45 +94,39 @@ public sealed class ShaderVariantLibrary
         {
             result = _shaderManager.GetShader(key.ShaderBaseId);
             if (result is not null)
-            {
-                var techniqueName = BuildTechniqueName(key.Features);
-                if (techniqueName is not null)
-                    result.SelectTechnique(techniqueName); // logs warning internally if missing
-            }
+                ApplyTechnique(result, key.ShaderBaseId, key.Features);
         }
 
         if (result is null)
-        {
             Core.Log.Logs.WriteWarning(
-                $"ShaderVariantLibrary: no shader found for variant {key}. " +
-                "Check that the shader asset Guid is registered.");
-        }
+                $"ShaderVariantLibrary: no shader found for variant {key}.");
 
         _resolved[key] = result;
         return result;
     }
 
-    /// <summary>Evicts cached entries so they are re-resolved on next access.</summary>
     public void InvalidateAll() => _resolved.Clear();
 
-    // -----------------------------------------------------------------------
-    //  Technique name convention
-    // -----------------------------------------------------------------------
+    // Technique helpers --------------------------------------------------
+
+    private void ApplyTechnique(ShaderWrapper shader, Guid shaderBaseId, ShaderFeature features)
+    {
+        var canonical = BuildTechniqueName(features);
+        if (canonical is null) return;
+
+        string techniqueName = canonical;
+        if (_aliasMap.TryGetValue(shaderBaseId, out var aliases) &&
+            aliases.TryGetValue(canonical, out var aliased))
+        {
+            techniqueName = aliased;
+        }
+
+        shader.SelectTechnique(techniqueName);
+    }
 
     /// <summary>
-    /// Maps a set of <see cref="ShaderFeature"/> flags to a technique name
-    /// following the engine's naming convention.
-    ///
-    /// Naming scheme (subset rules, most-specific wins):
-    /// <list type="bullet">
-    ///   <item>Skinned → "Skinned[_Textured]"</item>
-    ///   <item>AlphaTest + Textured → "AlphaTest_Textured"</item>
-    ///   <item>AlphaTest → "AlphaTest"</item>
-    ///   <item>Textured → "Opaque_Textured" / "BasicEffect_PixelLighting_Texture"</item>
-    ///   <item>None → "Opaque" / "BasicEffect_PixelLighting"</item>
-    /// </list>
-    ///
-    /// Returns <c>null</c> to skip technique selection (use whatever is current).
+    /// Maps ShaderFeature flags to a canonical technique name (Phase 8 convention).
+    /// Returns null to skip technique selection.
     /// </summary>
     public static string? BuildTechniqueName(ShaderFeature features)
     {
@@ -122,15 +134,8 @@ public sealed class ShaderVariantLibrary
         bool alphaTest = (features & ShaderFeature.AlphaTest)     != 0;
         bool skinned   = (features & ShaderFeature.Skinned)       != 0;
 
-        if (skinned)
-            return textured ? "Skinned_Textured" : "Skinned";
-
-        if (alphaTest)
-            return textured ? "AlphaTest_Textured" : "AlphaTest";
-
-        // Default lit-diffuse mapping — matches basicEffect.fx technique names
-        return textured
-            ? "BasicEffect_PixelLighting_Texture"
-            : "BasicEffect_PixelLighting";
+        if (skinned)   return textured ? "Skinned_Textured"   : "Skinned";
+        if (alphaTest) return textured ? "AlphaTest_Textured" : "AlphaTest";
+        return textured ? "Opaque_Textured" : "Opaque";
     }
 }
