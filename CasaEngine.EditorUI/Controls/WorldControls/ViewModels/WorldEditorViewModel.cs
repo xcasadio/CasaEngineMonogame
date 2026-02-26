@@ -102,7 +102,10 @@ public class WorldEditorViewModel : NotifyPropertyChangeBase
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        var worldViewModel = new RootNodeEntityViewModel(_game.GameManager.CurrentWorld);
+        var currentWorld = _game?.GameManager.CurrentWorld;
+        if (currentWorld == null) return;  // no world loaded yet (e.g. new empty project)
+
+        var worldViewModel = new RootNodeEntityViewModel(currentWorld);
         EntitiesViewModel = new EntityListViewModel(worldViewModel);
     }
 

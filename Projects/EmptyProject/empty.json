@@ -1,0 +1,15 @@
+{
+  "WindowTitle": "empty",
+  "ProjectName": "empty",
+  "FirstScreenName": "",
+  "AllowUserResizing": false,
+  "IsFixedTimeStep": false,
+  "IsMouseVisible": false,
+  "FirstWorldLoaded": "DefaultWorld.world",
+  "GameplayDllName": "",
+  "DebugIsFullScreen": false,
+  "DebugWidth": 1024,
+  "DebugHeight": 768,
+  "ProjectFileOpened": "D:\\development\\repo\\CasaEngineMonogame\\Projects\\EmptyProject\\empty.json",
+  "ExternalToolsDirectory": "ExternalTools"
+}

@@ -158,6 +158,8 @@ public partial class EntitiesControl : UserControl
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
+        if (Game?.GameManager.CurrentWorld == null) return;
+
         var entityListViewModel = (DataContext as EntityListViewModel);
         TreeViewEntities.ItemsSource = entityListViewModel.Entities;
 
