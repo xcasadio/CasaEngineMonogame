@@ -141,6 +141,16 @@ public sealed class RenderView
     /// </summary>
     public bool ShowDebugOverlay { get; set; }
 
+    // ---- User / editor metadata ----
+
+    /// <summary>
+    /// Arbitrary user-defined payload attached to this view.
+    /// In editor mode this holds an <c>EditorViewContext</c> instance carrying
+    /// the per-view camera, gizmo, grid, axis components and input providers.
+    /// Null in standalone game builds.
+    /// </summary>
+    public object? Tag { get; set; }
+
     // ---- Constructor ----
 
     public RenderView(World.World world, CameraComponent camera, IRenderSurface surface)

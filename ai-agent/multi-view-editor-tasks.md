@@ -117,46 +117,20 @@ Le moteur dispose **déjà** d'une infrastructure multi-view au sein d'un seul `
 
 ### 2.1 — Créer la classe `EditorViewContext`
 
-- [ ] Créer `CasaEngine/Framework/Game/Components/Editor/EditorViewContext.cs` :
-  ```csharp
-  public class EditorViewContext : IDisposable
-  {
-      public ViewId ViewId { get; }
-      public RenderView RenderView { get; }
-      public World World { get; set; }
-      public CameraComponent Camera { get; set; }
-      public RenderTargetSurface Surface { get; }
-      
-      // Composants éditeur spécifiques à cette vue
-      public GizmoComponent? Gizmo { get; set; }
-      public GridComponent? Grid { get; set; }
-      public AxisComponent? Axis { get; set; }
-      
-      // Input
-      public IKeyboardStateProvider? KeyboardProvider { get; set; }
-      public IMouseStateProvider? MouseProvider { get; set; }
-      
-      // Metadata
-      public string Name { get; set; }
-      public EditorViewType ViewType { get; set; }  // World, Entity, Sprite, etc.
-  }
-  ```
-- [ ] Créer `enum EditorViewType { World, Entity, Sprite, Animation2d, TileMap, Custom }`
-- [ ] Le `EditorViewContext` possède et gère le cycle de vie de sa `RenderTargetSurface`, son gizmo, sa grid, son axis.
+- [x] Créer `CasaEngine/Framework/Game/Components/Editor/EditorViewContext.cs` avec `ViewId`, `RenderView`, `World`, `Camera`, `RenderTargetSurface`, gizmo/grid/axis, providers input, name, type.
+- [x] Créer `enum EditorViewType { World, Entity, Sprite, Animation2d, TileMap, Custom }` dans `CasaEngine/Framework/Game/Components/Editor/EditorViewType.cs`.
+- [x] Le `EditorViewContext` possède et gère le cycle de vie de sa `RenderTargetSurface`, dispose la surface dans `Dispose()`. Gizmo/Grid/Axis seront extraits en PR 5.
 
 ### 2.2 — Rendre les composants éditeur instanciables par vue
 
-- [ ] Vérifier que `GizmoComponent` peut fonctionner sans être un `GameComponent` global. Actuellement il est ajouté via `new GizmoComponent(Game)` qui l'ajoute au `Game.Components`. Il faut qu'il puisse être associé à une vue spécifique.
-  - Option A : `GizmoComponent` prend un `RenderView` en paramètre et se dessine dans cette vue uniquement.
-  - Option B : L'interface `IViewFlushableRenderer` permet déjà le flush par vue — faire en sorte que le Gizmo utilise ce mécanisme.
-- [ ] Même analyse pour `GridComponent` et `AxisComponent` : vérifier qu'ils peuvent être scopés à une vue.
-- [ ] Si ces composants font `GraphicsDevice.Clear()` ou manipulent des états globaux, les refactorer pour qu'ils s'appuient sur le `RenderFrame` de leur vue.
+- [ ] Vérifier que `GizmoComponent` peut fonctionner sans être un `GameComponent` global. (sera fait en PR 5)
+- [ ] Même analyse pour `GridComponent` et `AxisComponent` : vérifier qu'ils peuvent être scopés à une vue. (sera fait en PR 5)
+- [ ] Si ces composants font `GraphicsDevice.Clear()` ou manipulent des états globaux, les refactorer pour qu'ils s'appuient sur le `RenderFrame` de leur vue. (sera fait en PR 5)
 
 ### 2.3 — Stocker le contexte dans RenderView
 
-- [ ] Ajouter une propriété `object? Tag` ou `EditorViewContext? EditorContext` sur `RenderView` pour porter le contexte éditeur.
-  - Option recommandée : `RenderView.Tag` (type `object?`) pour ne pas coupler le moteur à l'éditeur.
-- [ ] Le `DefaultViewPipeline` ou un `IViewRenderPipeline` éditeur peut lire ce tag pour dessiner le gizmo/grid/axis de la bonne vue.
+- [x] Ajout de la propriété `object? Tag` sur `RenderView` pour porter le contexte éditeur.
+- [x] Le constructeur de `EditorViewContext` place automatiquement l'instance dans `renderView.Tag`.
 
 ✅ Critère : `EditorViewContext` compile, les composants éditeur peuvent être instanciés N fois sans conflit.
 
