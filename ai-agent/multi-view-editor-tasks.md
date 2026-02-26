@@ -247,33 +247,36 @@ Le moteur dispose **déjà** d'une infrastructure multi-view au sein d'un seul `
 
 ---
 
-## PR 6 — Input multi-vue dans l'éditeur
+## PR 6 — Input multi-vue dans l'éditeur ✅ (partiel)
 
 **Objectif :** Faire en sorte que chaque vue éditeur reçoive ses propres événements d'entrée (souris, clavier, molette).
 
 ### 6.1 — InputRouter : routage par ViewId
 
-- [ ] L'`InputRouter` existant utilise `ViewManager.ScreenToView()` pour déterminer quelle vue est sous la souris. En mode éditeur multi-vue, la source d'input est le `ViewportControl` WPF, pas une position écran absolue.
-- [ ] Adapter le `InputRouter` pour accepter des événements input associés à un `ViewId` spécifique :
+- [x] `WpfKeyboard` et `WpfMouse` élargis pour accepter `D3D11Host` (au lieu de `WpfGame`) : les constructeurs utilisent maintenant `D3D11Host focusElement`.
+- [x] `FocusOnMouseOver` déplacé de `WpfGame` vers `D3D11Host` (héritage → rétro-compatible).
+- [x] `ViewportControl` crée ses propres instances `WpfKeyboard` et `WpfMouse` dans `Initialize()`.
+- [x] `ViewportControl.GetKeyboardState()` et `GetMouseState()` exposent les états par viewport.
+- [ ] Adapter l'`InputRouter` pour accepter des états injectés par `ViewId` :
   ```csharp
   public void InjectMouseState(ViewId viewId, MouseState state);
   public void InjectKeyboardState(ViewId viewId, KeyboardState state);
   ```
-- [ ] Les `WpfKeyboard` / `WpfMouse` de chaque `ViewportControl` alimentent le `InputRouter` avec leur `ViewId`.
+  (sera consommé par les systèmes de navigation caméra et gizmo en PR 9)
 
 ### 6.2 — Focus et capture input
 
-- [ ] Quand un `ViewportControl` a le focus WPF (clic ou MouseEnter), il notifie l'`EngineHost` pour activer la vue correspondante dans le `ViewManager` (`SetActive`).
-- [ ] Le `InputRouter.CaptureInput(viewId)` déjà existant doit fonctionner pour les opérations drag (gizmo, pan camera, etc.).
-- [ ] Gestion du focus clavier : seule la vue focusée reçoit les raccourcis clavier (Suppr, Ctrl+Z, etc.).
+- [x] `ViewportControl` souscrit à `MouseEnter` → appelle `ViewManager.SetActive(view)` pour activer la vue survolée.
+- [ ] `InputRouter.CaptureInput(viewId)` pour les opérations drag (gizmo, pan camera).
+- [ ] Gestion du focus clavier : seule la vue focusée reçoit les raccourcis clavier.
 
 ### 6.3 — Camera navigation par vue
 
-- [ ] Les composants de navigation caméra (orbit, pan, zoom, fly) doivent utiliser l'input de leur vue spécifique et manipuler la caméra de leur `EditorViewContext`.
-- [ ] Le code de navigation caméra dans `GameEditor2d.Update()` (pan 2D, zoom molette) doit être migré dans le `EditorViewContext` de type 2D.
-- [ ] Le code de navigation 3D (si présent dans `GameEditorWorld` ou un `CameraController`) doit être migré pareillement.
+- [ ] Les composants de navigation caméra doivent utiliser l'input de leur vue spécifique.
+- [ ] Le code de navigation caméra dans `GameEditor2d.Update()` doit être migré dans le `EditorViewContext` de type 2D.
+- [ ] Le code de navigation 3D doit être migré pareillement.
 
-✅ Critère : Chaque vue reçoit ses inputs indépendamment, naviguer la caméra dans une vue n'affecte pas les autres.
+✅ Critère (partiel) : Chaque viewport possède ses propres providers keyboard/mouse ; MouseEnter active la vue dans le ViewManager.
 
 ---
 

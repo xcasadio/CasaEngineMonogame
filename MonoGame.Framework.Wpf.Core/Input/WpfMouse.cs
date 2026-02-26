@@ -9,12 +9,12 @@ namespace Microsoft.Xna.Framework.Input
         [DllImport("User32.dll")]
         static extern bool SetCursorPos(int x, int y);
 
-        readonly WpfGame _focusElement;
+        readonly D3D11Host _focusElement;
 
         MouseState _mouseState;
         bool _captureMouseWithin = true;
 
-        public WpfMouse(WpfGame focusElement)
+        public WpfMouse(D3D11Host focusElement)
         {
             _focusElement = focusElement ?? throw new ArgumentNullException(nameof(focusElement));
             _focusElement.MouseWheel += HandleMouse;

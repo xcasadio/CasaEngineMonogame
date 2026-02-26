@@ -9,7 +9,7 @@ namespace Microsoft.Xna.Framework
 
         protected abstract bool CanRender { get; }
 
-        public bool FocusOnMouseOver { get; set; } = true;
+        // FocusOnMouseOver is now inherited from D3D11Host.
 
         protected WpfGame(string contentDir = "Content")
         {

@@ -35,6 +35,13 @@ namespace Microsoft.Xna.Framework
 
         public RenderTarget2D RenderTargetBackBuffer => _cachedRenderTarget;
 
+        /// <summary>
+        /// When <c>true</c> (default), the control automatically acquires keyboard
+        /// focus when the mouse enters it, so that keyboard shortcuts work without
+        /// requiring an explicit click. Set to <c>false</c> to require a click first.
+        /// </summary>
+        public bool FocusOnMouseOver { get; set; } = true;
+
         protected D3D11Host()
         {
             // defaulting to fill as that's what's needed in most cases

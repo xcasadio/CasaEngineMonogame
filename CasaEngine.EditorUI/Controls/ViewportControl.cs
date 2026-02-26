@@ -5,6 +5,7 @@ using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System.Windows;
 
 namespace CasaEngine.EditorUI.Controls;
@@ -40,8 +41,12 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     private EngineHost? _engineHost;
     private ViewId      _viewId = ViewId.Empty;
 
-    private SpriteBatch? _blitBatch;
-    private bool          _contentLoaded;
+    private SpriteBatch?  _blitBatch;
+    private bool           _contentLoaded;
+
+    // Per-viewport input (created in Initialize() once the GraphicsDevice is ready).
+    private WpfKeyboard? _keyboard;
+    private WpfMouse?    _mouse;
 
     // ---- IViewHost ----
     // Width/Height are explicit to avoid name collision with FrameworkElement.Width/Height (double).
@@ -114,9 +119,6 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             view.Host = this;
             host.ViewManager.HookViewHost(view);
         }
-
-        // Note: per-viewport WpfKeyboard/WpfMouse require a WpfGame parameter.
-        // Input integration is deferred to PR6 where the constructors will be widened.
     }
 
     /// <summary>Detaches from the current view without removing or disposing it.</summary>
@@ -148,6 +150,15 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // Calling base would throw NotSupportedException.
         _blitBatch = new SpriteBatch(GraphicsDevice);
         Focusable  = true;
+
+        // Per-viewport input providers.  WpfKeyboard/WpfMouse now accept D3D11Host
+        // so we can create them here (widened in PR6).
+        _keyboard = new WpfKeyboard(this);
+        _mouse    = new WpfMouse(this);
+
+        // Activate the corresponding view in ViewManager on mouse-enter so that camera
+        // navigation shortcuts and gizmo operations target the hovered viewport.
+        MouseEnter += (_, _) => ActivateThisView();
     }
 
     /// <inheritdoc/>
@@ -209,6 +220,32 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     }
 
     // ---- Helpers ----
+
+    /// <summary>
+    /// Tells the <see cref="ViewManager"/> to make our view the active one.
+    /// Called on <see cref="System.Windows.UIElement.MouseEnter"/> so that camera
+    /// navigation and gizmo operations always target the hovered viewport.
+    /// </summary>
+    private void ActivateThisView()
+    {
+        if (_engineHost?.ViewManager == null || _viewId.IsEmpty) return;
+        if (_engineHost.ViewManager.TryGetView(_viewId, out var view))
+            _engineHost.ViewManager.SetActive(view);
+    }
+
+    /// <summary>
+    /// Returns the current per-viewport keyboard state.
+    /// Returns a default (all keys up) state when not yet initialized.
+    /// </summary>
+    public KeyboardState GetKeyboardState()
+        => _keyboard?.GetState() ?? new KeyboardState();
+
+    /// <summary>
+    /// Returns the current per-viewport mouse state (position is viewport-local).
+    /// Returns a default (all buttons up) state when not yet initialized.
+    /// </summary>
+    public MouseState GetMouseState()
+        => _mouse?.GetState() ?? new MouseState();
 
     private EditorViewContext? GetContext()
     {

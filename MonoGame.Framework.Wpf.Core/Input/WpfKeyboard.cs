@@ -9,9 +9,9 @@ namespace Microsoft.Xna.Framework.Input
         [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
         static extern bool NativeGetKeyboardState([Out] byte[] keyStates);
 
-        readonly WpfGame _focusElement;
+        readonly D3D11Host _focusElement;
 
-        public WpfKeyboard(WpfGame focusElement) => _focusElement = focusElement ?? throw new ArgumentNullException(nameof(focusElement));
+        public WpfKeyboard(D3D11Host focusElement) => _focusElement = focusElement ?? throw new ArgumentNullException(nameof(focusElement));
 
         public KeyboardState GetState()
         {
