@@ -178,10 +178,6 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         LayoutUpdated += (_, _) => _boundsCache.Update(this);
         SizeChanged   += (_, _) => _boundsCache.Update(this);
 
-        // Accumule la molette de la souris de facon thread-safe dans le cache.
-        // GetAsyncKeyState ne couvre pas la molette ; l'event WPF est la seule source fiable.
-        MouseWheel += (_, e) => _boundsCache?.AddScrollDelta(e.Delta);
-
         Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() viewId={_viewId} Focusable={Focusable}");
 
         // Activate the corresponding view in ViewManager on mouse-enter so that camera

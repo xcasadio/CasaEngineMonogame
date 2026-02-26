@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Windows.Interop;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
@@ -58,6 +59,9 @@ public sealed class EngineHost : WpfGame
     // ---- Per-viewport input registry (filled by ViewportControl.Initialize) ----
     private readonly Dictionary<ViewId, (RawKeyboardProvider Kbd, RawMouseProvider Mouse, ViewportBoundsCache Bounds)> _inputProviders = new();
     private ViewId _activeInputViewId = ViewId.Empty;
+
+    // Win32 WM_MOUSEWHEEL interception (independant du hit-testing WPF/D3D11).
+    private const int WM_MOUSEWHEEL = 0x020A;
 
     [DllImport("user32.dll")]
     private static extern bool GetCursorPos(out POINT pt);
@@ -120,6 +124,10 @@ public sealed class EngineHost : WpfGame
             new MouseStateProvider(new WpfMouse(this)));
 
         base.Initialize();
+
+        // Intercept WM_MOUSEWHEEL before WPF routing — reliable even when D3D11Host
+        // bypasses hit-testing and WPF's MouseWheel event never fires.
+        ComponentDispatcher.ThreadPreprocessMessage += OnWheelMessage;
     }
 
     protected override void LoadContent()
@@ -190,6 +198,22 @@ public sealed class EngineHost : WpfGame
     /// Registers per-viewport input providers. Called by ViewportControl.Initialize().
     /// The cursor dispatch in Update() switches providers automatically each frame.
     /// </summary>
+    private void OnWheelMessage(ref MSG msg, ref bool handled)
+    {
+        if (msg.message != WM_MOUSEWHEEL) return;
+        int delta   = (short)(((uint)msg.wParam) >> 16);
+        int screenX = (short)((uint)msg.lParam & 0xFFFF);
+        int screenY = (short)(((uint)msg.lParam >> 16) & 0xFFFF);
+        foreach (var (_, (_, _, bounds)) in _inputProviders)
+        {
+            if (bounds.Contains(screenX, screenY))
+            {
+                bounds.AddScrollDelta(delta);
+                break;
+            }
+        }
+    }
+
     internal void SetActiveViewportInput(ViewId viewId, RawKeyboardProvider keyboard, RawMouseProvider mouse, ViewportBoundsCache bounds)
     {
         Logs.WriteDebug($"[InputDiag] EngineHost.RegisterViewportInput viewId={viewId} gameReady={_game != null}");
@@ -203,6 +227,8 @@ public sealed class EngineHost : WpfGame
     {
         if (disposing)
         {
+            ComponentDispatcher.ThreadPreprocessMessage -= OnWheelMessage;
+
             foreach (var ctx in _viewContexts.Values)
             {
                 UnregisterEditorViewInternal(ctx);
