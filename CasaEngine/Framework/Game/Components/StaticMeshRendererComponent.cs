@@ -88,12 +88,40 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             graphicsDevice.SetVertexBuffer(vb);
             graphicsDevice.Indices = ib;
 
-            if (meshInfo.Material != null)
+            var mesh = meshInfo.StaticModelMesh;
+
+            if (mesh.SubMeshes.Count > 0)
             {
-                // --- Material path: apply render states + bind shader ---
+                // --- Multi-material path: one draw call per SubMesh ---
+                foreach (var subMesh in mesh.SubMeshes)
+                {
+                    var mat = subMesh.Material ?? meshInfo.Material;
+                    if (mat != null)
+                    {
+                        ApplyRenderStates(graphicsDevice, mat);
+                        var shader = _legacyShaderWrapper!;
+                        mat.Bind(shader, in context, meshInfo.World);
+
+                        for (int p = 0; p < shader.PassCount; p++)
+                        {
+                            shader.ApplyPass(p);
+                            graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType,
+                                subMesh.VertexOffset, subMesh.IndexStart, subMesh.PrimitiveCount);
+                        }
+                    }
+                    else
+                    {
+                        // Legacy sub-path
+                        DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture,
+                            subMesh.VertexOffset, subMesh.IndexStart, subMesh.PrimitiveCount);
+                    }
+                }
+            }
+            else if (meshInfo.Material != null)
+            {
+                // --- Single-material path ---
                 ApplyRenderStates(graphicsDevice, meshInfo.Material);
 
-                // For now use the legacy shader wrapper; Phase 3 will use ShaderManager to pick the right Effect.
                 var shader = _legacyShaderWrapper!;
                 meshInfo.Material.Bind(shader, in context, meshInfo.World);
 
@@ -101,34 +129,41 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 {
                     shader.ApplyPass(p);
                     int primitiveCount = ib.IndexCount / 3;
-                    graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticModelMesh.PrimitiveType, 0, 0, primitiveCount);
+                    graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType, 0, 0, primitiveCount);
                 }
             }
             else
             {
                 // --- Legacy path: hardcoded basicEffect (backwards compatibility) ---
-                graphicsDevice.DepthStencilState = DepthStencilState.Default;
-                graphicsDevice.RasterizerState   = RasterizerState.CullCounterClockwise;
-                graphicsDevice.BlendState         = BlendState.Opaque;
-                graphicsDevice.SamplerStates[0]   = SamplerState.AnisotropicClamp;
-
-                var texture = meshInfo.StaticModelMesh.Texture?.Resource ?? defaultTexture?.Resource;
-                _effect.Parameters["Texture"].SetValue(texture);
-                _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
-                _effect.Parameters["World"].SetValue(meshInfo.World);
-                _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
-                _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
-
-                foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
-                {
-                    effectPass.Apply();
-                    int primitiveCount = ib.IndexCount / 3;
-                    graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticModelMesh.PrimitiveType, 0, 0, primitiveCount);
-                }
+                int primitiveCount = ib.IndexCount / 3;
+                DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture, 0, 0, primitiveCount);
             }
         }
 
         _meshInfos.Clear();
+    }
+
+    private void DrawLegacy(GraphicsDevice graphicsDevice, StaticModelMesh mesh, MeshInfo meshInfo,
+        in RenderFrame frame, Assets.Textures.Texture? defaultTexture,
+        int baseVertex, int startIndex, int primitiveCount)
+    {
+        graphicsDevice.DepthStencilState = DepthStencilState.Default;
+        graphicsDevice.RasterizerState   = RasterizerState.CullCounterClockwise;
+        graphicsDevice.BlendState         = BlendState.Opaque;
+        graphicsDevice.SamplerStates[0]   = SamplerState.AnisotropicClamp;
+
+        var texture = mesh.Texture?.Resource ?? defaultTexture?.Resource;
+        _effect.Parameters["Texture"].SetValue(texture);
+        _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
+        _effect.Parameters["World"].SetValue(meshInfo.World);
+        _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
+        _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
+
+        foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
+        {
+            effectPass.Apply();
+            graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType, baseVertex, startIndex, primitiveCount);
+        }
     }
 
     private static void ApplyRenderStates(GraphicsDevice device, MaterialBase material)

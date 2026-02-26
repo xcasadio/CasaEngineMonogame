@@ -32,6 +32,12 @@ public class StaticModelMesh
     public MaterialBase? Material { get; set; }
 
     /// <summary>
+    /// Optional sub-mesh ranges when a single mesh uses multiple materials.
+    /// If empty, the entire mesh is drawn as one primitive range.
+    /// </summary>
+    public List<SubMesh> SubMeshes { get; } = new();
+
+    /// <summary>
     /// Diffuse texture file path as resolved at import time (editor only).
     /// Used by ContentBrowserControl to link the imported texture asset.
     /// Not serialized.
@@ -101,6 +107,17 @@ public class StaticModelMesh
         if (element["material_asset_id"] is { } matToken)
             MaterialAssetId = Guid.Parse(matToken.Value<string>()!);
 
+        SubMeshes.Clear();
+        if (element["sub_meshes"] is JArray subMeshArray)
+        {
+            foreach (var smToken in subMeshArray)
+            {
+                var sm = new SubMesh();
+                sm.Load((JObject)smToken);
+                SubMeshes.Add(sm);
+            }
+}
+
         _vertices = element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()).ToArray();
         _indices = element.GetElements("indices", o => o.GetUInt32()).ToArray();
 
@@ -124,6 +141,18 @@ public class StaticModelMesh
         jObject.Add("material_index", MaterialIndex);
         jObject.Add("texture_asset_id", TextureAssetId.ToString());
         jObject.Add("material_asset_id", MaterialAssetId.ToString());
+
+        if (SubMeshes.Count > 0)
+        {
+            var smArray = new JArray();
+            foreach (var sm in SubMeshes)
+            {
+                var smObj = new JObject();
+                sm.Save(smObj);
+                smArray.Add(smObj);
+            }
+            jObject.Add("sub_meshes", smArray);
+}
 
         jObject.AddArray("vertices", _vertices, (v, o) => v.Save(o));
         jObject.AddArray("indices", _indices);
