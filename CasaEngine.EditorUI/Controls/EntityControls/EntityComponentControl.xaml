@@ -149,6 +149,28 @@
             </Expander>
         </DataTemplate>
 
+        <DataTemplate x:Key="staticModelSubMeshComponentTemplate">
+            <Expander Header="Sub Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                        <RowDefinition Height="auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Mesh" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MeshName}"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Vertices" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding VertexCount}"/>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Indices" Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IndexCount}"/>
+                </Grid>
+            </Expander>
+        </DataTemplate>
+
     </Control.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -193,6 +215,7 @@
                         MeshComponentTemplate="{StaticResource meshComponentTemplate}"
                         SkinnedMeshComponentTemplate="{StaticResource skinnedMeshComponentTemplate}"
                         StaticModelComponentTemplate="{StaticResource staticModelComponentTemplate}"
+                        StaticModelSubMeshComponentTemplate="{StaticResource staticModelSubMeshComponentTemplate}"
                         PhysicsComponentTemplate="{StaticResource physicsComponentTemplate}"
                         Box2dCollisionComponentTemplate="{StaticResource box2dCollisionComponentTemplate}"
                         BoxCollisionComponentTemplate="{StaticResource boxCollisionComponentTemplate}"

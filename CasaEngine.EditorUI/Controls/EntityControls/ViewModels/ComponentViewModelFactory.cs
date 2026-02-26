@@ -23,6 +23,7 @@ public static class ComponentViewModelFactory
             SkinnedMeshComponent => new SkinnedMeshComponentViewModel(componentChild),
             StaticMeshComponent => new StaticMeshComponentViewModel(componentChild),
             StaticModelComponent => new StaticModelComponentViewModel(componentChild),
+            StaticModelSubMeshComponent => new StaticModelSubMeshComponentViewModel(componentChild),
             StaticSpriteComponent => new StaticSpriteComponentViewModel(componentChild),
             TileMapComponent => new TileMapComponentViewModel(componentChild),
             _ => new ComponentViewModel(componentChild)

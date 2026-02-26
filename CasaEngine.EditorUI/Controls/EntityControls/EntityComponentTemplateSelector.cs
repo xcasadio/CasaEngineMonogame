@@ -21,6 +21,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
     public DataTemplate PlayerStartComponentTemplate { get; set; }
     public DataTemplate SkinnedMeshComponentTemplate { get; set; }
     public DataTemplate StaticModelComponentTemplate { get; set; }
+    public DataTemplate StaticModelSubMeshComponentTemplate { get; set; }
     public DataTemplate SphereCollisionComponentTemplate { get; set; }
     public DataTemplate StaticSpriteComponentTemplate { get; set; }
     public DataTemplate TileMapComponentTemplate { get; set; }
@@ -43,6 +44,7 @@ public class EntityComponentTemplateSelector : DataTemplateSelector
             case PlayerStartComponentViewModel: return PlayerStartComponentTemplate;
             case SkinnedMeshComponentViewModel: return SkinnedMeshComponentTemplate;
             case StaticModelComponentViewModel: return StaticModelComponentTemplate;
+            case StaticModelSubMeshComponentViewModel: return StaticModelSubMeshComponentTemplate;
             case StaticMeshComponentViewModel: return MeshComponentTemplate;
             case StaticSpriteComponentViewModel: return StaticSpriteComponentTemplate;
             case TileMapComponentViewModel: return TileMapComponentTemplate;
