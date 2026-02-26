@@ -62,7 +62,7 @@ internal sealed class RawMouseProvider : IMouseStateProvider
         if (leftDown != _lastLeft)
         {
             _lastLeft = leftDown;
-            Logs.WriteDebug($"[InputDiag] RawMouseProvider LeftButton={left} pos=({localX},{localY})");
+            Logs.WriteDebug($"[InputDiag] RawMouseProvider LeftButton={left} pos=({localX},{localY}) {_bounds.DebugSnapshot(pt.X, pt.Y)}");
         }
 
         return new MouseState(localX, localY, _bounds.ScrollWheelValue, left, middle, right, xb1, xb2);
