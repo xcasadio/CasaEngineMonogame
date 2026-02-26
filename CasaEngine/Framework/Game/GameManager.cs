@@ -71,8 +71,14 @@ public class GameManager
             CurrentWorld.BeginPlay();
 
 #if EDITOR
-            //in editor the active camera is debug camera and it isn't belong to the world
-            SetCameraWithEditor(CurrentWorld);
+            // In the new multi-view architecture (EngineHost + RegisterEditorView), each
+            // RenderView already has its own RenderTargetSurface and camera set up.
+            // ViewManager.Clear() + SetCameraWithEditor() would destroy those views.
+            // Only call SetCameraWithEditor() in the legacy single-view mode (no RT views
+            // yet registered, i.e., no EngineHost in use).
+            bool hasRenderTargetViews = ViewManager.Views.Any(v => v.Surface is RenderTargetSurface);
+            if (!hasRenderTargetViews)
+                SetCameraWithEditor(CurrentWorld);
 #endif
 
             _isNewWorld = false;
