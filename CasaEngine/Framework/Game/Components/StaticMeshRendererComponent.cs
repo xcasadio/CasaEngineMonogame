@@ -24,6 +24,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private ShaderManager?         _shaderManager;
     private ShaderVariantLibrary?  _variantLibrary;
 
+    // Phase 9 — hardware instancing
+    private InstanceBatcher? _instanceBatcher;
+
     /// <summary>
     /// Default scene lighting used when no external <see cref="LightingContext"/> is supplied.
     /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
@@ -94,6 +97,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
         }
+
+        // Phase 9: hardware instancing batcher
+        _instanceBatcher = new InstanceBatcher(_effect.GraphicsDevice);
 
         base.LoadContent();
     }
@@ -192,6 +198,56 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         // Sort opaque front-to-back, transparent back-to-front — the SortKey encodes this.
         _renderItems.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
+
+        // --- Phase 9: hardware-instanced draw for groups with ShaderFeature.Instanced ---
+        // Items that go through instancing are removed from the regular draw list.
+        if (_instanceBatcher is not null)
+        {
+            // Group by (VertexBuffer ptr, SortKey of first element) — same mesh + material
+            var instanceGroups = new Dictionary<(IntPtr, ulong), List<RenderItem>>();
+            var toRemove = new List<int>();
+
+            for (int i = 0; i < _renderItems.Count; i++)
+            {
+                var item = _renderItems[i];
+                if ((item.Features & ShaderFeature.Instanced) == 0) continue;
+                var groupKey = (item.Mesh.VertexBuffer!.Tag as IntPtr? ?? IntPtr.Zero, item.SortKey & ~0xFFFUL);
+                if (!instanceGroups.TryGetValue(groupKey, out var list))
+                {
+                    list = new List<RenderItem>();
+                    instanceGroups[groupKey] = list;
+                }
+                list.Add(item);
+                toRemove.Add(i);
+            }
+
+            // Draw groups that exceed the threshold; put the rest back on the regular list
+            foreach (var group in instanceGroups.Values)
+            {
+                if (group.Count < _instanceBatcher.MinInstanceThreshold)
+                    continue; // too small → handled by regular path
+
+                var firstItem = group[0];
+                _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
+                var shader = (_variantLibrary is not null && firstItem.Material.ShaderAssetId != Guid.Empty)
+                    ? _variantLibrary.Get(new ShaderVariantKey(firstItem.Material.ShaderAssetId, firstItem.Features))
+                        ?? _legacyShaderWrapper!
+                    : _legacyShaderWrapper!;
+                _shaderCache.BindGlobals(shader, in context);
+                _instanceBatcher.DrawInstancedGroup(group, shader, in context);
+                stats.DrawCalls++;
+
+                // Mark as drawn
+                foreach (var item in group)
+                    toRemove.Add(_renderItems.IndexOf(item));
+            }
+
+            // Remove instanced items from the regular list (largest index first to preserve indices)
+            toRemove.Sort(static (a, b) => b.CompareTo(a));
+            foreach (var idx in toRemove.Distinct())
+                if (idx >= 0 && idx < _renderItems.Count)
+                    _renderItems.RemoveAt(idx);
+        }
 
         // --- Draw sorted material items ---
         foreach (var item in _renderItems)
