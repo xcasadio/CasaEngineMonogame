@@ -49,10 +49,9 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     // Per-viewport input (created in Initialize() once the GraphicsDevice is ready).
     private WpfKeyboard? _keyboard;
     private WpfMouse?    _mouse;
-
-    // Suivi fiable du survol souris via events WPF — plus fiable que IsMouseDirectlyOver
-    // sur un contrôle Image/D3D11 dont le hit-testing WPF peut être court-circuité.
-    private bool _isMouseOver;
+    // Provider Win32 pour clavier et pour la garde PreviewKeyDown.
+    // Instancié dans Initialize(), réutilisé dans Attach() et ActivateThisView().
+    private RawKeyboardProvider? _rawKeyboard;
 
     // ---- IViewHost ----
     // Width/Height are explicit to avoid name collision with FrameworkElement.Width/Height (double).
@@ -125,6 +124,10 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             view.Host = this;
             host.ViewManager.HookViewHost(view);
         }
+
+        // Installe le provider clavier immédiatement — pas besoin d'attendre MouseEnter.
+        if (_mouse != null)
+            host.SetActiveViewportInput(this, _mouse);
     }
 
     /// <summary>Detaches from the current view without removing or disposing it.</summary>
@@ -159,21 +162,22 @@ public sealed class ViewportControl : D3D11Host, IViewHost
 
         // Per-viewport input providers.  WpfKeyboard/WpfMouse now accept D3D11Host
         // so we can create them here (widened in PR6).
-        _keyboard = new WpfKeyboard(this);
-        _mouse    = new WpfMouse(this);
+        _keyboard    = new WpfKeyboard(this);
+        _mouse       = new WpfMouse(this);
+        _rawKeyboard = new RawKeyboardProvider(this);
 
         // Activate the corresponding view in ViewManager on mouse-enter so that camera
         // navigation shortcuts and gizmo operations target the hovered viewport.
-        MouseEnter += (_, _) => { _isMouseOver = true;  ActivateThisView(); };
-        MouseLeave += (_, _) => { _isMouseOver = false; };
+        // MouseLeave n'est plus nécessaire — IsCursorOverViewport() fait le check Win32.
+        MouseEnter += (_, _) => ActivateThisView();
 
         // Empêche WPF de router les touches de navigation (flèches, PageUp/Down, etc.)
         // vers d'autres contrôles focusables quand la souris est sur ce viewport.
-        // Sans ça, appuyer sur une flèche sélectionne l'item suivant dans un ListBox
-        // ou déplace le focus ailleurs dans la fenêtre.
+        // Utilise Win32 GetCursorPos — fiable même si MouseEnter est court-circuité
+        // par le hit-testing D3D11Image.
         PreviewKeyDown += (_, e) =>
         {
-            if (_isMouseOver)
+            if (_rawKeyboard?.IsCursorOverViewport() == true)
                 e.Handled = true;
         };
     }
@@ -253,7 +257,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // autres éléments WPF, et route les inputs vers l'InputComponent.
         Focus();
         if (_mouse != null)
-            _engineHost.SetActiveViewportInput(() => _isMouseOver, _mouse);
+            _engineHost.SetActiveViewportInput(this, _mouse);
     }
 
     /// <summary>

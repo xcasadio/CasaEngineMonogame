@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Windows;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Entities;
@@ -155,13 +156,12 @@ public sealed class EngineHost : WpfGame
     /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
     /// events from the hovered viewport rather than the EngineHost root element.
     /// </summary>
-    internal void SetActiveViewportInput(Func<bool> isMouseOver, WpfMouse mouse)
+    internal void SetActiveViewportInput(FrameworkElement viewport, WpfMouse mouse)
     {
-        // RawKeyboardProvider lit l'état Win32 directement sans exiger IsKeyboardFocused.
-        // Le délégué isMouseOver est alimenté par les events WPF MouseEnter/MouseLeave
-        // du ViewportControl — fiable là où IsMouseDirectlyOver ne l'est pas.
+        // RawKeyboardProvider utilise GetCursorPos (Win32) + PointFromScreen:
+        // detection du survol independante du routing WPF et du hit-testing D3D11.
         _game?.SetInputProvider(
-            new RawKeyboardProvider(isMouseOver),
+            new RawKeyboardProvider(viewport),
             new MouseStateProvider(mouse));
     }
 

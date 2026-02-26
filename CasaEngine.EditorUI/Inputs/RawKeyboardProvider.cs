@@ -3,46 +3,56 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Windows;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.EditorUI.Inputs;
 
 /// <summary>
-/// Lit l'état du clavier via l'API Win32 <c>GetKeyboardState</c> directement,
-/// sans exiger que l'élément WPF ait le focus clavier (<c>IsKeyboardFocused</c>).
-///
-/// Dans l'ancienne architecture multi-onglets, chaque onglet était son propre
-/// <c>WpfGame</c> (contrôle visible ET hôte du game loop) — le focus WPF était
-/// garanti. Dans la nouvelle architecture, <see cref="EngineHost"/> est un contrôle
-/// caché 1×2 et <see cref="ViewportControl"/> est l'élément visible.
-/// <c>WpfKeyboard</c> exige <c>IsKeyboardFocused == true</c> sur le focus element
-/// pour retourner des touches, ce qui n'est pas fiable dans ce contexte.
-///
-/// Ce provider retourne les touches physiquement enfoncées dès que la souris
-/// survole le viewport, sans avoir besoin du focus WPF.
+/// Lit l'etat du clavier via Win32 GetKeyboardState, sans exiger le focus WPF.
+/// Detecte le survol du viewport via GetCursorPos + PointFromScreen —
+/// independant du routing WPF et du hit-testing D3D11Image non fiable.
 /// </summary>
-internal class RawKeyboardProvider : IKeyboardStateProvider
+internal sealed class RawKeyboardProvider : IKeyboardStateProvider
 {
     [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
     private static extern bool NativeGetKeyboardState([Out] byte[] keyStates);
 
-    private readonly Func<bool> _isMouseOver;
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT pt);
 
-    /// <param name="isMouseOver">
-    /// Délégué retournant <c>true</c> lorsque la souris est sur le viewport.
-    /// Alimenté par les events WPF <c>MouseEnter</c>/<c>MouseLeave</c> du
-    /// <see cref="ViewportControl"/> — plus fiable que <c>IsMouseDirectlyOver</c>
-    /// sur un contrôle Image/D3D11 dont le hit-testing WPF peut être court-circuité.
-    /// </param>
-    public RawKeyboardProvider(Func<bool> isMouseOver)
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT { public int X; public int Y; }
+
+    private readonly FrameworkElement _viewport;
+
+    public RawKeyboardProvider(FrameworkElement viewport)
     {
-        _isMouseOver = isMouseOver;
+        _viewport = viewport;
+    }
+
+    /// <summary>
+    /// Retourne true si le curseur Win32 est dans les bornes ecran du viewport.
+    /// Fonctionne meme quand le hit-testing WPF/D3D11 echoue.
+    /// </summary>
+    public bool IsCursorOverViewport()
+    {
+        if (!GetCursorPos(out var pt))
+            return false;
+        try
+        {
+            var local = _viewport.PointFromScreen(new Point(pt.X, pt.Y));
+            return local.X >= 0 && local.Y >= 0
+                && local.X < _viewport.ActualWidth
+                && local.Y < _viewport.ActualHeight;
+        }
+        catch { return false; }
     }
 
     public KeyboardState GetState()
     {
-        if (!_isMouseOver())
+        if (!IsCursorOverViewport())
             return new KeyboardState();
 
         var keyStates = new byte[256];
@@ -55,7 +65,6 @@ internal class RawKeyboardProvider : IKeyboardStateProvider
             if ((keyStates[i] & 0x80) != 0)
                 pressed.Add((Keys)i);
         }
-
         return new KeyboardState(pressed.ToArray());
     }
 }
