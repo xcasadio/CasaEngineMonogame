@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
@@ -53,6 +54,15 @@ public sealed class EngineHost : WpfGame
     private bool            _initialized;
 
     private readonly Dictionary<ViewId, EditorViewContext> _viewContexts = new();
+
+    // ---- Per-viewport input registry (filled by ViewportControl.Initialize) ----
+    private readonly Dictionary<ViewId, (RawKeyboardProvider Kbd, RawMouseProvider Mouse, ViewportBoundsCache Bounds)> _inputProviders = new();
+    private ViewId _activeInputViewId = ViewId.Empty;
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT pt);
+    [System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
+    private struct POINT { public int X; public int Y; }
 
     // ---- Events ----
 
@@ -130,9 +140,30 @@ public sealed class EngineHost : WpfGame
         {
             _game!.UpdateWithEditor(gameTime);
 
+            // ---- Cursor-based input dispatch (100 % Win32, game-thread safe) ----
+            // Determine which viewport the cursor is over and switch providers + active
+            // view automatically every frame. This replaces the broken MouseEnter approach.
+            if (GetCursorPos(out var pt))
+            {
+                foreach (var (viewId, (kbd, mouse, bounds)) in _inputProviders)
+                {
+                    if (bounds.Contains(pt.X, pt.Y))
+                    {
+                        if (viewId != _activeInputViewId)
+                        {
+                            _activeInputViewId = viewId;
+                            _game.SetInputProvider(kbd, mouse);
+                            Logs.WriteDebug($"[InputDiag] Active viewport switched to {viewId}");
+                            if (ViewManager != null &&
+                                ViewManager.TryGetView(viewId, out var v))
+                                ViewManager.SetActive(v);
+                        }
+                        break;
+                    }
+                }
+            }
+
             // Met à jour uniquement la caméra du viewport actif (celui survolé par la souris).
-            // Mettre à jour TOUS les contextes faisait bouger toutes les caméras en même temps
-            // car elles partagent le même InputComponent.
             var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
             var activeCtx = _game.GameManager.ViewManager.ActiveView?.Tag as EditorViewContext;
             activeCtx?.CameraEntity?.Update(dt);
@@ -156,10 +187,16 @@ public sealed class EngineHost : WpfGame
     /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
     /// events from the hovered viewport rather than the EngineHost root element.
     /// </summary>
-    internal void SetActiveViewportInput(RawKeyboardProvider keyboard, RawMouseProvider mouse)
+    /// Registers per-viewport input providers. Called by ViewportControl.Initialize().
+    /// The cursor dispatch in Update() switches providers automatically each frame.
+    /// </summary>
+    internal void SetActiveViewportInput(ViewId viewId, RawKeyboardProvider keyboard, RawMouseProvider mouse, ViewportBoundsCache bounds)
     {
-        Logs.WriteDebug($"[InputDiag] EngineHost.SetActiveViewportInput called gameReady={_game != null}");
-        _game?.SetInputProvider(keyboard, mouse);
+        Logs.WriteDebug($"[InputDiag] EngineHost.RegisterViewportInput viewId={viewId} gameReady={_game != null}");
+        _inputProviders[viewId] = (keyboard, mouse, bounds);
+        // Seed the game with a valid provider immediately (will be overwritten by Update dispatch).
+        if (_game != null && _inputProviders.Count == 1)
+            _game.SetInputProvider(keyboard, mouse);
     }
 
     protected override void Dispose(bool disposing)
@@ -357,6 +394,11 @@ public sealed class EngineHost : WpfGame
     private void UnregisterEditorViewInternal(EditorViewContext ctx)
     {
         if (_game == null) return;
+
+        // Clean up per-viewport input provider registration.
+        _inputProviders.Remove(ctx.ViewId);
+        if (_activeInputViewId == ctx.ViewId)
+            _activeInputViewId = ViewId.Empty;
 
         // Remove overlay components from the game component list.
         if (ctx.Gizmo != null)
