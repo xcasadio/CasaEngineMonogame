@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using CasaEngine.Core.Helpers;
+﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
@@ -14,8 +9,14 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
+using System.Windows.Controls;
 using Point = System.Windows.Point;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls;
@@ -123,6 +124,23 @@ public partial class GameEditorWorldControl : UserControl
                     {
                         var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, game.AssetContentManager);
                         CreateEntity(entityReference.Entity, e.GetPosition(gameViewport));
+                    }
+                }
+                else if (extension == Constants.FileNameExtensions.StaticModel)
+                {
+                    var game = EngineHost.Instance?.Game;
+                    if (game != null)
+                    {
+                        var entity = new Entity
+                        {
+                            Name = Path.GetFileNameWithoutExtension(assetInfo.FileName)
+                        };
+                        var staticModelComponent = new StaticModelComponent
+                        {
+                            StaticModelAssetId = assetInfo.Id
+                        };
+                        entity.RootComponent = staticModelComponent;
+                        CreateEntity(entity, e.GetPosition(gameViewport));
                     }
                 }
                 else
