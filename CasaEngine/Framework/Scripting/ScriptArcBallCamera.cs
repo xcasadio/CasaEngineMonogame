@@ -81,6 +81,20 @@ public class ScriptArcBallCamera : GameplayProxy
             verticalOrbit = -_inputComponent.MouseManager.DeltaY;
         }
 
+        // Bouton gauche : pan horizontal et vertical.
+        if (_inputComponent.MouseManager.LeftButtonPressed)
+        {
+            rightAxis   += _inputComponent.MouseManager.DeltaX * 0.01f;
+            upAxis      += _inputComponent.MouseManager.DeltaY * 0.01f;
+        }
+
+        // Molette : zoom (rapproche/eloigne la cible).
+        var wheelDelta = _inputComponent.MouseManager.WheelDelta;
+        if (wheelDelta != 0)
+        {
+            zoom = -wheelDelta * 0.1f;
+        }
+
         //#if EDITOR
         rightAxis = -rightAxis;
         upAxis = -upAxis;

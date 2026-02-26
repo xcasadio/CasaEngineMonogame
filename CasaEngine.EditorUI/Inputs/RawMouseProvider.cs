@@ -57,7 +57,7 @@ internal sealed class RawMouseProvider : IMouseStateProvider
             Logs.WriteDebug($"[InputDiag] RawMouseProvider RightButton={right} pos=({localX},{localY})");
         }
 
-        return new MouseState(localX, localY, 0, left, middle, right, xb1, xb2);
+        return new MouseState(localX, localY, _bounds.ScrollWheelValue, left, middle, right, xb1, xb2);
     }
 }
 
