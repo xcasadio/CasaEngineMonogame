@@ -1,6 +1,7 @@
 ﻿#if !FINAL
 
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -39,38 +40,54 @@ public class AxisComponent : DrawableGameComponent, IGameComponentResizable
 
         _width = _game.ScreenSizeWidth;
         _height = _game.ScreenSizeHeight;
+
+        // Drawing is handled by EditorViewPipeline.RenderAxis per-view.
+        Visible = false;
     }
 
     public override void Draw(GameTime gameTime)
     {
-        var camera = _game.GameManager.ViewManager.ActiveView?.Camera;
-
-        if (camera != null)
-        {
-            GraphicsDevice.DepthStencilState = DepthStencilState.None;
-            GraphicsDevice.RasterizerState = RasterizerState.CullNone;
-            GraphicsDevice.BlendState = BlendState.Opaque;
-            GraphicsDevice.SetVertexBuffer(_vertexBuffer);
-            GraphicsDevice.Indices = null;
-
-            //TODO : compute with screen height/width and aspect ratio
-            var forwardFactor = (float)_width / 800f * 20f;
-            var leftFactor = (float)_width / 800f * 13f;
-            var upFactor = (float)_height / 480f * 6f;
-
-            var viewMatrix = Matrix.Invert(camera.ViewMatrix);
-            var position = viewMatrix.Translation + viewMatrix.Forward * forwardFactor + viewMatrix.Left * leftFactor - viewMatrix.Up * upFactor;
-            var world = MatrixExtensions.Transformation(Vector3.One, Quaternion.Identity, position);
-            _effect.Parameters["WorldViewProj"].SetValue(world * camera.ViewMatrix * camera.ProjectionMatrix);
-
-            for (var i = 0; i < _effect.CurrentTechnique.Passes.Count; i++)
-            {
-                _effect.CurrentTechnique.Passes[i].Apply();
-                GraphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, 3);
-            }
-        }
-
+        // Visible = false — this override is never called from DrawWithEditor.
+        // Drawing is done by DrawForView() called from EditorViewPipeline.
         base.Draw(gameTime);
+    }
+
+    /// <summary>
+    /// Draws the axis orientation indicator for a specific view.
+    /// Uses <paramref name="frame"/>.ViewportRect for the pixel dimensions so the
+    /// indicator is always scaled correctly regardless of the viewport size.
+    /// Called by <see cref="EditorViewPipeline"/> with the view's render target active.
+    /// </summary>
+    public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
+    {
+        int width  = frame.ViewportRect.Width;
+        int height = frame.ViewportRect.Height;
+        if (width <= 0 || height <= 0) return;
+
+        gd.DepthStencilState = DepthStencilState.None;
+        gd.RasterizerState   = RasterizerState.CullNone;
+        gd.BlendState        = BlendState.Opaque;
+        gd.SetVertexBuffer(_vertexBuffer);
+        gd.Indices = null;
+
+        //TODO : compute with screen height/width and aspect ratio
+        var forwardFactor = (float)width  / 800f * 20f;
+        var leftFactor    = (float)width  / 800f * 13f;
+        var upFactor      = (float)height / 480f *  6f;
+
+        var viewMatrix = Matrix.Invert(frame.View);
+        var position   = viewMatrix.Translation
+                       + viewMatrix.Forward * forwardFactor
+                       + viewMatrix.Left    * leftFactor
+                       - viewMatrix.Up      * upFactor;
+        var world = MatrixExtensions.Transformation(Vector3.One, Quaternion.Identity, position);
+        _effect.Parameters["WorldViewProj"].SetValue(world * frame.View * frame.Projection);
+
+        for (var i = 0; i < _effect.CurrentTechnique.Passes.Count; i++)
+        {
+            _effect.CurrentTechnique.Passes[i].Apply();
+            gd.DrawPrimitives(PrimitiveType.LineList, 0, 3);
+        }
     }
 
     public void OnScreenResized(int width, int height)

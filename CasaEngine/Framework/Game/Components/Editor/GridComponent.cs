@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using CasaEngine.Framework.Rendering;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
@@ -18,14 +19,11 @@ public class GridComponent : DrawableGameComponent
 
     protected override void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            lock (this)
-            {
-                Game.RemoveGameComponent<GridComponent>();
-            }
-        }
-
+        // NOTE: Do NOT call Game.RemoveGameComponent<GridComponent>() here.
+        // That helper removes ALL components of type GridComponent from the collection,
+        // which would silently destroy every other per-view grid.
+        // EngineHost.UnregisterEditorView calls game.Components.Remove(specificInstance)
+        // before disposing the EditorViewContext.
         base.Dispose(disposing);
     }
 
@@ -72,33 +70,39 @@ public class GridComponent : DrawableGameComponent
         LinesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, m_Size), Color.DarkBlue);
         LinesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, -m_Size), Color.DarkBlue);
 
+        // Drawing is handled by EditorViewPipeline.RenderGrid per-view.
+        Visible = false;
+
         base.LoadContent();
     }
 
     public override void Draw(GameTime gameTime)
     {
-        var camera = _game.GameManager.ViewManager.ActiveView?.Camera;
-        if (camera == null)
-        {
-            return;
-        }
+        // Visible = false — this override is never called from DrawWithEditor.
+        // Drawing is done by DrawForView() called from EditorViewPipeline.
+        base.Draw(gameTime);
+    }
 
-        GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        GraphicsDevice.BlendState = BlendState.Opaque;
-        GraphicsDevice.Indices = null;
-        GraphicsDevice.SetVertexBuffer(null);
+    /// <summary>
+    /// Draws the grid for a specific view using the supplied camera frame.
+    /// Called by <see cref="EditorViewPipeline"/> with the view's render target active.
+    /// </summary>
+    public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
+    {
+        gd.DepthStencilState = DepthStencilState.Default;
+        gd.RasterizerState = RasterizerState.CullCounterClockwise;
+        gd.BlendState = BlendState.Opaque;
+        gd.Indices = null;
+        gd.SetVertexBuffer(null);
 
-        GridEffect.World = Matrix.Identity;
-        GridEffect.View = camera.ViewMatrix;
-        GridEffect.Projection = camera.ProjectionMatrix;
+        GridEffect.World      = Matrix.Identity;
+        GridEffect.View       = frame.View;
+        GridEffect.Projection = frame.Projection;
 
         foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
         {
             pass.Apply();
-            GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, LinesVertices, 0, LinesVertices.Length / 2);
+            gd.DrawUserPrimitives(PrimitiveType.LineList, LinesVertices, 0, LinesVertices.Length / 2);
         }
-
-        base.Draw(gameTime);
     }
 }

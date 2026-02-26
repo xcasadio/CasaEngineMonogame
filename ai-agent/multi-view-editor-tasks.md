@@ -214,43 +214,29 @@ Le moteur dispose **déjà** d'une infrastructure multi-view au sein d'un seul `
 
 ---
 
-## PR 5 — Migration des GameComponents éditeur vers le mode par-vue
+## PR 5 — Migration des GameComponents éditeur vers le mode par-vue ✅
 
 **Objectif :** Transformer `GizmoComponent`, `GridComponent`, `AxisComponent` pour qu'ils soient par-vue plutôt que globaux.
 
 ### 5.1 — Refactorer GizmoComponent
 
-- [ ] Actuellement `GizmoComponent` hérite de `DrawableGameComponent` et est ajouté à `Game.Components`. Il accède au `Game`, `GraphicsDevice`, `ViewManager.ActiveView.Camera`.
-- [ ] Refactorer pour que `GizmoComponent` puisse être associé à un `EditorViewContext` spécifique :
-  - Recevoir la caméra et le monde de son `EditorViewContext` plutôt que du `ViewManager.ActiveView`.
-  - Dessiner dans la `RenderTargetSurface` de sa vue (via le pipeline de rendu par vue).
-- [ ] Option : créer un `IViewRenderPipeline` éditeur qui, après le `DefaultViewPipeline`, dessine le gizmo/grid/axis de la vue.
-  ```csharp
-  public class EditorViewPipeline : IViewRenderPipeline
-  {
-      public void RenderView(GraphicsDevice gd, RenderView view, in RenderFrame frame, IReadOnlyList<IViewFlushableRenderer> renderers)
-      {
-          DefaultViewPipeline.Instance.RenderView(gd, view, in frame, renderers);
-          
-          var ctx = view.Tag as EditorViewContext;
-          ctx?.Gizmo?.Draw(gd, in frame);
-          ctx?.Grid?.Draw(gd, in frame);
-          ctx?.Axis?.Draw(gd, in frame);
-      }
-  }
-  ```
-- [ ] Le `GizmoComponent` ne doit plus être un `GameComponent` mais un objet standalone qui expose `Update(GameTime, RenderFrame)` et `Draw(GraphicsDevice, RenderFrame)`.
+- [x] Actuellement `GizmoComponent` hérite de `DrawableGameComponent` et est ajouté à `Game.Components`. Il accède au `Game`, `GraphicsDevice`, `ViewManager.ActiveView.Camera`.
+- [x] Refactorer pour que `GizmoComponent` puisse être associé à un `EditorViewContext` spécifique :
+  - Ajout de la propriété `ActiveCamera` — utilisée à la place de `ViewManager.ActiveView.Camera` dans `Update()`.
+  - Ajout de `DrawForView(in RenderFrame)` qui passe les matrices View/Projection/CameraPosition au Gizmo.
+  - `Visible = false` dans `Initialize()` pour inhiber le rendu Phase 3 de `DrawWithEditor`.
+- [x] `EditorViewPipeline.RenderGizmosAction` est câblé dans `EngineHost.RegisterEditorView`.
 
 ### 5.2 — Refactorer GridComponent
 
-- [ ] Même principe : extraire de `GameComponent`, rendre instanciable par vue.
-- [ ] Le grid se dessine dans le `RenderFrame` de sa vue associée (matrices View/Projection de la caméra de la vue).
-- [ ] Paramètres (taille, espacement, couleur) portés par le `EditorViewContext` ou directement sur le `GridComponent`.
+- [x] Même principe : `DrawForView(GraphicsDevice, in RenderFrame)` ajouté, `Visible = false` dans `LoadContent()`.
+- [x] Correction du bug dans `Dispose()` : `Game.RemoveGameComponent<GridComponent>()` retirait TOUTES les instances ; remplacé par `base.Dispose(disposing)` uniquement.
+- [x] `EditorViewPipeline.RenderGridAction` câblé dans `EngineHost.RegisterEditorView`.
 
 ### 5.3 — Refactorer AxisComponent
 
-- [ ] Même principe : extraire de `GameComponent`, rendre instanciable par vue.
-- [ ] L'axis se dessine dans un coin du viewport de la vue.
+- [x] Même principe : `DrawForView(GraphicsDevice, in RenderFrame)` ajouté utilisant `frame.ViewportRect.Width/Height`, `Visible = false` dans `LoadContent()`.
+- [x] `EditorViewPipeline.RenderAxisAction` câblé dans `EngineHost.RegisterEditorView`.
 
 ### 5.4 — Adapter PhysicsDebugViewRendererComponent
 

@@ -32,6 +32,11 @@ public class EditorViewPipeline : IViewRenderPipeline
     public Action<GraphicsDevice, RenderView, RenderFrame>? RenderGizmosAction { get; set; }
 
     /// <summary>
+    /// Called to render the axis orientation indicator (corner XYZ icon).
+    /// </summary>
+    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderAxisAction { get; set; }
+
+    /// <summary>
     /// Called to render the selection outline around selected entities.
     /// </summary>
     public Action<GraphicsDevice, RenderView, RenderFrame>? RenderSelectionOutlineAction { get; set; }
@@ -60,10 +65,13 @@ public class EditorViewPipeline : IViewRenderPipeline
         // --- Pass 4: Gizmos ---
         RenderGizmos(graphicsDevice, view, in frame);
 
-        // --- Pass 5: Selection outline ---
+        // --- Pass 5: Axis orientation indicator ---
+        RenderAxis(graphicsDevice, view, in frame);
+
+        // --- Pass 6: Selection outline ---
         RenderSelectionOutline(graphicsDevice, view, in frame);
 
-        // --- Pass 6: 2D UI overlay (labels, debug info) ---
+        // --- Pass 7: 2D UI overlay (labels, debug info) ---
         RenderUIOverlay(graphicsDevice, view, in frame);
     }
 
@@ -109,11 +117,19 @@ public class EditorViewPipeline : IViewRenderPipeline
     protected virtual void RenderGizmos(GraphicsDevice gd, RenderView view, in RenderFrame frame)
         => RenderGizmosAction?.Invoke(gd, view, frame);
 
+    /// <summary>Renders the axis orientation indicator. Calls <see cref="RenderAxisAction"/> if set.</summary>
+    protected virtual void RenderAxis(GraphicsDevice gd, RenderView view, in RenderFrame frame)
+        => RenderAxisAction?.Invoke(gd, view, frame);
+
     /// <summary>Renders the selection outline. Calls <see cref="RenderSelectionOutlineAction"/> if set.</summary>
     protected virtual void RenderSelectionOutline(GraphicsDevice gd, RenderView view, in RenderFrame frame)
         => RenderSelectionOutlineAction?.Invoke(gd, view, frame);
 
-    /// <summary>Renders 2D editor overlays. Calls <see cref="RenderUIOverlayAction"/> if set.</summary>
+    /// <summary>Renders 2D editor overlays. Calls <see cref="RenderUIOverlayAction"/> if set,
+    /// then draws the per-view MGUI UIRoot.</summary>
     protected virtual void RenderUIOverlay(GraphicsDevice gd, RenderView view, in RenderFrame frame)
-        => RenderUIOverlayAction?.Invoke(gd, view, frame);
+    {
+        RenderUIOverlayAction?.Invoke(gd, view, frame);
+        view.UIRoot?.Draw();
+    }
 }

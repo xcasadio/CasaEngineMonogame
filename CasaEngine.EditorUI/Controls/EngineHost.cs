@@ -245,6 +245,36 @@ public sealed class EngineHost : WpfGame
             if (def.ShowAxis)  ctx.Axis  = new AxisComponent(_game);
         }
 
+        // ---- 7. Wire EditorViewPipeline for per-view overlay rendering ----
+        // Each overlay component has Visible=false so it won't draw in Phase 3
+        // of DrawWithEditor.  Instead, EditorViewPipeline calls DrawForView()
+        // during Phase 2 while the correct per-view render target is active.
+        if (def.ShowGizmo || def.ShowGrid || def.ShowAxis)
+        {
+            var pipeline = new EditorViewPipeline();
+
+            if (def.ShowGrid && ctx.Grid != null)
+            {
+                var grid = ctx.Grid;
+                pipeline.RenderGridAction = (gd, _, frame) => grid.DrawForView(gd, in frame);
+            }
+
+            if (def.ShowGizmo && ctx.Gizmo != null)
+            {
+                var gizmo = ctx.Gizmo;
+                gizmo.ActiveCamera = ctx.Camera;  // bind camera for per-view Update()
+                pipeline.RenderGizmosAction = (_, _, frame) => gizmo.DrawForView(in frame);
+            }
+
+            if (def.ShowAxis && ctx.Axis != null)
+            {
+                var axis = ctx.Axis;
+                pipeline.RenderAxisAction = (gd, _, frame) => axis.DrawForView(gd, in frame);
+            }
+
+            renderView!.Pipeline = pipeline;
+        }
+
         _viewContexts[viewId] = ctx;
         return viewId;
     }
