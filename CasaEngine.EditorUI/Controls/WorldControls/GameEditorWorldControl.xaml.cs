@@ -2,7 +2,6 @@
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -115,37 +114,19 @@ public partial class GameEditorWorldControl : UserControl
             if (formats[0] == typeof(AssetInfo).FullName)
             {
                 var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
-                var extension = Path.GetExtension(assetInfo!.FileName);
-
-                if (extension == Constants.FileNameExtensions.Entity)
+                var game = EngineHost.Instance?.Game;
+                if (assetInfo != null && game != null)
                 {
-                    var game = EngineHost.Instance?.Game;
-                    if (game != null)
+                    var handler = AssetDropHandlerRegistry.Instance.FindHandler(assetInfo);
+                    if (handler != null)
                     {
-                        var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, game.AssetContentManager);
-                        CreateEntity(entityReference.Entity, e.GetPosition(gameViewport));
+                        CreateEntity(handler.CreateEntity(assetInfo, game), e.GetPosition(gameViewport));
                     }
-                }
-                else if (extension == Constants.FileNameExtensions.StaticModel)
-                {
-                    var game = EngineHost.Instance?.Game;
-                    if (game != null)
+                    else
                     {
-                        var entity = new Entity
-                        {
-                            Name = Path.GetFileNameWithoutExtension(assetInfo.FileName)
-                        };
-                        var staticModelComponent = new StaticModelComponent
-                        {
-                            StaticModelAssetId = assetInfo.Id
-                        };
-                        entity.RootComponent = staticModelComponent;
-                        CreateEntity(entity, e.GetPosition(gameViewport));
+                        var extension = Path.GetExtension(assetInfo.FileName);
+                        Logs.WriteWarning($"The asset with the type {extension} is not supported");
                     }
-                }
-                else
-                {
-                    Logs.WriteWarning($"The asset with the type {extension} is not supported");
                 }
                 return;
             }

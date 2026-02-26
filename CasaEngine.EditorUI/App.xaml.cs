@@ -1,5 +1,6 @@
 ﻿using System.Windows;
-using Microsoft.Xna.Framework;
+using CasaEngine.EditorUI.DragAndDrop;
+using CasaEngine.EditorUI.DragAndDrop.Handlers;
 
 namespace CasaEngine.EditorUI;
 
@@ -15,6 +16,11 @@ public partial class App : Application
         // prerequisite for sharing GPU resources (textures, models, render targets)
         // across editor tabs — the foundation for PR3+ of the multi-view migration.
         D3D11Host.UseASingleSharedGraphicsDevice = true;
+
+        // Register drag & drop asset handlers
+        var registry = AssetDropHandlerRegistry.Instance;
+        registry.Register(new EntityAssetDropHandler());
+        registry.Register(new StaticModelAssetDropHandler());
 
         base.OnStartup(e);
     }
