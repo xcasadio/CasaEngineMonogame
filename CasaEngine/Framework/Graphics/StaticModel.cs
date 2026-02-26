@@ -1,5 +1,7 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Assets;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
@@ -21,6 +23,40 @@ public class StaticModel : ObjectBase
 #if EDITOR
     private bool _isInitialized;
 #endif
+
+    // ------------------------------------------------------------------
+    //  Factory helpers
+    // ------------------------------------------------------------------
+
+    /// <summary>
+    /// Creates a <see cref="StaticModel"/> containing a single mesh built from
+    /// the supplied <paramref name="primitive"/> geometry.
+    /// The model has a root node pointing to mesh index 0.
+    /// <para>
+    /// Call <c>model.Meshes[0].Initialize(graphicsDevice)</c> (or
+    /// <c>model.Initialize(assetContentManager)</c>) before adding the
+    /// owning entity to a world.
+    /// </para>
+    /// </summary>
+    public static StaticModel CreateFromPrimitive(GeometricPrimitive primitive, string name = "Mesh")
+    {
+        var mesh = new StaticModelMesh { Name = name };
+        mesh.SetData(primitive.Vertices.ToArray(), primitive.Indices.ToArray());
+
+        var root = new StaticModelNode
+        {
+            Name      = "Root",
+            MeshIndex = 0,
+            Position  = Vector3.Zero,
+            Rotation  = Quaternion.Identity,
+            Scale     = Vector3.One
+        };
+
+        var model = new StaticModel { Name = name };
+        model.Meshes.Add(mesh);
+        model.RootNode = root;
+        return model;
+    }
 
     // ------------------------------------------------------------------
     //  Runtime initialisation

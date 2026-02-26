@@ -25,7 +25,7 @@ namespace SandBoxGame
     public class SandBoxGame : CasaEngineGame
     {
         private Entity _boxEntity;
-        private StaticMesh _staticMesh;
+        private StaticModelMesh _staticMesh;
 
         private Effect _effectColor;
         private Material _materialColor;
@@ -64,13 +64,13 @@ namespace SandBoxGame
 
             //============ Box ===============
             _boxEntity = new Entity(); // { Name = "box" };
-            var meshComponent = new StaticMeshComponent();
+            var meshComponent = new StaticModelComponent();
             _boxEntity.RootComponent = meshComponent;
             _boxEntity.RootComponent.Position = Vector3.Up * 0.5f;
-            meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
-            meshComponent.Mesh.Initialize(AssetContentManager);
-            meshComponent.Mesh.Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
-            _staticMesh = meshComponent.Mesh;
+            meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
+            meshComponent.StaticModel.Meshes[0].Initialize(GraphicsDevice);
+            meshComponent.StaticModel.Meshes[0].Texture = new Texture(Texture2D.FromFile(GraphicsDevice, @"Content\checkboard.png"));
+            _staticMesh = meshComponent.StaticModel.Meshes[0];
 
             world.AddEntity(_boxEntity);
 

@@ -26,17 +26,17 @@ public class Collision3dBasicDemo : Demo
         var physicsComponent = new BoxCollisionComponent();
         entity.AddComponent(physicsComponent);
         //===
-        var meshComponent = new StaticMeshComponent();
+        var meshComponent = new StaticModelComponent();
         entity.RootComponent = meshComponent;
-        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(50, 1, 50));
-        meshComponent.Mesh.Initialize(game.AssetContentManager);
+        meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(50, 1, 50));
+        meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
         //===
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
         physicsComponent.LocalScale = new Vector3(50, 1, 50);
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
 
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
-        meshComponent.Mesh.Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        meshComponent.StaticModel.Meshes[0].Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
         world.AddEntity(entity);
 
@@ -48,9 +48,10 @@ public class Collision3dBasicDemo : Demo
             ArraySizeY + 10,
             -(float)ArraySizeZ + (float)ArraySizeZ / 2f);
 
-        var boxPrimitive = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
+        var boxModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
         fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
-        var meshTexture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        boxModel.Meshes[0].Initialize(game.GraphicsDevice);
+        boxModel.Meshes[0].Texture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
         for (int k = 0; k < ArraySizeY; k++)
         {
@@ -60,12 +61,10 @@ public class Collision3dBasicDemo : Demo
                 {
                     entity = new Entity { Name = $"box {i}-{k}" };
                     //===
-                    meshComponent = new StaticMeshComponent();
+                    meshComponent = new StaticModelComponent();
                     entity.RootComponent = meshComponent;
                     meshComponent.Position = start + new Vector3(i, k, j);
-                    meshComponent.Mesh = boxPrimitive;
-                    meshComponent.Mesh.Initialize(game.AssetContentManager);
-                    meshComponent.Mesh.Texture = meshTexture;
+                    meshComponent.StaticModel = boxModel;
                     //===
                     physicsComponent = new BoxCollisionComponent();
                     meshComponent.AddChildComponent(physicsComponent);

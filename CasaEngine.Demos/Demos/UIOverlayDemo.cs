@@ -45,10 +45,10 @@ public class UIOverlayDemo : Demo
 
         // Ground plane
         var ground = new Entity { Name = "Ground" };
-        var groundMesh = new StaticMeshComponent();
+        var groundMesh = new StaticModelComponent();
         ground.RootComponent = groundMesh;
-        groundMesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(20, 1, 20));
-        groundMesh.Mesh.Initialize(game.AssetContentManager);
+        groundMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(20, 1, 20));
+        groundMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
         groundMesh.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(ground);
 
@@ -56,10 +56,10 @@ public class UIOverlayDemo : Demo
         for (int i = 0; i < 3; i++)
         {
             var box = new Entity { Name = $"Box {i}" };
-            var mesh = new StaticMeshComponent();
+            var mesh = new StaticModelComponent();
             box.RootComponent = mesh;
-            mesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(2, 2, 2));
-            mesh.Mesh.Initialize(game.AssetContentManager);
+            mesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(2, 2, 2));
+            mesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
             mesh.LocalPosition = new Vector3((i - 1) * 5f, 1f, 0f);
             world.AddEntity(box);
         }

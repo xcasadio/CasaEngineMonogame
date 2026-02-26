@@ -29,19 +29,19 @@ public class SceneManagementDemo : Demo
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var meshTexture = new Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
 
-        var staticMesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive());
-        staticMesh.Initialize(game.AssetContentManager);
-        staticMesh.Texture = meshTexture;
+        var boxModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
+        boxModel.Meshes[0].Initialize(game.GraphicsDevice);
+        boxModel.Meshes[0].Texture = meshTexture;
 
         for (var i = -gridSize; i <= gridSize; ++i)
         {
             for (var j = -gridSize; j <= gridSize; ++j)
             {
                 var entity = new Entity { Name = $"moving cube[{i}, {j}]" };
-                var staticMeshComponent = new StaticMeshComponent();
+                var staticMeshComponent = new StaticModelComponent();
                 entity.RootComponent = staticMeshComponent;
                 entity.RootComponent.Position = new Vector3(transF * i, transF * j, 10.0f);
-                staticMeshComponent.Mesh = staticMesh;
+                staticMeshComponent.StaticModel = boxModel;
 
                 _entities.Add(entity);
                 world.AddEntity(entity);
@@ -53,10 +53,10 @@ public class SceneManagementDemo : Demo
             for (var j = -gridSize; j <= gridSize; ++j)
             {
                 var entity = new Entity { Name = $"Rotating cube[{i}, {j}]" };
-                var staticMeshComponent = new StaticMeshComponent();
+                var staticMeshComponent = new StaticModelComponent();
                 entity.RootComponent = staticMeshComponent;
                 entity.RootComponent.Position = new Vector3(transF * i, transF * j, 10.0f);
-                staticMeshComponent.Mesh = staticMesh;
+                staticMeshComponent.StaticModel = boxModel;
 
                 _rotatingEntities.Add(entity);
                 world.AddEntity(entity);

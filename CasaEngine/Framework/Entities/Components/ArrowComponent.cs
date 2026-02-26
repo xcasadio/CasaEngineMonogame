@@ -7,16 +7,13 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Entities.Components;
 
 [DisplayName("Arrow")]
-public class ArrowComponent : StaticMeshComponent
+public class ArrowComponent : StaticModelComponent
 {
-    public ArrowComponent()
-    {
-
-    }
+    public ArrowComponent() { }
 
     public ArrowComponent(ArrowComponent other) : base(other)
     {
-        Mesh = other.Mesh;
+        StaticModel = other.StaticModel;
     }
 
 #if EDITOR
@@ -28,7 +25,9 @@ public class ArrowComponent : StaticMeshComponent
         var cylinderPrimitive = new CylinderPrimitive(1f, 0.5f);
         var conePrimitive = new ConePrimitive();
 
-        var vertices = new List<VertexPositionNormalTexture>(cylinderPrimitive.Vertices.Count + conePrimitive.Vertices.Count);
+        var vertices = new List<VertexPositionNormalTexture>(
+            cylinderPrimitive.Vertices.Count + conePrimitive.Vertices.Count);
+
         var rot90 = Quaternion.CreateFromAxisAngle(Vector3.UnitX, MathHelper.ToRadians(-90f));
 
         foreach (var vertex in cylinderPrimitive.Vertices)
@@ -47,26 +46,45 @@ public class ArrowComponent : StaticMeshComponent
                 vertex.TextureCoordinate));
         }
 
-        Mesh = new StaticMesh();
-        Mesh.AddVertices(vertices);
-        Mesh.AddIndices(cylinderPrimitive.Indices);
-        var indicesStart = (uint)cylinderPrimitive.Vertices.Count;
-
+        var indices = new List<uint>(cylinderPrimitive.Indices);
+        var baseOffset = (uint)cylinderPrimitive.Vertices.Count;
         foreach (var index in conePrimitive.Indices)
         {
-            Mesh.AddIndex(index + indicesStart);
+            indices.Add(index + baseOffset);
         }
+
+        var mesh = new StaticModelMesh { Name = "Arrow" };
+        mesh.SetData(vertices.ToArray(), indices.ToArray());
+
+        var rootNode = new StaticModelNode
+        {
+            Name      = "Root",
+            MeshIndex = 0,
+            Position  = Vector3.Zero,
+            Rotation  = Quaternion.Identity,
+            Scale     = Vector3.One
+        };
+
+        var model = new StaticModel { Name = "Arrow" };
+        model.Meshes.Add(mesh);
+        model.RootNode = rootNode;
+
+        StaticModel = model;
     }
 
     public override void InitializeWithWorld(World.World world)
     {
-        Mesh.Texture = world.Game.AssetContentManager.GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
+        if (StaticModel?.Meshes.Count > 0)
+        {
+            StaticModel.Meshes[0].Texture =
+                world.Game.AssetContentManager.GetAsset<Assets.Textures.Texture>(
+                    Assets.Textures.Texture.DefaultTextureName);
+        }
+
         base.InitializeWithWorld(world);
     }
+
 #endif
 
-    public override ArrowComponent Clone()
-    {
-        return new ArrowComponent(this);
-    }
+    public override ArrowComponent Clone() => new(this);
 }

@@ -10,7 +10,7 @@
         "root_component": {
           "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",
-          "type": "StaticMeshComponent",
+          "type": "StaticModelComponent",
           "coordinates": {
             "position": {
               "x": 0.0,
@@ -96,86 +96,7 @@
               }
             }
           ],
-          "mesh": {
-            "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
-            "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2",
-            "primitive_type": "TriangleList",
-            "vertices": [
-              {
-                "position": {
-                  "x": -0.5,
-                  "y": 0.0,
-                  "z": -0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 0.0,
-                  "y": 0.0
-                }
-              },
-              {
-                "position": {
-                  "x": -0.5,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 0.0,
-                  "y": 1.0
-                }
-              },
-              {
-                "position": {
-                  "x": 0.5,
-                  "y": 0.0,
-                  "z": -0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 1.0,
-                  "y": 0.0
-                }
-              },
-              {
-                "position": {
-                  "x": 0.5,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 1.0,
-                  "y": 1.0
-                }
-              }
-            ],
-            "indices": [
-              0,
-              2,
-              1,
-              1,
-              2,
-              3
-            ],
-            "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131"
-          }
+          "static_model_asset_id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da"
         },
         "components": [],
         "script_class_name": null,
@@ -284,7 +205,7 @@
         "root_component": {
           "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",
-          "type": "StaticMeshComponent",
+          "type": "StaticModelComponent",
           "coordinates": {
             "position": {
               "x": 0.0,
@@ -370,86 +291,7 @@
               }
             }
           ],
-          "mesh": {
-            "id": "8f34c111-357d-4e8d-af1b-27fb64793ab2",
-            "name": "Object 8f34c111-357d-4e8d-af1b-27fb64793ab2",
-            "primitive_type": "TriangleList",
-            "vertices": [
-              {
-                "position": {
-                  "x": -0.5,
-                  "y": 0.0,
-                  "z": -0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 0.0,
-                  "y": 0.0
-                }
-              },
-              {
-                "position": {
-                  "x": -0.5,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 0.0,
-                  "y": 1.0
-                }
-              },
-              {
-                "position": {
-                  "x": 0.5,
-                  "y": 0.0,
-                  "z": -0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 1.0,
-                  "y": 0.0
-                }
-              },
-              {
-                "position": {
-                  "x": 0.5,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "normal": {
-                  "x": 0.0,
-                  "y": 1.0,
-                  "z": 0.0
-                },
-                "texture_coordinate": {
-                  "x": 1.0,
-                  "y": 1.0
-                }
-              }
-            ],
-            "indices": [
-              0,
-              2,
-              1,
-              1,
-              2,
-              3
-            ],
-            "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131"
-          }
+          "static_model_asset_id": "e12bf9ef-d742-43ec-af48-767f2b4c91e9"
         },
         "components": [],
         "script_class_name": null,

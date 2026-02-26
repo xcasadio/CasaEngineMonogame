@@ -36,10 +36,10 @@ public class RenderToTextureDemo : Demo
 
         // Ground
         var groundEntity = new Entity { Name = "Ground" };
-        var groundMesh = new StaticMeshComponent();
+        var groundMesh = new StaticModelComponent();
         groundEntity.RootComponent = groundMesh;
-        groundMesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(20, 1, 20));
-        groundMesh.Mesh.Initialize(game.AssetContentManager);
+        groundMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(20, 1, 20));
+        groundMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
         groundMesh.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(groundEntity);
 
@@ -47,10 +47,10 @@ public class RenderToTextureDemo : Demo
         for (int i = 0; i < 3; i++)
         {
             var boxEntity = new Entity { Name = $"Box {i}" };
-            var boxMesh = new StaticMeshComponent();
+            var boxMesh = new StaticModelComponent();
             boxEntity.RootComponent = boxMesh;
-            boxMesh.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(2, 2, 2));
-            boxMesh.Mesh.Initialize(game.AssetContentManager);
+            boxMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(2, 2, 2));
+            boxMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
             boxMesh.LocalPosition = new Vector3((i - 1) * 4, 1, 0);
             world.AddEntity(boxEntity);
         }

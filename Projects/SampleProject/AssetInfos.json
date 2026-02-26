@@ -3703,6 +3703,18 @@
     {
       "id": "7dc07544-06da-4a49-89ec-88ff7de9710c",
       "file_name": "Car.staticModel"
+    },
+    {
+      "id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
+      "file_name": "Models\\ground_ground1.staticModel"
+    },
+    {
+      "id": "e12bf9ef-d742-43ec-af48-767f2b4c91e9",
+      "file_name": "Models\\ground_ground2.staticModel"
+    },
+    {
+      "id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
+      "file_name": "Entities\\Box.staticModel"
     }
   ]
 }

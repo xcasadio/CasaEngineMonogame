@@ -70,10 +70,10 @@ public class ViewManagerSandbox : Demo
 
         // Ground plane
         var ground = new Entity { Name = "Ground" };
-        var gm     = new StaticMeshComponent();
+        var gm     = new StaticModelComponent();
         ground.RootComponent = gm;
-        gm.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(30, 1, 30));
-        gm.Mesh.Initialize(game.AssetContentManager);
+        gm.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(30, 1, 30));
+        gm.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
         gm.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(ground);
 
@@ -83,10 +83,10 @@ public class ViewManagerSandbox : Demo
         {
             float angle = MathF.PI * 2f * i / 8f;
             var box = new Entity { Name = $"Box {i}" };
-            var bm  = new StaticMeshComponent();
+            var bm  = new StaticModelComponent();
             box.RootComponent = bm;
-            bm.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(1.5f, 2f, 1.5f));
-            bm.Mesh.Initialize(game.AssetContentManager);
+            bm.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(1.5f, 2f, 1.5f));
+            bm.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
             bm.LocalPosition = new Vector3(MathF.Cos(angle) * 8f, 1f, MathF.Sin(angle) * 8f);
             world.AddEntity(box);
         }

@@ -41,11 +41,11 @@ public class Collision2dBasicDemo : Demo
         var entity = new Entity { Name = "ground" };
         var size = new Vector3(150, 1, 1f);
         //====
-        var meshComponent = new StaticMeshComponent();
+        var meshComponent = new StaticModelComponent();
         entity.RootComponent = meshComponent;
-        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(size.X, size.Y, size.Z));
-        meshComponent.Mesh.Initialize(game.AssetContentManager);
-        meshComponent.Mesh.Texture = meshTexture;
+        meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(size.X, size.Y, size.Z));
+        meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+        meshComponent.StaticModel.Meshes[0].Texture = meshTexture;
         entity.RootComponent.Position = new Vector3(0, 0, 0);
         //====
         var box2dCollisionComponent = new Box2dCollisionComponent();
@@ -89,7 +89,7 @@ public class Collision2dBasicDemo : Demo
                 //TODO
                 entity = new Entity { Name = $"shape 2d {j}-{i}" };
                 //====
-                meshComponent = new StaticMeshComponent();
+                meshComponent = new StaticModelComponent();
                 entity.RootComponent = meshComponent;
                 meshComponent.Position = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
                 //====
@@ -99,13 +99,13 @@ public class Collision2dBasicDemo : Demo
                     case 0:
                         physics2dComponent = new Box2dCollisionComponent();
                         physics2dComponent.Scale = new Vector3(boxSize, boxSize, 1f);
-                        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new BoxPrimitive(boxSize, boxSize, 1.0f));
+                        meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(boxSize, boxSize, 1.0f));
                         break;
 
                     case 1:
                         physics2dComponent = new CircleCollisionComponent();
                         physics2dComponent.Scale = new Vector3(boxSize / 2f, boxSize / 2f, boxSize / 2f);
-                        meshComponent.Mesh = StaticMesh.CreateFromGeometricPrimitive(new SpherePrimitive(boxSize));
+                        meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new SpherePrimitive(boxSize));
                         break;
                 }
 
@@ -113,8 +113,8 @@ public class Collision2dBasicDemo : Demo
                 physics2dComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                 physics2dComponent.PhysicsDefinition.Mass = mass;
 
-                meshComponent.Mesh.Initialize(game.AssetContentManager);
-                meshComponent.Mesh.Texture = meshTexture;
+                meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+                meshComponent.StaticModel.Meshes[0].Texture = meshTexture;
 
                 world.AddEntity(entity);
 
