@@ -1,5 +1,6 @@
 ﻿#if EDITOR
 
+using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Input;
@@ -67,11 +68,14 @@ public class GizmoComponent : DrawableGameComponent
 
         if (Gizmo.GetSelectionPool() == null)
         {
+            Logs.WriteDebug("[InputDiag] GizmoComponent: early return — SelectionPool is null");
             return;
         }
 
         var camera = ActiveCamera ?? _game.GameManager.ViewManager.ActiveView?.Camera;
-        if (camera != null)
+        if (camera == null)
+            Logs.WriteDebug("[InputDiag] GizmoComponent: camera is null, gizmo camera props not updated");
+        else
         {
             Gizmo.UpdateCameraProperties(
                 camera.ViewMatrix,
@@ -79,8 +83,11 @@ public class GizmoComponent : DrawableGameComponent
                 camera.Position);
         }
 
-        if (_inputComponent.MouseManager.LeftButtonJustPressed)
+        var lbState = _inputComponent.MouseManager.LeftButtonJustPressed;
+
+        if (lbState)
         {
+            Logs.WriteDebug($"[InputDiag] GizmoComponent: LeftButtonJustPressed pos=({_inputComponent.MouseManager.Position.X},{_inputComponent.MouseManager.Position.Y})");
             Gizmo.SelectEntities(new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));

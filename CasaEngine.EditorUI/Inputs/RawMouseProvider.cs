@@ -32,6 +32,7 @@ internal sealed class RawMouseProvider : IMouseStateProvider
 
     private readonly ViewportBoundsCache _bounds;
     private bool _lastRight;
+    private bool _lastLeft;
 
     public RawMouseProvider(ViewportBoundsCache bounds)
     {
@@ -55,6 +56,13 @@ internal sealed class RawMouseProvider : IMouseStateProvider
         {
             _lastRight = rightDown;
             Logs.WriteDebug($"[InputDiag] RawMouseProvider RightButton={right} pos=({localX},{localY})");
+        }
+
+        bool leftDown = left == ButtonState.Pressed;
+        if (leftDown != _lastLeft)
+        {
+            _lastLeft = leftDown;
+            Logs.WriteDebug($"[InputDiag] RawMouseProvider LeftButton={left} pos=({localX},{localY})");
         }
 
         return new MouseState(localX, localY, _bounds.ScrollWheelValue, left, middle, right, xb1, xb2);
