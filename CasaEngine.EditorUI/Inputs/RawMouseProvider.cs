@@ -40,7 +40,9 @@ internal sealed class RawMouseProvider : IMouseStateProvider
     {
         int localX = 0, localY = 0;
         if (GetCursorPos(out var pt))
+        {
             (localX, localY) = _bounds.ToLocal(pt.X, pt.Y);
+        }
 
         var left   = (GetAsyncKeyState(VK_LBUTTON)  & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
         var right  = (GetAsyncKeyState(VK_RBUTTON)  & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;

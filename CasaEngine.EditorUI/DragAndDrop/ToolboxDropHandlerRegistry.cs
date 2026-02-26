@@ -33,7 +33,9 @@ public class ToolboxDropHandlerRegistry
         foreach (var handler in _handlers)
         {
             if (handler.SupportedType == info.Type && handler.CanHandle(info))
+            {
                 return handler;
+            }
         }
         return null;
     }

@@ -41,7 +41,9 @@ public partial class MainWindow : Window
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         if (EngineHost.Instance != null)
+        {
             ContentBrowserControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)

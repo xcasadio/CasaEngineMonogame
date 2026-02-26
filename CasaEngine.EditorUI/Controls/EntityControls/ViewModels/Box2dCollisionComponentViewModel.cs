@@ -23,7 +23,11 @@ public class Box2dCollisionComponentViewModel : PhysicsBaseComponentViewModel
         get => _rectangle;
         set
         {
-            if (_rectangle == value) return;
+            if (_rectangle == value)
+            {
+                return;
+            }
+
             var p = _box2dCollisionComponent.Rectangle.Position;
             _box2dCollisionComponent.Rectangle.Position = new Vector2(value.X, value.Y);
             _box2dCollisionComponent.Rectangle.Width = value.Width;

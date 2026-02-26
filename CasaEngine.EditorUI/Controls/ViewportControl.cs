@@ -79,7 +79,10 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         Resized?.Invoke(this, newWidth, newHeight);
 
         var ctx = GetContext();
-        if (ctx == null) return;
+        if (ctx == null)
+        {
+            return;
+        }
 
         // Resize the off-screen render target (debounced; applied on next Render pass).
         ctx.Surface?.RequestResize(newWidth, newHeight);
@@ -112,8 +115,10 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     {
         ArgumentNullException.ThrowIfNull(host);
         if (IsAttached)
+        {
             throw new InvalidOperationException(
                 "ViewportControl is already attached. Call Detach() before re-attaching.");
+        }
 
         _engineHost = host;
         _viewId     = viewId;
@@ -130,13 +135,18 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // _rawKeyboard/_rawMouse/_boundsCache sont null ici (Initialize n'a pas encore couru).
         // Initialize() les enregistrera une fois prêts.
         if (_rawKeyboard != null && _rawMouse != null && _boundsCache != null)
+        {
             host.SetActiveViewportInput(viewId, _rawKeyboard, _rawMouse, _boundsCache);
+        }
     }
 
     /// <summary>Detaches from the current view without removing or disposing it.</summary>
     public void Detach()
     {
-        if (!IsAttached) return;
+        if (!IsAttached)
+        {
+            return;
+        }
 
         if (_engineHost?.ViewManager != null &&
             _engineHost.ViewManager.TryGetView(_viewId, out var view) &&
@@ -181,7 +191,23 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // MouseLeave n'est plus nécessaire — IsCursorOverViewport() fait le check Win32.
         MouseEnter += (_, _) =>
         {
-            ActivateThisView();
+            // Activate the view (makes this viewport the target of camera/gizmo operations)
+            // WITHOUT stealing keyboard focus.  During a drag-drop, Focus() would interfere
+            // with the WPF/OLE drag state machine.  During normal navigation, Focus() here
+            // is unnecessary because the FocusOnMouseOver path (PreviewMouseDown below) is
+            // cleaner semantically: focus should follow clicks/interactions, not mere hover.
+            ActivateThisView(requestFocus: false);
+        };
+
+        // Acquire keyboard focus on click (not on hover) so that:
+        //   (a) drag-drop operations are never disrupted by an unwanted Focus() call, and
+        //   (b) keyboard shortcuts target the viewport the user interacted with.
+        PreviewMouseDown += (_, _) =>
+        {
+            if (!IsFocused)
+            {
+                Focus();
+            }
         };
 
         // Empêche WPF de router les touches de navigation (flèches, PageUp/Down, etc.)
@@ -191,7 +217,9 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         PreviewKeyDown += (_, e) =>
         {
             if (_rawKeyboard?.IsCursorOverViewport() == true)
+            {
                 e.Handled = true;
+            }
         };
 
         // Attach() est appelé AVANT Initialize() — au moment de Attach() les providers étaient null.
@@ -217,10 +245,16 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     /// </summary>
     protected override void Render(GameTime time)
     {
-        if (!_contentLoaded || _viewId.IsEmpty) return;
+        if (!_contentLoaded || _viewId.IsEmpty)
+        {
+            return;
+        }
 
         var src = GetViewTexture();
-        if (src == null) return;
+        if (src == null)
+        {
+            return;
+        }
 
         _blitBatch!.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
             SamplerState.LinearClamp, null, null);
@@ -244,7 +278,9 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             //    Safe even when the view was already removed from ViewManager (UnregisterEditorView
             //    skips the Remove call if TryGetView returns false).
             if (_engineHost != null && !_viewId.IsEmpty)
+            {
                 _engineHost.UnregisterEditorView(_viewId);
+            }
 
             _blitBatch?.Dispose();
             _blitBatch  = null;
@@ -267,15 +303,22 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     /// Called on <see cref="System.Windows.UIElement.MouseEnter"/> so that camera
     /// navigation and gizmo operations always target the hovered viewport.
     /// </summary>
-    private void ActivateThisView()
+    private void ActivateThisView(bool requestFocus = true)
     {
-        if (_engineHost?.ViewManager == null || _viewId.IsEmpty) return;
-        if (_engineHost.ViewManager.TryGetView(_viewId, out var view))
-            _engineHost.ViewManager.SetActive(view);
+        if (_engineHost?.ViewManager == null || _viewId.IsEmpty)
+        {
+            return;
+        }
 
-        // WPF focus pour compatibilité avec les autres éléments WPF.
-        // Le dispatch des providers est géré par EngineHost.Update() (cursor polling Win32).
-        Focus();
+        if (_engineHost.ViewManager.TryGetView(_viewId, out var view))
+        {
+            _engineHost.ViewManager.SetActive(view);
+        }
+
+        if (requestFocus)
+        {
+            Focus();
+        }
     }
 
     /// <summary>
@@ -294,7 +337,11 @@ public sealed class ViewportControl : D3D11Host, IViewHost
 
     private EditorViewContext? GetContext()
     {
-        if (_engineHost?.ViewManager == null || _viewId.IsEmpty) return null;
+        if (_engineHost?.ViewManager == null || _viewId.IsEmpty)
+        {
+            return null;
+        }
+
         return _engineHost.ViewManager.TryGetView(_viewId, out var v)
             ? v.Tag as EditorViewContext
             : null;

@@ -20,7 +20,10 @@ public static class AssetDropHelper
     {
         var formats = e.Data.GetFormats();
         if (formats.Length > 0 && formats[0] == typeof(AssetInfo).FullName)
+        {
             return e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
+        }
+
         return null;
     }
 
@@ -34,7 +37,9 @@ public static class AssetDropHelper
     {
         var assetInfo = ExtractAssetInfo(e);
         if (assetInfo == null)
+        {
             return;
+        }
 
         e.Effects = AssetDropHandlerRegistry.Instance.CanHandle(assetInfo)
             ? DragDropEffects.Copy
@@ -51,7 +56,9 @@ public static class AssetDropHelper
     {
         var assetInfo = ExtractAssetInfo(e);
         if (assetInfo == null)
+        {
             return null;
+        }
 
         var handler = AssetDropHandlerRegistry.Instance.FindHandler(assetInfo);
         return handler?.CreateEntity(assetInfo, game);

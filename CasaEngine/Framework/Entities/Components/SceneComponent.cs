@@ -9,7 +9,7 @@ using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 #if EDITOR
-using XNAGizmo;
+using GizmoTools;
 #endif
 
 namespace CasaEngine.Framework.Entities.Components;

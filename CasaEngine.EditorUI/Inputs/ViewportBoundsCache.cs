@@ -29,7 +29,11 @@ internal sealed class ViewportBoundsCache
     public void Update(FrameworkElement viewport)
     {
         var source = PresentationSource.FromVisual(viewport);
-        if (source == null) return;
+        if (source == null)
+        {
+            return;
+        }
+
         try
         {
             // TransformFromDevice converts physical pixels → WPF logical pixels (device-independent).

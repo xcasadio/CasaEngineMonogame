@@ -3695,6 +3695,14 @@
     {
       "id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b",
       "file_name": "Skinned\\kid_idle.model"
+    },
+    {
+      "id": "3e749ed4-af5e-4001-a911-bc5f1e6f89c8",
+      "file_name": "Car.x"
+    },
+    {
+      "id": "7dc07544-06da-4a49-89ec-88ff7de9710c",
+      "file_name": "Car.staticModel"
     }
   ]
 }

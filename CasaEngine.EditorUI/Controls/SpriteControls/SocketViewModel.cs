@@ -12,7 +12,11 @@ public class SocketViewModel : NotifyPropertyChangeBase
         get => _socket.Name;
         set
         {
-            if (value == _socket.Name) return;
+            if (value == _socket.Name)
+            {
+                return;
+            }
+
             _socket.Name = value;
             OnPropertyChanged();
         }
@@ -23,7 +27,11 @@ public class SocketViewModel : NotifyPropertyChangeBase
         get => _socket.Position;
         set
         {
-            if (value == _socket.Position) return;
+            if (value == _socket.Position)
+            {
+                return;
+            }
+
             _socket.Position = value;
             OnPropertyChanged();
         }

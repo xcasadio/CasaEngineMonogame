@@ -32,7 +32,10 @@ public partial class WorldEditorControl : EditorControlBase
     private void OnWorldViewRegistered(object? sender, ViewId viewId)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         EntitiesControl.InitializeFromEngineHost(host, viewId);
         EntityControl.InitializeFromEngineHost(host, viewId);
@@ -61,7 +64,11 @@ public partial class WorldEditorControl : EditorControlBase
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
         var world = EngineHost.Instance?.Game?.GameManager.CurrentWorld;
-        if (world == null) return;
+        if (world == null)
+        {
+            return;
+        }
+
         AssetSaver.SaveAsset(world.FileName, world);
         Logs.WriteInfo($"World {world.Name} saved ({world.FileName})");
     }
@@ -69,7 +76,10 @@ public partial class WorldEditorControl : EditorControlBase
     private void SaveEverything()
     {
         var game = EngineHost.Instance?.Game;
-        if (game == null) return;
+        if (game == null)
+        {
+            return;
+        }
 
         foreach (var assetInfo in AssetCatalog.AssetInfos)
         {
@@ -105,7 +115,9 @@ public partial class WorldEditorControl : EditorControlBase
             }
 
             if (actor != null)
+            {
                 AssetSaver.SaveAsset(actor.FileName, actor);
+            }
         }
 
         AssetCatalog.Save();

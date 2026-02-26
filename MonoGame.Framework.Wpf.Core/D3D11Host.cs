@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace Microsoft.Xna.Framework
 {
@@ -179,6 +180,23 @@ namespace Microsoft.Xna.Framework
         }
 
         protected abstract void LoadContent();
+
+        /// <summary>
+        /// Override hit-testing so that the control is always hit within its bounds.
+        /// The base <see cref="Image"/> class delegates hit-testing to the bitmap
+        /// source, which is unreliable with <see cref="D3D11Image"/> interop surfaces
+        /// and causes WPF drag-and-drop to show a "forbidden" cursor intermittently.
+        /// </summary>
+        protected override HitTestResult HitTestCore(PointHitTestParameters hitTestParameters)
+        {
+            return new PointHitTestResult(this, hitTestParameters.HitPoint);
+        }
+
+        /// <inheritdoc/>
+        protected override GeometryHitTestResult HitTestCore(GeometryHitTestParameters hitTestParameters)
+        {
+            return new GeometryHitTestResult(this, IntersectionDetail.FullyContains);
+        }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {

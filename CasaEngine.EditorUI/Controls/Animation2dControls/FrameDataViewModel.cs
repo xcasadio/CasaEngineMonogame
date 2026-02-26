@@ -14,7 +14,11 @@ public class FrameDataViewModel : NotifyPropertyChangeBase
         get => FrameData.Duration;
         set
         {
-            if (EqualityComparer<float>.Default.Equals(FrameData.Duration, value)) return;
+            if (EqualityComparer<float>.Default.Equals(FrameData.Duration, value))
+            {
+                return;
+            }
+
             FrameData.Duration = value;
             OnPropertyChanged();
         }

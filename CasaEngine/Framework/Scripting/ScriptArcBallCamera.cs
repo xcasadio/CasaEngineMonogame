@@ -81,11 +81,10 @@ public class ScriptArcBallCamera : GameplayProxy
             verticalOrbit = -_inputComponent.MouseManager.DeltaY;
         }
 
-        // Molette : zoom (rapproche/eloigne la cible).
         var wheelDelta = _inputComponent.MouseManager.WheelDelta;
         if (wheelDelta != 0)
         {
-            zoom = -wheelDelta * 0.1f;
+            //zoom = -wheelDelta * 0.1f;
         }
 
         //#if EDITOR
@@ -94,13 +93,6 @@ public class ScriptArcBallCamera : GameplayProxy
         horizontalOrbit = -horizontalOrbit;
         verticalOrbit = -verticalOrbit;
         //#endif
-
-        //Touch
-        //if (_inputComponent.IsTouchMove(0) == true)
-        //{
-        //    horizontalOrbit = -Game.Instance().GetInput().TouchMoveDeltaX(0);
-        //    verticalOrbit = -Game.Instance().GetInput().TouchMoveDeltaY(0);
-        //}
 
         HandleControls(elapsedTime, rightAxis, upAxis, forwardAxis, horizontalOrbit, verticalOrbit, rollOrbit, zoom);
     }

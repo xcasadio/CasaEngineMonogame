@@ -10,7 +10,10 @@ public class ContentBrowserItemDataTemplateSelector : DataTemplateSelector
 
     public override DataTemplate SelectTemplate(object item, DependencyObject container)
     {
-        if (item == null) return null;
+        if (item == null)
+        {
+            return null;
+        }
 
         if (item is FolderItem)
         {

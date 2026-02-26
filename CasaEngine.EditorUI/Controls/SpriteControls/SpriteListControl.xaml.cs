@@ -43,8 +43,14 @@ public partial class SpriteListControl : UserControl
             _game = host.Game;
             DataContext = new SpritesModelView();
         }
-        if (host.IsStarted) Wire();
-        else host.Started += (_, _) => Wire();
+        if (host.IsStarted)
+        {
+            Wire();
+        }
+        else
+        {
+            host.Started += (_, _) => Wire();
+        }
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

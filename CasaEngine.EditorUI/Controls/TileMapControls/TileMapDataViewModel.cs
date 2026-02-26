@@ -20,7 +20,11 @@ public class TileMapDataViewModel : NotifyPropertyChangeBase
         get => TileMapData?.MapSize ?? Size.Zero;
         set
         {
-            if (EqualityComparer<Size>.Default.Equals(TileMapData.MapSize, value)) return;
+            if (EqualityComparer<Size>.Default.Equals(TileMapData.MapSize, value))
+            {
+                return;
+            }
+
             TileMapData.MapSize = value;
             OnPropertyChanged();
         }
@@ -31,7 +35,11 @@ public class TileMapDataViewModel : NotifyPropertyChangeBase
         get => TileSetData?.TileSize ?? Size.Zero;
         set
         {
-            if (EqualityComparer<Size>.Default.Equals(TileSetData.TileSize, value)) return;
+            if (EqualityComparer<Size>.Default.Equals(TileSetData.TileSize, value))
+            {
+                return;
+            }
+
             TileSetData.TileSize = value;
             OnPropertyChanged();
         }

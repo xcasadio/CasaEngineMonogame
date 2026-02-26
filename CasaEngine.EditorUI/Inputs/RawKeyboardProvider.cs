@@ -40,20 +40,28 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
     /// </summary>
     public bool IsCursorOverViewport()
     {
-        if (!GetCursorPos(out var pt)) return false;
+        if (!GetCursorPos(out var pt))
+        {
+            return false;
+        }
+
         return _bounds.Contains(pt.X, pt.Y);
     }
 
     public KeyboardState GetState()
     {
         if (!IsCursorOverViewport())
+        {
             return new KeyboardState();
+        }
 
         var pressed = new List<Keys>();
         for (var i = 8; i < 256; i++)
         {
             if ((GetAsyncKeyState(i) & 0x8000) != 0)
+            {
                 pressed.Add((Keys)i);
+            }
         }
 
         return new KeyboardState(pressed.ToArray());

@@ -56,8 +56,14 @@ public partial class Animation2dListControl : UserControl
     public void InitializeFromEngineHost(EngineHost host)
     {
         void Wire() { _game = host.Game; DataContext = new Animation2dAssetListModelView(); }
-        if (host.IsStarted) Wire();
-        else host.Started += (_, _) => Wire();
+        if (host.IsStarted)
+        {
+            Wire();
+        }
+        else
+        {
+            host.Started += (_, _) => Wire();
+        }
     }
 
     private void ListBox_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)

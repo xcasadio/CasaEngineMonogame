@@ -18,15 +18,21 @@ public partial class Animation2dEditorControl : EditorControlBase
         InitializeComponent();
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             Animation2dListControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         if (EngineHost.Instance != null)
+        {
             Animation2dListControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
     }
 
     protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)

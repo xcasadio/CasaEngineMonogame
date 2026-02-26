@@ -13,7 +13,7 @@ using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 #if EDITOR
-using XNAGizmo;
+using GizmoTools;
 #endif
 
 namespace CasaEngine.Framework.World;

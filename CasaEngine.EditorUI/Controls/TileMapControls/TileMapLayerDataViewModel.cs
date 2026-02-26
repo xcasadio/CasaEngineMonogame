@@ -19,7 +19,11 @@ public class TileMapLayerDataViewModel : NotifyPropertyChangeBase
         get => TileMapLayerData.Name;
         set
         {
-            if (EqualityComparer<string>.Default.Equals(TileMapLayerData.Name, value)) return;
+            if (EqualityComparer<string>.Default.Equals(TileMapLayerData.Name, value))
+            {
+                return;
+            }
+
             TileMapLayerData.Name = value;
             OnPropertyChanged();
         }
@@ -30,7 +34,11 @@ public class TileMapLayerDataViewModel : NotifyPropertyChangeBase
         get => TileMapLayerData.tiles;
         set
         {
-            if (EqualityComparer<List<int>>.Default.Equals(TileMapLayerData.tiles, value)) return;
+            if (EqualityComparer<List<int>>.Default.Equals(TileMapLayerData.tiles, value))
+            {
+                return;
+            }
+
             TileMapLayerData.tiles = value;
             OnPropertyChanged();
         }
@@ -41,7 +49,11 @@ public class TileMapLayerDataViewModel : NotifyPropertyChangeBase
         get => TileMapLayerData.zOffset;
         set
         {
-            if (EqualityComparer<float>.Default.Equals(TileMapLayerData.zOffset, value)) return;
+            if (EqualityComparer<float>.Default.Equals(TileMapLayerData.zOffset, value))
+            {
+                return;
+            }
+
             TileMapLayerData.zOffset = value;
             OnPropertyChanged();
         }

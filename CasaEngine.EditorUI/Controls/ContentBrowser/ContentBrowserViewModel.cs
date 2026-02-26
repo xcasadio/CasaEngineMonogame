@@ -71,9 +71,13 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     public void Initialize(EngineHost host)
     {
         if (host.IsStarted)
+        {
             OnGameStarted(host.Game, EventArgs.Empty);
+        }
         else
+        {
             host.Started += (_, _) => OnGameStarted(host.Game, EventArgs.Empty);
+        }
     }
 
     private void OnGameStarted(object? sender, EventArgs e)

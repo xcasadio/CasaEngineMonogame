@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using CasaEngine.EditorUI.DragAndDrop;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorUI;
 

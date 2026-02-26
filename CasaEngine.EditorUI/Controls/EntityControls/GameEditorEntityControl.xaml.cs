@@ -25,15 +25,22 @@ public partial class GameEditorEntityControl : UserControl
         InitializeComponent();
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         _viewId = host.RegisterEditorView(new EditorViewDefinition
         {
@@ -59,7 +66,10 @@ public partial class GameEditorEntityControl : UserControl
         var host = EngineHost.Instance;
         var ctx = host?.GetViewContext(_viewId);
         var world = ctx?.World;
-        if (world == null) return;
+        if (world == null)
+        {
+            return;
+        }
 
         entity.Initialize();
         world.ClearEntities();
@@ -69,7 +79,10 @@ public partial class GameEditorEntityControl : UserControl
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        if (EntityControlViewModel == null) return;
+        if (EntityControlViewModel == null)
+        {
+            return;
+        }
 
         var fileName = EntityControlViewModel.Entity.FileName;
         AssetSaver.SaveAsset(fileName, EntityControlViewModel.Entity);

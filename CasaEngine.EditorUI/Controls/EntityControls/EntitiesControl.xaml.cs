@@ -13,7 +13,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
-using XNAGizmo;
+using GizmoTools;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -78,8 +78,14 @@ public partial class EntitiesControl : UserControl
             }
         }
 
-        if (host.IsStarted) Wire();
-        else host.Started += (_, _) => Wire();
+        if (host.IsStarted)
+        {
+            Wire();
+        }
+        else
+        {
+            host.Started += (_, _) => Wire();
+        }
     }
 
     private void OnDeleteSelectionEvent(object? sender, List<ITransformable> selectionPool)
@@ -124,7 +130,7 @@ public partial class EntitiesControl : UserControl
         {
             if (entityViewModel.Entity.RootComponent != null)
             {
-                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+                _gizmoComponent.Gizmo.AddToSelection(entityViewModel.Entity.RootComponent);
             }
         }
 
@@ -158,7 +164,10 @@ public partial class EntitiesControl : UserControl
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
-        if (Game?.GameManager.CurrentWorld == null) return;
+        if (Game?.GameManager.CurrentWorld == null)
+        {
+            return;
+        }
 
         var entityListViewModel = (DataContext as EntityListViewModel);
         TreeViewEntities.ItemsSource = entityListViewModel.Entities;
@@ -193,11 +202,11 @@ public partial class EntitiesControl : UserControl
         {
             if (entityViewModel?.Entity?.RootComponent != null)
             {
-                _gizmoComponent.Gizmo.Selection.Add(entityViewModel.Entity.RootComponent);
+                _gizmoComponent.Gizmo.AddToSelection(entityViewModel.Entity.RootComponent);
             }
-
-            SetSelectedItem(entityViewModel);
         }
+
+        SetSelectedItem(entityViewModel);
 
         _isSelectionTriggerFromGizmoActive = true;
     }
@@ -271,7 +280,7 @@ public partial class EntitiesControl : UserControl
 
                 if (entityViewModel.ComponentListViewModel?.RootComponentViewModel?.Component is SceneComponent sceneComponent)
                 {
-                    _gizmoComponent.Gizmo.Selection.Remove(sceneComponent);
+                    _gizmoComponent.Gizmo.RemoveFromSelection(sceneComponent);
                 }
             }
         }

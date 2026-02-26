@@ -13,7 +13,11 @@ public class Animation2dDataViewModel : NotifyPropertyChangeBase
         get => Animation2dData.Name;
         set
         {
-            if (EqualityComparer<string>.Default.Equals(Animation2dData.Name, value)) return;
+            if (EqualityComparer<string>.Default.Equals(Animation2dData.Name, value))
+            {
+                return;
+            }
+
             Animation2dData.Name = value;
             OnPropertyChanged();
         }
@@ -24,7 +28,11 @@ public class Animation2dDataViewModel : NotifyPropertyChangeBase
         get => Animation2dData.AnimationType;
         set
         {
-            if (EqualityComparer<AnimationType>.Default.Equals(Animation2dData.AnimationType, value)) return;
+            if (EqualityComparer<AnimationType>.Default.Equals(Animation2dData.AnimationType, value))
+            {
+                return;
+            }
+
             Animation2dData.AnimationType = value;
             OnPropertyChanged();
         }

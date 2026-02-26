@@ -20,7 +20,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         get => _spriteData.Name;
         set
         {
-            if (value == _spriteData.Name) return;
+            if (value == _spriteData.Name)
+            {
+                return;
+            }
+
             _spriteData.Name = value;
             OnPropertyChanged();
         }
@@ -32,7 +36,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         get => _spriteData.SpriteSheetAssetId;
         set
         {
-            if (value == _spriteData.SpriteSheetAssetId) return;
+            if (value == _spriteData.SpriteSheetAssetId)
+            {
+                return;
+            }
+
             _spriteData.SpriteSheetAssetId = value;
             OnPropertyChanged();
         }
@@ -44,7 +52,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         get => _spriteData.PositionInTexture;
         set
         {
-            if (value.Equals(_spriteData.PositionInTexture)) return;
+            if (value.Equals(_spriteData.PositionInTexture))
+            {
+                return;
+            }
+
             _spriteData.PositionInTexture = value;
             OnPropertyChanged();
         }
@@ -56,7 +68,11 @@ public class SpriteDataViewModel : NotifyPropertyChangeBase
         get => _spriteData.Origin;
         set
         {
-            if (value.Equals(_spriteData.Origin)) return;
+            if (value.Equals(_spriteData.Origin))
+            {
+                return;
+            }
+
             _spriteData.Origin = value;
             OnPropertyChanged();
         }

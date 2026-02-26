@@ -34,7 +34,11 @@ public partial class EntityEditorControl : EditorControlBase
     private void OnEntityViewRegistered(object? sender, ViewId viewId)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
+
         EntityControl.InitializeFromEngineHost(host, viewId);
     }
 
@@ -52,13 +56,18 @@ public partial class EntityEditorControl : EditorControlBase
 
         // TODO: remove
         if (e.Model.Title == "Game ScreenGui")
+        {
             e.Model.Title = "Entity Editor";
+        }
     }
 
     public void OpenEntity(string fileName)
     {
         var game = EngineHost.Instance?.Game;
-        if (game == null) return;
+        if (game == null)
+        {
+            return;
+        }
 
         var assetInfo = AssetCatalog.GetByFileName(fileName);
         var entity = game.AssetContentManager.Load<Entity>(assetInfo.Id);

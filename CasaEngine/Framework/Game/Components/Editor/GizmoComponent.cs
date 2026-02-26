@@ -8,7 +8,7 @@ using CasaEngine.Framework.Rendering;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using XNAGizmo;
+using GizmoTools;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
 

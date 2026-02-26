@@ -32,15 +32,22 @@ public partial class GameEditorWorldControl : UserControl
         gameViewport.Drop += OnDrop;
         gameViewport.DragOver += OnDragOver;
         if (EngineHost.Instance?.IsStarted == true)
+        {
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         _viewId = host.RegisterEditorView(new EditorViewDefinition
         {
@@ -57,11 +64,17 @@ public partial class GameEditorWorldControl : UserControl
         DataContext = new WorldEditorViewModel(host, _viewId);
 
         var physicsDebugView = host.Game.GetGameComponent<PhysicsDebugViewRendererComponent>();
-        if (physicsDebugView != null) physicsDebugView.DisplayPhysics = true;
+        if (physicsDebugView != null)
+        {
+            physicsDebugView.DisplayPhysics = true;
+        }
+
         host.Game.GameManager.WorldChanged += OnWorldChanged;
 
         if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.FirstWorldLoaded))
+        {
             host.Game.GameManager.SetWorldToLoad(GameSettings.ProjectSettings.FirstWorldLoaded);
+        }
 
         ViewRegistered?.Invoke(this, _viewId);
     }
@@ -81,7 +94,11 @@ public partial class GameEditorWorldControl : UserControl
     private void ButtonLaunchGame_Click(object sender, RoutedEventArgs e)
     {
         var game = EngineHost.Instance?.Game;
-        if (game == null) return;
+        if (game == null)
+        {
+            return;
+        }
+
         game.IsRunningInGameEditorMode = !game.IsRunningInGameEditorMode;
         game.PhysicsEngineComponent.Enabled = game.IsRunningInGameEditorMode;
         buttonLaunch.Content = game.IsRunningInGameEditorMode ? "Running" : "Launch";
@@ -146,7 +163,10 @@ public partial class GameEditorWorldControl : UserControl
     private void CreateEntity(Entity entity, Point mousePosition)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         var ctx = host.GetViewContext(_viewId);
         var gizmoComponent = ctx?.Gizmo;

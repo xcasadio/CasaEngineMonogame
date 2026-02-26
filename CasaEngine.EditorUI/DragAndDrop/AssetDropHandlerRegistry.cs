@@ -37,7 +37,9 @@ public class AssetDropHandlerRegistry
         foreach (var handler in _handlers)
         {
             if (handler.SupportedExtensions.Contains(extension) && handler.CanHandle(assetInfo))
+            {
                 return handler;
+            }
         }
         return null;
     }

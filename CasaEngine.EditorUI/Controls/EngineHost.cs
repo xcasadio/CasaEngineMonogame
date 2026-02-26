@@ -164,13 +164,18 @@ public sealed class EngineHost : WpfGame
                             _game.SetInputProvider(kbd, mouse);
                             if (ViewManager != null &&
                                 ViewManager.TryGetView(viewId, out var v))
+                            {
                                 ViewManager.SetActive(v);
+                            }
+
                             // Update IsActiveViewport so only the hovered viewport's
                             // GizmoComponent reacts to mouse clicks.
                             foreach (var (vid, vctx) in _viewContexts)
                             {
                                 if (vctx.Gizmo != null)
+                                {
                                     vctx.Gizmo.IsActiveViewport = (vid == viewId);
+                                }
                             }
                         }
                         break;
@@ -185,7 +190,9 @@ public sealed class EngineHost : WpfGame
                     foreach (var (_, vctx) in _viewContexts)
                     {
                         if (vctx.Gizmo != null)
+                        {
                             vctx.Gizmo.IsActiveViewport = false;
+                        }
                     }
                 }
             }
@@ -219,7 +226,11 @@ public sealed class EngineHost : WpfGame
     /// </summary>
     private void OnWheelMessage(ref MSG msg, ref bool handled)
     {
-        if (msg.message != WM_MOUSEWHEEL) return;
+        if (msg.message != WM_MOUSEWHEEL)
+        {
+            return;
+        }
+
         int delta   = (short)(((uint)msg.wParam) >> 16);
         int screenX = (short)((uint)msg.lParam & 0xFFFF);
         int screenY = (short)(((uint)msg.lParam >> 16) & 0xFFFF);
@@ -238,7 +249,9 @@ public sealed class EngineHost : WpfGame
         _inputProviders[viewId] = (keyboard, mouse, bounds);
         // Seed the game with a valid provider immediately (will be overwritten by Update dispatch).
         if (_game != null && _inputProviders.Count == 1)
+        {
             _game.SetInputProvider(keyboard, mouse);
+        }
     }
 
     protected override void Dispose(bool disposing)
@@ -415,7 +428,10 @@ public sealed class EngineHost : WpfGame
     /// </summary>
     public void UnregisterEditorView(ViewId viewId)
     {
-        if (!_viewContexts.TryGetValue(viewId, out var ctx)) return;
+        if (!_viewContexts.TryGetValue(viewId, out var ctx))
+        {
+            return;
+        }
 
         UnregisterEditorViewInternal(ctx);
         _viewContexts.Remove(viewId);
@@ -438,12 +454,17 @@ public sealed class EngineHost : WpfGame
 
     private void UnregisterEditorViewInternal(EditorViewContext ctx)
     {
-        if (_game == null) return;
+        if (_game == null)
+        {
+            return;
+        }
 
         // Clean up per-viewport input provider registration.
         _inputProviders.Remove(ctx.ViewId);
         if (_activeInputViewId == ctx.ViewId)
+        {
             _activeInputViewId = ViewId.Empty;
+        }
 
         // Remove overlay components from the game component list.
         if (ctx.Gizmo != null)

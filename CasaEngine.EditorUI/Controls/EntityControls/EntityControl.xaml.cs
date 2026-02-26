@@ -14,7 +14,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
-using XNAGizmo;
+using GizmoTools;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -74,8 +74,14 @@ public partial class EntityControl : UserControl
             }
         }
 
-        if (host.IsStarted) Wire();
-        else host.Started += (_, _) => Wire();
+        if (host.IsStarted)
+        {
+            Wire();
+        }
+        else
+        {
+            host.Started += (_, _) => Wire();
+        }
     }
 
     private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
@@ -89,7 +95,11 @@ public partial class EntityControl : UserControl
         if (selectedSceneComponent != null)
         {
             var entityViewModel = DataContext as EntityViewModel;
-            if (entityViewModel == null) return;
+            if (entityViewModel == null)
+            {
+                return;
+            }
+
             SetSelectedItem(entityViewModel.GetFromComponent(selectedSceneComponent));
         }
     }
@@ -228,7 +238,7 @@ public partial class EntityControl : UserControl
     private void SelectInGizmo(SceneComponent sceneComponent)
     {
         _gizmoComponent.Gizmo.Clear();
-        _gizmoComponent.Gizmo.Selection.Add(sceneComponent);
+        _gizmoComponent.Gizmo.AddToSelection(sceneComponent);
     }
 
     private void TreeView_KeyUp(object sender, KeyEventArgs e)
@@ -242,7 +252,7 @@ public partial class EntityControl : UserControl
                 if (componentViewModel.Component is SceneComponent sceneComponent)
                 {
                     var gizmoComponent = _game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.Selection.Remove(sceneComponent);
+                    gizmoComponent.Gizmo.RemoveFromSelection(sceneComponent);
                 }
             }
         }

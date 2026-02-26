@@ -4,7 +4,8 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
-using XNAGizmo;
+using GizmoTools;
+using GizmoTools;
 
 namespace CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 
@@ -83,7 +84,9 @@ public class WorldEditorViewModel : NotifyPropertyChangeBase
                            ?? _game?.GetGameComponent<GizmoComponent>();
 
             if (_game != null)
+            {
                 _game.GameManager.WorldChanged += OnWorldChanged;
+            }
 
             if (_gizmoComponent != null)
             {
@@ -96,14 +99,23 @@ public class WorldEditorViewModel : NotifyPropertyChangeBase
             OnWorldChanged(this, EventArgs.Empty);
         }
 
-        if (host.IsStarted) Wire();
-        else host.Started += (_, _) => Wire();
+        if (host.IsStarted)
+        {
+            Wire();
+        }
+        else
+        {
+            host.Started += (_, _) => Wire();
+        }
     }
 
     private void OnWorldChanged(object? sender, EventArgs e)
     {
         var currentWorld = _game?.GameManager.CurrentWorld;
-        if (currentWorld == null) return;  // no world loaded yet (e.g. new empty project)
+        if (currentWorld == null)
+        {
+            return;  // no world loaded yet (e.g. new empty project)
+        }
 
         var worldViewModel = new RootNodeEntityViewModel(currentWorld);
         EntitiesViewModel = new EntityListViewModel(worldViewModel);

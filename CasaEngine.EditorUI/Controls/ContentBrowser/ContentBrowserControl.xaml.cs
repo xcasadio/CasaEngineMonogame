@@ -495,7 +495,7 @@ public partial class ContentBrowserControl : UserControl
         if (_dragAndDropData != null && e.LeftButton == MouseButtonState.Pressed /* && detect moving ?? */
                                      && sender is DependencyObject dependencyObject)
         {
-            DragDrop.DoDragDrop(dependencyObject, _dragAndDropData, DragDropEffects.Move);
+            DragDrop.DoDragDrop(dependencyObject, _dragAndDropData, DragDropEffects.Copy | DragDropEffects.Move);
             e.Handled = true;
         }
     }

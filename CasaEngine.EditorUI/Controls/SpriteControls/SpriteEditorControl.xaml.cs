@@ -20,9 +20,13 @@ public partial class SpriteEditorControl : EditorControlBase
         InitializeComponent();
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             SpriteListControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
 
         dockingManagerSprite.ActiveContentChanged += DockingManagerSprite_ActiveContentChanged;
     }
@@ -30,7 +34,9 @@ public partial class SpriteEditorControl : EditorControlBase
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         if (EngineHost.Instance != null)
+        {
             SpriteListControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
     }
 
     private void DockingManagerSprite_ActiveContentChanged(object? sender, System.EventArgs e)

@@ -18,7 +18,11 @@ public class Collision2dViewModel : NotifyPropertyChangeBase
         get => _collision2d.CollisionHitType;
         set
         {
-            if (value.Equals(_collision2d.CollisionHitType)) return;
+            if (value.Equals(_collision2d.CollisionHitType))
+            {
+                return;
+            }
+
             _collision2d.CollisionHitType = value;
             OnPropertyChanged();
         }
@@ -30,7 +34,11 @@ public class Collision2dViewModel : NotifyPropertyChangeBase
         get => _collision2d.Shape;
         set
         {
-            if (value.Equals(_collision2d.Shape)) return;
+            if (value.Equals(_collision2d.Shape))
+            {
+                return;
+            }
+
             _collision2d.Shape = value;
             OnPropertyChanged();
         }

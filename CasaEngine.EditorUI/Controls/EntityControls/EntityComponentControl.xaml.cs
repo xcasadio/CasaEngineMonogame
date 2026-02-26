@@ -24,14 +24,23 @@ public partial class EntityComponentControl : UserControl
 
     public void InitializeFromEngineHost(EngineHost host)
     {
-        if (host.IsStarted) OnGameStarted(host.Game, EventArgs.Empty);
-        else host.Started += OnGameStarted;
+        if (host.IsStarted)
+        {
+            OnGameStarted(host.Game, EventArgs.Empty);
+        }
+        else
+        {
+            host.Started += OnGameStarted;
+        }
     }
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
         _game = sender as CasaEngineGame ?? (sender as EngineHost)?.Game;
-        if (_game != null) _game.FrameComputed += OnFrameComputed;
+        if (_game != null)
+        {
+            _game.FrameComputed += OnFrameComputed;
+        }
     }
 
     private void OnFrameComputed(object? sender, EventArgs e)

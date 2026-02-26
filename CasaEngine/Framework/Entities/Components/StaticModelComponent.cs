@@ -10,15 +10,15 @@ namespace CasaEngine.Framework.Entities.Components;
 
 /// <summary>
 /// Renders a <see cref="StaticModel"/> asset in the world.
-/// The model is loaded once during <see cref="InitializeWithWorld"/> and its
-/// full geometry hierarchy is submitted every frame to
-/// <see cref="StaticMeshRendererComponent"/>.
+/// On <see cref="InitializeWithWorld"/>, the model hierarchy is expanded into
+/// child <see cref="StaticModelSubMeshComponent"/> instances (one per
+/// <see cref="StaticModelNode"/> referencing a mesh).  Each child is marked
+/// <see cref="StaticModelSubMeshComponent.IsGeneratedFromModel"/> so that
+/// <see cref="Save"/> skips them — they are always rebuilt from the asset.
 /// </summary>
 [DisplayName("Static Model")]
 public class StaticModelComponent : PrimitiveComponent
 {
-    private StaticMeshRendererComponent? _meshRendererComponent;
-
     /// <summary>Asset ID of the <see cref="StaticModel"/> to render.</summary>
     public Guid StaticModelAssetId { get; set; } = Guid.Empty;
 
@@ -38,84 +38,59 @@ public class StaticModelComponent : PrimitiveComponent
     {
         base.InitializeWithWorld(world);
 
-        _meshRendererComponent = world.Game.GetGameComponent<StaticMeshRendererComponent>()!;
-
         if (StaticModelAssetId != Guid.Empty && StaticModel == null)
         {
             StaticModel = world.Game.AssetContentManager.Load<Graphics.StaticModel>(StaticModelAssetId);
             StaticModel?.Initialize(world.Game.AssetContentManager);
         }
-    }
 
-    public override void Draw(float elapsedTime)
-    {
-        base.Draw(elapsedTime);
-
-        if (StaticModel?.RootNode == null || _meshRendererComponent == null)
+        if (StaticModel?.RootNode != null)
         {
-            return;
-        }
+            // Remove any previously generated children (e.g. re-initialize).
+            var old = Children
+                .OfType<StaticModelSubMeshComponent>()
+                .Where(c => c.IsGeneratedFromModel)
+                .ToList();
+            foreach (var c in old)
+            {
+                RemoveChildComponent(c);
+            }
 
-        DrawNode(StaticModel.RootNode, WorldMatrixWithScale);
+            // Build the component hierarchy from the model node tree.
+            BuildHierarchy(StaticModel.RootNode, this, world);
+        }
     }
 
-    private void DrawNode(StaticModelNode node, Matrix parentWorldMatrix)
+    private void BuildHierarchy(StaticModelNode node, SceneComponent parent, World.World world)
     {
-        var nodeWorld = node.LocalTransform * parentWorldMatrix;
+        var sub = new StaticModelSubMeshComponent
+        {
+            Name = node.Name,
+            IsGeneratedFromModel = true,
+        };
 
+        // Apply the node's local transform.
+        sub.Coordinates.Position    = node.Position;
+        sub.Coordinates.Orientation = node.Rotation;
+        sub.Coordinates.Scale       = node.Scale;
+
+        // Wire up the mesh if this node has one.
         if (node.MeshIndex >= 0 && node.MeshIndex < StaticModel!.Meshes.Count)
         {
-            var mesh = StaticModel.Meshes[node.MeshIndex];
-            if (mesh.VertexBuffer != null)
-            {
-                var invTranspose = Matrix.Transpose(Matrix.Invert(nodeWorld));
-                _meshRendererComponent!.AddMesh(mesh, nodeWorld, invTranspose);
-            }
+            sub.ModelMesh = StaticModel.Meshes[node.MeshIndex];
         }
+
+        parent.AddChildComponent(sub);
+        sub.InitializeWithWorld(world);
 
         foreach (var child in node.Children)
         {
-            DrawNode(child, nodeWorld);
+            BuildHierarchy(child, sub, world);
         }
     }
 
-    public override BoundingBox GetBoundingBox()
-    {
-        if (StaticModel?.RootNode == null)
-        {
-            return base.GetBoundingBox();
-        }
-
-        var min = new Vector3(float.MaxValue);
-        var max = new Vector3(float.MinValue);
-        bool any = false;
-
-        AccumulateBounds(StaticModel.RootNode, WorldMatrixWithScale, ref min, ref max, ref any);
-
-        return any ? new BoundingBox(min, max) : base.GetBoundingBox();
-    }
-
-    private void AccumulateBounds(StaticModelNode node, Matrix parentWorld, ref Vector3 min, ref Vector3 max, ref bool any)
-    {
-        var nodeWorld = node.LocalTransform * parentWorld;
-
-        if (node.MeshIndex >= 0 && node.MeshIndex < StaticModel!.Meshes.Count)
-        {
-            var mesh = StaticModel.Meshes[node.MeshIndex];
-            foreach (var v in mesh.GetVertices())
-            {
-                var p = Vector3.Transform(v.Position, nodeWorld);
-                min = Vector3.Min(min, p);
-                max = Vector3.Max(max, p);
-                any = true;
-            }
-        }
-
-        foreach (var child in node.Children)
-        {
-            AccumulateBounds(child, nodeWorld, ref min, ref max, ref any);
-        }
-    }
+    // Draw and BoundingBox are fully delegated to the child StaticModelSubMeshComponents
+    // via the SceneComponent.Draw() / GetBoundingBox() propagation chain.
 
     public override void Load(JObject element)
     {
@@ -131,8 +106,28 @@ public class StaticModelComponent : PrimitiveComponent
 
     public override void Save(JObject jObject)
     {
+        // Call base (SceneComponent) which writes coordinates + children_component.
         base.Save(jObject);
+
         jObject.Add("static_model_asset_id", StaticModelAssetId.ToString());
+
+        // Replace the children_component array written by base.Save() so that
+        // auto-generated sub-mesh children are excluded — they are always rebuilt
+        // from the asset on load / InitializeWithWorld.
+        var filtered = new JArray();
+        foreach (var child in Children)
+        {
+            if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true })
+            {
+                continue;
+            }
+
+            var childObj = new JObject();
+            child.Save(childObj);
+            filtered.Add(childObj);
+        }
+
+        jObject["children_component"] = filtered;
     }
 
 #endif

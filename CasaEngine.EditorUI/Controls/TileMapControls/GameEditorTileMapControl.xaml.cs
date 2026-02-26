@@ -21,15 +21,22 @@ public partial class GameEditorTileMapControl : UserControl
         InitializeComponent();
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         _viewId = host.RegisterEditorView(new EditorViewDefinition
         {
@@ -43,7 +50,10 @@ public partial class GameEditorTileMapControl : UserControl
 
         var ctx = host.GetViewContext(_viewId);
         var world = ctx?.World;
-        if (world == null) return;
+        if (world == null)
+        {
+            return;
+        }
 
         _previewEntity = new Entity { Name = "TileMap Preview" };
         _tileMapComponent = new TileMapComponent();
@@ -62,14 +72,24 @@ public partial class GameEditorTileMapControl : UserControl
     public void CreateMapEntities(TileMapDataViewModel tileMapDataViewModel)
     {
         if (_tileMapComponent != null)
+        {
             _tileMapComponent.TileMapData = tileMapDataViewModel.TileMapData;
+        }
     }
 
     private void OnZoomChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count == 0 || _previewEntity?.RootComponent == null) return;
+        if (e.AddedItems.Count == 0 || _previewEntity?.RootComponent == null)
+        {
+            return;
+        }
+
         var value = ((e.AddedItems[0] as ComboBoxItem)?.Content as string)?.Remove(0, 1);
-        if (value == null) return;
+        if (value == null)
+        {
+            return;
+        }
+
         _scale = float.Parse(value);
         _previewEntity.RootComponent.Coordinates.Scale = new Vector3(_scale);
     }

@@ -23,15 +23,22 @@ public partial class GameEditorAnimation2dControl : UserControl
         DataContextChanged += OnDataContextChanged;
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         _viewId = host.RegisterEditorView(new EditorViewDefinition
         {
@@ -45,7 +52,10 @@ public partial class GameEditorAnimation2dControl : UserControl
 
         var ctx = host.GetViewContext(_viewId);
         var world = ctx?.World;
-        if (world == null) return;
+        if (world == null)
+        {
+            return;
+        }
 
         _previewEntity = new Entity { Name = "Animation2d Preview" };
         _animatedSpriteComponent = new AnimatedSpriteComponent();
@@ -62,18 +72,26 @@ public partial class GameEditorAnimation2dControl : UserControl
 
         // Apply DataContext if already set before host started.
         if (DataContext is Animation2dDataViewModel animVm)
+        {
             LoadAnimation(animVm);
+        }
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (DataContext is Animation2dDataViewModel animVm && _animatedSpriteComponent != null)
+        {
             LoadAnimation(animVm);
+        }
     }
 
     private void LoadAnimation(Animation2dDataViewModel animVm)
     {
-        if (_animatedSpriteComponent == null) return;
+        if (_animatedSpriteComponent == null)
+        {
+            return;
+        }
+
         var animation2d = new Animation2d(animVm.Animation2dData);
         animation2d.Initialize();
         _animatedSpriteComponent.SetCurrentAnimation(animation2d, true);
@@ -81,9 +99,17 @@ public partial class GameEditorAnimation2dControl : UserControl
 
     private void OnZoomChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count == 0 || _previewEntity?.RootComponent == null) return;
+        if (e.AddedItems.Count == 0 || _previewEntity?.RootComponent == null)
+        {
+            return;
+        }
+
         var value = ((e.AddedItems[0] as ComboBoxItem)?.Content as string)?.Remove(0, 1);
-        if (value == null) return;
+        if (value == null)
+        {
+            return;
+        }
+
         _scale = float.Parse(value);
         _previewEntity.RootComponent.Coordinates.Scale = new Vector3(_scale);
     }

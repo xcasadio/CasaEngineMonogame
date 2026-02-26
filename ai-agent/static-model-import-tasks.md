@@ -244,109 +244,208 @@ StaticMeshRendererComponent.Flush()
 
 ### Phase 1 — Core Engine (classes de données)
 
-- [ ] **Task 1.1** : Créer `StaticModelMesh.cs` dans `CasaEngine/Framework/Graphics/`
-  - Propriétés : Name, Vertices (VertexPositionNormalTexture[]), Indices (uint[]), PrimitiveType, MaterialIndex, TextureAssetId
-  - VertexBuffer / IndexBuffer (créés dans Initialize)
-  - Méthode `Initialize(GraphicsDevice device)`
-  - Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
-  - Méthode `GetVertices()` pour le calcul de bounding box
+- [x] ✅ **Task 1.1** : Créer `StaticModelMesh.cs` dans `CasaEngine/Framework/Graphics/`
+  - ✅ Propriétés : Name, Vertices (VertexPositionNormalTexture[]), Indices (uint[]), PrimitiveType, MaterialIndex, TextureAssetId
+  - ✅ VertexBuffer / IndexBuffer (créés dans Initialize)
+  - ✅ Méthode `Initialize(GraphicsDevice device)`
+  - ✅ Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
+  - ✅ Méthode `GetVertices()` pour le calcul de bounding box
 
-- [ ] **Task 1.2** : Créer `StaticModelNode.cs` dans `CasaEngine/Framework/Graphics/`
-  - Propriétés : Name, Position (Vector3), Rotation (Quaternion), Scale (Vector3), MeshIndex (int, -1 si pas de mesh), Children (List\<StaticModelNode\>)
-  - Propriété calculée `LocalTransform` (Matrix)
-  - Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
+- [x] ✅ **Task 1.2** : Créer `StaticModelNode.cs` dans `CasaEngine/Framework/Graphics/`
+  - ✅ Propriétés : Name, Position (Vector3), Rotation (Quaternion), Scale (Vector3), MeshIndex (int, -1 si pas de mesh), Children (List\<StaticModelNode\>)
+  - ✅ Propriété calculée `LocalTransform` (Matrix)
+  - ✅ Méthodes `Load(JObject)` / `Save(JObject)` (Save sous `#if EDITOR`)
 
-- [ ] **Task 1.3** : Créer `StaticModel.cs` dans `CasaEngine/Framework/Graphics/`
-  - Hérite de `ObjectBase`
-  - Propriétés : RootNode (StaticModelNode), Meshes (List\<StaticModelMesh\>)
-  - Méthode `Initialize(AssetContentManager)` qui initialise chaque mesh
-  - Load/Save qui sérialise la hiérarchie de nodes + les meshes
-  - Méthode `LoadTextures(AssetContentManager)` pour charger les textures référencées
+- [x] ✅ **Task 1.3** : Créer `StaticModel.cs` dans `CasaEngine/Framework/Graphics/`
+  - ✅ Hérite de `ObjectBase`
+  - ✅ Propriétés : RootNode (StaticModelNode), Meshes (List\<StaticModelMesh\>)
+  - ✅ Méthode `Initialize(AssetContentManager)` qui initialise chaque mesh
+  - ✅ Load/Save qui sérialise la hiérarchie de nodes + les meshes
+  - ✅ Méthode `LoadTextures(AssetContentManager)` pour charger les textures référencées
 
-- [ ] **Task 1.4** : Ajouter `StaticModel = ".staticModel"` dans `Constants.FileNameExtensions`
+- [x] ✅ **Task 1.4** : Ajouter `StaticModel = ".staticModel"` dans `Constants.FileNameExtensions`
 
 ### Phase 2 — Asset Loader
 
-- [ ] **Task 2.1** : Créer `StaticModelLoader.cs` dans `CasaEngine/Framework/Assets/Loaders/`
-  - Implémenter `IAssetLoader`
-  - `IsFileSupported` : vérifie extension `.staticModel`
-  - `LoadAsset` : lit le JSON, désérialise un `StaticModel`, retourne l'objet
+- [x] ✅ **Task 2.1** : Créer un loader pour `StaticModel`
+  - ✅ Implémenter `IAssetLoader`
+  - ✅ `IsFileSupported` : vérifie extension `.staticModel`
+  - ✅ `LoadAsset` : lit le JSON, désérialise un `StaticModel`, retourne l'objet
+  - ℹ️ *Implémenté via le générique `AssetLoader<StaticModel>` au lieu d'un `StaticModelLoader` dédié*
 
-- [ ] **Task 2.2** : Enregistrer `StaticModelLoader` pour le type `StaticModel` dans le setup du jeu
-  - Chercher où les autres loaders sont enregistrés (`AssetContentManager.RegisterAssetLoader`)
-  - Ajouter `assetContentManager.RegisterAssetLoader(typeof(StaticModel), new StaticModelLoader())`
+- [x] ✅ **Task 2.2** : Enregistrer le loader pour le type `StaticModel` dans le setup du jeu
+  - ✅ Chercher où les autres loaders sont enregistrés (`AssetContentManager.RegisterAssetLoader`)
+  - ✅ Enregistré via `new AssetLoader<StaticModel>()` dans `AssetLoaderRegistry`
 
 ### Phase 3 — Importer (Éditeur)
 
-- [ ] **Task 3.1** : Créer `StaticModelImporter.cs` dans `CasaEngine/Framework/Assets/Loaders/` (sous `#if EDITOR`)
-  - Utilise `Assimp.AssimpContext` pour charger le fichier 3D
-  - Parcourt `scene.RootNode` récursivement pour construire les `StaticModelNode`
-  - Parcourt `scene.Meshes` pour construire les `StaticModelMesh` (vertices, indices, textures)
-  - Associe les meshes aux nodes (via MeshIndex)
-  - Gère l'extraction des chemins de textures pour l'import
-  - Retourne un `StaticModel` prêt à être sérialisé
-  - PostProcessSteps recommandés : Triangulate, FlipUVs, GenerateNormals, JoinIdenticalVertices
+- [x] ✅ **Task 3.1** : Créer `StaticModelImporter.cs` dans `CasaEngine/Framework/Assets/Loaders/` (sous `#if EDITOR`)
+  - ✅ Utilise `Assimp.AssimpContext` pour charger le fichier 3D
+  - ✅ Parcourt `scene.RootNode` récursivement pour construire les `StaticModelNode`
+  - ✅ Parcourt `scene.Meshes` pour construire les `StaticModelMesh` (vertices, indices, textures)
+  - ✅ Associe les meshes aux nodes (via MeshIndex)
+  - ✅ Gère l'extraction des chemins de textures pour l'import
+  - ✅ Retourne un `StaticModel` prêt à être sérialisé
+  - ✅ PostProcessSteps recommandés : Triangulate, FlipUVs, GenerateNormals, JoinIdenticalVertices
 
-- [ ] **Task 3.2** : Modifier `Import3dFileOptionsWindow.xaml` et `.xaml.cs`
-  - Ajouter un RadioButton ou ComboBox : "Import as Static Model" / "Import as Skinned Model"
-  - Exposer une propriété `ImportAsStaticModel` (bool)
+- [x] ✅ **Task 3.2** : Modifier `Import3dFileOptionsWindow.xaml` et `.xaml.cs`
+  - ✅ Ajouter un RadioButton ou ComboBox : "Import as Static Model" / "Import as Skinned Model"
+  - ✅ Exposer une propriété `ImportAsStaticModel` (bool)
   - Par défaut, sélectionner "Static" si le modèle n'a pas de squelette (peut être déterminé après)
 
-- [ ] **Task 3.3** : Modifier `ContentBrowserControl.ImportAssetFile`
-  - Si `Import3dFileOptionsWindow.ImportAsStaticModel == true` :
-    - Utiliser `StaticModelImporter.Import()`
-    - Sauvegarder le `StaticModel` avec `AssetSaver.SaveAsset()` et extension `.staticModel`
-    - Gérer l'import des textures associées (similaire à `ImportTexturesFromModel`)
-  - Sinon : conserver le workflow existant (RiggedModel → SkinnedMesh)
+- [x] ✅ **Task 3.3** : Modifier `ContentBrowserControl.ImportAssetFile`
+  - ✅ Si `Import3dFileOptionsWindow.ImportAsStaticModel == true` :
+    - ✅ Utiliser `StaticModelImporter.Import()`
+    - ✅ Sauvegarder le `StaticModel` avec `AssetSaver.SaveAsset()` et extension `.staticModel`
+    - ✅ Gérer l'import des textures associées (similaire à `ImportTexturesFromModel`)
+  - ✅ Sinon : conserver le workflow existant (RiggedModel → SkinnedMesh)
 
 ### Phase 4 — Component & Rendering
 
-- [ ] **Task 4.1** : Modifier `StaticMeshComponent` pour supporter `StaticModel`
-  - Ajouter `Guid StaticModelAssetId` et `StaticModel? StaticModel`
-  - Dans `InitializeWithWorld` : si `StaticModelAssetId != Guid.Empty`, charger le `StaticModel` via `AssetContentManager.Load<StaticModel>(id)`
-  - Si le `StaticModel` a une hiérarchie, créer des `StaticMeshComponent` enfants via `AddChildComponent()` pour chaque noeud avec mesh
-  - Chaque enfant reçoit ses Coordinates depuis le `StaticModelNode` correspondant
-  - Chaque enfant reçoit son mesh depuis `StaticModel.Meshes[node.MeshIndex]`
-  - Mettre à jour `Draw()` pour aussi supporter le dessin d'un `StaticModelMesh`
-  - Mettre à jour `GetBoundingBox()` pour prendre en compte tous les enfants
-  - Mettre à jour `Load`/`Save` pour sérialiser le `StaticModelAssetId`
+- [x] ✅ **Task 4.1** : Supporter `StaticModel` dans un component
+  - ✅ `Guid StaticModelAssetId` et `StaticModel? StaticModel`
+  - ✅ Dans `InitializeWithWorld` : charger le `StaticModel` via `AssetContentManager`
+  - ⚠️ La hiérarchie de meshes est dessinée en monolithique via `DrawNode()` récursif — pas de composants enfants créés
+  - ✅ `Draw()` supporte le dessin d'un `StaticModelMesh`
+  - ✅ `GetBoundingBox()` prend en compte tous les enfants
+  - ✅ `Load`/`Save` sérialisent le `StaticModelAssetId`
+  - ℹ️ *Implémenté via un nouveau `StaticModelComponent` dédié (approche alternative plus propre) au lieu de modifier `StaticMeshComponent`*
 
-- [ ] **Task 4.2** : Adapter `StaticMeshRendererComponent` si nécessaire
-  - Vérifier que `AddMesh` / `Flush` supporte `StaticModelMesh` (même structure VertexBuffer/IndexBuffer → devrait fonctionner)
-  - Ajouter une surcharge `AddMesh(StaticModelMesh, ...)` si le type est différent
+- [x] ✅ **Task 4.2** : Adapter `StaticMeshRendererComponent` si nécessaire
+  - ✅ Vérifier que `AddMesh` / `Flush` supporte `StaticModelMesh` (même structure VertexBuffer/IndexBuffer → devrait fonctionner)
+  - ✅ Surcharge `AddMesh(StaticModelMesh, ...)` ajoutée
+
+### Phase 4b — Hiérarchie de composants pour sous-meshes
+
+> **Problème** : `StaticModelComponent` dessine toute la géométrie dans un seul component monolithique via
+> `DrawNode()` récursif. L'éditeur ne voit qu'un seul component — il n'y a pas de hiérarchie de 
+> sous-composants. L'utilisateur ne peut pas sélectionner, masquer ou paramétrer (matériau, visibilité)
+> chaque partie du modèle indépendamment.
+>
+> **Solution** : Créer un composant dédié `StaticModelSubMeshComponent` (léger, une seule responsabilité : rendre
+> un `StaticModelMesh`). Au moment de `InitializeWithWorld()`, `StaticModelComponent` crée un sous-composant
+> pour chaque nœud ayant un mesh, via `SceneComponent.AddChildComponent()`. L'éditeur (`ComponentListViewModel`)
+> affichera automatiquement la hiérarchie car il parcourt déjà les `Children` récursivement.
+>
+> On ne réutilise **pas** `StaticMeshComponent` pour les sous-meshes car :
+> - `StaticMesh` ≠ `StaticModelMesh` (types différents, propriétés différentes)
+> - La sérialisation est opposée : `StaticMeshComponent` sérialise le mesh inline, un sous-mesh ne doit **pas** être sérialisé
+> - Mélanger les deux responsabilités dans un seul component violerait SRP
+> - `StaticMeshComponent` sera retiré à terme (Phase 7)
+
+- [ ] ❌ **Task 4.3** : Créer `StaticModelSubMeshComponent.cs` dans `CasaEngine/Framework/Entities/Components/`
+  - Hérite de `PrimitiveComponent`
+  - Propriété `StaticModelMesh? ModelMesh` (runtime-only, assignée par le parent `StaticModelComponent`)
+  - `Draw()` : appelle `_meshRendererComponent.AddMesh(ModelMesh, world, worldInvT)` (surcharge existante)
+  - `GetBoundingBox()` : calcule la bounding box à partir des vertices de `ModelMesh`
+  - Référence au `StaticMeshRendererComponent` (récupérée dans `InitializeWithWorld`)
+  - `DisplayName` : "Sub Mesh" (ou le nom du nœud assigné par le parent)
+  - Pas de sérialisation du mesh (les données viennent de l'asset parent)
+  - Override possible : `Material`, `IsVisible` (sérialisés si modifiés par l'utilisateur)
+
+- [ ] ❌ **Task 4.4** : Modifier `StaticModelComponent.InitializeWithWorld()` pour créer la hiérarchie
+  - Parcourir récursivement `StaticModel.RootNode`
+  - Pour chaque `StaticModelNode` ayant un `MeshIndex >= 0`, créer un `StaticModelSubMeshComponent` enfant via `AddChildComponent()`
+  - Nommer le composant enfant avec `StaticModelNode.Name` (ex: "Chassis", "Wheel_FL")
+  - Assigner les Coordinates (Position, Rotation, Scale) depuis le `StaticModelNode`
+  - Assigner `subMeshComponent.ModelMesh = StaticModel.Meshes[node.MeshIndex]`
+  - Pour les nœuds structurels (pas de mesh, juste un transform), créer un `StaticModelSubMeshComponent` sans mesh pour préserver la hiérarchie de transforms
+  - Initialiser chaque enfant créé (`InitializePrivate()` + `InitializeWithWorld()`)
+
+- [ ] ❌ **Task 4.5** : Supprimer le rendu monolithique de `StaticModelComponent.Draw()`
+  - Retirer `DrawNode()` et la méthode récursive `DrawNode(StaticModelNode, Matrix)`
+  - Le rendu est maintenant délégué aux enfants `StaticModelSubMeshComponent` via la propagation `SceneComponent.Draw()` → `Children[i].Draw()`
+  - Retirer `AccumulateBounds()` dans `GetBoundingBox()` — le calcul est maintenant fait par les enfants
+
+- [ ] ❌ **Task 4.6** : Créer `StaticModelSubMeshComponentViewModel` + UIéditeur
+  - Créer le ViewModel dans `CasaEngine.EditorUI/Controls/EntityControls/ViewModels/`
+  - Enregistrer dans `ComponentViewModelFactory` (case `StaticModelSubMeshComponent`)
+  - Afficher le nom du sous-mesh, le nombre de vertices/indices
+  - *(Optionnel)* Exposer la visibilité par sous-mesh (toggle enable/disable)
+  - *(Optionnel)* Permettre l'override du material sur un sous-mesh individuel
+  - Vérifier que `StaticModelComponentViewModel` affiche correctement la hiérarchie des sous-composants dans l'arbre
+
+- [ ] ❌ **Task 4.7** : Gérer la sérialisation/désérialisation de la hiérarchie
+  - Lors du `Save` d'une Entity avec un `StaticModelComponent`, les enfants `StaticModelSubMeshComponent` ne doivent **pas** être sérialisés (ils seront recréés à partir du `StaticModel` asset)
+  - Ajouter un flag `IsGeneratedFromModel` (ou similaire) sur `StaticModelSubMeshComponent` pour les distinguer
+  - Lors du `Load`, vérifier que les enfants générés ne sont pas dupliqués au rechargement
+  - Permettre à l'utilisateur d'override des propriétés (matériau, visibilité) sur un enfant → ces overrides doivent être sérialisés
 
 ### Phase 5 — Éditeur UI
 
-- [ ] **Task 5.1** : Mettre à jour `ContentBrowserControl` pour ouvrir/prévisualiser les `.staticModel`
-  - Ajouter le case `.staticModel` dans le switch d'ouverture d'asset
+- [x] ✅ **Task 5.1** : Mettre à jour `ContentBrowserControl` pour ouvrir/prévisualiser les `.staticModel`
+  - ✅ Ajouter le case `.staticModel` dans le switch d'ouverture d'asset
   - Créer un contrôle de preview si nécessaire (ou réutiliser l'existant)
 
-- [ ] **Task 5.2** : Mettre à jour le drag & drop d'asset sur une Entity dans l'éditeur
-  - Permettre de drag & drop un `.staticModel` pour créer automatiquement un `StaticMeshComponent` avec le bon `StaticModelAssetId`
+- [x] ✅ **Task 5.2** : Mettre à jour le drag & drop d'asset sur une Entity dans l'éditeur
+  - ✅ Permettre de drag & drop un `.staticModel` pour créer automatiquement un `StaticModelComponent` avec le bon `StaticModelAssetId`
+  - ℹ️ *Implémenté via `StaticModelAssetDropHandler` enregistré dans `DragAndDropConfiguration`*
 
-- [ ] **Task 5.3** : Créer ou mettre à jour le ViewModel `StaticMeshComponentViewModel`
-  - Afficher / éditer le `StaticModelAssetId` (sélecteur d'asset)
-  - Afficher les propriétés du `StaticModel` chargé (nombre de meshes, hiérarchie)
+- [x] ✅ **Task 5.3** : Créer ou mettre à jour le ViewModel pour `StaticModel`
+  - ✅ Afficher / éditer le `StaticModelAssetId` (sélecteur d'asset)
+  - ✅ Afficher les propriétés du `StaticModel` chargé (nombre de meshes, hiérarchie)
+  - ℹ️ *Implémenté via un nouveau `StaticModelComponentViewModel` dédié*
 
 ### Phase 6 — Tests & Validation
 
-- [ ] **Task 6.1** : Créer une démo `StaticModelDemo` dans `CasaEngine.Demos/`
-  - Charger un fichier FBX multi-mesh
-  - Vérifier l'affichage avec hiérarchie correcte
-  - Vérifier les transforms (position/rotation/scale de chaque noeud)
+- [ ] ❌ **Task 6.1** : Créer une démo `StaticModelDemo` dans `CasaEngine.Demos/`
+  - ❌ Charger un fichier FBX multi-mesh
+  - ❌ Vérifier l'affichage avec hiérarchie correcte
+  - ❌ Vérifier les transforms (position/rotation/scale de chaque noeud)
 
-- [ ] **Task 6.2** : Tester l'import via l'éditeur
-  - Import d'un FBX simple (1 mesh)
-  - Import d'un FBX multi-mesh avec hiérarchie
-  - Vérifier la sérialisation/désérialisation JSON
-  - Vérifier que les textures associées sont importées
-  - Vérifier le rechargement après fermeture/ouverture du projet
+- [ ] ❌ **Task 6.2** : Tester l'import via l'éditeur
+  - ❌ Import d'un FBX simple (1 mesh)
+  - ❌ Import d'un FBX multi-mesh avec hiérarchie
+  - ❌ Vérifier la sérialisation/désérialisation JSON
+  - ❌ Vérifier que les textures associées sont importées
+  - ❌ Vérifier le rechargement après fermeture/ouverture du projet
+
+### Phase 7 — Dépréciation et suppression de `StaticMeshComponent`
+
+> **Contexte** : `StaticMeshComponent` gère un seul `StaticMesh` inline (primitives). Ce cas d'usage est
+> entièrement couvert par un `StaticModel` à 1 mesh + `StaticModelComponent`. Après la Phase 4b,
+> `StaticMeshComponent` n'a plus de raison d'exister.
+>
+> **Usages actuels** :
+> - Primitives procédurales (cubes, plans) dans les Demos
+> - `ArrowComponent` (hérite de `StaticMeshComponent`)
+> - Entities sérialisées (`.entity`, `.world`) dans `SampleProject`
+> - Éditeur : "Select Mesh" dans le panel component
+
+- [ ] ❌ **Task 7.1** : Faire générer des `StaticModel` inline par les primitives
+  - Modifier les factories de primitives (cube, sphere, plane, etc.) pour produire un `StaticModel` à 1 mesh au lieu d'un `StaticMesh`
+  - Ou créer une méthode `StaticModel.CreateFromPrimitive(...)` qui encapsule un `StaticModelMesh` unique dans un `StaticModel` avec un `RootNode` trivial
+
+- [ ] ❌ **Task 7.2** : Migrer `ArrowComponent` pour ne plus hériter de `StaticMeshComponent`
+  - Faire hériter de `StaticModelComponent` ou `StaticModelSubMeshComponent`
+  - Adapter la génération du mesh arrow
+
+- [ ] ❌ **Task 7.3** : Migrer les Demos existantes
+  - Remplacer `new StaticMeshComponent()` par `new StaticModelComponent()` dans toutes les démos
+  - Vérifier : `SplitScreenDemo`, `Collision3dBasicDemo`, `Collision2dBasicDemo`, `SceneManagementDemo`, `UIOverlayDemo`, `RenderToTextureDemo`, `ViewManagerSandbox`
+  - `SandBoxGame` dans `Projects/`
+
+- [ ] ❌ **Task 7.4** : Migrer les fichiers sérialisés existants
+  - Migrer `Projects/SampleProject/Entities/Box.entity` (`"type": "StaticMeshComponent"` → `"type": "StaticModelComponent"`)
+  - Migrer `Projects/SampleProject/DefaultWorld.world`
+  - Créer un outil de migration ou documenter la procédure de migration manuelle
+  - Tester que les fichiers migrés se chargent correctement
+
+- [ ] ❌ **Task 7.5** : Supprimer `StaticMeshComponent` et le code associé
+  - Supprimer `StaticMeshComponent.cs`
+  - Supprimer `StaticMeshComponentViewModel.cs`
+  - Supprimer `StaticMeshComponentControl.xaml` / `.xaml.cs`
+  - Retirer l'entrée dans `ComponentViewModelFactory`
+  - Retirer l'entrée dans `EntityComponentTemplateSelector`
+  - Retirer `StaticMesh.cs` si plus utilisé
+  - Nettoyer la surcharge `AddMesh(StaticMesh, Material, ...)` dans `StaticMeshRendererComponent` si plus utilisée
+  - Vérifier qu'aucune référence résiduelle ne subsiste
 
 ---
 
 ## Notes importantes
 
-1. **Rétrocompatibilité** : le `StaticMesh` existant et son workflow (primitives géométriques, mesh inline dans le component) doivent continuer à fonctionner. Le `StaticModel` est un **ajout**, pas un remplacement.
+1. **Rétrocompatibilité** : le `StaticMesh` / `StaticMeshComponent` existant continue de fonctionner jusqu'à la Phase 7. Le `StaticModel` est un **ajout** dans un premier temps, puis un **remplacement** complet en Phase 7.
 
 2. **Assimp PostProcessFlags** pour l'import static :
    - `PostProcessSteps.Triangulate` — convertir en triangles

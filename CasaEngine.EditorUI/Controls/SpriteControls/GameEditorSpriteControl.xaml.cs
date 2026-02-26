@@ -27,15 +27,22 @@ public partial class GameEditorSpriteControl : UserControl
         DataContextChanged += OnDataContextChanged;
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         var host = EngineHost.Instance;
-        if (host == null) return;
+        if (host == null)
+        {
+            return;
+        }
 
         _viewId = host.RegisterEditorView(new EditorViewDefinition
         {
@@ -49,7 +56,10 @@ public partial class GameEditorSpriteControl : UserControl
 
         var ctx = host.GetViewContext(_viewId);
         var world = ctx?.World;
-        if (world == null) return;
+        if (world == null)
+        {
+            return;
+        }
 
         // Create the preview entity (mirrors what GameEditor2d.LoadContent used to do).
         _previewEntity = new Entity { Name = "Sprite Preview" };
@@ -67,7 +77,9 @@ public partial class GameEditorSpriteControl : UserControl
 
         // Apply DataContext if it was already set before the host started.
         if (DataContext is SpriteDataViewModel spriteVm)
+        {
             _staticSpriteComponent.TryLoadSpriteData(spriteVm.Name);
+        }
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -78,9 +90,16 @@ public partial class GameEditorSpriteControl : UserControl
 
     private void OnZoomChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (e.AddedItems.Count == 0) return;
+        if (e.AddedItems.Count == 0)
+        {
+            return;
+        }
+
         var value = ((e.AddedItems[0] as ComboBoxItem)?.Content as string)?.Remove(0, 1);
-        if (value == null || _previewEntity?.RootComponent == null) return;
+        if (value == null || _previewEntity?.RootComponent == null)
+        {
+            return;
+        }
 
         _scale = float.Parse(value);
         _previewEntity.RootComponent.Coordinates.Scale = new Vector3(_scale);
@@ -90,26 +109,36 @@ public partial class GameEditorSpriteControl : UserControl
     {
         var checkBox = (sender as CheckBox);
         if (SpriteRendererComponent != null)
+        {
             SpriteRendererComponent.IsDrawSpriteOriginEnabled = checkBox?.IsChecked ?? false;
+        }
     }
 
     private void ButtonSpriteBorder_OnClick(object sender, RoutedEventArgs e)
     {
         var checkBox = (sender as CheckBox);
         if (SpriteRendererComponent != null)
+        {
             SpriteRendererComponent.IsDrawSpriteBorderEnabled = checkBox?.IsChecked ?? false;
+        }
     }
 
     private void ButtonDisplaySpriteSheet_OnClick(object sender, RoutedEventArgs e)
     {
         var checkBox = (sender as CheckBox);
         if (SpriteRendererComponent != null)
+        {
             SpriteRendererComponent.IsDrawSpriteSheetEnabled = checkBox?.IsChecked ?? false;
+        }
     }
 
     private void Transparency_OnValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
-        if (SpriteRendererComponent == null) return;
+        if (SpriteRendererComponent == null)
+        {
+            return;
+        }
+
         var slider = (sender as Slider);
         SpriteRendererComponent.SpriteSheetTransparency = (int)(slider?.Value ?? 0);
     }
@@ -118,7 +147,9 @@ public partial class GameEditorSpriteControl : UserControl
     {
         var checkBox = (sender as CheckBox);
         if (SpriteRendererComponent != null)
+        {
             SpriteRendererComponent.IsDrawCollisionsEnabled = checkBox?.IsChecked ?? false;
+        }
     }
 
     private void ButtonDisplaySockets_OnClick(object sender, RoutedEventArgs e)

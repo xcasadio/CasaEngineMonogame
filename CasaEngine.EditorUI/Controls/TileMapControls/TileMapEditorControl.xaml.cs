@@ -21,15 +21,21 @@ public partial class TileMapEditorControl : EditorControlBase
         DataContext = new TileMapDataViewModel();
 
         if (EngineHost.Instance?.IsStarted == true)
+        {
             TileMapDetailsControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
         else
+        {
             EngineHost.InstanceStarted += OnEngineHostStarted;
+        }
     }
 
     private void OnEngineHostStarted(object? sender, EventArgs e)
     {
         if (EngineHost.Instance != null)
+        {
             TileMapDetailsControl.InitializeFromEngineHost(EngineHost.Instance);
+        }
     }
 
     protected override void LayoutSerializationCallback(object? sender, LayoutSerializationCallbackEventArgs e)
@@ -51,7 +57,9 @@ public partial class TileMapEditorControl : EditorControlBase
         TileMapDetailsControl.OpenMap(fileName);
         var tileMapDataVm = TileMapDetailsControl.DataContext as TileMapDataViewModel;
         if (tileMapDataVm != null)
+        {
             GameEditorControl.CreateMapEntities(tileMapDataVm);
+        }
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)
