@@ -1,9 +1,6 @@
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
@@ -64,22 +61,10 @@ public class GameManager
         {
 #if !EDITOR
             // Clear views so the incoming world can register a fresh camera view.
-            // In editor mode SetCameraWithEditor() handles this instead.
             ViewManager.Clear();
 #endif
             CurrentWorld.LoadContent(_game);
             CurrentWorld.BeginPlay();
-
-#if EDITOR
-            // In the new multi-view architecture (EngineHost + RegisterEditorView), each
-            // RenderView already has its own RenderTargetSurface and camera set up.
-            // ViewManager.Clear() + SetCameraWithEditor() would destroy those views.
-            // Only call SetCameraWithEditor() in the legacy single-view mode (no RT views
-            // yet registered, i.e., no EngineHost in use).
-            bool hasRenderTargetViews = ViewManager.Views.Any(v => v.Surface is RenderTargetSurface);
-            if (!hasRenderTargetViews)
-                SetCameraWithEditor(CurrentWorld);
-#endif
 
             _isNewWorld = false;
             OnWorldChange();
@@ -88,14 +73,6 @@ public class GameManager
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
         //var totalElapsedTime = GameTimeHelper.ConvertTotalTimeToSeconds(gameTime);
-
-#if EDITOR
-        // In legacy single-view mode _cameraEditorEntity is assigned by
-        // SetCameraWithEditor(); in EngineHost multi-view mode it is null
-        // (each view's camera is updated by EngineHost.Update instead).
-        _cameraEditorEntity?.Update(elapsedTime);
-        _cameraEditorEntity?.GameplayProxy?.Update(elapsedTime);
-#endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
         //    DebugSystem.Instance.DebugCommandUI.Show(); 
@@ -131,45 +108,6 @@ public class GameManager
 #if EDITOR
 
     public event EventHandler? WorldChanged;
-
-    private Entity _cameraEditorEntity;
-
-    private void SetCameraWithEditor(World.World world)
-    {
-        _cameraEditorEntity = new Entity { Name = "Camera editor" };
-        _cameraEditorEntity.IsVisible = false;
-
-        var cameraEditor = CreateCameraComponentCallback != null ?
-            CreateCameraComponentCallback(_cameraEditorEntity) : CreateCameraComponent(_cameraEditorEntity);
-
-        _cameraEditorEntity.AddComponent(cameraEditor);
-        _cameraEditorEntity.Initialize();
-        _cameraEditorEntity.GameplayProxy?.Initialize(_cameraEditorEntity);
-        _cameraEditorEntity.InitializeWithWorld(world);
-        _cameraEditorEntity.GameplayProxy?.InitializeWithWorld(world);
-
-        // Register the editor camera as the sole default view. Always reset so that
-        // loading a new world replaces the previous world's view cleanly.
-        ViewManager.Clear();
-        var pp = _game.GraphicsDevice.PresentationParameters;
-        var fullScreen = new Rectangle(0, 0, pp.BackBufferWidth, pp.BackBufferHeight);
-        ViewManager.Add(new RenderView(world, cameraEditor, new BackBufferSurface(fullScreen))
-        {
-            Name = "Editor default view",
-            ClearColor = Color.CornflowerBlue,
-        });
-    }
-
-    public delegate CameraComponent CameraComponentCallback(Entity cameraEntity);
-    public CameraComponentCallback? CreateCameraComponentCallback;
-
-    private ArcBallCameraComponent CreateCameraComponent(Entity cameraEntity)
-    {
-        var cameraEditor = new ArcBallCameraComponent();
-        cameraEditor.SetCamera(Vector3.Backward * 10 + Vector3.Up * 10, Vector3.Zero, Vector3.Up);
-        cameraEntity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
-        return cameraEditor;
-    }
 
 #endif
 }

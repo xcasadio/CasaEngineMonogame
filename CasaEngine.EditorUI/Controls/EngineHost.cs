@@ -229,7 +229,12 @@ public sealed class EngineHost : WpfGame
 
         cameraEntity.AddComponent(camera);
         cameraEntity.Initialize();
+        // In EDITOR builds, Entity.Initialize() and Entity.InitializeWithWorld() skip
+        // GameplayProxy.Initialize / InitializeWithWorld (guarded by #if !EDITOR in Entity.cs).
+        // Call them explicitly so ScriptArcBallCamera can fetch _inputComponent.
+        cameraEntity.GameplayProxy?.Initialize(cameraEntity);
         cameraEntity.InitializeWithWorld(world);
+        cameraEntity.GameplayProxy?.InitializeWithWorld(world);
 
         // ---- 3. Render-target surface ----
         int w = Math.Max(def.InitialWidth, 1);
