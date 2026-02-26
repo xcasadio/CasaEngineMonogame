@@ -126,7 +126,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             host.ViewManager.HookViewHost(view);
         }
 
-        // Installe le provider clavier immédiatement — pas besoin d'attendre MouseEnter.
+        // _mouse peut être null ici si Initialize() n'a pas encore été appelé (ordre habituel).
+        // Dans ce cas, Initialize() appellera SetActiveViewportInput lui-même une fois prêt.
         Logs.WriteDebug($"[InputDiag] ViewportControl.Attach() viewId={viewId} mouseReady={_mouse != null}");
         if (_mouse != null)
             host.SetActiveViewportInput(this, _mouse);
@@ -188,6 +189,14 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             if (_rawKeyboard?.IsCursorOverViewport() == true)
                 e.Handled = true;
         };
+
+        // Attach() est appelé AVANT Initialize() — au moment de Attach() _mouse était null.
+        // Maintenant que _mouse est prêt, installer le provider si déjà attaché.
+        if (_engineHost != null)
+        {
+            Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() -> late SetActiveViewportInput viewId={_viewId}");
+            _engineHost.SetActiveViewportInput(this, _mouse);
+        }
     }
 
     /// <inheritdoc/>
