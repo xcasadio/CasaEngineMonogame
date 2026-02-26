@@ -171,51 +171,46 @@ Le moteur dispose **déjà** d'une infrastructure multi-view au sein d'un seul `
 
 ### 4.1 — Créer `ViewportControl`
 
-- [ ] Créer `CasaEngine.EditorUI/Controls/ViewportControl.cs` (hérite de `System.Windows.Controls.Image`) :
+- [x] Créer `CasaEngine.EditorUI/Controls/ViewportControl.cs` — hérite de `D3D11Host` (pas `Image`) pour réutiliser le mécanisme D3D11Image/D3D9 WPF déjà opérationnel :
   ```csharp
-  public class ViewportControl : Image, IViewHost, IDisposable
+  public sealed class ViewportControl : D3D11Host, IViewHost
   {
-      private EngineHost _engineHost;
-      private ViewId _viewId;
-      private D3D11Image _d3dImage;  // interop DX11 → WPF
-      
-      public ViewId ViewId => _viewId;
-      public int Width => (int)ActualWidth;
-      public int Height => (int)ActualHeight;
-      
+      public ViewId ViewId { get; }
+      int IViewHost.Width  => (int)ActualWidth;
+      int IViewHost.Height => (int)ActualHeight;
       public void Attach(EngineHost host, ViewId viewId);
       public void Detach();
   }
   ```
-- [ ] Le `ViewportControl` implémente `IViewHost` :
-  - `Resized` est déclenché sur `OnRenderSizeChanged`.
-  - `Closed` est déclenché sur `Unloaded` ou `Dispose`.
-  - `IsVisible` reflète `UIElement.IsVisible`.
-- [ ] Le contrôle lit la texture `RenderTarget2D` de sa vue (`RenderTargetSurface.Texture`) et l'affiche via `D3D11Image` (interop Direct3D → WPF `ImageSource`).
+  Note : `D3D11Image` est `internal` donc `ViewportControl` étend `D3D11Host` directement plutôt que `Image`.
+- [x] Le `ViewportControl` implémente `IViewHost` :
+  - `Resized` déclenché sur `OnRenderSizeChanged` → `NotifyResized()`.
+  - `Closed` déclenché dans `Dispose(true)` avant de appeler `EngineHost.UnregisterEditorView`.
+  - `IsVisible` reflète `Visibility == Visible && _contentLoaded`.
+- [x] `Render(GameTime)` (override de `D3D11Host`) blit la texture `RenderTargetSurface.Texture` via `SpriteBatch` dans le back-buffer géré par `D3D11Host`.
+- [x] `Attach(host, viewId)` pose `view.Host = this` puis appelle `host.ViewManager.HookViewHost(view)` pour que le `ViewManager` s'abonne aux événements `Resized`/`Closed` même si la vue a été créée avant le contrôle.
+- [x] Ajout de `ViewManager.HookViewHost(RenderView)` et `ViewManager.UnhookViewHost(RenderView)` (méthodes publiques) pour permettre un câblage différé du host.
 
 ### 4.2 — Input bridging par ViewportControl
 
-- [ ] Chaque `ViewportControl` crée ses propres `WpfKeyboard` + `WpfMouse` scopés à ce contrôle.
-- [ ] Les événements input WPF (MouseMove, MouseDown, KeyDown, etc.) sont capturés par le contrôle et transmis au `InputRouter` de l'`EngineHost` avec le `ViewId` de cette vue.
-- [ ] Quand la souris est au-dessus d'un `ViewportControl`, cette vue devient la vue active pour l'input (`InputRouter.SetActiveView(viewId)`).
-- [ ] Support du focus clavier : `Focusable = true`, le focus clavier WPF détermine quelle vue reçoit les événements clavier.
+- [ ] ⚠️ **Différé à PR 6** — `WpfKeyboard` et `WpfMouse` n'acceptent qu'un `WpfGame` en paramètre. Le refactoring pour accepter `D3D11Host` / `FrameworkElement` est prévu en PR 6.
+- [ ] Quand la souris est au-dessus d'un `ViewportControl`, cette vue devient la vue active (`InputRouter.SetActiveView(viewId)`).
+- [ ] Support du focus clavier : `Focusable = true` posé dans `Initialize()`.
 
 ### 4.3 — Synchronisation texture → WPF
 
-- [ ] Après chaque `RenderPipeline.Render()`, les `RenderTargetSurface` contiennent les images rendues.
-- [ ] Le `ViewportControl` doit récupérer la texture D3D11 et l'afficher dans le `D3D11Image` WPF.
-- [ ] Utiliser le même mécanisme que `D3D11Host` (copie vers un `_sharedRenderTarget` via `SpriteBatch`, puis `D3D11Image.SetBackBuffer()`).
-- [ ] Optimisation : si la vue est en mode `OnDemand` et n'a pas été re-rendue, ne pas copier la texture.
+- [x] `Render()` récupère `ctx.Surface.Texture` et le blit full-screen via `SpriteBatch` dans le RT géré par `D3D11Host.OnRendering` — le mécanisme `_cachedRenderTarget` → `D3D11Image` → WPF est entièrement réutilisé.
+- [ ] Optimisation OnDemand (skip blit si non re-rendu) — non bloquant pour PR4, à évaluer lors de PR9.
 
 ### 4.4 — Gestion du resize
 
-- [ ] Sur `OnRenderSizeChanged`, le `ViewportControl` :
-  1. Notifie l'`EngineHost` du changement de taille.
-  2. L'`EngineHost` resize la `RenderTargetSurface` de la vue (via `EnsureSize()` avec debounce).
-  3. La caméra de la vue est mise à jour (`OnScreenResized`).
-- [ ] Le debounce existant dans `RenderTargetSurface` protège contre les resize rapides (docking).
+- [x] Sur `OnRenderSizeChanged`, `ViewportControl.NotifyResized()` :
+  1. Déclenche l'événement `IViewHost.Resized` → `ViewManager.OnHostResized` → `ViewManager.ViewResized`.
+  2. Appelle `ctx.Surface.RequestResize(w, h)` (debounce dans `RenderTargetSurface`).
+  3. Appelle `ctx.Camera.OnScreenResized(w, h)` pour mettre à jour les matrices de projection.
+  4. Invalide la vue (`view.Invalidate()`) pour forcer un re-render.
 
-✅ Critère : Un `ViewportControl` affiche le rendu d'une `RenderView`, gère le resize et les inputs de base.
+✅ Critère : Un `ViewportControl` affiche le rendu d'une `RenderView`, gère le resize et les inputs de base (inputs différés à PR6).
 
 ---
 

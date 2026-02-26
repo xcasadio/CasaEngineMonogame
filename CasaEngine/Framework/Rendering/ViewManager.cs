@@ -298,6 +298,34 @@ public sealed class ViewManager
         ViewAdded?.Invoke(view);
     }
 
+    /// <summary>
+    /// Re-hooks the <see cref="IViewHost"/> events for an already-registered view.
+    /// Call this after setting <see cref="RenderView.Host"/> when the host was not yet
+    /// available at the time the view was registered.
+    /// </summary>
+    public void HookViewHost(RenderView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        if (view.Host == null) return;
+
+        // Unhook first to avoid double-subscription if called more than once.
+        view.Host.Resized -= OnHostResized;
+        view.Host.Closed  -= OnHostClosed;
+        view.Host.Resized += OnHostResized;
+        view.Host.Closed  += OnHostClosed;
+    }
+
+    /// <summary>
+    /// Unsubscribes the ViewManager from <see cref="IViewHost"/> events on
+    /// <paramref name="view"/> without removing the view from the registry.
+    /// Use this before clearing <see cref="RenderView.Host"/> in <c>Detach()</c>.
+    /// </summary>
+    public void UnhookViewHost(RenderView view)
+    {
+        ArgumentNullException.ThrowIfNull(view);
+        UnhookHost(view);
+    }
+
     private void UnhookHost(RenderView view)
     {
         if (view.Host != null)
