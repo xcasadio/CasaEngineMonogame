@@ -1,7 +1,6 @@
 #if EDITOR
 
 using System;
-using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Game.Components.Editor;
@@ -130,7 +129,6 @@ public sealed class ViewportControl : D3D11Host, IViewHost
 
         // _rawKeyboard/_rawMouse/_boundsCache sont null ici (Initialize n'a pas encore couru).
         // Initialize() les enregistrera une fois prêts.
-        Logs.WriteDebug($"[InputDiag] ViewportControl.Attach() viewId={viewId} mouseReady={_rawMouse != null}");
         if (_rawKeyboard != null && _rawMouse != null && _boundsCache != null)
             host.SetActiveViewportInput(viewId, _rawKeyboard, _rawMouse, _boundsCache);
     }
@@ -178,14 +176,11 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         LayoutUpdated += (_, _) => _boundsCache.Update(this);
         SizeChanged   += (_, _) => _boundsCache.Update(this);
 
-        Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() viewId={_viewId} Focusable={Focusable}");
-
         // Activate the corresponding view in ViewManager on mouse-enter so that camera
         // navigation shortcuts and gizmo operations target the hovered viewport.
         // MouseLeave n'est plus nécessaire — IsCursorOverViewport() fait le check Win32.
         MouseEnter += (_, _) =>
         {
-            Logs.WriteDebug($"[InputDiag] ViewportControl MouseEnter fired viewId={_viewId} WpfFocus={System.Windows.Input.Keyboard.FocusedElement?.GetType().Name ?? "null"}");
             ActivateThisView();
         };
 
@@ -203,7 +198,6 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // Maintenant qu'ils sont prêts, enregistrer auprès du dispatcher de l'EngineHost.
         if (_engineHost != null)
         {
-            Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() -> RegisterViewportInput viewId={_viewId}");
             _engineHost.SetActiveViewportInput(_viewId, _rawKeyboard, _rawMouse, _boundsCache!);
         }
     }
@@ -281,8 +275,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
 
         // WPF focus pour compatibilité avec les autres éléments WPF.
         // Le dispatch des providers est géré par EngineHost.Update() (cursor polling Win32).
-        var focusResult = Focus();
-        Logs.WriteDebug($"[InputDiag] ActivateThisView() viewId={_viewId} Focus()={focusResult} WpfFocus={System.Windows.Input.Keyboard.FocusedElement?.GetType().Name ?? "null"}");
+        Focus();
     }
 
     /// <summary>

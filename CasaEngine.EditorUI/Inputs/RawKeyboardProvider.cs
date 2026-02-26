@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework.Input;
 
@@ -29,13 +28,10 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
     private struct POINT { public int X; public int Y; }
 
     private readonly ViewportBoundsCache _bounds;
-    private bool _lastCursorOver;
-    private bool _lastCursorOverInit;
 
     public RawKeyboardProvider(ViewportBoundsCache bounds)
     {
         _bounds = bounds;
-        Logs.WriteDebug("[InputDiag] RawKeyboardProvider created");
     }
 
     /// <summary>
@@ -45,17 +41,7 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
     public bool IsCursorOverViewport()
     {
         if (!GetCursorPos(out var pt)) return false;
-
-        bool over = _bounds.Contains(pt.X, pt.Y);
-        if (!_lastCursorOverInit || over != _lastCursorOver)
-        {
-            _lastCursorOver     = over;
-            _lastCursorOverInit = true;
-            Logs.WriteDebug(
-                $"[InputDiag] IsCursorOverViewport={over} " +
-                $"cursor=({pt.X},{pt.Y}) ForegroundHwnd=0x{GetForegroundWindow():X}");
-        }
-        return over;
+        return _bounds.Contains(pt.X, pt.Y);
     }
 
     public KeyboardState GetState()
@@ -69,9 +55,6 @@ internal sealed class RawKeyboardProvider : IKeyboardStateProvider
             if ((GetAsyncKeyState(i) & 0x8000) != 0)
                 pressed.Add((Keys)i);
         }
-
-        if (pressed.Count > 0)
-            Logs.WriteDebug($"[InputDiag] GetState pressed: {string.Join(", ", pressed)}");
 
         return new KeyboardState(pressed.ToArray());
     }

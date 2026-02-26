@@ -2,7 +2,6 @@
 
 using System;
 using System.Runtime.InteropServices;
-using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework.Input;
 
@@ -31,8 +30,6 @@ internal sealed class RawMouseProvider : IMouseStateProvider
     private struct POINT { public int X; public int Y; }
 
     private readonly ViewportBoundsCache _bounds;
-    private bool _lastRight;
-    private bool _lastLeft;
 
     public RawMouseProvider(ViewportBoundsCache bounds)
     {
@@ -50,20 +47,6 @@ internal sealed class RawMouseProvider : IMouseStateProvider
         var middle = (GetAsyncKeyState(VK_MBUTTON)  & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
         var xb1    = (GetAsyncKeyState(VK_XBUTTON1) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
         var xb2    = (GetAsyncKeyState(VK_XBUTTON2) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-
-        bool rightDown = right == ButtonState.Pressed;
-        if (rightDown != _lastRight)
-        {
-            _lastRight = rightDown;
-            Logs.WriteDebug($"[InputDiag] RawMouseProvider RightButton={right} pos=({localX},{localY})");
-        }
-
-        bool leftDown = left == ButtonState.Pressed;
-        if (leftDown != _lastLeft)
-        {
-            _lastLeft = leftDown;
-            Logs.WriteDebug($"[InputDiag] RawMouseProvider LeftButton={left} pos=({localX},{localY}) {_bounds.DebugSnapshot(pt.X, pt.Y)}");
-        }
 
         return new MouseState(localX, localY, _bounds.ScrollWheelValue, left, middle, right, xb1, xb2);
     }

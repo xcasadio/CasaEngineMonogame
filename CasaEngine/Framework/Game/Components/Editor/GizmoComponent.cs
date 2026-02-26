@@ -86,14 +86,11 @@ public class GizmoComponent : DrawableGameComponent
 
         if (Gizmo.GetSelectionPool() == null)
         {
-            Logs.WriteDebug("[InputDiag] GizmoComponent: early return — SelectionPool is null");
             return;
         }
 
         var camera = ActiveCamera ?? _game.GameManager.ViewManager.ActiveView?.Camera;
-        if (camera == null)
-            Logs.WriteDebug("[InputDiag] GizmoComponent: camera is null, gizmo camera props not updated");
-        else
+        if (camera != null)
         {
             Gizmo.UpdateCameraProperties(
                 camera.ViewMatrix,
@@ -116,7 +113,6 @@ public class GizmoComponent : DrawableGameComponent
 
         if (lbState)
         {
-            Logs.WriteDebug($"[InputDiag] GizmoComponent: LeftButtonJustPressed pos=({_inputComponent.MouseManager.Position.X},{_inputComponent.MouseManager.Position.Y})");
             Gizmo.SelectEntities(new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
                 _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));

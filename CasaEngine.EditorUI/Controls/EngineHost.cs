@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Entities;
@@ -163,7 +162,6 @@ public sealed class EngineHost : WpfGame
                         {
                             _activeInputViewId = viewId;
                             _game.SetInputProvider(kbd, mouse);
-                            Logs.WriteDebug($"[InputDiag] Active viewport switched to {viewId}");
                             if (ViewManager != null &&
                                 ViewManager.TryGetView(viewId, out var v))
                                 ViewManager.SetActive(v);
@@ -183,7 +181,6 @@ public sealed class EngineHost : WpfGame
                 // the viewport are never forwarded to GizmoComponent or camera scripts.
                 if (!overAnyViewport && !_activeInputViewId.IsEmpty)
                 {
-                    Logs.WriteDebug($"[InputDiag] Cursor left all viewports, deactivating input");
                     _activeInputViewId = ViewId.Empty;
                     foreach (var (_, vctx) in _viewContexts)
                     {
@@ -238,7 +235,6 @@ public sealed class EngineHost : WpfGame
 
     internal void SetActiveViewportInput(ViewId viewId, RawKeyboardProvider keyboard, RawMouseProvider mouse, ViewportBoundsCache bounds)
     {
-        Logs.WriteDebug($"[InputDiag] EngineHost.RegisterViewportInput viewId={viewId} gameReady={_game != null}");
         _inputProviders[viewId] = (keyboard, mouse, bounds);
         // Seed the game with a valid provider immediately (will be overwritten by Update dispatch).
         if (_game != null && _inputProviders.Count == 1)

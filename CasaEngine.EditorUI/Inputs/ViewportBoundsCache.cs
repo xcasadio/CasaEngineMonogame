@@ -3,7 +3,6 @@
 using System;
 using System.Threading;
 using System.Windows;
-using CasaEngine.Core.Log;
 
 namespace CasaEngine.EditorUI.Inputs;
 
@@ -38,17 +37,15 @@ internal sealed class ViewportBoundsCache
             var fromDevice = source.CompositionTarget.TransformFromDevice;
             var tl = viewport.PointToScreen(new Point(0, 0));
             var br = viewport.PointToScreen(new Point(viewport.ActualWidth, viewport.ActualHeight));
-            double l, t, r, b, ix, iy;
             lock (_lock)
             {
-                _left    = l = tl.X;
-                _top     = t = tl.Y;
-                _right   = r = br.X;
-                _bottom  = b = br.Y;
-                _dpiInvX = ix = fromDevice.M11;   // = 96 / actual_dpi_x
-                _dpiInvY = iy = fromDevice.M22;   // = 96 / actual_dpi_y
+                _left    = tl.X;
+                _top     = tl.Y;
+                _right   = br.X;
+                _bottom  = br.Y;
+                _dpiInvX = fromDevice.M11;   // = 96 / actual_dpi_x
+                _dpiInvY = fromDevice.M22;   // = 96 / actual_dpi_y
             }
-            Logs.WriteDebug($"[BoundsDiag] Update: bounds=({l:F0},{t:F0})-({r:F0},{b:F0}) dpiInv=({ix:F4},{iy:F4}) logicalSize={(int)((r-l)*ix)}x{(int)((b-t)*iy)} actualWH={viewport.ActualWidth:F0}x{viewport.ActualHeight:F0}");
         }
         catch { /* visual pas encore dans l'arbre */ }
     }
@@ -93,13 +90,6 @@ internal sealed class ViewportBoundsCache
             var ly = (int)((screenY - _top)  * _dpiInvY);
             return (lx, ly);
         }
-    }
-
-    /// <summary>Returns a debug snapshot of the current bounds state for logging.</summary>
-    public string DebugSnapshot(int screenX, int screenY)
-    {
-        lock (_lock)
-            return $"screen=({screenX},{screenY}) bounds=({_left:F0},{_top:F0})-({_right:F0},{_bottom:F0}) dpiInvX={_dpiInvX:F4} dpiInvY={_dpiInvY:F4} logicalSize={(int)((_right-_left)*_dpiInvX)}x{(int)((_bottom-_top)*_dpiInvY)}";
     }
 }
 
