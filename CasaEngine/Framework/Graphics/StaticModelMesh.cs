@@ -1,4 +1,5 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -21,8 +22,14 @@ public class StaticModelMesh
     /// <summary>Index into the parent <see cref="StaticModel.Meshes"/> table (not used at mesh level — kept for info).</summary>
     public int MaterialIndex { get; set; } = -1;
 
-    /// <summary>Asset ID of the texture bound to this mesh.</summary>
+    /// <summary>Asset ID of the texture bound to this mesh (legacy fallback).</summary>
     public Guid TextureAssetId { get; set; } = Guid.Empty;
+
+    /// <summary>Asset ID of the <see cref="MaterialBase"/> to use. Overrides TextureAssetId when set.</summary>
+    public Guid MaterialAssetId { get; set; } = Guid.Empty;
+
+    /// <summary>Runtime material instance. Resolved from <see cref="MaterialAssetId"/> at load time.</summary>
+    public MaterialBase? Material { get; set; }
 
     /// <summary>
     /// Diffuse texture file path as resolved at import time (editor only).
@@ -91,6 +98,8 @@ public class StaticModelMesh
         PrimitiveType = element["primitive_type"].GetEnum<PrimitiveType>();
         MaterialIndex = element["material_index"].GetInt32();
         TextureAssetId = element["texture_asset_id"].GetGuid();
+        if (element["material_asset_id"] is { } matToken)
+            MaterialAssetId = Guid.Parse(matToken.Value<string>()!);
 
         _vertices = element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()).ToArray();
         _indices = element.GetElements("indices", o => o.GetUInt32()).ToArray();
@@ -114,6 +123,7 @@ public class StaticModelMesh
         jObject.Add("primitive_type", PrimitiveType.ConvertToString());
         jObject.Add("material_index", MaterialIndex);
         jObject.Add("texture_asset_id", TextureAssetId.ToString());
+        jObject.Add("material_asset_id", MaterialAssetId.ToString());
 
         jObject.AddArray("vertices", _vertices, (v, o) => v.Save(o));
         jObject.AddArray("indices", _indices);

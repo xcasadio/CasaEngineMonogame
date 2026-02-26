@@ -1,5 +1,7 @@
 ﻿using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,6 +11,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 {
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
+    private ShaderWrapper? _legacyShaderWrapper;
 
     public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -25,6 +28,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             StaticModelMesh = staticModelMesh,
             World = world,
             WorldInvertTranspose = worldInvertTranspose,
+            Material = staticModelMesh.Material,
         });
     }
 
@@ -50,6 +54,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect.Parameters["DirLight2DiffuseColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
         _effect.Parameters["DirLight2SpecularColor"].SetValue(new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
 
+        _legacyShaderWrapper = new ShaderWrapper(_effect);
+
         base.LoadContent();
     }
 
@@ -61,56 +67,76 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     public void Flush(in RenderFrame frame)
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        graphicsDevice.BlendState = BlendState.Opaque;
-        graphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
 
         var defaultTexture = (Game as CasaEngineGame)?.AssetContentManager.GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
 
+        // Build a lightweight RenderContext (no lighting yet — Phase 5 will fill it in)
+        var context = new RenderContext
+        {
+            Device  = graphicsDevice,
+            Frame   = frame,
+        };
+
         foreach (var meshInfo in _meshInfos)
         {
-            // Resolve GPU buffers, texture and primitive type from whichever mesh type is set
-            VertexBuffer? vb;
-            IndexBuffer? ib;
-            Texture2D? texture;
-            PrimitiveType primitiveType;
+            if (meshInfo.StaticModelMesh == null) continue;
 
-            if (meshInfo.StaticModelMesh != null)
-            {
-                vb = meshInfo.StaticModelMesh.VertexBuffer;
-                ib = meshInfo.StaticModelMesh.IndexBuffer;
-                texture = meshInfo.StaticModelMesh.Texture?.Resource ?? defaultTexture?.Resource;
-                primitiveType = meshInfo.StaticModelMesh.PrimitiveType;
-            }
-            else
-            {
-                continue;
-            }
-
-            if (vb == null || ib == null)
-            {
-                continue;
-            }
+            var vb = meshInfo.StaticModelMesh.VertexBuffer;
+            var ib = meshInfo.StaticModelMesh.IndexBuffer;
+            if (vb == null || ib == null) continue;
 
             graphicsDevice.SetVertexBuffer(vb);
             graphicsDevice.Indices = ib;
 
-            _effect.Parameters["Texture"].SetValue(texture);
-            _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
-            _effect.Parameters["World"].SetValue(meshInfo.World);
-            _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
-            _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
-
-            foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
+            if (meshInfo.Material != null)
             {
-                effectPass.Apply();
-                int primitiveCount = ib.IndexCount / 3;
-                graphicsDevice.DrawIndexedPrimitives(primitiveType, 0, 0, primitiveCount);
+                // --- Material path: apply render states + bind shader ---
+                ApplyRenderStates(graphicsDevice, meshInfo.Material);
+
+                // For now use the legacy shader wrapper; Phase 3 will use ShaderManager to pick the right Effect.
+                var shader = _legacyShaderWrapper!;
+                meshInfo.Material.Bind(shader, in context, meshInfo.World);
+
+                for (int p = 0; p < shader.PassCount; p++)
+                {
+                    shader.ApplyPass(p);
+                    int primitiveCount = ib.IndexCount / 3;
+                    graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticModelMesh.PrimitiveType, 0, 0, primitiveCount);
+                }
+            }
+            else
+            {
+                // --- Legacy path: hardcoded basicEffect (backwards compatibility) ---
+                graphicsDevice.DepthStencilState = DepthStencilState.Default;
+                graphicsDevice.RasterizerState   = RasterizerState.CullCounterClockwise;
+                graphicsDevice.BlendState         = BlendState.Opaque;
+                graphicsDevice.SamplerStates[0]   = SamplerState.AnisotropicClamp;
+
+                var texture = meshInfo.StaticModelMesh.Texture?.Resource ?? defaultTexture?.Resource;
+                _effect.Parameters["Texture"].SetValue(texture);
+                _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
+                _effect.Parameters["World"].SetValue(meshInfo.World);
+                _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
+                _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
+
+                foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
+                {
+                    effectPass.Apply();
+                    int primitiveCount = ib.IndexCount / 3;
+                    graphicsDevice.DrawIndexedPrimitives(meshInfo.StaticModelMesh.PrimitiveType, 0, 0, primitiveCount);
+                }
             }
         }
 
         _meshInfos.Clear();
+    }
+
+    private static void ApplyRenderStates(GraphicsDevice device, MaterialBase material)
+    {
+        device.BlendState         = material.BlendState         ?? BlendState.Opaque;
+        device.DepthStencilState  = material.DepthStencilState  ?? DepthStencilState.Default;
+        device.RasterizerState    = material.RasterizerState    ?? RasterizerState.CullCounterClockwise;
+        device.SamplerStates[0]   = material.SamplerState       ?? SamplerState.AnisotropicClamp;
     }
 
     private class MeshInfo
@@ -118,5 +144,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         public StaticModelMesh? StaticModelMesh;
         public Matrix World;
         public Matrix WorldInvertTranspose;
+        public MaterialBase? Material;
     }
 }

@@ -74,3 +74,9 @@
 /processorParam:Defines=
 /build:Shaders/spritebatch.fx
 
+#begin Shaders/UnlitTexture.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/UnlitTexture.fx
+
