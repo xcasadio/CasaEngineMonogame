@@ -29,8 +29,8 @@ public partial class GameEditorWorldControl : UserControl
     public GameEditorWorldControl()
     {
         InitializeComponent();
-        Drop += OnDrop;
-        DragOver += OnDragOver;
+        gameViewport.Drop += OnDrop;
+        gameViewport.DragOver += OnDragOver;
         if (EngineHost.Instance?.IsStarted == true)
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
         else
