@@ -37,6 +37,11 @@ public class UnlitTextureMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.Alpha, Alpha);
     }
 
+    public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+        => Albedo is not null
+            ? Rendering.Shaders.ShaderFeature.AlbedoTexture
+            : Rendering.Shaders.ShaderFeature.None;
+
     public override void Load(JObject element)
     {
         base.Load(element);

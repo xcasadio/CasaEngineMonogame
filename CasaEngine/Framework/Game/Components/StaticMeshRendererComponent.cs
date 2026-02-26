@@ -20,6 +20,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly ShaderBindCache  _shaderCache  = new();
     private readonly List<RenderItem> _renderItems  = new();
 
+    // Phase 7 — shader variant system
+    private ShaderManager?         _shaderManager;
+    private ShaderVariantLibrary?  _variantLibrary;
+
     /// <summary>
     /// Default scene lighting used when no external <see cref="LightingContext"/> is supplied.
     /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
@@ -83,6 +87,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
 
+        // Phase 7: initialise shader variant system
+        var acm = (Game as CasaEngineGame)?.AssetContentManager;
+        if (acm is not null)
+        {
+            _shaderManager  = new ShaderManager(acm);
+            _variantLibrary = new ShaderVariantLibrary(_shaderManager);
+        }
+
         base.LoadContent();
     }
 
@@ -131,6 +143,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     if (mat == null) continue; // legacy sub-path handled after sorting
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                    var features = mat.GetFeatures(mesh);
                     var item = new RenderItem
                     {
                         Mesh                  = mesh,
@@ -140,6 +153,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
                         PropertyOverrides     = meshInfo.PropertyOverrides,
+                        Features              = features,
                     };
                     item.SortKey = SortKeyGenerator.Generate(
                         mat.Queue,
@@ -154,6 +168,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             {
                 var mat = meshInfo.Material;
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                var features = mat.GetFeatures(mesh);
                 var item = new RenderItem
                 {
                     Mesh                  = mesh,
@@ -163,6 +178,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
                     PropertyOverrides     = meshInfo.PropertyOverrides,
+                    Features              = features,
                 };
                 item.SortKey = SortKeyGenerator.Generate(
                     mat.Queue,
@@ -187,7 +203,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
             _stateCache.Apply(graphicsDevice, item.Material, stats);
 
-            var shader = _legacyShaderWrapper!;
+            // Phase 7: pick shader variant if ShaderAssetId is set; else fall back to legacy wrapper
+            var shader = (_variantLibrary is not null && item.Material.ShaderAssetId != Guid.Empty)
+                ? _variantLibrary.Get(new ShaderVariantKey(item.Material.ShaderAssetId, item.Features))
+                    ?? _legacyShaderWrapper!
+                : _legacyShaderWrapper!;
+
             _shaderCache.BindGlobals(shader, in context);
             item.Material.Bind(shader, in context, item.World);
             item.PropertyOverrides?.Apply(shader); // Phase 6: per-instance overrides win over material defaults

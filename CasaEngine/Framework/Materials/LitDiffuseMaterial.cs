@@ -43,6 +43,14 @@ public class LitDiffuseMaterial : MaterialBase
         context.Lighting?.Bind(shader);
     }
 
+    public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+    {
+        var f = Rendering.Shaders.ShaderFeature.None;
+        if (Albedo is not null) f |= Rendering.Shaders.ShaderFeature.AlbedoTexture;
+        if (EmissiveColor != Vector3.Zero) f |= Rendering.Shaders.ShaderFeature.Emissive;
+        return f;
+    }
+
     public override void Load(JObject element)
     {
         base.Load(element);

@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Rendering.Draw;
@@ -33,6 +34,12 @@ public struct RenderItem
 
     /// <summary>Distance from camera (used for back-to-front sorting of transparent items).</summary>
     public float DistanceToCamera;
+
+    /// <summary>
+    /// Active shader features for this draw call (Phase 7).
+    /// Used to select the correct shader variant via <see cref="ShaderVariantLibrary"/>.
+    /// </summary>
+    public ShaderFeature Features;
 
     /// <summary>
     /// Optional per-instance parameter overrides (Phase 6).

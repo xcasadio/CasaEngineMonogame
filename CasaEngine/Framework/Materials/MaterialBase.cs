@@ -58,6 +58,14 @@ public abstract class MaterialBase : ISerializable
     /// </summary>
     public abstract void Bind(ShaderWrapper shader, in RenderContext context, Matrix world);
 
+    /// <summary>
+    /// Returns the <see cref="ShaderFeature"/> flags active for this material,
+    /// optionally considering the <paramref name="mesh"/> (Phase 7).
+    /// The renderer uses these flags to select the correct compiled shader variant.
+    /// </summary>
+    public virtual Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+        => Rendering.Shaders.ShaderFeature.None;
+
     // -------------------------------------------------------------------------
     // Serialisation
     // -------------------------------------------------------------------------
