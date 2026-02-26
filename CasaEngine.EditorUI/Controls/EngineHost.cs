@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Inputs;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Entities;
@@ -160,6 +161,7 @@ public sealed class EngineHost : WpfGame
     {
         // RawKeyboardProvider utilise GetCursorPos (Win32) + PointFromScreen:
         // detection du survol independante du routing WPF et du hit-testing D3D11.
+        Logs.WriteDebug($"[InputDiag] EngineHost.SetActiveViewportInput called viewport={viewport.GetType().Name} gameReady={_game != null}");
         _game?.SetInputProvider(
             new RawKeyboardProvider(viewport),
             new MouseStateProvider(mouse));
