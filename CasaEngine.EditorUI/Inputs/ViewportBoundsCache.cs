@@ -15,6 +15,8 @@ namespace CasaEngine.EditorUI.Inputs;
 internal sealed class ViewportBoundsCache
 {
     private double _left, _top, _right, _bottom;
+    // DPI scale factors: logical = physical * _dpiInvX (device→logical transform)
+    private double _dpiInvX = 1.0, _dpiInvY = 1.0;
     private readonly object _lock = new();
 
     // Molette : valeur absolue croissante (comme XNA ScrollWheelValue).
@@ -26,9 +28,13 @@ internal sealed class ViewportBoundsCache
     /// </summary>
     public void Update(FrameworkElement viewport)
     {
-        if (PresentationSource.FromVisual(viewport) == null) return;
+        var source = PresentationSource.FromVisual(viewport);
+        if (source == null) return;
         try
         {
+            // TransformFromDevice converts physical pixels → WPF logical pixels (device-independent).
+            // This matches the MonoGame render target size which is based on ActualWidth/ActualHeight.
+            var fromDevice = source.CompositionTarget.TransformFromDevice;
             var tl = viewport.PointToScreen(new Point(0, 0));
             var br = viewport.PointToScreen(new Point(viewport.ActualWidth, viewport.ActualHeight));
             lock (_lock)
@@ -37,6 +43,8 @@ internal sealed class ViewportBoundsCache
                 _top    = tl.Y;
                 _right  = br.X;
                 _bottom = br.Y;
+                _dpiInvX = fromDevice.M11;   // = 96 / actual_dpi_x
+                _dpiInvY = fromDevice.M22;   // = 96 / actual_dpi_y
             }
         }
         catch { /* visual pas encore dans l'arbre */ }
@@ -76,7 +84,10 @@ internal sealed class ViewportBoundsCache
     {
         lock (_lock)
         {
-            return ((int)(screenX - _left), (int)(screenY - _top));
+            // Convert physical screen pixels → logical (render-target) pixels by applying
+            // the device→logical DPI scale stored from CompositionTarget.TransformFromDevice.
+            return ((int)((screenX - _left) * _dpiInvX),
+                    (int)((screenY - _top)  * _dpiInvY));
         }
     }
 }

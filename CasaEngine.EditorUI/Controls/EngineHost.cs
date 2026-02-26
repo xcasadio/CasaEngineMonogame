@@ -153,10 +153,12 @@ public sealed class EngineHost : WpfGame
             // view automatically every frame. This replaces the broken MouseEnter approach.
             if (GetCursorPos(out var pt))
             {
+                bool overAnyViewport = false;
                 foreach (var (viewId, (kbd, mouse, bounds)) in _inputProviders)
                 {
                     if (bounds.Contains(pt.X, pt.Y))
                     {
+                        overAnyViewport = true;
                         if (viewId != _activeInputViewId)
                         {
                             _activeInputViewId = viewId;
@@ -174,6 +176,19 @@ public sealed class EngineHost : WpfGame
                             }
                         }
                         break;
+                    }
+                }
+
+                // Cursor left all viewports → deactivate gizmo input so clicks outside
+                // the viewport are never forwarded to GizmoComponent or camera scripts.
+                if (!overAnyViewport && !_activeInputViewId.IsEmpty)
+                {
+                    Logs.WriteDebug($"[InputDiag] Cursor left all viewports, deactivating input");
+                    _activeInputViewId = ViewId.Empty;
+                    foreach (var (_, vctx) in _viewContexts)
+                    {
+                        if (vctx.Gizmo != null)
+                            vctx.Gizmo.IsActiveViewport = false;
                     }
                 }
             }
