@@ -27,6 +27,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     // Phase 9 — hardware instancing
     private InstanceBatcher? _instanceBatcher;
 
+    // Phase 10 — forward render pipeline
+    private readonly ForwardRenderPipeline _pipeline = new();
+
     /// <summary>
     /// Default scene lighting used when no external <see cref="LightingContext"/> is supplied.
     /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
@@ -249,46 +252,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     _renderItems.RemoveAt(idx);
         }
 
-        // --- Draw sorted material items ---
-        foreach (var item in _renderItems)
-        {
-            var vb = item.Mesh.VertexBuffer!;
-            var ib = item.Mesh.IndexBuffer!;
-            graphicsDevice.SetVertexBuffer(vb);
-            graphicsDevice.Indices = ib;
-
-            _stateCache.Apply(graphicsDevice, item.Material, stats);
-
-            // Phase 7: pick shader variant if ShaderAssetId is set; else fall back to legacy wrapper
-            var shader = (_variantLibrary is not null && item.Material.ShaderAssetId != Guid.Empty)
-                ? _variantLibrary.Get(new ShaderVariantKey(item.Material.ShaderAssetId, item.Features))
-                    ?? _legacyShaderWrapper!
-                : _legacyShaderWrapper!;
-
-            _shaderCache.BindGlobals(shader, in context);
-            item.Material.Bind(shader, in context, item.World);
-            item.PropertyOverrides?.Apply(shader); // Phase 6: per-instance overrides win over material defaults
-
-            if (item.SubMesh is { } sub)
-            {
-                for (int p = 0; p < shader.PassCount; p++)
-                {
-                    shader.ApplyPass(p);
-                    graphicsDevice.DrawIndexedPrimitives(item.Mesh.PrimitiveType,
-                        sub.VertexOffset, sub.IndexStart, sub.PrimitiveCount);
-                }
-            }
-            else
-            {
-                int primitiveCount = ib.IndexCount / 3;
-                for (int p = 0; p < shader.PassCount; p++)
-                {
-                    shader.ApplyPass(p);
-                    graphicsDevice.DrawIndexedPrimitives(item.Mesh.PrimitiveType, 0, 0, primitiveCount);
-                }
-            }
-            stats.DrawCalls++;
-        }
+        // --- Phase 10: delegate sorted items to ForwardRenderPipeline ---
+        _pipeline.Render(context, _renderItems, _stateCache, _shaderCache, _legacyShaderWrapper!);
 
         // --- Legacy fallback: items with no material at all ---
         foreach (var meshInfo in _meshInfos)
