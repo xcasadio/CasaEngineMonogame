@@ -1,5 +1,4 @@
 ﻿using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -16,17 +15,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
-    }
-
-    public void AddMesh(StaticMesh staticMesh, Material material, Matrix world, Matrix worldInvertTranspose)
-    {
-        _meshInfos.Add(new MeshInfo
-        {
-            StaticMesh = staticMesh,
-            Material = material,
-            World = world,
-            WorldInvertTranspose = worldInvertTranspose,
-        });
     }
 
     /// <summary>Enqueue a <see cref="StaticModelMesh"/> sub-mesh for rendering.</summary>
@@ -88,14 +76,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Texture2D? texture;
             PrimitiveType primitiveType;
 
-            if (meshInfo.StaticMesh != null)
-            {
-                vb = meshInfo.StaticMesh.VertexBuffer;
-                ib = meshInfo.StaticMesh.IndexBuffer;
-                texture = meshInfo.StaticMesh.Texture?.Resource ?? defaultTexture?.Resource;
-                primitiveType = meshInfo.StaticMesh.PrimitiveType;
-            }
-            else if (meshInfo.StaticModelMesh != null)
+            if (meshInfo.StaticModelMesh != null)
             {
                 vb = meshInfo.StaticModelMesh.VertexBuffer;
                 ib = meshInfo.StaticModelMesh.IndexBuffer;
@@ -134,9 +115,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     private class MeshInfo
     {
-        public StaticMesh? StaticMesh;
         public StaticModelMesh? StaticModelMesh;
-        public Material? Material;
         public Matrix World;
         public Matrix WorldInvertTranspose;
     }

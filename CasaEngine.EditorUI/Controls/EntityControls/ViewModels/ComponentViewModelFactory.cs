@@ -21,7 +21,6 @@ public static class ComponentViewModelFactory
             PlayerStartComponent => new PlayerStartComponentViewModel(componentChild),
             SphereCollisionComponent => new SphereCollisionComponentViewModel(componentChild),
             SkinnedMeshComponent => new SkinnedMeshComponentViewModel(componentChild),
-            StaticMeshComponent => new StaticMeshComponentViewModel(componentChild),
             StaticModelComponent => new StaticModelComponentViewModel(componentChild),
             StaticModelSubMeshComponent => new StaticModelSubMeshComponentViewModel(componentChild),
             StaticSpriteComponent => new StaticSpriteComponentViewModel(componentChild),

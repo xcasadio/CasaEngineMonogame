@@ -57,12 +57,6 @@
             </Expander>
         </DataTemplate>
 
-        <DataTemplate x:Key="meshComponentTemplate" DataType="{x:Type components:StaticMeshComponent}">
-            <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <entityControls:StaticMeshComponentControl/>
-            </Expander>
-        </DataTemplate>
-
         <DataTemplate x:Key="skinnedMeshComponentTemplate" DataType="{x:Type components:SkinnedMeshComponent}">
             <Expander Header="Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
                 <entityControls:SkinnedMeshComponentControl/>
@@ -212,7 +206,6 @@
                         Camera3dIn2dAxisComponentTemplate="{StaticResource camera3dIn2dAxisComponentTemplate}"
                         CameraLookAtComponentTemplate="{StaticResource cameraLookAtComponentTemplate}"
                         CameraTargeted2dComponentTemplate="{StaticResource cameraTargeted2dComponentTemplate}"
-                        MeshComponentTemplate="{StaticResource meshComponentTemplate}"
                         SkinnedMeshComponentTemplate="{StaticResource skinnedMeshComponentTemplate}"
                         StaticModelComponentTemplate="{StaticResource staticModelComponentTemplate}"
                         StaticModelSubMeshComponentTemplate="{StaticResource staticModelSubMeshComponentTemplate}"
