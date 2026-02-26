@@ -1,6 +1,7 @@
 #if EDITOR
 
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Rendering;
 
@@ -39,6 +40,13 @@ public sealed class EditorViewContext : IDisposable
 
     /// <summary>Camera used to compute View / Projection matrices for this viewport.</summary>
     public CameraComponent? Camera { get; set; }
+
+    /// <summary>
+    /// The entity that owns the <see cref="Camera"/> component.
+    /// Updated every frame by <c>EngineHost.Update()</c> so ArcBall / 2-D camera
+    /// navigation scripts receive their per-frame tick.
+    /// </summary>
+    public Entity? CameraEntity { get; set; }
 
     /// <summary>
     /// Off-screen render target for this viewport.

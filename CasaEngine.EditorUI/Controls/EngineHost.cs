@@ -128,6 +128,17 @@ public sealed class EngineHost : WpfGame
         if (_initialized)
         {
             _game!.UpdateWithEditor(gameTime);
+
+            // Drive per-view camera entity updates so ArcBall / 2-D navigation
+            // scripts (ScriptArcBallCamera etc.) receive their per-frame tick.
+            // These entities are not in any world's entity list, so they would
+            // otherwise never be updated.
+            var dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            foreach (var ctx in _viewContexts.Values)
+            {
+                ctx.CameraEntity?.Update(dt);
+                ctx.CameraEntity?.GameplayProxy?.Update(dt);
+            }
         }
     }
 
@@ -246,9 +257,10 @@ public sealed class EngineHost : WpfGame
         // ---- 5. EditorViewContext ----
         var ctx = new EditorViewContext(viewId, renderView!, def.Name, def.ViewType)
         {
-            World   = world,
-            Camera  = camera,
-            Surface = surface,
+            World        = world,
+            Camera       = camera,
+            CameraEntity = cameraEntity,
+            Surface      = surface,
         };
 
         // ---- 6. Optional editor overlays ----

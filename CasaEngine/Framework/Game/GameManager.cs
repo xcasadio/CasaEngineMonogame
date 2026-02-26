@@ -90,8 +90,11 @@ public class GameManager
         //var totalElapsedTime = GameTimeHelper.ConvertTotalTimeToSeconds(gameTime);
 
 #if EDITOR
-        _cameraEditorEntity.Update(elapsedTime);
-        _cameraEditorEntity.GameplayProxy?.Update(elapsedTime);
+        // In legacy single-view mode _cameraEditorEntity is assigned by
+        // SetCameraWithEditor(); in EngineHost multi-view mode it is null
+        // (each view's camera is updated by EngineHost.Update instead).
+        _cameraEditorEntity?.Update(elapsedTime);
+        _cameraEditorEntity?.GameplayProxy?.Update(elapsedTime);
 #endif
 
         //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
