@@ -34,6 +34,7 @@ public partial class GameEditorWorldControl : UserControl
     {
         InitializeComponent();
         Drop += OnDrop;
+        DragOver += OnDragOver;
         if (EngineHost.Instance?.IsStarted == true)
             OnEngineHostStarted(EngineHost.Instance, EventArgs.Empty);
         else
@@ -104,6 +105,23 @@ public partial class GameEditorWorldControl : UserControl
 
     private void ButtonWorldSpace_Click(object sender, RoutedEventArgs e)
         => ScreenControlViewModel!.IsTransformSpaceWorld = true;
+
+    private void OnDragOver(object sender, DragEventArgs e)
+    {
+        var formats = e.Data.GetFormats();
+        if (formats.Length > 0 && formats[0] == typeof(AssetInfo).FullName)
+        {
+            var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
+            e.Effects = assetInfo != null && AssetDropHandlerRegistry.Instance.CanHandle(assetInfo)
+                ? DragDropEffects.Copy
+                : DragDropEffects.None;
+        }
+        else
+        {
+            e.Effects = DragDropEffects.Copy;
+        }
+        e.Handled = true;
+    }
 
     private void OnDrop(object sender, DragEventArgs e)
     {

@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:CasaEngine.EditorUI.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch">
+             d:DesignHeight="200" d:DesignWidth="800" VerticalContentAlignment="Stretch"
+             AllowDrop="True">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
