@@ -257,9 +257,12 @@ public sealed class EngineHost : WpfGame
         //       per-view standalone objects driven by EditorViewPipeline.
         if (!is2D)
         {
-            if (def.ShowGizmo) ctx.Gizmo = new GizmoComponent(_game);
-            if (def.ShowGrid)  ctx.Grid  = new GridComponent(_game);
-            if (def.ShowAxis)  ctx.Axis  = new AxisComponent(_game);
+            // Explicitly call Initialize() immediately after creating each component.
+            // MonoGame may defer OnComponentAdded→Initialize() to the next Update tick,
+            // so GizmoComponent.Gizmo would still be null when RegisterEditorView returns.
+            if (def.ShowGizmo) { ctx.Gizmo = new GizmoComponent(_game); ctx.Gizmo.Initialize(); }
+            if (def.ShowGrid)  { ctx.Grid  = new GridComponent(_game);  ctx.Grid.Initialize();  }
+            if (def.ShowAxis)  { ctx.Axis  = new AxisComponent(_game);  ctx.Axis.Initialize();  }
         }
 
         // ---- 7. Wire EditorViewPipeline for per-view overlay rendering ----

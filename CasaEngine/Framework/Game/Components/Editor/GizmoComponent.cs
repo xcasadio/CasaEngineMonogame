@@ -35,9 +35,15 @@ public class GizmoComponent : DrawableGameComponent
 
     public override void Initialize()
     {
+        if (Gizmo != null) return;  // already fully initialized — prevent double-init
+
         base.Initialize();
 
-        _game.FontSystem.AddFont(File.ReadAllBytes(@"C:\\Windows\\Fonts\\Arial.ttf"));
+        var fontsDir = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        var arialPath = Path.Combine(fontsDir, "arial.ttf");
+        if (File.Exists(arialPath))
+            _game.FontSystem.AddFont(File.ReadAllBytes(arialPath));
+
         Gizmo = new Gizmo(Game.GraphicsDevice);
 
         Gizmo.TranslateEvent += GizmoTranslateEvent;
