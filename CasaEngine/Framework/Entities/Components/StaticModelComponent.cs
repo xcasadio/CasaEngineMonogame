@@ -19,19 +19,11 @@ public class StaticModelComponent : PrimitiveComponent
 {
     private StaticMeshRendererComponent? _meshRendererComponent;
 
-    // ------------------------------------------------------------------
-    //  Public properties
-    // ------------------------------------------------------------------
-
     /// <summary>Asset ID of the <see cref="StaticModel"/> to render.</summary>
     public Guid StaticModelAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Runtime reference to the loaded model.</summary>
     public Graphics.StaticModel? StaticModel { get; set; }
-
-    // ------------------------------------------------------------------
-    //  Constructors / Clone
-    // ------------------------------------------------------------------
 
     public StaticModelComponent() { }
 
@@ -41,10 +33,6 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
     public override StaticModelComponent Clone() => new StaticModelComponent(this);
-
-    // ------------------------------------------------------------------
-    //  Lifecycle
-    // ------------------------------------------------------------------
 
     public override void InitializeWithWorld(World.World world)
     {
@@ -58,10 +46,6 @@ public class StaticModelComponent : PrimitiveComponent
             StaticModel?.Initialize(world.Game.AssetContentManager);
         }
     }
-
-    // ------------------------------------------------------------------
-    //  Rendering
-    // ------------------------------------------------------------------
 
     public override void Draw(float elapsedTime)
     {
@@ -94,10 +78,6 @@ public class StaticModelComponent : PrimitiveComponent
             DrawNode(child, nodeWorld);
         }
     }
-
-    // ------------------------------------------------------------------
-    //  Bounding box
-    // ------------------------------------------------------------------
 
     public override BoundingBox GetBoundingBox()
     {
@@ -137,10 +117,6 @@ public class StaticModelComponent : PrimitiveComponent
         }
     }
 
-    // ------------------------------------------------------------------
-    //  Serialization
-    // ------------------------------------------------------------------
-
     public override void Load(JObject element)
     {
         base.Load(element);
@@ -152,10 +128,12 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
 #if EDITOR
+
     public override void Save(JObject jObject)
     {
         base.Save(jObject);
         jObject.Add("static_model_asset_id", StaticModelAssetId.ToString());
     }
+
 #endif
 }
