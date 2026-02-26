@@ -50,6 +50,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     // Per-viewport input (created in Initialize() once the GraphicsDevice is ready).
     private WpfKeyboard? _keyboard;
     private WpfMouse?    _mouse;          // conservé pour compatibilité (non utilisé pour l'état)
+    // Cache de bornes-écran mis à jour sur le thread WPF, partagé entre les deux providers.
+    private ViewportBoundsCache? _boundsCache;
     // Providers Win32 — indépendants du routing WPF et du hit-testing D3D11.
     private RawKeyboardProvider? _rawKeyboard;
     private RawMouseProvider?    _rawMouse;
@@ -167,8 +169,14 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // so we can create them here (widened in PR6).
         _keyboard    = new WpfKeyboard(this);
         _mouse       = new WpfMouse(this);
-        _rawKeyboard = new RawKeyboardProvider(this);
-        _rawMouse    = new RawMouseProvider(this);
+        _boundsCache = new ViewportBoundsCache();
+        _rawKeyboard = new RawKeyboardProvider(_boundsCache);
+        _rawMouse    = new RawMouseProvider(_boundsCache);
+
+        // Met a jour le cache de bornes-ecran sur le thread WPF chaque fois que
+        // le layout change (redimensionnement, deplacement de fenetre, etc.).
+        LayoutUpdated += (_, _) => _boundsCache.Update(this);
+        SizeChanged   += (_, _) => _boundsCache.Update(this);
 
         Logs.WriteDebug($"[InputDiag] ViewportControl.Initialize() viewId={_viewId} Focusable={Focusable}");
 
