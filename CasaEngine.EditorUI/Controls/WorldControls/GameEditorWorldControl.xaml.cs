@@ -2,17 +2,14 @@
 using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 using CasaEngine.EditorUI.DragAndDrop;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Game.Components.Physics;
-using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using System;
-using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -107,45 +104,17 @@ public partial class GameEditorWorldControl : UserControl
         => ScreenControlViewModel!.IsTransformSpaceWorld = true;
 
     private void OnDragOver(object sender, DragEventArgs e)
-    {
-        var formats = e.Data.GetFormats();
-        if (formats.Length > 0 && formats[0] == typeof(AssetInfo).FullName)
-        {
-            var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
-            e.Effects = assetInfo != null && AssetDropHandlerRegistry.Instance.CanHandle(assetInfo)
-                ? DragDropEffects.Copy
-                : DragDropEffects.None;
-        }
-        else
-        {
-            e.Effects = DragDropEffects.Copy;
-        }
-        e.Handled = true;
-    }
+        => AssetDropHelper.HandleDragOver(e);
 
     private void OnDrop(object sender, DragEventArgs e)
     {
-        var formats = e.Data.GetFormats();
-
-        if (formats.Length > 0)
+        var game = EngineHost.Instance?.Game;
+        if (game != null)
         {
-            if (formats[0] == typeof(AssetInfo).FullName)
+            var entity = AssetDropHelper.HandleDrop(e, game);
+            if (entity != null)
             {
-                var assetInfo = e.Data.GetData(typeof(AssetInfo)) as AssetInfo;
-                var game = EngineHost.Instance?.Game;
-                if (assetInfo != null && game != null)
-                {
-                    var handler = AssetDropHandlerRegistry.Instance.FindHandler(assetInfo);
-                    if (handler != null)
-                    {
-                        CreateEntity(handler.CreateEntity(assetInfo, game), e.GetPosition(gameViewport));
-                    }
-                    else
-                    {
-                        var extension = Path.GetExtension(assetInfo.FileName);
-                        Logs.WriteWarning($"The asset with the type {extension} is not supported");
-                    }
-                }
+                CreateEntity(entity, e.GetPosition(gameViewport));
                 return;
             }
         }
