@@ -142,67 +142,24 @@ Le moteur dispose **déjà** d'une infrastructure multi-view au sein d'un seul `
 
 ### 3.1 — Créer la classe `EngineHost`
 
-- [ ] Créer `CasaEngine.EditorUI/Controls/EngineHost.cs` :
-  ```csharp
-  public class EngineHost : IDisposable
-  {
-      public CasaEngineGame Game { get; }
-      public GraphicsDevice GraphicsDevice { get; }
-      public ViewManager ViewManager => Game.GameManager.ViewManager;
-      
-      // Registry des vues éditeur
-      private readonly Dictionary<ViewId, EditorViewContext> _viewContexts = new();
-      
-      public ViewId RegisterEditorView(EditorViewDefinition def);
-      public void UnregisterEditorView(ViewId viewId);
-      public EditorViewContext GetViewContext(ViewId viewId);
-      
-      public void Initialize();
-      public void Update(GameTime gameTime);
-      public void Draw(GameTime gameTime);
-  }
-  ```
-- [ ] L'`EngineHost` possède l'unique `CasaEngineGame` et appelle `Initialize`, `Update`, `Draw` via les méthodes `WithEditor`.
-- [ ] L'`EngineHost` est créé une seule fois au démarrage de l'éditeur (dans `MainWindow` ou `App`).
-- [ ] Il pilote la boucle de mise à jour via `CompositionTarget.Rendering` (comme le faisait `D3D11Host` mais centralisé).
+- [x] `EngineHost.cs` créé dans `CasaEngine.EditorUI/Controls/`. Hérite de `WpfGame`. Propriété statique `Instance`. Possède l'unique `CasaEngineGame`.  Configure input et physics en mode éditeur. Événements `Started` et `FrameReady`.
+- [x] Possède l'unique `CasaEngineGame`, délègue `Initialize/LoadContent/Update/Draw`.
+- [x] À placer en tant que contrôle invisible dans `MainWindow` (fait en PR 7).
+- [x] La boucle de mise à jour passe par `WpfGame` (qui utilise `CompositionTarget.Rendering` via `D3D11Host`).
 
 ### 3.2 — Créer `EditorViewDefinition`
 
-- [ ] Record/struct contenant les paramètres pour créer une vue éditeur :
-  ```csharp
-  public record EditorViewDefinition
-  {
-      public string Name { get; init; }
-      public EditorViewType ViewType { get; init; }
-      public int Width { get; init; }
-      public int Height { get; init; }
-      public World? World { get; init; }
-      public Color ClearColor { get; init; } = Color.CornflowerBlue;
-      public bool ShowGizmo { get; init; }
-      public bool ShowGrid { get; init; }
-      public bool ShowAxis { get; init; }
-  }
-  ```
+- [x] `EditorViewDefinition.cs` créé dans `CasaEngine.EditorUI/Controls/`. Record avec `Name`, `ViewType`, `InitialWidth`, `InitialHeight`, `World?`, `ClearColor`, `UpdateMode?`, `ShowGizmo`, `ShowGrid`, `ShowAxis`.
 
 ### 3.3 — `RegisterEditorView` : création d'une vue complète
 
-- [ ] `RegisterEditorView` fait :
-  1. Créer une `RenderTargetSurface` de la taille demandée.
-  2. Créer la caméra appropriée (3D ou 2D selon `ViewType`).
-  3. Créer un `EditorViewContext` avec les composants éditeur demandés (gizmo, grid, axis).
-  4. Appeler `ViewManager.CreateView(...)` pour enregistrer la `RenderView`.
-  5. Retourner le `ViewId`.
-- [ ] `UnregisterEditorView` fait le cleanup inverse : `ViewManager.Remove()`, dispose surface, dispose composants éditeur.
+- [x] `RegisterEditorView(EditorViewDefinition)` : crée monde (vide si null), entité caméra (ArcBall 3D ou Camera3dIn2dAxis 2D), `RenderTargetSurface`, `ViewDefinition`, enregistre dans `ViewManager`, crée `EditorViewContext` (Gizmo/Grid/Axis en option), retourne `ViewId`.
+- [x] `UnregisterEditorView(ViewId)` : nettoie composants, retire la vue du `ViewManager`, dispose le contexte.
 
 ### 3.4 — Boucle de jeu centralisée
 
-- [ ] L'`EngineHost` s'abonne à `CompositionTarget.Rendering` du WPF.
-- [ ] À chaque frame :
-  1. Calculer le `GameTime` (delta depuis le dernier render).
-  2. Appeler `Game.UpdateWithEditor(gameTime)`.
-  3. Appeler `Game.DrawWithEditor(gameTime)` — le `RenderPipeline` rend toutes les vues dans leurs `RenderTargetSurface` respectives.
-  4. Signaler aux contrôles WPF que les textures sont prêtes (via événement ou dirty flag).
-- [ ] Gérer l'ordre : la boucle centrale doit tourner même si certains onglets sont masqués (le `RenderView.IsVisible` gère ça dans le pipeline).
+- [x] La boucle est dans `WpfGame.Render()` → `Update()` + `Draw()` → `FrameReady` event pour les `ViewportControl`.
+- [x] `EngineHost.CanRender` bloque le rendu tant que non initialisé.
 
 ✅ Critère : L'`EngineHost` compile, peut créer/détruire des vues, et une boucle de jeu unique tourne.
 
