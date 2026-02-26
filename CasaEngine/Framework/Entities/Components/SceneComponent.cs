@@ -41,7 +41,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
                 result *= Parent.WorldMatrixWithScale;
             }
 
-            if (Owner.Parent?.RootComponent != null)
+            if (Owner?.Parent?.RootComponent != null)
             {
                 result *= Owner.Parent.RootComponent.WorldMatrixWithScale;
             }
@@ -61,7 +61,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
                 result *= Parent.WorldMatrixNoScale;
             }
 
-            if (Owner.Parent?.RootComponent != null)
+            if (Owner?.Parent?.RootComponent != null)
             {
                 result *= Owner.Parent.RootComponent.WorldMatrixNoScale;
             }
@@ -81,7 +81,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
                 result *= Parent.WorldMatrixNoScale;
             }
 
-            if (Owner.Parent?.RootComponent != null)
+            if (Owner?.Parent?.RootComponent != null)
             {
                 result *= Owner.Parent.RootComponent.WorldMatrixNoScale;
             }
