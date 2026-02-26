@@ -158,13 +158,13 @@ public sealed class EngineHost : WpfGame
     /// <c>ScriptArcBallCamera</c> and other navigation scripts always consume
     /// events from the hovered viewport rather than the EngineHost root element.
     /// </summary>
-    internal void SetActiveViewportInput(D3D11Host hoverElement, WpfMouse mouse)
+    internal void SetActiveViewportInput(Func<bool> isMouseOver, WpfMouse mouse)
     {
         // RawKeyboardProvider lit l'état Win32 directement sans exiger IsKeyboardFocused.
-        // WpfKeyboard exige le focus WPF sur l'élément — non garanti dans cette archi
-        // où EngineHost est caché et ViewportControl est le contrôle visible.
+        // Le délégué isMouseOver est alimenté par les events WPF MouseEnter/MouseLeave
+        // du ViewportControl — fiable là où IsMouseDirectlyOver ne l'est pas.
         _game?.SetInputProvider(
-            new RawKeyboardProvider(hoverElement),
+            new RawKeyboardProvider(isMouseOver),
             new MouseStateProvider(mouse));
     }
 

@@ -50,6 +50,10 @@ public sealed class ViewportControl : D3D11Host, IViewHost
     private WpfKeyboard? _keyboard;
     private WpfMouse?    _mouse;
 
+    // Suivi fiable du survol souris via events WPF — plus fiable que IsMouseDirectlyOver
+    // sur un contrôle Image/D3D11 dont le hit-testing WPF peut être court-circuité.
+    private bool _isMouseOver;
+
     // ---- IViewHost ----
     // Width/Height are explicit to avoid name collision with FrameworkElement.Width/Height (double).
 
@@ -160,7 +164,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
 
         // Activate the corresponding view in ViewManager on mouse-enter so that camera
         // navigation shortcuts and gizmo operations target the hovered viewport.
-        MouseEnter += (_, _) => ActivateThisView();
+        MouseEnter += (_, _) => { _isMouseOver = true;  ActivateThisView(); };
+        MouseLeave += (_, _) => { _isMouseOver = false; };
     }
 
     /// <inheritdoc/>
@@ -238,7 +243,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // autres éléments WPF, et route les inputs vers l'InputComponent.
         Focus();
         if (_mouse != null)
-            _engineHost.SetActiveViewportInput(this, _mouse);
+            _engineHost.SetActiveViewportInput(() => _isMouseOver, _mouse);
     }
 
     /// <summary>

@@ -1,8 +1,8 @@
 #if EDITOR
 
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Windows;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework.Input;
 
@@ -27,22 +27,22 @@ internal class RawKeyboardProvider : IKeyboardStateProvider
     [DllImport("user32.dll", EntryPoint = "GetKeyboardState", SetLastError = true)]
     private static extern bool NativeGetKeyboardState([Out] byte[] keyStates);
 
-    private readonly IInputElement _hoverElement;
+    private readonly Func<bool> _isMouseOver;
 
-    /// <param name="hoverElement">
-    /// Élément WPF utilisé pour vérifier <c>IsMouseDirectlyOver</c>.
-    /// Les touches ne sont reportées que lorsque la souris est sur cet élément,
-    /// évitant de recevoir des raccourcis qui ne sont pas destinés au viewport.
+    /// <param name="isMouseOver">
+    /// Délégué retournant <c>true</c> lorsque la souris est sur le viewport.
+    /// Alimenté par les events WPF <c>MouseEnter</c>/<c>MouseLeave</c> du
+    /// <see cref="ViewportControl"/> — plus fiable que <c>IsMouseDirectlyOver</c>
+    /// sur un contrôle Image/D3D11 dont le hit-testing WPF peut être court-circuité.
     /// </param>
-    public RawKeyboardProvider(IInputElement hoverElement)
+    public RawKeyboardProvider(Func<bool> isMouseOver)
     {
-        _hoverElement = hoverElement;
+        _isMouseOver = isMouseOver;
     }
 
     public KeyboardState GetState()
     {
-        // Ne rapporte les touches que si la souris est sur le viewport.
-        if (!_hoverElement.IsMouseDirectlyOver)
+        if (!_isMouseOver())
             return new KeyboardState();
 
         var keyStates = new byte[256];
