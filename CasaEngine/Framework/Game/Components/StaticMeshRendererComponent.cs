@@ -39,14 +39,20 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     }
 
     /// <summary>Enqueue a <see cref="StaticModelMesh"/> sub-mesh for rendering.</summary>
-    public void AddMesh(StaticModelMesh staticModelMesh, Matrix world, Matrix worldInvertTranspose)
+    /// <param name="propertyOverrides">
+    /// Optional per-instance parameter overrides applied after the material's Bind() call.
+    /// Allows per-entity colour tint, highlight etc. without duplicating the material asset.
+    /// </param>
+    public void AddMesh(StaticModelMesh staticModelMesh, Matrix world, Matrix worldInvertTranspose,
+        MaterialPropertyBlock? propertyOverrides = null)
     {
         _meshInfos.Add(new MeshInfo
         {
-            StaticModelMesh = staticModelMesh,
-            World = world,
+            StaticModelMesh  = staticModelMesh,
+            World            = world,
             WorldInvertTranspose = worldInvertTranspose,
-            Material = staticModelMesh.Material,
+            Material         = staticModelMesh.Material,
+            PropertyOverrides = propertyOverrides,
         });
     }
 
@@ -133,6 +139,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         World                 = meshInfo.World,
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
+                        PropertyOverrides     = meshInfo.PropertyOverrides,
                     };
                     item.SortKey = SortKeyGenerator.Generate(
                         mat.Queue,
@@ -155,6 +162,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     World                 = meshInfo.World,
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
+                    PropertyOverrides     = meshInfo.PropertyOverrides,
                 };
                 item.SortKey = SortKeyGenerator.Generate(
                     mat.Queue,
@@ -182,6 +190,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             var shader = _legacyShaderWrapper!;
             _shaderCache.BindGlobals(shader, in context);
             item.Material.Bind(shader, in context, item.World);
+            item.PropertyOverrides?.Apply(shader); // Phase 6: per-instance overrides win over material defaults
 
             if (item.SubMesh is { } sub)
             {
@@ -259,5 +268,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         public Matrix World;
         public Matrix WorldInvertTranspose;
         public MaterialBase? Material;
+        /// <summary>Optional per-instance overrides (Phase 6).</summary>
+        public MaterialPropertyBlock? PropertyOverrides;
     }
 }

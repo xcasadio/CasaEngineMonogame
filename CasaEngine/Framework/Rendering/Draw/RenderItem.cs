@@ -33,4 +33,10 @@ public struct RenderItem
 
     /// <summary>Distance from camera (used for back-to-front sorting of transparent items).</summary>
     public float DistanceToCamera;
+
+    /// <summary>
+    /// Optional per-instance parameter overrides (Phase 6).
+    /// Applied after <see cref="MaterialBase.Bind"/> so instance values win over material defaults.
+    /// </summary>
+    public MaterialPropertyBlock? PropertyOverrides;
 }
