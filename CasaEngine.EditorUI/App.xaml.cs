@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using CasaEngine.EditorUI.DragAndDrop;
-using CasaEngine.EditorUI.DragAndDrop.Handlers;
 
 namespace CasaEngine.EditorUI;
 
@@ -17,17 +16,7 @@ public partial class App : Application
         // across editor tabs — the foundation for PR3+ of the multi-view migration.
         D3D11Host.UseASingleSharedGraphicsDevice = true;
 
-        // Register drag & drop asset handlers
-        var registry = AssetDropHandlerRegistry.Instance;
-        registry.Register(new EntityAssetDropHandler());
-        registry.Register(new StaticModelAssetDropHandler());
-        registry.Register(new SpriteAssetDropHandler());
-        registry.Register(new Animation2dAssetDropHandler());
-
-        // Register toolbox drop handlers
-        var toolboxRegistry = ToolboxDropHandlerRegistry.Instance;
-        toolboxRegistry.Register(new EmptyEntityToolboxHandler());
-        toolboxRegistry.Register(new PlayerStartToolboxHandler());
+        DragAndDropConfiguration.RegisterAllHandlers();
 
         base.OnStartup(e);
     }
