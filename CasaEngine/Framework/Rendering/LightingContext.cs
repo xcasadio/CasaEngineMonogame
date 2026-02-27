@@ -19,12 +19,21 @@ public class LightingContext
     /// <summary>Binds all active directional lights to the given shader wrapper.</summary>
     public void Bind(ShaderWrapper shader)
     {
-        for (int i = 0; i < ActiveDirectionalLightCount && i < MaxDirectionalLights; i++)
+        for (int i = 0; i < MaxDirectionalLights; i++)
         {
-            var d = DirectionalLights[i];
-            shader.SetParameter($"DirLight{i}Direction", d.Direction);
-            shader.SetParameter($"DirLight{i}DiffuseColor", d.DiffuseColor * d.Intensity);
-            shader.SetParameter($"DirLight{i}SpecularColor", d.SpecularColor);
+            if (i < ActiveDirectionalLightCount)
+            {
+                var d = DirectionalLights[i];
+                shader.SetParameter($"DirLight{i}Direction",    d.Direction);
+                shader.SetParameter($"DirLight{i}DiffuseColor", d.DiffuseColor * d.Intensity);
+                shader.SetParameter($"DirLight{i}SpecularColor", d.SpecularColor);
+            }
+            else
+            {
+                // Zero out inactive slots so the shader does not accumulate stale light data.
+                shader.SetParameter($"DirLight{i}DiffuseColor",  Vector3.Zero);
+                shader.SetParameter($"DirLight{i}SpecularColor", Vector3.Zero);
+            }
         }
         shader.SetParameter(ShaderParameterNames.AmbientColor, AmbientColor);
     }
