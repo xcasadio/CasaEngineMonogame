@@ -295,7 +295,7 @@ Many input/output structs are dead code (dual-texture, env-map, etc.). They were
 
 ---
 
-### ⬜ Task 9 — Split cbuffers for per-frame vs per-object data
+### ✅ Task 9 — Split cbuffers for per-frame vs per-object data
 **Priority:** P3 (Performance optimisation)
 **Files:** `basicEffect.fx`, `Macros.fxh`, `CasaEngine/Framework/Rendering/Shaders/ShaderWrapper.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderBindCache.cs`
 **Description:**

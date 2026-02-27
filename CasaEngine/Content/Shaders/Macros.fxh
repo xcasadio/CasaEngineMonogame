@@ -21,6 +21,13 @@
 #define MATRIX_CONSTANTS
 #define END_CONSTANTS       };
 
+// Split cbuffer macros — per-frame data (lights, camera) vs per-object (transforms, material).
+// MonoGame's Effect.Parameters automatically tracks dirty state per cbuffer.
+#define BEGIN_PER_FRAME     cbuffer cbPerFrame : register(b0) {
+#define END_PER_FRAME       };
+#define BEGIN_PER_OBJECT    cbuffer cbPerObject : register(b1) {
+#define END_PER_OBJECT      };
+
 #define _vs(r)
 #define _ps(r)
 #define _cb(r)
