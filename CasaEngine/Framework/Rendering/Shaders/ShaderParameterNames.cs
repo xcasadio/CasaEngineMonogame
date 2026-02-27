@@ -28,9 +28,15 @@ public static class ShaderParameterNames
 
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
-    public const string DirLightDirections = "DirLightDirections";
-    public const string DirLightDiffuseColors = "DirLightDiffuseColors";
-    public const string DirLightSpecularColors = "DirLightSpecularColors";
+    public const string DirLight0Direction = "DirLight0Direction";
+    public const string DirLight0DiffuseColor = "DirLight0DiffuseColor";
+    public const string DirLight0SpecularColor = "DirLight0SpecularColor";
+    public const string DirLight1Direction = "DirLight1Direction";
+    public const string DirLight1DiffuseColor = "DirLight1DiffuseColor";
+    public const string DirLight1SpecularColor = "DirLight1SpecularColor";
+    public const string DirLight2Direction = "DirLight2Direction";
+    public const string DirLight2DiffuseColor = "DirLight2DiffuseColor";
+    public const string DirLight2SpecularColor = "DirLight2SpecularColor";
 
     // --- Skinning ---
     public const string Bones = "Bones";

@@ -295,7 +295,7 @@ Many input/output structs are dead code (dual-texture, env-map, etc.). They were
 
 ---
 
-### ✅ Task 9 — Split cbuffers for per-frame vs per-object data
+### ↩️ Task 9 — Split cbuffers for per-frame vs per-object data (REVERTED — MonoGame Effect system doesn't reliably support multiple cbuffers)
 **Priority:** P3 (Performance optimisation)
 **Files:** `basicEffect.fx`, `Macros.fxh`, `CasaEngine/Framework/Rendering/Shaders/ShaderWrapper.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderBindCache.cs`
 **Description:**
@@ -334,7 +334,7 @@ No shader currently supports normal maps. Add tangent-space normal-map support t
 
 ---
 
-### ✅ Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays
+### ↩️ Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays (REVERTED — array params cause name mismatch with MonoGame's Effect.Parameters)
 **Priority:** P3 (Maintainability)
 **Files:** `Lighting.fxh`, `basicEffect.fx`
 **Description:**

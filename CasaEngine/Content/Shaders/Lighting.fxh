@@ -55,9 +55,9 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLig
     [unroll]
     for (int i = 0; i < numLights; i++)
     {
-        lightDirections[i] = DirLightDirections[i];
-        lightDiffuse[i]    = DirLightDiffuseColors[i];
-        lightSpecular[i]   = DirLightSpecularColors[i];
+        lightDirections[i] = float3x3(DirLight0Direction, DirLight1Direction, DirLight2Direction)[i];
+        lightDiffuse[i]    = float3x3(DirLight0DiffuseColor, DirLight1DiffuseColor, DirLight2DiffuseColor)[i];
+        lightSpecular[i]   = float3x3(DirLight0SpecularColor, DirLight1SpecularColor, DirLight2SpecularColor)[i];
         
         halfVectors[i] = normalize(eyeVector - lightDirections[i]);
     }

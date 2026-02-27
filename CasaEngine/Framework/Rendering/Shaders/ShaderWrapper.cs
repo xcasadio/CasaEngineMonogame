@@ -45,14 +45,6 @@ public class ShaderWrapper
     public void SetParameter(string name, Texture2D? value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, bool value) => GetParameter(name)?.SetValue(value);
 
-    /// <summary>Sets a single element of an array parameter by index.</summary>
-    public void SetParameterElement(string name, int index, Vector3 value)
-    {
-        var param = GetParameter(name);
-        if (param?.Elements.Count > index)
-            param.Elements[index].SetValue(value);
-    }
-
     /// <summary>
     /// Selects a named technique. Falls back to the first technique with a warning if not found.
     /// </summary>

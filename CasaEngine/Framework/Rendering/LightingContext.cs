@@ -24,15 +24,15 @@ public class LightingContext
             if (i < ActiveDirectionalLightCount)
             {
                 var d = DirectionalLights[i];
-                shader.SetParameterElement("DirLightDirections",    i, d.Direction);
-                shader.SetParameterElement("DirLightDiffuseColors", i, d.DiffuseColor * d.Intensity);
-                shader.SetParameterElement("DirLightSpecularColors", i, d.SpecularColor);
+                shader.SetParameter($"DirLight{i}Direction",    d.Direction);
+                shader.SetParameter($"DirLight{i}DiffuseColor", d.DiffuseColor * d.Intensity);
+                shader.SetParameter($"DirLight{i}SpecularColor", d.SpecularColor);
             }
             else
             {
                 // Zero out inactive slots so the shader does not accumulate stale light data.
-                shader.SetParameterElement("DirLightDiffuseColors",  i, Vector3.Zero);
-                shader.SetParameterElement("DirLightSpecularColors", i, Vector3.Zero);
+                shader.SetParameter($"DirLight{i}DiffuseColor",  Vector3.Zero);
+                shader.SetParameter($"DirLight{i}SpecularColor", Vector3.Zero);
             }
         }
         shader.SetParameter(ShaderParameterNames.AmbientColor, AmbientColor);

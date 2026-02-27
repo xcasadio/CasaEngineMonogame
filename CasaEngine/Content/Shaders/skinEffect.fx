@@ -26,9 +26,17 @@ BEGIN_CONSTANTS
     float3 SpecularColor _vs(c2) _ps(c3) _cb(c2);
     float  SpecularPower _vs(c3) _ps(c4) _cb(c2.w);
 
-    float3 DirLightDirections[3]    _vs(c4) _ps(c5)  _cb(c3);
-    float3 DirLightDiffuseColors[3] _vs(c7) _ps(c8)  _cb(c6);
-    float3 DirLightSpecularColors[3] _vs(c10) _ps(c11) _cb(c9);
+    float3 DirLight0Direction  _vs(c4) _ps(c5)  _cb(c3);
+    float3 DirLight0DiffuseColor  _vs(c5) _ps(c6)  _cb(c4);
+    float3 DirLight0SpecularColor _vs(c6) _ps(c7)  _cb(c5);
+
+    float3 DirLight1Direction  _vs(c7) _ps(c8)  _cb(c6);
+    float3 DirLight1DiffuseColor  _vs(c8) _ps(c9)  _cb(c7);
+    float3 DirLight1SpecularColor _vs(c9) _ps(c10) _cb(c8);
+
+    float3 DirLight2Direction  _vs(c10) _ps(c11) _cb(c9);
+    float3 DirLight2DiffuseColor  _vs(c11) _ps(c12) _cb(c10);
+    float3 DirLight2SpecularColor _vs(c12) _ps(c13) _cb(c11);
 
     float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
     float3 AmbientColor _cb(c13);
@@ -91,7 +99,7 @@ void ApplyBoneTransforms(VsInputSkinnedQuad input, out float4 pos, out float3 no
         Bones[input.BlendIndices.w] * (float)input.BlendWeights.w / sum;
 
     pos  = mul(pos, mbones);
-    norm = mul(norm, mbones);
+    norm = mul(norm, (float3x3)mbones);
 
     pos  = mul(pos, World);
     norm = normalize(mul(norm, WorldInverseTranspose));
