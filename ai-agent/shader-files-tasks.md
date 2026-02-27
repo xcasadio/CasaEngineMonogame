@@ -281,7 +281,7 @@ Additionally, `Common.fxh` (45 lines) is tightly coupled with `Lighting.fxh` and
 
 ---
 
-### ⬜ Task 8 — Remove unused structs from `Structures.fxh`
+### ✅ Task 8 — Remove unused structs from `Structures.fxh`
 **Priority:** P2 (Cleanup)
 **Files:** `Structures.fxh`, all `.fx` files
 **Description:**

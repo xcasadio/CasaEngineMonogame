@@ -1,8 +1,7 @@
 //-----------------------------------------------------------------------------
-// Structurs.fxh
+// Structures.fxh
 //
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
+// Vertex/pixel shader input and output structures used by basicEffect.fx.
 //-----------------------------------------------------------------------------
 
 
@@ -60,31 +59,6 @@ struct VSInputNmTxVc
     float4 Color : COLOR;
 };
 
-struct VSInputTx2
-{
-    float4 Position : SV_Position;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-};
-
-struct VSInputTx2Vc
-{
-    float4 Position : SV_Position;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-    float4 Color : COLOR;
-};
-
-struct VSInputNmTxWeights
-{
-    float4 Position : SV_Position;
-    float3 Normal : NORMAL;
-    float2 TexCoord : TEXCOORD0;
-    int4 Indices : BLENDINDICES0;
-    float4 Weights : BLENDWEIGHT0;
-};
-
-
 
 // Vertex shader output structures.
 
@@ -118,70 +92,4 @@ struct VSOutputPixelLightingTx
     float3 NormalWS : TEXCOORD2;
     float4 Diffuse : COLOR0;
     float4 PositionPS : SV_Position;
-};
-
-struct VSOutputTx2
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-    float4 PositionPS : SV_Position;
-};
-
-struct VSOutputTxEnvMap
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float3 EnvCoord : TEXCOORD1;
-    float4 PositionPS : SV_Position;
-};
-
-
-
-// Pixel shader input structures.
-
-struct PSInput
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-};
-
-struct PSInputTx
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-};
-
-struct PSInputPixelLighting
-{
-    float4 PositionWS : TEXCOORD0;
-    float3 NormalWS : TEXCOORD1;
-    float4 Diffuse : COLOR0;
-};
-
-struct PSInputPixelLightingTx
-{
-    float2 TexCoord : TEXCOORD0;
-    float4 PositionWS : TEXCOORD1;
-    float3 NormalWS : TEXCOORD2;
-    float4 Diffuse : COLOR0;
-};
-
-struct PSInputTx2
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-};
-
-struct PSInputTxEnvMap
-{
-    float4 Diffuse : COLOR0;
-    float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float3 EnvCoord : TEXCOORD1;
 };
