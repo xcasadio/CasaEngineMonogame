@@ -4,12 +4,12 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.IO;
-using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -27,11 +27,15 @@ public class SceneManagementDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
-        var meshTexture = new Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        var checkMat = new LitDiffuseMaterial
+        {
+            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            DiffuseColor = Color.White,
+        };
 
         var boxModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
         boxModel.Meshes[0].Initialize(game.GraphicsDevice);
-        boxModel.Meshes[0].Texture = meshTexture;
+        boxModel.Meshes[0].Material = checkMat;
 
         for (var i = -gridSize; i <= gridSize; ++i)
         {

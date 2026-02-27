@@ -291,6 +291,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         DefaultLighting.Bind(sw);
 
         var texture = mesh.Texture?.Resource ?? defaultTexture?.Resource;
+        // Always select the matching technique so legacy items rendered after
+        // a material call (which may have changed CurrentTechnique) are correct.
+        _effect.CurrentTechnique = _effect.Techniques[
+            texture != null ? "BasicEffect_PixelLighting_Texture" : "BasicEffect_PixelLighting"];
         _effect.Parameters["Texture"].SetValue(texture);
         _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
         _effect.Parameters["World"].SetValue(meshInfo.World);

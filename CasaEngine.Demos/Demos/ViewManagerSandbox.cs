@@ -3,6 +3,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -74,6 +75,7 @@ public class ViewManagerSandbox : Demo
         ground.RootComponent = gm;
         gm.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(30, 1, 30));
         gm.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+        gm.StaticModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = new Color(180, 170, 140) };
         gm.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(ground);
 
@@ -87,6 +89,7 @@ public class ViewManagerSandbox : Demo
             box.RootComponent = bm;
             bm.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(1.5f, 2f, 1.5f));
             bm.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+            bm.StaticModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = colors[i % colors.Length] };
             bm.LocalPosition = new Vector3(MathF.Cos(angle) * 8f, 1f, MathF.Sin(angle) * 8f);
             world.AddEntity(box);
         }

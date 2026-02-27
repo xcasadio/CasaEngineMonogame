@@ -3,6 +3,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 
@@ -31,6 +32,7 @@ public class SplitScreenDemo : Demo
         groundEntity.RootComponent = groundMesh;
         groundMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(20, 1, 20));
         groundMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+        groundMesh.StaticModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = new Color(190, 180, 150) };
         groundMesh.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(groundEntity);
 
@@ -42,6 +44,7 @@ public class SplitScreenDemo : Demo
             boxEntity.RootComponent = boxMesh;
             boxMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(2, 2, 2));
             boxMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+            boxMesh.StaticModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = new Color(100, 130, 200) };
             boxMesh.LocalPosition = new Vector3((i - 1) * 4, 1, 0);
             world.AddEntity(boxEntity);
         }

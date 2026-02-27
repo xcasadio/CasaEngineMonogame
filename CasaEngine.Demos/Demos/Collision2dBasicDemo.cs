@@ -7,6 +7,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -35,7 +36,8 @@ public class Collision2dBasicDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
-        var meshTexture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        var checkTexture = Texture2D.FromFile(game.GraphicsDevice, fileName);
+        var checkMat = new LitDiffuseMaterial { Albedo = checkTexture, DiffuseColor = Color.White };
 
         //============ Create ground ===============
         var entity = new Entity { Name = "ground" };
@@ -45,7 +47,7 @@ public class Collision2dBasicDemo : Demo
         entity.RootComponent = meshComponent;
         meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(size.X, size.Y, size.Z));
         meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
-        meshComponent.StaticModel.Meshes[0].Texture = meshTexture;
+        meshComponent.StaticModel.Meshes[0].Material = checkMat;
         entity.RootComponent.Position = new Vector3(0, 0, 0);
         //====
         var box2dCollisionComponent = new Box2dCollisionComponent();
@@ -114,7 +116,7 @@ public class Collision2dBasicDemo : Demo
                 physics2dComponent.PhysicsDefinition.Mass = mass;
 
                 meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
-                meshComponent.StaticModel.Meshes[0].Texture = meshTexture;
+                meshComponent.StaticModel.Meshes[0].Material = checkMat;
 
                 world.AddEntity(entity);
 

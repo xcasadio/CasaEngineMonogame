@@ -5,6 +5,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
@@ -36,7 +37,12 @@ public class Collision3dBasicDemo : Demo
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
 
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
-        meshComponent.StaticModel.Meshes[0].Texture = new CasaEngine.Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        var groundMat = new LitDiffuseMaterial
+        {
+            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            DiffuseColor = Color.White,
+        };
+        meshComponent.StaticModel.Meshes[0].Material = groundMat;
 
         world.AddEntity(entity);
 
@@ -51,7 +57,12 @@ public class Collision3dBasicDemo : Demo
         var boxModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
         fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
         boxModel.Meshes[0].Initialize(game.GraphicsDevice);
-        boxModel.Meshes[0].Texture = new Framework.Assets.Textures.Texture(Texture2D.FromFile(game.GraphicsDevice, fileName));
+        var boxMat = new LitDiffuseMaterial
+        {
+            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            DiffuseColor = Color.White,
+        };
+        boxModel.Meshes[0].Material = boxMat;
 
         for (int k = 0; k < ArraySizeY; k++)
         {

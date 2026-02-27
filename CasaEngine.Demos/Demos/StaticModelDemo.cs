@@ -3,6 +3,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
@@ -105,13 +106,22 @@ public class StaticModelDemo : Demo
             mesh.Initialize(gd);
         }
 
-        // Optionally load the checkboard texture on the ground mesh
+        // Assign materials so meshes render correctly through the material pipeline.
         var texturePath = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         if (File.Exists(texturePath))
         {
-            groundMesh.Texture = new Framework.Assets.Textures.Texture(
-                Texture2D.FromFile(gd, texturePath));
+            groundMesh.Material = new LitDiffuseMaterial
+            {
+                Albedo       = Texture2D.FromFile(gd, texturePath),
+                DiffuseColor = Color.White,
+            };
         }
+        else
+        {
+            groundMesh.Material = new LitDiffuseMaterial { DiffuseColor = new Color(200, 190, 160) };
+        }
+        boxMesh.Material    = new LitDiffuseMaterial { DiffuseColor = new Color(160, 120, 80) };
+        sphereMesh.Material = new LitDiffuseMaterial { DiffuseColor = new Color(80, 110, 170) };
 
         // ------------------------------------------------------------------
         // Create entity + component
