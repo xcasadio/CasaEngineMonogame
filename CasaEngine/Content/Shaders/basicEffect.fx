@@ -9,6 +9,7 @@
 
 
 DECLARE_TEXTURE(Texture, 0);
+DECLARE_TEXTURE(NormalTexture, 1);
 
 
 BEGIN_PER_FRAME
@@ -380,6 +381,50 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
 }
 
 
+// Vertex shader: pixel lighting + texture + tangent (for normal mapping).
+VSOutputPixelLightingTxTan VSBasicPixelLightingTxTan(VSInputNmTxTan vin)
+{
+    VSOutputPixelLightingTxTan vout;
+
+    CommonVSOutputPixelLighting cout = ComputeCommonVSOutputPixelLighting(vin.Position, vin.Normal);
+
+    vout.PositionPS = cout.Pos_ps;
+    vout.PositionWS = float4(cout.Pos_ws, 1);
+    vout.NormalWS = cout.Normal_ws;
+    vout.Diffuse = float4(1, 1, 1, DiffuseColor.a);
+    vout.TexCoord = vin.TexCoord;
+    vout.TangentWS = normalize(mul(vin.Tangent.xyz, (float3x3)World));
+    vout.BitangentWS = cross(vout.NormalWS, vout.TangentWS) * vin.Tangent.w;
+
+    return vout;
+}
+
+
+// Pixel shader: pixel lighting + texture + normal map.
+float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
+{
+    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+
+    // Sample normal map and unpack from [0,1] to [-1,1]
+    float3 normalMap = SAMPLE_TEXTURE(NormalTexture, pin.TexCoord).rgb * 2.0 - 1.0;
+
+    // Build TBN matrix and transform normal to world space
+    float3 N = normalize(pin.NormalWS);
+    float3 T = normalize(pin.TangentWS);
+    float3 B = normalize(pin.BitangentWS);
+    float3x3 TBN = float3x3(T, B, N);
+    float3 worldNormal = normalize(mul(normalMap, TBN));
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
+
+    color.rgb *= lightResult.Diffuse;
+    AddSpecular(color, lightResult.Specular);
+
+    return color;
+}
+
+
 // NOTE: The order of the techniques here are
 // defined to match the indexing in BasicEffect.cs.
 
@@ -407,3 +452,5 @@ TECHNIQUE(BasicEffect_PixelLighting_OneLight, VSBasicPixelLighting, PSBasicPixel
 TECHNIQUE(BasicEffect_PixelLighting_OneLight_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLightingOneLight);
 TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTxOneLight);
 TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTxOneLight);
+
+TECHNIQUE(BasicEffect_PixelLighting_Texture_NormalMap, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNorm);

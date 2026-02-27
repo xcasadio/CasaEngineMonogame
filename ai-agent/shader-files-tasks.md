@@ -315,7 +315,7 @@ Currently all shader constants live in a single `cbuffer Parameters : register(b
 
 ---
 
-### ⬜ Task 10 — Add normal-mapping support
+### ✅ Task 10 — Add normal-mapping support
 **Priority:** P3 (Feature)
 **Files:** `Structures.fxh`, `basicEffect.fx`, `Lighting.fxh`, `ShaderParameterNames.cs`, `LitDiffuseMaterial.cs`
 **Description:**

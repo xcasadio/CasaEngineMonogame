@@ -15,6 +15,8 @@ public class LitDiffuseMaterial : MaterialBase
 {
     public Texture2D? Albedo { get; set; }
     public Guid AlbedoAssetId { get; set; } = Guid.Empty;
+    public Texture2D? NormalMap { get; set; }
+    public Guid NormalMapAssetId { get; set; } = Guid.Empty;
     public Color DiffuseColor { get; set; } = Color.White;
     public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
     public Vector3 SpecularColor { get; set; } = new Vector3(0.5f);
@@ -22,15 +24,25 @@ public class LitDiffuseMaterial : MaterialBase
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
     {
-        // Select technique based on texture presence and active light count
+        // Select technique based on texture, normal map, and active light count
+        var hasAlbedo = Albedo is not null;
+        var hasNormalMap = NormalMap is not null && hasAlbedo;
         var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
-        shader.SelectTechnique((Albedo is not null, oneLight) switch
+
+        if (hasNormalMap)
         {
-            (true, true)   => "BasicEffect_PixelLighting_OneLight_Texture",
-            (true, false)  => "BasicEffect_PixelLighting_Texture",
-            (false, true)  => "BasicEffect_PixelLighting_OneLight",
-            (false, false) => "BasicEffect_PixelLighting",
-        });
+            shader.SelectTechnique("BasicEffect_PixelLighting_Texture_NormalMap");
+        }
+        else
+        {
+            shader.SelectTechnique((hasAlbedo, oneLight) switch
+            {
+                (true, true)   => "BasicEffect_PixelLighting_OneLight_Texture",
+                (true, false)  => "BasicEffect_PixelLighting_Texture",
+                (false, true)  => "BasicEffect_PixelLighting_OneLight",
+                (false, false) => "BasicEffect_PixelLighting",
+            });
+        }
 
         var worldViewProj = world * context.Frame.ViewProjection;
         shader.SetParameter(ShaderParameterNames.WorldViewProj, worldViewProj);
@@ -44,6 +56,9 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
         shader.SetParameter(ShaderParameterNames.AlbedoTexture, Albedo);
+
+        if (hasNormalMap)
+            shader.SetParameter(ShaderParameterNames.NormalTexture, NormalMap);
 
         context.Lighting?.Bind(shader);
     }
@@ -62,6 +77,9 @@ public class LitDiffuseMaterial : MaterialBase
 
         if (element["albedo_asset_id"] is { } a)
             AlbedoAssetId = Guid.Parse(a.Value<string>()!);
+
+        if (element["normal_map_asset_id"] is { } nm)
+            NormalMapAssetId = Guid.Parse(nm.Value<string>()!);
 
         if (element["diffuse_color"] is JObject dc)
             DiffuseColor = new Color(
@@ -84,7 +102,8 @@ public class LitDiffuseMaterial : MaterialBase
     {
         base.Save(jObject);
         jObject["type"]            = nameof(LitDiffuseMaterial);
-        jObject["albedo_asset_id"] = AlbedoAssetId.ToString();
+        jObject["albedo_asset_id"]     = AlbedoAssetId.ToString();
+        jObject["normal_map_asset_id"] = NormalMapAssetId.ToString();
         jObject["diffuse_color"]   = new JObject { ["r"] = DiffuseColor.R, ["g"] = DiffuseColor.G, ["b"] = DiffuseColor.B, ["a"] = DiffuseColor.A };
         jObject["emissive_color"]  = new JObject { ["r"] = EmissiveColor.X, ["g"] = EmissiveColor.Y, ["b"] = EmissiveColor.Z };
         jObject["specular_color"]  = new JObject { ["r"] = SpecularColor.X, ["g"] = SpecularColor.Y, ["b"] = SpecularColor.Z };

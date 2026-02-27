@@ -59,6 +59,14 @@ struct VSInputNmTxVc
     float4 Color : COLOR;
 };
 
+struct VSInputNmTxTan
+{
+    float4 Position : SV_Position;
+    float3 Normal : NORMAL;
+    float2 TexCoord : TEXCOORD0;
+    float4 Tangent : TANGENT;  // .w = bitangent sign
+};
+
 
 // Vertex shader output structures.
 
@@ -90,6 +98,17 @@ struct VSOutputPixelLightingTx
     float2 TexCoord : TEXCOORD0;
     float4 PositionWS : TEXCOORD1;
     float3 NormalWS : TEXCOORD2;
+    float4 Diffuse : COLOR0;
+    float4 PositionPS : SV_Position;
+};
+
+struct VSOutputPixelLightingTxTan
+{
+    float2 TexCoord : TEXCOORD0;
+    float4 PositionWS : TEXCOORD1;
+    float3 NormalWS : TEXCOORD2;
+    float3 TangentWS : TEXCOORD3;
+    float3 BitangentWS : TEXCOORD4;
     float4 Diffuse : COLOR0;
     float4 PositionPS : SV_Position;
 };
