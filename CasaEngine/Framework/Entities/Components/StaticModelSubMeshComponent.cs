@@ -2,6 +2,7 @@ using System.ComponentModel;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
@@ -31,6 +32,13 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
     public StaticModelMesh? ModelMesh { get; set; }
 
     /// <summary>
+    /// Optional per-instance shader parameter overrides applied after the mesh
+    /// material's <c>Bind()</c> call. Use this to tint an individual entity
+    /// differently without duplicating the entire <see cref="MaterialBase"/> asset.
+    /// </summary>
+    public MaterialPropertyBlock? PropertyOverrides { get; set; }
+
+    /// <summary>
     /// <c>true</c> when this component was auto-generated from a <see cref="StaticModelComponent"/>.
     /// The parent's <c>Save()</c> uses this flag to skip serializing generated children.
     /// </summary>
@@ -42,6 +50,7 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
     {
         ModelMesh = other.ModelMesh;
         IsGeneratedFromModel = other.IsGeneratedFromModel;
+        PropertyOverrides = other.PropertyOverrides;
     }
 
     public override StaticModelSubMeshComponent Clone() => new(this);
@@ -63,7 +72,7 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
 
         var world = WorldMatrixWithScale;
         var invTranspose = Matrix.Transpose(Matrix.Invert(world));
-        _meshRendererComponent.AddMesh(ModelMesh, world, invTranspose);
+        _meshRendererComponent.AddMesh(ModelMesh, world, invTranspose, PropertyOverrides);
     }
 
     public override BoundingBox GetBoundingBox()
