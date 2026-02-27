@@ -274,7 +274,7 @@ public class RiggedModelLoader
             Mesh mesh = scene.Meshes[index];
             var riggedModelMesh = new RiggedModel.RiggedModelMesh();
             riggedModelMesh.NameOfMesh = mesh.Name;
-            riggedModelMesh.Texture = null; //DefaultTexture;
+            riggedModelMesh.Texture = DefaultTexture;
             riggedModelMesh.TextureName = "";
             //
             // The material used by this mesh.

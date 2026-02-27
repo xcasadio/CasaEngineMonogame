@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Graphics;
+﻿using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -44,6 +45,14 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     {
         _effect = Game.Content.Load<Effect>("Shaders\\skinEffect");
         _shader = new ShaderWrapper(_effect);
+
+        // Provide a 1×1 white fallback texture for skinned meshes without textures.
+        if (RiggedModelLoader.DefaultTexture == null)
+        {
+            var white = new Texture2D(Game.GraphicsDevice, 1, 1);
+            white.SetData(new[] { Color.White });
+            RiggedModelLoader.DefaultTexture = white;
+        }
 
         // Initialise lighting to match StaticMeshRendererComponent defaults
         DefaultLighting.DirectionalLights[0] = new DirLight(

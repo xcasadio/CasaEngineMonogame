@@ -26,15 +26,19 @@ public class UnlitTextureMaterial : MaterialBase
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
     {
+        // Select the unlit technique (BasicEffect = no texture, BasicEffect_Texture = textured)
+        shader.SelectTechnique(Albedo != null ? "BasicEffect_Texture" : "BasicEffect");
+
         // -- Transforms --
         var worldViewProj = world * context.Frame.ViewProjection;
         shader.SetParameter(ShaderParameterNames.WorldViewProj, worldViewProj);
         shader.SetParameter(ShaderParameterNames.World, world);
 
         // -- Material params --
+        // basicEffect.fx uses DiffuseColor (float4) — pack Tint + Alpha into it.
+        shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(Tint.ToVector3(), Alpha));
+        shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
         shader.SetParameter(ShaderParameterNames.AlbedoTexture, Albedo);
-        shader.SetParameter(ShaderParameterNames.TintColor, Tint.ToVector4());
-        shader.SetParameter(ShaderParameterNames.Alpha, Alpha);
     }
 
     public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
