@@ -53,12 +53,11 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override void Draw(float elapsedTime)
     {
-        if (SkinnedMesh?.RiggedModel == null)
+        if (SkinnedMesh?.RiggedModel == null || _skinnedMeshRendererComponent == null)
         {
             return;
         }
 
-        // Flush() takes view/projection/cameraPosition from RenderFrame directly.
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
             WorldMatrixWithScale);

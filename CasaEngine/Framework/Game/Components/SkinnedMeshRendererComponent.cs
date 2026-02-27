@@ -88,7 +88,6 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
 
-        _shader.SetParameter(ShaderParameterNames.ViewProjection, frame.ViewProjection);
         _shader.SetParameter(ShaderParameterNames.EyePosition, frame.CameraPosition);
 
         // Material defaults for skinned meshes
@@ -103,7 +102,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         foreach (var meshInfo in _meshInfos)
         {
             meshInfo.SkinnedMesh.Effect = _effect;
-            meshInfo.SkinnedMesh.Draw(GraphicsDevice, meshInfo.World);
+            meshInfo.SkinnedMesh.Draw(GraphicsDevice, meshInfo.World, frame.ViewProjection);
         }
 
         _meshInfos.Clear();

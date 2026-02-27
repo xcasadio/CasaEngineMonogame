@@ -344,7 +344,7 @@ public class RiggedModelLoader
                 if (ttype == "Diffuse")
                 {
                     riggedModelMesh.TextureName = tfilename;
-                    riggedModelMesh.Texture = texture;
+                    riggedModelMesh.Texture = texture ?? DefaultTexture;
                 }
                 else if (ttype == "Normal")
                 {

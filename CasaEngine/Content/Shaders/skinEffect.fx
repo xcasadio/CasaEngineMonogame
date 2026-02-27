@@ -48,12 +48,12 @@ MATRIX_CONSTANTS
 
     float4x4 WorldViewProj _vs(c15) _cb(c0);
 
-END_CONSTANTS
+    // Skinning-specific parameters — MUST be inside cbuffer for MGFX compatibility.
+    // Standalone (global-scope) matrix params are not handled correctly by MGFX.
+    float4x4 Bones[128];
+    float boneIdToSee;
 
-// Skinning-specific parameters (outside the shared cbuffer)
-float4x4 ViewProjection;
-float4x4 Bones[128];
-float boneIdToSee = -1.0f;
+END_CONSTANTS
 
 
 #include "Lighting.fxh"
@@ -98,11 +98,9 @@ void ApplyBoneTransforms(VsInputSkinnedQuad input, out float4 pos, out float3 no
         Bones[input.BlendIndices.z] * (float)input.BlendWeights.z / sum +
         Bones[input.BlendIndices.w] * (float)input.BlendWeights.w / sum;
 
+    // Apply bone transform only (no World) — caller applies World or WorldViewProj
     pos  = mul(pos, mbones);
     norm = mul(norm, (float3x3)mbones);
-
-    pos  = mul(pos, World);
-    norm = normalize(mul(norm, WorldInverseTranspose));
 }
 
 
@@ -120,9 +118,12 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 
     output.Color = float4(1, 1, 1, 1);
     output.TexureCoordinateA = input.TexureCoordinateA;
-    output.Position3D = pos.xyz;
-    output.Normal3D = norm;
-    output.Position = mul(pos, ViewProjection);
+    // World-space position and normal for lighting
+    float4 worldPos = mul(pos, World);
+    output.Position3D = worldPos.xyz;
+    output.Normal3D = normalize(mul(norm, WorldInverseTranspose));
+    // Clip-space: bone-space pos * WorldViewProj (cbuffer, pre-computed on C# side)
+    output.Position = mul(pos, WorldViewProj);
     return output;
 }
 
@@ -184,9 +185,10 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 
     output.Color = col;
     output.TexureCoordinateA = input.TexureCoordinateA;
-    output.Position3D = pos.xyz;
-    output.Normal3D = norm;
-    output.Position = mul(pos, ViewProjection);
+    float4 worldPos = mul(pos, World);
+    output.Position3D = worldPos.xyz;
+    output.Normal3D = normalize(mul(norm, WorldInverseTranspose));
+    output.Position = mul(pos, WorldViewProj);
     return output;
 }
 
