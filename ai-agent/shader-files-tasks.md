@@ -164,7 +164,7 @@ Each task is designed for autonomous execution by an AI agent. Tasks are ordered
 
 ---
 
-### ⬜ Task 1 — Fix `skinEffect.fx` return value bug
+### ✅ Task 1 — Fix `skinEffect.fx` return value bug
 **Priority:** P0 (Critical bug)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`
 **Description:**
