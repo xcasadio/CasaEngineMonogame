@@ -279,7 +279,9 @@ public class RiggedModel
             Effect.Parameters["TextureA"].SetValue(mesh.Texture);
             // We will add in the mesh transform to the world thru the mesh we could do it to every single bone but this way saves a bunch of matrix multiplys. 
             //effect.Parameters["World"].SetValue(world * m.MeshCombinedFinalTransformMg);
-            Effect.Parameters["World"].SetValue(world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg); // same thing
+            var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
+            Effect.Parameters["World"].SetValue(meshWorld);
+            Effect.Parameters["WorldInverseTranspose"]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));
             Effect.CurrentTechnique.Passes[0].Apply();
             gd.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, mesh.Vertices, 0,
                 mesh.Vertices.Length, mesh.Indices, 0, mesh.Indices.Length / 3,

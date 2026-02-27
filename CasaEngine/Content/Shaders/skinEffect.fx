@@ -47,6 +47,7 @@ sampler TextureSamplerA = sampler_state
 //_______________________________________________________________
 
 matrix World;
+float3x3 WorldInverseTranspose;
 matrix View;
 matrix Projection;
 matrix Bones[128];
@@ -118,7 +119,7 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
     norm = mul(norm, mbones);
     
     pos = mul(pos, World);
-    norm = normalize(mul(norm, World));
+    norm = normalize(mul(norm, WorldInverseTranspose));
 
     output.Color = float4(1.0f, 1.0f, 1.0f, 1.0f); // place holder dunno if added color.
     output.TexureCoordinateA = input.TexureCoordinateA;
@@ -212,7 +213,7 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
     norm = mul(norm, mbones);
     
     pos = mul(pos, World);
-    norm = normalize(mul(norm, World));
+    norm = normalize(mul(norm, WorldInverseTranspose));
 
     float4 col = float4(0.40f, 0.40f, 0.40f, 1.0f);
 

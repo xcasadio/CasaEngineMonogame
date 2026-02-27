@@ -196,7 +196,7 @@ The `BasicEffect_PixelLighting_VertexColor` technique on line 362 uses `VSBasicP
 
 ---
 
-### ⬜ Task 3 — Fix `skinEffect.fx` normal transformation
+### ✅ Task 3 — Fix `skinEffect.fx` normal transformation
 **Priority:** P1 (Visual bug under non-uniform scale)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`
 **Description:**
