@@ -177,7 +177,7 @@ In `PixelShaderRiggedModelDraw()` (around line 156), the function computes a ful
 
 ---
 
-### ⬜ Task 2 — Fix `basicEffect.fx` PixelLighting_VertexColor technique
+### ✅ Task 2 — Fix `basicEffect.fx` PixelLighting_VertexColor technique
 **Priority:** P0 (Bug)
 **Files:** `CasaEngine/Content/Shaders/basicEffect.fx`
 **Description:**
