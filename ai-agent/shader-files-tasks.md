@@ -225,7 +225,7 @@ Both vertex shaders transform normals using `mul(norm, World)` which is wrong fo
 
 ---
 
-### ⬜ Task 5 — Unify `skinEffect.fx` lighting with the engine's directional light model
+### ✅ Task 5 — Unify `skinEffect.fx` lighting with the engine's directional light model
 **Priority:** P1 (Visual consistency)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `CasaEngine/Framework/Game/Components/SkinnedMeshRendererComponent.cs`
 **Description:**

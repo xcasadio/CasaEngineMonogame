@@ -1,7 +1,9 @@
 ﻿using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using DirLight = CasaEngine.Framework.Rendering.DirectionalLight;
 
 namespace CasaEngine.Framework.Game.Components;
 
@@ -9,7 +11,17 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 {
     private readonly List<SkinnedMeshInfo> _meshInfos = new();
     private Effect _effect;
+    private ShaderWrapper _shader;
     private CasaEngineGame _game;
+
+    /// <summary>
+    /// Default scene lighting for skinned meshes. Same values as StaticMeshRendererComponent.
+    /// </summary>
+    public LightingContext DefaultLighting { get; } = new LightingContext
+    {
+        ActiveDirectionalLightCount = 3,
+        AmbientColor = new Vector3(0.05f, 0.05f, 0.05f),
+    };
 
     public SkinnedMeshRendererComponent(CasaEngineGame game) : base(game)
     {
@@ -31,6 +43,22 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     protected override void LoadContent()
     {
         _effect = Game.Content.Load<Effect>("Shaders\\skinEffect");
+        _shader = new ShaderWrapper(_effect);
+
+        // Initialise lighting to match StaticMeshRendererComponent defaults
+        DefaultLighting.DirectionalLights[0] = new DirLight(
+            new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
+            new Vector3(1f, 0.9607844f, 0.8078432f),
+            new Vector3(1f, 0.9607844f, 0.8078432f));
+        DefaultLighting.DirectionalLights[1] = new DirLight(
+            new Vector3(0.7198464f, 0.3420201f, 0.6040227f),
+            new Vector3(0.9647059f, 0.7607844f, 0.4078432f),
+            Vector3.Zero);
+        DefaultLighting.DirectionalLights[2] = new DirLight(
+            new Vector3(0.4545195f, -0.7660444f, 0.4545195f),
+            new Vector3(0.3231373f, 0.3607844f, 0.3937255f),
+            new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+
         base.LoadContent();
     }
 
@@ -45,27 +73,24 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
         graphicsDevice.DepthStencilState = DepthStencilState.Default;
         GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        //GraphicsDevice.RasterizerState = new RasterizerState() { CullMode = CullMode.CullClockwiseFace, FillMode = FillMode.WireFrame };
         GraphicsDevice.BlendState = BlendState.NonPremultiplied;
-        //GraphicsDevice.SamplerStates[0] = SamplerState.AnisotropicClamp;
         GraphicsDevice.SetVertexBuffer(null);
         GraphicsDevice.Indices = null;
 
         _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
 
-        _effect.Parameters["View"].SetValue(frame.View);
-        _effect.Parameters["Projection"].SetValue(frame.Projection);
-        _effect.Parameters["CameraPosition"].SetValue(frame.CameraPosition);
+        _shader.SetParameter(ShaderParameterNames.View, frame.View);
+        _shader.SetParameter(ShaderParameterNames.Projection, frame.Projection);
+        _shader.SetParameter(ShaderParameterNames.EyePosition, frame.CameraPosition);
 
-        // set up the effect initially to change how you want the shader to behave
-        _effect.Parameters["AmbientAmt"].SetValue(.15f);
-        _effect.Parameters["DiffuseAmt"].SetValue(.6f);
-        _effect.Parameters["SpecularAmt"].SetValue(.25f);
-        _effect.Parameters["SpecularSharpness"].SetValue(.88f);
-        _effect.Parameters["SpecularLightVsTexelInfluence"].SetValue(.40f);
+        // Material defaults for skinned meshes
+        _shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(1f, 1f, 1f, 1f));
+        _shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
+        _shader.SetParameter(ShaderParameterNames.SpecularColor, new Vector3(0.3f, 0.3f, 0.3f));
+        _shader.SetParameter(ShaderParameterNames.SpecularPower, 16.0f);
 
-        _effect.Parameters["WorldLightPosition"].SetValue(new Vector3(0f, 0f, 1200f));
-        _effect.Parameters["LightColor"].SetValue(new Vector4(.099f, .099f, .999f, 1.0f));
+        // Use the engine's shared lighting (same 3 directional lights as static meshes)
+        DefaultLighting.Bind(_shader);
 
         foreach (var meshInfo in _meshInfos)
         {

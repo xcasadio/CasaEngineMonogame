@@ -1,73 +1,79 @@
-﻿// for reference
-// struct semantics
-//float2 TexureCoordinate : TEXCOORD0; //float4 Color : COLOR0; //float3 Normal : NORMAL0; //float3 Tangent : NORMAL1; //float4 boneIds : BLENDINDICES; //float4 boneWeights : BLENDWEIGHT;
-// sampler options
-//magfilter = LINEAR; //minfilter = LINEAR; //mipfilter = LINEAR; //AddressU = mirror; //AddressV = mirror; 
-
-//_______________________________________________________________
-// RiggedModelEffect.fx
-// Simple texture drawing Effects are also included.
+﻿//_______________________________________________________________
+// skinEffect.fx
+// Skinned (rigged) model shader with skeletal animation.
 //
-// Techniques in this fx file...
+// Techniques: RiggedModelDraw, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
-// RiggedModelDraw, SkinedDebugModelDraw, ColorTextureLightingDraw,
-// TextureDraw,  ColorTextureDraw, ColorTextureDraw
-//
-// Defines
+// Uses the same directional light model as basicEffect.fx
+// (3 directional lights via Lighting.fxh).
 //_______________________________________________________________
 
 #include "Macros.fxh"
 
 
-
-//_______________________________________________________________
-// textures and samplers
-//
-//_______________________________________________________________
-
-
 DECLARE_TEXTURE(TextureA, 0);
 
 
+//_______________________________________________________________
+// Constant buffer — matches basicEffect.fx parameter layout
+// so that LightingContext.Bind() works identically.
+//_______________________________________________________________
+
+BEGIN_CONSTANTS
+
+    float4 DiffuseColor _vs(c0) _ps(c1) _cb(c0);
+    float3 EmissiveColor _vs(c1) _ps(c2) _cb(c1);
+    float3 SpecularColor _vs(c2) _ps(c3) _cb(c2);
+    float  SpecularPower _vs(c3) _ps(c4) _cb(c2.w);
+
+    float3 DirLight0Direction  _vs(c4) _ps(c5)  _cb(c3);
+    float3 DirLight0DiffuseColor  _vs(c5) _ps(c6)  _cb(c4);
+    float3 DirLight0SpecularColor _vs(c6) _ps(c7)  _cb(c5);
+
+    float3 DirLight1Direction  _vs(c7) _ps(c8)  _cb(c6);
+    float3 DirLight1DiffuseColor  _vs(c8) _ps(c9)  _cb(c7);
+    float3 DirLight1SpecularColor _vs(c9) _ps(c10) _cb(c8);
+
+    float3 DirLight2Direction  _vs(c10) _ps(c11) _cb(c9);
+    float3 DirLight2DiffuseColor  _vs(c11) _ps(c12) _cb(c10);
+    float3 DirLight2SpecularColor _vs(c12) _ps(c13) _cb(c11);
+
+    float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
+    float3 AmbientColor _cb(c13);
+
+    float4x4 World       _vs(c19) _cb(c15);
+    float3x3 WorldInverseTranspose _vs(c23) _cb(c19);
+
+MATRIX_CONSTANTS
+
+    float4x4 WorldViewProj _vs(c15) _cb(c0);
+
+END_CONSTANTS
+
+// Skinning-specific parameters (outside the shared cbuffer)
+float4x4 View;
+float4x4 Projection;
+float4x4 Bones[128];
+float boneIdToSee = -1.0f;
+
+
+#include "Common.fxh"
+#include "Lighting.fxh"
+
 
 //_______________________________________________________________
-// members
-//
+// Structs
 //_______________________________________________________________
 
-matrix World;
-float3x3 WorldInverseTranspose;
-matrix View;
-matrix Projection;
-matrix Bones[128];
-
-float3 WorldLightPosition;
-float4 LightColor;
-float3 CameraPosition;
-float AmbientAmt = 0.1f;
-float DiffuseAmt = 0.7f;
-float SpecularAmt = 0.2f;
-float SpecularSharpness = 0.5f;
-float SpecularLightVsTexelInfluence = 0.5f;
-
-float boneIdToSee = -1.0f; // more of a debuging value then anything
-
-
-
-//_______________________________________________________________
-// structs
-// used by:  RiggedModelDraw, SkinedDebugModelDraw
-//_______________________________________________________________
 struct VsInputSkinnedQuad
 {
     float3 Position : POSITION0;
     float2 TexureCoordinateA : TEXCOORD0;
     float3 Normal : NORMAL0;
-    //float3 Tangent : NORMAL1;
-    //float3 BiTangent : NORMAL2;
     float4 BlendIndices : BLENDINDICES0;
     float4 BlendWeights : BLENDWEIGHT0;
 };
+
 struct VsOutputSkinnedQuad
 {
     float4 Position : SV_Position;
@@ -75,42 +81,46 @@ struct VsOutputSkinnedQuad
     float2 TexureCoordinateA : TEXCOORD0;
     float3 Position3D : TEXCOORD1;
     float3 Normal3D : TEXCOORD2;
-    //float3 Tangent3D : NORMAL1;
-    //float3 BiTangent3D : NORMAL2;
 };
 
 
+//_______________________________________________________________
+// Shared skinning helper: applies bone transforms to position & normal
+//_______________________________________________________________
+
+void ApplyBoneTransforms(VsInputSkinnedQuad input, out float4 pos, out float3 norm)
+{
+    pos = float4(input.Position, 1);
+    norm = input.Normal;
+
+    float sum = input.BlendWeights.x + input.BlendWeights.y + input.BlendWeights.z + input.BlendWeights.w;
+    float4x4 mbones =
+        Bones[input.BlendIndices.x] * (float)input.BlendWeights.x / sum +
+        Bones[input.BlendIndices.y] * (float)input.BlendWeights.y / sum +
+        Bones[input.BlendIndices.z] * (float)input.BlendWeights.z / sum +
+        Bones[input.BlendIndices.w] * (float)input.BlendWeights.w / sum;
+
+    pos  = mul(pos, mbones);
+    norm = mul(norm, mbones);
+
+    pos  = mul(pos, World);
+    norm = normalize(mul(norm, WorldInverseTranspose));
+}
+
 
 //_______________________________________________________________
-// techniques 
-// RiggedModelDraw
-//
-// This technique is used to deform a rigged model meshes via its bone transforms.
-//
+// RiggedModelDraw — skinned mesh with per-pixel lighting
 //_______________________________________________________________
 
 VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 {
     VsOutputSkinnedQuad output;
 
-    float4 pos = float4(input.Position, 1);
-    float3 norm = input.Normal;
+    float4 pos;
+    float3 norm;
+    ApplyBoneTransforms(input, pos, norm);
 
-    //pos = mul(pos, World);
-
-    float sum = input.BlendWeights.x + input.BlendWeights.y + input.BlendWeights.z + input.BlendWeights.w;
-    float4x4 mbones =
-    Bones[input.BlendIndices.x] * (float) input.BlendWeights.x / sum +
-    Bones[input.BlendIndices.y] * (float) input.BlendWeights.y / sum +
-    Bones[input.BlendIndices.z] * (float) input.BlendWeights.z / sum +
-    Bones[input.BlendIndices.w] * (float) input.BlendWeights.w / sum;
-    pos = mul(pos, mbones);
-    norm = mul(norm, mbones);
-    
-    pos = mul(pos, World);
-    norm = normalize(mul(norm, WorldInverseTranspose));
-
-    output.Color = float4(1.0f, 1.0f, 1.0f, 1.0f); // place holder dunno if added color.
+    output.Color = float4(1, 1, 1, 1);
     output.TexureCoordinateA = input.TexureCoordinateA;
     output.Position3D = pos.xyz;
     output.Normal3D = norm;
@@ -121,79 +131,58 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float3 N = input.Normal3D;
-    float3 L = normalize(WorldLightPosition - input.Position3D);
-    float3 C = normalize(CameraPosition - input.Position3D); //View._m30_m31_m32
-    float diffuse = saturate(dot(N, L)) * DiffuseAmt;
-    float reflectionTheta = dot(C, reflect(-L, N));
-    float IsFrontFace = sign(saturate(dot(L, N))); // 1 is Frontface 0 is Backface.
     float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
-    float specular = saturate(reflectionTheta - SpecularSharpness) * (1.0f / (1.0f - SpecularSharpness)) * IsFrontFace * SpecularAmt; // screw that phong shading and power its nice but it also sucks.
-    float4 result = (texelColor * AmbientAmt) + (texelColor * diffuse) + ((texelColor * (1.0f - SpecularLightVsTexelInfluence) + LightColor * SpecularLightVsTexelInfluence) * specular);
-    return result;
+
+    float3 eyeVector  = normalize(EyePosition - input.Position3D);
+    float3 worldNormal = normalize(input.Normal3D);
+
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
+
+    float4 color = texelColor;
+    color.rgb *= lightResult.Diffuse;
+    AddSpecular(color, lightResult.Specular);
+
+    return color;
 }
 
 TECHNIQUE(RiggedModelDraw, VertexShaderRiggedModelDraw, PixelShaderRiggedModelDraw)
 
+
 //_______________________________________________________________
-// techniques 
-// RiggedModelNormalDraw
-//
-// This technique was designed to display model normals extending from vertices
-// The normals themselves are user primitives derived from a rigged models vertices.
+// RiggedModelNormalDraw — debug: visualizes normals with lighting
 //_______________________________________________________________
 
 float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float3 N = input.Normal3D;
-    float3 L = normalize(WorldLightPosition - input.Position3D);
-    float3 C = normalize(CameraPosition - input.Position3D); //View._m30_m31_m32
-    float diffuse = saturate(dot(N, L));
-    //float reflectionTheta = dot(C, reflect(-L, N));
-    float IsFrontFace = sign(saturate(dot(L, N))); // 1 is Frontface 0 is Backface.
+    float3 N = normalize(input.Normal3D);
+    float3 eyeVector = normalize(EyePosition - input.Position3D);
+
+    ColorPair lightResult = ComputeLights(eyeVector, N, 3);
+
     float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
-    //float specular = saturate(reflectionTheta - specularSharpness) * (1.0f / (1.0f - specularSharpness)) * IsFrontFace; // screw that phong shading and power its nice but it also sucks.
-    float4 lightColor = float4(0.99f, .99f, 0.99f, 1.0f) * IsFrontFace + float4(0.99f, 0.09f, 0.09f, 1.0f) * (1.0f - IsFrontFace);
-    float4 result = (lightColor * 0.60f + texelColor * 0.40f) * (diffuse * 0.75f + 0.25f);
+    float4 lightColor = float4(lightResult.Diffuse, 1.0f);
+    float4 result = (lightColor * 0.60f + texelColor * 0.40f);
     return result;
 }
 
 TECHNIQUE(RiggedModelNormalDraw, VertexShaderRiggedModelDraw, PixelShaderRiggedModelNormalDraw)
 
+
 //_______________________________________________________________
-// techniques 
-// SkinedDebugModelDraw
-//
-//  This is a model draw using bones. 
-//  it is designed to display a selected bones vertices.
-//
+// SkinedDebugModelDraw — highlights vertices belonging to a selected bone
 //_______________________________________________________________
 
 VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 {
     VsOutputSkinnedQuad output;
 
-    float4 pos = float4(input.Position, 1);
-    float3 norm = input.Normal;
-
-    //pos = mul(pos, World);
-
-    float sum = input.BlendWeights.x + input.BlendWeights.y + input.BlendWeights.z + input.BlendWeights.w;
-    float4x4 mbones =
-    Bones[input.BlendIndices.x] * (float) input.BlendWeights.x / sum +
-    Bones[input.BlendIndices.y] * (float) input.BlendWeights.y / sum +
-    Bones[input.BlendIndices.z] * (float) input.BlendWeights.z / sum +
-    Bones[input.BlendIndices.w] * (float) input.BlendWeights.w / sum;
-    pos = mul(pos, mbones);
-    norm = mul(norm, mbones);
-    
-    pos = mul(pos, World);
-    norm = normalize(mul(norm, WorldInverseTranspose));
+    float4 pos;
+    float3 norm;
+    ApplyBoneTransforms(input, pos, norm);
 
     float4 col = float4(0.40f, 0.40f, 0.40f, 1.0f);
-
-    // i could get rid of the if with some math but its just a debug shader.
-    if (input.BlendIndices.x == boneIdToSee || input.BlendIndices.y == boneIdToSee || input.BlendIndices.z == boneIdToSee || input.BlendIndices.w == boneIdToSee)
+    if (input.BlendIndices.x == boneIdToSee || input.BlendIndices.y == boneIdToSee ||
+        input.BlendIndices.z == boneIdToSee || input.BlendIndices.w == boneIdToSee)
         col = float4(0.49f, 0.99f, 0.49f, 1.0f);
 
     output.Color = col;
