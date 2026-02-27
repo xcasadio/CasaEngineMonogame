@@ -344,6 +344,42 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
 }
 
 
+// Pixel shader: pixel lighting (one light only).
+float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
+{
+    float4 color = pin.Diffuse;
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    float3 worldNormal = normalize(pin.NormalWS);
+
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 1);
+
+    color.rgb *= lightResult.Diffuse;
+
+    AddSpecular(color, lightResult.Specular);
+
+    return color;
+}
+
+
+// Pixel shader: pixel lighting + texture (one light only).
+float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
+{
+    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    float3 worldNormal = normalize(pin.NormalWS);
+
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 1);
+
+    color.rgb *= lightResult.Diffuse;
+
+    AddSpecular(color, lightResult.Specular);
+
+    return color;
+}
+
+
 // NOTE: The order of the techniques here are
 // defined to match the indexing in BasicEffect.cs.
 
@@ -366,3 +402,8 @@ TECHNIQUE(BasicEffect_PixelLighting, VSBasicPixelLighting, PSBasicPixelLighting)
 TECHNIQUE(BasicEffect_PixelLighting_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLighting);
 TECHNIQUE(BasicEffect_PixelLighting_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTx);
 TECHNIQUE(BasicEffect_PixelLighting_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTx);
+
+TECHNIQUE(BasicEffect_PixelLighting_OneLight, VSBasicPixelLighting, PSBasicPixelLightingOneLight);
+TECHNIQUE(BasicEffect_PixelLighting_OneLight_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLightingOneLight);
+TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTxOneLight);
+TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTxOneLight);

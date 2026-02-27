@@ -22,10 +22,15 @@ public class LitDiffuseMaterial : MaterialBase
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
     {
-        // Select technique based on whether an Albedo texture is present (Phase 5 / Task 5.6)
-        shader.SelectTechnique(Albedo is not null
-            ? "BasicEffect_PixelLighting_Texture"
-            : "BasicEffect_PixelLighting");
+        // Select technique based on texture presence and active light count
+        var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
+        shader.SelectTechnique((Albedo is not null, oneLight) switch
+        {
+            (true, true)   => "BasicEffect_PixelLighting_OneLight_Texture",
+            (true, false)  => "BasicEffect_PixelLighting_Texture",
+            (false, true)  => "BasicEffect_PixelLighting_OneLight",
+            (false, false) => "BasicEffect_PixelLighting",
+        });
 
         var worldViewProj = world * context.Frame.ViewProjection;
         shader.SetParameter(ShaderParameterNames.WorldViewProj, worldViewProj);

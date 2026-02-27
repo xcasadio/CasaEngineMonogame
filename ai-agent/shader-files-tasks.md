@@ -243,7 +243,7 @@ The skinned shader uses a single positional `WorldLightPosition` while the rest 
 
 ---
 
-### ⬜ Task 6 — Add `PixelLighting_OneLight` techniques to `basicEffect.fx`
+### ✅ Task 6 — Add `PixelLighting_OneLight` techniques to `basicEffect.fx`
 **Priority:** P2 (Performance)
 **Files:** `CasaEngine/Content/Shaders/basicEffect.fx`, `Lighting.fxh`
 **Description:**
