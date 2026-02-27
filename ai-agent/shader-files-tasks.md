@@ -5,12 +5,51 @@ All files under `CasaEngine/Content/Shaders/`.
 
 ---
 
+## Workflow Instructions
+
+> **Important:** After completing each task below, the agent **must**:
+> 1. Update this file to change the task's status icon from ⬜ to ✅.
+> 2. Commit all changes (task work + status update) together:
+>    ```
+>    git add -A && git commit -m "Shader tasks: complete Task N — <short description>"
+>    ```
+> 3. Move on to the next task only after committing.
+
+---
+
+## File Structure Assessment
+
+The engine currently has **7 shader files**. Here is the assessment of whether this split is justified:
+
+| File | Lines | Consumers | Verdict |
+|---|---|---|---|
+| `Macros.fxh` | 38 | `basicEffect.fx` (+ future shaders) | ✅ **Keep** — essential shared macros (`TECHNIQUE`, `DECLARE_TEXTURE`, `SAMPLE_TEXTURE`, shader model defines). Every `.fx` should include this. |
+| `Structures.fxh` | 226 | `basicEffect.fx` only | ⚠️ **Keep but trim aggressively** — 17 of 29 structs are dead code (all 9 `PSInput*`, 5 `*NoFog`, 3 dual-texture/env-map). Only 12 structs are actually used, all by `basicEffect.fx`. |
+| `Common.fxh` | 45 | `basicEffect.fx` only | ❌ **Merge into `Lighting.fxh`** — only 45 lines, tightly coupled with `Lighting.fxh` (which depends on `CommonVSOutput` defined here). They are always included together and have only one consumer. Merging reduces the include graph. |
+| `Lighting.fxh` | 94 | `basicEffect.fx` only | ✅ **Keep** — core Blinn-Phong lighting functions. Will absorb `Common.fxh` content. |
+| `basicEffect.fx` | 369 | Main lit shader | ✅ **Keep** — 16 techniques covering basic/vertex-lighting/pixel-lighting × texture/vertex-color variants. |
+| `skinEffect.fx` | 300 | Skinning shader | ✅ **Keep as separate file** — skinning logic is distinct enough to justify a separate file. However, it must be refactored to use the shared includes (`Macros.fxh`, `Lighting.fxh`) instead of duplicating everything. |
+| `UnlitTexture.fx` | 69 | Unlit material | ✅ **Keep** — clean standalone unlit shader, correctly uses `Macros.fxh`. |
+
+**Conclusion:** 7 files → **6 files** after merging `Common.fxh` into `Lighting.fxh` (added as step in Task 7). The remaining split is well-justified: shared infrastructure (Macros, Structures, Lighting) + per-effect files (basicEffect, skinEffect, UnlitTexture).
+
+### Struct Usage Audit (Structures.fxh)
+
+| Category | Total | Used | Unused |
+|---|---|---|---|
+| `VSInput*` | 11 | 8 | 3 (`VSInputTx2`, `VSInputTx2Vc`, `VSInputNmTxWeights`) |
+| `VSOutput*` | 9 | 4 | 5 (`VSOutputNoFog`, `VSOutputTxNoFog`, `VSOutputTx2`, `VSOutputTx2NoFog`, `VSOutputTxEnvMap`) |
+| `PSInput*` | 9 | 0 | 9 (all dead — `basicEffect.fx` reuses `VSOutput*` directly as PS inputs) |
+| **Total** | **29** | **12** | **17 (59%)** |
+
+---
+
 ## Summary of Current State
 
 | File | Lines | Role |
 |---|---|---|
 | `Macros.fxh` | 38 | Shader model defines, `TECHNIQUE`, `DECLARE_TEXTURE`, `SAMPLE_TEXTURE` macros |
-| `Structures.fxh` | 226 | All VS input/output and PS input structs (17+ structs, many unused) |
+| `Structures.fxh` | 226 | All VS input/output and PS input structs (29 structs, only 12 used) |
 | `Common.fxh` | 45 | `AddSpecular()`, `ComputeCommonVSOutput()`, `SetCommonVSOutputParams` macro |
 | `Lighting.fxh` | 94 | `ComputeLights()` (Blinn-Phong), `ComputeCommonVSOutputPixelLighting()` |
 | `basicEffect.fx` | 369 | 16 techniques (basic/vertex-lighting/pixel-lighting × texture/vertex-color variants) |
@@ -125,7 +164,7 @@ Each task is designed for autonomous execution by an AI agent. Tasks are ordered
 
 ---
 
-### Task 1 — Fix `skinEffect.fx` return value bug
+### ⬜ Task 1 — Fix `skinEffect.fx` return value bug
 **Priority:** P0 (Critical bug)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`
 **Description:**
@@ -138,7 +177,7 @@ In `PixelShaderRiggedModelDraw()` (around line 156), the function computes a ful
 
 ---
 
-### Task 2 — Fix `basicEffect.fx` PixelLighting_VertexColor technique
+### ⬜ Task 2 — Fix `basicEffect.fx` PixelLighting_VertexColor technique
 **Priority:** P0 (Bug)
 **Files:** `CasaEngine/Content/Shaders/basicEffect.fx`
 **Description:**
@@ -157,7 +196,7 @@ The `BasicEffect_PixelLighting_VertexColor` technique on line 362 uses `VSBasicP
 
 ---
 
-### Task 3 — Fix `skinEffect.fx` normal transformation
+### ⬜ Task 3 — Fix `skinEffect.fx` normal transformation
 **Priority:** P1 (Visual bug under non-uniform scale)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`
 **Description:**
@@ -171,7 +210,7 @@ Both vertex shaders transform normals using `mul(norm, World)` which is wrong fo
 
 ---
 
-### Task 4 — Integrate `skinEffect.fx` with the shared include system
+### ⬜ Task 4 — Integrate `skinEffect.fx` with the shared include system
 **Priority:** P1 (Consistency)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `Macros.fxh`
 **Description:**
@@ -186,7 +225,7 @@ Both vertex shaders transform normals using `mul(norm, World)` which is wrong fo
 
 ---
 
-### Task 5 — Unify `skinEffect.fx` lighting with the engine's directional light model
+### ⬜ Task 5 — Unify `skinEffect.fx` lighting with the engine's directional light model
 **Priority:** P1 (Visual consistency)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `CasaEngine/Framework/Game/Components/SkinnedMeshRendererComponent.cs`
 **Description:**
@@ -204,7 +243,7 @@ The skinned shader uses a single positional `WorldLightPosition` while the rest 
 
 ---
 
-### Task 6 — Add `PixelLighting_OneLight` techniques to `basicEffect.fx`
+### ⬜ Task 6 — Add `PixelLighting_OneLight` techniques to `basicEffect.fx`
 **Priority:** P2 (Performance)
 **Files:** `CasaEngine/Content/Shaders/basicEffect.fx`, `Lighting.fxh`
 **Description:**
@@ -224,21 +263,25 @@ Pixel-lighting techniques always compile `ComputeLights` with `numLights=3`. For
 
 ---
 
-### Task 7 — Remove dead fog-related code
+### ⬜ Task 7 — Remove dead fog-related code & merge `Common.fxh` into `Lighting.fxh`
 **Priority:** P2 (Cleanup)
-**Files:** `Structures.fxh`, `Common.fxh`
+**Files:** `Structures.fxh`, `Common.fxh`, `Lighting.fxh`, `basicEffect.fx`
 **Description:**
 The fog system has been removed but vestiges remain: `VSOutputNoFog`, `VSOutputTxNoFog`, `PSInputNoFog`, `PSInputTxNoFog`, `VSOutputTx2NoFog`, `PSInputTx2NoFog`, and the macro `SetCommonVSOutputParamsNoFog`.
+Additionally, `Common.fxh` (45 lines) is tightly coupled with `Lighting.fxh` and has only one consumer — merge it into `Lighting.fxh` to simplify the include graph (7 files → 6 files).
 
 **Steps:**
 1. In `Structures.fxh`, delete: `VSOutputNoFog`, `VSOutputTxNoFog`, `PSInputNoFog`, `PSInputTxNoFog`, `VSOutputTx2NoFog`, `PSInputTx2NoFog`.
 2. In `Common.fxh`, delete the `#define SetCommonVSOutputParamsNoFog` macro.
-3. Search all `.fx` files for references to these struct/macro names. If any are found, update them to use the non-fog equivalents.
-4. Build and verify.
+3. Move all remaining content of `Common.fxh` (`AddSpecular()`, `ComputeCommonVSOutput()`, `SetCommonVSOutputParams` macro) into `Lighting.fxh` (before the `ComputeLights` function).
+4. Delete `Common.fxh`.
+5. In `basicEffect.fx`, remove `#include "Common.fxh"` (now provided by `Lighting.fxh`).
+6. Search all `.fx` files for references to deleted structs/macros. If any are found, update them.
+7. Build and verify.
 
 ---
 
-### Task 8 — Remove unused structs from `Structures.fxh`
+### ⬜ Task 8 — Remove unused structs from `Structures.fxh`
 **Priority:** P2 (Cleanup)
 **Files:** `Structures.fxh`, all `.fx` files
 **Description:**
@@ -247,12 +290,12 @@ Many input/output structs are dead code (dual-texture, env-map, etc.). They were
 **Steps:**
 1. Grep all `.fx` files for each struct name in `Structures.fxh`.
 2. Remove any struct that has zero references outside its own declaration.
-3. Expected removals (verify first): `VSInputTx2`, `VSInputTx2Vc`, `VSOutputTx2`, `VSOutputTx2NoFog`, `PSInputTx2`, `PSInputTx2NoFog`, `VSOutputTxEnvMap`, `PSInputTxEnvMap`.
+3. Expected removals (verified by audit — all 9 `PSInput*` are dead, plus `VSInputTx2`, `VSInputTx2Vc`, `VSInputNmTxWeights`, `VSOutputTx2`, `VSOutputTxEnvMap`). Note: fog-related `*NoFog` structs should already be removed in Task 7.
 4. Build and verify no shader breaks.
 
 ---
 
-### Task 9 — Split cbuffers for per-frame vs per-object data
+### ⬜ Task 9 — Split cbuffers for per-frame vs per-object data
 **Priority:** P3 (Performance optimisation)
 **Files:** `basicEffect.fx`, `Macros.fxh`, `CasaEngine/Framework/Rendering/Shaders/ShaderWrapper.cs`, `CasaEngine/Framework/Rendering/Shaders/ShaderBindCache.cs`
 **Description:**
@@ -272,7 +315,7 @@ Currently all shader constants live in a single `cbuffer Parameters : register(b
 
 ---
 
-### Task 10 — Add normal-mapping support
+### ⬜ Task 10 — Add normal-mapping support
 **Priority:** P3 (Feature)
 **Files:** `Structures.fxh`, `basicEffect.fx`, `Lighting.fxh`, `ShaderParameterNames.cs`, `LitDiffuseMaterial.cs`
 **Description:**
@@ -291,7 +334,7 @@ No shader currently supports normal maps. Add tangent-space normal-map support t
 
 ---
 
-### Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays
+### ⬜ Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays
 **Priority:** P3 (Maintainability)
 **Files:** `Lighting.fxh`, `basicEffect.fx`
 **Description:**
@@ -310,7 +353,7 @@ No shader currently supports normal maps. Add tangent-space normal-map support t
 
 ---
 
-### Task 12 — `skinEffect.fx` — replace separate `View * Projection` with `WorldViewProj`
+### ⬜ Task 12 — `skinEffect.fx` — replace separate `View * Projection` with `WorldViewProj`
 **Priority:** P3 (Performance micro-optimisation)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `CasaEngine/Framework/Game/Components/SkinnedMeshRendererComponent.cs`
 **Description:**
@@ -334,8 +377,8 @@ Task 3 (skin normals)             — standalone, but naturally done with Task 4
 Task 4 (skin includes)            — standalone, prerequisite for Task 5
 Task 5 (skin lighting unify)      — depends on Task 4, relates to Task 3
 Task 6 (PL onelight techniques)   — standalone
-Task 7 (remove fog dead code)     — standalone
-Task 8 (remove unused structs)    — depends on Task 7 (fog structs overlap)
+Task 7 (fog cleanup + merge Common.fxh) — standalone
+Task 8 (remove unused structs)    — depends on Task 7 (fog structs removed there)
 Task 9 (cbuffer split)            — standalone, research MonoGame first
 Task 10 (normal mapping)          — standalone, benefits from Task 11
 Task 11 (array light params)      — standalone
