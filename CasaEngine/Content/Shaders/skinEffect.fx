@@ -16,14 +16,7 @@
 // Defines
 //_______________________________________________________________
 
-#if OPENGL
-#define SV_POSITION POSITION
-#define VS_SHADERMODEL vs_3_0
-#define PS_SHADERMODEL ps_3_0
-#else
-#define VS_SHADERMODEL vs_5_0
-#define PS_SHADERMODEL ps_5_0
-#endif
+#include "Macros.fxh"
 
 
 
@@ -33,11 +26,7 @@
 //_______________________________________________________________
 
 
-Texture2D TextureA; // primary texture.
-sampler TextureSamplerA = sampler_state
-{
-    texture = <TextureA>;
-};
+DECLARE_TEXTURE(TextureA, 0);
 
 
 
@@ -138,20 +127,13 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float diffuse = saturate(dot(N, L)) * DiffuseAmt;
     float reflectionTheta = dot(C, reflect(-L, N));
     float IsFrontFace = sign(saturate(dot(L, N))); // 1 is Frontface 0 is Backface.
-    float4 texelColor = tex2D(TextureSamplerA, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
     float specular = saturate(reflectionTheta - SpecularSharpness) * (1.0f / (1.0f - SpecularSharpness)) * IsFrontFace * SpecularAmt; // screw that phong shading and power its nice but it also sucks.
     float4 result = (texelColor * AmbientAmt) + (texelColor * diffuse) + ((texelColor * (1.0f - SpecularLightVsTexelInfluence) + LightColor * SpecularLightVsTexelInfluence) * specular);
     return result;
 }
 
-technique RiggedModelDraw
-{
-    pass
-    {
-        VertexShader = compile VS_SHADERMODEL VertexShaderRiggedModelDraw();
-        PixelShader = compile PS_SHADERMODEL PixelShaderRiggedModelDraw();
-    }
-}
+TECHNIQUE(RiggedModelDraw, VertexShaderRiggedModelDraw, PixelShaderRiggedModelDraw)
 
 //_______________________________________________________________
 // techniques 
@@ -169,21 +151,14 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     float diffuse = saturate(dot(N, L));
     //float reflectionTheta = dot(C, reflect(-L, N));
     float IsFrontFace = sign(saturate(dot(L, N))); // 1 is Frontface 0 is Backface.
-    float4 texelColor = tex2D(TextureSamplerA, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
     //float specular = saturate(reflectionTheta - specularSharpness) * (1.0f / (1.0f - specularSharpness)) * IsFrontFace; // screw that phong shading and power its nice but it also sucks.
     float4 lightColor = float4(0.99f, .99f, 0.99f, 1.0f) * IsFrontFace + float4(0.99f, 0.09f, 0.09f, 1.0f) * (1.0f - IsFrontFace);
     float4 result = (lightColor * 0.60f + texelColor * 0.40f) * (diffuse * 0.75f + 0.25f);
     return result;
 }
 
-technique RiggedModelNormalDraw
-{
-    pass
-    {
-        VertexShader = compile VS_SHADERMODEL VertexShaderRiggedModelDraw(); //VertexShaderRiggedModelNormalDraw();
-        PixelShader = compile PS_SHADERMODEL PixelShaderRiggedModelNormalDraw();
-    }
-}
+TECHNIQUE(RiggedModelNormalDraw, VertexShaderRiggedModelDraw, PixelShaderRiggedModelNormalDraw)
 
 //_______________________________________________________________
 // techniques 
@@ -232,17 +207,10 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderDebugSkinnedDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 result = tex2D(TextureSamplerA, input.TexureCoordinateA) * input.Color;
+    float4 result = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
     return result;
 }
 
-technique SkinedDebugModelDraw
-{
-    pass
-    {
-        VertexShader = compile VS_SHADERMODEL VertexShaderDebugSkinnedDraw();
-        PixelShader = compile PS_SHADERMODEL PixelShaderDebugSkinnedDraw();
-    }
-}
+TECHNIQUE(SkinedDebugModelDraw, VertexShaderDebugSkinnedDraw, PixelShaderDebugSkinnedDraw)
 
 

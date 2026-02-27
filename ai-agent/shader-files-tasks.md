@@ -210,7 +210,7 @@ Both vertex shaders transform normals using `mul(norm, World)` which is wrong fo
 
 ---
 
-### ⬜ Task 4 — Integrate `skinEffect.fx` with the shared include system
+### ✅ Task 4 — Integrate `skinEffect.fx` with the shared include system
 **Priority:** P1 (Consistency)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `Macros.fxh`
 **Description:**
