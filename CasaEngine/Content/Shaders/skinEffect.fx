@@ -43,8 +43,7 @@ MATRIX_CONSTANTS
 END_CONSTANTS
 
 // Skinning-specific parameters (outside the shared cbuffer)
-float4x4 View;
-float4x4 Projection;
+float4x4 ViewProjection;
 float4x4 Bones[128];
 float boneIdToSee = -1.0f;
 
@@ -115,8 +114,7 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
     output.TexureCoordinateA = input.TexureCoordinateA;
     output.Position3D = pos.xyz;
     output.Normal3D = norm;
-    float4x4 vp = mul(View, Projection);
-    output.Position = mul(pos, vp);
+    output.Position = mul(pos, ViewProjection);
     return output;
 }
 
@@ -180,8 +178,7 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
     output.TexureCoordinateA = input.TexureCoordinateA;
     output.Position3D = pos.xyz;
     output.Normal3D = norm;
-    float4x4 vp = mul(View, Projection);
-    output.Position = mul(pos, vp);
+    output.Position = mul(pos, ViewProjection);
     return output;
 }
 

@@ -79,8 +79,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
 
-        _shader.SetParameter(ShaderParameterNames.View, frame.View);
-        _shader.SetParameter(ShaderParameterNames.Projection, frame.Projection);
+        _shader.SetParameter(ShaderParameterNames.ViewProjection, frame.ViewProjection);
         _shader.SetParameter(ShaderParameterNames.EyePosition, frame.CameraPosition);
 
         // Material defaults for skinned meshes

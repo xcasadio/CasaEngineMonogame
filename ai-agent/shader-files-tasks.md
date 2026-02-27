@@ -353,7 +353,7 @@ No shader currently supports normal maps. Add tangent-space normal-map support t
 
 ---
 
-### ⬜ Task 12 — `skinEffect.fx` — replace separate `View * Projection` with `WorldViewProj`
+### ✅ Task 12 — `skinEffect.fx` — replace separate `View * Projection` with `ViewProjection`
 **Priority:** P3 (Performance micro-optimisation)
 **Files:** `CasaEngine/Content/Shaders/skinEffect.fx`, `CasaEngine/Framework/Game/Components/SkinnedMeshRendererComponent.cs`
 **Description:**
