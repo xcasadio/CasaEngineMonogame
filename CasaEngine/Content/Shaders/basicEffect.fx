@@ -43,7 +43,6 @@ END_CONSTANTS
 
 
 #include "Structures.fxh"
-#include "Common.fxh"
 #include "Lighting.fxh"
 
 

@@ -57,7 +57,6 @@ float4x4 Bones[128];
 float boneIdToSee = -1.0f;
 
 
-#include "Common.fxh"
 #include "Lighting.fxh"
 
 

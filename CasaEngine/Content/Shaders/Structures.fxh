@@ -95,23 +95,10 @@ struct VSOutput
     float4 PositionPS : SV_Position;
 };
 
-struct VSOutputNoFog
-{
-    float4 Diffuse : COLOR0;
-    float4 PositionPS : SV_Position;
-};
-
 struct VSOutputTx
 {
     float4 Diffuse : COLOR0;
     float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float4 PositionPS : SV_Position;
-};
-
-struct VSOutputTxNoFog
-{
-    float4 Diffuse : COLOR0;
     float2 TexCoord : TEXCOORD0;
     float4 PositionPS : SV_Position;
 };
@@ -142,14 +129,6 @@ struct VSOutputTx2
     float4 PositionPS : SV_Position;
 };
 
-struct VSOutputTx2NoFog
-{
-    float4 Diffuse : COLOR0;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-    float4 PositionPS : SV_Position;
-};
-
 struct VSOutputTxEnvMap
 {
     float4 Diffuse : COLOR0;
@@ -169,21 +148,10 @@ struct PSInput
     float4 Specular : COLOR1;
 };
 
-struct PSInputNoFog
-{
-    float4 Diffuse : COLOR0;
-};
-
 struct PSInputTx
 {
     float4 Diffuse : COLOR0;
     float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-};
-
-struct PSInputTxNoFog
-{
-    float4 Diffuse : COLOR0;
     float2 TexCoord : TEXCOORD0;
 };
 
@@ -206,13 +174,6 @@ struct PSInputTx2
 {
     float4 Diffuse : COLOR0;
     float4 Specular : COLOR1;
-    float2 TexCoord : TEXCOORD0;
-    float2 TexCoord2 : TEXCOORD1;
-};
-
-struct PSInputTx2NoFog
-{
-    float4 Diffuse : COLOR0;
     float2 TexCoord : TEXCOORD0;
     float2 TexCoord2 : TEXCOORD1;
 };

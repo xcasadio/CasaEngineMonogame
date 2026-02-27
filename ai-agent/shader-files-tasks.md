@@ -263,7 +263,7 @@ Pixel-lighting techniques always compile `ComputeLights` with `numLights=3`. For
 
 ---
 
-### ⬜ Task 7 — Remove dead fog-related code & merge `Common.fxh` into `Lighting.fxh`
+### ✅ Task 7 — Remove dead fog-related code & merge `Common.fxh` into `Lighting.fxh`
 **Priority:** P2 (Cleanup)
 **Files:** `Structures.fxh`, `Common.fxh`, `Lighting.fxh`, `basicEffect.fx`
 **Description:**
