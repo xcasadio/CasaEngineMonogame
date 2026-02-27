@@ -334,7 +334,7 @@ No shader currently supports normal maps. Add tangent-space normal-map support t
 
 ---
 
-### ⬜ Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays
+### ✅ Task 11 — Replace `Lighting.fxh` matrix-indexing pattern with arrays
 **Priority:** P3 (Maintainability)
 **Files:** `Lighting.fxh`, `basicEffect.fx`
 **Description:**
