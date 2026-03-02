@@ -186,7 +186,9 @@
                         <TextBlock Grid.Row="3" Grid.Column="0" Text="Material Type" Margin="0,0,5,0"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MaterialTypeName}"/>
                         <TextBlock Grid.Row="4" Grid.Column="0" Text="Material Asset" Margin="0,0,5,0"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MaterialAssetId}" TextTrimming="CharacterEllipsis"/>
+                        <common:AssetSelectorControl Grid.Row="4" Grid.Column="1" Margin="2"
+                                                     AssetId="{Binding MaterialAssetId, Mode=TwoWay}"
+                                                     ValidateAsset="ValidateSubMeshMaterialAsset"/>
                     </Grid>
 
                     <!-- Material properties -->

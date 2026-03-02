@@ -106,4 +106,17 @@ public partial class EntityComponentControl : UserControl
 
         return false;
     }
+
+    public bool ValidateSubMeshMaterialAsset(object owner, Guid assetId, string assetFullName)
+    {
+        if (owner is StaticModelSubMeshComponentViewModel vm &&
+            System.IO.Path.GetExtension(assetFullName)
+                .Equals(Constants.FileNameExtensions.Material, StringComparison.OrdinalIgnoreCase))
+        {
+            vm.MaterialAssetId = assetId;
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -1,5 +1,7 @@
 using System;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Materials;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
@@ -15,8 +17,43 @@ public class StaticModelSubMeshComponentViewModel : SceneComponentViewModel
     /// <summary>Display name of the concrete material type, or "None".</summary>
     public string MaterialTypeName => _subMesh.ModelMesh?.Material?.GetType().Name ?? "None";
 
-    /// <summary>Asset ID of the material assigned to this sub-mesh.</summary>
-    public Guid MaterialAssetId => _subMesh.ModelMesh?.MaterialAssetId ?? Guid.Empty;
+    /// <summary>
+    /// Asset ID of the material assigned to this sub-mesh.
+    /// Setting this property loads the new material from the content manager and
+    /// rebuilds <see cref="MaterialVM"/>.
+    /// </summary>
+    public Guid MaterialAssetId
+    {
+        get => _subMesh.ModelMesh?.MaterialAssetId ?? Guid.Empty;
+        set
+        {
+            if (_subMesh.ModelMesh == null || _subMesh.ModelMesh.MaterialAssetId == value) return;
+
+            _subMesh.ModelMesh.MaterialAssetId = value;
+
+            var contentManager = _subMesh.Owner?.World?.Game?.AssetContentManager;
+            if (contentManager != null && value != Guid.Empty)
+            {
+                var newMaterial = contentManager.Load<MaterialBase>(value);
+                _subMesh.ModelMesh.Material = newMaterial;
+            }
+            else
+            {
+                _subMesh.ModelMesh.Material = null;
+            }
+
+            // Rebuild the material ViewModel
+            var mat = _subMesh.ModelMesh.Material;
+            var newVm = MaterialViewModelFactory.Create(mat);
+            if (newVm != null)
+            {
+                newVm.ContentManager = _subMesh.Owner?.World?.Game?.AssetContentManager;
+            }
+
+            MaterialVM = newVm;
+            OnPropertyChanged();
+        }
+    }
 
     /// <summary>
     /// Type-specific ViewModel for the material assigned to this sub-mesh.
