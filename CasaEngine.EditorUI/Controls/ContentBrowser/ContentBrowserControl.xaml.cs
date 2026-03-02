@@ -27,6 +27,7 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
 
@@ -382,6 +383,48 @@ public partial class ContentBrowserControl : UserControl
     private void MenuItemCreateButtonsMapping_OnClick(object sender, RoutedEventArgs e)
     {
         CreateAsset(new ButtonsMapping(), Constants.FileNameExtensions.ButtonsMapping);
+    }
+
+    private void MenuItemCreateUnlitTextureMaterial_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateMaterialAsset(new UnlitTextureMaterial());
+    }
+
+    private void MenuItemCreateLitDiffuseMaterial_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateMaterialAsset(new LitDiffuseMaterial());
+    }
+
+    private void MenuItemCreatePbrMaterial_OnClick(object sender, RoutedEventArgs e)
+    {
+        CreateMaterialAsset(new Material());
+    }
+
+    private void CreateMaterialAsset(MaterialBase material)
+    {
+        var folderItem = treeViewFolders.SelectedItem as FolderItem;
+        if (folderItem == null) return;
+
+        var inputTextBox = new InputTextBox();
+        inputTextBox.Text = "New" + material.GetType().Name;
+
+        if (inputTextBox.ShowDialog() == true)
+        {
+            material.Name = inputTextBox.Text;
+            var assetInfo = new AssetInfo(material.Id)
+            {
+                Name = inputTextBox.Text,
+                FileName = Path.Combine(folderItem.FullPath, inputTextBox.Text + Constants.FileNameExtensions.Material)
+            };
+
+            var contentItem = new ContentItem(assetInfo);
+            folderItem.AddContent(contentItem);
+            ListBoxFolderContent.SelectedItem = contentItem;
+
+            AssetCatalog.Add(assetInfo);
+            AssetSaver.SaveAsset(assetInfo.FileName, material);
+            AssetCatalog.Save();
+        }
     }
 
     private void CreateAsset(ObjectBase objectBase, string extension)
