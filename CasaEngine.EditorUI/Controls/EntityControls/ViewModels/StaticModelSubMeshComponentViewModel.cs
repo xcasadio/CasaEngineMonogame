@@ -34,6 +34,13 @@ public class StaticModelSubMeshComponentViewModel : SceneComponentViewModel
 
         var mat = _subMesh.ModelMesh?.Material;
         if (mat != null)
+        {
             _materialVM = MaterialViewModelFactory.Create(mat);
+            if (_materialVM != null)
+            {
+                // Provide the content manager so the VM can reload textures after saving.
+                _materialVM.ContentManager = _subMesh.Owner?.World?.Game?.AssetContentManager;
+            }
+        }
     }
 }

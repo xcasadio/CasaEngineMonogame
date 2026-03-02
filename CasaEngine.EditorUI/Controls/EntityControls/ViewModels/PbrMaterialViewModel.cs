@@ -1,4 +1,5 @@
 using System;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
@@ -61,5 +62,11 @@ public class PbrMaterialViewModel : MaterialViewModel
     public PbrMaterialViewModel(Material material) : base(material)
     {
         _pbr = material;
+    }
+
+    protected override void ReloadTextures()
+    {
+        if (ContentManager == null) return;
+        _pbr.LoadTextures(ContentManager);
     }
 }

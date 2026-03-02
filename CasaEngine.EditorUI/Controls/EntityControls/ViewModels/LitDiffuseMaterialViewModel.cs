@@ -1,4 +1,6 @@
 using System;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 
@@ -51,5 +53,29 @@ public class LitDiffuseMaterialViewModel : MaterialViewModel
     public LitDiffuseMaterialViewModel(LitDiffuseMaterial material) : base(material)
     {
         _lit = material;
+    }
+
+    protected override void ReloadTextures()
+    {
+        if (ContentManager == null) return;
+        if (_lit.AlbedoAssetId != Guid.Empty)
+        {
+            var tex = ContentManager.Load<Texture>(_lit.AlbedoAssetId);
+            _lit.Albedo = tex?.Resource;
+        }
+        else
+        {
+            _lit.Albedo = null;
+        }
+
+        if (_lit.NormalMapAssetId != Guid.Empty)
+        {
+            var tex = ContentManager.Load<Texture>(_lit.NormalMapAssetId);
+            _lit.NormalMap = tex?.Resource;
+        }
+        else
+        {
+            _lit.NormalMap = null;
+        }
     }
 }

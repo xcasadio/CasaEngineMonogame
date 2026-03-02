@@ -1,4 +1,6 @@
 using System;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 
@@ -32,5 +34,19 @@ public class UnlitTextureMaterialViewModel : MaterialViewModel
     public UnlitTextureMaterialViewModel(UnlitTextureMaterial material) : base(material)
     {
         _unlit = material;
+    }
+
+    protected override void ReloadTextures()
+    {
+        if (ContentManager == null) return;
+        if (_unlit.AlbedoAssetId != Guid.Empty)
+        {
+            var tex = ContentManager.Load<Texture>(_unlit.AlbedoAssetId);
+            _unlit.Albedo = tex?.Resource;
+        }
+        else
+        {
+            _unlit.Albedo = null;
+        }
     }
 }
