@@ -144,6 +144,27 @@ public abstract class MaterialBase : ISerializable
         ["AnisotropicWrap"]     = SamplerState.AnisotropicWrap,
     };
 
+#if EDITOR
+    // -------------------------------------------------------------------------
+    // Editor-facing render-state helpers
+    // -------------------------------------------------------------------------
+
+    public static IReadOnlyList<string> BlendStateNames         => new List<string>(BlendStateMap.Keys);
+    public static IReadOnlyList<string> DepthStencilStateNames  => new List<string>(DepthStateMap.Keys);
+    public static IReadOnlyList<string> RasterizerStateNames    => new List<string>(RasterizerMap.Keys);
+    public static IReadOnlyList<string> SamplerStateNames       => new List<string>(SamplerMap.Keys);
+
+    public string GetBlendStateName()       => BlendState    == null ? "Opaque"                : GetKeyOrDefault(BlendStateMap, BlendState!,    "Opaque");
+    public string GetDepthStateName()       => DepthStencilState == null ? "Default"           : GetKeyOrDefault(DepthStateMap, DepthStencilState!, "Default");
+    public string GetRasterizerStateName()  => RasterizerState == null ? "CullCounterClockwise": GetKeyOrDefault(RasterizerMap, RasterizerState!, "CullCounterClockwise");
+    public string GetSamplerStateName()     => SamplerState  == null ? "AnisotropicClamp"      : GetKeyOrDefault(SamplerMap,   SamplerState!,   "AnisotropicClamp");
+
+    public void SetBlendStateByName(string name)      { if (BlendStateMap.TryGetValue(name, out var v))        BlendState = v; }
+    public void SetDepthStateByName(string name)      { if (DepthStateMap.TryGetValue(name, out var v))        DepthStencilState = v; }
+    public void SetRasterizerStateByName(string name) { if (RasterizerMap.TryGetValue(name, out var v))        RasterizerState = v; }
+    public void SetSamplerStateByName(string name)    { if (SamplerMap.TryGetValue(name, out var v))           SamplerState = v; }
+#endif
+
     private void LoadRenderStates(JObject element)
     {
         if (element["blend_state"] is { } b && BlendStateMap.TryGetValue(b.Value<string>()!, out var blend))
