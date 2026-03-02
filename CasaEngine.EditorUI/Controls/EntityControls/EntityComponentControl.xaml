@@ -11,6 +11,7 @@
              xmlns:graphics="clr-namespace:Microsoft.Xna.Framework.Graphics;assembly=MonoGame.Framework"
              xmlns:entityControls="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
              xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             xmlns:viewModels="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls.ViewModels"
              xmlns:components="clr-namespace:CasaEngine.Framework.Entities.Components;assembly=CasaEngine"
              xmlns:shapes="clr-namespace:CasaEngine.Framework.Graphics.Shapes;assembly=CasaEngine"
              mc:Ignorable="d" 
@@ -143,25 +144,63 @@
             </Expander>
         </DataTemplate>
 
+        <!-- Material DataTemplates (used by MaterialControlTemplateSelector) -->
+        <DataTemplate x:Key="unlitTextureMaterialTemplate">
+            <entityControls:UnlitTextureMaterialControl/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="litDiffuseMaterialTemplate">
+            <entityControls:LitDiffuseMaterialControl/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="pbrMaterialTemplate">
+            <entityControls:PbrMaterialControl/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="defaultMaterialTemplate">
+            <entityControls:MaterialBaseControl/>
+        </DataTemplate>
+
         <DataTemplate x:Key="staticModelSubMeshComponentTemplate">
             <Expander Header="Sub Mesh" HorizontalAlignment="Stretch" IsExpanded="True" VerticalContentAlignment="Top">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Mesh" Margin="0,0,5,0"/>
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MeshName}"/>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Vertices" Margin="0,0,5,0"/>
-                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding VertexCount}"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Indices" Margin="0,0,5,0"/>
-                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IndexCount}"/>
-                </Grid>
+                <StackPanel>
+                    <!-- Mesh info -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Mesh" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding MeshName}"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Vertices" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding VertexCount}"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Indices" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding IndexCount}"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Material Type" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding MaterialTypeName}"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Material Asset" Margin="0,0,5,0"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding MaterialAssetId}" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+
+                    <!-- Material properties -->
+                    <ContentControl Content="{Binding MaterialVM}" Margin="0,4,0,0"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                        <ContentControl.ContentTemplateSelector>
+                            <entityControls:MaterialControlTemplateSelector
+                                UnlitTextureMaterialTemplate="{StaticResource unlitTextureMaterialTemplate}"
+                                LitDiffuseMaterialTemplate="{StaticResource litDiffuseMaterialTemplate}"
+                                PbrMaterialTemplate="{StaticResource pbrMaterialTemplate}"
+                                DefaultMaterialTemplate="{StaticResource defaultMaterialTemplate}"/>
+                        </ContentControl.ContentTemplateSelector>
+                    </ContentControl>
+                </StackPanel>
             </Expander>
         </DataTemplate>
 
