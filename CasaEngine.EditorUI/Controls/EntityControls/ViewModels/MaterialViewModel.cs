@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorUI.Controls;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
@@ -105,6 +107,26 @@ public class MaterialViewModel : NotifyPropertyChangeBase
     // -------------------------------------------------------------------------
 
     public string MaterialTypeName => _material.GetType().Name;
+
+    // -------------------------------------------------------------------------
+    // Save
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Serializes the material to its <c>.material</c> JSON file via <see cref="AssetSaver"/>.
+    /// The file path is resolved from <see cref="AssetCatalog"/> using the material's <see cref="MaterialBase.Id"/>.
+    /// </summary>
+    public void SaveMaterial()
+    {
+        var assetInfo = AssetCatalog.Get(_material.Id);
+        if (assetInfo == null)
+        {
+            Logs.WriteWarning($"[MaterialViewModel] Cannot save material '{_material.Name}': not found in AssetCatalog (Id={_material.Id}).");
+            return;
+        }
+
+        AssetSaver.SaveAsset(assetInfo.FileName, _material);
+    }
 
     // -------------------------------------------------------------------------
     // Constructor
