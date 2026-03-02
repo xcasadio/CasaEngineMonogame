@@ -1,0 +1,72 @@
+<UserControl x:Class="CasaEngine.EditorUI.Controls.EntityControls.LitDiffuseMaterialControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:CasaEngine.EditorUI.Controls.EntityControls"
+             xmlns:common="clr-namespace:CasaEngine.EditorUI.Controls.Common"
+             xmlns:wpfControls="clr-namespace:CasaEngine.WpfControls;assembly=CasaEngine.WpfControls"
+             mc:Ignorable="d"
+             d:DesignHeight="360" d:DesignWidth="400">
+    <StackPanel>
+        <!-- Common material properties -->
+        <local:MaterialBaseControl DataContext="{Binding}"/>
+
+        <Separator Margin="0,4"/>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="130"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Albedo Texture -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Albedo Texture" VerticalAlignment="Center" Margin="0,2"/>
+            <common:AssetSelectorControl Grid.Row="0" Grid.Column="1" Margin="2"
+                                         ValidateAsset="ValidateTextureAsset"
+                                         AssetId="{Binding AlbedoAssetId, Mode=TwoWay}"/>
+
+            <!-- Normal Map -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Normal Map" VerticalAlignment="Center" Margin="0,2"/>
+            <common:AssetSelectorControl Grid.Row="1" Grid.Column="1" Margin="2"
+                                         ValidateAsset="ValidateNormalMapAsset"
+                                         AssetId="{Binding NormalMapAssetId, Mode=TwoWay}"/>
+
+            <!-- Diffuse Color -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Diffuse Color" VerticalAlignment="Center" Margin="0,2"/>
+            <wpfControls:ColorEditor Grid.Row="2" Grid.Column="1" Margin="2"
+                                     Value="{Binding DiffuseColor}"/>
+
+            <!-- Emissive Color -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Emissive Color" VerticalAlignment="Center" Margin="0,2"/>
+            <wpfControls:Vector3Editor Grid.Row="3" Grid.Column="1" Margin="2"
+                                       Value="{Binding EmissiveColor}"/>
+
+            <!-- Specular Color -->
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Specular Color" VerticalAlignment="Center" Margin="0,2"/>
+            <wpfControls:Vector3Editor Grid.Row="4" Grid.Column="1" Margin="2"
+                                       Value="{Binding SpecularColor}"/>
+
+            <!-- Specular Power -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Specular Power" VerticalAlignment="Center" Margin="0,2"/>
+            <Grid Grid.Row="5" Grid.Column="1" Margin="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+                <Slider Grid.Column="0" Minimum="1" Maximum="128" SmallChange="1"
+                        Value="{Binding SpecularPower, Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBox Grid.Column="1" Text="{Binding SpecularPower, StringFormat=F1, UpdateSourceTrigger=PropertyChanged}"
+                         Margin="2,0,0,0"/>
+            </Grid>
+        </Grid>
+    </StackPanel>
+</UserControl>
