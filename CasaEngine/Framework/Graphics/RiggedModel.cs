@@ -1,5 +1,6 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
+using CasaEngine.Framework.Assets.Animations;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -271,12 +272,13 @@ public class RiggedModel
         {
             var mesh = Meshes[index];
 
-            if (mesh.Texture == null) // TODO : handle mesh with no texture => color + transparency
+            var texture = mesh.Texture;
+            if (texture == null)
             {
                 continue;
             }
 
-            Effect.Parameters["TextureA"].SetValue(mesh.Texture);
+            Effect.Parameters["TextureA"].SetValue(texture);
             var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
             Effect.Parameters["World"].SetValue(meshWorld);
             Effect.Parameters["WorldInverseTranspose"]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));

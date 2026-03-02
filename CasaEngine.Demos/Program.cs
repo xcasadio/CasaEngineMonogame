@@ -1,5 +1,12 @@
-﻿
+﻿using System;
 using CasaEngine.Demos;
 
-using var game = new DemosGame();
-game.Run();
+public static class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        using var game = new DemosGame();
+        game.Run();
+    }
+}

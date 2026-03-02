@@ -274,7 +274,7 @@ public class RiggedModelLoader
             Mesh mesh = scene.Meshes[index];
             var riggedModelMesh = new RiggedModel.RiggedModelMesh();
             riggedModelMesh.NameOfMesh = mesh.Name;
-            riggedModelMesh.Texture = DefaultTexture;
+            riggedModelMesh.Texture = null;  // will be assigned below; null means the FBX has no texture slot (mesh will be skipped in Draw)
             riggedModelMesh.TextureName = "";
             //
             // The material used by this mesh.
@@ -317,6 +317,7 @@ public class RiggedModelLoader
             //riggedModelMesh.isWireFrameEnabled = assimpMaterial.IsWireFrameEnabled;
 
             var textureSlots = material.GetAllMaterialTextures();
+            bool hasDiffuseTexture = false;
 
             for (int j = 0; j < textureSlots.Length; j++)
             {
@@ -341,10 +342,12 @@ public class RiggedModelLoader
                     Logs.WriteTrace("      ...Texture loaded: ... " + tfilename);
                 }
 
-                if (ttype == "Diffuse")
+                // Treat Diffuse, BaseColor (PBR), Unknown, and Ambient as color/diffuse sources
+                if (ttype == "Diffuse" || ttype == "BaseColor")
                 {
                     riggedModelMesh.TextureName = tfilename;
                     riggedModelMesh.Texture = texture ?? DefaultTexture;
+                    hasDiffuseTexture = true;
                 }
                 else if (ttype == "Normal")
                 {
@@ -361,6 +364,57 @@ public class RiggedModelLoader
                     riggedModelMesh.TextureReflectionMapName = tfilename;
                     riggedModelMesh.TextureReflectionMap = texture;
                 }
+                else if (!hasDiffuseTexture && texture != null)
+                {
+                    // Fallback: use any successfully loaded texture as diffuse if none was found yet
+                    Logs.WriteTrace($"      Using texture type '{ttype}' as diffuse fallback for mesh '{mesh.Name}'");
+                    riggedModelMesh.TextureName = tfilename;
+                    riggedModelMesh.Texture = texture;
+                    hasDiffuseTexture = true;
+                }
+            }
+
+            // If no diffuse texture was found from the material's texture slots,
+            // only try fallbacks when slots WERE defined (texture referenced but type not Diffuse, or file missing).
+            // If textureSlots.Length == 0, the FBX intentionally has no texture (e.g. glass/cover mesh) – leave Texture=null so Draw() skips it.
+            if (!hasDiffuseTexture && textureSlots.Length > 0)
+            {
+                var modelDir = Path.GetDirectoryName(fullFileName);
+                var materialName = material.Name;
+
+                if (!string.IsNullOrEmpty(materialName) && !string.IsNullOrEmpty(modelDir))
+                {
+                    string[] extensions = { ".png", ".jpg", ".jpeg", ".bmp", ".tga", ".dds" };
+                    foreach (var ext in extensions)
+                    {
+                        var candidatePath = Path.Combine(modelDir, materialName + ext);
+                        if (File.Exists(candidatePath))
+                        {
+                            Logs.WriteTrace($"      Found texture by material name: {candidatePath}");
+                            var fallbackTexture = _assetContentManager?.LoadDirectly<Texture2D>(candidatePath);
+                            if (fallbackTexture != null)
+                            {
+                                riggedModelMesh.TextureName = candidatePath;
+                                riggedModelMesh.Texture = fallbackTexture;
+                                hasDiffuseTexture = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!hasDiffuseTexture)
+                {
+                    // Slots were defined but we couldn't resolve a diffuse texture – use DefaultTexture as last resort
+                    riggedModelMesh.Texture = DefaultTexture;
+                    Logs.WriteTrace($"      WARNING: Texture slots defined but no diffuse found for mesh '{mesh.Name}' (material: '{material.Name}'). Using DefaultTexture.");
+                }
+            }
+            else if (!hasDiffuseTexture)
+            {
+                // textureSlots.Length == 0: FBX deliberately has no texture (e.g. glass/specular cover mesh)
+                // Leave Texture = null so this mesh will be skipped in Draw()
+                Logs.WriteTrace($"      INFO: No texture slots in FBX for mesh '{mesh.Name}' (material: '{material.Name}'). Mesh will be skipped in rendering.");
             }
             //}
             //}
