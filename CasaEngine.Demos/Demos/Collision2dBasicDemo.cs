@@ -37,7 +37,7 @@ public class Collision2dBasicDemo : Demo
 
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var checkTexture = Texture2D.FromFile(game.GraphicsDevice, fileName);
-        var checkMat = new LitDiffuseMaterial { Albedo = checkTexture, DiffuseColor = Color.White };
+        var checkMat = new LitDiffuseMaterial { BasColor = checkTexture, DiffuseColor = Color.White };
 
         //============ Create ground ===============
         var entity = new Entity { Name = "ground" };

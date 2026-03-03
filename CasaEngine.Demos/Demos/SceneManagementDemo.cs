@@ -29,7 +29,7 @@ public class SceneManagementDemo : Demo
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var checkMat = new LitDiffuseMaterial
         {
-            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
             DiffuseColor = Color.White,
         };
 

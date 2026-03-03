@@ -1,0 +1,33 @@
+{
+  "id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1",
+  "name": "NewLitDiffuseMaterial",
+  "is_transparent": false,
+  "queue": "Opaque",
+  "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+  "cast_shadows": true,
+  "receive_shadows": true,
+  "blend_state": "Opaque",
+  "depth_stencil_state": "Default",
+  "rasterizer_state": "CullCounterClockwise",
+  "sampler_state": "AnisotropicClamp",
+  "type": "LitDiffuseMaterial",
+  "albedo_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+  "normal_map_asset_id": "00000000-0000-0000-0000-000000000000",
+  "diffuse_color": {
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 255
+  },
+  "emissive_color": {
+    "r": 0.0,
+    "g": 0.0,
+    "b": 0.0
+  },
+  "specular_color": {
+    "r": 0.5,
+    "g": 0.5,
+    "b": 0.5
+  },
+  "specular_power": 46.80678
+}

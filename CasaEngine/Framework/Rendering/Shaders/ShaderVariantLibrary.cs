@@ -130,7 +130,7 @@ public sealed class ShaderVariantLibrary
     /// </summary>
     public static string? BuildTechniqueName(ShaderFeature features)
     {
-        bool textured  = (features & ShaderFeature.AlbedoTexture) != 0;
+        bool textured  = (features & ShaderFeature.BasColorTexture) != 0;
         bool alphaTest = (features & ShaderFeature.AlphaTest)     != 0;
         bool skinned   = (features & ShaderFeature.Skinned)       != 0;
 

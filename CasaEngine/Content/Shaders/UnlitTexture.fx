@@ -3,7 +3,7 @@
 //
 // A minimal unlit material shader:
 //   - Transforms vertices using WorldViewProj
-//   - Samples an Albedo texture (optional)
+//   - Samples an BasColor texture (optional)
 //   - Multiplies by TintColor (RGBA) and Alpha
 //
 // Techniques:

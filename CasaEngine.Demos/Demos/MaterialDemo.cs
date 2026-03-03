@@ -126,7 +126,7 @@ public class MaterialDemo : Demo
             DiffuseColor  = Color.White,
             SpecularColor = new Vector3(0.6f),
             SpecularPower = 64f,
-            Albedo        = CreateCheckerTexture(gd, 128, Color.White, new Color(170, 170, 170)),
+            BasColor      = CreateCheckerTexture(gd, 128, Color.White, new Color(170, 170, 170)),
         };
 
         // Shared sphere material — tint overridden per-instance via PropertyBlock

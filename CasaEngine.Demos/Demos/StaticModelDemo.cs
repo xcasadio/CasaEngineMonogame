@@ -112,7 +112,7 @@ public class StaticModelDemo : Demo
         {
             groundMesh.Material = new LitDiffuseMaterial
             {
-                Albedo       = Texture2D.FromFile(gd, texturePath),
+                BasColor     = Texture2D.FromFile(gd, texturePath),
                 DiffuseColor = Color.White,
             };
         }

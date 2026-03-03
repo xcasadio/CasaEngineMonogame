@@ -12,11 +12,11 @@ namespace CasaEngine.Framework.Materials;
 /// </summary>
 public class UnlitTextureMaterial : MaterialBase
 {
-    /// <summary>Runtime Albedo texture (loaded from <see cref="AlbedoAssetId"/>).</summary>
-    public Texture2D? Albedo { get; set; }
+    /// <summary>Runtime BasColor texture (loaded from <see cref="BasColorAssetId"/>).</summary>
+    public Texture2D? BasColor { get; set; }
 
-    /// <summary>Asset ID of the Albedo texture.</summary>
-    public Guid AlbedoAssetId { get; set; } = Guid.Empty;
+    /// <summary>Asset ID of the BasColor texture.</summary>
+    public Guid BasColorAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Multiplicative tint applied to the texture color.</summary>
     public Color Tint { get; set; } = Color.White;
@@ -27,7 +27,7 @@ public class UnlitTextureMaterial : MaterialBase
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
     {
         // Select the unlit technique (BasicEffect = no texture, BasicEffect_Texture = textured)
-        shader.SelectTechnique(Albedo != null ? "BasicEffect_Texture" : "BasicEffect");
+        shader.SelectTechnique(BasColor != null ? "BasicEffect_Texture" : "BasicEffect");
 
         // -- Transforms --
         var worldViewProj = world * context.Frame.ViewProjection;
@@ -38,20 +38,20 @@ public class UnlitTextureMaterial : MaterialBase
         // basicEffect.fx uses DiffuseColor (float4) — pack Tint + Alpha into it.
         shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(Tint.ToVector3(), Alpha));
         shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
-        shader.SetParameter(ShaderParameterNames.AlbedoTexture, Albedo);
+        shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
     }
 
     public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
-        => Albedo is not null
-            ? Rendering.Shaders.ShaderFeature.AlbedoTexture
+        => BasColor is not null
+            ? Rendering.Shaders.ShaderFeature.BasColorTexture
             : Rendering.Shaders.ShaderFeature.None;
 
     public override void Load(JObject element)
     {
         base.Load(element);
 
-        if (element["albedo_asset_id"] is { } a)
-            AlbedoAssetId = Guid.Parse(a.Value<string>()!);
+        if (element["BasColor_asset_id"] is { } a)
+            BasColorAssetId = Guid.Parse(a.Value<string>()!);
 
         if (element["tint_color"] is JObject tc)
         {
@@ -70,7 +70,7 @@ public class UnlitTextureMaterial : MaterialBase
     {
         base.Save(jObject);
         jObject["type"]            = nameof(UnlitTextureMaterial);
-        jObject["albedo_asset_id"] = AlbedoAssetId.ToString();
+        jObject["BasColor_asset_id"] = BasColorAssetId.ToString();
         jObject["tint_color"]      = new JObject
         {
             ["r"] = Tint.R,

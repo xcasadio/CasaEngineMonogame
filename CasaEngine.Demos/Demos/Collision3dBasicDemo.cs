@@ -39,7 +39,7 @@ public class Collision3dBasicDemo : Demo
         var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var groundMat = new LitDiffuseMaterial
         {
-            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
             DiffuseColor = Color.White,
         };
         meshComponent.StaticModel.Meshes[0].Material = groundMat;
@@ -59,7 +59,7 @@ public class Collision3dBasicDemo : Demo
         boxModel.Meshes[0].Initialize(game.GraphicsDevice);
         var boxMat = new LitDiffuseMaterial
         {
-            Albedo       = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
             DiffuseColor = Color.White,
         };
         boxModel.Meshes[0].Material = boxMat;

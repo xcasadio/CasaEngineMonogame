@@ -78,18 +78,20 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         // Initialise default lighting context to match the previous hardcoded values.
         // External code can modify DefaultLighting to change scene illumination.
+        // Neutral 3-point lights: direction preserved, colours balanced to equal RGB
+        // so that a white DiffuseColor renders as white rather than warm/yellow.
         DefaultLighting.DirectionalLights[0] = new DirLight(
             new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
-            new Vector3(1f, 0.9607844f, 0.8078432f),
-            new Vector3(1f, 0.9607844f, 0.8078432f));
+            new Vector3(0.92f, 0.92f, 0.92f),
+            new Vector3(0.92f, 0.92f, 0.92f));
         DefaultLighting.DirectionalLights[1] = new DirLight(
             new Vector3(0.7198464f, 0.3420201f, 0.6040227f),
-            new Vector3(0.9647059f, 0.7607844f, 0.4078432f),
+            new Vector3(0.71f, 0.71f, 0.71f),
             Vector3.Zero);
         DefaultLighting.DirectionalLights[2] = new DirLight(
             new Vector3(0.4545195f, -0.7660444f, 0.4545195f),
-            new Vector3(0.3231373f, 0.3607844f, 0.3937255f),
-            new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+            new Vector3(0.36f, 0.36f, 0.36f),
+            new Vector3(0.36f, 0.36f, 0.36f));
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
 

@@ -7,16 +7,16 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 /// <summary>
-/// ViewModel for <see cref="UnlitTextureMaterial"/>. Exposes albedo texture, tint color and alpha.
+/// ViewModel for <see cref="UnlitTextureMaterial"/>. Exposes BasColor texture, tint color and alpha.
 /// </summary>
 public class UnlitTextureMaterialViewModel : MaterialViewModel
 {
     private readonly UnlitTextureMaterial _unlit;
 
-    public Guid AlbedoAssetId
+    public Guid BasColorAssetId
     {
-        get => _unlit.AlbedoAssetId;
-        set { _unlit.AlbedoAssetId = value; OnPropertyChanged(); }
+        get => _unlit.BasColorAssetId;
+        set { _unlit.BasColorAssetId = value; OnPropertyChanged(); }
     }
 
     public Color Tint
@@ -39,14 +39,14 @@ public class UnlitTextureMaterialViewModel : MaterialViewModel
     protected override void ReloadTextures()
     {
         if (ContentManager == null) return;
-        if (_unlit.AlbedoAssetId != Guid.Empty)
+        if (_unlit.BasColorAssetId != Guid.Empty)
         {
-            var tex = ContentManager.Load<Texture>(_unlit.AlbedoAssetId);
-            _unlit.Albedo = tex?.Resource;
+            var tex = ContentManager.Load<Texture>(_unlit.BasColorAssetId);
+            _unlit.BasColor = tex?.Resource;
         }
         else
         {
-            _unlit.Albedo = null;
+            _unlit.BasColor = null;
         }
     }
 }

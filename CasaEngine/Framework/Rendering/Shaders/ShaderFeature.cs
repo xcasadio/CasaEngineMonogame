@@ -8,8 +8,8 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 public enum ShaderFeature : uint
 {
     None          = 0,
-    /// <summary>Mesh has an albedo/diffuse texture.</summary>
-    AlbedoTexture = 1 << 0,
+    /// <summary>Mesh has an BasColor/diffuse texture.</summary>
+    BasColorTexture = 1 << 0,
     /// <summary>Mesh carries per-vertex colour data.</summary>
     VertexColor   = 1 << 1,
     /// <summary>Material uses alpha-test clip.</summary>

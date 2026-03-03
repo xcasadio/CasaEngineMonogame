@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Materials;
 /// <summary>
 /// Multi-channel material with 8 texture slots (BaseColor, Opacity, Normal, Specular,
 /// Roughness, Tangent, Height, Reflection). Inherits from <see cref="MaterialBase"/>.
-/// The BaseColor texture is used as Albedo in the current forward shader.
+/// The BaseColor texture is used as BasColor in the current forward shader.
 /// </summary>
 public class Material : MaterialBase
 {
@@ -41,7 +41,7 @@ public class Material : MaterialBase
         var wit = Matrix.Transpose(Matrix.Invert(world));
         shader.SetParameter(ShaderParameterNames.WorldInverseTranspose, wit);
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
-        shader.SetParameter(ShaderParameterNames.AlbedoTexture, TextureBaseColor?.Resource);
+        shader.SetParameter(ShaderParameterNames.BasColorTexture, TextureBaseColor?.Resource);
         context.Lighting?.Bind(shader);
     }
 

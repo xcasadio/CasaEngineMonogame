@@ -25,11 +25,11 @@
                 <RowDefinition Height="auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Albedo Texture -->
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Albedo Texture" VerticalAlignment="Center" Margin="0,2"/>
+            <!-- BasColor Texture -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="BasColor Texture" VerticalAlignment="Center" Margin="0,2"/>
             <common:AssetSelectorControl Grid.Row="0" Grid.Column="1" Margin="2"
                                          ValidateAsset="ValidateTextureAsset"
-                                         AssetId="{Binding AlbedoAssetId, Mode=TwoWay}"/>
+                                         AssetId="{Binding BasColorAssetId, Mode=TwoWay}"/>
 
             <!-- Tint Color -->
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Tint" VerticalAlignment="Center" Margin="0,2"/>

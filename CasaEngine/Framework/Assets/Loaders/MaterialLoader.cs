@@ -32,10 +32,10 @@ public class MaterialLoader : IAssetLoader
             material.Load(jObj);
 
             // Resolve texture assets if material is of a known concrete type
-            if (material is UnlitTextureMaterial unlit && unlit.AlbedoAssetId != Guid.Empty)
+            if (material is UnlitTextureMaterial unlit && unlit.BasColorAssetId != Guid.Empty)
             {
-                var tex = assetContentManager.Load<Assets.Textures.Texture>(unlit.AlbedoAssetId);
-                unlit.Albedo = tex?.Resource;
+                var tex = assetContentManager.Load<Assets.Textures.Texture>(unlit.BasColorAssetId);
+                unlit.BasColor = tex?.Resource;
             }
             else if (material is Material pbr)
             {

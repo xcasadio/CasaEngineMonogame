@@ -7,17 +7,17 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 
 /// <summary>
-/// ViewModel for <see cref="LitDiffuseMaterial"/>. Exposes albedo, normal map,
+/// ViewModel for <see cref="LitDiffuseMaterial"/>. Exposes BasColor, normal map,
 /// diffuse/emissive/specular colors and specular power.
 /// </summary>
 public class LitDiffuseMaterialViewModel : MaterialViewModel
 {
     private readonly LitDiffuseMaterial _lit;
 
-    public Guid AlbedoAssetId
+    public Guid BasColorAssetId
     {
-        get => _lit.AlbedoAssetId;
-        set { _lit.AlbedoAssetId = value; OnPropertyChanged(); }
+        get => _lit.BasColorAssetId;
+        set { _lit.BasColorAssetId = value; OnPropertyChanged(); }
     }
 
     public Guid NormalMapAssetId
@@ -58,14 +58,14 @@ public class LitDiffuseMaterialViewModel : MaterialViewModel
     protected override void ReloadTextures()
     {
         if (ContentManager == null) return;
-        if (_lit.AlbedoAssetId != Guid.Empty)
+        if (_lit.BasColorAssetId != Guid.Empty)
         {
-            var tex = ContentManager.Load<Texture>(_lit.AlbedoAssetId);
-            _lit.Albedo = tex?.Resource;
+            var tex = ContentManager.Load<Texture>(_lit.BasColorAssetId);
+            _lit.BasColor = tex?.Resource;
         }
         else
         {
-            _lit.Albedo = null;
+            _lit.BasColor = null;
         }
 
         if (_lit.NormalMapAssetId != Guid.Empty)

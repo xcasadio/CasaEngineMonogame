@@ -3715,6 +3715,10 @@
     {
       "id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
       "file_name": "Entities\\Box.staticModel"
+    },
+    {
+      "id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1",
+      "file_name": "NewLitDiffuseMaterial.material"
     }
   ]
 }

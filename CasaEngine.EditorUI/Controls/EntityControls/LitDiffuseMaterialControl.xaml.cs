@@ -22,7 +22,7 @@ public partial class LitDiffuseMaterialControl : UserControl
             System.IO.Path.GetExtension(assetFullName)
                 .Equals(Constants.FileNameExtensions.Texture, StringComparison.OrdinalIgnoreCase))
         {
-            vm.AlbedoAssetId = assetId;
+            vm.BasColorAssetId = assetId;
             return true;
         }
 

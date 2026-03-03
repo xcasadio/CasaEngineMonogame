@@ -20,7 +20,7 @@ public static class ShaderParameterNames
     public const string EmissiveColor = "EmissiveColor";
     public const string SpecularColor = "SpecularColor";
     public const string SpecularPower = "SpecularPower";
-    public const string AlbedoTexture = "Texture";
+    public const string BasColorTexture = "Texture";
     public const string TintColor = "TintColor";
     public const string Alpha = "Alpha";
     public const string OpacityTexture = "OpacityTexture";
