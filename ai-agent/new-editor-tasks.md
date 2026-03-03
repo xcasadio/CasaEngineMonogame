@@ -1,0 +1,700 @@
+# Plan d'implémentation — Nouvel éditeur CasaEngine.Editor (MGUI)
+
+## Contexte
+
+Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur MonoGame pur utilisant **MGUI** comme framework UI. Le projet cible est `CasaEngine.Editor`.
+
+**Fonctionnalités à implémenter :**
+- Ouverture / création de projet
+- Content Browser (navigation des assets)
+- Panneau de logs
+- Affichage du monde (World viewport)
+- Liste des entités du monde (hiérarchie)
+- Détails d'une entité (liste des composants paramétrables)
+
+---
+
+## Conventions
+
+- **Langue du code** : anglais (noms de classes, propriétés, commentaires XML)
+- **Langue des échanges** : français
+- **Commit** : un commit atomique après chaque tâche terminée
+- **Suivi** : mettre à jour ce fichier après chaque tâche (icône ✅ ou ⬜)
+- **Style** : factuel, concis, aucun storytelling
+
+### Livrable après chaque tâche
+
+```
+## Résumé
+- [quelques lignes max décrivant les modifications]
+
+## Attendu
+- [comportement attendu du code après cette tâche]
+
+## À tester
+- [ce que l'utilisateur doit vérifier manuellement]
+```
+
+---
+
+## Fichiers de référence
+
+| Concept | Fichier(s) |
+|---|---|
+| MGUI Desktop + Renderer | `MGUI.Samples/Game1.cs` |
+| MGUI Docking system | `MGUI.Core/UI/Docking/Controls/MGDockHost.cs` |
+| MGUI TreeView | `MGUI.Core/UI/MGTreeView.cs`, `MGTreeViewItem.cs` |
+| MGUI ListBox | `MGUI.Core/UI/MGListBox.cs` |
+| MGUI MenuBar | `MGUI.Core/UI/MGMenuBar.cs` |
+| MGUI Window | `MGUI.Core/UI/MGWindow.cs` |
+| MGUI TabControl | `MGUI.Core/UI/MGTabControl.cs` |
+| MGUI TextBox | `MGUI.Core/UI/MGTextBox.cs` |
+| MGUI ScrollViewer | `MGUI.Core/UI/MGScrollViewer.cs` |
+| MGUI Expander | `MGUI.Core/UI/MGExpander.cs` |
+| MGUI ComboBox | `MGUI.Core/UI/MGComboBox.cs` |
+| MGUI Slider | `MGUI.Core/UI/MGSlider.cs` |
+| MGUI CheckBox | `MGUI.Core/UI/MGCheckBox.cs` |
+| MGUI ContextMenu | `MGUI.Core/UI/MGContextMenu.cs` |
+| Layout Save/Load | `MGUI.Core/UI/Docking/DockLayout/DockLayoutSerializer.cs` |
+| Éditeur WPF (référence) | `CasaEngine.EditorUI/MainWindow.xaml` |
+| World Editor WPF | `CasaEngine.EditorUI/Controls/WorldControls/WorldEditorControl.xaml` |
+| Entities Control WPF | `CasaEngine.EditorUI/Controls/EntityControls/EntitiesControl.xaml` |
+| Entity Detail WPF | `CasaEngine.EditorUI/Controls/EntityControls/EntityControl.xaml` |
+| Component Control WPF | `CasaEngine.EditorUI/Controls/EntityControls/EntityComponentControl.xaml` |
+| Content Browser WPF | `CasaEngine.EditorUI/Controls/ContentBrowser/ContentBrowserControl.xaml` |
+| Logs WPF | `CasaEngine.EditorUI/Controls/LogsControl.xaml` |
+| Project Launcher WPF | `CasaEngine.EditorUI/ProjectLauncherWindow.xaml` |
+| Engine World | `CasaEngine/Framework/World/World.cs` |
+| Engine Entity | `CasaEngine/Framework/Entities/Entity.cs` |
+| Engine Components | `CasaEngine/Framework/Entities/Components/` |
+| Project Settings | `CasaEngine/Framework/Project/ProjectSettings.cs` |
+| Project Loader | `CasaEngine/Framework/Project/ProjectSettingsHelper.cs` |
+| Asset Catalog | `CasaEngine/Framework/Assets/AssetCatalog.cs` |
+| Logger | `CasaEngine/Core/Log/Logs.cs`, `ILogger.cs` |
+
+---
+
+## Phase 1 — Audit MGUI : contrôles manquants
+
+> Vérifier que MGUI fournit tous les contrôles nécessaires à l'éditeur.
+> Si un contrôle manque, le créer dans MGUI ou dans CasaEngine.Editor.
+
+### Tâche 1.1 — Audit des contrôles MGUI existants
+
+⬜ **Statut : À faire**
+
+**Actions :**
+1. Lister tous les contrôles MGUI disponibles dans `MGUI.Core/UI/`
+2. Comparer avec les besoins de l'éditeur (voir tableau ci-dessous)
+3. Documenter les manques dans un commentaire en haut de ce fichier ou dans le résumé de commit
+
+**Contrôles nécessaires vs disponibles :**
+
+| Besoin éditeur | Contrôle MGUI | Statut |
+|---|---|---|
+| Barre de menu (File, Edit, Help) | `MGMenuBar` | ✅ Existe |
+| Docking panels | `MGDockHost` | ✅ Existe |
+| TreeView (entités, dossiers) | `MGTreeView` | ✅ Existe |
+| ListBox (contenu dossier) | `MGListBox` | ✅ Existe |
+| TabControl | `MGTabControl` | ✅ Existe |
+| TextBlock / Label | `MGTextBlock` | ✅ Existe |
+| TextBox (édition texte) | `MGTextBox` | ✅ Existe |
+| Button | `MGButton` | ✅ Existe |
+| CheckBox | `MGCheckBox` | ✅ Existe |
+| ComboBox | `MGComboBox` | ✅ Existe |
+| Slider (valeurs numériques) | `MGSlider` | ✅ Existe |
+| Expander (sections dépliables) | `MGExpander` | ✅ Existe |
+| ScrollViewer | `MGScrollViewer` | ✅ Existe |
+| ContextMenu (clic droit) | `MGContextMenu` | ✅ Existe |
+| Image | `MGImage` | ✅ Existe |
+| Grid layout | `MGGrid` | ✅ Existe |
+| StackPanel | `MGStackPanel` | ✅ Existe |
+| DockPanel | `MGDockPanel` | ✅ Existe |
+| Splitter | `MGGridSplitter` | ✅ Existe |
+| ProgressBar | `MGProgressBar` | ✅ Existe |
+| GroupBox | `MGGroupBox` | ✅ Existe |
+| Separator | `MGSeparator` | ✅ Existe |
+| Color Picker | `MGGridColorPicker` | ✅ Existe |
+| Window / Dialog | `MGWindow` | ✅ Existe |
+| NumericUpDown (édition float/int) | ? | ⚠️ À vérifier |
+| Vector3 editor (X, Y, Z) | ? | ⚠️ À créer |
+| Asset selector (Guid → asset) | ? | ⚠️ À créer |
+| File/Folder dialog (OS natif) | Appel système | ⚠️ Via System.Windows.Forms |
+
+**À tester :**
+- Vérifier que `MGMenuBar` supporte les sous-menus, séparateurs, raccourcis clavier
+- Vérifier que `MGDockHost` supporte save/load layout JSON
+- Vérifier que `MGTreeView` supporte la sélection, expand/collapse, icônes
+- Vérifier que `MGSlider` peut servir pour des valeurs float avec affichage numérique
+- Chercher s'il existe un NumericUpDown ou un equivalent dans MGUI
+
+**Commit :** `docs(editor): audit MGUI controls for editor needs`
+
+---
+
+### Tâche 1.2 — Créer le contrôle NumericField dans CasaEngine.Editor
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/NumericField.cs`
+
+**Actions :**
+1. Créer une classe `NumericField` composée d'un `MGTextBox` + deux `MGButton` (▲/▼)
+2. Propriétés : `float Value`, `float Min`, `float Max`, `float Step`, `string Label`
+3. Événement `ValueChanged`
+4. Valider l'entrée texte (parse float, clamp min/max)
+5. Support du scroll molette pour incrémenter/décrémenter
+
+**À tester :**
+- Créer un `NumericField` avec Min=0, Max=100, Step=0.1
+- Vérifier que les boutons ▲/▼ incrémentent/décrémentent
+- Vérifier que le texte saisi est validé (rejeté si non-numérique)
+- Vérifier le scroll molette
+- Vérifier le clamp min/max
+
+**Commit :** `feat(editor): add NumericField custom control`
+
+---
+
+### Tâche 1.3 — Créer le contrôle Vector3Editor dans CasaEngine.Editor
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/Vector3Editor.cs`
+
+**Actions :**
+1. Créer une classe `Vector3Editor` composée de 3 `NumericField` (X, Y, Z) avec labels colorés (R, G, B ou X, Y, Z)
+2. Propriété `Vector3 Value` (get/set)
+3. Événement `ValueChanged`
+4. Layout horizontal : `[X: ___] [Y: ___] [Z: ___]`
+
+**À tester :**
+- Afficher un `Vector3Editor` et modifier chaque composante
+- Vérifier que `Value` retourne le bon `Vector3`
+- Vérifier l'affichage labels X/Y/Z avec couleurs distinctes
+
+**Commit :** `feat(editor): add Vector3Editor custom control`
+
+---
+
+### Tâche 1.4 — Créer le contrôle AssetSelector dans CasaEngine.Editor
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/AssetSelector.cs`
+
+**Actions :**
+1. Créer un contrôle composé d'un `MGTextBlock` (nom de l'asset) + `MGButton` (browse)
+2. Propriété `Guid AssetId` (get/set)
+3. Afficher le nom de l'asset depuis `AssetCatalog` en fonction du `Guid`
+4. Au clic sur Browse : ouvrir une fenêtre `MGWindow` listant les assets filtrables
+5. Événement `AssetChanged`
+6. Support d'un filtre par type d'asset (optionnel, propriété `Func<AssetInfo, bool> Filter`)
+
+**À tester :**
+- Afficher un `AssetSelector` et vérifier qu'il montre le nom de l'asset
+- Cliquer sur Browse et vérifier que la fenêtre s'ouvre avec la liste des assets
+- Sélectionner un asset et vérifier que `AssetId` est mis à jour
+- Vérifier le filtre par type
+
+**Commit :** `feat(editor): add AssetSelector custom control`
+
+---
+
+### Tâche 1.5 — Créer le contrôle ColorEditor dans CasaEngine.Editor
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/ColorEditor.cs`
+
+**Actions :**
+1. Créer un contrôle composé d'un rectangle de preview couleur + `MGButton` pour ouvrir le `MGGridColorPicker`
+2. Propriété `Color Value` (get/set) — `Microsoft.Xna.Framework.Color`
+3. Événement `ValueChanged`
+4. Au clic : ouvrir un popup/fenêtre avec `MGGridColorPicker`
+
+**À tester :**
+- Afficher le `ColorEditor`, vérifier le rectangle de preview
+- Cliquer, vérifier que le color picker s'ouvre
+- Choisir une couleur, vérifier que `Value` est mis à jour et le preview change
+
+**Commit :** `feat(editor): add ColorEditor custom control`
+
+---
+
+## Phase 2 — Contrôles éditeur custom dans CasaEngine.Editor
+
+> Créer les panneaux spécifiques de l'éditeur en utilisant MGUI.
+
+### Tâche 2.1 — Structure de base de l'éditeur (Game1 + MGDesktop + MGDockHost)
+
+⬜ **Statut : À faire**
+
+**Fichiers à modifier :** `CasaEngine.Editor/Game1.cs`, `CasaEngine.Editor/Program.cs`
+
+**Actions :**
+1. Modifier `Game1` pour initialiser `MainRenderer` et `MGDesktop` (pattern de `MGUI.Samples/Game1.cs`)
+2. Créer un `MGDockHost` comme layout principal avec des panels vides
+3. Ajouter une `MGMenuBar` en haut avec les menus : File (New, Open, Save, Exit), Edit (Cut, Copy, Paste), Windows (Save Layout, Load Layout), Help (About)
+4. Rendre le `MGDesktop` dans `Draw()`
+5. Mettre à jour le `MGDesktop` dans `Update()`
+6. Configurer la fenêtre : titre "CasaEngine Editor", taille 1600x900, redimensionnable
+
+**À tester :**
+- Lancer `CasaEngine.Editor`, vérifier que la fenêtre s'ouvre
+- Vérifier que la barre de menu s'affiche avec les éléments File, Edit, Windows, Help
+- Vérifier que le DockHost est visible (même vide)
+- Vérifier que les menus s'ouvrent au clic
+
+**Commit :** `feat(editor): setup Game1 with MGDesktop, MGDockHost, MGMenuBar`
+
+---
+
+### Tâche 2.2 — Project Launcher (ouverture de projet)
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/ProjectLauncherPanel.cs`
+
+**Actions :**
+1. Au démarrage de l'éditeur, afficher une `MGWindow` modale (Project Launcher)
+2. Contenu :
+   - Titre "CasaEngine Editor"
+   - Bouton "Open Project" → ouvre un `OpenFileDialog` (System.Windows.Forms) pour sélectionner un fichier `.json` projet
+   - Bouton "Create Project" → ouvre un `SaveFileDialog` pour créer un nouveau projet
+   - Liste des projets récents (`mostRecentProjects.json`) avec double-clic pour ouvrir
+   - Bouton "Launch" pour ouvrir le projet sélectionné
+3. Appeler `ProjectSettingsHelper.Load(fileName)` quand un projet est sélectionné
+4. Fermer la fenêtre modale après chargement réussi
+5. Gérer la persistance des projets récents
+
+**Dépendance :** `CasaEngine/Framework/Project/ProjectSettingsHelper.cs`
+
+**À tester :**
+- Lancer l'éditeur, vérifier que la fenêtre Project Launcher s'affiche
+- Cliquer "Open Project", vérifier que le dialog fichier s'ouvre
+- Sélectionner un fichier projet valide, vérifier que le projet se charge
+- Vérifier que le projet apparaît dans les récents au prochain lancement
+- Vérifier que "Create Project" crée un nouveau projet vide
+
+**Commit :** `feat(editor): add ProjectLauncherPanel with open/create project`
+
+---
+
+### Tâche 2.3 — Panneau Content Browser
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/ContentBrowserPanel.cs`
+
+**Actions :**
+1. Créer un panneau dockable `ContentBrowserPanel` pour le `MGDockHost`
+2. Layout en deux colonnes avec splitter :
+   - **Gauche** : `MGTreeView` affichant l'arborescence des dossiers
+   - **Droite** : `MGListBox` affichant le contenu du dossier sélectionné (fichiers + sous-dossiers)
+3. Alimenter depuis `AssetCatalog.AssetInfos` (même logique que `ContentBrowserViewModel`)
+4. S'abonner aux événements `AssetCatalog.AssetAdded`, `AssetRemoved`, `AssetCleared`
+5. S'abonner à `ProjectSettingsHelper.ProjectLoaded` pour reconstruire l'arbre
+6. Barre d'outils en haut : bouton Save
+7. Context menu (clic droit) sur le TreeView : New Folder, Rename, Delete
+8. Context menu sur le ListBox : actions contextuelles selon le type d'asset
+9. Afficher une icône dossier/fichier + nom + extension pour chaque item
+
+**À tester :**
+- Ouvrir un projet, vérifier que l'arborescence des dossiers s'affiche dans le TreeView
+- Cliquer un dossier, vérifier que son contenu s'affiche dans le ListBox
+- Vérifier les icônes (dossier vs fichier)
+- Clic droit sur un dossier : vérifier le context menu (New Folder, Rename, Delete)
+- Ajouter un asset dans le catalogue : vérifier qu'il apparaît dynamiquement
+- Vérifier le splitter entre les deux colonnes
+
+**Commit :** `feat(editor): add ContentBrowserPanel with folder tree and file list`
+
+---
+
+### Tâche 2.4 — Panneau Logs
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/LogsPanel.cs`  
+**Fichier à créer :** `CasaEngine.Editor/Log/LoggerEditor.cs`
+
+**Actions :**
+1. Créer `LoggerEditor : ILogger` — implémente `ILogger` et stocke les entrées de log dans une liste
+2. Chaque entrée : `DateTime`, `LogVerbosity`, `string Message`
+3. Créer un panneau dockable `LogsPanel`
+4. Layout :
+   - Barre de filtres en haut : `MGComboBox` pour filtrer par `LogVerbosity` (All, Trace, Debug, Info, Warning, Error)
+   - Bouton "Clear" pour vider les logs
+   - `MGListBox` scrollable affichant les entrées de log
+5. Colorer les lignes selon la sévérité :
+   - Trace → Gray
+   - Debug → Green
+   - Info → White
+   - Warning → Orange/Yellow
+   - Error → Red
+6. Auto-scroll vers le bas quand un nouveau log arrive
+7. Enregistrer le `LoggerEditor` dans `Logs` au démarrage de l'éditeur
+
+**À tester :**
+- Lancer l'éditeur, vérifier que le panneau Logs s'affiche
+- Provoquer des logs (charger un projet) et vérifier qu'ils apparaissent
+- Changer le filtre de verbosité et vérifier que les logs sont filtrés
+- Cliquer "Clear" et vérifier que la liste se vide
+- Vérifier les couleurs selon la sévérité
+- Vérifier l'auto-scroll
+
+**Commit :** `feat(editor): add LogsPanel with severity filtering and coloring`
+
+---
+
+### Tâche 2.5 — Panneau World Viewport (affichage 3D du monde)
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
+
+**Actions :**
+1. Créer un panneau dockable `WorldViewportPanel` qui occupe la zone centrale du DockHost
+2. Réserver une zone de rendu dans le panel (un `RenderTarget2D`)
+3. Rendre le `World` actuel dans ce `RenderTarget2D` pendant `Draw()`
+4. Afficher le `RenderTarget2D` dans le panel via `MGImage` ou dessin direct
+5. Gérer la caméra éditeur : rotation (clic milieu), pan (Shift + clic milieu), zoom (molette)
+6. Intégrer le `GizmoTool` pour la manipulation des entités (translate, rotate, scale)
+7. Gérer le picking : clic gauche sur une entité la sélectionne (raycast)
+8. Synchroniser la sélection avec le panneau Entities
+
+**Dépendances :** `CasaEngine/Framework/World/World.cs`, `GizmoTool/`
+
+**À tester :**
+- Charger un monde avec des entités, vérifier qu'il s'affiche dans le viewport
+- Vérifier la rotation caméra (clic milieu + drag)
+- Vérifier le pan (Shift + clic milieu)
+- Vérifier le zoom (molette)
+- Cliquer sur une entité dans le viewport, vérifier qu'elle est sélectionnée
+- Vérifier que le gizmo apparaît sur l'entité sélectionnée
+- Redimensionner le panel, vérifier que le viewport s'adapte
+
+**Commit :** `feat(editor): add WorldViewportPanel with camera controls and picking`
+
+---
+
+### Tâche 2.6 — Panneau Entities (hiérarchie des entités du monde)
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/EntitiesPanel.cs`
+
+**Actions :**
+1. Créer un panneau dockable `EntitiesPanel` (position droite dans le DockHost)
+2. Afficher un `MGTreeView` avec la hiérarchie des entités du `World` courant
+3. Chaque item : icône entité + nom de l'entité
+4. Support des entités enfants (`Entity.Children`) comme sous-nœuds
+5. Sélection d'une entité → notifier les autres panneaux (WorldViewport pour highlight, EntityDetails pour affichage)
+6. S'abonner aux événements du `World` : `EntityAdded`, `EntityRemoved`, etc.
+7. Context menu (clic droit) : Add Entity, Delete Entity, Rename, Duplicate
+8. Support du double-clic pour focus la caméra sur l'entité
+9. Recherche/filtre par nom (optionnel, `MGTextBox` en haut)
+
+**À tester :**
+- Charger un monde, vérifier que les entités apparaissent dans le TreeView
+- Vérifier la hiérarchie parent/enfant
+- Sélectionner une entité, vérifier qu'elle est mise en surbrillance dans le viewport
+- Clic droit → Add Entity : vérifier que l'entité est ajoutée
+- Clic droit → Delete : vérifier la suppression
+- Double-clic : vérifier que la caméra se déplace vers l'entité
+
+**Commit :** `feat(editor): add EntitiesPanel with entity hierarchy tree`
+
+---
+
+### Tâche 2.7 — Panneau Entity Details (détails et composants d'une entité)
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`
+
+**Actions :**
+1. Créer un panneau dockable `EntityDetailsPanel` (sous le panneau Entities)
+2. Quand une entité est sélectionnée, afficher :
+   - **Nom de l'entité** : `MGTextBox` éditable
+   - **Bouton "Add Component"** : ouvre un menu/popup pour choisir un type de composant
+   - **TreeView des composants** : liste les `EntityComponent` de l'entité, chacun avec une icône
+3. Sélection d'un composant → afficher ses propriétés éditables en dessous
+4. S'abonner aux événements `Entity.ComponentAdded`, `Entity.ComponentRemoved`
+
+**À tester :**
+- Sélectionner une entité dans le panneau Entities
+- Vérifier que son nom apparaît et est éditable
+- Vérifier que la liste des composants s'affiche
+- Cliquer "Add Component", vérifier que le menu s'ouvre avec les types disponibles
+- Ajouter un composant, vérifier qu'il apparaît dans la liste
+- Sélectionner un composant, vérifier que ses propriétés s'affichent
+
+**Commit :** `feat(editor): add EntityDetailsPanel with component list`
+
+---
+
+### Tâche 2.8 — Property editors pour composants courants
+
+⬜ **Statut : À faire**
+
+**Fichiers à créer :** `CasaEngine.Editor/Controls/ComponentEditors/`
+
+**Actions :**
+1. Créer un dossier `ComponentEditors/` avec un éditeur de propriétés par type de composant
+2. Créer une classe de base `ComponentEditorBase` qui :
+   - Prend un `EntityComponent` en entrée
+   - Génère un layout de propriétés éditables via `MGExpander` + `MGGrid`
+   - Support des types : `float` → `NumericField`, `Vector3` → `Vector3Editor`, `bool` → `MGCheckBox`, `string` → `MGTextBox`, `Color` → `ColorEditor`, `Guid` (asset) → `AssetSelector`, `Enum` → `MGComboBox`
+3. Implémenter les éditeurs pour les composants essentiels :
+   - `TransformComponentEditor` : Position (Vector3), Rotation (Vector3), Scale (Vector3)
+   - `StaticModelComponentEditor` : Model asset selector
+   - `CameraComponentEditor` : FOV, near/far plane
+   - `PhysicsComponentEditor` : mass, friction, collision shape
+4. Utiliser un registry / factory pour résoudre quel éditeur afficher selon le type de composant
+5. Fallback : éditeur générique par réflexion pour composants non explicitement supportés
+
+**À tester :**
+- Sélectionner une entité avec un composant Transform
+- Vérifier que Position, Rotation, Scale s'affichent avec des `Vector3Editor`
+- Modifier une valeur, vérifier que l'entité est mise à jour en temps réel dans le viewport
+- Sélectionner un composant StaticModel, vérifier le sélecteur d'asset
+- Tester le fallback générique sur un composant custom
+
+**Commit :** `feat(editor): add component property editors with registry`
+
+---
+
+## Phase 3 — Vérifications côté moteur CasaEngine
+
+> S'assurer que le moteur fournit tout ce que l'éditeur requiert.
+
+### Tâche 3.1 — Vérifier les événements du World pour la synchronisation éditeur
+
+⬜ **Statut : À faire**
+
+**Fichier :** `CasaEngine/Framework/World/World.cs`
+
+**Actions :**
+1. Vérifier que `World` expose des événements `EntityAdded` et `EntityRemoved`
+2. Si absents, les ajouter (pattern observer)
+3. Vérifier que `ClearEntities()` déclenche un événement `EntitiesCleared`
+4. Vérifier que l'ajout/suppression d'entités enfants est notifié
+
+**À tester :**
+- S'abonner à `World.EntityAdded`, ajouter une entité, vérifier que l'événement est levé
+- S'abonner à `World.EntityRemoved`, supprimer une entité, vérifier l'événement
+- Appeler `ClearEntities()`, vérifier que l'événement de nettoyage est levé
+
+**Commit :** `feat(engine): ensure World exposes entity change events`
+
+---
+
+### Tâche 3.2 — Vérifier les événements de l'Entity pour les composants
+
+⬜ **Statut : À faire**
+
+**Fichier :** `CasaEngine/Framework/Entities/Entity.cs`
+
+**Actions :**
+1. Vérifier que `Entity` expose `ComponentAdded` et `ComponentRemoved`
+2. Vérifier que `Entity` expose `ChildAdded` et `ChildRemoved`
+3. Vérifier que le renommage d'entité est notifié (`NameChanged` ou `PropertyChanged`)
+4. Si des événements manquent, les ajouter
+
+**À tester :**
+- Ajouter un composant, vérifier l'événement `ComponentAdded`
+- Supprimer un composant, vérifier `ComponentRemoved`
+- Ajouter un enfant, vérifier `ChildAdded`
+- Renommer l'entité, vérifier notification
+
+**Commit :** `feat(engine): ensure Entity exposes component/child change events`
+
+---
+
+### Tâche 3.3 — Vérifier le AssetCatalog pour le Content Browser
+
+⬜ **Statut : À faire**
+
+**Fichier :** `CasaEngine/Framework/Assets/AssetCatalog.cs`
+
+**Actions :**
+1. Vérifier que `AssetCatalog` expose `AssetAdded`, `AssetRemoved`, `AssetRenamed`, `AssetCleared`
+2. Vérifier que `AssetInfo` contient le chemin relatif du fichier, le type d'asset, le Guid
+3. Vérifier que l'on peut itérer `AssetCatalog.AssetInfos` depuis l'éditeur
+4. Vérifier que le save/load du catalogue fonctionne indépendamment de WPF
+
+**À tester :**
+- Charger un projet, itérer les `AssetInfos`, vérifier les données
+- Ajouter un asset, vérifier l'événement
+- Sauvegarder et recharger le catalogue
+
+**Commit :** `feat(engine): verify AssetCatalog events and data for editor`
+
+---
+
+### Tâche 3.4 — Vérifier que le moteur de rendu fonctionne avec un RenderTarget éditeur
+
+⬜ **Statut : À faire**
+
+**Actions :**
+1. Vérifier que le pipeline de rendu du `World` peut rendre dans un `RenderTarget2D` arbitraire
+2. Si le rendu est lié au backbuffer, ajouter un paramètre `RenderTarget2D` au pipeline
+3. Vérifier que la caméra peut être contrôlée indépendamment (caméra éditeur vs caméra jeu)
+4. Vérifier que le `GizmoTool` fonctionne avec un viewport custom
+
+**À tester :**
+- Créer un `RenderTarget2D`, rendre le monde dedans, afficher le résultat
+- Changer la taille du RenderTarget, vérifier que le rendu s'adapte
+- Contrôler la caméra éditeur indépendamment
+
+**Commit :** `feat(engine): support rendering World into custom RenderTarget2D`
+
+---
+
+## Phase 4 — Assemblage de l'éditeur
+
+> Connecter tous les panneaux et finaliser l'éditeur.
+
+### Tâche 4.1 — Assembler le layout principal de l'éditeur
+
+⬜ **Statut : À faire**
+
+**Fichier à modifier :** `CasaEngine.Editor/Game1.cs`
+
+**Actions :**
+1. Configurer le `MGDockHost` avec le layout par défaut :
+   - **Centre** : `WorldViewportPanel`
+   - **Droite haut** : `EntitiesPanel`
+   - **Droite bas** : `EntityDetailsPanel`
+   - **Bas** : `LogsPanel` + `ContentBrowserPanel` (onglets)
+2. Connecter les menus File → Open/Save/New au `ProjectSettingsHelper`
+3. Connecter Windows → Save Layout / Load Layout au `DockLayoutSerializer`
+4. Implémenter le flux de sélection : Entities → EntityDetails + WorldViewport
+5. Enregistrer le `LoggerEditor` dans `Logs`
+
+**À tester :**
+- Lancer l'éditeur, vérifier le layout par défaut (viewport centre, entities à droite, logs en bas)
+- File → Open : vérifier que le monde se charge et s'affiche
+- File → Save : vérifier que le projet est sauvegardé
+- Sélectionner une entité dans Entities, vérifier les détails et le highlight viewport
+- Windows → Save Layout, fermer, relancer, Load Layout : vérifier la restauration
+- Redimensionner les panneaux avec les splitters
+
+**Commit :** `feat(editor): assemble main editor layout with all panels`
+
+---
+
+### Tâche 4.2 — Système de sélection centralisé
+
+⬜ **Statut : À faire**
+
+**Fichier à créer :** `CasaEngine.Editor/EditorSelection.cs`
+
+**Actions :**
+1. Créer une classe singleton `EditorSelection` qui gère la sélection courante
+2. Propriétés : `Entity SelectedEntity`, `EntityComponent SelectedComponent`
+3. Événements : `SelectionChanged`, `ComponentSelectionChanged`
+4. Connecter : `EntitiesPanel` → `EditorSelection` → `EntityDetailsPanel`, `WorldViewportPanel`
+5. Support de la sélection depuis le viewport (picking) vers `EditorSelection`
+
+**À tester :**
+- Sélectionner une entité dans le TreeView → vérifier que le viewport la met en surbrillance et que les détails s'affichent
+- Cliquer une entité dans le viewport → vérifier que le TreeView la sélectionne et que les détails s'affichent
+- Changer de sélection rapidement, vérifier la cohérence
+
+**Commit :** `feat(editor): add centralized EditorSelection system`
+
+---
+
+### Tâche 4.3 — Intégrer le Project Launcher au flux de démarrage
+
+⬜ **Statut : À faire**
+
+**Fichier à modifier :** `CasaEngine.Editor/Game1.cs`
+
+**Actions :**
+1. Au démarrage, afficher la fenêtre `ProjectLauncherPanel` (modale)
+2. Bloquer l'affichage du DockHost tant qu'aucun projet n'est chargé
+3. Après le chargement du projet :
+   - Charger le `World` initial (`ProjectSettings.FirstWorldLoaded`)
+   - Alimenter le Content Browser
+   - Mettre à jour le titre de la fenêtre avec le nom du projet
+4. Menu File → Open : permettre de changer de projet (réafficher le launcher)
+
+**À tester :**
+- Lancer l'éditeur : vérifier que le launcher s'affiche en premier
+- Ouvrir un projet : vérifier que le monde se charge
+- Vérifier le titre de la fenêtre
+- File → Open : vérifier que le launcher se réaffiche
+
+**Commit :** `feat(editor): integrate ProjectLauncher into editor startup flow`
+
+---
+
+### Tâche 4.4 — StatusBar en bas de l'éditeur
+
+⬜ **Statut : À faire**
+
+**Actions :**
+1. Ajouter un `MGDockPanel` ou `MGStackPanel` en bas de la fenêtre principale (hors DockHost)
+2. Afficher des boutons pour ouvrir/fermer des panneaux : "Content Browser", "Logs"
+3. Afficher des infos status : FPS, nom du projet, nombre d'entités
+
+**À tester :**
+- Vérifier que la status bar s'affiche en bas
+- Cliquer "Content Browser" : vérifier que le panneau s'ouvre/ferme
+- Vérifier l'affichage du FPS
+
+**Commit :** `feat(editor): add status bar with panel toggles and info`
+
+---
+
+### Tâche 4.5 — Sauvegarde et chargement du layout (persistance)
+
+⬜ **Statut : À faire**
+
+**Actions :**
+1. Connecter le menu "Windows → Save Layout" au `DockLayoutSerializer.SaveLayoutToJson()`
+2. Connecter "Windows → Load Layout" au `DockLayoutSerializer.LoadLayoutFromJson()`
+3. Sauvegarder le layout dans le dossier du projet (ex: `.casaeditor/layout.json`)
+4. Charger automatiquement le dernier layout au démarrage si le fichier existe
+5. Gérer les panneaux manquants au restore (graceful fallback)
+
+**À tester :**
+- Réarranger les panneaux, sauver le layout
+- Relancer l'éditeur, vérifier que le layout est restauré
+- Supprimer le fichier layout, vérifier que le layout par défaut est utilisé
+- Fermer un panneau, sauver, recharger : vérifier qu'il est bien fermé au restore
+
+**Commit :** `feat(editor): add dock layout save/load persistence`
+
+---
+
+## Résumé des tâches
+
+| # | Phase | Tâche | Statut |
+|---|---|---|---|
+| 1.1 | MGUI Audit | Audit des contrôles MGUI | ⬜ |
+| 1.2 | MGUI Audit | Créer NumericField | ⬜ |
+| 1.3 | MGUI Audit | Créer Vector3Editor | ⬜ |
+| 1.4 | MGUI Audit | Créer AssetSelector | ⬜ |
+| 1.5 | MGUI Audit | Créer ColorEditor | ⬜ |
+| 2.1 | Contrôles éditeur | Structure de base (Game1 + Desktop + DockHost) | ⬜ |
+| 2.2 | Contrôles éditeur | Project Launcher | ⬜ |
+| 2.3 | Contrôles éditeur | Content Browser | ⬜ |
+| 2.4 | Contrôles éditeur | Logs | ⬜ |
+| 2.5 | Contrôles éditeur | World Viewport | ⬜ |
+| 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ |
+| 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ |
+| 2.8 | Contrôles éditeur | Property editors composants | ⬜ |
+| 3.1 | Moteur | Événements World | ⬜ |
+| 3.2 | Moteur | Événements Entity | ⬜ |
+| 3.3 | Moteur | AssetCatalog vérification | ⬜ |
+| 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ |
+| 4.1 | Assemblage | Layout principal éditeur | ⬜ |
+| 4.2 | Assemblage | Système de sélection centralisé | ⬜ |
+| 4.3 | Assemblage | Intégration Project Launcher | ⬜ |
+| 4.4 | Assemblage | StatusBar | ⬜ |
+| 4.5 | Assemblage | Persistance layout | ⬜ |
