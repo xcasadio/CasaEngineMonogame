@@ -137,7 +137,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 1.2 — Créer le contrôle NumericField dans CasaEngine.Editor
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `b6ed3e55`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/NumericField.cs`
 
@@ -161,7 +161,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 1.3 — Créer le contrôle Vector3Editor dans CasaEngine.Editor
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `1cd78e03`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/Vector3Editor.cs`
 
@@ -182,7 +182,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 1.4 — Créer le contrôle AssetSelector dans CasaEngine.Editor
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `c26b10cd`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/AssetSelector.cs`
 
@@ -206,7 +206,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 1.5 — Créer le contrôle ColorEditor dans CasaEngine.Editor
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `837ee7d3`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/ColorEditor.cs`
 
@@ -231,7 +231,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.1 — Structure de base de l'éditeur (Game1 + MGDesktop + MGDockHost)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `65c9e960`
 
 **Fichiers à modifier :** `CasaEngine.Editor/Game1.cs`, `CasaEngine.Editor/Program.cs`
 
@@ -255,7 +255,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.2 — Project Launcher (ouverture de projet)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `20d27f29`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/ProjectLauncherPanel.cs`
 
@@ -677,27 +677,27 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ## Résumé des tâches
 
-| # | Phase | Tâche | Statut |
-|---|---|---|---|
-| 1.1 | MGUI Audit | Audit des contrôles MGUI | ✅ |
-| 1.2 | MGUI Audit | Créer NumericField | ⬜ |
-| 1.3 | MGUI Audit | Créer Vector3Editor | ⬜ |
-| 1.4 | MGUI Audit | Créer AssetSelector | ⬜ |
-| 1.5 | MGUI Audit | Créer ColorEditor | ⬜ |
-| 2.1 | Contrôles éditeur | Structure de base (Game1 + Desktop + DockHost) | ⬜ |
-| 2.2 | Contrôles éditeur | Project Launcher | ⬜ |
-| 2.3 | Contrôles éditeur | Content Browser | ⬜ |
-| 2.4 | Contrôles éditeur | Logs | ⬜ |
-| 2.5 | Contrôles éditeur | World Viewport | ⬜ |
-| 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ |
-| 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ |
-| 2.8 | Contrôles éditeur | Property editors composants | ⬜ |
-| 3.1 | Moteur | Événements World | ⬜ |
-| 3.2 | Moteur | Événements Entity | ⬜ |
-| 3.3 | Moteur | AssetCatalog vérification | ⬜ |
-| 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ |
-| 4.1 | Assemblage | Layout principal éditeur | ⬜ |
-| 4.2 | Assemblage | Système de sélection centralisé | ⬜ |
-| 4.3 | Assemblage | Intégration Project Launcher | ⬜ |
-| 4.4 | Assemblage | StatusBar | ⬜ |
-| 4.5 | Assemblage | Persistance layout | ⬜ |
+| # | Phase | Tâche | Statut | Commit |
+|---|---|---|---|---|
+| 1.1 | MGUI Audit | Audit des contrôles MGUI | ✅ | `76b963a0` |
+| 1.2 | MGUI Audit | Créer NumericField | ✅ | `b6ed3e55` |
+| 1.3 | MGUI Audit | Créer Vector3Editor | ✅ | `1cd78e03` |
+| 1.4 | MGUI Audit | Créer AssetSelector | ✅ | `c26b10cd` |
+| 1.5 | MGUI Audit | Créer ColorEditor | ✅ | `837ee7d3` |
+| 2.1 | Contrôles éditeur | Structure de base (Game1 + Desktop + DockHost) | ✅ | `65c9e960` |
+| 2.2 | Contrôles éditeur | Project Launcher | ✅ | `20d27f29` |
+| 2.3 | Contrôles éditeur | Content Browser | ⬜ | |
+| 2.4 | Contrôles éditeur | Logs | ⬜ | |
+| 2.5 | Contrôles éditeur | World Viewport | ⬜ | |
+| 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ | |
+| 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
+| 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
+| 3.1 | Moteur | Événements World | ⬜ | |
+| 3.2 | Moteur | Événements Entity | ⬜ | |
+| 3.3 | Moteur | AssetCatalog vérification | ⬜ | |
+| 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ | |
+| 4.1 | Assemblage | Layout principal éditeur | ⬜ | |
+| 4.2 | Assemblage | Système de sélection centralisé | ⬜ | |
+| 4.3 | Assemblage | Intégration Project Launcher | ⬜ | |
+| 4.4 | Assemblage | StatusBar | ⬜ | |
+| 4.5 | Assemblage | Persistance layout | ⬜ | |
