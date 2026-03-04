@@ -81,33 +81,30 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 1.1 — Audit des contrôles MGUI existants
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
-**Actions :**
-1. Lister tous les contrôles MGUI disponibles dans `MGUI.Core/UI/`
-2. Comparer avec les besoins de l'éditeur (voir tableau ci-dessous)
-3. Documenter les manques dans un commentaire en haut de ce fichier ou dans le résumé de commit
+**Résultats de l'audit :**
 
 **Contrôles nécessaires vs disponibles :**
 
 | Besoin éditeur | Contrôle MGUI | Statut |
 |---|---|---|
-| Barre de menu (File, Edit, Help) | `MGMenuBar` | ✅ Existe |
-| Docking panels | `MGDockHost` | ✅ Existe |
-| TreeView (entités, dossiers) | `MGTreeView` | ✅ Existe |
-| ListBox (contenu dossier) | `MGListBox` | ✅ Existe |
-| TabControl | `MGTabControl` | ✅ Existe |
-| TextBlock / Label | `MGTextBlock` | ✅ Existe |
+| Barre de menu (File, Edit, Help) | `MGMenuBar` + `MGMenuBarItem` | ✅ Existe — sous-menus via `MGContextMenu`, séparateurs, items désactivables |
+| Docking panels | `MGDockHost` | ✅ Existe — drag&drop, splitters, save/load JSON (`DockLayoutSerializer`) |
+| TreeView (entités, dossiers) | `MGTreeView` + `MGTreeViewItem` | ✅ Existe — sélection, expand/collapse, `ItemsSource`, `ChildrenPropertyName` |
+| ListBox (contenu dossier) | `MGListBox` | ✅ Existe — sélection simple/multiple, scrollable |
+| TabControl | `MGTabControl` + `MGTabItem` | ✅ Existe |
+| TextBlock / Label | `MGTextBlock` | ✅ Existe — rich text inline, wrap |
 | TextBox (édition texte) | `MGTextBox` | ✅ Existe |
-| Button | `MGButton` | ✅ Existe |
+| Button | `MGButton` | ✅ Existe — dont `MGProgressButton` (répétition sur maintien) |
 | CheckBox | `MGCheckBox` | ✅ Existe |
 | ComboBox | `MGComboBox` | ✅ Existe |
-| Slider (valeurs numériques) | `MGSlider` | ✅ Existe |
+| Slider (valeurs float) | `MGSlider` | ✅ Existe — `Minimum`, `Maximum`, `Value` (float), `IsDiscrete`, format string |
 | Expander (sections dépliables) | `MGExpander` | ✅ Existe |
 | ScrollViewer | `MGScrollViewer` | ✅ Existe |
-| ContextMenu (clic droit) | `MGContextMenu` | ✅ Existe |
+| ContextMenu (clic droit) | `MGContextMenu` + `MGContextMenuItem` | ✅ Existe — normal, toggle, radio, séparateur, icônes |
 | Image | `MGImage` | ✅ Existe |
-| Grid layout | `MGGrid` | ✅ Existe |
+| Grid layout | `MGGrid` | ✅ Existe — `MGGridSplitter` inclus |
 | StackPanel | `MGStackPanel` | ✅ Existe |
 | DockPanel | `MGDockPanel` | ✅ Existe |
 | Splitter | `MGGridSplitter` | ✅ Existe |
@@ -115,18 +112,24 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | GroupBox | `MGGroupBox` | ✅ Existe |
 | Separator | `MGSeparator` | ✅ Existe |
 | Color Picker | `MGGridColorPicker` | ✅ Existe |
-| Window / Dialog | `MGWindow` | ✅ Existe |
-| NumericUpDown (édition float/int) | ? | ⚠️ À vérifier |
-| Vector3 editor (X, Y, Z) | ? | ⚠️ À créer |
-| Asset selector (Guid → asset) | ? | ⚠️ À créer |
-| File/Folder dialog (OS natif) | Appel système | ⚠️ Via System.Windows.Forms |
+| Window / Dialog | `MGWindow` | ✅ Existe — modal via `IsModal` |
+| Toggle Button | `MGToggleButton` | ✅ Existe |
+| Radio Button | `MGRadioButton` + `MGRadioButtonGroup` | ✅ Existe |
+| OverlayPanel | `MGOverlayPanel` | ✅ Existe — utile pour popup/tooltip custom |
+| **NumericUpDown (édition float/int)** | **Absent** | ❌ **Manquant — à créer dans `CasaEngine.Editor`** |
+| **Vector3 editor (X, Y, Z)** | **Absent** | ❌ **Manquant — à créer dans `CasaEngine.Editor`** |
+| **Asset selector (Guid → asset)** | **Absent** | ❌ **Manquant — à créer dans `CasaEngine.Editor`** |
+| **ColorEditor (preview + picker)** | **Absent** | ❌ **Manquant — à créer (wrapper `MGGridColorPicker`)** |
+| File/Folder dialog (OS natif) | Appel système | ⚠️ Via `System.Windows.Forms.OpenFileDialog` / `SaveFileDialog` |
 
-**À tester :**
-- Vérifier que `MGMenuBar` supporte les sous-menus, séparateurs, raccourcis clavier
-- Vérifier que `MGDockHost` supporte save/load layout JSON
-- Vérifier que `MGTreeView` supporte la sélection, expand/collapse, icônes
-- Vérifier que `MGSlider` peut servir pour des valeurs float avec affichage numérique
-- Chercher s'il existe un NumericUpDown ou un equivalent dans MGUI
+**Résumé :**
+- MGUI dispose de tous les contrôles UI standard nécessaires.
+- 4 contrôles custom sont à créer dans `CasaEngine.Editor` (tâches 1.2 à 1.5) :
+  - `NumericField` (TextBox + boutons ▲/▼ + molette)
+  - `Vector3Editor` (3× NumericField)
+  - `AssetSelector` (label + bouton Browse + fenêtre de sélection)
+  - `ColorEditor` (preview couleur + popup `MGGridColorPicker`)
+- Les dialogues fichiers OS utilisent `System.Windows.Forms` (déjà en dépendance via `UseWindowsForms`).
 
 **Commit :** `docs(editor): audit MGUI controls for editor needs`
 
@@ -676,7 +679,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 | # | Phase | Tâche | Statut |
 |---|---|---|---|
-| 1.1 | MGUI Audit | Audit des contrôles MGUI | ⬜ |
+| 1.1 | MGUI Audit | Audit des contrôles MGUI | ✅ |
 | 1.2 | MGUI Audit | Créer NumericField | ⬜ |
 | 1.3 | MGUI Audit | Créer Vector3Editor | ⬜ |
 | 1.4 | MGUI Audit | Créer AssetSelector | ⬜ |
