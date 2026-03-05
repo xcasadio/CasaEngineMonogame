@@ -286,7 +286,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.3 — Panneau Content Browser
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `db022630`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/ContentBrowserPanel.cs`
 
@@ -686,7 +686,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 1.5 | MGUI Audit | Créer ColorEditor | ✅ | `837ee7d3` |
 | 2.1 | Contrôles éditeur | Structure de base (Game1 + Desktop + DockHost) | ✅ | `65c9e960` |
 | 2.2 | Contrôles éditeur | Project Launcher | ✅ | `20d27f29` |
-| 2.3 | Contrôles éditeur | Content Browser | ⬜ | |
+| 2.3 | Contrôles éditeur | Content Browser | ✅ | `db022630` |
 | 2.4 | Contrôles éditeur | Logs | ⬜ | |
 | 2.5 | Contrôles éditeur | World Viewport | ⬜ | |
 | 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ | |
