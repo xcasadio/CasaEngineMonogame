@@ -317,7 +317,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.4 — Panneau Logs
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `01e3ef07`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/LogsPanel.cs`  
 **Fichier à créer :** `CasaEngine.Editor/Log/LoggerEditor.cs`
@@ -353,7 +353,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.5 — Panneau World Viewport (affichage 3D du monde)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé** — commit `4ebdf1e8`
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
 
@@ -687,8 +687,8 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.1 | Contrôles éditeur | Structure de base (Game1 + Desktop + DockHost) | ✅ | `65c9e960` |
 | 2.2 | Contrôles éditeur | Project Launcher | ✅ | `20d27f29` |
 | 2.3 | Contrôles éditeur | Content Browser | ✅ | `db022630` |
-| 2.4 | Contrôles éditeur | Logs | ⬜ | |
-| 2.5 | Contrôles éditeur | World Viewport | ⬜ | |
+| 2.4 | Contrôles éditeur | Logs | ✅ | `01e3ef07` |
+| 2.5 | Contrôles éditeur | World Viewport | ✅ | `4ebdf1e8` |
 | 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ | |
 | 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
 | 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
