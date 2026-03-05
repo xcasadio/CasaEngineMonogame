@@ -1,4 +1,6 @@
-﻿using CasaEngine.Editor.Controls;
+﻿using CasaEngine.Core.Log;
+using CasaEngine.Editor.Controls;
+using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
@@ -25,6 +27,10 @@ namespace CasaEngine.Editor
         private MGDockHost _dockHost;
         private MGMenuBar _menuBar;
 
+        // ── Editor panels ──────────────────────────────────────────────────
+        private LoggerEditor _loggerEditor;
+        private WorldViewportPanel _worldViewportPanel;
+
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
         public event EventHandler<EventArgs> EndUpdate;
@@ -49,6 +55,11 @@ namespace CasaEngine.Editor
             // ── Bootstrap MGUI ─────────────────────────────────────────────
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this));
             _desktop = new MGDesktop(_mguiRenderer);
+
+            // ── Register editor logger ─────────────────────────────────────
+            _loggerEditor = new LoggerEditor();
+            Logs.AddLogger(_loggerEditor);
+            Logs.WriteInfo("CasaEngine Editor starting up");
 
             // ── Main window (borderless, fills the screen) ─────────────────
             _mainWindow = new MGWindow(_desktop, 0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
@@ -141,7 +152,11 @@ namespace CasaEngine.Editor
                 Title = "Scene",
                 CanClose = false,
                 CanFloat = false,
-                ContentFactory = () => new MGTextBlock(_mainWindow, "Scene Viewport (TODO)")
+                ContentFactory = () =>
+                {
+                    _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice);
+                    return _worldViewportPanel.CreateContent();
+                }
             };
 
             var propertiesPanel = new DockPanelNode("panel_properties")
@@ -170,10 +185,10 @@ namespace CasaEngine.Editor
 
             var outputPanel = new DockPanelNode("panel_output")
             {
-                Title = "Output",
+                Title = "Output / Logs",
                 CanClose = true,
                 CanFloat = true,
-                ContentFactory = () => new MGTextBlock(_mainWindow, "Output (TODO)")
+                ContentFactory = () => new LogsPanel(_mainWindow, _loggerEditor).CreateContent()
             };
 
             // Tab groups
@@ -259,6 +274,9 @@ namespace CasaEngine.Editor
 
         protected override void Draw(GameTime gameTime)
         {
+            // Draw world viewport into its render target before MGUI renders
+            _worldViewportPanel?.DrawViewport(gameTime);
+
             GraphicsDevice.Clear(Color.DimGray);
 
             _desktop?.Draw();
