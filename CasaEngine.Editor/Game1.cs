@@ -1,4 +1,5 @@
-﻿using CasaEngine.Editor.ProjectLauncher;
+﻿using CasaEngine.Editor.Controls;
+using CasaEngine.Editor.ProjectLauncher;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
@@ -159,6 +160,14 @@ namespace CasaEngine.Editor
                 ContentFactory = () => new MGTextBlock(_mainWindow, "World Explorer (TODO)")
             };
 
+            var contentBrowserPanel = new DockPanelNode("panel_content_browser")
+            {
+                Title = "Content Browser",
+                CanClose = true,
+                CanFloat = true,
+                ContentFactory = () => new ContentBrowserPanel(_mainWindow).CreateContent()
+            };
+
             var outputPanel = new DockPanelNode("panel_output")
             {
                 Title = "Output",
@@ -170,7 +179,8 @@ namespace CasaEngine.Editor
             // Tab groups
             var leftGroup = new DockTabGroupNode();
             leftGroup.AddPanel(explorerPanel, -1);
-            leftGroup.SetActivePanel(explorerPanel.Id);
+            leftGroup.AddPanel(contentBrowserPanel, -1);
+            leftGroup.SetActivePanel(contentBrowserPanel.Id);
 
             var rightGroup = new DockTabGroupNode();
             rightGroup.AddPanel(propertiesPanel, -1);
