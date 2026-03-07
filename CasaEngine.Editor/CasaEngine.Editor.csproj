@@ -19,6 +19,7 @@
     <ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />
     <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
+    <ProjectReference Include="..\MGUI\MGUI.FontStashSharp\MGUI.FontStashSharp.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
   </ItemGroup>
   <Target Name="RestoreDotnetTools" BeforeTargets="CollectPackageReferences">

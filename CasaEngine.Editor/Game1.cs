@@ -10,6 +10,7 @@ using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using MGUI.Shared.Text;
 
 namespace CasaEngine.Editor
 {
