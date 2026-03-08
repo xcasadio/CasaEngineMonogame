@@ -47,7 +47,7 @@ public class ProjectLauncherWindow
 
         _launcherWindow = new MGWindow(desktop, left, top, Width, Height)
         {
-            TitleText = "CasaEngine — Open or Create a Project",
+            TitleText = "Open a project",
             IsCloseButtonVisible = true
         };
 
@@ -83,12 +83,12 @@ public class ProjectLauncherWindow
         buttonRow.TryAddChild(openButton);
 
         var browseButton = new MGButton(_launcherWindow, _ => BrowseForProject());
-        browseButton.SetContent(new MGTextBlock(_launcherWindow, "Browse…"));
+        browseButton.SetContent(new MGTextBlock(_launcherWindow, "Browse"));
         browseButton.PreferredWidth = 90;
         buttonRow.TryAddChild(browseButton);
 
         var newButton = new MGButton(_launcherWindow, _ => ShowNewProjectForm(outerStack, buttonRow));
-        newButton.SetContent(new MGTextBlock(_launcherWindow, "New Project…"));
+        newButton.SetContent(new MGTextBlock(_launcherWindow, "New Project"));
         newButton.PreferredWidth = 110;
         buttonRow.TryAddChild(newButton);
 

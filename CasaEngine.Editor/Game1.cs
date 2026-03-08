@@ -2,15 +2,18 @@
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
+using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
+using MGUI.FontStashSharp;
 using MGUI.Shared.Rendering;
+using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using MGUI.Shared.Text;
+using System.IO;
 
 namespace CasaEngine.Editor
 {
@@ -22,6 +25,7 @@ namespace CasaEngine.Editor
         // ── MGUI core ──────────────────────────────────────────────────────
         private MainRenderer _mguiRenderer;
         private MGDesktop _desktop;
+        private FontStashSharpTextEngine _fontStashSharpEngine;
 
         // ── Main editor window ─────────────────────────────────────────────
         private MGWindow _mainWindow;
@@ -51,11 +55,35 @@ namespace CasaEngine.Editor
             _graphics.PreferredBackBufferHeight = 900;
             _graphics.ApplyChanges();
 
+            // Load icons early so panel ContentFactory lambdas have textures available
+            EditorIcons.Load(Content);
+
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // ── Bootstrap MGUI ─────────────────────────────────────────────
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this));
             _desktop = new MGDesktop(_mguiRenderer);
+            _fontStashSharpEngine = new FontStashSharpTextEngine();
+            const string familyName = "JetBrainsMono";
+            string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
+
+            byte[] arialBytes = File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-Regular.ttf"));
+            FontSystem arialNormal = new FontSystem();
+            arialNormal.AddFont(arialBytes);
+            _fontStashSharpEngine.AddFontSystem(familyName, CustomFontStyles.Normal, arialNormal, arialBytes);
+
+            FontSystem arialBold = new FontSystem();
+            arialBold.AddFont(File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-Bold.ttf")));
+            _fontStashSharpEngine.AddFontSystem(familyName, CustomFontStyles.Bold, arialBold);
+
+            FontSystem arialItalic = new FontSystem();
+            arialItalic.AddFont(File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-BoldItalic.ttf")));
+            _fontStashSharpEngine.AddFontSystem(familyName, CustomFontStyles.Italic, arialItalic);
+
+            // Calibrate per-size advance widths to match SpriteFontTextEngine exactly.
+            // Must be called after FontSizeScale is set (via AddFontSystem overload above).
+            _fontStashSharpEngine.MatchSpriteFontSizing(_desktop.FontManager);
+            _desktop.TextEngine = _fontStashSharpEngine;
 
             // ── Register editor logger ─────────────────────────────────────
             _loggerEditor = new LoggerEditor();
@@ -110,8 +138,8 @@ namespace CasaEngine.Editor
             _menuBar.AddItem("File", item =>
             {
                 item.Submenu = new MGContextMenu(_mainWindow);
-                item.Submenu.AddButton("New Project…", _ => OpenProjectLauncher());
-                item.Submenu.AddButton("Open Project…", _ => OpenProjectLauncher());
+                item.Submenu.AddButton("New Project", _ => OpenProjectLauncher());
+                item.Submenu.AddButton("Open Project", _ => OpenProjectLauncher());
                 item.Submenu.AddSeparator();
                 item.Submenu.AddButton("Save", _ => SaveCurrentProject());
                 item.Submenu.AddSeparator();

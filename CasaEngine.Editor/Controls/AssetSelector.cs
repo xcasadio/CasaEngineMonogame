@@ -6,6 +6,7 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Thickness = MonoGame.Extended.Thickness;
 using MGUI.Shared.Helpers;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -66,12 +67,24 @@ public class AssetSelector : MGStackPanel
         };
 
         _browseButton = new MGButton(window, _ => OpenPickerWindow());
-        _browseButton.SetContent(new MGTextBlock(window, "Browse")
+        if (EditorIcons.FolderOpen != null)
         {
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Center
-        });
-        _browseButton.PreferredWidth = 60;
+            var img = new MGImage(window, EditorIcons.FolderOpen, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth  = 20,
+                PreferredHeight = 20,
+            };
+            _browseButton.SetContent(img);
+        }
+        else
+        {
+            _browseButton.SetContent(new MGTextBlock(window, "Browse")
+            {
+                VerticalAlignment   = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center
+            });
+        }
+        _browseButton.PreferredWidth = 28;
 
         TryAddChild(_assetNameBlock);
         TryAddChild(_browseButton);

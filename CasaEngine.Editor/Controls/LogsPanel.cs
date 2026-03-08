@@ -8,6 +8,7 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
@@ -93,7 +94,19 @@ public class LogsPanel
         {
             Padding = new Thickness(6, 2, 6, 2),
         };
-        clearButton.SetContent(new MGTextBlock(_window, "🗑 Clear"));
+        if (EditorIcons.Trash != null)
+        {
+            var img = new MGImage(_window, EditorIcons.Trash, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth  = 20,
+                PreferredHeight = 20,
+            };
+            clearButton.SetContent(img);
+        }
+        else
+        {
+            clearButton.SetContent(new MGTextBlock(_window, "Clear"));
+        }
 
         var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
         {

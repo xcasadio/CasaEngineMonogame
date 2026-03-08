@@ -206,37 +206,64 @@ public class WorldViewportPanel : IDisposable
             Spacing = 4,
         };
 
-        toolbar.TryAddChild(new MGTextBlock(_window, "[b]Viewport[/b]")
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
-        var btnTranslate = MakeGizmoModeButton("✥ Move",   () => SetGizmoMode(GizmoMode.Translate));
-        var btnRotate    = MakeGizmoModeButton("↻ Rotate", () => SetGizmoMode(GizmoMode.Rotate));
-        var btnScale     = MakeGizmoModeButton("↲ Scale",  () => SetGizmoMode(GizmoMode.UniformScale));
+        var btnTranslate = MakeIconButton(EditorIcons.Move,   "Move", () => SetGizmoMode(GizmoMode.Translate));
+        var btnRotate    = MakeIconButton(EditorIcons.Rotate, "Rotate", () => SetGizmoMode(GizmoMode.Rotate));
+        var btnScale     = MakeIconButton(EditorIcons.Scale,  "Scale", () => SetGizmoMode(GizmoMode.UniformScale));
 
         toolbar.TryAddChild(btnTranslate);
         toolbar.TryAddChild(btnRotate);
         toolbar.TryAddChild(btnScale);
 
-        // World/local space toggle
+        // World/local space toggle — two-state label, keep as text
         var btnSpace = new MGButton(_window, _ => ToggleGizmoSpace())
         {
             Padding = new Thickness(4, 1, 4, 1),
         };
-        btnSpace.SetContent(new MGTextBlock(_window, "Local ↔ World"));
+        var localIcon  = EditorIcons.Focus;
+        var worldIcon  = EditorIcons.Maximize;
+        if (localIcon != null)
+        {
+            var img = new MGImage(_window, localIcon, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth  = 20,
+                PreferredHeight = 20,
+            };
+            btnSpace.SetContent(img);
+        }
+        else
+        {
+            btnSpace.SetContent(new MGTextBlock(_window, "Local / World"));
+        }
         toolbar.TryAddChild(btnSpace);
 
         return toolbar;
     }
 
-    private MGButton MakeGizmoModeButton(string label, Action action)
+    /// <summary>
+    /// Creates a toolbar button whose content is the given icon image.
+    /// Falls back to a text label if <paramref name="icon"/> is null.
+    /// </summary>
+    private MGButton MakeIconButton(Texture2D? icon, string tooltip, Action action)
     {
         var btn = new MGButton(_window, _ => action())
         {
-            Padding = new Thickness(4, 1, 4, 1),
+            Padding = new Thickness(2, 2, 2, 2),
         };
-        btn.SetContent(new MGTextBlock(_window, label));
+
+        if (icon != null)
+        {
+            var img = new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth  = 20,
+                PreferredHeight = 20,
+            };
+            btn.SetContent(img);
+        }
+        else
+        {
+            btn.SetContent(new MGTextBlock(_window, tooltip));
+        }
+
         return btn;
     }
 
