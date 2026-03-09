@@ -153,14 +153,6 @@ public class DemosGame : CasaEngineGame
             Exit();
         }
 
-        if (kb.IsKeyDown(Keys.Add))
-        {
-        }
-
-        if (kb.IsKeyDown(Keys.Subtract))
-        {
-        }
-
         base.Update(gameTime);
     }
 }
