@@ -137,7 +137,7 @@ namespace CasaEngine.Editor
             // File menu
             _menuBar.AddItem("File", item =>
             {
-                item.Submenu = new MGContextMenu(_mainWindow);
+                item.Submenu = new MGContextMenu(_mainWindow, null);
                 item.Submenu.AddButton("New Project", _ => OpenProjectLauncher());
                 item.Submenu.AddButton("Open Project", _ => OpenProjectLauncher());
                 item.Submenu.AddSeparator();
@@ -149,7 +149,7 @@ namespace CasaEngine.Editor
             // Edit menu
             _menuBar.AddItem("Edit", item =>
             {
-                item.Submenu = new MGContextMenu(_mainWindow);
+                item.Submenu = new MGContextMenu(_mainWindow, null);
                 item.Submenu.AddButton("Undo", _ => { });
                 item.Submenu.AddButton("Redo", _ => { });
                 item.Submenu.AddSeparator();
@@ -161,14 +161,14 @@ namespace CasaEngine.Editor
             // Windows menu
             _menuBar.AddItem("Windows", item =>
             {
-                item.Submenu = new MGContextMenu(_mainWindow);
+                item.Submenu = new MGContextMenu(_mainWindow, null);
                 item.Submenu.AddButton("Reset Layout", _ => SetupInitialDockLayout());
             });
 
             // Help menu
             _menuBar.AddItem("Help", item =>
             {
-                item.Submenu = new MGContextMenu(_mainWindow);
+                item.Submenu = new MGContextMenu(_mainWindow, null);
                 item.Submenu.AddButton("About CasaEngine", _ => { });
             });
         }

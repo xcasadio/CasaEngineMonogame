@@ -442,7 +442,7 @@ public class ContentBrowserPanel
 
     private void OnTreeViewRightClick(object? sender, BaseMouseReleasedEventArgs e)
     {
-        var menu = new MGContextMenu(_window);
+        var menu = new MGContextMenu(_window, null);
         menu.AddButton("Open",       _ => OnOpenFolderRequested());
         menu.AddButton("New Folder", _ => OnNewFolderRequested());
         menu.AddButton("Rename",     _ => OnRenameFolderRequested());
@@ -457,7 +457,7 @@ public class ContentBrowserPanel
     {
         var selected = _assetList.SelectedValue;
 
-        var menu = new MGContextMenu(_window);
+        var menu = new MGContextMenu(_window, null);
 
         if (selected != null)
         {
