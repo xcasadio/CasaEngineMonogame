@@ -101,6 +101,8 @@ public sealed class InputRouter
 
     public bool TryDispatch(out ViewId viewId, out KeyboardState keyboardState, out MouseState mouseState)
     {
+        _viewManager.SynchronizeHostStates();
+
         var modalView = ResolveModalView();
         ModalViewId = modalView?.Id ?? ViewId.Empty;
 

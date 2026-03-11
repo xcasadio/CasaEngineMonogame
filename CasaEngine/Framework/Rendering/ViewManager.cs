@@ -55,6 +55,8 @@ public sealed class ViewManager
     /// </summary>
     public void ApplyBackBufferLayout(int screenWidth, int screenHeight)
     {
+        SynchronizeHostStates();
+
         if (AutoLayoutMode == null) return;
 
         var bbViews = new System.Collections.Generic.List<RenderView>();
@@ -213,6 +215,8 @@ public sealed class ViewManager
     /// </summary>
     public (RenderView? view, Vector2 localPoint) ScreenToView(Point screenPoint)
     {
+        SynchronizeHostStates();
+
         // If a view has captured input, always route to it.
         if (InputCaptureView != null)
         {
@@ -262,6 +266,8 @@ public sealed class ViewManager
     public void CaptureInput(RenderView view)
     {
         ArgumentNullException.ThrowIfNull(view);
+        SynchronizeHostStates();
+        if (!IsPresented(view)) return;
         InputCaptureView = view;
     }
 
@@ -276,6 +282,8 @@ public sealed class ViewManager
     {
         _views.Add(view);
         _byId[view.Id] = view;
+
+        RefreshHostState(view);
 
         // Wire host events
         if (view.Host != null)
@@ -313,6 +321,8 @@ public sealed class ViewManager
         ArgumentNullException.ThrowIfNull(view);
         if (view.Host == null) return;
 
+        RefreshHostState(view);
+
         // Unhook first to avoid double-subscription if called more than once.
         view.Host.Resized -= OnHostResized;
         view.Host.Closed  -= OnHostClosed;
@@ -344,6 +354,7 @@ public sealed class ViewManager
     {
         if (_byId.TryGetValue(host.ViewId, out var view))
         {
+            RefreshHostState(view);
             ViewResized?.Invoke(view, w, h);
         }
     }
@@ -358,6 +369,50 @@ public sealed class ViewManager
         if (_byId.TryGetValue(host.ViewId, out var view))
         {
             Remove(view);
+        }
+    }
+
+    public void SynchronizeHostStates()
+    {
+        foreach (var view in _views)
+        {
+            RefreshHostState(view);
+        }
+
+        if (InputCaptureView != null && !IsPresented(InputCaptureView))
+        {
+            InputCaptureView = null;
+        }
+
+        if (ActiveView != null && !IsPresented(ActiveView))
+        {
+            ActiveView.IsActive = false;
+            ActiveView = _views.FirstOrDefault(IsPresented);
+            if (ActiveView != null)
+            {
+                ActiveView.IsActive = true;
+            }
+        }
+    }
+
+    private static bool IsPresented(RenderView view)
+    {
+        return view.Enabled && view.IsVisible;
+    }
+
+    private static void RefreshHostState(RenderView view)
+    {
+        if (view.Host == null)
+        {
+            return;
+        }
+
+        var wasVisible = view.IsVisible;
+        view.IsVisible = view.Host.IsVisible;
+
+        if (!wasVisible && view.IsVisible)
+        {
+            view.Invalidate();
         }
     }
 }

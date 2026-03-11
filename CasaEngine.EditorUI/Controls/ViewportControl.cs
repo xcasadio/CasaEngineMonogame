@@ -187,6 +187,19 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         // le layout change (redimensionnement, deplacement de fenetre, etc.).
         LayoutUpdated += (_, _) => _boundsCache.Update(this);
         SizeChanged   += (_, _) => _boundsCache.Update(this);
+        IsVisibleChanged += (_, _) =>
+        {
+            if (_engineHost?.ViewManager != null
+                && _engineHost.ViewManager.TryGetView(_viewId, out var view))
+            {
+                view.IsVisible = IsVisible;
+                if (IsVisible)
+                {
+                    NotifyResized(Math.Max(1, (int)ActualWidth), Math.Max(1, (int)ActualHeight));
+                    view.Invalidate();
+                }
+            }
+        };
 
         // Activate the corresponding view in ViewManager on mouse-enter so that camera
         // navigation shortcuts and gizmo operations target the hovered viewport.

@@ -103,8 +103,8 @@ public sealed class RenderPipeline
 
         // RenderTarget views first, then BackBuffer views.
         var orderedViews = views
-            .Where(v => v.Enabled && v.IsVisible && !v.Surface.IsBackBuffer)
-            .Concat(views.Where(v => v.Enabled && v.IsVisible && v.Surface.IsBackBuffer));
+            .Where(v => v.Enabled && IsViewPresented(v) && !v.Surface.IsBackBuffer)
+            .Concat(views.Where(v => v.Enabled && IsViewPresented(v) && v.Surface.IsBackBuffer));
 
         foreach (var view in orderedViews)
         {
@@ -283,6 +283,11 @@ public sealed class RenderPipeline
         var scaledWidth = Math.Max(1, (int)Math.Round(baseWidth * view.ResolutionScale));
         var scaledHeight = Math.Max(1, (int)Math.Round(baseHeight * view.ResolutionScale));
         renderTargetSurface.EnsureSize(scaledWidth, scaledHeight);
+    }
+
+    private static bool IsViewPresented(RenderView view)
+    {
+        return view.Host?.IsVisible ?? view.IsVisible;
     }
 
 #if DEBUG
