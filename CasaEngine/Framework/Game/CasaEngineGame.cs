@@ -51,6 +51,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
+    public IUICompositionService DefaultUICompositionService { get; }
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -104,6 +105,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         _projectFileName = projectFileName;
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = new MguiViewRuntimeFactory();
+        DefaultUICompositionService = Rendering.DefaultUICompositionService.Instance;
 
         if (graphicsDeviceService == null)
         {
@@ -461,6 +463,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     private void OnViewAddedCreateUIRuntime(RenderView view)
     {
         view.UIView = UIViewRuntimeFactory.Create(this, view.Surface);
+        view.UICompositionService ??= DefaultUICompositionService;
     }
 
     /// <summary>

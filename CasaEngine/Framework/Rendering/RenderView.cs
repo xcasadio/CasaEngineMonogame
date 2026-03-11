@@ -112,6 +112,12 @@ public sealed class RenderView
     public IViewRenderPipeline? Pipeline { get; set; }
 
     /// <summary>
+    /// Optional UI composition service executed by the view pipeline after world rendering.
+    /// Null falls back to <see cref="DefaultUICompositionService"/>.
+    /// </summary>
+    public IUICompositionService? UICompositionService { get; set; }
+
+    /// <summary>
     /// Optional presenter called after the render pipeline to display the result.
     /// Null = no post-render presentation step.
     /// </summary>

@@ -126,10 +126,11 @@ public class EditorViewPipeline : IViewRenderPipeline
         => RenderSelectionOutlineAction?.Invoke(gd, view, frame);
 
     /// <summary>Renders 2D editor overlays. Calls <see cref="RenderUIOverlayAction"/> if set,
-    /// then draws the per-view UI runtime.</summary>
+    /// then composes the per-view UI phase via <see cref="IUICompositionService"/>.</summary>
     protected virtual void RenderUIOverlay(GraphicsDevice gd, RenderView view, in RenderFrame frame)
     {
         RenderUIOverlayAction?.Invoke(gd, view, frame);
-        view.UIView?.Draw();
+        (view.UICompositionService ?? DefaultUICompositionService.Instance)
+            .Compose(gd, view, in frame);
     }
 }
