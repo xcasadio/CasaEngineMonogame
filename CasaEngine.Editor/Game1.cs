@@ -2,6 +2,7 @@
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
+using CasaEngine.Framework.Project;
 using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
@@ -29,6 +30,7 @@ namespace CasaEngine.Editor
 
         // ── Main editor window ─────────────────────────────────────────────
         private MGWindow _mainWindow;
+        private MGDockPanel _rootPanel;
         private MGDockHost _dockHost;
         private MGMenuBar _menuBar;
 
@@ -113,17 +115,15 @@ namespace CasaEngine.Editor
             _menuBar = new MGMenuBar(_mainWindow);
             BuildMenuBar();
 
-            // ── Dock host ─────────────────────────────────────────────────
-            _dockHost = new MGDockHost(_mainWindow);
-            SetupInitialDockLayout();
-
-            // ── Layout: menu bar docked at top, dock host fills rest ───────
-            var rootPanel = new MGDockPanel(_mainWindow);
-            rootPanel.TryAddChild(_menuBar, Dock.Top);
-            rootPanel.TryAddChild(_dockHost, Dock.Top); // last child fills remaining space
-            _mainWindow.SetContent(rootPanel);
+            // ── Layout: menu bar is available immediately, editor dock host
+            // is added only once a project has actually been opened.
+            _rootPanel = new MGDockPanel(_mainWindow);
+            _rootPanel.TryAddChild(_menuBar, Dock.Top);
+            _mainWindow.SetContent(_rootPanel);
 
             _desktop.Windows.Add(_mainWindow);
+
+            ProjectSettingsHelper.ProjectLoaded += OnProjectLoaded;
 
             // ── Show project launcher at startup ───────────────────────────
             var launcher = new ProjectLauncherWindow(_mainWindow);
@@ -175,6 +175,11 @@ namespace CasaEngine.Editor
 
         private void SetupInitialDockLayout()
         {
+            if (_dockHost == null)
+            {
+                return;
+            }
+
             // Placeholder panels — will be replaced with real editor panels in later tasks
             var scenePanel = new DockPanelNode("panel_scene")
             {
@@ -272,6 +277,23 @@ namespace CasaEngine.Editor
             };
 
             _dockHost.LayoutModel.RootNode = rootSplit;
+        }
+
+        private void OnProjectLoaded(object? sender, EventArgs e)
+        {
+            EnsureDockHostInitialized();
+        }
+
+        private void EnsureDockHostInitialized()
+        {
+            if (_dockHost != null)
+            {
+                return;
+            }
+
+            _dockHost = new MGDockHost(_mainWindow);
+            _rootPanel.TryAddChild(_dockHost, Dock.Top);
+            SetupInitialDockLayout();
         }
 
         private void OpenProjectLauncher()

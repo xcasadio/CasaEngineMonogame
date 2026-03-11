@@ -97,11 +97,12 @@ public class ProjectLauncherWindow
 
         desktop.Windows.Add(_launcherWindow);
 
-        // Double-click on the list opens as well
-        _recentList.SelectionChanged += (_, e) =>
+        _recentList.MouseHandler.LMBClickedInside += (_, e) =>
         {
-            // Single-click selects; user still clicks Open button.
-            // Double-click is handled below via mouse events.
+            if (e.IsDoubleClick)
+            {
+                OpenSelectedProject();
+            }
         };
     }
 
