@@ -13,8 +13,8 @@ namespace CasaEngine.Framework.Input;
 /// input are sent to the correct view / <c>PlayerController</c>.
 ///
 /// <b>Mouse routing:</b> delegates to <see cref="ViewManager.ScreenToView"/> to
-/// find the view under the cursor. MGUI already handles first-chance mouse input
-/// inside each <see cref="UIRoot"/> via <see cref="GUI.ViewRenderHost"/>; gameplay
+/// find the view under the cursor. The hosted UI runtime already handles first-chance
+/// mouse input inside each view; gameplay
 /// code can check <c>IsMouseHandledByUI(view)</c> to skip duplicate handling.
 /// </summary>
 public sealed class InputRouter
@@ -84,11 +84,7 @@ public sealed class InputRouter
     /// </summary>
     public bool IsMouseHandledByUI(RenderView view)
     {
-        var root = view.UIRoot;
-        if (root == null) return false;
-
-        // HoveredElement != null means the mouse is over a UI widget in that window.
-        return root.Desktop.Windows.Any(w => w.HoveredElement != null);
+        return view.UIView?.IsPointerOverUI ?? false;
     }
 
     /// <summary>
@@ -98,7 +94,6 @@ public sealed class InputRouter
     /// </summary>
     public bool IsKeyboardCapturedByUI(RenderView view)
     {
-        var root = view.UIRoot;
-        return root?.Desktop.FocusedKeyboardHandler != null;
+        return view.UIView?.IsKeyboardCaptured ?? false;
     }
 }

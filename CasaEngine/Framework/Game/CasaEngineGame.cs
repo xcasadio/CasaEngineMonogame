@@ -5,6 +5,7 @@ using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Game.Components;
 using CasaEngine.Framework.Graphics2D;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.GUI;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -49,6 +50,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
     public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
+    public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -101,6 +103,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         _projectFileName = projectFileName;
         GameManager = new GameManager(this);
+        UIViewRuntimeFactory = new MguiViewRuntimeFactory();
 
         if (graphicsDeviceService == null)
         {
@@ -245,11 +248,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         // targets to the pool instead of disposing them immediately.
         RenderTargetPool.Shared = new RenderTargetPool(GraphicsDevice);
 
-        // Wire UIRoot auto-creation/disposal for the MGUI per-view integration.
-        // A UIRoot (MGDesktop + ScreenStack) is created for every new RenderView
+        // Wire UI runtime auto-creation/disposal for each new render view.
+        // The concrete runtime is provided by UIViewRuntimeFactory.
         // and disposed when the view is removed.
-        GameManager.ViewManager.ViewAdded   += OnViewAddedCreateUIRoot;
-        GameManager.ViewManager.ViewRemoved += OnViewRemovedDisposeUIRoot;
+        GameManager.ViewManager.ViewAdded   += OnViewAddedCreateUIRuntime;
+        GameManager.ViewManager.ViewRemoved += OnViewRemovedDisposeUIRuntime;
 
         // Create the per-view input router and make it available on InputComponent.
         InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
@@ -323,11 +326,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         // Fire MGUI PreviewUpdate so all ViewRenderHost instances refresh their input state.
         PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
-        // Update all per-view UI roots BEFORE gameplay so the UI has first-chance input.
+        // Update all per-view UI runtimes BEFORE gameplay so the UI has first-chance input.
         // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
         // does not throw "Collection was modified" during enumeration.
         foreach (var view in GameManager.ViewManager.Views.ToArray())
-            view.UIRoot?.Update(gameTime);
+            view.UIView?.Update(gameTime);
 
         GameManager.UpdateWorld(gameTime);
 
@@ -449,24 +452,24 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
     }
 
-    // ---- MGUI per-view UIRoot lifecycle ----
+    // ---- Per-view UI runtime lifecycle ----
 
     /// <summary>
-    /// Automatically creates a <see cref="UIRoot"/> for every newly registered view.
+    /// Automatically creates a UI runtime for every newly registered view.
     /// Subscribed to <see cref="ViewManager.ViewAdded"/> in <see cref="Initialize"/>.
     /// </summary>
-    private void OnViewAddedCreateUIRoot(RenderView view)
+    private void OnViewAddedCreateUIRuntime(RenderView view)
     {
-        view.UIRoot = new UIRoot(this, view.Surface);
+        view.UIView = UIViewRuntimeFactory.Create(this, view.Surface);
     }
 
     /// <summary>
-    /// Disposes the <see cref="UIRoot"/> when its view is removed from the manager.
+    /// Disposes the hosted UI runtime when its view is removed from the manager.
     /// </summary>
-    private void OnViewRemovedDisposeUIRoot(RenderView view)
+    private void OnViewRemovedDisposeUIRuntime(RenderView view)
     {
-        view.UIRoot?.Dispose();
-        view.UIRoot = null;
+        view.UIView?.Dispose();
+        view.UIView = null;
     }
 
 #if EDITOR

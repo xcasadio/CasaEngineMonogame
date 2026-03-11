@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Rendering;
 /// <list type="number">
 ///   <item>Enqueue world draw commands (<c>World.Draw</c>).</item>
 ///   <item>Flush all registered renderers in order (mesh → skinned → sprite → line).</item>
-///   <item>Draw the per-view MGUI UI overlay (<c>UIRoot.Draw</c>).</item>
+///   <item>Draw the per-view UI runtime overlay.</item>
 /// </list>
 ///
 /// Surface clearing and render target management are handled by
@@ -39,7 +39,7 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
 
         // 3. Draw the MGUI UI overlay on top of the 3D scene.
         //    The view's render target and viewport are still active at this point.
-        view.UIRoot?.Draw();
+        view.UIView?.Draw();
     }
 }
 

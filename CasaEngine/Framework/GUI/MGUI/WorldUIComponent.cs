@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.GUI;
 
 /// <summary>
-/// Renders a <see cref="UIRoot"/>'s MGUI desktop into a <see cref="RenderTarget2D"/>
+/// Renders a view UI runtime into a <see cref="RenderTarget2D"/>
 /// so that it can be mapped onto a 3D quad in world-space (e.g. in-game screens,
 /// arcade monitors, holographic panels).
 ///
@@ -20,8 +20,8 @@ public sealed class WorldUIComponent : IDisposable
     private RenderTarget2D?         _renderTarget;
     private bool                    _disposed;
 
-    /// <summary>The <see cref="UIRoot"/> whose desktop is rendered to the world texture.</summary>
-    public UIRoot? UIRoot { get; set; }
+    /// <summary>The hosted UI runtime rendered to the world texture.</summary>
+    public IUIViewRuntime? UIView { get; set; }
 
     /// <summary>The render target that the UI is painted into each frame.</summary>
     public RenderTarget2D? RenderTarget => _renderTarget;
@@ -44,11 +44,11 @@ public sealed class WorldUIComponent : IDisposable
     }
 
     /// <summary>
-    /// Renders the <see cref="UIRoot"/>'s desktop into <see cref="RenderTarget"/> for this frame.
+    /// Renders the hosted UI runtime into <see cref="RenderTarget"/> for this frame.
     /// Call this before world draw so the texture is up-to-date when the world quad is drawn.
     ///
     /// <b>TODO:</b> Set <c>_graphicsDevice.SetRenderTarget(_renderTarget)</c>, call
-    /// <c>UIRoot.Draw()</c>, then restore the previous render target.
+    /// <c>UIView.Draw()</c>, then restore the previous render target.
     /// </summary>
     public void DrawToTexture()
     {

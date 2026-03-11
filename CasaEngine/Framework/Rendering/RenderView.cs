@@ -128,7 +128,7 @@ public sealed class RenderView
     /// and disposed when this view is removed.
     /// Null before the view is registered or after it has been disposed.
     /// </summary>
-    public UIRoot? UIRoot { get; set; }
+    public IUIViewRuntime? UIView { get; set; }
 
     // ---- Debug ----
 

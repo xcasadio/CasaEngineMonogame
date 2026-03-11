@@ -32,26 +32,26 @@ public class PlayerController : Controller
     // ---- UI integration ----
 
     /// <summary>
-    /// The <see cref="UIRoot"/> for this player's assigned view.
-    /// Set by the system when the player is assigned to a view (e.g. in GameMode.SpawnPlayerController).
-    /// Null until the player has a view and the UIRoot has been created.
+    /// The UI runtime for this player's assigned view.
+    /// Set by the system when the player is assigned to a view.
+    /// Null until the player has a view and its UI runtime has been created.
     /// </summary>
-    public UIRoot? UIRoot { get; set; }
+    public IUIViewRuntime? UIView { get; set; }
 
     /// <summary>
     /// Adds <paramref name="screen"/> to this player's HUD layer
-    /// (<see cref="UILayer.HUD"/>) via the assigned <see cref="UIRoot"/>.
-    /// No-op if <see cref="UIRoot"/> is null.
+    /// (<see cref="UILayer.HUD"/>) via the assigned UI runtime.
+    /// No-op if no UI runtime is assigned.
     /// </summary>
     public void AddScreenToHUD(IUIScreen screen)
     {
-        UIRoot?.ScreenStack.Push(screen);
+        UIView?.PushScreen(screen);
     }
 
     /// <summary>Removes <paramref name="screen"/> from the HUD stack.</summary>
     public void RemoveScreenFromHUD(IUIScreen screen)
     {
-        UIRoot?.ScreenStack.Remove(screen);
+        UIView?.RemoveScreen(screen);
     }
 
     /// <summary>

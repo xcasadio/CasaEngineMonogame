@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.GUI;
 /// Manages global game-state-driven screen transitions across all active views.
 ///
 /// Listens to <see cref="GameFramework.GameMode.GameStateChanged"/> (or equivalent)
-/// and instructs each player's <see cref="UIRoot.ScreenStack"/> to push/pop the
+/// and instructs each view's hosted UI runtime to push/pop the
 /// appropriate <see cref="IUIScreen"/> for the new state.
 ///
 /// <b>Usage pattern:</b>
@@ -53,16 +53,16 @@ public sealed class GameScreenManager
 
         foreach (var view in _viewManager.Views)
         {
-            var stack = view.UIRoot?.ScreenStack;
-            if (stack == null) continue;
+            var uiView = view.UIView;
+            if (uiView == null) continue;
 
             // Pop existing state if there is one.
             if (CurrentState != null)
-                stack.Pop();
+                uiView.PopScreen();
 
             // Push the new state if a factory exists for it.
             if (_factories.TryGetValue(newState, out var factory))
-                stack.Push(factory());
+                uiView.PushScreen(factory());
         }
 
         CurrentState = newState;
@@ -74,7 +74,7 @@ public sealed class GameScreenManager
         if (CurrentState == null) return;
 
         foreach (var view in _viewManager.Views)
-            view.UIRoot?.ScreenStack.Pop();
+            view.UIView?.PopScreen();
 
         CurrentState = null;
     }

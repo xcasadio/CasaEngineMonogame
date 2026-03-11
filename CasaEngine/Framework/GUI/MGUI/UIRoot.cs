@@ -19,7 +19,7 @@ namespace CasaEngine.Framework.GUI;
 /// <b>Update order:</b> call <see cref="Update"/> BEFORE gameplay logic each frame
 /// so the UI has first-chance to consume input events (handled by <see cref="CasaEngineGame"/>).
 /// </summary>
-public sealed class UIRoot : IDisposable
+public sealed class UIRoot : IUIViewRuntime
 {
     private bool _disposed;
 
@@ -41,6 +41,10 @@ public sealed class UIRoot : IDisposable
     /// Currently informational — wire into a <see cref="UIScaler"/> to apply it.
     /// </summary>
     public float UIScale { get; set; } = 1.0f;
+
+    public bool IsPointerOverUI => Desktop.Windows.Any(w => w.HoveredElement != null);
+
+    public bool IsKeyboardCaptured => Desktop.FocusedKeyboardHandler != null;
 
     /// <summary>
     /// Initializes the UIRoot for the given view.
@@ -91,6 +95,9 @@ public sealed class UIRoot : IDisposable
 
     /// <summary>Pops the topmost screen from the <see cref="ScreenStack"/>.</summary>
     public IUIScreen? PopScreen() => ScreenStack.Pop();
+
+    /// <summary>Removes a specific screen from the <see cref="ScreenStack"/>.</summary>
+    public void RemoveScreen(IUIScreen screen) => ScreenStack.Remove(screen);
 
     // ---- IDisposable ----
 
