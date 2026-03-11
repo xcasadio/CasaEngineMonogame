@@ -148,6 +148,8 @@ public sealed class ViewportControl : D3D11Host, IViewHost
             return;
         }
 
+        _engineHost?.ClearViewportInput(_viewId);
+
         if (_engineHost?.ViewManager != null &&
             _engineHost.ViewManager.TryGetView(_viewId, out var view) &&
             view.Host == this)

@@ -64,9 +64,23 @@ public class InputComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        var keyboardState = _keyboardStateProvider.GetState();
+        var mouseState = _mouseStateProvider.GetState();
+
+        if (InputRouter?.TryDispatch(out _, out var routedKeyboardState, out var routedMouseState) == true)
+        {
+            keyboardState = routedKeyboardState;
+            mouseState = routedMouseState;
+        }
+        else if (InputRouter?.HasRegisteredViewInputSources == true)
+        {
+            keyboardState = new KeyboardState();
+            mouseState = new MouseState();
+        }
+
         GamePadManager.Update(_gamePadStateProvider, elapsedTime);
-        KeyboardManager.Update(_keyboardStateProvider.GetState());
-        MouseManager.Update(_mouseStateProvider.GetState());
+        KeyboardManager.Update(keyboardState);
+        MouseManager.Update(mouseState);
 
         _axisManager.Update(KeyboardManager, MouseManager, GamePadManager, elapsedTime);
         InputMappingManager.Update(KeyboardManager, MouseManager, GamePadManager);

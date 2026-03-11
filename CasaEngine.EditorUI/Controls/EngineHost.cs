@@ -56,8 +56,7 @@ public sealed class EngineHost : WpfGame
     private readonly Dictionary<ViewId, EditorViewContext> _viewContexts = new();
 
     // ---- Per-viewport input registry (filled by ViewportControl.Initialize) ----
-    private readonly Dictionary<ViewId, (RawKeyboardProvider Kbd, RawMouseProvider Mouse, ViewportBoundsCache Bounds)> _inputProviders = new();
-    private ViewId _activeInputViewId = ViewId.Empty;
+    private readonly Dictionary<ViewId, ViewportBoundsCache> _inputBounds = new();
 
     // Win32 WM_MOUSEWHEEL interception (independant du hit-testing WPF/D3D11).
     private const int WM_MOUSEWHEEL = 0x020A;
@@ -117,7 +116,7 @@ public sealed class EngineHost : WpfGame
         _game.InitializeWithEditor();
 
         // Wire default WPF input providers scoped to this EngineHost control.
-        // PR 6 replaces this with per-view routing via InputRouter.InjectMouseState().
+        // Editor viewports register their own routed providers in InputRouter.
         _game.SetInputProvider(
             new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
@@ -147,53 +146,12 @@ public sealed class EngineHost : WpfGame
         {
             _game!.UpdateWithEditor(gameTime);
 
-            // ---- Cursor-based input dispatch (100 % Win32, game-thread safe) ----
-            // Determine which viewport the cursor is over and switch providers + active
-            // view automatically every frame. This replaces the broken MouseEnter approach.
-            if (GetCursorPos(out var pt))
+            var routedViewId = _game.InputComponent.InputRouter?.CurrentTargetViewId ?? ViewId.Empty;
+            foreach (var (viewId, vctx) in _viewContexts)
             {
-                bool overAnyViewport = false;
-                foreach (var (viewId, (kbd, mouse, bounds)) in _inputProviders)
+                if (vctx.Gizmo != null)
                 {
-                    if (bounds.Contains(pt.X, pt.Y))
-                    {
-                        overAnyViewport = true;
-                        if (viewId != _activeInputViewId)
-                        {
-                            _activeInputViewId = viewId;
-                            _game.SetInputProvider(kbd, mouse);
-                            if (ViewManager != null &&
-                                ViewManager.TryGetView(viewId, out var v))
-                            {
-                                ViewManager.SetActive(v);
-                            }
-
-                            // Update IsActiveViewport so only the hovered viewport's
-                            // GizmoComponent reacts to mouse clicks.
-                            foreach (var (vid, vctx) in _viewContexts)
-                            {
-                                if (vctx.Gizmo != null)
-                                {
-                                    vctx.Gizmo.IsActiveViewport = (vid == viewId);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-
-                // Cursor left all viewports → deactivate gizmo input so clicks outside
-                // the viewport are never forwarded to GizmoComponent or camera scripts.
-                if (!overAnyViewport && !_activeInputViewId.IsEmpty)
-                {
-                    _activeInputViewId = ViewId.Empty;
-                    foreach (var (_, vctx) in _viewContexts)
-                    {
-                        if (vctx.Gizmo != null)
-                        {
-                            vctx.Gizmo.IsActiveViewport = false;
-                        }
-                    }
+                    vctx.Gizmo.IsActiveViewport = !routedViewId.IsEmpty && routedViewId == viewId;
                 }
             }
 
@@ -234,7 +192,7 @@ public sealed class EngineHost : WpfGame
         int delta   = (short)(((uint)msg.wParam) >> 16);
         int screenX = (short)((uint)msg.lParam & 0xFFFF);
         int screenY = (short)(((uint)msg.lParam >> 16) & 0xFFFF);
-        foreach (var (_, (_, _, bounds)) in _inputProviders)
+        foreach (var (_, bounds) in _inputBounds)
         {
             if (bounds.Contains(screenX, screenY))
             {
@@ -246,12 +204,22 @@ public sealed class EngineHost : WpfGame
 
     internal void SetActiveViewportInput(ViewId viewId, RawKeyboardProvider keyboard, RawMouseProvider mouse, ViewportBoundsCache bounds)
     {
-        _inputProviders[viewId] = (keyboard, mouse, bounds);
-        // Seed the game with a valid provider immediately (will be overwritten by Update dispatch).
-        if (_game != null && _inputProviders.Count == 1)
+        _inputBounds[viewId] = bounds;
+
+        if (_game?.InputComponent.InputRouter != null)
         {
-            _game.SetInputProvider(keyboard, mouse);
+            _game.InputComponent.InputRouter.RegisterViewInput(
+                viewId,
+                keyboard,
+                mouse,
+                keyboard.IsCursorOverViewport);
         }
+    }
+
+    internal void ClearViewportInput(ViewId viewId)
+    {
+        _inputBounds.Remove(viewId);
+        _game?.InputComponent.InputRouter?.UnregisterViewInput(viewId);
     }
 
     protected override void Dispose(bool disposing)
@@ -460,11 +428,7 @@ public sealed class EngineHost : WpfGame
         }
 
         // Clean up per-viewport input provider registration.
-        _inputProviders.Remove(ctx.ViewId);
-        if (_activeInputViewId == ctx.ViewId)
-        {
-            _activeInputViewId = ViewId.Empty;
-        }
+        ClearViewportInput(ctx.ViewId);
 
         // Remove overlay components from the game component list.
         if (ctx.Gizmo != null)
