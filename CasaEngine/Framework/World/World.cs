@@ -23,6 +23,7 @@ public sealed class World : ObjectBase
     private readonly List<EntityReference> _entityReferences = [];
     private readonly List<Entity> _entities = [];
     private readonly List<Entity> _baseObjectsToAdd = [];
+    private readonly List<WorldUIComponent> _worldUiComponents = [];
 
     private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
@@ -50,6 +51,13 @@ public sealed class World : ObjectBase
 
         foreach (var entity in _entities)
             entity.GameplayProxy?.OnEndPlay(this);
+
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.Dispose();
+        }
+
+        _worldUiComponents.Clear();
 
         ClearEntities(true);
     }
@@ -347,6 +355,30 @@ public sealed class World : ObjectBase
         if (DisplaySpacePartitioning)
         {
             OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.Line3dRendererComponent);
+        }
+    }
+
+    public void RegisterWorldUI(WorldUIComponent worldUiComponent)
+    {
+        ArgumentNullException.ThrowIfNull(worldUiComponent);
+
+        if (!_worldUiComponents.Contains(worldUiComponent))
+        {
+            _worldUiComponents.Add(worldUiComponent);
+        }
+    }
+
+    public void UnregisterWorldUI(WorldUIComponent worldUiComponent)
+    {
+        ArgumentNullException.ThrowIfNull(worldUiComponent);
+        _worldUiComponents.Remove(worldUiComponent);
+    }
+
+    public void DrawWorldUIToTextures()
+    {
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.DrawToTexture();
         }
     }
 

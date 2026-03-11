@@ -88,6 +88,11 @@ public sealed class RenderPipeline
     /// <param name="deltaSeconds">Elapsed time (seconds) since last frame, used for throttling.</param>
     public void Render(IReadOnlyList<RenderView> views, float deltaSeconds = 0f)
     {
+        foreach (var world in views.Select(static view => view.World).Distinct())
+        {
+            world.DrawWorldUIToTextures();
+        }
+
         // Capture the render target that is active when Render() is entered.
         // Standalone : null  (real backbuffer)
         // WPF editor : _cachedRenderTarget  (off-screen WPF texture)
