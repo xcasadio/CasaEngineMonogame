@@ -152,7 +152,10 @@ public class WorldViewportPanel : IDisposable
     /// </summary>
     public void DrawViewport(GameTime gameTime)
     {
-        if (_renderTarget == null) return;
+        if (_renderTarget == null)
+        {
+            return;
+        }
 
         var previousTargets = _graphicsDevice.GetRenderTargets();
 
@@ -290,7 +293,9 @@ public class WorldViewportPanel : IDisposable
         var h = Math.Max(16, newBounds.Height);
 
         if (w == _rtWidth && h == _rtHeight)
+        {
             return;
+        }
 
         RecreateRenderTarget(w, h);
 
@@ -324,7 +329,10 @@ public class WorldViewportPanel : IDisposable
 
     private void OnDragged(object? sender, BaseMouseDraggedEventArgs e)
     {
-        if (!_isDragging || e.Button != _dragButton) return;
+        if (!_isDragging || e.Button != _dragButton)
+        {
+            return;
+        }
 
         var dx = e.Position.X - _lastDragPos.X;
         var dy = e.Position.Y - _lastDragPos.Y;
@@ -358,9 +366,13 @@ public class WorldViewportPanel : IDisposable
     private void OnScrolled(object? sender, BaseMouseScrolledEventArgs e)
     {
         if (e.ScrollWheelDelta > 0)
+        {
             _distance = Math.Max(MinDistance, _distance / ZoomSensitivity);
+        }
         else if (e.ScrollWheelDelta < 0)
+        {
             _distance = Math.Min(MaxDistance, _distance * ZoomSensitivity);
+        }
     }
 
     private Vector3 ComputeCameraDirection()

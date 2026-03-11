@@ -24,6 +24,7 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
     private readonly GraphicsDevice _graphicsDevice;
     private readonly SurfaceFormat  _surfaceFormat;
     private readonly DepthFormat    _depthFormat;
+    private readonly RenderTargetPool? _renderTargetPool;
     private RenderTarget2D?         _renderTarget;
     private bool                    _disposed;
 
@@ -48,11 +49,13 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
         int            width,
         int            height,
         SurfaceFormat  surfaceFormat = SurfaceFormat.Color,
-        DepthFormat    depthFormat   = DepthFormat.Depth24)
+        DepthFormat    depthFormat   = DepthFormat.Depth24,
+        RenderTargetPool? renderTargetPool = null)
     {
         _graphicsDevice = graphicsDevice;
         _surfaceFormat  = surfaceFormat;
         _depthFormat    = depthFormat;
+        _renderTargetPool = renderTargetPool;
         CreateTarget(width, height);
     }
 
@@ -125,7 +128,7 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
 
     private void CreateTarget(int width, int height)
     {
-        var pool = RenderTargetPool.Shared;
+        var pool = RenderTargetPool.Resolve(_renderTargetPool);
         if (pool != null)
         {
             _renderTarget = pool.Acquire(
@@ -148,7 +151,7 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
 
     private void ReplaceTarget(int width, int height)
     {
-        var pool = RenderTargetPool.Shared;
+        var pool = RenderTargetPool.Resolve(_renderTargetPool);
         if (_renderTarget != null)
         {
             if (pool != null)
@@ -168,7 +171,7 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
     {
         if (!_disposed)
         {
-            var pool = RenderTargetPool.Shared;
+            var pool = RenderTargetPool.Resolve(_renderTargetPool);
             if (_renderTarget != null)
             {
                 if (pool != null)

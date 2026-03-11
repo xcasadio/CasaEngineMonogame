@@ -47,6 +47,11 @@ public sealed class RenderTargetPool : IDisposable
         _graphicsDevice = graphicsDevice;
     }
 
+    public static RenderTargetPool? Resolve(RenderTargetPool? renderTargetPool)
+    {
+        return renderTargetPool ?? Shared;
+    }
+
     /// <summary>
     /// Returns an RT with the requested dimensions and format.
     /// If a matching RT is in the pool it is reused; otherwise a new one is created.

@@ -119,7 +119,9 @@ public class NumericField : MGStackPanel
     {
         float clamped = Math.Clamp(raw, Min, Max);
         if (_value == clamped && !notify)
+        {
             return;
+        }
 
         _value = clamped;
 
@@ -128,13 +130,17 @@ public class NumericField : MGStackPanel
         _suppressTextChanged = false;
 
         if (notify)
+        {
             ValueChanged?.Invoke(this, _value);
+        }
     }
 
     private void OnTextBoxTextChanged(object sender, EventArgs<string> e)
     {
         if (_suppressTextChanged)
+        {
             return;
+        }
 
         if (float.TryParse(e.NewValue, NumberStyles.Float, CultureInfo.InvariantCulture, out float parsed))
         {

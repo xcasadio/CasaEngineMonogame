@@ -10,29 +10,33 @@ namespace CasaEngine.Framework.Project;
 
 public static class ProjectSettingsHelper
 {
-    public static void Load(string fileName)
+    public static void Load(string fileName, EngineRuntimeContext? runtimeContext = null)
     {
+        var context = runtimeContext ?? GameSettings.CreateRuntimeContext();
+        var projectSettings = context.ProjectSettings;
+
 #if EDITOR
         Clear();
-        GameSettings.ProjectSettings.ProjectFileOpened = fileName;
-        EngineEnvironment.ProjectPath = Path.GetDirectoryName(fileName);
+        projectSettings.ProjectFileOpened = fileName;
+        context.ProjectPath = Path.GetDirectoryName(fileName) ?? EngineEnvironment.ResolveProjectPath(null);
+        EngineEnvironment.ProjectPath = context.ProjectPath;
 #endif
 
         var rootElement = JObject.Parse(File.ReadAllText(fileName));
 
-        GameSettings.ProjectSettings.WindowTitle = rootElement["WindowTitle"].GetString();
-        GameSettings.ProjectSettings.ProjectName = rootElement["ProjectName"].GetString();
-        GameSettings.ProjectSettings.FirstScreenName = rootElement["FirstScreenName"].GetString();
-        GameSettings.ProjectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"].GetBoolean();
-        GameSettings.ProjectSettings.DebugHeight = rootElement["DebugHeight"].GetInt32();
-        GameSettings.ProjectSettings.DebugWidth = rootElement["DebugWidth"].GetInt32();
+        projectSettings.WindowTitle = rootElement["WindowTitle"].GetString();
+        projectSettings.ProjectName = rootElement["ProjectName"].GetString();
+        projectSettings.FirstScreenName = rootElement["FirstScreenName"].GetString();
+        projectSettings.DebugIsFullScreen = rootElement["DebugIsFullScreen"].GetBoolean();
+        projectSettings.DebugHeight = rootElement["DebugHeight"].GetInt32();
+        projectSettings.DebugWidth = rootElement["DebugWidth"].GetInt32();
 
-        GameSettings.ProjectSettings.FirstWorldLoaded = rootElement["FirstWorldLoaded"].GetString();
-        GameSettings.ProjectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
+        projectSettings.FirstWorldLoaded = rootElement["FirstWorldLoaded"].GetString();
+        projectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
 
-        if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName))
+        if (!string.IsNullOrWhiteSpace(projectSettings.GameplayDllName))
         {
-            GameSettings.AssemblyManager.Load(GameSettings.ProjectSettings.GameplayDllName);
+            GameSettings.AssemblyManager.Load(projectSettings.GameplayDllName);
         }
 
         var assetInfoFileName = Path.Combine(Path.GetDirectoryName(fileName), "AssetInfos.json");
@@ -46,7 +50,7 @@ public static class ProjectSettingsHelper
         AssetCatalog.Load(assetInfoFileName);
 
 #if EDITOR
-        ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
+        ProjectLoaded?.Invoke(projectSettings, EventArgs.Empty);
 #endif
     }
 
@@ -62,8 +66,11 @@ public static class ProjectSettingsHelper
         ProjectClosed?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
     }
 
-    public static void CreateProject(string projectName, string path)
+    public static void CreateProject(string projectName, string path, EngineRuntimeContext? runtimeContext = null)
     {
+        var context = runtimeContext ?? GameSettings.CreateRuntimeContext();
+        var projectSettings = context.ProjectSettings;
+
 #if !DEBUG
         try
         {
@@ -71,14 +78,15 @@ public static class ProjectSettingsHelper
 
         Clear();
 
-        EngineEnvironment.ProjectPath = path;
+    context.ProjectPath = path;
+    EngineEnvironment.ProjectPath = path;
         var fullFileName = Path.Combine(path, projectName + Constants.FileNameExtensions.Project);
-        GameSettings.ProjectSettings.WindowTitle = projectName;
-        GameSettings.ProjectSettings.ProjectName = projectName;
-        GameSettings.ProjectSettings.ProjectFileOpened = fullFileName;
+    projectSettings.WindowTitle = projectName;
+    projectSettings.ProjectName = projectName;
+    projectSettings.ProjectFileOpened = fullFileName;
         var worldName = "DefaultWorld";
         var worldFileName = worldName + Constants.FileNameExtensions.World;
-        GameSettings.ProjectSettings.FirstWorldLoaded = worldFileName;
+    projectSettings.FirstWorldLoaded = worldFileName;
 
         //CREATE hiera folders
         //create default settings
@@ -91,7 +99,7 @@ public static class ProjectSettingsHelper
         Save();
         AssetCatalog.Save();
 
-        ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
+        ProjectLoaded?.Invoke(projectSettings, EventArgs.Empty);
 
 #if !DEBUG
         }

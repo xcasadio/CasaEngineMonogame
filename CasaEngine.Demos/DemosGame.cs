@@ -36,7 +36,7 @@ public class DemosGame : CasaEngineGame
 
         // Push demo UI screens whenever the engine finishes building views for a world.
         // This covers the first-frame case where GameManager.UpdateWorld rebuilds the
-        // views (because _isNewWorld=true from SetWorldToLoad), discarding the UIRoot
+        // views (because _isNewWorld=true from SetWorldToLoad), discarding the UI view
         // that ChangeDemo created during LoadContentPrivate.
         GameManager.WorldLoaded += (_, _) => RefreshDemoUI();
 
@@ -88,6 +88,7 @@ public class DemosGame : CasaEngineGame
         // can register a fresh default view (it only does so when Views.Count == 0).
         GameManager.ViewManager.Clear();
         currentWorld.LoadContent(this);
+        RuntimeViewBootstrapper?.BootstrapViews(this, currentWorld, GameManager.ViewManager);
         _currentDemo.InitializeCamera(camera);
 
         Window.Title = _currentDemo.Title;
@@ -96,17 +97,17 @@ public class DemosGame : CasaEngineGame
 
     // ---- Demo navigation UI helpers ----
 
-    private UIRoot? GetUIRoot()
-        => GameManager.ViewManager.Views.FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
+    private IUIViewRuntime? GetUIView()
+        => GameManager.ViewManager.Views.FirstOrDefault(v => v.UIView != null)?.UIView;
 
     /// <summary>
-    /// (Re)creates the DemoInfoScreen and DemoHintOverlay on the current UIRoot.
-    /// Called after every demo change because ViewManager.Clear() tears down the old UIRoot.
+    /// (Re)creates the DemoInfoScreen and DemoHintOverlay on the current UI view.
+    /// Called after every demo change because ViewManager.Clear() tears down the old runtime.
     /// </summary>
     private void RefreshDemoUI()
     {
-        var uiRoot = GetUIRoot();
-        if (uiRoot == null) return;
+        var uiView = GetUIView();
+        if (uiView == null) return;
 
         var entries = _demos
             .Select(d => (d.Title, d.Description))
@@ -115,8 +116,8 @@ public class DemosGame : CasaEngineGame
         _demoInfoScreen  = new DemoInfoScreen(entries, _currentDemoIndex, ChangeDemo);
         _demoHintOverlay = new DemoHintOverlay();
 
-        uiRoot.PushScreen(_demoInfoScreen);
-        uiRoot.PushScreen(_demoHintOverlay);
+        uiView.PushScreen(_demoInfoScreen);
+        uiView.PushScreen(_demoHintOverlay);
 
         _demoInfoScreen.SetVisible(_demoInfoVisible);
         _demoHintOverlay.SetVisible(!_demoInfoVisible);

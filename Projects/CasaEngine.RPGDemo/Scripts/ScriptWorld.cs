@@ -18,7 +18,9 @@ public class ScriptWorld : GameplayProxy
 {
     private Character _playerCharacter;
     private World     _world;
-    private UIRoot?   _uiRoot;
+    private IUIViewRuntime? _uiView;
+    private MainHUDScreen?  _mainHudScreen;
+    private GameOverScreen? _gameOverScreen;
     private bool      _gameOverShown;
 
     public override void InitializeWithWorld(World world)
@@ -31,10 +33,11 @@ public class ScriptWorld : GameplayProxy
         if (_playerCharacter.IsDead && !_gameOverShown)
         {
             _gameOverShown = true;
-            _uiRoot?.PushScreen(new GameOverScreen(() =>
+            _gameOverScreen = new GameOverScreen(() =>
             {
                 _world.Game.GameManager.SetWorldToLoad("TitleScreenWorld.world");
-            }));
+            });
+            _uiView?.PushScreen(_gameOverScreen);
         }
     }
 
@@ -64,10 +67,10 @@ public class ScriptWorld : GameplayProxy
         var scriptPlayer = entity.GameplayProxy as ScriptPlayer;
         _playerCharacter = scriptPlayer.Character;
 
-        // Get UIRoot for this view
-        _uiRoot = world.Game.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
-        if (_uiRoot == null) return;
+        // Get UI view for this render view.
+        _uiView = world.Game.GameManager.ViewManager.Views
+            .FirstOrDefault(v => v.UIView != null)?.UIView;
+        if (_uiView == null) return;
 
         // Load portrait texture (falls back gracefully if missing)
         Texture2D? portrait = null;
@@ -84,13 +87,28 @@ public class ScriptWorld : GameplayProxy
             ? ((float)_playerCharacter.HP / _playerCharacter.HPMax) * 100f
             : 0f;
 
-        _uiRoot.PushScreen(new MainHUDScreen(portrait, GetHPPercent));
+        _mainHudScreen = new MainHUDScreen(portrait, GetHPPercent);
+        _uiView.PushScreen(_mainHudScreen);
     }
 
     public override void OnEndPlay(World world)
     {
-        _uiRoot?.ScreenStack.Clear();
-        _uiRoot = null;
+        if (_uiView != null)
+        {
+            if (_gameOverScreen != null)
+            {
+                _uiView.RemoveScreen(_gameOverScreen);
+            }
+
+            if (_mainHudScreen != null)
+            {
+                _uiView.RemoveScreen(_mainHudScreen);
+            }
+        }
+
+        _gameOverScreen = null;
+        _mainHudScreen = null;
+        _uiView = null;
     }
 
     public override IGameplayProxy Clone()

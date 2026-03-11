@@ -9,6 +9,7 @@ using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
 using MGUI.FontStashSharp;
+using MGUI.Shared.Input;
 using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
@@ -63,7 +64,7 @@ namespace CasaEngine.Editor
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // ── Bootstrap MGUI ─────────────────────────────────────────────
-            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this));
+            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new MonoGameRawInputSource());
             _desktop = new MGDesktop(_mguiRenderer);
             _fontStashSharpEngine = new FontStashSharpTextEngine();
             const string familyName = "JetBrainsMono";

@@ -17,12 +17,12 @@ using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Project;
 using MGUI.Shared.Rendering;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
+using RenderingBackBufferSurface = CasaEngine.Framework.Rendering.BackBufferSurface;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Game;
@@ -53,6 +53,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper? RuntimeViewBootstrapper { get; }
+    public EngineRuntimeContext RuntimeContext { get; }
+    public RenderTargetPool RenderTargetPool { get; private set; }
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -104,10 +106,12 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledExceptions;
 
         _projectFileName = projectFileName;
+        RuntimeContext = GameSettings.CreateRuntimeContext();
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = new MguiViewRuntimeFactory();
         DefaultUICompositionService = Rendering.DefaultUICompositionService.Instance;
         RuntimeViewBootstrapper = DefaultRuntimeViewBootstrapper.Instance;
+        AssetContentManager.RuntimeContext = RuntimeContext;
 
         if (graphicsDeviceService == null)
         {
@@ -171,11 +175,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         foreach (var v in views)
         {
-            if (v.Surface is BackBufferSurface) bbViews.Add(v);
+            if (v.Surface is RenderingBackBufferSurface) bbViews.Add(v);
         }
 
         // Single full-screen backbuffer view: auto-resize both the surface and its camera.
-        if (bbViews.Count == 1 && bbViews[0].Surface is BackBufferSurface single)
+        if (bbViews.Count == 1 && bbViews[0].Surface is RenderingBackBufferSurface single)
         {
             single.ViewportRect = new Rectangle(0, 0, width, height);
             bbViews[0].Camera?.OnScreenResized(width, height);
@@ -222,7 +226,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
         if (!string.IsNullOrWhiteSpace(_projectFileName))
         {
-            ProjectSettingsHelper.Load(_projectFileName);
+            ProjectSettingsHelper.Load(_projectFileName, RuntimeContext);
         }
 
         Line3dRendererComponent = new Line3dRendererComponent(this);
@@ -250,7 +254,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
         // targets to the pool instead of disposing them immediately.
-        RenderTargetPool.Shared = new RenderTargetPool(GraphicsDevice);
+        RenderTargetPool = new RenderTargetPool(GraphicsDevice);
+        RuntimeContext.RenderTargetPool = RenderTargetPool;
+        RenderTargetPool.Shared = RenderTargetPool;
 
         // Wire UI runtime auto-creation/disposal for each new render view.
         // The concrete runtime is provided by UIViewRuntimeFactory.

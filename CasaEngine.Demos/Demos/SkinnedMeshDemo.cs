@@ -23,7 +23,7 @@ public class SkinnedMeshDemo : Demo
         entity.RootComponent.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
         entity.RootComponent.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
+        var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("Content\\SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
 
         skinnedMeshComponent.SkinnedMesh = skinnedMesh;

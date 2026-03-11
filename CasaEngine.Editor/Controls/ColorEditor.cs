@@ -100,7 +100,10 @@ public class ColorEditor : MGStackPanel
         var okButton = new MGButton(pickerWindow, _ =>
         {
             if (picker.SelectedColor.HasValue)
+            {
                 Value = picker.SelectedColor.Value;
+            }
+
             pickerWindow.TryCloseWindow();
         });
         okButton.SetContent(new MGTextBlock(pickerWindow, "OK")

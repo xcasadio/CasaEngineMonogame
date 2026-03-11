@@ -10,12 +10,16 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
+using MGUI.Core.UI.DragDrop;
+using MGUI.Shared.Input.Keyboard;
 using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using System.Collections.ObjectModel;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
@@ -83,6 +87,7 @@ public class ContentBrowserPanel
     private DateTime _lastClickTime;
     private ContentItem? _lastClickedItem;
     private const double DoubleClickMs = 400;
+    private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -117,6 +122,7 @@ public class ContentBrowserPanel
             VerticalAlignment = VerticalAlignment.Stretch,
         };
         _treeView.SelectionChanged += OnFolderSelectionChanged;
+        _treeView.KeyboardHandler.Pressed += OnTreeViewKeyPressed;
         _treeView.MouseHandler.RMBReleasedInside += OnTreeViewRightClick;
 
         var treeScroll = new MGScrollViewer(_window);
@@ -130,7 +136,14 @@ public class ContentBrowserPanel
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             ItemTemplate = BuildFileItemTemplate,
+            SelectionMode = ListBoxSelectionMode.Single,
         };
+        _assetList.AllowDrop = true;
+        _assetList.DragEnter += OnAssetListDragEnter;
+        _assetList.DragOver += OnAssetListDragOver;
+        _assetList.DragLeave += OnAssetListDragLeave;
+        _assetList.Drop += OnAssetListDrop;
+        _assetList.KeyboardHandler.Pressed += OnAssetListKeyPressed;
         _assetList.MouseHandler.RMBReleasedInside += OnAssetListRightClick;
         _assetList.SelectionChanged += OnAssetSelectionChanged;
 
@@ -185,7 +198,9 @@ public class ContentBrowserPanel
     public void NavigateTo(ContentItem folder)
     {
         if (folder == null || !folder.IsDirectory)
+        {
             return;
+        }
 
         if (_currentFolder != null && _currentFolder != folder)
         {
@@ -308,7 +323,9 @@ public class ContentBrowserPanel
         _breadcrumbBar.TryRemoveAll();
 
         if (_currentFolder == null || _rootItem == null)
+        {
             return;
+        }
 
         // Build path segments from root → current
         var segments = new List<ContentItem>();
@@ -351,9 +368,16 @@ public class ContentBrowserPanel
 
     private void GoBack()
     {
-        if (_backHistory.Count == 0) return;
+        if (_backHistory.Count == 0)
+        {
+            return;
+        }
+
         if (_currentFolder != null)
+        {
             _forwardHistory.Push(_currentFolder);
+        }
+
         _currentFolder = _backHistory.Pop();
         UpdateBreadcrumb();
         RefreshAssetList();
@@ -363,9 +387,16 @@ public class ContentBrowserPanel
 
     private void GoForward()
     {
-        if (_forwardHistory.Count == 0) return;
+        if (_forwardHistory.Count == 0)
+        {
+            return;
+        }
+
         if (_currentFolder != null)
+        {
             _backHistory.Push(_currentFolder);
+        }
+
         _currentFolder = _forwardHistory.Pop();
         UpdateBreadcrumb();
         RefreshAssetList();
@@ -375,7 +406,11 @@ public class ContentBrowserPanel
 
     private void GoUp()
     {
-        if (_currentFolder?.Parent == null) return;
+        if (_currentFolder?.Parent == null)
+        {
+            return;
+        }
+
         NavigateTo(_currentFolder.Parent);
     }
 
@@ -414,6 +449,17 @@ public class ContentBrowserPanel
         {
             VerticalAlignment = VerticalAlignment.Center,
         });
+
+        row.MouseHandler.DragStart += (_, e) => OnAssetItemDragStart(row, item, e);
+
+        if (item.IsDirectory)
+        {
+            row.AllowDrop = true;
+            row.DragEnter += (_, e) => OnFolderDropTargetDragEnter(row, item, e);
+            row.DragOver += (_, e) => OnFolderDropTargetDragOver(row, item, e);
+            row.DragLeave += (_, e) => OnFolderDropTargetDragLeave(row, item, e);
+            row.Drop += (_, e) => OnFolderDropTargetDrop(row, item, e);
+        }
 
         return row;
     }
@@ -494,13 +540,20 @@ public class ContentBrowserPanel
 
     private void OnOpenFolderRequested()
     {
-        if (_currentFolder == null) return;
+        if (_currentFolder == null)
+        {
+            return;
+        }
         // Already navigated via tree selection — nothing extra to do
     }
 
     private void OnNewFolderRequested()
     {
-        if (_currentFolder == null) return;
+        if (_currentFolder == null)
+        {
+            return;
+        }
+
         var newPath = Path.Combine(_currentFolder.FullPath, "New Folder");
         var suffix = 1;
         while (Directory.Exists(newPath))
@@ -553,12 +606,16 @@ public class ContentBrowserPanel
             if (item.IsDirectory)
             {
                 if (Directory.Exists(item.FullPath))
+                {
                     Directory.Delete(item.FullPath, recursive: true);
+                }
             }
             else
             {
                 if (File.Exists(item.FullPath))
+                {
                     File.Delete(item.FullPath);
+                }
             }
 
             // If we just deleted the current folder, go up
@@ -578,7 +635,11 @@ public class ContentBrowserPanel
 
     private void OnDuplicateRequested(ContentItem item)
     {
-        if (item.IsDirectory || !File.Exists(item.FullPath)) return;
+        if (item.IsDirectory || !File.Exists(item.FullPath))
+        {
+            return;
+        }
+
         try
         {
             var dir = Path.GetDirectoryName(item.FullPath)!;
@@ -606,7 +667,11 @@ public class ContentBrowserPanel
 
     private void OnCopyPathRequested(ContentItem? item)
     {
-        if (item == null) return;
+        if (item == null)
+        {
+            return;
+        }
+
         // Clipboard isn't easily available in MonoGame — log for now
         Debug.WriteLine($"[ContentBrowser] Copy path: {item.FullPath}");
     }
@@ -617,7 +682,9 @@ public class ContentBrowserPanel
         {
             var dir = item.IsDirectory ? item.FullPath : Path.GetDirectoryName(item.FullPath);
             if (dir != null && Directory.Exists(dir))
+            {
                 Process.Start(new ProcessStartInfo("explorer.exe", dir) { UseShellExecute = true });
+            }
         }
         catch (Exception ex)
         {
@@ -633,6 +700,73 @@ public class ContentBrowserPanel
     {
         _searchFilter = e.NewValue?.Trim() ?? string.Empty;
         RefreshAssetList();
+    }
+
+    private void OnTreeViewKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    {
+        if (e.IsHandled || _treeView.SelectedItem == null)
+        {
+            return;
+        }
+
+        if (!_itemToFolder.TryGetValue(_treeView.SelectedItem, out var folder))
+        {
+            return;
+        }
+
+        switch (e.Key)
+        {
+            case Keys.Enter:
+                NavigateTo(folder);
+                e.SetHandledBy(_treeView, true);
+                break;
+            case Keys.Delete:
+                OnDeleteItemRequested(folder);
+                e.SetHandledBy(_treeView, true);
+                break;
+            case Keys.Back:
+                GoUp();
+                e.SetHandledBy(_treeView, true);
+                break;
+        }
+    }
+
+    private void OnAssetListKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    {
+        if (e.IsHandled)
+        {
+            return;
+        }
+
+        var selected = _assetList.SelectedValue;
+        if (selected == null)
+        {
+            return;
+        }
+
+        switch (e.Key)
+        {
+            case Keys.Enter:
+                if (selected.IsDirectory)
+                {
+                    NavigateTo(selected);
+                }
+                else
+                {
+                    FileOpened?.Invoke(selected);
+                }
+
+                e.SetHandledBy(_assetList, true);
+                break;
+            case Keys.Delete:
+                OnDeleteItemRequested(selected);
+                e.SetHandledBy(_assetList, true);
+                break;
+            case Keys.Back:
+                GoUp();
+                e.SetHandledBy(_assetList, true);
+                break;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -652,9 +786,14 @@ public class ContentBrowserPanel
                 // Double-click detected
                 _lastClickedItem = null;
                 if (selected.IsDirectory)
+                {
                     NavigateTo(selected);
+                }
                 else
+                {
                     FileOpened?.Invoke(selected);
+                }
+
                 return;
             }
             _lastClickedItem = selected;
@@ -666,10 +805,79 @@ public class ContentBrowserPanel
             FileSelected?.Invoke(selected);
         }
 
-        var selectedList = selected != null
-            ? new List<ContentItem> { selected }
-            : new List<ContentItem>();
+        var selectedList = _assetList.SelectedDataItems.ToList();
         SelectionChanged?.Invoke(selectedList);
+    }
+
+    private void OnAssetItemDragStart(MGElement element, ContentItem item, BaseMouseDragStartEventArgs e)
+    {
+        var draggedItems = GetDraggedItems(item);
+        if (draggedItems.Count == 0)
+        {
+            return;
+        }
+
+        element.DoDragDrop(new DragDropData(draggedItems, DragDropEffect.Copy | DragDropEffect.Move));
+        e.SetHandledBy(element, true);
+    }
+
+    private void OnAssetListDragEnter(object? sender, DragEnterEventArgs e)
+    {
+        if (CanDropIntoFolder(_currentFolder, e.Data.GetData<List<ContentItem>>()))
+        {
+            _assetList.OverlayBrush = DropHighlightBrush;
+        }
+    }
+
+    private void OnAssetListDragOver(object? sender, DragOverEventArgs e)
+    {
+        e.Data.DropEffect = GetCurrentDropEffect();
+        _assetList.OverlayBrush = CanDropIntoFolder(_currentFolder, e.Data.GetData<List<ContentItem>>())
+            ? DropHighlightBrush
+            : null;
+    }
+
+    private void OnAssetListDragLeave(object? sender, DragLeaveEventArgs e)
+    {
+        _assetList.OverlayBrush = null;
+    }
+
+    private void OnAssetListDrop(object? sender, DropEventArgs e)
+    {
+        _assetList.OverlayBrush = null;
+        if (_currentFolder == null)
+        {
+            return;
+        }
+
+        PerformDrop(_currentFolder, e.Data.GetData<List<ContentItem>>(), e.Data.DropEffect);
+    }
+
+    private void OnFolderDropTargetDragEnter(MGElement targetElement, ContentItem targetFolder, DragEnterEventArgs e)
+    {
+        if (CanDropIntoFolder(targetFolder, e.Data.GetData<List<ContentItem>>()))
+        {
+            targetElement.OverlayBrush = DropHighlightBrush;
+        }
+    }
+
+    private void OnFolderDropTargetDragOver(MGElement targetElement, ContentItem targetFolder, DragOverEventArgs e)
+    {
+        e.Data.DropEffect = GetCurrentDropEffect();
+        targetElement.OverlayBrush = CanDropIntoFolder(targetFolder, e.Data.GetData<List<ContentItem>>())
+            ? DropHighlightBrush
+            : null;
+    }
+
+    private void OnFolderDropTargetDragLeave(MGElement targetElement, ContentItem targetFolder, DragLeaveEventArgs e)
+    {
+        targetElement.OverlayBrush = null;
+    }
+
+    private void OnFolderDropTargetDrop(MGElement targetElement, ContentItem targetFolder, DropEventArgs e)
+    {
+        targetElement.OverlayBrush = null;
+        PerformDrop(targetFolder, e.Data.GetData<List<ContentItem>>(), e.Data.DropEffect);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -728,7 +936,10 @@ public class ContentBrowserPanel
         _treeView.ClearItems();
         _itemToFolder.Clear();
 
-        if (_rootItem == null) return;
+        if (_rootItem == null)
+        {
+            return;
+        }
 
         var rootTvi = BuildTreeItem(_rootItem);
         rootTvi.IsExpanded = true;
@@ -756,6 +967,11 @@ public class ContentBrowserPanel
             VerticalAlignment = VerticalAlignment.Center,
         });
         item.Header = header;
+        item.AllowDrop = true;
+        item.DragEnter += (_, e) => OnFolderDropTargetDragEnter(header, folder, e);
+        item.DragOver += (_, e) => OnFolderDropTargetDragOver(header, folder, e);
+        item.DragLeave += (_, e) => OnFolderDropTargetDragLeave(header, folder, e);
+        item.Drop += (_, e) => OnFolderDropTargetDrop(header, folder, e);
 
         _itemToFolder[item] = folder;
 
@@ -808,6 +1024,154 @@ public class ContentBrowserPanel
         _assetList.SetItemsSource(items.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList());
     }
 
+    private List<ContentItem> GetDraggedItems(ContentItem primaryItem)
+    {
+        var selectedItems = _assetList.SelectedDataItems.ToList();
+        if (selectedItems.Count == 0 || !selectedItems.Contains(primaryItem))
+        {
+            selectedItems = new List<ContentItem> { primaryItem };
+        }
+
+        return selectedItems;
+    }
+
+    private static DragDropEffect GetCurrentDropEffect()
+    {
+        var keyboardState = Keyboard.GetState();
+        return keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl)
+            ? DragDropEffect.Copy
+            : DragDropEffect.Move;
+    }
+
+    private static bool CanDropIntoFolder(ContentItem? targetFolder, IReadOnlyList<ContentItem>? draggedItems)
+    {
+        if (targetFolder == null || !targetFolder.IsDirectory || draggedItems == null || draggedItems.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var draggedItem in draggedItems)
+        {
+            if (draggedItem == null)
+            {
+                return false;
+            }
+
+            if (string.Equals(draggedItem.FullPath, targetFolder.FullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var targetPath = Path.Combine(targetFolder.FullPath, draggedItem.Name);
+            if (string.Equals(draggedItem.FullPath, targetPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (draggedItem.IsDirectory && IsChildPath(targetFolder.FullPath, draggedItem.FullPath))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void PerformDrop(ContentItem targetFolder, IReadOnlyList<ContentItem>? draggedItems, DragDropEffect effect)
+    {
+        if (!CanDropIntoFolder(targetFolder, draggedItems))
+        {
+            return;
+        }
+
+        var actualEffect = effect == DragDropEffect.None ? GetCurrentDropEffect() : effect;
+        var copied = actualEffect.HasFlag(DragDropEffect.Copy) && !actualEffect.HasFlag(DragDropEffect.Move);
+
+        try
+        {
+            foreach (var draggedItem in draggedItems!)
+            {
+                if (draggedItem.IsDirectory)
+                {
+                    var destinationDirectory = GetUniqueDestinationPath(targetFolder.FullPath, draggedItem.Name, isDirectory: true);
+                    if (copied)
+                    {
+                        CopyDirectory(draggedItem.FullPath, destinationDirectory);
+                    }
+                    else
+                    {
+                        Directory.Move(draggedItem.FullPath, destinationDirectory);
+                    }
+                }
+                else
+                {
+                    var destinationFile = GetUniqueDestinationPath(targetFolder.FullPath, draggedItem.Name, isDirectory: false);
+                    if (copied)
+                    {
+                        File.Copy(draggedItem.FullPath, destinationFile);
+                    }
+                    else
+                    {
+                        File.Move(draggedItem.FullPath, destinationFile);
+                    }
+                }
+            }
+
+            RebuildTree();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[ContentBrowser] Drop failed: {ex.Message}");
+        }
+    }
+
+    private static string GetUniqueDestinationPath(string targetDirectory, string itemName, bool isDirectory)
+    {
+        var baseName = isDirectory ? itemName : Path.GetFileNameWithoutExtension(itemName);
+        var extension = isDirectory ? string.Empty : Path.GetExtension(itemName);
+        var candidate = Path.Combine(targetDirectory, itemName);
+        var suffix = 1;
+
+        while (Directory.Exists(candidate) || File.Exists(candidate))
+        {
+            var uniqueName = isDirectory
+                ? $"{baseName} ({suffix++})"
+                : $"{baseName} ({suffix++}){extension}";
+            candidate = Path.Combine(targetDirectory, uniqueName);
+        }
+
+        return candidate;
+    }
+
+    private static bool IsChildPath(string candidateChildPath, string parentPath)
+    {
+        var normalizedParent = Path.GetFullPath(parentPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        var normalizedChild = Path.GetFullPath(candidateChildPath)
+            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+
+        return normalizedChild.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
+    {
+        Directory.CreateDirectory(destinationDirectory);
+
+        foreach (var filePath in Directory.GetFiles(sourceDirectory))
+        {
+            var destinationFilePath = Path.Combine(destinationDirectory, Path.GetFileName(filePath));
+            File.Copy(filePath, destinationFilePath);
+        }
+
+        foreach (var directoryPath in Directory.GetDirectories(sourceDirectory))
+        {
+            var destinationChildPath = Path.Combine(destinationDirectory, Path.GetFileName(directoryPath));
+            CopyDirectory(directoryPath, destinationChildPath);
+        }
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Helpers
     // ─────────────────────────────────────────────────────────────────────────
@@ -830,12 +1194,17 @@ public class ContentBrowserPanel
     private static ContentItem? FindFolder(ContentItem root, string fullPath)
     {
         if (string.Equals(root.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
+        {
             return root;
+        }
 
         foreach (var sub in root.SubFolders)
         {
             var found = FindFolder(sub, fullPath);
-            if (found != null) return found;
+            if (found != null)
+            {
+                return found;
+            }
         }
         return null;
     }
@@ -843,7 +1212,10 @@ public class ContentBrowserPanel
     /// <summary>Selects the tree node corresponding to the given folder.</summary>
     private void SelectTreeNode(ContentItem? folder)
     {
-        if (folder == null) return;
+        if (folder == null)
+        {
+            return;
+        }
 
         foreach (var kvp in _itemToFolder)
         {

@@ -4,6 +4,7 @@ using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Game;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
@@ -18,6 +19,8 @@ public class AssetContentManager
     public GraphicsDevice GraphicsDevice { get; private set; }
 
     public string RootDirectory { get; set; }
+
+    public EngineRuntimeContext? RuntimeContext { get; set; }
 
     public AssetContentManager()
     {
@@ -97,13 +100,18 @@ public class AssetContentManager
         }
 
         var assetInfo = AssetCatalog.Get(id);
+        if (RuntimeContext?.ResolveAssetInfo != null)
+        {
+            assetInfo = RuntimeContext.ResolveAssetInfo(id);
+        }
 
         if (assetInfo == null)
         {
             throw new InvalidOperationException($"Asset not found with id '{id}'");
         }
 
-        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
+        var projectPath = RuntimeContext?.ProjectPath ?? EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+        var fullFileName = Path.Combine(projectPath, assetInfo.FileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
 
@@ -139,7 +147,8 @@ public class AssetContentManager
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetFileName);
+        var projectPath = RuntimeContext?.ProjectPath ?? EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+        var fullFileName = Path.Combine(projectPath, assetFileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         return newAsset;

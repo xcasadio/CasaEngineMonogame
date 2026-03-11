@@ -111,7 +111,11 @@ public class ProjectLauncherWindow
     private void OpenSelectedProject()
     {
         var selected = _recentList.SelectedValue;
-        if (selected == null) return;
+        if (selected == null)
+        {
+            return;
+        }
+
         TryOpenProject(selected);
     }
 
@@ -196,7 +200,9 @@ public class ProjectLauncherWindow
         {
             using var dialog = new FolderBrowserDialog { Description = "Select project folder" };
             if (dialog.ShowDialog() == DialogResult.OK)
+            {
                 pathBox.SetText(dialog.SelectedPath);
+            }
         });
         folderButton.SetContent(new MGTextBlock(_launcherWindow, "…"));
         folderButton.PreferredWidth = 28;
@@ -265,7 +271,9 @@ public class ProjectLauncherWindow
     private List<string> LoadRecentProjects()
     {
         if (!File.Exists(RecentProjectsFile))
+        {
             return new List<string>();
+        }
 
         try
         {

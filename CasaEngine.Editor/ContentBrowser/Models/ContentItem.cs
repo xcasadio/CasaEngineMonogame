@@ -68,7 +68,9 @@ public sealed class ContentItem
         {
             foreach (var c in Children)
                 if (c.IsDirectory)
+                {
                     yield return c;
+                }
         }
     }
 
@@ -79,7 +81,9 @@ public sealed class ContentItem
         {
             foreach (var c in Children)
                 if (!c.IsDirectory)
+                {
                     yield return c;
+                }
         }
     }
 
@@ -147,7 +151,10 @@ public sealed class ContentItem
     private static ContentItemType DeduceType(string extension)
     {
         if (string.IsNullOrEmpty(extension))
+        {
             return ContentItemType.Unknown;
+        }
+
         return ExtensionMap.TryGetValue(extension, out var type) ? type : ContentItemType.Unknown;
     }
 }

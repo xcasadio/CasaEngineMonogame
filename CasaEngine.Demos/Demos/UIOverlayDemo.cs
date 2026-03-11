@@ -69,16 +69,16 @@ public class UIOverlayDemo : Demo
     {
         base.InitializeCamera(camera);
 
-        // The UIRoot is created by CasaEngineGame.OnViewAdded after world.LoadContent,
+        // The per-view UI runtime is created after world.LoadContent,
         // so it is guaranteed to be available at this point in the lifecycle.
-        var uiRoot = GetUIRoot();
-        if (uiRoot == null) return;
+        var uiView = GetUIView();
+        if (uiView == null) return;
 
         _pauseScreen = new PauseMenuScreen(OnResume);
         _hudScreen   = new HudScreen(OnOpenPauseMenu);
 
         // Push the HUD as the base layer — it will persist until Clean() is called.
-        uiRoot.PushScreen(_hudScreen);
+        uiView.PushScreen(_hudScreen);
     }
 
     public override void Update(GameTime gameTime) { }
@@ -90,8 +90,19 @@ public class UIOverlayDemo : Demo
 
     public override void Clean()
     {
-        var uiRoot = GetUIRoot();
-        uiRoot?.ScreenStack.Clear();
+        var uiView = GetUIView();
+        if (uiView != null)
+        {
+            if (_pauseScreen != null)
+            {
+                uiView.RemoveScreen(_pauseScreen);
+            }
+
+            if (_hudScreen != null)
+            {
+                uiView.RemoveScreen(_hudScreen);
+            }
+        }
 
         _hudScreen   = null;
         _pauseScreen = null;
@@ -103,17 +114,17 @@ public class UIOverlayDemo : Demo
     private void OnOpenPauseMenu()
     {
         if (_pauseScreen == null) return;
-        GetUIRoot()?.PushScreen(_pauseScreen);
+        GetUIView()?.PushScreen(_pauseScreen);
     }
 
     private void OnResume()
     {
-        GetUIRoot()?.PopScreen();
+        GetUIView()?.PopScreen();
     }
 
     // ---- Helpers ----
 
-    private UIRoot? GetUIRoot()
+    private IUIViewRuntime? GetUIView()
         => _game?.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
+            .FirstOrDefault(v => v.UIView != null)?.UIView;
 }

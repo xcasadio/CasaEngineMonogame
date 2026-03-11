@@ -28,7 +28,9 @@ public class Vector3Editor : MGStackPanel
         set
         {
             if (_value == value)
+            {
                 return;
+            }
 
             _value = value;
             _fieldX.Value = value.X;

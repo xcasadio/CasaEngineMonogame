@@ -2,6 +2,7 @@ using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MGUI.Shared.Input;
 using MGUI.Shared.Rendering;
 
 namespace CasaEngine.Framework.GUI;
@@ -16,7 +17,7 @@ namespace CasaEngine.Framework.GUI;
 /// Mouse coordinates are translated from screen-space to viewport-local space by
 /// subtracting the viewport's screen-space origin.
 /// </summary>
-internal sealed class ViewRenderHost : IRenderHost
+internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
 {
     private readonly Game.CasaEngineGame _game;
     private readonly IRenderSurface      _surface;

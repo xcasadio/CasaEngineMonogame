@@ -10,4 +10,6 @@ public static class GameSettings
     public static AssemblyManager AssemblyManager { get; } = new();
     public static GraphicsSettings GraphicsSettings { get; } = new();
     public static PhysicsEngineSettings PhysicsEngineSettings { get; } = new();
+
+    public static EngineRuntimeContext CreateRuntimeContext() => EngineRuntimeContext.FromGlobals();
 }

@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.World;
@@ -9,6 +10,9 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptTitleScreenWorld : GameplayProxy
 {
+    private IUIViewRuntime? _uiView;
+    private TitleScreen? _titleScreen;
+
     public override void InitializeWithWorld(World world)
     {
     }
@@ -31,21 +35,26 @@ public class ScriptTitleScreenWorld : GameplayProxy
 
     public override void OnBeginPlay(World world)
     {
-        var uiRoot = world.Game.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
-        if (uiRoot == null) return;
+        _uiView = world.Game.GameManager.ViewManager.Views
+            .FirstOrDefault(v => v.UIView != null)?.UIView;
+        if (_uiView == null) return;
 
         void OnStartGame() => world.Game.GameManager.SetWorldToLoad("DefaultWorld.world");
         void OnExit()      => world.Game.Exit();
 
-        uiRoot.PushScreen(new TitleScreen(OnStartGame, OnExit));
+        _titleScreen = new TitleScreen(OnStartGame, OnExit);
+        _uiView.PushScreen(_titleScreen);
     }
 
     public override void OnEndPlay(World world)
     {
-        var uiRoot = world.Game.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIRoot != null)?.UIRoot;
-        uiRoot?.ScreenStack.Clear();
+        if (_uiView != null && _titleScreen != null)
+        {
+            _uiView.RemoveScreen(_titleScreen);
+        }
+
+        _titleScreen = null;
+        _uiView = null;
     }
 
     public override IGameplayProxy Clone()

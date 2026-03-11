@@ -312,7 +312,7 @@ public sealed class EngineHost : WpfGame
         // ---- 3. Render-target surface ----
         int w = Math.Max(def.InitialWidth, 1);
         int h = Math.Max(def.InitialHeight, 1);
-        var surface = new RenderTargetSurface(base.GraphicsDevice, w, h);
+        var surface = new RenderTargetSurface(base.GraphicsDevice, w, h, renderTargetPool: _game.RenderTargetPool);
 
         // ---- 4. Register in ViewManager ----
         // Choose update mode: 3-D world views are real-time (camera navigation)

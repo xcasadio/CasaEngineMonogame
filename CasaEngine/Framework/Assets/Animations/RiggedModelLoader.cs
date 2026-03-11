@@ -109,29 +109,34 @@ public class RiggedModelLoader
     {
         _defaultAnimatedFramesPerSecondLod = defaultAnimatedFramesPerSecondLod;
 
-        string s = Path.Combine(Environment.CurrentDirectory, "Assets", filePathorFileName);
-        if (File.Exists(s) == false)
+        if (!File.Exists(filePathorFileName))
         {
-            s = Path.Combine(Environment.CurrentDirectory, "Content", filePathorFileName);
+            var fileName = filePathorFileName.Replace(Environment.CurrentDirectory, string.Empty).TrimStart('\\');
+            filePathorFileName = Path.Combine(Environment.CurrentDirectory, "Content", fileName);
+
+            if (!File.Exists(filePathorFileName))
+            {
+                filePathorFileName = Path.Combine(Environment.CurrentDirectory, "Assets", fileName);
+
+                if (!File.Exists(filePathorFileName))
+                {
+                    filePathorFileName = Path.Combine(Environment.CurrentDirectory, "Content", "Assets", fileName);
+
+                    if (!File.Exists(filePathorFileName))
+                    {
+                        filePathorFileName = Path.Combine(Environment.CurrentDirectory, fileName);
+
+                        if (!File.Exists(filePathorFileName))
+                        {
+                            filePathorFileName = filePathorFileName;
+                        }
+                    }
+                }
+            }
         }
 
-        if (File.Exists(s) == false)
-        {
-            s = Path.Combine(Environment.CurrentDirectory, "Content", "Assets", filePathorFileName);
-        }
+        Debug.Assert(File.Exists(filePathorFileName), "Could not find the file to load: " + filePathorFileName);
 
-        if (File.Exists(s) == false)
-        {
-            s = Path.Combine(Environment.CurrentDirectory, filePathorFileName);
-        }
-
-        if (File.Exists(s) == false)
-        {
-            s = filePathorFileName;
-        }
-
-        Debug.Assert(File.Exists(s), "Could not find the file to load: " + s);
-        string filepathorname = s;
         //
         // load the file at path to the scene
         //
@@ -142,7 +147,7 @@ public class RiggedModelLoader
             //importer.Scale = 1f / importer.Scale;
             //Logs.WriteTrace("(not sure this works) Model scale: " + importer.Scale);
 
-            _scene = importer.ImportFile(filepathorname,
+            _scene = importer.ImportFile(filePathorFileName,
                             PostProcessSteps.FlipUVs                // currently need
                                                 | PostProcessSteps.JoinIdenticalVertices  // optimizes indexed
                                                 | PostProcessSteps.Triangulate            // precaution
@@ -173,7 +178,7 @@ public class RiggedModelLoader
             _scene = null;
         }
 
-        return CreateModel(filepathorname);
+        return CreateModel(filePathorFileName);
     }
 
     /// <summary> Begins the flow to call methods and do the actual loading.

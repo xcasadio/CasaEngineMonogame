@@ -28,7 +28,9 @@ public static class FileSystemScanner
     public static ContentItem ScanDirectory(string rootPath)
     {
         if (!Directory.Exists(rootPath))
+        {
             throw new DirectoryNotFoundException($"Root directory not found: {rootPath}");
+        }
 
         var root = new ContentItem(rootPath, isDirectory: true);
         PopulateChildren(root);
@@ -43,7 +45,9 @@ public static class FileSystemScanner
     public static void Refresh(ContentItem directory)
     {
         if (directory == null || !directory.IsDirectory)
+        {
             return;
+        }
 
         directory.Children.Clear();
         PopulateChildren(directory);
@@ -63,9 +67,14 @@ public static class FileSystemScanner
             foreach (var sub in dirInfo.EnumerateDirectories())
             {
                 if (IgnoredFolders.Contains(sub.Name))
+                {
                     continue;
+                }
+
                 if (sub.Attributes.HasFlag(FileAttributes.Hidden))
+                {
                     continue;
+                }
 
                 var child = new ContentItem(sub.FullName, isDirectory: true, parent);
                 child.LastModified = sub.LastWriteTime;
@@ -83,7 +92,9 @@ public static class FileSystemScanner
             foreach (var file in dirInfo.EnumerateFiles())
             {
                 if (file.Attributes.HasFlag(FileAttributes.Hidden))
+                {
                     continue;
+                }
 
                 var child = new ContentItem(file.FullName, isDirectory: false, parent);
                 child.Size = file.Length;

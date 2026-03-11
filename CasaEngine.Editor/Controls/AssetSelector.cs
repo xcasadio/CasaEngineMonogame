@@ -33,7 +33,9 @@ public class AssetSelector : MGStackPanel
         set
         {
             if (_assetId == value)
+            {
                 return;
+            }
 
             _assetId = value;
             UpdateDisplayName();
@@ -110,11 +112,15 @@ public class AssetSelector : MGStackPanel
     private void OpenPickerWindow()
     {
         if (_parentWindow?.Desktop == null)
+        {
             return;
+        }
 
         IEnumerable<AssetInfo> assets = AssetCatalog.AssetInfos;
         if (Filter != null)
+        {
             assets = assets.Where(Filter);
+        }
 
         var assetList = assets.OrderBy(a => a.Name).ToList();
 
@@ -168,7 +174,9 @@ public class AssetSelector : MGStackPanel
         {
             var current = assetList.FirstOrDefault(a => a.Id == _assetId);
             if (current != null)
+            {
                 listBox.SelectedValue = current;
+            }
         }
 
         _parentWindow.Desktop.Windows.Add(pickerWindow);
