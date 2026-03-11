@@ -64,6 +64,9 @@ public class GameManager
             ViewManager.Clear();
 #endif
             CurrentWorld.LoadContent(_game);
+    #if !EDITOR
+            _game.RuntimeViewBootstrapper?.BootstrapViews(_game, CurrentWorld, ViewManager);
+    #endif
             CurrentWorld.BeginPlay();
 
             _isNewWorld = false;
@@ -93,7 +96,7 @@ public class GameManager
 
     /// <summary>
     /// Fired (on all configurations) when a world finishes loading and its views are ready.
-    /// Subscribe to push UI screens that depend on a live <see cref="UIRoot"/>.
+    /// Subscribe to push UI screens that depend on a live hosted UI runtime.
     /// </summary>
     public event EventHandler? WorldLoaded;
 

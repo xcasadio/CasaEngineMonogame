@@ -52,6 +52,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
+    public IRuntimeViewBootstrapper? RuntimeViewBootstrapper { get; }
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -106,6 +107,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = new MguiViewRuntimeFactory();
         DefaultUICompositionService = Rendering.DefaultUICompositionService.Instance;
+        RuntimeViewBootstrapper = DefaultRuntimeViewBootstrapper.Instance;
 
         if (graphicsDeviceService == null)
         {
@@ -408,8 +410,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
                 }
 
                 // Phase 2 — 3D pipeline rendering (fills backbuffer via viewports).
-                // World.LoadContent always registers at least one default RenderView, so
-                // views.Count == 0 only happens before a world is loaded (loading screen, etc.).
+                // A runtime bootstrapper usually creates a presentation view after world load,
+                // but zero views is still valid for loading screens or headless/editor flows.
                 var views = GameManager.ViewManager.Views;
                 if (views.Count == 0)
                 {

@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Core.Log;
+using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Debugger;
@@ -7,7 +8,6 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
 using Microsoft.Xna.Framework;
@@ -140,31 +140,6 @@ public sealed class World : ObjectBase
             InitializePlayerControllers();
         }
 
-#if !EDITOR
-        //TODO : use a startup script to configure the camera and register custom views
-        var camera = _entities.Select(x => x.GetComponent<CameraComponent>()).FirstOrDefault(x => x != null);
-
-        if (camera == null)
-        {
-            camera = CreateDefaultCamera();
-            Logs.WriteWarning($"No camera found in the world {Name}. Create default one");
-        }
-
-        // Register a default full-screen view only if no views have been configured yet.
-        // On a re-load triggered by GameManager._isNewWorld, InitializeCamera may have
-        // already registered custom views (e.g. split-screen) — leave them intact.
-        if (Game.GameManager.ViewManager.Views.Count == 0)
-        {
-            var pp2 = Game.GraphicsDevice.PresentationParameters;
-            var fullScreen = new Rectangle(0, 0, pp2.BackBufferWidth, pp2.BackBufferHeight);
-            Game.GameManager.ViewManager.Add(new RenderView(this, camera, new BackBufferSurface(fullScreen))
-            {
-                Name = "Default view",
-                ClearColor = Color.CornflowerBlue,
-            });
-        }
-#endif
-
         if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
         {
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
@@ -201,7 +176,7 @@ public sealed class World : ObjectBase
         InternalAddEntities();
     }
 
-    private CameraComponent CreateDefaultCamera()
+    public CameraComponent CreateDefaultCamera()
     {
         var entityCamera = new Entity();
         var camera = new CameraLookAtComponent();
@@ -210,6 +185,7 @@ public sealed class World : ObjectBase
 
         entityCamera.Initialize();
         entityCamera.InitializeWithWorld(this);
+        Logs.WriteWarning($"No camera found in the world {Name}. Create default one");
 
         return camera;
     }
