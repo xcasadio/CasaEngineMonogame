@@ -40,7 +40,8 @@ public sealed record ViewDefinition
 
     /// <summary>
     /// Render resolution multiplier (0.25..2.0, default 1.0).
-    /// The surface/RT is created at <c>width * scale</c> and upscaled on presentation.
+    /// For <see cref="RenderTargetSurface"/> views, the render target is created at
+    /// <c>baseSize * scale</c> and upscaled on presentation.
     /// </summary>
     public float ResolutionScale { get; init; } = 1.0f;
 

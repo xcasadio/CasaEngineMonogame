@@ -170,6 +170,7 @@ public sealed class ViewManager
         {
             _byId.Remove(view.Id);
             UnhookHost(view);
+            view.Invalidated -= OnViewInvalidated;
 
             if (InputCaptureView == view) InputCaptureView = null;
             if (ActiveView == view)
@@ -190,6 +191,7 @@ public sealed class ViewManager
         foreach (var view in _views)
         {
             UnhookHost(view);
+            view.Invalidated -= OnViewInvalidated;
             ViewRemoved?.Invoke(view);
         }
 
@@ -295,6 +297,9 @@ public sealed class ViewManager
             view.IsDirty = true;
         }
 
+        view.Invalidated -= OnViewInvalidated;
+        view.Invalidated += OnViewInvalidated;
+
         ViewAdded?.Invoke(view);
     }
 
@@ -341,6 +346,11 @@ public sealed class ViewManager
         {
             ViewResized?.Invoke(view, w, h);
         }
+    }
+
+    private void OnViewInvalidated(RenderView view)
+    {
+        ViewInvalidated?.Invoke(view);
     }
 
     private void OnHostClosed(IViewHost host)

@@ -91,7 +91,11 @@ public sealed class RenderView
     /// Marks this view as needing a re-render on the next frame.
     /// Only relevant when <see cref="UpdateMode"/> is <see cref="ViewUpdateMode.OnDemand"/>.
     /// </summary>
-    public void Invalidate() => IsDirty = true;
+    public void Invalidate()
+    {
+        IsDirty = true;
+        Invalidated?.Invoke(this);
+    }
 
     // ---- Resolution scale ----
 
@@ -148,6 +152,9 @@ public sealed class RenderView
     public bool ShowDebugOverlay { get; set; }
 
     // ---- User / editor metadata ----
+
+    /// <summary>Raised whenever <see cref="Invalidate"/> marks the view dirty.</summary>
+    public event Action<RenderView>? Invalidated;
 
     /// <summary>
     /// Arbitrary user-defined payload attached to this view.

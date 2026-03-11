@@ -114,6 +114,8 @@ public sealed class RenderPipeline
                 continue;
             }
 
+            ApplyResolutionScale(view);
+
             // ---- Capture full GPU state (restore on scope exit) ----
             using var guard = new GraphicsStateGuard(_graphicsDevice);
 
@@ -148,14 +150,20 @@ public sealed class RenderPipeline
                 _spriteBatch.Draw(_pixel, new Rectangle(0, 0, vp.Width, vp.Height), view.ClearColor);
                 _spriteBatch.End();
 
-                _graphicsDevice.Clear(ClearOptions.DepthBuffer | ClearOptions.Stencil,
-                    view.ClearColor, 1.0f, 0);
+                var depthClear = BuildDepthClearOptions(view);
+                if (depthClear != 0)
+                {
+                    _graphicsDevice.Clear(depthClear, view.ClearColor, 1.0f, 0);
+                }
             }
             else
             {
-                var clearOptions = ClearOptions.DepthBuffer | ClearOptions.Stencil;
+                var clearOptions = BuildDepthClearOptions(view);
                 if (view.ClearColorBuffer) clearOptions |= ClearOptions.Target;
-                _graphicsDevice.Clear(clearOptions, view.ClearColor, 1.0f, 0);
+                if (clearOptions != 0)
+                {
+                    _graphicsDevice.Clear(clearOptions, view.ClearColor, 1.0f, 0);
+                }
             }
 
             // 4. Build the camera frame for this view
@@ -238,6 +246,43 @@ public sealed class RenderPipeline
             default:
                 return true;
         }
+    }
+
+    private static ClearOptions BuildDepthClearOptions(RenderView view)
+    {
+        if (!view.ClearDepthBuffer)
+        {
+            return 0;
+        }
+
+        return ClearOptions.DepthBuffer | ClearOptions.Stencil;
+    }
+
+    private static void ApplyResolutionScale(RenderView view)
+    {
+        if (view.Surface is not RenderTargetSurface renderTargetSurface)
+        {
+            return;
+        }
+
+        int baseWidth;
+        int baseHeight;
+
+        if (view.Host != null)
+        {
+            baseWidth = Math.Max(1, view.Host.Width);
+            baseHeight = Math.Max(1, view.Host.Height);
+        }
+        else
+        {
+            var viewport = renderTargetSurface.ViewportRect;
+            baseWidth = Math.Max(1, viewport.Width);
+            baseHeight = Math.Max(1, viewport.Height);
+        }
+
+        var scaledWidth = Math.Max(1, (int)Math.Round(baseWidth * view.ResolutionScale));
+        var scaledHeight = Math.Max(1, (int)Math.Round(baseHeight * view.ResolutionScale));
+        renderTargetSurface.EnsureSize(scaledWidth, scaledHeight);
     }
 
 #if DEBUG
