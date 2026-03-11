@@ -206,6 +206,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         //   (b) keyboard shortcuts target the viewport the user interacted with.
         PreviewMouseDown += (_, _) =>
         {
+            ActivateThisView();
             if (!IsFocused)
             {
                 Focus();
@@ -315,6 +316,7 @@ public sealed class ViewportControl : D3D11Host, IViewHost
         if (_engineHost.ViewManager.TryGetView(_viewId, out var view))
         {
             _engineHost.ViewManager.SetActive(view);
+            _engineHost.Game?.InputComponent.InputRouter?.SetKeyboardFocus(view.Id);
         }
 
         if (requestFocus)

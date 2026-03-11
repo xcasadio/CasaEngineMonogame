@@ -20,6 +20,9 @@ public interface IUIViewRuntime : IDisposable
     /// <summary>True when keyboard input is currently captured by the UI runtime.</summary>
     bool IsKeyboardCaptured { get; }
 
+    /// <summary>True when the hosted UI is modal and should block lower-priority consumers.</summary>
+    bool HasModalInput { get; }
+
     /// <summary>Pushes a screen into the hosted UI stack when supported.</summary>
     void PushScreen(IUIScreen screen);
 

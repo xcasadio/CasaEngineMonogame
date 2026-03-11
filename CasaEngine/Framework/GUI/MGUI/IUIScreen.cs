@@ -19,6 +19,12 @@ public interface IUIScreen
     /// </summary>
     bool IsModal { get; }
 
+    /// <summary>
+    /// When true this screen blocks gameplay or view consumers below it at the engine level.
+    /// Defaults to the same semantics as <see cref="IsModal"/>.
+    /// </summary>
+    bool BlocksViewsBelow { get; }
+
     /// <summary>Called once the first time the screen is pushed onto a <see cref="ScreenStack"/>.</summary>
     void Initialize(UIRoot root);
 

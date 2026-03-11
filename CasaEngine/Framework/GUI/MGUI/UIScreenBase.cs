@@ -16,6 +16,9 @@ public abstract class UIScreenBase : IUIScreen
     /// <inheritdoc/>
     public virtual bool IsModal => false;
 
+    /// <inheritdoc/>
+    public virtual bool BlocksViewsBelow => IsModal;
+
     /// <summary>The <see cref="UIRoot"/> this screen was initialised with.</summary>
     protected UIRoot? Root { get; private set; }
 

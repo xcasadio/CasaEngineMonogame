@@ -46,6 +46,8 @@ public sealed class UIRoot : IUIViewRuntime
 
     public bool IsKeyboardCaptured => Desktop.FocusedKeyboardHandler != null;
 
+    public bool HasModalInput => ScreenStack.HasModalInput;
+
     /// <summary>
     /// Initializes the UIRoot for the given view.
     /// Creates a <see cref="ViewRenderHost"/> from the view's surface so that

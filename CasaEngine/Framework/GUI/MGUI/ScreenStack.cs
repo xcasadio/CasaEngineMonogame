@@ -25,8 +25,8 @@ public sealed class ScreenStack
     /// <summary>The topmost screen, or null if the stack is empty.</summary>
     public IUIScreen? Top => _screens.Count > 0 ? _screens[^1] : null;
 
-    /// <summary>True if any screen on the stack has <see cref="IUIScreen.IsModal"/> == true.</summary>
-    public bool HasModal => _screens.Exists(static s => s.IsModal);
+    /// <summary>True if any screen on the stack blocks lower-priority engine consumers.</summary>
+    public bool HasModalInput => _screens.Exists(static s => s.BlocksViewsBelow);
 
     // ---- Push / Pop ----
 
@@ -98,11 +98,11 @@ public sealed class ScreenStack
     {
         if (_screens.Count == 0) return;
 
-        // Find the lowest modal screen (blocks everything below it).
+        // Find the lowest blocking screen (blocks everything below it).
         int startIndex = 0;
         for (int i = _screens.Count - 1; i >= 0; i--)
         {
-            if (_screens[i].IsModal)
+            if (_screens[i].BlocksViewsBelow)
             {
                 startIndex = i;
                 break;

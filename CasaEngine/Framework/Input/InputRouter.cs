@@ -32,6 +32,9 @@ public sealed class InputRouter
     private readonly Dictionary<ViewId, ViewInputRegistration> _viewInputs = new();
 
     public ViewId CurrentTargetViewId { get; private set; } = ViewId.Empty;
+    public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
+    public ViewId KeyboardFocusViewId { get; private set; } = ViewId.Empty;
+    public ViewId ModalViewId { get; private set; } = ViewId.Empty;
 
     public bool HasRegisteredViewInputSources => _viewInputs.Count > 0;
 
@@ -66,11 +69,45 @@ public sealed class InputRouter
         {
             CurrentTargetViewId = ViewId.Empty;
         }
+
+        if (CurrentPointerViewId == viewId)
+        {
+            CurrentPointerViewId = ViewId.Empty;
+        }
+
+        if (KeyboardFocusViewId == viewId)
+        {
+            KeyboardFocusViewId = ViewId.Empty;
+        }
+
+        if (ModalViewId == viewId)
+        {
+            ModalViewId = ViewId.Empty;
+        }
+    }
+
+    public void SetKeyboardFocus(ViewId viewId)
+    {
+        KeyboardFocusViewId = viewId;
+    }
+
+    public void ClearKeyboardFocus(ViewId viewId)
+    {
+        if (KeyboardFocusViewId == viewId)
+        {
+            KeyboardFocusViewId = ViewId.Empty;
+        }
     }
 
     public bool TryDispatch(out ViewId viewId, out KeyboardState keyboardState, out MouseState mouseState)
     {
-        var targetView = ResolveTargetView();
+        var modalView = ResolveModalView();
+        ModalViewId = modalView?.Id ?? ViewId.Empty;
+
+        var pointerView = ResolvePointerView(modalView);
+        CurrentPointerViewId = pointerView?.Id ?? ViewId.Empty;
+
+        var targetView = modalView ?? pointerView ?? ResolveKeyboardFocusView();
         if (targetView == null || !_viewInputs.TryGetValue(targetView.Id, out var registration))
         {
             CurrentTargetViewId = ViewId.Empty;
@@ -83,6 +120,11 @@ public sealed class InputRouter
         if (_viewManager.ActiveView != targetView)
         {
             _viewManager.SetActive(targetView);
+        }
+
+        if (!targetView.Id.IsEmpty)
+        {
+            KeyboardFocusViewId = targetView.Id;
         }
 
         CurrentTargetViewId = targetView.Id;
@@ -133,6 +175,11 @@ public sealed class InputRouter
         return !CurrentTargetViewId.IsEmpty && CurrentTargetViewId == viewId;
     }
 
+    public bool IsKeyboardFocused(ViewId viewId)
+    {
+        return !KeyboardFocusViewId.IsEmpty && KeyboardFocusViewId == viewId;
+    }
+
     // ---- Mouse routing ----
 
     /// <summary>
@@ -167,8 +214,32 @@ public sealed class InputRouter
         return view.UIView?.IsKeyboardCaptured ?? false;
     }
 
-    private RenderView? ResolveTargetView()
+    private RenderView? ResolveModalView()
     {
+        for (int i = _viewManager.Views.Count - 1; i >= 0; i--)
+        {
+            var view = _viewManager.Views[i];
+            if (!view.Enabled || !view.IsVisible)
+            {
+                continue;
+            }
+
+            if (view.UIView?.HasModalInput == true)
+            {
+                return view;
+            }
+        }
+
+        return null;
+    }
+
+    private RenderView? ResolvePointerView(RenderView? modalView)
+    {
+        if (modalView != null)
+        {
+            return modalView;
+        }
+
         if (_viewManager.InputCaptureView != null
             && _viewInputs.ContainsKey(_viewManager.InputCaptureView.Id))
         {
@@ -190,6 +261,25 @@ public sealed class InputRouter
             }
         }
 
+        return null;
+    }
+
+    private RenderView? ResolveKeyboardFocusView()
+    {
+        if (KeyboardFocusViewId.IsEmpty)
+        {
+            return null;
+        }
+
+        if (_viewManager.TryGetView(KeyboardFocusViewId, out var view)
+            && view.Enabled
+            && view.IsVisible
+            && _viewInputs.ContainsKey(view.Id))
+        {
+            return view;
+        }
+
+        KeyboardFocusViewId = ViewId.Empty;
         return null;
     }
 }
