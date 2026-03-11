@@ -37,16 +37,23 @@ public sealed class UIRoot : IUIViewRuntime
 
     /// <summary>
     /// Uniform UI scale factor for this view.
-    /// 1.0 = no scaling; useful for accessibility or high-DPI secondary screens.
-    /// Currently informational — wire into a <see cref="UIScaler"/> to apply it.
+    /// 1.0 = no scaling; updated from per-view UI metrics.
     /// </summary>
     public float UIScale { get; set; } = 1.0f;
+
+    public UIViewMetrics Metrics { get; private set; } = new(new Point(1, 1), new Point(1920, 1080), 1.0f, new Rectangle(0, 0, 1, 1));
 
     public bool IsPointerOverUI => Desktop.Windows.Any(w => w.HoveredElement != null);
 
     public bool IsKeyboardCaptured => Desktop.FocusedKeyboardHandler != null;
 
     public bool HasModalInput => ScreenStack.HasModalInput;
+
+    public void UpdateMetrics(UIViewMetrics metrics)
+    {
+        Metrics = metrics;
+        UIScale = metrics.Scale;
+    }
 
     /// <summary>
     /// Initializes the UIRoot for the given view.

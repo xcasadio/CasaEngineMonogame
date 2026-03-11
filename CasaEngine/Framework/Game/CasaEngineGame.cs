@@ -334,7 +334,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
         // does not throw "Collection was modified" during enumeration.
         foreach (var view in GameManager.ViewManager.Views.ToArray())
+        {
+            SyncUIViewMetrics(view);
             view.UIView?.Update(gameTime);
+        }
 
         GameManager.UpdateWorld(gameTime);
 
@@ -466,6 +469,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
         view.UIView = UIViewRuntimeFactory.Create(this, view.Surface);
         view.UICompositionService ??= DefaultUICompositionService;
+        SyncUIViewMetrics(view);
     }
 
     /// <summary>
@@ -475,6 +479,28 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
         view.UIView?.Dispose();
         view.UIView = null;
+    }
+
+    private static void SyncUIViewMetrics(RenderView view)
+    {
+        if (view.UIView == null)
+        {
+            return;
+        }
+
+        Point viewportSize;
+        if (view.Host != null)
+        {
+            viewportSize = new Point(Math.Max(1, view.Host.Width), Math.Max(1, view.Host.Height));
+        }
+        else
+        {
+            var viewport = view.Surface.ViewportRect;
+            viewportSize = new Point(Math.Max(1, viewport.Width), Math.Max(1, viewport.Height));
+        }
+
+        var metrics = view.UIScaler.ComputeMetrics(viewportSize, view.UISafeAreaInset);
+        view.UIView.UpdateMetrics(metrics);
     }
 
 #if EDITOR

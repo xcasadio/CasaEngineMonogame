@@ -23,6 +23,12 @@ public interface IUIViewRuntime : IDisposable
     /// <summary>True when the hosted UI is modal and should block lower-priority consumers.</summary>
     bool HasModalInput { get; }
 
+    /// <summary>Latest per-view UI metrics computed by the host runtime.</summary>
+    UIViewMetrics Metrics { get; }
+
+    /// <summary>Refreshes per-view UI metrics such as scale and safe area.</summary>
+    void UpdateMetrics(UIViewMetrics metrics);
+
     /// <summary>Pushes a screen into the hosted UI stack when supported.</summary>
     void PushScreen(IUIScreen screen);
 

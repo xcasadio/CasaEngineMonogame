@@ -110,6 +110,17 @@ public sealed class RenderView
     }
     private float _resolutionScale = 1.0f;
 
+    /// <summary>Per-view UI scaling service used to derive scale and safe area.</summary>
+    public UIScaler UIScaler { get; set; } = new(new Point(1920, 1080));
+
+    /// <summary>Relative safe-area inset used by <see cref="UIScaler"/> for this view.</summary>
+    public float UISafeAreaInset
+    {
+        get => _uiSafeAreaInset;
+        set => _uiSafeAreaInset = Math.Clamp(value, 0.0f, 0.45f);
+    }
+    private float _uiSafeAreaInset = 0.05f;
+
     // ---- Extended hooks ----
 
     /// <summary>Optional custom render pipeline. Null = <see cref="DefaultViewPipeline"/>.</summary>

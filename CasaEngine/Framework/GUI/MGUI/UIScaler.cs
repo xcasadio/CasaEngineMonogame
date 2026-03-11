@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using CasaEngine.Framework.Rendering;
 
 namespace CasaEngine.Framework.GUI;
 
@@ -71,7 +72,23 @@ public sealed class UIScaler
             viewportSize.X - insetX * 2,
             viewportSize.Y - insetY * 2);
     }
+
+    public UIViewMetrics ComputeMetrics(Point viewportSize, float relativeInset = 0.05f)
+    {
+        return new UIViewMetrics(
+            viewportSize,
+            ReferenceResolution,
+            ComputeScale(viewportSize),
+            ComputeSafeArea(viewportSize, relativeInset));
+    }
 }
+
+/// <summary>Resolved UI layout data for a single render view.</summary>
+public readonly record struct UIViewMetrics(
+    Point ViewportSize,
+    Point ReferenceResolution,
+    float Scale,
+    Rectangle SafeArea);
 
 /// <summary>Determines how <see cref="UIScaler"/> derives a uniform scale from viewport dimensions.</summary>
 public enum ScaleMode
