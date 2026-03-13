@@ -8,6 +8,6 @@ namespace CasaEngine.Framework.GUI;
 /// </summary>
 public sealed class MguiViewRuntimeFactory : IUIViewRuntimeFactory
 {
-    public IUIViewRuntime Create(CasaEngineGame game, IRenderSurface surface)
+    public IUIViewRuntime Create(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext runtimeContext)
         => new UIRoot(game, surface);
 }

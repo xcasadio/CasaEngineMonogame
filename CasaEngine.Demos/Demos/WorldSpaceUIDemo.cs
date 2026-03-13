@@ -6,6 +6,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
@@ -57,7 +58,7 @@ public sealed class WorldSpaceUIDemo : Demo
         {
             UIView = null,
         };
-        _worldUi.UIView = game.UIViewRuntimeFactory.Create(game, _worldUi.Surface);
+        _worldUi.UIView = game.UIViewRuntimeFactory.Create(game, _worldUi.Surface, game.RuntimeContext);
         _worldUi.BindToMaterial(screenMaterial);
         world.RegisterWorldUI(_worldUi);
 

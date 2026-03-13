@@ -99,19 +99,14 @@ public class AssetContentManager
             throw new InvalidOperationException($"IAssetLoader not found for the type {type.FullName}");
         }
 
-        var assetInfo = AssetCatalog.Get(id);
-        if (RuntimeContext?.ResolveAssetInfo != null)
-        {
-            assetInfo = RuntimeContext.ResolveAssetInfo(id);
-        }
+        var assetInfo = ResolveAssetInfo(id);
 
         if (assetInfo == null)
         {
             throw new InvalidOperationException($"Asset not found with id '{id}'");
         }
 
-        var projectPath = RuntimeContext?.ProjectPath ?? EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
-        var fullFileName = Path.Combine(projectPath, assetInfo.FileName);
+        var fullFileName = ResolveAssetPath(assetInfo.FileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
 
@@ -147,11 +142,30 @@ public class AssetContentManager
             throw new InvalidOperationException("IAssetLoader not found for the type " + type.FullName);
         }
 
-        var projectPath = RuntimeContext?.ProjectPath ?? EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
-        var fullFileName = Path.Combine(projectPath, assetFileName);
+        var fullFileName = ResolveAssetPath(assetFileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
         return newAsset;
+    }
+
+    private AssetInfo? ResolveAssetInfo(Guid id)
+    {
+        if (RuntimeContext?.ResolveAssetInfo != null)
+        {
+            return RuntimeContext.ResolveAssetInfo(id);
+        }
+
+        return AssetCatalog.Get(id);
+    }
+
+    private string ResolveAssetPath(string relativeFileName)
+    {
+        if (RuntimeContext != null)
+        {
+            return RuntimeContext.GetAssetPath(relativeFileName);
+        }
+
+        return Path.Combine(EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath), relativeFileName);
     }
 
     public void Unload(string categoryName)

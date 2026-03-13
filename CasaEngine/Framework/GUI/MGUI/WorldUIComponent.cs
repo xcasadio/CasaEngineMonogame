@@ -42,7 +42,12 @@ public sealed class WorldUIComponent : IDisposable
     public WorldUIComponent(GraphicsDevice graphicsDevice, int width = 512, int height = 256)
     {
         _graphicsDevice = graphicsDevice;
-        _surface = new RenderTargetSurface(graphicsDevice, width, height, SurfaceFormat.Color, DepthFormat.Depth24);
+        _surface = new RenderTargetSurface(
+            graphicsDevice,
+            width,
+            height,
+            SurfaceFormat.Color,
+            DepthFormat.Depth24);
         Resolution = new Point(width, height);
     }
 

@@ -491,7 +491,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     /// </summary>
     private void OnViewAddedCreateUIRuntime(RenderView view)
     {
-        view.UIView = UIViewRuntimeFactory.Create(this, view.Surface);
+        view.UIView = UIViewRuntimeFactory.Create(this, view.Surface, RuntimeContext);
         view.UICompositionService ??= DefaultUICompositionService;
         SyncUIViewMetrics(view);
     }

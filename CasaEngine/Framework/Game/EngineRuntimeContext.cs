@@ -19,6 +19,8 @@ public sealed class EngineRuntimeContext
 
     public Func<Guid, AssetInfo?> ResolveAssetInfo { get; set; }
 
+    public Func<string, AssetInfo?> ResolveAssetInfoByFileName { get; set; }
+
     public RenderTargetPool? RenderTargetPool { get; set; }
 
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
@@ -29,12 +31,14 @@ public sealed class EngineRuntimeContext
         ProjectSettings projectSettings,
         string projectPath,
         Func<Guid, AssetInfo?> resolveAssetInfo,
+        Func<string, AssetInfo?>? resolveAssetInfoByFileName = null,
         IUIViewRuntimeFactory? uiViewRuntimeFactory = null,
         IUICompositionService? uiCompositionService = null)
     {
         ProjectSettings = projectSettings;
         ProjectPath = projectPath;
         ResolveAssetInfo = resolveAssetInfo;
+        ResolveAssetInfoByFileName = resolveAssetInfoByFileName ?? AssetCatalog.GetByFileName;
         UIViewRuntimeFactory = uiViewRuntimeFactory ?? new MguiViewRuntimeFactory();
         UICompositionService = uiCompositionService ?? DefaultUICompositionService.Instance;
     }
@@ -44,6 +48,12 @@ public sealed class EngineRuntimeContext
         return new EngineRuntimeContext(
             GameSettings.ProjectSettings,
             EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath),
-            AssetCatalog.Get);
+            AssetCatalog.Get,
+            AssetCatalog.GetByFileName);
+    }
+
+    public string GetAssetPath(string relativeFileName)
+    {
+        return Path.Combine(ProjectPath, relativeFileName);
     }
 }

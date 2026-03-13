@@ -212,7 +212,7 @@ Terminé
 
 ---
 
-### 🟡 CASA-ARCH-008 — Réduire l'exposition des services UI aux dépendances globales
+### ✅ CASA-ARCH-008 — Réduire l'exposition des services UI aux dépendances globales
 **Contexte**  
 Plusieurs services nécessaires au runtime UI restent fournis par des statics ou globaux moteur.
 
@@ -235,3 +235,6 @@ Introduire progressivement un contexte de services explicitement passé aux fact
 
 **Dépendances éventuelles**  
 - CASA-ARCH-001
+
+**Statut**  
+Terminé

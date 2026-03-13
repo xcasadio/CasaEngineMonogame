@@ -8,5 +8,5 @@ namespace CasaEngine.Framework.GUI;
 /// </summary>
 public interface IUIViewRuntimeFactory
 {
-    IUIViewRuntime Create(CasaEngineGame game, IRenderSurface surface);
+    IUIViewRuntime Create(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext runtimeContext);
 }
