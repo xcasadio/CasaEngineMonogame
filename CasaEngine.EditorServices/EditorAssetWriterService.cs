@@ -1,7 +1,9 @@
 using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
+using CasaEngine.Framework;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -9,10 +11,21 @@ namespace CasaEngine.EditorServices;
 
 public static class EditorAssetWriterService
 {
-    public static void SaveAsset(string fileName, ISerializable asset)
+    public static void SaveAsset(string fileName, object asset)
     {
         JObject rootObject = new();
-        asset.Save(rootObject);
+
+        switch (asset)
+        {
+            case ObjectBase objectBase:
+                objectBase.Save(rootObject);
+                break;
+            case MaterialBase materialBase:
+                materialBase.Save(rootObject);
+                break;
+            default:
+                throw new InvalidOperationException($"Asset type '{asset.GetType().FullName}' is not supported by the editor writer service.");
+        }
 
         SaveDocument(fileName, rootObject);
 

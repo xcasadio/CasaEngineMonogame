@@ -214,7 +214,7 @@ Commencer la séparation de la persistance editor en déplaçant l'écriture de 
 
 ---
 
-### ⬜ CASA-SEP-011 — Retirer `Save` de `ISerializable`
+### ✅ CASA-SEP-011 — Retirer `Save` de `ISerializable`
 **Objectif**  
 Faire de `ISerializable` un contrat de chargement runtime seulement, sans branche `#if EDITOR`.
 
