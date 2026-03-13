@@ -183,7 +183,7 @@ Terminé
 
 ---
 
-### 🟡 CASA-ARCH-007 — Intégrer un service de navigation d'écrans au niveau runtime
+### ✅ CASA-ARCH-007 — Intégrer un service de navigation d'écrans au niveau runtime
 **Contexte**  
 `GameScreenManager` existe déjà, mais son usage n'a pas été observé comme point de passage standard du runtime ou des projets.
 
@@ -206,6 +206,9 @@ Définir à quel niveau le runtime orchestre les transitions d'écrans, et branc
 
 **Dépendances éventuelles**  
 - CASA-ARCH-002
+
+**Statut**  
+Terminé
 
 ---
 

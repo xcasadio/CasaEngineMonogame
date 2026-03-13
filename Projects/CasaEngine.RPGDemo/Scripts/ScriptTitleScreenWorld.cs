@@ -9,7 +9,6 @@ namespace CasaEngine.RPGDemo.Scripts;
 
 public class ScriptTitleScreenWorld : GameplayProxy
 {
-    private IUIViewRuntime? _uiView;
     private TitleScreen? _titleScreen;
 
     public override void InitializeWithWorld(World world)
@@ -34,25 +33,23 @@ public class ScriptTitleScreenWorld : GameplayProxy
 
     public override void OnBeginPlay(World world)
     {
-        _uiView = world.Game.GameManager.ViewManager.GetActiveUIView();
-        if (_uiView == null) return;
+        if (world.Game.GameManager.ViewManager.GetActiveUIView() == null) return;
 
         void OnStartGame() => world.Game.GameManager.SetWorldToLoad("DefaultWorld.world");
         void OnExit()      => world.Game.Exit();
 
         _titleScreen = new TitleScreen(OnStartGame, OnExit);
-        _uiView.PushScreen(_titleScreen);
+        world.Game.GameManager.ScreenManager.PushScreenToActiveView(_titleScreen);
     }
 
     public override void OnEndPlay(World world)
     {
-        if (_uiView != null && _titleScreen != null)
+        if (_titleScreen != null)
         {
-            _uiView.RemoveScreen(_titleScreen);
+            world.Game.GameManager.ScreenManager.RemoveScreenFromActiveView(_titleScreen);
         }
 
         _titleScreen = null;
-        _uiView = null;
     }
 
     public override IGameplayProxy Clone()

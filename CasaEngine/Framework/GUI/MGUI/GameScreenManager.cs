@@ -41,6 +41,44 @@ public sealed class GameScreenManager
         _factories[stateName] = factory;
     }
 
+    public void PushScreen(IUIScreen screen, ViewId viewId)
+    {
+        ArgumentNullException.ThrowIfNull(screen);
+        _viewManager.GetUIView(viewId)?.PushScreen(screen);
+    }
+
+    public void PushScreenToActiveView(IUIScreen screen)
+    {
+        ArgumentNullException.ThrowIfNull(screen);
+
+        var activeViewId = _viewManager.ActiveView?.Id ?? ViewId.Empty;
+        if (activeViewId.IsEmpty)
+        {
+            return;
+        }
+
+        PushScreen(screen, activeViewId);
+    }
+
+    public void RemoveScreen(IUIScreen screen, ViewId viewId)
+    {
+        ArgumentNullException.ThrowIfNull(screen);
+        _viewManager.GetUIView(viewId)?.RemoveScreen(screen);
+    }
+
+    public void RemoveScreenFromActiveView(IUIScreen screen)
+    {
+        ArgumentNullException.ThrowIfNull(screen);
+
+        var activeViewId = _viewManager.ActiveView?.Id ?? ViewId.Empty;
+        if (activeViewId.IsEmpty)
+        {
+            return;
+        }
+
+        RemoveScreen(screen, activeViewId);
+    }
+
     /// <summary>
     /// Pops the current state's screen (if any) from all view stacks and pushes
     /// the screen for <paramref name="newState"/>.
@@ -48,10 +86,15 @@ public sealed class GameScreenManager
     /// </summary>
     public void TransitionTo(string newState)
     {
+        TransitionTo(newState, null);
+    }
+
+    public void TransitionTo(string newState, IEnumerable<ViewId>? targetViews)
+    {
         if (string.Equals(CurrentState, newState, StringComparison.OrdinalIgnoreCase))
             return;
 
-        foreach (var view in _viewManager.Views)
+        foreach (var view in ResolveViews(targetViews))
         {
             var uiView = view.UIView;
             if (uiView == null) continue;
@@ -71,11 +114,35 @@ public sealed class GameScreenManager
     /// <summary>Pops the current state screen from all view stacks.</summary>
     public void ClearState()
     {
+        ClearState(null);
+    }
+
+    public void ClearState(IEnumerable<ViewId>? targetViews)
+    {
         if (CurrentState == null) return;
 
-        foreach (var view in _viewManager.Views)
+        foreach (var view in ResolveViews(targetViews))
             view.UIView?.PopScreen();
 
         CurrentState = null;
+    }
+
+    private IEnumerable<RenderView> ResolveViews(IEnumerable<ViewId>? targetViews)
+    {
+        if (targetViews == null)
+        {
+            return _viewManager.Views;
+        }
+
+        var resolvedViews = new List<RenderView>();
+        foreach (var viewId in targetViews)
+        {
+            if (_viewManager.TryGetView(viewId, out var view))
+            {
+                resolvedViews.Add(view);
+            }
+        }
+
+        return resolvedViews;
     }
 }

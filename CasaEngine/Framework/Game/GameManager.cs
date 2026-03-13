@@ -26,9 +26,12 @@ public class GameManager
     /// <summary>Manages active render views for the multi-view render pipeline.</summary>
     public ViewManager ViewManager { get; } = new ViewManager();
 
+    public GameScreenManager ScreenManager { get; }
+
     public GameManager(CasaEngineGame game)
     {
         _game = game;
+        ScreenManager = new GameScreenManager(ViewManager);
         ViewManager.ViewAdded += _ => SyncPlayerViewAssignments();
         ViewManager.ViewRemoved += _ => SyncPlayerViewAssignments();
     }
