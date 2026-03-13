@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using CasaEngine.EditorUI.Controls;
+using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
@@ -20,9 +21,9 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
     {
         ContentItems.Add(new FolderItem("All", null));
 
-        AssetCatalog.AssetAdded += OnAssetAdded;
-        AssetCatalog.AssetRemoved += OnAssetRemoved;
-        AssetCatalog.AssetCleared += OnAssetCleared;
+        EditorAssetCatalogService.AssetAdded += OnAssetAdded;
+        EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
+        EditorAssetCatalogService.AssetCleared += OnAssetCleared;
     }
 
     private void OnAssetAdded(object? sender, AssetInfo assetInfo)

@@ -56,7 +56,7 @@ public partial class ContentBrowserControl : UserControl
     {
         InitializeComponent();
 
-        AssetCatalog.AssetRenamed += OnAssetRenamed;
+        EditorAssetCatalogService.AssetRenamed += OnAssetRenamed;
     }
 
     /// <summary>

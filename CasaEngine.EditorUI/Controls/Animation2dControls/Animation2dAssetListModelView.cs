@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 
@@ -13,9 +14,9 @@ public class Animation2dAssetListModelView
 
     public Animation2dAssetListModelView()
     {
-        AssetCatalog.AssetAdded += OnAssetAdded;
-        AssetCatalog.AssetRemoved += OnAssetRemoved;
-        AssetCatalog.AssetCleared += OnAssetCleared;
+        EditorAssetCatalogService.AssetAdded += OnAssetAdded;
+        EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
+        EditorAssetCatalogService.AssetCleared += OnAssetCleared;
 
         LoadAllAnimation2dAssetInfos();
     }

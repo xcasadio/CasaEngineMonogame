@@ -40,7 +40,7 @@ public class EntityViewModel : NotifyPropertyChangeBase
         Entity = entity;
         ComponentListViewModel = new ComponentListViewModel(this);
 
-        AssetCatalog.AssetRenamed += OnAssetRenamed;
+        EditorAssetCatalogService.AssetRenamed += OnAssetRenamed;
 
         if (entity?.Parent != null)
         {

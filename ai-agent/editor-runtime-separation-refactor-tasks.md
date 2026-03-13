@@ -119,7 +119,7 @@ Conserver en runtime un catalogue de lookup en lecture seule et sortir les opér
 
 ---
 
-### ⬜ CASA-SEP-006 — Migrer les événements de mutation d'assets vers le service editor
+### ✅ CASA-SEP-006 — Migrer les événements de mutation d'assets vers le service editor
 **Objectif**  
 Déplacer les événements `AssetAdded`, `AssetRemoved`, `AssetRenamed`, `AssetCleared` dans la couche editor pour que le runtime ne porte plus d'orchestration d'authoring.
 

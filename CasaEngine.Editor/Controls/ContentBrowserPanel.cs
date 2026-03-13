@@ -6,6 +6,7 @@ using System.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
+using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
@@ -176,10 +177,10 @@ public class ContentBrowserPanel
         // ────────────────────────────────────────
         //  Events
         // ────────────────────────────────────────
-        AssetCatalog.AssetAdded += OnAssetAdded;
-        AssetCatalog.AssetRemoved += OnAssetRemoved;
-        AssetCatalog.AssetRenamed += OnAssetRenamed;
-        AssetCatalog.AssetCleared += OnAssetCleared;
+        EditorAssetCatalogService.AssetAdded += OnAssetAdded;
+        EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
+        EditorAssetCatalogService.AssetRenamed += OnAssetRenamed;
+        EditorAssetCatalogService.AssetCleared += OnAssetCleared;
         ProjectSettingsHelper.ProjectLoaded += OnProjectLoaded;
 
         // ── Initial population ───────────────────────────────────────────

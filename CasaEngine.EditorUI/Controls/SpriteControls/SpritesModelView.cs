@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using Path = System.IO.Path;
@@ -13,9 +14,9 @@ public class SpritesModelView
 
     public SpritesModelView()
     {
-        AssetCatalog.AssetAdded += OnAssetAdded;
-        AssetCatalog.AssetRemoved += OnAssetRemoved;
-        AssetCatalog.AssetCleared += OnAssetCleared;
+        EditorAssetCatalogService.AssetAdded += OnAssetAdded;
+        EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
+        EditorAssetCatalogService.AssetCleared += OnAssetCleared;
 
         LoadAllSpriteAssetInfos();
     }

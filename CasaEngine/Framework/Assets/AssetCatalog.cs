@@ -63,10 +63,10 @@ public static class AssetCatalog
 
 #if EDITOR
 
-    public static event EventHandler<AssetInfo>? AssetAdded;
-    public static event EventHandler<AssetInfo>? AssetRemoved;
-    public static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
-    public static event EventHandler? AssetCleared;
+    internal static event EventHandler<AssetInfo>? AssetAdded;
+    internal static event EventHandler<AssetInfo>? AssetRemoved;
+    internal static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
+    internal static event EventHandler? AssetCleared;
 
     public static void Add(ObjectBase objectBase)
     {
