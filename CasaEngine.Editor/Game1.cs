@@ -96,6 +96,8 @@ namespace CasaEngine.Editor
             // ── Main window (borderless, fills the screen) ─────────────────
             _mainWindow = new MGWindow(_desktop, 0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
             {
+                WindowStyle = WindowStyle.None,
+                BackgroundBrush = _desktop.Theme.GetBackgroundBrush(MGElementType.Window),
                 TitleText = string.Empty,
                 IsTitleBarVisible = false,
                 IsCloseButtonVisible = false,
@@ -229,45 +231,34 @@ namespace CasaEngine.Editor
             // Tab groups
             var leftGroup = new DockTabGroupNode();
             leftGroup.AddPanel(explorerPanel, -1);
-            leftGroup.AddPanel(contentBrowserPanel, -1);
-            leftGroup.SetActivePanel(contentBrowserPanel.Id);
+            leftGroup.SetActivePanel(explorerPanel.Id);
 
             var rightGroup = new DockTabGroupNode();
             rightGroup.AddPanel(propertiesPanel, -1);
             rightGroup.SetActivePanel(propertiesPanel.Id);
 
             var bottomGroup = new DockTabGroupNode();
+            bottomGroup.AddPanel(contentBrowserPanel, -1);
             bottomGroup.AddPanel(outputPanel, -1);
-            bottomGroup.SetActivePanel(outputPanel.Id);
+            bottomGroup.SetActivePanel(contentBrowserPanel.Id);
 
             var centerGroup = new DockTabGroupNode();
             centerGroup.AddPanel(scenePanel, -1);
             centerGroup.SetActivePanel(scenePanel.Id);
 
-            // Vertical center-bottom split (80% center, 20% bottom)
-            var centerBottomSplit = new DockSplitNode
-            {
-                Orientation = Orientation.Vertical,
-                FirstChild = centerGroup,
-                SecondChild = bottomGroup,
-                SplitRatio = 0.8f,
-                MinFirstSize = 200,
-                MinSecondSize = 80
-            };
-
-            // Horizontal left | center split (20% left, 80% center-bottom)
+            // Horizontal left | center split (20% left, 80% center)
             var leftCenterSplit = new DockSplitNode
             {
                 Orientation = Orientation.Horizontal,
                 FirstChild = leftGroup,
-                SecondChild = centerBottomSplit,
+                SecondChild = centerGroup,
                 SplitRatio = 0.2f,
                 MinFirstSize = 150,
                 MinSecondSize = 400
             };
 
-            // Horizontal center | right split (80% center, 20% right)
-            var rootSplit = new DockSplitNode
+            // Horizontal work area | right split (80% work area, 20% right)
+            var topAreaSplit = new DockSplitNode
             {
                 Orientation = Orientation.Horizontal,
                 FirstChild = leftCenterSplit,
@@ -275,6 +266,17 @@ namespace CasaEngine.Editor
                 SplitRatio = 0.8f,
                 MinFirstSize = 400,
                 MinSecondSize = 150
+            };
+
+            // Vertical top area | bottom tabs so the bottom panel spans the full width.
+            var rootSplit = new DockSplitNode
+            {
+                Orientation = Orientation.Vertical,
+                FirstChild = topAreaSplit,
+                SecondChild = bottomGroup,
+                SplitRatio = 0.7f,
+                MinFirstSize = 250,
+                MinSecondSize = 120
             };
 
             _dockHost.LayoutModel.RootNode = rootSplit;
