@@ -234,9 +234,12 @@ Faire de `ISerializable` un contrat de chargement runtime seulement, sans branch
 
 ---
 
-### ⬜ CASA-SEP-012 — Déplacer les helpers `JsonHelper.Save` dans la couche editor
+### ✅ CASA-SEP-012 — Déplacer les helpers `JsonHelper.Save` dans la couche editor
 **Objectif**  
 Sortir les helpers d'écriture JSON de l'assembly runtime pour finaliser la séparation des utilitaires de persistance.
+
+**Résultat**  
+Les helpers d'écriture JSON ont été sortis du `JsonHelper` partagé vers des helpers editor dédiés, et les flux d'écriture editor `Asset` / `Entity` / `World` passent désormais par des serializers côté éditeur.
 
 **Fichiers / classes concernés**  
 - `CasaEngine/Core/Serialization/JsonHelper.cs`

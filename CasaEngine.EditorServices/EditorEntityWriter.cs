@@ -8,7 +8,7 @@ public static class EditorEntityWriter
     public static void SaveEntity(Entity entity)
     {
         JObject rootObject = new();
-        entity.Save(rootObject);
+        EditorEntityJsonSerializer.SaveEntity(entity, rootObject);
         EditorAssetWriterService.SaveDocument(entity.FileName, rootObject);
     }
 }

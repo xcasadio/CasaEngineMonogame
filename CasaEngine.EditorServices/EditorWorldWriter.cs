@@ -8,7 +8,7 @@ public static class EditorWorldWriter
     public static void SaveWorld(World world)
     {
         JObject rootObject = new();
-        world.Save(rootObject);
+        EditorEntityJsonSerializer.SaveWorld(world, rootObject);
         EditorAssetWriterService.SaveDocument(world.FileName, rootObject);
     }
 }

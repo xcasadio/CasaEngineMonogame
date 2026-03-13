@@ -1,5 +1,4 @@
 using CasaEngine.Core.Log;
-using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Graphics;
@@ -13,21 +12,28 @@ public static class EditorAssetWriterService
 {
     public static void SaveAsset(string fileName, object asset)
     {
-        JObject rootObject = new();
+        if (EditorAssetJsonSerializer.TrySerialize(asset, out var rootObject))
+        {
+            SaveDocument(fileName, rootObject);
+            Logs.WriteInfo($"Save '{fileName}'");
+            return;
+        }
+
+        JObject fallbackRootObject = new();
 
         switch (asset)
         {
             case ObjectBase objectBase:
-                objectBase.Save(rootObject);
+                objectBase.Save(fallbackRootObject);
                 break;
             case MaterialBase materialBase:
-                materialBase.Save(rootObject);
+                materialBase.Save(fallbackRootObject);
                 break;
             default:
                 throw new InvalidOperationException($"Asset type '{asset.GetType().FullName}' is not supported by the editor writer service.");
         }
 
-        SaveDocument(fileName, rootObject);
+        SaveDocument(fileName, fallbackRootObject);
 
         Logs.WriteInfo($"Save '{fileName}'");
     }
