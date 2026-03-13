@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Linq;
 using CasaEngine.Engine;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Entities.Components;
@@ -68,8 +67,7 @@ public class ScriptWorld : GameplayProxy
         _playerCharacter = scriptPlayer.Character;
 
         // Get UI view for this render view.
-        _uiView = world.Game.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIView != null)?.UIView;
+        _uiView = world.Game.GameManager.ViewManager.GetActiveUIView();
         if (_uiView == null) return;
 
         // Load portrait texture (falls back gracefully if missing)

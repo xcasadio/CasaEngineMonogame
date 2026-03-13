@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
@@ -35,8 +34,7 @@ public class ScriptTitleScreenWorld : GameplayProxy
 
     public override void OnBeginPlay(World world)
     {
-        _uiView = world.Game.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIView != null)?.UIView;
+        _uiView = world.Game.GameManager.ViewManager.GetActiveUIView();
         if (_uiView == null) return;
 
         void OnStartGame() => world.Game.GameManager.SetWorldToLoad("DefaultWorld.world");

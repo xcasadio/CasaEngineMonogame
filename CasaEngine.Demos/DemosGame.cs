@@ -99,7 +99,7 @@ public class DemosGame : CasaEngineGame
     // ---- Demo navigation UI helpers ----
 
     private IUIViewRuntime? GetUIView()
-        => GameManager.ViewManager.Views.FirstOrDefault(v => v.UIView != null)?.UIView;
+        => GameManager.ViewManager.GetActiveUIView();
 
     /// <summary>
     /// (Re)creates the DemoInfoScreen and DemoHintOverlay on the current UI view.

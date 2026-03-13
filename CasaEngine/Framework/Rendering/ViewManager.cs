@@ -1,4 +1,5 @@
 using CasaEngine.Core.Helpers;
+using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Rendering;
@@ -146,6 +147,17 @@ public sealed class ViewManager
 
         view = null!;
         return false;
+    }
+
+    public IUIViewRuntime? GetUIView(ViewId id)
+    {
+        return TryGetView(id, out var view) ? view.UIView : null;
+    }
+
+    public IUIViewRuntime? GetActiveUIView()
+    {
+        SynchronizeHostStates();
+        return ActiveView?.UIView;
     }
 
     /// <summary>

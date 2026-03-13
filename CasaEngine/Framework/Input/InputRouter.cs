@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
@@ -220,6 +221,11 @@ public sealed class InputRouter
             && _viewManager.TryGetView(id, out var view))
             return view;
         return null;
+    }
+
+    public IUIViewRuntime? GetUIViewForPlayer(PlayerIndex playerIndex)
+    {
+        return GetRenderViewForPlayer(playerIndex)?.UIView;
     }
 
     public bool IsViewReceivingInput(ViewId viewId)

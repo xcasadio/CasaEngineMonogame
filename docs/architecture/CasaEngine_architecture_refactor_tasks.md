@@ -154,7 +154,7 @@ Terminé
 
 ---
 
-### 🟡 CASA-ARCH-006 — Standardiser l'accès gameplay aux UIView ciblées
+### ✅ CASA-ARCH-006 — Standardiser l'accès gameplay aux UIView ciblées
 **Contexte**  
 Les chemins inspectés montrent encore des usages de type “première `UIView` disponible”, notamment dans certaines démos.
 
@@ -177,6 +177,9 @@ Créer des helpers ou services d'accès ciblé, puis migrer les exemples qui s'a
 
 **Dépendances éventuelles**  
 - CASA-ARCH-002
+
+**Statut**  
+Terminé
 
 ---
 

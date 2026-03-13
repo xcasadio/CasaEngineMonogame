@@ -125,6 +125,5 @@ public class UIOverlayDemo : Demo
     // ---- Helpers ----
 
     private IUIViewRuntime? GetUIView()
-        => _game?.GameManager.ViewManager.Views
-            .FirstOrDefault(v => v.UIView != null)?.UIView;
+        => _game?.GameManager.ViewManager.GetActiveUIView();
 }
