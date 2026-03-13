@@ -93,7 +93,6 @@ public abstract class MaterialBase : ISerializable
         LoadRenderStates(element);
     }
 
-#if EDITOR
     public virtual void Save(JObject jObject)
     {
         jObject["id"]             = Id.ToString();
@@ -106,7 +105,6 @@ public abstract class MaterialBase : ISerializable
 
         SaveRenderStates(jObject);
     }
-#endif
 
     // -------------------------------------------------------------------------
     // Helpers
@@ -144,7 +142,6 @@ public abstract class MaterialBase : ISerializable
         ["AnisotropicWrap"]     = SamplerState.AnisotropicWrap,
     };
 
-#if EDITOR
     // -------------------------------------------------------------------------
     // Editor-facing render-state helpers
     // -------------------------------------------------------------------------
@@ -163,7 +160,6 @@ public abstract class MaterialBase : ISerializable
     public void SetDepthStateByName(string name)      { if (DepthStateMap.TryGetValue(name, out var v))        DepthStencilState = v; }
     public void SetRasterizerStateByName(string name) { if (RasterizerMap.TryGetValue(name, out var v))        RasterizerState = v; }
     public void SetSamplerStateByName(string name)    { if (SamplerMap.TryGetValue(name, out var v))           SamplerState = v; }
-#endif
 
     private void LoadRenderStates(JObject element)
     {
@@ -177,7 +173,6 @@ public abstract class MaterialBase : ISerializable
             SamplerState = sampler;
     }
 
-#if EDITOR
     private void SaveRenderStates(JObject jObject)
     {
         jObject["blend_state"]          = BlendState == null ? "Opaque" : GetKeyOrDefault(BlendStateMap, BlendState!, "Opaque");
@@ -193,5 +188,4 @@ public abstract class MaterialBase : ISerializable
                 return kv.Key;
         return defaultKey;
     }
-#endif
 }

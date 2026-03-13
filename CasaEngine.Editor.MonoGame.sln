@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.3.11512.155
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.WithEditor", "CasaEngine\CasaEngine.WithEditor.csproj", "{36D16292-D92F-4087-8BE7-A09AD6D5AC05}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CasaEngine.EditorUI", "CasaEngine.EditorUI\CasaEngine.EditorUI.csproj", "{F2707E78-7C71-43AC-A27A-0E2FB32BB684}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GizmoTools", "GizmoTool\GizmoTools.csproj", "{84B4E8B0-D285-4545-95A1-41EF0724FC42}"
@@ -43,10 +41,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36D16292-D92F-4087-8BE7-A09AD6D5AC05}.Release|x64.ActiveCfg = Release|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2707E78-7C71-43AC-A27A-0E2FB32BB684}.Debug|x64.ActiveCfg = Debug|Any CPU

@@ -9,9 +9,7 @@ public class MouseManager
     private int _positionX, _positionY;
     private int _wheelDelta, _wheelValue;
 
-#if EDITOR
     public MouseState State => _currentState;
-#endif
 
     public Point Position => new(_currentState.X, _currentState.Y);
     public float DeltaX => _deltaX;

@@ -36,9 +36,7 @@ public class Coordinates
         {
             _position = value;
             SetDirtyMatrix();
-#if EDITOR
             PositionChanged?.Invoke(this, EventArgs.Empty);
-#endif
         }
     }
 
@@ -49,9 +47,7 @@ public class Coordinates
         {
             _orientation = value;
             SetDirtyMatrix();
-#if EDITOR
             OrientationChanged?.Invoke(this, EventArgs.Empty);
-#endif
         }
     }
 
@@ -62,9 +58,7 @@ public class Coordinates
         {
             _scale = value;
             SetDirtyMatrix();
-#if EDITOR
             ScaleChanged?.Invoke(this, EventArgs.Empty);
-#endif
         }
     }
 
@@ -107,11 +101,7 @@ public class Coordinates
         }
     }
 
-#if EDITOR
-
     public event EventHandler? PositionChanged;
     public event EventHandler? OrientationChanged;
     public event EventHandler? ScaleChanged;
-
-#endif
 }

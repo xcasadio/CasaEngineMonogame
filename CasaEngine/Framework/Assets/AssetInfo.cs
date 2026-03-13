@@ -74,8 +74,6 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         }
     }
 
-#if EDITOR
-
     public AssetInfo(Guid id)
     {
         Id = id;
@@ -90,6 +88,4 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
 
         jObject.Add("asset", assetObject);
     }
-
-#endif
 }

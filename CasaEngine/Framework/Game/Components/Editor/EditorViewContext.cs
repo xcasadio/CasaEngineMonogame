@@ -1,5 +1,3 @@
-#if EDITOR
-
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -129,5 +127,3 @@ public sealed class EditorViewContext : IDisposable
         // Game.Components by CasaEngineGame / EngineHost when the view is torn down.
     }
 }
-
-#endif

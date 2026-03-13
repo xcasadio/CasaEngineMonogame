@@ -29,9 +29,7 @@ public static class ElementFactory
     private static void RebuildCaches()
     {
         _typeCache = BuildTypeCache();
-#if EDITOR
         _derivedTypesCache = _derivedTypesCache.Keys.ToDictionary(t => t, BuildDerivedTypes);
-#endif
     }
 
     private static Dictionary<string, Type> BuildTypeCache() =>
@@ -52,8 +50,6 @@ public static class ElementFactory
         return type;
     }
 
-#if EDITOR
-
     private static Dictionary<Type, IEnumerable<Type>> _derivedTypesCache = new();
 
     private static IEnumerable<Type> BuildDerivedTypes(Type type) =>
@@ -73,6 +69,4 @@ public static class ElementFactory
         }
         return derived;
     }
-
-#endif
 }

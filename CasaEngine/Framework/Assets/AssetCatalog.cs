@@ -23,10 +23,8 @@ public static class AssetCatalog
         _assetInfosByName[assetInfo.Name] = assetInfo;
         _assetInfosByFileName[assetInfo.FileName] = assetInfo;
 
-#if EDITOR
         Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         AssetAdded?.Invoke(null, assetInfo);
-#endif
     }
 
     public static AssetInfo? Get(Guid guid)
@@ -60,8 +58,6 @@ public static class AssetCatalog
 
         IsLoaded = true;
     }
-
-#if EDITOR
 
     internal static event EventHandler<AssetInfo>? AssetAdded;
     internal static event EventHandler<AssetInfo>? AssetRemoved;
@@ -177,6 +173,4 @@ public static class AssetCatalog
 
         Logs.WriteInfo($"Asset infos saved in {fileName}");
     }
-
-#endif
 }

@@ -364,7 +364,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
     }
 
-#if EDITOR
     public List<Guid> AnimationAssetIds => _animationAssetIds;
 
     public override void Save(JObject jObject)
@@ -386,6 +385,4 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         jObject.Add("animations", animationsNode);
     }
-
-#endif
 }

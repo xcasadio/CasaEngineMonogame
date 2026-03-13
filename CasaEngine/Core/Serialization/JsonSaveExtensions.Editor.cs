@@ -6,7 +6,6 @@ using Size = CasaEngine.Core.Maths.Size;
 
 namespace CasaEngine.Core.Serialization;
 
-#if EDITOR
 public static class JsonSaveExtensions
 {
     public static void Save(this Rectangle obj, JObject jObject)
@@ -171,4 +170,3 @@ public static class JsonSaveExtensions
         return Enum.GetName(value.GetType(), value);
     }
 }
-#endif

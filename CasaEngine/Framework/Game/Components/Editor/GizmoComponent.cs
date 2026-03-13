@@ -1,6 +1,4 @@
-﻿#if EDITOR
-
-using CasaEngine.Core.Log;
+﻿using CasaEngine.Core.Log;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Input;
@@ -318,5 +316,3 @@ namespace CasaEngine.Framework.Game.Components.Editor
         }
     }
 }
-
-#endif

@@ -190,8 +190,6 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
     }
 
-#if EDITOR
-
     public void TryLoadSpriteData(string? spriteDataName)
     {
         if (spriteDataName == null)
@@ -207,6 +205,4 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.Name);
         base.Save(jObject);
     }
-
-#endif
 }

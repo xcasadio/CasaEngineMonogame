@@ -7,9 +7,7 @@ public class KeyboardManager
     private KeyboardState _currentState;
     private KeyboardState _previousState;
 
-#if EDITOR
     public KeyboardState State => _currentState;
-#endif
 
     public bool IsKeyJustPressed(Keys key)
     {

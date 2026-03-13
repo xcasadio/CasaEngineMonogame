@@ -1,5 +1,3 @@
-#if EDITOR
-
 using CasaEngine.Framework.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
@@ -37,5 +35,3 @@ internal sealed class GizmoTransformableAdapter : ITransformable
     public Vector3 Up => Transformable.Up;
     public BoundingBox BoundingBox => Transformable.BoundingBox;
 }
-
-#endif

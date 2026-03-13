@@ -425,8 +425,6 @@ public sealed class World : ObjectBase
         return null;
     }
 
-#if EDITOR
-
     public event EventHandler? EntitiesClear;
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
@@ -537,6 +535,4 @@ public sealed class World : ObjectBase
 
         jObject.Add("game_mode_asset_id", GameModeAssetId);
     }
-
-#endif
 }

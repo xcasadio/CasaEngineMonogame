@@ -386,9 +386,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         // Fire MGUI EndUpdate to finalise frame state in all desktops.
         EndUpdate?.Invoke(this, EventArgs.Empty);
 
-#if EDITOR
         FrameComputed?.Invoke(this, EventArgs.Empty);
-#endif
     }
 
     /*
@@ -526,9 +524,5 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         view.UIView.UpdateMetrics(metrics);
     }
 
-#if EDITOR
-
     public event EventHandler? FrameComputed;
-
-#endif
 }

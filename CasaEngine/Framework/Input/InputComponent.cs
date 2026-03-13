@@ -101,8 +101,6 @@ public class InputComponent : GameComponent
         base.Update(gameTime);
     }
 
-#if EDITOR
-
     public KeyboardState Keyboard => KeyboardManager.State;
     public MouseState MouseState => MouseManager.State;
 
@@ -116,6 +114,4 @@ public class InputComponent : GameComponent
 
         SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
     }
-
-#endif
 }

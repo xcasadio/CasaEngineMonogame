@@ -49,13 +49,9 @@ public class ObjectBase : ISerializable
         Name = element["name"].GetString();
     }
 
-#if EDITOR
-
     public virtual void Save(JObject node)
     {
         node.Add("id", Id.ToString());
         node.Add("name", Name);
     }
-
-#endif
 }

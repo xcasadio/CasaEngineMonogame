@@ -1,5 +1,3 @@
-#if EDITOR
-
 namespace CasaEngine.Framework.Game.Components.Editor;
 
 /// <summary>
@@ -27,5 +25,3 @@ public enum EditorViewType
     /// <summary>Custom viewport — caller supplies its own components and camera.</summary>
     Custom,
 }
-
-#endif

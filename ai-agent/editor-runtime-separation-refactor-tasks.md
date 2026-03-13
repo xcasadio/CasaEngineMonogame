@@ -342,7 +342,7 @@ Faire dépendre les projets editor d'un noyau runtime propre et d'extensions edi
 
 ---
 
-### ⬜ CASA-SEP-017 — Supprimer `CasaEngine.WithEditor` comme mécanisme de séparation
+### ✅ CASA-SEP-017 — Supprimer `CasaEngine.WithEditor` comme mécanisme de séparation
 **Objectif**  
 Finaliser le découplage en retirant la variante de build mixte comme solution architecturale de séparation runtime/editor.
 

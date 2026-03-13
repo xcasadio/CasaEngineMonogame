@@ -49,8 +49,6 @@ public class EntityReference
         }
     }
 
-#if EDITOR
-
     public static EntityReference CreateFromAssetInfo(AssetInfo assetInfo, AssetContentManager assetContentManager)
     {
         var entityReference = new EntityReference();
@@ -84,6 +82,4 @@ public class EntityReference
             jObject.Add("initial_coordinates", coordinateNode);
         }
     }
-
-#endif
 }

@@ -200,15 +200,8 @@ public class GameManager
 
     private void OnWorldChange()
     {
-#if EDITOR
         WorldChanged?.Invoke(this, EventArgs.Empty);
-#endif
     }
 
-
-#if EDITOR
-
     public event EventHandler? WorldChanged;
-
-#endif
 }

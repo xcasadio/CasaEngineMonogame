@@ -11,21 +11,17 @@ public class SkinnedMesh : ObjectBase
 
     public void Initialize(AssetContentManager assetContentManager)
     {
-#if EDITOR
         if (_isInitialized)
         {
             return;
         }
-#endif
 
         if (RiggedModelAssetId != Guid.Empty)
         {
             RiggedModel = assetContentManager.Load<RiggedModel>(RiggedModelAssetId);
         }
 
-#if EDITOR
         _isInitialized = true;
-#endif
     }
 
     public override void Load(JObject element)
@@ -33,8 +29,6 @@ public class SkinnedMesh : ObjectBase
         base.Load(element);
         RiggedModelAssetId = element["rigged_model_asset_id"].GetGuid();
     }
-
-#if EDITOR
 
     private bool _isInitialized;
 
@@ -48,5 +42,4 @@ public class SkinnedMesh : ObjectBase
         base.Save(jObject);
         jObject.Add("rigged_model_asset_id", RiggedModelAssetId);
     }
-#endif
 }

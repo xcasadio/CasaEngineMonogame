@@ -42,14 +42,10 @@ public class ProjectSettings
 
 #endif
 
-#if EDITOR
-
     [Browsable(false), JsonIgnore]
     public string? ProjectFileOpened { get; set; }
 
     [Category("External Tool")]
     public string ExternalToolsDirectory { get; set; } = "ExternalTools";
-
-#endif
 
 }

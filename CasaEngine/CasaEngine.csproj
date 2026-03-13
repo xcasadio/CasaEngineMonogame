@@ -27,6 +27,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
 	  <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
+	  <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="BulletSharp">
