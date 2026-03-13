@@ -10,11 +10,9 @@ using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.SpacePartitioning.Octree;
+using CasaEngine.Framework.Transform;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-#if EDITOR
-using GizmoTools;
-#endif
 
 namespace CasaEngine.Framework.World;
 
@@ -443,9 +441,9 @@ public sealed class World : ObjectBase
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
-    public IEnumerable<ITransformable> GetSelectableComponents()
+    public IEnumerable<ITransformableObject> GetSelectableComponents()
     {
-        var selectables = new List<ITransformable>();
+        var selectables = new List<ITransformableObject>();
 
         foreach (var entity in _entities)
         {
@@ -455,7 +453,7 @@ public sealed class World : ObjectBase
         return selectables;
     }
 
-    private void AddSelectablesFromActor(Entity actor, List<ITransformable> selectables)
+    private void AddSelectablesFromActor(Entity actor, List<ITransformableObject> selectables)
     {
         if (actor.RootComponent != null)
         {

@@ -60,7 +60,7 @@ Faire en sorte que `SceneComponent` implémente uniquement le contrat runtime in
 
 ---
 
-### ⬜ CASA-SEP-003 — Retirer `GizmoTools` de `World` et isoler la sélection editor
+### ✅ CASA-SEP-003 — Retirer `GizmoTools` de `World` et isoler la sélection editor
 **Objectif**  
 Supprimer la fuite des concepts de sélection editor dans `World` et déplacer ce qui est propre à l'éditeur derrière un adapter ou un service dédié.
 
