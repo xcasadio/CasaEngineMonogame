@@ -14,7 +14,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
-using GizmoTools;
+using CasaEngine.Framework.Transform;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -69,8 +69,8 @@ public partial class EntityControl : UserControl
                            ?? _game?.GetGameComponent<GizmoComponent>();
             if (_gizmoComponent != null)
             {
-                _gizmoComponent.Gizmo.SelectionChanged -= OnEntitiesSelectionChanged;
-                _gizmoComponent.Gizmo.SelectionChanged += OnEntitiesSelectionChanged;
+                _gizmoComponent.SelectionChanged -= OnEntitiesSelectionChanged;
+                _gizmoComponent.SelectionChanged += OnEntitiesSelectionChanged;
             }
         }
 
@@ -84,12 +84,12 @@ public partial class EntityControl : UserControl
         }
     }
 
-    private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
+    private void OnEntitiesSelectionChanged(object? sender, List<ITransformableObject> entities)
     {
         SceneComponent? selectedSceneComponent = null;
-        if (_gizmoComponent.Gizmo.Selection.Count > 0)
+        if (_gizmoComponent.CurrentSelection.Count > 0)
         {
-            selectedSceneComponent = (SceneComponent)_gizmoComponent.Gizmo.Selection[0];
+            selectedSceneComponent = _gizmoComponent.CurrentSelection[0] as SceneComponent;
         }
 
         if (selectedSceneComponent != null)
@@ -227,7 +227,7 @@ public partial class EntityControl : UserControl
 
             if (componentViewModel.Component is SceneComponent sceneComponent)
             {
-                _gizmoComponent.Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
+                _gizmoComponent.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
                 SelectInGizmo(sceneComponent);
             }
 
@@ -237,8 +237,8 @@ public partial class EntityControl : UserControl
 
     private void SelectInGizmo(SceneComponent sceneComponent)
     {
-        _gizmoComponent.Gizmo.Clear();
-        _gizmoComponent.Gizmo.AddToSelection(sceneComponent);
+        _gizmoComponent.ClearSelection();
+        _gizmoComponent.AddToSelection(sceneComponent);
     }
 
     private void TreeView_KeyUp(object sender, KeyEventArgs e)
@@ -252,7 +252,7 @@ public partial class EntityControl : UserControl
                 if (componentViewModel.Component is SceneComponent sceneComponent)
                 {
                     var gizmoComponent = _game.GetGameComponent<GizmoComponent>();
-                    gizmoComponent.Gizmo.RemoveFromSelection(sceneComponent);
+                    gizmoComponent.RemoveFromSelection(sceneComponent);
                 }
             }
         }

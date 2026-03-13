@@ -170,14 +170,14 @@ public partial class GameEditorWorldControl : UserControl
 
         var ctx = host.GetViewContext(_viewId);
         var gizmoComponent = ctx?.Gizmo;
-        gizmoComponent?.Gizmo.Clear();
+        gizmoComponent?.ClearSelection();
 
         entity.Initialize();
         entity.InitializeWithWorld(host.Game.GameManager.CurrentWorld);
 
         (DataContext as WorldEditorViewModel)?.EntitiesViewModel.Add(entity);
 
-        gizmoComponent?.Gizmo.SetSelectionPool(host.Game.GameManager.CurrentWorld.GetSelectableComponents());
+        gizmoComponent?.SetSelectionPool(host.Game.GameManager.CurrentWorld.GetSelectableComponents());
 
         if (entity.RootComponent != null && ctx?.Camera != null)
         {

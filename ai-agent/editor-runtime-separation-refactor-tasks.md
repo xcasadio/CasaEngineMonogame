@@ -80,7 +80,7 @@ Supprimer la fuite des concepts de sélection editor dans `World` et déplacer c
 
 ---
 
-### ⬜ CASA-SEP-004 — Ajouter une façade editor pour la manipulation gizmo
+### ✅ CASA-SEP-004 — Ajouter une façade editor pour la manipulation gizmo
 **Objectif**  
 Créer côté éditeur un point d'entrée clair qui adapte les objets runtime au système de gizmo, au lieu de brancher `GizmoTools` directement sur les types runtime.
 

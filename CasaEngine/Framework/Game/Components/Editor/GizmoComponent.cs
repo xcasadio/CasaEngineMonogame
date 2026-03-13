@@ -5,10 +5,10 @@ using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using GizmoTools;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
 
@@ -18,6 +18,11 @@ public class GizmoComponent : DrawableGameComponent
 
     private InputComponent? _inputComponent;
     private CasaEngineGame? _game;
+    private readonly Dictionary<ITransformableObject, GizmoTransformableAdapter> _selectionAdapters = [];
+
+    public event EventHandler<List<ITransformableObject>>? DeleteSelectionEvent;
+    public event EventHandler<List<ITransformableObject>>? SelectionChanged;
+    public event EventHandler<List<ITransformableObject>>? CopyTriggered;
 
     /// <summary>
     /// When set, <see cref="Update"/> uses this camera instead of
@@ -68,6 +73,9 @@ public class GizmoComponent : DrawableGameComponent
         Gizmo.TranslateEvent += GizmoTranslateEvent;
         Gizmo.RotateEvent += GizmoRotateEvent;
         Gizmo.ScaleEvent += GizmoScaleEvent;
+        Gizmo.SelectionChanged += OnGizmoSelectionChanged;
+        Gizmo.DeleteSelectionEvent += OnGizmoDeleteSelectionEvent;
+        Gizmo.CopyTriggered += OnGizmoCopyTriggered;
 
         _inputComponent = Game.GetGameComponent<InputComponent>();
 
@@ -81,7 +89,7 @@ public class GizmoComponent : DrawableGameComponent
     {
         if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
         {
-            Gizmo.SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
+            SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
         }
 
         if (Gizmo.GetSelectionPool() == null)
@@ -192,9 +200,81 @@ public class GizmoComponent : DrawableGameComponent
         Gizmo.Draw();
     }
 
+    public IReadOnlyList<ITransformableObject> CurrentSelection => UnwrapSelection(Gizmo.Selection);
+
+    public void SetSelectionPool(IEnumerable<ITransformableObject> selectables)
+    {
+        var runtimeSelection = selectables.ToList();
+        var adapterSelection = runtimeSelection.Select(GetOrCreateAdapter).Cast<ITransformable>().ToList();
+        var liveKeys = runtimeSelection.ToHashSet();
+
+        foreach (var staleKey in _selectionAdapters.Keys.Where(key => !liveKeys.Contains(key)).ToList())
+        {
+            _selectionAdapters.Remove(staleKey);
+        }
+
+        Gizmo.SetSelectionPool(adapterSelection);
+    }
+
+    public void ClearSelection()
+    {
+        Gizmo.Clear();
+    }
+
+    public void AddToSelection(ITransformableObject transformable)
+    {
+        Gizmo.AddToSelection(GetOrCreateAdapter(transformable));
+    }
+
+    public void RemoveFromSelection(ITransformableObject transformable)
+    {
+        if (_selectionAdapters.TryGetValue(transformable, out var adapter))
+        {
+            Gizmo.RemoveFromSelection(adapter);
+        }
+    }
+
+    private GizmoTransformableAdapter GetOrCreateAdapter(ITransformableObject transformable)
+    {
+        if (_selectionAdapters.TryGetValue(transformable, out var adapter))
+        {
+            return adapter;
+        }
+
+        adapter = new GizmoTransformableAdapter(transformable);
+        _selectionAdapters.Add(transformable, adapter);
+        return adapter;
+    }
+
+    private static List<ITransformableObject> UnwrapSelection(IEnumerable<ITransformable> selection)
+    {
+        return selection
+            .OfType<GizmoTransformableAdapter>()
+            .Select(adapter => adapter.Transformable)
+            .ToList();
+    }
+
+    private void OnGizmoSelectionChanged(object? sender, List<ITransformable> selection)
+    {
+        SelectionChanged?.Invoke(this, UnwrapSelection(selection));
+    }
+
+    private void OnGizmoDeleteSelectionEvent(object? sender, List<ITransformable> selection)
+    {
+        DeleteSelectionEvent?.Invoke(this, UnwrapSelection(selection));
+    }
+
+    private void OnGizmoCopyTriggered(object? sender, List<ITransformable> selection)
+    {
+        CopyTriggered?.Invoke(this, UnwrapSelection(selection));
+    }
+
     private void GizmoTranslateEvent(ITransformable transformable, TransformationEventArgs e)
     {
-        transformable.Position += (Vector3)e.Value;
+        if (transformable is GizmoTransformableAdapter adapter)
+        {
+            adapter.Transformable.Position += (Vector3)e.Value;
+        }
     }
 
     private void GizmoRotateEvent(ITransformable transformable, TransformationEventArgs e)
@@ -204,8 +284,13 @@ public class GizmoComponent : DrawableGameComponent
 
     private void GizmoScaleEvent(ITransformable transformable, TransformationEventArgs e)
     {
+        if (transformable is not GizmoTransformableAdapter adapter)
+        {
+            return;
+        }
+
         var delta = (Vector3)e.Value;
-        var scale = transformable.Scale;
+        var scale = adapter.Transformable.Scale;
 
         if (Gizmo.ActiveMode == GizmoMode.UniformScale)
         {
@@ -216,7 +301,7 @@ public class GizmoComponent : DrawableGameComponent
             scale += delta;
         }
         scale = Vector3.Clamp(scale, Vector3.Zero, scale);
-        transformable.Scale = scale;
+        adapter.Transformable.Scale = scale;
     }
 }
 

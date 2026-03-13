@@ -12,8 +12,8 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Transform;
 using Microsoft.Xna.Framework;
-using GizmoTools;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls;
 
@@ -68,12 +68,12 @@ public partial class EntitiesControl : UserControl
                                ?? Game.GetGameComponent<GizmoComponent>();
                 if (_gizmoComponent != null)
                 {
-                    _gizmoComponent.Gizmo.SelectionChanged   -= OnEntitiesSelectionChanged;
-                    _gizmoComponent.Gizmo.SelectionChanged   += OnEntitiesSelectionChanged;
-                    _gizmoComponent.Gizmo.CopyTriggered      -= OnCopyTriggered;
-                    _gizmoComponent.Gizmo.CopyTriggered      += OnCopyTriggered;
-                    _gizmoComponent.Gizmo.DeleteSelectionEvent -= OnDeleteSelectionEvent;
-                    _gizmoComponent.Gizmo.DeleteSelectionEvent += OnDeleteSelectionEvent;
+                    _gizmoComponent.SelectionChanged -= OnEntitiesSelectionChanged;
+                    _gizmoComponent.SelectionChanged += OnEntitiesSelectionChanged;
+                    _gizmoComponent.CopyTriggered -= OnCopyTriggered;
+                    _gizmoComponent.CopyTriggered += OnCopyTriggered;
+                    _gizmoComponent.DeleteSelectionEvent -= OnDeleteSelectionEvent;
+                    _gizmoComponent.DeleteSelectionEvent += OnDeleteSelectionEvent;
                 }
             }
         }
@@ -88,7 +88,7 @@ public partial class EntitiesControl : UserControl
         }
     }
 
-    private void OnDeleteSelectionEvent(object? sender, List<ITransformable> selectionPool)
+    private void OnDeleteSelectionEvent(object? sender, List<ITransformableObject> selectionPool)
     {
         var entitiesViewModel = DataContext as EntityListViewModel;
 
@@ -99,11 +99,11 @@ public partial class EntitiesControl : UserControl
             entitiesViewModel.Remove(entity);
         }
 
-        _gizmoComponent.Gizmo.Clear();
+        _gizmoComponent.ClearSelection();
         SetSelectedItem(null);
     }
 
-    private void OnCopyTriggered(object? sender, List<ITransformable> selectionPool)
+    private void OnCopyTriggered(object? sender, List<ITransformableObject> selectionPool)
     {
         if (!_isSelectionTriggerFromGizmoActive)
         {
@@ -125,12 +125,12 @@ public partial class EntitiesControl : UserControl
             newEntities.Add(entitiesViewModel.Add(newEntity));
         }
 
-        _gizmoComponent.Gizmo.Clear();
+        _gizmoComponent.ClearSelection();
         foreach (var entityViewModel in newEntities)
         {
             if (entityViewModel.Entity.RootComponent != null)
             {
-                _gizmoComponent.Gizmo.AddToSelection(entityViewModel.Entity.RootComponent);
+                _gizmoComponent.AddToSelection(entityViewModel.Entity.RootComponent);
             }
         }
 
@@ -139,7 +139,7 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerFromGizmoActive = true;
     }
 
-    private void OnEntitiesSelectionChanged(object? sender, List<ITransformable> entities)
+    private void OnEntitiesSelectionChanged(object? sender, List<ITransformableObject> entities)
     {
         if (!_isSelectionTriggerFromGizmoActive)
         {
@@ -148,9 +148,9 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerFromGizmoActive = false;
 
         SceneComponent? selectedSceneComponent = null;
-        if (_gizmoComponent.Gizmo.Selection.Count > 0)
+        if (_gizmoComponent.CurrentSelection.Count > 0)
         {
-            selectedSceneComponent = (SceneComponent)_gizmoComponent.Gizmo.Selection[0];
+            selectedSceneComponent = _gizmoComponent.CurrentSelection[0] as SceneComponent;
         }
 
         if (selectedSceneComponent != null)
@@ -196,13 +196,13 @@ public partial class EntitiesControl : UserControl
         _isSelectionTriggerFromGizmoActive = false;
 
         var entityViewModel = e.NewValue as EntityViewModel;
-        _gizmoComponent.Gizmo.Clear();
+        _gizmoComponent.ClearSelection();
 
         if (entityViewModel != null)
         {
             if (entityViewModel?.Entity?.RootComponent != null)
             {
-                _gizmoComponent.Gizmo.AddToSelection(entityViewModel.Entity.RootComponent);
+                _gizmoComponent.AddToSelection(entityViewModel.Entity.RootComponent);
             }
         }
 
@@ -280,7 +280,7 @@ public partial class EntitiesControl : UserControl
 
                 if (entityViewModel.ComponentListViewModel?.RootComponentViewModel?.Component is SceneComponent sceneComponent)
                 {
-                    _gizmoComponent.Gizmo.RemoveFromSelection(sceneComponent);
+                    _gizmoComponent.RemoveFromSelection(sceneComponent);
                 }
             }
         }
