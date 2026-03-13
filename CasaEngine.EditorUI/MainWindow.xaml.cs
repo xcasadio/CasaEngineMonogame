@@ -3,10 +3,10 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.ContentBrowser;
 using CasaEngine.EditorUI.Windows;
-using CasaEngine.Framework.Project;
 using TabItem = System.Windows.Controls.TabItem;
 
 namespace CasaEngine.EditorUI;
@@ -61,7 +61,7 @@ public partial class MainWindow : Window
 
         Logs.WriteInfo($"Project opened {projectFileName}");
 
-        ProjectSettingsHelper.Load(projectFileName);
+        EditorProjectAuthoringService.LoadProject(projectFileName);
     }
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
@@ -142,7 +142,7 @@ public partial class MainWindow : Window
 
         if (dialog.ShowDialog() == true)
         {
-            ProjectSettingsHelper.CreateProject(dialog.ProjectName, dialog.ProjectPath);
+            EditorProjectAuthoringService.CreateProject(dialog.ProjectName, dialog.ProjectPath);
             Logs.WriteInfo($"New project {dialog.ProjectName} created in {dialog.ProjectPath}");
         }
     }

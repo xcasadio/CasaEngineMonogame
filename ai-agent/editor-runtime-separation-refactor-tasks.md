@@ -177,7 +177,7 @@ Remplacer les appels directs à `AssetSaver` dans les contrôles editor par le s
 
 ---
 
-### ⬜ CASA-SEP-009 — Extraire un service d'authoring de projet hors de `ProjectSettingsHelper`
+### ✅ CASA-SEP-009 — Extraire un service d'authoring de projet hors de `ProjectSettingsHelper`
 **Objectif**  
 Laisser `ProjectSettingsHelper` gérer uniquement le chargement runtime d'un projet existant et déplacer `CreateProject`, `Save`, `Clear` et les événements editor vers un service dédié.
 

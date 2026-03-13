@@ -181,7 +181,7 @@ public class ContentBrowserPanel
         EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
         EditorAssetCatalogService.AssetRenamed += OnAssetRenamed;
         EditorAssetCatalogService.AssetCleared += OnAssetCleared;
-        ProjectSettingsHelper.ProjectLoaded += OnProjectLoaded;
+        EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
         // ── Initial population ───────────────────────────────────────────
         RebuildTree();

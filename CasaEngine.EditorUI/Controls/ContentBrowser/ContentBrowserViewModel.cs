@@ -8,7 +8,6 @@ using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Project;
 
 namespace CasaEngine.EditorUI.Controls.ContentBrowser;
 
@@ -83,8 +82,8 @@ public class ContentBrowserViewModel : INotifyPropertyChanged
 
     private void OnGameStarted(object? sender, EventArgs e)
     {
-        ProjectSettingsHelper.ProjectLoaded += OnProjectLoaded;
-        ProjectSettingsHelper.ProjectClosed += OnProjectClosed;
+        EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
+        EditorProjectAuthoringService.ProjectClosed += OnProjectClosed;
         OnProjectLoaded(sender, EventArgs.Empty);
     }
 

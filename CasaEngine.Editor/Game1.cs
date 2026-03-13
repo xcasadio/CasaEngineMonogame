@@ -1,8 +1,8 @@
 ﻿using CasaEngine.Core.Log;
 using CasaEngine.Editor.Controls;
+using CasaEngine.EditorServices;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
-using CasaEngine.Framework.Project;
 using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
@@ -126,7 +126,7 @@ namespace CasaEngine.Editor
 
             _desktop.Windows.Add(_mainWindow);
 
-            ProjectSettingsHelper.ProjectLoaded += OnProjectLoaded;
+            EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
             // ── Show project launcher at startup ───────────────────────────
             var launcher = new ProjectLauncherWindow(_mainWindow);

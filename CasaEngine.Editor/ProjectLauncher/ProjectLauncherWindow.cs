@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Project;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Newtonsoft.Json;
@@ -156,7 +156,7 @@ public class ProjectLauncherWindow
 
         try
         {
-            ProjectSettingsHelper.Load(fileName);
+            EditorProjectAuthoringService.LoadProject(fileName);
         }
         catch (Exception ex)
         {
@@ -243,7 +243,7 @@ public class ProjectLauncherWindow
 
             try
             {
-                ProjectSettingsHelper.CreateProject(name, path);
+                EditorProjectAuthoringService.CreateProject(name, path);
             }
             catch (Exception ex)
             {
