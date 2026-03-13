@@ -38,7 +38,7 @@ Terminé
 
 ---
 
-### 🟠 CASA-ARCH-002 — Raccorder réellement l'affectation joueur → vue → UIView
+### ✅ CASA-ARCH-002 — Raccorder réellement l'affectation joueur → vue → UIView
 **Contexte**  
 `InputRouter` sait affecter un joueur à une vue et `PlayerController` possède déjà `AssignedViewId` et `UIView`, mais aucun raccord complet n'a été observé pendant l'audit.
 
@@ -61,6 +61,9 @@ Ajouter un chemin standard qui synchronise l'affectation de vue dans `PlayerCont
 
 **Dépendances éventuelles**  
 Aucune
+
+**Statut**  
+Terminé
 
 ---
 

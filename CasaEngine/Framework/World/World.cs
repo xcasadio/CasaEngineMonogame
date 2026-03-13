@@ -36,6 +36,7 @@ public sealed class World : ObjectBase
     public GameplayProxy? GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
+    public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
 
     public bool DisplaySpacePartitioning { get; set; }
 
