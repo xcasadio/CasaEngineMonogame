@@ -21,7 +21,7 @@ namespace CasaEngine.Framework.Rendering;
 ///
 /// The picking buffer is an optional component — attach one to an editor
 /// <see cref="RenderView"/> and integrate the render call in
-/// <see cref="EditorViewPipeline"/>.
+/// <see cref="OverlayViewPipeline"/>.
 /// </summary>
 public sealed class PickingBuffer : IDisposable
 {
@@ -48,7 +48,7 @@ public sealed class PickingBuffer : IDisposable
     /// using flat ID-encoded colors.
     ///
     /// <para>
-    /// Call this in <see cref="EditorViewPipeline.RenderGizmos"/> or a dedicated
+    /// Call this in <see cref="OverlayViewPipeline.RenderGizmos"/> or a dedicated
     /// picking pass, before reading back pixels with <see cref="Pick"/>.
     /// </para>
     /// </summary>

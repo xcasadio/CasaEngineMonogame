@@ -7,7 +7,7 @@ using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
@@ -46,7 +46,7 @@ public class DemosGame : CasaEngineGame
         projectSettings.WindowTitle = "CasaEngine demos";
         projectSettings.AllowUserResizing = true;
 
-        new AxisComponent(this);
+        new DebugAxisComponent(this);
 
         base.Initialize();
     }

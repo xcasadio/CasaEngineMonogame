@@ -2,6 +2,7 @@
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using GizmoTools;
@@ -12,7 +13,7 @@ namespace CasaEngine.EditorUI.Controls.WorldControls.ViewModels;
 public class WorldEditorViewModel : NotifyPropertyChangeBase
 {
     private CasaEngineGame? _game;
-    private GizmoComponent? _gizmoComponent;
+    private TransformGizmoComponent? _gizmoComponent;
     private EntityListViewModel _entitiesViewModel;
 
     public EntityListViewModel EntitiesViewModel
@@ -81,7 +82,7 @@ public class WorldEditorViewModel : NotifyPropertyChangeBase
         {
             _game = host.Game;
             _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
-                           ?? _game?.GetGameComponent<GizmoComponent>();
+                           ?? _game?.GetGameComponent<TransformGizmoComponent>();
 
             if (_game != null)
             {

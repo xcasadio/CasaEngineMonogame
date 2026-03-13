@@ -301,7 +301,7 @@ Le comportement preview/simulation passe maintenant par une `GameplayExecutionPo
 
 ---
 
-### ⬜ CASA-SEP-015 — Déplacer les overlays et pipelines editor hors du namespace runtime partagé
+### ✅ CASA-SEP-015 — Déplacer les overlays et pipelines editor hors du namespace runtime partagé
 **Objectif**  
 Relocaliser `GridComponent`, `AxisComponent`, `GizmoComponent`, `EditorViewPipeline`, `PreviewPipeline` et les types associés vers une couche editor, ou reclassifier explicitement ce qui relève du debug runtime.
 

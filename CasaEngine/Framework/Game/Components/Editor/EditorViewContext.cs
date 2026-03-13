@@ -3,6 +3,7 @@
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Rendering;
 
 namespace CasaEngine.Framework.Game.Components.Editor;
@@ -57,17 +58,17 @@ public sealed class EditorViewContext : IDisposable
     // ---- Editor overlay components ----
     // NOTE: In PR 2 these are still DrawableGameComponent instances managed by
     //       Game.Components.  PR 5 will extract them into standalone objects driven
-    //       per-view via EditorViewPipeline, at which point Dispose() below will
+    //       per-view via OverlayViewPipeline, at which point Dispose() below will
     //       also clean them up.
 
     /// <summary>Gizmo (translate / rotate / scale) overlay for this viewport. Null for 2-D views.</summary>
-    public GizmoComponent? Gizmo { get; set; }
+    public TransformGizmoComponent? Gizmo { get; set; }
 
     /// <summary>Ground-plane grid overlay for this viewport. Null for 2-D views.</summary>
-    public GridComponent? Grid { get; set; }
+    public DebugGridComponent? Grid { get; set; }
 
     /// <summary>XYZ axis indicator drawn in a corner of this viewport. Null for 2-D views.</summary>
-    public AxisComponent? Axis { get; set; }
+    public DebugAxisComponent? Axis { get; set; }
 
     // ---- Per-viewport input providers ----
     // Each ViewportControl supplies its own WpfKeyboard / WpfMouse scoped to that

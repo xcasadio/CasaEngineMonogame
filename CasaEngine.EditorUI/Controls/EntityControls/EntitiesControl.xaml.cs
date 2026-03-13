@@ -10,6 +10,7 @@ using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
 using CasaEngine.EditorUI.Controls.WorldControls;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Transform;
@@ -25,7 +26,7 @@ public partial class EntitiesControl : UserControl
 
     private bool _isSelectionTriggerActive = true;
     private bool _isSelectionTriggerFromGizmoActive = true;
-    private GizmoComponent? _gizmoComponent;
+    private TransformGizmoComponent? _gizmoComponent;
 
     public EntityViewModel SelectedItem
     {
@@ -65,7 +66,7 @@ public partial class EntitiesControl : UserControl
                 Game.GameManager.WorldChanged += OnWorldChanged;
 
                 _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
-                               ?? Game.GetGameComponent<GizmoComponent>();
+                               ?? Game.GetGameComponent<TransformGizmoComponent>();
                 if (_gizmoComponent != null)
                 {
                     _gizmoComponent.SelectionChanged -= OnEntitiesSelectionChanged;

@@ -16,7 +16,7 @@ namespace CasaEngine.Framework.Rendering;
 /// (GridComponent, GizmoComponent, AxisComponent) are invoked indirectly via
 /// the injected action delegates so this assembly does not depend on them.
 /// </summary>
-public class EditorViewPipeline : IViewRenderPipeline
+public class OverlayViewPipeline : IViewRenderPipeline
 {
     // ---- Overlay delegates (injected by the editor host) ----
 
@@ -133,4 +133,9 @@ public class EditorViewPipeline : IViewRenderPipeline
         (view.UICompositionService ?? DefaultUICompositionService.Instance)
             .Compose(gd, view, in frame);
     }
+}
+
+[System.Obsolete("Use OverlayViewPipeline instead.")]
+public class EditorViewPipeline : OverlayViewPipeline
+{
 }

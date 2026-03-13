@@ -16,7 +16,7 @@ namespace CasaEngine.Framework.Rendering;
 ///
 /// This class is a stub — expand it when implementing the inspector asset previewer.
 /// </summary>
-public sealed class PreviewPipeline : IViewRenderPipeline
+public sealed class AssetPreviewPipeline : IViewRenderPipeline
 {
     /// <summary>Background color of the preview render. Default: dark grey.</summary>
     public Color BackgroundColor { get; set; } = new Color(0.15f, 0.15f, 0.15f);
@@ -40,5 +40,26 @@ public sealed class PreviewPipeline : IViewRenderPipeline
         {
             renderer.Flush(in frame);
         }
+    }
+}
+
+[System.Obsolete("Use AssetPreviewPipeline instead.")]
+public sealed class PreviewPipeline : IViewRenderPipeline
+{
+    private readonly AssetPreviewPipeline _inner = new();
+
+    public Color BackgroundColor
+    {
+        get => _inner.BackgroundColor;
+        set => _inner.BackgroundColor = value;
+    }
+
+    public void RenderView(
+        GraphicsDevice graphicsDevice,
+        RenderView view,
+        in RenderFrame frame,
+        IReadOnlyList<IViewFlushableRenderer> renderers)
+    {
+        _inner.RenderView(graphicsDevice, view, in frame, renderers);
     }
 }

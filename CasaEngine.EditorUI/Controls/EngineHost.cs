@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework.Input;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
@@ -350,24 +351,24 @@ public sealed class EngineHost : WpfGame
         // ---- 6. Optional editor overlays ----
         // NOTE: In PR 2–4 these are still DrawableGameComponent instances added to
         //       Game.Components and rendered globally.  PR 5 extracts them into
-        //       per-view standalone objects driven by EditorViewPipeline.
+        //       per-view standalone objects driven by OverlayViewPipeline.
         if (!is2D)
         {
             // Explicitly call Initialize() immediately after creating each component.
             // MonoGame may defer OnComponentAdded→Initialize() to the next Update tick,
-            // so GizmoComponent.Gizmo would still be null when RegisterEditorView returns.
-            if (def.ShowGizmo) { ctx.Gizmo = new GizmoComponent(_game); ctx.Gizmo.Initialize(); }
-            if (def.ShowGrid)  { ctx.Grid  = new GridComponent(_game);  ctx.Grid.Initialize();  }
-            if (def.ShowAxis)  { ctx.Axis  = new AxisComponent(_game);  ctx.Axis.Initialize();  }
+            // so TransformGizmoComponent.Gizmo would still be null when RegisterEditorView returns.
+            if (def.ShowGizmo) { ctx.Gizmo = new TransformGizmoComponent(_game); ctx.Gizmo.Initialize(); }
+            if (def.ShowGrid)  { ctx.Grid  = new DebugGridComponent(_game);  ctx.Grid.Initialize();  }
+            if (def.ShowAxis)  { ctx.Axis  = new DebugAxisComponent(_game);  ctx.Axis.Initialize();  }
         }
 
-        // ---- 7. Wire EditorViewPipeline for per-view overlay rendering ----
+        // ---- 7. Wire OverlayViewPipeline for per-view overlay rendering ----
         // Each overlay component has Visible=false so it won't draw in Phase 3
-        // of DrawWithEditor.  Instead, EditorViewPipeline calls DrawForView()
+        // of DrawWithEditor.  Instead, OverlayViewPipeline calls DrawForView()
         // during Phase 2 while the correct per-view render target is active.
         if (def.ShowGizmo || def.ShowGrid || def.ShowAxis)
         {
-            var pipeline = new EditorViewPipeline();
+            var pipeline = new OverlayViewPipeline();
 
             if (def.ShowGrid && ctx.Grid != null)
             {

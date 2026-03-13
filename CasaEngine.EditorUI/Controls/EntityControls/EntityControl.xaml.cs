@@ -13,6 +13,7 @@ using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Transform;
@@ -30,7 +31,7 @@ public partial class EntityControl : UserControl
     }
 
     private CasaEngineGame? _game;
-    private GizmoComponent? _gizmoComponent;
+    private TransformGizmoComponent? _gizmoComponent;
 
     public EntityControl()
     {
@@ -67,7 +68,7 @@ public partial class EntityControl : UserControl
         {
             _game = host.Game;
             _gizmoComponent = host.GetViewContext(viewId)?.Gizmo
-                           ?? _game?.GetGameComponent<GizmoComponent>();
+                           ?? _game?.GetGameComponent<TransformGizmoComponent>();
             if (_gizmoComponent != null)
             {
                 _gizmoComponent.SelectionChanged -= OnEntitiesSelectionChanged;
@@ -252,7 +253,7 @@ public partial class EntityControl : UserControl
 
                 if (componentViewModel.Component is SceneComponent sceneComponent)
                 {
-                    var gizmoComponent = _game.GetGameComponent<GizmoComponent>();
+                    var gizmoComponent = _game.GetGameComponent<TransformGizmoComponent>();
                     gizmoComponent.RemoveFromSelection(sceneComponent);
                 }
             }

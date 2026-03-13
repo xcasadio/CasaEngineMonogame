@@ -5,7 +5,7 @@ using CasaEngine.Engine.Primitives3D;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.Editor;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Scripting;
@@ -36,8 +36,8 @@ namespace SandBoxGame
 
         protected override void Initialize()
         {
-            new GridComponent(this);
-            new AxisComponent(this);
+            new DebugGridComponent(this);
+            new DebugAxisComponent(this);
             base.Initialize();
 
             //IsMouseVisible = true;
