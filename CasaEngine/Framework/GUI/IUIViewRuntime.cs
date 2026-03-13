@@ -20,7 +20,10 @@ public interface IUIViewRuntime : IDisposable
     /// <summary>True when keyboard input is currently captured by the UI runtime.</summary>
     bool IsKeyboardCaptured { get; }
 
-    /// <summary>True when the hosted UI is modal and should block lower-priority consumers.</summary>
+    /// <summary>
+    /// True when the hosted UI is modal and should block lower-priority engine consumers.
+    /// The engine input router gives this state priority over capture, pointer hover and keyboard focus.
+    /// </summary>
     bool HasModalInput { get; }
 
     /// <summary>Latest per-view UI metrics computed by the host runtime.</summary>

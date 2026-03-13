@@ -36,6 +36,7 @@ public sealed class InputRouter
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
     public ViewId KeyboardFocusViewId { get; private set; } = ViewId.Empty;
     public ViewId ModalViewId { get; private set; } = ViewId.Empty;
+    public InputRoutingState CurrentRoutingState { get; private set; } = InputRoutingState.Empty;
 
     public bool HasRegisteredViewInputSources => _viewInputs.Count > 0;
     public bool HasAnyRegisteredInputSources => _fallbackInput != null || _viewInputs.Count > 0;
@@ -126,26 +127,29 @@ public sealed class InputRouter
     {
         _viewManager.SynchronizeHostStates();
 
-        var modalView = ResolveModalView();
-        ModalViewId = modalView?.Id ?? ViewId.Empty;
+        var routingState = ResolveRoutingState();
+        CurrentRoutingState = routingState;
+        ModalViewId = routingState.ModalViewId;
+        CurrentPointerViewId = routingState.PointerViewId;
+        CurrentTargetViewId = routingState.TargetViewId;
 
-        var pointerView = ResolvePointerView(modalView);
-        CurrentPointerViewId = pointerView?.Id ?? ViewId.Empty;
-
-        var targetView = modalView ?? pointerView ?? ResolveKeyboardFocusView();
+        var targetView = routingState.TargetViewId.IsEmpty
+            ? null
+            : _viewManager.TryGetView(routingState.TargetViewId, out var resolvedView)
+                ? resolvedView
+                : null;
         if (targetView == null)
         {
-            CurrentTargetViewId = ViewId.Empty;
-            CurrentPointerViewId = ViewId.Empty;
-
             if (_fallbackInput != null)
             {
+                CurrentRoutingState = routingState with { Reason = InputRoutingReason.Fallback };
                 viewId = ViewId.Empty;
                 keyboardState = _fallbackInput.KeyboardProvider.GetState();
                 mouseState = _fallbackInput.MouseProvider.GetState();
                 return true;
             }
 
+            CurrentRoutingState = InputRoutingState.Empty;
             viewId = ViewId.Empty;
             keyboardState = new KeyboardState();
             mouseState = new MouseState();
@@ -171,11 +175,15 @@ public sealed class InputRouter
             KeyboardFocusViewId = targetView.Id;
         }
 
-        CurrentTargetViewId = targetView.Id;
         viewId = targetView.Id;
         keyboardState = registration.KeyboardProvider.GetState();
         mouseState = registration.MouseProvider.GetState();
         return true;
+    }
+
+    public ViewId GetCapturedViewId()
+    {
+        return _viewManager.InputCaptureView?.Id ?? ViewId.Empty;
     }
 
     // ---- Player → View assignment ----
@@ -325,5 +333,68 @@ public sealed class InputRouter
 
         KeyboardFocusViewId = ViewId.Empty;
         return null;
+    }
+
+    private InputRoutingState ResolveRoutingState()
+    {
+        var modalView = ResolveModalView();
+        var modalViewId = modalView?.Id ?? ViewId.Empty;
+        var captureViewId = GetCapturedViewId();
+        var pointerView = ResolvePointerView(modalView);
+        var pointerViewId = pointerView?.Id ?? ViewId.Empty;
+        var keyboardFocusView = ResolveKeyboardFocusView();
+        var keyboardFocusViewId = keyboardFocusView?.Id ?? KeyboardFocusViewId;
+
+        if (modalView != null)
+        {
+            return new InputRoutingState(
+                modalView.Id,
+                pointerViewId,
+                keyboardFocusViewId,
+                modalViewId,
+                captureViewId,
+                InputRoutingReason.Modal);
+        }
+
+        if (!captureViewId.IsEmpty)
+        {
+            return new InputRoutingState(
+                captureViewId,
+                pointerViewId,
+                keyboardFocusViewId,
+                modalViewId,
+                captureViewId,
+                InputRoutingReason.Capture);
+        }
+
+        if (pointerView != null)
+        {
+            return new InputRoutingState(
+                pointerView.Id,
+                pointerViewId,
+                keyboardFocusViewId,
+                modalViewId,
+                captureViewId,
+                InputRoutingReason.Pointer);
+        }
+
+        if (keyboardFocusView != null)
+        {
+            return new InputRoutingState(
+                keyboardFocusView.Id,
+                pointerViewId,
+                keyboardFocusView.Id,
+                modalViewId,
+                captureViewId,
+                InputRoutingReason.KeyboardFocus);
+        }
+
+        return new InputRoutingState(
+            ViewId.Empty,
+            pointerViewId,
+            keyboardFocusViewId,
+            modalViewId,
+            captureViewId,
+            _fallbackInput != null ? InputRoutingReason.Fallback : InputRoutingReason.None);
     }
 }

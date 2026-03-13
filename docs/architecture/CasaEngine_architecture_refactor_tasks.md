@@ -96,7 +96,7 @@ Terminé
 
 ---
 
-### 🟠 CASA-ARCH-004 — Formaliser le contrat moteur de focus, capture et modalité
+### ✅ CASA-ARCH-004 — Formaliser le contrat moteur de focus, capture et modalité
 **Contexte**  
 Le moteur expose déjà `KeyboardFocusViewId`, `ModalViewId`, `InputCaptureView` et les signaux UI `IsPointerOverUI`, `IsKeyboardCaptured`, `HasModalInput`, mais leur orchestration reste répartie.
 
@@ -119,6 +119,9 @@ Stabiliser les règles de priorité entre focus WPF, vue active, capture d'outil
 
 **Dépendances éventuelles**  
 - CASA-ARCH-003
+
+**Statut**  
+Terminé
 
 ---
 

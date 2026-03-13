@@ -28,6 +28,26 @@ public sealed class ScreenStack
     /// <summary>True if any screen on the stack blocks lower-priority engine consumers.</summary>
     public bool HasModalInput => _screens.Exists(static s => s.BlocksViewsBelow);
 
+    /// <summary>
+    /// The highest-priority screen that blocks lower-priority consumers, or null when the stack is non-modal.
+    /// Mirrors the same modal rule used by <see cref="Update(GameTime)"/>.
+    /// </summary>
+    public IUIScreen? TopBlockingScreen
+    {
+        get
+        {
+            for (int i = _screens.Count - 1; i >= 0; i--)
+            {
+                if (_screens[i].BlocksViewsBelow)
+                {
+                    return _screens[i];
+                }
+            }
+
+            return null;
+        }
+    }
+
     // ---- Push / Pop ----
 
     /// <summary>
@@ -99,15 +119,7 @@ public sealed class ScreenStack
         if (_screens.Count == 0) return;
 
         // Find the lowest blocking screen (blocks everything below it).
-        int startIndex = 0;
-        for (int i = _screens.Count - 1; i >= 0; i--)
-        {
-            if (_screens[i].BlocksViewsBelow)
-            {
-                startIndex = i;
-                break;
-            }
-        }
+        int startIndex = TopBlockingScreen != null ? _screens.IndexOf(TopBlockingScreen) : 0;
 
         for (int i = startIndex; i < _screens.Count; i++)
             _screens[i].Update(gameTime);
