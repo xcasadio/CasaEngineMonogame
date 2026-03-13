@@ -41,7 +41,7 @@ Créer une abstraction appartenant à CasaEngine pour représenter les opératio
 
 ---
 
-### ⬜ CASA-SEP-002 — Retirer `GizmoTools` de `SceneComponent`
+### ✅ CASA-SEP-002 — Retirer `GizmoTools` de `SceneComponent`
 **Objectif**  
 Faire en sorte que `SceneComponent` implémente uniquement le contrat runtime introduit à la tâche précédente.
 

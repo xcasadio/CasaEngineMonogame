@@ -5,22 +5,16 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Transform;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
-
-#if EDITOR
-using GizmoTools;
-#endif
 
 namespace CasaEngine.Framework.Entities.Components;
 
 //Scene Components (class USceneComponent, a child of UActorComponent) support location-based behaviors that do not require
 //a geometric representation.
 //This includes spring arms, cameras, physical forces and constraints (but not physical objects), and even audio.
-public abstract class SceneComponent : EntityComponent, IBoundingBoxable, IComponentDrawable
-#if EDITOR
-    , ITransformable
-#endif
+public abstract class SceneComponent : EntityComponent, IBoundingBoxable, IComponentDrawable, ITransformableObject
 {
     private Matrix _lastWorldMatrix;
     private Matrix _lastWorldInvertTransposeMatrix;
