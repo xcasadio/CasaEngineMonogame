@@ -156,7 +156,7 @@ Déplacer `AssetSaver` et les helpers d'écriture associés hors de l'assembly r
 
 ---
 
-### ⬜ CASA-SEP-008 — Migrer les écrans editor qui sauvegardent des assets vers le nouveau service
+### ✅ CASA-SEP-008 — Migrer les écrans editor qui sauvegardent des assets vers le nouveau service
 **Objectif**  
 Remplacer les appels directs à `AssetSaver` dans les contrôles editor par le service d'écriture introduit précédemment.
 

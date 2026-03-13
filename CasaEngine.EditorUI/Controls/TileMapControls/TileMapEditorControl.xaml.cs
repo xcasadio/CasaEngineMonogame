@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Windows.Input;
-using Microsoft.Xna.Framework;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets;
+using Microsoft.Xna.Framework;
 using Xceed.Wpf.AvalonDock;
 using Xceed.Wpf.AvalonDock.Layout.Serialization;
 
@@ -71,7 +72,7 @@ public partial class TileMapEditorControl : EditorControlBase
             return;
         }
 
-        AssetSaver.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
+        EditorAssetWriterService.SaveAsset(tileMapDataViewModel.TileMapData.FileName, tileMapDataViewModel.TileMapData);
         Logs.WriteInfo($"TileMap {tileMapDataViewModel.TileMapData.Name} saved ({tileMapDataViewModel.TileMapData.FileName})");
 
         e.Handled = true;

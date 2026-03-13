@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Input;
@@ -46,7 +47,7 @@ namespace CasaEngine.EditorUI.Controls
         {
             if (DataContext is ButtonsMapping buttonsMapping)
             {
-                AssetSaver.SaveAsset(buttonsMapping.FileName, buttonsMapping);
+                EditorAssetWriterService.SaveAsset(buttonsMapping.FileName, buttonsMapping);
                 Logs.WriteInfo($"Buttons mapping {buttonsMapping.Name} saved ({buttonsMapping.FileName})");
             }
         }

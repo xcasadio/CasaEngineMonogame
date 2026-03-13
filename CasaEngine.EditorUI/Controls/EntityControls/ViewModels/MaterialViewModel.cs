@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
@@ -141,7 +142,7 @@ public class MaterialViewModel : NotifyPropertyChangeBase
             return;
         }
 
-        AssetSaver.SaveAsset(assetInfo.FileName, _material);
+        EditorAssetWriterService.SaveAsset(assetInfo.FileName, _material);
 
         if (ContentManager != null)
         {

@@ -319,7 +319,7 @@ public partial class ContentBrowserControl : UserControl
             var pathFileName = Path.GetDirectoryName(destFileName.Replace(EngineEnvironment.ProjectPath, string.Empty));
             var assetFullName = newAssetInfo.Name + assetExtension;
             newAssetInfo.FileName = Path.Combine(pathFileName, assetFullName).TrimStart(Path.DirectorySeparatorChar);
-            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAssetInfo.FileName), newAsset);
+            EditorAssetWriterService.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAssetInfo.FileName), newAsset);
             EditorAssetCatalogService.Add(assetFromImportFile);
             EditorAssetCatalogService.Add(newAssetInfo);
         }
@@ -352,7 +352,7 @@ public partial class ContentBrowserControl : UserControl
         foreach (var riggedAnimation in riggedModel.OriginalAnimations)
         {
             var animFileName = Path.Combine(destinationFolderPath, riggedAnimation.AnimationName + Constants.FileNameExtensions.SkeletonAnimation);
-            AssetSaver.SaveSkeletonAnimationFromRiggedModel(animFileName, riggedAnimation);
+            EditorAssetWriterService.SaveSkeletonAnimationFromRiggedModel(animFileName, riggedAnimation);
         }
     }
 
@@ -423,7 +423,7 @@ public partial class ContentBrowserControl : UserControl
             ListBoxFolderContent.SelectedItem = contentItem;
 
             EditorAssetCatalogService.Add(assetInfo);
-            AssetSaver.SaveAsset(assetInfo.FileName, material);
+            EditorAssetWriterService.SaveAsset(assetInfo.FileName, material);
             EditorAssetCatalogService.Save();
         }
     }
@@ -448,7 +448,7 @@ public partial class ContentBrowserControl : UserControl
             assetInfo.Name = inputTextBox.Text;
             assetInfo.FileName = Path.Combine(folderItem.FullPath, assetInfo.Name + extension);
             EditorAssetCatalogService.Add(assetInfo);
-            AssetSaver.SaveAsset(assetInfo.FileName, objectBase);
+            EditorAssetWriterService.SaveAsset(assetInfo.FileName, objectBase);
             EditorAssetCatalogService.Save();
         }
     }
@@ -472,7 +472,7 @@ public partial class ContentBrowserControl : UserControl
                 Name = contentItem.AssetInfo.Name,
                 FileName = contentItem.AssetInfo.FileName.Replace(Constants.FileNameExtensions.Texture, Constants.FileNameExtensions.Sprite)
             };
-            AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
+            EditorAssetWriterService.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
 
             EditorAssetCatalogService.Add(assetInfo);
             EditorAssetCatalogService.Save();
