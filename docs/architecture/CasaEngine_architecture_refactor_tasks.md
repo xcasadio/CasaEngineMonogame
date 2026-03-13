@@ -67,7 +67,7 @@ Terminé
 
 ---
 
-### 🔴 CASA-ARCH-003 — Unifier le flux input multi-vues entre runtime et éditeur
+### ✅ CASA-ARCH-003 — Unifier le flux input multi-vues entre runtime et éditeur
 **Contexte**  
 `InputComponent` délègue déjà à `InputRouter.TryDispatch()`, mais le chemin réel reste hybride entre providers globaux, providers raw par viewport, activation de vue et focus WPF.
 
@@ -90,6 +90,9 @@ Clarifier la frontière entre collecte brute, enregistrement des sources par vue
 
 **Dépendances éventuelles**  
 Aucune
+
+**Statut**  
+Terminé
 
 ---
 

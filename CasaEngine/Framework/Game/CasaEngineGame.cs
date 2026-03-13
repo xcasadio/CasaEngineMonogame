@@ -520,7 +520,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
     public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
     {
-        InputComponent.SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
+        InputComponent.SetFallbackProviders(keyboardStateProvider, mouseStateProvider);
     }
 
     public void InitializeWithEditor()

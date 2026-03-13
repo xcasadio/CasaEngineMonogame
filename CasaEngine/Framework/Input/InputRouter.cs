@@ -30,6 +30,7 @@ public sealed class InputRouter
     private readonly ViewManager _viewManager;
     private readonly Dictionary<PlayerIndex, ViewId> _playerViews = new();
     private readonly Dictionary<ViewId, ViewInputRegistration> _viewInputs = new();
+    private ViewInputRegistration? _fallbackInput;
 
     public ViewId CurrentTargetViewId { get; private set; } = ViewId.Empty;
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
@@ -37,6 +38,7 @@ public sealed class InputRouter
     public ViewId ModalViewId { get; private set; } = ViewId.Empty;
 
     public bool HasRegisteredViewInputSources => _viewInputs.Count > 0;
+    public bool HasAnyRegisteredInputSources => _fallbackInput != null || _viewInputs.Count > 0;
 
     public InputRouter(ViewManager viewManager)
     {
@@ -59,6 +61,27 @@ public sealed class InputRouter
             MouseProvider = mouseProvider,
             IsPointerOver = isPointerOver,
         };
+    }
+
+    public void RegisterFallbackInput(
+        IKeyboardStateProvider keyboardProvider,
+        IMouseStateProvider mouseProvider,
+        Func<bool>? isPointerOver = null)
+    {
+        ArgumentNullException.ThrowIfNull(keyboardProvider);
+        ArgumentNullException.ThrowIfNull(mouseProvider);
+
+        _fallbackInput = new ViewInputRegistration
+        {
+            KeyboardProvider = keyboardProvider,
+            MouseProvider = mouseProvider,
+            IsPointerOver = isPointerOver ?? static () => true,
+        };
+    }
+
+    public void ClearFallbackInput()
+    {
+        _fallbackInput = null;
     }
 
     public void UnregisterViewInput(ViewId viewId)
@@ -110,7 +133,26 @@ public sealed class InputRouter
         CurrentPointerViewId = pointerView?.Id ?? ViewId.Empty;
 
         var targetView = modalView ?? pointerView ?? ResolveKeyboardFocusView();
-        if (targetView == null || !_viewInputs.TryGetValue(targetView.Id, out var registration))
+        if (targetView == null)
+        {
+            CurrentTargetViewId = ViewId.Empty;
+            CurrentPointerViewId = ViewId.Empty;
+
+            if (_fallbackInput != null)
+            {
+                viewId = ViewId.Empty;
+                keyboardState = _fallbackInput.KeyboardProvider.GetState();
+                mouseState = _fallbackInput.MouseProvider.GetState();
+                return true;
+            }
+
+            viewId = ViewId.Empty;
+            keyboardState = new KeyboardState();
+            mouseState = new MouseState();
+            return false;
+        }
+
+        if (!_viewInputs.TryGetValue(targetView.Id, out var registration))
         {
             CurrentTargetViewId = ViewId.Empty;
             viewId = ViewId.Empty;

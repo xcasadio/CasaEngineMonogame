@@ -64,18 +64,31 @@ public class InputComponent : GameComponent
     public override void Update(GameTime gameTime)
     {
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
-        var keyboardState = _keyboardStateProvider.GetState();
-        var mouseState = _mouseStateProvider.GetState();
+        KeyboardState keyboardState;
+        MouseState mouseState;
 
-        if (InputRouter?.TryDispatch(out _, out var routedKeyboardState, out var routedMouseState) == true)
+        if (InputRouter != null)
         {
-            keyboardState = routedKeyboardState;
-            mouseState = routedMouseState;
+            if (InputRouter.TryDispatch(out _, out var routedKeyboardState, out var routedMouseState))
+            {
+                keyboardState = routedKeyboardState;
+                mouseState = routedMouseState;
+            }
+            else if (InputRouter.HasAnyRegisteredInputSources)
+            {
+                keyboardState = new KeyboardState();
+                mouseState = new MouseState();
+            }
+            else
+            {
+                keyboardState = _keyboardStateProvider.GetState();
+                mouseState = _mouseStateProvider.GetState();
+            }
         }
-        else if (InputRouter?.HasRegisteredViewInputSources == true)
+        else
         {
-            keyboardState = new KeyboardState();
-            mouseState = new MouseState();
+            keyboardState = _keyboardStateProvider.GetState();
+            mouseState = _mouseStateProvider.GetState();
         }
 
         GamePadManager.Update(_gamePadStateProvider, elapsedTime);
@@ -92,6 +105,17 @@ public class InputComponent : GameComponent
 
     public KeyboardState Keyboard => KeyboardManager.State;
     public MouseState MouseState => MouseManager.State;
+
+    public void SetFallbackProviders(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
+    {
+        if (InputRouter != null)
+        {
+            InputRouter.RegisterFallbackInput(keyboardStateProvider, mouseStateProvider);
+            return;
+        }
+
+        SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
+    }
 
 #endif
 }
