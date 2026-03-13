@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Input;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -120,6 +121,6 @@ public partial class WorldEditorControl : EditorControlBase
             }
         }
 
-        AssetCatalog.Save();
+        EditorAssetCatalogService.Save();
     }
 }

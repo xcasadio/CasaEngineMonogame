@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using CasaEngine.EditorServices;
 using CasaEngine.EditorUI.Controls;
 using CasaEngine.EditorUI.Controls.Common;
 using CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
@@ -179,7 +180,7 @@ public partial class EntityControl : UserControl
 
     private bool ValidateEntityNewName(string? newName)
     {
-        return AssetCatalog.CanRename(newName);
+        return EditorAssetCatalogService.CanRename(newName);
     }
 
     private void OnComponentSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
+using CasaEngine.EditorServices;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -67,7 +68,7 @@ public class FolderItem : ContentItem
                     Logs.WriteTrace($"Rename folder '{oldFullPath}' to '{FullPath}'");
                 }
 
-                AssetCatalog.Save();
+                EditorAssetCatalogService.Save();
             }
         }
     }

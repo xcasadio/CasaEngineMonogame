@@ -1,4 +1,5 @@
 ﻿using System;
+using CasaEngine.EditorServices;
 using CasaEngine.Core.Log;
 using System.IO;
 using CasaEngine.Engine;
@@ -51,7 +52,7 @@ public class ContentItem : NotifyPropertyChangeBase
                 File.Move(sourceFullPath, newFullPath);
                 Logs.WriteTrace($"Rename file '{oldFullPath}' to '{FullPath}'");
 
-                AssetCatalog.Save();
+                EditorAssetCatalogService.Save();
             }
         }
     }
@@ -69,7 +70,7 @@ public class ContentItem : NotifyPropertyChangeBase
     public virtual void Delete()
     {
         Parent.RemoveContent(this);
-        AssetCatalog.Remove(AssetInfo.Id);
+        EditorAssetCatalogService.Remove(AssetInfo.Id);
 
         Logs.WriteTrace($"Remove file '{FullPath}'");
     }

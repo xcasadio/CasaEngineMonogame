@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Design;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -74,17 +75,22 @@ public static class AssetCatalog
 
     public static void Add(Guid id, string name, string fileName)
     {
-        var assetInfo = new AssetInfo(id);
-        assetInfo.Name = name;
-        assetInfo.FileName = fileName;
-        _assetInfos.Add(assetInfo.Id, assetInfo);
-        _assetInfosByName[assetInfo.Name] = assetInfo;
-        _assetInfosByFileName[assetInfo.FileName] = assetInfo;
+        var assetInfo = new AssetInfo(id)
+        {
+            Name = name,
+            FileName = fileName,
+        };
+
+        Add(assetInfo);
     }
 
     public static void Remove(Guid id)
     {
-        _assetInfos.TryGetValue(id, out var assetInfo);
+        if (!_assetInfos.TryGetValue(id, out var assetInfo))
+        {
+            return;
+        }
+
         Logs.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
         _assetInfosByName.Remove(assetInfo.Name);

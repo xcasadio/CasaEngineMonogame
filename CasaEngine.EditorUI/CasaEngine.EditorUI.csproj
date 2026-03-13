@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net9.0-windows</TargetFramework>
+		<DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<StartupObject>CasaEngine.EditorUI.App</StartupObject>
@@ -69,6 +70,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
 		<ProjectReference Include="..\CasaEngine.DotNetCompiler\CasaEngine.DotNetCompiler.csproj" />
+		<ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
 		<ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
 		<ProjectReference Include="..\CasaEngine.WpfControls\CasaEngine.WpfControls.csproj" />
 		<ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.EditorUI.Controls;
@@ -14,7 +15,7 @@ public class AssetInfoViewModel : NotifyPropertyChangeBase, IEquatable<AssetInfo
         {
             if (value != AssetCatalog.Get(Id)?.Name)
             {
-                AssetCatalog.Rename(Id, value);
+                EditorAssetCatalogService.Rename(Id, value);
                 OnPropertyChanged();
             }
         }

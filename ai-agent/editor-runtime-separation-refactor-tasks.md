@@ -102,7 +102,7 @@ Créer côté éditeur un point d'entrée clair qui adapte les objets runtime au
 
 ---
 
-### ⬜ CASA-SEP-005 — Scinder `AssetCatalog` en lecture runtime et écriture editor
+### ✅ CASA-SEP-005 — Scinder `AssetCatalog` en lecture runtime et écriture editor
 **Objectif**  
 Conserver en runtime un catalogue de lookup en lecture seule et sortir les opérations de mutation dans une façade editor.
 

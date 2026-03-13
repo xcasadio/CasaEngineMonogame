@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
+    <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
     <RollForward>Major</RollForward>
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
@@ -17,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />
+    <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
     <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.FontStashSharp\MGUI.FontStashSharp.csproj" />

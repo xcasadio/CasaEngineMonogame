@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Assets;
+﻿using CasaEngine.EditorServices;
+using CasaEngine.Framework.Assets;
 using System.Collections.ObjectModel;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -16,10 +17,10 @@ public class EntityViewModel : NotifyPropertyChangeBase
         get => Entity.Name;
         set
         {
-            if (value != Entity.Name && AssetCatalog.CanRename(value))
+            if (value != Entity.Name && EditorAssetCatalogService.CanRename(value))
             {
                 Entity.Name = value;
-                AssetCatalog.Rename(Entity.Id, value);
+                EditorAssetCatalogService.Rename(Entity.Id, value);
                 OnPropertyChanged();
             }
         }

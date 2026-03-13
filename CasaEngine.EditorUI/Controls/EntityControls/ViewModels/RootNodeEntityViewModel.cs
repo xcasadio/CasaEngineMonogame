@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Assets;
+﻿using CasaEngine.EditorServices;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.World;
 
 namespace CasaEngine.EditorUI.Controls.EntityControls.ViewModels;
@@ -13,9 +14,9 @@ public class RootNodeEntityViewModel : EntityViewModel
         get => World?.Name ?? "World";
         set
         {
-            if (World != null && value != World.Name && AssetCatalog.CanRename(value))
+            if (World != null && value != World.Name && EditorAssetCatalogService.CanRename(value))
             {
-                AssetCatalog.Rename(World.Id, value);
+                EditorAssetCatalogService.Rename(World.Id, value);
                 World.Name = value;
                 OnPropertyChanged();
             }

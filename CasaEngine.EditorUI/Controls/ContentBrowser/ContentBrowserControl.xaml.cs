@@ -19,6 +19,7 @@ using CasaEngine.EditorUI.Windows;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
@@ -213,7 +214,7 @@ public partial class ContentBrowserControl : UserControl
                 ImportAssetFile(assetContentManager, fileName, destinationFolderPath);
             }
 
-            AssetCatalog.Save();
+            EditorAssetCatalogService.Save();
             //ListBoxFolderContent.SelectedItem = (DataContext as ContentBrowserViewModel).ContentItems[^1];
         }
     }
@@ -319,8 +320,8 @@ public partial class ContentBrowserControl : UserControl
             var assetFullName = newAssetInfo.Name + assetExtension;
             newAssetInfo.FileName = Path.Combine(pathFileName, assetFullName).TrimStart(Path.DirectorySeparatorChar);
             AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, newAssetInfo.FileName), newAsset);
-            AssetCatalog.Add(assetFromImportFile);
-            AssetCatalog.Add(newAssetInfo);
+            EditorAssetCatalogService.Add(assetFromImportFile);
+            EditorAssetCatalogService.Add(newAssetInfo);
         }
     }
 
@@ -357,7 +358,7 @@ public partial class ContentBrowserControl : UserControl
 
     private void ButtonSave_OnClick(object sender, RoutedEventArgs e)
     {
-        AssetCatalog.Save();
+        EditorAssetCatalogService.Save();
     }
 
     private void ListBoxFolderContentCreate_Click(object sender, RoutedEventArgs e)
@@ -421,9 +422,9 @@ public partial class ContentBrowserControl : UserControl
             folderItem.AddContent(contentItem);
             ListBoxFolderContent.SelectedItem = contentItem;
 
-            AssetCatalog.Add(assetInfo);
+            EditorAssetCatalogService.Add(assetInfo);
             AssetSaver.SaveAsset(assetInfo.FileName, material);
-            AssetCatalog.Save();
+            EditorAssetCatalogService.Save();
         }
     }
 
@@ -446,9 +447,9 @@ public partial class ContentBrowserControl : UserControl
             //save asset
             assetInfo.Name = inputTextBox.Text;
             assetInfo.FileName = Path.Combine(folderItem.FullPath, assetInfo.Name + extension);
-            AssetCatalog.Add(assetInfo);
+            EditorAssetCatalogService.Add(assetInfo);
             AssetSaver.SaveAsset(assetInfo.FileName, objectBase);
-            AssetCatalog.Save();
+            EditorAssetCatalogService.Save();
         }
     }
 
@@ -473,8 +474,8 @@ public partial class ContentBrowserControl : UserControl
             };
             AssetSaver.SaveAsset(Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName), spriteData);
 
-            AssetCatalog.Add(assetInfo);
-            AssetCatalog.Save();
+            EditorAssetCatalogService.Add(assetInfo);
+            EditorAssetCatalogService.Save();
         }
     }
 
