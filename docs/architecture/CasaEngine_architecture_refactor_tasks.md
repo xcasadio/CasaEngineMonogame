@@ -4,9 +4,7 @@ Ce fichier est généré à partir de l'audit architectural demandé dans `ai-ag
 
 ## Légende des statuts
 
-- 🔴 Bloquant
-- 🟠 Important
-- 🟡 Amélioration souhaitable
+- ✅ Terminé
 
 ## Tâches
 
