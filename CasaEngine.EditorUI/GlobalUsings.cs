@@ -1,0 +1,1 @@
+global using AssetSaver = CasaEngine.EditorServices.EditorAssetWriterService;

@@ -2,6 +2,7 @@
 using CasaEngine.Framework.Game;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Core.Log;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using JsonSerializer = Newtonsoft.Json.JsonSerializer;
@@ -93,7 +94,7 @@ public static class ProjectSettingsHelper
         var world = new World.World();
         world.Name = worldName;
         world.FileName = worldFileName;
-        AssetSaver.SaveAsset(world.FileName, world);
+        SaveInitialWorld(world.FileName, world);
         AssetCatalog.Add(world);
 
         Save();
@@ -116,6 +117,19 @@ public static class ProjectSettingsHelper
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         var jsonSerializer = new JsonSerializer();
         jsonSerializer.Serialize(writer, GameSettings.ProjectSettings);
+    }
+
+    private static void SaveInitialWorld(string fileName, ISerializable asset)
+    {
+        JObject rootObject = new();
+        asset.Save(rootObject);
+
+        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
+        using StreamWriter file = File.CreateText(fullFileName);
+        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
+        rootObject.WriteTo(writer);
+
+        Logs.WriteInfo($"Save '{fileName}'");
     }
 
 #endif

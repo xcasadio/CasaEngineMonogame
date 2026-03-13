@@ -1,15 +1,13 @@
-﻿using CasaEngine.Core.Log;
+using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Graphics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Assets;
+namespace CasaEngine.EditorServices;
 
-#if EDITOR
-
-public static class AssetSaver
+public static class EditorAssetWriterService
 {
     public static void SaveAsset(string fileName, ISerializable asset)
     {
@@ -57,5 +55,3 @@ public static class AssetSaver
         Logs.WriteInfo($"Save '{fileName}'");
     }
 }
-
-#endif

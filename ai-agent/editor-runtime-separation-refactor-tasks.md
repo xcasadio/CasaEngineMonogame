@@ -139,7 +139,7 @@ Déplacer les événements `AssetAdded`, `AssetRemoved`, `AssetRenamed`, `AssetC
 
 ---
 
-### ⬜ CASA-SEP-007 — Extraire un service editor d'écriture d'assets
+### ✅ CASA-SEP-007 — Extraire un service editor d'écriture d'assets
 **Objectif**  
 Déplacer `AssetSaver` et les helpers d'écriture associés hors de l'assembly runtime partagée.
 
