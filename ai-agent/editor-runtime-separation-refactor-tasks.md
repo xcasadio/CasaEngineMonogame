@@ -257,9 +257,12 @@ Les helpers d'écriture JSON ont été sortis du `JsonHelper` partagé vers des 
 
 ---
 
-### ⬜ CASA-SEP-013 — Remplacer les wrappers editor de `CasaEngineGame` par un adapter de host
+### ✅ CASA-SEP-013 — Remplacer les wrappers editor de `CasaEngineGame` par un adapter de host
 **Objectif**  
 Sortir `InitializeWithEditor`, `LoadContentWithEditor`, `UpdateWithEditor`, `DrawWithEditor` et la gestion directe du mode editor de l'API publique de `CasaEngineGame`.
+
+**Résultat**  
+`EngineHost` pilote désormais un adapter dédié qui encapsule le cycle `Initialize` / `LoadContent` / `Update` / `Draw`, sans wrappers editor publics sur `CasaEngineGame`.
 
 **Fichiers / classes concernés**  
 - `CasaEngine/Framework/Game/CasaEngineGame.cs`
@@ -274,9 +277,12 @@ Sortir `InitializeWithEditor`, `LoadContentWithEditor`, `UpdateWithEditor`, `Dra
 
 ---
 
-### ⬜ CASA-SEP-014 — Remplacer `IsRunningInGameEditorMode` par une policy explicite
+### ✅ CASA-SEP-014 — Remplacer `IsRunningInGameEditorMode` par une policy explicite
 **Objectif**  
 Remplacer les branches de comportement gameplay dépendant du mode editor par une policy ou des hooks d'hébergement explicites.
+
+**Résultat**  
+Le comportement preview/simulation passe maintenant par une `GameplayExecutionPolicy` explicite, utilisée par `World`, `Entity`, la physique et les composants à la place d'un flag editor global.
 
 **Fichiers / classes concernés**  
 - `CasaEngine/Framework/World/World.cs`

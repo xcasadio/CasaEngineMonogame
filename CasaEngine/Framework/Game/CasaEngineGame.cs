@@ -1,5 +1,4 @@
 using CasaEngine.Core.Log;
-using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.Game.Components;
@@ -9,7 +8,6 @@ using CasaEngine.Framework.GUI;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
@@ -55,6 +53,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public IRuntimeViewBootstrapper? RuntimeViewBootstrapper { get; }
     public EngineRuntimeContext RuntimeContext { get; }
     public RenderTargetPool RenderTargetPool { get; private set; }
+    public GameplayExecutionPolicy ExecutionPolicy { get; set; } = GameplayExecutionPolicies.Runtime;
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -530,33 +529,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 #if EDITOR
 
     public event EventHandler? FrameComputed;
-
-    public bool IsRunningInGameEditorMode { get; set; }
-
-    public void SetInputProvider(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
-    {
-        InputComponent.SetFallbackProviders(keyboardStateProvider, mouseStateProvider);
-    }
-
-    public void InitializeWithEditor()
-    {
-        Initialize();
-    }
-
-    public void LoadContentWithEditor()
-    {
-        LoadContent();
-    }
-
-    public void UpdateWithEditor(GameTime gameTime)
-    {
-        Update(gameTime);
-    }
-
-    public void DrawWithEditor(GameTime gameTime)
-    {
-        Draw(gameTime);
-    }
 
 #endif
 }

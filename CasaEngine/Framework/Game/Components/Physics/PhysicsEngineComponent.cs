@@ -28,12 +28,10 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Update(GameTime gameTime)
     {
-#if EDITOR
-        if (_casaEngineGame.IsRunningInGameEditorMode)
+        if (_casaEngineGame?.ExecutionPolicy.UpdatePhysicsEngine == false)
         {
             return;
         }
-#endif
 
         PhysicsEngine.Update(GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime));
         PhysicsEngine.UpdateContacts();

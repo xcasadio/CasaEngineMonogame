@@ -108,12 +108,10 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public override void Update(float elapsedTime)
     {
-#if EDITOR
-        if (Owner.World.Game.IsRunningInGameEditorMode)
+        if (!Owner.World.Game.ExecutionPolicy.UpdatePhysicsComponents)
         {
             return;
         }
-#endif
 
         CollisionObject? collisionObject = _collisionObject ?? _rigidBody;
 

@@ -278,14 +278,10 @@ public class Entity : ObjectBase
             _children[i].Update(elapsedTime);
         }
 
-#if EDITOR
-        if (!World?.Game?.IsRunningInGameEditorMode ?? false)
+    if (World?.Game?.ExecutionPolicy.UpdateGameplayScripts ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
-#else
-        GameplayProxy?.Update(elapsedTime);
-#endif
     }
 
     public void Draw(float elapsedTime)

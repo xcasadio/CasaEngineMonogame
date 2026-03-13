@@ -99,9 +99,11 @@ public partial class GameEditorWorldControl : UserControl
             return;
         }
 
-        game.IsRunningInGameEditorMode = !game.IsRunningInGameEditorMode;
-        game.PhysicsEngineComponent.Enabled = game.IsRunningInGameEditorMode;
-        buttonLaunch.Content = game.IsRunningInGameEditorMode ? "Running" : "Launch";
+        game.ExecutionPolicy = game.ExecutionPolicy.IsEditorPreview
+            ? GameplayExecutionPolicies.EditorSimulation
+            : GameplayExecutionPolicies.EditorPreview;
+        game.PhysicsEngineComponent.Enabled = game.ExecutionPolicy.UpdatePhysicsEngine;
+        buttonLaunch.Content = game.ExecutionPolicy.IsEditorPreview ? "Launch" : "Running";
     }
 
     private void ButtonTranslate_Click(object sender, RoutedEventArgs e)

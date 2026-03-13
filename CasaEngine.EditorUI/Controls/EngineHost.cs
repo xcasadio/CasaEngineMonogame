@@ -12,7 +12,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -51,7 +51,7 @@ public sealed class EngineHost : WpfGame
     public static EngineHost? Instance => _instance;
 
     // ---- State ----
-    private CasaEngineGame? _game;
+    private EngineHostGameAdapter? _game;
     private bool            _initialized;
 
     private readonly Dictionary<ViewId, EditorViewContext> _viewContexts = new();
@@ -111,17 +111,19 @@ public sealed class EngineHost : WpfGame
         var runtimeContext = GameSettings.CreateRuntimeContext();
         runtimeContext.UIViewRuntimeFactory = new MguiViewRuntimeFactory();
 
-        _game = new CasaEngineGame(null, service, runtimeContext);
-        _game.IsRunningInGameEditorMode = true;
+        _game = new EngineHostGameAdapter(null, service, runtimeContext)
+        {
+            ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,
+        };
 
-        // InitializeWithEditor() must come first: it calls CasaEngineGame.Initialize()
+        // InitializeHost() must come first: it calls CasaEngineGame.Initialize()
         // which creates InputComponent. SetInputProvider() accesses InputComponent, so it
-        // must be called *after* InitializeWithEditor().
-        _game.InitializeWithEditor();
+        // must be called *after* InitializeHost().
+        _game.InitializeHost();
 
         // Wire default WPF input providers scoped to this EngineHost control.
         // Editor viewports register their own routed providers in InputRouter.
-        _game.SetInputProvider(
+        _game.ConfigureFallbackInput(
             new KeyboardStateProvider(new WpfKeyboard(this)),
             new MouseStateProvider(new WpfMouse(this)));
 
@@ -134,7 +136,7 @@ public sealed class EngineHost : WpfGame
 
     protected override void LoadContent()
     {
-        _game!.LoadContentWithEditor();
+        _game!.LoadContentHost();
         _initialized = true;
 
         // Disable physics in editor mode (same as GameEditor).
@@ -148,7 +150,7 @@ public sealed class EngineHost : WpfGame
     {
         if (_initialized)
         {
-            _game!.UpdateWithEditor(gameTime);
+            _game!.UpdateHost(gameTime);
 
             var routedViewId = _game.InputComponent.InputRouter?.CurrentTargetViewId ?? ViewId.Empty;
             foreach (var (viewId, vctx) in _viewContexts)
@@ -171,7 +173,7 @@ public sealed class EngineHost : WpfGame
     {
         if (_initialized)
         {
-            _game!.DrawWithEditor(gameTime);
+            _game!.DrawHost(gameTime);
             FrameReady?.Invoke(this, gameTime);
         }
     }

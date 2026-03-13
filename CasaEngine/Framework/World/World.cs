@@ -140,9 +140,7 @@ public sealed class World : ObjectBase
         //after everything initialized entities are added
         InternalAddEntities();
 
-#if EDITOR
-        if (!Game.IsRunningInGameEditorMode)
-#endif
+    if (Game.ExecutionPolicy.InitializePlayerControllers)
         {
             InitializePlayerControllers();
         }
@@ -152,9 +150,7 @@ public sealed class World : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
-#if EDITOR
-        if (Game.IsRunningInGameEditorMode)
-#endif
+    if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
         {
             GameplayProxy?.Initialize(null);
             GameplayProxy?.InitializeWithWorld(this);
@@ -205,12 +201,10 @@ public sealed class World : ObjectBase
 
     public void BeginPlay()
     {
-#if EDITOR
-        if (Game.IsRunningInGameEditorMode)
+        if (!Game.ExecutionPolicy.RunBeginPlay)
         {
             return;
         }
-#endif
         GameMode.StartPlay();
 
         GameplayProxy?.OnBeginPlay(this);
@@ -277,14 +271,10 @@ public sealed class World : ObjectBase
 
         _octree.ApplyPendingMoves();
 
-#if EDITOR
-        if (!Game.IsRunningInGameEditorMode)
+    if (Game.ExecutionPolicy.UpdateGameplayScripts)
         {
             GameplayProxy?.Update(elapsedTime);
         }
-#else
-        GameplayProxy?.Update(elapsedTime);
-#endif
     }
 
     private bool IsBoundingBoxDirty(Entity actor)

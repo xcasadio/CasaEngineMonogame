@@ -45,7 +45,7 @@ public partial class EntityComponentControl : UserControl
 
     private void OnFrameComputed(object? sender, EventArgs e)
     {
-        if (IsVisible && sender is CasaEngineGame { IsRunningInGameEditorMode: true })
+        if (IsVisible && sender is CasaEngineGame game && game.ExecutionPolicy.IsEditorPreview)
         {
             var expression = Vector3ControlPosition.GetBindingExpression(Vector3Editor.ValueProperty);
             expression?.UpdateTarget();
