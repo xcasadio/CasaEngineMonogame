@@ -1,7 +1,9 @@
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Project;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.GUI.MGUI;
 
 namespace CasaEngine.Framework.Game;
 
@@ -19,11 +21,22 @@ public sealed class EngineRuntimeContext
 
     public RenderTargetPool? RenderTargetPool { get; set; }
 
-    public EngineRuntimeContext(ProjectSettings projectSettings, string projectPath, Func<Guid, AssetInfo?> resolveAssetInfo)
+    public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
+
+    public IUICompositionService UICompositionService { get; set; }
+
+    public EngineRuntimeContext(
+        ProjectSettings projectSettings,
+        string projectPath,
+        Func<Guid, AssetInfo?> resolveAssetInfo,
+        IUIViewRuntimeFactory? uiViewRuntimeFactory = null,
+        IUICompositionService? uiCompositionService = null)
     {
         ProjectSettings = projectSettings;
         ProjectPath = projectPath;
         ResolveAssetInfo = resolveAssetInfo;
+        UIViewRuntimeFactory = uiViewRuntimeFactory ?? new MguiViewRuntimeFactory();
+        UICompositionService = uiCompositionService ?? DefaultUICompositionService.Instance;
     }
 
     public static EngineRuntimeContext FromGlobals()

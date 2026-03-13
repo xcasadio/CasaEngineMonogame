@@ -12,6 +12,7 @@ using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.Editor;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.GUI.MGUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -107,7 +108,10 @@ public sealed class EngineHost : WpfGame
         // Wrap this host's (shared) GraphicsDevice in a service so CasaEngineGame
         // can register it without creating a new GraphicsDeviceManager.
         var service = new WpfGraphicsDeviceService(this);
-        _game = new CasaEngineGame(null, service);
+        var runtimeContext = GameSettings.CreateRuntimeContext();
+        runtimeContext.UIViewRuntimeFactory = new MguiViewRuntimeFactory();
+
+        _game = new CasaEngineGame(null, service, runtimeContext);
         _game.IsRunningInGameEditorMode = true;
 
         // InitializeWithEditor() must come first: it calls CasaEngineGame.Initialize()

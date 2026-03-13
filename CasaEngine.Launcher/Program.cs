@@ -3,6 +3,7 @@ using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GUI.MGUI;
 
 public static class Program
 {
@@ -14,7 +15,10 @@ public static class Program
         Logs.Verbosity = LogVerbosity.Trace;
 
         EngineEnvironment.ProjectPath = Path.GetFullPath(Path.GetDirectoryName(args[0]));
-        using var game = new CasaEngineGame(args[0]);
+        var runtimeContext = GameSettings.CreateRuntimeContext();
+        runtimeContext.UIViewRuntimeFactory = new MguiViewRuntimeFactory();
+
+        using var game = new CasaEngineGame(args[0], runtimeContext: runtimeContext);
         game.Run();
     }
 }

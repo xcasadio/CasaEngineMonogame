@@ -101,15 +101,18 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         }
     }
 
-    public CasaEngineGame(string? projectFileName = null, IGraphicsDeviceService? graphicsDeviceService = null)
+    public CasaEngineGame(
+        string? projectFileName = null,
+        IGraphicsDeviceService? graphicsDeviceService = null,
+        EngineRuntimeContext? runtimeContext = null)
     {
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledExceptions;
 
         _projectFileName = projectFileName;
-        RuntimeContext = GameSettings.CreateRuntimeContext();
+        RuntimeContext = runtimeContext ?? GameSettings.CreateRuntimeContext();
         GameManager = new GameManager(this);
-        UIViewRuntimeFactory = new MguiViewRuntimeFactory();
-        DefaultUICompositionService = Rendering.DefaultUICompositionService.Instance;
+        UIViewRuntimeFactory = RuntimeContext.UIViewRuntimeFactory;
+        DefaultUICompositionService = RuntimeContext.UICompositionService;
         RuntimeViewBootstrapper = DefaultRuntimeViewBootstrapper.Instance;
         AssetContentManager.RuntimeContext = RuntimeContext;
 

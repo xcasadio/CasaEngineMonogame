@@ -10,7 +10,7 @@ Ce fichier est généré à partir de l'audit architectural demandé dans `ai-ag
 
 ## Tâches
 
-### 🟠 CASA-ARCH-001 — Externaliser le choix du runtime UI concret hors de `CasaEngineGame`
+### ✅ CASA-ARCH-001 — Externaliser le choix du runtime UI concret hors de `CasaEngineGame`
 **Contexte**  
 Le moteur expose déjà `IUIViewRuntime` et `IUIViewRuntimeFactory`, mais `CasaEngineGame` instancie encore directement `MguiViewRuntimeFactory` comme choix par défaut.
 
@@ -32,6 +32,9 @@ Permettre d'injecter la factory UI depuis un bootstrap runtime/éditeur ou un pr
 
 **Dépendances éventuelles**  
 Aucune
+
+**Statut**  
+Terminé
 
 ---
 
