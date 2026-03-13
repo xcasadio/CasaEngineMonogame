@@ -70,7 +70,7 @@ public partial class WorldEditorControl : EditorControlBase
             return;
         }
 
-        EditorAssetWriterService.SaveAsset(world.FileName, world);
+        EditorWorldWriter.SaveWorld(world);
         Logs.WriteInfo($"World {world.Name} saved ({world.FileName})");
     }
 
@@ -117,7 +117,14 @@ public partial class WorldEditorControl : EditorControlBase
 
             if (actor != null)
             {
-                EditorAssetWriterService.SaveAsset(actor.FileName, actor);
+                if (actor is Entity entity)
+                {
+                    EditorEntityWriter.SaveEntity(entity);
+                }
+                else
+                {
+                    EditorAssetWriterService.SaveAsset(actor.FileName, actor);
+                }
             }
         }
 

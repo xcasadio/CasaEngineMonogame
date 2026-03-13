@@ -196,7 +196,7 @@ Laisser `ProjectSettingsHelper` gérer uniquement le chargement runtime d'un pro
 
 ---
 
-### ⬜ CASA-SEP-010 — Introduire des writers editor pour `World` et `Entity`
+### ✅ CASA-SEP-010 — Introduire des writers editor pour `World` et `Entity`
 **Objectif**  
 Commencer la séparation de la persistance editor en déplaçant l'écriture de `World` et `Entity` vers des writers dédiés.
 

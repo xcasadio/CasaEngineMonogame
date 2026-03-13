@@ -56,7 +56,7 @@ public static class EditorProjectAuthoringService
                 FileName = worldFileName,
             };
 
-            EditorAssetWriterService.SaveAsset(world.FileName, world);
+            EditorWorldWriter.SaveWorld(world);
             AssetCatalog.Add(world);
 
             SaveProject();

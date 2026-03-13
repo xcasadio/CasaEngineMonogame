@@ -14,12 +14,18 @@ public static class EditorAssetWriterService
         JObject rootObject = new();
         asset.Save(rootObject);
 
+        SaveDocument(fileName, rootObject);
+
+        Logs.WriteInfo($"Save '{fileName}'");
+    }
+
+    public static void SaveDocument(string fileName, JObject rootObject)
+    {
+
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
         using StreamWriter file = File.CreateText(fullFileName);
         using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
         rootObject.WriteTo(writer);
-
-        Logs.WriteInfo($"Save '{fileName}'");
     }
 
     public static void SaveSkeletonAnimationFromRiggedModel(string fileName, RiggedModel.RiggedAnimation riggedAnimation)
@@ -47,10 +53,7 @@ public static class EditorAssetWriterService
 
         rootObject.Add("animation_nodes", animationNodesNode);
 
-        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
-        using StreamWriter file = File.CreateText(fullFileName);
-        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-        rootObject.WriteTo(writer);
+        SaveDocument(fileName, rootObject);
 
         Logs.WriteInfo($"Save '{fileName}'");
     }

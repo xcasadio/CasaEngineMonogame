@@ -86,7 +86,7 @@ public partial class GameEditorEntityControl : UserControl
         }
 
         var fileName = EntityControlViewModel.Entity.FileName;
-        EditorAssetWriterService.SaveAsset(fileName, EntityControlViewModel.Entity);
+        EditorEntityWriter.SaveEntity(EntityControlViewModel.Entity);
         Logs.WriteInfo($"Entity {EntityControlViewModel.Entity.Name} saved ({fileName})");
     }
 }
