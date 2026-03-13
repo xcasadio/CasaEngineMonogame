@@ -3,7 +3,7 @@ using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Game;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Framework.GUI;
 
 public static class Program
 {

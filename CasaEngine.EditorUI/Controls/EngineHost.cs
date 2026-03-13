@@ -380,6 +380,7 @@ public sealed class EngineHost : WpfGame
                 var gizmo = ctx.Gizmo;
                 gizmo.ActiveCamera  = ctx.Camera;   // bind camera for per-view Update()
                 gizmo.ActiveSurface = ctx.Surface;  // bind RT surface for correct Unproject
+                gizmo.SelectionWorld = ctx.World;
                 pipeline.RenderGizmosAction = (_, _, frame) => gizmo.DrawForView(in frame);
             }
 

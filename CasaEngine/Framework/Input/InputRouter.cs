@@ -77,7 +77,7 @@ public sealed class InputRouter
         {
             KeyboardProvider = keyboardProvider,
             MouseProvider = mouseProvider,
-            IsPointerOver = isPointerOver ?? static () => true,
+            IsPointerOver = isPointerOver ?? (() => true),
         };
     }
 

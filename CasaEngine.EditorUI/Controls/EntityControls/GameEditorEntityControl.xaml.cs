@@ -76,6 +76,19 @@ public partial class GameEditorEntityControl : UserControl
         world.ClearEntities();
         entity.InitializeWithWorld(world);
         world.AddEntityWithEditor(entity);
+
+        if (ctx.RenderView != null)
+        {
+            ctx.RenderView.World = world;
+            ctx.RenderView.Invalidate();
+        }
+
+        if (ctx.Gizmo != null)
+        {
+            ctx.Gizmo.SelectionWorld = world;
+            ctx.Gizmo.ClearSelection();
+            ctx.Gizmo.SetSelectionPool(world.GetSelectableComponents());
+        }
     }
 
     private void SaveCommand_Executed(object sender, ExecutedRoutedEventArgs e)

@@ -49,6 +49,12 @@ public class GizmoComponent : DrawableGameComponent
     /// </summary>
     public bool IsActiveViewport { get; set; }
 
+    /// <summary>
+    /// World backing this gizmo's selection pool. When null, falls back to
+    /// <c>GameManager.CurrentWorld</c> for backward compatibility.
+    /// </summary>
+    public Framework.World.World? SelectionWorld { get; set; }
+
     public GizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         _game = game as CasaEngineGame;
@@ -87,9 +93,11 @@ public class GizmoComponent : DrawableGameComponent
 
     public override void Update(GameTime gameTime)
     {
-        if (Gizmo.GetSelectionPool() == null && _game.GameManager.CurrentWorld != null)
+        var selectionWorld = SelectionWorld ?? _game.GameManager.CurrentWorld;
+
+        if (Gizmo.GetSelectionPool() == null && selectionWorld != null)
         {
-            SetSelectionPool(_game.GameManager.CurrentWorld.GetSelectableComponents());
+            SetSelectionPool(selectionWorld.GetSelectableComponents());
         }
 
         if (Gizmo.GetSelectionPool() == null)

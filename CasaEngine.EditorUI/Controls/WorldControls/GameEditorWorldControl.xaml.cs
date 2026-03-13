@@ -88,6 +88,12 @@ public partial class GameEditorWorldControl : UserControl
         {
             ctx.RenderView.World = currentWorld;
             ctx.World = currentWorld;
+            if (ctx.Gizmo != null)
+            {
+                ctx.Gizmo.SelectionWorld = currentWorld;
+                ctx.Gizmo.ClearSelection();
+                ctx.Gizmo.SetSelectionPool(currentWorld.GetSelectableComponents());
+            }
         }
     }
 
@@ -179,7 +185,10 @@ public partial class GameEditorWorldControl : UserControl
 
         (DataContext as WorldEditorViewModel)?.EntitiesViewModel.Add(entity);
 
-        gizmoComponent?.SetSelectionPool(host.Game.GameManager.CurrentWorld.GetSelectableComponents());
+        if (ctx?.World != null)
+        {
+            gizmoComponent?.SetSelectionPool(ctx.World.GetSelectableComponents());
+        }
 
         if (entity.RootComponent != null && ctx?.Camera != null)
         {

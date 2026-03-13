@@ -5,6 +5,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>CasaEngine</AssemblyName>
     <RootNamespace>CasaEngine</RootNamespace>
+    <DefineConstants>$(DefineConstants);EDITOR</DefineConstants>
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
     <OutputType>Library</OutputType>

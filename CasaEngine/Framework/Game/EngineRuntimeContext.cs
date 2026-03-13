@@ -3,7 +3,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Project;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.GUI.MGUI;
 
 namespace CasaEngine.Framework.Game;
 
