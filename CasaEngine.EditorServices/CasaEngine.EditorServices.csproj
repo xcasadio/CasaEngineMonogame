@@ -8,6 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />
+    <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
   </ItemGroup>
 </Project>

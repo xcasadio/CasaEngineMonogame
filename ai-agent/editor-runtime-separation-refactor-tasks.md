@@ -320,7 +320,7 @@ Relocaliser `GridComponent`, `AxisComponent`, `GizmoComponent`, `EditorViewPipel
 
 ---
 
-### ⬜ CASA-SEP-016 — Repointer les projets editor hors de `CasaEngine.WithEditor`
+### ✅ CASA-SEP-016 — Repointer les projets editor hors de `CasaEngine.WithEditor`
 **Objectif**  
 Faire dépendre les projets editor d'un noyau runtime propre et d'extensions editor explicites, au lieu d'une variante mixte du moteur.
 

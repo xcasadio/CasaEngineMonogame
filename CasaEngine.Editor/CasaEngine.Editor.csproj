@@ -17,7 +17,7 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CasaEngine\CasaEngine.WithEditor.csproj" />
+    <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
     <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
