@@ -348,6 +348,21 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             view.UIView?.Update(gameTime);
         }
 
+        var worldsWithUI = GameManager.ViewManager.Views
+            .Select(static view => view.World)
+            .Distinct()
+            .ToList();
+
+        if (GameManager.CurrentWorld != null && !worldsWithUI.Contains(GameManager.CurrentWorld))
+        {
+            worldsWithUI.Add(GameManager.CurrentWorld);
+        }
+
+        foreach (var world in worldsWithUI)
+        {
+            world.UpdateWorldUI(gameTime);
+        }
+
         GameManager.UpdateWorld(gameTime);
 
 #if EDITOR

@@ -383,6 +383,14 @@ public sealed class World : ObjectBase
         }
     }
 
+    public void UpdateWorldUI(GameTime gameTime)
+    {
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.Update(gameTime);
+        }
+    }
+
     public void OnScreenResized(int width, int height)
     {
         foreach (var entity in Entities)

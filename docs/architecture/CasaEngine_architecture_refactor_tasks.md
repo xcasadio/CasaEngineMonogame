@@ -125,7 +125,7 @@ Terminé
 
 ---
 
-### 🟠 CASA-ARCH-005 — Finaliser la chaîne world-space UI de bout en bout
+### ✅ CASA-ARCH-005 — Finaliser la chaîne world-space UI de bout en bout
 **Contexte**  
 `WorldUIComponent` possède déjà la plupart des briques nécessaires mais est explicitement marqué comme `stub / not yet functional`.
 
@@ -148,6 +148,9 @@ Compléter la chaîne de rendu, la consommation de texture côté monde et la re
 
 **Dépendances éventuelles**  
 - CASA-ARCH-001
+
+**Statut**  
+Terminé
 
 ---
 

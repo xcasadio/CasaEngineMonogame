@@ -1,4 +1,5 @@
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,14 +11,14 @@ namespace CasaEngine.Framework.GUI;
 /// so that it can be mapped onto a 3D quad in world-space (e.g. in-game screens,
 /// arcade monitors, holographic panels).
 ///
-/// <b>Status: stub / not yet functional.</b>
-/// This component wires up the RenderTarget plumbing but does not yet draw the
-/// quad into the world. See the task file for the full implementation plan.
+/// The component owns the offscreen UI pass and can bind the produced texture to
+/// world materials such as <see cref="UnlitTextureMaterial"/> or <see cref="LitDiffuseMaterial"/>.
 /// </summary>
 public sealed class WorldUIComponent : IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly RenderTargetSurface _surface;
+    private readonly List<Action<Texture2D?>> _textureBindings = [];
     private bool                    _disposed;
 
     /// <summary>The hosted UI runtime rendered to the world texture.</summary>
@@ -50,6 +51,42 @@ public sealed class WorldUIComponent : IDisposable
     {
         _surface.EnsureSize(width, height);
         Resolution = new Point(Math.Max(1, width), Math.Max(1, height));
+        RefreshBindings();
+    }
+
+    /// <summary>Updates the hosted UI runtime before the offscreen draw pass.</summary>
+    public void Update(GameTime gameTime)
+    {
+        if (_disposed || UIView == null)
+        {
+            return;
+        }
+
+        var viewport = new Rectangle(0, 0, Math.Max(1, Resolution.X), Math.Max(1, Resolution.Y));
+        UIView.UpdateMetrics(new UIViewMetrics(Resolution, Resolution, 1.0f, viewport));
+        UIView.Update(gameTime);
+    }
+
+    /// <summary>Binds the produced UI texture to an unlit material.</summary>
+    public void BindToMaterial(UnlitTextureMaterial material)
+    {
+        ArgumentNullException.ThrowIfNull(material);
+        BindTexture(texture => material.BasColor = texture);
+    }
+
+    /// <summary>Binds the produced UI texture to a lit material.</summary>
+    public void BindToMaterial(LitDiffuseMaterial material)
+    {
+        ArgumentNullException.ThrowIfNull(material);
+        BindTexture(texture => material.BasColor = texture);
+    }
+
+    public void BindTexture(Action<Texture2D?> textureBinding)
+    {
+        ArgumentNullException.ThrowIfNull(textureBinding);
+
+        _textureBindings.Add(textureBinding);
+        textureBinding(Texture);
     }
 
     /// <summary>
@@ -67,8 +104,18 @@ public sealed class WorldUIComponent : IDisposable
         using var guard = new GraphicsStateGuard(_graphicsDevice);
 
         _surface.Apply(_graphicsDevice);
+        RefreshBindings();
         _graphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, ClearColor, 1.0f, 0);
         UIView.Draw();
+    }
+
+    private void RefreshBindings()
+    {
+        var texture = Texture;
+        foreach (var binding in _textureBindings)
+        {
+            binding(texture);
+        }
     }
 
     public void Dispose()
