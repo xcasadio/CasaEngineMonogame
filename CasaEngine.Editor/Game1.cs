@@ -34,6 +34,8 @@ namespace CasaEngine.Editor
         private const string OutputPanelId = "panel_output";
         private const string EntitiesPanelId = "panel_entities";
         private const string EntityDetailsPanelId = "panel_entity_details";
+        private const string EditorLayoutDirectoryName = ".casaeditor";
+        private const string EditorLayoutFileName = "layout.json";
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -341,6 +343,11 @@ namespace CasaEngine.Editor
         private void PresentLoadedProject()
         {
             EnsureDockHostInitialized();
+
+            if (!TryLoadPersistedDockLayout(logOutcome: false))
+            {
+                SetupInitialDockLayout();
+            }
 
             _ = GetOrCreateWorldViewportContent();
             _ = GetOrCreateEntitiesContent();
@@ -725,54 +732,16 @@ namespace CasaEngine.Editor
 
         private void SaveDockLayout()
         {
-            if (_dockHost == null)
-            {
-                return;
-            }
-
-            using var dialog = new System.Windows.Forms.SaveFileDialog
-            {
-                Filter = "CasaEngine layout files (*.json)|*.json|JSON files (*.json)|*.json|All files (*.*)|*.*",
-                DefaultExt = "json",
-                AddExtension = true,
-                FileName = "layout.json",
-                InitialDirectory = GetCurrentProjectDirectory(),
-                RestoreDirectory = true,
-            };
-
-            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-            {
-                return;
-            }
-
-            File.WriteAllText(dialog.FileName, _dockHost.SaveLayoutToJson(indented: true));
-            Logs.WriteInfo($"Editor layout saved: {dialog.FileName}");
+            SavePersistedDockLayout();
         }
 
         private void LoadDockLayout()
         {
-            if (_dockHost == null)
+            if (!TryLoadPersistedDockLayout(logOutcome: true))
             {
-                return;
+                SetupInitialDockLayout();
+                RefreshStatusBar();
             }
-
-            using var dialog = new System.Windows.Forms.OpenFileDialog
-            {
-                Filter = "CasaEngine layout files (*.json)|*.json|JSON files (*.json)|*.json|All files (*.*)|*.*",
-                DefaultExt = "json",
-                CheckFileExists = true,
-                InitialDirectory = GetCurrentProjectDirectory(),
-                RestoreDirectory = true,
-            };
-
-            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-            {
-                return;
-            }
-
-            var json = File.ReadAllText(dialog.FileName);
-            _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
-            Logs.WriteInfo($"Editor layout loaded: {dialog.FileName}");
         }
 
         private Func<MGElement> GetPanelContentFactory(string panelId)
@@ -784,8 +753,102 @@ namespace CasaEngine.Editor
                 EntityDetailsPanelId => GetOrCreateEntityDetailsContent,
                 ContentBrowserPanelId => GetOrCreateContentBrowserContent,
                 OutputPanelId => GetOrCreateLogsContent,
-                _ => null,
+                _ => () => CreateUnavailablePanelContent(panelId),
             };
+        }
+
+        private MGElement CreateUnavailablePanelContent(string panelId)
+        {
+            var panel = new MGStackPanel(_mainWindow, Orientation.Vertical)
+            {
+                Spacing = 6,
+                Padding = new MonoGame.Extended.Thickness(8),
+            };
+
+            panel.TryAddChild(new MGTextBlock(_mainWindow, $"Panel unavailable: {panelId}")
+            {
+                WrapText = true,
+            });
+
+            panel.TryAddChild(new MGTextBlock(_mainWindow, "The saved layout references a panel that is not registered in this editor build.")
+            {
+                WrapText = true,
+            });
+
+            return panel;
+        }
+
+        private string GetPersistedLayoutPath()
+        {
+            var projectDirectory = GetCurrentProjectDirectory();
+            if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
+            {
+                return null;
+            }
+
+            return Path.Combine(projectDirectory, EditorLayoutDirectoryName, EditorLayoutFileName);
+        }
+
+        private void SavePersistedDockLayout()
+        {
+            if (_dockHost == null)
+            {
+                return;
+            }
+
+            var layoutPath = GetPersistedLayoutPath();
+            if (string.IsNullOrWhiteSpace(layoutPath))
+            {
+                Logs.WriteWarning("Cannot save editor layout because no project directory is available.");
+                return;
+            }
+
+            var layoutDirectory = Path.GetDirectoryName(layoutPath);
+            if (!string.IsNullOrWhiteSpace(layoutDirectory))
+            {
+                Directory.CreateDirectory(layoutDirectory);
+            }
+
+            File.WriteAllText(layoutPath, _dockHost.SaveLayoutToJson(indented: true));
+            Logs.WriteInfo($"Editor layout saved: {layoutPath}");
+        }
+
+        private bool TryLoadPersistedDockLayout(bool logOutcome)
+        {
+            if (_dockHost == null)
+            {
+                return false;
+            }
+
+            var layoutPath = GetPersistedLayoutPath();
+            if (string.IsNullOrWhiteSpace(layoutPath) || !File.Exists(layoutPath))
+            {
+                if (logOutcome)
+                {
+                    Logs.WriteWarning("No persisted editor layout was found for the current project.");
+                }
+
+                return false;
+            }
+
+            try
+            {
+                var json = File.ReadAllText(layoutPath);
+                _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
+                RefreshStatusBar();
+
+                if (logOutcome)
+                {
+                    Logs.WriteInfo($"Editor layout loaded: {layoutPath}");
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logs.WriteWarning($"Failed to load persisted editor layout '{layoutPath}': {ex.Message}");
+                return false;
+            }
         }
 
         private string GetCurrentProjectDirectory()

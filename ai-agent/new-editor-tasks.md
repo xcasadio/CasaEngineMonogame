@@ -832,7 +832,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 4.5 — Sauvegarde et chargement du layout (persistance)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Actions :**
 1. Connecter le menu "Windows → Save Layout" au `DockLayoutSerializer.SaveLayoutToJson()`
@@ -848,6 +848,21 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Fermer un panneau, sauver, recharger : vérifier qu'il est bien fermé au restore
 
 **Commit :** `feat(editor): add dock layout save/load persistence`
+
+## Résumé
+- Les menus `Windows -> Save Layout` et `Windows -> Load Layout` utilisent maintenant un chemin projet fixe: `.casaeditor/layout.json`.
+- À l’ouverture d’un projet, `Game1` tente de restaurer automatiquement ce layout; en absence de fichier ou en cas d’erreur, l’éditeur retombe sur le layout par défaut.
+- Les layouts qui référencent un panneau inconnu sont restaurés sans crash via un contenu de fallback explicite.
+
+## Attendu
+- Un layout sauvegardé pour un projet est réutilisé automatiquement lors du prochain chargement de ce même projet.
+- Si aucun layout n’existe, ou si le JSON est invalide, l’éditeur repart sur son layout standard sans bloquer le démarrage.
+- Un ancien layout qui contient un panneau non reconnu reste chargeable avec un fallback lisible au lieu d’un plantage.
+
+## À tester
+- Réarranger les panneaux, utiliser `Windows -> Save Layout`, relancer l’éditeur puis rouvrir le même projet et vérifier la restauration automatique.
+- Supprimer `.casaeditor/layout.json` puis rouvrir le projet et vérifier le retour au layout par défaut.
+- Fermer `Logs` ou `Content Browser`, sauvegarder le layout, rouvrir le projet et vérifier que l’état fermé est restauré.
 
 ---
 
@@ -876,4 +891,4 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 4.2 | Assemblage | Système de sélection centralisé | ✅ | `feat(editor): add centralized EditorSelection system` |
 | 4.3 | Assemblage | Intégration Project Launcher | ✅ | `feat(editor): integrate ProjectLauncher into editor startup flow` |
 | 4.4 | Assemblage | StatusBar | ✅ | `feat(editor): add status bar with panel toggles and info` |
-| 4.5 | Assemblage | Persistance layout | ⬜ | |
+| 4.5 | Assemblage | Persistance layout | ✅ | `feat(editor): add dock layout save/load persistence` |
