@@ -87,6 +87,53 @@ public class InputRouterTests
         Assert.Equal(uiCapturedView.Id, context.RoutingState.UIPointerCaptureViewId);
     }
 
+    [Fact]
+    public void TryDispatchContext_DoesNotAssignKeyboardFocusFromPointerHover()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var source = new StubWindowInputSource();
+
+        var view = CreateView(viewManager, new Rectangle(100, 50, 200, 120));
+
+        router.RegisterViewInput(view.Id, source);
+        router.RegisterFallbackInput(source);
+
+        source.SetSnapshot(new WindowInputSnapshot(13, new KeyboardState(Keys.A), CreateMouseState(130, 70, 0)));
+
+        Assert.True(router.TryDispatchContext(out var context));
+
+        Assert.Equal(view.Id, context.ViewId);
+        Assert.Equal(InputRoutingReason.Pointer, context.RoutingState.Reason);
+        Assert.Equal(ViewId.Empty, router.KeyboardFocusViewId);
+        Assert.Equal(ViewId.Empty, context.RoutingState.KeyboardFocusViewId);
+    }
+
+    [Fact]
+    public void TryDispatchContext_DoesNotOverrideExplicitKeyboardFocusWhenPointerMoves()
+    {
+        var viewManager = new ViewManager();
+        var router = new InputRouter(viewManager);
+        var source = new StubWindowInputSource();
+
+        var focusedView = CreateView(viewManager, new Rectangle(0, 0, 100, 100));
+        var hoveredView = CreateView(viewManager, new Rectangle(120, 0, 100, 100));
+
+        router.RegisterViewInput(focusedView.Id, source);
+        router.RegisterViewInput(hoveredView.Id, source);
+        router.RegisterFallbackInput(source);
+        router.SetKeyboardFocus(focusedView.Id);
+
+        source.SetSnapshot(new WindowInputSnapshot(14, new KeyboardState(Keys.B), CreateMouseState(150, 10, 0)));
+
+        Assert.True(router.TryDispatchContext(out var context));
+
+        Assert.Equal(hoveredView.Id, context.ViewId);
+        Assert.Equal(InputRoutingReason.Pointer, context.RoutingState.Reason);
+        Assert.Equal(focusedView.Id, router.KeyboardFocusViewId);
+        Assert.Equal(focusedView.Id, context.RoutingState.KeyboardFocusViewId);
+    }
+
     private static RenderView CreateView(ViewManager viewManager, Rectangle screenBounds, IUIViewRuntime? uiView = null)
     {
         var surface = new StubRenderSurface(new Rectangle(0, 0, screenBounds.Width, screenBounds.Height));

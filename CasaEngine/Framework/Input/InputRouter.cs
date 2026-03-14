@@ -184,11 +184,6 @@ public sealed class InputRouter
             _viewManager.SetActive(targetView);
         }
 
-        if (!targetView.Id.IsEmpty)
-        {
-            KeyboardFocusViewId = targetView.Id;
-        }
-
         var routedSnapshot = registration.WindowInputSource.GetSnapshot();
         var routedKeyboardState = routedSnapshot.KeyboardState;
         var screenMouseState = routedSnapshot.MouseState;
