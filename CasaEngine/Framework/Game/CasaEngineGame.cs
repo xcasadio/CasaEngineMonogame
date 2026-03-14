@@ -12,6 +12,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
@@ -268,6 +269,12 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         // Create the per-view input router and make it available on InputComponent.
         InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
+
+        if (RuntimeContext.WindowInputSource is IKeyboardStateProvider keyboardStateProvider
+            && RuntimeContext.WindowInputSource is IMouseStateProvider mouseStateProvider)
+        {
+            InputComponent.SetFallbackProviders(keyboardStateProvider, mouseStateProvider);
+        }
 
 #if !FINAL
     var args = Environment.GetCommandLineArgs();

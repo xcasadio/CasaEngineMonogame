@@ -1,6 +1,7 @@
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Project;
 using CasaEngine.Framework.Rendering;
 
@@ -25,6 +26,8 @@ public sealed class EngineRuntimeContext
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
 
     public IUICompositionService UICompositionService { get; set; }
+
+    public IWindowInputSource? WindowInputSource { get; set; }
 
     public EngineRuntimeContext(
         ProjectSettings projectSettings,

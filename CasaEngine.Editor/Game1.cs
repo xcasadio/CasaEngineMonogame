@@ -325,6 +325,7 @@ namespace CasaEngine.Editor
             }
 
             _editorRuntimeContext = GameSettings.CreateRuntimeContext();
+            _editorRuntimeContext.WindowInputSource = _windowInputSource;
 
             _editorRuntime = new HostedEditorGameAdapter(null, graphicsDeviceService, _editorRuntimeContext)
             {

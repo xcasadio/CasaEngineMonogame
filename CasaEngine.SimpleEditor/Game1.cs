@@ -147,6 +147,7 @@ namespace CasaEngine.SimpleEditor
             }
 
             _runtimeContext = GameSettings.CreateRuntimeContext();
+            _runtimeContext.WindowInputSource = _windowInputSource;
             _editorRuntime = new HostedEditorGameAdapter(_projectFilePath, graphicsDeviceService, _runtimeContext)
             {
                 ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -21,11 +22,15 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
 {
     private readonly Game.CasaEngineGame _game;
     private readonly IRenderSurface      _surface;
+    private readonly IKeyboardStateProvider? _keyboardStateProvider;
+    private readonly IMouseStateProvider? _mouseStateProvider;
 
     public ViewRenderHost(Game.CasaEngineGame game, IRenderSurface surface)
     {
         _game    = game;
         _surface = surface;
+        _keyboardStateProvider = game.RuntimeContext.WindowInputSource as IKeyboardStateProvider;
+        _mouseStateProvider = game.RuntimeContext.WindowInputSource as IMouseStateProvider;
 
         // Forward lifecycle events from the host game so that the MainRenderer
         // can refresh its input cache and other per-frame state.
@@ -55,7 +60,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     /// </summary>
     public MouseState GetMouseState()
     {
-        var state = Mouse.GetState();
+        var state = _mouseStateProvider?.GetState() ?? Mouse.GetState();
         var vp    = _surface.ViewportRect;
         return new MouseState(
             state.X - vp.X,
@@ -69,7 +74,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
             state.HorizontalScrollWheelValue);
     }
 
-    public KeyboardState GetKeyboardState() => Keyboard.GetState();
+    public KeyboardState GetKeyboardState() => _keyboardStateProvider?.GetState() ?? Keyboard.GetState();
 
     public object? GetService(Type serviceType) => _game.Services.GetService(serviceType);
 

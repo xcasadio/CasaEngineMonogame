@@ -270,7 +270,7 @@ Faire de `WorldViewportPanel` un hôte de rendu et de focus, sans hooks Win32 ni
 
 ---
 
-### ⬜ EIR-008 — Aligner le mode in-game et le mode éditeur sur le même modèle de vue
+### ✅ EIR-008 — Aligner le mode in-game et le mode éditeur sur le même modèle de vue
 **Objectif**  
 S'assurer que les mêmes abstractions de vue, UI runtime et input routing s'appliquent au jeu et à l'éditeur, au lieu de maintenir deux modèles mentaux.
 
@@ -289,6 +289,13 @@ S'assurer que les mêmes abstractions de vue, UI runtime et input routing s'appl
 - l'éditeur et l'in-game partagent la même chaîne conceptuelle d'input
 - les spécificités editor sont portées par des contrôleurs, pas par une architecture parallèle
 - les points de divergence sont documentés et justifiés
+
+**Résultat**
+- `EngineRuntimeContext` porte désormais une `WindowInputSource` partagée injectable par host
+- `CasaEngineGame` branche automatiquement cette source comme fallback input pour le routeur lorsqu'elle est disponible
+- `ViewRenderHost` consomme cette même source pour la UI per-view au lieu d'un chemin séparé `Mouse.GetState()` / `Keyboard.GetState()`
+- `CasaEngine.Editor` et `CasaEngine.SimpleEditor` injectent maintenant explicitement la même source fenêtre dans MGUI, le runtime moteur et les viewports
+- validation bornée : `dotnet build CasaEngine/CasaEngine.csproj -nologo`, `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo` et `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
 **Commit suggéré**  
 `Align editor and ingame input routing model`
