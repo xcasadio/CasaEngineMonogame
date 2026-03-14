@@ -480,7 +480,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.8 — Property editors pour composants courants
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichiers à créer :** `CasaEngine.Editor/Controls/ComponentEditors/`
 
@@ -506,6 +506,23 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Tester le fallback générique sur un composant custom
 
 **Commit :** `feat(editor): add component property editors with registry`
+
+## Résumé
+- Ajout d’une infrastructure `ComponentEditors/` avec un `ComponentEditorRegistry`, une base commune `ComponentEditorBase` et un fallback générique par réflexion.
+- Implémentation d’éditeurs dédiés pour les composants `SceneComponent` (transform), `StaticModelComponent`, `CameraComponent` et `PhysicsBaseComponent` avec sections MGUI en `MGExpander` + `MGGrid`.
+- `EntityDetailsPanel` délègue désormais l’affichage des propriétés au registry, et `CameraComponent` expose des propriétés near/far éditables pour la couche éditeur.
+
+## Attendu
+- La sélection d’un composant courant affiche un éditeur spécialisé plutôt qu’une simple liste générique de propriétés.
+- Les composants de scène exposent Position, Rotation et Scale avec des `Vector3Editor`, les modèles statiques un sélecteur d’asset, les caméras FOV/near/far et les composants physiques leurs paramètres principaux ainsi que leur forme de collision quand elle est supportée.
+- Les composants non enregistrés dans le registry continuent de fonctionner via un fallback générique par réflexion.
+
+## À tester
+- Sélectionner un `SceneComponent` et vérifier l’édition de Position, Rotation, Scale avec mise à jour immédiate dans le viewport.
+- Sélectionner un `StaticModelComponent`, changer l’asset modèle et vérifier que la valeur du composant est mise à jour.
+- Sélectionner un composant caméra et vérifier l’affichage de FOV, near plane et far plane.
+- Sélectionner un composant physique (`BoxCollisionComponent`, `SphereCollisionComponent`, etc.) et vérifier l’édition de masse, friction et forme de collision.
+- Sélectionner un composant non spécialisé et vérifier que le fallback générique continue d’afficher les propriétés simples éditables.
 
 ---
 
@@ -758,7 +775,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.5 | Contrôles éditeur | World Viewport | ✅ | `4ebdf1e8` |
 | 2.6 | Contrôles éditeur | Entities (hiérarchie) | ✅ | `feat(editor): add EntitiesPanel with entity hierarchy tree` |
 | 2.7 | Contrôles éditeur | Entity Details (composants) | ✅ | `feat(editor): add EntityDetailsPanel with component list` |
-| 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
+| 2.8 | Contrôles éditeur | Property editors composants | ✅ | `feat(editor): add component property editors with registry` |
 | 3.1 | Moteur | Événements World | ✅ | `feat(engine): ensure World exposes entity change events` |
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
 | 3.3 | Moteur | AssetCatalog vérification | ⬜ | |

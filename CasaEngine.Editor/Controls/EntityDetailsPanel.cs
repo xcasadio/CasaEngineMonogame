@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using CasaEngine.Core.Maths;
+using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
@@ -22,23 +20,6 @@ namespace CasaEngine.Editor.Controls;
 public sealed class EntityDetailsPanel
 {
     private static readonly Lazy<IReadOnlyDictionary<string, Type>> ComponentTypes = new(CreateComponentTypeLookup);
-
-    private static readonly HashSet<string> UnsupportedPropertyNames = new(StringComparer.OrdinalIgnoreCase)
-    {
-        nameof(EntityComponent.Owner),
-        nameof(SceneComponent.Children),
-        nameof(SceneComponent.Parent),
-        nameof(SceneComponent.Forward),
-        nameof(SceneComponent.Up),
-        nameof(SceneComponent.BoundingBox),
-        nameof(SceneComponent.WorldMatrixWithScale),
-        nameof(SceneComponent.WorldMatrixNoParentScale),
-        nameof(SceneComponent.WorldMatrixNoScale),
-        nameof(SceneComponent.WorldInvertTransposeMatrix),
-        nameof(PhysicsBaseComponent.PhysicsDefinition),
-        nameof(StaticModelComponent.StaticModel),
-        nameof(PhysicsBaseComponent.Collisions),
-    };
 
     private readonly MGWindow _window;
     private readonly Dictionary<MGTreeViewItem, EntityComponent> _itemToComponent = new();
@@ -394,225 +375,8 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-
-        if (_selectedComponent is SceneComponent sceneComponent)
-        {
-            var transformExpander = CreateExpander("Transform", true);
-            var transformContent = new MGStackPanel(_window, Orientation.Vertical)
-            {
-                Spacing = 6,
-            };
-
-            var positionEditor = new Vector3Editor(_window) { Value = sceneComponent.Coordinates.Position };
-            positionEditor.ValueChanged += (_, value) => sceneComponent.Coordinates.Position = value;
-            transformContent.TryAddChild(CreatePropertyRow("Position", positionEditor));
-
-            var scaleEditor = new Vector3Editor(_window) { Value = sceneComponent.Coordinates.Scale };
-            scaleEditor.ValueChanged += (_, value) => sceneComponent.Coordinates.Scale = value;
-            transformContent.TryAddChild(CreatePropertyRow("Scale", scaleEditor));
-
-            transformContent.TryAddChild(new MGTextBlock(_window, "Orientation editing will be added with the dedicated component editors task.")
-            {
-                WrapText = true,
-            });
-
-            transformExpander.SetContent(transformContent);
-            _detailsContent.TryAddChild(transformExpander);
-        }
-
-        var genericEditors = BuildGenericPropertyEditors(_selectedComponent).ToList();
-        if (genericEditors.Count > 0)
-        {
-            var propertiesExpander = CreateExpander("Properties", true);
-            var propertiesContent = new MGStackPanel(_window, Orientation.Vertical)
-            {
-                Spacing = 6,
-            };
-
-            foreach (var editor in genericEditors)
-            {
-                propertiesContent.TryAddChild(editor);
-            }
-
-            propertiesExpander.SetContent(propertiesContent);
-            _detailsContent.TryAddChild(propertiesExpander);
-        }
-        else if (_selectedComponent is not SceneComponent)
-        {
-            _detailsContent.TryAddChild(new MGTextBlock(_window, "No editable properties are available yet for this component.")
-            {
-                WrapText = true,
-            });
-        }
-    }
-
-    private IEnumerable<MGElement> BuildGenericPropertyEditors(EntityComponent component)
-    {
-        foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(component))
-        {
-            if (!property.IsBrowsable || property.IsReadOnly || UnsupportedPropertyNames.Contains(property.Name))
-            {
-                continue;
-            }
-
-            if (property.Attributes.OfType<ReadOnlyAttribute>().Any(attr => attr.IsReadOnly))
-            {
-                continue;
-            }
-
-            if (component is SceneComponent && (property.Name == nameof(SceneComponent.Position)
-                || property.Name == nameof(SceneComponent.Scale)
-                || property.Name == nameof(SceneComponent.LocalPosition)
-                || property.Name == nameof(SceneComponent.LocalScale)
-                || property.Name == nameof(SceneComponent.LocalOrientation)
-                || property.Name == nameof(SceneComponent.Orientation)))
-            {
-                continue;
-            }
-
-            var editor = CreatePropertyEditor(component, property);
-            if (editor != null)
-            {
-                yield return CreatePropertyRow(property.DisplayName, editor);
-            }
-        }
-    }
-
-    private MGElement? CreatePropertyEditor(object target, PropertyDescriptor property)
-    {
-        var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
-        var currentValue = property.GetValue(target);
-
-        if (propertyType == typeof(string))
-        {
-            var textBox = new MGTextBox(_window)
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-            };
-            textBox.SetText((string?)currentValue ?? string.Empty);
-            textBox.TextChanged += (_, e) => property.SetValue(target, e.NewValue);
-            return textBox;
-        }
-
-        if (propertyType == typeof(bool))
-        {
-            var checkBox = new MGCheckBox(_window)
-            {
-                IsChecked = (bool?)currentValue ?? false,
-            };
-            checkBox.OnCheckStateChanged += (_, e) => property.SetValue(target, e.NewValue ?? false);
-            return checkBox;
-        }
-
-        if (propertyType == typeof(int) || propertyType == typeof(float) || propertyType == typeof(double))
-        {
-            var numericField = new NumericField(_window)
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-            };
-
-            numericField.Value = currentValue switch
-            {
-                int intValue => intValue,
-                float floatValue => floatValue,
-                double doubleValue => (float)doubleValue,
-                _ => 0f,
-            };
-
-            numericField.ValueChanged += (_, value) =>
-            {
-                object converted = propertyType == typeof(int)
-                    ? (int)MathF.Round(value)
-                    : propertyType == typeof(double)
-                        ? value
-                        : value;
-                property.SetValue(target, converted);
-            };
-
-            return numericField;
-        }
-
-        if (propertyType == typeof(Vector3))
-        {
-            var vectorEditor = new Vector3Editor(_window)
-            {
-                Value = currentValue is Vector3 vector ? vector : Vector3.Zero,
-            };
-            vectorEditor.ValueChanged += (_, value) => property.SetValue(target, value);
-            return vectorEditor;
-        }
-
-        if (propertyType == typeof(Color))
-        {
-            var initialColor = currentValue is Color color ? color : Microsoft.Xna.Framework.Color.White;
-            var colorEditor = new ColorEditor(_window, initialColor);
-            colorEditor.ValueChanged += (_, value) => property.SetValue(target, value);
-            return colorEditor;
-        }
-
-        if (propertyType == typeof(Guid))
-        {
-            if (property.Name.EndsWith("AssetId", StringComparison.OrdinalIgnoreCase))
-            {
-                var selector = new AssetSelector(_window)
-                {
-                    AssetId = currentValue is Guid assetGuid ? assetGuid : Guid.Empty,
-                };
-                selector.AssetChanged += (_, value) => property.SetValue(target, value);
-                return selector;
-            }
-
-            var guidBox = new MGTextBox(_window)
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-            };
-            guidBox.SetText(currentValue is Guid propertyGuid ? propertyGuid.ToString() : Guid.Empty.ToString());
-            guidBox.TextChanged += (_, e) =>
-            {
-                if (Guid.TryParse(e.NewValue, out var parsedGuid))
-                {
-                    property.SetValue(target, parsedGuid);
-                }
-            };
-            return guidBox;
-        }
-
-        if (propertyType.IsEnum)
-        {
-            var combo = new MGComboBox<string>(_window)
-            {
-                MinWidth = 140,
-            };
-            ConfigureStringCombo(combo);
-            var names = Enum.GetNames(propertyType);
-            combo.SetItemsSource(names);
-            combo.SelectedItem = currentValue?.ToString() ?? names.FirstOrDefault();
-            combo.SelectedItemChanged += (_, e) =>
-            {
-                if (!string.IsNullOrWhiteSpace(e.NewValue))
-                {
-                    property.SetValue(target, Enum.Parse(propertyType, e.NewValue));
-                }
-            };
-            return combo;
-        }
-
-        return null;
-    }
-
-    private void ConfigureStringCombo(MGComboBox<string> combo)
-    {
-        combo.DropdownItemTemplate = item =>
-        {
-            var button = combo.CreateDefaultDropdownButton();
-            button.SetContent(item);
-            return button;
-        };
-        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
-        {
-            Padding = new Thickness(4, 1, 4, 1),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
+        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent);
+        _detailsContent.TryAddChild(componentEditor.CreateView());
     }
 
     private void ClearDetailsContent()
@@ -626,39 +390,6 @@ public sealed class EntityDetailsPanel
         {
             _detailsContent.TryRemoveChild(child);
         }
-    }
-
-    private MGElement CreatePropertyRow(string label, MGElement editor)
-    {
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-
-        row.TryAddChild(new MGTextBlock(_window, label)
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-            PreferredWidth = 140,
-            MinWidth = 140,
-        });
-
-        editor.HorizontalAlignment = HorizontalAlignment.Stretch;
-        row.TryAddChild(editor);
-        return row;
-    }
-
-    private MGExpander CreateExpander(string headerText, bool isExpanded)
-    {
-        var expander = new MGExpander(_window)
-        {
-            IsExpanded = isExpanded,
-        };
-        expander.Header = new MGTextBlock(_window, headerText)
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        return expander;
     }
 
     private void ShowAddComponentDialog()

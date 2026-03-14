@@ -46,6 +46,28 @@ public abstract class CameraComponent : SceneComponent
 
     public float ViewDistance => _viewDistance;
 
+    public float NearPlane
+    {
+        get => _viewport.MinDepth;
+        set
+        {
+            _viewport.MinDepth = Math.Clamp(value, 0.001f, Math.Max(0.0011f, _viewport.MaxDepth - 0.001f));
+            _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
+            _needToComputeProjectionMatrix = true;
+        }
+    }
+
+    public float FarPlane
+    {
+        get => _viewport.MaxDepth;
+        set
+        {
+            _viewport.MaxDepth = Math.Max(value, _viewport.MinDepth + 0.001f);
+            _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
+            _needToComputeProjectionMatrix = true;
+        }
+    }
+
     protected CameraComponent()
     {
         _needToComputeProjectionMatrix = true;
@@ -74,6 +96,7 @@ public abstract class CameraComponent : SceneComponent
         _viewport.Height = Owner.World.Game.ScreenSizeHeight;
         _viewport.MinDepth = 1.0f;
         _viewport.MaxDepth = 1000.0f;
+        _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
     }
 
     protected abstract void ComputeProjectionMatrix();
@@ -97,6 +120,7 @@ public abstract class CameraComponent : SceneComponent
         base.Load(element);
         _viewDistance = element["view_distance"].GetSingle();
         _viewport = element["viewport"].GetViewPort();
+        _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
     }
 
 #if EDITOR
