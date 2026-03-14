@@ -270,6 +270,12 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         // Create the per-view input router and make it available on InputComponent.
         InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
 
+        RuntimeContext.WindowInputSource ??= new MonoGameWindowInputSource();
+        if (RuntimeContext.WindowInputSource is not FrameCachedWindowInputSource)
+        {
+            RuntimeContext.WindowInputSource = new FrameCachedWindowInputSource(RuntimeContext.WindowInputSource);
+        }
+
         if (RuntimeContext.WindowInputSource is IKeyboardStateProvider keyboardStateProvider
             && RuntimeContext.WindowInputSource is IMouseStateProvider mouseStateProvider)
         {
@@ -346,6 +352,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         //DebugSystem.Instance.TimeRuler.StartFrame();
         //DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
 #endif
+
+        if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource frameCachedWindowInputSource)
+        {
+            frameCachedWindowInputSource.CaptureFrameInput();
+        }
 
         // Fire MGUI PreviewUpdate so all ViewRenderHost instances refresh their input state.
         PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);

@@ -46,7 +46,7 @@ namespace CasaEngine.Editor
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
         private Action? _pendingProjectLauncherAction;
-        private Win32WindowInputSource _windowInputSource;
+        private FrameCachedWindowInputSource _windowInputSource;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -76,7 +76,7 @@ namespace CasaEngine.Editor
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // ── Bootstrap MGUI ─────────────────────────────────────────────
-            _windowInputSource = new Win32WindowInputSource(() => Window.Handle);
+            _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
             _desktop.LoadDefaultResources();
@@ -450,6 +450,7 @@ namespace CasaEngine.Editor
 
         protected override void Update(GameTime gameTime)
         {
+            _windowInputSource.CaptureFrameInput();
             PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
             _desktop.Update();

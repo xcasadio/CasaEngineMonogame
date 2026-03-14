@@ -57,7 +57,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 2 — Introduire le modele WindowInputSnapshot
+## 🟢 Tache 2 — Introduire le modele WindowInputSnapshot
 
 **But :** creer un objet de snapshot brut unique par frame, independant des consommateurs.
 

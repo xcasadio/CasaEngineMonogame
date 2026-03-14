@@ -32,7 +32,7 @@ namespace CasaEngine.SimpleEditor
         private EngineRuntimeContext _runtimeContext = null!;
         private HostedEditorGameAdapter _editorRuntime = null!;
         private WorldViewportPanel _worldViewportPanel = null!;
-        private Win32WindowInputSource _windowInputSource = null!;
+        private FrameCachedWindowInputSource _windowInputSource = null!;
 
         public event EventHandler<TimeSpan>? PreviewUpdate;
         public event EventHandler<EventArgs>? EndUpdate;
@@ -77,6 +77,7 @@ namespace CasaEngine.SimpleEditor
 
         protected override void Update(GameTime gameTime)
         {
+            _windowInputSource.CaptureFrameInput();
             PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
             _desktop.Update();
@@ -112,7 +113,7 @@ namespace CasaEngine.SimpleEditor
 
         private void InitializeMgui()
         {
-            _windowInputSource = new Win32WindowInputSource(() => Window.Handle);
+            _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
             _desktop.LoadDefaultResources();
