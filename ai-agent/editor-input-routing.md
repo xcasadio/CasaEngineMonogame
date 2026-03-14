@@ -144,7 +144,7 @@ Faire de `InputRouter` la seule couche qui choisit la vue cible et produit l'ét
 
 ---
 
-### ⬜ EIR-004 — Aligner le routeur avec la UI runtime per-view
+### ✅ EIR-004 — Aligner le routeur avec la UI runtime per-view
 **Objectif**  
 Faire en sorte que les signaux UI per-view (`pointer over`, `keyboard captured`, `modal`) soient les seules informations UI utilisées pour arbitrer gameplay et édition.
 
@@ -163,6 +163,13 @@ Faire en sorte que les signaux UI per-view (`pointer over`, `keyboard captured`,
 - le routeur ne dépend pas de détails UI editor-specific
 - MGUI reste responsable de l'état UI, pas de la logique gameplay
 - la priorité modal > capture > pointer > keyboard focus reste centralisée
+
+**Résultat**
+- ajout de `CasaEngine/Framework/GUI/UIViewInputState.cs`
+- `IUIViewRuntime` expose désormais un état UI agrégé consommé par le routeur
+- `UIRoot` publie cet état à partir des signaux MGUI per-view existants
+- `InputRouter` arbitre désormais l'état UI via ce contrat agrégé au lieu de lire des booléens dispersés
+- validation bornée : `dotnet build CasaEngine/CasaEngine.csproj -nologo` et `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo`
 
 **Commit suggéré**  
 `Align input router with per-view UI runtime state`

@@ -350,7 +350,7 @@ public sealed class InputRouter
     /// </summary>
     public bool IsMouseHandledByUI(RenderView view)
     {
-        return view.UIView?.IsPointerOverUI ?? false;
+        return view.UIView?.InputState.IsPointerOverUI ?? false;
     }
 
     /// <summary>
@@ -360,7 +360,7 @@ public sealed class InputRouter
     /// </summary>
     public bool IsKeyboardCapturedByUI(RenderView view)
     {
-        return view.UIView?.IsKeyboardCaptured ?? false;
+        return view.UIView?.InputState.IsKeyboardCaptured ?? false;
     }
 
     private RenderView? ResolveModalView()
@@ -373,7 +373,7 @@ public sealed class InputRouter
                 continue;
             }
 
-            if (view.UIView?.HasModalInput == true)
+            if (view.UIView?.InputState.HasModalInput == true)
             {
                 return view;
             }

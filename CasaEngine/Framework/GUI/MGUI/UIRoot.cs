@@ -47,6 +47,8 @@ public sealed class UIRoot : IUIViewRuntime
 
     public bool IsKeyboardCaptured => Desktop.FocusedKeyboardHandler != null;
 
+    public UIViewInputState InputState => new(IsPointerOverUI, IsKeyboardCaptured, HasModalInput);
+
     public bool HasModalInput => ScreenStack.HasModalInput;
 
     public void UpdateMetrics(UIViewMetrics metrics)
