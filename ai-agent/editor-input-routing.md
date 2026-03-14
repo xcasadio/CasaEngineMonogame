@@ -239,7 +239,7 @@ Sortir de `WorldViewportPanel` la logique de sélection, hover, drag et hotkeys 
 
 ---
 
-### ⬜ EIR-007 — Nettoyer `WorldViewportPanel` et supprimer les contournements locaux
+### ✅ EIR-007 — Nettoyer `WorldViewportPanel` et supprimer les contournements locaux
 **Objectif**  
 Faire de `WorldViewportPanel` un hôte de rendu et de focus, sans hooks Win32 ni logique d'orchestration d'input.
 
@@ -257,6 +257,13 @@ Faire de `WorldViewportPanel` un hôte de rendu et de focus, sans hooks Win32 ni
 - le panneau ne contient plus de logique d'input spécifique device
 - il ne reste pas de code Win32 de routage dans le panneau
 - l'éditeur continue de fonctionner via le routeur et les contrôleurs runtime
+
+**Résultat**
+- ajout de `CasaEngine/Framework/Input/ViewportRelativeMouseStateProvider.cs`
+- `WorldViewportPanel` ne contient plus de hook `WM_MOUSEWHEEL`, de polling Win32 direct, ni de provider souris local ad hoc
+- le panneau consomme désormais une source `IWindowInputSource` partagée et délègue la traduction locale au provider framework réutilisable
+- `InputRouter` résout désormais la vue pointeur depuis la souris screen-space fallback au lieu d'un callback local `IsPointerInsideViewport`
+- validation bornée : `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo` et `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
 **Commit suggéré**  
 `Remove viewport-local input workarounds from world panel`

@@ -26,7 +26,6 @@ public sealed class InputRouter
     {
         public required IKeyboardStateProvider KeyboardProvider { get; init; }
         public required IMouseStateProvider MouseProvider { get; init; }
-        public required Func<bool> IsPointerOver { get; init; }
     }
 
     private readonly ViewManager _viewManager;
@@ -56,25 +55,21 @@ public sealed class InputRouter
     public void RegisterViewInput(
         ViewId viewId,
         IKeyboardStateProvider keyboardProvider,
-        IMouseStateProvider mouseProvider,
-        Func<bool> isPointerOver)
+        IMouseStateProvider mouseProvider)
     {
         ArgumentNullException.ThrowIfNull(keyboardProvider);
         ArgumentNullException.ThrowIfNull(mouseProvider);
-        ArgumentNullException.ThrowIfNull(isPointerOver);
 
         _viewInputs[viewId] = new ViewInputRegistration
         {
             KeyboardProvider = keyboardProvider,
             MouseProvider = mouseProvider,
-            IsPointerOver = isPointerOver,
         };
     }
 
     public void RegisterFallbackInput(
         IKeyboardStateProvider keyboardProvider,
-        IMouseStateProvider mouseProvider,
-        Func<bool>? isPointerOver = null)
+        IMouseStateProvider mouseProvider)
     {
         ArgumentNullException.ThrowIfNull(keyboardProvider);
         ArgumentNullException.ThrowIfNull(mouseProvider);
@@ -83,7 +78,6 @@ public sealed class InputRouter
         {
             KeyboardProvider = keyboardProvider,
             MouseProvider = mouseProvider,
-            IsPointerOver = isPointerOver ?? (() => true),
         };
     }
 
@@ -395,16 +389,11 @@ public sealed class InputRouter
             return _viewManager.InputCaptureView;
         }
 
-        for (int i = _viewManager.Views.Count - 1; i >= 0; i--)
+        if (_fallbackInput != null)
         {
-            var view = _viewManager.Views[i];
-            if (!view.Enabled || !view.IsVisible)
-            {
-                continue;
-            }
-
-            if (_viewInputs.TryGetValue(view.Id, out var registration)
-                && registration.IsPointerOver())
+            var pointerScreenPosition = _fallbackInput.MouseProvider.GetState().Position;
+            var (view, _) = _viewManager.ScreenToView(pointerScreenPosition);
+            if (view != null && _viewInputs.ContainsKey(view.Id))
             {
                 return view;
             }

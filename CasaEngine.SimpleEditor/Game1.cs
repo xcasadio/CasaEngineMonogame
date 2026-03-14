@@ -32,6 +32,7 @@ namespace CasaEngine.SimpleEditor
         private EngineRuntimeContext _runtimeContext = null!;
         private HostedEditorGameAdapter _editorRuntime = null!;
         private WorldViewportPanel _worldViewportPanel = null!;
+        private Win32WindowInputSource _windowInputSource = null!;
 
         public event EventHandler<TimeSpan>? PreviewUpdate;
         public event EventHandler<EventArgs>? EndUpdate;
@@ -111,7 +112,8 @@ namespace CasaEngine.SimpleEditor
 
         private void InitializeMgui()
         {
-            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new Win32WindowInputSource(() => Window.Handle));
+            _windowInputSource = new Win32WindowInputSource(() => Window.Handle);
+            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
             _desktop.LoadDefaultResources();
 
@@ -180,7 +182,7 @@ namespace CasaEngine.SimpleEditor
                 Name = "SimpleEditorRootPanel",
             };
 
-            _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, () => Window.Handle);
+            _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
             _rootPanel.TryAddChild(_worldViewportPanel.CreateContent(), Dock.Top);
 
             _mainWindow.SetContent(_rootPanel);

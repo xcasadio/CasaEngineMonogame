@@ -48,6 +48,7 @@ namespace CasaEngine.Editor
         private WorldViewportPanel _worldViewportPanel;
         private Action? _pendingProjectLauncherAction;
         private MouseState? _lastLoggedDesktopMouseState;
+        private Win32WindowInputSource _windowInputSource;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -77,7 +78,8 @@ namespace CasaEngine.Editor
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // ── Bootstrap MGUI ─────────────────────────────────────────────
-            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new Win32WindowInputSource(() => Window.Handle));
+            _windowInputSource = new Win32WindowInputSource(() => Window.Handle);
+            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
             _desktop.LoadDefaultResources();
             _fontStashSharpEngine = new FontStashSharpTextEngine();
@@ -211,7 +213,7 @@ namespace CasaEngine.Editor
                 CanFloat = false,
                 ContentFactory = () =>
                 {
-                    _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, () => Window.Handle);
+                    _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
                     return _worldViewportPanel.CreateContent();
                 }
             };
