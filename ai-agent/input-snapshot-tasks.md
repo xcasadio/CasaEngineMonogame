@@ -170,7 +170,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 7 — Ajouter la validation de non-regression
+## 🟢 Tache 7 — Ajouter la validation de non-regression
 
 **But :** verrouiller les regressions historiques autour de la modalite, du viewport et des clics UI.
 

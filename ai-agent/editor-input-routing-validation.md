@@ -10,6 +10,12 @@ Executer apres chaque changement touchant le routage, les controleurs runtime ou
 - `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo`
 - `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
+## Tests automatises cibles
+
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter InputRouterTests -nologo`
+
+Objectif : verifier les regressions structurelles du routage sans lancer de campagne de tests ouverte.
+
 ## Verifications manuelles prioritaires
 
 ### 1. Focus et activation de vue
@@ -43,7 +49,14 @@ Executer apres chaque changement touchant le routage, les controleurs runtime ou
 - Fermer la modalite.
 - Verifier que le routage revient a la vue active ou a la vue sous le pointeur.
 
+### 6. Capture pointeur UI
+- Declencher une interaction UI maintenue dans une vue MGUI (drag slider, drag splitter, ou maintien souris sur un controle equivalent).
+- Deplacer le curseur hors de la vue pendant l'interaction.
+- Verifier qu'une autre vue n'est pas promue cible de routage tant que la capture UI est active.
+- Relacher la souris.
+- Verifier que le routage revient a la vue sous le pointeur ou a la vue capturee par le moteur selon l'etat courant.
+
 ## Notes
 
-- Aucun projet de tests moteur ciblant `InputRouter` n'est present dans la solution courante.
-- La strategie retenue est donc : builds bornes + scenarios manuels explicites sur les regressions historiques (focus, capture, molette, coordonnees locales, modalite).
+- Un projet de tests cible `CasaEngine.Tests` couvre les priorites de routage les plus structurelles autour de `InputRouter`.
+- La strategie retenue reste volontairement bornee : builds bornes + tests `InputRouter` + scenarios manuels explicites sur les regressions historiques (focus, capture, molette, coordonnees locales, modalite, capture UI).
