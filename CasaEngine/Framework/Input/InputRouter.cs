@@ -2,7 +2,6 @@ using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
 
 namespace CasaEngine.Framework.Input;
 
@@ -23,8 +22,7 @@ public sealed class InputRouter
 {
     private sealed class ViewInputRegistration
     {
-        public required IKeyboardStateProvider KeyboardProvider { get; init; }
-        public required IMouseStateProvider MouseProvider { get; init; }
+        public required IWindowInputSource WindowInputSource { get; init; }
     }
 
     private readonly ViewManager _viewManager;
@@ -51,30 +49,23 @@ public sealed class InputRouter
 
     public void RegisterViewInput(
         ViewId viewId,
-        IKeyboardStateProvider keyboardProvider,
-        IMouseStateProvider mouseProvider)
+        IWindowInputSource windowInputSource)
     {
-        ArgumentNullException.ThrowIfNull(keyboardProvider);
-        ArgumentNullException.ThrowIfNull(mouseProvider);
+        ArgumentNullException.ThrowIfNull(windowInputSource);
 
         _viewInputs[viewId] = new ViewInputRegistration
         {
-            KeyboardProvider = keyboardProvider,
-            MouseProvider = mouseProvider,
+            WindowInputSource = windowInputSource,
         };
     }
 
-    public void RegisterFallbackInput(
-        IKeyboardStateProvider keyboardProvider,
-        IMouseStateProvider mouseProvider)
+    public void RegisterFallbackInput(IWindowInputSource windowInputSource)
     {
-        ArgumentNullException.ThrowIfNull(keyboardProvider);
-        ArgumentNullException.ThrowIfNull(mouseProvider);
+        ArgumentNullException.ThrowIfNull(windowInputSource);
 
         _fallbackInput = new ViewInputRegistration
         {
-            KeyboardProvider = keyboardProvider,
-            MouseProvider = mouseProvider,
+            WindowInputSource = windowInputSource,
         };
     }
 
@@ -159,8 +150,9 @@ public sealed class InputRouter
             if (_fallbackInput != null)
             {
                 CurrentRoutingState = routingState with { Reason = InputRoutingReason.Fallback };
-                var keyboardState = _fallbackInput.KeyboardProvider.GetState();
-                var mouseState = _fallbackInput.MouseProvider.GetState();
+                var snapshot = _fallbackInput.WindowInputSource.GetSnapshot();
+                var keyboardState = snapshot.KeyboardState;
+                var mouseState = snapshot.MouseState;
                 context = CreateInputContext(ViewId.Empty, keyboardState, mouseState, CurrentRoutingState, isFallback: true);
                 CurrentInputContext = context;
                 return true;
@@ -190,8 +182,11 @@ public sealed class InputRouter
             KeyboardFocusViewId = targetView.Id;
         }
 
-        var routedKeyboardState = registration.KeyboardProvider.GetState();
-        var routedMouseState = registration.MouseProvider.GetState();
+        var routedSnapshot = registration.WindowInputSource.GetSnapshot();
+        var routedKeyboardState = routedSnapshot.KeyboardState;
+        var screenMouseState = routedSnapshot.MouseState;
+        var screenBounds = GetScreenBounds(targetView);
+        var routedMouseState = CreateLocalMouseState(screenMouseState, screenBounds);
         context = CreateInputContext(targetView.Id, routedKeyboardState, routedMouseState, routingState, isFallback: false);
         CurrentInputContext = context;
         return true;
@@ -248,6 +243,20 @@ public sealed class InputRouter
         return view.Host is IViewScreenBoundsHost screenBoundsHost
             ? screenBoundsHost.ScreenBounds
             : view.Surface.ViewportRect;
+    }
+
+    private static MouseState CreateLocalMouseState(MouseState screenMouseState, Rectangle screenBounds)
+    {
+        return new MouseState(
+            screenMouseState.X - screenBounds.X,
+            screenMouseState.Y - screenBounds.Y,
+            screenMouseState.ScrollWheelValue,
+            screenMouseState.LeftButton,
+            screenMouseState.MiddleButton,
+            screenMouseState.RightButton,
+            screenMouseState.XButton1,
+            screenMouseState.XButton2,
+            screenMouseState.HorizontalScrollWheelValue);
     }
 
     public ViewId GetCapturedViewId()
@@ -374,7 +383,7 @@ public sealed class InputRouter
 
         if (_fallbackInput != null)
         {
-            var pointerScreenPosition = _fallbackInput.MouseProvider.GetState().Position;
+            var pointerScreenPosition = _fallbackInput.WindowInputSource.GetSnapshot().MouseState.Position;
             var (view, _) = _viewManager.ScreenToView(pointerScreenPosition);
             if (view != null && _viewInputs.ContainsKey(view.Id))
             {

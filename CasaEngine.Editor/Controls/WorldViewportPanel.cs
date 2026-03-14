@@ -12,7 +12,6 @@ using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
@@ -108,8 +107,6 @@ public class WorldViewportPanel : IDisposable
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
-    private IKeyboardStateProvider? _keyboardProvider;
-    private IMouseStateProvider? _mouseProvider;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
 
@@ -143,9 +140,6 @@ public class WorldViewportPanel : IDisposable
         {
             ActivateThisView(captureInput: false);
         };
-
-        _keyboardProvider ??= _windowInputSource as IKeyboardStateProvider ?? new KeyboardStateProvider();
-        _mouseProvider ??= new ViewportRelativeMouseStateProvider(_windowInputSource, () => _viewportHost?.LayoutBounds ?? Rectangle.Empty);
 
         _viewportImage = new MGImage(_window, new MGTextureData(_surface!.Texture!), Stretch: Stretch.Fill)
         {
@@ -277,15 +271,12 @@ public class WorldViewportPanel : IDisposable
 
     private void RegisterViewportInput()
     {
-        if (_renderView == null || _keyboardProvider == null || _mouseProvider == null)
+        if (_renderView == null)
         {
             return;
         }
 
-        _editorRuntime.InputComponent.InputRouter?.RegisterViewInput(
-            _renderView.Id,
-            _keyboardProvider,
-            _mouseProvider);
+        _editorRuntime.InputComponent.InputRouter?.RegisterViewInput(_renderView.Id, _windowInputSource);
     }
 
     private void ActivateThisView(bool captureInput)

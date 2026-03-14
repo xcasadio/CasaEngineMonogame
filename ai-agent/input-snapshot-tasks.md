@@ -80,7 +80,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 3 — Faire consommer MGUI et le routage moteur depuis le meme snapshot
+## 🟢 Tache 3 — Faire consommer MGUI et le routage moteur depuis le meme snapshot
 
 **But :** eliminer les divergences entre la vue UI et le routage moteur pour une meme frame.
 

@@ -276,10 +276,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             RuntimeContext.WindowInputSource = new FrameCachedWindowInputSource(RuntimeContext.WindowInputSource);
         }
 
-        if (RuntimeContext.WindowInputSource is IKeyboardStateProvider keyboardStateProvider
-            && RuntimeContext.WindowInputSource is IMouseStateProvider mouseStateProvider)
+        if (RuntimeContext.WindowInputSource != null)
         {
-            InputComponent.SetFallbackProviders(keyboardStateProvider, mouseStateProvider);
+            InputComponent.SetFallbackInputSource(RuntimeContext.WindowInputSource);
         }
 
 #if !FINAL

@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -22,15 +23,13 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
 {
     private readonly Game.CasaEngineGame _game;
     private readonly IRenderSurface      _surface;
-    private readonly IKeyboardStateProvider? _keyboardStateProvider;
-    private readonly IMouseStateProvider? _mouseStateProvider;
+    private readonly IWindowInputSource _windowInputSource;
 
     public ViewRenderHost(Game.CasaEngineGame game, IRenderSurface surface)
     {
         _game    = game;
         _surface = surface;
-        _keyboardStateProvider = game.RuntimeContext.WindowInputSource as IKeyboardStateProvider;
-        _mouseStateProvider = game.RuntimeContext.WindowInputSource as IMouseStateProvider;
+        _windowInputSource = game.RuntimeContext.WindowInputSource ?? new MonoGameWindowInputSource();
 
         // Forward lifecycle events from the host game so that the MainRenderer
         // can refresh its input cache and other per-frame state.
@@ -60,7 +59,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     /// </summary>
     public MouseState GetMouseState()
     {
-        var state = _mouseStateProvider?.GetState() ?? Mouse.GetState();
+        var state = _windowInputSource.GetSnapshot().MouseState;
         var vp = _surface.ViewportRect;
 
         if (_game.GameManager.ViewManager.Views.FirstOrDefault(v => ReferenceEquals(v.Surface, _surface)) is { Host: IViewScreenBoundsHost screenBoundsHost })
@@ -80,7 +79,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
             state.HorizontalScrollWheelValue);
     }
 
-    public KeyboardState GetKeyboardState() => _keyboardStateProvider?.GetState() ?? Keyboard.GetState();
+    public KeyboardState GetKeyboardState() => _windowInputSource.GetSnapshot().KeyboardState;
 
     public object? GetService(Type serviceType) => _game.Services.GetService(serviceType);
 

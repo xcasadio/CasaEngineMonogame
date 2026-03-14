@@ -109,12 +109,18 @@ public class InputComponent : GameComponent
     public KeyboardState Keyboard => KeyboardManager.State;
     public MouseState MouseState => MouseManager.State;
 
-    public void SetFallbackProviders(IKeyboardStateProvider keyboardStateProvider, IMouseStateProvider mouseStateProvider)
+    public void SetFallbackInputSource(IWindowInputSource windowInputSource)
     {
         if (InputRouter != null)
         {
-            InputRouter.RegisterFallbackInput(keyboardStateProvider, mouseStateProvider);
+            InputRouter.RegisterFallbackInput(windowInputSource);
             return;
+        }
+
+        if (windowInputSource is not IKeyboardStateProvider keyboardStateProvider
+            || windowInputSource is not IMouseStateProvider mouseStateProvider)
+        {
+            throw new InvalidOperationException("Fallback input source must implement keyboard and mouse state providers.");
         }
 
         SetProviders(keyboardStateProvider, mouseStateProvider, new GamePadStateProvider());
