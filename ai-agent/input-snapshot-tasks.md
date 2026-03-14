@@ -126,7 +126,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 5 — Migrer les controleurs editeur vers le contexte route
+## 🟢 Tache 5 — Migrer les controleurs editeur vers le contexte route
 
 **But :** faire en sorte que camera, gizmo et viewport editeur ne dependent plus de l'input brut de la fenetre.
 

@@ -1,5 +1,4 @@
 using System;
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
