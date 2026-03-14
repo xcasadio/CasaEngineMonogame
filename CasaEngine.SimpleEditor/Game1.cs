@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Project;
 using FontStashSharp;
 using MGUI.Core.UI;
@@ -14,76 +15,11 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace CasaEngine.SimpleEditor
 {
     public class Game1 : Game, IObservableUpdate
     {
-        private sealed class EditorRawInputSource : IRawInputSource
-        {
-            private const int VK_LBUTTON = 0x01;
-            private const int VK_RBUTTON = 0x02;
-            private const int VK_MBUTTON = 0x04;
-            private const int VK_XBUTTON1 = 0x05;
-            private const int VK_XBUTTON2 = 0x06;
-
-            [StructLayout(LayoutKind.Sequential)]
-            private struct POINT
-            {
-                public int X;
-                public int Y;
-            }
-
-            [DllImport("user32.dll")]
-            private static extern bool GetCursorPos(out POINT lpPoint);
-
-            [DllImport("user32.dll")]
-            private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
-
-            [DllImport("user32.dll")]
-            private static extern short GetAsyncKeyState(int vKey);
-
-            private readonly Func<IntPtr> _getWindowHandle;
-
-            public EditorRawInputSource(Func<IntPtr> getWindowHandle)
-            {
-                _getWindowHandle = getWindowHandle;
-            }
-
-            public MouseState GetMouseState()
-            {
-                var fallbackState = Mouse.GetState();
-                var handle = _getWindowHandle();
-                if (handle == IntPtr.Zero || !GetCursorPos(out var point) || !ScreenToClient(handle, ref point))
-                {
-                    return fallbackState;
-                }
-
-                var left = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-                var right = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-                var middle = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-                var xButton1 = (GetAsyncKeyState(VK_XBUTTON1) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-                var xButton2 = (GetAsyncKeyState(VK_XBUTTON2) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
-
-                return new MouseState(
-                    point.X,
-                    point.Y,
-                    fallbackState.ScrollWheelValue,
-                    left,
-                    middle,
-                    right,
-                    xButton1,
-                    xButton2,
-                    fallbackState.HorizontalScrollWheelValue);
-            }
-
-            public KeyboardState GetKeyboardState()
-            {
-                return Keyboard.GetState();
-            }
-        }
-
         private readonly string _projectFilePath;
         private readonly GraphicsDeviceManager _graphics;
 
@@ -175,7 +111,7 @@ namespace CasaEngine.SimpleEditor
 
         private void InitializeMgui()
         {
-            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new EditorRawInputSource(() => Window.Handle));
+            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new Win32WindowInputSource(() => Window.Handle));
             _desktop = new MGDesktop(_mguiRenderer);
             _desktop.LoadDefaultResources();
 

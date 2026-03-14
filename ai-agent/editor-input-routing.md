@@ -79,7 +79,7 @@ Produire la structure cible côté moteur avant les changements de code pour év
 
 ---
 
-### ⬜ EIR-002 — Introduire une source raw fenêtre partagée
+### ✅ EIR-002 — Introduire une source raw fenêtre partagée
 **Objectif**  
 Supprimer la duplication d'acquisition raw entre `Game1`, `SimpleEditor` et les panneaux, en introduisant une seule source de vérité pour clavier, souris et molette.
 
@@ -98,6 +98,11 @@ Supprimer la duplication d'acquisition raw entre `Game1`, `SimpleEditor` et les 
 - il n'existe plus plusieurs implémentations ad hoc du même raw input fenêtre
 - `CasaEngine.Editor` et `CasaEngine.SimpleEditor` utilisent la même acquisition raw
 - la molette, les boutons et les coordonnées proviennent de la même source
+
+**Résultat**
+- ajout de `CasaEngine/Framework/Input/IWindowInputSource.cs`
+- ajout de `CasaEngine/Framework/Input/Win32WindowInputSource.cs`
+- remplacement des deux `EditorRawInputSource` locaux par la source partagée
 
 **Commit suggéré**  
 `Add shared window input source for editor hosts`
