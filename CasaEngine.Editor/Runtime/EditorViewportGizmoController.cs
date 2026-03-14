@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game.Components.DebugTools;
@@ -26,6 +27,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _editorRuntime = editorRuntime;
     }
 
+    public event Action<Entity?>? SelectedEntityChanged;
+
     public void EnsureInitialized(RenderView? renderView, ArcBallCameraComponent? camera, RenderTargetSurface? surface, World world)
     {
         if (renderView == null || camera == null || surface == null)
@@ -37,6 +40,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         {
             _gizmo = new TransformGizmoComponent(_editorRuntime);
             _gizmo.Initialize();
+            _gizmo.SelectionChanged += OnGizmoSelectionChanged;
         }
 
         _gizmo.ActiveCamera = camera;
@@ -79,6 +83,21 @@ internal sealed class EditorViewportGizmoController : IDisposable
         if (_gizmo != null)
         {
             _gizmo.IsActiveViewport = false;
+        }
+    }
+
+    public void SetSelectedEntity(Entity? entity)
+    {
+        if (_gizmo == null)
+        {
+            return;
+        }
+
+        _gizmo.ClearSelection();
+
+        if (entity?.RootComponent != null)
+        {
+            _gizmo.AddToSelection(entity.RootComponent);
         }
     }
 
@@ -186,13 +205,24 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
     public void Dispose()
     {
-        _gizmo?.ClearSelection();
         if (_gizmo != null)
         {
+            _gizmo.SelectionChanged -= OnGizmoSelectionChanged;
+            _gizmo.ClearSelection();
             _editorRuntime.Components.Remove(_gizmo);
             _gizmo.Dispose();
             _gizmo = null;
         }
+    }
+
+    private void OnGizmoSelectionChanged(object? sender, List<ITransformableObject> selection)
+    {
+        var selectedEntity = selection
+            .OfType<EntityComponent>()
+            .Select(component => component.Owner)
+            .FirstOrDefault(owner => owner != null);
+
+        SelectedEntityChanged?.Invoke(selectedEntity);
     }
 
     private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)

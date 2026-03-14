@@ -23,6 +23,8 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class WorldViewportPanel : IDisposable
 {
+    public event Action<Entity?>? SelectedEntityChanged;
+
     private sealed class ViewportHostPanel : MGDockPanel
     {
         public ViewportHostPanel(MGWindow window)
@@ -116,6 +118,7 @@ public class WorldViewportPanel : IDisposable
         _editorRuntime = editorRuntime;
         _windowInputSource = windowInputSource;
         _gizmoController = new EditorViewportGizmoController(editorRuntime);
+        _gizmoController.SelectedEntityChanged += entity => SelectedEntityChanged?.Invoke(entity);
     }
 
     public MGElement CreateContent()
@@ -198,6 +201,26 @@ public class WorldViewportPanel : IDisposable
         }
 
         UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+    }
+
+    public void SetSelectedEntity(Entity? entity)
+    {
+        _gizmoController.SetSelectedEntity(entity);
+    }
+
+    public void FocusEntity(Entity? entity)
+    {
+        if (entity?.RootComponent == null || _camera == null)
+        {
+            return;
+        }
+
+        var bounds = entity.GetBoundingBox();
+        var diagonal = Vector3.Distance(bounds.Min, bounds.Max);
+        var distance = Math.Max(5f, diagonal <= 0f ? 10f : diagonal * 1.5f);
+
+        _cameraController.Focus(entity.RootComponent.Position, distance);
+        _cameraController.ApplyTo(_camera);
     }
 
     private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)

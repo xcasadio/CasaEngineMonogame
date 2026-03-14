@@ -43,6 +43,16 @@ internal sealed class EditorViewportCameraController
         camera.Pitch = Pitch;
     }
 
+    public void Focus(Vector3 target, float? distance = null)
+    {
+        Target = target;
+
+        if (distance.HasValue)
+        {
+            Distance = Math.Clamp(distance.Value, MinDistance, MaxDistance);
+        }
+    }
+
     public void Update(
         GameTime gameTime,
         ArcBallCameraComponent camera,

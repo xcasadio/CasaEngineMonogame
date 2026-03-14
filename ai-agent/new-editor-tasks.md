@@ -390,7 +390,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.6 — Panneau Entities (hiérarchie des entités du monde)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/EntitiesPanel.cs`
 
@@ -414,6 +414,23 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Double-clic : vérifier que la caméra se déplace vers l'entité
 
 **Commit :** `feat(editor): add EntitiesPanel with entity hierarchy tree`
+
+## Résumé
+- Ajout de `EntitiesPanel` avec `MGTreeView`, recherche par nom, menu contextuel Add/Delete/Rename/Duplicate et reconstruction selon le `World` courant.
+- Intégration du panneau dans `Game1` à la place du placeholder "World Explorer".
+- Synchronisation minimale avec `WorldViewportPanel` : sélection arbre → viewport/gizmo, double-clic arbre → focus caméra, sélection viewport/gizmo → arbre.
+
+## Attendu
+- Quand un monde est chargé, la hiérarchie complète des entités et sous-entités apparaît dans le panneau Entities.
+- Les ajouts, suppressions, duplications et renommages effectués depuis le panneau sont reflétés immédiatement.
+- Le viewport et l’arbre restent synchronisés sur la sélection courante.
+
+## À tester
+- Charger un projet avec un monde et vérifier l’affichage de la hiérarchie dans le panneau Entities.
+- Sélectionner une entité dans l’arbre et vérifier que le gizmo/viewport suit la sélection.
+- Sélectionner une entité depuis le viewport et vérifier que l’arbre suit la sélection.
+- Utiliser le clic droit pour ajouter, renommer, dupliquer et supprimer une entité.
+- Double-cliquer une entité et vérifier le focus caméra.
 
 ---
 
@@ -695,7 +712,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.3 | Contrôles éditeur | Content Browser | ✅ | `db022630` |
 | 2.4 | Contrôles éditeur | Logs | ✅ | `01e3ef07` |
 | 2.5 | Contrôles éditeur | World Viewport | ✅ | `4ebdf1e8` |
-| 2.6 | Contrôles éditeur | Entities (hiérarchie) | ⬜ | |
+| 2.6 | Contrôles éditeur | Entities (hiérarchie) | ✅ | `feat(editor): add EntitiesPanel with entity hierarchy tree` |
 | 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
 | 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
 | 3.1 | Moteur | Événements World | ⬜ | |

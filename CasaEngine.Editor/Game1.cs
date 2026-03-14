@@ -5,6 +5,7 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
+using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Input;
 using FontStashSharp;
@@ -29,6 +30,7 @@ namespace CasaEngine.Editor
     {
         private const string ContentBrowserPanelId = "panel_content_browser";
         private const string OutputPanelId = "panel_output";
+        private const string EntitiesPanelId = "panel_entities";
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -49,12 +51,15 @@ namespace CasaEngine.Editor
         private EngineRuntimeContext _editorRuntimeContext;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
+        private EntitiesPanel _entitiesPanel;
+        private MGElement _entitiesContent;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
+        private bool _isSynchronizingEntitySelection;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -220,6 +225,7 @@ namespace CasaEngine.Editor
                 ContentFactory = () =>
                 {
                     _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+                    _worldViewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
                     return _worldViewportPanel.CreateContent();
                 }
             };
@@ -232,12 +238,12 @@ namespace CasaEngine.Editor
                 ContentFactory = () => new MGTextBlock(_mainWindow, "Properties (TODO)")
             };
 
-            var explorerPanel = new DockPanelNode("panel_explorer")
+            var explorerPanel = new DockPanelNode(EntitiesPanelId)
             {
-                Title = "World Explorer",
+                Title = "Entities",
                 CanClose = true,
                 CanFloat = true,
-                ContentFactory = () => new MGTextBlock(_mainWindow, "World Explorer (TODO)")
+                ContentFactory = GetOrCreateEntitiesContent
             };
 
             var contentBrowserPanel = new DockPanelNode(ContentBrowserPanelId)
@@ -393,6 +399,19 @@ namespace CasaEngine.Editor
             return _contentBrowserContent;
         }
 
+        private MGElement GetOrCreateEntitiesContent()
+        {
+            if (_entitiesPanel == null)
+            {
+                _entitiesPanel = new EntitiesPanel(_mainWindow, () => _editorRuntime?.GameManager.CurrentWorld);
+                _entitiesPanel.SelectedEntityChanged += OnEntitiesPanelSelectionChanged;
+                _entitiesPanel.EntityDoubleClicked += OnEntitiesPanelEntityDoubleClicked;
+            }
+
+            _entitiesContent ??= _entitiesPanel.CreateContent();
+            return _entitiesContent;
+        }
+
         private MGElement GetOrCreateLogsContent()
         {
             _logsPanel ??= new LogsPanel(_mainWindow, _loggerEditor);
@@ -490,6 +509,47 @@ namespace CasaEngine.Editor
             // TODO: Implement project save
         }
 
+        private void OnEntitiesPanelSelectionChanged(Entity? entity)
+        {
+            if (_isSynchronizingEntitySelection)
+            {
+                return;
+            }
+
+            _isSynchronizingEntitySelection = true;
+            try
+            {
+                _worldViewportPanel?.SetSelectedEntity(entity);
+            }
+            finally
+            {
+                _isSynchronizingEntitySelection = false;
+            }
+        }
+
+        private void OnEntitiesPanelEntityDoubleClicked(Entity entity)
+        {
+            _worldViewportPanel?.FocusEntity(entity);
+        }
+
+        private void OnViewportSelectedEntityChanged(Entity? entity)
+        {
+            if (_isSynchronizingEntitySelection)
+            {
+                return;
+            }
+
+            _isSynchronizingEntitySelection = true;
+            try
+            {
+                _entitiesPanel?.SetSelectedEntity(entity);
+            }
+            finally
+            {
+                _isSynchronizingEntitySelection = false;
+            }
+        }
+
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -503,6 +563,7 @@ namespace CasaEngine.Editor
             _desktop.Update();
             ProcessPendingProjectLauncherAction();
             _editorRuntime?.UpdateHost(gameTime);
+            _entitiesPanel?.Update();
             _worldViewportPanel?.UpdateInput(gameTime);
 
             base.Update(gameTime);
