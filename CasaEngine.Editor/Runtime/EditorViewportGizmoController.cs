@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game.Components.DebugTools;
@@ -38,8 +37,6 @@ internal sealed class EditorViewportGizmoController : IDisposable
         {
             _gizmo = new TransformGizmoComponent(_editorRuntime);
             _gizmo.Initialize();
-            _gizmo.SelectionChanged += (_, selection) =>
-                Debug.WriteLine($"[EditorViewportGizmoController] GizmoSelectionChanged count={selection.Count}");
         }
 
         _gizmo.ActiveCamera = camera;
@@ -88,7 +85,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
     public void Update(
         GameTime gameTime,
         ViewInputContext inputContext,
-        bool isViewportInteractive,
+        bool receivesInput,
+        bool isKeyboardFocused,
         ArcBallCameraComponent? camera,
         RenderTargetSurface? surface,
         World? world)
@@ -106,7 +104,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _gizmo.Gizmo.ActiveViewport = new Viewport(0, 0, surface.ViewportRect.Width, surface.ViewportRect.Height);
         _gizmo.Gizmo.UpdateCameraProperties(camera.ViewMatrix, camera.ProjectionMatrix, camera.Position);
 
-        if (!isViewportInteractive)
+        if (!receivesInput && !isKeyboardFocused)
         {
             _gizmo.IsActiveViewport = false;
             _gizmo.Gizmo.RefreshPresentation();
@@ -118,48 +116,56 @@ internal sealed class EditorViewportGizmoController : IDisposable
         var keyboardState = inputContext.KeyboardState;
         var mouseState = inputContext.MouseState;
 
-        _gizmo.IsActiveViewport = true;
+        _gizmo.IsActiveViewport = receivesInput;
 
-        if (IsNewKeyPress(keyboardState, Keys.D1))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D1))
         {
             _gizmo.Gizmo.ActiveMode = GizmoMode.Translate;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.D2))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D2))
         {
             _gizmo.Gizmo.ActiveMode = GizmoMode.Rotate;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.D3))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D3))
         {
             _gizmo.Gizmo.ActiveMode = GizmoMode.NonUniformScale;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.D4))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D4))
         {
             _gizmo.Gizmo.ActiveMode = GizmoMode.UniformScale;
         }
 
-        _gizmo.Gizmo.PrecisionModeEnabled = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+        _gizmo.Gizmo.PrecisionModeEnabled = isKeyboardFocused && (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
 
-        if (IsNewKeyPress(keyboardState, Keys.O))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.O))
         {
             _gizmo.Gizmo.ToggleActiveSpace();
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.I))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.I))
         {
             _gizmo.Gizmo.SnapEnabled = !_gizmo.Gizmo.SnapEnabled;
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.P))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.P))
         {
             _gizmo.Gizmo.NextPivotType();
         }
 
-        if (IsNewKeyPress(keyboardState, Keys.Escape))
+        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.Escape))
         {
             _gizmo.Gizmo.Clear();
+        }
+
+        if (!receivesInput)
+        {
+            _gizmo.Gizmo.RefreshPresentation();
+            _previousKeyboardState = keyboardState;
+            _previousMouseState = mouseState;
+            return;
         }
 
         bool leftJustPressed = mouseState.LeftButton == ButtonState.Pressed

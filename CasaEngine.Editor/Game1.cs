@@ -382,8 +382,8 @@ namespace CasaEngine.Editor
 
         private void HookViewportInputCoordination()
         {
-            _mainWindow.MouseHandler.LMBPressedInside += (_, _) =>
-                _worldViewportPanel?.ReleaseInputIfOutside(_mainWindow.HoveredElement);
+            _desktop.HighPriorityMouseHandler.LMBPressedInside += (_, e) =>
+                _worldViewportPanel?.ReleaseInputIfOutside(e.Position);
         }
 
         private void QueueProjectOpen(string fileName)

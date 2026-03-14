@@ -187,8 +187,6 @@ public class WorldViewportPanel : IDisposable
 
         var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
         bool receivesInput = _renderView != null && inputContext.ViewId == _renderView.Id;
-        bool isViewportInteractive = receivesInput || isKeyboardFocused;
-
         _gizmoController.Deactivate();
 
         if (_camera != null)
@@ -203,7 +201,7 @@ public class WorldViewportPanel : IDisposable
                 () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
         }
 
-        UpdateGizmoInput(gameTime, inputContext, isViewportInteractive);
+        UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
     }
 
     private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
@@ -307,14 +305,14 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    public void ReleaseInputIfOutside(MGElement? interactedElement)
+    public void ReleaseInputIfOutside(Point screenPosition)
     {
         if (_renderView == null || _viewportHost == null)
         {
             return;
         }
 
-        if (interactedElement != null && _viewportHost.IsSelfOrAncestorOf(interactedElement))
+        if (_viewportHost.LayoutBounds.Contains(screenPosition))
         {
             return;
         }
@@ -432,9 +430,9 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.Synchronize(_camera, _surface, _renderView?.World);
     }
 
-    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool isViewportInteractive)
+    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused)
     {
-        _gizmoController.Update(gameTime, inputContext, isViewportInteractive, _camera, _surface, _renderView?.World);
+        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, _camera, _surface, _renderView?.World);
     }
 
     public void Dispose()
