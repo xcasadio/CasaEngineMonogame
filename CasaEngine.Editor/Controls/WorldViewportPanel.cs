@@ -104,7 +104,9 @@ public class WorldViewportPanel : IDisposable
     private DebugAxisComponent? _axis;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
+    private World? _observedWorld;
     private Entity? _cameraEntity;
+    private Entity? _selectedEntity;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
@@ -118,7 +120,7 @@ public class WorldViewportPanel : IDisposable
         _editorRuntime = editorRuntime;
         _windowInputSource = windowInputSource;
         _gizmoController = new EditorViewportGizmoController(editorRuntime);
-        _gizmoController.SelectedEntityChanged += entity => SelectedEntityChanged?.Invoke(entity);
+        _gizmoController.SelectedEntityChanged += OnGizmoSelectedEntityChanged;
     }
 
     public MGElement CreateContent()
@@ -205,6 +207,7 @@ public class WorldViewportPanel : IDisposable
 
     public void SetSelectedEntity(Entity? entity)
     {
+        _selectedEntity = entity;
         _gizmoController.SetSelectedEntity(entity);
     }
 
@@ -290,8 +293,10 @@ public class WorldViewportPanel : IDisposable
         _renderView = renderView;
         _renderViewHost = new MguiViewportViewHost(renderView.Id, () => _viewportHost?.LayoutBounds ?? Rectangle.Empty);
         _renderView.Host = _renderViewHost;
+        AttachWorld(world);
         EnsureEditorOverlays(world);
         EnsureEditorGizmo(world);
+        _gizmoController.SetSelectedEntity(_selectedEntity);
     }
 
     private void RegisterViewportInput()
@@ -368,6 +373,7 @@ public class WorldViewportPanel : IDisposable
         }
 
         var desiredWorld = _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld ?? CreateFallbackWorld();
+        AttachWorld(desiredWorld);
         if (ReferenceEquals(_renderView.World, desiredWorld))
         {
             return;
@@ -378,6 +384,79 @@ public class WorldViewportPanel : IDisposable
         _camera?.OnScreenResized(_rtWidth, _rtHeight);
 
         _gizmoController.ResetWorld(desiredWorld);
+        if (_selectedEntity?.World != desiredWorld)
+        {
+            _selectedEntity = null;
+            SelectedEntityChanged?.Invoke(null);
+        }
+
+        _gizmoController.SetSelectedEntity(_selectedEntity);
+    }
+
+    private void AttachWorld(World world)
+    {
+        if (ReferenceEquals(_observedWorld, world))
+        {
+            return;
+        }
+
+        DetachWorld();
+        _observedWorld = world;
+        _observedWorld.EntityAdded += OnWorldEntityAdded;
+        _observedWorld.EntityRemoved += OnWorldEntityRemoved;
+        _observedWorld.EntitiesCleared += OnWorldEntitiesCleared;
+    }
+
+    private void DetachWorld()
+    {
+        if (_observedWorld == null)
+        {
+            return;
+        }
+
+        _observedWorld.EntityAdded -= OnWorldEntityAdded;
+        _observedWorld.EntityRemoved -= OnWorldEntityRemoved;
+        _observedWorld.EntitiesCleared -= OnWorldEntitiesCleared;
+        _observedWorld = null;
+    }
+
+    private void OnWorldEntityAdded(object? sender, Entity entity)
+    {
+        if (sender is World world)
+        {
+            _gizmoController.RefreshWorldSelection(world, _selectedEntity);
+        }
+    }
+
+    private void OnWorldEntityRemoved(object? sender, Entity entity)
+    {
+        if (ReferenceEquals(_selectedEntity, entity))
+        {
+            _selectedEntity = null;
+            SelectedEntityChanged?.Invoke(null);
+        }
+
+        if (sender is World world)
+        {
+            _gizmoController.RefreshWorldSelection(world, _selectedEntity);
+        }
+    }
+
+    private void OnWorldEntitiesCleared(object? sender, EventArgs e)
+    {
+        _selectedEntity = null;
+        SelectedEntityChanged?.Invoke(null);
+
+        if (sender is World world)
+        {
+            _gizmoController.RefreshWorldSelection(world, null);
+        }
+    }
+
+    private void OnGizmoSelectedEntityChanged(Entity? entity)
+    {
+        _selectedEntity = entity;
+        SelectedEntityChanged?.Invoke(entity);
     }
 
     private void SynchronizeCamera()
@@ -453,6 +532,8 @@ public class WorldViewportPanel : IDisposable
 
     public void Dispose()
     {
+        DetachWorld();
+
         if (_renderView != null)
         {
             _editorRuntime.InputComponent.InputRouter?.UnregisterViewInput(_renderView.Id);

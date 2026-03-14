@@ -64,6 +64,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _gizmo.ActiveCamera = camera;
         _gizmo.ActiveSurface = surface;
         _gizmo.SelectionWorld = world;
+        RefreshPresentation();
     }
 
     public void ResetWorld(World world)
@@ -76,6 +77,26 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _gizmo.SelectionWorld = world;
         _gizmo.ClearSelection();
         _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+        RefreshPresentation();
+    }
+
+    public void RefreshWorldSelection(World world, Entity? selectedEntity)
+    {
+        if (_gizmo == null)
+        {
+            return;
+        }
+
+        _gizmo.SelectionWorld = world;
+        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+        _gizmo.ClearSelection();
+
+        if (selectedEntity?.RootComponent != null)
+        {
+            _gizmo.AddToSelection(selectedEntity.RootComponent);
+        }
+
+        RefreshPresentation();
     }
 
     public void Deactivate()
@@ -99,6 +120,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
         {
             _gizmo.AddToSelection(entity.RootComponent);
         }
+
+        RefreshPresentation();
     }
 
     public void Update(
@@ -223,6 +246,25 @@ internal sealed class EditorViewportGizmoController : IDisposable
             .FirstOrDefault(owner => owner != null);
 
         SelectedEntityChanged?.Invoke(selectedEntity);
+    }
+
+    private void RefreshPresentation()
+    {
+        if (_gizmo?.ActiveCamera != null)
+        {
+            _gizmo.Gizmo.UpdateCameraProperties(
+                _gizmo.ActiveCamera.ViewMatrix,
+                _gizmo.ActiveCamera.ProjectionMatrix,
+                _gizmo.ActiveCamera.Position);
+        }
+
+        if (_gizmo?.ActiveSurface != null)
+        {
+            var viewportRect = _gizmo.ActiveSurface.ViewportRect;
+            _gizmo.Gizmo.ActiveViewport = new Viewport(0, 0, viewportRect.Width, viewportRect.Height);
+        }
+
+        _gizmo?.Gizmo.RefreshPresentation();
     }
 
     private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)

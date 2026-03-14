@@ -653,6 +653,7 @@ public class Gizmo : IDisposable
 
     public void RefreshPresentation()
     {
+        bool wasSelectionDirty = _selectionBoxDirty;
         _selectionBoxDirty = true;
 
         if (_selection.Count < 1)
@@ -661,8 +662,10 @@ public class Gizmo : IDisposable
             ActiveAxis = GizmoAxis.None;
             return;
         }
-        // helps solve visual lag (1-frame-lag) after selecting a new entity
-        if (!_isActive)
+        // Recompute gizmo position whenever the selection or its bounds changed.
+        // Restricting this to the inactive -> active transition leaves the gizmo
+        // visually attached to the previous object after selection changes.
+        if (!_isActive || wasSelectionDirty)
         {
             SetGizmoPosition();
         }
