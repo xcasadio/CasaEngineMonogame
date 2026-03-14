@@ -36,6 +36,7 @@ public sealed class InputRouter
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
     public ViewId KeyboardFocusViewId { get; private set; } = ViewId.Empty;
     public ViewId ModalViewId { get; private set; } = ViewId.Empty;
+    public ViewId UIPointerCaptureViewId { get; private set; } = ViewId.Empty;
     public InputRoutingState CurrentRoutingState { get; private set; } = InputRoutingState.Empty;
     public ViewInputContext CurrentInputContext { get; private set; } = ViewInputContext.Empty;
 
@@ -98,6 +99,11 @@ public sealed class InputRouter
             ModalViewId = ViewId.Empty;
         }
 
+        if (UIPointerCaptureViewId == viewId)
+        {
+            UIPointerCaptureViewId = ViewId.Empty;
+        }
+
         _previousMouseStatesByView.Remove(viewId);
     }
 
@@ -138,6 +144,7 @@ public sealed class InputRouter
         CurrentRoutingState = routingState;
         ModalViewId = routingState.ModalViewId;
         CurrentPointerViewId = routingState.PointerViewId;
+        UIPointerCaptureViewId = routingState.UIPointerCaptureViewId;
         CurrentTargetViewId = routingState.TargetViewId;
 
         var targetView = routingState.TargetViewId.IsEmpty
@@ -411,11 +418,37 @@ public sealed class InputRouter
         return null;
     }
 
+    private RenderView? ResolveUiPointerCaptureView(RenderView? modalView)
+    {
+        if (modalView != null)
+        {
+            return modalView.UIView?.InputState.IsPointerCaptured == true ? modalView : null;
+        }
+
+        for (int i = _viewManager.Views.Count - 1; i >= 0; i--)
+        {
+            var view = _viewManager.Views[i];
+            if (!view.Enabled || !view.IsVisible || !_viewInputs.ContainsKey(view.Id))
+            {
+                continue;
+            }
+
+            if (view.UIView?.InputState.IsPointerCaptured == true)
+            {
+                return view;
+            }
+        }
+
+        return null;
+    }
+
     private InputRoutingState ResolveRoutingState()
     {
         var modalView = ResolveModalView();
         var modalViewId = modalView?.Id ?? ViewId.Empty;
         var captureViewId = GetCapturedViewId();
+        var uiPointerCaptureView = ResolveUiPointerCaptureView(modalView);
+        var uiPointerCaptureViewId = uiPointerCaptureView?.Id ?? ViewId.Empty;
         var pointerView = ResolvePointerView(modalView);
         var pointerViewId = pointerView?.Id ?? ViewId.Empty;
         var keyboardFocusView = ResolveKeyboardFocusView();
@@ -429,6 +462,7 @@ public sealed class InputRouter
                 keyboardFocusViewId,
                 modalViewId,
                 captureViewId,
+                uiPointerCaptureViewId,
                 InputRoutingReason.Modal);
         }
 
@@ -440,8 +474,21 @@ public sealed class InputRouter
                 keyboardFocusViewId,
                 modalViewId,
                 captureViewId,
+                uiPointerCaptureViewId,
                 InputRoutingReason.Capture);
         }
+
+            if (uiPointerCaptureView != null)
+            {
+                return new InputRoutingState(
+                uiPointerCaptureView.Id,
+                pointerViewId,
+                keyboardFocusViewId,
+                modalViewId,
+                captureViewId,
+                uiPointerCaptureViewId,
+                InputRoutingReason.UIPointerCapture);
+            }
 
         if (pointerView != null)
         {
@@ -451,6 +498,7 @@ public sealed class InputRouter
                 keyboardFocusViewId,
                 modalViewId,
                 captureViewId,
+                uiPointerCaptureViewId,
                 InputRoutingReason.Pointer);
         }
 
@@ -462,6 +510,7 @@ public sealed class InputRouter
                 keyboardFocusView.Id,
                 modalViewId,
                 captureViewId,
+                uiPointerCaptureViewId,
                 InputRoutingReason.KeyboardFocus);
         }
 
@@ -471,6 +520,7 @@ public sealed class InputRouter
             keyboardFocusViewId,
             modalViewId,
             captureViewId,
+            uiPointerCaptureViewId,
             _fallbackInput != null ? InputRoutingReason.Fallback : InputRoutingReason.None);
     }
 }

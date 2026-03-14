@@ -45,9 +45,12 @@ public sealed class UIRoot : IUIViewRuntime
 
     public bool IsPointerOverUI => Desktop.Windows.Any(w => w.HoveredElement != null);
 
+    public bool IsPointerCaptured => Desktop.Windows.Any(w => w.PressedElement != null)
+        || Desktop.ActiveContextMenu?.PressedElement != null;
+
     public bool IsKeyboardCaptured => Desktop.FocusedKeyboardHandler != null;
 
-    public UIViewInputState InputState => new(IsPointerOverUI, IsKeyboardCaptured, HasModalInput);
+    public UIViewInputState InputState => new(IsPointerOverUI, IsPointerCaptured, IsKeyboardCaptured, HasModalInput);
 
     public bool HasModalInput => ScreenStack.HasModalInput;
 

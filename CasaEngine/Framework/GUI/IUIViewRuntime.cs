@@ -17,6 +17,9 @@ public interface IUIViewRuntime : IDisposable
     /// <summary>True when the pointer currently targets an interactive UI element.</summary>
     bool IsPointerOverUI { get; }
 
+    /// <summary>True when the UI runtime is actively holding a pointer interaction across frames.</summary>
+    bool IsPointerCaptured { get; }
+
     /// <summary>True when keyboard input is currently captured by the UI runtime.</summary>
     bool IsKeyboardCaptured { get; }
 

@@ -13,9 +13,11 @@ public readonly record struct InputRoutingState(
     ViewId KeyboardFocusViewId,
     ViewId ModalViewId,
     ViewId CaptureViewId,
+    ViewId UIPointerCaptureViewId,
     InputRoutingReason Reason)
 {
     public static InputRoutingState Empty { get; } = new(
+        ViewId.Empty,
         ViewId.Empty,
         ViewId.Empty,
         ViewId.Empty,
@@ -29,6 +31,7 @@ public enum InputRoutingReason
     None,
     Modal,
     Capture,
+    UIPointerCapture,
     Pointer,
     KeyboardFocus,
     Fallback,

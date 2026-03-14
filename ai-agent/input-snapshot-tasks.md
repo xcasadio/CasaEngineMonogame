@@ -148,7 +148,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 6 — Clarifier capture, focus et modalite dans le contrat UI
+## 🟢 Tache 6 — Clarifier capture, focus et modalite dans le contrat UI
 
 **But :** rendre explicite ce que la couche UI expose au routage sans embarquer la logique gameplay/editeur.
 
