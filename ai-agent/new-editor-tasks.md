@@ -638,7 +638,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 3.4 — Vérifier que le moteur de rendu fonctionne avec un RenderTarget éditeur
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Actions :**
 1. Vérifier que le pipeline de rendu du `World` peut rendre dans un `RenderTarget2D` arbitraire
@@ -651,7 +651,23 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Changer la taille du RenderTarget, vérifier que le rendu s'adapte
 - Contrôler la caméra éditeur indépendamment
 
-**Commit :** `feat(engine): support rendering World into custom RenderTarget2D`
+**Commit :** `docs(editor): verify custom RenderTarget rendering path`
+
+## Résumé
+- Vérification du pipeline multi-view : `RenderPipeline` applique bien une surface arbitraire par vue avant le rendu, puis restaure la cible initiale ensuite.
+- Vérification de `RenderTargetSurface` : création de `RenderTarget2D`, resize via `EnsureSize/RequestResize`, exposition d’un `ViewportRect` cohérent pour la vue et la UI.
+- Vérification du flux éditeur : `WorldViewportPanel` crée une vraie `RenderView` sur `RenderTargetSurface`, la caméra éditeur est indépendante du runtime jeu, et le gizmo consomme explicitement `ActiveCamera` + `ActiveSurface` pour un viewport custom.
+
+## Attendu
+- Le moteur peut rendre un `World` dans une cible hors backbuffer sans patch spécifique additionnel.
+- Une vue éditeur peut garder sa propre caméra, sa propre taille de viewport et son propre cycle de rendu indépendamment d’une vue runtime classique.
+- Le gizmo et le picking utilisent bien les dimensions du viewport custom au lieu de dépendre du backbuffer global.
+
+## À tester
+- Charger un monde dans l’éditeur et vérifier que le panneau viewport affiche bien le rendu du `World` dans sa texture dédiée.
+- Redimensionner le panneau et vérifier que le rendu et le gizmo suivent la nouvelle taille.
+- Manipuler la caméra éditeur puis vérifier qu’elle reste indépendante de toute caméra runtime du monde.
+- Vérifier qu’un clic de picking et le gizmo continuent de fonctionner correctement après redimensionnement ou changement de focus.
 
 ---
 
@@ -794,7 +810,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 3.1 | Moteur | Événements World | ✅ | `feat(engine): ensure World exposes entity change events` |
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
 | 3.3 | Moteur | AssetCatalog vérification | ✅ | `feat(engine): verify AssetCatalog events and data for editor` |
-| 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ | |
+| 3.4 | Moteur | Rendu dans RenderTarget éditeur | ✅ | `docs(editor): verify custom RenderTarget rendering path` |
 | 4.1 | Assemblage | Layout principal éditeur | ⬜ | |
 | 4.2 | Assemblage | Système de sélection centralisé | ⬜ | |
 | 4.3 | Assemblage | Intégration Project Launcher | ⬜ | |
