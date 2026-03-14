@@ -302,7 +302,7 @@ S'assurer que les mêmes abstractions de vue, UI runtime et input routing s'appl
 
 ---
 
-### ⬜ EIR-009 — Ajouter une validation ciblée et durable du routage d'input
+### ✅ EIR-009 — Ajouter une validation ciblée et durable du routage d'input
 **Objectif**  
 Sécuriser la nouvelle architecture avec des validations ciblées sur les cas critiques déjà régressés.
 
@@ -326,6 +326,17 @@ Sécuriser la nouvelle architecture avec des validations ciblées sur les cas cr
 - la nouvelle architecture est couverte par des validations ciblées
 - les anciennes régressions connues ont un scénario de vérification explicite
 - l'agent peut démontrer que la solution ne repose plus sur des workarounds locaux
+
+**Résultat**
+- ajout de `ai-agent/editor-input-routing-validation.md`
+- formalisation d'une stratégie bornée basée sur trois builds ciblés et cinq scénarios manuels explicites
+- la vérification couvre explicitement : focus de vue, capture d'input, molette, coordonnées locales et modalité UI
+- limitation notée : absence de projet de tests moteur dédié à `InputRouter` dans la solution courante
+
+**Validation exécutée**
+- `dotnet build CasaEngine/CasaEngine.csproj -nologo`
+- `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo`
+- `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
 **Commit suggéré**  
 `Add targeted validation for unified input routing`
