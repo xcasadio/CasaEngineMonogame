@@ -20,7 +20,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace CasaEngine.Editor
@@ -47,7 +46,6 @@ namespace CasaEngine.Editor
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
         private Action? _pendingProjectLauncherAction;
-        private MouseState? _lastLoggedDesktopMouseState;
         private Win32WindowInputSource _windowInputSource;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
@@ -146,7 +144,7 @@ namespace CasaEngine.Editor
 
             _desktop.Windows.Add(_mainWindow);
 
-            HookInputDiagnostics();
+            HookViewportInputCoordination();
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
@@ -382,47 +380,10 @@ namespace CasaEngine.Editor
             launcher.Show();
         }
 
-        private void HookInputDiagnostics()
+        private void HookViewportInputCoordination()
         {
-            _mainWindow.MouseHandler.LMBPressedInside += (_, e) =>
-                Debug.WriteLine($"[EditorMainWindow] LMBPressedInside pos={e.Position} hovered={DescribeElement(_mainWindow.HoveredElement)} pressed={DescribeElement(_mainWindow.PressedElement)} modalCount={_desktop.ActiveModalWindows.Count}");
-            _mainWindow.MouseHandler.LMBReleasedInside += (_, e) =>
-                Debug.WriteLine($"[EditorMainWindow] LMBReleasedInside pos={e.Position} hovered={DescribeElement(_mainWindow.HoveredElement)} pressed={DescribeElement(_mainWindow.PressedElement)} modalCount={_desktop.ActiveModalWindows.Count}");
-            _mainWindow.MouseHandler.LMBClickedInside += (_, e) =>
-                Debug.WriteLine($"[EditorMainWindow] LMBClickedInside pos={e.Position} double={e.IsDoubleClick} hovered={DescribeElement(_mainWindow.HoveredElement)} modalCount={_desktop.ActiveModalWindows.Count}");
-
-            _mainWindow.HoveredElementChanged += (_, e) =>
-                Debug.WriteLine($"[EditorMainWindow] HoveredElementChanged old={DescribeElement(e.PreviousValue)} new={DescribeElement(e.NewValue)}");
-            _mainWindow.PressedElementChanged += (_, e) =>
-                Debug.WriteLine($"[EditorMainWindow] PressedElementChanged old={DescribeElement(e.PreviousValue)} new={DescribeElement(e.NewValue)}");
-        }
-
-        private static string DescribeElement(MGElement? element)
-        {
-            if (element == null)
-            {
-                return "<null>";
-            }
-
-            var name = string.IsNullOrWhiteSpace(element.Name) ? "<unnamed>" : element.Name;
-            return $"{element.GetType().Name}:{name}";
-        }
-
-        private void LogDesktopMouseState()
-        {
-            var mouseState = Microsoft.Xna.Framework.Input.Mouse.GetState();
-            if (_lastLoggedDesktopMouseState is MouseState previousState
-                && previousState.LeftButton == mouseState.LeftButton
-                && previousState.MiddleButton == mouseState.MiddleButton
-                && previousState.RightButton == mouseState.RightButton)
-            {
-                return;
-            }
-
-            Debug.WriteLine(
-                $"[EditorDesktop] monoMouse=({mouseState.X},{mouseState.Y}) l={mouseState.LeftButton} m={mouseState.MiddleButton} r={mouseState.RightButton} " +
-                $"hovered={DescribeElement(_mainWindow?.HoveredElement)} pressed={DescribeElement(_mainWindow?.PressedElement)} modalCount={_desktop?.ActiveModalWindows.Count ?? 0}");
-            _lastLoggedDesktopMouseState = mouseState;
+            _mainWindow.MouseHandler.LMBPressedInside += (_, _) =>
+                _worldViewportPanel?.ReleaseInputIfOutside(_mainWindow.HoveredElement);
         }
 
         private void QueueProjectOpen(string fileName)
@@ -492,10 +453,9 @@ namespace CasaEngine.Editor
             PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
             _desktop.Update();
-            _editorRuntime?.UpdateHost(gameTime);
-            _worldViewportPanel?.UpdateInput(gameTime);
             ProcessPendingProjectLauncherAction();
             _editorRuntime?.UpdateHost(gameTime);
+            _worldViewportPanel?.UpdateInput(gameTime);
 
             base.Update(gameTime);
 

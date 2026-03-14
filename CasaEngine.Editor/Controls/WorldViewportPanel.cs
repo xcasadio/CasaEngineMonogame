@@ -3,6 +3,7 @@ using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.World;
@@ -12,7 +13,6 @@ using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Diagnostics;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
@@ -25,6 +25,70 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class WorldViewportPanel : IDisposable
 {
+    private sealed class ViewportHostPanel : MGDockPanel
+    {
+        public ViewportHostPanel(MGWindow window)
+            : base(window)
+        {
+        }
+
+        public override bool TryHandleNavigationAction(UINavigationAction action)
+        {
+            return action switch
+            {
+                UINavigationAction.MoveNext => true,
+                UINavigationAction.MovePrevious => true,
+                UINavigationAction.MoveUp => true,
+                UINavigationAction.MoveDown => true,
+                UINavigationAction.MoveLeft => true,
+                UINavigationAction.MoveRight => true,
+                _ => false,
+            };
+        }
+    }
+
+    private sealed class MguiViewportViewHost : IViewHost, IViewScreenBoundsHost
+    {
+        private readonly Func<Rectangle> _getScreenBounds;
+        private bool _disposed;
+
+        public MguiViewportViewHost(ViewId viewId, Func<Rectangle> getScreenBounds)
+        {
+            ViewId = viewId;
+            _getScreenBounds = getScreenBounds;
+        }
+
+        public ViewId ViewId { get; }
+
+        public int Width => ScreenBounds.Width;
+
+        public int Height => ScreenBounds.Height;
+
+        public bool IsVisible => ScreenBounds.Width > 0 && ScreenBounds.Height > 0;
+
+        public Rectangle ScreenBounds => _getScreenBounds();
+
+        public event Action<IViewHost, int, int>? Resized;
+
+        public event Action<IViewHost>? Closed;
+
+        public void NotifyResized(int newWidth, int newHeight)
+        {
+            Resized?.Invoke(this, newWidth, newHeight);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            Closed?.Invoke(this);
+        }
+    }
+
     private readonly MGWindow _window;
     private readonly GraphicsDevice _graphicsDevice;
     private readonly HostedEditorGameAdapter _editorRuntime;
@@ -35,13 +99,16 @@ public class WorldViewportPanel : IDisposable
 
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
+    private MguiViewportViewHost? _renderViewHost;
+    private DebugGridComponent? _grid;
+    private DebugAxisComponent? _axis;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
     private Entity? _cameraEntity;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
-    private KeyboardStateProvider? _keyboardProvider;
+    private IKeyboardStateProvider? _keyboardProvider;
     private IMouseStateProvider? _mouseProvider;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
@@ -59,7 +126,7 @@ public class WorldViewportPanel : IDisposable
     {
         EnsureRenderViewCreated();
 
-        _viewportHost = new MGDockPanel(_window)
+        _viewportHost = new ViewportHostPanel(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
@@ -68,22 +135,16 @@ public class WorldViewportPanel : IDisposable
         };
 
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
-        _viewportHost.MouseHandler.PressedInside += (_, e) =>
-            Debug.WriteLine($"[WorldViewportPanel] PressedInside button={e.Button} pos={e.Position} hovered={_viewportHost.IsHovered} bounds={_viewportHost.LayoutBounds}");
         _viewportHost.MouseHandler.LMBPressedInside += (_, e) =>
         {
-            Debug.WriteLine($"[WorldViewportPanel] LMBPressedInside pos={e.Position} hovered={_viewportHost.IsHovered} bounds={_viewportHost.LayoutBounds}");
             ActivateThisView(captureInput: false);
         };
-        _viewportHost.MouseHandler.LMBReleasedInside += (_, e) =>
-            Debug.WriteLine($"[WorldViewportPanel] LMBReleasedInside pos={e.Position} hovered={_viewportHost.IsHovered} bounds={_viewportHost.LayoutBounds}");
         _viewportHost.MouseHandler.LMBClickedInside += (_, e) =>
         {
-            Debug.WriteLine($"[WorldViewportPanel] LMBClickedInside pos={e.Position} hovered={_viewportHost.IsHovered} double={e.IsDoubleClick}");
             ActivateThisView(captureInput: false);
         };
 
-        _keyboardProvider ??= new KeyboardStateProvider();
+        _keyboardProvider ??= _windowInputSource as IKeyboardStateProvider ?? new KeyboardStateProvider();
         _mouseProvider ??= new ViewportRelativeMouseStateProvider(_windowInputSource, () => _viewportHost?.LayoutBounds ?? Rectangle.Empty);
 
         _viewportImage = new MGImage(_window, new MGTextureData(_surface!.Texture!), Stretch: Stretch.Fill)
@@ -93,6 +154,11 @@ public class WorldViewportPanel : IDisposable
             IsHitTestVisible = false,
             Name = "WorldViewportImage",
         };
+
+        if (_renderView != null && _renderView.Host != null)
+        {
+            _editorRuntime.GameManager.ViewManager.HookViewHost(_renderView);
+        }
 
         RegisterViewportInput();
 
@@ -154,6 +220,8 @@ public class WorldViewportPanel : IDisposable
         _rtWidth = width;
         _rtHeight = height;
 
+        _renderViewHost?.NotifyResized(width, height);
+
         _surface?.EnsureSize(width, height);
         _camera?.OnScreenResized(width, height);
         RefreshTextureBinding();
@@ -203,6 +271,9 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView = renderView;
+        _renderViewHost = new MguiViewportViewHost(renderView.Id, () => _viewportHost?.LayoutBounds ?? Rectangle.Empty);
+        _renderView.Host = _renderViewHost;
+        EnsureEditorOverlays(world);
         EnsureEditorGizmo(world);
     }
 
@@ -217,8 +288,6 @@ public class WorldViewportPanel : IDisposable
             _renderView.Id,
             _keyboardProvider,
             _mouseProvider);
-
-        Debug.WriteLine($"[WorldViewportPanel] RegisterViewInput view={_renderView.Id} bounds={_viewportHost.LayoutBounds}");
     }
 
     private void ActivateThisView(bool captureInput)
@@ -231,13 +300,27 @@ public class WorldViewportPanel : IDisposable
         _editorRuntime.GameManager.ViewManager.SetActive(_renderView);
         _editorRuntime.InputComponent.InputRouter?.SetKeyboardFocus(_renderView.Id);
         _viewportHost?.Focus(MGUI.Core.UI.KeyboardFocusSource.Pointer);
-        Debug.WriteLine($"[WorldViewportPanel] ActivateThisView view={_renderView.Id} capture={captureInput}");
 
         if (captureInput)
         {
             _editorRuntime.GameManager.ViewManager.CaptureInput(_renderView);
-            Debug.WriteLine($"[WorldViewportPanel] CaptureInput view={_renderView.Id}");
         }
+    }
+
+    public void ReleaseInputIfOutside(MGElement? interactedElement)
+    {
+        if (_renderView == null || _viewportHost == null)
+        {
+            return;
+        }
+
+        if (interactedElement != null && _viewportHost.IsSelfOrAncestorOf(interactedElement))
+        {
+            return;
+        }
+
+        _editorRuntime.GameManager.ViewManager.ReleaseInput();
+        _editorRuntime.InputComponent.InputRouter?.ClearKeyboardFocus(_renderView.Id);
     }
 
     private World GetRenderWorld()
@@ -314,6 +397,36 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.EnsureInitialized(_renderView, _camera, _surface, world);
     }
 
+    private void EnsureEditorOverlays(World world)
+    {
+        if (_renderView == null)
+        {
+            return;
+        }
+
+        _grid ??= CreateGridComponent();
+        _axis ??= CreateAxisComponent();
+
+        var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
+        overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
+        overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
+        _renderView.Pipeline = overlayPipeline;
+    }
+
+    private DebugGridComponent CreateGridComponent()
+    {
+        var grid = new DebugGridComponent(_editorRuntime);
+        grid.Initialize();
+        return grid;
+    }
+
+    private DebugAxisComponent CreateAxisComponent()
+    {
+        var axis = new DebugAxisComponent(_editorRuntime);
+        axis.Initialize();
+        return axis;
+    }
+
     private void SynchronizeGizmo()
     {
         _gizmoController.Synchronize(_camera, _surface, _renderView?.World);
@@ -329,9 +442,21 @@ public class WorldViewportPanel : IDisposable
         if (_renderView != null)
         {
             _editorRuntime.InputComponent.InputRouter?.UnregisterViewInput(_renderView.Id);
+            if (_renderView.Host != null)
+            {
+                _editorRuntime.GameManager.ViewManager.UnhookViewHost(_renderView);
+                _renderView.Host = null;
+            }
         }
 
+        _renderViewHost?.Dispose();
+        _renderViewHost = null;
+
         _gizmoController.Dispose();
+        DisposeOverlayComponent(_grid);
+        DisposeOverlayComponent(_axis);
+        _grid = null;
+        _axis = null;
 
         if (_renderView != null)
         {
@@ -340,5 +465,16 @@ public class WorldViewportPanel : IDisposable
         }
 
         _surface?.Dispose();
+    }
+
+    private void DisposeOverlayComponent(DrawableGameComponent? component)
+    {
+        if (component == null)
+        {
+            return;
+        }
+
+        _editorRuntime.Components.Remove(component);
+        component.Dispose();
     }
 }

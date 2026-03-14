@@ -232,7 +232,7 @@ public sealed class ViewManager
         // If a view has captured input, always route to it.
         if (InputCaptureView != null)
         {
-            var vp   = InputCaptureView.Surface.ViewportRect;
+            var vp = GetScreenBounds(InputCaptureView);
             var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
             return (InputCaptureView, local);
         }
@@ -243,7 +243,7 @@ public sealed class ViewManager
             var view = _views[i];
             if (!view.Enabled || !view.IsVisible) continue;
 
-            var vp = view.Surface.ViewportRect;
+            var vp = GetScreenBounds(view);
             if (vp.Contains(screenPoint))
             {
                 var local = new Vector2(screenPoint.X - vp.X, screenPoint.Y - vp.Y);
@@ -410,6 +410,16 @@ public sealed class ViewManager
     private static bool IsPresented(RenderView view)
     {
         return view.Enabled && view.IsVisible;
+    }
+
+    private static Rectangle GetScreenBounds(RenderView view)
+    {
+        if (view.Host is IViewScreenBoundsHost screenBoundsHost)
+        {
+            return screenBoundsHost.ScreenBounds;
+        }
+
+        return view.Surface.ViewportRect;
     }
 
     private static void RefreshHostState(RenderView view)

@@ -376,20 +376,23 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         GameManager.UpdateWorld(gameTime);
 
-#if EDITOR
-        var sortedGameComponents = new List<GameComponent>(Components.Count);
-        sortedGameComponents.AddRange(Components
-            .Where(x => x is IUpdateable { Enabled: true })
-            .Cast<GameComponent>()
-            .OrderBy(x => x.UpdateOrder));
-
-        foreach (var component in sortedGameComponents)
+        if (ExecutionPolicy.UseExternalViewManagement)
         {
-            component.Update(gameTime);
+            var sortedGameComponents = new List<GameComponent>(Components.Count);
+            sortedGameComponents.AddRange(Components
+                .Where(x => x is IUpdateable { Enabled: true })
+                .Cast<GameComponent>()
+                .OrderBy(x => x.UpdateOrder));
+
+            foreach (var component in sortedGameComponents)
+            {
+                component.Update(gameTime);
+            }
         }
-#else
-        base.Update(gameTime);
-#endif
+        else
+        {
+            base.Update(gameTime);
+        }
 
 #if !FINAL
         //DebugSystem.Instance.TimeRuler.EndMark("Update");

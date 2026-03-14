@@ -61,7 +61,13 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     public MouseState GetMouseState()
     {
         var state = _mouseStateProvider?.GetState() ?? Mouse.GetState();
-        var vp    = _surface.ViewportRect;
+        var vp = _surface.ViewportRect;
+
+        if (_game.GameManager.ViewManager.Views.FirstOrDefault(v => ReferenceEquals(v.Surface, _surface)) is { Host: IViewScreenBoundsHost screenBoundsHost })
+        {
+            vp = screenBoundsHost.ScreenBounds;
+        }
+
         return new MouseState(
             state.X - vp.X,
             state.Y - vp.Y,

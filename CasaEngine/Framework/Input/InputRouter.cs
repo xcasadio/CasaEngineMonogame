@@ -3,7 +3,6 @@ using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
-using System.Diagnostics;
 
 namespace CasaEngine.Framework.Input;
 
@@ -34,8 +33,6 @@ public sealed class InputRouter
     private readonly Dictionary<ViewId, MouseState> _previousMouseStatesByView = new();
     private MouseState? _previousFallbackMouseState;
     private ViewInputRegistration? _fallbackInput;
-    private ViewId _lastLoggedResolvedTargetViewId = ViewId.Empty;
-    private MouseState? _lastLoggedMouseState;
 
     public ViewId CurrentTargetViewId { get; private set; } = ViewId.Empty;
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
@@ -197,7 +194,6 @@ public sealed class InputRouter
         var routedMouseState = registration.MouseProvider.GetState();
         context = CreateInputContext(targetView.Id, routedKeyboardState, routedMouseState, routingState, isFallback: false);
         CurrentInputContext = context;
-        LogDispatchDecision(routingState, context.ViewId, context.MouseState);
         return true;
     }
 
@@ -219,9 +215,10 @@ public sealed class InputRouter
 
         if (!viewId.IsEmpty && _viewManager.TryGetView(viewId, out var view))
         {
+            var screenBounds = GetScreenBounds(view);
             screenPosition = new Point(
-                view.Surface.ViewportRect.X + localPosition.X,
-                view.Surface.ViewportRect.Y + localPosition.Y);
+                screenBounds.X + localPosition.X,
+                screenBounds.Y + localPosition.Y);
         }
 
         var context = new ViewInputContext(
@@ -246,25 +243,11 @@ public sealed class InputRouter
         return context;
     }
 
-    private void LogDispatchDecision(InputRoutingState routingState, ViewId resolvedViewId, MouseState mouseState)
+    private static Rectangle GetScreenBounds(RenderView view)
     {
-        bool mouseChanged = _lastLoggedMouseState is not MouseState previousMouseState
-            || previousMouseState.LeftButton != mouseState.LeftButton
-            || previousMouseState.MiddleButton != mouseState.MiddleButton
-            || previousMouseState.RightButton != mouseState.RightButton;
-
-        bool targetChanged = _lastLoggedResolvedTargetViewId != resolvedViewId;
-        if (!mouseChanged && !targetChanged)
-        {
-            return;
-        }
-
-        Debug.WriteLine(
-            $"[InputRouter] target={resolvedViewId} pointer={routingState.PointerViewId} capture={GetCapturedViewId()} focus={routingState.KeyboardFocusViewId} modal={routingState.ModalViewId} reason={routingState.Reason} " +
-            $"mouse=({mouseState.X},{mouseState.Y}) l={mouseState.LeftButton} m={mouseState.MiddleButton} r={mouseState.RightButton}");
-
-        _lastLoggedResolvedTargetViewId = resolvedViewId;
-        _lastLoggedMouseState = mouseState;
+        return view.Host is IViewScreenBoundsHost screenBoundsHost
+            ? screenBoundsHost.ScreenBounds
+            : view.Surface.ViewportRect;
     }
 
     public ViewId GetCapturedViewId()
