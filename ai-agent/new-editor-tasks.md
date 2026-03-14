@@ -799,7 +799,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 4.4 — StatusBar en bas de l'éditeur
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Actions :**
 1. Ajouter un `MGDockPanel` ou `MGStackPanel` en bas de la fenêtre principale (hors DockHost)
@@ -812,6 +812,21 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Vérifier l'affichage du FPS
 
 **Commit :** `feat(editor): add status bar with panel toggles and info`
+
+## Résumé
+- Ajout d’une status bar en bas de la fenêtre principale, hors `MGDockHost`, avec boutons de toggle pour `Content Browser` et `Logs`.
+- Les toggles s’appuient sur l’état réel du dock via `ShowDockable` / `RemovePanel` pour rouvrir ou fermer les panneaux proprement.
+- La barre affiche maintenant le projet courant, le FPS échantillonné et le nombre d’entités du monde actif.
+
+## Attendu
+- Une barre de statut reste visible en bas de l’éditeur, indépendamment du layout docké.
+- Les boutons `Content Browser` et `Logs` permettent d’ouvrir ou fermer ces panneaux sans passer par les tabs du dock.
+- Les informations projet/FPS/nombre d’entités se mettent à jour pendant l’exécution.
+
+## À tester
+- Vérifier que la status bar est visible en bas dès qu’un projet est chargé.
+- Cliquer sur `Content Browser` et `Logs` pour vérifier l’ouverture puis la fermeture des panneaux.
+- Vérifier que le projet courant, le FPS et le nombre d’entités évoluent correctement.
 
 ---
 
@@ -860,5 +875,5 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 4.1 | Assemblage | Layout principal éditeur | ✅ | `feat(editor): assemble main editor layout with all panels` |
 | 4.2 | Assemblage | Système de sélection centralisé | ✅ | `feat(editor): add centralized EditorSelection system` |
 | 4.3 | Assemblage | Intégration Project Launcher | ✅ | `feat(editor): integrate ProjectLauncher into editor startup flow` |
-| 4.4 | Assemblage | StatusBar | ⬜ | |
+| 4.4 | Assemblage | StatusBar | ✅ | `feat(editor): add status bar with panel toggles and info` |
 | 4.5 | Assemblage | Persistance layout | ⬜ | |
