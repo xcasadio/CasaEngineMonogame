@@ -21,11 +21,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.IO;
+using System.Linq;
 
 namespace CasaEngine.Editor
 {
     public class Game1 : Game, IObservableUpdate
     {
+        private const string ContentBrowserPanelId = "panel_content_browser";
+
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -45,6 +48,8 @@ namespace CasaEngine.Editor
         private EngineRuntimeContext _editorRuntimeContext;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
+        private ContentBrowserPanel _contentBrowserPanel;
+        private MGElement _contentBrowserContent;
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
 
@@ -232,12 +237,12 @@ namespace CasaEngine.Editor
                 ContentFactory = () => new MGTextBlock(_mainWindow, "World Explorer (TODO)")
             };
 
-            var contentBrowserPanel = new DockPanelNode("panel_content_browser")
+            var contentBrowserPanel = new DockPanelNode(ContentBrowserPanelId)
             {
                 Title = "Content Browser",
                 CanClose = true,
                 CanFloat = true,
-                ContentFactory = () => new ContentBrowserPanel(_mainWindow).CreateContent()
+                ContentFactory = GetOrCreateContentBrowserContent
             };
 
             var outputPanel = new DockPanelNode("panel_output")
@@ -260,7 +265,7 @@ namespace CasaEngine.Editor
             var bottomGroup = new DockTabGroupNode();
             bottomGroup.AddPanel(contentBrowserPanel, -1);
             bottomGroup.AddPanel(outputPanel, -1);
-            bottomGroup.SetActivePanel(outputPanel.Id);
+            bottomGroup.SetActivePanel(contentBrowserPanel.Id);
 
             var centerGroup = new DockTabGroupNode();
             centerGroup.AddPanel(scenePanel, -1);
@@ -306,6 +311,8 @@ namespace CasaEngine.Editor
         {
             SynchronizeEditorRuntimeContext();
             EnsureDockHostInitialized();
+            _contentBrowserPanel?.Refresh();
+            ActivateDockPanel(ContentBrowserPanelId);
             LoadInitialWorldIntoEditorRuntime();
 
             if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName))
@@ -372,6 +379,26 @@ namespace CasaEngine.Editor
             _dockHost.Name = "EditorDockHost";
             _rootPanel.TryAddChild(_dockHost, Dock.Top);
             SetupInitialDockLayout();
+        }
+
+        private MGElement GetOrCreateContentBrowserContent()
+        {
+            _contentBrowserPanel ??= new ContentBrowserPanel(_mainWindow);
+            _contentBrowserContent ??= _contentBrowserPanel.CreateContent();
+            return _contentBrowserContent;
+        }
+
+        private void ActivateDockPanel(string panelId)
+        {
+            var targetGroup = _dockHost?.LayoutModel?
+                .GetAllTabGroups()
+                .FirstOrDefault(group => group.Panels.Any(panel => panel.Id == panelId));
+            if (targetGroup == null || targetGroup.ActivePanelId == panelId)
+            {
+                return;
+            }
+
+            targetGroup.SetActivePanel(panelId);
         }
 
         private void OpenProjectLauncher()

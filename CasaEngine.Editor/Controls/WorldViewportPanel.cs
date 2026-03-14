@@ -120,6 +120,11 @@ public class WorldViewportPanel : IDisposable
 
     public MGElement CreateContent()
     {
+        if (_viewportHost != null)
+        {
+            return _viewportHost;
+        }
+
         EnsureRenderViewCreated();
 
         _viewportHost = new ViewportHostPanel(_window)
@@ -127,7 +132,6 @@ public class WorldViewportPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             IsFocusable = true,
-            Name = "WorldViewportHost",
         };
 
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
@@ -145,7 +149,6 @@ public class WorldViewportPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             IsHitTestVisible = false,
-            Name = "WorldViewportImage",
         };
 
         if (_renderView != null && _renderView.Host != null)
