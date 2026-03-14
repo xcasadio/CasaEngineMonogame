@@ -41,6 +41,8 @@ public sealed class EntityDetailsPanel
         _window = window;
     }
 
+    public event Action<EntityComponent?>? SelectedComponentChanged;
+
     public MGElement CreateContent()
     {
         if (_root != null)
@@ -101,6 +103,42 @@ public sealed class EntityDetailsPanel
         AttachEntity();
         RefreshEntityHeader();
         RebuildComponentTree();
+        RebuildPropertyEditors();
+    }
+
+    public void SetSelectedComponent(EntityComponent? component)
+    {
+        _selectedComponent = component;
+
+        if (_componentTree == null)
+        {
+            return;
+        }
+
+        _suppressComponentSelectionChanged = true;
+        try
+        {
+            if (component == null)
+            {
+                _componentTree.ClearSelection();
+                return;
+            }
+
+            if (!_componentToItem.TryGetValue(component, out var item))
+            {
+                _selectedComponent = null;
+                _componentTree.ClearSelection();
+                return;
+            }
+
+            _componentTree.SelectItem(item);
+            _componentTree.ScrollIntoView(item);
+        }
+        finally
+        {
+            _suppressComponentSelectionChanged = false;
+        }
+
         RebuildPropertyEditors();
     }
 
@@ -308,40 +346,8 @@ public sealed class EntityDetailsPanel
 
         _selectedComponent = _itemToComponent.TryGetValue(item, out var component) ? component : null;
         RebuildPropertyEditors();
-    }
 
-    private void SetSelectedComponent(EntityComponent? component)
-    {
-        _selectedComponent = component;
-
-        if (_componentTree == null)
-        {
-            return;
-        }
-
-        _suppressComponentSelectionChanged = true;
-        try
-        {
-            if (component == null)
-            {
-                _componentTree.ClearSelection();
-                return;
-            }
-
-            if (!_componentToItem.TryGetValue(component, out var item))
-            {
-                _selectedComponent = null;
-                _componentTree.ClearSelection();
-                return;
-            }
-
-            _componentTree.SelectItem(item);
-            _componentTree.ScrollIntoView(item);
-        }
-        finally
-        {
-            _suppressComponentSelectionChanged = false;
-        }
+        SelectedComponentChanged?.Invoke(_selectedComponent);
     }
 
     private void RebuildPropertyEditors()
@@ -500,7 +506,7 @@ public sealed class EntityDetailsPanel
         _selectedComponent = component;
         RebuildComponentTree();
         SetSelectedComponent(component);
-        RebuildPropertyEditors();
+        SelectedComponentChanged?.Invoke(component);
     }
 
     private void UpdateSummary()

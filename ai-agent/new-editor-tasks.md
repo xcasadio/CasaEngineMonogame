@@ -722,7 +722,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 4.2 — Système de sélection centralisé
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier à créer :** `CasaEngine.Editor/EditorSelection.cs`
 
@@ -739,6 +739,21 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Changer de sélection rapidement, vérifier la cohérence
 
 **Commit :** `feat(editor): add centralized EditorSelection system`
+
+## Résumé
+- Ajout d’un singleton `EditorSelection` pour centraliser `SelectedEntity` et `SelectedComponent` avec événements dédiés.
+- `Game1` relaie désormais la sélection via `EditorSelection` au lieu de synchroniser directement `EntitiesPanel`, `WorldViewportPanel` et `EntityDetailsPanel` entre eux.
+- `EntityDetailsPanel` expose la sélection de composant pour garder l’état central cohérent avec l’arbre des composants.
+
+## Attendu
+- Une sélection d’entité depuis l’arbre ou depuis le viewport met à jour une source unique, puis resynchronise les trois panneaux sans couplage direct panneau-à-panneau.
+- La sélection de composant est conservée dans l’état éditeur partagé et peut être consommée par d’autres panneaux sans logique ad hoc supplémentaire.
+- Un changement de projet ou de monde repart d’un état de sélection propre.
+
+## À tester
+- Sélectionner une entité dans `Entities` puis vérifier la mise à jour du viewport et de `EntityDetails`.
+- Sélectionner une entité depuis le viewport/gizmo puis vérifier que l’arbre `Entities` et `EntityDetails` suivent.
+- Sélectionner un composant dans `EntityDetails`, changer d’entité, puis revenir et vérifier qu’aucune sélection obsolète ne persiste.
 
 ---
 
@@ -828,7 +843,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 3.3 | Moteur | AssetCatalog vérification | ✅ | `feat(engine): verify AssetCatalog events and data for editor` |
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ✅ | `docs(editor): verify custom RenderTarget rendering path` |
 | 4.1 | Assemblage | Layout principal éditeur | ✅ | `feat(editor): assemble main editor layout with all panels` |
-| 4.2 | Assemblage | Système de sélection centralisé | ⬜ | |
+| 4.2 | Assemblage | Système de sélection centralisé | ✅ | `feat(editor): add centralized EditorSelection system` |
 | 4.3 | Assemblage | Intégration Project Launcher | ⬜ | |
 | 4.4 | Assemblage | StatusBar | ⬜ | |
 | 4.5 | Assemblage | Persistance layout | ⬜ | |

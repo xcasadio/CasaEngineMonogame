@@ -65,6 +65,7 @@ namespace CasaEngine.Editor
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
+        private readonly EditorSelection _editorSelection = EditorSelection.Current;
         private bool _isSynchronizingEntitySelection;
         private Entity _selectedEntity;
 
@@ -165,6 +166,9 @@ namespace CasaEngine.Editor
             _desktop.Windows.Add(_mainWindow);
 
             HookViewportInputCoordination();
+
+            _editorSelection.SelectionChanged += OnEditorSelectionChanged;
+            _editorSelection.ComponentSelectionChanged += OnEditorComponentSelectionChanged;
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
@@ -321,6 +325,7 @@ namespace CasaEngine.Editor
         private void OnProjectLoaded(object? sender, EventArgs e)
         {
             SynchronizeEditorRuntimeContext();
+            _editorSelection.Clear();
             EnsureDockHostInitialized();
             _contentBrowserPanel?.Refresh();
             ActivateDockPanel(ContentBrowserPanelId);
@@ -409,6 +414,7 @@ namespace CasaEngine.Editor
             }
 
             _worldViewportContent ??= _worldViewportPanel.CreateContent();
+            _worldViewportPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
             return _worldViewportContent;
         }
 
@@ -422,14 +428,21 @@ namespace CasaEngine.Editor
             }
 
             _entitiesContent ??= _entitiesPanel.CreateContent();
+            _entitiesPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
             return _entitiesContent;
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
         {
-            _entityDetailsPanel ??= new EntityDetailsPanel(_mainWindow);
+            if (_entityDetailsPanel == null)
+            {
+                _entityDetailsPanel = new EntityDetailsPanel(_mainWindow);
+                _entityDetailsPanel.SelectedComponentChanged += OnEntityDetailsSelectedComponentChanged;
+            }
+
             _entityDetailsContent ??= _entityDetailsPanel.CreateContent();
-            _entityDetailsPanel.SetSelectedEntity(_selectedEntity);
+            _entityDetailsPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
+            _entityDetailsPanel.SetSelectedComponent(_editorSelection.SelectedComponent);
             return _entityDetailsContent;
         }
 
@@ -620,24 +633,7 @@ namespace CasaEngine.Editor
 
         private void OnEntitiesPanelSelectionChanged(Entity? entity)
         {
-            _selectedEntity = entity;
-
-            if (_isSynchronizingEntitySelection)
-            {
-                _entityDetailsPanel?.SetSelectedEntity(entity);
-                return;
-            }
-
-            _isSynchronizingEntitySelection = true;
-            try
-            {
-                _worldViewportPanel?.SetSelectedEntity(entity);
-                _entityDetailsPanel?.SetSelectedEntity(entity);
-            }
-            finally
-            {
-                _isSynchronizingEntitySelection = false;
-            }
+            _editorSelection.SetSelectedEntity(entity);
         }
 
         private void OnEntitiesPanelEntityDoubleClicked(Entity entity)
@@ -647,11 +643,15 @@ namespace CasaEngine.Editor
 
         private void OnViewportSelectedEntityChanged(Entity? entity)
         {
+            _editorSelection.SetSelectedEntity(entity);
+        }
+
+        private void OnEditorSelectionChanged(Entity? entity)
+        {
             _selectedEntity = entity;
 
             if (_isSynchronizingEntitySelection)
             {
-                _entityDetailsPanel?.SetSelectedEntity(entity);
                 return;
             }
 
@@ -659,12 +659,23 @@ namespace CasaEngine.Editor
             try
             {
                 _entitiesPanel?.SetSelectedEntity(entity);
+                _worldViewportPanel?.SetSelectedEntity(entity);
                 _entityDetailsPanel?.SetSelectedEntity(entity);
             }
             finally
             {
                 _isSynchronizingEntitySelection = false;
             }
+        }
+
+        private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        {
+            _entityDetailsPanel?.SetSelectedComponent(component);
+        }
+
+        private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        {
+            _editorSelection.SetSelectedComponent(component);
         }
 
         protected override void LoadContent()
