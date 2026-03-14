@@ -32,6 +32,8 @@ public sealed class InputRouter
     private readonly ViewManager _viewManager;
     private readonly Dictionary<PlayerIndex, ViewId> _playerViews = new();
     private readonly Dictionary<ViewId, ViewInputRegistration> _viewInputs = new();
+    private readonly Dictionary<ViewId, MouseState> _previousMouseStatesByView = new();
+    private MouseState? _previousFallbackMouseState;
     private ViewInputRegistration? _fallbackInput;
     private ViewId _lastLoggedResolvedTargetViewId = ViewId.Empty;
     private MouseState? _lastLoggedMouseState;
@@ -41,6 +43,7 @@ public sealed class InputRouter
     public ViewId KeyboardFocusViewId { get; private set; } = ViewId.Empty;
     public ViewId ModalViewId { get; private set; } = ViewId.Empty;
     public InputRoutingState CurrentRoutingState { get; private set; } = InputRoutingState.Empty;
+    public ViewInputContext CurrentInputContext { get; private set; } = ViewInputContext.Empty;
 
     public bool HasRegisteredViewInputSources => _viewInputs.Count > 0;
     public bool HasAnyRegisteredInputSources => _fallbackInput != null || _viewInputs.Count > 0;
@@ -112,6 +115,8 @@ public sealed class InputRouter
         {
             ModalViewId = ViewId.Empty;
         }
+
+        _previousMouseStatesByView.Remove(viewId);
     }
 
     public void SetKeyboardFocus(ViewId viewId)
@@ -128,6 +133,22 @@ public sealed class InputRouter
     }
 
     public bool TryDispatch(out ViewId viewId, out KeyboardState keyboardState, out MouseState mouseState)
+    {
+        if (TryDispatchContext(out var context))
+        {
+            viewId = context.ViewId;
+            keyboardState = context.KeyboardState;
+            mouseState = context.MouseState;
+            return true;
+        }
+
+        viewId = ViewId.Empty;
+        keyboardState = new KeyboardState();
+        mouseState = new MouseState();
+        return false;
+    }
+
+    public bool TryDispatchContext(out ViewInputContext context)
     {
         _viewManager.SynchronizeHostStates();
 
@@ -147,25 +168,24 @@ public sealed class InputRouter
             if (_fallbackInput != null)
             {
                 CurrentRoutingState = routingState with { Reason = InputRoutingReason.Fallback };
-                viewId = ViewId.Empty;
-                keyboardState = _fallbackInput.KeyboardProvider.GetState();
-                mouseState = _fallbackInput.MouseProvider.GetState();
+                var keyboardState = _fallbackInput.KeyboardProvider.GetState();
+                var mouseState = _fallbackInput.MouseProvider.GetState();
+                context = CreateInputContext(ViewId.Empty, keyboardState, mouseState, CurrentRoutingState, isFallback: true);
+                CurrentInputContext = context;
                 return true;
             }
 
             CurrentRoutingState = InputRoutingState.Empty;
-            viewId = ViewId.Empty;
-            keyboardState = new KeyboardState();
-            mouseState = new MouseState();
+            CurrentInputContext = ViewInputContext.Empty;
+            context = ViewInputContext.Empty;
             return false;
         }
 
         if (!_viewInputs.TryGetValue(targetView.Id, out var registration))
         {
             CurrentTargetViewId = ViewId.Empty;
-            viewId = ViewId.Empty;
-            keyboardState = new KeyboardState();
-            mouseState = new MouseState();
+            CurrentInputContext = ViewInputContext.Empty;
+            context = ViewInputContext.Empty;
             return false;
         }
 
@@ -179,11 +199,57 @@ public sealed class InputRouter
             KeyboardFocusViewId = targetView.Id;
         }
 
-        viewId = targetView.Id;
-        keyboardState = registration.KeyboardProvider.GetState();
-        mouseState = registration.MouseProvider.GetState();
-        LogDispatchDecision(routingState, viewId, mouseState);
+        var routedKeyboardState = registration.KeyboardProvider.GetState();
+        var routedMouseState = registration.MouseProvider.GetState();
+        context = CreateInputContext(targetView.Id, routedKeyboardState, routedMouseState, routingState, isFallback: false);
+        CurrentInputContext = context;
+        LogDispatchDecision(routingState, context.ViewId, context.MouseState);
         return true;
+    }
+
+    private ViewInputContext CreateInputContext(
+        ViewId viewId,
+        KeyboardState keyboardState,
+        MouseState mouseState,
+        InputRoutingState routingState,
+        bool isFallback)
+    {
+        var previousMouseState = isFallback
+            ? _previousFallbackMouseState ?? mouseState
+            : _previousMouseStatesByView.TryGetValue(viewId, out var previousState)
+                ? previousState
+                : mouseState;
+
+        var localPosition = mouseState.Position;
+        var screenPosition = localPosition;
+
+        if (!viewId.IsEmpty && _viewManager.TryGetView(viewId, out var view))
+        {
+            screenPosition = new Point(
+                view.Surface.ViewportRect.X + localPosition.X,
+                view.Surface.ViewportRect.Y + localPosition.Y);
+        }
+
+        var context = new ViewInputContext(
+            viewId,
+            keyboardState,
+            mouseState,
+            screenPosition,
+            localPosition,
+            mouseState.ScrollWheelValue - previousMouseState.ScrollWheelValue,
+            mouseState.HorizontalScrollWheelValue - previousMouseState.HorizontalScrollWheelValue,
+            routingState);
+
+        if (isFallback)
+        {
+            _previousFallbackMouseState = mouseState;
+        }
+        else
+        {
+            _previousMouseStatesByView[viewId] = mouseState;
+        }
+
+        return context;
     }
 
     private void LogDispatchDecision(InputRoutingState routingState, ViewId resolvedViewId, MouseState mouseState)

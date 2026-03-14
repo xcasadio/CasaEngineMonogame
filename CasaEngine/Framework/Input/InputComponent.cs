@@ -19,6 +19,7 @@ public class InputComponent : GameComponent
     public MouseManager MouseManager { get; } = new();
     public KeyboardManager KeyboardManager { get; } = new();
     public GamePadManager GamePadManager { get; } = new();
+    public ViewInputContext CurrentViewInputContext { get; private set; } = ViewInputContext.Empty;
 
     /// <summary>
     /// Per-view input router. Set by <see cref="CasaEngineGame"/> after initialization.
@@ -69,24 +70,28 @@ public class InputComponent : GameComponent
 
         if (InputRouter != null)
         {
-            if (InputRouter.TryDispatch(out _, out var routedKeyboardState, out var routedMouseState))
+            if (InputRouter.TryDispatchContext(out var routedContext))
             {
-                keyboardState = routedKeyboardState;
-                mouseState = routedMouseState;
+                CurrentViewInputContext = routedContext;
+                keyboardState = routedContext.KeyboardState;
+                mouseState = routedContext.MouseState;
             }
             else if (InputRouter.HasAnyRegisteredInputSources)
             {
+                CurrentViewInputContext = ViewInputContext.Empty;
                 keyboardState = new KeyboardState();
                 mouseState = new MouseState();
             }
             else
             {
+                CurrentViewInputContext = ViewInputContext.Empty;
                 keyboardState = _keyboardStateProvider.GetState();
                 mouseState = _mouseStateProvider.GetState();
             }
         }
         else
         {
+            CurrentViewInputContext = ViewInputContext.Empty;
             keyboardState = _keyboardStateProvider.GetState();
             mouseState = _mouseStateProvider.GetState();
         }

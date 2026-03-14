@@ -109,7 +109,7 @@ Supprimer la duplication d'acquisition raw entre `Game1`, `SimpleEditor` et les 
 
 ---
 
-### ⬜ EIR-003 — Étendre le routeur pour transporter un contexte d'entrée complet par vue
+### ✅ EIR-003 — Étendre le routeur pour transporter un contexte d'entrée complet par vue
 **Objectif**  
 Faire de `InputRouter` la seule couche qui choisit la vue cible et produit l'état d'entrée local à cette vue, y compris la molette.
 
@@ -133,6 +133,11 @@ Faire de `InputRouter` la seule couche qui choisit la vue cible et produit l'ét
 - le routeur gère explicitement la molette et les coordonnées locales
 - la décision de vue cible n'est plus répliquée côté panneau
 - `InputComponent` consomme le contexte routé sans logique parallèle
+
+**Résultat**
+- ajout de `CasaEngine/Framework/Input/ViewInputContext.cs`
+- `InputRouter` expose désormais `TryDispatchContext(...)` et `CurrentInputContext`
+- `InputComponent` consomme le contexte routé tout en conservant la compatibilité avec `KeyboardManager` et `MouseManager`
 
 **Commit suggéré**  
 `Extend input router with per-view input context`
