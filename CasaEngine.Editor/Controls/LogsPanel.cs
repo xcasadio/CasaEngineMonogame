@@ -47,6 +47,8 @@ public class LogsPanel
     private MGListBox<LogEntry> _listBox = null!;
     private MGScrollViewer _scrollViewer = null!;
     private MGComboBox<string> _filterCombo = null!;
+    private MGElement? _rootContent;
+    private bool _isSubscribed;
 
     private LogVerbosity? _activeFilter; // null = show all
 
@@ -70,6 +72,12 @@ public class LogsPanel
     /// </summary>
     public MGElement CreateContent()
     {
+        if (_rootContent != null)
+        {
+            RefreshList();
+            return _rootContent;
+        }
+
         // ── Filter toolbar ────────────────────────────────────────────────
         _filterCombo = new MGComboBox<string>(_window)
         {
@@ -133,14 +141,19 @@ public class LogsPanel
         var panel = new MGDockPanel(_window);
         panel.TryAddChild(toolbar, Dock.Top);
         panel.TryAddChild(_scrollViewer, Dock.Top); // fill
+        _rootContent = panel;
 
         // ── Subscribe to new entries ──────────────────────────────────────
-        _logger.EntryAdded += OnEntryAdded;
+        if (!_isSubscribed)
+        {
+            _logger.EntryAdded += OnEntryAdded;
+            _isSubscribed = true;
+        }
 
         // Populate with any entries already present
         RefreshList();
 
-        return panel;
+        return _rootContent;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

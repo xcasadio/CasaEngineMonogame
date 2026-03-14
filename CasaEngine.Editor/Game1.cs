@@ -50,6 +50,8 @@ namespace CasaEngine.Editor
         private WorldViewportPanel _worldViewportPanel;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
+        private LogsPanel _logsPanel;
+        private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
 
@@ -250,7 +252,7 @@ namespace CasaEngine.Editor
                 Title = "Output / Logs",
                 CanClose = true,
                 CanFloat = true,
-                ContentFactory = () => new LogsPanel(_mainWindow, _loggerEditor).CreateContent()
+                ContentFactory = GetOrCreateLogsContent
             };
 
             // Tab groups
@@ -305,6 +307,7 @@ namespace CasaEngine.Editor
             };
 
             _dockHost.LayoutModel.RootNode = rootSplit;
+            _ = GetOrCreateLogsContent();
         }
 
         private void OnProjectLoaded(object? sender, EventArgs e)
@@ -386,6 +389,13 @@ namespace CasaEngine.Editor
             _contentBrowserPanel ??= new ContentBrowserPanel(_mainWindow);
             _contentBrowserContent ??= _contentBrowserPanel.CreateContent();
             return _contentBrowserContent;
+        }
+
+        private MGElement GetOrCreateLogsContent()
+        {
+            _logsPanel ??= new LogsPanel(_mainWindow, _loggerEditor);
+            _logsContent ??= _logsPanel.CreateContent();
+            return _logsContent;
         }
 
         private void ActivateDockPanel(string panelId)
