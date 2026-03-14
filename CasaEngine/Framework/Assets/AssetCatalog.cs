@@ -19,6 +19,7 @@ public static class AssetCatalog
 
     public static void Add(AssetInfo assetInfo)
     {
+        NormalizeAssetInfo(assetInfo);
         _assetInfos.Add(assetInfo.Id, assetInfo);
         _assetInfosByName[assetInfo.Name] = assetInfo;
         _assetInfosByFileName[assetInfo.FileName] = assetInfo;
@@ -47,9 +48,18 @@ public static class AssetCatalog
 
     public static void Load(string fileName)
     {
+        Clear();
+
         var rootElement = JObject.Parse(File.ReadAllText(fileName));
 
-        foreach (var assetInfoNode in rootElement["asset_infos"])
+        var assetInfosNode = rootElement["asset_infos"] as JArray;
+        if (assetInfosNode == null)
+        {
+            IsLoaded = true;
+            return;
+        }
+
+        foreach (var assetInfoNode in assetInfosNode)
         {
             var assetInfo = new AssetInfo();
             assetInfo.Load((JObject)assetInfoNode);
@@ -59,10 +69,10 @@ public static class AssetCatalog
         IsLoaded = true;
     }
 
-    internal static event EventHandler<AssetInfo>? AssetAdded;
-    internal static event EventHandler<AssetInfo>? AssetRemoved;
-    internal static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
-    internal static event EventHandler? AssetCleared;
+    public static event EventHandler<AssetInfo>? AssetAdded;
+    public static event EventHandler<AssetInfo>? AssetRemoved;
+    public static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
+    public static event EventHandler? AssetCleared;
 
     public static void Add(ObjectBase objectBase)
     {
@@ -75,6 +85,7 @@ public static class AssetCatalog
         {
             Name = name,
             FileName = fileName,
+            AssetType = AssetInfo.InferAssetType(fileName),
         };
 
         Add(assetInfo);
@@ -158,9 +169,8 @@ public static class AssetCatalog
 
         foreach (var assetInfo in _assetInfos)
         {
-            var entityObject = new JObject(
-                new JProperty("id", assetInfo.Value.Id),
-                new JProperty("file_name", assetInfo.Value.FileName));
+            var entityObject = new JObject();
+            assetInfo.Value.Save(entityObject);
 
             assetInfoJArray.Add(entityObject);
         }
@@ -172,5 +182,17 @@ public static class AssetCatalog
         root.WriteTo(writer);
 
         Logs.WriteInfo($"Asset infos saved in {fileName}");
+    }
+
+    private static void NormalizeAssetInfo(AssetInfo assetInfo)
+    {
+        assetInfo.Name = string.IsNullOrWhiteSpace(assetInfo.Name)
+            ? Path.GetFileNameWithoutExtension(assetInfo.FileName)
+            : assetInfo.Name;
+
+        if (string.IsNullOrWhiteSpace(assetInfo.AssetType))
+        {
+            assetInfo.AssetType = AssetInfo.InferAssetType(assetInfo.FileName);
+        }
     }
 }

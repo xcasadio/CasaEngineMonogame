@@ -602,7 +602,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 3.3 — Vérifier le AssetCatalog pour le Content Browser
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier :** `CasaEngine/Framework/Assets/AssetCatalog.cs`
 
@@ -618,6 +618,21 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Sauvegarder et recharger le catalogue
 
 **Commit :** `feat(engine): verify AssetCatalog events and data for editor`
+
+## Résumé
+- `AssetCatalog` expose désormais publiquement les événements `AssetAdded`, `AssetRemoved`, `AssetRenamed` et `AssetCleared`, avec un rechargement robuste via `Load()` qui nettoie d’abord l’état courant.
+- `AssetInfo` porte maintenant explicitement le chemin relatif (`RelativeFileName`) et une catégorie d’asset (`AssetType`) dérivée du fichier si elle n’est pas fournie.
+- Le save/load du catalogue préserve désormais `name`, `file_name` et `asset_type`, ce qui évite de perdre des métadonnées utiles pour l’éditeur entre deux chargements.
+
+## Attendu
+- Le moteur expose un catalogue d’assets directement consommable par l’éditeur sans dépendre d’un wrapper WPF.
+- Un changement de projet ou un rechargement du catalogue repart d’un état propre, avec notifications cohérentes pour les panneaux éditeur.
+- Chaque `AssetInfo` fournit un `Guid`, un chemin relatif exploitable et une catégorie d’asset disponible pour du filtrage côté UI.
+
+## À tester
+- Charger un projet et vérifier que `AssetCatalog.AssetInfos` contient des entrées avec `Id`, `RelativeFileName` et `AssetType` cohérents.
+- S’abonner aux événements `AssetAdded`, `AssetRemoved`, `AssetRenamed` et `AssetCleared`, puis vérifier qu’ils se déclenchent lors des mutations du catalogue.
+- Sauvegarder le catalogue, relancer le chargement du projet et vérifier que les noms et catégories d’assets sont conservés.
 
 ---
 
@@ -778,7 +793,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.8 | Contrôles éditeur | Property editors composants | ✅ | `feat(editor): add component property editors with registry` |
 | 3.1 | Moteur | Événements World | ✅ | `feat(engine): ensure World exposes entity change events` |
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
-| 3.3 | Moteur | AssetCatalog vérification | ⬜ | |
+| 3.3 | Moteur | AssetCatalog vérification | ✅ | `feat(engine): verify AssetCatalog events and data for editor` |
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ | |
 | 4.1 | Assemblage | Layout principal éditeur | ⬜ | |
 | 4.2 | Assemblage | Système de sélection centralisé | ⬜ | |

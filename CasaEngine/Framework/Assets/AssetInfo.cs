@@ -9,10 +9,19 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
     public Guid Id { get; private set; }
     public string Name { get; set; }
     public string FileName { get; set; }
+    public string AssetType { get; set; }
+    public string RelativeFileName
+    {
+        get => FileName;
+        set => FileName = value;
+    }
 
     public AssetInfo()
     {
         Id = Guid.NewGuid();
+        Name = string.Empty;
+        FileName = string.Empty;
+        AssetType = string.Empty;
     }
 
     public bool Equals(AssetInfo? other)
@@ -27,7 +36,7 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
             return true;
         }
 
-        return Name == other.Name && Id == other.Id && FileName == other.FileName;
+        return Name == other.Name && Id == other.Id && FileName == other.FileName && AssetType == other.AssetType;
     }
 
     public override bool Equals(object? obj)
@@ -72,20 +81,35 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         {
             Name = Path.GetFileNameWithoutExtension(FileName);
         }
+
+        AssetType = element.ContainsKey("asset_type")
+            ? element["asset_type"].GetString()
+            : InferAssetType(FileName);
     }
 
     public AssetInfo(Guid id)
     {
         Id = id;
+        Name = string.Empty;
+        FileName = string.Empty;
+        AssetType = string.Empty;
     }
 
     public void Save(JObject jObject)
     {
-        var assetObject = new JObject(
-            new JProperty("id", Id),
-            new JProperty("name", Name),
-            new JProperty("file_name", FileName));
+        jObject.Add("id", Id);
+        jObject.Add("name", Name);
+        jObject.Add("file_name", FileName);
+        jObject.Add("asset_type", string.IsNullOrWhiteSpace(AssetType) ? InferAssetType(FileName) : AssetType);
+    }
 
-        jObject.Add("asset", assetObject);
+    public static string InferAssetType(string? fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return string.Empty;
+        }
+
+        return Path.GetExtension(fileName).TrimStart('.').ToLowerInvariant();
     }
 }
