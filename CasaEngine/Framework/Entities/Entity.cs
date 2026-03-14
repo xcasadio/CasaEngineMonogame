@@ -9,6 +9,19 @@ using CasaEngine.Core.Log;
 
 namespace CasaEngine.Framework.Entities;
 
+public sealed class EntityNameChangedEventArgs : EventArgs
+{
+    public EntityNameChangedEventArgs(string previousName, string newName)
+    {
+        PreviousName = previousName;
+        NewName = newName;
+    }
+
+    public string PreviousName { get; }
+
+    public string NewName { get; }
+}
+
 //Entity is the base class for an Object that can be placed or spawned in a level.
 public class Entity : ObjectBase
 {
@@ -25,27 +38,39 @@ public class Entity : ObjectBase
 
     public IEnumerable<EntityComponent> Components => _components;
 
+    public new string Name
+    {
+        get => base.Name;
+        set
+        {
+            if (base.Name == value)
+            {
+                return;
+            }
+
+            var previousName = base.Name;
+            base.Name = value;
+            NameChanged?.Invoke(this, new EntityNameChangedEventArgs(previousName, value));
+        }
+    }
+
     public SceneComponent? RootComponent
     {
         get => _rootComponent;
         set
         {
-#if EDITOR
             if (_rootComponent != null)
             {
                 _rootComponent.Detach();
                 ComponentRemoved?.Invoke(this, _rootComponent);
             }
-#endif
 
             _rootComponent = value;
 
             if (_rootComponent != null)
             {
                 _rootComponent.Attach(this);
-#if EDITOR
                 ComponentAdded?.Invoke(this, _rootComponent);
-#endif
             }
         }
     }
@@ -168,40 +193,28 @@ public class Entity : ObjectBase
     {
         _children.Add(actor);
         actor.Parent = this;
-
-#if EDITOR
         ChildAdded?.Invoke(this, actor);
-#endif
     }
 
     public void RemoveChild(Entity actor)
     {
         _children.Remove(actor);
         actor.Parent = null;
-
-#if EDITOR
         ChildRemoved?.Invoke(this, actor);
-#endif
     }
 
     public void AddComponent(EntityComponent component)
     {
         _components.Add(component);
         component.Attach(this);
-
-#if EDITOR
         ComponentAdded?.Invoke(this, component);
-#endif
     }
 
     public void RemoveComponent(EntityComponent component)
     {
         _components.Remove(component);
         component.Detach();
-
-#if EDITOR
         ComponentRemoved?.Invoke(this, component);
-#endif
     }
 
     public T? GetComponent<T>() where T : class
@@ -342,14 +355,15 @@ public class Entity : ObjectBase
         }
     }
 
-#if EDITOR
-
     public event EventHandler<Entity> ChildAdded;
     public event EventHandler<Entity> ChildRemoved;
 
     public event EventHandler<EntityComponent> ComponentAdded;
     public event EventHandler<EntityComponent> ComponentRemoved;
 
+    public event EventHandler<EntityNameChangedEventArgs> NameChanged;
+
+#if EDITOR
     public override void Save(JObject node)
     {
         base.Save(node);

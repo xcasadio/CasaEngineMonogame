@@ -519,7 +519,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 3.2 — Vérifier les événements de l'Entity pour les composants
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier :** `CasaEngine/Framework/Entities/Entity.cs`
 
@@ -536,6 +536,19 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Renommer l'entité, vérifier notification
 
 **Commit :** `feat(engine): ensure Entity exposes component/child change events`
+
+## Résumé
+- Les événements `ComponentAdded`, `ComponentRemoved`, `ChildAdded` et `ChildRemoved` sont désormais exposés sans dépendre d’un symbole de compilation éditeur.
+- Ajout d’un événement `NameChanged` sur `Entity` pour notifier explicitement les renommages.
+
+## Attendu
+- L’éditeur peut s’abonner aux changements de composants, d’enfants et de nom sur `Entity` dans la build courante.
+- Un renommage via `entity.Name = ...` déclenche désormais une notification exploitable côté UI.
+
+## À tester
+- S’abonner à `ComponentAdded` puis ajouter un composant et vérifier l’événement.
+- S’abonner à `ChildAdded` puis ajouter une entité enfant et vérifier l’événement.
+- S’abonner à `NameChanged`, renommer une entité et vérifier les anciens/nouveaux noms.
 
 ---
 
@@ -716,7 +729,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
 | 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
 | 3.1 | Moteur | Événements World | ⬜ | |
-| 3.2 | Moteur | Événements Entity | ⬜ | |
+| 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
 | 3.3 | Moteur | AssetCatalog vérification | ⬜ | |
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ | |
 | 4.1 | Assemblage | Layout principal éditeur | ⬜ | |
