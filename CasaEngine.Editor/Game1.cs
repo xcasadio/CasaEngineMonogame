@@ -28,6 +28,7 @@ namespace CasaEngine.Editor
     public class Game1 : Game, IObservableUpdate
     {
         private const string ContentBrowserPanelId = "panel_content_browser";
+        private const string OutputPanelId = "panel_output";
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -247,7 +248,7 @@ namespace CasaEngine.Editor
                 ContentFactory = GetOrCreateContentBrowserContent
             };
 
-            var outputPanel = new DockPanelNode("panel_output")
+            var outputPanel = new DockPanelNode(OutputPanelId)
             {
                 Title = "Output / Logs",
                 CanClose = true,
@@ -380,6 +381,7 @@ namespace CasaEngine.Editor
 
             _dockHost = new MGDockHost(_mainWindow);
             _dockHost.Name = "EditorDockHost";
+            _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
             _rootPanel.TryAddChild(_dockHost, Dock.Top);
             SetupInitialDockLayout();
         }
@@ -396,6 +398,14 @@ namespace CasaEngine.Editor
             _logsPanel ??= new LogsPanel(_mainWindow, _loggerEditor);
             _logsContent ??= _logsPanel.CreateContent();
             return _logsContent;
+        }
+
+        private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)
+        {
+            if (panel.Id == OutputPanelId)
+            {
+                _logsPanel?.Refresh();
+            }
         }
 
         private void ActivateDockPanel(string panelId)

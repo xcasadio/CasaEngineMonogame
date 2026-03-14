@@ -156,6 +156,16 @@ public class LogsPanel
         return _rootContent;
     }
 
+    public void Refresh()
+    {
+        if (_rootContent == null)
+        {
+            return;
+        }
+
+        RefreshList();
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Item template
     // ─────────────────────────────────────────────────────────────────────────
