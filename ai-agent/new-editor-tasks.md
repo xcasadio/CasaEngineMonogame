@@ -759,7 +759,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 4.3 — Intégrer le Project Launcher au flux de démarrage
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier à modifier :** `CasaEngine.Editor/Game1.cs`
 
@@ -779,6 +779,21 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - File → Open : vérifier que le launcher se réaffiche
 
 **Commit :** `feat(editor): integrate ProjectLauncher into editor startup flow`
+
+## Résumé
+- Le démarrage passe désormais par un affichage unique du `ProjectLauncherWindow`, utilisé aussi depuis le menu `File`.
+- `Game1` n’initialise le `DockHost` et les panneaux principaux qu’après `ProjectLoaded`, puis rafraîchit explicitement le `ContentBrowser` et charge le monde initial.
+- Le titre de fenêtre est mis à jour via une méthode dédiée pour refléter le projet courant ou revenir au titre par défaut.
+
+## Attendu
+- Au lancement, seul le menu principal et la fenêtre modale du launcher sont visibles tant qu’aucun projet n’est chargé.
+- Après ouverture ou création d’un projet, l’éditeur initialise le layout principal, active le `Content Browser`, charge le monde de démarrage et affiche le nom du projet dans la barre de titre.
+- `File -> Open Project` et `File -> New Project` réouvrent le launcher sans casser l’état du runtime hôte.
+
+## À tester
+- Lancer l’éditeur et vérifier que le launcher s’affiche avant tout panneau docké.
+- Ouvrir ou créer un projet puis vérifier l’initialisation du viewport, du `Content Browser` et le titre de fenêtre.
+- Utiliser `File -> Open Project` depuis un projet déjà chargé et vérifier que le launcher réapparaît correctement.
 
 ---
 
@@ -844,6 +859,6 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ✅ | `docs(editor): verify custom RenderTarget rendering path` |
 | 4.1 | Assemblage | Layout principal éditeur | ✅ | `feat(editor): assemble main editor layout with all panels` |
 | 4.2 | Assemblage | Système de sélection centralisé | ✅ | `feat(editor): add centralized EditorSelection system` |
-| 4.3 | Assemblage | Intégration Project Launcher | ⬜ | |
+| 4.3 | Assemblage | Intégration Project Launcher | ✅ | `feat(editor): integrate ProjectLauncher into editor startup flow` |
 | 4.4 | Assemblage | StatusBar | ⬜ | |
 | 4.5 | Assemblage | Persistance layout | ⬜ | |

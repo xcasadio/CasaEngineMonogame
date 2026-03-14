@@ -173,8 +173,7 @@ namespace CasaEngine.Editor
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
             // ── Show project launcher at startup ───────────────────────────
-            var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate);
-            launcher.Show();
+            ShowProjectLauncher();
 
             base.Initialize();
         }
@@ -326,15 +325,29 @@ namespace CasaEngine.Editor
         {
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
+            PresentLoadedProject();
+        }
+
+        private void PresentLoadedProject()
+        {
             EnsureDockHostInitialized();
+
+            _ = GetOrCreateWorldViewportContent();
+            _ = GetOrCreateEntitiesContent();
+            _ = GetOrCreateEntityDetailsContent();
+            _ = GetOrCreateContentBrowserContent();
+
             _contentBrowserPanel?.Refresh();
             ActivateDockPanel(ContentBrowserPanelId);
             LoadInitialWorldIntoEditorRuntime();
+            UpdateWindowTitle();
+        }
 
-            if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName))
-            {
-                Window.Title = $"CasaEngine Editor - {GameSettings.ProjectSettings.ProjectName}";
-            }
+        private void UpdateWindowTitle()
+        {
+            Window.Title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
+                ? "CasaEngine Editor"
+                : $"CasaEngine Editor - {GameSettings.ProjectSettings.ProjectName}";
         }
 
         private void InitializeEditorRuntime()
@@ -475,6 +488,11 @@ namespace CasaEngine.Editor
         }
 
         private void OpenProjectLauncher()
+        {
+            ShowProjectLauncher();
+        }
+
+        private void ShowProjectLauncher()
         {
             var launcher = new ProjectLauncherWindow(_mainWindow, QueueProjectOpen, QueueProjectCreate);
             launcher.Show();
