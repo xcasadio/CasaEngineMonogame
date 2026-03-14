@@ -22,6 +22,7 @@ public sealed class EntitiesPanel
     private readonly Dictionary<MGTreeViewItem, Entity> _itemToEntity = new();
     private readonly Dictionary<Entity, MGTreeViewItem> _entityToItem = new();
     private readonly HashSet<Guid> _expandedEntityIds = [];
+    private readonly HashSet<Entity> _observedEntities = [];
 
     private MGDockPanel? _root;
     private MGTreeView? _treeView;
@@ -284,6 +285,10 @@ public sealed class EntitiesPanel
         _currentWorld.EntityAdded += OnWorldEntityAdded;
         _currentWorld.EntityRemoved += OnWorldEntityRemoved;
         _currentWorld.EntitiesClear += OnWorldEntitiesCleared;
+        foreach (var entity in _currentWorld.Entities)
+        {
+            SubscribeEntityTree(entity);
+        }
 
         UpdateSummary();
     }
@@ -297,16 +302,23 @@ public sealed class EntitiesPanel
             _currentWorld.EntitiesClear -= OnWorldEntitiesCleared;
         }
 
+        foreach (var entity in _observedEntities.ToList())
+        {
+            UnsubscribeEntityTree(entity);
+        }
+
         _currentWorld = null;
     }
 
     private void OnWorldEntityAdded(object? sender, Entity entity)
     {
+        SubscribeEntityTree(entity);
         RebuildTree();
     }
 
     private void OnWorldEntityRemoved(object? sender, Entity entity)
     {
+        UnsubscribeEntityTree(entity);
         if (ReferenceEquals(_selectedEntity, entity))
         {
             _selectedEntity = null;
@@ -318,8 +330,48 @@ public sealed class EntitiesPanel
 
     private void OnWorldEntitiesCleared(object? sender, EventArgs e)
     {
+        foreach (var entity in _observedEntities.ToList())
+        {
+            UnsubscribeEntityTree(entity);
+        }
+
         _selectedEntity = null;
         SelectedEntityChanged?.Invoke(null);
+        RebuildTree();
+    }
+
+    private void SubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Add(entity))
+        {
+            return;
+        }
+
+        entity.NameChanged += OnEntityNameChanged;
+
+        foreach (var child in entity.Children)
+        {
+            SubscribeEntityTree(child);
+        }
+    }
+
+    private void UnsubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Remove(entity))
+        {
+            return;
+        }
+
+        entity.NameChanged -= OnEntityNameChanged;
+
+        foreach (var child in entity.Children)
+        {
+            UnsubscribeEntityTree(child);
+        }
+    }
+
+    private void OnEntityNameChanged(object? sender, EntityNameChangedEventArgs e)
+    {
         RebuildTree();
     }
 

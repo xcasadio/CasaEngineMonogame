@@ -31,6 +31,7 @@ namespace CasaEngine.Editor
         private const string ContentBrowserPanelId = "panel_content_browser";
         private const string OutputPanelId = "panel_output";
         private const string EntitiesPanelId = "panel_entities";
+        private const string EntityDetailsPanelId = "panel_entity_details";
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -53,6 +54,8 @@ namespace CasaEngine.Editor
         private WorldViewportPanel _worldViewportPanel;
         private EntitiesPanel _entitiesPanel;
         private MGElement _entitiesContent;
+        private EntityDetailsPanel _entityDetailsPanel;
+        private MGElement _entityDetailsContent;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private LogsPanel _logsPanel;
@@ -60,6 +63,7 @@ namespace CasaEngine.Editor
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
         private bool _isSynchronizingEntitySelection;
+        private Entity _selectedEntity;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -230,12 +234,12 @@ namespace CasaEngine.Editor
                 }
             };
 
-            var propertiesPanel = new DockPanelNode("panel_properties")
+            var propertiesPanel = new DockPanelNode(EntityDetailsPanelId)
             {
-                Title = "Properties",
+                Title = "Details",
                 CanClose = true,
                 CanFloat = true,
-                ContentFactory = () => new MGTextBlock(_mainWindow, "Properties (TODO)")
+                ContentFactory = GetOrCreateEntityDetailsContent
             };
 
             var explorerPanel = new DockPanelNode(EntitiesPanelId)
@@ -412,6 +416,14 @@ namespace CasaEngine.Editor
             return _entitiesContent;
         }
 
+        private MGElement GetOrCreateEntityDetailsContent()
+        {
+            _entityDetailsPanel ??= new EntityDetailsPanel(_mainWindow);
+            _entityDetailsContent ??= _entityDetailsPanel.CreateContent();
+            _entityDetailsPanel.SetSelectedEntity(_selectedEntity);
+            return _entityDetailsContent;
+        }
+
         private MGElement GetOrCreateLogsContent()
         {
             _logsPanel ??= new LogsPanel(_mainWindow, _loggerEditor);
@@ -511,8 +523,11 @@ namespace CasaEngine.Editor
 
         private void OnEntitiesPanelSelectionChanged(Entity? entity)
         {
+            _selectedEntity = entity;
+
             if (_isSynchronizingEntitySelection)
             {
+                _entityDetailsPanel?.SetSelectedEntity(entity);
                 return;
             }
 
@@ -520,6 +535,7 @@ namespace CasaEngine.Editor
             try
             {
                 _worldViewportPanel?.SetSelectedEntity(entity);
+                _entityDetailsPanel?.SetSelectedEntity(entity);
             }
             finally
             {
@@ -534,8 +550,11 @@ namespace CasaEngine.Editor
 
         private void OnViewportSelectedEntityChanged(Entity? entity)
         {
+            _selectedEntity = entity;
+
             if (_isSynchronizingEntitySelection)
             {
+                _entityDetailsPanel?.SetSelectedEntity(entity);
                 return;
             }
 
@@ -543,6 +562,7 @@ namespace CasaEngine.Editor
             try
             {
                 _entitiesPanel?.SetSelectedEntity(entity);
+                _entityDetailsPanel?.SetSelectedEntity(entity);
             }
             finally
             {

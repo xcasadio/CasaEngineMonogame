@@ -436,7 +436,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 2.7 — Panneau Entity Details (détails et composants d'une entité)
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier à créer :** `CasaEngine.Editor/Controls/EntityDetailsPanel.cs`
 
@@ -458,6 +458,23 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Sélectionner un composant, vérifier que ses propriétés s'affichent
 
 **Commit :** `feat(editor): add EntityDetailsPanel with component list`
+
+## Résumé
+- Ajout de `EntityDetailsPanel` avec nom d'entité éditable, popup d'ajout de composant, arbre des composants et zone de propriétés scrollable.
+- Intégration du panneau dans `Game1` à la place du placeholder de propriétés, avec synchronisation sur la sélection d'entité venant du TreeView et du viewport.
+- Ajout d'une édition générique minimale des propriétés simples (bool, string, numérique, `Vector3`, `Guid`, `Enum`, `Color`) et resynchronisation de `EntitiesPanel` sur les renommages d'entités.
+
+## Attendu
+- Quand une entité est sélectionnée, le panneau Details affiche son nom, la hiérarchie de ses composants et les propriétés éditables du composant sélectionné.
+- Le bouton Add Component permet d'ajouter un composant top-level ou un enfant de `SceneComponent`, puis la liste se met à jour immédiatement.
+- Un renommage depuis le panneau Details est propagé au panneau Entities sans refresh manuel.
+
+## À tester
+- Sélectionner une entité dans Entities puis vérifier que son nom et ses composants apparaissent dans Details.
+- Renommer l'entité depuis Details et vérifier que le panneau Entities reflète le changement.
+- Cliquer sur Add Component, ajouter un composant simple puis vérifier qu'il apparaît immédiatement dans l'arbre.
+- Sélectionner un composant `SceneComponent`, vérifier les éditeurs Position/Scale, puis modifier une valeur et observer la mise à jour côté runtime.
+- Sélectionner un composant avec propriétés simples (`bool`, `float`, `Guid` asset, `Enum`) et vérifier que les contrôles correspondants s'affichent.
 
 ---
 
@@ -740,7 +757,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.4 | Contrôles éditeur | Logs | ✅ | `01e3ef07` |
 | 2.5 | Contrôles éditeur | World Viewport | ✅ | `4ebdf1e8` |
 | 2.6 | Contrôles éditeur | Entities (hiérarchie) | ✅ | `feat(editor): add EntitiesPanel with entity hierarchy tree` |
-| 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
+| 2.7 | Contrôles éditeur | Entity Details (composants) | ✅ | `feat(editor): add EntityDetailsPanel with component list` |
 | 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
 | 3.1 | Moteur | Événements World | ✅ | `feat(engine): ensure World exposes entity change events` |
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
