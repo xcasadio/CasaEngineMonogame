@@ -208,7 +208,7 @@ Déplacer les règles de navigation caméra hors de `WorldViewportPanel` vers un
 
 ---
 
-### ⬜ EIR-006 — Introduire un contrôleur runtime pour le gizmo et le picking éditeur
+### ✅ EIR-006 — Introduire un contrôleur runtime pour le gizmo et le picking éditeur
 **Objectif**  
 Sortir de `WorldViewportPanel` la logique de sélection, hover, drag et hotkeys du gizmo, pour la replacer dans le runtime éditeur.
 
@@ -227,6 +227,12 @@ Sortir de `WorldViewportPanel` la logique de sélection, hover, drag et hotkeys 
 - le panneau ne pilote plus directement `Gizmo.Update()` ni `SelectEntities()`
 - hover, drag, sélection et raccourcis du gizmo passent par un contrôleur runtime
 - le chemin gizmo est compatible avec le routeur central
+
+**Résultat**
+- ajout de `CasaEngine.Editor/Runtime/EditorViewportGizmoController.cs`
+- `WorldViewportPanel` délègue désormais l'initialisation, la synchronisation, la sélection et les raccourcis du gizmo à ce contrôleur runtime
+- le panneau ne pilote plus directement `Gizmo.Update()` ni `Gizmo.SelectEntities()`
+- validation bornée : `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo` et `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
 **Commit suggéré**  
 `Move editor gizmo input flow into runtime controller`

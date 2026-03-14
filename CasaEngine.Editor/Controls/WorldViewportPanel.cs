@@ -4,11 +4,9 @@ using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game.Components.DebugTools;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Transform;
 using CasaEngine.Framework.World;
-using GizmoTools;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
@@ -196,7 +194,7 @@ public class WorldViewportPanel : IDisposable
     private Entity? _cameraEntity;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
-    private TransformGizmoComponent? _gizmo;
+    private readonly EditorViewportGizmoController _gizmoController;
     private KeyboardStateProvider? _keyboardProvider;
     private IMouseStateProvider? _mouseProvider;
     private int _rtWidth = 16;
@@ -212,6 +210,7 @@ public class WorldViewportPanel : IDisposable
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
         _getWindowHandle = getWindowHandle;
+        _gizmoController = new EditorViewportGizmoController(editorRuntime);
     }
 
     public MGElement CreateContent()
@@ -286,10 +285,7 @@ public class WorldViewportPanel : IDisposable
         var keyboardState = receivesInput || isKeyboardFocused ? inputContext.KeyboardState : new KeyboardState();
         bool isViewportInteractive = receivesInput || isKeyboardFocused;
 
-        if (_gizmo != null)
-        {
-            _gizmo.IsActiveViewport = false;
-        }
+        _gizmoController.Deactivate();
 
         if (receivesInput && _pendingScrollDelta != 0)
         {
@@ -310,7 +306,7 @@ public class WorldViewportPanel : IDisposable
                 () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
         }
 
-        UpdateGizmoInput(gameTime, keyboardState, localMouseState, isViewportInteractive);
+        UpdateGizmoInput(gameTime, inputContext, isViewportInteractive);
 
         _previousLocalMouseState = localMouseState;
         _previousKeyboardState = keyboardState;
@@ -485,12 +481,7 @@ public class WorldViewportPanel : IDisposable
         _cameraEntity?.InitializeWithWorld(desiredWorld);
         _camera?.OnScreenResized(_rtWidth, _rtHeight);
 
-        if (_gizmo != null)
-        {
-            _gizmo.SelectionWorld = desiredWorld;
-            _gizmo.ClearSelection();
-            _gizmo.SetSelectionPool(GetViewportSelectableObjects(desiredWorld));
-        }
+        _gizmoController.ResetWorld(desiredWorld);
     }
 
     private void SynchronizeCamera()
@@ -521,103 +512,12 @@ public class WorldViewportPanel : IDisposable
 
     private void EnsureEditorGizmo(World world)
     {
-        if (_renderView == null || _camera == null || _surface == null)
-        {
-            return;
-        }
-
-        if (_gizmo == null)
-        {
-            _gizmo = new TransformGizmoComponent(_editorRuntime);
-            _gizmo.Initialize();
-            _gizmo.SelectionChanged += (_, selection) =>
-                Debug.WriteLine($"[WorldViewportPanel] GizmoSelectionChanged count={selection.Count}");
-        }
-
-        _gizmo.ActiveCamera = _camera;
-        _gizmo.ActiveSurface = _surface;
-        _gizmo.SelectionWorld = world;
-        _gizmo.IsActiveViewport = true;
-        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
-
-        var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
-        overlayPipeline.RenderGizmosAction = (_, _, frame) => _gizmo.DrawForView(in frame);
-        _renderView.Pipeline = overlayPipeline;
+        _gizmoController.EnsureInitialized(_renderView, _camera, _surface, world);
     }
 
     private void SynchronizeGizmo()
     {
-        if (_gizmo == null)
-        {
-            return;
-        }
-
-        _gizmo.ActiveCamera = _camera;
-        _gizmo.ActiveSurface = _surface;
-    }
-
-    private void TrySelectAt(Point localPosition)
-    {
-        if (_gizmo == null || _camera == null || _surface == null)
-        {
-            return;
-        }
-
-        _gizmo.ActiveCamera = _camera;
-        _gizmo.ActiveSurface = _surface;
-        _gizmo.SelectionWorld = _renderView?.World;
-        _gizmo.Gizmo.ActiveViewport = new Viewport(0, 0, _surface.ViewportRect.Width, _surface.ViewportRect.Height);
-        _gizmo.Gizmo.UpdateCameraProperties(_camera.ViewMatrix, _camera.ProjectionMatrix, _camera.Position);
-
-        var keyboard = Keyboard.GetState();
-        bool addToSelection = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
-        bool removeFromSelection = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
-
-        Debug.WriteLine($"[WorldViewportPanelPoll] LMBSelect local=({localPosition.X},{localPosition.Y}) ctrl={addToSelection} alt={removeFromSelection}");
-        _gizmo.Gizmo.SelectEntities(new Vector2(localPosition.X, localPosition.Y), addToSelection, removeFromSelection);
-        _gizmo.Gizmo.RefreshPresentation();
-        Debug.WriteLine($"[WorldViewportPanelPoll] SelectionCount={_gizmo.CurrentSelection.Count}");
-
-        foreach (var selected in _gizmo.CurrentSelection)
-        {
-            Debug.WriteLine($"[WorldViewportPanelPoll] Selected {DescribeSelection(selected)}");
-        }
-    }
-
-    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world)
-    {
-        var selectables = new List<ITransformableObject>();
-
-        foreach (var entity in world.Entities)
-        {
-            AddSelectableRoots(entity, selectables);
-        }
-
-        return selectables;
-    }
-
-    private static void AddSelectableRoots(Entity entity, List<ITransformableObject> selectables)
-    {
-        if (entity.RootComponent != null)
-        {
-            selectables.Add(entity.RootComponent);
-        }
-
-        foreach (var child in entity.Children)
-        {
-            AddSelectableRoots(child, selectables);
-        }
-    }
-
-    private static string DescribeSelection(ITransformableObject transformable)
-    {
-        if (transformable is SceneComponent sceneComponent)
-        {
-            var ownerName = sceneComponent.Owner?.Name ?? "<no-owner>";
-            return $"owner={ownerName} component={sceneComponent.GetType().Name} bounds={sceneComponent.BoundingBox}";
-        }
-
-        return $"type={transformable.GetType().Name} bounds={transformable.BoundingBox}";
+        _gizmoController.Synchronize(_camera, _surface, _renderView?.World);
     }
 
     private bool IsPointerInsideViewport()
@@ -705,78 +605,9 @@ public class WorldViewportPanel : IDisposable
         _pendingScrollDelta += e.ScrollWheelDelta;
     }
 
-    private void UpdateGizmoInput(GameTime gameTime, KeyboardState keyboardState, MouseState localMouseState, bool isViewportInteractive)
+    private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool isViewportInteractive)
     {
-        if (!isViewportInteractive || _gizmo == null || _camera == null || _surface == null)
-        {
-            _gizmo?.Gizmo.RefreshPresentation();
-            return;
-        }
-
-        _gizmo.ActiveCamera = _camera;
-        _gizmo.ActiveSurface = _surface;
-        _gizmo.SelectionWorld = _renderView?.World;
-        _gizmo.Gizmo.ActiveViewport = new Viewport(0, 0, _surface.ViewportRect.Width, _surface.ViewportRect.Height);
-        _gizmo.Gizmo.UpdateCameraProperties(_camera.ViewMatrix, _camera.ProjectionMatrix, _camera.Position);
-
-        if (IsNewKeyPress(keyboardState, Keys.D1))
-        {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.Translate;
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.D2))
-        {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.Rotate;
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.D3))
-        {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.NonUniformScale;
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.D4))
-        {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.UniformScale;
-        }
-
-        _gizmo.Gizmo.PrecisionModeEnabled = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-
-        if (IsNewKeyPress(keyboardState, Keys.O))
-        {
-            _gizmo.Gizmo.ToggleActiveSpace();
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.I))
-        {
-            _gizmo.Gizmo.SnapEnabled = !_gizmo.Gizmo.SnapEnabled;
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.P))
-        {
-            _gizmo.Gizmo.NextPivotType();
-        }
-
-        if (IsNewKeyPress(keyboardState, Keys.Escape))
-        {
-            _gizmo.Gizmo.Clear();
-        }
-
-        bool leftJustPressed = localMouseState.LeftButton == ButtonState.Pressed
-            && _previousLocalMouseState.LeftButton == ButtonState.Released;
-
-        if (leftJustPressed)
-        {
-            bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
-            bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-            _gizmo.Gizmo.SelectEntities(new Vector2(localMouseState.X, localMouseState.Y), addToSelection, removeFromSelection);
-        }
-
-        _gizmo.Gizmo.Update(gameTime, keyboardState, localMouseState);
-    }
-
-    private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)
-    {
-        return keyboardState.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
+        _gizmoController.Update(gameTime, inputContext, isViewportInteractive, _camera, _surface, _renderView?.World);
     }
 
     public void Dispose()
@@ -793,13 +624,7 @@ public class WorldViewportPanel : IDisposable
             _editorRuntime.InputComponent.InputRouter?.UnregisterViewInput(_renderView.Id);
         }
 
-        _gizmo?.ClearSelection();
-        if (_gizmo != null)
-        {
-            _editorRuntime.Components.Remove(_gizmo);
-            _gizmo.Dispose();
-            _gizmo = null;
-        }
+        _gizmoController.Dispose();
 
         if (_renderView != null)
         {

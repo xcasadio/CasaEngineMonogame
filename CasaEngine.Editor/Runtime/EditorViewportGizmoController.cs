@@ -1,0 +1,221 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game.Components.DebugTools;
+using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Transform;
+using CasaEngine.Framework.World;
+using GizmoTools;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+
+namespace CasaEngine.Editor.Runtime;
+
+internal sealed class EditorViewportGizmoController : IDisposable
+{
+    private readonly HostedEditorGameAdapter _editorRuntime;
+    private TransformGizmoComponent? _gizmo;
+    private MouseState _previousMouseState;
+    private KeyboardState _previousKeyboardState;
+
+    public EditorViewportGizmoController(HostedEditorGameAdapter editorRuntime)
+    {
+        _editorRuntime = editorRuntime;
+    }
+
+    public void EnsureInitialized(RenderView? renderView, ArcBallCameraComponent? camera, RenderTargetSurface? surface, World world)
+    {
+        if (renderView == null || camera == null || surface == null)
+        {
+            return;
+        }
+
+        if (_gizmo == null)
+        {
+            _gizmo = new TransformGizmoComponent(_editorRuntime);
+            _gizmo.Initialize();
+            _gizmo.SelectionChanged += (_, selection) =>
+                Debug.WriteLine($"[EditorViewportGizmoController] GizmoSelectionChanged count={selection.Count}");
+        }
+
+        _gizmo.ActiveCamera = camera;
+        _gizmo.ActiveSurface = surface;
+        _gizmo.SelectionWorld = world;
+        _gizmo.IsActiveViewport = true;
+        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+
+        var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
+        overlayPipeline.RenderGizmosAction = (_, _, frame) => _gizmo.DrawForView(in frame);
+        renderView.Pipeline = overlayPipeline;
+    }
+
+    public void Synchronize(ArcBallCameraComponent? camera, RenderTargetSurface? surface, World? world)
+    {
+        if (_gizmo == null)
+        {
+            return;
+        }
+
+        _gizmo.ActiveCamera = camera;
+        _gizmo.ActiveSurface = surface;
+        _gizmo.SelectionWorld = world;
+    }
+
+    public void ResetWorld(World world)
+    {
+        if (_gizmo == null)
+        {
+            return;
+        }
+
+        _gizmo.SelectionWorld = world;
+        _gizmo.ClearSelection();
+        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+    }
+
+    public void Deactivate()
+    {
+        if (_gizmo != null)
+        {
+            _gizmo.IsActiveViewport = false;
+        }
+    }
+
+    public void Update(
+        GameTime gameTime,
+        ViewInputContext inputContext,
+        bool isViewportInteractive,
+        ArcBallCameraComponent? camera,
+        RenderTargetSurface? surface,
+        World? world)
+    {
+        if (_gizmo == null || camera == null || surface == null)
+        {
+            _previousKeyboardState = inputContext.KeyboardState;
+            _previousMouseState = inputContext.MouseState;
+            return;
+        }
+
+        _gizmo.ActiveCamera = camera;
+        _gizmo.ActiveSurface = surface;
+        _gizmo.SelectionWorld = world;
+        _gizmo.Gizmo.ActiveViewport = new Viewport(0, 0, surface.ViewportRect.Width, surface.ViewportRect.Height);
+        _gizmo.Gizmo.UpdateCameraProperties(camera.ViewMatrix, camera.ProjectionMatrix, camera.Position);
+
+        if (!isViewportInteractive)
+        {
+            _gizmo.IsActiveViewport = false;
+            _gizmo.Gizmo.RefreshPresentation();
+            _previousKeyboardState = inputContext.KeyboardState;
+            _previousMouseState = inputContext.MouseState;
+            return;
+        }
+
+        var keyboardState = inputContext.KeyboardState;
+        var mouseState = inputContext.MouseState;
+
+        _gizmo.IsActiveViewport = true;
+
+        if (IsNewKeyPress(keyboardState, Keys.D1))
+        {
+            _gizmo.Gizmo.ActiveMode = GizmoMode.Translate;
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.D2))
+        {
+            _gizmo.Gizmo.ActiveMode = GizmoMode.Rotate;
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.D3))
+        {
+            _gizmo.Gizmo.ActiveMode = GizmoMode.NonUniformScale;
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.D4))
+        {
+            _gizmo.Gizmo.ActiveMode = GizmoMode.UniformScale;
+        }
+
+        _gizmo.Gizmo.PrecisionModeEnabled = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+
+        if (IsNewKeyPress(keyboardState, Keys.O))
+        {
+            _gizmo.Gizmo.ToggleActiveSpace();
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.I))
+        {
+            _gizmo.Gizmo.SnapEnabled = !_gizmo.Gizmo.SnapEnabled;
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.P))
+        {
+            _gizmo.Gizmo.NextPivotType();
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.Escape))
+        {
+            _gizmo.Gizmo.Clear();
+        }
+
+        bool leftJustPressed = mouseState.LeftButton == ButtonState.Pressed
+            && _previousMouseState.LeftButton == ButtonState.Released;
+
+        if (leftJustPressed)
+        {
+            bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+            bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
+            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
+        }
+
+        _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
+
+        _previousKeyboardState = keyboardState;
+        _previousMouseState = mouseState;
+    }
+
+    public void Dispose()
+    {
+        _gizmo?.ClearSelection();
+        if (_gizmo != null)
+        {
+            _editorRuntime.Components.Remove(_gizmo);
+            _gizmo.Dispose();
+            _gizmo = null;
+        }
+    }
+
+    private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)
+    {
+        return keyboardState.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
+    }
+
+    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world)
+    {
+        var selectables = new List<ITransformableObject>();
+
+        foreach (var entity in world.Entities)
+        {
+            AddSelectableRoots(entity, selectables);
+        }
+
+        return selectables;
+    }
+
+    private static void AddSelectableRoots(Entity entity, List<ITransformableObject> selectables)
+    {
+        if (entity.RootComponent != null)
+        {
+            selectables.Add(entity.RootComponent);
+        }
+
+        foreach (var child in entity.Children)
+        {
+            AddSelectableRoots(child, selectables);
+        }
+    }
+}
