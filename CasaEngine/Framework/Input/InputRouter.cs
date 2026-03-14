@@ -153,7 +153,7 @@ public sealed class InputRouter
                 var snapshot = _fallbackInput.WindowInputSource.GetSnapshot();
                 var keyboardState = snapshot.KeyboardState;
                 var mouseState = snapshot.MouseState;
-                context = CreateInputContext(ViewId.Empty, keyboardState, mouseState, CurrentRoutingState, isFallback: true);
+                context = CreateInputContext(ViewId.Empty, snapshot.FrameId, keyboardState, mouseState, Rectangle.Empty, CurrentRoutingState, isFallback: true);
                 CurrentInputContext = context;
                 return true;
             }
@@ -187,15 +187,17 @@ public sealed class InputRouter
         var screenMouseState = routedSnapshot.MouseState;
         var screenBounds = GetScreenBounds(targetView);
         var routedMouseState = CreateLocalMouseState(screenMouseState, screenBounds);
-        context = CreateInputContext(targetView.Id, routedKeyboardState, routedMouseState, routingState, isFallback: false);
+        context = CreateInputContext(targetView.Id, routedSnapshot.FrameId, routedKeyboardState, routedMouseState, screenBounds, routingState, isFallback: false);
         CurrentInputContext = context;
         return true;
     }
 
     private ViewInputContext CreateInputContext(
         ViewId viewId,
+        long frameId,
         KeyboardState keyboardState,
         MouseState mouseState,
+        Rectangle screenBounds,
         InputRoutingState routingState,
         bool isFallback)
     {
@@ -206,20 +208,16 @@ public sealed class InputRouter
                 : mouseState;
 
         var localPosition = mouseState.Position;
-        var screenPosition = localPosition;
-
-        if (!viewId.IsEmpty && _viewManager.TryGetView(viewId, out var view))
-        {
-            var screenBounds = GetScreenBounds(view);
-            screenPosition = new Point(
-                screenBounds.X + localPosition.X,
-                screenBounds.Y + localPosition.Y);
-        }
+        var screenPosition = viewId.IsEmpty
+            ? localPosition
+            : new Point(screenBounds.X + localPosition.X, screenBounds.Y + localPosition.Y);
 
         var context = new ViewInputContext(
             viewId,
+            frameId,
             keyboardState,
             mouseState,
+            screenBounds,
             screenPosition,
             localPosition,
             mouseState.ScrollWheelValue - previousMouseState.ScrollWheelValue,

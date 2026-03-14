@@ -103,7 +103,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 4 — Etendre ViewInputContext avec les donnees routees utiles
+## 🟢 Tache 4 — Etendre ViewInputContext avec les donnees routees utiles
 
 **But :** faire porter par `ViewInputContext` toutes les donnees necessaires aux consommateurs runtime, sans relecture locale.
 
