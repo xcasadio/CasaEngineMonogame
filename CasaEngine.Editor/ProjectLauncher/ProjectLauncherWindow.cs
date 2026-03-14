@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using CasaEngine.Framework;
 using CasaEngine.EditorServices;
-using CasaEngine.Framework.Game;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Newtonsoft.Json;
@@ -24,13 +24,20 @@ public class ProjectLauncherWindow
     private const string RecentProjectsFile = "mostRecentProjects.json";
 
     private readonly MGWindow _parentWindow;
+    private readonly Action<string> _requestOpenProject;
+    private readonly Action<string, string> _requestCreateProject;
     private MGWindow _launcherWindow;
     private MGListBox<string> _recentList;
     private List<string> _recentProjects;
 
-    public ProjectLauncherWindow(MGWindow parentWindow)
+    public ProjectLauncherWindow(
+        MGWindow parentWindow,
+        Action<string> requestOpenProject,
+        Action<string, string> requestCreateProject)
     {
         _parentWindow = parentWindow;
+        _requestOpenProject = requestOpenProject;
+        _requestCreateProject = requestCreateProject;
     }
 
     public void Show()
@@ -45,11 +52,12 @@ public class ProjectLauncherWindow
         int left = screenBounds.Left + (screenBounds.Width - Width) / 2;
         int top = screenBounds.Top + (screenBounds.Height - Height) / 2;
 
-        _launcherWindow = new MGWindow(desktop, left, top, Width, Height)
+        _launcherWindow = new MGWindow(_parentWindow, left, top, Width, Height)
         {
             TitleText = "Open a project",
             IsCloseButtonVisible = true
         };
+        _parentWindow.PushModalWindow(_launcherWindow);
 
         var outerStack = new MGStackPanel(_launcherWindow, Orientation.Vertical)
         {
@@ -57,10 +65,8 @@ public class ProjectLauncherWindow
         };
         outerStack.Margin = new Thickness(12);
 
-        // ── Header ────────────────────────────────────────────────────────
         outerStack.TryAddChild(new MGTextBlock(_launcherWindow, "[b]Recent Projects[/b]"));
 
-        // ── Recent projects list ──────────────────────────────────────────
         _recentList = new MGListBox<string>(_launcherWindow);
         _recentList.SetItemsSource(_recentProjects);
         _recentList.ItemTemplate = path => new MGTextBlock(_launcherWindow, Path.GetFileName(path) + "\n[i]" + path + "[/i]")
@@ -70,7 +76,6 @@ public class ProjectLauncherWindow
         _recentList.PreferredHeight = 280;
         outerStack.TryAddChild(_recentList);
 
-        // ── Button row ────────────────────────────────────────────────────
         var buttonRow = new MGStackPanel(_launcherWindow, Orientation.Horizontal)
         {
             Spacing = 8,
@@ -95,8 +100,6 @@ public class ProjectLauncherWindow
         outerStack.TryAddChild(buttonRow);
         _launcherWindow.SetContent(outerStack);
 
-        desktop.Windows.Add(_launcherWindow);
-
         _recentList.MouseHandler.LMBClickedInside += (_, e) =>
         {
             if (e.IsDoubleClick)
@@ -105,8 +108,6 @@ public class ProjectLauncherWindow
             }
         };
     }
-
-    // ── Project opening ───────────────────────────────────────────────────
 
     private void OpenSelectedProject()
     {
@@ -154,33 +155,16 @@ public class ProjectLauncherWindow
         AddToRecent(fileName);
         SaveRecentProjects();
 
-        try
-        {
-            EditorProjectAuthoringService.LoadProject(fileName);
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(
-                $"Failed to open project:\n{ex.Message}",
-                "Error",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
-            return;
-        }
-
         _launcherWindow.TryCloseWindow();
+        _requestOpenProject(fileName);
     }
-
-    // ── New project form ──────────────────────────────────────────────────
 
     private void ShowNewProjectForm(MGStackPanel outerStack, MGStackPanel buttonRow)
     {
-        // Build inline form below recent list
         var formStack = new MGStackPanel(_launcherWindow, Orientation.Vertical) { Spacing = 6 };
 
         formStack.TryAddChild(new MGTextBlock(_launcherWindow, "[b]New Project[/b]"));
 
-        // Project name row
         var nameRow = new MGStackPanel(_launcherWindow, Orientation.Horizontal) { Spacing = 6 };
         nameRow.TryAddChild(new MGTextBlock(_launcherWindow, "Name:") { VerticalAlignment = VerticalAlignment.Center, PreferredWidth = 80 });
         var nameBox = new MGTextBox(_launcherWindow);
@@ -189,7 +173,6 @@ public class ProjectLauncherWindow
         nameRow.TryAddChild(nameBox);
         formStack.TryAddChild(nameRow);
 
-        // Project path row
         var pathRow = new MGStackPanel(_launcherWindow, Orientation.Horizontal) { Spacing = 6 };
         pathRow.TryAddChild(new MGTextBlock(_launcherWindow, "Path:") { VerticalAlignment = VerticalAlignment.Center, PreferredWidth = 80 });
         var pathBox = new MGTextBox(_launcherWindow);
@@ -209,7 +192,6 @@ public class ProjectLauncherWindow
         pathRow.TryAddChild(folderButton);
         formStack.TryAddChild(pathRow);
 
-        // Create / Cancel
         var createRow = new MGStackPanel(_launcherWindow, Orientation.Horizontal) { Spacing = 8, HorizontalAlignment = HorizontalAlignment.Right };
 
         var cancelBtn = new MGButton(_launcherWindow, _ =>
@@ -233,7 +215,10 @@ public class ProjectLauncherWindow
 
             if (!Directory.Exists(path))
             {
-                try { Directory.CreateDirectory(path); }
+                try
+                {
+                    Directory.CreateDirectory(path);
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Cannot create directory:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -241,32 +226,19 @@ public class ProjectLauncherWindow
                 }
             }
 
-            try
-            {
-                EditorProjectAuthoringService.CreateProject(name, path);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to create project:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            var projectFile = GameSettings.ProjectSettings.ProjectFileOpened;
+            var projectFile = Path.Combine(path, name + Constants.FileNameExtensions.Project);
             AddToRecent(projectFile);
             SaveRecentProjects();
             _launcherWindow.TryCloseWindow();
+            _requestCreateProject(name, path);
         });
         createBtn.SetContent(new MGTextBlock(_launcherWindow, "Create"));
         createBtn.PreferredWidth = 80;
         createRow.TryAddChild(createBtn);
 
         formStack.TryAddChild(createRow);
-
-        // Insert form above button row (insert before last child)
         outerStack.TryAddChild(formStack);
     }
-
-    // ── Recent projects helpers ───────────────────────────────────────────
 
     private List<string> LoadRecentProjects()
     {
@@ -293,7 +265,9 @@ public class ProjectLauncherWindow
             var json = JsonConvert.SerializeObject(_recentProjects.Distinct().ToList(), Formatting.Indented);
             File.WriteAllText(RecentProjectsFile, json);
         }
-        catch { /* Best-effort */ }
+        catch
+        {
+        }
     }
 
     private void AddToRecent(string fileName)

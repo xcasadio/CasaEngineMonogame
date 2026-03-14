@@ -648,6 +648,13 @@ public class Gizmo : IDisposable
 
         _lastMouseState = _currentMouseState;
 
+        RefreshPresentation();
+    }
+
+    public void RefreshPresentation()
+    {
+        _selectionBoxDirty = true;
+
         if (_selection.Count < 1)
         {
             _isActive = false;
@@ -711,7 +718,6 @@ public class Gizmo : IDisposable
 
         // -- Apply Highlight -- //
         ApplyColor(ActiveAxis, _highlightColor);
-
     }
 
     #region Input Helpers

@@ -1,0 +1,281 @@
+﻿using CasaEngine.Editor.Controls;
+using CasaEngine.Editor.Runtime;
+using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Project;
+using FontStashSharp;
+using MGUI.Core.UI;
+using MGUI.Core.UI.Containers;
+using MGUI.FontStashSharp;
+using MGUI.Shared.Input;
+using MGUI.Shared.Rendering;
+using MGUI.Shared.Text;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using System;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace CasaEngine.SimpleEditor
+{
+    public class Game1 : Game, IObservableUpdate
+    {
+        private sealed class EditorRawInputSource : IRawInputSource
+        {
+            private const int VK_LBUTTON = 0x01;
+            private const int VK_RBUTTON = 0x02;
+            private const int VK_MBUTTON = 0x04;
+            private const int VK_XBUTTON1 = 0x05;
+            private const int VK_XBUTTON2 = 0x06;
+
+            [StructLayout(LayoutKind.Sequential)]
+            private struct POINT
+            {
+                public int X;
+                public int Y;
+            }
+
+            [DllImport("user32.dll")]
+            private static extern bool GetCursorPos(out POINT lpPoint);
+
+            [DllImport("user32.dll")]
+            private static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
+            [DllImport("user32.dll")]
+            private static extern short GetAsyncKeyState(int vKey);
+
+            private readonly Func<IntPtr> _getWindowHandle;
+
+            public EditorRawInputSource(Func<IntPtr> getWindowHandle)
+            {
+                _getWindowHandle = getWindowHandle;
+            }
+
+            public MouseState GetMouseState()
+            {
+                var fallbackState = Mouse.GetState();
+                var handle = _getWindowHandle();
+                if (handle == IntPtr.Zero || !GetCursorPos(out var point) || !ScreenToClient(handle, ref point))
+                {
+                    return fallbackState;
+                }
+
+                var left = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
+                var right = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
+                var middle = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
+                var xButton1 = (GetAsyncKeyState(VK_XBUTTON1) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
+                var xButton2 = (GetAsyncKeyState(VK_XBUTTON2) & 0x8000) != 0 ? ButtonState.Pressed : ButtonState.Released;
+
+                return new MouseState(
+                    point.X,
+                    point.Y,
+                    fallbackState.ScrollWheelValue,
+                    left,
+                    middle,
+                    right,
+                    xButton1,
+                    xButton2,
+                    fallbackState.HorizontalScrollWheelValue);
+            }
+
+            public KeyboardState GetKeyboardState()
+            {
+                return Keyboard.GetState();
+            }
+        }
+
+        private readonly string _projectFilePath;
+        private readonly GraphicsDeviceManager _graphics;
+
+        private MainRenderer _mguiRenderer = null!;
+        private MGDesktop _desktop = null!;
+        private FontStashSharpTextEngine _fontTextEngine = null!;
+        private MGWindow _mainWindow = null!;
+        private MGDockPanel _rootPanel = null!;
+
+        private EngineRuntimeContext _runtimeContext = null!;
+        private HostedEditorGameAdapter _editorRuntime = null!;
+        private WorldViewportPanel _worldViewportPanel = null!;
+
+        public event EventHandler<TimeSpan>? PreviewUpdate;
+        public event EventHandler<EventArgs>? EndUpdate;
+
+        public Game1()
+        {
+            _projectFilePath = ResolveProjectFilePath();
+
+            _graphics = new GraphicsDeviceManager(this)
+            {
+                GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)
+                    ? GraphicsProfile.HiDef
+                    : GraphicsProfile.Reach,
+            };
+
+            Content.RootDirectory = "Content";
+            IsMouseVisible = true;
+            Window.AllowUserResizing = true;
+            Window.Title = "CasaEngine Simple Editor";
+        }
+
+        protected override void Initialize()
+        {
+            _graphics.PreferredBackBufferWidth = 1600;
+            _graphics.PreferredBackBufferHeight = 900;
+            _graphics.ApplyChanges();
+
+            Window.Title = $"CasaEngine Simple Editor - {Path.GetFileNameWithoutExtension(_projectFilePath)}";
+            Window.ClientSizeChanged += OnClientSizeChanged;
+
+            InitializeMgui();
+            InitializeEditorRuntime();
+            QueueInitialWorldLoad();
+            InitializeViewportWindow();
+
+            base.Initialize();
+        }
+
+        protected override void LoadContent()
+        {
+        }
+
+        protected override void Update(GameTime gameTime)
+        {
+            PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+
+            _desktop.Update();
+            _editorRuntime?.UpdateHost(gameTime);
+            _worldViewportPanel?.UpdateInput(gameTime);
+
+            base.Update(gameTime);
+
+            EndUpdate?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected override void Draw(GameTime gameTime)
+        {
+            _editorRuntime?.DrawHost(gameTime);
+            _worldViewportPanel?.DrawViewport(gameTime);
+
+            GraphicsDevice.Clear(Color.DimGray);
+            _desktop.Draw();
+
+            base.Draw(gameTime);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _worldViewportPanel?.Dispose();
+                _editorRuntime?.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
+        private void InitializeMgui()
+        {
+            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), new EditorRawInputSource(() => Window.Handle));
+            _desktop = new MGDesktop(_mguiRenderer);
+            _desktop.LoadDefaultResources();
+
+            _fontTextEngine = new FontStashSharpTextEngine();
+            const string familyName = "JetBrainsMono";
+            string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
+
+            byte[] regularBytes = File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-Regular.ttf"));
+            var regular = new FontSystem();
+            regular.AddFont(regularBytes);
+            _fontTextEngine.AddFontSystem(familyName, CustomFontStyles.Normal, regular, regularBytes);
+
+            var bold = new FontSystem();
+            bold.AddFont(File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-Bold.ttf")));
+            _fontTextEngine.AddFontSystem(familyName, CustomFontStyles.Bold, bold);
+
+            var italic = new FontSystem();
+            italic.AddFont(File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-BoldItalic.ttf")));
+            _fontTextEngine.AddFontSystem(familyName, CustomFontStyles.Italic, italic);
+
+            _fontTextEngine.MatchSpriteFontSizing(_desktop.FontManager);
+            _desktop.TextEngine = _fontTextEngine;
+        }
+
+        private void InitializeEditorRuntime()
+        {
+            var graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
+            if (graphicsDeviceService == null)
+            {
+                throw new InvalidOperationException("The simple editor could not resolve the shared graphics device service.");
+            }
+
+            _runtimeContext = GameSettings.CreateRuntimeContext();
+            _editorRuntime = new HostedEditorGameAdapter(_projectFilePath, graphicsDeviceService, _runtimeContext)
+            {
+                ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,
+            };
+
+            _editorRuntime.InitializeHost();
+            _editorRuntime.LoadContentHost();
+        }
+
+        private void QueueInitialWorldLoad()
+        {
+            if (!string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.FirstWorldLoaded))
+            {
+                _editorRuntime.GameManager.SetWorldToLoad(GameSettings.ProjectSettings.FirstWorldLoaded);
+            }
+        }
+
+        private void InitializeViewportWindow()
+        {
+            _mainWindow = new MGWindow(_desktop, 0, 0, Window.ClientBounds.Width, Window.ClientBounds.Height)
+            {
+                WindowStyle = WindowStyle.None,
+                BackgroundBrush = _desktop.Theme.GetBackgroundBrush(MGElementType.Window),
+                TitleText = string.Empty,
+                IsTitleBarVisible = false,
+                IsCloseButtonVisible = false,
+                IsDraggable = false,
+                IsUserResizable = false,
+            };
+
+            _rootPanel = new MGDockPanel(_mainWindow)
+            {
+                Name = "SimpleEditorRootPanel",
+            };
+
+            _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, () => Window.Handle);
+            _rootPanel.TryAddChild(_worldViewportPanel.CreateContent(), Dock.Top);
+
+            _mainWindow.SetContent(_rootPanel);
+            _desktop.Windows.Add(_mainWindow);
+        }
+
+        private void OnClientSizeChanged(object? sender, EventArgs e)
+        {
+            if (_mainWindow == null)
+            {
+                return;
+            }
+
+            _mainWindow.Left = 0;
+            _mainWindow.Top = 0;
+            _mainWindow.WindowWidth = Window.ClientBounds.Width;
+            _mainWindow.WindowHeight = Window.ClientBounds.Height;
+        }
+
+        private static string ResolveProjectFilePath()
+        {
+            var projectFilePath = Path.GetFullPath(
+                Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\Projects\SampleProject\SampleProject.json"));
+
+            if (!File.Exists(projectFilePath))
+            {
+                throw new FileNotFoundException("The sample project file could not be found.", projectFilePath);
+            }
+
+            return projectFilePath;
+        }
+    }
+}
+

@@ -38,7 +38,11 @@ public class GameManager
 
     public void EndLoadContent()
     {
-#if !EDITOR
+        if (_game.ExecutionPolicy.UseExternalViewManagement)
+        {
+            return;
+        }
+
         if (CurrentWorld == null)
         {
             if (string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.FirstWorldLoaded))
@@ -48,7 +52,6 @@ public class GameManager
 
             SetWorldToLoad(GameSettings.ProjectSettings.FirstWorldLoaded);
         }
-#endif
     }
 
     public void UpdateWorld(GameTime gameTime)
@@ -68,14 +71,19 @@ public class GameManager
 
         if (_isNewWorld)
         {
-#if !EDITOR
-            // Clear views so the incoming world can register a fresh camera view.
-            ViewManager.Clear();
-#endif
+            if (!_game.ExecutionPolicy.UseExternalViewManagement)
+            {
+                // Clear views so the incoming world can register a fresh camera view.
+                ViewManager.Clear();
+            }
+
             CurrentWorld.LoadContent(_game);
-    #if !EDITOR
-            _game.RuntimeViewBootstrapper?.BootstrapViews(_game, CurrentWorld, ViewManager);
-    #endif
+
+            if (!_game.ExecutionPolicy.UseExternalViewManagement)
+            {
+                _game.RuntimeViewBootstrapper?.BootstrapViews(_game, CurrentWorld, ViewManager);
+            }
+
                 SyncPlayerViewAssignments();
             CurrentWorld.BeginPlay();
 

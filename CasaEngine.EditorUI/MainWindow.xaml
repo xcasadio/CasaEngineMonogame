@@ -42,17 +42,17 @@
             </MenuItem>
         </Menu>
 
-        <!-- Shared game engine host for the multi-view editor architecture.
-             Must appear BEFORE the tab content so it loads first (siblings fire
-             Loaded in XAML order), ensuring EngineHost.Instance is set by the
-             time any editor-tab Loaded handler runs.
-             Visibility="Hidden": the host drives the shared game loop but presents
-             no visible surface — each ViewportControl blits its own view. -->
+                <!-- Shared game engine host for the multi-view editor architecture.
+                         Must appear BEFORE the tab content so it loads first (siblings fire
+                         Loaded in XAML order), ensuring EngineHost.Instance is set by the
+                         time any editor-tab Loaded handler runs.
+                         Visibility="Hidden": the host drives the shared game loop but presents
+                         no visible surface — each ViewportControl blits its own view. -->
         <controls:EngineHost x:Name="sharedEngineHost"
             Grid.Row="1"
             Width="2" Height="2"
             HorizontalAlignment="Left" VerticalAlignment="Top"
-            Visibility="Hidden"/>
+                        Visibility="Hidden"/>
 
         <TabControl Grid.Row="1" x:Name="tabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
             <TabItem Header="World">

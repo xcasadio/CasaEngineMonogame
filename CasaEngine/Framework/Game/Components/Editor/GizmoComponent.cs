@@ -112,12 +112,16 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
                     camera.Position);
             }
 
-            if (!IsActiveViewport) return;
-
             if (ActiveSurface != null)
             {
                 var r = ActiveSurface.ViewportRect;
                 Gizmo.ActiveViewport = new Microsoft.Xna.Framework.Graphics.Viewport(r.X, r.Y, r.Width, r.Height);
+            }
+
+            if (!IsActiveViewport)
+            {
+                Gizmo.RefreshPresentation();
+                return;
             }
 
             var lbState = _inputComponent.MouseManager.LeftButtonJustPressed;

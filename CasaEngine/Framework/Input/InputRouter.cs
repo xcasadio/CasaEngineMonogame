@@ -3,6 +3,7 @@ using CasaEngine.Framework.GUI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
+using System.Diagnostics;
 
 namespace CasaEngine.Framework.Input;
 
@@ -32,6 +33,8 @@ public sealed class InputRouter
     private readonly Dictionary<PlayerIndex, ViewId> _playerViews = new();
     private readonly Dictionary<ViewId, ViewInputRegistration> _viewInputs = new();
     private ViewInputRegistration? _fallbackInput;
+    private ViewId _lastLoggedResolvedTargetViewId = ViewId.Empty;
+    private MouseState? _lastLoggedMouseState;
 
     public ViewId CurrentTargetViewId { get; private set; } = ViewId.Empty;
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
@@ -179,7 +182,29 @@ public sealed class InputRouter
         viewId = targetView.Id;
         keyboardState = registration.KeyboardProvider.GetState();
         mouseState = registration.MouseProvider.GetState();
+        LogDispatchDecision(routingState, viewId, mouseState);
         return true;
+    }
+
+    private void LogDispatchDecision(InputRoutingState routingState, ViewId resolvedViewId, MouseState mouseState)
+    {
+        bool mouseChanged = _lastLoggedMouseState is not MouseState previousMouseState
+            || previousMouseState.LeftButton != mouseState.LeftButton
+            || previousMouseState.MiddleButton != mouseState.MiddleButton
+            || previousMouseState.RightButton != mouseState.RightButton;
+
+        bool targetChanged = _lastLoggedResolvedTargetViewId != resolvedViewId;
+        if (!mouseChanged && !targetChanged)
+        {
+            return;
+        }
+
+        Debug.WriteLine(
+            $"[InputRouter] target={resolvedViewId} pointer={routingState.PointerViewId} capture={GetCapturedViewId()} focus={routingState.KeyboardFocusViewId} modal={routingState.ModalViewId} reason={routingState.Reason} " +
+            $"mouse=({mouseState.X},{mouseState.Y}) l={mouseState.LeftButton} m={mouseState.MiddleButton} r={mouseState.RightButton}");
+
+        _lastLoggedResolvedTargetViewId = resolvedViewId;
+        _lastLoggedMouseState = mouseState;
     }
 
     public ViewId GetCapturedViewId()

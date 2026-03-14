@@ -270,14 +270,19 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
 
 #if !FINAL
-        var args = Environment.CommandLine.Split(' ');
+    var args = Environment.GetCommandLineArgs();
 
-        if (args.Length > 1)
-        {
-            ProjectFile = args[1];
-        }
+    if (string.IsNullOrWhiteSpace(ProjectFile) && args.Length > 1)
+    {
+        ProjectFile = args[1];
+    }
 
-        ContentPath = args.Length > 2 ? args[2] : Path.Combine(Directory.GetCurrentDirectory(), "Content");
+    if (string.IsNullOrWhiteSpace(ContentPath))
+    {
+        ContentPath = args.Length > 2
+        ? args[2]
+        : Path.Combine(AppContext.BaseDirectory, "Content");
+    }
 #else
         ContentPath = "Content";
 #endif
@@ -294,7 +299,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 
         //default font
-        FontSystem.AddFont(File.ReadAllBytes(@"Content\Fonts\tahoma.ttf"));
+        FontSystem.AddFont(File.ReadAllBytes(Path.Combine(Content.RootDirectory, "Fonts", "tahoma.ttf")));
 
         // Wire optional debug overlay into the render pipeline.
         // Toggle per-view with RenderView.ShowDebugOverlay = true.

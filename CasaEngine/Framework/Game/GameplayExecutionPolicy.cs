@@ -3,6 +3,7 @@ namespace CasaEngine.Framework.Game;
 public sealed class GameplayExecutionPolicy
 {
     public required bool IsEditorPreview { get; init; }
+    public required bool UseExternalViewManagement { get; init; }
     public required bool InitializePlayerControllers { get; init; }
     public required bool InitializeGameplayOnLoad { get; init; }
     public required bool RunBeginPlay { get; init; }
@@ -17,6 +18,7 @@ public static class GameplayExecutionPolicies
     public static GameplayExecutionPolicy Runtime { get; } = new()
     {
         IsEditorPreview = false,
+        UseExternalViewManagement = false,
         InitializePlayerControllers = true,
         InitializeGameplayOnLoad = true,
         RunBeginPlay = true,
@@ -29,6 +31,7 @@ public static class GameplayExecutionPolicies
     public static GameplayExecutionPolicy EditorPreview { get; } = new()
     {
         IsEditorPreview = true,
+        UseExternalViewManagement = true,
         InitializePlayerControllers = false,
         InitializeGameplayOnLoad = true,
         RunBeginPlay = false,
@@ -41,6 +44,7 @@ public static class GameplayExecutionPolicies
     public static GameplayExecutionPolicy EditorSimulation { get; } = new()
     {
         IsEditorPreview = false,
+        UseExternalViewManagement = true,
         InitializePlayerControllers = true,
         InitializeGameplayOnLoad = true,
         RunBeginPlay = true,

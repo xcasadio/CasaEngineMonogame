@@ -355,6 +355,12 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ✅ **Statut : Terminé** — commit `4ebdf1e8`
 
+**Correctif de régression (2026-03-13) :**
+- Le panneau utilisait un `RenderTarget2D` local et appelait `World.Draw()` directement, ce qui ne passait pas par le pipeline de rendu CasaEngine.
+- Le nouvel éditeur héberge désormais un `CasaEngineGame` minimal partagé avec le `GraphicsDevice` MonoGame principal.
+- Le viewport crée une vraie `RenderView` sur `RenderTargetSurface`, synchronisée avec le `World` chargé via `GameManager.SetWorldToLoad(...)`.
+- Résultat attendu : le contenu du monde apparaît dans le panneau dès qu'un projet avec `FirstWorldLoaded` valide est ouvert.
+
 **Fichier à créer :** `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
 
 **Actions :**
