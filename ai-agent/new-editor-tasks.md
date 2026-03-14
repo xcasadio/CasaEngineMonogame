@@ -498,7 +498,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 3.1 — Vérifier les événements du World pour la synchronisation éditeur
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier :** `CasaEngine/Framework/World/World.cs`
 
@@ -514,6 +514,20 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Appeler `ClearEntities()`, vérifier que l'événement de nettoyage est levé
 
 **Commit :** `feat(engine): ensure World exposes entity change events`
+
+## Résumé
+- Le `World` lève désormais ses notifications de manière cohérente lors des ajouts, suppressions et nettoyages, sans dépendre d’un symbole de compilation éditeur.
+- Ajout d’un alias `EntitiesCleared` en complément de `EntitiesClear` pour clarifier l’intention côté éditeur.
+- Le `World` relaie aussi les ajouts/suppressions d’entités enfants via les événements `EntityAdded` et `EntityRemoved`.
+
+## Attendu
+- Un chargement normal du monde, un ajout via l’éditeur, une suppression et un nettoyage complet déclenchent les notifications attendues.
+- Les panneaux éditeur peuvent se resynchroniser sur les mutations de hiérarchie sans logique spécifique hors moteur.
+
+## À tester
+- S’abonner à `World.EntityAdded`, ajouter une entité top-level puis une entité enfant, et vérifier les deux notifications.
+- S’abonner à `World.EntityRemoved`, supprimer une entité top-level puis une entité enfant, et vérifier les notifications.
+- Appeler `ClearEntities()` et vérifier que `EntitiesClear` et `EntitiesCleared` sont levés.
 
 ---
 
@@ -728,7 +742,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 2.6 | Contrôles éditeur | Entities (hiérarchie) | ✅ | `feat(editor): add EntitiesPanel with entity hierarchy tree` |
 | 2.7 | Contrôles éditeur | Entity Details (composants) | ⬜ | |
 | 2.8 | Contrôles éditeur | Property editors composants | ⬜ | |
-| 3.1 | Moteur | Événements World | ⬜ | |
+| 3.1 | Moteur | Événements World | ✅ | `feat(engine): ensure World exposes entity change events` |
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
 | 3.3 | Moteur | AssetCatalog vérification | ⬜ | |
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ⬜ | |

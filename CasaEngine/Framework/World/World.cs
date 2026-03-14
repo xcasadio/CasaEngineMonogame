@@ -22,6 +22,7 @@ public sealed class World : ObjectBase
     private readonly List<Entity> _entities = [];
     private readonly List<Entity> _baseObjectsToAdd = [];
     private readonly List<WorldUIComponent> _worldUiComponents = [];
+    private readonly HashSet<Entity> _observedEntities = [];
 
     private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
@@ -92,21 +93,22 @@ public sealed class World : ObjectBase
     {
         foreach (var entity in _entities)
         {
+            UnsubscribeEntityTree(entity);
             entity.Destroy();
         }
 
         _entities.Clear();
         _baseObjectsToAdd.Clear();
         _octree.Clear();
+        _observedEntities.Clear();
 
         if (clearReferences)
         {
             _entityReferences.Clear();
         }
 
-#if EDITOR
         EntitiesClear?.Invoke(this, EventArgs.Empty);
-#endif
+        EntitiesCleared?.Invoke(this, EventArgs.Empty);
     }
 
     public void LoadContent(CasaEngineGame game)
@@ -266,7 +268,9 @@ public sealed class World : ObjectBase
 
         foreach (var entity in toRemove)
         {
+            UnsubscribeEntityTree(entity);
             _entities.Remove(entity);
+            NotifyEntityRemovedRecursive(entity);
         }
 
         _octree.ApplyPendingMoves();
@@ -307,18 +311,16 @@ public sealed class World : ObjectBase
                 entity.Initialize();
                 entity.InitializeWithWorld(this);
                 AddInSpacePartitioning(entity);
+                _entities.Add(entity);
+                SubscribeEntityTree(entity);
                 Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
-#if EDITOR
-                EntityAdded?.Invoke(this, entity);
-#endif
+                NotifyEntityAddedRecursive(entity);
             }
             catch (Exception e)
             {
                 Logs.WriteException(e);
             }
         }
-
-        _entities.AddRange(entitiesToAdd);
     }
 
     private void AddInSpacePartitioning(Entity actor)
@@ -426,6 +428,7 @@ public sealed class World : ObjectBase
     }
 
     public event EventHandler? EntitiesClear;
+    public event EventHandler? EntitiesCleared;
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
@@ -479,11 +482,12 @@ public sealed class World : ObjectBase
     private void AddEntityReferenceWithEditor(EntityReference entityReference, Entity entity)
     {
         _entityReferences.Add(entityReference);
+        entity.Initialize();
         _entities.Add(entity);
         entity.InitializeWithWorld(this);
         AddInSpacePartitioning(entity);
-
-        EntityAdded?.Invoke(this, entity);
+        SubscribeEntityTree(entity);
+        NotifyEntityAddedRecursive(entity);
     }
 
     public void RemoveEntityWithEditor(Entity entity)
@@ -504,11 +508,77 @@ public sealed class World : ObjectBase
             _entityReferences.Remove(entityReference);
         }
 
+        UnsubscribeEntityTree(entity);
         _entities.Remove(entity);
         _octree.RemoveItem(entity);
         entity.Destroy();
+        NotifyEntityRemovedRecursive(entity);
+    }
 
+    private void SubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Add(entity))
+        {
+            return;
+        }
+
+        entity.ChildAdded += OnEntityChildAdded;
+        entity.ChildRemoved += OnEntityChildRemoved;
+
+        foreach (var child in entity.Children)
+        {
+            SubscribeEntityTree(child);
+        }
+    }
+
+    private void UnsubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Remove(entity))
+        {
+            return;
+        }
+
+        entity.ChildAdded -= OnEntityChildAdded;
+        entity.ChildRemoved -= OnEntityChildRemoved;
+
+        foreach (var child in entity.Children)
+        {
+            UnsubscribeEntityTree(child);
+        }
+    }
+
+    private void OnEntityChildAdded(object? sender, Entity child)
+    {
+        child.Initialize();
+        child.InitializeWithWorld(this);
+        SubscribeEntityTree(child);
+        NotifyEntityAddedRecursive(child);
+    }
+
+    private void OnEntityChildRemoved(object? sender, Entity child)
+    {
+        UnsubscribeEntityTree(child);
+        NotifyEntityRemovedRecursive(child);
+    }
+
+    private void NotifyEntityAddedRecursive(Entity entity)
+    {
+        EntityAdded?.Invoke(this, entity);
+
+        foreach (var child in entity.Children)
+        {
+            NotifyEntityAddedRecursive(child);
+        }
+    }
+
+    private void NotifyEntityRemovedRecursive(Entity entity)
+    {
         EntityRemoved?.Invoke(this, entity);
+
+        foreach (var child in entity.Children)
+        {
+            NotifyEntityRemovedRecursive(child);
+        }
     }
 
     public override void Save(JObject jObject)
