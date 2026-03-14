@@ -161,14 +161,6 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    private const float OrbitSensitivity = 0.005f;
-    private const float PanSensitivity = 0.01f;
-    private const float ZoomSensitivity = 1.1f;
-    private const float MinDistance = 0.5f;
-    private const float MaxDistance = 1000f;
-    private const float DefaultDistance = 10f;
-    private const float KeyboardMoveSpeed = 10f;
-
     private const int VK_LBUTTON = 0x01;
     private const int VK_MBUTTON = 0x04;
 
@@ -203,26 +195,16 @@ public class WorldViewportPanel : IDisposable
     private World? _fallbackWorld;
     private Entity? _cameraEntity;
     private ArcBallCameraComponent? _camera;
+    private readonly EditorViewportCameraController _cameraController = new();
     private TransformGizmoComponent? _gizmo;
     private KeyboardStateProvider? _keyboardProvider;
     private IMouseStateProvider? _mouseProvider;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
 
-    private float _yaw = MathHelper.PiOver4;
-    private float _pitch = -MathHelper.Pi / 6f;
-    private float _distance = DefaultDistance;
-    private Vector3 _target = Vector3.Zero;
-
-    private MouseState _previousViewportMouseState;
     private MouseState _previousLocalMouseState;
     private KeyboardState _previousKeyboardState;
     private int _pendingScrollDelta;
-    private bool _isDragging;
-    private bool _isRawDragging;
-    private Point _lastDragPos;
-    private Point _lastRawDragPos;
-    private MouseButton _dragButton;
 
     internal WorldViewportPanel(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime, Func<IntPtr> getWindowHandle)
     {
@@ -260,13 +242,6 @@ public class WorldViewportPanel : IDisposable
             Debug.WriteLine($"[WorldViewportPanel] LMBClickedInside pos={e.Position} hovered={_viewportHost.IsHovered} double={e.IsDoubleClick}");
             ActivateThisView(captureInput: false);
         };
-        _viewportHost.MouseHandler.DragStart += OnDragStart;
-        _viewportHost.MouseHandler.Dragged += OnDragged;
-        _viewportHost.MouseHandler.DragEnd += (_, _) =>
-        {
-            _isDragging = false;
-            _editorRuntime.GameManager.ViewManager.ReleaseInput();
-        };
         _viewportHost.MouseHandler.Scrolled += OnScrolled;
 
         _keyboardProvider ??= new KeyboardStateProvider();
@@ -303,68 +278,40 @@ public class WorldViewportPanel : IDisposable
         }
 
         var router = _editorRuntime.InputComponent.InputRouter;
-        var currentTargetViewId = router?.CurrentTargetViewId ?? ViewId.Empty;
         bool isKeyboardFocused = _renderView != null && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
 
-        var viewportMouseState = GetWindowMouseState();
-        var localMouseState = _mouseProvider?.GetState() ?? new MouseState();
-        var keyboardState = Keyboard.GetState();
-        bool isPointerInside = IsPointInsideViewport(viewportMouseState.Position);
-        bool isActiveView = _renderView != null && _editorRuntime.GameManager.ViewManager.ActiveView?.Id == _renderView.Id;
-        bool isViewportInteractive = isPointerInside || isActiveView || isKeyboardFocused || _isRawDragging;
+        var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
+        bool receivesInput = _renderView != null && inputContext.ViewId == _renderView.Id;
+        var localMouseState = receivesInput ? inputContext.MouseState : (_mouseProvider?.GetState() ?? new MouseState());
+        var keyboardState = receivesInput || isKeyboardFocused ? inputContext.KeyboardState : new KeyboardState();
+        bool isViewportInteractive = receivesInput || isKeyboardFocused;
 
         if (_gizmo != null)
         {
             _gizmo.IsActiveViewport = false;
         }
 
-        if (isPointerInside && viewportMouseState.MiddleButton == ButtonState.Pressed && _previousViewportMouseState.MiddleButton == ButtonState.Released)
+        if (receivesInput && _pendingScrollDelta != 0)
         {
-            ActivateThisView(captureInput: true);
-            _isRawDragging = true;
-            _lastRawDragPos = viewportMouseState.Position;
-        }
-
-        if (_isRawDragging && viewportMouseState.MiddleButton == ButtonState.Pressed)
-        {
-            var dx = viewportMouseState.X - _lastRawDragPos.X;
-            var dy = viewportMouseState.Y - _lastRawDragPos.Y;
-            _lastRawDragPos = viewportMouseState.Position;
-
-            if (dx != 0 || dy != 0)
-            {
-                ApplyMiddleMouseDrag(dx, dy);
-            }
-        }
-
-        if (_isRawDragging && viewportMouseState.MiddleButton == ButtonState.Released)
-        {
-            _isRawDragging = false;
-            _editorRuntime.GameManager.ViewManager.ReleaseInput();
-        }
-
-        var wheelDelta = localMouseState.ScrollWheelValue - _previousLocalMouseState.ScrollWheelValue;
-        if (wheelDelta == 0 && _pendingScrollDelta != 0)
-        {
-            wheelDelta = _pendingScrollDelta;
+            inputContext = inputContext with { VerticalWheelDelta = inputContext.VerticalWheelDelta + _pendingScrollDelta };
         }
 
         _pendingScrollDelta = 0;
 
-        if (isPointerInside && wheelDelta != 0)
+        if (_camera != null)
         {
-            ActivateThisView(captureInput: false);
-            ApplyScroll(wheelDelta);
-        }
-
-        if (isActiveView || isKeyboardFocused)
-        {
-            HandleKeyboardCameraInput(keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds);
+            _cameraController.Update(
+                gameTime,
+                _camera,
+                inputContext,
+                receivesInput,
+                isKeyboardFocused,
+                ActivateThisView,
+                () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
         }
 
         UpdateGizmoInput(gameTime, keyboardState, localMouseState, isViewportInteractive);
 
-        _previousViewportMouseState = viewportMouseState;
         _previousLocalMouseState = localMouseState;
         _previousKeyboardState = keyboardState;
     }
@@ -403,13 +350,7 @@ public class WorldViewportPanel : IDisposable
             IsVisible = false,
         };
 
-        _camera = new ArcBallCameraComponent
-        {
-            Target = _target,
-            Distance = _distance,
-            Yaw = _yaw,
-            Pitch = _pitch,
-        };
+        _camera = _cameraController.CreateCameraComponent();
 
         _cameraEntity.AddComponent(_camera);
         _cameraEntity.Initialize();
@@ -559,10 +500,7 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        _camera.Target = _target;
-        _camera.Distance = _distance;
-        _camera.Yaw = _yaw;
-        _camera.Pitch = _pitch;
+        _cameraController.ApplyTo(_camera);
     }
 
     private void RefreshTextureBinding()
@@ -762,115 +700,9 @@ public class WorldViewportPanel : IDisposable
         return true;
     }
 
-    private void OnDragStart(object? sender, BaseMouseDragStartEventArgs e)
-    {
-        ActivateThisView(captureInput: true);
-        _isDragging = true;
-        _dragButton = e.Button;
-        _lastDragPos = e.Position;
-    }
-
-    private void OnDragged(object? sender, BaseMouseDraggedEventArgs e)
-    {
-        if (!_isDragging || e.Button != _dragButton)
-        {
-            return;
-        }
-
-        var dx = e.Position.X - _lastDragPos.X;
-        var dy = e.Position.Y - _lastDragPos.Y;
-        _lastDragPos = e.Position;
-
-        if (_dragButton != MouseButton.Middle)
-        {
-            return;
-        }
-
-        ApplyMiddleMouseDrag(dx, dy);
-    }
-
-    private void ApplyMiddleMouseDrag(int dx, int dy)
-    {
-        var keyboard = Keyboard.GetState();
-        var isShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
-
-        if (isShift)
-        {
-            var right = Vector3.Cross(Vector3.Up, ComputeCameraDirection());
-            right.Normalize();
-            _target -= right * dx * PanSensitivity * _distance;
-            _target += Vector3.Up * dy * PanSensitivity * _distance;
-        }
-        else
-        {
-            _yaw += dx * OrbitSensitivity;
-            _pitch = Math.Clamp(
-                _pitch - dy * OrbitSensitivity,
-                -MathHelper.PiOver2 + 0.01f,
-                MathHelper.PiOver2 - 0.01f);
-        }
-    }
-
     private void OnScrolled(object? sender, BaseMouseScrolledEventArgs e)
     {
         _pendingScrollDelta += e.ScrollWheelDelta;
-    }
-
-    private void ApplyScroll(int scrollDelta)
-    {
-        if (scrollDelta > 0)
-        {
-            _distance = Math.Max(MinDistance, _distance / ZoomSensitivity);
-        }
-        else if (scrollDelta < 0)
-        {
-            _distance = Math.Min(MaxDistance, _distance * ZoomSensitivity);
-        }
-    }
-
-    private void HandleKeyboardCameraInput(KeyboardState keyboardState, float elapsedSeconds)
-    {
-        if (_camera == null || elapsedSeconds <= 0f)
-        {
-            return;
-        }
-
-        var move = Vector3.Zero;
-
-        if (keyboardState.IsKeyDown(Keys.Right))
-        {
-            move += _camera.Right;
-        }
-        else if (keyboardState.IsKeyDown(Keys.Left))
-        {
-            move -= _camera.Right;
-        }
-
-        if (keyboardState.IsKeyDown(Keys.Up))
-        {
-            move += _camera.Direction;
-        }
-        else if (keyboardState.IsKeyDown(Keys.Down))
-        {
-            move -= _camera.Direction;
-        }
-
-        if (keyboardState.IsKeyDown(Keys.PageUp))
-        {
-            move += _camera.Up;
-        }
-        else if (keyboardState.IsKeyDown(Keys.PageDown))
-        {
-            move -= _camera.Up;
-        }
-
-        if (move == Vector3.Zero)
-        {
-            return;
-        }
-
-        move.Normalize();
-        _target += move * KeyboardMoveSpeed * elapsedSeconds;
     }
 
     private void UpdateGizmoInput(GameTime gameTime, KeyboardState keyboardState, MouseState localMouseState, bool isViewportInteractive)
@@ -945,14 +777,6 @@ public class WorldViewportPanel : IDisposable
     private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)
     {
         return keyboardState.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
-    }
-
-    private Vector3 ComputeCameraDirection()
-    {
-        return new Vector3(
-            (float)(Math.Cos(_pitch) * Math.Sin(_yaw)),
-            (float)Math.Sin(_pitch),
-            (float)(Math.Cos(_pitch) * Math.Cos(_yaw)));
     }
 
     public void Dispose()

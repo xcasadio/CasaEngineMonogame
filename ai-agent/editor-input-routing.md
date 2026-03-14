@@ -169,7 +169,7 @@ Faire en sorte que les signaux UI per-view (`pointer over`, `keyboard captured`,
 
 ---
 
-### ⬜ EIR-005 — Introduire un contrôleur runtime pour la caméra éditeur
+### ✅ EIR-005 — Introduire un contrôleur runtime pour la caméra éditeur
 **Objectif**  
 Déplacer les règles de navigation caméra hors de `WorldViewportPanel` vers une classe runtime dédiée qui consomme l'input routé.
 
@@ -189,6 +189,12 @@ Déplacer les règles de navigation caméra hors de `WorldViewportPanel` vers un
 - `WorldViewportPanel` ne contient plus la logique caméra principale
 - le contrôleur caméra fonctionne dans `CasaEngine.Editor` et `CasaEngine.SimpleEditor`
 - le code de navigation n'a plus besoin de polling Win32 local
+
+**Résultat**
+- ajout de `CasaEngine.Editor/Runtime/EditorViewportCameraController.cs`
+- déplacement de l'orbit, du pan, du zoom et du déplacement clavier hors de `WorldViewportPanel`
+- `WorldViewportPanel` délègue désormais la navigation caméra au contrôleur runtime via `ViewInputContext`
+- validation bornée : `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -nologo` et `dotnet build CasaEngine.SimpleEditor/CasaEngine.SimpleEditor.csproj -nologo`
 
 **Commit suggéré**  
 `Move editor camera input into runtime viewport controller`
