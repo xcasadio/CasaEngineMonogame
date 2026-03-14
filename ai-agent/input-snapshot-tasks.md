@@ -35,7 +35,7 @@ Le but est de supprimer les decisions d'input dispersees, de clarifier capture/f
 
 ---
 
-## ⚪ Tache 1 — Auditer les sources d'input et les consommateurs
+## 🟢 Tache 1 — Auditer les sources d'input et les consommateurs
 
 **But :** etablir une cartographie precise des lectures d'input brutes, des conversions en contexte de vue, et des consommateurs editor/in-game.
 
