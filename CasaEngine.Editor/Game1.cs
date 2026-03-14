@@ -5,6 +5,7 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Input;
@@ -28,6 +29,7 @@ namespace CasaEngine.Editor
 {
     public class Game1 : Game, IObservableUpdate
     {
+        private const string WorldViewportPanelId = "panel_world_viewport";
         private const string ContentBrowserPanelId = "panel_content_browser";
         private const string OutputPanelId = "panel_output";
         private const string EntitiesPanelId = "panel_entities";
@@ -52,6 +54,7 @@ namespace CasaEngine.Editor
         private EngineRuntimeContext _editorRuntimeContext;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
+        private MGElement _worldViewportContent;
         private EntitiesPanel _entitiesPanel;
         private MGElement _entitiesContent;
         private EntityDetailsPanel _entityDetailsPanel;
@@ -202,6 +205,9 @@ namespace CasaEngine.Editor
             _menuBar.AddItem("Windows", item =>
             {
                 item.Submenu = new MGContextMenu(_mainWindow, null);
+                item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
+                item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
+                item.Submenu.AddSeparator();
                 item.Submenu.AddButton("Reset Layout", _ => SetupInitialDockLayout());
             });
 
@@ -220,18 +226,12 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            // Placeholder panels — will be replaced with real editor panels in later tasks
-            var scenePanel = new DockPanelNode("panel_scene")
+            var scenePanel = new DockPanelNode(WorldViewportPanelId)
             {
-                Title = "Scene",
+                Title = "World Viewport",
                 CanClose = false,
                 CanFloat = false,
-                ContentFactory = () =>
-                {
-                    _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
-                    _worldViewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
-                    return _worldViewportPanel.CreateContent();
-                }
+                ContentFactory = GetOrCreateWorldViewportContent,
             };
 
             var propertiesPanel = new DockPanelNode(EntityDetailsPanelId)
@@ -267,14 +267,6 @@ namespace CasaEngine.Editor
             };
 
             // Tab groups
-            var leftGroup = new DockTabGroupNode();
-            leftGroup.AddPanel(explorerPanel, -1);
-            leftGroup.SetActivePanel(explorerPanel.Id);
-
-            var rightGroup = new DockTabGroupNode();
-            rightGroup.AddPanel(propertiesPanel, -1);
-            rightGroup.SetActivePanel(propertiesPanel.Id);
-
             var bottomGroup = new DockTabGroupNode();
             bottomGroup.AddPanel(contentBrowserPanel, -1);
             bottomGroup.AddPanel(outputPanel, -1);
@@ -284,29 +276,34 @@ namespace CasaEngine.Editor
             centerGroup.AddPanel(scenePanel, -1);
             centerGroup.SetActivePanel(scenePanel.Id);
 
-            // Horizontal left | center split (20% left, 80% center)
-            var leftCenterSplit = new DockSplitNode
+            var entitiesGroup = new DockTabGroupNode();
+            entitiesGroup.AddPanel(explorerPanel, -1);
+            entitiesGroup.SetActivePanel(explorerPanel.Id);
+
+            var detailsGroup = new DockTabGroupNode();
+            detailsGroup.AddPanel(propertiesPanel, -1);
+            detailsGroup.SetActivePanel(propertiesPanel.Id);
+
+            var rightSideSplit = new DockSplitNode
             {
-                Orientation = Orientation.Horizontal,
-                FirstChild = leftGroup,
-                SecondChild = centerGroup,
-                SplitRatio = 0.2f,
-                MinFirstSize = 150,
-                MinSecondSize = 400
+                Orientation = Orientation.Vertical,
+                FirstChild = entitiesGroup,
+                SecondChild = detailsGroup,
+                SplitRatio = 0.52f,
+                MinFirstSize = 180,
+                MinSecondSize = 180,
             };
 
-            // Horizontal work area | right split (80% work area, 20% right)
             var topAreaSplit = new DockSplitNode
             {
                 Orientation = Orientation.Horizontal,
-                FirstChild = leftCenterSplit,
-                SecondChild = rightGroup,
-                SplitRatio = 0.8f,
-                MinFirstSize = 400,
-                MinSecondSize = 150
+                FirstChild = centerGroup,
+                SecondChild = rightSideSplit,
+                SplitRatio = 0.76f,
+                MinFirstSize = 500,
+                MinSecondSize = 260,
             };
 
-            // Vertical top area | bottom tabs so the bottom panel spans the full width.
             var rootSplit = new DockSplitNode
             {
                 Orientation = Orientation.Vertical,
@@ -401,6 +398,18 @@ namespace CasaEngine.Editor
             _contentBrowserPanel ??= new ContentBrowserPanel(_mainWindow);
             _contentBrowserContent ??= _contentBrowserPanel.CreateContent();
             return _contentBrowserContent;
+        }
+
+        private MGElement GetOrCreateWorldViewportContent()
+        {
+            if (_worldViewportPanel == null)
+            {
+                _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+                _worldViewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
+            }
+
+            _worldViewportContent ??= _worldViewportPanel.CreateContent();
+            return _worldViewportContent;
         }
 
         private MGElement GetOrCreateEntitiesContent()
@@ -518,7 +527,95 @@ namespace CasaEngine.Editor
 
         private void SaveCurrentProject()
         {
-            // TODO: Implement project save
+            if (string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectFileOpened))
+            {
+                Logs.WriteWarning("No project is currently loaded.");
+                return;
+            }
+
+            EditorProjectAuthoringService.SaveProject();
+            EditorAssetCatalogService.Save();
+            Logs.WriteInfo($"Project saved: {GameSettings.ProjectSettings.ProjectFileOpened}");
+        }
+
+        private void SaveDockLayout()
+        {
+            if (_dockHost == null)
+            {
+                return;
+            }
+
+            using var dialog = new System.Windows.Forms.SaveFileDialog
+            {
+                Filter = "CasaEngine layout files (*.json)|*.json|JSON files (*.json)|*.json|All files (*.*)|*.*",
+                DefaultExt = "json",
+                AddExtension = true,
+                FileName = "layout.json",
+                InitialDirectory = GetCurrentProjectDirectory(),
+                RestoreDirectory = true,
+            };
+
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+
+            File.WriteAllText(dialog.FileName, _dockHost.SaveLayoutToJson(indented: true));
+            Logs.WriteInfo($"Editor layout saved: {dialog.FileName}");
+        }
+
+        private void LoadDockLayout()
+        {
+            if (_dockHost == null)
+            {
+                return;
+            }
+
+            using var dialog = new System.Windows.Forms.OpenFileDialog
+            {
+                Filter = "CasaEngine layout files (*.json)|*.json|JSON files (*.json)|*.json|All files (*.*)|*.*",
+                DefaultExt = "json",
+                CheckFileExists = true,
+                InitialDirectory = GetCurrentProjectDirectory(),
+                RestoreDirectory = true,
+            };
+
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+
+            var json = File.ReadAllText(dialog.FileName);
+            _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
+            Logs.WriteInfo($"Editor layout loaded: {dialog.FileName}");
+        }
+
+        private Func<MGElement> GetPanelContentFactory(string panelId)
+        {
+            return panelId switch
+            {
+                WorldViewportPanelId => GetOrCreateWorldViewportContent,
+                EntitiesPanelId => GetOrCreateEntitiesContent,
+                EntityDetailsPanelId => GetOrCreateEntityDetailsContent,
+                ContentBrowserPanelId => GetOrCreateContentBrowserContent,
+                OutputPanelId => GetOrCreateLogsContent,
+                _ => null,
+            };
+        }
+
+        private string GetCurrentProjectDirectory()
+        {
+            var projectFile = GameSettings.ProjectSettings.ProjectFileOpened;
+            if (!string.IsNullOrWhiteSpace(projectFile))
+            {
+                var directory = Path.GetDirectoryName(projectFile);
+                if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+                {
+                    return directory;
+                }
+            }
+
+            return Environment.CurrentDirectory;
         }
 
         private void OnEntitiesPanelSelectionChanged(Entity? entity)

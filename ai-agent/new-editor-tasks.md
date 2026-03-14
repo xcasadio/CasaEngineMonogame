@@ -677,7 +677,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 
 ### Tâche 4.1 — Assembler le layout principal de l'éditeur
 
-⬜ **Statut : À faire**
+✅ **Statut : Terminé**
 
 **Fichier à modifier :** `CasaEngine.Editor/Game1.cs`
 
@@ -701,6 +701,22 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 - Redimensionner les panneaux avec les splitters
 
 **Commit :** `feat(editor): assemble main editor layout with all panels`
+
+## Résumé
+- `Game1` assemble maintenant le layout principal conforme au plan: `WorldViewportPanel` au centre, `EntitiesPanel` en haut à droite, `EntityDetailsPanel` en bas à droite, et `ContentBrowser` / `Logs` en onglets en bas.
+- Le menu `File` est connecté à l’ouverture/création de projet et au save du projet courant, tandis que le menu `Windows` expose désormais `Save Layout`, `Load Layout` et `Reset Layout` via le JSON du dock MGUI.
+- Les content factories des panneaux sont centralisées pour réutiliser les mêmes instances lors d’un reset ou d’un rechargement de layout, et le flux de sélection Entities ↔ Viewport ↔ Details reste synchronisé.
+
+## Attendu
+- L’éditeur s’ouvre avec un agencement cohérent et exploitable sans placeholders restants dans le layout principal.
+- Le projet courant peut être sauvegardé depuis le menu `File`, et le layout courant peut être exporté/importé depuis le menu `Windows`.
+- Les panneaux principaux restent fonctionnels après un reset de layout ou un rechargement d’un layout JSON.
+
+## À tester
+- Lancer l’éditeur, ouvrir un projet et vérifier la disposition par défaut: viewport au centre, entities/détails à droite, logs/content browser en bas.
+- Utiliser `File -> Save` et vérifier que le projet et le catalogue d’assets sont sauvegardés sans erreur.
+- Utiliser `Windows -> Save Layout`, puis `Load Layout`, et vérifier que les panneaux sont bien restaurés avec leur contenu.
+- Sélectionner une entité depuis `Entities`, puis depuis le viewport, et vérifier la synchronisation avec `Details`.
 
 ---
 
@@ -811,7 +827,7 @@ Remplacement de l'éditeur WPF (`CasaEngine.EditorUI`) par un nouvel éditeur Mo
 | 3.2 | Moteur | Événements Entity | ✅ | `feat(engine): ensure Entity exposes component/child change events` |
 | 3.3 | Moteur | AssetCatalog vérification | ✅ | `feat(engine): verify AssetCatalog events and data for editor` |
 | 3.4 | Moteur | Rendu dans RenderTarget éditeur | ✅ | `docs(editor): verify custom RenderTarget rendering path` |
-| 4.1 | Assemblage | Layout principal éditeur | ⬜ | |
+| 4.1 | Assemblage | Layout principal éditeur | ✅ | `feat(editor): assemble main editor layout with all panels` |
 | 4.2 | Assemblage | Système de sélection centralisé | ⬜ | |
 | 4.3 | Assemblage | Intégration Project Launcher | ⬜ | |
 | 4.4 | Assemblage | StatusBar | ⬜ | |
