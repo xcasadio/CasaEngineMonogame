@@ -172,17 +172,9 @@ namespace CasaEngine.Editor
                 _mainWindow.WindowHeight = Window.ClientBounds.Height;
             };
 
-            // ── Menu bar ─────────────────────────────────────────────────
-            _menuBar = new MGMenuBar(_mainWindow);
-            BuildMenuBar();
-
-            // ── Layout: menu bar is available immediately, editor dock host
-            // is added only once a project has actually been opened.
+            // ── Layout shell: editor chrome is added only once a project has actually been opened.
             _rootPanel = new MGDockPanel(_mainWindow);
             _rootPanel.Name = "EditorRootPanel";
-            _rootPanel.TryAddChild(_menuBar, Dock.Top);
-            _statusBar = CreateStatusBar();
-            _rootPanel.TryAddChild(_statusBar, Dock.Bottom);
             _mainWindow.SetContent(_rootPanel);
 
             _desktop.Windows.Add(_mainWindow);
@@ -361,6 +353,7 @@ namespace CasaEngine.Editor
 
         private void PresentLoadedProject()
         {
+            EnsureShellChromeInitialized();
             EnsureDockHostInitialized();
 
             if (!TryLoadPersistedDockLayout(logOutcome: false))
@@ -377,6 +370,22 @@ namespace CasaEngine.Editor
             ActivateDockPanel(ContentBrowserPanelId);
             LoadInitialWorldIntoEditorRuntime();
             UpdateWindowTitle();
+        }
+
+        private void EnsureShellChromeInitialized()
+        {
+            if (_menuBar == null)
+            {
+                _menuBar = new MGMenuBar(_mainWindow);
+                BuildMenuBar();
+                _rootPanel.TryAddChild(_menuBar, Dock.Top);
+            }
+
+            if (_statusBar == null)
+            {
+                _statusBar = CreateStatusBar();
+                _rootPanel.TryAddChild(_statusBar, Dock.Bottom);
+            }
         }
 
         private void UpdateWindowTitle()

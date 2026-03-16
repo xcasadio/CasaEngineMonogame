@@ -187,7 +187,7 @@ public class WorldViewportPanel : IDisposable
         bool isKeyboardFocused = _renderView != null && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
 
         var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
-        bool receivesInput = _renderView != null && inputContext.ViewId == _renderView.Id;
+        bool receivesInput = _renderView != null && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();
 
         if (_camera != null)
@@ -203,6 +203,19 @@ public class WorldViewportPanel : IDisposable
         }
 
         UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+    }
+
+    private static bool IsPointerInputRoutedToView(ViewInputContext inputContext, ViewId viewId)
+    {
+        if (viewId.IsEmpty || inputContext.ViewId != viewId)
+        {
+            return false;
+        }
+
+        return inputContext.RoutingState.Reason is InputRoutingReason.Pointer
+            or InputRoutingReason.Capture
+            or InputRoutingReason.UIPointerCapture
+            or InputRoutingReason.Modal;
     }
 
     public void SetSelectedEntity(Entity? entity)
