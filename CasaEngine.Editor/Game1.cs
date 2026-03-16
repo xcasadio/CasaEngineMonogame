@@ -22,8 +22,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace CasaEngine.Editor
 {
@@ -55,6 +57,8 @@ namespace CasaEngine.Editor
         private MGButton _toggleLogsButton;
         private MGTextBlock _statusProjectText;
         private MGTextBlock _statusStatsText;
+        private string _lastStatusProjectLabel;
+        private string _lastStatusStatsLabel;
 
         // ── Editor panels ──────────────────────────────────────────────────
         private LoggerEditor _loggerEditor;
@@ -78,13 +82,19 @@ namespace CasaEngine.Editor
         private TimeSpan _fpsSampleElapsed;
         private int _fpsSampleFrames;
         private int _currentFps;
+        private readonly EditorAutomationOptions _automationOptions;
+        private bool _automationWorldLoaded;
+        private bool _automationSelectionApplied;
+        private bool _automationDiagnosticsCaptured;
+        private TimeSpan _automationSelectionAppliedAt;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
         public event EventHandler<EventArgs> EndUpdate;
 
-        public Game1()
+        public Game1(EditorAutomationOptions? automationOptions = null)
         {
+            _automationOptions = automationOptions ?? new EditorAutomationOptions();
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)
                 ? GraphicsProfile.HiDef
@@ -184,8 +194,14 @@ namespace CasaEngine.Editor
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
-            // ── Show project launcher at startup ───────────────────────────
-            ShowProjectLauncher();
+            if (_automationOptions.HasAutomation)
+            {
+                QueueProjectOpen(_automationOptions.ProjectPath!);
+            }
+            else
+            {
+                ShowProjectLauncher();
+            }
 
             base.Initialize();
         }
@@ -299,24 +315,24 @@ namespace CasaEngine.Editor
             detailsGroup.AddPanel(propertiesPanel, -1);
             detailsGroup.SetActivePanel(propertiesPanel.Id);
 
-            var rightSideSplit = new DockSplitNode
+            var centerRightSplit = new DockSplitNode
             {
-                Orientation = Orientation.Vertical,
-                FirstChild = entitiesGroup,
+                Orientation = Orientation.Horizontal,
+                FirstChild = centerGroup,
                 SecondChild = detailsGroup,
-                SplitRatio = 0.52f,
-                MinFirstSize = 180,
-                MinSecondSize = 180,
+                SplitRatio = 0.72f,
+                MinFirstSize = 500,
+                MinSecondSize = 260,
             };
 
             var topAreaSplit = new DockSplitNode
             {
                 Orientation = Orientation.Horizontal,
-                FirstChild = centerGroup,
-                SecondChild = rightSideSplit,
-                SplitRatio = 0.76f,
-                MinFirstSize = 500,
-                MinSecondSize = 260,
+                FirstChild = entitiesGroup,
+                SecondChild = centerRightSplit,
+                SplitRatio = 0.2f,
+                MinFirstSize = 220,
+                MinSecondSize = 700,
             };
 
             var rootSplit = new DockSplitNode
@@ -337,6 +353,9 @@ namespace CasaEngine.Editor
         {
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
+            _automationWorldLoaded = false;
+            _automationSelectionApplied = false;
+            _automationDiagnosticsCaptured = false;
             PresentLoadedProject();
         }
 
@@ -376,12 +395,24 @@ namespace CasaEngine.Editor
             }
 
             _editorRuntimeContext = GameSettings.CreateRuntimeContext();
+            if (_automationOptions.HasAutomation)
+            {
+                string automationProjectDirectory = Path.GetDirectoryName(_automationOptions.ProjectPath!)
+                    ?? Environment.CurrentDirectory;
+                _editorRuntimeContext.ProjectPath = automationProjectDirectory;
+                EngineEnvironment.ProjectPath = automationProjectDirectory;
+            }
+
             _editorRuntimeContext.WindowInputSource = _windowInputSource;
 
-            _editorRuntime = new HostedEditorGameAdapter(null, graphicsDeviceService, _editorRuntimeContext)
+            _editorRuntime = new HostedEditorGameAdapter(_automationOptions.HasAutomation ? _automationOptions.ProjectPath : null, graphicsDeviceService, _editorRuntimeContext)
             {
                 ExecutionPolicy = GameplayExecutionPolicies.EditorPreview,
             };
+
+            _editorRuntime.ContentPath = Path.Combine(AppContext.BaseDirectory, "Content");
+
+            _editorRuntime.GameManager.WorldLoaded += OnAutomationWorldLoaded;
 
             _editorRuntime.InitializeHost();
             _editorRuntime.LoadContentHost();
@@ -577,6 +608,16 @@ namespace CasaEngine.Editor
 
         private void SetStatusBarButtonLabel(MGButton button, string label)
         {
+            if (button.Content is MGTextBlock existingLabel)
+            {
+                if (!string.Equals(existingLabel.Text, label, StringComparison.Ordinal))
+                {
+                    existingLabel.SetText(label);
+                }
+
+                return;
+            }
+
             button.SetContent(new MGTextBlock(_mainWindow, label)
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -618,10 +659,20 @@ namespace CasaEngine.Editor
             string projectName = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
                 ? "none"
                 : GameSettings.ProjectSettings.ProjectName;
-            _statusProjectText.SetText($"Project: {projectName}");
+            string projectLabel = $"Project: {projectName}";
+            if (!string.Equals(_lastStatusProjectLabel, projectLabel, StringComparison.Ordinal))
+            {
+                _statusProjectText.SetText(projectLabel);
+                _lastStatusProjectLabel = projectLabel;
+            }
 
             int entityCount = CountEntities(_editorRuntime?.GameManager.CurrentWorld);
-            _statusStatsText.SetText($"FPS: {_currentFps} | Entities: {entityCount}");
+            string statsLabel = $"FPS: {_currentFps:D3} | Entities: {entityCount:D6}";
+            if (!string.Equals(_lastStatusStatsLabel, statsLabel, StringComparison.Ordinal))
+            {
+                _statusStatsText.SetText(statsLabel, SuppressLayoutChanged: true);
+                _lastStatusStatsLabel = statsLabel;
+            }
 
             if (_toggleContentBrowserButton != null)
             {
@@ -878,6 +929,11 @@ namespace CasaEngine.Editor
 
         private void OnViewportSelectedEntityChanged(Entity? entity)
         {
+            if (_automationOptions.HasAutomation)
+            {
+                return;
+            }
+
             _editorSelection.SetSelectedEntity(entity);
         }
 
@@ -894,7 +950,10 @@ namespace CasaEngine.Editor
             try
             {
                 _entitiesPanel?.SetSelectedEntity(entity);
-                _worldViewportPanel?.SetSelectedEntity(entity);
+                if (!_automationOptions.HasAutomation)
+                {
+                    _worldViewportPanel?.SetSelectedEntity(entity);
+                }
                 _entityDetailsPanel?.SetSelectedEntity(entity);
             }
             finally
@@ -937,11 +996,248 @@ namespace CasaEngine.Editor
             _editorRuntime?.UpdateHost(gameTime);
             _entitiesPanel?.Update();
             _worldViewportPanel?.UpdateInput(gameTime);
+            RunAutomation(gameTime.TotalGameTime);
             RefreshStatusBar();
 
             base.Update(gameTime);
 
             EndUpdate?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnAutomationWorldLoaded(object? sender, EventArgs e)
+        {
+            _automationWorldLoaded = true;
+        }
+
+        private void RunAutomation(TimeSpan totalGameTime)
+        {
+            if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured || !_automationWorldLoaded)
+            {
+                return;
+            }
+
+            if (!_automationSelectionApplied || !IsAutomationSelectionActive())
+            {
+                if (TryApplyAutomationSelection())
+                {
+                    _automationSelectionApplied = true;
+                    _automationSelectionAppliedAt = totalGameTime;
+                }
+
+                return;
+            }
+
+            if (totalGameTime - _automationSelectionAppliedAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
+            {
+                return;
+            }
+
+            CaptureAutomationDiagnostics();
+            _automationDiagnosticsCaptured = true;
+
+            if (_automationOptions.ExitAfterCapture)
+            {
+                Exit();
+            }
+        }
+
+        private bool IsAutomationSelectionActive()
+        {
+            var world = _editorRuntime?.GameManager.CurrentWorld;
+            if (world == null)
+            {
+                return false;
+            }
+
+            var desiredEntity = FindAutomationEntity(world);
+            if (!ReferenceEquals(_editorSelection.SelectedEntity, desiredEntity))
+            {
+                return false;
+            }
+
+            var desiredComponent = desiredEntity == null ? null : FindAutomationComponent(desiredEntity);
+            return ReferenceEquals(_editorSelection.SelectedComponent, desiredComponent);
+        }
+
+        private bool TryApplyAutomationSelection()
+        {
+            var world = _editorRuntime?.GameManager.CurrentWorld;
+            if (world == null)
+            {
+                return false;
+            }
+
+            var entity = FindAutomationEntity(world);
+            if (entity == null)
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                    $"[Automation] Entity not found: '{_automationOptions.EntityName ?? "<first>"}' index={_automationOptions.EntityIndex}");
+                return false;
+            }
+
+            bool selectionChanged = !ReferenceEquals(_editorSelection.SelectedEntity, entity);
+            _editorSelection.SetSelectedEntity(entity);
+
+            var component = FindAutomationComponent(entity);
+            if (component != null)
+            {
+                selectionChanged |= !ReferenceEquals(_editorSelection.SelectedComponent, component);
+                _editorSelection.SetSelectedComponent(component);
+                if (selectionChanged)
+                {
+                    EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                        $"[Automation] Selected entity='{entity.Name}', component='{component.GetType().Name}'");
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(_automationOptions.ComponentName))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                    $"[Automation] Component not found on entity='{entity.Name}': '{_automationOptions.ComponentName}'");
+            }
+
+            return true;
+        }
+
+        private Entity? FindAutomationEntity(CasaEngine.Framework.World.World world)
+        {
+            var entities = EnumerateEntities(world.Entities).ToList();
+            if (string.IsNullOrWhiteSpace(_automationOptions.EntityName))
+            {
+                return entities.ElementAtOrDefault(_automationOptions.EntityIndex);
+            }
+
+            string expectedName = NormalizeAutomationToken(_automationOptions.EntityName);
+            return entities
+                .Where(entity => NormalizeAutomationToken(entity.Name) == expectedName)
+                .ElementAtOrDefault(_automationOptions.EntityIndex);
+        }
+
+        private CasaEngine.Framework.Entities.Components.EntityComponent? FindAutomationComponent(Entity entity)
+        {
+            if (string.IsNullOrWhiteSpace(_automationOptions.ComponentName))
+            {
+                return null;
+            }
+
+            string expectedName = NormalizeAutomationToken(_automationOptions.ComponentName);
+            return EnumerateComponents(entity)
+                .FirstOrDefault(component => ComponentMatches(component, expectedName));
+        }
+
+        private void CaptureAutomationDiagnostics()
+        {
+            string outputPath = ResolveAutomationDiagnosticsPath();
+            string? outputDirectory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrWhiteSpace(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
+
+            var entries = EditorDiagnosticsBuffer.GetEntriesSnapshot();
+            var builder = new StringBuilder();
+            builder.AppendLine("CasaEngine Editor diagnostics");
+            builder.AppendLine($"Captured at: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
+            builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
+            builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
+            builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
+            builder.AppendLine($"Entries: {entries.Count}");
+            builder.AppendLine();
+
+            foreach (var entry in entries)
+            {
+                builder.AppendLine($"{entry.Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{entry.Verbosity}] {entry.Message}");
+            }
+
+            File.WriteAllText(outputPath, builder.ToString());
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Diagnostics exported to '{outputPath}'");
+        }
+
+        private string ResolveAutomationDiagnosticsPath()
+        {
+            if (!string.IsNullOrWhiteSpace(_automationOptions.DiagnosticsOutputPath))
+            {
+                return Path.GetFullPath(_automationOptions.DiagnosticsOutputPath);
+            }
+
+            string projectPath = _automationOptions.ProjectPath ?? Path.Combine(Environment.CurrentDirectory, "editor-diagnostics.txt");
+            string projectDirectory = Path.GetDirectoryName(projectPath) ?? Environment.CurrentDirectory;
+            return Path.Combine(projectDirectory, "editor-diagnostics.txt");
+        }
+
+        private static IEnumerable<Entity> EnumerateEntities(IEnumerable<Entity> entities)
+        {
+            foreach (var entity in entities)
+            {
+                yield return entity;
+
+                foreach (var child in EnumerateEntities(entity.Children))
+                {
+                    yield return child;
+                }
+            }
+        }
+
+        private static IEnumerable<CasaEngine.Framework.Entities.Components.EntityComponent> EnumerateComponents(Entity entity)
+        {
+            if (entity.RootComponent != null)
+            {
+                foreach (var component in EnumerateSceneComponents(entity.RootComponent))
+                {
+                    yield return component;
+                }
+            }
+
+            foreach (var component in entity.Components)
+            {
+                yield return component;
+                if (component is CasaEngine.Framework.Entities.Components.SceneComponent sceneComponent)
+                {
+                    foreach (var child in sceneComponent.Children.SelectMany(EnumerateSceneComponents))
+                    {
+                        yield return child;
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<CasaEngine.Framework.Entities.Components.SceneComponent> EnumerateSceneComponents(CasaEngine.Framework.Entities.Components.SceneComponent component)
+        {
+            yield return component;
+            foreach (var child in component.Children)
+            {
+                foreach (var nested in EnumerateSceneComponents(child))
+                {
+                    yield return nested;
+                }
+            }
+        }
+
+        private static bool ComponentMatches(CasaEngine.Framework.Entities.Components.EntityComponent component, string expectedName)
+        {
+            string typeName = NormalizeAutomationToken(component.GetType().Name);
+            if (typeName == expectedName)
+            {
+                return true;
+            }
+
+            if (typeName.EndsWith("component", StringComparison.Ordinal) && typeName[..^"component".Length] == expectedName)
+            {
+                return true;
+            }
+
+            return expectedName.EndsWith("component", StringComparison.Ordinal)
+                && expectedName[..^"component".Length] == typeName;
+        }
+
+        private static string NormalizeAutomationToken(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            var characters = value.Where(char.IsLetterOrDigit).ToArray();
+            return new string(characters).ToLowerInvariant();
         }
 
         protected override void Draw(GameTime gameTime)
