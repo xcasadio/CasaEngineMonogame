@@ -198,7 +198,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `test: add screen XAML round-trip coverage`
 
 ### 2.4 Documenter les limites de la v1 du parser
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rendre explicite ce qui n’est pas encore supporté.
 - Actions :
   - lister les éléments non encore gérés :
@@ -730,6 +730,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 2.1 `feat: add XAML to screen document parser`
 - 🟢 2.2 `feat: add screen document to XAML serializer`
 - 🟢 2.3 `test: add screen XAML round-trip coverage`
+- 🟢 2.4 `docs: add screen editor XAML support matrix`
 
 ---
 
