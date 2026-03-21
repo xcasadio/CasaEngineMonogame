@@ -110,7 +110,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UIScreen asset type`
 
 ### 1.2 Ajouter un document model indépendant du runtime
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : avoir une source de vérité éditable.
 - Actions :
   - créer des types du genre :
@@ -724,6 +724,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 0.2 `docs: map screen editor integration points`
 - 🟢 0.3 `docs: define target architecture for screen editor`
 - 🟢 1.1 `feat: add UIScreen asset type`
+- 🟢 1.2 `feat: add UI screen document model`
 
 ---
 
