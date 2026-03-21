@@ -173,7 +173,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add XAML to screen document parser`
 
 ### 2.2 Créer le serializer document -> XAML
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : pouvoir sauvegarder le document.
 - Actions :
   - créer `UIScreenXamlSerializer`
@@ -728,6 +728,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 1.3 `feat: add design-time metadata to screen document`
 - 🟢 1.4 `test: cover screen document model basics`
 - 🟢 2.1 `feat: add XAML to screen document parser`
+- 🟢 2.2 `feat: add screen document to XAML serializer`
 
 ---
 
