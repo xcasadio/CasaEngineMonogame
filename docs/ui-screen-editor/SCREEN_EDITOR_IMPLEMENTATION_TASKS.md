@@ -64,7 +64,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `docs: initialize screen editor feature documentation`
 
 ### 0.2 Cartographier les points d’intégration MGUI et CasaEngine
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : identifier où brancher l’éditeur sans casser l’architecture existante.
 - Actions :
   - recenser les projets/classes actuels liés à l’éditeur, aux assets, aux vues dockables, au chargement UI
@@ -721,6 +721,7 @@ Ajouter ici toute nouvelle tâche identifiée pendant l’implémentation.
 Ajouter une ligne après chaque tâche terminée.
 
 - 🟢 0.1 `docs: initialize screen editor feature documentation`
+- 🟢 0.2 `docs: map screen editor integration points`
 
 ---
 
