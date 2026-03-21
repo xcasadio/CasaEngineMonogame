@@ -157,7 +157,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 2 - Sérialisation XAML
 
 ### 2.1 Créer le parser XAML -> document
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : pouvoir ouvrir un screen existant.
 - Actions :
   - créer un service du type `UIScreenXamlParser`
@@ -727,6 +727,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 1.2 `feat: add UI screen document model`
 - 🟢 1.3 `feat: add design-time metadata to screen document`
 - 🟢 1.4 `test: cover screen document model basics`
+- 🟢 2.1 `feat: add XAML to screen document parser`
 
 ---
 
