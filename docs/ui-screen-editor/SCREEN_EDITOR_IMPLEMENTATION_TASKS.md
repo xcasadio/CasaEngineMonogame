@@ -125,7 +125,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UI screen document model`
 
 ### 1.3 Définir les métadonnées de design-time
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : préparer sélection, toolbox, inspector, noms, ids.
 - Actions :
   - ajouter sur le modèle :
@@ -725,6 +725,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 0.3 `docs: define target architecture for screen editor`
 - 🟢 1.1 `feat: add UIScreen asset type`
 - 🟢 1.2 `feat: add UI screen document model`
+- 🟢 1.3 `feat: add design-time metadata to screen document`
 
 ---
 

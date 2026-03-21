@@ -15,13 +15,21 @@ public sealed class UIScreenNode
         ControlType = controlType;
     }
 
+    public DocumentNodeId Id { get; } = DocumentNodeId.NewId();
+
     public string ControlType { get; }
+
+    public string? Name { get; set; }
+
+    public UIScreenDesignFlags DesignFlags { get; set; }
 
     public UIScreenNode? Parent { get; private set; }
 
     public IReadOnlyList<UIScreenNode> Children => _children;
 
     public IReadOnlyDictionary<string, UIScreenPropertyValue> Properties => _properties;
+
+    public IDictionary<string, object?> TransientAnnotations { get; } = new Dictionary<string, object?>(StringComparer.Ordinal);
 
     public void AddChild(UIScreenNode child)
     {

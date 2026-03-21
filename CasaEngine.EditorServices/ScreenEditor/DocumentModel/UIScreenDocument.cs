@@ -18,4 +18,33 @@ public sealed class UIScreenDocument
     {
         Root = null;
     }
+
+    public UIScreenNode? FindNode(DocumentNodeId id)
+    {
+        if (Root == null)
+        {
+            return null;
+        }
+
+        return FindNode(Root, id);
+    }
+
+    private static UIScreenNode? FindNode(UIScreenNode node, DocumentNodeId id)
+    {
+        if (node.Id == id)
+        {
+            return node;
+        }
+
+        foreach (var child in node.Children)
+        {
+            var result = FindNode(child, id);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+
+        return null;
+    }
 }
