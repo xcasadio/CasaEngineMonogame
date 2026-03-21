@@ -269,7 +269,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 4 - Session d’édition
 
 ### 4.1 Introduire une EditorSession dédiée
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : centraliser l’état d’édition.
 - Actions :
   - créer `UIScreenEditorSession`
@@ -286,7 +286,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UI screen editor session`
 
 ### 4.2 Ajouter le cycle open/save/reload
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rendre l’éditeur réellement utilisable.
 - Actions :
   - ouvrir depuis asset
@@ -735,6 +735,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 3.2 `feat: add UI screen preview host in editor`
 - 🟢 3.3 `feat: support preview reload for UI screen editor`
 - 🟢 3.4 `feat: add preview error fallback for screen editor`
+- 🟢 4.1-4.2 `feat: add UI screen editor session workflow`
 
 ---
 
