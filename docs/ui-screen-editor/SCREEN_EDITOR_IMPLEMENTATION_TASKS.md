@@ -217,7 +217,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 3 - Runtime preview
 
 ### 3.1 Créer un service de preview runtime
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : instancier un document en arbre MGUI visualisable.
 - Actions :
   - créer `UIScreenPreviewBuilder` ou équivalent
@@ -731,6 +731,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 2.2 `feat: add screen document to XAML serializer`
 - 🟢 2.3 `test: add screen XAML round-trip coverage`
 - 🟢 2.4 `docs: add screen editor XAML support matrix`
+- 🟢 3.1 `feat: add runtime preview builder for UI screens`
 
 ---
 
