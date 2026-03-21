@@ -185,7 +185,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add screen document to XAML serializer`
 
 ### 2.3 Ajouter des tests de round-trip
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : garantir la stabilité ouverture/sauvegarde.
 - Actions :
   - parser un XAML
@@ -729,6 +729,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 1.4 `test: cover screen document model basics`
 - 🟢 2.1 `feat: add XAML to screen document parser`
 - 🟢 2.2 `feat: add screen document to XAML serializer`
+- 🟢 2.3 `test: add screen XAML round-trip coverage`
 
 ---
 
