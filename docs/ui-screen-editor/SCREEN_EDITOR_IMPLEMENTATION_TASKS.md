@@ -241,7 +241,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UI screen preview host in editor`
 
 ### 3.3 Gérer le reload de preview
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rafraîchir proprement la preview à chaque changement.
 - Actions :
   - définir une stratégie simple : rebuild total v1
@@ -733,6 +733,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 2.4 `docs: add screen editor XAML support matrix`
 - 🟢 3.1 `feat: add runtime preview builder for UI screens`
 - 🟢 3.2 `feat: add UI screen preview host in editor`
+- 🟢 3.3 `feat: support preview reload for UI screen editor`
 
 ---
 

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using CasaEngine.Core.Log;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Engine;
@@ -9,6 +10,7 @@ using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -23,6 +25,13 @@ public sealed class UIScreenPreviewPanel
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGBorder? _previewSurface;
+    private readonly object _reloadSync = new();
+    private string? _loadedAssetFilePath;
+    private string? _loadedSourceXamlPath;
+    private bool _reloadRequested;
+    private string _reloadReason = string.Empty;
+    private FileSystemWatcher? _assetWatcher;
+    private FileSystemWatcher? _sourceXamlWatcher;
 
     public UIScreenPreviewPanel(MGWindow window)
     {
@@ -93,6 +102,10 @@ public sealed class UIScreenPreviewPanel
         try
         {
             var sourceXamlPath = ResolveSourceXamlPath(asset, assetFilePath);
+            ConfigureWatchers(assetFilePath, sourceXamlPath);
+            _loadedAssetFilePath = assetFilePath;
+            _loadedSourceXamlPath = sourceXamlPath;
+
             var document = _xamlParser.ParseFile(sourceXamlPath);
             var previewWindow = _previewBuilder.Build(_window.GetDesktop(), document);
             previewWindow.IsHitTestVisible = false;
@@ -109,6 +122,121 @@ public sealed class UIScreenPreviewPanel
 
             _statusText!.Text = "Preview build failed.";
         }
+    }
+
+    public void Update()
+    {
+        string? reloadReason = null;
+
+        lock (_reloadSync)
+        {
+            if (_reloadRequested)
+            {
+                _reloadRequested = false;
+                reloadReason = _reloadReason;
+                _reloadReason = string.Empty;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(reloadReason))
+        {
+            ReloadFromDisk(reloadReason);
+        }
+    }
+
+    private void ReloadFromDisk(string reloadReason)
+    {
+        if (string.IsNullOrWhiteSpace(_loadedAssetFilePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var asset = ReadAssetFromFile(_loadedAssetFilePath);
+            LoadAsset(asset, _loadedAssetFilePath);
+            Logs.WriteInfo($"Reloaded UI screen preview '{asset.Name}' ({reloadReason}).");
+            _statusText!.Text = $"Reloaded ({EscapeMarkup(reloadReason)})";
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteException(new Exception($"Failed to reload UI screen preview '{_loadedAssetFilePath}' ({reloadReason}).", ex));
+            _statusText!.Text = "Preview reload failed.";
+        }
+    }
+
+    private void ConfigureWatchers(string assetFilePath, string sourceXamlPath)
+    {
+        ConfigureWatcher(ref _assetWatcher, assetFilePath);
+        ConfigureWatcher(ref _sourceXamlWatcher, sourceXamlPath);
+    }
+
+    private void ConfigureWatcher(ref FileSystemWatcher? watcher, string filePath)
+    {
+        string fullPath = Path.GetFullPath(filePath);
+        string directory = Path.GetDirectoryName(fullPath) ?? throw new InvalidOperationException("Watcher path must have a directory.");
+        string fileName = Path.GetFileName(fullPath);
+
+        if (watcher != null)
+        {
+            bool sameWatcher = string.Equals(watcher.Path, directory, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(watcher.Filter, fileName, StringComparison.OrdinalIgnoreCase);
+            if (sameWatcher)
+            {
+                return;
+            }
+
+            watcher.EnableRaisingEvents = false;
+            watcher.Changed -= OnWatchedFileChanged;
+            watcher.Created -= OnWatchedFileChanged;
+            watcher.Deleted -= OnWatchedFileChanged;
+            watcher.Renamed -= OnWatchedFileRenamed;
+            watcher.Dispose();
+        }
+
+        watcher = new FileSystemWatcher(directory, fileName)
+        {
+            NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.CreationTime | NotifyFilters.Size,
+            IncludeSubdirectories = false,
+        };
+        watcher.Changed += OnWatchedFileChanged;
+        watcher.Created += OnWatchedFileChanged;
+        watcher.Deleted += OnWatchedFileChanged;
+        watcher.Renamed += OnWatchedFileRenamed;
+        watcher.EnableRaisingEvents = true;
+    }
+
+    private void OnWatchedFileChanged(object sender, FileSystemEventArgs e)
+    {
+        RequestReload($"{e.ChangeType}: {Path.GetFileName(e.FullPath)}");
+    }
+
+    private void OnWatchedFileRenamed(object sender, RenamedEventArgs e)
+    {
+        RequestReload($"Renamed: {Path.GetFileName(e.OldFullPath)} -> {Path.GetFileName(e.FullPath)}");
+    }
+
+    private void RequestReload(string reason)
+    {
+        lock (_reloadSync)
+        {
+            _reloadRequested = true;
+            _reloadReason = reason;
+        }
+    }
+
+    private static UIScreenAsset ReadAssetFromFile(string assetFilePath)
+    {
+        var document = JObject.Parse(File.ReadAllText(assetFilePath));
+        if (document["source_xaml_file"] == null)
+        {
+            throw new InvalidOperationException("UIScreen asset is missing 'source_xaml_file'.");
+        }
+
+        var asset = new UIScreenAsset();
+        asset.Load(document);
+        asset.FileName = Path.GetRelativePath(EngineEnvironment.ProjectPath, assetFilePath);
+        return asset;
     }
 
     private static string ResolveSourceXamlPath(UIScreenAsset asset, string assetFilePath)

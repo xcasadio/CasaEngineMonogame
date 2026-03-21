@@ -1110,6 +1110,11 @@ namespace CasaEngine.Editor
                 _fpsSampleFrames = 0;
             }
 
+            foreach (var previewPanel in _screenPreviewPanels.Values)
+            {
+                previewPanel.Update();
+            }
+
             _desktop.Update();
             ProcessPendingProjectLauncherAction();
             _editorRuntime?.UpdateHost(gameTime);
