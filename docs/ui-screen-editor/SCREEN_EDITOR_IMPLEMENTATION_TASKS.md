@@ -140,7 +140,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add design-time metadata to screen document`
 
 ### 1.4 Ajouter des tests unitaires sur le document model
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : stabiliser tôt la structure centrale.
 - Actions :
   - tester création de nœuds
@@ -726,6 +726,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 1.1 `feat: add UIScreen asset type`
 - 🟢 1.2 `feat: add UI screen document model`
 - 🟢 1.3 `feat: add design-time metadata to screen document`
+- 🟢 1.4 `test: cover screen document model basics`
 
 ---
 
