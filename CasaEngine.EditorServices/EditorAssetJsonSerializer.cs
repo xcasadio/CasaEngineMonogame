@@ -6,6 +6,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Materials;
 using Newtonsoft.Json.Linq;
@@ -61,6 +62,10 @@ internal static class EditorAssetJsonSerializer
 
             case TileSetData tileSetData:
                 SaveTileSetData(tileSetData, rootObject);
+                return true;
+
+            case UIScreenAsset uiScreenAsset:
+                SaveUIScreenAsset(uiScreenAsset, rootObject);
                 return true;
 
             case Texture texture:
@@ -228,6 +233,19 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("tiles", tilesArray);
+    }
+
+    private static void SaveUIScreenAsset(UIScreenAsset uiScreenAsset, JObject node)
+    {
+        SaveObjectBase(uiScreenAsset, node);
+        node.Add("source_xaml_file", uiScreenAsset.SourceXamlFile);
+        node.Add("theme_name", uiScreenAsset.ThemeName);
+
+        var previewResolutionNode = new JObject();
+        uiScreenAsset.PreviewResolution.Save(previewResolutionNode);
+        node.Add("preview_resolution", previewResolutionNode);
+
+        node.Add("resource_files", new JArray(uiScreenAsset.ResourceFiles));
     }
 
     private static void SaveTileMapLayerData(TileMapLayerData layer, JObject node)

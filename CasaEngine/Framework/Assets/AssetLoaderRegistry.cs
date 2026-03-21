@@ -6,6 +6,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
@@ -31,6 +32,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(Texture), new AssetLoader<Texture>());
         assetContentManager.RegisterAssetLoader(typeof(TileMapData), new AssetLoader<TileMapData>());
         assetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
+        assetContentManager.RegisterAssetLoader(typeof(UIScreenAsset), new AssetLoader<UIScreenAsset>());
         assetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
         assetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
         assetContentManager.RegisterAssetLoader(typeof(MaterialBase), new MaterialLoader());

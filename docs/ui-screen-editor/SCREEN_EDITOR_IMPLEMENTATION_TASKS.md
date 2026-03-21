@@ -98,7 +98,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 1 - Asset et document model
 
 ### 1.1 Introduire le type d’asset UIScreen
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : disposer d’un asset officiel côté CasaEngine.
 - Actions :
   - créer un type `UIScreenAsset`
@@ -723,6 +723,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 0.1 `docs: initialize screen editor feature documentation`
 - 🟢 0.2 `docs: map screen editor integration points`
 - 🟢 0.3 `docs: define target architecture for screen editor`
+- 🟢 1.1 `feat: add UIScreen asset type`
 
 ---
 
