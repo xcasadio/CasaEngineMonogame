@@ -8,6 +8,7 @@ using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Input;
 using FontStashSharp;
 using MGUI.Core.UI;
@@ -72,6 +73,7 @@ namespace CasaEngine.Editor
         private MGElement _entityDetailsContent;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
+        private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
@@ -296,6 +298,7 @@ namespace CasaEngine.Editor
             bottomGroup.SetActivePanel(contentBrowserPanel.Id);
 
             var centerGroup = new DockTabGroupNode();
+            centerGroup.IsDocumentArea = true;
             centerGroup.AddPanel(scenePanel, -1);
             centerGroup.SetActivePanel(scenePanel.Id);
 
@@ -473,7 +476,12 @@ namespace CasaEngine.Editor
 
         private MGElement GetOrCreateContentBrowserContent()
         {
-            _contentBrowserPanel ??= new ContentBrowserPanel(_mainWindow);
+            if (_contentBrowserPanel == null)
+            {
+                _contentBrowserPanel = new ContentBrowserPanel(_mainWindow);
+                _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
+            }
+
             _contentBrowserContent ??= _contentBrowserPanel.CreateContent();
             return _contentBrowserContent;
         }
@@ -779,7 +787,7 @@ namespace CasaEngine.Editor
 
         private void SaveCurrentProject()
         {
-            if (string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectFileOpened))
+            if (string.IsNullOrWhiteSpace(EditorProjectSession.CurrentProjectFilePath))
             {
                 Logs.WriteWarning("No project is currently loaded.");
                 return;
@@ -787,7 +795,7 @@ namespace CasaEngine.Editor
 
             EditorProjectAuthoringService.SaveProject();
             EditorAssetCatalogService.Save();
-            Logs.WriteInfo($"Project saved: {GameSettings.ProjectSettings.ProjectFileOpened}");
+            Logs.WriteInfo($"Project saved: {EditorProjectSession.CurrentProjectFilePath}");
         }
 
         private void SaveDockLayout()
@@ -913,7 +921,7 @@ namespace CasaEngine.Editor
 
         private string GetCurrentProjectDirectory()
         {
-            var projectFile = GameSettings.ProjectSettings.ProjectFileOpened;
+            var projectFile = EditorProjectSession.CurrentProjectFilePath;
             if (!string.IsNullOrWhiteSpace(projectFile))
             {
                 var directory = Path.GetDirectoryName(projectFile);
@@ -934,6 +942,108 @@ namespace CasaEngine.Editor
         private void OnEntitiesPanelEntityDoubleClicked(Entity entity)
         {
             _worldViewportPanel?.FocusEntity(entity);
+        }
+
+        private void OnContentBrowserFileOpened(ContentBrowser.Models.ContentItem item)
+        {
+            TryOpenUIScreenAsset(item.FullPath);
+        }
+
+        private bool TryOpenUIScreenAsset(string fullPath)
+        {
+            if (!TryLoadUIScreenAsset(fullPath, out var screenAsset))
+            {
+                return false;
+            }
+
+            EnsureDockHostInitialized();
+
+            var panelId = $"panel_ui_screen_{screenAsset.Id:N}";
+            if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
+            {
+                previewPanel = new UIScreenPreviewPanel(_mainWindow);
+                _screenPreviewPanels.Add(panelId, previewPanel);
+            }
+
+            previewPanel.LoadAsset(screenAsset, fullPath);
+
+            var existingPanel = _dockHost?.FindPanel(panelId);
+            if (existingPanel == null)
+            {
+                var panelNode = new DockPanelNode(panelId)
+                {
+                    Title = string.IsNullOrWhiteSpace(screenAsset.Name) ? Path.GetFileNameWithoutExtension(fullPath) : screenAsset.Name,
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = previewPanel.CreateContent,
+                };
+
+                var targetGroup = GetDocumentDockGroup();
+                if (targetGroup == null)
+                {
+                    return false;
+                }
+
+                DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+            }
+            else
+            {
+                existingPanel.Title = string.IsNullOrWhiteSpace(screenAsset.Name) ? existingPanel.Title : screenAsset.Name;
+            }
+
+            ActivateDockPanel(panelId);
+            return true;
+        }
+
+        private DockTabGroupNode? GetDocumentDockGroup()
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return null;
+            }
+
+            return _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.IsDocumentArea)
+                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.Panels.Any(panel => panel.Id == WorldViewportPanelId))
+                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault();
+        }
+
+        private static bool TryLoadUIScreenAsset(string fullPath, out UIScreenAsset screenAsset)
+        {
+            screenAsset = new UIScreenAsset();
+
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                var document = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(fullPath));
+                if (document["source_xaml_file"] == null)
+                {
+                    return false;
+                }
+
+                screenAsset.Load(document);
+                screenAsset.FileName = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+
+                var assetInfo = AssetCatalog.GetByFileName(screenAsset.FileName)
+                    ?? AssetCatalog.GetByFileName(screenAsset.FileName.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (assetInfo != null)
+                {
+                    screenAsset.Name = assetInfo.Name;
+                    screenAsset.AssetId = assetInfo.Id;
+                    screenAsset.FileName = assetInfo.FileName;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void OnViewportSelectedEntityChanged(Entity? entity)

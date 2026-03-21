@@ -229,7 +229,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add runtime preview builder for UI screens`
 
 ### 3.2 Ajouter un host de preview dans CasaEngine
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : afficher le screen dans un éditeur dédié.
 - Actions :
   - créer un host/editor view pour la preview
@@ -732,6 +732,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 2.3 `test: add screen XAML round-trip coverage`
 - 🟢 2.4 `docs: add screen editor XAML support matrix`
 - 🟢 3.1 `feat: add runtime preview builder for UI screens`
+- 🟢 3.2 `feat: add UI screen preview host in editor`
 
 ---
 
