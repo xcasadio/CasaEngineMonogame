@@ -253,7 +253,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: support preview reload for UI screen editor`
 
 ### 3.4 Ajouter gestion d’erreur et fallback visuel
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : ne pas casser l’éditeur si le screen est invalide.
 - Actions :
   - capturer erreurs parser / build / preview
@@ -734,6 +734,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 3.1 `feat: add runtime preview builder for UI screens`
 - 🟢 3.2 `feat: add UI screen preview host in editor`
 - 🟢 3.3 `feat: support preview reload for UI screen editor`
+- 🟢 3.4 `feat: add preview error fallback for screen editor`
 
 ---
 

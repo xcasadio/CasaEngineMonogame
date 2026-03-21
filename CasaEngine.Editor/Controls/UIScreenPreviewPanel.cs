@@ -115,11 +115,7 @@ public sealed class UIScreenPreviewPanel
         }
         catch (Exception ex)
         {
-            _previewSurface!.SetContent(new MGTextBlock(_window, $"[c=Orange]Preview unavailable[/c]\n{EscapeMarkup(ex.Message)}")
-            {
-                WrapText = true,
-            });
-
+            ShowPreviewError("Preview unavailable", ex.Message, asset.SourceXamlFile);
             _statusText!.Text = "Preview build failed.";
         }
     }
@@ -161,8 +157,46 @@ public sealed class UIScreenPreviewPanel
         catch (Exception ex)
         {
             Logs.WriteException(new Exception($"Failed to reload UI screen preview '{_loadedAssetFilePath}' ({reloadReason}).", ex));
+            ShowPreviewError("Preview reload failed", ex.Message, _loadedSourceXamlPath ?? _loadedAssetFilePath ?? string.Empty);
             _statusText!.Text = "Preview reload failed.";
         }
+    }
+
+    private void ShowPreviewError(string title, string message, string sourcePath)
+    {
+        var errorPanel = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 8,
+            Padding = new Thickness(8),
+            PreferredWidth = 520,
+        };
+
+        errorPanel.TryAddChild(new MGTextBlock(_window, $"[b][c=Orange]{EscapeMarkup(title)}[/c][/b]")
+        {
+            WrapText = true,
+        });
+
+        errorPanel.TryAddChild(new MGTextBlock(_window, EscapeMarkup(message))
+        {
+            WrapText = true,
+        });
+
+        if (!string.IsNullOrWhiteSpace(sourcePath))
+        {
+            errorPanel.TryAddChild(new MGTextBlock(_window, $"Source: {EscapeMarkup(sourcePath)}")
+            {
+                WrapText = true,
+                Opacity = 0.8f,
+            });
+        }
+
+        errorPanel.TryAddChild(new MGTextBlock(_window, "Save the asset or its XAML source again to trigger a full preview rebuild.")
+        {
+            WrapText = true,
+            Opacity = 0.85f,
+        });
+
+        _previewSurface!.SetContent(errorPanel);
     }
 
     private void ConfigureWatchers(string assetFilePath, string sourceXamlPath)
