@@ -299,7 +299,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add open save reload workflow for UI screens`
 
 ### 4.3 Ajouter tests sur la session
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : sécuriser les transitions d’état.
 - Actions :
   - tests dirty / save / reload
@@ -736,6 +736,7 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 3.3 `feat: support preview reload for UI screen editor`
 - 🟢 3.4 `feat: add preview error fallback for screen editor`
 - 🟢 4.1-4.2 `feat: add UI screen editor session workflow`
+- 🟢 4.3 `test: cover UI screen editor session workflow`
 
 ---
 
