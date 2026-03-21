@@ -76,7 +76,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `docs: map screen editor integration points`
 
 ### 0.3 Définir l’architecture cible du screen editor
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : verrouiller la séparation des couches avant de coder.
 - Actions :
   - créer un document `architecture.md`
@@ -722,6 +722,7 @@ Ajouter une ligne après chaque tâche terminée.
 
 - 🟢 0.1 `docs: initialize screen editor feature documentation`
 - 🟢 0.2 `docs: map screen editor integration points`
+- 🟢 0.3 `docs: define target architecture for screen editor`
 
 ---
 
