@@ -1,6 +1,12 @@
 {
   "asset_infos": [
     {
+      "id": "5b65a744-7adb-4d93-bca0-6afe15a6d6ec",
+      "name": "Main Menu",
+      "file_name": "Screens\\main-menu.uiscreen",
+      "asset_type": "uiscreen"
+    },
+    {
       "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
       "file_name": "DefaultWorld.world"
     },

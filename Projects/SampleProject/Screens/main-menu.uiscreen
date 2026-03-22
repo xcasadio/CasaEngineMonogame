@@ -1,0 +1,11 @@
+{
+  "id": "5b65a744-7adb-4d93-bca0-6afe15a6d6ec",
+  "name": "Main Menu",
+  "source_xaml_file": "main-menu.xaml",
+  "theme_name": "",
+  "preview_resolution": {
+    "x": 1920,
+    "y": 1080
+  },
+  "resource_files": []
+}

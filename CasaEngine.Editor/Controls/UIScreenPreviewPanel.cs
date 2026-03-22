@@ -196,7 +196,31 @@ public sealed class UIScreenPreviewPanel
             Opacity = 0.85f,
         });
 
+        var clipboardText = string.IsNullOrWhiteSpace(sourcePath)
+            ? $"{title}\n{message}"
+            : $"{title}\n{message}\nSource: {sourcePath}";
+
+        var copyButton = new MGButton(_window, _ => CopyToClipboard(clipboardText))
+        {
+            Padding = new Thickness(6, 2, 6, 2),
+            HorizontalAlignment = HorizontalAlignment.Left,
+        };
+        copyButton.SetContent(new MGTextBlock(_window, "Copy error"));
+        errorPanel.TryAddChild(copyButton);
+
         _previewSurface!.SetContent(errorPanel);
+    }
+
+    private static void CopyToClipboard(string text)
+    {
+        try
+        {
+            System.Windows.Forms.Clipboard.SetText(text);
+        }
+        catch
+        {
+            // clipboard access can fail in some environments; silently ignore
+        }
     }
 
     private void ConfigureWatchers(string assetFilePath, string sourceXamlPath)
