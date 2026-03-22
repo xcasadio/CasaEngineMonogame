@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
@@ -9,6 +10,7 @@ using CasaEngine.Framework.GUI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
+using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using Newtonsoft.Json.Linq;
@@ -26,6 +28,7 @@ public sealed class UIScreenPreviewPanel
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGBorder? _previewSurface;
+    private IReadOnlyDictionary<DocumentNodeId, MGElement> _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
     private readonly object _reloadSync = new();
     private string? _loadedAssetFilePath;
     private string? _loadedSourceXamlPath;
@@ -80,6 +83,7 @@ public sealed class UIScreenPreviewPanel
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
         };
+        _previewSurface.MouseHandler.LMBPressedInside += OnPreviewClicked;
 
         var previewScrollViewer = new MGScrollViewer(_window);
         previewScrollViewer.SetContent(_previewSurface);
@@ -93,6 +97,9 @@ public sealed class UIScreenPreviewPanel
 
     /// <summary>Fired after the document is successfully parsed, or <c>null</c> when load fails.</summary>
     public event Action<UIScreenDocument?>? DocumentLoaded;
+
+    /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
+    public event Action<DocumentNodeId?>? NodePicked;
 
     public void LoadAsset(UIScreenAsset asset, string assetFilePath)
     {
@@ -113,7 +120,8 @@ public sealed class UIScreenPreviewPanel
             var document = _xamlParser.ParseFile(sourceXamlPath);
             DocumentLoaded?.Invoke(document);
 
-            var previewWindow = _previewBuilder.Build(_window.GetDesktop(), document);
+            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
+            _nodeMap = nodeMap;
             previewWindow.IsHitTestVisible = false;
 
             _previewSurface!.SetContent(previewWindow);
@@ -121,6 +129,7 @@ public sealed class UIScreenPreviewPanel
         }
         catch (Exception ex)
         {
+            _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
             DocumentLoaded?.Invoke(null);
             ShowPreviewError("Preview unavailable", ex.Message, asset.SourceXamlFile);
             _statusText!.Text = "Preview build failed.";
@@ -344,4 +353,29 @@ public sealed class UIScreenPreviewPanel
         => value
             .Replace("[", "\\[")
             .Replace("]", "\\]");
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Preview picking
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void OnPreviewClicked(object? sender, BaseMousePressedEventArgs e)
+    {
+        var click = e.Position;
+
+        DocumentNodeId? bestId = null;
+        var bestArea = int.MaxValue;
+
+        foreach (var (nodeId, element) in _nodeMap)
+        {
+            var bounds = element.LayoutBounds;
+            var area = bounds.Width * bounds.Height;
+            if (bounds.Contains(click) && area < bestArea)
+            {
+                bestId = nodeId;
+                bestArea = area;
+            }
+        }
+
+        NodePicked?.Invoke(bestId);
+    }
 }

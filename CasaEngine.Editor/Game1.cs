@@ -988,6 +988,11 @@ namespace CasaEngine.Editor
             {
                 previewPanel = new UIScreenPreviewPanel(_mainWindow);
                 previewPanel.DocumentLoaded += doc => _screenHierarchyPanel?.SetDocument(doc);
+                previewPanel.NodePicked += id =>
+                {
+                    if (id.HasValue) _screenSelection.Select(id.Value);
+                    else _screenSelection.ClearSelection();
+                };
                 _screenPreviewPanels.Add(panelId, previewPanel);
             }
 
