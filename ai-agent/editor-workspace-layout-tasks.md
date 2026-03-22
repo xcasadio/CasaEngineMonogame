@@ -268,7 +268,7 @@ Notes : la création, l'activation, le reset et la restauration des layouts pass
 **Commit attendu :**
 - `feat(editor): activate world workspace on project load`
 
-Commit : `PENDING` - `feat(editor): activate world workspace on project load`
+Commit : `36ffe7dd` - `feat(editor): activate world workspace on project load`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : le chargement de projet réactive explicitement le workspace World et restaure son layout dédié si disponible
 
@@ -276,7 +276,7 @@ Notes : le chargement de projet réactive explicitement le workspace World et re
 
 ### Phase 4 — Brancher les documents au bon workspace
 
-#### ⏳ Tâche 4.1 — Faire piloter le workspace par le document actif
+#### ✅ Tâche 4.1 — Faire piloter le workspace par le document actif
 
 **Objectif :** faire de l'onglet document actif la source de vérité du mode courant.
 
@@ -291,6 +291,10 @@ Notes : le chargement de projet réactive explicitement le workspace World et re
 
 **Commit attendu :**
 - `feat(editor): switch workspace from active document`
+
+Commit : `PENDING` - `feat(editor): switch workspace from active document`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : la bascule World/UIScreen suit désormais le document actif et préserve les onglets document connus lors d'un changement de workspace
 
 ---
 

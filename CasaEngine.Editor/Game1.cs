@@ -78,6 +78,7 @@ namespace CasaEngine.Editor
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly UICommandStack _screenCommandStack = new();
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
@@ -95,6 +96,7 @@ namespace CasaEngine.Editor
         private FrameCachedWindowInputSource _windowInputSource;
         private readonly EditorSelection _editorSelection = EditorSelection.Current;
         private bool _isSynchronizingEntitySelection;
+        private bool _isSwitchingWorkspace;
         private Entity _selectedEntity;
         private TimeSpan _fpsSampleElapsed;
         private int _fpsSampleFrames;
@@ -754,9 +756,33 @@ namespace CasaEngine.Editor
 
         private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)
         {
+            if (_isSwitchingWorkspace)
+            {
+                RefreshStatusBar();
+                return;
+            }
+
             if (panel.Id == EditorPanelIds.Output)
             {
                 _logsPanel?.Refresh();
+            }
+
+            if (panel.Id == EditorPanelIds.WorldViewport)
+            {
+                if (_activeWorkspaceId != EditorWorkspaceId.World)
+                {
+                    SwitchWorkspace(EditorWorkspaceId.World, EditorPanelIds.WorldViewport, preferPersistedLayout: true, logOutcome: false);
+                    return;
+                }
+            }
+            else if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
+            {
+                SetActiveScreenPreviewPanel(previewPanel);
+                if (_activeWorkspaceId != EditorWorkspaceId.UIScreen)
+                {
+                    SwitchWorkspace(EditorWorkspaceId.UIScreen, panel.Id, preferPersistedLayout: true, logOutcome: false);
+                    return;
+                }
             }
 
             RefreshStatusBar();
@@ -1244,14 +1270,18 @@ namespace CasaEngine.Editor
             }
 
             previewPanel.LoadAsset(screenAsset, fullPath);
-            _activeScreenPreviewPanel = previewPanel;
+            var panelTitle = string.IsNullOrWhiteSpace(screenAsset.Name) ? Path.GetFileNameWithoutExtension(fullPath) : screenAsset.Name;
+            _screenPreviewPanelTitles[panelId] = panelTitle;
+            SetActiveScreenPreviewPanel(previewPanel);
+
+            SwitchWorkspace(EditorWorkspaceId.UIScreen, panelId, preferPersistedLayout: true, logOutcome: false);
 
             var existingPanel = _dockHost?.FindPanel(panelId);
             if (existingPanel == null)
             {
                 var panelNode = new DockPanelNode(panelId)
                 {
-                    Title = string.IsNullOrWhiteSpace(screenAsset.Name) ? Path.GetFileNameWithoutExtension(fullPath) : screenAsset.Name,
+                    Title = panelTitle,
                     DockableType = DockableType.Document,
                     CanClose = true,
                     CanFloat = true,
@@ -1269,11 +1299,137 @@ namespace CasaEngine.Editor
             }
             else
             {
-                existingPanel.Title = string.IsNullOrWhiteSpace(screenAsset.Name) ? existingPanel.Title : screenAsset.Name;
+                existingPanel.Title = panelTitle;
             }
 
             ActivateDockPanel(panelId);
             return true;
+        }
+
+        private void SwitchWorkspace(EditorWorkspaceId workspaceId, string? activePanelId, bool preferPersistedLayout, bool logOutcome)
+        {
+            if (_workspaceManager == null || _dockHost == null)
+            {
+                return;
+            }
+
+            var openDocumentPanelIds = GetOpenDocumentPanelIds();
+            if (!string.IsNullOrWhiteSpace(activePanelId) && !openDocumentPanelIds.Contains(activePanelId))
+            {
+                openDocumentPanelIds.Add(activePanelId);
+            }
+
+            _isSwitchingWorkspace = true;
+            try
+            {
+                _workspaceManager.ActivateWorkspace(workspaceId, preferPersistedLayout, logOutcome);
+                RestoreDocumentPanels(openDocumentPanelIds);
+
+                if (!string.IsNullOrWhiteSpace(activePanelId))
+                {
+                    ActivateDockPanel(activePanelId);
+                }
+            }
+            finally
+            {
+                _isSwitchingWorkspace = false;
+            }
+        }
+
+        private List<string> GetOpenDocumentPanelIds()
+        {
+            var result = new List<string>();
+            if (_dockHost?.LayoutModel == null)
+            {
+                return result;
+            }
+
+            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
+            {
+                if (!group.IsDocumentArea)
+                {
+                    continue;
+                }
+
+                foreach (var panel in group.Panels)
+                {
+                    if (!result.Contains(panel.Id))
+                    {
+                        result.Add(panel.Id);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private void RestoreDocumentPanels(IReadOnlyList<string> panelIds)
+        {
+            var targetGroup = GetDocumentDockGroup();
+            if (targetGroup == null || _dockHost?.LayoutModel == null)
+            {
+                return;
+            }
+
+            foreach (var panelId in panelIds)
+            {
+                if (targetGroup.Panels.Any(panel => panel.Id == panelId))
+                {
+                    continue;
+                }
+
+                var panelNode = CreateDocumentPanelNode(panelId);
+                if (panelNode == null)
+                {
+                    continue;
+                }
+
+                DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, targetGroup);
+            }
+        }
+
+        private DockPanelNode? CreateDocumentPanelNode(string panelId)
+        {
+            if (_panelRegistry != null
+                && _panelRegistry.TryGetDescriptor(panelId, out var descriptor)
+                && descriptor.Kind == EditorPanelKind.Document)
+            {
+                return new DockPanelNode(descriptor.Id)
+                {
+                    Title = descriptor.Title,
+                    DockableType = DockableType.Document,
+                    CanClose = descriptor.CanClose,
+                    CanFloat = descriptor.CanFloat,
+                    CanAutoHide = descriptor.CanAutoHide,
+                    ContentFactory = descriptor.ContentFactory,
+                };
+            }
+
+            if (TryGetUIScreenPreviewPanel(panelId, out var previewPanel))
+            {
+                return new DockPanelNode(panelId)
+                {
+                    Title = _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = previewPanel.CreateContent,
+                };
+            }
+
+            return null;
+        }
+
+        private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
+        {
+            return panelId.StartsWith(EditorPanelIds.UIScreenDocumentPrefix, StringComparison.Ordinal)
+                && _screenPreviewPanels.TryGetValue(panelId, out previewPanel!);
+        }
+
+        private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
+        {
+            _activeScreenPreviewPanel = previewPanel;
         }
 
         private DockTabGroupNode? GetDocumentDockGroup()
