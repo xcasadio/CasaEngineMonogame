@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.EditorServices.ScreenEditor;
+using CasaEngine.EditorServices.ScreenEditor.Selection;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
@@ -18,6 +19,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
 
+/// <summary>Which corner handle initiated the resize drag.</summary>
+public enum ResizeAnchor { TopLeft, TopRight, BottomLeft, BottomRight }
+
 public sealed class UIScreenPreviewPanel
 {
     private readonly MGWindow _window;
@@ -28,8 +32,10 @@ public sealed class UIScreenPreviewPanel
     private MGTextBlock? _titleText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
+    private MGTextBlock? _coordinateText;   // Q-03: cursor coordinate display
     private MGBorder? _previewSurface;
     private IReadOnlyDictionary<DocumentNodeId, MGElement> _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+    private UIScreenSelectionService? _selectionService;
     private UIScreenDocument? _currentDocument;
     private readonly object _reloadSync = new();
     private string? _loadedAssetFilePath;
@@ -41,13 +47,19 @@ public sealed class UIScreenPreviewPanel
 
     // ── drag-to-move / drag-to-resize state ──────────────────────────────
     private DocumentNodeId? _draggingNodeId;
-    private bool _isDraggingResize;
+    private ResizeAnchor? _resizeAnchor;   // null = move drag
     private const int ResizeHandleSize = 12;
     private const int MinDragThreshold = 3;
 
     // ── resolution presets ───────────────────────────────────────────────
     private int _previewWidth = 1280;
     private int _previewHeight = 720;
+
+    // ── zoom ─────────────────────────────────────────────────────────────
+    private float _zoomFactor = 1f;
+    private const float ZoomStep = 0.25f;
+    private const float ZoomMin = 0.25f;
+    private const float ZoomMax = 4f;
 
     private static readonly (string Label, int W, int H)[] ResolutionPresets =
     {
@@ -57,8 +69,18 @@ public sealed class UIScreenPreviewPanel
         ("768×1024",  768,  1024),
     };
 
+    /// <summary>Provides selection state for drawing the overlay. Must be set before the panel is drawn.</summary>
+    public void SetSelectionService(UIScreenSelectionService service)
+        => _selectionService = service;
+
     /// <summary>When true, a grid overlay is drawn over the preview surface by the editor.</summary>
     public bool ShowGrid { get; private set; }
+
+    /// <summary>When true, drag-to-move snaps to the 32-pixel grid.</summary>
+    public bool SnapToGrid { get; private set; }
+
+    /// <summary>Current zoom factor (1 = 100%).</summary>
+    public float ZoomFactor => _zoomFactor;
 
     /// <summary>Returns the screen-space bounds of the preview surface, or null if not yet created.
     /// Uses <see cref="MGElement.ActualLayoutBounds"/> which accounts for clipping by parent containers
@@ -120,7 +142,57 @@ public sealed class UIScreenPreviewPanel
         gridToggle.SetContent(new MGTextBlock(_window, "Grid"));
         resolutionRow.TryAddChild(gridToggle);
 
+        // ── Snap-to-grid toggle ───────────────────────────────────────────
+        var snapToggle = new MGButton(_window, _ => SnapToGrid = !SnapToGrid)
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+            Margin = new Thickness(4, 0, 0, 0),
+        };
+        snapToggle.SetContent(new MGTextBlock(_window, "Snap"));
+        resolutionRow.TryAddChild(snapToggle);
+
+        // ── Zoom controls ─────────────────────────────────────────────────
+        var zoomOutBtn = new MGButton(_window, _ => SetZoom(_zoomFactor - ZoomStep))
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        zoomOutBtn.SetContent(new MGTextBlock(_window, "−"));
+        resolutionRow.TryAddChild(zoomOutBtn);
+
+        var zoomResetBtn = new MGButton(_window, _ => SetZoom(1f))
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+        };
+        zoomResetBtn.SetContent(new MGTextBlock(_window, "100%"));
+        resolutionRow.TryAddChild(zoomResetBtn);
+
+        var zoomInBtn = new MGButton(_window, _ => SetZoom(_zoomFactor + ZoomStep))
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+        };
+        zoomInBtn.SetContent(new MGTextBlock(_window, "+"));
+        resolutionRow.TryAddChild(zoomInBtn);
+
+        // ── Export PNG ────────────────────────────────────────────────────
+        var exportBtn = new MGButton(_window, _ => ExportAsPng())
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        exportBtn.SetContent(new MGTextBlock(_window, "Export PNG"));
+        resolutionRow.TryAddChild(exportBtn);
+
         toolbar.TryAddChild(resolutionRow);
+
+        // ── Coordinate display (Q-03) ─────────────────────────────────────
+        _coordinateText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(4, 0, 4, 0),
+            Opacity = 0.7f,
+            FontSize = 10,
+        };
+        toolbar.TryAddChild(_coordinateText);
 
         _statusText = new MGTextBlock(_window, "Open a UIScreen asset from the Content Browser.")
         {
@@ -139,6 +211,8 @@ public sealed class UIScreenPreviewPanel
         _previewSurface.MouseHandler.LMBPressedInside += OnPreviewClicked;
         _previewSurface.MouseHandler.DragStart += OnPreviewDragStart;
         _previewSurface.MouseHandler.DragEnd += OnPreviewDragEnd;
+        _previewSurface.MouseHandler.MovedInside += OnPreviewMouseMoved;
+        _previewSurface.OnEndingDraw += OnPreviewSurfaceEndingDraw;
 
         var previewScrollViewer = new MGScrollViewer(_window);
         previewScrollViewer.SetContent(_previewSurface);
@@ -176,15 +250,129 @@ public sealed class UIScreenPreviewPanel
     /// <summary>Fired when the user drags a control to a new position. Args: nodeId, deltaX, deltaY.</summary>
     public event Action<DocumentNodeId, int, int>? NodeMoveRequested;
 
-    /// <summary>Fired when the user drags the resize handle. Args: nodeId, deltaWidth, deltaHeight.</summary>
-    public event Action<DocumentNodeId, int, int>? NodeResizeRequested;
+    /// <summary>Fired when the user drags a resize handle. Args: nodeId, anchor, deltaX, deltaY.</summary>
+    public event Action<DocumentNodeId, ResizeAnchor, int, int>? NodeResizeRequested;
 
     /// <summary>The node that is currently selected in the editor, used to scope drag operations.</summary>
     public DocumentNodeId? SelectedNodeId { get; set; }
 
+    // ─────────────────────────────────────────────────────────────────────
+    //  R-01: Incremental property update (avoids full preview rebuild)
+    // ─────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Tries to apply a single property change directly to the live <see cref="MGElement"/>
+    /// that maps to <paramref name="nodeId"/>, without triggering a full preview rebuild.
+    /// <para/>
+    /// Returns <c>true</c> when the patch was applied.
+    /// Returns <c>false</c> when the element or property is not patchable — callers should
+    /// fall back to <see cref="RefreshPreviewOnly"/> or <see cref="LoadDocumentDirectly"/>.
+    /// </summary>
+    public bool TryApplyPropertyUpdate(DocumentNodeId nodeId, string propertyName, string? value)
+    {
+        if (!_nodeMap.TryGetValue(nodeId, out var element))
+        {
+            return false;
+        }
+
+        return MGElementPropertyApplier.TryApply(element, propertyName, value);
+    }
+
+    /// <summary>
+    /// Rebuilds the preview from the current document without firing <see cref="DocumentLoaded"/>
+    /// (hierarchy and inspector panels are NOT notified).  Used for lightweight refresh after
+    /// property edits that fall through the incremental path.
+    /// </summary>
+    public void RefreshPreviewOnly()
+    {
+        if (_currentDocument == null)
+        {
+            return;
+        }
+
+        CreateContent();
+
+        try
+        {
+            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), _currentDocument, _previewWidth, _previewHeight);
+            _nodeMap = nodeMap;
+            previewWindow.IsHitTestVisible = false;
+            _previewSurface!.SetContent(previewWindow);
+            UIDesignModeContext.EnterDesignTime();
+        }
+        catch (Exception ex)
+        {
+            _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+            ShowPreviewError("Preview refresh failed", ex.Message, string.Empty);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Q-06: Zoom
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void SetZoom(float factor)
+    {
+        _zoomFactor = Math.Clamp(factor, ZoomMin, ZoomMax);
+
+        if (_previewSurface != null)
+        {
+            var scaledW = (int)(_previewWidth  * _zoomFactor);
+            var scaledH = (int)(_previewHeight * _zoomFactor);
+            _previewSurface.PreferredWidth  = scaledW;
+            _previewSurface.PreferredHeight = scaledH;
+        }
+
+        if (_statusText != null)
+        {
+            _statusText.Text = $"Zoom: {_zoomFactor * 100:F0}%";
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Q-08: Export as PNG
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void ExportAsPng()
+    {
+        // Request export via event so Game1 can supply a RenderTarget and GraphicsDevice
+        ExportPngRequested?.Invoke();
+    }
+
+    /// <summary>Fired when the user requests a PNG export.  Game1 handles the actual rendering.</summary>
+    public event Action? ExportPngRequested;
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Q-03: Cursor coordinate display
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void OnPreviewMouseMoved(object? sender, BaseMouseMovedEventArgs e)
+    {
+        if (_coordinateText == null)
+        {
+            return;
+        }
+
+        var pos = e.CurrentPosition;
+        var surface = PreviewSurfaceBounds;
+        if (surface.HasValue && surface.Value.Contains(pos))
+        {
+            var relative = pos - new Point(surface.Value.X, surface.Value.Y);
+            _coordinateText.Text = $"x:{relative.X}  y:{relative.Y}";
+        }
+        else
+        {
+            _coordinateText.Text = string.Empty;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Document loading
+    // ─────────────────────────────────────────────────────────────────────
+
     /// <summary>
     /// Rebuilds the preview from an already-parsed document without re-reading from disk.
-    /// Called after in-memory edits (e.g. node deletion).
+    /// Called after in-memory edits (e.g. node deletion). Fires <see cref="DocumentLoaded"/>.
     /// </summary>
     public void LoadDocumentDirectly(UIScreenDocument document)
     {
@@ -492,6 +680,18 @@ public sealed class UIScreenPreviewPanel
     {
         var click = e.Position;
 
+        // If the click lands on a resize handle of the currently-selected element, do NOT
+        // re-run the hit-test.  The selection stays unchanged so that OnPreviewDragStart
+        // can detect the correct anchor.  Without this guard the "smallest element wins"
+        // picker can replace SelectedNodeId with a child element whose corners don't match
+        // those of the selected parent, causing anchor detection to silently fail.
+        if (SelectedNodeId.HasValue)
+        {
+            var selBounds = GetElementBounds(SelectedNodeId.Value);
+            if (selBounds.HasValue && IsOnResizeHandle(selBounds.Value, click))
+                return;
+        }
+
         DocumentNodeId? bestId = null;
         var bestArea = int.MaxValue;
         var bestDepth = -1;
@@ -545,6 +745,15 @@ public sealed class UIScreenPreviewPanel
         return document.Root != null ? Recurse(document.Root, id, 0) : -1;
     }
 
+    private bool IsOnResizeHandle(Microsoft.Xna.Framework.Rectangle r, Microsoft.Xna.Framework.Point pos)
+    {
+        int h = ResizeHandleSize;
+        return new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,        h, h).Contains(pos)
+            || new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,        h, h).Contains(pos)
+            || new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)
+            || new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos);
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     //  Drag — move and resize
     // ─────────────────────────────────────────────────────────────────────
@@ -566,11 +775,15 @@ public sealed class UIScreenPreviewPanel
         }
 
         var r = bounds.Value;
-        var handleZone = new Microsoft.Xna.Framework.Rectangle(
-            r.Right - ResizeHandleSize, r.Bottom - ResizeHandleSize,
-            ResizeHandleSize, ResizeHandleSize);
+        int h = ResizeHandleSize;
+        var pos = e.Position;
+        _resizeAnchor = null;
 
-        _isDraggingResize = handleZone.Contains(e.Position);
+        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,            h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.TopLeft;
+        else if (new Microsoft.Xna.Framework.Rectangle(r.Right - h, r.Top,        h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.TopRight;
+        else if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.BottomLeft;
+        else if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.BottomRight;
+
         _draggingNodeId = nodeId;
     }
 
@@ -591,13 +804,86 @@ public sealed class UIScreenPreviewPanel
             return; // ignore noise
         }
 
-        if (_isDraggingResize)
+        if (_resizeAnchor.HasValue)
         {
-            NodeResizeRequested?.Invoke(nodeId, delta.X, delta.Y);
+            NodeResizeRequested?.Invoke(nodeId, _resizeAnchor.Value, delta.X, delta.Y);
         }
         else
         {
             NodeMoveRequested?.Invoke(nodeId, delta.X, delta.Y);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Selection / grid overlay — drawn via MGUI's draw pipeline so
+    //  visibility is automatically managed by the element's LayoutBounds.
+    //  OnEndingDraw fires only when _previewSurface is actually drawn,
+    //  so the overlay never appears on background tabs.
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void OnPreviewSurfaceEndingDraw(object? sender, MGElement.MGElementDrawEventArgs e)
+    {
+        if (ShowGrid)
+            DrawGridOverlay(e.DA);
+        if (_selectionService != null)
+            DrawSelectionHighlights(e.DA);
+    }
+
+    private void DrawGridOverlay(ElementDrawArgs da)
+    {
+        var clip = PreviewSurfaceBounds;
+        if (clip == null) return;
+
+        var r = clip.Value;
+        const int gridStep = 32;
+        var gridColor = new Color(255, 255, 255, 30);
+        var pixel = da.DT.WhitePixel;
+
+        for (int x = r.Left; x <= r.Right; x += gridStep)
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(x, r.Top, 1, r.Height), gridColor);
+        for (int y = r.Top; y <= r.Bottom; y += gridStep)
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left, y, r.Width, 1), gridColor);
+    }
+
+    private void DrawSelectionHighlights(ElementDrawArgs da)
+    {
+        var primaryId = _selectionService!.SelectedNodeId;
+        var selection = _selectionService.MultiSelection;
+
+        void DrawBorder(Microsoft.Xna.Framework.Rectangle r, Color color, bool withHandles)
+        {
+            const int t = 2;
+            const int h = 8;
+            var pixel = da.DT.WhitePixel;
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Top,           r.Width, t),       color);
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Bottom - t,    r.Width, t),       color);
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Top,           t,       r.Height), color);
+            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - t, r.Top,           t,       r.Height), color);
+            if (withHandles)
+            {
+                // 4 corner handles
+                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,            h, h), color);
+                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,            h, h), color);
+                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h,     h, h), color);
+                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h,     h, h), color);
+            }
+        }
+
+        foreach (var selId in selection)
+        {
+            var bounds = GetElementBounds(selId);
+            if (!bounds.HasValue) continue;
+            bool isPrimary = selId == primaryId;
+            var color = isPrimary ? new Color(0, 120, 215, 200) : new Color(0, 180, 100, 160);
+            DrawBorder(bounds.Value, color, isPrimary);
+        }
+
+        // Fallback: single selection when multi-selection is empty
+        if (selection.Count == 0 && primaryId.HasValue)
+        {
+            var bounds = GetElementBounds(primaryId.Value);
+            if (bounds.HasValue)
+                DrawBorder(bounds.Value, new Color(0, 120, 215, 200), true);
         }
     }
 }
