@@ -91,7 +91,6 @@ namespace CasaEngine.Editor
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private Texture2D? _overlayPixel;
-        private static readonly RasterizerState _scissorRasterizer = new() { ScissorTestEnable = true };
         private string? _nodeClipboard; // JSON-serialized node subtree for copy/paste
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
@@ -1666,20 +1665,22 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            // Clipper le dessin aux bornes de la surface de preview pour éviter
-            // que l'overlay ne déborde en dehors du panneau.
-            var clipBounds = _activeScreenPreviewPanel.PreviewSurfaceBounds;
-            var prevScissor = GraphicsDevice.ScissorRectangle;
+            // Clipper le dessin aux bornes de la surface de preview.
+            // On utilise le clipping manuel (Rectangle.Intersect) plutôt que le
+            // scissor GPU — plus fiable dans le contexte WPF-hosted où le viewport
+            // peut décaler les coordonnées GPU par rapport aux coordonnées MGUI.
+            var clip = _activeScreenPreviewPanel.PreviewSurfaceBounds;
 
-            if (clipBounds.HasValue)
+            // Helper local : ne dessine le rectangle que s'il reste une surface visible
+            // après intersection avec la zone de clipping.
+            void DrawClipped(Rectangle rect, Color c)
             {
-                GraphicsDevice.ScissorRectangle = clipBounds.Value;
-                _spriteBatch.Begin(rasterizerState: _scissorRasterizer);
+                var r = clip.HasValue ? Rectangle.Intersect(rect, clip.Value) : rect;
+                if (r.Width > 0 && r.Height > 0)
+                    _spriteBatch.Draw(_overlayPixel, r, c);
             }
-            else
-            {
-                _spriteBatch.Begin();
-            }
+
+            _spriteBatch.Begin();
 
             // ── Optional grid ────────────────────────────────────────────
             if (_activeScreenPreviewPanel.ShowGrid)
@@ -1698,26 +1699,17 @@ namespace CasaEngine.Editor
                     const int handleSize = 8;
                     var color = new Color(0, 120, 215, 200); // blue selection
 
-                    // Top
-                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, r.Width, thickness), color);
-                    // Bottom
-                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);
-                    // Left
-                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, thickness, r.Height), color);
-                    // Right
-                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);
-                    // Resize handle (bottom-right corner square)
-                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color);
+                    // Chaque côté du cadre est clippé indépendamment pour que la
+                    // partie visible s'affiche même quand le contrôle déborde.
+                    DrawClipped(new Rectangle(r.Left, r.Top, r.Width, thickness), color);                   // haut
+                    DrawClipped(new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);    // bas
+                    DrawClipped(new Rectangle(r.Left, r.Top, thickness, r.Height), color);                  // gauche
+                    DrawClipped(new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);     // droite
+                    DrawClipped(new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color); // poignée resize
                 }
             }
 
             _spriteBatch.End();
-
-            // Restaurer l'état du scissor pour ne pas polluer les passes suivantes.
-            if (clipBounds.HasValue)
-            {
-                GraphicsDevice.ScissorRectangle = prevScissor;
-            }
         }
 
         private void DrawPreviewGrid(UIScreenPreviewPanel panel)
