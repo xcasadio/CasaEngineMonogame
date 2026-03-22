@@ -128,13 +128,13 @@ Les panneaux doivent être classés en trois scopes :
 **Commit attendu :**
 - `feat(editor): add workspace model abstractions`
 
-Commit : `PENDING` - `feat(editor): add workspace model abstractions`
+Commit : `5e45a4b2` - `feat(editor): add workspace model abstractions`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : types de base ajoutés sans changement de comportement visible du shell
 
 ---
 
-#### ⏳ Tâche 1.2 — Déclarer les panneaux communs et contextuels
+#### ✅ Tâche 1.2 — Déclarer les panneaux communs et contextuels
 
 **Objectif :** centraliser la description des panneaux au lieu de disperser leur logique dans `Game1`.
 
@@ -150,6 +150,10 @@ Notes : types de base ajoutés sans changement de comportement visible du shell
 
 **Commit attendu :**
 - `refactor(editor): centralize editor panel descriptors`
+
+Commit : `PENDING` - `refactor(editor): centralize editor panel descriptors`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : ids, titres, scopes, types et factories des panneaux statiques centralisés dans un registre unique
 
 ---
 

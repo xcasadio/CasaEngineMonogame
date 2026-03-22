@@ -8,6 +8,7 @@ using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
+using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
@@ -35,14 +36,6 @@ namespace CasaEngine.Editor
 {
     public class Game1 : Game, IObservableUpdate
     {
-        private const string WorldViewportPanelId = "panel_world_viewport";
-        private const string ContentBrowserPanelId = "panel_content_browser";
-        private const string OutputPanelId = "panel_output";
-        private const string EntitiesPanelId = "panel_entities";
-        private const string EntityDetailsPanelId = "panel_entity_details";
-        private const string UIScreenHierarchyPanelId = "panel_ui_screen_hierarchy";
-        private const string UIScreenInspectorPanelId  = "panel_ui_screen_inspector";
-        private const string UIScreenToolboxPanelId    = "panel_ui_screen_toolbox";
         private const string EditorLayoutDirectoryName = ".casaeditor";
         private const string EditorLayoutFileName = "layout.json";
 
@@ -60,6 +53,7 @@ namespace CasaEngine.Editor
         private MGDockHost _dockHost;
         private MGMenuBar _menuBar;
         private MGDockPanel _statusBar;
+        private EditorPanelRegistry _panelRegistry;
         private MGButton _toggleContentBrowserButton;
         private MGButton _toggleLogsButton;
         private MGTextBlock _statusProjectText;
@@ -90,7 +84,6 @@ namespace CasaEngine.Editor
         private MGElement? _screenToolboxContent;
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
-        private Texture2D? _overlayPixel;
         private string? _nodeClipboard; // JSON-serialized node subtree for copy/paste
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
@@ -135,8 +128,6 @@ namespace CasaEngine.Editor
             EditorIcons.Load(Content);
 
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-            _overlayPixel = new Texture2D(GraphicsDevice, 1, 1);
-            _overlayPixel.SetData(new[] { Color.White });
             _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
@@ -272,69 +263,16 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            var scenePanel = new DockPanelNode(WorldViewportPanelId)
-            {
-                Title = "World Viewport",
-                CanClose = false,
-                CanFloat = false,
-                ContentFactory = GetOrCreateWorldViewportContent,
-            };
+            _panelRegistry ??= CreatePanelRegistry();
 
-            var propertiesPanel = new DockPanelNode(EntityDetailsPanelId)
-            {
-                Title = "Details",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateEntityDetailsContent
-            };
-
-            var explorerPanel = new DockPanelNode(EntitiesPanelId)
-            {
-                Title = "Entities",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateEntitiesContent
-            };
-
-            var screenHierarchyPanel = new DockPanelNode(UIScreenHierarchyPanelId)
-            {
-                Title = "Screen Hierarchy",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateScreenHierarchyContent
-            };
-
-            var screenToolboxPanel = new DockPanelNode(UIScreenToolboxPanelId)
-            {
-                Title = "Screen Toolbox",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateScreenToolboxContent
-            };
-
-            var screenInspectorPanel = new DockPanelNode(UIScreenInspectorPanelId)
-            {
-                Title = "Screen Inspector",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateScreenInspectorContent
-            };
-
-            var contentBrowserPanel = new DockPanelNode(ContentBrowserPanelId)
-            {
-                Title = "Content Browser",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateContentBrowserContent
-            };
-
-            var outputPanel = new DockPanelNode(OutputPanelId)
-            {
-                Title = "Output / Logs",
-                CanClose = true,
-                CanFloat = true,
-                ContentFactory = GetOrCreateLogsContent
-            };
+            var scenePanel = CreateStaticPanelNode(EditorPanelIds.WorldViewport);
+            var propertiesPanel = CreateStaticPanelNode(EditorPanelIds.EntityDetails);
+            var explorerPanel = CreateStaticPanelNode(EditorPanelIds.Entities);
+            var screenHierarchyPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenHierarchy);
+            var screenToolboxPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenToolbox);
+            var screenInspectorPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenInspector);
+            var contentBrowserPanel = CreateStaticPanelNode(EditorPanelIds.ContentBrowser);
+            var outputPanel = CreateStaticPanelNode(EditorPanelIds.Output);
 
             // Tab groups
             var bottomGroup = new DockTabGroupNode();
@@ -418,7 +356,7 @@ namespace CasaEngine.Editor
             _ = GetOrCreateContentBrowserContent();
 
             _contentBrowserPanel?.Refresh();
-            ActivateDockPanel(ContentBrowserPanelId);
+            ActivateDockPanel(EditorPanelIds.ContentBrowser);
             LoadInitialWorldIntoEditorRuntime();
             UpdateWindowTitle();
         }
@@ -512,6 +450,7 @@ namespace CasaEngine.Editor
                 return;
             }
 
+            _panelRegistry ??= CreatePanelRegistry();
             _dockHost = new MGDockHost(_mainWindow);
             _dockHost.Name = "EditorDockHost";
             _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
@@ -572,6 +511,14 @@ namespace CasaEngine.Editor
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
                     _screenInspectorPanel?.SetDocument(doc);
                 };
+                _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
+                {
+                    var dupCmd = new DuplicateNodeCommand(doc, nodeId);
+                    _screenCommandStack.Execute(dupCmd);
+                    RefreshScreenPanelsAfterCommand();
+                    if (dupCmd.CreatedNode != null)
+                        _screenSelection.Select(dupCmd.CreatedNode.Id);
+                };
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
@@ -586,7 +533,15 @@ namespace CasaEngine.Editor
                 _screenInspectorPanel.SetCommandStack(_screenCommandStack);
                 _screenInspectorPanel.DocumentModified += doc =>
                 {
+                    // Only called for structural changes (e.g. Name field edits visible in tree)
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
+                    _screenHierarchyPanel?.SetDocument(doc);
+                };
+                _screenInspectorPanel.PropertyModified += (doc, nodeId, propName, value) =>
+                {
+                    // Fast path: patch the live MGElement directly
+                    if (_activeScreenPreviewPanel?.TryApplyPropertyUpdate(nodeId, propName, value) != true)
+                        _activeScreenPreviewPanel?.RefreshPreviewOnly();
                 };
             }
 
@@ -766,9 +721,96 @@ namespace CasaEngine.Editor
             return _logsContent;
         }
 
+        private EditorPanelRegistry CreatePanelRegistry()
+        {
+            return new EditorPanelRegistry(new[]
+            {
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.WorldViewport,
+                    Title = "World Viewport",
+                    Scope = EditorPanelScope.World,
+                    Kind = EditorPanelKind.Document,
+                    CanClose = false,
+                    CanFloat = false,
+                    ContentFactory = GetOrCreateWorldViewportContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.Entities,
+                    Title = "Entities",
+                    Scope = EditorPanelScope.World,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateEntitiesContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.EntityDetails,
+                    Title = "Details",
+                    Scope = EditorPanelScope.World,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateEntityDetailsContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.ContentBrowser,
+                    Title = "Content Browser",
+                    Scope = EditorPanelScope.Common,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateContentBrowserContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.Output,
+                    Title = "Output / Logs",
+                    Scope = EditorPanelScope.Common,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateLogsContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.UIScreenHierarchy,
+                    Title = "Screen Hierarchy",
+                    Scope = EditorPanelScope.UIScreen,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateScreenHierarchyContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.UIScreenInspector,
+                    Title = "Screen Inspector",
+                    Scope = EditorPanelScope.UIScreen,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateScreenInspectorContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.UIScreenToolbox,
+                    Title = "Screen Toolbox",
+                    Scope = EditorPanelScope.UIScreen,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateScreenToolboxContent,
+                },
+            });
+        }
+
+        private DockPanelNode CreateStaticPanelNode(string panelId)
+        {
+            var descriptor = _panelRegistry.GetDescriptor(panelId);
+            return new DockPanelNode(descriptor.Id)
+            {
+                Title = descriptor.Title,
+                DockableType = descriptor.Kind == EditorPanelKind.Document ? DockableType.Document : DockableType.Tool,
+                CanClose = descriptor.CanClose,
+                CanFloat = descriptor.CanFloat,
+                CanAutoHide = descriptor.CanAutoHide,
+                ContentFactory = descriptor.ContentFactory,
+            };
+        }
+
         private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)
         {
-            if (panel.Id == OutputPanelId)
+            if (panel.Id == EditorPanelIds.Output)
             {
                 _logsPanel?.Refresh();
             }
@@ -814,8 +856,8 @@ namespace CasaEngine.Editor
                 VerticalAlignment = VerticalAlignment.Center,
             };
 
-            _toggleContentBrowserButton = CreateStatusBarButton("Content Browser", () => ToggleDockPanel(ContentBrowserPanelId));
-            _toggleLogsButton = CreateStatusBarButton("Logs", () => ToggleDockPanel(OutputPanelId));
+            _toggleContentBrowserButton = CreateStatusBarButton("Content Browser", () => ToggleDockPanel(EditorPanelIds.ContentBrowser));
+            _toggleLogsButton = CreateStatusBarButton("Logs", () => ToggleDockPanel(EditorPanelIds.Output));
             leftStack.TryAddChild(_toggleContentBrowserButton);
             leftStack.TryAddChild(_toggleLogsButton);
 
@@ -927,14 +969,14 @@ namespace CasaEngine.Editor
             {
                 SetStatusBarButtonLabel(
                     _toggleContentBrowserButton,
-                    IsDockPanelVisible(ContentBrowserPanelId) ? "Hide Content Browser" : "Show Content Browser");
+                    IsDockPanelVisible(EditorPanelIds.ContentBrowser) ? "Hide Content Browser" : "Show Content Browser");
             }
 
             if (_toggleLogsButton != null)
             {
                 SetStatusBarButtonLabel(
                     _toggleLogsButton,
-                    IsDockPanelVisible(OutputPanelId) ? "Hide Logs" : "Show Logs");
+                    IsDockPanelVisible(EditorPanelIds.Output) ? "Hide Logs" : "Show Logs");
             }
         }
 
@@ -1046,18 +1088,17 @@ namespace CasaEngine.Editor
 
         private Func<MGElement> GetPanelContentFactory(string panelId)
         {
-            return panelId switch
+            if (_panelRegistry != null && _panelRegistry.TryGetDescriptor(panelId, out var descriptor))
             {
-                WorldViewportPanelId => GetOrCreateWorldViewportContent,
-                EntitiesPanelId => GetOrCreateEntitiesContent,
-                EntityDetailsPanelId => GetOrCreateEntityDetailsContent,
-                ContentBrowserPanelId => GetOrCreateContentBrowserContent,
-                OutputPanelId => GetOrCreateLogsContent,
-                UIScreenHierarchyPanelId => GetOrCreateScreenHierarchyContent,
-                UIScreenInspectorPanelId  => GetOrCreateScreenInspectorContent,
-                UIScreenToolboxPanelId    => GetOrCreateScreenToolboxContent,
-                _ => () => CreateUnavailablePanelContent(panelId),
-            };
+                return descriptor.ContentFactory;
+            }
+
+            if (_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
+            {
+                return previewPanel.CreateContent;
+            }
+
+            return () => CreateUnavailablePanelContent(panelId);
         }
 
         private MGElement CreateUnavailablePanelContent(string panelId)
@@ -1197,6 +1238,7 @@ namespace CasaEngine.Editor
             if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
             {
                 previewPanel = new UIScreenPreviewPanel(_mainWindow);
+                previewPanel.SetSelectionService(_screenSelection);
                 previewPanel.DocumentLoaded += doc =>
                 {
                     _screenHierarchyPanel?.SetDocument(doc);
@@ -1210,6 +1252,7 @@ namespace CasaEngine.Editor
                 };
                 previewPanel.NodeMoveRequested += OnScreenNodeMoveRequested;
                 previewPanel.NodeResizeRequested += OnScreenNodeResizeRequested;
+                previewPanel.ExportPngRequested += () => ExportPreviewAsPng(previewPanel);
                 _screenPreviewPanels.Add(panelId, previewPanel);
             }
 
@@ -1254,7 +1297,7 @@ namespace CasaEngine.Editor
             }
 
             return _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.IsDocumentArea)
-                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.Panels.Any(panel => panel.Id == WorldViewportPanelId))
+                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.Panels.Any(panel => panel.Id == EditorPanelIds.WorldViewport))
                 ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault();
         }
 
@@ -1653,84 +1696,60 @@ namespace CasaEngine.Editor
 
             _desktop?.Draw();
 
-            DrawSelectionOverlay();
-
             base.Draw(gameTime);
         }
 
-        private void DrawSelectionOverlay()
+        /// <summary>
+        /// Q-08: Export the current preview surface to a PNG file chosen via SaveFileDialog.
+        /// </summary>
+        private void ExportPreviewAsPng(UIScreenPreviewPanel panel)
         {
-            if (_activeScreenPreviewPanel == null || _overlayPixel == null)
+            var document = panel.CurrentDocument;
+            if (document == null) return;
+
+            // Use WPF SaveFileDialog through interop
+            var dialog = new Microsoft.Win32.SaveFileDialog
             {
-                return;
-            }
+                Title = "Export screen as PNG",
+                Filter = "PNG image (*.png)|*.png",
+                DefaultExt = ".png",
+                FileName = document.Root?.Name ?? "screen",
+            };
 
-            // Clipper le dessin aux bornes de la surface de preview.
-            // On utilise le clipping manuel (Rectangle.Intersect) plutôt que le
-            // scissor GPU — plus fiable dans le contexte WPF-hosted où le viewport
-            // peut décaler les coordonnées GPU par rapport aux coordonnées MGUI.
-            var clip = _activeScreenPreviewPanel.PreviewSurfaceBounds;
+            if (dialog.ShowDialog() != true) return;
 
-            // Helper local : ne dessine le rectangle que s'il reste une surface visible
-            // après intersection avec la zone de clipping.
-            void DrawClipped(Rectangle rect, Color c)
+            // Render the preview surface to a RenderTarget2D, then save
+            try
             {
-                var r = clip.HasValue ? Rectangle.Intersect(rect, clip.Value) : rect;
-                if (r.Width > 0 && r.Height > 0)
-                    _spriteBatch.Draw(_overlayPixel, r, c);
+                var surfaceBounds = panel.PreviewSurfaceBounds;
+                if (surfaceBounds == null) return;
+
+                int w = Math.Max(1, surfaceBounds.Value.Width);
+                int h = Math.Max(1, surfaceBounds.Value.Height);
+
+                using var rt = new RenderTarget2D(GraphicsDevice, w, h,
+                    false, SurfaceFormat.Color, DepthFormat.None);
+
+                var prevTargets = GraphicsDevice.GetRenderTargets();
+                GraphicsDevice.SetRenderTarget(rt);
+                GraphicsDevice.Clear(Color.Transparent);
+
+                // Re-run the MGUI desktop draw so the preview paints onto our target
+                _desktop?.Draw();
+
+                GraphicsDevice.SetRenderTargets(prevTargets);
+
+                using var fs = File.OpenWrite(dialog.FileName);
+                rt.SaveAsPng(fs, w, h);
             }
-
-            _spriteBatch.Begin();
-
-            // ── Optional grid ────────────────────────────────────────────
-            if (_activeScreenPreviewPanel.ShowGrid)
+            catch (Exception ex)
             {
-                DrawPreviewGrid(_activeScreenPreviewPanel);
+                System.Diagnostics.Debug.WriteLine($"[ExportPNG] {ex.Message}");
             }
-
-            // ── Selection border + resize handle ─────────────────────────
-            if (_screenSelection.SelectedNodeId.HasValue)
-            {
-                var bounds = _activeScreenPreviewPanel.GetElementBounds(_screenSelection.SelectedNodeId.Value);
-                if (bounds.HasValue)
-                {
-                    var r = bounds.Value;
-                    const int thickness = 2;
-                    const int handleSize = 8;
-                    var color = new Color(0, 120, 215, 200); // blue selection
-
-                    // Chaque côté du cadre est clippé indépendamment pour que la
-                    // partie visible s'affiche même quand le contrôle déborde.
-                    DrawClipped(new Rectangle(r.Left, r.Top, r.Width, thickness), color);                   // haut
-                    DrawClipped(new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);    // bas
-                    DrawClipped(new Rectangle(r.Left, r.Top, thickness, r.Height), color);                  // gauche
-                    DrawClipped(new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);     // droite
-                    DrawClipped(new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color); // poignée resize
-                }
-            }
-
-            _spriteBatch.End();
         }
 
-        private void DrawPreviewGrid(UIScreenPreviewPanel panel)
-        {
-            var surfaceBounds = panel.PreviewSurfaceBounds;
-            if (surfaceBounds == null) return;
-
-            var sb = surfaceBounds.Value;
-            const int gridStep = 32;
-            var gridColor = new Color(255, 255, 255, 30);
-
-            for (int x = sb.Left; x <= sb.Right; x += gridStep)
-            {
-                _spriteBatch.Draw(_overlayPixel!, new Rectangle(x, sb.Top, 1, sb.Height), gridColor);
-            }
-
-            for (int y = sb.Top; y <= sb.Bottom; y += gridStep)
-            {
-                _spriteBatch.Draw(_overlayPixel!, new Rectangle(sb.Left, y, sb.Width, 1), gridColor);
-            }
-        }
+        private static readonly HashSet<string> _layoutContainers =
+            new(StringComparer.OrdinalIgnoreCase) { "StackPanel", "DockPanel", "Grid", "UniformGrid" };
 
         private void OnScreenNodeMoveRequested(DocumentNodeId nodeId, int deltaX, int deltaY)
         {
@@ -1739,11 +1758,39 @@ namespace CasaEngine.Editor
             var node = document.FindNode(nodeId);
             if (node == null) return;
 
+            // R-02: inside a layout-driven container → reorder instead of margin move
+            if (node.Parent != null && _layoutContainers.Contains(node.Parent.ControlType))
+            {
+                if (node.Parent.ControlType.Equals("StackPanel", StringComparison.OrdinalIgnoreCase))
+                {
+                    var orientation = node.Parent.Properties.TryGetValue("Orientation", out var op)
+                        ? op.SerializedValue ?? "Vertical" : "Vertical";
+                    bool isHorizontal = orientation.Equals("Horizontal", StringComparison.OrdinalIgnoreCase);
+                    int delta = isHorizontal ? deltaX : deltaY;
+                    int oldIdx = node.Parent.IndexOfChild(node);
+                    int newIdx = Math.Clamp(oldIdx + (delta > 0 ? 1 : -1), 0, node.Parent.Children.Count - 1);
+                    if (newIdx != oldIdx)
+                    {
+                        _screenCommandStack.Execute(new MoveChildCommand(node, newIdx));
+                        RefreshScreenPanelsAfterCommand();
+                    }
+                }
+                return;
+            }
+
             var (left, top, right, bottom) = ParseMargin(
                 node.Properties.TryGetValue("Margin", out var mv) ? mv.SerializedValue : null);
 
             left += deltaX;
             top += deltaY;
+
+            // Q-01: snap to 32 px grid when enabled
+            if (_activeScreenPreviewPanel?.SnapToGrid == true)
+            {
+                const int Grid = 32;
+                left = (int)Math.Round((double)left / Grid) * Grid;
+                top  = (int)Math.Round((double)top  / Grid) * Grid;
+            }
 
             var newMargin = $"{left},{top},{right},{bottom}";
             var cmd = new SetPropertyCommand(node, "Margin", newMargin);
@@ -1751,7 +1798,7 @@ namespace CasaEngine.Editor
             RefreshScreenPanelsAfterCommand();
         }
 
-        private void OnScreenNodeResizeRequested(DocumentNodeId nodeId, int deltaW, int deltaH)
+        private void OnScreenNodeResizeRequested(DocumentNodeId nodeId, ResizeAnchor anchor, int deltaX, int deltaY)
         {
             var document = _activeScreenPreviewPanel?.CurrentDocument;
             if (document == null) return;
@@ -1768,11 +1815,49 @@ namespace CasaEngine.Editor
             if (node.Properties.TryGetValue("Height", out var hv) && int.TryParse(hv.SerializedValue, out var parsedH))
                 baseH = parsedH;
 
-            var newW = Math.Max(8, baseW + deltaW).ToString();
-            var newH = Math.Max(8, baseH + deltaH).ToString();
+            var (marginLeft, marginTop, marginRight, marginBottom) = ParseMargin(
+                node.Properties.TryGetValue("Margin", out var mv) ? mv.SerializedValue : null);
 
-            _screenCommandStack.Execute(new SetPropertyCommand(node, "Width", newW));
-            _screenCommandStack.Execute(new SetPropertyCommand(node, "Height", newH));
+            // Each anchor: deltaX/deltaY is raw mouse delta.
+            // Anchors that pull a left/top edge adjust both Margin and Width/Height inversely.
+            int newW = baseW, newH = baseH;
+            switch (anchor)
+            {
+                case ResizeAnchor.BottomRight:
+                    newW = Math.Max(8, baseW + deltaX);
+                    newH = Math.Max(8, baseH + deltaY);
+                    break;
+                case ResizeAnchor.BottomLeft:
+                    newW = Math.Max(8, baseW - deltaX);
+                    newH = Math.Max(8, baseH + deltaY);
+                    marginLeft += baseW - newW; // move left edge rightward if width clamped
+                    break;
+                case ResizeAnchor.TopRight:
+                    newW = Math.Max(8, baseW + deltaX);
+                    newH = Math.Max(8, baseH - deltaY);
+                    marginTop += baseH - newH;
+                    break;
+                case ResizeAnchor.TopLeft:
+                    newW = Math.Max(8, baseW - deltaX);
+                    newH = Math.Max(8, baseH - deltaY);
+                    marginLeft += baseW - newW;
+                    marginTop  += baseH - newH;
+                    break;
+            }
+
+            var commands = new System.Collections.Generic.List<IUIScreenCommand>
+            {
+                new SetPropertyCommand(node, "Width",  newW.ToString()),
+                new SetPropertyCommand(node, "Height", newH.ToString()),
+            };
+
+            // Only update Margin when it differs (avoid dirtying the document needlessly)
+            var originalMargin = ParseMargin(node.Properties.TryGetValue("Margin", out var omv) ? omv.SerializedValue : null);
+            if (marginLeft != originalMargin.left || marginTop != originalMargin.top)
+                commands.Add(new SetPropertyCommand(node, "Margin", $"{marginLeft},{marginTop},{marginRight},{marginBottom}"));
+
+            // R-06: group as a single undoable composite
+            _screenCommandStack.Execute(new CompositeCommand("Resize", commands.ToArray()));
             RefreshScreenPanelsAfterCommand();
         }
 
