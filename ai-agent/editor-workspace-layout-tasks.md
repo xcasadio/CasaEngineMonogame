@@ -159,7 +159,7 @@ Notes : ids, titres, scopes, types et factories des panneaux statiques centralis
 
 ### Phase 2 — Séparer les layouts par workspace
 
-#### ⏳ Tâche 2.1 — Extraire le layout par défaut du mode World
+#### ✅ Tâche 2.1 — Extraire le layout par défaut du mode World
 
 **Objectif :** sortir la construction du layout World du layout mixte actuel.
 
@@ -174,6 +174,10 @@ Notes : ids, titres, scopes, types et factories des panneaux statiques centralis
 
 **Commit attendu :**
 - `refactor(editor): extract default world workspace layout`
+
+Commit : `PENDING` - `refactor(editor): extract default world workspace layout`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : le layout initial n'embarque plus les panneaux UIScreen et passe désormais par `WorldEditorWorkspace`
 
 ---
 

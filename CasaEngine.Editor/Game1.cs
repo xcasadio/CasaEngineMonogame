@@ -54,6 +54,7 @@ namespace CasaEngine.Editor
         private MGMenuBar _menuBar;
         private MGDockPanel _statusBar;
         private EditorPanelRegistry _panelRegistry;
+        private WorldEditorWorkspace _worldWorkspace;
         private MGButton _toggleContentBrowserButton;
         private MGButton _toggleLogsButton;
         private MGTextBlock _statusProjectText;
@@ -265,68 +266,8 @@ namespace CasaEngine.Editor
 
             _panelRegistry ??= CreatePanelRegistry();
 
-            var scenePanel = CreateStaticPanelNode(EditorPanelIds.WorldViewport);
-            var propertiesPanel = CreateStaticPanelNode(EditorPanelIds.EntityDetails);
-            var explorerPanel = CreateStaticPanelNode(EditorPanelIds.Entities);
-            var screenHierarchyPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenHierarchy);
-            var screenToolboxPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenToolbox);
-            var screenInspectorPanel = CreateStaticPanelNode(EditorPanelIds.UIScreenInspector);
-            var contentBrowserPanel = CreateStaticPanelNode(EditorPanelIds.ContentBrowser);
-            var outputPanel = CreateStaticPanelNode(EditorPanelIds.Output);
-
-            // Tab groups
-            var bottomGroup = new DockTabGroupNode();
-            bottomGroup.AddPanel(contentBrowserPanel, -1);
-            bottomGroup.AddPanel(outputPanel, -1);
-            bottomGroup.SetActivePanel(contentBrowserPanel.Id);
-
-            var centerGroup = new DockTabGroupNode();
-            centerGroup.IsDocumentArea = true;
-            centerGroup.AddPanel(scenePanel, -1);
-            centerGroup.SetActivePanel(scenePanel.Id);
-
-            var entitiesGroup = new DockTabGroupNode();
-            entitiesGroup.AddPanel(explorerPanel, -1);
-            entitiesGroup.AddPanel(screenHierarchyPanel, -1);
-            entitiesGroup.AddPanel(screenToolboxPanel, -1);
-            entitiesGroup.SetActivePanel(explorerPanel.Id);
-
-            var detailsGroup = new DockTabGroupNode();
-            detailsGroup.AddPanel(propertiesPanel, -1);
-            detailsGroup.AddPanel(screenInspectorPanel, -1);
-            detailsGroup.SetActivePanel(propertiesPanel.Id);
-
-            var centerRightSplit = new DockSplitNode
-            {
-                Orientation = Orientation.Horizontal,
-                FirstChild = centerGroup,
-                SecondChild = detailsGroup,
-                SplitRatio = 0.72f,
-                MinFirstSize = 500,
-                MinSecondSize = 260,
-            };
-
-            var topAreaSplit = new DockSplitNode
-            {
-                Orientation = Orientation.Horizontal,
-                FirstChild = entitiesGroup,
-                SecondChild = centerRightSplit,
-                SplitRatio = 0.2f,
-                MinFirstSize = 220,
-                MinSecondSize = 700,
-            };
-
-            var rootSplit = new DockSplitNode
-            {
-                Orientation = Orientation.Vertical,
-                FirstChild = topAreaSplit,
-                SecondChild = bottomGroup,
-                SplitRatio = 0.7f,
-                MinFirstSize = 250,
-                MinSecondSize = 120
-            };
-
-            _dockHost.LayoutModel.RootNode = rootSplit;
+            _worldWorkspace ??= new WorldEditorWorkspace(_panelRegistry);
+            _dockHost.LayoutModel.RootNode = _worldWorkspace.CreateDefaultLayout();
             _ = GetOrCreateLogsContent();
         }
 
