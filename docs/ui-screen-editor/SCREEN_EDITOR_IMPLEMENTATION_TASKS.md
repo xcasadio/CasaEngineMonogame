@@ -426,7 +426,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 7 - Toolbox et création de contrôles
 
 ### 7.1 Créer le registre des contrôles éditables
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : contrôler quels types sont disponibles dans l’éditeur.
 - Actions :
   - créer un catalogue des contrôles autorisés
@@ -441,7 +441,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add editable UI control registry`
 
 ### 7.2 Implémenter la toolbox
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : permettre l’ajout de nouveaux contrôles.
 - Actions :
   - panneau toolbox avec groupes
@@ -453,7 +453,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add toolbox for UI screen editor`
 
 ### 7.3 Ajouter création de nœud dans le document
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : insertion structurée dans le screen.
 - Actions :
   - créer factory de nœuds
@@ -465,7 +465,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: support adding controls to UI document`
 
 ### 7.4 Ajouter règles d’insertion par parent
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : éviter des arbres invalides.
 - Actions :
   - définir contraintes par type de parent
@@ -481,7 +481,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 8 - Commandes d’édition et undo/redo
 
 ### 8.1 Introduire une infrastructure de commandes
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : unifier les modifications d’édition.
 - Actions :
   - créer interface de commande
@@ -493,7 +493,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add command stack for UI screen editor`
 
 ### 8.2 Passer les modifications de propriétés par commandes
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rendre l’inspector annulable.
 - Actions :
   - encapsuler changements de propriétés en commandes
@@ -503,7 +503,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add undo redo for property edits`
 
 ### 8.3 Passer les modifications structurelles par commandes
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rendre add/delete annulables.
 - Actions :
   - commandes add node / remove node / reparent v1 si prêt
@@ -513,7 +513,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add undo redo for UI tree changes`
 
 ### 8.4 Ajouter UI pour undo/redo
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : exposer la fonctionnalité dans l’éditeur.
 - Actions :
   - boutons, raccourcis clavier, état enabled/disabled
@@ -527,7 +527,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 9 - Surface de design
 
 ### 9.1 Ajouter overlay de sélection
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : rendre la sélection visible sur la preview.
 - Actions :
   - dessiner rectangle de sélection
@@ -538,7 +538,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add selection overlay on UI preview`
 
 ### 9.2 Ajouter hit testing design-time fiable
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : cliquer précisément le bon contrôle.
 - Actions :
   - fiabiliser picking
@@ -549,7 +549,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: improve design-time hit testing for UI screens`
 
 ### 9.3 Ajouter déplacement simple dans la surface
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : première édition visuelle.
 - Actions :
   - ne supporter au début que les cas compatibles
@@ -561,7 +561,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add basic visual move support for UI controls`
 
 ### 9.4 Ajouter resize simple
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : éditer la taille par poignées.
 - Actions :
   - handles minimales
@@ -576,7 +576,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 10 - Productivité
 
 ### 10.1 Ajouter duplication
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : accélérer l’édition.
 - Actions :
   - dupliquer nœud sélectionné
@@ -587,7 +587,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add duplicate action for UI nodes`
 
 ### 10.2 Ajouter copier/coller
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : améliorer le workflow.
 - Actions :
   - sérialiser sous-arbre temporaire
@@ -598,7 +598,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add copy paste for UI nodes`
 
 ### 10.3 Ajouter preview multi-résolutions
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : tester l’adaptation du screen.
 - Actions :
   - presets de résolution
@@ -609,7 +609,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add screen preview resolution presets`
 
 ### 10.4 Ajouter grille/guides optionnels
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : préparer une meilleure édition visuelle.
 - Actions :
   - grille visuelle optionnelle
@@ -624,7 +624,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 11 - Design-time avancé
 
 ### 11.1 Introduire un mode design-time explicite
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : empêcher l’exécution de logique runtime non voulue.
 - Actions :
   - flag global design mode
@@ -635,7 +635,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add explicit design-time mode for UI preview`
 
 ### 11.2 Ajouter données mockées pour preview
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : voir un écran utile même sans gameplay.
 - Actions :
   - faux data context
@@ -646,7 +646,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add mock data support for UI design-time preview`
 
 ### 11.3 Documenter les conventions de screens CasaEngine
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : normaliser les futurs écrans.
 - Actions :
   - écrire conventions :
@@ -665,7 +665,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 12 - Stabilisation
 
 ### 12.1 Créer une suite de screens exemples
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : tester plusieurs cas réels.
 - Actions :
   - créer au moins :
@@ -679,7 +679,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `test: add sample UI screens for editor validation`
 
 ### 12.2 Vérifier performance et rebuilds excessifs
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : éviter un éditeur trop lent.
 - Actions :
   - mesurer temps de reload preview
@@ -691,7 +691,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `perf: assess UI screen editor preview performance`
 
 ### 12.3 Créer la liste de refactors post-v1
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : préparer les améliorations suivantes.
 - Actions :
   - générer `SCREEN_EDITOR_REFACTOR_TASKS.md`
@@ -737,6 +737,27 @@ Ajouter une ligne après chaque tâche terminée.
 - 🟢 3.4 `feat: add preview error fallback for screen editor`
 - 🟢 4.1-4.2 `feat: add UI screen editor session workflow`
 - 🟢 4.3 `test: cover UI screen editor session workflow`
+- 🟢 5.1 `feat: add UI screen selection service`
+- 🟢 5.2 `feat: add UI screen hierarchy panel`
+- 🟢 5.3 `feat: sync preview picking with screen selection`
+- 🟢 5.4 `feat: allow deleting UI nodes from hierarchy`
+- 🟢 6.1 `feat: add property descriptors for UI screen editor`
+- 🟢 6.2 `feat: add basic property inspector for UI screens`
+- 🟢 6.3 `feat: refresh preview after property edits`
+- 🟢 6.4 `feat: validate property editing in UI screen inspector`
+- 🟢 7.1–7.4 `fc5dd816` `feat: add editable UI control registry` + toolbox + add controls
+- 🟢 8.1–8.4 `8daa686a` `feat: add command stack for UI screen editor` + undo/redo
+- 🟢 9.1 `2a4097c3` `feat: add selection overlay on UI preview`
+- 🟢 9.2 `6c477543` `feat: improve design-time hit testing for UI screens`
+- 🟢 9.3+9.4 `bdbbec2b` `feat: add basic visual move and resize support for UI controls`
+- 🟢 10.1+10.2 `fe27e3ae` `feat: add duplicate and copy paste for UI nodes`
+- 🟢 10.3+10.4 `6df25904` `feat: add screen preview resolution presets and optional grid`
+- 🟢 11.1 `7e0eaf4b` `feat: add explicit design-time mode for UI preview`
+- 🟢 11.2 `0b3b5458` `feat: add mock data support for UI design-time preview`
+- 🟢 11.3 `da52e31f` `docs: add CasaEngine UI screen authoring conventions`
+- 🟢 12.1 `69926a7f` `test: add sample UI screens for editor validation`
+- 🟢 12.2 `21e8bfd1` `perf: assess UI screen editor preview performance`
+- 🟢 12.3 `docs: add post-v1 refactor backlog for screen editor`
 
 ---
 
