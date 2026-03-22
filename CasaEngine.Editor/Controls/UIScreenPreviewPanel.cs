@@ -102,6 +102,13 @@ public sealed class UIScreenPreviewPanel
     /// <summary>The document currently loaded into this panel, or null if nothing is open.</summary>
     public UIScreenDocument? CurrentDocument => _currentDocument;
 
+    /// <summary>
+    /// Returns the screen-space <see cref="Microsoft.Xna.Framework.Rectangle"/> of
+    /// the element mapped to <paramref name="nodeId"/>, or null if not found.
+    /// </summary>
+    public Microsoft.Xna.Framework.Rectangle? GetElementBounds(DocumentNodeId nodeId)
+        => _nodeMap.TryGetValue(nodeId, out var element) ? element.LayoutBounds : null;
+
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
     public event Action<DocumentNodeId?>? NodePicked;
 

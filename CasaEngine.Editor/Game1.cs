@@ -89,6 +89,7 @@ namespace CasaEngine.Editor
         private MGElement? _screenToolboxContent;
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
+        private Texture2D? _overlayPixel;
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
@@ -132,8 +133,8 @@ namespace CasaEngine.Editor
             EditorIcons.Load(Content);
 
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            // ── Bootstrap MGUI ─────────────────────────────────────────────
+            _overlayPixel = new Texture2D(GraphicsDevice, 1, 1);
+            _overlayPixel.SetData(new[] { Color.White });
             _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
             _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
             _desktop = new MGDesktop(_mguiRenderer);
@@ -1561,7 +1562,38 @@ namespace CasaEngine.Editor
 
             _desktop?.Draw();
 
+            DrawSelectionOverlay();
+
             base.Draw(gameTime);
+        }
+
+        private void DrawSelectionOverlay()
+        {
+            if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue || _overlayPixel == null)
+            {
+                return;
+            }
+
+            var bounds = _activeScreenPreviewPanel.GetElementBounds(_screenSelection.SelectedNodeId.Value);
+            if (bounds == null)
+            {
+                return;
+            }
+
+            var r = bounds.Value;
+            const int thickness = 2;
+            var color = new Color(0, 120, 215, 200); // blue selection
+
+            _spriteBatch.Begin();
+            // Top
+            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, r.Width, thickness), color);
+            // Bottom
+            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);
+            // Left
+            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, thickness, r.Height), color);
+            // Right
+            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);
+            _spriteBatch.End();
         }
     }
 }
