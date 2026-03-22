@@ -1,0 +1,8 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "SampleMainMenu",
+  "source_xaml_file": "sample-main-menu.xaml",
+  "theme_name": "",
+  "preview_resolution": { "x": 1280, "y": 720 },
+  "resource_files": []
+}

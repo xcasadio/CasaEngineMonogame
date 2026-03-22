@@ -1,0 +1,31 @@
+<MGBorder xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+          Name="pnlConfirmDialog"
+          Padding="24"
+          HorizontalAlignment="Center"
+          VerticalAlignment="Center"
+          Width="400">
+
+  <MGStackPanel Orientation="Vertical" Spacing="16">
+
+    <MGTextBlock Name="lblTitle"
+                 Text="Confirm Action"
+                 FontSize="18"
+                 HorizontalAlignment="Center" />
+
+    <MGTextBlock Name="lblMessage"
+                 Text="Are you sure you want to continue? This action cannot be undone."
+                 WrapText="True"
+                 HorizontalAlignment="Center" />
+
+    <MGStackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+      <MGButton Name="btnConfirm" Padding="16,8,16,8">
+        <MGTextBlock Text="Confirm" />
+      </MGButton>
+      <MGButton Name="btnCancel" Padding="16,8,16,8">
+        <MGTextBlock Text="Cancel" />
+      </MGButton>
+    </MGStackPanel>
+
+  </MGStackPanel>
+</MGBorder>

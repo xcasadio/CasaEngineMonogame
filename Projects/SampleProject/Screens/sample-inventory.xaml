@@ -1,0 +1,53 @@
+<MGDockPanel xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Name="pnlInventory"
+             Padding="0"
+             Width="640"
+             Height="480">
+
+  <!-- Header -->
+  <MGDockPanel.Top>
+    <MGBorder Padding="12,8,12,8">
+      <MGStackPanel Orientation="Horizontal" Spacing="16">
+        <MGTextBlock Name="lblInventoryTitle" Text="Inventory" FontSize="16" />
+        <MGTextBlock Name="lblCapacity" Text="12 / 20 slots" Opacity="0.7" VerticalAlignment="Center" />
+      </MGStackPanel>
+    </MGBorder>
+  </MGDockPanel.Top>
+
+  <!-- Footer buttons -->
+  <MGDockPanel.Bottom>
+    <MGStackPanel Orientation="Horizontal" Spacing="8" Padding="12,8,12,8">
+      <MGButton Name="btnEquip" Padding="12,6,12,6">
+        <MGTextBlock Text="Equip" />
+      </MGButton>
+      <MGButton Name="btnDrop" Padding="12,6,12,6">
+        <MGTextBlock Text="Drop" />
+      </MGButton>
+      <MGButton Name="btnClose" Padding="12,6,12,6" HorizontalAlignment="Right">
+        <MGTextBlock Text="Close" />
+      </MGButton>
+    </MGStackPanel>
+  </MGDockPanel.Bottom>
+
+  <!-- Item grid placeholder -->
+  <MGBorder Padding="12">
+    <MGStackPanel Orientation="Vertical" Spacing="4">
+      <MGStackPanel Orientation="Horizontal" Spacing="4">
+        <MGBorder Name="pnlSlot1" Width="64" Height="64" Padding="4"><MGTextBlock Text="Sword" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot2" Width="64" Height="64" Padding="4"><MGTextBlock Text="Shield" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot3" Width="64" Height="64" Padding="4"><MGTextBlock Text="Potion" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot4" Width="64" Height="64" Padding="4"><MGTextBlock Text="Bow" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot5" Width="64" Height="64" Padding="4"><MGTextBlock Text="" /></MGBorder>
+      </MGStackPanel>
+      <MGStackPanel Orientation="Horizontal" Spacing="4">
+        <MGBorder Name="pnlSlot6" Width="64" Height="64" Padding="4"><MGTextBlock Text="Helmet" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot7" Width="64" Height="64" Padding="4"><MGTextBlock Text="Boots" WrapText="True" /></MGBorder>
+        <MGBorder Name="pnlSlot8" Width="64" Height="64" Padding="4"><MGTextBlock Text="" /></MGBorder>
+        <MGBorder Name="pnlSlot9" Width="64" Height="64" Padding="4"><MGTextBlock Text="" /></MGBorder>
+        <MGBorder Name="pnlSlot10" Width="64" Height="64" Padding="4"><MGTextBlock Text="" /></MGBorder>
+      </MGStackPanel>
+    </MGStackPanel>
+  </MGBorder>
+
+</MGDockPanel>

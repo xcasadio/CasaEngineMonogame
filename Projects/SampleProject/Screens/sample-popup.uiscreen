@@ -1,0 +1,8 @@
+{
+  "id": "b2c3d4e5-f6a7-8901-bcde-f23456789012",
+  "name": "SamplePopup",
+  "source_xaml_file": "sample-popup.xaml",
+  "theme_name": "",
+  "preview_resolution": { "x": 1280, "y": 720 },
+  "resource_files": []
+}
