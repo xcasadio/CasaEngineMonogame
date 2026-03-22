@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
@@ -190,6 +191,7 @@ public sealed class UIScreenPreviewPanel
             previewWindow.IsHitTestVisible = false;
             _previewSurface!.SetContent(previewWindow);
             _statusText!.Text = "Preview rebuilt.";
+            UIDesignModeContext.EnterDesignTime();
             DocumentLoaded?.Invoke(document);
         }
         catch (Exception ex)
