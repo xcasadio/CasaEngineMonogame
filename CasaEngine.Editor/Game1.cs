@@ -3,6 +3,7 @@ using CasaEngine.Engine;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
@@ -79,6 +80,7 @@ namespace CasaEngine.Editor
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
+        private readonly UICommandStack _screenCommandStack = new();
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
         private UIScreenInspectorPanel? _screenInspectorPanel;
@@ -231,8 +233,8 @@ namespace CasaEngine.Editor
             _menuBar.AddItem("Edit", item =>
             {
                 item.Submenu = new MGContextMenu(_mainWindow, null);
-                item.Submenu.AddButton("Undo", _ => { });
-                item.Submenu.AddButton("Redo", _ => { });
+                item.Submenu.AddButton("Undo", _ => ExecuteUndo());
+                item.Submenu.AddButton("Redo", _ => ExecuteRedo());
                 item.Submenu.AddSeparator();
                 item.Submenu.AddButton("Cut", _ => { });
                 item.Submenu.AddButton("Copy", _ => { });
@@ -558,6 +560,7 @@ namespace CasaEngine.Editor
             if (_screenHierarchyPanel == null)
             {
                 _screenHierarchyPanel = new UIScreenHierarchyPanel(_mainWindow, _screenSelection);
+                _screenHierarchyPanel.SetCommandStack(_screenCommandStack);
                 _screenHierarchyPanel.NodeDeleted += doc =>
                 {
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
@@ -574,6 +577,7 @@ namespace CasaEngine.Editor
             if (_screenInspectorPanel == null)
             {
                 _screenInspectorPanel = new UIScreenInspectorPanel(_mainWindow, _screenSelection);
+                _screenInspectorPanel.SetCommandStack(_screenCommandStack);
                 _screenInspectorPanel.DocumentModified += doc =>
                 {
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
@@ -617,13 +621,54 @@ namespace CasaEngine.Editor
                 parentNode = document.FindNode(_screenSelection.SelectedNodeId.Value);
             }
 
-            var newNode = CasaEngine.EditorServices.ScreenEditor.Factory.UIScreenNodeFactory.Create(document, entry, parentNode);
+            var cmd = new AddNodeCommand(document, entry, parentNode);
+            _screenCommandStack.Execute(cmd);
+            var newNode = cmd.CreatedNode;
 
             // Rebuild preview and sync tree / inspector
             _activeScreenPreviewPanel.LoadDocumentDirectly(document);
 
             // Select the new node
-            _screenSelection.Select(newNode.Id);
+            if (newNode != null)
+            {
+                _screenSelection.Select(newNode.Id);
+            }
+        }
+
+        private void ExecuteUndo()
+        {
+            if (!_screenCommandStack.CanUndo)
+            {
+                return;
+            }
+
+            _screenCommandStack.Undo();
+            RefreshScreenPanelsAfterCommand();
+        }
+
+        private void ExecuteRedo()
+        {
+            if (!_screenCommandStack.CanRedo)
+            {
+                return;
+            }
+
+            _screenCommandStack.Redo();
+            RefreshScreenPanelsAfterCommand();
+        }
+
+        /// <summary>
+        /// Rebuilds the active screen preview and syncs all panels after an undo/redo.
+        /// </summary>
+        private void RefreshScreenPanelsAfterCommand()
+        {
+            if (_activeScreenPreviewPanel?.CurrentDocument == null)
+            {
+                return;
+            }
+
+            var doc = _activeScreenPreviewPanel.CurrentDocument;
+            _activeScreenPreviewPanel.LoadDocumentDirectly(doc);
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
@@ -1228,6 +1273,19 @@ namespace CasaEngine.Editor
         {
             _windowInputSource.CaptureFrameInput();
             PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+
+            // ── Keyboard shortcuts ────────────────────────────────────────
+            var kb = Microsoft.Xna.Framework.Input.Keyboard.GetState();
+            bool ctrl = kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl)
+                     || kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
+            if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Z))
+            {
+                ExecuteUndo();
+            }
+            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Y))
+            {
+                ExecuteRedo();
+            }
 
             _fpsSampleElapsed += gameTime.ElapsedGameTime;
             _fpsSampleFrames++;

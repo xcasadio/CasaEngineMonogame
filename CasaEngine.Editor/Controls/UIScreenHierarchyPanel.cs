@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
 using MGUI.Core.UI;
@@ -19,6 +20,7 @@ public sealed class UIScreenHierarchyPanel
 {
     private readonly MGWindow _window;
     private readonly UIScreenSelectionService _selection;
+    private UICommandStack? _commandStack;
 
     private MGDockPanel? _root;
     private MGTreeView? _treeView;
@@ -36,6 +38,9 @@ public sealed class UIScreenHierarchyPanel
         _selection = selection;
         _selection.SelectionChanged += OnExternalSelectionChanged;
     }
+
+    /// <summary>Attaches a command stack so deletions are undoable.</summary>
+    public void SetCommandStack(UICommandStack commandStack) => _commandStack = commandStack;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Public API
@@ -253,13 +258,16 @@ public sealed class UIScreenHierarchyPanel
 
         _selection.ClearSelection();
 
-        if (node.Parent != null)
+        if (_commandStack != null)
+        {
+            _commandStack.Execute(new RemoveNodeCommand(_document, node));
+        }
+        else if (node.Parent != null)
         {
             node.Parent.RemoveChild(node);
         }
         else
         {
-            // Deleting the root
             _document.ClearRoot();
         }
 

@@ -14,7 +14,7 @@ public sealed class AddNodeCommand : IUIScreenCommand
     private readonly UIControlRegistryEntry _entry;
     private readonly UIScreenNode? _requestedParent;
 
-    // Filled in during Execute to support Undo
+    // Filled in during Execute to support Undo and to return to caller
     private UIScreenNode? _addedNode;
     private UIScreenNode? _actualParent;
     // For the "wrap root" fallback: original root before wrapping
@@ -22,6 +22,9 @@ public sealed class AddNodeCommand : IUIScreenCommand
     private bool _rootWasWrapped;
 
     public string Description => $"Add {_entry.DisplayName}";
+
+    /// <summary>The node that was created by the last call to <see cref="Execute"/>.</summary>
+    public UIScreenNode? CreatedNode => _addedNode;
 
     public AddNodeCommand(
         UIScreenDocument document,

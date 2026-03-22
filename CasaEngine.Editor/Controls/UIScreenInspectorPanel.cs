@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Inspector;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
@@ -21,6 +22,7 @@ public sealed class UIScreenInspectorPanel
     private readonly MGWindow _window;
     private readonly UIScreenSelectionService _selection;
     private readonly UIPropertyRegistry _registry;
+    private UICommandStack? _commandStack;
 
     private MGDockPanel? _root;
     private MGStackPanel? _propertiesStack;
@@ -54,6 +56,13 @@ public sealed class UIScreenInspectorPanel
         _registry = registry;
         _selection.SelectionChanged += OnSelectionChanged;
     }
+
+    /// <summary>
+    /// Attaches a command stack so property edits are undoable.
+    /// Must be set before <see cref="CreateContent"/> is called, or before
+    /// any edits are made.
+    /// </summary>
+    public void SetCommandStack(UICommandStack commandStack) => _commandStack = commandStack;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Public API
@@ -260,7 +269,14 @@ public sealed class UIScreenInspectorPanel
             checkBox.OnCheckStateChanged += (_, args) =>
             {
                 var serialized = args.NewValue == true ? "True" : "False";
-                node.SetProperty(desc.Name, serialized);
+                if (_commandStack != null)
+                {
+                    _commandStack.Execute(new CasaEngine.EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, desc.Name, serialized));
+                }
+                else
+                {
+                    node.SetProperty(desc.Name, serialized);
+                }
                 errorLabel.Text = string.Empty;
                 if (_document != null)
                 {
@@ -287,7 +303,14 @@ public sealed class UIScreenInspectorPanel
             if (error == null)
             {
                 var serialized = string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
-                node.SetProperty(desc.Name, serialized);
+                if (_commandStack != null)
+                {
+                    _commandStack.Execute(new CasaEngine.EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, desc.Name, serialized));
+                }
+                else
+                {
+                    node.SetProperty(desc.Name, serialized);
+                }
                 if (_document != null)
                 {
                     DocumentModified?.Invoke(_document);
