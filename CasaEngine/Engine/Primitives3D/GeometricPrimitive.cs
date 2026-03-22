@@ -74,8 +74,6 @@ public abstract class GeometricPrimitive
         }
     }
 
-#if EDITOR
-
     public List<Vector3> Points
     {
         get
@@ -83,6 +81,4 @@ public abstract class GeometricPrimitive
             return Vertices.Select(v => v.Position).ToList();
         }
     }
-
-#endif
 }

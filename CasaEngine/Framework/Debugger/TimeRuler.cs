@@ -15,10 +15,6 @@ using CasaEngine.Framework.Graphics2D;
 using FontStashSharp;
 using Microsoft.Xna.Framework.Graphics;
 
-#if EDITOR
-//using CasaEngine.Editor.GameComponent;
-#endif
-
 namespace CasaEngine.Framework.Debugger;
 
 public class TimeRuler : DrawableGameComponent, IGameComponentResizable

@@ -526,7 +526,7 @@ public sealed class EntitiesPanel
         }
         else
         {
-            _currentWorld.AddEntityWithEditor(entity);
+            EditorWorldEditingService.AddEntity(_currentWorld, entity);
         }
 
         RebuildTree();
@@ -559,7 +559,7 @@ public sealed class EntitiesPanel
         }
         else
         {
-            _currentWorld.AddEntityWithEditor(duplicate);
+            EditorWorldEditingService.AddEntity(_currentWorld, duplicate);
         }
 
         RebuildTree();
@@ -590,7 +590,7 @@ public sealed class EntitiesPanel
         }
         else
         {
-            _currentWorld.RemoveEntityWithEditor(entity);
+            EditorWorldEditingService.RemoveEntity(_currentWorld, entity);
         }
 
         if (ReferenceEquals(_selectedEntity, entity))

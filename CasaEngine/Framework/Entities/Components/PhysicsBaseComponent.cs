@@ -65,11 +65,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         PhysicsEngineComponent = world.Game.GetGameComponent<PhysicsEngineComponent>();
         Debug.Assert(PhysicsEngineComponent != null);
 
-#if EDITOR
+    if (world.Game.ExecutionPolicy.UseExternalViewManagement)
+    {
         Coordinates.PositionChanged += OnPositionChanged;
         Coordinates.OrientationChanged += OnOrientationChanged;
         DestroyPhysicsObject();
-#endif
+    }
 
         CreatePhysicsObject();
     }
@@ -228,17 +229,6 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         _lock = false;
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        PhysicsDefinition.Save(newJObject);
-        jObject.Add("physics_definition", newJObject);
-    }
-
     ~PhysicsBaseComponent()
     {
         if (Owner != null)
@@ -277,5 +267,4 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
         IsBoundingBoxDirty = true;
     }
-#endif
 }

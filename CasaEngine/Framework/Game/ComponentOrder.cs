@@ -16,11 +16,8 @@ public enum ComponentUpdateOrder
     ParticleComponent,
     Physics,
     DebugPhysics,
-    Default
-
-#if EDITOR
-    , CasaEngineEditor
-#endif
+    Default,
+    CasaEngineEditor
 }
 
 public enum ComponentDrawOrder

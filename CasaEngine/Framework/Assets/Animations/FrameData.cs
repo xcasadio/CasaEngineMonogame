@@ -18,13 +18,4 @@ public class FrameData
         SpriteId = element["sprite_id"].GetGuid();
     }
 
-#if EDITOR
-
-    public void Save(JObject jObject)
-    {
-        jObject.Add("duration", Duration);
-        jObject.Add("sprite_id", SpriteId);
-
-    }
-#endif
 }

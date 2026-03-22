@@ -4,11 +4,9 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class CapsulePrimitive : GeometricPrimitive
 {
-#if EDITOR
     private float _length;
     private float _radius;
     private int _tessellation;
-#endif
 
     public CapsulePrimitive(float length = 1.0f, float radius = 0.5f, int tessellation = 8,
         float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
@@ -20,11 +18,9 @@ public class CapsulePrimitive : GeometricPrimitive
             throw new ArgumentOutOfRangeException(nameof(length), "(length - radius) must be > 0");
         }
 
-#if EDITOR
         _length = length;
         _radius = radius;
         _tessellation = tessellation;
-#endif
 
         if (tessellation < 3)
         {

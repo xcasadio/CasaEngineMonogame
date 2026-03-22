@@ -102,33 +102,4 @@ public class StaticModelComponent : PrimitiveComponent
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        // Call base (SceneComponent) which writes coordinates + children_component.
-        base.Save(jObject);
-
-        jObject.Add("static_model_asset_id", StaticModelAssetId.ToString());
-
-        // Replace the children_component array written by base.Save() so that
-        // auto-generated sub-mesh children are excluded — they are always rebuilt
-        // from the asset on load / InitializeWithWorld.
-        var filtered = new JArray();
-        foreach (var child in Children)
-        {
-            if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true })
-            {
-                continue;
-            }
-
-            var childObj = new JObject();
-            child.Save(childObj);
-            filtered.Add(childObj);
-        }
-
-        jObject["children_component"] = filtered;
-    }
-
-#endif
 }

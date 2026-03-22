@@ -113,14 +113,10 @@ public class PhysicsEngineComponent : GameComponent
             AngularFactor = physicsDefinition.AngularFactor
         };
 
-#if EDITOR
-        body.CollisionFlags = CollisionFlags.None;
-#else
-        if (!isDynamic)
+    if (!isDynamic && _casaEngineGame?.ExecutionPolicy.UseExternalViewManagement != true)
         {
             body.CollisionFlags |= CollisionFlags.StaticObject;
         }
-#endif
 
 
         if (physicsDefinition.DebugColor.HasValue)

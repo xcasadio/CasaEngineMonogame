@@ -200,9 +200,4 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         LoadSpriteData(spriteDataName);
     }
 
-    public override void Save(JObject jObject)
-    {
-        jObject.Add("spriteDataName", _spriteData == null ? "null" : _spriteData.Name);
-        base.Save(jObject);
-    }
 }

@@ -49,13 +49,4 @@ public class Cone : Shape3d, IEquatable<Cone>
         _length = element["length"].GetSingle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("radius", Radius);
-        jObject.Add("length", _length);
-    }
-#endif
 }

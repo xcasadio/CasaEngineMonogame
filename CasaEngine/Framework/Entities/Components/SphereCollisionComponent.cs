@@ -44,16 +44,4 @@ public class SphereCollisionComponent : PhysicsBaseComponent
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Sphere.Save(newJObject);
-        jObject.Add("sphere", newJObject);
-    }
-
-#endif
 }

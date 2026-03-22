@@ -42,9 +42,6 @@ public class ProjectSettings
 
 #endif
 
-    [Browsable(false), JsonIgnore]
-    public string? ProjectFileOpened { get; set; }
-
     [Category("External Tool")]
     public string ExternalToolsDirectory { get; set; } = "ExternalTools";
 

@@ -16,13 +16,4 @@ public class TileMapLayerData
         tiles = element["tiles"].Values<int>().ToList();
     }
 
-#if EDITOR
-
-    public void Save(JObject jObject)
-    {
-        jObject.Add("z_offset", zOffset);
-        jObject.Add("tiles", new JArray(tiles));
-    }
-
-#endif
 }

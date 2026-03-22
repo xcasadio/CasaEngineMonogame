@@ -76,26 +76,4 @@ public class InputMapping : ObjectBase
         AlternativeKeyButton.Load((JObject)element["alternative_key_button"]);
     }
 
-#if EDITOR
-
-    public override void Save(JObject node)
-    {
-        base.Save(node);
-
-        node.Add("game_pad_number", GamePadNumber.ToString());
-        node.Add("button_behavior", ButtonBehavior.ToString());
-        node.Add("analog_axis", AnalogAxis.ToString());
-        node.Add("invert", Invert);
-        node.Add("dead_zone", DeadZone);
-
-        var keyNode = new JObject();
-        KeyButton.Save(keyNode);
-        node.Add("key_button", keyNode);
-
-        keyNode = new JObject();
-        AlternativeKeyButton.Save(keyNode);
-        node.Add("alternative_key_button", keyNode);
-    }
-
-#endif
 }

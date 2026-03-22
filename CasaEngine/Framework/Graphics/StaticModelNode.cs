@@ -46,24 +46,8 @@ public class StaticModelNode : ISerializable
         }
     }
 
-#if EDITOR
     public void Save(JObject jObject)
     {
-        jObject.Add("name", Name);
-        jObject.Add("mesh_index", MeshIndex);
-
-        var posObj = new JObject(); Position.Save(posObj); jObject.Add("position", posObj);
-        var rotObj = new JObject(); Rotation.Save(rotObj); jObject.Add("rotation", rotObj);
-        var sclObj = new JObject(); Scale.Save(sclObj); jObject.Add("scale", sclObj);
-
-        var childrenArray = new JArray();
-        foreach (var child in Children)
-        {
-            var childObj = new JObject();
-            child.Save(childObj);
-            childrenArray.Add(childObj);
-        }
-        jObject.Add("children", childrenArray);
+        throw new NotSupportedException("StaticModelNode authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

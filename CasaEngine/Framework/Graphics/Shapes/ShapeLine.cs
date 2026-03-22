@@ -51,18 +51,4 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
         End = element["end"].GetPoint();
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        var newObject = new JObject();
-        Start.Save(newObject);
-        jObject.Add("start", newObject);
-
-        newObject = new JObject();
-        End.Save(newObject);
-        jObject.Add("end", newObject);
-    }
-#endif
 }

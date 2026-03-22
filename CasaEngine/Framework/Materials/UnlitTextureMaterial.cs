@@ -65,20 +65,4 @@ public class UnlitTextureMaterial : MaterialBase
         Alpha = element["alpha"]?.Value<float>() ?? 1.0f;
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject["type"]            = nameof(UnlitTextureMaterial);
-        jObject["BasColor_asset_id"] = BasColorAssetId.ToString();
-        jObject["tint_color"]      = new JObject
-        {
-            ["r"] = Tint.R,
-            ["g"] = Tint.G,
-            ["b"] = Tint.B,
-            ["a"] = Tint.A,
-        };
-        jObject["alpha"] = Alpha;
-    }
-#endif
 }

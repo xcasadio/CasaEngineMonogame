@@ -37,6 +37,7 @@ namespace CasaEngine.Editor
         private const string OutputPanelId = "panel_output";
         private const string EntitiesPanelId = "panel_entities";
         private const string EntityDetailsPanelId = "panel_entity_details";
+        private const string UIScreenHierarchyPanelId = "panel_ui_screen_hierarchy";
         private const string EditorLayoutDirectoryName = ".casaeditor";
         private const string EditorLayoutFileName = "layout.json";
 
@@ -74,6 +75,9 @@ namespace CasaEngine.Editor
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
+        private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
+        private UIScreenHierarchyPanel? _screenHierarchyPanel;
+        private MGElement? _screenHierarchyContent;
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
@@ -275,6 +279,14 @@ namespace CasaEngine.Editor
                 ContentFactory = GetOrCreateEntitiesContent
             };
 
+            var screenHierarchyPanel = new DockPanelNode(UIScreenHierarchyPanelId)
+            {
+                Title = "Screen Hierarchy",
+                CanClose = true,
+                CanFloat = true,
+                ContentFactory = GetOrCreateScreenHierarchyContent
+            };
+
             var contentBrowserPanel = new DockPanelNode(ContentBrowserPanelId)
             {
                 Title = "Content Browser",
@@ -304,6 +316,7 @@ namespace CasaEngine.Editor
 
             var entitiesGroup = new DockTabGroupNode();
             entitiesGroup.AddPanel(explorerPanel, -1);
+            entitiesGroup.AddPanel(screenHierarchyPanel, -1);
             entitiesGroup.SetActivePanel(explorerPanel.Id);
 
             var detailsGroup = new DockTabGroupNode();
@@ -511,6 +524,17 @@ namespace CasaEngine.Editor
             _entitiesContent ??= _entitiesPanel.CreateContent();
             _entitiesPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
             return _entitiesContent;
+        }
+
+        private MGElement GetOrCreateScreenHierarchyContent()
+        {
+            if (_screenHierarchyPanel == null)
+            {
+                _screenHierarchyPanel = new UIScreenHierarchyPanel(_mainWindow, _screenSelection);
+            }
+
+            _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
+            return _screenHierarchyContent;
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
@@ -821,6 +845,7 @@ namespace CasaEngine.Editor
                 EntityDetailsPanelId => GetOrCreateEntityDetailsContent,
                 ContentBrowserPanelId => GetOrCreateContentBrowserContent,
                 OutputPanelId => GetOrCreateLogsContent,
+                UIScreenHierarchyPanelId => GetOrCreateScreenHierarchyContent,
                 _ => () => CreateUnavailablePanelContent(panelId),
             };
         }
@@ -962,6 +987,7 @@ namespace CasaEngine.Editor
             if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
             {
                 previewPanel = new UIScreenPreviewPanel(_mainWindow);
+                previewPanel.DocumentLoaded += doc => _screenHierarchyPanel?.SetDocument(doc);
                 _screenPreviewPanels.Add(panelId, previewPanel);
             }
 

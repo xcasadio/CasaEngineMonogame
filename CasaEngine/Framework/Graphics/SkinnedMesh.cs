@@ -39,7 +39,6 @@ public class SkinnedMesh : ObjectBase
 
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-        jObject.Add("rigged_model_asset_id", RiggedModelAssetId);
+        throw new NotSupportedException("SkinnedMesh authoring serialization lives in CasaEngine.EditorServices.");
     }
 }

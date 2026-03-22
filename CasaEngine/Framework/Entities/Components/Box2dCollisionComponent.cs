@@ -43,16 +43,4 @@ public class Box2dCollisionComponent : Physics2dComponent
         Rectangle.Load((JObject)element["rectangle"]);
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Rectangle.Save(newJObject);
-        jObject.Add("rectangle", newJObject);
-    }
-
-#endif
 }

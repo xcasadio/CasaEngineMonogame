@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using CasaEngine.Core.Log;
+using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Engine;
@@ -90,6 +91,9 @@ public sealed class UIScreenPreviewPanel
         return _root;
     }
 
+    /// <summary>Fired after the document is successfully parsed, or <c>null</c> when load fails.</summary>
+    public event Action<UIScreenDocument?>? DocumentLoaded;
+
     public void LoadAsset(UIScreenAsset asset, string assetFilePath)
     {
         ArgumentNullException.ThrowIfNull(asset);
@@ -107,6 +111,8 @@ public sealed class UIScreenPreviewPanel
             _loadedSourceXamlPath = sourceXamlPath;
 
             var document = _xamlParser.ParseFile(sourceXamlPath);
+            DocumentLoaded?.Invoke(document);
+
             var previewWindow = _previewBuilder.Build(_window.GetDesktop(), document);
             previewWindow.IsHitTestVisible = false;
 
@@ -115,6 +121,7 @@ public sealed class UIScreenPreviewPanel
         }
         catch (Exception ex)
         {
+            DocumentLoaded?.Invoke(null);
             ShowPreviewError("Preview unavailable", ex.Message, asset.SourceXamlFile);
             _statusText!.Text = "Preview build failed.";
         }

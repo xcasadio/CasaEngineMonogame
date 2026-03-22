@@ -236,13 +236,4 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         TileMapDataAssetId = element["tile_map_data_asset_id"].GetGuid();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("tile_map_data_asset_id", TileMapDataAssetId);
-    }
-
-#endif
 }

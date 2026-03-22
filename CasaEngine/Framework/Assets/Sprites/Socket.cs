@@ -15,13 +15,4 @@ public class Socket
         Position = JObject["position"].GetPoint();
     }
 
-#if EDITOR
-    public void Save(JObject jObject)
-    {
-        jObject.Add("name", Name);
-        var newjObject = new JObject();
-        Position.Save(newjObject);
-        jObject.Add("position", newjObject);
-    }
-#endif
 }

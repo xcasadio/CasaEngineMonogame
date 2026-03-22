@@ -21,10 +21,4 @@ public interface IGameplayProxy
     string FileName { get; set; }
     Guid AssetId { get; set; }
     void Load(JObject element);
-
-#if EDITOR
-
-    void Save(JObject element);
-
-#endif
 }

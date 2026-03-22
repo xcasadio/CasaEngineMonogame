@@ -14,12 +14,8 @@ public class AnimationData : ObjectBase
         base.Load(element);
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        jObject.Add("animation_type", AnimationType.ConvertToString());
-        base.Save(jObject);
+        throw new NotSupportedException("AnimationData authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

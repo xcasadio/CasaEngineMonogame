@@ -15,13 +15,8 @@ public abstract class Shape3d : ObjectBase
         Type = type;
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-        jObject.Add("shape_type", Type.ConvertToString());
+        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

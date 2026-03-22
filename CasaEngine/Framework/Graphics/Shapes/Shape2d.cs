@@ -22,16 +22,8 @@ public abstract class Shape2d
         Rotation = element["orientation"].GetSingle();
     }
 
-#if EDITOR
     public virtual void Save(JObject jObject)
     {
-        jObject.Add("shape_type", Type.ConvertToString());
-
-        var newObject = new JObject();
-        Position.Save(newObject);
-        jObject.Add("location", newObject);
-
-        jObject.Add("orientation", Rotation);
+        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

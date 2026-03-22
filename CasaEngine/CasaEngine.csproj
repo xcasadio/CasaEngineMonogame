@@ -25,9 +25,9 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Compile Remove="Core\Serialization\JsonSaveExtensions.Editor.cs" />
 	  <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
 	  <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
-	  <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="BulletSharp">

@@ -1,12 +1,18 @@
-﻿using CasaEngine.Core.Log;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using CasaEngine.EditorServices;
 using CasaEngine.Engine.Input;
 using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Framework.Game.Components.DebugTools
 {
@@ -22,35 +28,12 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         public event EventHandler<List<ITransformableObject>>? SelectionChanged;
         public event EventHandler<List<ITransformableObject>>? CopyTriggered;
 
-        /// <summary>
-        /// When set, <see cref="Update"/> uses this camera instead of
-        /// <c>ViewManager.ActiveView.Camera</c>.
-        ///
-        /// Set by <see cref="CasaEngine.EditorUI.Controls.EngineHost.RegisterEditorView"/> to
-        /// bind the gizmo to a specific viewport's camera.
-        /// </summary>
         public CameraComponent? ActiveCamera { get; set; }
 
-        /// <summary>
-        /// The per-view render-target surface. Used to temporarily override
-        /// <c>GraphicsDevice.Viewport</c> before <c>Gizmo.SelectEntities</c> so that
-        /// <c>ConvertMouseToRay / Viewport.Unproject</c> uses the correct render-target
-        /// dimensions rather than whatever the back buffer happened to be.
-        /// Set by EngineHost.RegisterEditorView alongside ActiveCamera.
-        /// </summary>
         public RenderTargetSurface? ActiveSurface { get; set; }
 
-        /// <summary>
-        /// When <see langword="false"/> this gizmo skips all input processing so that
-        /// only the gizmo belonging to the viewport currently under the cursor reacts
-        /// to mouse clicks and keyboard shortcuts. Set by EngineHost.Update().
-        /// </summary>
         public bool IsActiveViewport { get; set; }
 
-        /// <summary>
-        /// World backing this gizmo's selection pool. When null, falls back to
-        /// <c>GameManager.CurrentWorld</c> for backward compatibility.
-        /// </summary>
         public Framework.World.World? SelectionWorld { get; set; }
 
         public TransformGizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
@@ -70,7 +53,9 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
             var fontsDir = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
             var arialPath = Path.Combine(fontsDir, "arial.ttf");
             if (File.Exists(arialPath))
-                _game.FontSystem.AddFont(File.ReadAllBytes(arialPath));
+            {
+                _game?.FontSystem.AddFont(File.ReadAllBytes(arialPath));
+            }
 
             Gizmo = new Gizmo(Game.GraphicsDevice);
 
@@ -83,27 +68,24 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
 
             _inputComponent = Game.GetGameComponent<InputComponent>();
 
-            // Drawing is handled by OverlayViewPipeline.RenderGizmos per-view.
-            // Leaving Visible=true would cause a redundant draw in Phase 3 of DrawWithEditor
-            // into the EngineHost's dummy back buffer when it is used as an invisible element.
             Visible = false;
         }
 
         public override void Update(GameTime gameTime)
         {
-            var selectionWorld = SelectionWorld ?? _game.GameManager.CurrentWorld;
+            var selectionWorld = SelectionWorld ?? _game?.GameManager.CurrentWorld;
 
             if (Gizmo.GetSelectionPool() == null && selectionWorld != null)
             {
-                SetSelectionPool(selectionWorld.GetSelectableComponents());
+                SetSelectionPool(EditorWorldEditingService.GetSelectableComponents(selectionWorld));
             }
 
-            if (Gizmo.GetSelectionPool() == null)
+            if (Gizmo.GetSelectionPool() == null || _inputComponent == null)
             {
                 return;
             }
 
-            var camera = ActiveCamera ?? _game.GameManager.ViewManager.ActiveView?.Camera;
+            var camera = ActiveCamera ?? _game?.GameManager.ViewManager.ActiveView?.Camera;
             if (camera != null)
             {
                 Gizmo.UpdateCameraProperties(
@@ -115,7 +97,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
             if (ActiveSurface != null)
             {
                 var r = ActiveSurface.ViewportRect;
-                Gizmo.ActiveViewport = new Microsoft.Xna.Framework.Graphics.Viewport(r.X, r.Y, r.Width, r.Height);
+                Gizmo.ActiveViewport = new Viewport(r.X, r.Y, r.Width, r.Height);
             }
 
             if (!IsActiveViewport)
@@ -124,11 +106,10 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
                 return;
             }
 
-            var lbState = _inputComponent.MouseManager.LeftButtonJustPressed;
-
-            if (lbState)
+            if (_inputComponent.MouseManager.LeftButtonJustPressed)
             {
-                Gizmo.SelectEntities(new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
+                Gizmo.SelectEntities(
+                    new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
                     _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
                     _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));
             }
@@ -153,14 +134,8 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
                 Gizmo.ActiveMode = GizmoMode.UniformScale;
             }
 
-            if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftShift) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightShift))
-            {
-                Gizmo.PrecisionModeEnabled = true;
-            }
-            else
-            {
-                Gizmo.PrecisionModeEnabled = false;
-            }
+            Gizmo.PrecisionModeEnabled = _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftShift)
+                || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightShift);
 
             if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.O))
             {
@@ -192,10 +167,6 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
             base.Draw(gameTime);
         }
 
-        /// <summary>
-        /// Draws the gizmo for a specific view using the supplied camera frame.
-        /// Called by <see cref="OverlayViewPipeline"/> with the view's render target active.
-        /// </summary>
         public void DrawForView(in RenderFrame frame)
         {
             Gizmo.UpdateCameraProperties(frame.View, frame.Projection, frame.CameraPosition);
@@ -307,12 +278,9 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
             adapter.Transformable.Scale = scale;
         }
     }
-}
 
-namespace CasaEngine.Framework.Game.Components.Editor
-{
     [System.Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.TransformGizmoComponent instead.")]
-    public sealed class GizmoComponent : CasaEngine.Framework.Game.Components.DebugTools.TransformGizmoComponent
+    public sealed class GizmoComponent : TransformGizmoComponent
     {
         public GizmoComponent(Microsoft.Xna.Framework.Game game)
             : base(game)

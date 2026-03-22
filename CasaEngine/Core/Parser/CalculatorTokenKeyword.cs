@@ -30,13 +30,4 @@ internal class CalculatorTokenKeyword : CalculatorToken
         _keyword = element["keyword"].GetString();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        jObject.Add("type", CalculatorTokenType.Keyword.ConvertToString());
-        jObject.Add("keyword", _keyword);
-    }
-
-#endif
 }

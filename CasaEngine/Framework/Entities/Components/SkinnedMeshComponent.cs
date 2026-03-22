@@ -92,12 +92,4 @@ public class SkinnedMeshComponent : PrimitiveComponent
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("skinned_mesh_id", SkinnedMesh?.RiggedModelAssetId ?? Guid.Empty);
-    }
-#endif
 }

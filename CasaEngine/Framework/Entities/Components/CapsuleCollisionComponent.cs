@@ -42,16 +42,4 @@ public class CapsuleCollisionComponent : PhysicsBaseComponent
         Capsule.Load((JObject)element["capsule"]);
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Capsule.Save(newJObject);
-        jObject.Add("capsule", newJObject);
-    }
-
-#endif
 }

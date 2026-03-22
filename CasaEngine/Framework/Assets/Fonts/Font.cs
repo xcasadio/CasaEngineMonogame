@@ -9,10 +9,7 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Assets.Fonts;
 
-public class Font
-#if EDITOR
-    : INotifyPropertyChanged
-#endif
+public class Font : INotifyPropertyChanged
 {
     private readonly Dictionary<char, FontChar> _charsDic;
     private readonly List<string> _texturesFileNames;
@@ -140,12 +137,9 @@ public class Font
         /*
         string assetFile;
 
-#if EDITOR
         assetFile = Game.GameManager.ProjectManager.ProjectPath + System.IO.Path.DirectorySeparatorChar +
             ProjectManager.AssetDirPath + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
-#else
         assetFile = Game.Content.RootDirectory + System.IO.Path.DirectorySeparatorChar + _AssetFileName;
-#endif
 
         if (_Texture2D != null
             && _Texture2D.IsDisposed == false
@@ -191,7 +185,6 @@ public class Font
         return null;
     }
 
-#if EDITOR
     public event PropertyChangedEventHandler PropertyChanged;
 
     public Font(string fileName)
@@ -269,7 +262,6 @@ public class Font
     }
 
     public List<string> AssetFileNames => _texturesFileNames;
-#endif
 
 }
 

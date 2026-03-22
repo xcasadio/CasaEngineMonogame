@@ -4,10 +4,8 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class SpherePrimitive : GeometricPrimitive
 {
-#if EDITOR
     private float _diameter;
     private int _tessellation;
-#endif
 
     public SpherePrimitive(float diameter = 1f, int tessellation = 16)
     {
@@ -21,10 +19,8 @@ public class SpherePrimitive : GeometricPrimitive
 
         var radius = diameter / 2f;
 
-#if EDITOR
         _diameter = diameter;
         _tessellation = tessellation;
-#endif
 
         // Create rings of vertices at progressively higher latitudes.
         for (int i = 0; i <= verticalSegments; i++)

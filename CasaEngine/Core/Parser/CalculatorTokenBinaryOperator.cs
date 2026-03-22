@@ -112,23 +112,6 @@ internal class CalculatorTokenBinaryOperator : CalculatorToken
         return res;
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        jObject.Add("type", ((int)CalculatorTokenType.BinaryOperator).ToString());
-        jObject.Add("operator", ((int)_operator).ToString());
-
-        var leftElement = new JObject();
-        _left.Save(leftElement);
-        jObject.Add("left", leftElement);
-
-        var rightElement = new JObject();
-        _right.Save(rightElement);
-        jObject.Add("right", rightElement);
-    }
-#endif
-
     public override void Load(JObject element)
     {
         _operator = element["operator"].GetEnum<BinaryOperator>();

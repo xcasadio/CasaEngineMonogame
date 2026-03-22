@@ -432,7 +432,7 @@ public sealed class World : ObjectBase
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
-    public IEnumerable<ITransformableObject> GetSelectableComponents()
+    internal IEnumerable<ITransformableObject> GetTransformableComponentsForEditor()
     {
         var selectables = new List<ITransformableObject>();
 
@@ -465,21 +465,7 @@ public sealed class World : ObjectBase
         }
     }
 
-    public void AddEntityWithEditor(Entity entity)
-    {
-        var entityReference = new EntityReference();
-        entityReference.Name = entity.Name;
-        entityReference.Entity = entity;
-
-        AddEntityReferenceWithEditor(entityReference, entityReference.Entity);
-    }
-
-    public void AddEntityReference(EntityReference entityReference)
-    {
-        AddEntityReferenceWithEditor(entityReference, entityReference.Entity);
-    }
-
-    private void AddEntityReferenceWithEditor(EntityReference entityReference, Entity entity)
+    internal void AddEntityReferenceImmediate(EntityReference entityReference, Entity entity)
     {
         _entityReferences.Add(entityReference);
         entity.Initialize();
@@ -490,7 +476,7 @@ public sealed class World : ObjectBase
         NotifyEntityAddedRecursive(entity);
     }
 
-    public void RemoveEntityWithEditor(Entity entity)
+    internal void RemoveEntityImmediate(Entity entity)
     {
         var entitiesToRemove = new List<EntityReference>();
 
@@ -583,26 +569,7 @@ public sealed class World : ObjectBase
 
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        var entitiesJArray = new JArray();
-
-        foreach (var entityReference in _entityReferences)
-        {
-            if (entityReference.Entity.RootComponent != null)
-            {
-                entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.RootComponent?.Coordinates);
-            }
-
-            JObject entityObject = new();
-            entityReference.Save(entityObject);
-            entitiesJArray.Add(entityObject);
-        }
-
-        jObject.Add("entity_references", entitiesJArray);
-
-        jObject.Add("script_class_name", GameplayProxyClassName);
-
-        jObject.Add("game_mode_asset_id", GameModeAssetId);
+        throw new NotSupportedException("World authoring serialization lives in CasaEngine.EditorServices.");
     }
+
 }

@@ -16,8 +16,6 @@ public class ArrowComponent : StaticModelComponent
         StaticModel = other.StaticModel;
     }
 
-#if EDITOR
-
     protected override void InitializePrivate()
     {
         base.InitializePrivate();
@@ -83,8 +81,6 @@ public class ArrowComponent : StaticModelComponent
 
         base.InitializeWithWorld(world);
     }
-
-#endif
 
     public override ArrowComponent Clone() => new(this);
 }

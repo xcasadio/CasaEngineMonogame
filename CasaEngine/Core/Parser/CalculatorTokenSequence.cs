@@ -32,11 +32,4 @@ internal class CalculatorTokenSequence : CalculatorToken
         throw new InvalidOperationException("Can't save this object. It is a temporary objecte");
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        throw new InvalidOperationException("Can't save this object. It is a temporary object");
-    }
-
-#endif
 }

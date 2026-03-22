@@ -17,16 +17,4 @@ public class StaticTileData : TileData
         Location = element["location"].GetRectangle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        var newNode = new JObject();
-        Location.Save(newNode);
-        jObject.Add("location", newNode);
-    }
-
-#endif
 }

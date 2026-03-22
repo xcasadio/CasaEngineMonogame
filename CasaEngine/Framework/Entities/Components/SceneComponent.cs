@@ -369,25 +369,4 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject node)
-    {
-        base.Save(node);
-
-        var coordinatesObject = new JObject();
-        Coordinates.Save(coordinatesObject);
-        node.Add("coordinates", coordinatesObject);
-
-        var childrenObject = new JArray();
-        foreach (var child in Children)
-        {
-            var childObject = new JObject();
-            child.Save(childObject);
-            childrenObject.Add(childObject);
-        }
-        node.Add("children_component", childrenObject);
-    }
-
-#endif
 }

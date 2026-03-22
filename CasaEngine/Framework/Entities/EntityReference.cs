@@ -64,22 +64,4 @@ public class EntityReference
         return entityReference;
     }
 
-    public void Save(JObject jObject)
-    {
-        jObject.Add("asset_id", AssetId);
-
-        if (AssetId == Guid.Empty)
-        {
-            var entityNode = new JObject();
-            Entity.Save(entityNode);
-            jObject.Add("entity", entityNode);
-        }
-        else
-        {
-            jObject.Add("name", Name);
-            var coordinateNode = new JObject();
-            InitialCoordinates.Save(coordinateNode);
-            jObject.Add("initial_coordinates", coordinateNode);
-        }
-    }
 }

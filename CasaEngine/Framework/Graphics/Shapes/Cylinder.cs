@@ -57,13 +57,4 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
         _length = element["length"].GetSingle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("radius", Radius);
-        jObject.Add("length", _length);
-    }
-#endif
 }

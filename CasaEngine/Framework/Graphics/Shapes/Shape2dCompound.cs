@@ -47,21 +47,4 @@ public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
         return Shapes.GetHashCode();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        var shapesJArray = new JArray();
-
-        foreach (var entity in Shapes)
-        {
-            JObject entityObject = new();
-            entity.Save(entityObject);
-            shapesJArray.Add(entity);
-        }
-
-        jObject.Add("shapes", shapesJArray);
-    }
-#endif
 }

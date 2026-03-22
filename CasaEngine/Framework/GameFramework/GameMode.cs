@@ -427,16 +427,4 @@ public class GameMode : ObjectBase
         HUDClass = element["hud_classClass"].GetString();
     }
 
-#if EDITOR
-    public override void Save(JObject node)
-    {
-        base.Save(node);
-
-        node.Add("default_pawn_asset_id", DefaultPawnAssetId);
-        node.Add("player_controller_class", PlayerControllerClass);
-        node.Add("ai_controller_class", AIControllerClass);
-        node.Add("hud_classClass", HUDClass);
-    }
-
-#endif
 }

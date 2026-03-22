@@ -115,11 +115,9 @@ public class Animation
         ActivatedEvents.Clear();
     }
 
-#if EDITOR
     void RemoveEvent(AnimationEvent animationEvent)
     {
         Events.Remove(animationEvent);
     }
-#endif
 
 }

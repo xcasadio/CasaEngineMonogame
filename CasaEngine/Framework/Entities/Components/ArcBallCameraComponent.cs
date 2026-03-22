@@ -286,18 +286,4 @@ public class ArcBallCameraComponent : Camera3dComponent
         _pitch = element["pitch"].GetSingle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        _target.Save(newJObject);
-        jObject.Add("target", newJObject);
-        jObject.Add("distance", _distance);
-        jObject.Add("yaw", _yaw);
-        jObject.Add("pitch", _pitch);
-    }
-#endif
 }

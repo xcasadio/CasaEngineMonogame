@@ -44,16 +44,4 @@ public class CircleCollisionComponent : Physics2dComponent
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Circle.Save(newJObject);
-        jObject.Add("circle", newJObject);
-    }
-
-#endif
 }

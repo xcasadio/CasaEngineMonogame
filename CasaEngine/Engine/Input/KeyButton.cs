@@ -59,15 +59,4 @@ public class KeyButton : ISerializable
         InputDevice = element["input_device"].GetEnum<InputDevices>();
     }
 
-#if EDITOR
-
-    public void Save(JObject node)
-    {
-        node.Add("key", Key.ToString());
-        node.Add("game_pad_button", GamePadButton.ToString());
-        node.Add("mouse_button", MouseButton.ToString());
-        node.Add("input_device", InputDevice.ToString());
-    }
-
-#endif
 }

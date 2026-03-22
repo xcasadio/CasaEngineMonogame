@@ -215,13 +215,6 @@ public abstract class Parser
         return new CalculatorTokenBinaryOperator(_calculator, _mapBinaryOperator[@operator]);
     }
 
-#if EDITOR
-    public void Save(JObject jObject)
-    {
-        _calculator.Save(jObject);
-    }
-#endif
-
     public void Load(JObject element)
     {
         _calculator.Load(element);

@@ -106,12 +106,4 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
         base.Load(element);
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-    }
-
-#endif
 }

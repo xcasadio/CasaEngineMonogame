@@ -4,17 +4,13 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class BoxPrimitive : GeometricPrimitive
 {
-#if EDITOR
     private float _width, _height, _length;
-#endif
 
     public BoxPrimitive(float width = 1, float height = 1, float length = 1)
     {
-#if EDITOR
         _width = width;
         _height = height;
         _length = length;
-#endif
 
         //front
         AddVertex(false);

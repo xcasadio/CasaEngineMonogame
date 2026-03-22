@@ -25,10 +25,6 @@ public class AssetContentManager
     public AssetContentManager()
     {
         RootDirectory = Environment.CurrentDirectory;
-
-#if EDITOR
-        AssetCatalog.AssetRenamed += OnAssetRenamed;
-#endif
     }
 
     public void Initialize(GraphicsDevice device)
@@ -208,8 +204,6 @@ public class AssetContentManager
         }
     }
 
-#if EDITOR
-
     public IList<T> GetAssets<T>(string categoryName = DefaultCategory)
     {
         var assets = new List<T>();
@@ -229,8 +223,6 @@ public class AssetContentManager
 
         return assets;
     }
-
-#endif
 
     private class AssetDictionary : IEnumerable<object>
     {
@@ -278,11 +270,4 @@ public class AssetContentManager
         }
     }
 
-    private void OnAssetRenamed(object? sender, Core.Design.EventArgs<AssetInfo, string> e)
-    {
-        foreach (var assetsByCategory in _assetsDictionaryByCategory)
-        {
-            assetsByCategory.Value.Rename(e.Value, e.Value2);
-        }
-    }
 }

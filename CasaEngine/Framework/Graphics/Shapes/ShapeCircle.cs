@@ -57,11 +57,4 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         Radius = element["radius"].GetSingle();
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("radius", Radius);
-    }
-#endif
 }

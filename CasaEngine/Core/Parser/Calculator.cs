@@ -67,17 +67,4 @@ internal class Calculator
         return token;
     }
 
-#if EDITOR
-
-    public void Save(JObject jObject)
-    {
-        if (_root != null)
-        {
-            var rootObject = new JObject();
-            _root.Save(rootObject);
-            jObject.Add("root", rootObject);
-        }
-    }
-
-#endif
 }

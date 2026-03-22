@@ -1,8 +1,6 @@
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
-using CasaEngine.Framework;
 using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -19,23 +17,7 @@ public static class EditorAssetWriterService
             return;
         }
 
-        JObject fallbackRootObject = new();
-
-        switch (asset)
-        {
-            case ObjectBase objectBase:
-                objectBase.Save(fallbackRootObject);
-                break;
-            case MaterialBase materialBase:
-                materialBase.Save(fallbackRootObject);
-                break;
-            default:
-                throw new InvalidOperationException($"Asset type '{asset.GetType().FullName}' is not supported by the editor writer service.");
-        }
-
-        SaveDocument(fileName, fallbackRootObject);
-
-        Logs.WriteInfo($"Save '{fileName}'");
+        throw new InvalidOperationException($"Asset type '{asset.GetType().FullName}' is not supported by the editor writer service.");
     }
 
     public static void SaveDocument(string fileName, JObject rootObject)

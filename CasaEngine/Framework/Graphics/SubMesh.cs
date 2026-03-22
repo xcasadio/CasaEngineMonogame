@@ -35,13 +35,8 @@ public class SubMesh : ISerializable
             MaterialAssetId = Guid.Parse(matToken.Value<string>()!);
     }
 
-#if EDITOR
     public void Save(JObject jObject)
     {
-        jObject["index_start"]       = IndexStart;
-        jObject["primitive_count"]   = PrimitiveCount;
-        jObject["vertex_offset"]     = VertexOffset;
-        jObject["material_asset_id"] = MaterialAssetId.ToString();
+        throw new NotSupportedException("SubMesh authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

@@ -187,12 +187,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             }
         }
 
-#if EDITOR
         if (Animations.Count > 0)
         {
             SetCurrentAnimation(0, true);
         }
-#endif
     }
 
     public override AnimatedSpriteComponent Clone()
@@ -366,23 +364,4 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     public List<Guid> AnimationAssetIds => _animationAssetIds;
 
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        var newJObject = new JObject();
-        Color.Save(newJObject);
-        jObject.Add("color", newJObject);
-
-        jObject.Add("sprite_effect", SpriteEffect.ConvertToString());
-
-        var animationsNode = new JArray();
-
-        foreach (var animationId in AnimationAssetIds)
-        {
-            animationsNode.Add(animationId);
-        }
-
-        jObject.Add("animations", animationsNode);
-    }
 }

@@ -21,24 +21,4 @@ public class ButtonsMapping : ObjectBase
         Buttons.AddRange(buttons);
     }
 
-#if EDITOR
-
-    public override void Save(JObject node)
-    {
-        base.Save(node);
-
-        var buttonArrayNode = new JArray();
-
-        foreach (var button in Buttons)
-        {
-            var buttonNode = new JObject();
-            button.Save(buttonNode);
-            buttonArrayNode.Add(buttonNode);
-
-        }
-
-        node.Add("buttons", buttonArrayNode);
-    }
-
-#endif
 }

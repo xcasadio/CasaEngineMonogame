@@ -54,14 +54,4 @@ public class Box : Shape3d, IEquatable<Box>
         Size = new Vector3(w, h, l);
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("w", Size.X);
-        jObject.Add("h", Size.Y);
-        jObject.Add("l", Size.Z);
-    }
-#endif
 }

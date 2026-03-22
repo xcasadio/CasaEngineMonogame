@@ -97,17 +97,4 @@ public class LitDiffuseMaterial : MaterialBase
         SpecularPower = element["specular_power"]?.Value<float>() ?? 16.0f;
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject["type"]            = nameof(LitDiffuseMaterial);
-        jObject["BasColor_asset_id"]     = BasColorAssetId.ToString();
-        jObject["normal_map_asset_id"] = NormalMapAssetId.ToString();
-        jObject["diffuse_color"]   = new JObject { ["r"] = DiffuseColor.R, ["g"] = DiffuseColor.G, ["b"] = DiffuseColor.B, ["a"] = DiffuseColor.A };
-        jObject["emissive_color"]  = new JObject { ["r"] = EmissiveColor.X, ["g"] = EmissiveColor.Y, ["b"] = EmissiveColor.Z };
-        jObject["specular_color"]  = new JObject { ["r"] = SpecularColor.X, ["g"] = SpecularColor.Y, ["b"] = SpecularColor.Z };
-        jObject["specular_power"]  = SpecularPower;
-    }
-#endif
 }

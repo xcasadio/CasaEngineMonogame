@@ -1,8 +1,4 @@
-﻿using CasaEngine.Core.Design;
-using CasaEngine.Core.Log;
-using CasaEngine.Engine;
-using CasaEngine.Framework;
-using Newtonsoft.Json;
+﻿using CasaEngine.Core.Log;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;
@@ -17,7 +13,7 @@ public static class AssetCatalog
 
     public static IEnumerable<AssetInfo> AssetInfos => _assetInfos.Values;
 
-    public static void Add(AssetInfo assetInfo)
+    internal static void AddInternal(AssetInfo assetInfo)
     {
         NormalizeAssetInfo(assetInfo);
         _assetInfos.Add(assetInfo.Id, assetInfo);
@@ -25,7 +21,6 @@ public static class AssetCatalog
         _assetInfosByFileName[assetInfo.FileName] = assetInfo;
 
         Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
-        AssetAdded?.Invoke(null, assetInfo);
     }
 
     public static AssetInfo? Get(Guid guid)
@@ -48,7 +43,7 @@ public static class AssetCatalog
 
     public static void Load(string fileName)
     {
-        Clear();
+        ClearInternal();
 
         var rootElement = JObject.Parse(File.ReadAllText(fileName));
 
@@ -63,23 +58,13 @@ public static class AssetCatalog
         {
             var assetInfo = new AssetInfo();
             assetInfo.Load((JObject)assetInfoNode);
-            Add(assetInfo);
+            AddInternal(assetInfo);
         }
 
         IsLoaded = true;
     }
 
-    public static event EventHandler<AssetInfo>? AssetAdded;
-    public static event EventHandler<AssetInfo>? AssetRemoved;
-    public static event EventHandler<EventArgs<AssetInfo, string>>? AssetRenamed;
-    public static event EventHandler? AssetCleared;
-
-    public static void Add(ObjectBase objectBase)
-    {
-        Add(objectBase.Id, objectBase.Name, objectBase.FileName);
-    }
-
-    public static void Add(Guid id, string name, string fileName)
+    internal static void AddInternal(Guid id, string name, string fileName)
     {
         var assetInfo = new AssetInfo(id)
         {
@@ -88,52 +73,45 @@ public static class AssetCatalog
             AssetType = AssetInfo.InferAssetType(fileName),
         };
 
-        Add(assetInfo);
+        AddInternal(assetInfo);
     }
 
-    public static void Remove(Guid id)
+    internal static bool RemoveInternal(Guid id, out AssetInfo? assetInfo)
     {
-        if (!_assetInfos.TryGetValue(id, out var assetInfo))
+        if (!_assetInfos.TryGetValue(id, out var existingAssetInfo))
         {
-            return;
+            assetInfo = null;
+            return false;
         }
+
+        assetInfo = existingAssetInfo;
 
         Logs.WriteTrace($"Remove asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
         _assetInfos.Remove(id);
         _assetInfosByName.Remove(assetInfo.Name);
         _assetInfosByFileName.Remove(assetInfo.FileName);
-        DeleteFile(assetInfo);
-        Save();
-        AssetRemoved?.Invoke(null, assetInfo);
+        return true;
     }
 
-    private static void DeleteFile(AssetInfo assetInfo)
-    {
-        var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, assetInfo.FileName);
-        if (File.Exists(fullFileName))
-        {
-            File.Delete(fullFileName);
-        }
-    }
-
-    public static void Clear()
+    internal static void ClearInternal()
     {
         Logs.WriteTrace("Clear all assets");
 
         _assetInfos.Clear();
         _assetInfosByName.Clear();
         _assetInfosByFileName.Clear();
-        AssetCleared?.Invoke(null, EventArgs.Empty);
+        IsLoaded = false;
     }
 
-    public static bool CanRename(string newName)
+    internal static bool CanRenameInternal(string newName)
     {
         return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    public static bool Rename(Guid id, string newName)
+    internal static bool RenameInternal(Guid id, string newName, out AssetInfo? assetInfo, out string? oldName)
     {
-        var assetInfo = Get(id);
+        assetInfo = Get(id);
+        oldName = null;
 
         if (assetInfo == null)
         {
@@ -141,47 +119,22 @@ public static class AssetCatalog
             return false;
         }
 
-        var oldName = assetInfo.Name;
+        oldName = assetInfo.Name;
         _assetInfosByName.Remove(oldName);
         assetInfo.Name = newName;
         _assetInfosByName[newName] = assetInfo;
-
-        AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
 
         return true;
     }
 
-    public static void Rename(AssetInfo assetInfo, string newName)
+    internal static string RenameInternal(AssetInfo assetInfo, string newName)
     {
         var oldName = assetInfo.Name;
         _assetInfosByName.Remove(oldName);
         assetInfo.Name = newName;
         _assetInfosByName[newName] = assetInfo;
 
-        AssetRenamed?.Invoke(null, new EventArgs<AssetInfo, string>(assetInfo, oldName));
-    }
-
-    public static void Save()
-    {
-        string fileName = Path.Combine(EngineEnvironment.ProjectPath, "AssetInfos.json");
-        JObject root = new();
-        var assetInfoJArray = new JArray();
-
-        foreach (var assetInfo in _assetInfos)
-        {
-            var entityObject = new JObject();
-            assetInfo.Value.Save(entityObject);
-
-            assetInfoJArray.Add(entityObject);
-        }
-
-        root.Add("asset_infos", assetInfoJArray);
-
-        using StreamWriter file = File.CreateText(fileName);
-        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-        root.WriteTo(writer);
-
-        Logs.WriteInfo($"Asset infos saved in {fileName}");
+        return oldName;
     }
 
     private static void NormalizeAssetInfo(AssetInfo assetInfo)

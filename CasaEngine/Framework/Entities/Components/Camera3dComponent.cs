@@ -63,12 +63,4 @@ public abstract class Camera3dComponent : CameraComponent
         _fieldOfView = element["fieldOfView"].GetSingle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("fieldOfView", _fieldOfView);
-    }
-#endif
 }

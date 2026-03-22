@@ -95,15 +95,7 @@ public abstract class MaterialBase : ISerializable
 
     public virtual void Save(JObject jObject)
     {
-        jObject["id"]             = Id.ToString();
-        jObject["name"]           = Name;
-        jObject["is_transparent"] = IsTransparent;
-        jObject["queue"]          = Queue.ToString();
-        jObject["shader_asset_id"]  = ShaderAssetId.ToString();
-        jObject["cast_shadows"]   = CastShadows;
-        jObject["receive_shadows"] = ReceiveShadows;
-
-        SaveRenderStates(jObject);
+        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
 
     // -------------------------------------------------------------------------

@@ -123,17 +123,8 @@ public class Texture : ObjectBase, IAssetable
         //}
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        jObject.Add("texture_asset_id", _texture2dAssetId);
-
-        var newNode = new JObject();
-        PreferredSamplerState.Save(newNode);
-        jObject.Add("sampler_state", newNode);
+        throw new NotSupportedException("Texture authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

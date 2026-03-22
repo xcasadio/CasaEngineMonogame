@@ -18,20 +18,4 @@ public class Animation2dData : AnimationData
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        var jArray = new JArray();
-        foreach (var frame in Frames)
-        {
-            var newJObject = new JObject();
-            frame.Save(newJObject);
-            jArray.Add(newJObject);
-        }
-        jObject.Add("frames", jArray);
-    }
-#endif
 }

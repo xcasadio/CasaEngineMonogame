@@ -60,16 +60,10 @@ public abstract class EntityComponent : ObjectBase
         base.Load(element);
     }
 
-#if EDITOR
-
     public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        jObject.Add("type", GetType().Name);
+        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

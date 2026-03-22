@@ -35,26 +35,8 @@ public class TileData
         }
     }
 
-#if EDITOR
-
     public virtual void Save(JObject jObject)
     {
-        jObject.Add("type", Type.ConvertToString());
-        jObject.Add("id", Id);
-        jObject.Add("collision_type", CollisionType.ConvertToString());
-        jObject.Add("is_breakable", IsBreakable);
-
-        if (CollisionShape == null)
-        {
-            jObject.Add("collision", "null");
-        }
-        else
-        {
-            var newNode = new JObject();
-            CollisionShape.Save(newNode);
-            jObject.Add("collision", newNode);
-        }
+        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

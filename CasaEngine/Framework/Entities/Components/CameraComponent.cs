@@ -123,17 +123,4 @@ public abstract class CameraComponent : SceneComponent
         _viewDistance = _viewport.MaxDepth - _viewport.MinDepth;
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        jObject.Add("view_distance", _viewDistance);
-
-        var newjObject = new JObject();
-        Viewport.Save(newjObject);
-        jObject.Add("viewport", newjObject);
-    }
-#endif
 }

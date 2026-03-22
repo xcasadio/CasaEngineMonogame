@@ -54,29 +54,8 @@ public class TileSetData : ObjectBase
         _tileById.Add(tileData.Id, tileData);
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        jObject.Add("sprite_sheet_asset_id", SpriteSheetAssetId);
-
-        var newNode = new JObject();
-        TileSize.Save(newNode);
-        jObject.Add("tile_size", newNode);
-
-        var jArray = new JArray();
-
-        foreach (var tileData in Tiles)
-        {
-            newNode = new JObject();
-            tileData.Save(newNode);
-            jArray.Add(newNode);
-        }
-
-        jObject.Add("tiles", jArray);
+        throw new NotSupportedException("TileSetData authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

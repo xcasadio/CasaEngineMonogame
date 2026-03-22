@@ -42,16 +42,4 @@ public class CylinderCollisionComponent : PhysicsBaseComponent
         Cylinder.Load((JObject)element["cylinder"]);
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Cylinder.Save(newJObject);
-        jObject.Add("cylinder", newJObject);
-    }
-
-#endif
 }

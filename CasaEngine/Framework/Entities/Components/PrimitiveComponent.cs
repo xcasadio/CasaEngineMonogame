@@ -36,12 +36,4 @@ public abstract class PrimitiveComponent : SceneComponent
         base.Load(element);
     }
 
-#if EDITOR
-
-    public override void Save(JObject node)
-    {
-        base.Save(node);
-    }
-
-#endif
 }

@@ -45,16 +45,4 @@ public class BoxCollisionComponent : PhysicsBaseComponent
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        JObject newJObject = new();
-        Box.Save(newJObject);
-        jObject.Add("box", newJObject);
-    }
-
-#endif
 }

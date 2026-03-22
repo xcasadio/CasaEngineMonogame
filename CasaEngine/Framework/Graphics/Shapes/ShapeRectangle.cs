@@ -59,14 +59,5 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         Height = element["h"].GetSingle();
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("w", Width);
-        jObject.Add("h", Height);
-    }
-
     public override string ToString() => $"{Enum.GetName(Type)} {{X: {Position.X} Y:{Position.Y} Width:{Width} Height:{Height}}}";
-#endif
 }

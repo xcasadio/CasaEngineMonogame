@@ -26,27 +26,8 @@ public class TileMapData : ObjectBase
         }));
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        var newObject = new JObject();
-        MapSize.Save(newObject);
-        jObject.Add("map_size", newObject);
-        jObject.Add("tile_set_asset_id", TileSetDataAssetId);
-
-        var jArray = new JArray();
-        jObject.Add("layers", jArray);
-
-        foreach (var layer in Layers)
-        {
-            newObject = new JObject();
-            layer.Save(newObject);
-            jArray.Add(newObject);
-        }
+        throw new NotSupportedException("TileMapData authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

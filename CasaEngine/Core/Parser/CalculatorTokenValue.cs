@@ -35,15 +35,6 @@ internal class CalculatorTokenValue : CalculatorToken
         return _value;
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
-        jObject.Add("value", _type == 0 ? _value : _string);
-    }
-
-#endif
-
     public override void Load(JObject element)
     {
         _type = (int)element["type"].GetEnum<CalculatorTokenType>();

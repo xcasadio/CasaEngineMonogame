@@ -17,10 +17,7 @@ using FontStashSharp;
 
 namespace CasaEngine.Framework.Debugger;
 
-public class FpsCounter : DrawableGameComponent
-#if EDITOR
-        , Core.Design.IObservable<FpsCounter>
-#endif
+public class FpsCounter : DrawableGameComponent, Core.Design.IObservable<FpsCounter>
 {
     public float Fps { get; private set; }
 

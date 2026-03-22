@@ -12,10 +12,6 @@ public static class ProjectSettingsHelper
     {
         var context = runtimeContext ?? GameSettings.CreateRuntimeContext();
         var projectSettings = context.ProjectSettings;
-
-    #if EDITOR
-        projectSettings.ProjectFileOpened = fileName;
-    #endif
         context.ProjectPath = Path.GetDirectoryName(fileName) ?? EngineEnvironment.ResolveProjectPath(null);
         EngineEnvironment.ProjectPath = context.ProjectPath;
 

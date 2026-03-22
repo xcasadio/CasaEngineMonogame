@@ -16,16 +16,8 @@ public class Collision2d
         Shape = ShapeLoader.LoadShape2d(JObject);
     }
 
-#if EDITOR
-    public void Save(JObject jObject)
-    {
-        jObject.Add("collision_type", CollisionHitType.ConvertToString());
-        Shape.Save(jObject);
-    }
-
     public override string ToString()
     {
         return $"{Shape} {CollisionHitType}";
     }
-#endif
 }

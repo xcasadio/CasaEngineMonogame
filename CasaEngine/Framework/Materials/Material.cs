@@ -70,22 +70,6 @@ public class Material : MaterialBase
         TextureReflectionAssetId  = ParseGuid(element["texture_reflection_asset_id"]);
     }
 
-#if EDITOR
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject["type"] = nameof(Material);
-        jObject["texture_base_color_asset_id"]  = TextureBaseColorAssetId;
-        jObject["texture_opacity_asset_id"]      = TextureOpacityAssetId;
-        jObject["texture_normal_asset_id"]       = TextureNormalAssetId;
-        jObject["texture_specular_asset_id"]     = TextureSpecularAssetId;
-        jObject["texture_roughness_asset_id"]    = TextureRoughnessAssetId;
-        jObject["texture_tangent_asset_id"]      = TextureTangentAssetId;
-        jObject["texture_height_asset_id"]       = TextureHeightAssetId;
-        jObject["texture_reflection_asset_id"]   = TextureReflectionAssetId;
-    }
-#endif
-
     private static Guid ParseGuid(JToken? token)
     {
         var s = token?.Value<string>();

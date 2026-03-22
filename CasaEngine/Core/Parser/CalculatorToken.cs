@@ -31,8 +31,4 @@ internal abstract class CalculatorToken
     }
 
     public abstract void Load(JObject element);
-
-#if EDITOR
-    public abstract void Save(JObject jObject);
-#endif
 }

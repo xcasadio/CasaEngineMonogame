@@ -40,20 +40,4 @@ internal class CalculatorTokenFunction : CalculatorToken
         _args = args.ToArray();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        jObject.Add("type", CalculatorTokenType.Value.ConvertToString());
-        jObject.Add("function_name", _functionName);
-
-        var argumentList = new JArray();
-        foreach (var argument in _args)
-        {
-            argumentList.Add(argument);
-        }
-        jObject.Add("arguments", argumentList);
-    }
-
-#endif
 }

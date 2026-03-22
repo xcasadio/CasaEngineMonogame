@@ -41,38 +41,8 @@ public class SpriteData : ObjectBase
         }
     }
 
-#if EDITOR
-
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-        jObject.Add("sprite_sheet_asset_id", SpriteSheetAssetId);
-
-        JObject newJObject = new();
-        PositionInTexture.Save(newJObject);
-        jObject.Add("location", newJObject);
-
-        newJObject = new();
-        Origin.Save(newJObject);
-        jObject.Add("hotspot", newJObject);
-
-        var jArray = new JArray();
-        foreach (var collisionShape in CollisionShapes)
-        {
-            newJObject = new();
-            collisionShape.Save(newJObject);
-            jArray.Add(newJObject);
-        }
-        jObject.Add("collisions", jArray);
-
-        jArray = new JArray();
-        foreach (var socket in Sockets)
-        {
-            newJObject = new();
-            socket.Save(newJObject);
-            jArray.Add(newJObject);
-        }
-        jObject.Add("sockets", jArray);
+        throw new NotSupportedException("SpriteData authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

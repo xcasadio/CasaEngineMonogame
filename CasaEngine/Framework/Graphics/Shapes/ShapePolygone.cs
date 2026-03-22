@@ -9,11 +9,10 @@ namespace CasaEngine.Framework.Graphics.Shapes;
 
 public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
 {
-#if !EDITOR
-    private Vector2[] _points;
+    private readonly List<Vector2> _points = new();
 
-    public Vector2[] Points => _points;
-#endif
+    [Browsable(false)]
+    public List<Vector2> Points => _points;
 
     private bool _isABox;
 
@@ -68,34 +67,17 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         _isABox = element["isABox"].GetBoolean();
 
         var pointsElement = element["points"];
-
-#if EDITOR
         _points.Clear();
-#else
-        _points = new Vector2[pointsElement.Children().Count()];
-        int i = 0;
-#endif
 
         foreach (var pointElement in pointsElement)
         {
             var point = pointElement.GetVector2();
-
-#if EDITOR
             _points.Add(point);
-#else
-            _points[i++] = point;
-#endif
         }
     }
 
-#if EDITOR
-    private readonly List<Vector2> _points = new();
-
     public event EventHandler? OnPointAdded;
     public event EventHandler? OnPointDeleted;
-
-    [Browsable(false)]
-    public List<Vector2> Points => _points;
 
     public ShapePolygone(Vector2 p1, Vector2 p2, Vector2 p3)
         : base(Shape2dType.Polygone)
@@ -206,23 +188,5 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         }
     }
 
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("isABox", _isABox);
-
-        var pointListNode = new JArray();
-
-        foreach (var point in _points)
-        {
-            var newObject = new JObject();
-            point.Save(newObject);
-            pointListNode.Add(newObject);
-        }
-
-        jObject.Add("points", pointListNode);
-    }
-
     public override string ToString() => $"{Enum.GetName(Type)} {_points.Count} point(s)";
-#endif
 }

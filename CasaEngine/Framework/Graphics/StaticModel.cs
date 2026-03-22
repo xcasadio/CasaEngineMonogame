@@ -22,9 +22,7 @@ public class StaticModel : ObjectBase
 
     public List<StaticModelMesh> Meshes { get; } = new();
 
-#if EDITOR
     private bool _isInitialized;
-#endif
 
     // ------------------------------------------------------------------
     //  Factory helpers
@@ -70,12 +68,10 @@ public class StaticModel : ObjectBase
     /// </summary>
     public void Initialize(AssetContentManager assetContentManager)
     {
-#if EDITOR
         if (_isInitialized)
         {
             return;
         }
-#endif
 
         foreach (var mesh in Meshes)
         {
@@ -113,9 +109,7 @@ public class StaticModel : ObjectBase
             }
         }
 
-#if EDITOR
         _isInitialized = true;
-#endif
     }
 
     // ------------------------------------------------------------------
@@ -146,32 +140,8 @@ public class StaticModel : ObjectBase
         }
     }
 
-#if EDITOR
     public override void Save(JObject jObject)
     {
-        base.Save(jObject);
-
-        // Root node
-        if (RootNode != null)
-        {
-            var nodeObj = new JObject();
-            RootNode.Save(nodeObj);
-            jObject.Add("root_node", nodeObj);
-        }
-        else
-        {
-            jObject.Add("root_node", JValue.CreateNull());
-        }
-
-        // Meshes
-        var meshesArray = new JArray();
-        foreach (var mesh in Meshes)
-        {
-            var meshObj = new JObject();
-            mesh.Save(meshObj);
-            meshesArray.Add(meshObj);
-        }
-        jObject.Add("meshes", meshesArray);
+        throw new NotSupportedException("StaticModel authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

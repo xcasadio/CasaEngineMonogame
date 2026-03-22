@@ -4,10 +4,8 @@ namespace CasaEngine.Engine.Primitives3D;
 
 public class PlanePrimitive : GeometricPrimitive
 {
-#if EDITOR
     private Vector2 _scale;
     private int _tessellationHorizontal, _tessellationVertical;
-#endif
 
     public PlanePrimitive(float sizeH = 1.0f, float sizeV = 1.0f, int tessellationHorizontal = 1, int tessellationVertical = 1)
     {
@@ -21,11 +19,9 @@ public class PlanePrimitive : GeometricPrimitive
             throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationVertical_");
         }
 
-#if EDITOR
         _scale = new Vector2(sizeH, sizeV);
         _tessellationHorizontal = tessellationHorizontal;
         _tessellationVertical = tessellationVertical;
-#endif
 
         var uv = Vector2.Zero;
 

@@ -143,9 +143,7 @@ public class Entity : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
-#if !EDITOR
         GameplayProxy?.Initialize(this);
-#endif
 
         IsInitialized = true;
     }
@@ -166,9 +164,7 @@ public class Entity : ObjectBase
             _children[i].InitializeWithWorld(world);
         }
 
-#if !EDITOR
         GameplayProxy?.InitializeWithWorld(world);
-#endif
     }
 
     private void OnEnabledValueChange()
@@ -363,33 +359,8 @@ public class Entity : ObjectBase
 
     public event EventHandler<EntityNameChangedEventArgs> NameChanged;
 
-#if EDITOR
     public override void Save(JObject node)
     {
-        base.Save(node);
-
-        if (RootComponent != null)
-        {
-            JObject rootComponentNode = new();
-            RootComponent.Save(rootComponentNode);
-            node.Add("root_component", rootComponentNode);
-        }
-        else
-        {
-            node.Add("root_component", "null");
-        }
-
-        var componentsJArray = new JArray();
-        foreach (var component in _components)
-        {
-            JObject componentObject = new();
-            component.Save(componentObject);
-            componentsJArray.Add(componentObject);
-        }
-        node.Add("components", componentsJArray);
-
-        node.Add("script_class_name", GameplayProxyClassName);
+        throw new NotSupportedException("Entity authoring serialization lives in CasaEngine.EditorServices.");
     }
-
-#endif
 }

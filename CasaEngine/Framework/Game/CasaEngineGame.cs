@@ -76,14 +76,14 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
         get
         {
-#if EDITOR
-            // Return the stored value (set by OnScreenResized or first-init from PP).
+            if (!ExecutionPolicy.UseExternalViewManagement)
+            {
+            return Window.ClientBounds.Width;
+            }
+
             return _screenSizeWidth > 0
                 ? _screenSizeWidth
                 : GraphicsDevice.PresentationParameters.BackBufferWidth;
-#else
-            return Window.ClientBounds.Width;
-#endif
         }
     }
 
@@ -91,13 +91,14 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     {
         get
         {
-#if EDITOR
+            if (!ExecutionPolicy.UseExternalViewManagement)
+            {
+            return Window.ClientBounds.Height;
+            }
+
             return _screenSizeHeight > 0
                 ? _screenSizeHeight
                 : GraphicsDevice.PresentationParameters.BackBufferHeight;
-#else
-            return Window.ClientBounds.Height;
-#endif
         }
     }
 

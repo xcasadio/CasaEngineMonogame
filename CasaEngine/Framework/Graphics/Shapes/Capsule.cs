@@ -53,13 +53,4 @@ public class Capsule : Shape3d, IEquatable<Capsule>
         Length = element["length"].GetSingle();
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-        jObject.Add("radius", Radius);
-        jObject.Add("length", Length);
-    }
-#endif
 }

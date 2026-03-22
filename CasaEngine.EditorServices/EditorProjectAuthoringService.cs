@@ -17,13 +17,14 @@ public static class EditorProjectAuthoringService
     {
         ClearProject();
         ProjectSettingsHelper.Load(fileName, runtimeContext);
+        EditorProjectSession.CurrentProjectFilePath = fileName;
         ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
     }
 
     public static void ClearProject()
     {
-        GameSettings.ProjectSettings.ProjectFileOpened = null;
-        AssetCatalog.Clear();
+        EditorProjectSession.CurrentProjectFilePath = null;
+        EditorAssetCatalogService.Clear();
         ProjectClosed?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
     }
 
@@ -44,7 +45,7 @@ public static class EditorProjectAuthoringService
             var fullFileName = Path.Combine(path, projectName + Constants.FileNameExtensions.Project);
             projectSettings.WindowTitle = projectName;
             projectSettings.ProjectName = projectName;
-            projectSettings.ProjectFileOpened = fullFileName;
+            EditorProjectSession.CurrentProjectFilePath = fullFileName;
 
             var worldName = "DefaultWorld";
             var worldFileName = worldName + Constants.FileNameExtensions.World;
@@ -57,10 +58,10 @@ public static class EditorProjectAuthoringService
             };
 
             EditorWorldWriter.SaveWorld(world);
-            AssetCatalog.Add(world);
+            EditorAssetCatalogService.Add(world);
 
             SaveProject();
-            AssetCatalog.Save();
+            EditorAssetCatalogService.Save();
 
             ProjectLoaded?.Invoke(projectSettings, EventArgs.Empty);
 #if !DEBUG
@@ -73,7 +74,12 @@ public static class EditorProjectAuthoringService
 
     public static void SaveProject()
     {
-        using StreamWriter file = File.CreateText(GameSettings.ProjectSettings.ProjectFileOpened);
+        if (string.IsNullOrWhiteSpace(EditorProjectSession.CurrentProjectFilePath))
+        {
+            throw new InvalidOperationException("No editor project is currently open.");
+        }
+
+        using StreamWriter file = File.CreateText(EditorProjectSession.CurrentProjectFilePath);
         using JsonTextWriter writer = new(file) { Formatting = Formatting.Indented };
         var jsonSerializer = new JsonSerializer();
         jsonSerializer.Serialize(writer, GameSettings.ProjectSettings);

@@ -133,29 +133,8 @@ public class StaticModelMesh
         }
     }
 
-#if EDITOR
     public void Save(JObject jObject)
     {
-        jObject.Add("name", Name);
-        jObject.Add("primitive_type", PrimitiveType.ConvertToString());
-        jObject.Add("material_index", MaterialIndex);
-        jObject.Add("texture_asset_id", TextureAssetId.ToString());
-        jObject.Add("material_asset_id", MaterialAssetId.ToString());
-
-        if (SubMeshes.Count > 0)
-        {
-            var smArray = new JArray();
-            foreach (var sm in SubMeshes)
-            {
-                var smObj = new JObject();
-                sm.Save(smObj);
-                smArray.Add(smObj);
-            }
-            jObject.Add("sub_meshes", smArray);
-}
-
-        jObject.AddArray("vertices", _vertices, (v, o) => v.Save(o));
-        jObject.AddArray("indices", _indices);
+        throw new NotSupportedException("StaticModelMesh authoring serialization lives in CasaEngine.EditorServices.");
     }
-#endif
 }

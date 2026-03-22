@@ -25,26 +25,4 @@ public class AutoTileData : TileData
         }
     }
 
-#if EDITOR
-
-    public override void Save(JObject jObject)
-    {
-        base.Save(jObject);
-
-        jObject.Add("auto_tile_index", AutoTileIndex);
-
-        var jArray = new JArray();
-
-        foreach (var location in Locations)
-        {
-            var locationNode = new JObject();
-            location.Save(locationNode);
-            jArray.Add(locationNode);
-        }
-
-        jObject.Add("locations", jArray);
-    }
-
-#endif
-
 }

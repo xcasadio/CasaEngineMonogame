@@ -73,34 +73,4 @@ public class Move
         }
     }
 
-#if EDITOR
-
-    public void Save(JObject jObject)
-    {
-        jObject.Add("name", Name);
-
-        var sequencesArray = new JArray();
-
-        foreach (var tab in Sequence)
-        {
-            var buttonsArray = new JArray();
-
-            foreach (var k in tab)
-            {
-                var buttonObject = new JObject
-                {
-                    { "key", k.Key },
-                    { "state", k.State.ConvertToString() },
-                    { "time", k.Time }
-                };
-                buttonsArray.Add(buttonObject);
-            }
-
-            sequencesArray.Add(buttonsArray);
-        }
-
-        jObject.Add("sequences", sequencesArray);
-    }
-
-#endif
 }
