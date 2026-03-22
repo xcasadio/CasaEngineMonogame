@@ -1199,6 +1199,7 @@ namespace CasaEngine.Editor
             {
                 var json = File.ReadAllText(layoutPath);
                 _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
+                PruneUnsupportedPanels(workspaceId);
                 RefreshStatusBar();
 
                 if (logOutcome)
@@ -1228,6 +1229,50 @@ namespace CasaEngine.Editor
             }
 
             return Environment.CurrentDirectory;
+        }
+
+        private void PruneUnsupportedPanels(EditorWorkspaceId workspaceId)
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return;
+            }
+
+            foreach (var panel in _dockHost.LayoutModel.GetAllPanels().ToList())
+            {
+                if (IsPanelSupportedInWorkspace(workspaceId, panel.Id))
+                {
+                    continue;
+                }
+
+                DockOperation.RemovePanel(_dockHost.LayoutModel, panel);
+                Logs.WriteInfo($"Removed panel '{panel.Id}' from workspace '{workspaceId}' because it is not supported by that workspace.");
+            }
+        }
+
+        private bool IsPanelSupportedInWorkspace(EditorWorkspaceId workspaceId, string panelId)
+        {
+            if (TryGetUIScreenPreviewPanel(panelId, out _))
+            {
+                return true;
+            }
+
+            if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
+            {
+                return false;
+            }
+
+            if (descriptor.Kind == EditorPanelKind.Document || descriptor.Scope == EditorPanelScope.Common)
+            {
+                return true;
+            }
+
+            return workspaceId switch
+            {
+                EditorWorkspaceId.World => descriptor.Scope == EditorPanelScope.World,
+                EditorWorkspaceId.UIScreen => descriptor.Scope == EditorPanelScope.UIScreen,
+                _ => false,
+            };
         }
 
         private void OnEntitiesPanelSelectionChanged(Entity? entity)

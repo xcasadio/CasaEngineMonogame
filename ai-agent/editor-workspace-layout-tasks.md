@@ -359,13 +359,13 @@ Notes : un contexte World explicite synchronise désormais la sélection, le vie
 **Commit attendu :**
 - `refactor(editor): route shell layout actions through active workspace`
 
-Commit : `PENDING` - `refactor(editor): route shell layout actions through active workspace`
+Commit : `d19ef7ef` - `refactor(editor): route shell layout actions through active workspace`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : les actions Save/Load/Reset Layout ciblent désormais le workspace actif et tentent de préserver le document courant
 
 ---
 
-#### ⏳ Tâche 5.2 — Gérer proprement les panneaux indisponibles ou inconnus
+#### ✅ Tâche 5.2 — Gérer proprement les panneaux indisponibles ou inconnus
 
 **Objectif :** rendre la désérialisation plus robuste face aux layouts anciens ou partiels.
 
@@ -379,6 +379,10 @@ Notes : les actions Save/Load/Reset Layout ciblent désormais le workspace actif
 
 **Commit attendu :**
 - `fix(editor): harden workspace layout restoration`
+
+Commit : `PENDING` - `fix(editor): harden workspace layout restoration`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : les panneaux outil incompatibles avec le workspace restauré sont retirés automatiquement après chargement, avec fallback et log explicite
 
 ---
 
