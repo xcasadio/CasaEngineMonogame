@@ -201,6 +201,7 @@ namespace CasaEngine.Editor
 
             _editorSelection.SelectionChanged += OnEditorSelectionChanged;
             _editorSelection.ComponentSelectionChanged += OnEditorComponentSelectionChanged;
+            _screenSelection.SelectionChanged += id => { if (_activeScreenPreviewPanel != null) _activeScreenPreviewPanel.SelectedNodeId = id; };
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
@@ -1135,6 +1136,8 @@ namespace CasaEngine.Editor
                     if (id.HasValue) _screenSelection.Select(id.Value);
                     else _screenSelection.ClearSelection();
                 };
+                previewPanel.NodeMoveRequested += OnScreenNodeMoveRequested;
+                previewPanel.NodeResizeRequested += OnScreenNodeResizeRequested;
                 _screenPreviewPanels.Add(panelId, previewPanel);
             }
 
@@ -1582,6 +1585,7 @@ namespace CasaEngine.Editor
 
             var r = bounds.Value;
             const int thickness = 2;
+            const int handleSize = 8;
             var color = new Color(0, 120, 215, 200); // blue selection
 
             _spriteBatch.Begin();
@@ -1593,8 +1597,69 @@ namespace CasaEngine.Editor
             _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, thickness, r.Height), color);
             // Right
             _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);
+            // Resize handle (bottom-right corner square)
+            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color);
             _spriteBatch.End();
+        }
+
+        private void OnScreenNodeMoveRequested(DocumentNodeId nodeId, int deltaX, int deltaY)
+        {
+            var document = _activeScreenPreviewPanel?.CurrentDocument;
+            if (document == null) return;
+            var node = document.FindNode(nodeId);
+            if (node == null) return;
+
+            var (left, top, right, bottom) = ParseMargin(
+                node.Properties.TryGetValue("Margin", out var mv) ? mv.SerializedValue : null);
+
+            left += deltaX;
+            top += deltaY;
+
+            var newMargin = $"{left},{top},{right},{bottom}";
+            var cmd = new SetPropertyCommand(node, "Margin", newMargin);
+            _screenCommandStack.Execute(cmd);
+            RefreshScreenPanelsAfterCommand();
+        }
+
+        private void OnScreenNodeResizeRequested(DocumentNodeId nodeId, int deltaW, int deltaH)
+        {
+            var document = _activeScreenPreviewPanel?.CurrentDocument;
+            if (document == null) return;
+            var node = document.FindNode(nodeId);
+            if (node == null) return;
+
+            // Use rendered bounds as baseline when no explicit size is set
+            var renderedBounds = _activeScreenPreviewPanel!.GetElementBounds(nodeId);
+            int baseW = renderedBounds?.Width ?? 100;
+            int baseH = renderedBounds?.Height ?? 30;
+
+            if (node.Properties.TryGetValue("Width", out var wv) && int.TryParse(wv.SerializedValue, out var parsedW))
+                baseW = parsedW;
+            if (node.Properties.TryGetValue("Height", out var hv) && int.TryParse(hv.SerializedValue, out var parsedH))
+                baseH = parsedH;
+
+            var newW = Math.Max(8, baseW + deltaW).ToString();
+            var newH = Math.Max(8, baseH + deltaH).ToString();
+
+            _screenCommandStack.Execute(new SetPropertyCommand(node, "Width", newW));
+            _screenCommandStack.Execute(new SetPropertyCommand(node, "Height", newH));
+            RefreshScreenPanelsAfterCommand();
+        }
+
+        private static (int left, int top, int right, int bottom) ParseMargin(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return (0, 0, 0, 0);
+            var parts = value.Split(',');
+            if (parts.Length == 1 && int.TryParse(parts[0].Trim(), out var u)) return (u, u, u, u);
+            if (parts.Length == 2
+                && int.TryParse(parts[0].Trim(), out var h)
+                && int.TryParse(parts[1].Trim(), out var v)) return (h, v, h, v);
+            if (parts.Length >= 4
+                && int.TryParse(parts[0].Trim(), out var l)
+                && int.TryParse(parts[1].Trim(), out var t)
+                && int.TryParse(parts[2].Trim(), out var r)
+                && int.TryParse(parts[3].Trim(), out var b)) return (l, t, r, b);
+            return (0, 0, 0, 0);
         }
     }
 }
-

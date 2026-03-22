@@ -38,6 +38,12 @@ public sealed class UIScreenPreviewPanel
     private FileSystemWatcher? _assetWatcher;
     private FileSystemWatcher? _sourceXamlWatcher;
 
+    // ── drag-to-move / drag-to-resize state ──────────────────────────────
+    private DocumentNodeId? _draggingNodeId;
+    private bool _isDraggingResize;
+    private const int ResizeHandleSize = 12;
+    private const int MinDragThreshold = 3;
+
     public UIScreenPreviewPanel(MGWindow window)
     {
         _window = window;
@@ -85,6 +91,8 @@ public sealed class UIScreenPreviewPanel
             VerticalAlignment = VerticalAlignment.Top,
         };
         _previewSurface.MouseHandler.LMBPressedInside += OnPreviewClicked;
+        _previewSurface.MouseHandler.DragStart += OnPreviewDragStart;
+        _previewSurface.MouseHandler.DragEnd += OnPreviewDragEnd;
 
         var previewScrollViewer = new MGScrollViewer(_window);
         previewScrollViewer.SetContent(_previewSurface);
@@ -111,6 +119,15 @@ public sealed class UIScreenPreviewPanel
 
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
     public event Action<DocumentNodeId?>? NodePicked;
+
+    /// <summary>Fired when the user drags a control to a new position. Args: nodeId, deltaX, deltaY.</summary>
+    public event Action<DocumentNodeId, int, int>? NodeMoveRequested;
+
+    /// <summary>Fired when the user drags the resize handle. Args: nodeId, deltaWidth, deltaHeight.</summary>
+    public event Action<DocumentNodeId, int, int>? NodeResizeRequested;
+
+    /// <summary>The node that is currently selected in the editor, used to scope drag operations.</summary>
+    public DocumentNodeId? SelectedNodeId { get; set; }
 
     /// <summary>
     /// Rebuilds the preview from an already-parsed document without re-reading from disk.
@@ -454,5 +471,61 @@ public sealed class UIScreenPreviewPanel
         }
 
         return document.Root != null ? Recurse(document.Root, id, 0) : -1;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Drag — move and resize
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void OnPreviewDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    {
+        if (!e.IsLMB || !SelectedNodeId.HasValue)
+        {
+            _draggingNodeId = null;
+            return;
+        }
+
+        var nodeId = SelectedNodeId.Value;
+        var bounds = GetElementBounds(nodeId);
+        if (bounds == null)
+        {
+            _draggingNodeId = null;
+            return;
+        }
+
+        var r = bounds.Value;
+        var handleZone = new Microsoft.Xna.Framework.Rectangle(
+            r.Right - ResizeHandleSize, r.Bottom - ResizeHandleSize,
+            ResizeHandleSize, ResizeHandleSize);
+
+        _isDraggingResize = handleZone.Contains(e.Position);
+        _draggingNodeId = nodeId;
+    }
+
+    private void OnPreviewDragEnd(object? sender, BaseMouseDragEndEventArgs e)
+    {
+        if (!e.IsLMB || _draggingNodeId == null)
+        {
+            _draggingNodeId = null;
+            return;
+        }
+
+        var nodeId = _draggingNodeId.Value;
+        _draggingNodeId = null;
+
+        var delta = e.PositionDelta;
+        if (Math.Abs(delta.X) < MinDragThreshold && Math.Abs(delta.Y) < MinDragThreshold)
+        {
+            return; // ignore noise
+        }
+
+        if (_isDraggingResize)
+        {
+            NodeResizeRequested?.Invoke(nodeId, delta.X, delta.Y);
+        }
+        else
+        {
+            NodeMoveRequested?.Invoke(nodeId, delta.X, delta.Y);
+        }
     }
 }
