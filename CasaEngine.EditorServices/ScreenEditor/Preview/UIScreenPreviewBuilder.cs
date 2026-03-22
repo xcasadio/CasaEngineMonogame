@@ -173,8 +173,8 @@ public sealed class UIScreenPreviewBuilder
 
         switch (controlType)
         {
-            case "MGTextBlock":
-            case "MGTextBox":
+            case "TextBlock":
+            case "TextBox":
             {
                 var textAttr = xmlElement.Attribute("Text");
                 if (textAttr == null || string.IsNullOrWhiteSpace(textAttr.Value))
@@ -186,7 +186,7 @@ public sealed class UIScreenPreviewBuilder
                 break;
             }
 
-            case "MGButton":
+            case "Button":
             {
                 // Inject button label only when no content is set yet (i.e. no child elements)
                 if (!xmlElement.HasElements)
