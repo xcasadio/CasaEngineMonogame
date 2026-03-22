@@ -380,13 +380,13 @@ Notes : les actions Save/Load/Reset Layout ciblent désormais le workspace actif
 **Commit attendu :**
 - `fix(editor): harden workspace layout restoration`
 
-Commit : `PENDING` - `fix(editor): harden workspace layout restoration`
+Commit : `874760f0` - `fix(editor): harden workspace layout restoration`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : les panneaux outil incompatibles avec le workspace restauré sont retirés automatiquement après chargement, avec fallback et log explicite
 
 ---
 
-#### ⏳ Tâche 5.3 — Validation finale et documentation courte
+#### ✅ Tâche 5.3 — Validation finale et documentation courte
 
 **Objectif :** stabiliser la feature et documenter le fonctionnement.
 
@@ -402,6 +402,10 @@ Notes : les panneaux outil incompatibles avec le workspace restauré sont retir�
 
 **Commit attendu :**
 - `docs(editor): document workspace-based editor layouts`
+
+Commit : `PENDING` - `docs(editor): document workspace-based editor layouts`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : documentation développeur ajoutée dans `docs/editor-workspace-layouts.md`; validation finale limitée au build ciblé, sans scénario UI automatisé
 
 ---
 
