@@ -101,6 +101,34 @@ public sealed class UIScreenPreviewPanel
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
     public event Action<DocumentNodeId?>? NodePicked;
 
+    /// <summary>
+    /// Rebuilds the preview from an already-parsed document without re-reading from disk.
+    /// Called after in-memory edits (e.g. node deletion).
+    /// </summary>
+    public void LoadDocumentDirectly(UIScreenDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+
+        CreateContent();
+
+        try
+        {
+            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
+            _nodeMap = nodeMap;
+            previewWindow.IsHitTestVisible = false;
+            _previewSurface!.SetContent(previewWindow);
+            _statusText!.Text = "Preview rebuilt.";
+            DocumentLoaded?.Invoke(document);
+        }
+        catch (Exception ex)
+        {
+            _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+            DocumentLoaded?.Invoke(null);
+            ShowPreviewError("Preview rebuild failed", ex.Message, string.Empty);
+            _statusText!.Text = "Preview rebuild failed.";
+        }
+    }
+
     public void LoadAsset(UIScreenAsset asset, string assetFilePath)
     {
         ArgumentNullException.ThrowIfNull(asset);

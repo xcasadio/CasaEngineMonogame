@@ -48,6 +48,12 @@ public sealed class UIScreenHierarchyPanel
         RebuildTree();
     }
 
+    /// <summary>
+    /// Fired after a node is deleted. Passes the modified document so that
+    /// the caller can rebuild the preview.
+    /// </summary>
+    public event Action<UIScreenDocument>? NodeDeleted;
+
     public MGElement CreateContent()
     {
         if (_root != null)
@@ -79,7 +85,16 @@ public sealed class UIScreenHierarchyPanel
         };
         refreshBtn.SetContent(new MGTextBlock(_window, "⟳"));
         toolbar.TryAddChild(refreshBtn);
+        var deleteBtn = new MGButton(_window, _ => DeleteSelectedNode())
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            IsEnabled = false,
+        };
+        deleteBtn.SetContent(new MGTextBlock(_window, "\u2715"));
+        toolbar.TryAddChild(deleteBtn);
 
+        // Enable/disable delete button based on selection
+        _selection.SelectionChanged += id => deleteBtn.IsEnabled = id.HasValue && _document != null;
         _statusText = new MGTextBlock(_window, "No screen loaded")
         {
             Margin = new Thickness(6, 4, 6, 4),
@@ -216,6 +231,40 @@ public sealed class UIScreenHierarchyPanel
         }
 
         _suppressSelectionSync = false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Deletion
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void DeleteSelectedNode()
+    {
+        if (_document == null || !_selection.SelectedNodeId.HasValue)
+        {
+            return;
+        }
+
+        var nodeId = _selection.SelectedNodeId.Value;
+        var node = _document.FindNode(nodeId);
+        if (node == null)
+        {
+            return;
+        }
+
+        _selection.ClearSelection();
+
+        if (node.Parent != null)
+        {
+            node.Parent.RemoveChild(node);
+        }
+        else
+        {
+            // Deleting the root
+            _document.ClearRoot();
+        }
+
+        RebuildTree();
+        NodeDeleted?.Invoke(_document);
     }
 
     private static string EscapeMarkup(string value)

@@ -78,6 +78,8 @@ namespace CasaEngine.Editor
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
+        // tracks the most-recently-opened screen for hierarchy-level edits
+        private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
@@ -531,6 +533,7 @@ namespace CasaEngine.Editor
             if (_screenHierarchyPanel == null)
             {
                 _screenHierarchyPanel = new UIScreenHierarchyPanel(_mainWindow, _screenSelection);
+                _screenHierarchyPanel.NodeDeleted += doc => _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
@@ -997,6 +1000,7 @@ namespace CasaEngine.Editor
             }
 
             previewPanel.LoadAsset(screenAsset, fullPath);
+            _activeScreenPreviewPanel = previewPanel;
 
             var existingPanel = _dockHost?.FindPanel(panelId);
             if (existingPanel == null)
