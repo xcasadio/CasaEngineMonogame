@@ -27,11 +27,11 @@ public sealed class UIScreenPreviewBuilder
         _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
     }
 
-    public MGWindow Build(MGDesktop desktop, UIScreenDocument document)
+    public MGWindow Build(MGDesktop desktop, UIScreenDocument document, int width = 1280, int height = 720)
     {
         ArgumentNullException.ThrowIfNull(desktop);
 
-        var previewMarkup = CreatePreviewMarkup(document);
+        var previewMarkup = CreatePreviewMarkup(document, width, height);
         return XAMLParser.LoadRootWindow(desktop, previewMarkup, SanitizeXAMLString: false, ReplaceLinebreakLiterals: true);
     }
 
@@ -40,13 +40,13 @@ public sealed class UIScreenPreviewBuilder
     /// <see cref="DocumentNodeId"/> to the corresponding runtime <see cref="MGElement"/>.
     /// </summary>
     public (MGWindow Window, IReadOnlyDictionary<DocumentNodeId, MGElement> NodeMap) BuildWithMapping(
-        MGDesktop desktop, UIScreenDocument document)
+        MGDesktop desktop, UIScreenDocument document, int width = 1280, int height = 720)
     {
         ArgumentNullException.ThrowIfNull(desktop);
         ArgumentNullException.ThrowIfNull(document);
 
         var idToName = new Dictionary<DocumentNodeId, string>();
-        var taggedMarkup = CreateTaggedMarkup(document, idToName);
+        var taggedMarkup = CreateTaggedMarkup(document, idToName, width, height);
         var window = XAMLParser.LoadRootWindow(desktop, taggedMarkup, SanitizeXAMLString: false, ReplaceLinebreakLiterals: true);
 
         var map = new Dictionary<DocumentNodeId, MGElement>(idToName.Count);
@@ -61,7 +61,7 @@ public sealed class UIScreenPreviewBuilder
         return (window, map);
     }
 
-    public string CreatePreviewMarkup(UIScreenDocument document)
+    public string CreatePreviewMarkup(UIScreenDocument document, int width = 1280, int height = 720)
     {
         ArgumentNullException.ThrowIfNull(document);
 
@@ -76,16 +76,16 @@ public sealed class UIScreenPreviewBuilder
             return serializedMarkup;
         }
 
-        return WrapInPreviewWindow(serializedMarkup, document.Root.Name);
+        return WrapInPreviewWindow(serializedMarkup, document.Root.Name, width, height);
     }
 
     // ─────────────────────────────────────────────────────────────────────
     //  Tagged markup (used for BuildWithMapping)
     // ─────────────────────────────────────────────────────────────────────
 
-    private string CreateTaggedMarkup(UIScreenDocument document, Dictionary<DocumentNodeId, string> outIdToName)
+    private string CreateTaggedMarkup(UIScreenDocument document, Dictionary<DocumentNodeId, string> outIdToName, int width = 1280, int height = 720)
     {
-        var baseMarkup = CreatePreviewMarkup(document);
+        var baseMarkup = CreatePreviewMarkup(document, width, height);
 
         var xDoc = XDocument.Parse(baseMarkup, LoadOptions.PreserveWhitespace);
         if (xDoc.Root == null || document.Root == null)
@@ -160,7 +160,7 @@ public sealed class UIScreenPreviewBuilder
     //  Helpers
     // ─────────────────────────────────────────────────────────────────────
 
-    private static string WrapInPreviewWindow(string serializedMarkup, string? rootName)
+    private static string WrapInPreviewWindow(string serializedMarkup, string? rootName, int width = 1280, int height = 720)
     {
         var document = XDocument.Parse(serializedMarkup, LoadOptions.PreserveWhitespace);
         if (document.Root == null)
@@ -174,8 +174,8 @@ public sealed class UIScreenPreviewBuilder
         var wrapper = new XElement(defaultNamespace + "Window",
             new XAttribute(XNamespace.Xmlns + "x", xamlNamespace),
             new XAttribute("TitleText", GetPreviewTitle(rootName)),
-            new XAttribute("Width", 1280),
-            new XAttribute("Height", 720),
+            new XAttribute("Width", width),
+            new XAttribute("Height", height),
             new XAttribute("Padding", "0"),
             new XAttribute("WindowStyle", "None"),
             new XAttribute("CanCloseWindow", false),

@@ -44,6 +44,25 @@ public sealed class UIScreenPreviewPanel
     private const int ResizeHandleSize = 12;
     private const int MinDragThreshold = 3;
 
+    // ── resolution presets ───────────────────────────────────────────────
+    private int _previewWidth = 1280;
+    private int _previewHeight = 720;
+
+    private static readonly (string Label, int W, int H)[] ResolutionPresets =
+    {
+        ("1280×720",  1280, 720),
+        ("1920×1080", 1920, 1080),
+        ("375×667",   375,  667),
+        ("768×1024",  768,  1024),
+    };
+
+    /// <summary>When true, a grid overlay is drawn over the preview surface by the editor.</summary>
+    public bool ShowGrid { get; private set; }
+
+    /// <summary>Returns the screen-space bounds of the preview surface, or null if not yet created.</summary>
+    public Microsoft.Xna.Framework.Rectangle? PreviewSurfaceBounds
+        => _previewSurface?.LayoutBounds;
+
     public UIScreenPreviewPanel(MGWindow window)
     {
         _window = window;
@@ -75,6 +94,30 @@ public sealed class UIScreenPreviewPanel
 
         toolbar.TryAddChild(_titleText);
         toolbar.TryAddChild(_sourceText);
+
+        // ── Resolution presets row ────────────────────────────────────────
+        var resolutionRow = new MGStackPanel(_window, Orientation.Horizontal) { Spacing = 4 };
+        foreach (var (label, w, h) in ResolutionPresets)
+        {
+            int capturedW = w, capturedH = h;
+            var btn = new MGButton(_window, _ => SetPreviewResolution(capturedW, capturedH))
+            {
+                Padding = new Thickness(4, 2, 4, 2),
+            };
+            btn.SetContent(new MGTextBlock(_window, label));
+            resolutionRow.TryAddChild(btn);
+        }
+
+        // ── Grid toggle ───────────────────────────────────────────────────
+        var gridToggle = new MGButton(_window, _ => ShowGrid = !ShowGrid)
+        {
+            Padding = new Thickness(4, 2, 4, 2),
+            Margin = new Thickness(8, 0, 0, 0),
+        };
+        gridToggle.SetContent(new MGTextBlock(_window, "Grid"));
+        resolutionRow.TryAddChild(gridToggle);
+
+        toolbar.TryAddChild(resolutionRow);
 
         _statusText = new MGTextBlock(_window, "Open a UIScreen asset from the Content Browser.")
         {
@@ -141,7 +184,7 @@ public sealed class UIScreenPreviewPanel
 
         try
         {
-            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
+            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document, _previewWidth, _previewHeight);
             _nodeMap = nodeMap;
             _currentDocument = document;
             previewWindow.IsHitTestVisible = false;
@@ -179,7 +222,7 @@ public sealed class UIScreenPreviewPanel
             _currentDocument = document;
             DocumentLoaded?.Invoke(document);
 
-            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
+            var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document, _previewWidth, _previewHeight);
             _nodeMap = nodeMap;
             previewWindow.IsHitTestVisible = false;
 
@@ -413,6 +456,22 @@ public sealed class UIScreenPreviewPanel
         => value
             .Replace("[", "\\[")
             .Replace("]", "\\]");
+
+    // ─────────────────────────────────────────────────────────────────────
+    //  Resolution preset
+    // ─────────────────────────────────────────────────────────────────────
+
+    private void SetPreviewResolution(int width, int height)
+    {
+        if (_previewWidth == width && _previewHeight == height) return;
+        _previewWidth = width;
+        _previewHeight = height;
+        if (_currentDocument != null)
+        {
+            LoadDocumentDirectly(_currentDocument);
+            _statusText!.Text = $"Preview: {width}×{height}";
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     //  Preview picking

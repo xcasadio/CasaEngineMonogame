@@ -1660,34 +1660,64 @@ namespace CasaEngine.Editor
 
         private void DrawSelectionOverlay()
         {
-            if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue || _overlayPixel == null)
+            if (_activeScreenPreviewPanel == null || _overlayPixel == null)
             {
                 return;
             }
-
-            var bounds = _activeScreenPreviewPanel.GetElementBounds(_screenSelection.SelectedNodeId.Value);
-            if (bounds == null)
-            {
-                return;
-            }
-
-            var r = bounds.Value;
-            const int thickness = 2;
-            const int handleSize = 8;
-            var color = new Color(0, 120, 215, 200); // blue selection
 
             _spriteBatch.Begin();
-            // Top
-            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, r.Width, thickness), color);
-            // Bottom
-            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);
-            // Left
-            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, thickness, r.Height), color);
-            // Right
-            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);
-            // Resize handle (bottom-right corner square)
-            _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color);
+
+            // ── Optional grid ────────────────────────────────────────────
+            if (_activeScreenPreviewPanel.ShowGrid)
+            {
+                DrawPreviewGrid(_activeScreenPreviewPanel);
+            }
+
+            // ── Selection border + resize handle ─────────────────────────
+            if (_screenSelection.SelectedNodeId.HasValue)
+            {
+                var bounds = _activeScreenPreviewPanel.GetElementBounds(_screenSelection.SelectedNodeId.Value);
+                if (bounds.HasValue)
+                {
+                    var r = bounds.Value;
+                    const int thickness = 2;
+                    const int handleSize = 8;
+                    var color = new Color(0, 120, 215, 200); // blue selection
+
+                    // Top
+                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, r.Width, thickness), color);
+                    // Bottom
+                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Bottom - thickness, r.Width, thickness), color);
+                    // Left
+                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Left, r.Top, thickness, r.Height), color);
+                    // Right
+                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - thickness, r.Top, thickness, r.Height), color);
+                    // Resize handle (bottom-right corner square)
+                    _spriteBatch.Draw(_overlayPixel, new Rectangle(r.Right - handleSize, r.Bottom - handleSize, handleSize, handleSize), color);
+                }
+            }
+
             _spriteBatch.End();
+        }
+
+        private void DrawPreviewGrid(UIScreenPreviewPanel panel)
+        {
+            var surfaceBounds = panel.PreviewSurfaceBounds;
+            if (surfaceBounds == null) return;
+
+            var sb = surfaceBounds.Value;
+            const int gridStep = 32;
+            var gridColor = new Color(255, 255, 255, 30);
+
+            for (int x = sb.Left; x <= sb.Right; x += gridStep)
+            {
+                _spriteBatch.Draw(_overlayPixel!, new Rectangle(x, sb.Top, 1, sb.Height), gridColor);
+            }
+
+            for (int y = sb.Top; y <= sb.Bottom; y += gridStep)
+            {
+                _spriteBatch.Draw(_overlayPixel!, new Rectangle(sb.Left, y, sb.Width, 1), gridColor);
+            }
         }
 
         private void OnScreenNodeMoveRequested(DocumentNodeId nodeId, int deltaX, int deltaY)
