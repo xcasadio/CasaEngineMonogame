@@ -1329,7 +1329,7 @@ namespace CasaEngine.Editor
 
             SwitchWorkspace(EditorWorkspaceId.UIScreen, panelId, preferPersistedLayout: true, logOutcome: false);
 
-            var existingPanel = _dockHost?.FindPanel(panelId);
+            var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
             if (existingPanel == null)
             {
                 var panelNode = new DockPanelNode(panelId)
@@ -1450,7 +1450,7 @@ namespace CasaEngine.Editor
 
             foreach (var panelId in panelIds)
             {
-                if (targetGroup.Panels.Any(panel => panel.Id == panelId))
+                if (_dockHost.LayoutModel.FindPanelById(panelId) != null)
                 {
                     continue;
                 }
@@ -1500,8 +1500,14 @@ namespace CasaEngine.Editor
 
         private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
         {
-            return panelId.StartsWith(EditorPanelIds.UIScreenDocumentPrefix, StringComparison.Ordinal)
-                && _screenPreviewPanels.TryGetValue(panelId, out previewPanel!);
+            previewPanel = null!;
+
+            if (!panelId.StartsWith(EditorPanelIds.UIScreenDocumentPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return _screenPreviewPanels.TryGetValue(panelId, out previewPanel);
         }
 
         private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
