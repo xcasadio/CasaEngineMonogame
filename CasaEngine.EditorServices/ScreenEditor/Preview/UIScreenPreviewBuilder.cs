@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
+using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using MGUI.Core.UI;
@@ -122,6 +123,12 @@ public sealed class UIScreenPreviewBuilder
         xmlElement.SetAttributeValue("Name", idName);
         outIdToName[docNode.Id] = idName;
 
+        // Inject mock data for text-capable controls when in design time
+        if (UIDesignModeContext.IsDesignTime)
+        {
+            InjectMockData(xmlElement, docNode);
+        }
+
         // Collect direct document-level child XML elements
         // (skip property-wrapper elements like "StackPanel.Children")
         var controlType = xmlElement.Name.LocalName;
@@ -152,6 +159,43 @@ public sealed class UIScreenPreviewBuilder
             else
             {
                 result.Add(child);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Injects placeholder content into text-capable elements that have no explicit
+    /// text set, so the design-time preview is populated with readable sample values.
+    /// </summary>
+    private static void InjectMockData(XElement xmlElement, UIScreenNode docNode)
+    {
+        var controlType = xmlElement.Name.LocalName;
+
+        switch (controlType)
+        {
+            case "MGTextBlock":
+            case "MGTextBox":
+            {
+                var textAttr = xmlElement.Attribute("Text");
+                if (textAttr == null || string.IsNullOrWhiteSpace(textAttr.Value))
+                {
+                    var key = !string.IsNullOrWhiteSpace(docNode.Name) ? docNode.Name : controlType;
+                    xmlElement.SetAttributeValue("Text", UIScreenMockDataContext.GetText(key));
+                }
+
+                break;
+            }
+
+            case "MGButton":
+            {
+                // Inject button label only when no content is set yet (i.e. no child elements)
+                if (!xmlElement.HasElements)
+                {
+                    var key = !string.IsNullOrWhiteSpace(docNode.Name) ? docNode.Name : "Label";
+                    xmlElement.SetAttributeValue("Content", UIScreenMockDataContext.GetText(key));
+                }
+
+                break;
             }
         }
     }
