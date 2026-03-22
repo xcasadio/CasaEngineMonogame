@@ -55,6 +55,7 @@ namespace CasaEngine.Editor
         private MGDockPanel _statusBar;
         private EditorPanelRegistry _panelRegistry;
         private WorldEditorWorkspace _worldWorkspace;
+        private UIScreenEditorWorkspace _uiScreenWorkspace;
         private MGButton _toggleContentBrowserButton;
         private MGButton _toggleLogsButton;
         private MGTextBlock _statusProjectText;
@@ -267,6 +268,7 @@ namespace CasaEngine.Editor
             _panelRegistry ??= CreatePanelRegistry();
 
             _worldWorkspace ??= new WorldEditorWorkspace(_panelRegistry);
+            _uiScreenWorkspace ??= new UIScreenEditorWorkspace(_panelRegistry);
             _dockHost.LayoutModel.RootNode = _worldWorkspace.CreateDefaultLayout();
             _ = GetOrCreateLogsContent();
         }
@@ -733,20 +735,6 @@ namespace CasaEngine.Editor
                     ContentFactory = GetOrCreateScreenToolboxContent,
                 },
             });
-        }
-
-        private DockPanelNode CreateStaticPanelNode(string panelId)
-        {
-            var descriptor = _panelRegistry.GetDescriptor(panelId);
-            return new DockPanelNode(descriptor.Id)
-            {
-                Title = descriptor.Title,
-                DockableType = descriptor.Kind == EditorPanelKind.Document ? DockableType.Document : DockableType.Tool,
-                CanClose = descriptor.CanClose,
-                CanFloat = descriptor.CanFloat,
-                CanAutoHide = descriptor.CanAutoHide,
-                ContentFactory = descriptor.ContentFactory,
-            };
         }
 
         private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)

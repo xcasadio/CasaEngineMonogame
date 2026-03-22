@@ -11,9 +11,7 @@ public abstract class EditorWorkspaceBase : IEditorWorkspace
     protected EditorWorkspaceBase(EditorPanelRegistry panelRegistry)
     {
         PanelRegistry = panelRegistry;
-        _panels = panelRegistry.Descriptors
-            .Where(static descriptor => descriptor.Scope == EditorPanelScope.Common || descriptor.Scope == EditorPanelScope.World || descriptor.Scope == EditorPanelScope.UIScreen)
-            .ToList();
+        _panels = panelRegistry.Descriptors.ToList();
     }
 
     protected EditorPanelRegistry PanelRegistry { get; }

@@ -175,13 +175,13 @@ Notes : ids, titres, scopes, types et factories des panneaux statiques centralis
 **Commit attendu :**
 - `refactor(editor): extract default world workspace layout`
 
-Commit : `PENDING` - `refactor(editor): extract default world workspace layout`
+Commit : `59d2916e` - `refactor(editor): extract default world workspace layout`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : le layout initial n'embarque plus les panneaux UIScreen et passe désormais par `WorldEditorWorkspace`
 
 ---
 
-#### ⏳ Tâche 2.2 — Créer le layout par défaut du mode UIScreen
+#### ✅ Tâche 2.2 — Créer le layout par défaut du mode UIScreen
 
 **Objectif :** définir un layout dédié pour l'édition d'écran UI.
 
@@ -197,6 +197,10 @@ Notes : le layout initial n'embarque plus les panneaux UIScreen et passe désorm
 
 **Commit attendu :**
 - `feat(editor): add default ui screen workspace layout`
+
+Commit : `PENDING` - `feat(editor): add default ui screen workspace layout`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : le workspace UIScreen expose désormais un layout par défaut distinct avec hiérarchie/outils à gauche, zone document centrale et inspecteur à droite
 
 ---
 
