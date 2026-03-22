@@ -30,6 +30,7 @@ public sealed class UIScreenInspectorPanel
     private MGTextBlock? _statusText;
 
     private UIScreenDocument? _document;
+    private bool _refreshPending;
 
     // R-05: track last node to skip full rebuild on same-node re-selection
     private DocumentNodeId? _lastRenderedNodeId;
@@ -82,7 +83,7 @@ public sealed class UIScreenInspectorPanel
     public void SetDocument(UIScreenDocument? document)
     {
         _document = document;
-        RefreshInspector();
+        ScheduleRefreshInspector();
     }
 
     public MGElement CreateContent()
@@ -118,6 +119,12 @@ public sealed class UIScreenInspectorPanel
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
+        if (_refreshPending || _document != null)
+        {
+            _refreshPending = false;
+            RefreshInspector();
+        }
+
         return _root;
     }
 
@@ -127,7 +134,28 @@ public sealed class UIScreenInspectorPanel
 
     private void OnSelectionChanged(DocumentNodeId? nodeId)
     {
-        RefreshInspector();
+        ScheduleRefreshInspector();
+    }
+
+    private void ScheduleRefreshInspector()
+    {
+        if (_refreshPending)
+        {
+            return;
+        }
+
+        _refreshPending = true;
+
+        if (_root == null)
+        {
+            return;
+        }
+
+        _root.InvokeLater(() =>
+        {
+            _refreshPending = false;
+            RefreshInspector();
+        }, 1, MGElement.InvokeLaterPriority.OnEndUpdate);
     }
 
     private void RefreshInspector()

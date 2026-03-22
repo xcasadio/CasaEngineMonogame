@@ -31,6 +31,7 @@ public sealed class UIScreenHierarchyPanel
 
     private UIScreenDocument? _document;
     private bool _suppressSelectionSync;
+    private bool _rebuildPending;
     private string _filterText = string.Empty;
 
     // R-04: Tree snapshot for diffing (DFS list of node id + label)
@@ -69,7 +70,7 @@ public sealed class UIScreenHierarchyPanel
 
         _document = document;
         _treeSnapshot = newSnapshot;
-        RebuildTree();
+        ScheduleRebuildTree();
     }
 
     /// <summary>
@@ -106,7 +107,7 @@ public sealed class UIScreenHierarchyPanel
             VerticalAlignment = VerticalAlignment.Center,
         });
 
-        var refreshBtn = new MGButton(_window, _ => RebuildTree())
+        var refreshBtn = new MGButton(_window, _ => ScheduleRebuildTree())
         {
             Padding = new Thickness(4, 1, 4, 1),
         };
@@ -133,7 +134,7 @@ public sealed class UIScreenHierarchyPanel
         _filterBox.TextChanged += (_, args) =>
         {
             _filterText = args.NewValue?.Trim() ?? string.Empty;
-            RebuildTree(); // rebuild with filter applied
+            ScheduleRebuildTree();
         };
 
         // Q-07: Breadcrumb display
@@ -161,8 +162,33 @@ public sealed class UIScreenHierarchyPanel
         _root.TryAddChild(_statusText, Dock.Bottom);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
-        RebuildTree();
+        if (_rebuildPending || _document != null)
+        {
+            _rebuildPending = false;
+            RebuildTree();
+        }
         return _root;
+    }
+
+    private void ScheduleRebuildTree()
+    {
+        if (_rebuildPending)
+        {
+            return;
+        }
+
+        _rebuildPending = true;
+
+        if (_root == null)
+        {
+            return;
+        }
+
+        _root.InvokeLater(() =>
+        {
+            _rebuildPending = false;
+            RebuildTree();
+        }, 1, MGElement.InvokeLaterPriority.OnEndUpdate);
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -485,7 +511,7 @@ public sealed class UIScreenHierarchyPanel
         }
 
         _treeSnapshot = BuildSnapshot(_document);
-        RebuildTree();
+        ScheduleRebuildTree();
         NodeDeleted?.Invoke(_document);
     }
 
