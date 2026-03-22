@@ -1,0 +1,116 @@
+{
+  "version": "1.0",
+  "rootNode": {
+    "type": "Split",
+    "id": "4ce7d337-94e2-495c-95ca-9dec5a58ff80",
+    "orientation": "Vertical",
+    "splitRatio": 0.7,
+    "minFirstSize": 250,
+    "minSecondSize": 120,
+    "firstChild": {
+      "type": "Split",
+      "id": "1628dd74-8acf-4fbe-a73c-460178f8a311",
+      "orientation": "Horizontal",
+      "splitRatio": 0.2,
+      "minFirstSize": 220,
+      "minSecondSize": 700,
+      "firstChild": {
+        "type": "TabGroup",
+        "id": "8959e113-df3e-4921-adb2-5247cc42633a",
+        "activePanelId": "panel_entities",
+        "panels": [
+          {
+            "id": "panel_entities",
+            "title": "Entities",
+            "canClose": true,
+            "canFloat": true,
+            "canAutoHide": false,
+            "isPinned": true,
+            "dockableType": "Tool",
+            "drawerSize": 200
+          }
+        ]
+      },
+      "secondChild": {
+        "type": "Split",
+        "id": "348ba914-5398-498c-bf76-cd5d54516d60",
+        "orientation": "Horizontal",
+        "splitRatio": 0.72,
+        "minFirstSize": 500,
+        "minSecondSize": 260,
+        "firstChild": {
+          "type": "TabGroup",
+          "id": "08118d64-6287-41cd-99ad-e43b88206015",
+          "activePanelId": "panel_ui_screen_d4e5f6a7b8c90123def0456789012345",
+          "isDocumentArea": true,
+          "panels": [
+            {
+              "id": "panel_world_viewport",
+              "title": "World Viewport",
+              "canClose": false,
+              "canFloat": false,
+              "canAutoHide": false,
+              "isPinned": true,
+              "dockableType": "Document",
+              "drawerSize": 200
+            },
+            {
+              "id": "panel_ui_screen_d4e5f6a7b8c90123def0456789012345",
+              "title": "SampleOptions",
+              "canClose": true,
+              "canFloat": true,
+              "canAutoHide": false,
+              "isPinned": true,
+              "dockableType": "Document",
+              "drawerSize": 200
+            }
+          ]
+        },
+        "secondChild": {
+          "type": "TabGroup",
+          "id": "2015c2fe-7f5a-4c7c-a6b7-eff0364b1495",
+          "activePanelId": "panel_entity_details",
+          "panels": [
+            {
+              "id": "panel_entity_details",
+              "title": "Details",
+              "canClose": true,
+              "canFloat": true,
+              "canAutoHide": false,
+              "isPinned": true,
+              "dockableType": "Tool",
+              "drawerSize": 200
+            }
+          ]
+        }
+      }
+    },
+    "secondChild": {
+      "type": "TabGroup",
+      "id": "58e42d61-c266-44db-a484-9f8a3f5fd96d",
+      "activePanelId": "panel_content_browser",
+      "panels": [
+        {
+          "id": "panel_content_browser",
+          "title": "Content Browser",
+          "canClose": true,
+          "canFloat": true,
+          "canAutoHide": false,
+          "isPinned": true,
+          "dockableType": "Tool",
+          "drawerSize": 200
+        },
+        {
+          "id": "panel_output",
+          "title": "Output / Logs",
+          "canClose": true,
+          "canFloat": true,
+          "canAutoHide": false,
+          "isPinned": true,
+          "dockableType": "Tool",
+          "drawerSize": 200
+        }
+      ]
+    }
+  }
+}

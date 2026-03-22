@@ -31,6 +31,10 @@ public sealed class UIScreenInspectorPanel
 
     private UIScreenDocument? _document;
 
+    // R-05: track last node to skip full rebuild on same-node re-selection
+    private DocumentNodeId? _lastRenderedNodeId;
+    private string? _lastRenderedControlType;
+
     private readonly List<(MGTextBox Editor, UIPropertyDescriptor Descriptor, MGTextBlock ErrorLabel)> _editors = new();
 
     // ─────────────────────────────────────────────────────────────────────
@@ -39,6 +43,13 @@ public sealed class UIScreenInspectorPanel
 
     /// <summary>Fired when a property is successfully changed in the document.</summary>
     public event Action<UIScreenDocument>? DocumentModified;
+
+    /// <summary>
+    /// Fired when a single property is changed.
+    /// Args: document, nodeId, propertyName, newSerializedValue.
+    /// Use this for the incremental preview update path (R-01).
+    /// </summary>
+    public event Action<UIScreenDocument, DocumentNodeId, string, string?>? PropertyModified;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -126,9 +137,6 @@ public sealed class UIScreenInspectorPanel
             return;
         }
 
-        _propertiesStack.TryRemoveAll();
-        _editors.Clear();
-
         if (_document == null || !_selection.SelectedNodeId.HasValue)
         {
             if (_statusText != null)
@@ -136,11 +144,57 @@ public sealed class UIScreenInspectorPanel
                 _statusText.Text = _document == null ? "No screen loaded." : "No node selected.";
             }
 
+            // Clear cached tracking when there's nothing selected
+            _lastRenderedNodeId = null;
+            _lastRenderedControlType = null;
+
+            _propertiesStack.TryRemoveAll();
+            _editors.Clear();
             return;
         }
 
         var nodeId = _selection.SelectedNodeId.Value;
-        var node = _document.FindNode(nodeId);
+
+        // R-05: If the same node is re-selected, just update the field values in-place.
+        if (nodeId == _lastRenderedNodeId)
+        {
+            var node = _document.FindNode(nodeId);
+            if (node != null)
+            {
+                UpdateEditorValues(node);
+                return;
+            }
+        }
+
+        // Different node (or first load) — full rebuild
+        FullRebuildInspector(nodeId);
+    }
+
+    /// <summary>Updates only the text-box values of existing editor rows — no MGUI element recreation.</summary>
+    private void UpdateEditorValues(UIScreenNode node)
+    {
+        foreach (var (editor, desc, _) in _editors)
+        {
+            var currentValue = node.Properties.TryGetValue(desc.Name, out var prop)
+                ? prop.SerializedValue ?? string.Empty
+                : desc.DefaultSerializedValue ?? string.Empty;
+
+            // Suppress the TextChanged event while updating to avoid a feedback loop
+            if (!string.Equals(editor.Text, currentValue, StringComparison.Ordinal))
+            {
+                editor.Text = currentValue;
+            }
+        }
+    }
+
+    private void FullRebuildInspector(DocumentNodeId nodeId)
+    {
+        _propertiesStack!.TryRemoveAll();
+        _editors.Clear();
+        _lastRenderedNodeId = null;
+        _lastRenderedControlType = null;
+
+        var node = _document!.FindNode(nodeId);
         if (node == null)
         {
             if (_statusText != null)
@@ -155,6 +209,9 @@ public sealed class UIScreenInspectorPanel
         {
             _statusText.Text = string.Empty;
         }
+
+        _lastRenderedNodeId = nodeId;
+        _lastRenderedControlType = node.ControlType;
 
         // Name row (special — not a UIScreenPropertyValue but directly on node)
         _propertiesStack.TryAddChild(BuildSectionHeader("General"));
@@ -280,6 +337,7 @@ public sealed class UIScreenInspectorPanel
                 errorLabel.Text = string.Empty;
                 if (_document != null)
                 {
+                    PropertyModified?.Invoke(_document, node.Id, desc.Name, serialized);
                     DocumentModified?.Invoke(_document);
                 }
             };
@@ -313,6 +371,7 @@ public sealed class UIScreenInspectorPanel
                 }
                 if (_document != null)
                 {
+                    PropertyModified?.Invoke(_document, node.Id, desc.Name, serialized);
                     DocumentModified?.Invoke(_document);
                 }
             }

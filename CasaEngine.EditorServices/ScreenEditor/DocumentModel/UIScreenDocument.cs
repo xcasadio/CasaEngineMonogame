@@ -6,6 +6,12 @@ public sealed class UIScreenDocument
 
     public UIScreenNode? Root { get; private set; }
 
+    /// <summary>
+    /// Named resource entries (analogous to WPF ResourceDictionary) that will be
+    /// serialized inside <c>Window.Resources</c> in the XAML output.
+    /// </summary>
+    public List<UIScreenResourceEntry> Resources { get; } = new();
+
     public void SetRoot(UIScreenNode root)
     {
         ArgumentNullException.ThrowIfNull(root);

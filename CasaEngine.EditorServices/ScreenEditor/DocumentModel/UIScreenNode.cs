@@ -63,6 +63,32 @@ public sealed class UIScreenNode
         return true;
     }
 
+    /// <summary>Returns the zero-based index of <paramref name="child"/> in this node's children list, or -1 if not found.</summary>
+    public int IndexOfChild(UIScreenNode child)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+        return _children.IndexOf(child);
+    }
+
+    /// <summary>
+    /// Moves <paramref name="child"/> to <paramref name="newIndex"/> within this node's children list.
+    /// No-op if the child is not found or the index is unchanged.
+    /// </summary>
+    public void MoveChild(UIScreenNode child, int newIndex)
+    {
+        ArgumentNullException.ThrowIfNull(child);
+
+        var currentIndex = _children.IndexOf(child);
+        if (currentIndex < 0 || currentIndex == newIndex)
+        {
+            return;
+        }
+
+        _children.RemoveAt(currentIndex);
+        var clampedIndex = Math.Clamp(newIndex, 0, _children.Count);
+        _children.Insert(clampedIndex, child);
+    }
+
     public UIScreenPropertyValue SetProperty(string name, string? serializedValue, string valueType = "string")
     {
         if (string.IsNullOrWhiteSpace(name))

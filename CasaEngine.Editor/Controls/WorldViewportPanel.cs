@@ -304,7 +304,11 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView = renderView;
-        _renderViewHost = new MguiViewportViewHost(renderView.Id, () => _viewportHost?.LayoutBounds ?? Rectangle.Empty);
+        // Only report real bounds when the element is in the visual tree (active dock tab).
+        // When the viewport is a background tab, SetParent(null) detaches it but LayoutBounds
+        // retains its last value → ScreenToView would incorrectly route input to this view.
+        _renderViewHost = new MguiViewportViewHost(renderView.Id,
+            () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
         _renderView.Host = _renderViewHost;
         AttachWorld(world);
         EnsureEditorOverlays(world);
@@ -346,7 +350,9 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        if (_viewportHost.LayoutBounds.Contains(screenPosition))
+        // Guard: treat detached (background-tab) viewport as if it has no bounds,
+        // so clicks in the document area correctly release input / clear keyboard focus.
+        if (_viewportHost.Parent != null && _viewportHost.LayoutBounds.Contains(screenPosition))
         {
             return;
         }

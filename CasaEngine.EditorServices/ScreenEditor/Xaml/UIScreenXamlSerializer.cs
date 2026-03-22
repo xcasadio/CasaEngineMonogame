@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Xml.Linq;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 
@@ -18,8 +19,42 @@ public sealed class UIScreenXamlSerializer
         }
 
         var rootElement = SerializeNode(document.Root, isRoot: true);
+
+        // Inject Window.Resources if any are defined
+        if (document.Resources.Count > 0 && string.Equals(document.Root.ControlType, "Window", StringComparison.Ordinal))
+        {
+            InjectResources(rootElement, document.Resources);
+        }
+
         var xDocument = new XDocument(new XDeclaration("1.0", "utf-8", null), rootElement);
         return xDocument.ToString(SaveOptions.None);
+    }
+
+    private static void InjectResources(XElement windowElement, List<UIScreenResourceEntry> resources)
+    {
+        XNamespace defaultNamespace = DefaultNamespaceValue;
+        XNamespace xamlNamespace = XamlNamespaceValue;
+
+        var resourcesElement = new XElement(defaultNamespace + "Window.Resources");
+        foreach (var entry in resources)
+        {
+            if (string.IsNullOrWhiteSpace(entry.Key) || string.IsNullOrWhiteSpace(entry.XamlValue))
+            {
+                continue;
+            }
+
+            foreach (var fragment in ParseFragment(entry.XamlValue))
+            {
+                if (fragment is XElement fragmentElement)
+                {
+                    fragmentElement.SetAttributeValue(xamlNamespace + "Key", entry.Key);
+                }
+
+                resourcesElement.Add(fragment);
+            }
+        }
+
+        windowElement.AddFirst(resourcesElement);
     }
 
     private static XElement SerializeNode(UIScreenNode node, bool isRoot)
@@ -45,7 +80,7 @@ public sealed class UIScreenXamlSerializer
                 continue;
             }
 
-            element.Add(new XAttribute(property.Name, property.SerializedValue ?? string.Empty));
+            element.Add(new XAttribute(property.Name, property.EffectiveSerializedValue ?? string.Empty));
         }
 
         foreach (var property in node.Properties.Values.OrderBy(static value => value.Name, StringComparer.Ordinal))

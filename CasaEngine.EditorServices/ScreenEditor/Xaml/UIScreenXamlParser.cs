@@ -19,8 +19,40 @@ public sealed class UIScreenXamlParser
         }
 
         var screenDocument = new UIScreenDocument();
+
+        // Extract Window.Resources if present
+        if (string.Equals(document.Root.Name.LocalName, "Window", StringComparison.Ordinal))
+        {
+            var resourcesElement = document.Root.Elements()
+                .FirstOrDefault(e => string.Equals(e.Name.LocalName, "Window.Resources", StringComparison.Ordinal));
+            if (resourcesElement != null)
+            {
+                ParseResources(resourcesElement, screenDocument);
+            }
+        }
+
         screenDocument.SetRoot(ParseElement(document.Root));
         return screenDocument;
+    }
+
+    private static void ParseResources(XElement resourcesElement, UIScreenDocument document)
+    {
+        XNamespace xamlNs = "http://schemas.microsoft.com/winfx/2006/xaml";
+        foreach (var child in resourcesElement.Elements())
+        {
+            var key = child.Attribute(xamlNs + "Key")?.Value
+                   ?? child.Attribute("Key")?.Value;
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                continue;
+            }
+
+            document.Resources.Add(new UIScreenResourceEntry
+            {
+                Key = key,
+                XamlValue = string.Concat(child.Nodes().Select(n => n.ToString(SaveOptions.DisableFormatting))),
+            });
+        }
     }
 
     public UIScreenDocument ParseFile(string filePath)
@@ -55,6 +87,12 @@ public sealed class UIScreenXamlParser
 
         foreach (var childElement in element.Elements())
         {
+            // Window.Resources is handled separately as a document-level resource dictionary
+            if (string.Equals(childElement.Name.LocalName, "Window.Resources", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
             if (IsPropertyElement(childElement))
             {
                 var propertyName = GetPropertyElementName(childElement);
