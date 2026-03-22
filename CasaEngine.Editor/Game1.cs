@@ -254,7 +254,7 @@ namespace CasaEngine.Editor
                 item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
                 item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
                 item.Submenu.AddSeparator();
-                item.Submenu.AddButton("Reset Layout", _ => SetupInitialDockLayout());
+                item.Submenu.AddButton("Reset Layout", _ => ResetActiveWorkspaceLayout());
             });
 
             // Help menu
@@ -1055,11 +1055,12 @@ namespace CasaEngine.Editor
 
         private void LoadDockLayout()
         {
-            if (!TryLoadPersistedDockLayout(logOutcome: true))
-            {
-                SetupInitialDockLayout();
-                RefreshStatusBar();
-            }
+            SwitchWorkspace(_activeWorkspaceId, GetActiveDocumentPanelId(), preferPersistedLayout: true, logOutcome: true);
+        }
+
+        private void ResetActiveWorkspaceLayout()
+        {
+            SwitchWorkspace(_activeWorkspaceId, GetActiveDocumentPanelId(), preferPersistedLayout: false, logOutcome: false);
         }
 
         private Func<MGElement> GetPanelContentFactory(string panelId)
@@ -1374,6 +1375,24 @@ namespace CasaEngine.Editor
             }
 
             return result;
+        }
+
+        private string? GetActiveDocumentPanelId()
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return null;
+            }
+
+            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
+            {
+                if (group.IsDocumentArea && !string.IsNullOrWhiteSpace(group.ActivePanelId))
+                {
+                    return group.ActivePanelId;
+                }
+            }
+
+            return null;
         }
 
         private void RestoreDocumentPanels(IReadOnlyList<string> panelIds)

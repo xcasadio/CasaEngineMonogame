@@ -314,7 +314,7 @@ Notes : la bascule World/UIScreen suit désormais le document actif et préserve
 **Commit attendu :**
 - `refactor(editor): bind ui screen panels to active workspace context`
 
-Commit : `PENDING` - `refactor(editor): bind workspace contexts`
+Commit : `9e0c772a` - `refactor(editor): bind workspace contexts`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : un contexte UIScreen explicite alimente désormais la hiérarchie, l'inspecteur et la toolbox à partir de la preview active
 
@@ -335,7 +335,7 @@ Notes : un contexte UIScreen explicite alimente désormais la hiérarchie, l'ins
 **Commit attendu :**
 - `refactor(editor): bind world panels to active workspace context`
 
-Commit : `PENDING` - `refactor(editor): bind workspace contexts`
+Commit : `9e0c772a` - `refactor(editor): bind workspace contexts`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : un contexte World explicite synchronise désormais la sélection, le viewport et le panneau Details
 
@@ -343,7 +343,7 @@ Notes : un contexte World explicite synchronise désormais la sélection, le vie
 
 ### Phase 5 — Finitions et robustesse
 
-#### ⏳ Tâche 5.1 — Adapter les actions de menu et status bar au workspace actif
+#### ✅ Tâche 5.1 — Adapter les actions de menu et status bar au workspace actif
 
 **Objectif :** éviter qu'une action shell tente de manipuler un panneau non pertinent pour le mode courant.
 
@@ -358,6 +358,10 @@ Notes : un contexte World explicite synchronise désormais la sélection, le vie
 
 **Commit attendu :**
 - `refactor(editor): route shell layout actions through active workspace`
+
+Commit : `PENDING` - `refactor(editor): route shell layout actions through active workspace`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : les actions Save/Load/Reset Layout ciblent désormais le workspace actif et tentent de préserver le document courant
 
 ---
 
