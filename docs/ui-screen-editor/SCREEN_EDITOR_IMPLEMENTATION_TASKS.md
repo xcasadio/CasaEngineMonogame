@@ -315,7 +315,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 5 - Hiérarchie et sélection
 
 ### 5.1 Créer le service de sélection
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : unifier la sélection entre hiérarchie, inspector et preview.
 - Actions :
   - créer `UIScreenSelectionService`
@@ -327,7 +327,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UI screen selection service`
 
 ### 5.2 Créer le panneau hiérarchie
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : naviguer dans l’arbre visuel/document.
 - Actions :
   - afficher l’arbre du document
@@ -339,7 +339,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add UI screen hierarchy panel`
 
 ### 5.3 Synchroniser preview -> sélection
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : sélectionner depuis la surface de preview.
 - Actions :
   - mapping runtime control -> document node
@@ -351,7 +351,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: sync preview picking with screen selection`
 
 ### 5.4 Ajouter suppression de nœud via hiérarchie
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : première édition structurelle utile.
 - Actions :
   - suppression sécurisée d’un nœud
@@ -367,7 +367,7 @@ Le repo CasaEngineMonogame contient déjà :
 ## Phase 6 - Inspector de propriétés
 
 ### 6.1 Définir un système de descripteurs de propriétés
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : éviter un inspector codé en dur contrôle par contrôle.
 - Actions :
   - créer des métadonnées de propriétés :
@@ -383,7 +383,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add property descriptors for UI screen editor`
 
 ### 6.2 Implémenter l’inspector minimal
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : modifier les propriétés simples.
 - Actions :
   - afficher les propriétés du nœud sélectionné
@@ -399,7 +399,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: add basic property inspector for UI screens`
 
 ### 6.3 Rafraîchir preview après changement de propriété
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : boucle d’édition temps réel.
 - Actions :
   - brancher propriété modifiée -> dirty -> refresh preview
@@ -410,7 +410,7 @@ Le repo CasaEngineMonogame contient déjà :
   - `feat: refresh preview after property edits`
 
 ### 6.4 Ajouter validateurs et messages d’erreur de propriété
-- Statut : ⚪
+- Statut : 🟢
 - Objectif : éviter les valeurs invalides silencieuses.
 - Actions :
   - validation de types
