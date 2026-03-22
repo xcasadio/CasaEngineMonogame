@@ -3,32 +3,29 @@
            Name="pnlInventory"
            Padding="0"
            Width="640"
-           Height="480">
+           Height="480"
+           LastChildFill="True">
 
   <!-- Header -->
-  <DockPanel.Top>
-    <Border Padding="12,8,12,8">
-      <StackPanel Orientation="Horizontal" Spacing="16">
-        <TextBlock Name="lblInventoryTitle" Text="Inventory" FontSize="16" />
-        <TextBlock Name="lblCapacity" Text="12 / 20 slots" Opacity="0.7" VerticalAlignment="Center" />
-      </StackPanel>
-    </Border>
-  </DockPanel.Top>
+  <Border Dock="Top" Padding="12,8,12,8">
+    <StackPanel Orientation="Horizontal" Spacing="16">
+      <TextBlock Name="lblInventoryTitle" Text="Inventory" FontSize="16" />
+      <TextBlock Name="lblCapacity" Text="12 / 20 slots" Opacity="0.7" VerticalAlignment="Center" />
+    </StackPanel>
+  </Border>
 
   <!-- Footer buttons -->
-  <DockPanel.Bottom>
-    <StackPanel Orientation="Horizontal" Spacing="8" Padding="12,8,12,8">
-      <Button Name="btnEquip" Padding="12,6,12,6">
-        <TextBlock Text="Equip" />
-      </Button>
-      <Button Name="btnDrop" Padding="12,6,12,6">
-        <TextBlock Text="Drop" />
-      </Button>
-      <Button Name="btnClose" Padding="12,6,12,6" HorizontalAlignment="Right">
-        <TextBlock Text="Close" />
-      </Button>
-    </StackPanel>
-  </DockPanel.Bottom>
+  <StackPanel Dock="Bottom" Orientation="Horizontal" Spacing="8" Padding="12,8,12,8">
+    <Button Name="btnEquip" Padding="12,6,12,6">
+      <TextBlock Text="Equip" />
+    </Button>
+    <Button Name="btnDrop" Padding="12,6,12,6">
+      <TextBlock Text="Drop" />
+    </Button>
+    <Button Name="btnClose" Padding="12,6,12,6" HorizontalAlignment="Right">
+      <TextBlock Text="Close" />
+    </Button>
+  </StackPanel>
 
   <!-- Item grid placeholder -->
   <Border Padding="12">

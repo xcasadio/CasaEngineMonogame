@@ -3,26 +3,23 @@
            Name="pnlOptions"
            Padding="0"
            Width="560"
-           Height="400">
+           Height="400"
+           LastChildFill="True">
 
   <!-- Title -->
-  <DockPanel.Top>
-    <Border Padding="16,12,16,12">
-      <TextBlock Name="lblOptionsTitle" Text="Options" FontSize="18" HorizontalAlignment="Center" />
-    </Border>
-  </DockPanel.Top>
+  <Border Dock="Top" Padding="16,12,16,12">
+    <TextBlock Name="lblOptionsTitle" Text="Options" FontSize="18" HorizontalAlignment="Center" />
+  </Border>
 
   <!-- Close button -->
-  <DockPanel.Bottom>
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Padding="16,8,16,8">
-      <Button Name="btnApply" Padding="12,6,12,6" Margin="0,0,8,0">
-        <TextBlock Text="Apply" />
-      </Button>
-      <Button Name="btnOptionsClose" Padding="12,6,12,6">
-        <TextBlock Text="Close" />
-      </Button>
-    </StackPanel>
-  </DockPanel.Bottom>
+  <StackPanel Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Padding="16,8,16,8">
+    <Button Name="btnApply" Padding="12,6,12,6" Margin="0,0,8,0">
+      <TextBlock Text="Apply" />
+    </Button>
+    <Button Name="btnOptionsClose" Padding="12,6,12,6">
+      <TextBlock Text="Close" />
+    </Button>
+  </StackPanel>
 
   <!-- Options content -->
   <StackPanel Orientation="Vertical" Spacing="16" Padding="24">
