@@ -56,6 +56,7 @@ namespace CasaEngine.Editor
         private EditorPanelRegistry _panelRegistry;
         private WorldEditorWorkspace _worldWorkspace;
         private UIScreenEditorWorkspace _uiScreenWorkspace;
+        private EditorWorkspaceManager _workspaceManager;
         private EditorWorkspaceId _activeWorkspaceId = EditorWorkspaceId.World;
         private MGButton _toggleContentBrowserButton;
         private MGButton _toggleLogsButton;
@@ -270,8 +271,8 @@ namespace CasaEngine.Editor
 
             _worldWorkspace ??= new WorldEditorWorkspace(_panelRegistry);
             _uiScreenWorkspace ??= new UIScreenEditorWorkspace(_panelRegistry);
-            _dockHost.LayoutModel.RootNode = _worldWorkspace.CreateDefaultLayout();
-            _ = GetOrCreateLogsContent();
+            _workspaceManager ??= CreateWorkspaceManager();
+            _workspaceManager.ResetWorkspaceLayout(EditorWorkspaceId.World);
         }
 
         private void OnProjectLoaded(object? sender, EventArgs e)
@@ -736,6 +737,21 @@ namespace CasaEngine.Editor
                     ContentFactory = GetOrCreateScreenToolboxContent,
                 },
             });
+        }
+
+        private EditorWorkspaceManager CreateWorkspaceManager()
+        {
+            return new EditorWorkspaceManager(
+                new IEditorWorkspace[] { _worldWorkspace, _uiScreenWorkspace },
+                workspaceId => SavePersistedDockLayout(workspaceId),
+                (workspaceId, logOutcome) => TryLoadPersistedDockLayout(workspaceId, logOutcome),
+                layout => _dockHost.LayoutModel.RootNode = layout,
+                () =>
+                {
+                    _activeWorkspaceId = _workspaceManager?.ActiveWorkspaceId ?? _activeWorkspaceId;
+                    _ = GetOrCreateLogsContent();
+                    RefreshStatusBar();
+                });
         }
 
         private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)

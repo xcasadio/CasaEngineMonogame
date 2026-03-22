@@ -221,7 +221,7 @@ Notes : le workspace UIScreen expose désormais un layout par défaut distinct a
 **Commit attendu :**
 - `feat(editor): persist dock layout per workspace`
 
-Commit : `PENDING` - `feat(editor): persist dock layout per workspace`
+Commit : `5cca627c` - `feat(editor): persist dock layout per workspace`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : les layouts World et UIScreen utilisent désormais des fichiers distincts, avec fallback legacy pour l'ancien layout global World
 
@@ -229,7 +229,7 @@ Notes : les layouts World et UIScreen utilisent désormais des fichiers distinct
 
 ### Phase 3 — Introduire le gestionnaire de workspaces
 
-#### ⏳ Tâche 3.1 — Ajouter un WorkspaceManager minimal
+#### ✅ Tâche 3.1 — Ajouter un WorkspaceManager minimal
 
 **Objectif :** centraliser la transition entre modes d'édition.
 
@@ -245,6 +245,10 @@ Notes : les layouts World et UIScreen utilisent désormais des fichiers distinct
 
 **Commit attendu :**
 - `feat(editor): add workspace manager for dock layouts`
+
+Commit : `PENDING` - `feat(editor): add workspace manager for dock layouts`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : la création, l'activation, le reset et la restauration des layouts passent désormais par un gestionnaire dédié
 
 ---
 
