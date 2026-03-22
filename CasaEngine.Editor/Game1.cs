@@ -39,6 +39,7 @@ namespace CasaEngine.Editor
         private const string EntityDetailsPanelId = "panel_entity_details";
         private const string UIScreenHierarchyPanelId = "panel_ui_screen_hierarchy";
         private const string UIScreenInspectorPanelId  = "panel_ui_screen_inspector";
+        private const string UIScreenToolboxPanelId    = "panel_ui_screen_toolbox";
         private const string EditorLayoutDirectoryName = ".casaeditor";
         private const string EditorLayoutFileName = "layout.json";
 
@@ -81,6 +82,8 @@ namespace CasaEngine.Editor
         private MGElement? _screenHierarchyContent;
         private UIScreenInspectorPanel? _screenInspectorPanel;
         private MGElement? _screenInspectorContent;
+        private UIScreenToolboxPanel? _screenToolboxPanel;
+        private MGElement? _screenToolboxContent;
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private LogsPanel _logsPanel;
@@ -292,6 +295,14 @@ namespace CasaEngine.Editor
                 ContentFactory = GetOrCreateScreenHierarchyContent
             };
 
+            var screenToolboxPanel = new DockPanelNode(UIScreenToolboxPanelId)
+            {
+                Title = "Screen Toolbox",
+                CanClose = true,
+                CanFloat = true,
+                ContentFactory = GetOrCreateScreenToolboxContent
+            };
+
             var screenInspectorPanel = new DockPanelNode(UIScreenInspectorPanelId)
             {
                 Title = "Screen Inspector",
@@ -330,6 +341,7 @@ namespace CasaEngine.Editor
             var entitiesGroup = new DockTabGroupNode();
             entitiesGroup.AddPanel(explorerPanel, -1);
             entitiesGroup.AddPanel(screenHierarchyPanel, -1);
+            entitiesGroup.AddPanel(screenToolboxPanel, -1);
             entitiesGroup.SetActivePanel(explorerPanel.Id);
 
             var detailsGroup = new DockTabGroupNode();
@@ -569,6 +581,24 @@ namespace CasaEngine.Editor
 
             _screenInspectorContent ??= _screenInspectorPanel.CreateContent();
             return _screenInspectorContent;
+        }
+
+        private MGElement GetOrCreateScreenToolboxContent()
+        {
+            if (_screenToolboxPanel == null)
+            {
+                _screenToolboxPanel = new UIScreenToolboxPanel(_mainWindow);
+                // Phase 7.3 will wire ControlRequested to node insertion
+                _screenToolboxPanel.ControlRequested += OnToolboxControlRequested;
+            }
+
+            _screenToolboxContent ??= _screenToolboxPanel.CreateContent();
+            return _screenToolboxContent;
+        }
+
+        private void OnToolboxControlRequested(CasaEngine.EditorServices.ScreenEditor.Toolbox.UIControlRegistryEntry entry)
+        {
+            // Placeholder — node creation wired in phase 7.3
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
@@ -881,6 +911,7 @@ namespace CasaEngine.Editor
                 OutputPanelId => GetOrCreateLogsContent,
                 UIScreenHierarchyPanelId => GetOrCreateScreenHierarchyContent,
                 UIScreenInspectorPanelId  => GetOrCreateScreenInspectorContent,
+                UIScreenToolboxPanelId    => GetOrCreateScreenToolboxContent,
                 _ => () => CreateUnavailablePanelContent(panelId),
             };
         }
@@ -1026,6 +1057,7 @@ namespace CasaEngine.Editor
                 {
                     _screenHierarchyPanel?.SetDocument(doc);
                     _screenInspectorPanel?.SetDocument(doc);
+                    _screenToolboxPanel?.SetDocument(doc);
                 };
                 previewPanel.NodePicked += id =>
                 {
