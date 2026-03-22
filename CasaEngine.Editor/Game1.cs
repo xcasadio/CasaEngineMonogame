@@ -81,6 +81,8 @@ namespace CasaEngine.Editor
         private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly UICommandStack _screenCommandStack = new();
+        private readonly WorldWorkspaceContext _worldWorkspaceContext = new();
+        private readonly UIScreenWorkspaceContext _uiScreenWorkspaceContext;
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
         private UIScreenInspectorPanel? _screenInspectorPanel;
@@ -114,6 +116,7 @@ namespace CasaEngine.Editor
         public Game1(EditorAutomationOptions? automationOptions = null)
         {
             _automationOptions = automationOptions ?? new EditorAutomationOptions();
+            _uiScreenWorkspaceContext = new UIScreenWorkspaceContext(_screenSelection);
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)
                 ? GraphicsProfile.HiDef
@@ -427,7 +430,8 @@ namespace CasaEngine.Editor
             }
 
             _worldViewportContent ??= _worldViewportPanel.CreateContent();
-            _worldViewportPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
+            _worldWorkspaceContext.ViewportPanel = _worldViewportPanel;
+            ApplyWorldWorkspaceContext();
             return _worldViewportContent;
         }
 
@@ -441,7 +445,7 @@ namespace CasaEngine.Editor
             }
 
             _entitiesContent ??= _entitiesPanel.CreateContent();
-            _entitiesPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
+            ApplyWorldWorkspaceContext();
             return _entitiesContent;
         }
 
@@ -454,7 +458,7 @@ namespace CasaEngine.Editor
                 _screenHierarchyPanel.NodeDeleted += doc =>
                 {
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
-                    _screenInspectorPanel?.SetDocument(doc);
+                    ApplyUIScreenWorkspaceContext();
                 };
                 _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
                 {
@@ -467,6 +471,7 @@ namespace CasaEngine.Editor
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
+            ApplyUIScreenWorkspaceContext();
             return _screenHierarchyContent;
         }
 
@@ -480,7 +485,7 @@ namespace CasaEngine.Editor
                 {
                     // Only called for structural changes (e.g. Name field edits visible in tree)
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
-                    _screenHierarchyPanel?.SetDocument(doc);
+                    ApplyUIScreenWorkspaceContext();
                 };
                 _screenInspectorPanel.PropertyModified += (doc, nodeId, propName, value) =>
                 {
@@ -491,6 +496,7 @@ namespace CasaEngine.Editor
             }
 
             _screenInspectorContent ??= _screenInspectorPanel.CreateContent();
+            ApplyUIScreenWorkspaceContext();
             return _screenInspectorContent;
         }
 
@@ -504,6 +510,7 @@ namespace CasaEngine.Editor
             }
 
             _screenToolboxContent ??= _screenToolboxPanel.CreateContent();
+            ApplyUIScreenWorkspaceContext();
             return _screenToolboxContent;
         }
 
@@ -654,8 +661,7 @@ namespace CasaEngine.Editor
             }
 
             _entityDetailsContent ??= _entityDetailsPanel.CreateContent();
-            _entityDetailsPanel.SetSelectedEntity(_editorSelection.SelectedEntity);
-            _entityDetailsPanel.SetSelectedComponent(_editorSelection.SelectedComponent);
+            ApplyWorldWorkspaceContext();
             return _entityDetailsContent;
         }
 
@@ -1254,9 +1260,10 @@ namespace CasaEngine.Editor
                 previewPanel.SetSelectionService(_screenSelection);
                 previewPanel.DocumentLoaded += doc =>
                 {
-                    _screenHierarchyPanel?.SetDocument(doc);
-                    _screenInspectorPanel?.SetDocument(doc);
-                    _screenToolboxPanel?.SetDocument(doc);
+                    if (ReferenceEquals(_uiScreenWorkspaceContext.ActivePreviewPanel, previewPanel))
+                    {
+                        ApplyUIScreenWorkspaceContext();
+                    }
                 };
                 previewPanel.NodePicked += id =>
                 {
@@ -1324,6 +1331,12 @@ namespace CasaEngine.Editor
             {
                 _workspaceManager.ActivateWorkspace(workspaceId, preferPersistedLayout, logOutcome);
                 RestoreDocumentPanels(openDocumentPanelIds);
+
+                if (workspaceId != EditorWorkspaceId.UIScreen)
+                {
+                    _uiScreenWorkspaceContext.SetActivePreviewPanel(null);
+                    ApplyUIScreenWorkspaceContext();
+                }
 
                 if (!string.IsNullOrWhiteSpace(activePanelId))
                 {
@@ -1430,6 +1443,16 @@ namespace CasaEngine.Editor
         private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
         {
             _activeScreenPreviewPanel = previewPanel;
+            _uiScreenWorkspaceContext.SetActivePreviewPanel(previewPanel);
+            ApplyUIScreenWorkspaceContext();
+        }
+
+        private void ApplyUIScreenWorkspaceContext()
+        {
+            var activeDocument = _uiScreenWorkspaceContext.ActiveDocument;
+            _screenHierarchyPanel?.SetDocument(activeDocument);
+            _screenInspectorPanel?.SetDocument(activeDocument);
+            _screenToolboxPanel?.SetDocument(activeDocument);
         }
 
         private DockTabGroupNode? GetDocumentDockGroup()
@@ -1494,6 +1517,7 @@ namespace CasaEngine.Editor
         private void OnEditorSelectionChanged(Entity? entity)
         {
             _selectedEntity = entity;
+            _worldWorkspaceContext.SelectedEntity = entity;
 
             if (_isSynchronizingEntitySelection)
             {
@@ -1503,12 +1527,7 @@ namespace CasaEngine.Editor
             _isSynchronizingEntitySelection = true;
             try
             {
-                _entitiesPanel?.SetSelectedEntity(entity);
-                if (!_automationOptions.HasAutomation)
-                {
-                    _worldViewportPanel?.SetSelectedEntity(entity);
-                }
-                _entityDetailsPanel?.SetSelectedEntity(entity);
+                ApplyWorldWorkspaceContext();
             }
             finally
             {
@@ -1518,12 +1537,26 @@ namespace CasaEngine.Editor
 
         private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
-            _entityDetailsPanel?.SetSelectedComponent(component);
+            _worldWorkspaceContext.SelectedComponent = component;
+            ApplyWorldWorkspaceContext();
         }
 
         private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
             _editorSelection.SetSelectedComponent(component);
+        }
+
+        private void ApplyWorldWorkspaceContext()
+        {
+            _entitiesPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+
+            if (!_automationOptions.HasAutomation)
+            {
+                _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+            }
+
+            _entityDetailsPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+            _entityDetailsPanel?.SetSelectedComponent(_worldWorkspaceContext.SelectedComponent);
         }
 
         protected override void LoadContent()

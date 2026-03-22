@@ -292,13 +292,13 @@ Notes : le chargement de projet réactive explicitement le workspace World et re
 **Commit attendu :**
 - `feat(editor): switch workspace from active document`
 
-Commit : `PENDING` - `feat(editor): switch workspace from active document`
+Commit : `41a0cad0` - `feat(editor): switch workspace from active document`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : la bascule World/UIScreen suit désormais le document actif et préserve les onglets document connus lors d'un changement de workspace
 
 ---
 
-#### ⏳ Tâche 4.2 — Binder les panneaux UIScreen au document UI actif
+#### ✅ Tâche 4.2 — Binder les panneaux UIScreen au document UI actif
 
 **Objectif :** éviter les dépendances implicites et garantir que les panneaux UI reflètent la bonne preview active.
 
@@ -314,9 +314,13 @@ Notes : la bascule World/UIScreen suit désormais le document actif et préserve
 **Commit attendu :**
 - `refactor(editor): bind ui screen panels to active workspace context`
 
+Commit : `PENDING` - `refactor(editor): bind workspace contexts`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : un contexte UIScreen explicite alimente désormais la hiérarchie, l'inspecteur et la toolbox à partir de la preview active
+
 ---
 
-#### ⏳ Tâche 4.3 — Binder les panneaux World au contexte World actif
+#### ✅ Tâche 4.3 — Binder les panneaux World au contexte World actif
 
 **Objectif :** rendre symétrique la gestion des panneaux World.
 
@@ -330,6 +334,10 @@ Notes : la bascule World/UIScreen suit désormais le document actif et préserve
 
 **Commit attendu :**
 - `refactor(editor): bind world panels to active workspace context`
+
+Commit : `PENDING` - `refactor(editor): bind workspace contexts`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : un contexte World explicite synchronise désormais la sélection, le viewport et le panneau Details
 
 ---
 
