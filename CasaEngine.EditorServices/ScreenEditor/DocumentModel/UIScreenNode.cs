@@ -119,4 +119,29 @@ public sealed class UIScreenNode
 
         return false;
     }
+
+    /// <summary>
+    /// Creates a deep clone of this node and its entire subtree.
+    /// The clone receives new <see cref="DocumentNodeId"/> values.
+    /// </summary>
+    public UIScreenNode DeepClone()
+    {
+        var clone = new UIScreenNode(ControlType)
+        {
+            Name = Name,
+            DesignFlags = DesignFlags,
+        };
+
+        foreach (var prop in Properties.Values)
+        {
+            clone.SetProperty(prop.Name, prop.SerializedValue, prop.ValueType);
+        }
+
+        foreach (var child in Children)
+        {
+            clone.AddChild(child.DeepClone());
+        }
+
+        return clone;
+    }
 }

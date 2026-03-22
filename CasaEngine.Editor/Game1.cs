@@ -5,6 +5,7 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
+using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Framework.Assets;
@@ -90,6 +91,7 @@ namespace CasaEngine.Editor
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private Texture2D? _overlayPixel;
+        private string? _nodeClipboard; // JSON-serialized node subtree for copy/paste
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
         private Action? _pendingProjectLauncherAction;
@@ -238,9 +240,11 @@ namespace CasaEngine.Editor
                 item.Submenu.AddButton("Undo", _ => ExecuteUndo());
                 item.Submenu.AddButton("Redo", _ => ExecuteRedo());
                 item.Submenu.AddSeparator();
-                item.Submenu.AddButton("Cut", _ => { });
-                item.Submenu.AddButton("Copy", _ => { });
-                item.Submenu.AddButton("Paste", _ => { });
+                item.Submenu.AddButton("Duplicate", _ => ExecuteDuplicate());
+                item.Submenu.AddSeparator();
+                item.Submenu.AddButton("Cut", _ => ExecuteCut());
+                item.Submenu.AddButton("Copy", _ => ExecuteCopy());
+                item.Submenu.AddButton("Paste", _ => ExecutePaste());
             });
 
             // Windows menu
@@ -657,6 +661,74 @@ namespace CasaEngine.Editor
 
             _screenCommandStack.Redo();
             RefreshScreenPanelsAfterCommand();
+        }
+
+        private void ExecuteDuplicate()
+        {
+            if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
+            var document = _activeScreenPreviewPanel.CurrentDocument;
+            if (document == null) return;
+
+            var cmd = new DuplicateNodeCommand(document, _screenSelection.SelectedNodeId.Value);
+            _screenCommandStack.Execute(cmd);
+            RefreshScreenPanelsAfterCommand();
+
+            if (cmd.CreatedNode != null)
+            {
+                _screenSelection.Select(cmd.CreatedNode.Id);
+            }
+        }
+
+        private void ExecuteCopy()
+        {
+            if (_activeScreenPreviewPanel == null || !_screenSelection.SelectedNodeId.HasValue) return;
+            var document = _activeScreenPreviewPanel.CurrentDocument;
+            if (document == null) return;
+            var node = document.FindNode(_screenSelection.SelectedNodeId.Value);
+            if (node == null) return;
+
+            var clone = node.DeepClone();
+            var tempDoc = new UIScreenDocument();
+            tempDoc.SetRoot(clone);
+            _nodeClipboard = new UIScreenXamlSerializer().Serialize(tempDoc);
+        }
+
+        private void ExecuteCut()
+        {
+            ExecuteCopy();
+            if (_nodeClipboard == null || !_screenSelection.SelectedNodeId.HasValue) return;
+            var document = _activeScreenPreviewPanel?.CurrentDocument;
+            if (document == null) return;
+            var node = document.FindNode(_screenSelection.SelectedNodeId.Value);
+            if (node == null) return;
+            var cmd = new RemoveNodeCommand(document, node);
+            _screenCommandStack.Execute(cmd);
+            _screenSelection.ClearSelection();
+            RefreshScreenPanelsAfterCommand();
+        }
+
+        private void ExecutePaste()
+        {
+            if (string.IsNullOrWhiteSpace(_nodeClipboard) || _activeScreenPreviewPanel == null) return;
+            var document = _activeScreenPreviewPanel.CurrentDocument;
+            if (document == null) return;
+
+            UIScreenDocument parsedDoc;
+            try
+            {
+                parsedDoc = new UIScreenXamlParser().Parse(_nodeClipboard);
+            }
+            catch
+            {
+                return; // invalid clipboard content
+            }
+
+            if (parsedDoc.Root == null) return;
+            var pasteNode = parsedDoc.Root.DeepClone();
+            var cmd = new PasteNodeCommand(document, pasteNode, _screenSelection.SelectedNodeId);
+            _screenCommandStack.Execute(cmd);
+            RefreshScreenPanelsAfterCommand();
+            _screenSelection.Select(cmd.InsertedNode.Id);
         }
 
         /// <summary>
@@ -1289,6 +1361,22 @@ namespace CasaEngine.Editor
             else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Y))
             {
                 ExecuteRedo();
+            }
+            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D))
+            {
+                ExecuteDuplicate();
+            }
+            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.C))
+            {
+                ExecuteCopy();
+            }
+            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.X))
+            {
+                ExecuteCut();
+            }
+            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.V))
+            {
+                ExecutePaste();
             }
 
             _fpsSampleElapsed += gameTime.ElapsedGameTime;
