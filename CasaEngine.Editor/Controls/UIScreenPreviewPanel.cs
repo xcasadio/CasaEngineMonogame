@@ -60,9 +60,11 @@ public sealed class UIScreenPreviewPanel
     /// <summary>When true, a grid overlay is drawn over the preview surface by the editor.</summary>
     public bool ShowGrid { get; private set; }
 
-    /// <summary>Returns the screen-space bounds of the preview surface, or null if not yet created.</summary>
+    /// <summary>Returns the screen-space bounds of the preview surface, or null if not yet created.
+    /// Uses <see cref="MGElement.ActualLayoutBounds"/> which accounts for clipping by parent containers
+    /// (including the ScrollViewer viewport) and the scroll offset.</summary>
     public Microsoft.Xna.Framework.Rectangle? PreviewSurfaceBounds
-        => _previewSurface?.LayoutBounds;
+        => _previewSurface?.ActualLayoutBounds is { Width: > 0, Height: > 0 } b ? b : (Microsoft.Xna.Framework.Rectangle?)null;
 
     public UIScreenPreviewPanel(MGWindow window)
     {
@@ -156,10 +158,17 @@ public sealed class UIScreenPreviewPanel
 
     /// <summary>
     /// Returns the screen-space <see cref="Microsoft.Xna.Framework.Rectangle"/> of
-    /// the element mapped to <paramref name="nodeId"/>, or null if not found.
+    /// the element mapped to <paramref name="nodeId"/>, or null if not found or not visible.
+    /// Uses <see cref="MGElement.ActualLayoutBounds"/> which is clipped to the visible viewport
+    /// and accounts for the scroll offset — Width/Height will be 0 when fully scrolled out.
     /// </summary>
     public Microsoft.Xna.Framework.Rectangle? GetElementBounds(DocumentNodeId nodeId)
-        => _nodeMap.TryGetValue(nodeId, out var element) ? element.LayoutBounds : null;
+    {
+        if (!_nodeMap.TryGetValue(nodeId, out var element))
+            return null;
+        var b = element.ActualLayoutBounds;
+        return b.Width > 0 && b.Height > 0 ? b : null;
+    }
 
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
     public event Action<DocumentNodeId?>? NodePicked;
@@ -489,8 +498,10 @@ public sealed class UIScreenPreviewPanel
 
         foreach (var (nodeId, element) in _nodeMap)
         {
-            var bounds = element.LayoutBounds;
-            if (!bounds.Contains(click))
+            // ActualLayoutBounds est en coordonnées écran et tient compte du scroll /
+            // clipping du ScrollViewer. Width=0 / Height=0 = hors du viewport.
+            var bounds = element.ActualLayoutBounds;
+            if (bounds.Width <= 0 || bounds.Height <= 0 || !bounds.Contains(click))
             {
                 continue;
             }
