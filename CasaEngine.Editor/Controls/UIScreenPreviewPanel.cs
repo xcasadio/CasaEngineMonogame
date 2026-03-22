@@ -407,18 +407,52 @@ public sealed class UIScreenPreviewPanel
 
         DocumentNodeId? bestId = null;
         var bestArea = int.MaxValue;
+        var bestDepth = -1;
 
         foreach (var (nodeId, element) in _nodeMap)
         {
             var bounds = element.LayoutBounds;
-            var area = bounds.Width * bounds.Height;
-            if (bounds.Contains(click) && area < bestArea)
+            if (!bounds.Contains(click))
             {
-                bestId = nodeId;
-                bestArea = area;
+                continue;
+            }
+
+            var area  = bounds.Width * bounds.Height;
+            var depth = _currentDocument != null ? GetNodeDepth(_currentDocument, nodeId) : 0;
+
+            // Prefer the node that is smaller in area; break ties by picking the deeper tree node
+            if (area < bestArea || (area == bestArea && depth > bestDepth))
+            {
+                bestId    = nodeId;
+                bestArea  = area;
+                bestDepth = depth;
             }
         }
 
         NodePicked?.Invoke(bestId);
+    }
+
+    private static int GetNodeDepth(UIScreenDocument document, DocumentNodeId id)
+    {
+        static int Recurse(UIScreenNode node, DocumentNodeId target, int depth)
+        {
+            if (node.Id == target)
+            {
+                return depth;
+            }
+
+            foreach (var child in node.Children)
+            {
+                var result = Recurse(child, target, depth + 1);
+                if (result >= 0)
+                {
+                    return result;
+                }
+            }
+
+            return -1;
+        }
+
+        return document.Root != null ? Recurse(document.Root, id, 0) : -1;
     }
 }
