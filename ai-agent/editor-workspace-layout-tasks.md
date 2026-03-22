@@ -198,13 +198,13 @@ Notes : le layout initial n'embarque plus les panneaux UIScreen et passe désorm
 **Commit attendu :**
 - `feat(editor): add default ui screen workspace layout`
 
-Commit : `PENDING` - `feat(editor): add default ui screen workspace layout`
+Commit : `79399f56` - `feat(editor): add default ui screen workspace layout`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : le workspace UIScreen expose désormais un layout par défaut distinct avec hiérarchie/outils à gauche, zone document centrale et inspecteur à droite
 
 ---
 
-#### ⏳ Tâche 2.3 — Introduire une persistance de layout par workspace
+#### ✅ Tâche 2.3 — Introduire une persistance de layout par workspace
 
 **Objectif :** ne plus utiliser un seul fichier de layout pour tous les modes.
 
@@ -220,6 +220,10 @@ Notes : le workspace UIScreen expose désormais un layout par défaut distinct a
 
 **Commit attendu :**
 - `feat(editor): persist dock layout per workspace`
+
+Commit : `PENDING` - `feat(editor): persist dock layout per workspace`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : les layouts World et UIScreen utilisent désormais des fichiers distincts, avec fallback legacy pour l'ancien layout global World
 
 ---
 

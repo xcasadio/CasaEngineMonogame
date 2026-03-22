@@ -56,6 +56,7 @@ namespace CasaEngine.Editor
         private EditorPanelRegistry _panelRegistry;
         private WorldEditorWorkspace _worldWorkspace;
         private UIScreenEditorWorkspace _uiScreenWorkspace;
+        private EditorWorkspaceId _activeWorkspaceId = EditorWorkspaceId.World;
         private MGButton _toggleContentBrowserButton;
         private MGButton _toggleLogsButton;
         private MGTextBlock _statusProjectText;
@@ -1051,7 +1052,17 @@ namespace CasaEngine.Editor
             return panel;
         }
 
-        private string GetPersistedLayoutPath()
+        private static string GetLayoutFileName(EditorWorkspaceId workspaceId)
+        {
+            return workspaceId switch
+            {
+                EditorWorkspaceId.World => "layout.world.json",
+                EditorWorkspaceId.UIScreen => "layout.uiscreen.json",
+                _ => "layout.json",
+            };
+        }
+
+        private string GetLegacyPersistedLayoutPath()
         {
             var projectDirectory = GetCurrentProjectDirectory();
             if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
@@ -1062,14 +1073,30 @@ namespace CasaEngine.Editor
             return Path.Combine(projectDirectory, EditorLayoutDirectoryName, EditorLayoutFileName);
         }
 
+        private string GetPersistedLayoutPath(EditorWorkspaceId workspaceId)
+        {
+            var projectDirectory = GetCurrentProjectDirectory();
+            if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
+            {
+                return null;
+            }
+
+            return Path.Combine(projectDirectory, EditorLayoutDirectoryName, GetLayoutFileName(workspaceId));
+        }
+
         private void SavePersistedDockLayout()
+        {
+            SavePersistedDockLayout(_activeWorkspaceId);
+        }
+
+        private void SavePersistedDockLayout(EditorWorkspaceId workspaceId)
         {
             if (_dockHost == null)
             {
                 return;
             }
 
-            var layoutPath = GetPersistedLayoutPath();
+            var layoutPath = GetPersistedLayoutPath(workspaceId);
             if (string.IsNullOrWhiteSpace(layoutPath))
             {
                 Logs.WriteWarning("Cannot save editor layout because no project directory is available.");
@@ -1083,22 +1110,39 @@ namespace CasaEngine.Editor
             }
 
             File.WriteAllText(layoutPath, _dockHost.SaveLayoutToJson(indented: true));
-            Logs.WriteInfo($"Editor layout saved: {layoutPath}");
+            Logs.WriteInfo($"Editor layout saved for workspace '{workspaceId}': {layoutPath}");
         }
 
         private bool TryLoadPersistedDockLayout(bool logOutcome)
+        {
+            return TryLoadPersistedDockLayout(_activeWorkspaceId, logOutcome);
+        }
+
+        private bool TryLoadPersistedDockLayout(EditorWorkspaceId workspaceId, bool logOutcome)
         {
             if (_dockHost == null)
             {
                 return false;
             }
 
-            var layoutPath = GetPersistedLayoutPath();
+            var layoutPath = GetPersistedLayoutPath(workspaceId);
+            if (string.IsNullOrWhiteSpace(layoutPath) || !File.Exists(layoutPath))
+            {
+                if (workspaceId == EditorWorkspaceId.World)
+                {
+                    var legacyLayoutPath = GetLegacyPersistedLayoutPath();
+                    if (!string.IsNullOrWhiteSpace(legacyLayoutPath) && File.Exists(legacyLayoutPath))
+                    {
+                        layoutPath = legacyLayoutPath;
+                    }
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(layoutPath) || !File.Exists(layoutPath))
             {
                 if (logOutcome)
                 {
-                    Logs.WriteWarning("No persisted editor layout was found for the current project.");
+                    Logs.WriteWarning($"No persisted editor layout was found for workspace '{workspaceId}'.");
                 }
 
                 return false;
@@ -1112,7 +1156,7 @@ namespace CasaEngine.Editor
 
                 if (logOutcome)
                 {
-                    Logs.WriteInfo($"Editor layout loaded: {layoutPath}");
+                    Logs.WriteInfo($"Editor layout loaded for workspace '{workspaceId}': {layoutPath}");
                 }
 
                 return true;
