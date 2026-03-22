@@ -91,6 +91,7 @@ namespace CasaEngine.Editor
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private Texture2D? _overlayPixel;
+        private static readonly RasterizerState _scissorRasterizer = new() { ScissorTestEnable = true };
         private string? _nodeClipboard; // JSON-serialized node subtree for copy/paste
         private LogsPanel _logsPanel;
         private MGElement _logsContent;
@@ -1665,7 +1666,20 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            _spriteBatch.Begin();
+            // Clipper le dessin aux bornes de la surface de preview pour éviter
+            // que l'overlay ne déborde en dehors du panneau.
+            var clipBounds = _activeScreenPreviewPanel.PreviewSurfaceBounds;
+            var prevScissor = GraphicsDevice.ScissorRectangle;
+
+            if (clipBounds.HasValue)
+            {
+                GraphicsDevice.ScissorRectangle = clipBounds.Value;
+                _spriteBatch.Begin(rasterizerState: _scissorRasterizer);
+            }
+            else
+            {
+                _spriteBatch.Begin();
+            }
 
             // ── Optional grid ────────────────────────────────────────────
             if (_activeScreenPreviewPanel.ShowGrid)
@@ -1698,6 +1712,12 @@ namespace CasaEngine.Editor
             }
 
             _spriteBatch.End();
+
+            // Restaurer l'état du scissor pour ne pas polluer les passes suivantes.
+            if (clipBounds.HasValue)
+            {
+                GraphicsDevice.ScissorRectangle = prevScissor;
+            }
         }
 
         private void DrawPreviewGrid(UIScreenPreviewPanel panel)
