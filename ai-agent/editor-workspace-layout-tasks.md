@@ -246,13 +246,13 @@ Notes : les layouts World et UIScreen utilisent désormais des fichiers distinct
 **Commit attendu :**
 - `feat(editor): add workspace manager for dock layouts`
 
-Commit : `PENDING` - `feat(editor): add workspace manager for dock layouts`
+Commit : `8a553191` - `feat(editor): add workspace manager for dock layouts`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : la création, l'activation, le reset et la restauration des layouts passent désormais par un gestionnaire dédié
 
 ---
 
-#### ⏳ Tâche 3.2 — Activer le workspace World au chargement de projet
+#### ✅ Tâche 3.2 — Activer le workspace World au chargement de projet
 
 **Objectif :** définir un comportement de démarrage stable et explicite.
 
@@ -267,6 +267,10 @@ Notes : la création, l'activation, le reset et la restauration des layouts pass
 
 **Commit attendu :**
 - `feat(editor): activate world workspace on project load`
+
+Commit : `PENDING` - `feat(editor): activate world workspace on project load`
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
+Notes : le chargement de projet réactive explicitement le workspace World et restaure son layout dédié si disponible
 
 ---
 

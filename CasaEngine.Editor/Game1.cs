@@ -290,10 +290,8 @@ namespace CasaEngine.Editor
             EnsureShellChromeInitialized();
             EnsureDockHostInitialized();
 
-            if (!TryLoadPersistedDockLayout(logOutcome: false))
-            {
-                SetupInitialDockLayout();
-            }
+            _workspaceManager ??= CreateWorkspaceManager();
+            _workspaceManager.ActivateWorkspace(EditorWorkspaceId.World, preferPersistedLayout: true, logOutcome: false);
 
             _ = GetOrCreateWorldViewportContent();
             _ = GetOrCreateEntitiesContent();

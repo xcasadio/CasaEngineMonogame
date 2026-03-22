@@ -44,11 +44,6 @@ public sealed class EditorWorkspaceManager
 
     public bool ActivateWorkspace(EditorWorkspaceId workspaceId, bool preferPersistedLayout, bool logOutcome)
     {
-        if (_hasActivatedWorkspace && ActiveWorkspaceId == workspaceId && preferPersistedLayout)
-        {
-            return false;
-        }
-
         if (_hasActivatedWorkspace && ActiveWorkspaceId != workspaceId)
         {
             _saveLayout(ActiveWorkspaceId);
