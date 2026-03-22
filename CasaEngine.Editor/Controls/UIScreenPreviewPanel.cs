@@ -29,6 +29,7 @@ public sealed class UIScreenPreviewPanel
     private MGTextBlock? _statusText;
     private MGBorder? _previewSurface;
     private IReadOnlyDictionary<DocumentNodeId, MGElement> _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+    private UIScreenDocument? _currentDocument;
     private readonly object _reloadSync = new();
     private string? _loadedAssetFilePath;
     private string? _loadedSourceXamlPath;
@@ -98,6 +99,9 @@ public sealed class UIScreenPreviewPanel
     /// <summary>Fired after the document is successfully parsed, or <c>null</c> when load fails.</summary>
     public event Action<UIScreenDocument?>? DocumentLoaded;
 
+    /// <summary>The document currently loaded into this panel, or null if nothing is open.</summary>
+    public UIScreenDocument? CurrentDocument => _currentDocument;
+
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
     public event Action<DocumentNodeId?>? NodePicked;
 
@@ -115,6 +119,7 @@ public sealed class UIScreenPreviewPanel
         {
             var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
             _nodeMap = nodeMap;
+            _currentDocument = document;
             previewWindow.IsHitTestVisible = false;
             _previewSurface!.SetContent(previewWindow);
             _statusText!.Text = "Preview rebuilt.";
@@ -123,6 +128,7 @@ public sealed class UIScreenPreviewPanel
         catch (Exception ex)
         {
             _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+            _currentDocument = null;
             DocumentLoaded?.Invoke(null);
             ShowPreviewError("Preview rebuild failed", ex.Message, string.Empty);
             _statusText!.Text = "Preview rebuild failed.";
@@ -146,6 +152,7 @@ public sealed class UIScreenPreviewPanel
             _loadedSourceXamlPath = sourceXamlPath;
 
             var document = _xamlParser.ParseFile(sourceXamlPath);
+            _currentDocument = document;
             DocumentLoaded?.Invoke(document);
 
             var (previewWindow, nodeMap) = _previewBuilder.BuildWithMapping(_window.GetDesktop(), document);
@@ -158,6 +165,7 @@ public sealed class UIScreenPreviewPanel
         catch (Exception ex)
         {
             _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
+            _currentDocument = null;
             DocumentLoaded?.Invoke(null);
             ShowPreviewError("Preview unavailable", ex.Message, asset.SourceXamlFile);
             _statusText!.Text = "Preview build failed.";

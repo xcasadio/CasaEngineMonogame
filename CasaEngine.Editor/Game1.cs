@@ -3,6 +3,7 @@ using CasaEngine.Engine;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Framework.Assets;
@@ -598,7 +599,31 @@ namespace CasaEngine.Editor
 
         private void OnToolboxControlRequested(CasaEngine.EditorServices.ScreenEditor.Toolbox.UIControlRegistryEntry entry)
         {
-            // Placeholder — node creation wired in phase 7.3
+            if (_activeScreenPreviewPanel == null)
+            {
+                return;
+            }
+
+            var document = _activeScreenPreviewPanel.CurrentDocument;
+            if (document == null)
+            {
+                return;
+            }
+
+            // Insert after (or inside) the selected node
+            UIScreenNode? parentNode = null;
+            if (_screenSelection.SelectedNodeId.HasValue)
+            {
+                parentNode = document.FindNode(_screenSelection.SelectedNodeId.Value);
+            }
+
+            var newNode = CasaEngine.EditorServices.ScreenEditor.Factory.UIScreenNodeFactory.Create(document, entry, parentNode);
+
+            // Rebuild preview and sync tree / inspector
+            _activeScreenPreviewPanel.LoadDocumentDirectly(document);
+
+            // Select the new node
+            _screenSelection.Select(newNode.Id);
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
