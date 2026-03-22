@@ -38,6 +38,7 @@ namespace CasaEngine.Editor
         private const string EntitiesPanelId = "panel_entities";
         private const string EntityDetailsPanelId = "panel_entity_details";
         private const string UIScreenHierarchyPanelId = "panel_ui_screen_hierarchy";
+        private const string UIScreenInspectorPanelId  = "panel_ui_screen_inspector";
         private const string EditorLayoutDirectoryName = ".casaeditor";
         private const string EditorLayoutFileName = "layout.json";
 
@@ -78,6 +79,8 @@ namespace CasaEngine.Editor
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
+        private UIScreenInspectorPanel? _screenInspectorPanel;
+        private MGElement? _screenInspectorContent;
         // tracks the most-recently-opened screen for hierarchy-level edits
         private UIScreenPreviewPanel? _activeScreenPreviewPanel;
         private LogsPanel _logsPanel;
@@ -289,6 +292,14 @@ namespace CasaEngine.Editor
                 ContentFactory = GetOrCreateScreenHierarchyContent
             };
 
+            var screenInspectorPanel = new DockPanelNode(UIScreenInspectorPanelId)
+            {
+                Title = "Screen Inspector",
+                CanClose = true,
+                CanFloat = true,
+                ContentFactory = GetOrCreateScreenInspectorContent
+            };
+
             var contentBrowserPanel = new DockPanelNode(ContentBrowserPanelId)
             {
                 Title = "Content Browser",
@@ -323,6 +334,7 @@ namespace CasaEngine.Editor
 
             var detailsGroup = new DockTabGroupNode();
             detailsGroup.AddPanel(propertiesPanel, -1);
+            detailsGroup.AddPanel(screenInspectorPanel, -1);
             detailsGroup.SetActivePanel(propertiesPanel.Id);
 
             var centerRightSplit = new DockSplitNode
@@ -533,11 +545,30 @@ namespace CasaEngine.Editor
             if (_screenHierarchyPanel == null)
             {
                 _screenHierarchyPanel = new UIScreenHierarchyPanel(_mainWindow, _screenSelection);
-                _screenHierarchyPanel.NodeDeleted += doc => _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
+                _screenHierarchyPanel.NodeDeleted += doc =>
+                {
+                    _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
+                    _screenInspectorPanel?.SetDocument(doc);
+                };
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
             return _screenHierarchyContent;
+        }
+
+        private MGElement GetOrCreateScreenInspectorContent()
+        {
+            if (_screenInspectorPanel == null)
+            {
+                _screenInspectorPanel = new UIScreenInspectorPanel(_mainWindow, _screenSelection);
+                _screenInspectorPanel.DocumentModified += doc =>
+                {
+                    _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
+                };
+            }
+
+            _screenInspectorContent ??= _screenInspectorPanel.CreateContent();
+            return _screenInspectorContent;
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
@@ -849,6 +880,7 @@ namespace CasaEngine.Editor
                 ContentBrowserPanelId => GetOrCreateContentBrowserContent,
                 OutputPanelId => GetOrCreateLogsContent,
                 UIScreenHierarchyPanelId => GetOrCreateScreenHierarchyContent,
+                UIScreenInspectorPanelId  => GetOrCreateScreenInspectorContent,
                 _ => () => CreateUnavailablePanelContent(panelId),
             };
         }
@@ -990,7 +1022,11 @@ namespace CasaEngine.Editor
             if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
             {
                 previewPanel = new UIScreenPreviewPanel(_mainWindow);
-                previewPanel.DocumentLoaded += doc => _screenHierarchyPanel?.SetDocument(doc);
+                previewPanel.DocumentLoaded += doc =>
+                {
+                    _screenHierarchyPanel?.SetDocument(doc);
+                    _screenInspectorPanel?.SetDocument(doc);
+                };
                 previewPanel.NodePicked += id =>
                 {
                     if (id.HasValue) _screenSelection.Select(id.Value);
