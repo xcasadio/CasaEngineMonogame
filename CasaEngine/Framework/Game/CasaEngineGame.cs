@@ -117,6 +117,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         DefaultUICompositionService = RuntimeContext.UICompositionService;
         RuntimeViewBootstrapper = DefaultRuntimeViewBootstrapper.Instance;
         AssetContentManager.RuntimeContext = RuntimeContext;
+        var projectSettings = RuntimeContext.ProjectSettings;
 
         if (graphicsDeviceService == null)
         {
@@ -124,9 +125,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             var graphicsDeviceManager = _graphicsDeviceManager;
             graphicsDeviceManager.DeviceReset += OnDeviceReset;
 
-            graphicsDeviceManager.PreferredBackBufferWidth = GameSettings.ProjectSettings.DebugWidth;
-            graphicsDeviceManager.PreferredBackBufferHeight = GameSettings.ProjectSettings.DebugHeight;
-            graphicsDeviceManager.IsFullScreen = GameSettings.ProjectSettings.DebugIsFullScreen;
+            graphicsDeviceManager.PreferredBackBufferWidth = projectSettings.DebugWidth;
+            graphicsDeviceManager.PreferredBackBufferHeight = projectSettings.DebugHeight;
+            graphicsDeviceManager.IsFullScreen = projectSettings.DebugIsFullScreen;
+            graphicsDeviceManager.SynchronizeWithVerticalRetrace = projectSettings.VSyncEnabled;
             graphicsDeviceManager.PreferMultiSampling = false;
             graphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             graphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24;
@@ -148,8 +150,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public DisplaySettings GetDisplaySettings()
     {
         bool isFullScreen = _graphicsDeviceManager?.IsFullScreen
-            ?? GameSettings.ProjectSettings.DebugIsFullScreen;
-        return new DisplaySettings(ScreenSizeWidth, ScreenSizeHeight, isFullScreen);
+            ?? RuntimeContext.ProjectSettings.DebugIsFullScreen;
+        bool isVSyncEnabled = _graphicsDeviceManager?.SynchronizeWithVerticalRetrace
+            ?? RuntimeContext.ProjectSettings.VSyncEnabled;
+        return new DisplaySettings(ScreenSizeWidth, ScreenSizeHeight, isFullScreen, isVSyncEnabled);
     }
 
     public bool ApplyDisplaySettings(DisplaySettings displaySettings, bool persistToProjectSettings = true)
@@ -159,12 +163,14 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             RuntimeContext.ProjectSettings.DebugWidth = displaySettings.Width;
             RuntimeContext.ProjectSettings.DebugHeight = displaySettings.Height;
             RuntimeContext.ProjectSettings.DebugIsFullScreen = displaySettings.IsFullScreen;
+            RuntimeContext.ProjectSettings.VSyncEnabled = displaySettings.IsVSyncEnabled;
 
             if (!ReferenceEquals(RuntimeContext.ProjectSettings, GameSettings.ProjectSettings))
             {
                 GameSettings.ProjectSettings.DebugWidth = displaySettings.Width;
                 GameSettings.ProjectSettings.DebugHeight = displaySettings.Height;
                 GameSettings.ProjectSettings.DebugIsFullScreen = displaySettings.IsFullScreen;
+                GameSettings.ProjectSettings.VSyncEnabled = displaySettings.IsVSyncEnabled;
             }
         }
 
@@ -175,7 +181,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         bool settingsChanged = _graphicsDeviceManager.PreferredBackBufferWidth != displaySettings.Width
             || _graphicsDeviceManager.PreferredBackBufferHeight != displaySettings.Height
-            || _graphicsDeviceManager.IsFullScreen != displaySettings.IsFullScreen;
+            || _graphicsDeviceManager.IsFullScreen != displaySettings.IsFullScreen
+            || _graphicsDeviceManager.SynchronizeWithVerticalRetrace != displaySettings.IsVSyncEnabled;
 
         if (!settingsChanged)
         {
@@ -185,8 +192,34 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         _graphicsDeviceManager.PreferredBackBufferWidth = displaySettings.Width;
         _graphicsDeviceManager.PreferredBackBufferHeight = displaySettings.Height;
         _graphicsDeviceManager.IsFullScreen = displaySettings.IsFullScreen;
+        _graphicsDeviceManager.SynchronizeWithVerticalRetrace = displaySettings.IsVSyncEnabled;
         _graphicsDeviceManager.ApplyChanges();
         return true;
+    }
+
+    public DisplaySettings LoadDisplaySettings(string fileName, bool applyToGraphicsDevice = true)
+    {
+        DisplaySettings currentSettings = GetDisplaySettings();
+        DisplaySettings persistedSettings = DisplaySettingsPersistence.Load(fileName, currentSettings);
+
+        if (applyToGraphicsDevice)
+        {
+            ApplyDisplaySettings(persistedSettings);
+        }
+        else
+        {
+            RuntimeContext.ProjectSettings.DebugWidth = persistedSettings.Width;
+            RuntimeContext.ProjectSettings.DebugHeight = persistedSettings.Height;
+            RuntimeContext.ProjectSettings.DebugIsFullScreen = persistedSettings.IsFullScreen;
+            RuntimeContext.ProjectSettings.VSyncEnabled = persistedSettings.IsVSyncEnabled;
+        }
+
+        return persistedSettings;
+    }
+
+    public void SaveDisplaySettings(string fileName)
+    {
+        DisplaySettingsPersistence.Save(fileName, GetDisplaySettings());
     }
 
     private void OnDeviceReset(object? sender, EventArgs e)
@@ -281,6 +314,15 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             ProjectSettingsHelper.Load(_projectFileName, RuntimeContext);
         }
 
+        if (_graphicsDeviceManager != null)
+        {
+            _graphicsDeviceManager.PreferredBackBufferWidth = RuntimeContext.ProjectSettings.DebugWidth;
+            _graphicsDeviceManager.PreferredBackBufferHeight = RuntimeContext.ProjectSettings.DebugHeight;
+            _graphicsDeviceManager.IsFullScreen = RuntimeContext.ProjectSettings.DebugIsFullScreen;
+            _graphicsDeviceManager.SynchronizeWithVerticalRetrace = RuntimeContext.ProjectSettings.VSyncEnabled;
+            _graphicsDeviceManager.ApplyChanges();
+        }
+
         Line3dRendererComponent = new Line3dRendererComponent(this);
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         Renderer2DComponent = new Renderer2DComponent(this) { SpriteBatch = SpriteBatch };
@@ -352,10 +394,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         AssetContentManager.Initialize(GraphicsDevice);
 
         Content.RootDirectory = ContentPath;
-        Window.Title = GameSettings.ProjectSettings.WindowTitle;
-        Window.AllowUserResizing = GameSettings.ProjectSettings.AllowUserResizing;
-        IsFixedTimeStep = GameSettings.ProjectSettings.IsFixedTimeStep;
-        IsMouseVisible = GameSettings.ProjectSettings.IsMouseVisible;
+        Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
+        Window.AllowUserResizing = RuntimeContext.ProjectSettings.AllowUserResizing;
+        IsFixedTimeStep = RuntimeContext.ProjectSettings.IsFixedTimeStep;
+        IsMouseVisible = RuntimeContext.ProjectSettings.IsMouseVisible;
 
         AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 

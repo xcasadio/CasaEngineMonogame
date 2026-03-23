@@ -35,6 +35,9 @@ public class ProjectSettings
     public bool DebugIsFullScreen { get; set; }
 
     [Category("Debug")]
+    public bool VSyncEnabled { get; set; } = true;
+
+    [Category("Debug")]
     public int DebugWidth { get; set; } = 1024;
 
     [Category("Debug")]

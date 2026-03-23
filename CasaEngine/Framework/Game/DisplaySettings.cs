@@ -8,7 +8,9 @@ public readonly struct DisplaySettings
 
     public bool IsFullScreen { get; }
 
-    public DisplaySettings(int width, int height, bool isFullScreen)
+    public bool IsVSyncEnabled { get; }
+
+    public DisplaySettings(int width, int height, bool isFullScreen, bool isVSyncEnabled)
     {
         if (width <= 0)
         {
@@ -23,5 +25,6 @@ public readonly struct DisplaySettings
         Width = width;
         Height = height;
         IsFullScreen = isFullScreen;
+        IsVSyncEnabled = isVSyncEnabled;
     }
 }
