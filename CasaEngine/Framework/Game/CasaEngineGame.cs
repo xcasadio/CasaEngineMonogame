@@ -29,6 +29,7 @@ namespace CasaEngine.Framework.Game;
 public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 {
     private readonly string? _projectFileName;
+    private readonly GraphicsDeviceManager? _graphicsDeviceManager;
     public GameManager GameManager { get; }
 
     // ---- IObservableUpdate (required by MGUI's GameRenderHost/ViewRenderHost) ----
@@ -119,11 +120,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         if (graphicsDeviceService == null)
         {
-            var graphicsDeviceManager = new GraphicsDeviceManager(this);
+            _graphicsDeviceManager = new GraphicsDeviceManager(this);
+            var graphicsDeviceManager = _graphicsDeviceManager;
             graphicsDeviceManager.DeviceReset += OnDeviceReset;
 
             graphicsDeviceManager.PreferredBackBufferWidth = GameSettings.ProjectSettings.DebugWidth;
             graphicsDeviceManager.PreferredBackBufferHeight = GameSettings.ProjectSettings.DebugHeight;
+            graphicsDeviceManager.IsFullScreen = GameSettings.ProjectSettings.DebugIsFullScreen;
             graphicsDeviceManager.PreferMultiSampling = false;
             graphicsDeviceManager.PreferredBackBufferFormat = SurfaceFormat.Color;
             graphicsDeviceManager.PreferredDepthStencilFormat = DepthFormat.Depth24;
@@ -131,6 +134,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         }
         else
         {
+            _graphicsDeviceManager = graphicsDeviceService as GraphicsDeviceManager;
             graphicsDeviceService.GraphicsDevice.DeviceReset += OnDeviceReset;
             if (Services.GetService<IGraphicsDeviceService>() != null)
             {
@@ -139,6 +143,50 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             Services.AddService(typeof(IGraphicsDeviceService), graphicsDeviceService);
             Services.AddService(typeof(IGraphicsDeviceManager), graphicsDeviceService as IGraphicsDeviceManager);
         }
+    }
+
+    public DisplaySettings GetDisplaySettings()
+    {
+        bool isFullScreen = _graphicsDeviceManager?.IsFullScreen
+            ?? GameSettings.ProjectSettings.DebugIsFullScreen;
+        return new DisplaySettings(ScreenSizeWidth, ScreenSizeHeight, isFullScreen);
+    }
+
+    public bool ApplyDisplaySettings(DisplaySettings displaySettings, bool persistToProjectSettings = true)
+    {
+        if (persistToProjectSettings)
+        {
+            RuntimeContext.ProjectSettings.DebugWidth = displaySettings.Width;
+            RuntimeContext.ProjectSettings.DebugHeight = displaySettings.Height;
+            RuntimeContext.ProjectSettings.DebugIsFullScreen = displaySettings.IsFullScreen;
+
+            if (!ReferenceEquals(RuntimeContext.ProjectSettings, GameSettings.ProjectSettings))
+            {
+                GameSettings.ProjectSettings.DebugWidth = displaySettings.Width;
+                GameSettings.ProjectSettings.DebugHeight = displaySettings.Height;
+                GameSettings.ProjectSettings.DebugIsFullScreen = displaySettings.IsFullScreen;
+            }
+        }
+
+        if (_graphicsDeviceManager == null)
+        {
+            return false;
+        }
+
+        bool settingsChanged = _graphicsDeviceManager.PreferredBackBufferWidth != displaySettings.Width
+            || _graphicsDeviceManager.PreferredBackBufferHeight != displaySettings.Height
+            || _graphicsDeviceManager.IsFullScreen != displaySettings.IsFullScreen;
+
+        if (!settingsChanged)
+        {
+            return false;
+        }
+
+        _graphicsDeviceManager.PreferredBackBufferWidth = displaySettings.Width;
+        _graphicsDeviceManager.PreferredBackBufferHeight = displaySettings.Height;
+        _graphicsDeviceManager.IsFullScreen = displaySettings.IsFullScreen;
+        _graphicsDeviceManager.ApplyChanges();
+        return true;
     }
 
     private void OnDeviceReset(object? sender, EventArgs e)
