@@ -52,10 +52,10 @@ public class PathPlanner<T> where T : WeightedEdge
 
         destination = position;
 
-        //If the entity can reach the destination directly, there´s no need to request a search
+        //If the entity can reach the destination directly, thereï¿½s no need to request a search
         if (owner.CanMoveBetween(owner.Position, destination))
         {
-            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathReady, null);
+            NotifyOwner((int)MessageType.PathReady);
             return true;
         }
 
@@ -106,7 +106,7 @@ public class PathPlanner<T> where T : WeightedEdge
             pathNodes = search.PathOfNodes;
             pathEdges = NodesToPathEdges(pathNodes);
 
-            //If there´s at least one node in the path
+            //If thereï¿½s at least one node in the path
             if (pathNodes.Count != 0)
             {
                 //Add the edge between the position of the owner entity and the first node of the path
@@ -134,7 +134,7 @@ public class PathPlanner<T> where T : WeightedEdge
 
         destination = position;
 
-        //If the entity can reach the destination directly, there´s no need to request a search
+        //If the entity can reach the destination directly, thereï¿½s no need to request a search
         if (owner.CanMoveBetween(owner.Position, destination))
         {
             return PathOfPositions;
@@ -170,7 +170,7 @@ public class PathPlanner<T> where T : WeightedEdge
 
         destination = position;
 
-        //If the entity can reach the destination directly, there´s no need to request a search
+        //If the entity can reach the destination directly, thereï¿½s no need to request a search
         if (owner.CanMoveBetween(owner.Position, destination))
         {
             return PathOfEdges;
@@ -209,13 +209,13 @@ public class PathPlanner<T> where T : WeightedEdge
         //If the search failed inform the owner
         if (result == SearchState.CompletedAndNotFound)
         {
-            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathNotAvailable, null);
+            NotifyOwner((int)MessageType.PathNotAvailable);
         }
 
         //If the search succeeded inform the owner
         if (result == SearchState.CompletedAndFound)
         {
-            MessageManagerRouter.Instance.SendMessage(Guid.Empty, owner.Owner.Id, 0, (int)MessageType.PathReady, null);
+            NotifyOwner((int)MessageType.PathReady);
         }
 
         return result;
@@ -265,6 +265,32 @@ public class PathPlanner<T> where T : WeightedEdge
         }
 
         return path;
+    }
+
+    private void NotifyOwner(int messageType)
+    {
+        var ownerEntity = owner.Owner;
+
+        if (ownerEntity.World != null)
+        {
+            ownerEntity.World.MessageBus.SendMessage(ownerEntity.Id, ownerEntity.Id, 0.0, messageType, null);
+            return;
+        }
+
+        if (ownerEntity is IMessageable messageableOwner)
+        {
+            messageableOwner.HandleMessage(new Message(ownerEntity.Id, ownerEntity.Id, messageType, 0.0, null));
+            return;
+        }
+
+        var componentEndpoint = ownerEntity.GetComponent<IMessageable>();
+        if (componentEndpoint != null)
+        {
+            componentEndpoint.HandleMessage(new Message(ownerEntity.Id, ownerEntity.Id, messageType, 0.0, null));
+            return;
+        }
+
+        MessageManagerRouter.Instance.SendMessage(ownerEntity.Id, ownerEntity.Id, 0.0, messageType, null);
     }
 
     private List<NavigationEdge> NodesToPathEdges(List<int> nodes)

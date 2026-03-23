@@ -1,76 +1,50 @@
-using CasaEngine.Core.Collections;
-
 namespace CasaEngine.Framework.AI.Messaging;
 
+[Obsolete("Use World.MessageBus or IWorldMessageBus instead of the global MessageManagerRouter singleton.")]
 public sealed class MessageManagerRouter : IMessageManager
 {
-
     private static readonly MessageManagerRouter Manager = new();
-
-    internal UniquePriorityQueue<Message> MessageQueue;
-
-
+    private readonly WorldMessageBus _legacyBus = new();
+    private double _simulationTime;
 
     static MessageManagerRouter() { }
 
     private MessageManagerRouter()
     {
-        MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
     }
-
-
 
     public static MessageManagerRouter Instance => Manager;
 
 
     public void ResetManager(double precision)
     {
-        MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
+        _simulationTime = 0.0;
+        _legacyBus.Reset();
+    }
+
+    public bool RegisterEndpoint(Guid receiverId, IMessageable endpoint)
+    {
+        return _legacyBus.RegisterEndpoint(receiverId, endpoint);
+    }
+
+    public bool UnregisterEndpoint(Guid receiverId)
+    {
+        return _legacyBus.UnregisterEndpoint(receiverId);
+    }
+
+    public int AdvanceSimulationTime(double elapsedTime)
+    {
+        _simulationTime += Math.Max(0.0, elapsedTime);
+        return _legacyBus.DispatchDueMessages(_simulationTime);
     }
 
     public void SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo)
     {
-        Message message;
-        //IMessageable entity;
-
-        message = new Message(senderId, receiverId, type, delayTime, extraInfo);
-
-        //If the message has no delay then call the delegate handler
-        if (delayTime == 0)
-        {
-            throw new NotImplementedException();
-            //Test if the entity can handle the message
-            //entity = EntityManager.Instance[recieverID] as IMessageable;
-            /*if (entity == null)
-                return;
-
-            entity.HandleMessage(message);*/
-        }
-
-        //If the message was a delayed one, calculate its future time and put it in the message queue
-        else
-        {
-            message.DispatchTime = DateTime.Now.Ticks + delayTime;
-            MessageQueue.Enqueue(message);
-        }
+        _legacyBus.SendMessage(senderId, receiverId, delayTime, type, extraInfo);
     }
 
     public void Update()
     {
-        double currentTime = DateTime.Now.Ticks;
-
-        while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
-        {
-            MessageQueue.Dequeue();
-
-            //Test if the entity can handle the message
-            throw new NotImplementedException();
-            //entity = EntityManager.Instance[message.recieverID] as IMessageable;
-            /*if (entity == null)
-                return;
-
-            entity.HandleMessage(message);*/
-        }
+        _legacyBus.DispatchDueMessages(_simulationTime);
     }
-
 }

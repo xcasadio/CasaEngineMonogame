@@ -223,7 +223,7 @@ Permettre au bus de trouver et notifier les recepteurs sans singleton global de 
 
 ---
 
-### 🟨 MSG-005 - Integrer la reception dans la FSM et les composants IA
+### ✅ MSG-005 - Integrer la reception dans la FSM et les composants IA
 
 **Objectif**
 
@@ -251,7 +251,7 @@ Faire du messaging un flux naturel pour les agents IA modernes du moteur.
 
 ---
 
-### ⬜ MSG-006 - Reduire `MessageManagerRouter` a un adaptateur legacy ou le deprecier
+### ✅ MSG-006 - Reduire `MessageManagerRouter` a un adaptateur legacy ou le deprecier
 
 **Objectif**
 
@@ -279,7 +279,7 @@ Faire disparaitre `MessageManagerRouter` du chemin nominal du gameplay moderne.
 
 ---
 
-### ⬜ MSG-007 - Migrer `WestWorldWithMessaging` sur `WorldMessageBus`
+### 🟨 MSG-007 - Migrer `WestWorldWithMessaging` sur `WorldMessageBus`
 
 **Objectif**
 
