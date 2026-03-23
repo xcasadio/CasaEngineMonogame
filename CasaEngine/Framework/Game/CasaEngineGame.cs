@@ -194,6 +194,14 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         _graphicsDeviceManager.IsFullScreen = displaySettings.IsFullScreen;
         _graphicsDeviceManager.SynchronizeWithVerticalRetrace = displaySettings.IsVSyncEnabled;
         _graphicsDeviceManager.ApplyChanges();
+
+        OnScreenResized(displaySettings.Width, displaySettings.Height);
+        foreach (var view in GameManager.ViewManager.Views)
+        {
+            SyncUIViewMetrics(view);
+            view.Invalidate();
+        }
+
         return true;
     }
 
