@@ -135,7 +135,7 @@ Figer noir sur blanc que `MessageManagerRouter` n'est plus l'architecture cible 
 
 ---
 
-### 🟨 MSG-002 - Introduire l'abstraction moderne de bus scope au world
+### ✅ MSG-002 - Introduire l'abstraction moderne de bus scope au world
 
 **Objectif**
 
@@ -167,7 +167,7 @@ Creer le contrat runtime d'un bus de messages par world, sans casser le build ex
 
 ---
 
-### ⬜ MSG-003 - Implementer la queue de messages differee pilotee par simulation
+### 🟨 MSG-003 - Implementer la queue de messages differee pilotee par simulation
 
 **Objectif**
 

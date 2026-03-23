@@ -2,6 +2,7 @@
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Debugger;
+using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -36,12 +37,14 @@ public sealed class World : ObjectBase
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
+    public IWorldMessageBus MessageBus { get; }
 
     public bool DisplaySpacePartitioning { get; set; }
 
     public World()
     {
         _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
+        MessageBus = new WorldMessageBus();
     }
 
     public void Clear()
