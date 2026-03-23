@@ -26,8 +26,8 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="Core\Serialization\JsonSaveExtensions.Editor.cs" />
-	  <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
-	  <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
+	  <ProjectReference Include="..\..\MGUI\MGUI.Core\MGUI.Core.csproj" />
+	  <ProjectReference Include="..\..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<Reference Include="BulletSharp">

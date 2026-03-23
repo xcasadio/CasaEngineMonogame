@@ -1,0 +1,589 @@
+# Plan IA - Migration vers RacingGameCasaEngine
+
+## Objectif
+
+Créer un projet `RacingGameCasaEngine` qui porte `RacingGame` sur `CasaEngine`, avec les contraintes suivantes :
+
+- un seul projet MonoGame pour le jeu ;
+- références directes vers `CasaEngine` et `MGUI` ;
+- pas de `ContentPipeline` MonoGame pour le jeu ;
+- chargement des assets via `CasaEngine` ;
+- conversion de la logique existante vers `World`, `Entity`, `Component`, `GameMode`, `PlayerController` et écrans MGUI.
+
+## Légende de statut
+
+- `⬜` à faire
+- `🟨` en cours
+- `✅` terminé
+- `⛔` bloqué
+
+## Contrat de travail de l'agent
+
+1. L'agent doit faire un commit à la fin de chaque étape terminée.
+2. Une étape ne passe à `✅` que si le code compile au minimum sur le périmètre touché.
+3. Si une étape révèle un manque fonctionnel ou technique bloquant, l'agent doit :
+   - mettre l'étape en `⛔` ou la scinder,
+  - créer une sous-étape dédiée dans ce plan,
+  - implémenter la correction dans `RacingGameCasaEngine`,
+  - committer séparément cette correction avant de reprendre l'étape principale.
+4. Les commits doivent rester petits, lisibles et réversibles.
+5. Après chaque commit, l'agent met à jour ce fichier : icône, notes, date si utile.
+
+## Format de commit recommandé
+
+- `feat(racing-casa): create bootstrap project`
+- `feat(racing-casa): add initial world and game mode`
+- `feat(racing-casa): migrate main menu to mgui`
+- `feat(racing-casa): port arcade car controller`
+- `feat(racing-casa): add lap and checkpoint race flow`
+
+## Granularité attendue
+
+- Une étape principale peut contenir plusieurs sous-étapes.
+- Chaque sous-étape doit rester committable seule.
+- Si une étape devient trop grosse pour un seul commit lisible, l'agent doit exécuter ses sous-étapes l'une après l'autre.
+- Le statut de l'étape principale devient `🟨` dès qu'une sous-étape a commencé.
+- Le statut de l'étape principale devient `✅` seulement quand toutes ses sous-étapes sont terminées.
+
+## Plan committable
+
+## ✅ Étape 1 - Cadrer la migration et geler l'architecture cible
+
+**But**
+
+Éviter un portage opportuniste en définissant la cible runtime avant d'écrire du code.
+
+**Travail**
+
+- Inventorier les points d'entrée de `RacingGame` et les dépendances à `RacingGame.Shared`.
+- Lister les concepts à porter : bootstrap, écrans, monde, voiture joueur, ghost car, piste, checkpoints, HUD, audio, highscores, replay.
+- Définir la cible CasaEngine minimale :
+  - `RacingGameCasaEngineGame : CasaEngineGame`
+  - `RaceGameMode`
+  - `RacingPlayerController`
+  - `RacingCarPawn` ou `RacingCarEntity`
+  - `RaceWorldFactory`
+  - `MainMenuScreen`, `TrackSelectionScreen`, `CarSelectionScreen`, `OptionsScreen`, `HighscoresScreen`, `PauseScreen`, `RaceHudScreen`, `GameOverScreen`
+- Confirmer que le projet reste mono-assembly applicatif malgré la séparation en dossiers.
+
+**Validation**
+
+- Le plan de structure est écrit dans le code ou dans un commentaire de bootstrap minimal.
+- Aucun choix structurant ambigu ne reste ouvert.
+
+**Commit**
+
+- `docs(racing-casa): define migration target architecture`
+
+**Sous-étapes**
+
+- `✅ 1.1` Cartographier les entrées runtime et les dépendances `RacingGame.Shared`
+- `✅ 1.2` Définir les concepts métier à porter vers CasaEngine
+- `✅ 1.3` Figer la structure cible du projet `RacingGameCasaEngine`
+- `✅ 1.4` Figer les conventions de nommage et d'emplacement des classes principales
+
+**Notes**
+
+- Architecture cible retenue : bootstrap CasaEngine minimal, monde de course piloté côté projet, écrans et gameplay migrés dans `RacingGameCasaEngine`.
+
+## 🟨 Étape 2 - Créer le projet RacingGameCasaEngine dans la solution
+
+**But**
+
+Obtenir un exécutable autonome qui démarre avec CasaEngine.
+
+**Travail**
+
+- Créer le projet `RacingGameCasaEngine` et l'ajouter à `RacingGame.slnx`.
+- Référencer au minimum :
+  - `CasaEngine/CasaEngine/CasaEngine.csproj`
+  - `MGUI/MGUI.Core/MGUI.Core.csproj`
+  - `MGUI/MGUI.Shared/MGUI.Shared.csproj`
+- Reprendre le pattern de bootstrap utilisé par `CasaEngine.Launcher` ou `CasaEngine.Demos` :
+  - `EngineEnvironment.ProjectPath`
+  - `GameSettings.CreateRuntimeContext()`
+  - `runtimeContext.UIViewRuntimeFactory = new MguiViewRuntimeFactory()`
+  - `using var game = new RacingGameCasaEngineGame(...); game.Run();`
+- Configurer la fenêtre, le titre, le redimensionnement et les logs.
+
+**Validation**
+
+- Le projet compile.
+- La fenêtre s'ouvre et la boucle CasaEngine tourne sans charger de gameplay.
+
+**Commit**
+
+- `feat(racing-casa): create bootstrap project`
+
+**Sous-étapes**
+
+- `✅ 2.1` Créer le `.csproj` `RacingGameCasaEngine`
+- `✅ 2.2` Ajouter le projet à `RacingGame.slnx`
+- `✅ 2.3` Ajouter les références vers `CasaEngine`, `MGUI.Core` et `MGUI.Shared`
+- `✅ 2.4` Créer `Program.cs` et le bootstrap minimum du jeu
+- `✅ 2.5` Configurer la fenêtre, les logs et le contexte runtime MGUI
+- `✅ 2.6` Vérifier qu'une fenêtre CasaEngine vide démarre proprement
+
+## 🟨 Étape 3 - Supprimer toute dépendance au ContentPipeline MonoGame côté jeu
+
+**But**
+
+Faire du nouveau jeu un consommateur pur du système d'assets CasaEngine.
+
+**Travail**
+
+- Vérifier qu'aucun `.mgcb` du nouveau projet n'est requis pour démarrer.
+- Charger les assets via `AssetCatalog.Load(...)` et `AssetContentManager`.
+- Définir un emplacement projet clair pour les assets runtime du jeu.
+- Préparer ou générer un premier `AssetInfos.json` minimal pour le jeu.
+- Documenter les conventions de chemin pour textures, modèles, sons, shaders, UI et données métier.
+
+**Validation**
+
+- Le projet démarre sans `Content.mgcb` applicatif.
+- Un asset simple se charge via CasaEngine depuis le nouveau projet.
+
+**Commit**
+
+- `feat(racing-casa): use casaengine asset loading only`
+
+**Sous-étapes**
+
+- `✅ 3.1` Retirer toute hypothèse de `.mgcb` applicatif du nouveau projet
+- `✅ 3.2` Définir l'arborescence runtime des assets du jeu
+- `✅ 3.3` Introduire un chargement initial de `AssetCatalog`
+- `✅ 3.4` Créer ou préparer un premier `AssetInfos.json` minimal
+- `✅ 3.5` Charger au moins un asset simple via `AssetContentManager`
+- `✅ 3.6` Documenter les conventions de chemin et de catégorie d'assets
+
+## 🟨 Étape 4 - Mettre en place le squelette runtime du jeu
+
+**But**
+
+Créer la colonne vertébrale du jeu avant de porter les écrans et la course.
+
+**Travail**
+
+- Créer les dossiers du projet :
+  - `Bootstrap/`
+  - `GameFramework/`
+  - `Worlds/`
+  - `Entities/`
+  - `Components/`
+  - `Gameplay/`
+  - `Screens/`
+  - `UI/`
+  - `Assets/`
+  - `Persistence/`
+- Ajouter un `RaceGameMode`.
+- Ajouter un `RacingPlayerController`.
+- Ajouter une première factory de monde ou bootstrap de world.
+- Ajouter un point d'entrée qui charge un monde vide et au moins une vue active.
+
+**Validation**
+
+- Le jeu charge un `World` vide.
+- Une caméra et une vue actives existent.
+- La structure du projet est stabilisée.
+
+**Commit**
+
+- `feat(racing-casa): add runtime game skeleton`
+
+**Sous-étapes**
+
+- `✅ 4.1` Créer les dossiers source du projet
+- `✅ 4.2` Ajouter `RacingGameCasaEngineGame : CasaEngineGame`
+- `✅ 4.3` Ajouter `RaceGameMode`
+- `✅ 4.4` Ajouter `RacingPlayerController`
+- `✅ 4.5` Ajouter un bootstrap de monde vide
+- `✅ 4.6` Vérifier qu'une vue et une caméra actives existent au runtime
+
+## ✅ Étape 5 - Migrer les écrans non gameplay vers MGUI
+
+**But**
+
+Recréer le flux front-end du jeu avec les primitives UI de CasaEngine/MGUI.
+
+**Travail**
+
+- Porter ou recréer les écrans suivants :
+  - splash
+  - menu principal
+  - sélection de piste
+  - sélection de voiture
+  - options
+  - aide
+  - highscores
+- Utiliser `UIRoot`, `ScreenStack` et `GameScreenManager` plutôt qu'une pile locale de `IGameScreen` comme dans l'ancien jeu.
+- Isoler la navigation écran dans une orchestration claire.
+- Prévoir les données nécessaires aux bindings MGUI.
+
+**Validation**
+
+- Le joueur peut naviguer de l'écran titre vers la préparation d'une course.
+- Aucun rendu legacy `RacingGame.Shared` n'est requis pour ces écrans.
+
+**Commit**
+
+- `feat(racing-casa): migrate front-end screens to mgui`
+
+**Sous-étapes**
+
+- `✅ 5.1` Mettre en place l'orchestrateur de navigation écran
+- `✅ 5.2` Recréer l'écran splash
+- `✅ 5.3` Recréer le menu principal
+- `✅ 5.4` Recréer la sélection de piste
+- `✅ 5.5` Recréer la sélection de voiture
+- `✅ 5.6` Recréer l'écran options
+- `✅ 5.7` Recréer l'écran aide
+- `✅ 5.8` Recréer l'écran highscores
+- `✅ 5.9` Valider la navigation complète jusqu'au lancement d'une course
+
+**Notes**
+
+- Un mode de validation automatisée `--smoke-frontend` exécute désormais le flux splash -> menu -> highscores -> options -> aide -> sélection voiture -> sélection piste -> HUD de course -> retour menu sans interaction manuelle.
+- Les six écrans front-end principaux réutilisent maintenant l'atlas original `buttons.png`, le logo legacy et des compositions MGUI alignées sur les vues historiques pour se rapprocher visuellement des captures de `RacingGame`.
+- Les options affichées sont redevenues proches de l'original côté interface, mais seules les options déjà supportées par le runtime CasaEngine actuel ont un effet immédiat garanti.
+
+## 🟨 Étape 6 - Créer le modèle de monde de course
+
+**But**
+
+Remplacer le pilotage global par un monde runtime CasaEngine cohérent.
+
+**Travail**
+
+- Définir la composition du monde de course :
+  - piste
+  - décor
+  - voiture joueur
+  - ghost car
+  - points de départ
+  - checkpoints
+  - caméras
+  - UI world éventuelle si nécessaire
+- Introduire des entités dédiées ou des factories d'entités.
+- Faire du monde la source de vérité des objets actifs pendant la course.
+
+**Validation**
+
+- Une course charge un monde avec ses entités principales.
+- Le code n'utilise plus de singleton global comme centre exclusif du runtime.
+
+**Commit**
+
+- `feat(racing-casa): add race world composition`
+
+**Sous-étapes**
+
+- `✅ 6.1` Définir les entités racines d'une course
+- `✅ 6.2` Définir la factory de monde de course
+- `✅ 6.3` Ajouter les points de départ et la caméra runtime
+- `✅ 6.4` Ajouter les emplacements de checkpoints et d'objets de course
+- `✅ 6.5` Brancher le monde de course au `GameMode`
+
+**Notes**
+
+- Le jeu désactive l'initialisation automatique des `PlayerController` CasaEngine pour binder côté projet un `RaceGameMode`, un `RacingPlayerController` et un `RacingCarPawn` runtime par réflexion contrôlée sur le `World`.
+
+## ⬜ Étape 7 - Migrer les assets de piste et de décor vers CasaEngine
+
+**But**
+
+Afficher la piste et son décor sans le pipeline historique de `RacingGame`.
+
+**Travail**
+
+- Cartographier les assets actuels : modèles, textures, sons, shaders, données de piste.
+- Convertir ou enregistrer les assets nécessaires dans le catalogue CasaEngine.
+- Créer les entités de décor avec `StaticModelComponent` et composants associés.
+- Porter la logique indispensable de chargement de piste si elle ne peut pas être remplacée par un asset plus simple.
+
+**Validation**
+
+- Une piste se charge visuellement avec son décor principal.
+- Les assets sont résolus par CasaEngine sans dépendance au `ContentPipeline` du jeu original.
+
+**Commit**
+
+- `feat(racing-casa): migrate track and scenery assets`
+
+**Sous-étapes**
+
+- `⬜ 7.1` Cartographier les assets des pistes du jeu original
+- `⬜ 7.2` Définir la stratégie de conversion ou d'enregistrement dans le catalogue
+- `⬜ 7.3` Charger les modèles et textures de décor prioritaires
+- `⬜ 7.4` Instancier le décor principal dans le monde
+- `⬜ 7.5` Charger les données de piste nécessaires au gameplay
+- `⬜ 7.6` Vérifier qu'une piste jouable s'affiche sans pipeline MonoGame dédié
+
+## 🟨 Étape 8 - Porter la voiture joueur en Entity/Pawn CasaEngine
+
+**But**
+
+Faire de la voiture un objet de jeu moderne, composé et contrôlable.
+
+**Travail**
+
+- Créer `RacingCarPawn` ou `RacingCarEntity`.
+- Décomposer la voiture en composants :
+  - visuel
+  - collision/physique
+  - gameplay proxy ou contrôleur arcade
+  - audio moteur si nécessaire
+  - caméra de poursuite ou point d'ancrage caméra
+- Porter la logique de contrôle, vitesse, accélération, rotation, collisions et état de course.
+- Si nécessaire, créer d'abord dans `RacingGameCasaEngine` les briques dédiées au jeu : contrôleur véhicule arcade, état runtime exposé au HUD, réglages de tuning.
+
+**Validation**
+
+- La voiture apparaît, répond aux inputs et se déplace dans le monde.
+- Le code gameplay n'est pas couplé à l'ancien `RacingGameManager`.
+
+**Commit**
+
+- `feat(racing-casa): port player car as entity`
+
+**Sous-étapes**
+
+- `✅ 8.1` Créer l'entité ou le pawn de voiture
+- `✅ 8.2` Ajouter le composant visuel de la voiture
+- `⬜ 8.3` Ajouter la collision et la base physique
+- `✅ 8.4` Ajouter le contrôleur arcade de déplacement
+- `✅ 8.5` Brancher les inputs joueur
+- `✅ 8.6` Exposer l'état runtime utile au HUD et au `GameMode`
+- `⬜ 8.7` Vérifier que la voiture roule sur une piste simple
+
+**Notes**
+
+- En attendant les vrais assets et la physique complète, la voiture utilise un rendu debug filaire, un déplacement arcade au clavier et un état runtime exposé au HUD live.
+
+## 🟨 Étape 9 - Porter la caméra de poursuite et le ressenti de conduite
+
+**But**
+
+Retrouver le feel RacingGame sans réintroduire l'architecture ancienne.
+
+**Travail**
+
+- Créer une caméra de poursuite dédiée au véhicule.
+- Porter les règles utiles : distance dynamique, inertie, recentrage, zoom, caméra de game over.
+- Vérifier la séparation entre logique véhicule et logique caméra.
+
+**Validation**
+
+- La caméra suit correctement la voiture.
+- Les transitions course, pause et game over restent lisibles.
+
+**Commit**
+
+- `feat(racing-casa): add chase camera gameplay`
+
+**Sous-étapes**
+
+- `✅ 9.1` Créer la caméra de poursuite de base
+- `✅ 9.2` Ajouter le suivi position/orientation du véhicule
+- `⬜ 9.3` Ajouter le zoom et la distance dynamique
+- `⬜ 9.4` Ajouter le mode game over ou orbit caméra
+- `⬜ 9.5` Ajuster le feel sans recoupler caméra et physique
+
+**Notes**
+
+- La caméra de course suit maintenant le `RacingCarPawn` avec un offset lissé et un point de visée anticipé. Le zoom dynamique et les variantes de caméra restent à faire.
+
+## ⬜ Étape 10 - Migrer le flow de course
+
+**But**
+
+Recréer la boucle de jeu complète.
+
+**Travail**
+
+- Porter ou recréer :
+  - countdown / start lights
+  - checkpoints
+  - nombre de tours
+  - victoire / défaite
+  - pause
+  - retour menu
+- Brancher `RaceGameMode` et les écrans runtime aux états de course.
+- Faire vivre les transitions via `GameScreenManager` et le `GameMode`.
+
+**Validation**
+
+- Une course complète peut commencer, progresser, se terminer et revenir au menu.
+
+**Commit**
+
+- `feat(racing-casa): implement race flow`
+
+**Sous-étapes**
+
+- `✅ 10.1` Créer le countdown et l'état de départ de course
+- `✅ 10.2` Ajouter la logique de checkpoints
+- `✅ 10.3` Ajouter le comptage de tours
+- `✅ 10.4` Ajouter la logique de victoire et défaite
+- `⬜ 10.5` Ajouter pause et reprise
+- `⬜ 10.6` Raccorder les états de course au `GameScreenManager`
+- `⬜ 10.7` Vérifier la boucle complète début de course -> fin -> retour menu
+
+**Notes**
+
+- Le flow de course minimal gère maintenant un countdown, la progression ordonnée sur checkpoints, le comptage de tours et l'état de fin de course directement côté projet.
+
+## ⬜ Étape 11 - Migrer le HUD et les overlays en jeu
+
+**But**
+
+Afficher les informations de course via MGUI, sans renderer UI legacy.
+
+**Travail**
+
+- Créer le HUD de course : vitesse, tour, chrono, meilleur temps, aides contextuelles.
+- Créer l'overlay pause.
+- Créer l'overlay de fin de partie.
+- Raccorder le HUD aux données runtime du véhicule et de la course.
+
+**Validation**
+
+- Le HUD suit correctement l'état de la course.
+- Aucun texte critique n'est encore rendu par l'ancien système `RacingGame.Shared`.
+
+**Commit**
+
+- `feat(racing-casa): add in-game hud and overlays`
+
+**Sous-étapes**
+
+- `⬜ 11.1` Créer le HUD vitesse/tour/chrono
+- `⬜ 11.2` Afficher meilleur temps et informations de course
+- `⬜ 11.3` Ajouter l'overlay pause
+- `⬜ 11.4` Ajouter l'écran ou overlay de game over
+- `⬜ 11.5` Brancher toutes les données runtime au HUD
+
+## ⬜ Étape 12 - Porter le ghost car, les highscores et la persistance
+
+**But**
+
+Conserver les fonctionnalités identitaires du jeu original.
+
+**Travail**
+
+- Migrer ou réimplémenter le système de replay échantillonné.
+- Afficher une ghost car dans le monde.
+- Sauvegarder et charger les meilleurs temps.
+- Migrer les options utiles : vidéo, audio, affichage, vibration si conservée.
+
+**Validation**
+
+- Les meilleurs temps persistent.
+- Le ghost car fonctionne sur au moins une piste.
+
+**Commit**
+
+- `feat(racing-casa): port ghost replay and persistence`
+
+**Sous-étapes**
+
+- `⬜ 12.1` Introduire la structure de replay runtime
+- `⬜ 12.2` Enregistrer les échantillons de course nécessaires
+- `⬜ 12.3` Lire et interpoler un ghost car
+- `⬜ 12.4` Sauvegarder les meilleurs temps
+- `⬜ 12.5` Recharger les meilleurs temps au démarrage
+- `⬜ 12.6` Brancher les options de persistance utiles
+
+## ⬜ Étape 13 - Finaliser l'intégration audio, collisions et feedbacks
+
+**But**
+
+Retrouver le ressenti du jeu complet.
+
+**Travail**
+
+- Migrer musique, effets sonores, son moteur, collisions, bips de checkpoints et victoire/défaite.
+- Vérifier les collisions et réactions de la voiture.
+- Ajuster les feedbacks visuels et sonores.
+
+**Validation**
+
+- Une session complète a les feedbacks essentiels attendus.
+
+**Commit**
+
+- `feat(racing-casa): finish audio and gameplay feedback`
+
+**Sous-étapes**
+
+- `⬜ 13.1` Brancher les musiques et SFX de base
+- `⬜ 13.2` Ajouter le son moteur et ses variations
+- `⬜ 13.3` Ajouter les feedbacks checkpoint/victoire/défaite
+- `⬜ 13.4` Ajuster collisions et réactions du véhicule
+- `⬜ 13.5` Ajuster les feedbacks visuels restants
+
+## ⬜ Étape 14 - Stabiliser, nettoyer et documenter
+
+**But**
+
+Clore la migration avec un état maintenable.
+
+**Travail**
+
+- Supprimer les dépendances restantes au code legacy non utilisé.
+- Vérifier les références projet.
+- Documenter la structure du nouveau jeu.
+- Documenter les écarts assumés avec `RacingGame` si certains comportements ne sont pas portés à l'identique.
+- Ajouter une note finale sur les briques spécifiques créées dans `RacingGameCasaEngine` pendant la migration.
+
+**Validation**
+
+- Build ciblé OK.
+- Le projet démarre, on peut faire une course complète, et la dette restante est explicitée.
+
+**Commit**
+
+- `docs(racing-casa): finalize migration notes`
+
+**Sous-étapes**
+
+- `⬜ 14.1` Supprimer les dépendances legacy devenues inutiles
+- `⬜ 14.2` Vérifier les références et l'initialisation du projet
+- `⬜ 14.3` Documenter la structure finale du jeu
+- `⬜ 14.4` Documenter les écarts fonctionnels restants avec `RacingGame`
+- `⬜ 14.5` Documenter les extractions moteur réalisées pendant la migration
+
+## Ordre d'exécution recommandé
+
+1. Étapes 1 à 4
+2. Étapes 5 et 6
+3. Étapes 7 à 10
+4. Étapes 11 à 13
+5. Étape 14
+
+## Premier lot conseillé pour un agent autonome
+
+1. `1.1` à `1.4`
+2. `2.1` à `2.6`
+3. `3.1` à `3.6`
+4. `4.1` à `4.6`
+
+Ce premier lot doit aboutir à un projet `RacingGameCasaEngine` qui démarre, charge un monde vide, possède une vue UI CasaEngine/MGUI fonctionnelle et ne dépend pas du `ContentPipeline` MonoGame du jeu original.
+4. Étapes 11 à 13
+5. Étape 14
+
+## Règle de blocage
+
+Si une étape dépend d'une brique absente ou encore floue, l'agent doit insérer une sous-étape projet juste avant, l'implémenter directement dans `RacingGameCasaEngine`, la commit, puis reprendre la migration du jeu.
+
+## Écarts à traiter dans RacingGameCasaEngine
+
+Les points suivants ne sont pas traités comme des évolutions du moteur `CasaEngine`, mais comme des briques propres au projet `RacingGameCasaEngine` :
+
+- véhicule arcade et tuning de conduite ;
+- système de course : checkpoints, tours, départ, fin ;
+- caméra de poursuite véhicule ;
+- ghost car et replay ;
+- workflow d'import et de mapping des assets du jeu ;
+- triggers gameplay utiles à la course.
+
+Ils doivent être implémentés au fil des étapes du plan, dans le projet du jeu, sans créer de backlog séparé côté moteur.
