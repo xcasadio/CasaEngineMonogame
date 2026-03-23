@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Entities;
+
 namespace CasaEngine.Framework.AI.Messaging;
 
 public class WorldMessageBus : IWorldMessageBus
@@ -36,6 +38,40 @@ public class WorldMessageBus : IWorldMessageBus
     public virtual bool UnregisterEndpoint(Guid receiverId)
     {
         return _endpoints.Remove(receiverId);
+    }
+
+    public virtual bool RegisterEntity(Entity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        bool registered = false;
+
+        if (TryResolveEndpoint(entity, out IMessageable endpoint))
+        {
+            RegisterEndpoint(entity.Id, endpoint);
+            registered = true;
+        }
+
+        foreach (Entity child in entity.Children)
+        {
+            registered |= RegisterEntity(child);
+        }
+
+        return registered;
+    }
+
+    public virtual bool UnregisterEntity(Entity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        bool removed = UnregisterEndpoint(entity.Id);
+
+        foreach (Entity child in entity.Children)
+        {
+            removed |= UnregisterEntity(child);
+        }
+
+        return removed;
     }
 
     public virtual bool SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo)
@@ -90,6 +126,12 @@ public class WorldMessageBus : IWorldMessageBus
         }
 
         _scheduledMessages.Insert(insertIndex, scheduledMessage);
+    }
+
+    protected virtual bool TryResolveEndpoint(Entity entity, out IMessageable endpoint)
+    {
+        endpoint = entity as IMessageable ?? entity.GetComponent<IMessageable>();
+        return endpoint != null;
     }
 
     private sealed class ScheduledMessageComparer : IComparer<ScheduledMessage>

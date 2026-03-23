@@ -195,7 +195,7 @@ Remplacer la logique de dispatch basee sur l'horloge machine par une queue ordon
 
 ---
 
-### 🟨 MSG-004 - Ajouter le routage vers des endpoints d'entites
+### ✅ MSG-004 - Ajouter le routage vers des endpoints d'entites
 
 **Objectif**
 
@@ -223,7 +223,7 @@ Permettre au bus de trouver et notifier les recepteurs sans singleton global de 
 
 ---
 
-### ⬜ MSG-005 - Integrer la reception dans la FSM et les composants IA
+### 🟨 MSG-005 - Integrer la reception dans la FSM et les composants IA
 
 **Objectif**
 

@@ -96,6 +96,7 @@ public sealed class World : ObjectBase
     {
         foreach (var entity in _entities)
         {
+            MessageBus.UnregisterEntity(entity);
             UnsubscribeEntityTree(entity);
             entity.Destroy();
         }
@@ -104,6 +105,7 @@ public sealed class World : ObjectBase
         _baseObjectsToAdd.Clear();
         _octree.Clear();
         _observedEntities.Clear();
+        MessageBus.Reset();
 
         if (clearReferences)
         {
@@ -271,6 +273,7 @@ public sealed class World : ObjectBase
 
         foreach (var entity in toRemove)
         {
+            MessageBus.UnregisterEntity(entity);
             UnsubscribeEntityTree(entity);
             _entities.Remove(entity);
             NotifyEntityRemovedRecursive(entity);
@@ -313,6 +316,7 @@ public sealed class World : ObjectBase
             {
                 entity.Initialize();
                 entity.InitializeWithWorld(this);
+                MessageBus.RegisterEntity(entity);
                 AddInSpacePartitioning(entity);
                 _entities.Add(entity);
                 SubscribeEntityTree(entity);
@@ -474,6 +478,7 @@ public sealed class World : ObjectBase
         entity.Initialize();
         _entities.Add(entity);
         entity.InitializeWithWorld(this);
+        MessageBus.RegisterEntity(entity);
         AddInSpacePartitioning(entity);
         SubscribeEntityTree(entity);
         NotifyEntityAddedRecursive(entity);
@@ -497,6 +502,7 @@ public sealed class World : ObjectBase
             _entityReferences.Remove(entityReference);
         }
 
+        MessageBus.UnregisterEntity(entity);
         UnsubscribeEntityTree(entity);
         _entities.Remove(entity);
         _octree.RemoveItem(entity);
