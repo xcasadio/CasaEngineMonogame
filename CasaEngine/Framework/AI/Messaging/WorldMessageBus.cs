@@ -2,16 +2,22 @@ namespace CasaEngine.Framework.AI.Messaging;
 
 public class WorldMessageBus : IWorldMessageBus
 {
+    private sealed record ScheduledMessage(Message Message, long Sequence);
+
     private readonly Dictionary<Guid, IMessageable> _endpoints = [];
+    private readonly List<ScheduledMessage> _scheduledMessages = [];
+    private long _nextSequence;
 
     public double CurrentSimulationTime { get; private set; }
 
-    public int PendingMessagesCount => 0;
+    public int PendingMessagesCount => _scheduledMessages.Count;
 
     public virtual void Reset(double currentSimulationTime = 0.0)
     {
         CurrentSimulationTime = currentSimulationTime;
         _endpoints.Clear();
+        _scheduledMessages.Clear();
+        _nextSequence = 0;
     }
 
     public virtual bool RegisterEndpoint(Guid receiverId, IMessageable endpoint)
@@ -34,23 +40,71 @@ public class WorldMessageBus : IWorldMessageBus
 
     public virtual bool SendMessage(Guid senderId, Guid receiverId, double delayTime, int type, object extraInfo)
     {
-        if (delayTime > 0.0)
+        Message message = new(senderId, receiverId, type, CurrentSimulationTime, extraInfo);
+
+        if (delayTime <= 0.0)
         {
-            return false;
+            return TryDispatch(message);
         }
 
-        if (!_endpoints.TryGetValue(receiverId, out IMessageable endpoint))
-        {
-            return false;
-        }
-
-        CurrentSimulationTime = Math.Max(CurrentSimulationTime, 0.0);
-        return endpoint.HandleMessage(new Message(senderId, receiverId, type, CurrentSimulationTime, extraInfo));
+        message.DispatchTime = CurrentSimulationTime + delayTime;
+        Enqueue(message);
+        return true;
     }
 
     public virtual int DispatchDueMessages(double currentSimulationTime)
     {
         CurrentSimulationTime = currentSimulationTime;
-        return 0;
+        int dispatchCount = 0;
+
+        while (_scheduledMessages.Count > 0 && _scheduledMessages[0].Message.DispatchTime <= currentSimulationTime)
+        {
+            ScheduledMessage scheduledMessage = _scheduledMessages[0];
+            _scheduledMessages.RemoveAt(0);
+            if (TryDispatch(scheduledMessage.Message))
+            {
+                dispatchCount += 1;
+            }
+        }
+
+        return dispatchCount;
+    }
+
+    protected virtual bool TryDispatch(Message message)
+    {
+        if (!_endpoints.TryGetValue(message.RecieverID, out IMessageable endpoint))
+        {
+            return false;
+        }
+
+        return endpoint.HandleMessage(message);
+    }
+
+    private void Enqueue(Message message)
+    {
+        ScheduledMessage scheduledMessage = new(message, _nextSequence++);
+        int insertIndex = _scheduledMessages.BinarySearch(scheduledMessage, ScheduledMessageComparer.Instance);
+        if (insertIndex < 0)
+        {
+            insertIndex = ~insertIndex;
+        }
+
+        _scheduledMessages.Insert(insertIndex, scheduledMessage);
+    }
+
+    private sealed class ScheduledMessageComparer : IComparer<ScheduledMessage>
+    {
+        public static ScheduledMessageComparer Instance { get; } = new();
+
+        public int Compare(ScheduledMessage x, ScheduledMessage y)
+        {
+            int timeComparison = x.Message.DispatchTime.CompareTo(y.Message.DispatchTime);
+            if (timeComparison != 0)
+            {
+                return timeComparison;
+            }
+
+            return x.Sequence.CompareTo(y.Sequence);
+        }
     }
 }

@@ -167,7 +167,7 @@ Creer le contrat runtime d'un bus de messages par world, sans casser le build ex
 
 ---
 
-### 🟨 MSG-003 - Implementer la queue de messages differee pilotee par simulation
+### ✅ MSG-003 - Implementer la queue de messages differee pilotee par simulation
 
 **Objectif**
 
@@ -195,7 +195,7 @@ Remplacer la logique de dispatch basee sur l'horloge machine par une queue ordon
 
 ---
 
-### ⬜ MSG-004 - Ajouter le routage vers des endpoints d'entites
+### 🟨 MSG-004 - Ajouter le routage vers des endpoints d'entites
 
 **Objectif**
 
