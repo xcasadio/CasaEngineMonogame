@@ -287,7 +287,7 @@ Remplacer le pilotage global par un monde runtime CasaEngine cohérent.
 
 - Le jeu désactive l'initialisation automatique des `PlayerController` CasaEngine pour binder côté projet un `RaceGameMode`, un `RacingPlayerController` et un `RacingCarPawn` runtime par réflexion contrôlée sur le `World`.
 
-## ⬜ Étape 7 - Migrer les assets de piste et de décor vers CasaEngine
+## ✅ Étape 7 - Migrer les assets de piste et de décor vers CasaEngine
 
 **But**
 
@@ -311,12 +311,20 @@ Afficher la piste et son décor sans le pipeline historique de `RacingGame`.
 
 **Sous-étapes**
 
-- `⬜ 7.1` Cartographier les assets des pistes du jeu original
-- `⬜ 7.2` Définir la stratégie de conversion ou d'enregistrement dans le catalogue
-- `⬜ 7.3` Charger les modèles et textures de décor prioritaires
-- `⬜ 7.4` Instancier le décor principal dans le monde
-- `⬜ 7.5` Charger les données de piste nécessaires au gameplay
-- `⬜ 7.6` Vérifier qu'une piste jouable s'affiche sans pipeline MonoGame dédié
+- `✅ 7.1` Cartographier les assets des pistes du jeu original
+- `✅ 7.2` Définir la stratégie de conversion ou d'enregistrement dans le catalogue
+- `✅ 7.3` Charger les modèles et textures de décor prioritaires
+- `✅ 7.4` Instancier le décor principal dans le monde
+- `✅ 7.5` Charger les données de piste nécessaires au gameplay
+- `✅ 7.6` Vérifier qu'une piste jouable s'affiche sans pipeline MonoGame dédié
+
+**Notes**
+
+- Les fichiers legacy `TrackBeginner.Track`, `TrackAdvanced.Track`, `TrackExpert.Track`, les `CombiModel` et les modèles `.X` sont maintenant copiés dans `RacingGameCasaEngine/Content` via le projet du jeu, sans réintroduire de pipeline MonoGame dédié au nouveau projet.
+- `RacingGameCasaEngine` charge les vraies données de piste via un loader projet local, génère la chaussée en `StaticModel` CasaEngine à partir des points du `.Track`, et dérive désormais le `PlayerStart` ainsi que les checkpoints depuis cette géométrie.
+- Le décor principal est assemblé à partir des `NeutralsObjects` des pistes legacy, avec expansion des `CombiModel` et import runtime des modèles `.X` en `StaticModelComponent`.
+- Les matériaux de décor utilisent pour l'instant des couleurs lit fallback par famille d'objets. Le remappage des textures legacy reste une amélioration visuelle ultérieure, mais le monde de course se charge déjà avec une vraie piste et un décor cohérent.
+- Validation effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course avec la piste `Beginner` et son décor.
 
 ## 🟨 Étape 8 - Porter la voiture joueur en Entity/Pawn CasaEngine
 
