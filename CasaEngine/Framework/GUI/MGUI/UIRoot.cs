@@ -56,8 +56,14 @@ public sealed class UIRoot : IUIViewRuntime
 
     public void UpdateMetrics(UIViewMetrics metrics)
     {
+        bool metricsChanged = Metrics != metrics;
         Metrics = metrics;
         UIScale = metrics.Scale;
+
+        if (metricsChanged)
+        {
+            Desktop.InvalidateAllLayouts();
+        }
     }
 
     /// <summary>
