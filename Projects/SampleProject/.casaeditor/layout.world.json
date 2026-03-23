@@ -41,7 +41,7 @@
         "firstChild": {
           "type": "TabGroup",
           "id": "08118d64-6287-41cd-99ad-e43b88206015",
-          "activePanelId": "panel_ui_screen_d4e5f6a7b8c90123def0456789012345",
+          "activePanelId": "panel_world_viewport",
           "isDocumentArea": true,
           "panels": [
             {
@@ -49,16 +49,6 @@
               "title": "World Viewport",
               "canClose": false,
               "canFloat": false,
-              "canAutoHide": false,
-              "isPinned": true,
-              "dockableType": "Document",
-              "drawerSize": 200
-            },
-            {
-              "id": "panel_ui_screen_d4e5f6a7b8c90123def0456789012345",
-              "title": "SampleOptions",
-              "canClose": true,
-              "canFloat": true,
               "canAutoHide": false,
               "isPinned": true,
               "dockableType": "Document",

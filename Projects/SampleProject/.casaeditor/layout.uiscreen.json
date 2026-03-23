@@ -45,7 +45,7 @@
         "type": "Split",
         "id": "44ef90c2-3dd1-4a8e-8a31-6e7609077523",
         "orientation": "Horizontal",
-        "splitRatio": 0.72,
+        "splitRatio": 0.70663524,
         "minFirstSize": 500,
         "minSecondSize": 260,
         "firstChild": {
@@ -59,16 +59,6 @@
               "title": "World Viewport",
               "canClose": false,
               "canFloat": false,
-              "canAutoHide": false,
-              "isPinned": true,
-              "dockableType": "Document",
-              "drawerSize": 200
-            },
-            {
-              "id": "panel_ui_screen_d4e5f6a7b8c90123def0456789012345",
-              "title": "SampleOptions",
-              "canClose": true,
-              "canFloat": true,
               "canAutoHide": false,
               "isPinned": true,
               "dockableType": "Document",
