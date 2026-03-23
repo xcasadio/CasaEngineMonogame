@@ -279,7 +279,7 @@ Faire disparaitre `MessageManagerRouter` du chemin nominal du gameplay moderne.
 
 ---
 
-### 🟨 MSG-007 - Migrer `WestWorldWithMessaging` sur `WorldMessageBus`
+### ✅ MSG-007 - Migrer `WestWorldWithMessaging` sur `WorldMessageBus`
 
 **Objectif**
 
@@ -308,7 +308,7 @@ Porter le sample Buckland avec messagerie sur la nouvelle architecture moderne.
 
 ---
 
-### ⬜ MSG-008 - Ajouter une validation bornee du messaging moderne
+### ✅ MSG-008 - Ajouter une validation bornee du messaging moderne
 
 **Objectif**
 
@@ -337,7 +337,7 @@ Eviter une regression silencieuse sur les dispatches immediats, differes et l'or
 
 ---
 
-### ⬜ MSG-009 - Documenter la voie moderne et la strategie de retrait
+### ✅ MSG-009 - Documenter la voie moderne et la strategie de retrait
 
 **Objectif**
 
