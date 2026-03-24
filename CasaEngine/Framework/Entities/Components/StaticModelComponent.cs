@@ -41,8 +41,9 @@ public class StaticModelComponent : PrimitiveComponent
         if (StaticModelAssetId != Guid.Empty && StaticModel == null)
         {
             StaticModel = world.Game.AssetContentManager.Load<Graphics.StaticModel>(StaticModelAssetId);
-            StaticModel?.Initialize(world.Game.AssetContentManager);
         }
+
+        StaticModel?.Initialize(world.Game.AssetContentManager);
 
         if (StaticModel?.RootNode != null)
         {
