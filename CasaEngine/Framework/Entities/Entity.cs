@@ -213,6 +213,17 @@ public class Entity : ObjectBase
         ComponentRemoved?.Invoke(this, component);
     }
 
+    public T GetRequiredComponent<T>() where T : class
+    {
+        T component = GetComponent<T>();
+        if (component == null)
+        {
+            throw new InvalidOperationException($"Component {typeof(T).Name} is missing on {Name}.");
+        }
+
+        return component;
+    }
+
     public T? GetComponent<T>() where T : class
     {
         if (RootComponent != null)
