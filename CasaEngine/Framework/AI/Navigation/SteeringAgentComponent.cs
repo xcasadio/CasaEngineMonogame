@@ -115,6 +115,146 @@ public sealed class SteeringAgentComponent : EntityComponent
         return null;
     }
 
+    public Entity? FindEntity(string entityName)
+    {
+        if (Owner?.World == null || string.IsNullOrWhiteSpace(entityName))
+        {
+            return null;
+        }
+
+        for (int index = 0; index < Owner.World.Entities.Count; index++)
+        {
+            Entity entity = Owner.World.Entities[index];
+            if (string.Equals(entity.Name, entityName, StringComparison.OrdinalIgnoreCase))
+            {
+                return entity;
+            }
+        }
+
+        return null;
+    }
+
+    public IEnumerable<Entity> FindNeighborEntities(float radius)
+    {
+        if (Owner?.World == null || Owner == null)
+        {
+            yield break;
+        }
+
+        float radiusSquared = radius * radius;
+        for (int index = 0; index < Owner.World.Entities.Count; index++)
+        {
+            Entity entity = Owner.World.Entities[index];
+            if (ReferenceEquals(entity, Owner) || entity.GetComponent<SteeringAgentComponent>() == null)
+            {
+                continue;
+            }
+
+            if (!TryGetEntityMotion(entity, out Vector3 position, out _, out _))
+            {
+                continue;
+            }
+
+            if (Vector3.DistanceSquared(Kinematics.Position, position) <= radiusSquared)
+            {
+                yield return entity;
+            }
+        }
+    }
+
+    public IEnumerable<Entity> FindEntitiesByPredicate(Func<Entity, bool> predicate)
+    {
+        if (Owner?.World == null)
+        {
+            yield break;
+        }
+
+        for (int index = 0; index < Owner.World.Entities.Count; index++)
+        {
+            Entity entity = Owner.World.Entities[index];
+            if (predicate(entity))
+            {
+                yield return entity;
+            }
+        }
+    }
+
+    public bool TryGetEntityMotion(string entityName, out Vector3 position, out Vector3 velocity, out Vector3 forward)
+    {
+        return TryGetEntityMotion(FindEntity(entityName), out position, out velocity, out forward);
+    }
+
+    public bool TryGetEntityMotion(Entity? entity, out Vector3 position, out Vector3 velocity, out Vector3 forward)
+    {
+        position = Vector3.Zero;
+        velocity = Vector3.Zero;
+        forward = Vector3.Right;
+
+        if (entity == null)
+        {
+            return false;
+        }
+
+        SceneComponent? sceneComponent = entity.RootComponent;
+        PhysicsBaseComponent? physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
+
+        position = sceneComponent?.Position ?? Vector3.Zero;
+        velocity = physicsComponent?.Velocity ?? Vector3.Zero;
+
+        if (sceneComponent != null)
+        {
+            forward = sceneComponent.WorldMatrixNoScale.Right;
+        }
+        else if (velocity.LengthSquared() > float.Epsilon)
+        {
+            forward = velocity;
+        }
+
+        if (forward.LengthSquared() <= float.Epsilon)
+        {
+            forward = Vector3.Right;
+        }
+        else
+        {
+            forward.Normalize();
+        }
+
+        return true;
+    }
+
+    public bool TryGetCollisionRadius(Entity entity, out float radius)
+    {
+        radius = 0.0f;
+        CircleCollisionComponent? circle = entity.GetComponent<CircleCollisionComponent>();
+        if (circle != null)
+        {
+            radius = circle.Circle.Radius;
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool TryGetWallSegment(Entity entity, out Vector2 start, out Vector2 end)
+    {
+        start = Vector2.Zero;
+        end = Vector2.Zero;
+
+        Type entityType = entity.GetType();
+        var startProperty = entityType.GetProperty("Start");
+        var endProperty = entityType.GetProperty("End");
+
+        if (startProperty?.PropertyType == typeof(Vector2)
+            && endProperty?.PropertyType == typeof(Vector2))
+        {
+            start = (Vector2)startProperty.GetValue(entity)!;
+            end = (Vector2)endProperty.GetValue(entity)!;
+            return true;
+        }
+
+        return false;
+    }
+
     public void RefreshKinematics()
     {
         ResolveDependencies();
