@@ -131,19 +131,7 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
         _sceneComponent ??= Owner.RootComponent;
         _agentComponent ??= Owner.GetComponent<SteeringAgentComponent>();
 
-        if (_physicsComponent != null)
-        {
-            return;
-        }
-
-        foreach (EntityComponent component in Owner.Components)
-        {
-            if (component is PhysicsBaseComponent physicsComponent)
-            {
-                _physicsComponent = physicsComponent;
-                return;
-            }
-        }
+        _physicsComponent ??= Owner.GetComponent<PhysicsBaseComponent>();
     }
 
     private static float WrapAngle(float angle)

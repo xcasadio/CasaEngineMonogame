@@ -196,19 +196,7 @@ public sealed class SteeringAgentComponent : EntityComponent
 
         _sceneComponent ??= Owner.RootComponent;
 
-        if (_physicsComponent != null)
-        {
-            return;
-        }
-
-        foreach (EntityComponent component in Owner.Components)
-        {
-            if (component is PhysicsBaseComponent physicsComponent)
-            {
-                _physicsComponent = physicsComponent;
-                return;
-            }
-        }
+        _physicsComponent ??= Owner.GetComponent<PhysicsBaseComponent>();
     }
 
     private Vector3 ResolveForward()
