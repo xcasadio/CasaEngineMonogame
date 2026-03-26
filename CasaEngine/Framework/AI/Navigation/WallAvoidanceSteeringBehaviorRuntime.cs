@@ -19,56 +19,72 @@ public sealed class WallAvoidanceSteeringBehaviorRuntime : SteeringBehaviorRunti
     protected override Vector3 Calculate(SteeringAgentKinematics kinematics, SteeringAgentComponent agent, float elapsedTime)
     {
         Vector3 forward = kinematics.Forward.LengthSquared() > float.Epsilon ? Vector3.Normalize(kinematics.Forward) : Vector3.Right;
-        Vector3 right = Vector3.Cross(Vector3.Up, forward);
-        if (right.LengthSquared() <= float.Epsilon)
-        {
-            right = Vector3.Up;
-        }
-        else
-        {
-            right.Normalize();
-        }
+        float speedRatio = kinematics.MaxSpeed <= float.Epsilon ? 0.0f : kinematics.Speed / kinematics.MaxSpeed;
+        float effectiveFeelerLength = FeelerLength + (FeelerLength * speedRatio);
 
-        LastFeelers[0] = kinematics.Position + forward * FeelerLength;
-        LastFeelers[1] = kinematics.Position + Vector3.Normalize(forward - right) * FeelerLength * 0.7f;
-        LastFeelers[2] = kinematics.Position + Vector3.Normalize(forward + right) * FeelerLength * 0.7f;
+        LastFeelers[0] = kinematics.Position + forward * effectiveFeelerLength;
+        LastFeelers[1] = kinematics.Position + RotatePlanar(forward, -MathF.PI * 0.25f) * effectiveFeelerLength * 0.5f;
+        LastFeelers[2] = kinematics.Position + RotatePlanar(forward, MathF.PI * 0.25f) * effectiveFeelerLength * 0.5f;
         LastWallHit = Vector3.Zero;
 
-        Vector3 accumulatedForce = Vector3.Zero;
+        float closestDistance = float.MaxValue;
+        Vector3 steeringForce = Vector3.Zero;
 
-        foreach (Entity entity in agent.FindEntitiesByPredicate(candidate => candidate.GetType().Name.Contains("Wall", StringComparison.OrdinalIgnoreCase)))
+        for (int index = 0; index < LastFeelers.Length; index++)
         {
-            if (!agent.TryGetEntityMotion(entity, out Vector3 wallCenter, out _, out _))
-            {
-                continue;
-            }
+            Vector2 origin = new(kinematics.Position.X, kinematics.Position.Y);
+            Vector2 feeler = new(LastFeelers[index].X, LastFeelers[index].Y);
 
-            if (!agent.TryGetWallSegment(entity, out Vector2 start, out Vector2 end))
+            foreach (Entity entity in agent.FindEntitiesByPredicate(candidate => candidate.GetType().Name.Contains("Wall", StringComparison.OrdinalIgnoreCase)))
             {
-                continue;
-            }
+                if (!agent.TryGetWallSegment(entity, out Vector2 start, out Vector2 end))
+                {
+                    continue;
+                }
 
-            for (int index = 0; index < LastFeelers.Length; index++)
-            {
-                Vector2 origin = new(kinematics.Position.X, kinematics.Position.Y);
-                Vector2 feeler = new(LastFeelers[index].X, LastFeelers[index].Y);
                 if (!TryGetSegmentIntersection(origin, feeler, start, end, out Vector2 hitPoint))
                 {
                     continue;
                 }
 
-                Vector2 overShoot = feeler - hitPoint;
-                Vector2 segmentDirection = end - start;
-                Vector2 normal = segmentDirection.LengthSquared() <= float.Epsilon
-                    ? Vector2.UnitY
-                    : Vector2.Normalize(new Vector2(-segmentDirection.Y, segmentDirection.X));
+                float distanceToIntersection = Vector2.Distance(origin, hitPoint);
+                if (distanceToIntersection >= closestDistance)
+                {
+                    continue;
+                }
 
-                accumulatedForce += new Vector3(normal * overShoot.Length(), 0.0f);
+                Vector2 overShoot = feeler - hitPoint;
+                Vector2 normal = agent.TryGetWallNormal(entity, out Vector2 wallNormal)
+                    ? wallNormal
+                    : ComputeFallbackNormal(start, end, origin);
+
+                steeringForce = new Vector3(normal * overShoot.Length(), 0.0f);
+                closestDistance = distanceToIntersection;
                 LastWallHit = new Vector3(hitPoint, 0.0f);
             }
         }
 
-        return accumulatedForce;
+        return steeringForce;
+    }
+
+    private static Vector2 ComputeFallbackNormal(Vector2 start, Vector2 end, Vector2 origin)
+    {
+        Vector2 segmentDirection = end - start;
+        if (segmentDirection.LengthSquared() <= float.Epsilon)
+        {
+            return Vector2.UnitY;
+        }
+
+        segmentDirection.Normalize();
+        Vector2 candidate = new(-segmentDirection.Y, segmentDirection.X);
+        Vector2 midpoint = (start + end) * 0.5f;
+        Vector2 toOrigin = origin - midpoint;
+        if (Vector2.Dot(candidate, toOrigin) < 0.0f)
+        {
+            candidate *= -1.0f;
+        }
+
+        return candidate;
     }
 
     private static bool TryGetSegmentIntersection(Vector2 a1, Vector2 a2, Vector2 b1, Vector2 b2, out Vector2 intersection)
@@ -90,6 +106,18 @@ public sealed class WallAvoidanceSteeringBehaviorRuntime : SteeringBehaviorRunti
 
         intersection = a1 + ((a2 - a1) * ua);
         return true;
+    }
+
+    private static Vector3 RotatePlanar(Vector3 vector, float angle)
+    {
+        Vector3 rotated = Vector3.Transform(vector, Matrix.CreateRotationZ(angle));
+        if (rotated.LengthSquared() <= float.Epsilon)
+        {
+            return Vector3.Right;
+        }
+
+        rotated.Normalize();
+        return rotated;
     }
 
     public override SteeringBehaviorRuntime Clone()

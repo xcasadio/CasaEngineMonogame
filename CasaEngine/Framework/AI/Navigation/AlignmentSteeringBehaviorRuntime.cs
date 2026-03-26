@@ -12,6 +12,8 @@ public sealed class AlignmentSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
     public float NeighborRadius { get; set; } = 140.0f;
 
+    public string ExcludedEntityName { get; set; } = string.Empty;
+
     public int LastNeighborCount { get; private set; }
 
     public List<Vector3> LastNeighborPositions { get; } = [];
@@ -24,6 +26,12 @@ public sealed class AlignmentSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
         foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
         {
+            if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
+                && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out Vector3 otherForward))
             {
                 continue;
@@ -50,6 +58,7 @@ public sealed class AlignmentSteeringBehaviorRuntime : SteeringBehaviorRuntime
         {
             IsEnabled = IsEnabled,
             NeighborRadius = NeighborRadius,
+            ExcludedEntityName = ExcludedEntityName,
         };
     }
 }

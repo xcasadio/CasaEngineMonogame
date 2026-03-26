@@ -5,11 +5,13 @@ namespace CasaEngine.Framework.AI.Navigation;
 public sealed class WanderSteeringBehaviorRuntime : SteeringBehaviorRuntime
 {
     private readonly Random _random = new();
-    private Vector3 _wanderTarget = Vector3.UnitX;
+    private Vector3 _wanderTarget;
 
     public WanderSteeringBehaviorRuntime(string name = "wander", float weight = 1.0f)
         : base(name, weight)
     {
+        float theta = (float)(_random.NextDouble() * MathHelper.TwoPi);
+        _wanderTarget = new Vector3(MathF.Cos(theta), MathF.Sin(theta), 0.0f);
     }
 
     public float Distance { get; set; } = 72.0f;

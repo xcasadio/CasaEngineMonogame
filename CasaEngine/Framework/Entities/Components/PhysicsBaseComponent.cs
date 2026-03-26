@@ -33,12 +33,26 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public Vector3 Velocity
     {
-        get => _rigidBody?.LinearVelocity ?? Vector3.Zero;
+        get
+        {
+            if (_rigidBody != null)
+            {
+                return _rigidBody.LinearVelocity;
+            }
+
+            return PhysicsType == PhysicsType.Kinetic ? _velocity : Vector3.Zero;
+        }
         set
         {
             if (_rigidBody != null)
             {
                 _rigidBody.LinearVelocity = value;
+                return;
+            }
+
+            if (PhysicsType == PhysicsType.Kinetic)
+            {
+                _velocity = value;
             }
         }
     }
@@ -111,6 +125,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         if (!Owner.World.Game.ExecutionPolicy.UpdatePhysicsComponents)
         {
+            return;
+        }
+
+        if (PhysicsType == PhysicsType.Kinetic)
+        {
+            SyncTransformFromScene();
             return;
         }
 
@@ -206,6 +226,28 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         //do nothing with _collisionObject
         _rigidBody?.ApplyImpulse(impulse, relativePosition);
+    }
+
+    public void AdvanceKinematic(float elapsedTime)
+    {
+        if (PhysicsType != PhysicsType.Kinetic || Parent == null)
+        {
+            return;
+        }
+
+        Parent.Coordinates.Position += _velocity * elapsedTime;
+        SyncTransformFromScene();
+    }
+
+    public void SyncTransformFromScene()
+    {
+        if (_collisionObject == null)
+        {
+            return;
+        }
+
+        _collisionObject.WorldTransform = WorldMatrixNoScale;
+        IsBoundingBoxDirty = true;
     }
 
     public override void Load(JObject element)

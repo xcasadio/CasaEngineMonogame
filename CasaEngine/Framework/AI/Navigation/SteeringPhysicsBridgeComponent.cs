@@ -46,12 +46,12 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
         desiredVelocity.Z = 0.0f;
         _physicsComponent.Velocity = desiredVelocity;
 
-        if (!AutoOrient)
+        if (AutoOrient)
         {
-            return;
+            ApplyOrientation(command.DesiredFacing, desiredVelocity, elapsedTime);
         }
 
-        ApplyOrientation(command.DesiredFacing, desiredVelocity, elapsedTime);
+        _physicsComponent.AdvanceKinematic(elapsedTime);
     }
 
     public override EntityComponent Clone()
@@ -84,10 +84,10 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
             return;
         }
 
-        Vector2 desiredPlanarDirection = new(desiredFacing.X, desiredFacing.Y);
+        Vector2 desiredPlanarDirection = new(desiredVelocity.X, desiredVelocity.Y);
         if (desiredPlanarDirection.LengthSquared() <= MinimumFacingSpeed * MinimumFacingSpeed)
         {
-            desiredPlanarDirection = new Vector2(desiredVelocity.X, desiredVelocity.Y);
+            desiredPlanarDirection = new Vector2(desiredFacing.X, desiredFacing.Y);
         }
 
         if (desiredPlanarDirection.LengthSquared() <= MinimumFacingSpeed * MinimumFacingSpeed)

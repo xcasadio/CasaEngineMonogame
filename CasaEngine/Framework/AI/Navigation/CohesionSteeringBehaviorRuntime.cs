@@ -12,6 +12,8 @@ public sealed class CohesionSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
     public float NeighborRadius { get; set; } = 150.0f;
 
+    public string ExcludedEntityName { get; set; } = string.Empty;
+
     public int LastNeighborCount { get; private set; }
 
     public Vector3 LastCenterOfMass { get; private set; }
@@ -26,6 +28,12 @@ public sealed class CohesionSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
         foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
         {
+            if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
+                && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out _))
             {
                 continue;
@@ -52,7 +60,14 @@ public sealed class CohesionSteeringBehaviorRuntime : SteeringBehaviorRuntime
         }
 
         Vector3 desiredVelocity = Vector3.Normalize(toCenter) * kinematics.MaxSpeed;
-        return desiredVelocity - kinematics.Velocity;
+        Vector3 steering = desiredVelocity - kinematics.Velocity;
+        if (steering.LengthSquared() <= float.Epsilon)
+        {
+            return Vector3.Zero;
+        }
+
+        steering.Normalize();
+        return steering;
     }
 
     public override SteeringBehaviorRuntime Clone()
@@ -61,6 +76,7 @@ public sealed class CohesionSteeringBehaviorRuntime : SteeringBehaviorRuntime
         {
             IsEnabled = IsEnabled,
             NeighborRadius = NeighborRadius,
+            ExcludedEntityName = ExcludedEntityName,
         };
     }
 }

@@ -12,6 +12,8 @@ public sealed class SteeringAgentSettings
 
     public SteeringOutputMode OutputMode { get; set; } = SteeringOutputMode.Force;
 
+    public bool UsePrioritizedAccumulation { get; set; }
+
     public SteeringAgentSettings Clone()
     {
         return new SteeringAgentSettings
@@ -21,6 +23,7 @@ public sealed class SteeringAgentSettings
             MaxForce = MaxForce,
             MaxTurnRate = MaxTurnRate,
             OutputMode = OutputMode,
+            UsePrioritizedAccumulation = UsePrioritizedAccumulation,
         };
     }
 }

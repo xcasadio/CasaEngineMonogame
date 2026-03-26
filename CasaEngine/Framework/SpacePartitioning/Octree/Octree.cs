@@ -47,6 +47,16 @@ public class Octree<T>
         _currentRoot.GetContainedObjects(ref frustum, results, filter);
     }
 
+    public void GetContainedObjects(BoundingBox bounds, List<T> results, Func<T, bool>? filter = null)
+    {
+        if (results == null)
+        {
+            throw new ArgumentNullException(nameof(results));
+        }
+
+        _currentRoot.GetContainedObjects(ref bounds, results, filter);
+    }
+
     public int RayCast(Ray ray, List<RayCastHit<T>> hits, RayCastFilter<T> filter)
     {
         if (hits == null)

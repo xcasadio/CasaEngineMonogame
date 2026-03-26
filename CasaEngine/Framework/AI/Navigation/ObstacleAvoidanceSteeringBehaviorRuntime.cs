@@ -19,9 +19,25 @@ public sealed class ObstacleAvoidanceSteeringBehaviorRuntime : SteeringBehaviorR
     protected override Vector3 Calculate(SteeringAgentKinematics kinematics, SteeringAgentComponent agent, float elapsedTime)
     {
         Vector3 forward = kinematics.Forward.LengthSquared() > float.Epsilon ? Vector3.Normalize(kinematics.Forward) : Vector3.Right;
-        Vector3 ahead = kinematics.Position + forward * DetectionLength;
-        Vector3 bestForce = Vector3.Zero;
-        float bestDistance = float.MaxValue;
+        Vector3 side = Vector3.Cross(Vector3.UnitZ, forward);
+        if (side.LengthSquared() <= float.Epsilon)
+        {
+            side = Vector3.Up;
+        }
+        else
+        {
+            side.Normalize();
+        }
+
+        float speedRatio = kinematics.MaxSpeed <= float.Epsilon ? 0.0f : kinematics.Velocity.Length() / kinematics.MaxSpeed;
+        float detectionLength = DetectionLength + (speedRatio * DetectionLength);
+        float ownerRadius = agent.Owner != null && agent.TryGetCollisionRadius(agent.Owner, out float collisionRadius)
+            ? collisionRadius
+            : 0.0f;
+
+        float closestIntersection = float.MaxValue;
+        Vector2 localClosestObstacle = Vector2.Zero;
+        float closestObstacleRadius = 0.0f;
         LastAvoidanceTarget = Vector3.Zero;
 
         foreach (Entity entity in agent.FindEntitiesByPredicate(candidate => candidate.GetType().Name.Contains("Obstacle", StringComparison.OrdinalIgnoreCase)))
@@ -31,47 +47,52 @@ public sealed class ObstacleAvoidanceSteeringBehaviorRuntime : SteeringBehaviorR
                 continue;
             }
 
-            float radius = agent.TryGetCollisionRadius(entity, out float entityRadius) ? entityRadius : ClearanceRadius;
-            float distanceToSegment = DistancePointToSegment(obstaclePosition, kinematics.Position, ahead);
-            if (distanceToSegment > radius + ClearanceRadius)
+            float obstacleRadius = agent.TryGetCollisionRadius(entity, out float entityRadius) ? entityRadius : ClearanceRadius;
+            Vector3 toObstacle = obstaclePosition - kinematics.Position;
+            Vector2 localPosition = new(Vector3.Dot(toObstacle, forward), Vector3.Dot(toObstacle, side));
+
+            if (localPosition.X < 0.0f)
             {
                 continue;
             }
 
-            float distance = Vector3.DistanceSquared(kinematics.Position, obstaclePosition);
-            if (distance >= bestDistance)
+            float expandedRadius = obstacleRadius + ownerRadius;
+            if (Math.Abs(localPosition.Y) >= expandedRadius)
             {
                 continue;
             }
 
-            Vector3 away = ahead - obstaclePosition;
-            if (away.LengthSquared() <= float.Epsilon)
+            float sqrtPart = MathF.Sqrt(MathF.Max(0.0f, (expandedRadius * expandedRadius) - (localPosition.Y * localPosition.Y)));
+            float intersectionPoint = localPosition.X - sqrtPart;
+            if (intersectionPoint <= 0.0f)
             {
-                away = Vector3.Cross(Vector3.Up, forward);
+                intersectionPoint = localPosition.X + sqrtPart;
             }
 
-            away.Normalize();
-            bestForce = away * kinematics.MaxForce;
-            bestDistance = distance;
+            if (intersectionPoint > detectionLength || intersectionPoint >= closestIntersection)
+            {
+                continue;
+            }
+
+            closestIntersection = intersectionPoint;
+            localClosestObstacle = localPosition;
+            closestObstacleRadius = obstacleRadius;
             LastAvoidanceTarget = obstaclePosition;
         }
 
-        return bestForce;
-    }
-
-    private static float DistancePointToSegment(Vector3 point, Vector3 segmentStart, Vector3 segmentEnd)
-    {
-        Vector3 segment = segmentEnd - segmentStart;
-        float lengthSquared = segment.LengthSquared();
-        if (lengthSquared <= float.Epsilon)
+        if (closestIntersection == float.MaxValue)
         {
-            return Vector3.Distance(point, segmentStart);
+            return Vector3.Zero;
         }
 
-        float t = Vector3.Dot(point - segmentStart, segment) / lengthSquared;
-        t = MathHelper.Clamp(t, 0.0f, 1.0f);
-        Vector3 projection = segmentStart + segment * t;
-        return Vector3.Distance(point, projection);
+        float multiplier = 1.0f + ((detectionLength - localClosestObstacle.X) / Math.Max(1.0f, detectionLength));
+        const float brakingWeight = 0.2f;
+
+        Vector3 steeringLocal = Vector3.Zero;
+        steeringLocal.Y = (closestObstacleRadius - localClosestObstacle.Y) * multiplier;
+        steeringLocal.X = (closestObstacleRadius - localClosestObstacle.X) * brakingWeight;
+
+        return (forward * steeringLocal.X) + (side * steeringLocal.Y);
     }
 
     public override SteeringBehaviorRuntime Clone()

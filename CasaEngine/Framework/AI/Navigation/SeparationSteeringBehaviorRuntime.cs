@@ -12,6 +12,8 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
     public float NeighborRadius { get; set; } = 120.0f;
 
+    public string ExcludedEntityName { get; set; } = string.Empty;
+
     public int LastNeighborCount { get; private set; }
 
     public List<Vector3> LastNeighborPositions { get; } = [];
@@ -24,6 +26,12 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
         foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
         {
+            if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
+                && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out _))
             {
                 continue;
@@ -41,7 +49,7 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
             LastNeighborPositions.Add(otherPosition);
         }
 
-        return force * kinematics.MaxForce;
+        return force;
     }
 
     public override SteeringBehaviorRuntime Clone()
@@ -50,6 +58,7 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
         {
             IsEnabled = IsEnabled,
             NeighborRadius = NeighborRadius,
+            ExcludedEntityName = ExcludedEntityName,
         };
     }
 }

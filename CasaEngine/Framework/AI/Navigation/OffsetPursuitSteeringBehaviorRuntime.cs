@@ -25,7 +25,7 @@ public sealed class OffsetPursuitSteeringBehaviorRuntime : SteeringBehaviorRunti
             return Vector3.Zero;
         }
 
-        Vector3 leaderRight = Vector3.Cross(Vector3.Up, leaderForward);
+        Vector3 leaderRight = Vector3.Cross(Vector3.UnitZ, leaderForward);
         if (leaderRight.LengthSquared() <= float.Epsilon)
         {
             leaderRight = Vector3.Right;
@@ -35,7 +35,7 @@ public sealed class OffsetPursuitSteeringBehaviorRuntime : SteeringBehaviorRunti
             leaderRight.Normalize();
         }
 
-        Vector3 worldOffset = leaderPosition + (leaderForward * Offset.X) + (leaderRight * Offset.Y) + (Vector3.Up * Offset.Z);
+        Vector3 worldOffset = leaderPosition + (leaderForward * Offset.X) + (leaderRight * Offset.Y) + (Vector3.UnitZ * Offset.Z);
         float lookAheadTime = Vector3.Distance(kinematics.Position, worldOffset) / Math.Max(1.0f, kinematics.MaxSpeed + leaderVelocity.Length());
         LastWorldOffsetTarget = worldOffset + leaderVelocity * lookAheadTime;
 

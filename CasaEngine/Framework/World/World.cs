@@ -356,6 +356,12 @@ public sealed class World : ObjectBase
         }
     }
 
+    public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
+    {
+        ArgumentNullException.ThrowIfNull(results);
+        _octree.GetContainedObjects(bounds, results, filter);
+    }
+
     public void RegisterWorldUI(WorldUIComponent worldUiComponent)
     {
         ArgumentNullException.ThrowIfNull(worldUiComponent);
