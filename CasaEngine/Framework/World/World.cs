@@ -41,6 +41,13 @@ public sealed class World : ObjectBase
 
     public bool DisplaySpacePartitioning { get; set; }
 
+
+    public event EventHandler? EntitiesClear;
+    public event EventHandler? EntitiesCleared;
+    public event EventHandler<Entity> EntityAdded;
+    public event EventHandler<Entity> EntityRemoved;
+
+
     public World()
     {
         _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
@@ -147,7 +154,7 @@ public sealed class World : ObjectBase
         //after everything initialized entities are added
         InternalAddEntities();
 
-    if (Game.ExecutionPolicy.InitializePlayerControllers)
+        if (Game.ExecutionPolicy.InitializePlayerControllers)
         {
             InitializePlayerControllers();
         }
@@ -157,11 +164,15 @@ public sealed class World : ObjectBase
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
         }
 
-    if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
+        if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
         {
             GameplayProxy?.Initialize(null);
             GameplayProxy?.InitializeWithWorld(this);
         }
+
+        //Maybe GameplayProxy.InitializeWithWorld() will add some entities
+        //TODO : check if we have to do it only once just here
+        InternalAddEntities();
     }
 
     private void InitializePlayerControllers()
@@ -281,7 +292,7 @@ public sealed class World : ObjectBase
 
         _octree.ApplyPendingMoves();
 
-    if (Game.ExecutionPolicy.UpdateGameplayScripts)
+        if (Game.ExecutionPolicy.UpdateGameplayScripts)
         {
             GameplayProxy?.Update(elapsedTime);
         }
@@ -307,6 +318,11 @@ public sealed class World : ObjectBase
 
     private void InternalAddEntities()
     {
+        if (_baseObjectsToAdd.Count == 0)
+        {
+            return;
+        }
+
         var entitiesToAdd = new List<Entity>(_baseObjectsToAdd);
         _baseObjectsToAdd.Clear();
 
@@ -439,11 +455,6 @@ public sealed class World : ObjectBase
 
         return null;
     }
-
-    public event EventHandler? EntitiesClear;
-    public event EventHandler? EntitiesCleared;
-    public event EventHandler<Entity> EntityAdded;
-    public event EventHandler<Entity> EntityRemoved;
 
     internal IEnumerable<ITransformableObject> GetTransformableComponentsForEditor()
     {

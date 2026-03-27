@@ -130,7 +130,9 @@ public class WorldMessageBus : IWorldMessageBus
 
     protected virtual bool TryResolveEndpoint(Entity entity, out IMessageable endpoint)
     {
-        endpoint = entity as IMessageable ?? entity.GetComponent<IMessageable>();
+        endpoint = entity as IMessageable
+            ?? entity.GetComponent<IMessageable>()
+            ?? entity.GameplayProxy as IMessageable;
         return endpoint != null;
     }
 

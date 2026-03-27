@@ -5,7 +5,6 @@ using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 
@@ -84,7 +83,7 @@ public class GameManager
                 _game.RuntimeViewBootstrapper?.BootstrapViews(_game, CurrentWorld, ViewManager);
             }
 
-                SyncPlayerViewAssignments();
+            SyncPlayerViewAssignments();
             CurrentWorld.BeginPlay();
 
             _isNewWorld = false;
@@ -93,11 +92,6 @@ public class GameManager
         }
 
         var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
-        //var totalElapsedTime = GameTimeHelper.ConvertTotalTimeToSeconds(gameTime);
-
-        //if (Keyboard.GetState().IsKeyDown(Keys.OemQuotes))
-        //    DebugSystem.Instance.DebugCommandUI.Show(); 
-
         CurrentWorld?.Update(elapsedTime);
     }
 

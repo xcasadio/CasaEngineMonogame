@@ -2,7 +2,7 @@ using CasaEngine.Framework.AI.Messaging;
 
 namespace CasaEngine.Framework.AI.StateMachines;
 
-public interface IFiniteStateMachine<T> : IMessageable where T : IFsmCapable<T>
+public interface IFiniteStateMachine<T> : IMessageable
 {
     IState<T> CurrentState { get; set; }
     IState<T> GlobalState { get; set; }
