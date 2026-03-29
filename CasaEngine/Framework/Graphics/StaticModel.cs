@@ -97,7 +97,11 @@ public class StaticModel : ObjectBase
             // Resolve per-submesh materials
             foreach (var sub in mesh.SubMeshes)
             {
-                if (sub.MaterialAssetId == Guid.Empty) continue;
+                if (sub.MaterialAssetId == Guid.Empty)
+                {
+                    continue;
+                }
+
                 try
                 {
                     sub.Material = assetContentManager.Load<MaterialBase>(sub.MaterialAssetId);
@@ -129,19 +133,14 @@ public class StaticModel : ObjectBase
 
         // Meshes
         Meshes.Clear();
-        if (element.ContainsKey("meshes"))
+        if (element.TryGetValue("meshes", out var value))
         {
-            foreach (JObject meshObj in element["meshes"]!)
+            foreach (JObject meshObj in value!)
             {
                 var mesh = new StaticModelMesh();
                 mesh.Load(meshObj);
                 Meshes.Add(mesh);
             }
         }
-    }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("StaticModel authoring serialization lives in CasaEngine.EditorServices.");
     }
 }

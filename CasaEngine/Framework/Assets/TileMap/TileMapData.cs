@@ -25,9 +25,4 @@ public class TileMapData : ObjectBase
             return tileMapLayerData;
         }));
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("TileMapData authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

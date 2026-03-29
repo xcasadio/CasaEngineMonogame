@@ -439,7 +439,7 @@ public sealed class World : ObjectBase
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
-    internal IEnumerable<ITransformableObject> GetTransformableComponentsForEditor()
+    internal IEnumerable<ITransformableObject> GetTransformableObjects()
     {
         var selectables = new List<ITransformableObject>();
 
@@ -575,10 +575,4 @@ public sealed class World : ObjectBase
             NotifyEntityRemovedRecursive(child);
         }
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("World authoring serialization lives in CasaEngine.EditorServices.");
-    }
-
 }

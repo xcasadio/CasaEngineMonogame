@@ -9,7 +9,7 @@ public static class EditorWorldEditingService
     public static IEnumerable<ITransformableObject> GetSelectableComponents(World world)
     {
         ArgumentNullException.ThrowIfNull(world);
-        return world.GetTransformableComponentsForEditor();
+        return world.GetTransformableObjects();
     }
 
     public static void AddEntity(World world, Entity entity)

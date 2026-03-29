@@ -95,14 +95,6 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         AssetType = string.Empty;
     }
 
-    public void Save(JObject jObject)
-    {
-        jObject.Add("id", Id);
-        jObject.Add("name", Name);
-        jObject.Add("file_name", FileName);
-        jObject.Add("asset_type", string.IsNullOrWhiteSpace(AssetType) ? InferAssetType(FileName) : AssetType);
-    }
-
     public static string InferAssetType(string? fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))

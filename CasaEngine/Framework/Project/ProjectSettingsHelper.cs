@@ -41,13 +41,11 @@ public static class ProjectSettingsHelper
         }
 
         var assetInfoFileName = Path.Combine(Path.GetDirectoryName(fileName), "AssetInfos.json");
-
-        //#if !EDITOR
         if (!File.Exists(assetInfoFileName))
         {
             return;
         }
-        //#endif
+
         AssetCatalog.Load(assetInfoFileName);
     }
 

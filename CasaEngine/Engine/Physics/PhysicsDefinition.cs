@@ -83,9 +83,4 @@ public class PhysicsDefinition
             DebugColor = element["debug_color"].GetColor();
         }
     }
-
-    public void Save(JObject jObject)
-    {
-        throw new NotSupportedException("PhysicsDefinition authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

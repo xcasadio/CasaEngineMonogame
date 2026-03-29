@@ -21,9 +21,4 @@ public abstract class Shape2d
         Position = element["location"].GetVector2();
         Rotation = element["orientation"].GetSingle();
     }
-
-    public virtual void Save(JObject jObject)
-    {
-        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

@@ -14,9 +14,4 @@ public abstract class Shape3d : ObjectBase
     {
         Type = type;
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

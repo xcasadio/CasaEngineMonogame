@@ -32,11 +32,8 @@ public class SubMesh : ISerializable
         VertexOffset  = element["vertex_offset"]?.Value<int>()   ?? 0;
 
         if (element["material_asset_id"] is { } matToken)
+        {
             MaterialAssetId = Guid.Parse(matToken.Value<string>()!);
-    }
-
-    public void Save(JObject jObject)
-    {
-        throw new NotSupportedException("SubMesh authoring serialization lives in CasaEngine.EditorServices.");
+        }
     }
 }

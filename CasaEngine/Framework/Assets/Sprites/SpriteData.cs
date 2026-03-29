@@ -40,9 +40,4 @@ public class SpriteData : ObjectBase
             }
         }
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("SpriteData authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

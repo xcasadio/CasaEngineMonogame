@@ -34,9 +34,4 @@ public class TileData
             CollisionShape.Load((JObject)collisionNode);
         }
     }
-
-    public virtual void Save(JObject jObject)
-    {
-        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

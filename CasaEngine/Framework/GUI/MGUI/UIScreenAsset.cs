@@ -35,9 +35,4 @@ public sealed class UIScreenAsset : ObjectBase
             }
         }
     }
-
-    public override void Save(JObject node)
-    {
-        throw new NotSupportedException("UIScreenAsset authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

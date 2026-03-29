@@ -77,7 +77,7 @@ public static class EditorAssetCatalogService
         foreach (var assetInfo in AssetCatalog.AssetInfos)
         {
             var entityObject = new JObject();
-            assetInfo.Save(entityObject);
+            EditorJsonSaveHelper.SaveAssetInfo(assetInfo, entityObject);
             assetInfoJArray.Add(entityObject);
         }
 

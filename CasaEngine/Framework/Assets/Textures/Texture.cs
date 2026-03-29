@@ -122,9 +122,4 @@ public class Texture : ObjectBase, IAssetable
         //    LoadTexture(AssetInfo.FileName);
         //}
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("Texture authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

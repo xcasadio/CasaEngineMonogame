@@ -13,9 +13,4 @@ public class AnimationData : ObjectBase
         AnimationType = element["animation_type"].GetEnum<AnimationType>();
         base.Load(element);
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("AnimationData authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

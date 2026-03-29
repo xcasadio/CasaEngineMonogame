@@ -53,9 +53,4 @@ public class TileSetData : ObjectBase
         Tiles.Add(tileData);
         _tileById.Add(tileData.Id, tileData);
     }
-
-    public override void Save(JObject jObject)
-    {
-        throw new NotSupportedException("TileSetData authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

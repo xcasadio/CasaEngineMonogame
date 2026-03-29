@@ -63,8 +63,8 @@ public abstract class MaterialBase : ISerializable
     /// optionally considering the <paramref name="mesh"/> (Phase 7).
     /// The renderer uses these flags to select the correct compiled shader variant.
     /// </summary>
-    public virtual Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
-        => Rendering.Shaders.ShaderFeature.None;
+    public virtual ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+        => ShaderFeature.None;
 
     // -------------------------------------------------------------------------
     // Serialisation
@@ -73,7 +73,9 @@ public abstract class MaterialBase : ISerializable
     public virtual void Load(JObject element)
     {
         if (element["id"] is { } idToken)
+        {
             Id = Guid.Parse(idToken.Value<string>()!);
+        }
 
         Name = element["name"]?.Value<string>() ?? string.Empty;
         IsTransparent = element["is_transparent"]?.Value<bool>() ?? false;
@@ -85,17 +87,14 @@ public abstract class MaterialBase : ISerializable
         }
 
         if (element["shader_asset_id"] is { } shaderToken)
+        {
             ShaderAssetId = Guid.Parse(shaderToken.Value<string>()!);
+        }
 
         CastShadows    = element["cast_shadows"]?.Value<bool>() ?? true;
         ReceiveShadows = element["receive_shadows"]?.Value<bool>() ?? true;
 
         LoadRenderStates(element);
-    }
-
-    public virtual void Save(JObject jObject)
-    {
-        throw new NotSupportedException($"{GetType().Name} authoring serialization lives in CasaEngine.EditorServices.");
     }
 
     // -------------------------------------------------------------------------
@@ -148,21 +147,48 @@ public abstract class MaterialBase : ISerializable
     public string GetRasterizerStateName()  => RasterizerState == null ? "CullCounterClockwise": GetKeyOrDefault(RasterizerMap, RasterizerState!, "CullCounterClockwise");
     public string GetSamplerStateName()     => SamplerState  == null ? "AnisotropicClamp"      : GetKeyOrDefault(SamplerMap,   SamplerState!,   "AnisotropicClamp");
 
-    public void SetBlendStateByName(string name)      { if (BlendStateMap.TryGetValue(name, out var v))        BlendState = v; }
-    public void SetDepthStateByName(string name)      { if (DepthStateMap.TryGetValue(name, out var v))        DepthStencilState = v; }
-    public void SetRasterizerStateByName(string name) { if (RasterizerMap.TryGetValue(name, out var v))        RasterizerState = v; }
-    public void SetSamplerStateByName(string name)    { if (SamplerMap.TryGetValue(name, out var v))           SamplerState = v; }
+    public void SetBlendStateByName(string name)      { if (BlendStateMap.TryGetValue(name, out var v))
+        {
+            BlendState = v;
+        }
+    }
+    public void SetDepthStateByName(string name)      { if (DepthStateMap.TryGetValue(name, out var v))
+        {
+            DepthStencilState = v;
+        }
+    }
+    public void SetRasterizerStateByName(string name) { if (RasterizerMap.TryGetValue(name, out var v))
+        {
+            RasterizerState = v;
+        }
+    }
+    public void SetSamplerStateByName(string name)    { if (SamplerMap.TryGetValue(name, out var v))
+        {
+            SamplerState = v;
+        }
+    }
 
     private void LoadRenderStates(JObject element)
     {
         if (element["blend_state"] is { } b && BlendStateMap.TryGetValue(b.Value<string>()!, out var blend))
+        {
             BlendState = blend;
+        }
+
         if (element["depth_stencil_state"] is { } d && DepthStateMap.TryGetValue(d.Value<string>()!, out var depth))
+        {
             DepthStencilState = depth;
+        }
+
         if (element["rasterizer_state"] is { } r && RasterizerMap.TryGetValue(r.Value<string>()!, out var rasterizer))
+        {
             RasterizerState = rasterizer;
+        }
+
         if (element["sampler_state"] is { } s && SamplerMap.TryGetValue(s.Value<string>()!, out var sampler))
+        {
             SamplerState = sampler;
+        }
     }
 
     private void SaveRenderStates(JObject jObject)
@@ -177,7 +203,10 @@ public abstract class MaterialBase : ISerializable
     {
         foreach (var kv in map)
             if (ReferenceEquals(kv.Value, value))
+            {
                 return kv.Key;
+            }
+
         return defaultKey;
     }
 }

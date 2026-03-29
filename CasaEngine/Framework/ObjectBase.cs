@@ -48,10 +48,4 @@ public class ObjectBase : ISerializable
         Id = element["id"].GetGuid();
         Name = element["name"].GetString();
     }
-
-    public virtual void Save(JObject node)
-    {
-        node.Add("id", Id.ToString());
-        node.Add("name", Name);
-    }
 }

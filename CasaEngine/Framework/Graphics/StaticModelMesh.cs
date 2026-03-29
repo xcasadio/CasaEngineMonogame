@@ -105,7 +105,9 @@ public class StaticModelMesh
         MaterialIndex = element["material_index"].GetInt32();
         TextureAssetId = element["texture_asset_id"].GetGuid();
         if (element["material_asset_id"] is { } matToken)
+        {
             MaterialAssetId = Guid.Parse(matToken.Value<string>()!);
+        }
 
         SubMeshes.Clear();
         if (element["sub_meshes"] is JArray subMeshArray)
@@ -131,10 +133,5 @@ public class StaticModelMesh
                 Max = Vector3.Max(Max, v.Position);
             }
         }
-    }
-
-    public void Save(JObject jObject)
-    {
-        throw new NotSupportedException("StaticModelMesh authoring serialization lives in CasaEngine.EditorServices.");
     }
 }

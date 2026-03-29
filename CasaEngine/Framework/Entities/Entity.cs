@@ -369,9 +369,4 @@ public class Entity : ObjectBase
     public event EventHandler<EntityComponent> ComponentRemoved;
 
     public event EventHandler<EntityNameChangedEventArgs> NameChanged;
-
-    public override void Save(JObject node)
-    {
-        throw new NotSupportedException("Entity authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

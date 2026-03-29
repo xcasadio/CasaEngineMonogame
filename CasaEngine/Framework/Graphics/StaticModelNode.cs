@@ -45,9 +45,4 @@ public class StaticModelNode : ISerializable
             Children.Add(child);
         }
     }
-
-    public void Save(JObject jObject)
-    {
-        throw new NotSupportedException("StaticModelNode authoring serialization lives in CasaEngine.EditorServices.");
-    }
 }

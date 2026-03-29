@@ -1,5 +1,6 @@
 using CasaEngine.Core.Maths;
 using CasaEngine.Framework;
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -12,6 +13,16 @@ internal static class EditorJsonSaveHelper
     {
         jObject.Add("id", objectBase.Id.ToString());
         jObject.Add("name", objectBase.Name);
+    }
+
+    public static void SaveAssetInfo(AssetInfo assetInfo, JObject jObject)
+    {
+        jObject.Add("id", assetInfo.Id);
+        jObject.Add("name", assetInfo.Name);
+        jObject.Add("file_name", assetInfo.FileName);
+        jObject.Add("asset_type", string.IsNullOrWhiteSpace(assetInfo.AssetType)
+            ? AssetInfo.InferAssetType(assetInfo.FileName)
+            : assetInfo.AssetType);
     }
 
     public static void Save(this Rectangle obj, JObject jObject)

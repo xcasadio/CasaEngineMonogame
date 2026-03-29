@@ -87,12 +87,10 @@ public class ScriptArcBallCamera : GameplayProxy
             //zoom = -wheelDelta * 0.1f;
         }
 
-        //#if EDITOR
         rightAxis = -rightAxis;
         upAxis = -upAxis;
         horizontalOrbit = -horizontalOrbit;
         verticalOrbit = -verticalOrbit;
-        //#endif
 
         HandleControls(elapsedTime, rightAxis, upAxis, forwardAxis, horizontalOrbit, verticalOrbit, rollOrbit, zoom);
     }

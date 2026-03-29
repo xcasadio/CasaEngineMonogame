@@ -107,34 +107,4 @@ public class InputConfigurations : ISerializable
     {
 
     }
-
-    public void Save(JObject jObject)
-    {
-        var configurationNodes = new JArray();
-
-        foreach (var configuration in _configurations)
-        {
-            var configNode = new JObject();
-            configurationNodes.Add(configNode);
-            configNode["key"] = configuration.Key;
-
-            var configurationNode = new JArray();
-            configNode.Add("buttons_configuration", configurationNode);
-
-            var buttonEnumerator = configuration.Value.Buttons;
-            while (buttonEnumerator.MoveNext())
-            {
-                var buttonPairNode = new JObject();
-                buttonPairNode["key"] = buttonEnumerator.Current.Key;
-                var buttonMapperNode = new JObject();
-                buttonPairNode["value"] = buttonMapperNode;
-                buttonMapperNode["name"] = buttonEnumerator.Current.Value.Name;
-                buttonMapperNode["key"] = (int)buttonEnumerator.Current.Value.Key;
-                buttonMapperNode["alt_key"] = (int)buttonEnumerator.Current.Value.AltKey;
-                buttonMapperNode["buttons"] = (int)buttonEnumerator.Current.Value.Buttons;
-            }
-        }
-
-        jObject.Add("configurations", configurationNodes);
-    }
 }
