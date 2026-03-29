@@ -52,18 +52,11 @@ namespace CasaEngine.Editor
         private MGDockPanel _rootPanel;
         private MGDockHost _dockHost;
         private MGMenuBar _menuBar;
-        private MGDockPanel _statusBar;
         private EditorPanelRegistry _panelRegistry;
         private WorldEditorWorkspace _worldWorkspace;
         private UIScreenEditorWorkspace _uiScreenWorkspace;
         private EditorWorkspaceManager _workspaceManager;
         private EditorWorkspaceId _activeWorkspaceId = EditorWorkspaceId.World;
-        private MGButton _toggleContentBrowserButton;
-        private MGButton _toggleLogsButton;
-        private MGTextBlock _statusProjectText;
-        private MGTextBlock _statusStatsText;
-        private string _lastStatusProjectLabel;
-        private string _lastStatusStatsLabel;
 
         // ── Editor panels ──────────────────────────────────────────────────
         private LoggerEditor _loggerEditor;
@@ -100,9 +93,6 @@ namespace CasaEngine.Editor
         private bool _isSynchronizingEntitySelection;
         private bool _isSwitchingWorkspace;
         private Entity _selectedEntity;
-        private TimeSpan _fpsSampleElapsed;
-        private int _fpsSampleFrames;
-        private int _currentFps;
         private readonly EditorAutomationOptions _automationOptions;
         private bool _automationWorldLoaded;
         private bool _automationSelectionApplied;
@@ -317,12 +307,6 @@ namespace CasaEngine.Editor
                 BuildMenuBar();
                 _rootPanel.TryAddChild(_menuBar, Dock.Top);
             }
-
-            if (_statusBar == null)
-            {
-                _statusBar = CreateStatusBar();
-                _rootPanel.TryAddChild(_statusBar, Dock.Bottom);
-            }
         }
 
         private void UpdateWindowTitle()
@@ -402,11 +386,8 @@ namespace CasaEngine.Editor
             _dockHost = new MGDockHost(_mainWindow);
             _dockHost.Name = "EditorDockHost";
             _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
-            _dockHost.PanelAdded += OnDockHostPanelVisibilityChanged;
-            _dockHost.PanelRemoved += OnDockHostPanelVisibilityChanged;
             _rootPanel.TryAddChild(_dockHost, Dock.Top);
             SetupInitialDockLayout();
-            RefreshStatusBar();
         }
 
         private MGElement GetOrCreateContentBrowserContent()
@@ -756,7 +737,6 @@ namespace CasaEngine.Editor
                 {
                     _activeWorkspaceId = _workspaceManager?.ActiveWorkspaceId ?? _activeWorkspaceId;
                     _ = GetOrCreateLogsContent();
-                    RefreshStatusBar();
                 });
         }
 
@@ -764,7 +744,6 @@ namespace CasaEngine.Editor
         {
             if (_isSwitchingWorkspace)
             {
-                RefreshStatusBar();
                 return;
             }
 
@@ -790,13 +769,6 @@ namespace CasaEngine.Editor
                     return;
                 }
             }
-
-            RefreshStatusBar();
-        }
-
-        private void OnDockHostPanelVisibilityChanged(object? sender, DockPanelNode panel)
-        {
-            RefreshStatusBar();
         }
 
         private void ActivateDockPanel(string panelId)
@@ -815,160 +787,6 @@ namespace CasaEngine.Editor
         private void OpenProjectLauncher()
         {
             ShowProjectLauncher();
-        }
-
-        private MGDockPanel CreateStatusBar()
-        {
-            var statusBar = new MGDockPanel(_mainWindow)
-            {
-                Padding = new MonoGame.Extended.Thickness(8, 4, 8, 4),
-                MinHeight = 32,
-                MaxHeight = 32,
-            };
-
-            var leftStack = new MGStackPanel(_mainWindow, Orientation.Horizontal)
-            {
-                Spacing = 6,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            _toggleContentBrowserButton = CreateStatusBarButton("Content Browser", () => ToggleDockPanel(EditorPanelIds.ContentBrowser));
-            _toggleLogsButton = CreateStatusBarButton("Logs", () => ToggleDockPanel(EditorPanelIds.Output));
-            leftStack.TryAddChild(_toggleContentBrowserButton);
-            leftStack.TryAddChild(_toggleLogsButton);
-
-            var rightStack = new MGStackPanel(_mainWindow, Orientation.Horizontal)
-            {
-                Spacing = 12,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            _statusProjectText = new MGTextBlock(_mainWindow, "Project: none")
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            _statusStatsText = new MGTextBlock(_mainWindow, "FPS: 0 | Entities: 0")
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-            };
-
-            rightStack.TryAddChild(_statusProjectText);
-            rightStack.TryAddChild(_statusStatsText);
-
-            statusBar.TryAddChild(leftStack, Dock.Left);
-            statusBar.TryAddChild(rightStack, Dock.Right);
-            return statusBar;
-        }
-
-        private MGButton CreateStatusBarButton(string label, Action onClick)
-        {
-            var button = new MGButton(_mainWindow, _ => onClick())
-            {
-                PreferredHeight = 24,
-                Padding = new MonoGame.Extended.Thickness(10, 2, 10, 2),
-            };
-            SetStatusBarButtonLabel(button, label);
-            return button;
-        }
-
-        private void SetStatusBarButtonLabel(MGButton button, string label)
-        {
-            if (button.Content is MGTextBlock existingLabel)
-            {
-                if (!string.Equals(existingLabel.Text, label, StringComparison.Ordinal))
-                {
-                    existingLabel.SetText(label);
-                }
-
-                return;
-            }
-
-            button.SetContent(new MGTextBlock(_mainWindow, label)
-            {
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
-            });
-        }
-
-        private void ToggleDockPanel(string panelId)
-        {
-            if (_dockHost == null)
-            {
-                return;
-            }
-
-            if (_dockHost.FindPanel(panelId) != null)
-            {
-                _dockHost.RemovePanel(panelId);
-            }
-            else if (_dockHost.ShowDockable(panelId))
-            {
-                ActivateDockPanel(panelId);
-            }
-
-            RefreshStatusBar();
-        }
-
-        private bool IsDockPanelVisible(string panelId)
-        {
-            return _dockHost?.FindPanel(panelId) != null;
-        }
-
-        private void RefreshStatusBar()
-        {
-            if (_statusProjectText == null || _statusStatsText == null)
-            {
-                return;
-            }
-
-            string projectName = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
-                ? "none"
-                : GameSettings.ProjectSettings.ProjectName;
-            string projectLabel = $"Project: {projectName}";
-            if (!string.Equals(_lastStatusProjectLabel, projectLabel, StringComparison.Ordinal))
-            {
-                _statusProjectText.SetText(projectLabel);
-                _lastStatusProjectLabel = projectLabel;
-            }
-
-            int entityCount = CountEntities(_editorRuntime?.GameManager.CurrentWorld);
-            string statsLabel = $"FPS: {_currentFps:D3} | Entities: {entityCount:D6}";
-            if (!string.Equals(_lastStatusStatsLabel, statsLabel, StringComparison.Ordinal))
-            {
-                _statusStatsText.SetText(statsLabel, SuppressLayoutChanged: true);
-                _lastStatusStatsLabel = statsLabel;
-            }
-
-            if (_toggleContentBrowserButton != null)
-            {
-                SetStatusBarButtonLabel(
-                    _toggleContentBrowserButton,
-                    IsDockPanelVisible(EditorPanelIds.ContentBrowser) ? "Hide Content Browser" : "Show Content Browser");
-            }
-
-            if (_toggleLogsButton != null)
-            {
-                SetStatusBarButtonLabel(
-                    _toggleLogsButton,
-                    IsDockPanelVisible(EditorPanelIds.Output) ? "Hide Logs" : "Show Logs");
-            }
-        }
-
-        private static int CountEntities(CasaEngine.Framework.World.World? world)
-        {
-            if (world == null)
-            {
-                return 0;
-            }
-
-            return world.Entities.Sum(CountEntityRecursive);
-        }
-
-        private static int CountEntityRecursive(Entity entity)
-        {
-            return 1 + entity.Children.Sum(CountEntityRecursive);
         }
 
         private void ShowProjectLauncher()
@@ -1200,7 +1018,6 @@ namespace CasaEngine.Editor
                 var json = File.ReadAllText(layoutPath);
                 _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
                 PruneUnsupportedPanels(workspaceId);
-                RefreshStatusBar();
 
                 if (logOutcome)
                 {
@@ -1668,15 +1485,6 @@ namespace CasaEngine.Editor
                 ExecutePaste();
             }
 
-            _fpsSampleElapsed += gameTime.ElapsedGameTime;
-            _fpsSampleFrames++;
-            if (_fpsSampleElapsed >= TimeSpan.FromSeconds(0.5))
-            {
-                _currentFps = (int)Math.Round(_fpsSampleFrames / _fpsSampleElapsed.TotalSeconds);
-                _fpsSampleElapsed = TimeSpan.Zero;
-                _fpsSampleFrames = 0;
-            }
-
             foreach (var previewPanel in _screenPreviewPanels.Values)
             {
                 previewPanel.Update();
@@ -1688,7 +1496,6 @@ namespace CasaEngine.Editor
             _entitiesPanel?.Update();
             _worldViewportPanel?.UpdateInput(gameTime);
             RunAutomation(gameTime.TotalGameTime);
-            RefreshStatusBar();
 
             base.Update(gameTime);
 
