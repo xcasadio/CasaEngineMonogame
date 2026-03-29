@@ -5,17 +5,13 @@ using CasaEngine.Framework.World;
 
 namespace CasaEngine.RPGDemo.Controllers;
 
-public abstract class Controller : IFsmCapable<Controller>
+public abstract class Controller
 {
     private readonly FiniteStateMachine<Controller> _fsm;
     private readonly Dictionary<int, IState<Controller>> _states = new();
     private bool _isInitialized;
 
-    public IFiniteStateMachine<Controller> StateMachine
-    {
-        get => _fsm;
-        set => throw new NotImplementedException();
-    }
+    public IFiniteStateMachine<Controller> StateMachine => _fsm;
 
     public Character Character { get; }
 
