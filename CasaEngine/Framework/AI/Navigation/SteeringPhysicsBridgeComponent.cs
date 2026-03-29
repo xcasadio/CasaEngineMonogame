@@ -7,6 +7,7 @@ namespace CasaEngine.Framework.AI.Navigation;
 
 public sealed class SteeringPhysicsBridgeComponent : EntityComponent
 {
+    private const float ForceEpsilon = 0.0001f;
     private SteeringAgentComponent? _agentComponent;
     private PhysicsBaseComponent? _physicsComponent;
     private SceneComponent? _sceneComponent;
@@ -14,6 +15,10 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
     public bool AutoOrient { get; set; } = true;
 
     public float MinimumFacingSpeed { get; set; } = 0.05f;
+
+    public float IdleBrakingFactor { get; set; } = 1.0f;
+
+    public float MinimumLinearSpeed { get; set; } = 0.01f;
 
     public override void Attach(Entity actor)
     {
@@ -60,6 +65,8 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
         {
             AutoOrient = AutoOrient,
             MinimumFacingSpeed = MinimumFacingSpeed,
+            IdleBrakingFactor = IdleBrakingFactor,
+            MinimumLinearSpeed = MinimumLinearSpeed,
         };
     }
 
@@ -71,6 +78,19 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
         }
 
         float mass = MathF.Max(_agentComponent.Settings.Mass, 0.0001f);
+        if (force.LengthSquared() <= ForceEpsilon)
+        {
+            Vector3 slowedVelocity = _physicsComponent.Velocity * Math.Clamp(IdleBrakingFactor, 0.0f, 1.0f);
+            slowedVelocity.Z = 0.0f;
+
+            if (slowedVelocity.LengthSquared() <= MinimumLinearSpeed * MinimumLinearSpeed)
+            {
+                return Vector3.Zero;
+            }
+
+            return slowedVelocity;
+        }
+
         Vector3 deltaVelocity = force / mass * elapsedTime;
         Vector3 velocity = (_physicsComponent.Velocity + deltaVelocity).Truncate(_agentComponent.Settings.MaxSpeed);
         velocity.Z = 0.0f;
