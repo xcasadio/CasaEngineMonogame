@@ -110,8 +110,8 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
 
 namespace CasaEngine.Framework.Game.Components.Editor
 {
-    [System.Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.DebugGridComponent instead.")]
-    public sealed class GridComponent : CasaEngine.Framework.Game.Components.DebugTools.DebugGridComponent
+    [Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.DebugGridComponent instead.")]
+    public sealed class GridComponent : DebugTools.DebugGridComponent
     {
         public GridComponent(Microsoft.Xna.Framework.Game game)
             : base(game)

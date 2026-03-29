@@ -24,7 +24,7 @@ public class GameManager
     }
 
     /// <summary>Manages active render views for the multi-view render pipeline.</summary>
-    public ViewManager ViewManager { get; } = new ViewManager();
+    public ViewManager ViewManager { get; } = new();
 
     public GameScreenManager ScreenManager { get; }
 

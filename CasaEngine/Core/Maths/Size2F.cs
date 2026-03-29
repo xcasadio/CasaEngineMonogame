@@ -21,8 +21,16 @@ public struct Size2F : IEquatable<Size2F>
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (obj.GetType() != typeof(Size2F)) return false;
+        if (ReferenceEquals(null, obj))
+        {
+            return false;
+        }
+
+        if (obj.GetType() != typeof(Size2F))
+        {
+            return false;
+        }
+
         return Equals((Size2F)obj);
     }
 

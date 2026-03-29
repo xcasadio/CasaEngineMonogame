@@ -6,6 +6,6 @@ public class KeyboardStateProvider : IKeyboardStateProvider
 {
     public KeyboardState GetState()
     {
-        return Microsoft.Xna.Framework.Input.Keyboard.GetState();
+        return Keyboard.GetState();
     }
 }

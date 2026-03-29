@@ -92,20 +92,29 @@ public sealed class GameScreenManager
     public void TransitionTo(string newState, IEnumerable<ViewId>? targetViews)
     {
         if (string.Equals(CurrentState, newState, StringComparison.OrdinalIgnoreCase))
+        {
             return;
+        }
 
         foreach (var view in ResolveViews(targetViews))
         {
             var uiView = view.UIView;
-            if (uiView == null) continue;
+            if (uiView == null)
+            {
+                continue;
+            }
 
             // Pop existing state if there is one.
             if (CurrentState != null)
+            {
                 uiView.PopScreen();
+            }
 
             // Push the new state if a factory exists for it.
             if (_factories.TryGetValue(newState, out var factory))
+            {
                 uiView.PushScreen(factory());
+            }
         }
 
         CurrentState = newState;
@@ -119,7 +128,10 @@ public sealed class GameScreenManager
 
     public void ClearState(IEnumerable<ViewId>? targetViews)
     {
-        if (CurrentState == null) return;
+        if (CurrentState == null)
+        {
+            return;
+        }
 
         foreach (var view in ResolveViews(targetViews))
             view.UIView?.PopScreen();

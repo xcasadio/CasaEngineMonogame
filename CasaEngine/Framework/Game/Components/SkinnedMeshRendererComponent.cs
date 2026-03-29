@@ -18,7 +18,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     /// <summary>
     /// Default scene lighting for skinned meshes. Same values as StaticMeshRendererComponent.
     /// </summary>
-    public LightingContext DefaultLighting { get; } = new LightingContext
+    public LightingContext DefaultLighting { get; } = new()
     {
         ActiveDirectionalLightCount = 3,
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f),

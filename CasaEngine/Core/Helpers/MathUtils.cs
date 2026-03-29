@@ -14,7 +14,9 @@ public static class MathUtils
     public static bool NearEqual(float a, float b)
     {
         if (IsZero(a - b))
+        {
             return true;
+        }
 
         return Math.Abs(a - b) < Epsilon;
     }

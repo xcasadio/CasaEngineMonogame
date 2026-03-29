@@ -81,10 +81,10 @@ public static class SplitScreenLayout
 
         return new Rectangle[]
         {
-            new Rectangle(0,  0,  hw,      hh),
-            new Rectangle(hw, 0,  w - hw,  hh),
-            new Rectangle(0,  hh, hw,      h - hh),
-            new Rectangle(hw, hh, w - hw,  h - hh),
+            new(0,  0,  hw,      hh),
+            new(hw, 0,  w - hw,  hh),
+            new(0,  hh, hw,      h - hh),
+            new(hw, hh, w - hw,  h - hh),
         };
     }
 }

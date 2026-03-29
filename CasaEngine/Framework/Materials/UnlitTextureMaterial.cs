@@ -41,17 +41,19 @@ public class UnlitTextureMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
     }
 
-    public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+    public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
         => BasColor is not null
-            ? Rendering.Shaders.ShaderFeature.BasColorTexture
-            : Rendering.Shaders.ShaderFeature.None;
+            ? ShaderFeature.BasColorTexture
+            : ShaderFeature.None;
 
     public override void Load(JObject element)
     {
         base.Load(element);
 
         if (element["BasColor_asset_id"] is { } a)
+        {
             BasColorAssetId = Guid.Parse(a.Value<string>()!);
+        }
 
         if (element["tint_color"] is JObject tc)
         {

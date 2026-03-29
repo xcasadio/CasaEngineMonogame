@@ -21,7 +21,9 @@ public sealed class ShaderBindCache
     public bool BindGlobals(ShaderWrapper shader, in RenderContext context)
     {
         if (ReferenceEquals(shader, _lastShader))
+        {
             return false;
+        }
 
         _lastShader = shader;
 
@@ -32,7 +34,9 @@ public sealed class ShaderBindCache
         context.Lighting?.Bind(shader);
 
         if (context.Stats is not null)
+        {
             context.Stats.EffectBinds++;
+        }
 
         return true;
     }

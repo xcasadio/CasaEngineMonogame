@@ -149,7 +149,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         graphicsDevice.BlendState = BlendState.AlphaBlend; //BlendState.AlphaBlend; //_blendState
 
         var camera = _game.GameManager.ViewManager.ActiveView?.Camera;
-        if (camera == null) return;
+        if (camera == null)
+        {
+            return;
+        }
+
         _effect.Parameters["ViewProj"].SetValue(camera.ViewMatrix * camera.ProjectionMatrix);
         _effect.Parameters["Texture"].SetValue(texture);
         _effect.Parameters["Color"].SetValue(Color.White.ToVector4());

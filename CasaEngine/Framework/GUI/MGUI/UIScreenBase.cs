@@ -35,7 +35,11 @@ public abstract class UIScreenBase : IUIScreen
     /// <inheritdoc/>
     public void Initialize(UIRoot root)
     {
-        if (_initialized) return;
+        if (_initialized)
+        {
+            return;
+        }
+
         _initialized = true;
         Root = root;
         OnInitialize(root);

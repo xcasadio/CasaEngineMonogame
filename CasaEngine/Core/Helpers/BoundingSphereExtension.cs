@@ -32,7 +32,10 @@ public static class BoundingSphereExtension
     public static void ExpandBy(this ref BoundingSphere boundingSphere, BoundingSphere sh)
     {
         // ignore operation if incoming BoundingSphere is invalid.
-        if (!sh.Valid()) return;
+        if (!sh.Valid())
+        {
+            return;
+        }
 
         // This sphere is not set so use the inbound sphere
         if (!boundingSphere.Valid())

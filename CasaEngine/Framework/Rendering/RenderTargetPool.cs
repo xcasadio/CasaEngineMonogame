@@ -90,7 +90,10 @@ public sealed class RenderTargetPool : IDisposable
     /// </summary>
     public void Release(RenderTarget2D rt)
     {
-        if (_disposed || rt.IsDisposed) return;
+        if (_disposed || rt.IsDisposed)
+        {
+            return;
+        }
 
         var key = (rt.Width, rt.Height, rt.Format, rt.DepthStencilFormat);
 

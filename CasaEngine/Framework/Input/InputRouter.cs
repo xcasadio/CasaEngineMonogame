@@ -296,7 +296,10 @@ public sealed class InputRouter
     {
         if (_playerViews.TryGetValue(playerIndex, out var id)
             && _viewManager.TryGetView(id, out var view))
+        {
             return view;
+        }
+
         return null;
     }
 

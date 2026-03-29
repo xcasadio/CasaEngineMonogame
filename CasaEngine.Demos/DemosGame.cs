@@ -138,7 +138,7 @@ public class DemosGame : CasaEngineGame
     {
         _currentDemo.Update(gameTime);
 
-        var kb = Keyboard.GetState();
+        var kb = IsActive ? Keyboard.GetState() : new KeyboardState();
 
         // F1 — toggle demo info panel visibility
         if (kb.IsKeyDown(Keys.F1) && !_prevKeyboard.IsKeyDown(Keys.F1))

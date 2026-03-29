@@ -58,13 +58,22 @@ public sealed class ViewManager
     {
         SynchronizeHostStates();
 
-        if (AutoLayoutMode == null) return;
+        if (AutoLayoutMode == null)
+        {
+            return;
+        }
 
-        var bbViews = new System.Collections.Generic.List<RenderView>();
+        var bbViews = new List<RenderView>();
         foreach (var v in _views)
-            if (v.Surface is BackBufferSurface) bbViews.Add(v);
+            if (v.Surface is BackBufferSurface)
+            {
+                bbViews.Add(v);
+            }
 
-        if (bbViews.Count == 0) return;
+        if (bbViews.Count == 0)
+        {
+            return;
+        }
 
         var rects = SplitScreenLayout.Compute(screenWidth, screenHeight, bbViews.Count, AutoLayoutMode.Value);
         for (int i = 0; i < bbViews.Count; i++)
@@ -168,7 +177,11 @@ public sealed class ViewManager
     {
         ArgumentNullException.ThrowIfNull(view);
 
-        if (ActiveView != null) ActiveView.IsActive = false;
+        if (ActiveView != null)
+        {
+            ActiveView.IsActive = false;
+        }
+
         ActiveView = view;
         view.IsActive = true;
     }
@@ -186,11 +199,18 @@ public sealed class ViewManager
             UnhookHost(view);
             view.Invalidated -= OnViewInvalidated;
 
-            if (InputCaptureView == view) InputCaptureView = null;
+            if (InputCaptureView == view)
+            {
+                InputCaptureView = null;
+            }
+
             if (ActiveView == view)
             {
                 ActiveView = _views.Count > 0 ? _views[0] : null;
-                if (ActiveView != null) ActiveView.IsActive = true;
+                if (ActiveView != null)
+                {
+                    ActiveView.IsActive = true;
+                }
             }
 
             ViewRemoved?.Invoke(view);
@@ -241,7 +261,10 @@ public sealed class ViewManager
         for (int i = _views.Count - 1; i >= 0; i--)
         {
             var view = _views[i];
-            if (!view.Enabled || !view.IsVisible) continue;
+            if (!view.Enabled || !view.IsVisible)
+            {
+                continue;
+            }
 
             var vp = GetScreenBounds(view);
             if (vp.Contains(screenPoint))
@@ -279,7 +302,11 @@ public sealed class ViewManager
     {
         ArgumentNullException.ThrowIfNull(view);
         SynchronizeHostStates();
-        if (!IsPresented(view)) return;
+        if (!IsPresented(view))
+        {
+            return;
+        }
+
         InputCaptureView = view;
     }
 
@@ -331,7 +358,10 @@ public sealed class ViewManager
     public void HookViewHost(RenderView view)
     {
         ArgumentNullException.ThrowIfNull(view);
-        if (view.Host == null) return;
+        if (view.Host == null)
+        {
+            return;
+        }
 
         RefreshHostState(view);
 

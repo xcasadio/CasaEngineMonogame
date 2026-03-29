@@ -13,7 +13,7 @@ public readonly struct ViewId : IEquatable<ViewId>
     private ViewId(int value) => Value = value;
 
     /// <summary>Creates a new unique ViewId. Thread-safe via Interlocked.</summary>
-    internal static ViewId Next() => new(System.Threading.Interlocked.Increment(ref _next));
+    internal static ViewId Next() => new(Interlocked.Increment(ref _next));
 
     /// <summary>Sentinel "no view" value.</summary>
     public static ViewId Empty => new(0);

@@ -91,6 +91,9 @@ public abstract class RenderPass
             }
         }
 
-        if (stats is not null) stats.DrawCalls++;
+        if (stats is not null)
+        {
+            stats.DrawCalls++;
+        }
     }
 }

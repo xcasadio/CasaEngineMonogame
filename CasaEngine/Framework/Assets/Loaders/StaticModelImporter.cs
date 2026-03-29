@@ -134,7 +134,7 @@ public class StaticModelImporter
             var uvChannel = assimpMesh.TextureCoordinateChannels[0];
             for (int k = 0; k < uvChannel.Count; k++)
             {
-                vertices[k].TextureCoordinate = new Microsoft.Xna.Framework.Vector2(uvChannel[k].X, uvChannel[k].Y);
+                vertices[k].TextureCoordinate = new Vector2(uvChannel[k].X, uvChannel[k].Y);
             }
         }
 

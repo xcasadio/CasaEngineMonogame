@@ -77,7 +77,9 @@ public sealed class ShaderVariantLibrary
     public ShaderWrapper? Get(ShaderVariantKey key)
     {
         if (_resolved.TryGetValue(key, out var cached))
+        {
             return cached;
+        }
 
         ShaderWrapper? result = null;
 
@@ -86,7 +88,9 @@ public sealed class ShaderVariantLibrary
         {
             result = _shaderManager.GetShader(variantId);
             if (result is not null)
+            {
                 ApplyTechnique(result, key.ShaderBaseId, key.Features);
+            }
         }
 
         // 2. Try base shader + technique selection
@@ -94,12 +98,16 @@ public sealed class ShaderVariantLibrary
         {
             result = _shaderManager.GetShader(key.ShaderBaseId);
             if (result is not null)
+            {
                 ApplyTechnique(result, key.ShaderBaseId, key.Features);
+            }
         }
 
         if (result is null)
+        {
             Core.Log.Logs.WriteWarning(
                 $"ShaderVariantLibrary: no shader found for variant {key}.");
+        }
 
         _resolved[key] = result;
         return result;
@@ -112,7 +120,10 @@ public sealed class ShaderVariantLibrary
     private void ApplyTechnique(ShaderWrapper shader, Guid shaderBaseId, ShaderFeature features)
     {
         var canonical = BuildTechniqueName(features);
-        if (canonical is null) return;
+        if (canonical is null)
+        {
+            return;
+        }
 
         string techniqueName = canonical;
         if (_aliasMap.TryGetValue(shaderBaseId, out var aliases) &&
@@ -134,8 +145,16 @@ public sealed class ShaderVariantLibrary
         bool alphaTest = (features & ShaderFeature.AlphaTest)     != 0;
         bool skinned   = (features & ShaderFeature.Skinned)       != 0;
 
-        if (skinned)   return textured ? "Skinned_Textured"   : "Skinned";
-        if (alphaTest) return textured ? "AlphaTest_Textured" : "AlphaTest";
+        if (skinned)
+        {
+            return textured ? "Skinned_Textured"   : "Skinned";
+        }
+
+        if (alphaTest)
+        {
+            return textured ? "AlphaTest_Textured" : "AlphaTest";
+        }
+
         return textured ? "Opaque_Textured" : "Opaque";
     }
 }

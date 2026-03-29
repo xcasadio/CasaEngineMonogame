@@ -135,7 +135,7 @@ public class OverlayViewPipeline : IViewRenderPipeline
     }
 }
 
-[System.Obsolete("Use OverlayViewPipeline instead.")]
+[Obsolete("Use OverlayViewPipeline instead.")]
 public class EditorViewPipeline : OverlayViewPipeline
 {
 }

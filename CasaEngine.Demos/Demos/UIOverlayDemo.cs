@@ -5,6 +5,7 @@ using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Demos.Demos;
@@ -49,10 +50,22 @@ public class UIOverlayDemo : Demo
         ground.RootComponent = groundMesh;
         groundMesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(20, 1, 20));
         groundMesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+        groundMesh.StaticModel.Meshes[0].Material = new LitDiffuseMaterial
+        {
+            DiffuseColor = new Color(190, 180, 150),
+            SpecularColor = Vector3.Zero,
+        };
         groundMesh.LocalPosition = new Vector3(0, -0.5f, 0);
         world.AddEntity(ground);
 
         // Three decorative boxes
+        var boxColors = new[]
+        {
+            new Color(200, 95, 95),
+            new Color(105, 150, 210),
+            new Color(120, 185, 130),
+        };
+
         for (int i = 0; i < 3; i++)
         {
             var box = new Entity { Name = $"Box {i}" };
@@ -60,6 +73,11 @@ public class UIOverlayDemo : Demo
             box.RootComponent = mesh;
             mesh.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(2, 2, 2));
             mesh.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);
+            mesh.StaticModel.Meshes[0].Material = new LitDiffuseMaterial
+            {
+                DiffuseColor = boxColors[i],
+                SpecularColor = Vector3.Zero,
+            };
             mesh.LocalPosition = new Vector3((i - 1) * 5f, 1f, 0f);
             world.AddEntity(box);
         }

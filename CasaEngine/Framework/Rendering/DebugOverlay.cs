@@ -61,7 +61,7 @@ public sealed class DebugOverlay
         // Collect stat lines
         var pool      = RenderTargetPool.Shared;
         var cam       = view.Camera;
-        var camPos    = cam?.Position ?? Microsoft.Xna.Framework.Vector3.Zero;
+        var camPos    = cam?.Position ?? Vector3.Zero;
         var vp        = view.Surface.ViewportRect;
         var viewName  = string.IsNullOrEmpty(view.Name) ? "unnamed" : view.Name;
         var lines     = new List<string>(8)

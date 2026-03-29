@@ -264,11 +264,14 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         GameManager.CurrentWorld?.OnScreenResized(width, height);
 
         var views    = GameManager.ViewManager.Views;
-        var bbViews  = new System.Collections.Generic.List<RenderView>();
+        var bbViews  = new List<RenderView>();
 
         foreach (var v in views)
         {
-            if (v.Surface is RenderingBackBufferSurface) bbViews.Add(v);
+            if (v.Surface is RenderingBackBufferSurface)
+            {
+                bbViews.Add(v);
+            }
         }
 
         // Single full-screen backbuffer view: auto-resize both the surface and its camera.
@@ -367,9 +370,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         GameManager.ViewManager.ViewRemoved += OnViewRemovedDisposeUIRuntime;
 
         // Create the per-view input router and make it available on InputComponent.
-        InputComponent.InputRouter = new Framework.Input.InputRouter(GameManager.ViewManager);
+        InputComponent.InputRouter = new InputRouter(GameManager.ViewManager);
 
-        RuntimeContext.WindowInputSource ??= new MonoGameWindowInputSource();
+        RuntimeContext.WindowInputSource ??= new MonoGameWindowInputSource(() => IsActive);
         if (RuntimeContext.WindowInputSource is not FrameCachedWindowInputSource)
         {
             RuntimeContext.WindowInputSource = new FrameCachedWindowInputSource(RuntimeContext.WindowInputSource);

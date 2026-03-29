@@ -63,7 +63,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
         public Node(T value)
         {
-            this._value = value;
+            _value = value;
         }
 
         public T Value => _value;
@@ -101,7 +101,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 
         public Enumerator(Deque<T> owner)
         {
-            this._owner = owner;
+            _owner = owner;
             _currentNode = owner._front;
             _version = owner._version;
         }

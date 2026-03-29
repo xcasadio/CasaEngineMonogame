@@ -125,7 +125,11 @@ public sealed class WorldUIComponent : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _surface.Dispose();
     }

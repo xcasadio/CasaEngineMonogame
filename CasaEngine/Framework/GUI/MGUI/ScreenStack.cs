@@ -79,7 +79,10 @@ public sealed class ScreenStack
     /// <returns>The popped screen, or null if the stack was empty.</returns>
     public IUIScreen? Pop()
     {
-        if (_screens.Count == 0) return null;
+        if (_screens.Count == 0)
+        {
+            return null;
+        }
 
         var screen = _screens[^1];
         _screens.RemoveAt(_screens.Count - 1);
@@ -94,7 +97,10 @@ public sealed class ScreenStack
     /// <summary>Removes a specific screen regardless of its stack position.</summary>
     public void Remove(IUIScreen screen)
     {
-        if (!_screens.Remove(screen)) return;
+        if (!_screens.Remove(screen))
+        {
+            return;
+        }
 
         screen.Hide();
         foreach (var w in screen.GetWindows())
@@ -116,7 +122,10 @@ public sealed class ScreenStack
     /// </summary>
     public void Update(GameTime gameTime)
     {
-        if (_screens.Count == 0) return;
+        if (_screens.Count == 0)
+        {
+            return;
+        }
 
         // Find the lowest blocking screen (blocks everything below it).
         int startIndex = TopBlockingScreen != null ? _screens.IndexOf(TopBlockingScreen) : 0;

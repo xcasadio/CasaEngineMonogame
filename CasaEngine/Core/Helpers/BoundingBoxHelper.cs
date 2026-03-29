@@ -32,54 +32,144 @@ public static class BoundingBoxHelper
 
     public static void ExpandBy(this ref BoundingBox boundingBox, BoundingBox bb)
     {
-        if (!bb.Valid()) return;
+        if (!bb.Valid())
+        {
+            return;
+        }
 
-        if (bb.Min.X < boundingBox.Min.X) boundingBox.Min.X = bb.Min.X;
-        if (bb.Max.X > boundingBox.Max.X) boundingBox.Max.X = bb.Max.X;
+        if (bb.Min.X < boundingBox.Min.X)
+        {
+            boundingBox.Min.X = bb.Min.X;
+        }
 
-        if (bb.Min.Y < boundingBox.Min.Y) boundingBox.Min.Y = bb.Min.Y;
-        if (bb.Max.Y > boundingBox.Max.Y) boundingBox.Max.Y = bb.Max.Y;
+        if (bb.Max.X > boundingBox.Max.X)
+        {
+            boundingBox.Max.X = bb.Max.X;
+        }
 
-        if (bb.Min.Z < boundingBox.Min.Z) boundingBox.Min.Z = bb.Min.Z;
-        if (bb.Max.Z > boundingBox.Max.Z) boundingBox.Max.Z = bb.Max.Z;
+        if (bb.Min.Y < boundingBox.Min.Y)
+        {
+            boundingBox.Min.Y = bb.Min.Y;
+        }
+
+        if (bb.Max.Y > boundingBox.Max.Y)
+        {
+            boundingBox.Max.Y = bb.Max.Y;
+        }
+
+        if (bb.Min.Z < boundingBox.Min.Z)
+        {
+            boundingBox.Min.Z = bb.Min.Z;
+        }
+
+        if (bb.Max.Z > boundingBox.Max.Z)
+        {
+            boundingBox.Max.Z = bb.Max.Z;
+        }
     }
 
     public static void ExpandBy(this ref BoundingBox boundingBox, BoundingSphere sh)
     {
-        if (!sh.Valid()) return;
+        if (!sh.Valid())
+        {
+            return;
+        }
 
-        if (sh.Center.X - sh.Radius < boundingBox.Min.X) boundingBox.Min.X = sh.Center.X - sh.Radius;
-        if (sh.Center.X + sh.Radius > boundingBox.Max.X) boundingBox.Max.X = sh.Center.X + sh.Radius;
+        if (sh.Center.X - sh.Radius < boundingBox.Min.X)
+        {
+            boundingBox.Min.X = sh.Center.X - sh.Radius;
+        }
 
-        if (sh.Center.Y - sh.Radius < boundingBox.Min.Y) boundingBox.Min.Y = sh.Center.Y - sh.Radius;
-        if (sh.Center.Y + sh.Radius > boundingBox.Max.Y) boundingBox.Max.Y = sh.Center.Y + sh.Radius;
+        if (sh.Center.X + sh.Radius > boundingBox.Max.X)
+        {
+            boundingBox.Max.X = sh.Center.X + sh.Radius;
+        }
 
-        if (sh.Center.Z - sh.Radius < boundingBox.Min.Z) boundingBox.Min.Z = sh.Center.Z - sh.Radius;
-        if (sh.Center.Z + sh.Radius > boundingBox.Max.Z) boundingBox.Max.Z = sh.Center.Z + sh.Radius;
+        if (sh.Center.Y - sh.Radius < boundingBox.Min.Y)
+        {
+            boundingBox.Min.Y = sh.Center.Y - sh.Radius;
+        }
+
+        if (sh.Center.Y + sh.Radius > boundingBox.Max.Y)
+        {
+            boundingBox.Max.Y = sh.Center.Y + sh.Radius;
+        }
+
+        if (sh.Center.Z - sh.Radius < boundingBox.Min.Z)
+        {
+            boundingBox.Min.Z = sh.Center.Z - sh.Radius;
+        }
+
+        if (sh.Center.Z + sh.Radius > boundingBox.Max.Z)
+        {
+            boundingBox.Max.Z = sh.Center.Z + sh.Radius;
+        }
     }
 
     public static void ExpandBy(this ref BoundingBox boundingBox, Vector3 v)
     {
-        if (v.X < boundingBox.Min.X) boundingBox.Min.X = v.X;
-        if (v.X > boundingBox.Max.X) boundingBox.Max.X = v.X;
+        if (v.X < boundingBox.Min.X)
+        {
+            boundingBox.Min.X = v.X;
+        }
 
-        if (v.Y < boundingBox.Min.Y) boundingBox.Min.Y = v.Y;
-        if (v.Y > boundingBox.Max.Y) boundingBox.Max.Y = v.Y;
+        if (v.X > boundingBox.Max.X)
+        {
+            boundingBox.Max.X = v.X;
+        }
 
-        if (v.Z < boundingBox.Min.Z) boundingBox.Min.Z = v.Z;
-        if (v.Z > boundingBox.Max.Z) boundingBox.Max.Z = v.Z;
+        if (v.Y < boundingBox.Min.Y)
+        {
+            boundingBox.Min.Y = v.Y;
+        }
+
+        if (v.Y > boundingBox.Max.Y)
+        {
+            boundingBox.Max.Y = v.Y;
+        }
+
+        if (v.Z < boundingBox.Min.Z)
+        {
+            boundingBox.Min.Z = v.Z;
+        }
+
+        if (v.Z > boundingBox.Max.Z)
+        {
+            boundingBox.Max.Z = v.Z;
+        }
     }
 
     public static void ExpandBy(this ref BoundingBox boundingBox, float x, float y, float z)
     {
-        if (x < boundingBox.Min.X) boundingBox.Min.X = x;
-        if (x > boundingBox.Max.X) boundingBox.Max.X = x;
+        if (x < boundingBox.Min.X)
+        {
+            boundingBox.Min.X = x;
+        }
 
-        if (y < boundingBox.Min.Y) boundingBox.Min.Y = y;
-        if (y > boundingBox.Max.Y) boundingBox.Max.Y = y;
+        if (x > boundingBox.Max.X)
+        {
+            boundingBox.Max.X = x;
+        }
 
-        if (z < boundingBox.Min.Z) boundingBox.Min.Z = z;
-        if (z > boundingBox.Max.Z) boundingBox.Max.Z = z;
+        if (y < boundingBox.Min.Y)
+        {
+            boundingBox.Min.Y = y;
+        }
+
+        if (y > boundingBox.Max.Y)
+        {
+            boundingBox.Max.Y = y;
+        }
+
+        if (z < boundingBox.Min.Z)
+        {
+            boundingBox.Min.Z = z;
+        }
+
+        if (z > boundingBox.Max.Z)
+        {
+            boundingBox.Max.Z = z;
+        }
     }
 
     public static Vector3 GetCenter(this ref BoundingBox boundingBox) => (boundingBox.Min + boundingBox.Max) * 0.5f;

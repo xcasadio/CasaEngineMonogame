@@ -180,8 +180,16 @@ public struct RectangleF
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (obj.GetType() != typeof(RectangleF)) return false;
+        if (ReferenceEquals(null, obj))
+        {
+            return false;
+        }
+
+        if (obj.GetType() != typeof(RectangleF))
+        {
+            return false;
+        }
+
         return Equals((RectangleF)obj);
     }
 

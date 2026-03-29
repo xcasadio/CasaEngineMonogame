@@ -19,7 +19,7 @@ namespace CasaEngine.Framework.Rendering;
 public sealed class AssetPreviewPipeline : IViewRenderPipeline
 {
     /// <summary>Background color of the preview render. Default: dark grey.</summary>
-    public Color BackgroundColor { get; set; } = new Color(0.15f, 0.15f, 0.15f);
+    public Color BackgroundColor { get; set; } = new(0.15f, 0.15f, 0.15f);
 
     /// <inheritdoc/>
     /// <remarks>
@@ -43,7 +43,7 @@ public sealed class AssetPreviewPipeline : IViewRenderPipeline
     }
 }
 
-[System.Obsolete("Use AssetPreviewPipeline instead.")]
+[Obsolete("Use AssetPreviewPipeline instead.")]
 public sealed class PreviewPipeline : IViewRenderPipeline
 {
     private readonly AssetPreviewPipeline _inner = new();

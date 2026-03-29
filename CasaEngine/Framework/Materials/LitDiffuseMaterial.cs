@@ -19,7 +19,7 @@ public class LitDiffuseMaterial : MaterialBase
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
     public Color DiffuseColor { get; set; } = Color.White;
     public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
-    public Vector3 SpecularColor { get; set; } = new Vector3(0.5f);
+    public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
@@ -58,17 +58,27 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
 
         if (hasNormalMap)
+        {
             shader.SetParameter(ShaderParameterNames.NormalTexture, NormalMap);
+        }
 
         context.Lighting?.Bind(shader);
     }
 
-    public override Rendering.Shaders.ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
+    public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
     {
-        var f = Rendering.Shaders.ShaderFeature.None;
-        if (BasColor is not null) f |= Rendering.Shaders.ShaderFeature.BasColorTexture;
-        if (EmissiveColor != Vector3.Zero) f |= Rendering.Shaders.ShaderFeature.Emissive;
-        return f;
+        var features = ShaderFeature.None;
+        if (BasColor is not null)
+        {
+            features |= ShaderFeature.BasColorTexture;
+        }
+
+        if (EmissiveColor != Vector3.Zero)
+        {
+            features |= ShaderFeature.Emissive;
+        }
+
+        return features;
     }
 
     public override void Load(JObject element)
@@ -76,23 +86,33 @@ public class LitDiffuseMaterial : MaterialBase
         base.Load(element);
 
         if (element["BasColor_asset_id"] is { } a)
+        {
             BasColorAssetId = Guid.Parse(a.Value<string>()!);
+        }
 
         if (element["normal_map_asset_id"] is { } nm)
+        {
             NormalMapAssetId = Guid.Parse(nm.Value<string>()!);
+        }
 
         if (element["diffuse_color"] is JObject dc)
+        {
             DiffuseColor = new Color(
                 dc["r"]?.Value<int>() ?? 255, dc["g"]?.Value<int>() ?? 255,
                 dc["b"]?.Value<int>() ?? 255, dc["a"]?.Value<int>() ?? 255);
+        }
 
         if (element["emissive_color"] is JObject ec)
+        {
             EmissiveColor = new Vector3(
                 ec["r"]?.Value<float>() ?? 0, ec["g"]?.Value<float>() ?? 0, ec["b"]?.Value<float>() ?? 0);
+        }
 
         if (element["specular_color"] is JObject sc)
+        {
             SpecularColor = new Vector3(
                 sc["r"]?.Value<float>() ?? 0.5f, sc["g"]?.Value<float>() ?? 0.5f, sc["b"]?.Value<float>() ?? 0.5f);
+        }
 
         SpecularPower = element["specular_power"]?.Value<float>() ?? 16.0f;
     }

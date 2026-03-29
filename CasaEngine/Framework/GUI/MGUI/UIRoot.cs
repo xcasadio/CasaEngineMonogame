@@ -87,7 +87,10 @@ public sealed class UIRoot : IUIViewRuntime
     /// </summary>
     public void Update(GameTime gameTime)
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
 
         // Desktop.Update() reads the current input snapshot that was refreshed
         // when PreviewUpdate fired on the ViewRenderHost/MainRenderer.
@@ -102,7 +105,11 @@ public sealed class UIRoot : IUIViewRuntime
     /// </summary>
     public void Draw()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         Desktop.Draw();
     }
 
@@ -123,7 +130,11 @@ public sealed class UIRoot : IUIViewRuntime
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         ScreenStack.Clear();
     }

@@ -9,12 +9,22 @@ namespace CasaEngine.Framework.Input;
 /// </summary>
 public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider
 {
+    private readonly Func<bool>? _isWindowActive;
+
+    public MonoGameWindowInputSource(Func<bool>? isWindowActive = null)
+    {
+        _isWindowActive = isWindowActive;
+    }
+
     public WindowInputSnapshot GetSnapshot()
     {
         return new WindowInputSnapshot(GetKeyboardState(), GetMouseState());
     }
 
-    public KeyboardState GetKeyboardState() => Keyboard.GetState();
+    public KeyboardState GetKeyboardState()
+        => _isWindowActive?.Invoke() == false
+            ? new KeyboardState()
+            : Keyboard.GetState();
 
     public MouseState GetMouseState() => Mouse.GetState();
 

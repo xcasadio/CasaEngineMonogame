@@ -186,7 +186,7 @@ public class ViewManagerSandbox : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var kb  = Keyboard.GetState();
+        var kb  = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
         var vm  = _game!.GameManager.ViewManager;
         var world = _game.GameManager.CurrentWorld;
 

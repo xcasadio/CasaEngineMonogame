@@ -132,13 +132,13 @@ public class TimeRuler : DrawableGameComponent, IGameComponentResizable
     private int frameCount;
 
     // Stopwatch for measure the time.
-    private Stopwatch stopwatch = new Stopwatch();
+    private Stopwatch stopwatch = new();
 
     // Marker information array.
-    private List<MarkerInfo> markers = new List<MarkerInfo>();
+    private List<MarkerInfo> markers = new();
 
     // Dictionary that maps from marker name to marker id.
-    private Dictionary<string, int> markerNameToIdMap = new Dictionary<string, int>();
+    private Dictionary<string, int> markerNameToIdMap = new();
 
     // Display frame adjust counter.
     private int frameAdjust;
@@ -147,7 +147,7 @@ public class TimeRuler : DrawableGameComponent, IGameComponentResizable
     private int sampleFrames;
 
     // Marker log string.
-    private StringBuilder logString = new StringBuilder(512);
+    private StringBuilder logString = new(512);
 
     // You want to call StartFrame at beginning of Game.Update method.
     // But Game.Update gets calls multiple time when game runs slow in fixed time step mode.

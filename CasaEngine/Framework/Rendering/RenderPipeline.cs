@@ -159,7 +159,11 @@ public sealed class RenderPipeline
             else
             {
                 var clearOptions = BuildDepthClearOptions(view);
-                if (view.ClearColorBuffer) clearOptions |= ClearOptions.Target;
+                if (view.ClearColorBuffer)
+                {
+                    clearOptions |= ClearOptions.Target;
+                }
+
                 if (clearOptions != 0)
                 {
                     _graphicsDevice.Clear(clearOptions, view.ClearColor, 1.0f, 0);

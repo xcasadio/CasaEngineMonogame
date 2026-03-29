@@ -11,67 +11,67 @@ namespace CasaEngine.SimpleEditor;
 public static class EditorIcons
 {
     // ── toolbar ────────────────────────────────────────────────────────────
-    public static Texture2D? Save       { get; private set; }
-    public static Texture2D? SaveAll    { get; private set; }
-    public static Texture2D? FolderOpen { get; private set; }
+    public static Texture2D Save       { get; private set; }
+    public static Texture2D SaveAll    { get; private set; }
+    public static Texture2D FolderOpen { get; private set; }
 
     // ── gizmo / transform ─────────────────────────────────────────────────
-    public static Texture2D? Move       { get; private set; }
-    public static Texture2D? Rotate     { get; private set; }
-    public static Texture2D? Scale      { get; private set; }
-    public static Texture2D? Focus      { get; private set; }
-    public static Texture2D? Maximize   { get; private set; }
-    public static Texture2D? Magnet     { get; private set; }
+    public static Texture2D Move       { get; private set; }
+    public static Texture2D Rotate     { get; private set; }
+    public static Texture2D Scale      { get; private set; }
+    public static Texture2D Focus      { get; private set; }
+    public static Texture2D Maximize   { get; private set; }
+    public static Texture2D Magnet     { get; private set; }
 
     // ── playback ──────────────────────────────────────────────────────────
-    public static Texture2D? Play       { get; private set; }
-    public static Texture2D? Pause      { get; private set; }
-    public static Texture2D? Redo       { get; private set; }
-    public static Texture2D? Undo       { get; private set; }
-    public static Texture2D? RefreshCw  { get; private set; }
+    public static Texture2D Play       { get; private set; }
+    public static Texture2D Pause      { get; private set; }
+    public static Texture2D Redo       { get; private set; }
+    public static Texture2D Undo       { get; private set; }
+    public static Texture2D RefreshCw  { get; private set; }
 
     // ── edit ──────────────────────────────────────────────────────────────
-    public static Texture2D? FilePlus   { get; private set; }
-    public static Texture2D? Trash      { get; private set; }
-    public static Texture2D? Pencil     { get; private set; }
-    public static Texture2D? Copy       { get; private set; }
-    public static Texture2D? Paste      { get; private set; }
-    public static Texture2D? Scissors   { get; private set; }
+    public static Texture2D FilePlus   { get; private set; }
+    public static Texture2D Trash      { get; private set; }
+    public static Texture2D Pencil     { get; private set; }
+    public static Texture2D Copy       { get; private set; }
+    public static Texture2D Paste      { get; private set; }
+    public static Texture2D Scissors   { get; private set; }
 
     // ── misc ──────────────────────────────────────────────────────────────
-    public static Texture2D? Eye        { get; private set; }
-    public static Texture2D? EyeOff     { get; private set; }
-    public static Texture2D? Settings   { get; private set; }
-    public static Texture2D? Search     { get; private set; }
-    public static Texture2D? Package    { get; private set; }
-    public static Texture2D? Layers     { get; private set; }
-    public static Texture2D? Folder     { get; private set; }
-    public static Texture2D? Image      { get; private set; }
-    public static Texture2D? Square     { get; private set; }
-    public static Texture2D? Box        { get; private set; }
-    public static Texture2D? Close      { get; private set; }
-    public static Texture2D? Info       { get; private set; }
-    public static Texture2D? TriAlert   { get; private set; }
-    public static Texture2D? Palette    { get; private set; }
-    public static Texture2D? Clapperboard { get; private set; }
-    public static Texture2D? ListTree   { get; private set; }
-    public static Texture2D? ZoomIn     { get; private set; }
-    public static Texture2D? ZoomOut    { get; private set; }
+    public static Texture2D Eye        { get; private set; }
+    public static Texture2D EyeOff     { get; private set; }
+    public static Texture2D Settings   { get; private set; }
+    public static Texture2D Search     { get; private set; }
+    public static Texture2D Package    { get; private set; }
+    public static Texture2D Layers     { get; private set; }
+    public static Texture2D Folder     { get; private set; }
+    public static Texture2D Image      { get; private set; }
+    public static Texture2D Square     { get; private set; }
+    public static Texture2D Box        { get; private set; }
+    public static Texture2D Close      { get; private set; }
+    public static Texture2D Info       { get; private set; }
+    public static Texture2D TriAlert   { get; private set; }
+    public static Texture2D Palette    { get; private set; }
+    public static Texture2D Clapperboard { get; private set; }
+    public static Texture2D ListTree   { get; private set; }
+    public static Texture2D ZoomIn     { get; private set; }
+    public static Texture2D ZoomOut    { get; private set; }
 
     // ── additional icons for Content Browser ──────────────────────────────
-    public static Texture2D? Grid3x3    { get; private set; }
-    public static Texture2D? FileCode   { get; private set; }
-    public static Texture2D? Hand       { get; private set; }
-    public static Texture2D? Lock       { get; private set; }
-    public static Texture2D? LockOpen   { get; private set; }
-    public static Texture2D? CopyPlus   { get; private set; }
-    public static Texture2D? Sliders    { get; private set; }
-    public static Texture2D? CircleHelp { get; private set; }
-    public static Texture2D? Camera     { get; private set; }
-    public static Texture2D? Volume     { get; private set; }
-    public static Texture2D? Lightbulb  { get; private set; }
-    public static Texture2D? Terminal   { get; private set; }
-    public static Texture2D? MousePtr   { get; private set; }
+    public static Texture2D Grid3x3    { get; private set; }
+    public static Texture2D FileCode   { get; private set; }
+    public static Texture2D Hand       { get; private set; }
+    public static Texture2D Lock       { get; private set; }
+    public static Texture2D LockOpen   { get; private set; }
+    public static Texture2D CopyPlus   { get; private set; }
+    public static Texture2D Sliders    { get; private set; }
+    public static Texture2D CircleHelp { get; private set; }
+    public static Texture2D Camera     { get; private set; }
+    public static Texture2D Volume     { get; private set; }
+    public static Texture2D Lightbulb  { get; private set; }
+    public static Texture2D Terminal   { get; private set; }
+    public static Texture2D MousePtr   { get; private set; }
 
     private const string Prefix = "icons/png-white/";
 
@@ -81,7 +81,7 @@ public static class EditorIcons
     /// </summary>
     public static void Load(ContentManager content)
     {
-        static Texture2D? Try(ContentManager c, string name)
+        static Texture2D Try(ContentManager c, string name)
         {
             try   { return c.Load<Texture2D>(name); }
             catch { return null; }

@@ -59,7 +59,9 @@ public sealed class RenderStateCache
         }
 
         if (changed && stats is not null)
+        {
             stats.StateChanges++;
+        }
 
         return changed;
     }

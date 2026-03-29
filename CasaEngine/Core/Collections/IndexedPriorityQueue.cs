@@ -41,7 +41,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexComparer">The specific IComparer used to compare the indexed elements</param>
     public IndexedPriorityQueue(IComparer<T> indexComparer)
     {
-        this.IndexComparer = indexComparer;
+        IndexComparer = indexComparer;
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexedElements">The list where we are going to index the priority queue</param>
     public IndexedPriorityQueue(List<T> indexedElements) : this(Comparer<T>.Default)
     {
-        this._indexedElements = indexedElements;
+        _indexedElements = indexedElements;
 
         //Create and initialize the reversed indexes list
         ReversedIndexes = new List<int>(indexedElements.Count);
@@ -69,7 +69,7 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// <param name="indexedElements">The list where we are going to index the priority queue</param>
     public IndexedPriorityQueue(IComparer<T> indexComparer, List<T> indexedElements) : this(indexedElements)
     {
-        this.IndexComparer = indexComparer;
+        IndexComparer = indexComparer;
     }
 
 

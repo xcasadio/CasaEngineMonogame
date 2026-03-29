@@ -35,7 +35,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
     /// Replace at runtime to change scene lighting (Phase 5).
     /// </summary>
-    public LightingContext DefaultLighting { get; } = new LightingContext
+    public LightingContext DefaultLighting { get; } = new()
     {
         ActiveDirectionalLightCount = 3,
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f),
@@ -139,10 +139,17 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
         foreach (var meshInfo in _meshInfos)
         {
-            if (meshInfo.StaticModelMesh == null) continue;
+            if (meshInfo.StaticModelMesh == null)
+            {
+                continue;
+            }
+
             var vb = meshInfo.StaticModelMesh.VertexBuffer;
             var ib = meshInfo.StaticModelMesh.IndexBuffer;
-            if (vb == null || ib == null) continue;
+            if (vb == null || ib == null)
+            {
+                continue;
+            }
 
             var mesh = meshInfo.StaticModelMesh;
 
@@ -151,7 +158,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 foreach (var subMesh in mesh.SubMeshes)
                 {
                     var mat = subMesh.Material ?? meshInfo.Material;
-                    if (mat == null) continue; // legacy sub-path handled after sorting
+                    if (mat == null)
+                    {
+                        continue; // legacy sub-path handled after sorting
+                    }
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                     var features = mat.GetFeatures(mesh);
@@ -215,7 +225,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             for (int i = 0; i < _renderItems.Count; i++)
             {
                 var item = _renderItems[i];
-                if ((item.Features & ShaderFeature.Instanced) == 0) continue;
+                if ((item.Features & ShaderFeature.Instanced) == 0)
+                {
+                    continue;
+                }
+
                 var groupKey = (item.Mesh.VertexBuffer!.Tag as IntPtr? ?? IntPtr.Zero, item.SortKey & ~0xFFFUL);
                 if (!instanceGroups.TryGetValue(groupKey, out var list))
                 {
@@ -230,7 +244,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             foreach (var group in instanceGroups.Values)
             {
                 if (group.Count < _instanceBatcher.MinInstanceThreshold)
+                {
                     continue; // too small → handled by regular path
+                }
 
                 var firstItem = group[0];
                 _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
@@ -251,7 +267,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             toRemove.Sort(static (a, b) => b.CompareTo(a));
             foreach (var idx in toRemove.Distinct())
                 if (idx >= 0 && idx < _renderItems.Count)
+                {
                     _renderItems.RemoveAt(idx);
+                }
         }
 
         // --- Phase 10: delegate sorted items to ForwardRenderPipeline ---
@@ -260,14 +278,24 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         // --- Legacy fallback: items with no material at all ---
         foreach (var meshInfo in _meshInfos)
         {
-            if (meshInfo.StaticModelMesh == null) continue;
+            if (meshInfo.StaticModelMesh == null)
+            {
+                continue;
+            }
+
             var vb = meshInfo.StaticModelMesh.VertexBuffer;
             var ib = meshInfo.StaticModelMesh.IndexBuffer;
-            if (vb == null || ib == null) continue;
+            if (vb == null || ib == null)
+            {
+                continue;
+            }
 
             var mesh = meshInfo.StaticModelMesh;
             bool hasAnyMaterial = meshInfo.Material != null || mesh.SubMeshes.Any(s => s.Material != null);
-            if (hasAnyMaterial) continue;
+            if (hasAnyMaterial)
+            {
+                continue;
+            }
 
             graphicsDevice.SetVertexBuffer(vb);
             graphicsDevice.Indices = ib;

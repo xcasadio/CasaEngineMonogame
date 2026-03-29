@@ -6,6 +6,6 @@ public class MouseStateProvider : IMouseStateProvider
 {
     public MouseState GetState()
     {
-        return Microsoft.Xna.Framework.Input.Mouse.GetState();
+        return Mouse.GetState();
     }
 }

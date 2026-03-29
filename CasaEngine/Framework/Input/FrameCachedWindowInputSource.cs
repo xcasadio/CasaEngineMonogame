@@ -25,7 +25,7 @@ public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInput
     public WindowInputSnapshot CaptureFrameInput()
     {
         var snapshot = _inner.GetSnapshot();
-        long frameId = System.Threading.Interlocked.Increment(ref _nextFrameId);
+        long frameId = Interlocked.Increment(ref _nextFrameId);
         _currentSnapshot = snapshot with { FrameId = frameId };
         _hasCurrentSnapshot = true;
         return _currentSnapshot;

@@ -42,24 +42,25 @@ public class PlayerComponent : EntityComponent
         var velocityX = 0f;
         var velocityY = 0f;
         string animationName = "";
+        var keyboardState = Owner?.World.Game.IsActive == true ? Keyboard.GetState() : new KeyboardState();
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Down))
+        if (keyboardState.IsKeyDown(Keys.Down))
         {
             velocityY = -velocity;
             animationName = "swordman_walk_down";
         }
-        else if (Keyboard.GetState().IsKeyDown(Keys.Up))
+        else if (keyboardState.IsKeyDown(Keys.Up))
         {
             velocityY = velocity;
             animationName = "swordman_walk_up";
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Right))
+        if (keyboardState.IsKeyDown(Keys.Right))
         {
             velocityX = velocity;
             animationName = "swordman_walk_right";
         }
-        else if (Keyboard.GetState().IsKeyDown(Keys.Left))
+        else if (keyboardState.IsKeyDown(Keys.Left))
         {
             velocityX = -velocity;
             animationName = "swordman_walk_left";
@@ -77,13 +78,13 @@ public class PlayerComponent : EntityComponent
             _animatedSpriteComponent.SetCurrentAnimation(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name.Replace("walk", "stand"), true);
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Add))
+        if (keyboardState.IsKeyDown(Keys.Add))
         {
             index = MathHelper.Min(index + 1, _animatedSpriteComponent.Animations.Count - 1);
             _animatedSpriteComponent.SetCurrentAnimation(index, true);
         }
 
-        if (Keyboard.GetState().IsKeyDown(Keys.Subtract))
+        if (keyboardState.IsKeyDown(Keys.Subtract))
         {
             index = MathHelper.Max(index - 1, 0);
             _animatedSpriteComponent.SetCurrentAnimation(index, true);

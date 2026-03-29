@@ -37,8 +37,14 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
     public void InsertPass(RenderPassType before, RenderPass pass)
     {
         int idx = _passes.FindIndex(p => p.Type == before);
-        if (idx < 0) _passes.Add(pass);
-        else _passes.Insert(idx, pass);
+        if (idx < 0)
+        {
+            _passes.Add(pass);
+        }
+        else
+        {
+            _passes.Insert(idx, pass);
+        }
     }
 
     /// <summary>Removes all passes of the given type.</summary>

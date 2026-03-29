@@ -15,7 +15,9 @@ public static class PolygonSimplifyTools
     public static List<Vector2> CollinearSimplify(List<Vector2> vertices, float collinearityTolerance = 0)
     {
         if (vertices.Count <= 3)
+        {
             return vertices;
+        }
 
         List<Vector2> simplified = new List<Vector2>(vertices.Count);
 
@@ -27,7 +29,9 @@ public static class PolygonSimplifyTools
 
             //If they collinear, continue
             if (Vector2Helper.IsCollinear(ref prev, ref current, ref next, collinearityTolerance))
+            {
                 continue;
+            }
 
             simplified.Add(current);
         }
@@ -43,7 +47,9 @@ public static class PolygonSimplifyTools
     public static List<Vector2> DouglasPeuckerSimplify(List<Vector2> vertices, float distanceTolerance)
     {
         if (vertices.Count <= 3)
+        {
             return vertices;
+        }
 
         bool[] usePoint = new bool[vertices.Count];
 
@@ -59,7 +65,9 @@ public static class PolygonSimplifyTools
         for (int i = 0; i < vertices.Count; i++)
         {
             if (usePoint[i])
+            {
                 simplified.Add(vertices[i]);
+            }
         }
 
         return simplified;
@@ -68,7 +76,9 @@ public static class PolygonSimplifyTools
     private static void SimplifySection(List<Vector2> vertices, int i, int j, bool[] usePoint, float distanceTolerance)
     {
         if (i + 1 == j)
+        {
             return;
+        }
 
         Vector2 a = vertices[i];
         Vector2 b = vertices[j];
@@ -110,7 +120,9 @@ public static class PolygonSimplifyTools
         //From Eric Jordan's convex decomposition library
 
         if (vertices.Count <= 3)
+        {
             return vertices; //Can't do anything useful here to a triangle
+        }
 
         bool[] mergeMe = new bool[vertices.Count];
         int count = vertices.Count;
@@ -149,11 +161,15 @@ public static class PolygonSimplifyTools
                 --count;
             }
             else
+            {
                 mergeMe[i] = false;
+            }
         }
 
         if (count == vertices.Count || count == 0)
+        {
             return vertices;
+        }
 
         int currIndex = 0;
 
@@ -163,7 +179,9 @@ public static class PolygonSimplifyTools
         for (int i = 0; i < vertices.Count; ++i)
         {
             if (mergeMe[i] || currIndex == count)
+            {
                 continue;
+            }
 
             Debug.Assert(currIndex < count);
 
@@ -194,7 +212,9 @@ public static class PolygonSimplifyTools
     public static List<Vector2> ReduceByDistance(List<Vector2> vertices, float distance)
     {
         if (vertices.Count <= 3)
+        {
             return vertices;
+        }
 
         float distance2 = distance * distance;
 
@@ -207,7 +227,9 @@ public static class PolygonSimplifyTools
 
             //If they are closer than the distance, continue
             if ((next - current).LengthSquared() <= distance2)
+            {
                 continue;
+            }
 
             simplified.Add(current);
         }
@@ -222,17 +244,23 @@ public static class PolygonSimplifyTools
     public static List<Vector2> ReduceByNth(List<Vector2> vertices, int nth)
     {
         if (vertices.Count <= 3)
+        {
             return vertices;
+        }
 
         if (nth == 0)
+        {
             return vertices;
+        }
 
         List<Vector2> simplified = new List<Vector2>(vertices.Count);
 
         for (int i = 0; i < vertices.Count; i++)
         {
             if (i % nth == 0)
+            {
                 continue;
+            }
 
             simplified.Add(vertices[i]);
         }
@@ -252,10 +280,14 @@ public static class PolygonSimplifyTools
         //From physics2d.net
 
         if (vertices.Count <= 3)
+        {
             return vertices;
+        }
 
         if (areaTolerance < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(areaTolerance), "must be equal to or greater than zero.");
+        }
 
         List<Vector2> simplified = new List<Vector2>(vertices.Count);
         Vector2 v3;

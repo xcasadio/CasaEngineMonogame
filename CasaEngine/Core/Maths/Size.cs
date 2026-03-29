@@ -2,7 +2,7 @@ namespace CasaEngine.Core.Maths;
 
 public struct Size : IEquatable<Size>
 {
-    public static readonly Size Zero = new Size(0, 0);
+    public static readonly Size Zero = new(0, 0);
     public static readonly Size Empty = Zero;
 
     public int Width;
@@ -21,8 +21,16 @@ public struct Size : IEquatable<Size>
 
     public override bool Equals(object obj)
     {
-        if (ReferenceEquals(null, obj)) return false;
-        if (obj.GetType() != typeof(Size)) return false;
+        if (ReferenceEquals(null, obj))
+        {
+            return false;
+        }
+
+        if (obj.GetType() != typeof(Size))
+        {
+            return false;
+        }
+
         return Equals((Size)obj);
     }
 

@@ -21,12 +21,12 @@ public class FuzzyModule
 
     public void Fuzzify(string nameOfFlv, double val)
     {
-        if (_variables.ContainsKey(nameOfFlv) == false)
+        if (_variables.TryGetValue(nameOfFlv, out var variable) == false)
         {
             throw new KeyNotFoundException("FuzzyModule.Fuzzify() : " + "key " + nameOfFlv + " not found");
         }
 
-        _variables[nameOfFlv].Fuzzify(val);
+        variable.Fuzzify(val);
     }
 
 

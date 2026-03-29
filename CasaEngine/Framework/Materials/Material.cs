@@ -47,14 +47,45 @@ public class Material : MaterialBase
 
     public void LoadTextures(AssetContentManager content)
     {
-        if (TextureBaseColorAssetId  != Guid.Empty) TextureBaseColor   = content.Load<Texture>(TextureBaseColorAssetId);
-        if (TextureOpacityAssetId    != Guid.Empty) TextureOpacityColor= content.Load<Texture>(TextureOpacityAssetId);
-        if (TextureNormalAssetId     != Guid.Empty) TextureNormal      = content.Load<Texture>(TextureNormalAssetId);
-        if (TextureSpecularAssetId   != Guid.Empty) TextureSpecular    = content.Load<Texture>(TextureSpecularAssetId);
-        if (TextureRoughnessAssetId  != Guid.Empty) TextureRoughness   = content.Load<Texture>(TextureRoughnessAssetId);
-        if (TextureTangentAssetId    != Guid.Empty) TextureTangent     = content.Load<Texture>(TextureTangentAssetId);
-        if (TextureHeightAssetId     != Guid.Empty) TextureHeight      = content.Load<Texture>(TextureHeightAssetId);
-        if (TextureReflectionAssetId != Guid.Empty) TextureReflection  = content.Load<Texture>(TextureReflectionAssetId);
+        if (TextureBaseColorAssetId  != Guid.Empty)
+        {
+            TextureBaseColor   = content.Load<Texture>(TextureBaseColorAssetId);
+        }
+
+        if (TextureOpacityAssetId    != Guid.Empty)
+        {
+            TextureOpacityColor= content.Load<Texture>(TextureOpacityAssetId);
+        }
+
+        if (TextureNormalAssetId     != Guid.Empty)
+        {
+            TextureNormal      = content.Load<Texture>(TextureNormalAssetId);
+        }
+
+        if (TextureSpecularAssetId   != Guid.Empty)
+        {
+            TextureSpecular    = content.Load<Texture>(TextureSpecularAssetId);
+        }
+
+        if (TextureRoughnessAssetId  != Guid.Empty)
+        {
+            TextureRoughness   = content.Load<Texture>(TextureRoughnessAssetId);
+        }
+
+        if (TextureTangentAssetId    != Guid.Empty)
+        {
+            TextureTangent     = content.Load<Texture>(TextureTangentAssetId);
+        }
+
+        if (TextureHeightAssetId     != Guid.Empty)
+        {
+            TextureHeight      = content.Load<Texture>(TextureHeightAssetId);
+        }
+
+        if (TextureReflectionAssetId != Guid.Empty)
+        {
+            TextureReflection  = content.Load<Texture>(TextureReflectionAssetId);
+        }
     }
 
     public override void Load(JObject element)

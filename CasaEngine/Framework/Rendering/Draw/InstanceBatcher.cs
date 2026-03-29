@@ -57,7 +57,11 @@ public sealed class InstanceBatcher : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         _instanceVB?.Dispose();
     }
@@ -76,7 +80,10 @@ public sealed class InstanceBatcher : IDisposable
     /// <param name="context">Current render context.</param>
     public void DrawInstancedGroup(IReadOnlyList<RenderItem> items, ShaderWrapper shader, in RenderContext context)
     {
-        if (items.Count == 0) return;
+        if (items.Count == 0)
+        {
+            return;
+        }
 
         EnsureBufferCapacity(items.Count);
 
@@ -118,14 +125,22 @@ public sealed class InstanceBatcher : IDisposable
 
     private void EnsureBufferCapacity(int required)
     {
-        if (_stagingBuffer.Length >= required) return;
+        if (_stagingBuffer.Length >= required)
+        {
+            return;
+        }
+
         int newSize = Math.Max(required, _stagingBuffer.Length * 2);
         _stagingBuffer = new InstanceData[newSize];
     }
 
     private void EnsureInstanceVB(int required)
     {
-        if (_instanceVB is not null && _instanceVB.VertexCount >= required) return;
+        if (_instanceVB is not null && _instanceVB.VertexCount >= required)
+        {
+            return;
+        }
+
         _instanceVB?.Dispose();
         int capacity = Math.Max(required, InitialCapacity);
         _instanceVB = new DynamicVertexBuffer(_device, InstanceData.VertexDeclaration,

@@ -29,7 +29,10 @@ public sealed class BackBufferPresenter : IViewPresenter
     public void Present(GraphicsDevice graphicsDevice, RenderView view)
     {
         var texture = view.Surface.RenderTarget;
-        if (texture == null) return;
+        if (texture == null)
+        {
+            return;
+        }
 
         var dest = ComputeDestRect(texture.Width, texture.Height, _destinationRect, PresentMode);
 
@@ -50,7 +53,10 @@ public sealed class BackBufferPresenter : IViewPresenter
 
     private static Rectangle ComputeDestRect(int srcW, int srcH, Rectangle container, PresentMode mode)
     {
-        if (srcW <= 0 || srcH <= 0) return container;
+        if (srcW <= 0 || srcH <= 0)
+        {
+            return container;
+        }
 
         return mode switch
         {

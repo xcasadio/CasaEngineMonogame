@@ -30,6 +30,8 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 public class MaterialDemo : Demo
 {
+    private CasaEngineGame? _game;
+
     public override string Title => "Material system demo";
 
     public override string Description =>
@@ -65,6 +67,8 @@ public class MaterialDemo : Demo
 
     public override void Initialize(CasaEngineGame game)
     {
+        _game = game;
+
         var world = game.GameManager.CurrentWorld;
         var gd    = game.GraphicsDevice;
 
@@ -211,7 +215,7 @@ public class MaterialDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var kb = Keyboard.GetState();
+        var kb = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
 
         // L — cycle directional light count  1 → 2 → 3 → 1
         if (kb.IsKeyDown(Keys.L) && !_prevKb.IsKeyDown(Keys.L) && _renderer is not null)
@@ -236,6 +240,7 @@ public class MaterialDemo : Demo
 
     public override void Clean()
     {
+        _game = null;
         _renderer = null;
     }
 

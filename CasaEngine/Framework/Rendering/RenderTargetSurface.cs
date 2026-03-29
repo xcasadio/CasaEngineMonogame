@@ -98,7 +98,11 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
     /// </summary>
     public void ApplyPendingResize()
     {
-        if (!_resizeDirty) return;
+        if (!_resizeDirty)
+        {
+            return;
+        }
+
         _resizeDirty = false;
         ReplaceTarget(_pendingWidth, _pendingHeight);
     }
@@ -155,9 +159,13 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
         if (_renderTarget != null)
         {
             if (pool != null)
+            {
                 pool.Release(_renderTarget);
+            }
             else
+            {
                 _renderTarget.Dispose();
+            }
 
             _renderTarget = null;
         }
@@ -175,9 +183,13 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
             if (_renderTarget != null)
             {
                 if (pool != null)
+                {
                     pool.Release(_renderTarget);
+                }
                 else
+                {
                     _renderTarget.Dispose();
+                }
 
                 _renderTarget = null;
             }

@@ -14,7 +14,7 @@ public class LightingContext
 
     public DirectionalLight[] DirectionalLights { get; } = new DirectionalLight[MaxDirectionalLights];
     public int ActiveDirectionalLightCount { get; set; }
-    public Vector3 AmbientColor { get; set; } = new Vector3(0.2f, 0.2f, 0.2f);
+    public Vector3 AmbientColor { get; set; } = new(0.2f, 0.2f, 0.2f);
 
     /// <summary>Binds all active directional lights to the given shader wrapper.</summary>
     public void Bind(ShaderWrapper shader)

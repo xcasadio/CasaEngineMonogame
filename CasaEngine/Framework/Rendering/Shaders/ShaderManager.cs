@@ -40,10 +40,14 @@ public sealed class ShaderManager : IDisposable
     public ShaderWrapper? GetShader(Guid shaderAssetId)
     {
         if (shaderAssetId == Guid.Empty)
+        {
             return null;
+        }
 
         if (_cache.TryGetValue(shaderAssetId, out var cached))
+        {
             return cached;
+        }
 
         Effect? effect = null;
         try
@@ -57,7 +61,9 @@ public sealed class ShaderManager : IDisposable
         }
 
         if (effect is null)
+        {
             return null;
+        }
 
         var wrapper = new ShaderWrapper(effect);
         _cache[shaderAssetId] = wrapper;
@@ -80,7 +86,11 @@ public sealed class ShaderManager : IDisposable
 
     public void Dispose()
     {
-        if (_disposed) return;
+        if (_disposed)
+        {
+            return;
+        }
+
         _disposed = true;
         // ShaderWrapper does not own the Effect (the AssetContentManager does),
         // so we just drop our references.

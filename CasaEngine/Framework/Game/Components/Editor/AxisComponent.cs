@@ -62,7 +62,10 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         {
             int width  = frame.ViewportRect.Width;
             int height = frame.ViewportRect.Height;
-            if (width <= 0 || height <= 0) return;
+            if (width <= 0 || height <= 0)
+            {
+                return;
+            }
 
             gd.DepthStencilState = DepthStencilState.None;
             gd.RasterizerState   = RasterizerState.CullNone;
@@ -100,8 +103,8 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
 
 namespace CasaEngine.Framework.Game.Components.Editor
 {
-    [System.Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.DebugAxisComponent instead.")]
-    public sealed class AxisComponent : CasaEngine.Framework.Game.Components.DebugTools.DebugAxisComponent
+    [Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.DebugAxisComponent instead.")]
+    public sealed class AxisComponent : DebugTools.DebugAxisComponent
     {
         public AxisComponent(Microsoft.Xna.Framework.Game game)
             : base(game)

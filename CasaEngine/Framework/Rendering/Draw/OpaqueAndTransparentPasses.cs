@@ -23,8 +23,15 @@ public sealed class OpaquePass : RenderPass
         foreach (var item in items)
         {
             // Only draw opaque/alpha-tested items
-            if (item.Material.Queue >= RenderQueue.Transparent) continue;
-            if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null) continue;
+            if (item.Material.Queue >= RenderQueue.Transparent)
+            {
+                continue;
+            }
+
+            if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null)
+            {
+                continue;
+            }
 
             DrawItem(in item, in context, stateCache, shaderCache, legacyShader, stats);
         }
@@ -52,8 +59,15 @@ public sealed class TransparentPass : RenderPass
         for (int i = items.Count - 1; i >= 0; i--)
         {
             var item = items[i];
-            if (item.Material.Queue < RenderQueue.Transparent) continue;
-            if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null) continue;
+            if (item.Material.Queue < RenderQueue.Transparent)
+            {
+                continue;
+            }
+
+            if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null)
+            {
+                continue;
+            }
 
             DrawItem(in item, in context, stateCache, shaderCache, legacyShader, stats);
         }

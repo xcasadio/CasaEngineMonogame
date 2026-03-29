@@ -87,7 +87,10 @@ public sealed class PickingBuffer : IDisposable
     /// </summary>
     public Entity? Pick(int screenX, int screenY)
     {
-        if (_renderTarget == null) return null;
+        if (_renderTarget == null)
+        {
+            return null;
+        }
 
         int w = _renderTarget.Width;
         int h = _renderTarget.Height;
@@ -128,9 +131,13 @@ public sealed class PickingBuffer : IDisposable
         if (_renderTarget != null)
         {
             if (RenderTargetPool.Shared != null)
+            {
                 RenderTargetPool.Shared.Release(_renderTarget);
+            }
             else
+            {
                 _renderTarget.Dispose();
+            }
         }
 
         _colorBuffer = null;  // Force readback buffer reallocation
@@ -179,9 +186,13 @@ public sealed class PickingBuffer : IDisposable
             if (_renderTarget != null)
             {
                 if (RenderTargetPool.Shared != null)
+                {
                     RenderTargetPool.Shared.Release(_renderTarget);
+                }
                 else
+                {
                     _renderTarget.Dispose();
+                }
 
                 _renderTarget = null;
             }

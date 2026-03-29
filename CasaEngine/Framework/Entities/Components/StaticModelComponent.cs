@@ -23,7 +23,7 @@ public class StaticModelComponent : PrimitiveComponent
     public Guid StaticModelAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Runtime reference to the loaded model.</summary>
-    public Graphics.StaticModel? StaticModel { get; set; }
+    public StaticModel? StaticModel { get; set; }
 
     public StaticModelComponent() { }
 
@@ -32,7 +32,7 @@ public class StaticModelComponent : PrimitiveComponent
         StaticModelAssetId = other.StaticModelAssetId;
     }
 
-    public override StaticModelComponent Clone() => new StaticModelComponent(this);
+    public override StaticModelComponent Clone() => new(this);
 
     public override void InitializeWithWorld(World.World world)
     {
@@ -40,7 +40,7 @@ public class StaticModelComponent : PrimitiveComponent
 
         if (StaticModelAssetId != Guid.Empty && StaticModel == null)
         {
-            StaticModel = world.Game.AssetContentManager.Load<Graphics.StaticModel>(StaticModelAssetId);
+            StaticModel = world.Game.AssetContentManager.Load<StaticModel>(StaticModelAssetId);
         }
 
         StaticModel?.Initialize(world.Game.AssetContentManager);

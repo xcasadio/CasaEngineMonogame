@@ -34,7 +34,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="comparer">The specific IComparer used used to compare elements</param>
     public PriorityQueue(IComparer<T> comparer)
     {
-        this.Comparer = comparer;
+        Comparer = comparer;
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="capacity">The initial capacity of the queue</param>
     public PriorityQueue(IComparer<T> comparer, int capacity)
     {
-        this.Comparer = comparer;
+        Comparer = comparer;
         HeapElements.Capacity = capacity;
     }
 
