@@ -1,7 +1,7 @@
 namespace CasaEngine.Framework.AI.StateMachines;
 
 [Serializable]
-public class DefaultIdleState<T> : IState<T> where T : IFsmCapable<T>
+public class DefaultIdleState<T> : IState<T>
 {
     public string Name => "DefaultIdleState";
 

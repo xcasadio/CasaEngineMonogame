@@ -3,7 +3,7 @@ using CasaEngine.Core.Log;
 namespace CasaEngine.Framework.AI.StateMachines;
 
 [Serializable]
-public class FiniteStateMachine<T> : IFiniteStateMachine<T> where T : IFsmCapable<T>
+public class FiniteStateMachine<T> : IFiniteStateMachine<T>
 {
     protected T Owner;
 

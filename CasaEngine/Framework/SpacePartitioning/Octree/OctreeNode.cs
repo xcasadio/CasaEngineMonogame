@@ -210,6 +210,13 @@ public class OctreeNode<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void GetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool>? filter)
+    {
+        Debug.Assert(results != null);
+        CoreGetContainedObjects(ref bounds, results, filter);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void GetAllContainedObjects(List<T> results) => GetAllContainedObjects(results, null);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -305,6 +312,30 @@ public class OctreeNode<T>
             {
                 Children[i].CoreGetContainedObjects(ref frustum, results, filter);
             }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void CoreGetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool>? filter)
+    {
+        if (!Bounds.Intersects(bounds))
+        {
+            return;
+        }
+
+        for (int i = 0; i < _items.Count; i++)
+        {
+            OctreeItem<T> octreeItem = _items[i];
+            if (bounds.Intersects(octreeItem.Bounds)
+                && (filter == null || filter(octreeItem.Item)))
+            {
+                results.Add(octreeItem.Item);
+            }
+        }
+
+        for (int i = 0; i < Children.Length; i++)
+        {
+            Children[i].CoreGetContainedObjects(ref bounds, results, filter);
         }
     }
 
