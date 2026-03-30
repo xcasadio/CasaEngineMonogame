@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
+using CasaEngine.Editor.ContentBrowser;
 using CasaEngine.Editor.ContentBrowser.Controls;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
@@ -44,6 +45,18 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class ContentBrowserPanel
 {
+    private sealed class ContextMenuExtension
+    {
+        public string Label { get; }
+        public Action<ContentItem> Action { get; }
+
+        public ContextMenuExtension(string label, Action<ContentItem> action)
+        {
+            Label = label;
+            Action = action;
+        }
+    }
+
     private readonly FileOperationService _fileOperationService = new();
     private string _pendingOperationError = string.Empty;
     private readonly ContentContextMenu _contextMenu;
@@ -52,6 +65,7 @@ public class ContentBrowserPanel
     private string? _pendingSelectionPath;
     private readonly List<string> _clipboardPaths = new();
     private bool _clipboardMoveOperation;
+    private readonly Dictionary<ContentItemType, List<ContextMenuExtension>> _contextMenuExtensions = new();
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Events
@@ -69,6 +83,9 @@ public class ContentBrowserPanel
     /// <summary>Raised when a file or folder is renamed (item, old name).</summary>
     public event Action<ContentItem, string>? FileRenamed;
 
+    /// <summary>Raised when a file or folder is moved (item, old parent).</summary>
+    public event Action<ContentItem, ContentItem>? FileMoved;
+
     /// <summary>Raised when the selection set changes.</summary>
     public event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
 
@@ -77,6 +94,10 @@ public class ContentBrowserPanel
     // ─────────────────────────────────────────────────────────────────────────
 
     private readonly MGWindow _window;
+
+    public ContentBrowserConfig Config { get; }
+
+    public ContentBrowserEvents Events { get; } = new();
 
     // UI controls
     private MGTreeView _treeView = null!;
@@ -112,8 +133,14 @@ public class ContentBrowserPanel
     // ─────────────────────────────────────────────────────────────────────────
 
     public ContentBrowserPanel(MGWindow window)
+        : this(window, null)
+    {
+    }
+
+    public ContentBrowserPanel(MGWindow window, ContentBrowserConfig? config)
     {
         _window = window;
+        Config = config ?? new ContentBrowserConfig();
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
@@ -161,7 +188,7 @@ public class ContentBrowserPanel
         ConfigureContentViewInteractions(_gridView.ListBox);
         ConfigureContentViewInteractions(_detailView.ListView);
 
-        _activeContentView = _gridView;
+        _activeContentView = Config.DefaultViewMode == ContentViewMode.Detail ? _detailView : _gridView;
         _contentViewHost = new MGContentPresenter(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -214,6 +241,27 @@ public class ContentBrowserPanel
     public void Refresh()
     {
         RebuildTree();
+    }
+
+    public void RegisterContextMenuExtension(ContentItemType type, string label, Action<ContentItem> action)
+    {
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            throw new ArgumentException("A context menu extension label is required.", nameof(label));
+        }
+
+        if (action == null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        if (!_contextMenuExtensions.TryGetValue(type, out var extensions))
+        {
+            extensions = new List<ContextMenuExtension>();
+            _contextMenuExtensions[type] = extensions;
+        }
+
+        extensions.Add(new ContextMenuExtension(label, action));
     }
 
     public void Update()
@@ -336,7 +384,7 @@ public class ContentBrowserPanel
             VerticalAlignment = VerticalAlignment.Center,
         };
         _viewModeComboBox.SetItemsSource(new[] { "Grid", "Details" });
-        _viewModeComboBox.SelectedItem = "Grid";
+        _viewModeComboBox.SelectedItem = Config.DefaultViewMode == ContentViewMode.Detail ? "Details" : "Grid";
         _viewModeComboBox.SelectedItemChanged += OnViewModeChanged;
         toolbar.TryAddChild(_viewModeComboBox);
 
@@ -351,6 +399,7 @@ public class ContentBrowserPanel
             if (view == _activeContentView)
             {
                 FileOpened?.Invoke(item);
+                Events.RaiseFileOpened(item);
             }
         };
         view.DirectoryDoubleClicked += item =>
@@ -409,9 +458,11 @@ public class ContentBrowserPanel
         if (selected != null && !selected.IsDirectory)
         {
             FileSelected?.Invoke(selected);
+            Events.RaiseFileSelected(selected);
         }
 
         SelectionChanged?.Invoke(selectedItems);
+        Events.RaiseSelectionChanged(selectedItems);
     }
 
     private MGButton MakeIconButton(Texture2D? icon, string tooltip, Action action)
@@ -644,6 +695,11 @@ public class ContentBrowserPanel
             selected == null ? null : () => OnPropertiesRequested(selected),
             selected == null ? null : () => OnDeleteItemRequested(selected));
 
+        if (selected != null)
+        {
+            AppendContextMenuExtensions(menu, selected);
+        }
+
         var target = sender as MGElement ?? _contentViewHost;
         target.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
@@ -670,6 +726,7 @@ public class ContentBrowserPanel
         }
 
         FileOpened?.Invoke(item);
+        Events.RaiseFileOpened(item);
     }
 
     private void OnNewFolderRequested()
@@ -744,6 +801,7 @@ public class ContentBrowserPanel
         if (_fileOperationService.Delete(item))
         {
             FileDeleted?.Invoke(item);
+            Events.RaiseFileDeleted(item);
             RebuildTree();
         }
     }
@@ -784,29 +842,12 @@ public class ContentBrowserPanel
             return;
         }
 
-        bool changed = false;
-        foreach (var clipboardItem in clipboardItems)
-        {
-            bool operationSucceeded = _clipboardMoveOperation
-                ? _fileOperationService.Move(clipboardItem, _currentFolder)
-                : _fileOperationService.Copy(clipboardItem, _currentFolder);
-
-            if (!operationSucceeded)
-            {
-                break;
-            }
-
-            changed = true;
-        }
-
-        if (changed)
+        if (TransferItems(_currentFolder, clipboardItems, !_clipboardMoveOperation))
         {
             if (_clipboardMoveOperation)
             {
                 ClearClipboardItems();
             }
-
-            RebuildTree();
         }
     }
 
@@ -1098,7 +1139,7 @@ public class ContentBrowserPanel
 
         _itemToFolder.Clear();
 
-        var rootPath = EngineEnvironment.ProjectPath;
+        var rootPath = GetConfiguredRootPath();
         if (string.IsNullOrEmpty(rootPath) || !Directory.Exists(rootPath))
         {
             _rootItem = null;
@@ -1171,7 +1212,12 @@ public class ContentBrowserPanel
         _itemToFolder[item] = folder;
 
         foreach (var child in folder.SubFolders)
-            item.AddItem(BuildTreeItem(child));
+        {
+            if (ShouldIncludeItem(child))
+            {
+                item.AddItem(BuildTreeItem(child));
+            }
+        }
 
         return item;
     }
@@ -1211,16 +1257,29 @@ public class ContentBrowserPanel
             return;
         }
 
-        IEnumerable<ContentItem> items = displayFolder.Children;
-
-        // Apply search filter
+        var visibleItems = new List<ContentItem>();
         if (!string.IsNullOrEmpty(_searchFilter))
         {
-            items = CollectAllDescendants(displayFolder)
-                .Where(c => c.Name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase));
+            foreach (var item in CollectAllDescendants(displayFolder))
+            {
+                if (ShouldIncludeItem(item) && item.Name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
+                {
+                    visibleItems.Add(item);
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in displayFolder.Children)
+            {
+                if (ShouldIncludeItem(item))
+                {
+                    visibleItems.Add(item);
+                }
+            }
         }
 
-        var orderedItems = items.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList();
+        var orderedItems = visibleItems.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList();
         _gridView.SetItems(orderedItems);
         _detailView.SetItems(orderedItems);
 
@@ -1358,26 +1417,7 @@ public class ContentBrowserPanel
 
         var actualEffect = effect == DragDropEffect.None ? GetCurrentDropEffect() : effect;
         var copied = actualEffect.HasFlag(DragDropEffect.Copy) && !actualEffect.HasFlag(DragDropEffect.Move);
-
-        bool changed = false;
-        foreach (var draggedItem in draggedItems!)
-        {
-            bool operationSucceeded = copied
-                ? _fileOperationService.Copy(draggedItem, targetFolder)
-                : _fileOperationService.Move(draggedItem, targetFolder);
-
-            if (!operationSucceeded)
-            {
-                break;
-            }
-
-            changed = true;
-        }
-
-        if (changed)
-        {
-            RebuildTree();
-        }
+        _ = TransferItems(targetFolder, draggedItems!, copied);
     }
 
     private static bool IsChildPath(string candidateChildPath, string parentPath)
@@ -1487,6 +1527,7 @@ public class ContentBrowserPanel
             }
 
             FileDeleted?.Invoke(item);
+            Events.RaiseFileDeleted(item);
             changed = true;
         }
 
@@ -1549,6 +1590,67 @@ public class ContentBrowserPanel
                 return;
             }
         }
+    }
+
+    private bool TransferItems(ContentItem targetFolder, IReadOnlyList<ContentItem> items, bool copied)
+    {
+        var movedItems = new List<(string destinationPath, ContentItem oldParent)>();
+        var changed = false;
+
+        foreach (var item in items)
+        {
+            var predictedDestinationPath = PredictDestinationPath(targetFolder, item);
+            var oldParent = item.Parent;
+            var operationSucceeded = copied
+                ? _fileOperationService.Copy(item, targetFolder)
+                : _fileOperationService.Move(item, targetFolder);
+
+            if (!operationSucceeded)
+            {
+                break;
+            }
+
+            if (!copied && oldParent != null)
+            {
+                movedItems.Add((predictedDestinationPath, oldParent));
+            }
+
+            changed = true;
+        }
+
+        if (changed)
+        {
+            RebuildTree();
+            foreach (var movedItem in movedItems)
+            {
+                var currentItem = _rootItem == null ? null : FindItemByPath(_rootItem, movedItem.destinationPath);
+                if (currentItem != null)
+                {
+                    FileMoved?.Invoke(currentItem, movedItem.oldParent);
+                    Events.RaiseFileMoved(currentItem, movedItem.oldParent);
+                }
+            }
+        }
+
+        return changed;
+    }
+
+    private static string PredictDestinationPath(ContentItem targetFolder, ContentItem item)
+    {
+        var baseName = item.IsDirectory ? item.Name : Path.GetFileNameWithoutExtension(item.Name);
+        var extension = item.IsDirectory ? string.Empty : Path.GetExtension(item.Name);
+        var candidatePath = Path.Combine(targetFolder.FullPath, item.Name);
+        var suffix = 1;
+
+        while (Directory.Exists(candidatePath) || File.Exists(candidatePath))
+        {
+            var uniqueName = item.IsDirectory
+                ? $"{baseName} ({suffix++})"
+                : $"{baseName} ({suffix++}){extension}";
+            candidatePath = Path.Combine(targetFolder.FullPath, uniqueName);
+        }
+
+        return candidatePath;
     }
 
     private bool HasClipboardItems => _clipboardPaths.Count > 0;
@@ -1617,10 +1719,11 @@ public class ContentBrowserPanel
     private string BuildPropertiesText(ContentItem item)
     {
         var relativePath = item.FullPath;
-        if (!string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath)
-            && relativePath.StartsWith(EngineEnvironment.ProjectPath, StringComparison.OrdinalIgnoreCase))
+        var rootPath = GetConfiguredRootPath();
+        if (!string.IsNullOrWhiteSpace(rootPath)
+            && relativePath.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase))
         {
-            relativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, item.FullPath);
+            relativePath = Path.GetRelativePath(rootPath, item.FullPath);
         }
 
         return string.Join(Environment.NewLine, new[]
@@ -1632,6 +1735,80 @@ public class ContentBrowserPanel
             $"Size: {(item.IsDirectory ? "-" : item.Size.ToString())}",
             $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}",
         });
+    }
+
+    private void AppendContextMenuExtensions(MGContextMenu menu, ContentItem item)
+    {
+        if (!_contextMenuExtensions.TryGetValue(item.Type, out var extensions) || extensions.Count == 0)
+        {
+            return;
+        }
+
+        menu.AddSeparator();
+        foreach (var extension in extensions)
+        {
+            menu.AddButton(extension.Label, _ => extension.Action(item));
+        }
+    }
+
+    private string GetConfiguredRootPath()
+    {
+        var configuredRoot = string.IsNullOrWhiteSpace(Config.RootDirectory)
+            ? EngineEnvironment.ProjectPath
+            : Config.RootDirectory;
+
+        if (string.IsNullOrWhiteSpace(configuredRoot))
+        {
+            return string.Empty;
+        }
+
+        if (Path.IsPathRooted(configuredRoot) || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
+        {
+            return configuredRoot;
+        }
+
+        return Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, configuredRoot));
+    }
+
+    private bool ShouldIncludeItem(ContentItem item)
+    {
+        if (!Config.ShowHiddenFiles && item.Name.StartsWith(".", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        if (item.IsDirectory)
+        {
+            foreach (var excludedDirectory in Config.ExcludedDirectories)
+            {
+                if (string.Equals(item.Name, excludedDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        foreach (var excludedExtension in Config.ExcludedExtensions)
+        {
+            if (string.Equals(item.Extension, NormalizeExtension(excludedExtension), StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static string NormalizeExtension(string extension)
+    {
+        if (string.IsNullOrWhiteSpace(extension))
+        {
+            return string.Empty;
+        }
+
+        return extension.StartsWith(".", StringComparison.Ordinal) ? extension : $".{extension}";
     }
 
     private bool TryCommitInlineRename(ContentItem item, string newName)
@@ -1659,6 +1836,7 @@ public class ContentBrowserPanel
 
         var renamedItem = _rootItem == null ? null : FindItemByPath(_rootItem, newFullPath);
         FileRenamed?.Invoke(renamedItem ?? item, oldName);
+        Events.RaiseFileRenamed(renamedItem ?? item, oldName);
         return true;
     }
 

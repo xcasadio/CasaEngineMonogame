@@ -367,7 +367,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 14 — Intégration et API publique
+### ✅ Tâche 14 — Intégration et API publique
 
 **Objectif** : Exposer une API propre pour que le moteur de jeu puisse intégrer et étendre le Content Browser.
 
