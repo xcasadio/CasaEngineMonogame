@@ -71,9 +71,9 @@ public sealed class UIRoot : IUIViewRuntime
     /// Creates a <see cref="ViewRenderHost"/> from the view's surface so that
     /// MGUI bounds and mouse input are viewport-local.
     /// </summary>
-    public UIRoot(CasaEngineGame game, IRenderSurface surface)
+    public UIRoot(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext? runtimeContext = null)
     {
-        var host    = new ViewRenderHost(game, surface);
+        var host    = new ViewRenderHost(game, surface, runtimeContext?.WindowInputSource);
         Renderer    = new MainRenderer(host);
         Desktop     = new MGDesktop(Renderer);
         ScreenStack = new ScreenStack(this);

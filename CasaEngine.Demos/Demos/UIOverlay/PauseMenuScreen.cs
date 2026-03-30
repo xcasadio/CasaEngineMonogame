@@ -35,6 +35,7 @@ internal sealed class PauseMenuScreen : UIScreenBase
             TitleText       = "Pause",
             IsUserResizable = false,
         };
+        _window.WindowClosed += (_, _) => _requestResume();
         _window.Padding = new Thickness(12);
         _window.BackgroundBrush.NormalValue = new MGSolidFillBrush(new Color(20, 20, 40, 230));
 

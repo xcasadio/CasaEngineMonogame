@@ -30,6 +30,7 @@ internal sealed class DemoInfoScreen : UIScreenBase
     private MGTextBlock? _titleLabel;
     private MGTextBlock? _descLabel;
     private MGButton[]?  _demoButtons;
+    private bool         _isKeyboardNavigationArmed;
 
     // ---- IUIScreen ----
     public override UILayer Layer   => UILayer.HUD;
@@ -113,6 +114,11 @@ internal sealed class DemoInfoScreen : UIScreenBase
             _demoButtons[i] = btn;
         }
 
+        if (_demoButtons.Length > 0)
+        {
+            _window.DefaultFocusElement = _demoButtons[_currentIndex];
+        }
+
         scrollViewer.SetContent(listStack);
         outer.TryAddChild(scrollViewer);
 
@@ -122,6 +128,12 @@ internal sealed class DemoInfoScreen : UIScreenBase
         outer.TryAddChild(hint);
 
         _window.SetContent(outer);
+        _window.MouseHandler.MovedInside += (_, _) => ArmKeyboardNavigation();
+        _window.MouseHandler.LMBPressedInside += (_, _) => ArmKeyboardNavigation();
+        _window.MouseHandler.Exited += (_, _) => DisarmKeyboardNavigation();
+        _window.MouseHandler.PressedOutside += (_, _) => DisarmKeyboardNavigation();
+
+        DisarmKeyboardNavigation();
     }
 
     // ---- Public API ----
@@ -143,6 +155,11 @@ internal sealed class DemoInfoScreen : UIScreenBase
         {
             for (int i = 0; i < _demoButtons.Length; i++)
                 SetButtonContent(_demoButtons[i], i);
+
+            if (_window != null)
+            {
+                _window.DefaultFocusElement = _demoButtons[_currentIndex];
+            }
         }
     }
 
@@ -150,7 +167,14 @@ internal sealed class DemoInfoScreen : UIScreenBase
     public void SetVisible(bool visible)
     {
         if (_window != null)
+        {
             _window.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+
+            if (!visible)
+            {
+                DisarmKeyboardNavigation();
+            }
+        }
     }
 
     // ---- IUIScreen ----
@@ -169,6 +193,44 @@ internal sealed class DemoInfoScreen : UIScreenBase
         btn.SetContent(isCurrent
             ? $"[b][color=yellow]{label}[/color][/b]"
             : $"[color=white]{label}[/color]");
+    }
+
+    private void ArmKeyboardNavigation()
+    {
+        if (_isKeyboardNavigationArmed)
+        {
+            return;
+        }
+
+        _isKeyboardNavigationArmed = true;
+        if (_demoButtons == null)
+        {
+            return;
+        }
+
+        foreach (var button in _demoButtons)
+        {
+            button.IsFocusable = true;
+        }
+
+        var focusIndex = Math.Clamp(_currentIndex, 0, _demoButtons.Length - 1);
+        _window!.DefaultFocusElement = _demoButtons[focusIndex];
+        _demoButtons[focusIndex].Focus(KeyboardFocusSource.Pointer);
+    }
+
+    private void DisarmKeyboardNavigation()
+    {
+        if (_demoButtons == null)
+        {
+            _isKeyboardNavigationArmed = false;
+            return;
+        }
+
+        _isKeyboardNavigationArmed = false;
+        foreach (var button in _demoButtons)
+        {
+            button.IsFocusable = false;
+        }
     }
 
     /// <summary>Escapes square brackets so MGUI rich-text parser sees them as literals.</summary>

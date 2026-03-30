@@ -58,4 +58,26 @@ public sealed class EngineRuntimeContext
     {
         return Path.Combine(ProjectPath, relativeFileName);
     }
+
+    public EngineRuntimeContext Clone()
+    {
+        return new EngineRuntimeContext(
+            ProjectSettings,
+            ProjectPath,
+            ResolveAssetInfo,
+            ResolveAssetInfoByFileName,
+            UIViewRuntimeFactory,
+            UICompositionService)
+        {
+            RenderTargetPool = RenderTargetPool,
+            WindowInputSource = WindowInputSource,
+        };
+    }
+
+    public EngineRuntimeContext CloneWithWindowInputSource(IWindowInputSource? windowInputSource)
+    {
+        var clone = Clone();
+        clone.WindowInputSource = windowInputSource;
+        return clone;
+    }
 }

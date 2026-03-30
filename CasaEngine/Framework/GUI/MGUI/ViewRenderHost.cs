@@ -25,11 +25,11 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     private readonly IRenderSurface      _surface;
     private readonly IWindowInputSource _windowInputSource;
 
-    public ViewRenderHost(Game.CasaEngineGame game, IRenderSurface surface)
+    public ViewRenderHost(Game.CasaEngineGame game, IRenderSurface surface, IWindowInputSource? windowInputSource = null)
     {
         _game    = game;
         _surface = surface;
-        _windowInputSource = game.RuntimeContext.WindowInputSource ?? new MonoGameWindowInputSource(() => game.IsActive);
+        _windowInputSource = windowInputSource ?? game.RuntimeContext.WindowInputSource ?? new MonoGameWindowInputSource(() => game.IsActive);
 
         // Forward lifecycle events from the host game so that the MainRenderer
         // can refresh its input cache and other per-frame state.
