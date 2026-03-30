@@ -125,7 +125,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### ⬜ Tâche 5 — Basculement entre les vues et sélecteur de mode
+### ✅ Tâche 5 — Basculement entre les vues et sélecteur de mode
 
 **Objectif** : Permettre à l'utilisateur de basculer entre la vue grille et la vue liste.
 

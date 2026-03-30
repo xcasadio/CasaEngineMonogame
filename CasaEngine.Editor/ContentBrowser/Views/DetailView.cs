@@ -10,7 +10,7 @@ using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
 namespace CasaEngine.Editor.ContentBrowser.Views;
 
-public sealed class DetailView
+public sealed class DetailView : IContentView
 {
     private readonly MGWindow _window;
     private readonly MGListView<ContentItem> _listView;

@@ -6,6 +6,7 @@ using System.Linq;
 using CasaEngine.Core.Design;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
+using CasaEngine.Editor.ContentBrowser.Views;
 using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
@@ -30,7 +31,7 @@ namespace CasaEngine.Editor.Controls;
 /// <summary>
 /// A two-pane content browser panel.
 /// Left pane  : folder tree  (<see cref="MGTreeView"/>).
-/// Right pane : file list    (<see cref="MGListBox{T}"/>).
+/// Right pane : content view (<see cref="IContentView"/>).
 /// The data model is <see cref="ContentItem"/> (file-system based) and the
 /// tree is populated by <see cref="FileSystemScanner"/>.
 /// </summary>
@@ -63,12 +64,16 @@ public class ContentBrowserPanel
 
     // UI controls
     private MGTreeView _treeView = null!;
-    private MGListBox<ContentItem> _assetList = null!;
+    private MGContentPresenter _contentViewHost = null!;
+    private MGComboBox<string> _viewModeComboBox = null!;
     private MGStackPanel _breadcrumbBar = null!;
     private MGTextBox _searchBox = null!;
     private MGButton _btnBack = null!;
     private MGButton _btnForward = null!;
     private MGButton _btnParent = null!;
+    private GridView _gridView = null!;
+    private DetailView _detailView = null!;
+    private IContentView _activeContentView = null!;
 
     // Data model
     private ContentItem? _rootItem;
@@ -84,10 +89,6 @@ public class ContentBrowserPanel
     // Search filter
     private string _searchFilter = string.Empty;
 
-    // Double-click tracking
-    private DateTime _lastClickTime;
-    private ContentItem? _lastClickedItem;
-    private const double DoubleClickMs = 400;
     private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -130,24 +131,23 @@ public class ContentBrowserPanel
         treeScroll.SetContent(_treeView);
 
         // ────────────────────────────────────────
-        //  File list (right pane)
+        //  Content views (right pane)
         // ────────────────────────────────────────
-        _assetList = new MGListBox<ContentItem>(_window)
+        _gridView = new GridView(_window, BuildFileItemTemplate);
+        _detailView = new DetailView(_window);
+
+        BindContentViewEvents(_gridView);
+        BindContentViewEvents(_detailView);
+        ConfigureContentViewInteractions(_gridView.ListBox);
+        ConfigureContentViewInteractions(_detailView.ListView);
+
+        _activeContentView = _gridView;
+        _contentViewHost = new MGContentPresenter(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
-            ItemTemplate = BuildFileItemTemplate,
-            SelectionMode = ListBoxSelectionMode.Single,
         };
-        _assetList.AllowDrop = true;
-        _assetList.DragEnter += OnAssetListDragEnter;
-        _assetList.DragOver += OnAssetListDragOver;
-        _assetList.DragLeave += OnAssetListDragLeave;
-        _assetList.Drop += OnAssetListDrop;
-        _assetList.KeyboardHandler.Pressed += OnAssetListKeyPressed;
-        _assetList.MouseHandler.DragStart += OnAssetListDragStart;
-        _assetList.MouseHandler.RMBReleasedInside += OnAssetListRightClick;
-        _assetList.SelectionChanged += OnAssetSelectionChanged;
+        _contentViewHost.SetContent(_activeContentView.RootElement);
 
         // ────────────────────────────────────────
         //  Grid: [tree | splitter | list]
@@ -166,7 +166,7 @@ public class ContentBrowserPanel
 
         contentGrid.TryAddChild(0, 0, treeScroll);
         contentGrid.TryAddChild(0, 1, splitter);
-        contentGrid.TryAddChild(0, 2, _assetList);
+        contentGrid.TryAddChild(0, 2, _contentViewHost);
 
         // ────────────────────────────────────────
         //  Outer dock: toolbar on top, content fills
@@ -290,7 +290,94 @@ public class ContentBrowserPanel
         }
         toolbar.TryAddChild(_searchBox);
 
+        toolbar.TryAddChild(new MGSeparator(_window, Orientation.Vertical)
+        {
+            Margin = new Thickness(4, 0, 4, 0),
+            PreferredHeight = 20,
+        });
+
+        _viewModeComboBox = new MGComboBox<string>(_window)
+        {
+            MinWidth = 110,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        _viewModeComboBox.SetItemsSource(new[] { "Grid", "Details" });
+        _viewModeComboBox.SelectedItem = "Grid";
+        _viewModeComboBox.SelectedItemChanged += OnViewModeChanged;
+        toolbar.TryAddChild(_viewModeComboBox);
+
         return toolbar;
+    }
+
+    private void BindContentViewEvents(IContentView view)
+    {
+        view.SelectionChanged += items => OnContentViewSelectionChanged(view, items);
+        view.FileDoubleClicked += item =>
+        {
+            if (view == _activeContentView)
+            {
+                FileOpened?.Invoke(item);
+            }
+        };
+        view.DirectoryDoubleClicked += item =>
+        {
+            if (view == _activeContentView)
+            {
+                NavigateTo(item);
+            }
+        };
+    }
+
+    private void ConfigureContentViewInteractions(MGElement element)
+    {
+        element.AllowDrop = true;
+        element.DragEnter += OnAssetListDragEnter;
+        element.DragOver += OnAssetListDragOver;
+        element.DragLeave += OnAssetListDragLeave;
+        element.Drop += OnAssetListDrop;
+        element.KeyboardHandler.Pressed += OnAssetListKeyPressed;
+        element.MouseHandler.DragStart += OnAssetListDragStart;
+        element.MouseHandler.RMBReleasedInside += OnAssetListRightClick;
+    }
+
+    private void OnViewModeChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> e)
+    {
+        if (string.Equals(e.NewValue, "Details", StringComparison.Ordinal))
+        {
+            SetActiveContentView(_detailView);
+            return;
+        }
+
+        SetActiveContentView(_gridView);
+    }
+
+    private void SetActiveContentView(IContentView view)
+    {
+        if (_contentViewHost == null || _activeContentView == view)
+        {
+            return;
+        }
+
+        var previousSelection = GetSelectedItems();
+        _activeContentView = view;
+        _contentViewHost.SetContent(view.RootElement);
+        view.RestoreSelection(previousSelection);
+    }
+
+    private void OnContentViewSelectionChanged(IContentView view, IReadOnlyList<ContentItem> selectedItems)
+    {
+        if (view != _activeContentView)
+        {
+            return;
+        }
+
+        var selected = selectedItems.Count > 0 ? selectedItems[0] : null;
+        if (selected != null && !selected.IsDirectory)
+        {
+            FileSelected?.Invoke(selected);
+        }
+
+        SelectionChanged?.Invoke(selectedItems);
     }
 
     private MGButton MakeIconButton(Texture2D? icon, string tooltip, Action action)
@@ -501,7 +588,7 @@ public class ContentBrowserPanel
 
     private void OnAssetListRightClick(object? sender, BaseMouseReleasedEventArgs e)
     {
-        var selected = _assetList.SelectedValue;
+        var selected = GetSelectedItem();
 
         var menu = new MGContextMenu(_window, null);
 
@@ -531,7 +618,8 @@ public class ContentBrowserPanel
             menu.AddButton("Refresh",    _ => Refresh());
         }
 
-        _assetList.GetDesktop().TryOpenContextMenu(menu, e.Position);
+        var target = sender as MGElement ?? _contentViewHost;
+        target.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -738,7 +826,7 @@ public class ContentBrowserPanel
             return;
         }
 
-        var selected = _assetList.SelectedValue;
+        var selected = GetSelectedItem();
         if (selected == null)
         {
             return;
@@ -756,15 +844,15 @@ public class ContentBrowserPanel
                     FileOpened?.Invoke(selected);
                 }
 
-                e.SetHandledBy(_assetList, true);
+                e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
             case Keys.Delete:
                 OnDeleteItemRequested(selected);
-                e.SetHandledBy(_assetList, true);
+                e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
             case Keys.Back:
                 GoUp();
-                e.SetHandledBy(_assetList, true);
+                e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
         }
     }
@@ -772,42 +860,6 @@ public class ContentBrowserPanel
     // ─────────────────────────────────────────────────────────────────────────
     //  Asset list events
     // ─────────────────────────────────────────────────────────────────────────
-
-    private void OnAssetSelectionChanged(object? sender, ReadOnlyCollection<MGListBoxItem<ContentItem>> items)
-    {
-        var selected = _assetList.SelectedValue;
-
-        // Detect double-click via rapid re-selection of same item
-        if (selected != null)
-        {
-            var now = DateTime.UtcNow;
-            if (_lastClickedItem == selected && (now - _lastClickTime).TotalMilliseconds < DoubleClickMs)
-            {
-                // Double-click detected
-                _lastClickedItem = null;
-                if (selected.IsDirectory)
-                {
-                    NavigateTo(selected);
-                }
-                else
-                {
-                    FileOpened?.Invoke(selected);
-                }
-
-                return;
-            }
-            _lastClickedItem = selected;
-            _lastClickTime = now;
-        }
-
-        if (selected != null && !selected.IsDirectory)
-        {
-            FileSelected?.Invoke(selected);
-        }
-
-        var selectedList = _assetList.SelectedDataItems.ToList();
-        SelectionChanged?.Invoke(selectedList);
-    }
 
     private void OnAssetItemDragStart(MGElement element, ContentItem item, BaseMouseDragStartEventArgs e)
     {
@@ -828,39 +880,62 @@ public class ContentBrowserPanel
             return;
         }
 
-        var pressedItem = _assetList.PressedItem;
-        if (pressedItem?.Data == null)
+        ContentItem? draggedItem = null;
+        if (sender == _gridView.ListBox)
+        {
+            draggedItem = _gridView.ListBox.PressedItem?.Data;
+        }
+
+        draggedItem ??= GetSelectedItem();
+        if (draggedItem == null)
         {
             return;
         }
 
-        OnAssetItemDragStart(_assetList, pressedItem.Data, e);
+        OnAssetItemDragStart(sender as MGElement ?? _contentViewHost, draggedItem, e);
     }
 
     private void OnAssetListDragEnter(object? sender, DragEnterEventArgs e)
     {
+        if (sender is not MGElement element)
+        {
+            return;
+        }
+
         if (CanDropIntoFolder(_currentFolder, e.Data.GetData<List<ContentItem>>()))
         {
-            _assetList.OverlayBrush = DropHighlightBrush;
+            element.OverlayBrush = DropHighlightBrush;
         }
     }
 
     private void OnAssetListDragOver(object? sender, DragOverEventArgs e)
     {
+        if (sender is not MGElement element)
+        {
+            return;
+        }
+
         e.Data.DropEffect = GetCurrentDropEffect();
-        _assetList.OverlayBrush = CanDropIntoFolder(_currentFolder, e.Data.GetData<List<ContentItem>>())
+        element.OverlayBrush = CanDropIntoFolder(_currentFolder, e.Data.GetData<List<ContentItem>>())
             ? DropHighlightBrush
             : null;
     }
 
     private void OnAssetListDragLeave(object? sender, DragLeaveEventArgs e)
     {
-        _assetList.OverlayBrush = null;
+        if (sender is MGElement element)
+        {
+            element.OverlayBrush = null;
+        }
     }
 
     private void OnAssetListDrop(object? sender, DropEventArgs e)
     {
-        _assetList.OverlayBrush = null;
+        if (sender is MGElement element)
+        {
+            element.OverlayBrush = null;
+        }
+
         if (_currentFolder == null)
         {
             return;
@@ -923,7 +998,8 @@ public class ContentBrowserPanel
             _rootItem = null;
             _currentFolder = null;
             _treeView?.ClearItems();
-            _assetList?.SetItemsSource(new List<ContentItem>());
+            _gridView?.SetItems(Array.Empty<ContentItem>());
+            _detailView?.SetItems(Array.Empty<ContentItem>());
             return;
         }
 
@@ -1022,9 +1098,11 @@ public class ContentBrowserPanel
     private void RefreshAssetList()
     {
         var displayFolder = _currentFolder ?? _rootItem;
+        var previousSelection = GetSelectedItems();
         if (displayFolder == null)
         {
-            _assetList?.SetItemsSource(new List<ContentItem>());
+            _gridView?.SetItems(Array.Empty<ContentItem>());
+            _detailView?.SetItems(Array.Empty<ContentItem>());
             return;
         }
 
@@ -1037,18 +1115,43 @@ public class ContentBrowserPanel
                 .Where(c => c.Name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase));
         }
 
-        _assetList.SetItemsSource(items.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList());
+        var orderedItems = items.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList();
+        _gridView.SetItems(orderedItems);
+        _detailView.SetItems(orderedItems);
+        _activeContentView.RestoreSelection(previousSelection);
     }
 
     private List<ContentItem> GetDraggedItems(ContentItem primaryItem)
     {
-        var selectedItems = _assetList.SelectedDataItems.ToList();
+        var selectedItems = GetSelectedItems();
         if (selectedItems.Count == 0 || !selectedItems.Contains(primaryItem))
         {
-            selectedItems = new List<ContentItem> { primaryItem };
+            return new List<ContentItem> { primaryItem };
         }
 
         return selectedItems;
+    }
+
+    private List<ContentItem> GetSelectedItems()
+    {
+        var selectedItems = new List<ContentItem>();
+        if (_activeContentView == null)
+        {
+            return selectedItems;
+        }
+
+        foreach (var item in _activeContentView.SelectedItems)
+        {
+            selectedItems.Add(item);
+        }
+
+        return selectedItems;
+    }
+
+    private ContentItem? GetSelectedItem()
+    {
+        var selectedItems = GetSelectedItems();
+        return selectedItems.Count > 0 ? selectedItems[0] : null;
     }
 
     private static DragDropEffect GetCurrentDropEffect()
