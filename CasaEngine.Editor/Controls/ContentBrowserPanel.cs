@@ -31,6 +31,7 @@ using FormsDialogResult = System.Windows.Forms.DialogResult;
 using FormsMessageBox = System.Windows.Forms.MessageBox;
 using FormsMessageBoxButtons = System.Windows.Forms.MessageBoxButtons;
 using FormsMessageBoxIcon = System.Windows.Forms.MessageBoxIcon;
+using FormsOpenFileDialog = System.Windows.Forms.OpenFileDialog;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -45,9 +46,12 @@ public class ContentBrowserPanel
 {
     private readonly FileOperationService _fileOperationService = new();
     private string _pendingOperationError = string.Empty;
+    private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
     private string? _pendingCurrentFolderPath;
     private string? _pendingSelectionPath;
+    private readonly List<string> _clipboardPaths = new();
+    private bool _clipboardMoveOperation;
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Events
@@ -110,6 +114,7 @@ public class ContentBrowserPanel
     public ContentBrowserPanel(MGWindow window)
     {
         _window = window;
+        _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
     }
@@ -604,14 +609,17 @@ public class ContentBrowserPanel
 
     private void OnTreeViewRightClick(object? sender, BaseMouseReleasedEventArgs e)
     {
-        var menu = new MGContextMenu(_window, null);
-        menu.AddButton("Open",       _ => OnOpenFolderRequested());
-        menu.AddButton("New Folder", _ => OnNewFolderRequested());
-        menu.AddButton("Rename",     _ => OnRenameFolderRequested());
-        menu.AddSeparator();
-        menu.AddButton("Copy Path",  _ => OnCopyPathRequested(_currentFolder));
-        menu.AddSeparator();
-        menu.AddButton("Delete",     _ => OnDeleteFolderRequested());
+        var menu = _contextMenu.CreateTreeMenu(
+            _currentFolder,
+            HasClipboardItems,
+            OnOpenFolderRequested,
+            OnNewFolderRequested,
+            OnRenameFolderRequested,
+            () => OnCopyRequested(_currentFolder),
+            () => OnCutRequested(_currentFolder),
+            () => OnCopyPathRequested(_currentFolder),
+            OnPasteRequested,
+            OnDeleteFolderRequested);
         _treeView.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
 
@@ -619,33 +627,22 @@ public class ContentBrowserPanel
     {
         var selected = GetSelectedItem();
 
-        var menu = new MGContextMenu(_window, null);
-
-        if (selected != null)
-        {
-            if (selected.IsDirectory)
-            {
-                menu.AddButton("Open",       _ => NavigateTo(selected));
-            }
-            else
-            {
-                menu.AddButton("Open",       _ => FileOpened?.Invoke(selected));
-            }
-            menu.AddButton("Rename",     _ => OnRenameItemRequested(selected));
-            menu.AddButton("Duplicate",  _ => OnDuplicateRequested(selected));
-            menu.AddSeparator();
-            menu.AddButton("Copy Path",  _ => OnCopyPathRequested(selected));
-            menu.AddButton("Show in Explorer", _ => OnShowInExplorer(selected));
-            menu.AddSeparator();
-            menu.AddButton("Delete",     _ => OnDeleteItemRequested(selected));
-        }
-        else
-        {
-            // Background right-click (no item selected)
-            menu.AddButton("New Folder", _ => OnNewFolderRequested());
-            menu.AddSeparator();
-            menu.AddButton("Refresh",    _ => Refresh());
-        }
+        var menu = _contextMenu.CreateContentMenu(
+            selected,
+            HasClipboardItems,
+            OnNewFolderRequested,
+            OnImportRequested,
+            Refresh,
+            OnPasteRequested,
+            selected == null ? null : () => OnOpenItemRequested(selected),
+            selected == null ? null : () => OnRenameItemRequested(selected),
+            selected == null ? null : () => OnDuplicateRequested(selected),
+            selected == null ? null : () => OnCopyRequested(selected),
+            selected == null ? null : () => OnCutRequested(selected),
+            selected == null ? null : () => OnCopyPathRequested(selected),
+            selected == null ? null : () => OnShowInExplorer(selected),
+            selected == null ? null : () => OnPropertiesRequested(selected),
+            selected == null ? null : () => OnDeleteItemRequested(selected));
 
         var target = sender as MGElement ?? _contentViewHost;
         target.GetDesktop().TryOpenContextMenu(menu, e.Position);
@@ -662,6 +659,17 @@ public class ContentBrowserPanel
             return;
         }
         // Already navigated via tree selection — nothing extra to do
+    }
+
+    private void OnOpenItemRequested(ContentItem item)
+    {
+        if (item.IsDirectory)
+        {
+            NavigateTo(item);
+            return;
+        }
+
+        FileOpened?.Invoke(item);
     }
 
     private void OnNewFolderRequested()
@@ -751,6 +759,85 @@ public class ContentBrowserPanel
         {
             RebuildTree();
         }
+    }
+
+    private void OnCopyRequested(ContentItem? item)
+    {
+        SetClipboardItems(GetContextItems(item), false);
+    }
+
+    private void OnCutRequested(ContentItem? item)
+    {
+        SetClipboardItems(GetContextItems(item), true);
+    }
+
+    private void OnPasteRequested()
+    {
+        if (_currentFolder == null)
+        {
+            return;
+        }
+
+        var clipboardItems = ResolveClipboardItems();
+        if (!CanPasteIntoFolder(_currentFolder, clipboardItems, _clipboardMoveOperation))
+        {
+            return;
+        }
+
+        bool changed = false;
+        foreach (var clipboardItem in clipboardItems)
+        {
+            bool operationSucceeded = _clipboardMoveOperation
+                ? _fileOperationService.Move(clipboardItem, _currentFolder)
+                : _fileOperationService.Copy(clipboardItem, _currentFolder);
+
+            if (!operationSucceeded)
+            {
+                break;
+            }
+
+            changed = true;
+        }
+
+        if (changed)
+        {
+            if (_clipboardMoveOperation)
+            {
+                ClearClipboardItems();
+            }
+
+            RebuildTree();
+        }
+    }
+
+    private void OnImportRequested()
+    {
+        if (_currentFolder == null)
+        {
+            return;
+        }
+
+        using var dialog = new FormsOpenFileDialog
+        {
+            Title = "Import files into the Content Browser",
+            CheckFileExists = true,
+            Multiselect = true,
+        };
+
+        if (dialog.ShowDialog() != FormsDialogResult.OK || dialog.FileNames.Length == 0)
+        {
+            return;
+        }
+
+        if (_fileOperationService.Import(dialog.FileNames, _currentFolder))
+        {
+            RebuildTree();
+        }
+    }
+
+    private void OnPropertiesRequested(ContentItem item)
+    {
+        FormsMessageBox.Show(BuildPropertiesText(item), $"Properties - {item.Name}", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Information);
     }
 
     private void OnCopyPathRequested(ContentItem? item)
@@ -1225,6 +1312,43 @@ public class ContentBrowserPanel
         return true;
     }
 
+    private static bool CanPasteIntoFolder(ContentItem? targetFolder, IReadOnlyList<ContentItem>? clipboardItems, bool isMoveOperation)
+    {
+        if (targetFolder == null || !targetFolder.IsDirectory || clipboardItems == null || clipboardItems.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var clipboardItem in clipboardItems)
+        {
+            if (clipboardItem == null)
+            {
+                return false;
+            }
+
+            if (clipboardItem.IsDirectory && string.Equals(clipboardItem.FullPath, targetFolder.FullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (clipboardItem.IsDirectory && IsChildPath(targetFolder.FullPath, clipboardItem.FullPath))
+            {
+                return false;
+            }
+
+            if (isMoveOperation)
+            {
+                var targetPath = Path.Combine(targetFolder.FullPath, clipboardItem.Name);
+                if (string.Equals(clipboardItem.FullPath, targetPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     private void PerformDrop(ContentItem targetFolder, IReadOnlyList<ContentItem>? draggedItems, DragDropEffect effect)
     {
         if (!CanDropIntoFolder(targetFolder, draggedItems))
@@ -1425,6 +1549,89 @@ public class ContentBrowserPanel
                 return;
             }
         }
+    }
+
+    private bool HasClipboardItems => _clipboardPaths.Count > 0;
+
+    private void SetClipboardItems(IReadOnlyList<ContentItem> items, bool moveOperation)
+    {
+        _clipboardPaths.Clear();
+        foreach (var item in items)
+        {
+            _clipboardPaths.Add(item.FullPath);
+        }
+
+        _clipboardMoveOperation = moveOperation;
+    }
+
+    private void ClearClipboardItems()
+    {
+        _clipboardPaths.Clear();
+        _clipboardMoveOperation = false;
+    }
+
+    private IReadOnlyList<ContentItem> ResolveClipboardItems()
+    {
+        var items = new List<ContentItem>();
+        if (_rootItem == null)
+        {
+            return items;
+        }
+
+        foreach (var path in _clipboardPaths)
+        {
+            var item = FindItemByPath(_rootItem, path);
+            if (item != null)
+            {
+                items.Add(item);
+            }
+        }
+
+        return items;
+    }
+
+    private IReadOnlyList<ContentItem> GetContextItems(ContentItem? item)
+    {
+        if (item == null)
+        {
+            return Array.Empty<ContentItem>();
+        }
+
+        var selectedItems = GetSelectedItems();
+        if (selectedItems.Count == 0)
+        {
+            return new[] { item };
+        }
+
+        foreach (var selectedItem in selectedItems)
+        {
+            if (string.Equals(selectedItem.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase))
+            {
+                return selectedItems;
+            }
+        }
+
+        return new[] { item };
+    }
+
+    private string BuildPropertiesText(ContentItem item)
+    {
+        var relativePath = item.FullPath;
+        if (!string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath)
+            && relativePath.StartsWith(EngineEnvironment.ProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            relativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, item.FullPath);
+        }
+
+        return string.Join(Environment.NewLine, new[]
+        {
+            $"Name: {item.Name}",
+            $"Type: {(item.IsDirectory ? "Folder" : item.Type.ToString())}",
+            $"Path: {relativePath}",
+            $"Full path: {item.FullPath}",
+            $"Size: {(item.IsDirectory ? "-" : item.Size.ToString())}",
+            $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}",
+        });
     }
 
     private bool TryCommitInlineRename(ContentItem item, string newName)

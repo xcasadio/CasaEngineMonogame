@@ -172,7 +172,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 7 — Menus contextuels
+### ✅ Tâche 7 — Menus contextuels
 
 **Objectif** : Ajouter les menus contextuels pour les actions sur les fichiers et dossiers.
 
