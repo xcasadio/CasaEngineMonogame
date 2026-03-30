@@ -145,6 +145,7 @@ public class ContentBrowserPanel
         _assetList.DragLeave += OnAssetListDragLeave;
         _assetList.Drop += OnAssetListDrop;
         _assetList.KeyboardHandler.Pressed += OnAssetListKeyPressed;
+        _assetList.MouseHandler.DragStart += OnAssetListDragStart;
         _assetList.MouseHandler.RMBReleasedInside += OnAssetListRightClick;
         _assetList.SelectionChanged += OnAssetSelectionChanged;
 
@@ -450,8 +451,6 @@ public class ContentBrowserPanel
         {
             VerticalAlignment = VerticalAlignment.Center,
         });
-
-        row.MouseHandler.DragStart += (_, e) => OnAssetItemDragStart(row, item, e);
 
         if (item.IsDirectory)
         {
@@ -820,6 +819,22 @@ public class ContentBrowserPanel
 
         element.DoDragDrop(new DragDropData(draggedItems, DragDropEffect.Copy | DragDropEffect.Move));
         e.SetHandledBy(element, true);
+    }
+
+    private void OnAssetListDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    {
+        if (!e.IsLMB)
+        {
+            return;
+        }
+
+        var pressedItem = _assetList.PressedItem;
+        if (pressedItem?.Data == null)
+        {
+            return;
+        }
+
+        OnAssetItemDragStart(_assetList, pressedItem.Data, e);
     }
 
     private void OnAssetListDragEnter(object? sender, DragEnterEventArgs e)

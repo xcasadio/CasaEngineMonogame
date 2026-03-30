@@ -1,5 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.EditorServices;
+using CasaEngine.Engine;
+using CasaEngine.Framework;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game.Components.DebugTools;
@@ -7,7 +14,9 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.World;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.DragDrop;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -112,6 +121,7 @@ public class WorldViewportPanel : IDisposable
     private readonly EditorViewportGizmoController _gizmoController;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
+    private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
 
     internal WorldViewportPanel(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime, IWindowInputSource windowInputSource)
     {
@@ -137,9 +147,14 @@ public class WorldViewportPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             IsFocusable = true,
+            AllowDrop = true,
         };
 
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
+        _viewportHost.DragEnter += OnViewportDragEnter;
+        _viewportHost.DragOver += OnViewportDragOver;
+        _viewportHost.DragLeave += OnViewportDragLeave;
+        _viewportHost.Drop += OnViewportDrop;
         _viewportHost.MouseHandler.LMBPressedInside += (_, e) =>
         {
             ActivateThisView(captureInput: false);
@@ -239,6 +254,35 @@ public class WorldViewportPanel : IDisposable
         _cameraController.ApplyTo(_camera);
     }
 
+    private void OnViewportDragEnter(object? sender, DragEnterEventArgs e)
+    {
+        var draggedItems = e.Data.GetData<List<ContentItem>>();
+        bool canDrop = CanDropAssets(draggedItems);
+        if (canDrop)
+        {
+            _viewportHost.OverlayBrush = DropHighlightBrush;
+        }
+    }
+
+    private void OnViewportDragOver(object? sender, DragOverEventArgs e)
+    {
+        var draggedItems = e.Data.GetData<List<ContentItem>>();
+        bool canDrop = CanDropAssets(draggedItems);
+        e.Data.DropEffect = canDrop ? DragDropEffect.Copy : DragDropEffect.None;
+        _viewportHost.OverlayBrush = canDrop ? DropHighlightBrush : null;
+    }
+
+    private void OnViewportDragLeave(object? sender, DragLeaveEventArgs e)
+    {
+        _viewportHost.OverlayBrush = null;
+    }
+
+    private void OnViewportDrop(object? sender, DropEventArgs e)
+    {
+        _viewportHost.OverlayBrush = null;
+        DropAssets(e.Data.GetData<List<ContentItem>>());
+    }
+
     private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
     {
         var newBounds = e.NewValue;
@@ -258,6 +302,203 @@ public class WorldViewportPanel : IDisposable
         _surface?.EnsureSize(width, height);
         _camera?.OnScreenResized(width, height);
         RefreshTextureBinding();
+    }
+
+    private bool CanDropAssets(IReadOnlyList<ContentItem>? draggedItems)
+    {
+        if (_editorRuntime.GameManager.CurrentWorld == null || !AssetCatalog.IsLoaded)
+        {
+            return false;
+        }
+
+        if (draggedItems == null || draggedItems.Count == 0)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < draggedItems.Count; index++)
+        {
+            if (TryResolveDroppableAsset(draggedItems[index], out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void DropAssets(IReadOnlyList<ContentItem>? draggedItems)
+    {
+        var world = _editorRuntime.GameManager.CurrentWorld;
+        if (world == null || draggedItems == null || draggedItems.Count == 0)
+        {
+            return;
+        }
+
+        Entity? lastCreatedEntity = null;
+        int createdCount = 0;
+
+        for (int index = 0; index < draggedItems.Count; index++)
+        {
+            if (!TryResolveDroppableAsset(draggedItems[index], out var assetInfo))
+            {
+                continue;
+            }
+
+            var entity = CreateEntityForDroppedAsset(draggedItems[index], assetInfo, createdCount);
+            EditorWorldEditingService.AddEntity(world, entity);
+            lastCreatedEntity = entity;
+            createdCount++;
+        }
+
+        if (lastCreatedEntity == null)
+        {
+            return;
+        }
+
+        _selectedEntity = lastCreatedEntity;
+        _gizmoController.SetSelectedEntity(lastCreatedEntity);
+        SelectedEntityChanged?.Invoke(lastCreatedEntity);
+    }
+
+    private bool TryResolveDroppableAsset(ContentItem item, out AssetInfo assetInfo)
+    {
+        assetInfo = null!;
+
+        if (item.IsDirectory || !IsSupportedDropExtension(item.Extension))
+        {
+            return false;
+        }
+
+        if (!TryGetProjectRelativePath(item.FullPath, out var relativePath))
+        {
+            return false;
+        }
+
+        assetInfo = AssetCatalog.GetByFileName(relativePath)
+            ?? AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        if (assetInfo == null && relativePath.StartsWith("Content\\", StringComparison.OrdinalIgnoreCase))
+        {
+            string trimmedRelativePath = relativePath.Substring("Content\\".Length);
+            assetInfo = AssetCatalog.GetByFileName(trimmedRelativePath)
+                ?? AssetCatalog.GetByFileName(trimmedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        }
+
+        if (assetInfo == null)
+        {
+            string normalizedRelativePath = NormalizeAssetPath(relativePath);
+            foreach (var candidate in AssetCatalog.AssetInfos)
+            {
+                if (string.Equals(NormalizeAssetPath(candidate.FileName), normalizedRelativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    assetInfo = candidate;
+                    break;
+                }
+            }
+        }
+
+        return assetInfo != null;
+    }
+
+    private static bool IsSupportedDropExtension(string extension)
+    {
+        return string.Equals(extension, Constants.FileNameExtensions.StaticModel, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, Constants.FileNameExtensions.Entity, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeAssetPath(string path)
+    {
+        return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar);
+    }
+
+    private bool TryGetProjectRelativePath(string fullPath, out string relativePath)
+    {
+        relativePath = string.Empty;
+
+        string projectPath = EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+        if (string.IsNullOrWhiteSpace(projectPath))
+        {
+            return false;
+        }
+
+        string normalizedProjectPath = Path.GetFullPath(projectPath);
+        string normalizedFullPath = Path.GetFullPath(fullPath);
+        string projectRootWithSeparator = normalizedProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+
+        if (!normalizedFullPath.StartsWith(projectRootWithSeparator, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(normalizedFullPath, normalizedProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        relativePath = Path.GetRelativePath(normalizedProjectPath, normalizedFullPath);
+        return !string.IsNullOrWhiteSpace(relativePath);
+    }
+
+    private Entity CreateStaticModelEntity(AssetInfo assetInfo, int dropIndex)
+    {
+        Vector3 spawnPosition = GetDropSpawnPosition(dropIndex);
+        var entity = new Entity
+        {
+            Name = Path.GetFileNameWithoutExtension(assetInfo.FileName),
+        };
+
+        var staticModelComponent = new StaticModelComponent
+        {
+            StaticModelAssetId = assetInfo.Id,
+            Position = spawnPosition,
+        };
+
+        entity.RootComponent = staticModelComponent;
+        return entity;
+    }
+
+    private Entity CreateEntityForDroppedAsset(ContentItem item, AssetInfo assetInfo, int dropIndex)
+    {
+        if (string.Equals(item.Extension, Constants.FileNameExtensions.Entity, StringComparison.OrdinalIgnoreCase))
+        {
+            return CreateEntityAssetEntity(assetInfo, dropIndex);
+        }
+
+        return CreateStaticModelEntity(assetInfo, dropIndex);
+    }
+
+    private Entity CreateEntityAssetEntity(AssetInfo assetInfo, int dropIndex)
+    {
+        var entityReference = EntityReference.CreateFromAssetInfo(assetInfo, _editorRuntime.AssetContentManager);
+        var entity = entityReference.Entity;
+        Vector3 spawnPosition = GetDropSpawnPosition(dropIndex);
+
+        entity.Name = string.IsNullOrWhiteSpace(entity.Name)
+            ? Path.GetFileNameWithoutExtension(assetInfo.FileName)
+            : entity.Name;
+
+        if (entity.RootComponent != null)
+        {
+            entity.RootComponent.Position = spawnPosition;
+        }
+
+        return entity;
+    }
+
+    private Vector3 GetDropSpawnPosition(int dropIndex)
+    {
+        Vector3 basePosition = _camera?.Target ?? _cameraController.Target;
+        Vector3 right = _camera?.Right ?? Vector3.Right;
+
+        if (right.LengthSquared() <= 0.0001f)
+        {
+            right = Vector3.Right;
+        }
+        else
+        {
+            right.Normalize();
+        }
+
+        return basePosition + right * (dropIndex * 2.5f);
     }
 
     private void EnsureRenderViewCreated()

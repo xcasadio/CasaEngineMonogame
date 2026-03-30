@@ -114,6 +114,8 @@ public sealed class ContentItem
         { ".tga",   ContentItemType.Texture },
         { ".dds",   ContentItemType.Texture },
         // Models
+        { ".model", ContentItemType.Model },
+        { ".staticModel", ContentItemType.Model },
         { ".fbx",   ContentItemType.Model },
         { ".obj",   ContentItemType.Model },
         { ".gltf",  ContentItemType.Model },
