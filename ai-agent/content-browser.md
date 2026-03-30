@@ -208,7 +208,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### ⬜ Tâche 8 — Tooltips et prévisualisation
+### ✅ Tâche 8 — Tooltips et prévisualisation
 
 **Objectif** : Afficher des informations détaillées au survol des fichiers.
 

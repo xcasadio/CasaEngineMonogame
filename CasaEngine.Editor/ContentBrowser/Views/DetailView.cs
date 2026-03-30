@@ -15,6 +15,7 @@ public sealed class DetailView : IContentView
     private readonly MGWindow _window;
     private readonly MGListView<ContentItem> _listView;
     private readonly List<ContentItem> _items = new();
+    private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
     private MGListViewColumn<ContentItem>? _nameColumn;
 
     public MGElement RootElement => _listView;
@@ -34,9 +35,10 @@ public sealed class DetailView : IContentView
     public event Action<ContentItem>? FileDoubleClicked;
     public event Action<ContentItem>? DirectoryDoubleClicked;
 
-    public DetailView(MGWindow window)
+    public DetailView(MGWindow window, Action<ContentItem, MGElement>? itemElementInitializer = null)
     {
         _window = window;
+        _itemElementInitializer = itemElementInitializer;
         _listView = new MGListView<ContentItem>(window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -59,6 +61,7 @@ public sealed class DetailView : IContentView
         }
 
         _listView.SetItemsSource(_items);
+        ApplyItemElementInitializers();
     }
 
     public void ClearSelection()
@@ -131,7 +134,7 @@ public sealed class DetailView : IContentView
 
         var typeColumn = _listView.AddColumn(new ListViewColumnWidth(1.3), new MGTextBlock(_window, "Type") { IsBold = true }, CreateTypeCell);
         typeColumn.IsSortable = true;
-        typeColumn.SortKeySelector = item => GetTypeLabel(item);
+        typeColumn.SortKeySelector = item => ContentItemDisplay.GetTypeLabel(item);
 
         var sizeColumn = _listView.AddColumn(new ListViewColumnWidth(110), new MGTextBlock(_window, "Size") { IsBold = true }, CreateSizeCell);
         sizeColumn.IsSortable = true;
@@ -216,7 +219,7 @@ public sealed class DetailView : IContentView
 
     private MGElement CreateTypeCell(ContentItem item)
     {
-        return new MGTextBlock(_window, GetTypeLabel(item))
+        return new MGTextBlock(_window, ContentItemDisplay.GetTypeLabel(item))
         {
             VerticalAlignment = VerticalAlignment.Center,
             WrapText = false,
@@ -226,7 +229,7 @@ public sealed class DetailView : IContentView
 
     private MGElement CreateSizeCell(ContentItem item)
     {
-        return new MGTextBlock(_window, item.IsDirectory ? string.Empty : FormatSize(item.Size))
+        return new MGTextBlock(_window, item.IsDirectory ? string.Empty : ContentItemDisplay.FormatSize(item.Size))
         {
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Right,
@@ -245,52 +248,20 @@ public sealed class DetailView : IContentView
         };
     }
 
-    private static string GetTypeLabel(ContentItem item)
+    private void ApplyItemElementInitializers()
     {
-        if (item.IsDirectory)
+        if (_itemElementInitializer == null || _listView.RowItems == null)
         {
-            return "Folder";
+            return;
         }
 
-        return item.Type switch
+        foreach (var rowItem in _listView.RowItems)
         {
-            ContentItemType.Texture => "Texture",
-            ContentItemType.Model => "Model",
-            ContentItemType.Sound => "Sound",
-            ContentItemType.Script => "Script",
-            ContentItemType.Scene => "Scene",
-            ContentItemType.Shader => "Shader",
-            ContentItemType.Font => "Font",
-            ContentItemType.Material => "Material",
-            ContentItemType.Prefab => "Prefab",
-            ContentItemType.Animation => "Animation",
-            ContentItemType.World => "World",
-            _ => string.IsNullOrWhiteSpace(item.Extension) ? "Unknown" : item.Extension.TrimStart('.').ToUpperInvariant(),
-        };
-    }
-
-    private static string FormatSize(long size)
-    {
-        const double kilo = 1024.0;
-        const double mega = kilo * 1024.0;
-        const double giga = mega * 1024.0;
-
-        if (size >= giga)
-        {
-            return $"{size / giga:0.0} GB";
+            foreach (var cell in rowItem.GetRowContents().Values)
+            {
+                _itemElementInitializer(rowItem.Data, cell);
+            }
         }
-
-        if (size >= mega)
-        {
-            return $"{size / mega:0.0} MB";
-        }
-
-        if (size >= kilo)
-        {
-            return $"{size / kilo:0.0} KB";
-        }
-
-        return $"{size} B";
     }
 
     private static Texture2D? GetIconForType(ContentItemType type) => type switch

@@ -59,6 +59,8 @@ public class ContentBrowserPanel
 
     private readonly FileOperationService _fileOperationService = new();
     private readonly ThumbnailCache _thumbnailCache;
+    private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<MGTextBlock>> _tooltipDimensionTexts = new(StringComparer.OrdinalIgnoreCase);
     private string _pendingOperationError = string.Empty;
     private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
@@ -184,7 +186,7 @@ public class ContentBrowserPanel
         //  Content views (right pane)
         // ────────────────────────────────────────
         _gridView = new GridView(_window, Config.ThumbnailSize, GetGridItemPreviewTexture, ConfigureGridItemElement);
-        _detailView = new DetailView(_window);
+        _detailView = new DetailView(_window, ConfigureDetailItemElement);
 
         BindContentViewEvents(_gridView);
         BindContentViewEvents(_detailView);
@@ -607,6 +609,8 @@ public class ContentBrowserPanel
 
     private void ConfigureGridItemElement(ContentItem item, MGElement element)
     {
+        ConfigureItemToolTip(item, element);
+
         if (item.IsDirectory)
         {
             element.AllowDrop = true;
@@ -615,6 +619,11 @@ public class ContentBrowserPanel
             element.DragLeave += (_, e) => OnFolderDropTargetDragLeave(element, item, e);
             element.Drop += (_, e) => OnFolderDropTargetDrop(element, item, e);
         }
+    }
+
+    private void ConfigureDetailItemElement(ContentItem item, MGElement element)
+    {
+        ConfigureItemToolTip(item, element);
     }
 
     private Texture2D? GetGridItemPreviewTexture(ContentItem item)
@@ -1245,6 +1254,7 @@ public class ContentBrowserPanel
         var previousSelection = GetSelectedItems();
         var pendingSelectionPath = _pendingSelectionPath;
         _pendingSelectionPath = null;
+        ClearTooltipRegistrations();
         if (displayFolder == null)
         {
             _gridView?.SetItems(Array.Empty<ContentItem>());
@@ -1729,10 +1739,10 @@ public class ContentBrowserPanel
         return string.Join(Environment.NewLine, new[]
         {
             $"Name: {item.Name}",
-            $"Type: {(item.IsDirectory ? "Folder" : item.Type.ToString())}",
+            $"Type: {ContentItemDisplay.GetTypeLabel(item)}",
             $"Path: {relativePath}",
             $"Full path: {item.FullPath}",
-            $"Size: {(item.IsDirectory ? "-" : item.Size.ToString())}",
+            $"Size: {(item.IsDirectory ? "-" : ContentItemDisplay.FormatSize(item.Size))}",
             $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}",
         });
     }
@@ -1900,6 +1910,22 @@ public class ContentBrowserPanel
 
         item.Thumbnail = texture;
         _gridView.RefreshItemPresentation(item);
+
+        if (_tooltipPreviewImages.TryGetValue(path, out var previewImages))
+        {
+            foreach (var previewImage in previewImages)
+            {
+                previewImage.Source = new MGTextureData(texture);
+            }
+        }
+
+        if (_tooltipDimensionTexts.TryGetValue(path, out var dimensionLabels))
+        {
+            foreach (var dimensionLabel in dimensionLabels)
+            {
+                dimensionLabel.Text = $"Dimensions: {sourceSize.X} x {sourceSize.Y}";
+            }
+        }
     }
 
     private void InvalidateThumbnailForItem(ContentItem item)
@@ -1916,5 +1942,79 @@ public class ContentBrowserPanel
         {
             InvalidateThumbnailForItem(child);
         }
+    }
+
+    private void ConfigureItemToolTip(ContentItem item, MGElement host)
+    {
+        var tooltip = new MGToolTip(_window, host, item.Type == ContentItemType.Texture ? 280 : 260, item.Type == ContentItemType.Texture ? 340 : 190)
+        {
+            ShowDelayOverride = TimeSpan.FromMilliseconds(180),
+        };
+
+        var panel = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Padding = new Thickness(10),
+            Spacing = 6,
+        };
+
+        var previewResult = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
+        if (previewResult.Texture != null)
+        {
+            var preview = new MGImage(_window, previewResult.Texture, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth = 200,
+                PreferredHeight = 200,
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            panel.TryAddChild(preview);
+            RegisterTooltipPreview(item.FullPath, preview);
+        }
+
+        panel.TryAddChild(new MGTextBlock(_window, item.Name) { IsBold = true, WrapText = true });
+        panel.TryAddChild(new MGTextBlock(_window, $"Type: {ContentItemDisplay.GetTypeLabel(item)}"));
+        panel.TryAddChild(new MGTextBlock(_window, $"Path: {ContentItemDisplay.GetRelativePath(GetConfiguredRootPath(), item)}") { WrapText = true });
+        panel.TryAddChild(new MGTextBlock(_window, $"Size: {(item.IsDirectory ? "-" : ContentItemDisplay.FormatSize(item.Size))}"));
+
+        if (item.Type == ContentItemType.Texture)
+        {
+            var dimensions = previewResult.SourceSize.HasValue
+                ? $"Dimensions: {previewResult.SourceSize.Value.X} x {previewResult.SourceSize.Value.Y}"
+                : "Dimensions: loading...";
+            var dimensionsText = new MGTextBlock(_window, dimensions);
+            panel.TryAddChild(dimensionsText);
+            RegisterTooltipDimensions(item.FullPath, dimensionsText);
+        }
+
+        panel.TryAddChild(new MGTextBlock(_window, $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}"));
+        tooltip.SetContent(panel);
+        host.ToolTip = tooltip;
+    }
+
+    private void RegisterTooltipPreview(string path, MGImage preview)
+    {
+        if (!_tooltipPreviewImages.TryGetValue(path, out var previews))
+        {
+            previews = new List<MGImage>();
+            _tooltipPreviewImages[path] = previews;
+        }
+
+        previews.Add(preview);
+    }
+
+    private void RegisterTooltipDimensions(string path, MGTextBlock dimensionsLabel)
+    {
+        if (!_tooltipDimensionTexts.TryGetValue(path, out var labels))
+        {
+            labels = new List<MGTextBlock>();
+            _tooltipDimensionTexts[path] = labels;
+        }
+
+        labels.Add(dimensionsLabel);
+    }
+
+    private void ClearTooltipRegistrations()
+    {
+        _tooltipPreviewImages.Clear();
+        _tooltipDimensionTexts.Clear();
     }
 }
