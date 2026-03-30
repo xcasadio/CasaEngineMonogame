@@ -106,7 +106,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### ⬜ Tâche 4 — Vue en liste détaillée
+### ✅ Tâche 4 — Vue en liste détaillée
 
 **Objectif** : Ajouter une vue alternative affichant les fichiers en colonnes détaillées.
 
