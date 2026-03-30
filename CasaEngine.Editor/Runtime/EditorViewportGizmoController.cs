@@ -21,6 +21,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     private TransformGizmoComponent? _gizmo;
     private MouseState _previousMouseState;
     private KeyboardState _previousKeyboardState;
+    private bool _suppressSelectionChanged;
 
     public EditorViewportGizmoController(HostedEditorGameAdapter editorRuntime)
     {
@@ -75,8 +76,11 @@ internal sealed class EditorViewportGizmoController : IDisposable
         }
 
         _gizmo.SelectionWorld = world;
-        _gizmo.ClearSelection();
-        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+        ApplySelectionUpdate(() =>
+        {
+            _gizmo.ClearSelection();
+            _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+        });
         RefreshPresentation();
     }
 
@@ -88,13 +92,16 @@ internal sealed class EditorViewportGizmoController : IDisposable
         }
 
         _gizmo.SelectionWorld = world;
-        _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
-        _gizmo.ClearSelection();
-
-        if (selectedEntity?.RootComponent != null)
+        ApplySelectionUpdate(() =>
         {
-            _gizmo.AddToSelection(selectedEntity.RootComponent);
-        }
+            _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+            _gizmo.ClearSelection();
+
+            if (selectedEntity?.RootComponent != null)
+            {
+                _gizmo.AddToSelection(selectedEntity.RootComponent);
+            }
+        });
 
         RefreshPresentation();
     }
@@ -114,12 +121,15 @@ internal sealed class EditorViewportGizmoController : IDisposable
             return;
         }
 
-        _gizmo.ClearSelection();
-
-        if (entity?.RootComponent != null)
+        ApplySelectionUpdate(() =>
         {
-            _gizmo.AddToSelection(entity.RootComponent);
-        }
+            _gizmo.ClearSelection();
+
+            if (entity?.RootComponent != null)
+            {
+                _gizmo.AddToSelection(entity.RootComponent);
+            }
+        });
 
         RefreshPresentation();
     }
@@ -240,12 +250,30 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
     private void OnGizmoSelectionChanged(object? sender, List<ITransformableObject> selection)
     {
+        if (_suppressSelectionChanged)
+        {
+            return;
+        }
+
         var selectedEntity = selection
             .OfType<EntityComponent>()
             .Select(component => component.Owner)
             .FirstOrDefault(owner => owner != null);
 
         SelectedEntityChanged?.Invoke(selectedEntity);
+    }
+
+    private void ApplySelectionUpdate(Action updateSelection)
+    {
+        _suppressSelectionChanged = true;
+        try
+        {
+            updateSelection();
+        }
+        finally
+        {
+            _suppressSelectionChanged = false;
+        }
     }
 
     private void RefreshPresentation()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using CasaEngine.Core.Log;
 using CasaEngine.Editor.Controls.ComponentEditors;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
@@ -90,28 +91,49 @@ public sealed class EntityDetailsPanel
 
     public void SetSelectedEntity(Entity? entity)
     {
-        if (ReferenceEquals(_selectedEntity, entity))
-        {
-            RefreshEntityHeader();
-            RebuildPropertyEditors();
-            return;
-        }
-
-        DetachEntity();
-        _selectedEntity = entity;
-        _selectedComponent = null;
-        AttachEntity();
-        RefreshEntityHeader();
-        RebuildComponentTree();
-        RebuildPropertyEditors();
+        SyncSelection(entity, ReferenceEquals(_selectedEntity, entity) ? _selectedComponent : null);
     }
 
     public void SetSelectedComponent(EntityComponent? component)
+    {
+        ApplyComponentSelection(component, rebuildPropertyEditors: true);
+    }
+
+    public void SyncSelection(Entity? entity, EntityComponent? component)
+    {
+        bool entityChanged = !ReferenceEquals(_selectedEntity, entity);
+        bool componentChanged = !ReferenceEquals(_selectedComponent, component);
+
+        if (!entityChanged && !componentChanged)
+        {
+            return;
+        }
+
+        Trace($"SyncSelection entity={DescribeEntity(entity)} component={DescribeComponent(component)} entityChanged={entityChanged} componentChanged={componentChanged}");
+
+        if (entityChanged)
+        {
+            DetachEntity();
+            _selectedEntity = entity;
+            AttachEntity();
+            RefreshEntityHeader();
+            RebuildComponentTree();
+        }
+
+        ApplyComponentSelection(component, rebuildPropertyEditors: true);
+    }
+
+    private void ApplyComponentSelection(EntityComponent? component, bool rebuildPropertyEditors)
     {
         _selectedComponent = component;
 
         if (_componentTree == null)
         {
+            if (rebuildPropertyEditors)
+            {
+                RebuildPropertyEditors();
+            }
+
             return;
         }
 
@@ -121,25 +143,28 @@ public sealed class EntityDetailsPanel
             if (component == null)
             {
                 _componentTree.ClearSelection();
-                return;
             }
-
-            if (!_componentToItem.TryGetValue(component, out var item))
+            else if (!_componentToItem.TryGetValue(component, out var item))
             {
+                Trace($"ApplyComponentSelection missing tree item for component={DescribeComponent(component)} on entity={DescribeEntity(_selectedEntity)}");
                 _selectedComponent = null;
                 _componentTree.ClearSelection();
-                return;
             }
-
-            _componentTree.SelectItem(item);
-            _componentTree.ScrollIntoView(item);
+            else
+            {
+                _componentTree.SelectItem(item);
+                _componentTree.ScrollIntoView(item);
+            }
         }
         finally
         {
             _suppressComponentSelectionChanged = false;
         }
 
-        RebuildPropertyEditors();
+        if (rebuildPropertyEditors)
+        {
+            RebuildPropertyEditors();
+        }
     }
 
     private MGElement BuildToolbar()
@@ -224,6 +249,7 @@ public sealed class EntityDetailsPanel
 
     private void OnEntityComponentChanged(object? sender, EntityComponent component)
     {
+        Trace($"Entity component list changed entity={DescribeEntity(_selectedEntity)} changedComponent={DescribeComponent(component)}");
         RebuildComponentTree();
         RebuildPropertyEditors();
     }
@@ -270,7 +296,7 @@ public sealed class EntityDetailsPanel
         if (_selectedEntity == null)
         {
             UpdateSummary();
-            SetSelectedComponent(null);
+            ApplyComponentSelection(null, rebuildPropertyEditors: false);
             return;
         }
 
@@ -285,7 +311,7 @@ public sealed class EntityDetailsPanel
         }
 
         UpdateSummary();
-        SetSelectedComponent(_selectedComponent);
+        ApplyComponentSelection(_selectedComponent, rebuildPropertyEditors: false);
     }
 
     private MGTreeViewItem BuildComponentTreeItem(EntityComponent component)
@@ -295,7 +321,7 @@ public sealed class EntityDetailsPanel
             IsExpanded = true,
         };
 
-        item.Header = BuildComponentHeader(component);
+        item.Header = BuildComponentHeader(component, item);
         _itemToComponent[item] = component;
         _componentToItem[component] = item;
 
@@ -310,13 +336,14 @@ public sealed class EntityDetailsPanel
         return item;
     }
 
-    private MGElement BuildComponentHeader(EntityComponent component)
+    private MGElement BuildComponentHeader(EntityComponent component, MGTreeViewItem item)
     {
         var header = new MGStackPanel(_window, Orientation.Horizontal)
         {
             Spacing = 4,
             VerticalAlignment = VerticalAlignment.Center,
         };
+        header.MouseHandler.LMBClickedInside += (_, e) => OnComponentHeaderClicked(item, e.ClickCount);
 
         var icon = EditorIcons.Box ?? EditorIcons.Layers ?? EditorIcons.ListTree;
         if (icon != null)
@@ -326,25 +353,39 @@ public sealed class EntityDetailsPanel
                 PreferredWidth = 16,
                 PreferredHeight = 16,
                 VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false,
             });
         }
 
         header.TryAddChild(new MGTextBlock(_window, GetDisplayName(component))
         {
             VerticalAlignment = VerticalAlignment.Center,
+            IsHitTestVisible = false,
         });
 
         return header;
     }
 
-    private void OnComponentTreeSelectionChanged(object? sender, MGTreeViewItem item)
+    private void OnComponentHeaderClicked(MGTreeViewItem item, int clickCount)
+    {
+        _componentTree?.SelectItem(item);
+        _componentTree?.Focus();
+
+        if (item.HasItems && clickCount == 1)
+        {
+            item.IsExpanded = !item.IsExpanded;
+        }
+    }
+
+    private void OnComponentTreeSelectionChanged(object? sender, MGTreeViewItem? item)
     {
         if (_suppressComponentSelectionChanged)
         {
             return;
         }
 
-        _selectedComponent = _itemToComponent.TryGetValue(item, out var component) ? component : null;
+        _selectedComponent = item != null && _itemToComponent.TryGetValue(item, out var component) ? component : null;
+        Trace($"Tree selection changed entity={DescribeEntity(_selectedEntity)} component={DescribeComponent(_selectedComponent)}");
         RebuildPropertyEditors();
 
         SelectedComponentChanged?.Invoke(_selectedComponent);
@@ -356,6 +397,8 @@ public sealed class EntityDetailsPanel
         {
             return;
         }
+
+        Trace($"RebuildPropertyEditors entity={DescribeEntity(_selectedEntity)} component={DescribeComponent(_selectedComponent)}");
 
         ClearDetailsContent();
 
@@ -600,5 +643,27 @@ public sealed class EntityDetailsPanel
     private static string EscapeMarkup(string value)
     {
         return value.Replace("[", "[[", StringComparison.Ordinal);
+    }
+
+    private static string DescribeEntity(Entity? entity)
+    {
+        return entity == null
+            ? "<null>"
+            : $"'{entity.Name}'";
+    }
+
+    private static string DescribeComponent(EntityComponent? component)
+    {
+        if (component == null)
+        {
+            return "<null>";
+        }
+
+        return $"'{GetDisplayName(component)}' owner={DescribeEntity(component.Owner)}";
+    }
+
+    private static void Trace(string message)
+    {
+        Logs.WriteTrace($"[EntityDetails] {message}");
     }
 }

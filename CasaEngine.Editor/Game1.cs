@@ -1424,17 +1424,20 @@ namespace CasaEngine.Editor
 
         private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
+            Logs.WriteTrace($"[WorldWorkspace] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
             _worldWorkspaceContext.SelectedComponent = component;
             ApplyWorldWorkspaceContext();
         }
 
         private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
+            Logs.WriteTrace($"[WorldWorkspace] Details panel selected component={DescribeComponent(component)}");
             _editorSelection.SetSelectedComponent(component);
         }
 
         private void ApplyWorldWorkspaceContext()
         {
+            Logs.WriteTrace($"[WorldWorkspace] ApplyWorldWorkspaceContext entity={DescribeEntity(_worldWorkspaceContext.SelectedEntity)} component={DescribeComponent(_worldWorkspaceContext.SelectedComponent)}");
             _entitiesPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
 
             if (!_automationOptions.HasAutomation)
@@ -1442,8 +1445,7 @@ namespace CasaEngine.Editor
                 _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
             }
 
-            _entityDetailsPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
-            _entityDetailsPanel?.SetSelectedComponent(_worldWorkspaceContext.SelectedComponent);
+            _entityDetailsPanel?.SyncSelection(_worldWorkspaceContext.SelectedEntity, _worldWorkspaceContext.SelectedComponent);
         }
 
         protected override void LoadContent()
@@ -1736,6 +1738,23 @@ namespace CasaEngine.Editor
 
             var characters = value.Where(char.IsLetterOrDigit).ToArray();
             return new string(characters).ToLowerInvariant();
+        }
+
+        private static string DescribeEntity(Entity? entity)
+        {
+            return entity == null
+                ? "<null>"
+                : $"'{entity.Name}'";
+        }
+
+        private static string DescribeComponent(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        {
+            if (component == null)
+            {
+                return "<null>";
+            }
+
+            return $"'{component.GetType().Name}' owner={DescribeEntity(component.Owner)}";
         }
 
         protected override void Draw(GameTime gameTime)
