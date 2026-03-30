@@ -180,12 +180,12 @@ public class ContentBrowserPanel
         // ────────────────────────────────────────
         //  Content views (right pane)
         // ────────────────────────────────────────
-        _gridView = new GridView(_window, BuildFileItemTemplate);
+        _gridView = new GridView(_window, Config.ThumbnailSize, GetGridItemPreviewTexture, ConfigureGridItemElement);
         _detailView = new DetailView(_window);
 
         BindContentViewEvents(_gridView);
         BindContentViewEvents(_detailView);
-        ConfigureContentViewInteractions(_gridView.ListBox);
+        ConfigureContentViewInteractions(_gridView.RootElement);
         ConfigureContentViewInteractions(_detailView.ListView);
 
         _activeContentView = Config.DefaultViewMode == ContentViewMode.Detail ? _detailView : _gridView;
@@ -599,42 +599,20 @@ public class ContentBrowserPanel
     //  File item template
     // ─────────────────────────────────────────────────────────────────────────
 
-    private MGElement BuildFileItemTemplate(ContentItem item)
+    private void ConfigureGridItemElement(ContentItem item, MGElement element)
     {
-        var iconTex = GetIconForType(item.Type);
-
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Padding = new Thickness(4, 2, 4, 2),
-            Spacing = 6,
-        };
-
-        if (iconTex != null)
-        {
-            row.TryAddChild(new MGImage(_window, iconTex, Stretch: Stretch.Uniform)
-            {
-                PreferredWidth = 16,
-                PreferredHeight = 16,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-        }
-
-        row.TryAddChild(new MGTextBlock(_window, item.Name)
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
         if (item.IsDirectory)
         {
-            row.AllowDrop = true;
-            row.DragEnter += (_, e) => OnFolderDropTargetDragEnter(row, item, e);
-            row.DragOver += (_, e) => OnFolderDropTargetDragOver(row, item, e);
-            row.DragLeave += (_, e) => OnFolderDropTargetDragLeave(row, item, e);
-            row.Drop += (_, e) => OnFolderDropTargetDrop(row, item, e);
+            element.AllowDrop = true;
+            element.DragEnter += (_, e) => OnFolderDropTargetDragEnter(element, item, e);
+            element.DragOver += (_, e) => OnFolderDropTargetDragOver(element, item, e);
+            element.DragLeave += (_, e) => OnFolderDropTargetDragLeave(element, item, e);
+            element.Drop += (_, e) => OnFolderDropTargetDrop(element, item, e);
         }
-
-        return row;
     }
+
+    private Texture2D? GetGridItemPreviewTexture(ContentItem item)
+        => item.Thumbnail ?? GetIconForType(item.Type);
 
     /// <summary>Returns the best icon <see cref="Texture2D"/> for the given type.</summary>
     private static Texture2D? GetIconForType(ContentItemType type) => type switch
@@ -1023,9 +1001,9 @@ public class ContentBrowserPanel
         }
 
         ContentItem? draggedItem = null;
-        if (sender == _gridView.ListBox)
+        if (sender == _gridView.RootElement)
         {
-            draggedItem = _gridView.ListBox.PressedItem?.Data;
+            draggedItem = _gridView.PressedItem;
         }
 
         draggedItem ??= GetSelectedItem();

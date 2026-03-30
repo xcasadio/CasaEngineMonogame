@@ -83,7 +83,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 3 — Vue en grille (thumbnails)
+### ✅ Tâche 3 — Vue en grille (thumbnails)
 
 **Objectif** : Afficher les fichiers du dossier sélectionné sous forme de grille de miniatures.
 
