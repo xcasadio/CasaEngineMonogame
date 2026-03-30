@@ -1492,6 +1492,8 @@ namespace CasaEngine.Editor
                 previewPanel.Update();
             }
 
+            _contentBrowserPanel?.Update();
+
             _desktop.Update();
             ProcessPendingProjectLauncherAction();
             _editorRuntime?.UpdateHost(gameTime);

@@ -318,7 +318,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 12 — Gestion du système de fichiers (opérations réelles)
+### ✅ Tâche 12 — Gestion du système de fichiers (opérations réelles)
 
 **Objectif** : Connecter les actions UI aux opérations réelles sur le système de fichiers.
 

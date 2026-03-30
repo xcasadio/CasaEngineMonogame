@@ -25,6 +25,11 @@ using Microsoft.Xna.Framework.Input;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
+using FormsClipboard = System.Windows.Forms.Clipboard;
+using FormsDialogResult = System.Windows.Forms.DialogResult;
+using FormsMessageBox = System.Windows.Forms.MessageBox;
+using FormsMessageBoxButtons = System.Windows.Forms.MessageBoxButtons;
+using FormsMessageBoxIcon = System.Windows.Forms.MessageBoxIcon;
 
 namespace CasaEngine.Editor.Controls;
 
@@ -37,6 +42,9 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class ContentBrowserPanel
 {
+    private readonly FileOperationService _fileOperationService = new();
+    private string _pendingOperationError = string.Empty;
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Events
     // ─────────────────────────────────────────────────────────────────────────
@@ -98,6 +106,7 @@ public class ContentBrowserPanel
     public ContentBrowserPanel(MGWindow window)
     {
         _window = window;
+        _fileOperationService.ErrorOccurred += OnFileOperationError;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -194,6 +203,20 @@ public class ContentBrowserPanel
     public void Refresh()
     {
         RebuildTree();
+    }
+
+    public void Update()
+    {
+        if (_fileOperationService.ConsumePendingExternalChanges())
+        {
+            RebuildTree();
+        }
+
+        if (!string.IsNullOrEmpty(_pendingOperationError))
+        {
+            FormsMessageBox.Show(_pendingOperationError, "Content Browser", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Error);
+            _pendingOperationError = string.Empty;
+        }
     }
 
     /// <summary>Navigates to the given folder, updating history.</summary>
@@ -642,22 +665,18 @@ public class ContentBrowserPanel
             return;
         }
 
-        var newPath = Path.Combine(_currentFolder.FullPath, "New Folder");
-        var suffix = 1;
-        while (Directory.Exists(newPath))
+        string folderName = "New Folder";
+        string candidatePath = Path.Combine(_currentFolder.FullPath, folderName);
+        int suffix = 1;
+        while (Directory.Exists(candidatePath))
         {
-            newPath = Path.Combine(_currentFolder.FullPath, $"New Folder ({suffix++})");
+            folderName = $"New Folder ({suffix++})";
+            candidatePath = Path.Combine(_currentFolder.FullPath, folderName);
         }
-        try
+
+        if (_fileOperationService.CreateDirectory(_currentFolder.FullPath, folderName))
         {
-            Directory.CreateDirectory(newPath);
-            FileSystemScanner.Refresh(_currentFolder);
-            RefreshTreeView();
-            RefreshAssetList();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[ContentBrowser] Create folder failed: {ex.Message}");
+            RebuildTree();
         }
     }
 
@@ -689,67 +708,33 @@ public class ContentBrowserPanel
 
     private void OnDeleteItemRequested(ContentItem item)
     {
-        try
+        if (FormsMessageBox.Show($"Delete '{item.Name}'?", "Content Browser", FormsMessageBoxButtons.YesNo, FormsMessageBoxIcon.Warning) != FormsDialogResult.Yes)
         {
-            if (item.IsDirectory)
-            {
-                if (Directory.Exists(item.FullPath))
-                {
-                    Directory.Delete(item.FullPath, recursive: true);
-                }
-            }
-            else
-            {
-                if (File.Exists(item.FullPath))
-                {
-                    File.Delete(item.FullPath);
-                }
-            }
+            return;
+        }
 
-            // If we just deleted the current folder, go up
-            if (_currentFolder == item)
-            {
-                _currentFolder = item.Parent ?? _rootItem;
-            }
+        if (_currentFolder == item)
+        {
+            _currentFolder = item.Parent ?? _rootItem;
+        }
 
+        if (_fileOperationService.Delete(item))
+        {
             FileDeleted?.Invoke(item);
             RebuildTree();
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[ContentBrowser] Delete failed: {ex.Message}");
         }
     }
 
     private void OnDuplicateRequested(ContentItem item)
     {
-        if (item.IsDirectory || !File.Exists(item.FullPath))
+        if (item.Parent == null)
         {
             return;
         }
 
-        try
+        if (_fileOperationService.Copy(item, item.Parent))
         {
-            var dir = Path.GetDirectoryName(item.FullPath)!;
-            var nameNoExt = Path.GetFileNameWithoutExtension(item.Name);
-            var ext = item.Extension;
-            var copyPath = Path.Combine(dir, $"{nameNoExt}_copy{ext}");
-            var suffix = 2;
-            while (File.Exists(copyPath))
-            {
-                copyPath = Path.Combine(dir, $"{nameNoExt}_copy{suffix++}{ext}");
-            }
-            File.Copy(item.FullPath, copyPath);
-
-            if (_currentFolder != null)
-            {
-                FileSystemScanner.Refresh(_currentFolder);
-                RefreshAssetList();
-            }
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[ContentBrowser] Duplicate failed: {ex.Message}");
+            RebuildTree();
         }
     }
 
@@ -760,8 +745,14 @@ public class ContentBrowserPanel
             return;
         }
 
-        // Clipboard isn't easily available in MonoGame — log for now
-        Debug.WriteLine($"[ContentBrowser] Copy path: {item.FullPath}");
+        try
+        {
+            FormsClipboard.SetText(item.FullPath);
+        }
+        catch (Exception ex)
+        {
+            OnFileOperationError($"Cannot copy '{item.FullPath}' to the clipboard.\n{ex.Message}");
+        }
     }
 
     private void OnShowInExplorer(ContentItem item)
@@ -997,6 +988,7 @@ public class ContentBrowserPanel
         {
             _rootItem = null;
             _currentFolder = null;
+            _fileOperationService.ClearRoot();
             _treeView?.ClearItems();
             _gridView?.SetItems(Array.Empty<ContentItem>());
             _detailView?.SetItems(Array.Empty<ContentItem>());
@@ -1004,6 +996,7 @@ public class ContentBrowserPanel
         }
 
         _rootItem = FileSystemScanner.ScanDirectory(rootPath);
+        _fileOperationService.SetRoot(_rootItem);
 
         // Keep current folder if still valid, otherwise reset to root
         if (_currentFolder == null || !Directory.Exists(_currentFolder.FullPath))
@@ -1206,60 +1199,25 @@ public class ContentBrowserPanel
         var actualEffect = effect == DragDropEffect.None ? GetCurrentDropEffect() : effect;
         var copied = actualEffect.HasFlag(DragDropEffect.Copy) && !actualEffect.HasFlag(DragDropEffect.Move);
 
-        try
+        bool changed = false;
+        foreach (var draggedItem in draggedItems!)
         {
-            foreach (var draggedItem in draggedItems!)
+            bool operationSucceeded = copied
+                ? _fileOperationService.Copy(draggedItem, targetFolder)
+                : _fileOperationService.Move(draggedItem, targetFolder);
+
+            if (!operationSucceeded)
             {
-                if (draggedItem.IsDirectory)
-                {
-                    var destinationDirectory = GetUniqueDestinationPath(targetFolder.FullPath, draggedItem.Name, isDirectory: true);
-                    if (copied)
-                    {
-                        CopyDirectory(draggedItem.FullPath, destinationDirectory);
-                    }
-                    else
-                    {
-                        Directory.Move(draggedItem.FullPath, destinationDirectory);
-                    }
-                }
-                else
-                {
-                    var destinationFile = GetUniqueDestinationPath(targetFolder.FullPath, draggedItem.Name, isDirectory: false);
-                    if (copied)
-                    {
-                        File.Copy(draggedItem.FullPath, destinationFile);
-                    }
-                    else
-                    {
-                        File.Move(draggedItem.FullPath, destinationFile);
-                    }
-                }
+                break;
             }
 
+            changed = true;
+        }
+
+        if (changed)
+        {
             RebuildTree();
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"[ContentBrowser] Drop failed: {ex.Message}");
-        }
-    }
-
-    private static string GetUniqueDestinationPath(string targetDirectory, string itemName, bool isDirectory)
-    {
-        var baseName = isDirectory ? itemName : Path.GetFileNameWithoutExtension(itemName);
-        var extension = isDirectory ? string.Empty : Path.GetExtension(itemName);
-        var candidate = Path.Combine(targetDirectory, itemName);
-        var suffix = 1;
-
-        while (Directory.Exists(candidate) || File.Exists(candidate))
-        {
-            var uniqueName = isDirectory
-                ? $"{baseName} ({suffix++})"
-                : $"{baseName} ({suffix++}){extension}";
-            candidate = Path.Combine(targetDirectory, uniqueName);
-        }
-
-        return candidate;
     }
 
     private static bool IsChildPath(string candidateChildPath, string parentPath)
@@ -1274,21 +1232,9 @@ public class ContentBrowserPanel
         return normalizedChild.StartsWith(normalizedParent, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
+    private void OnFileOperationError(string message)
     {
-        Directory.CreateDirectory(destinationDirectory);
-
-        foreach (var filePath in Directory.GetFiles(sourceDirectory))
-        {
-            var destinationFilePath = Path.Combine(destinationDirectory, Path.GetFileName(filePath));
-            File.Copy(filePath, destinationFilePath);
-        }
-
-        foreach (var directoryPath in Directory.GetDirectories(sourceDirectory))
-        {
-            var destinationChildPath = Path.Combine(destinationDirectory, Path.GetFileName(directoryPath));
-            CopyDirectory(directoryPath, destinationChildPath);
-        }
+        _pendingOperationError = message;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
