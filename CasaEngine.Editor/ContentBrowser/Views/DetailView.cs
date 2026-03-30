@@ -15,6 +15,7 @@ public sealed class DetailView : IContentView
     private readonly MGWindow _window;
     private readonly MGListView<ContentItem> _listView;
     private readonly List<ContentItem> _items = new();
+    private MGListViewColumn<ContentItem>? _nameColumn;
 
     public MGElement RootElement => _listView;
 
@@ -93,14 +94,40 @@ public sealed class DetailView : IContentView
         ClearSelection();
     }
 
+    public bool TryGetPrimarySelectionBounds(out Rectangle bounds)
+    {
+        var rowItem = GetSelectedRowItem();
+        if (rowItem != null)
+        {
+            var rowContents = rowItem.GetRowContents();
+            if (_nameColumn != null && rowContents.TryGetValue(_nameColumn, out var nameCell) && !nameCell.ActualLayoutBounds.IsEmpty)
+            {
+                bounds = nameCell.ActualLayoutBounds;
+                return true;
+            }
+
+            foreach (var cell in rowContents.Values)
+            {
+                if (!cell.ActualLayoutBounds.IsEmpty)
+                {
+                    bounds = cell.ActualLayoutBounds;
+                    return true;
+                }
+            }
+        }
+
+        bounds = Rectangle.Empty;
+        return false;
+    }
+
     private void ConfigureColumns()
     {
         var iconColumn = _listView.AddColumn(new ListViewColumnWidth(32), new MGTextBlock(_window, string.Empty), CreateIconCell);
         iconColumn.IsSortable = false;
 
-        var nameColumn = _listView.AddColumn(new ListViewColumnWidth(2.4), new MGTextBlock(_window, "Name") { IsBold = true }, CreateNameCell);
-        nameColumn.IsSortable = true;
-        nameColumn.SortKeySelector = item => item.Name;
+        _nameColumn = _listView.AddColumn(new ListViewColumnWidth(2.4), new MGTextBlock(_window, "Name") { IsBold = true }, CreateNameCell);
+        _nameColumn.IsSortable = true;
+        _nameColumn.SortKeySelector = item => item.Name;
 
         var typeColumn = _listView.AddColumn(new ListViewColumnWidth(1.3), new MGTextBlock(_window, "Type") { IsBold = true }, CreateTypeCell);
         typeColumn.IsSortable = true;
@@ -139,6 +166,12 @@ public sealed class DetailView : IContentView
 
     private ContentItem? GetSelectedItem()
     {
+        var rowItem = GetSelectedRowItem();
+        return rowItem?.Data;
+    }
+
+    private MGListViewItem<ContentItem>? GetSelectedRowItem()
+    {
         var selection = _listView.SelectedData;
         if (!selection.HasValue || _listView.RowItems == null)
         {
@@ -151,7 +184,7 @@ public sealed class DetailView : IContentView
             return null;
         }
 
-        return _listView.RowItems[selectedRowIndex].Data;
+        return _listView.RowItems[selectedRowIndex];
     }
 
     private MGElement CreateIconCell(ContentItem item)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.ContentBrowser.Models;
 using MGUI.Core.UI;
+using Microsoft.Xna.Framework;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
@@ -61,6 +62,22 @@ public sealed class GridView : IContentView
         }
 
         _listBox.SelectItem(items[0], true);
+    }
+
+    public bool TryGetPrimarySelectionBounds(out Rectangle bounds)
+    {
+        if (_listBox.SelectedItems.Count > 0)
+        {
+            var presenterBounds = _listBox.SelectedItems[0].ContentPresenter.ActualLayoutBounds;
+            if (!presenterBounds.IsEmpty)
+            {
+                bounds = presenterBounds;
+                return true;
+            }
+        }
+
+        bounds = Rectangle.Empty;
+        return false;
     }
 
     private void OnSelectionChanged(object? sender, System.Collections.ObjectModel.ReadOnlyCollection<MGListBoxItem<ContentItem>> items)

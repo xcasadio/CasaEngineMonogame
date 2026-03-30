@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.ContentBrowser.Models;
 using MGUI.Core.UI;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.ContentBrowser.Views;
 
@@ -18,4 +19,5 @@ public interface IContentView
     void SetItems(IReadOnlyList<ContentItem> items);
     void ClearSelection();
     void RestoreSelection(IReadOnlyList<ContentItem> items);
+    bool TryGetPrimarySelectionBounds(out Rectangle bounds);
 }

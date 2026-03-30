@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
+using CasaEngine.Editor.ContentBrowser.Controls;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
 using CasaEngine.Editor.ContentBrowser.Views;
@@ -44,6 +45,9 @@ public class ContentBrowserPanel
 {
     private readonly FileOperationService _fileOperationService = new();
     private string _pendingOperationError = string.Empty;
+    private readonly InlineRenameOverlay _inlineRenameOverlay;
+    private string? _pendingCurrentFolderPath;
+    private string? _pendingSelectionPath;
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Events
@@ -106,6 +110,7 @@ public class ContentBrowserPanel
     public ContentBrowserPanel(MGWindow window)
     {
         _window = window;
+        _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
     }
 
@@ -701,9 +706,18 @@ public class ContentBrowserPanel
 
     private void OnRenameItemRequested(ContentItem item)
     {
-        // TODO: implement inline rename overlay (Task 9)
-        // For now, just log
-        Debug.WriteLine($"[ContentBrowser] Rename requested: {item.FullPath}");
+        if (item.Parent == null)
+        {
+            return;
+        }
+
+        if (!TryGetRenameAnchorBounds(item, out var anchorBounds))
+        {
+            Debug.WriteLine($"[ContentBrowser] Cannot start rename without a valid anchor: {item.FullPath}");
+            return;
+        }
+
+        _inlineRenameOverlay.Show(item, anchorBounds, TryCommitInlineRename);
     }
 
     private void OnDeleteItemRequested(ContentItem item)
@@ -799,6 +813,10 @@ public class ContentBrowserPanel
                 NavigateTo(folder);
                 e.SetHandledBy(_treeView, true);
                 break;
+            case Keys.F2:
+                OnRenameItemRequested(folder);
+                e.SetHandledBy(_treeView, true);
+                break;
             case Keys.Delete:
                 OnDeleteItemRequested(folder);
                 e.SetHandledBy(_treeView, true);
@@ -835,6 +853,10 @@ public class ContentBrowserPanel
                     FileOpened?.Invoke(selected);
                 }
 
+                e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
+                break;
+            case Keys.F2:
+                OnRenameItemRequested(selected);
                 e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
             case Keys.Delete:
@@ -981,6 +1003,11 @@ public class ContentBrowserPanel
     /// </summary>
     private void RebuildTree()
     {
+        if (_inlineRenameOverlay.IsOpen)
+        {
+            _inlineRenameOverlay.Cancel();
+        }
+
         _itemToFolder.Clear();
 
         var rootPath = EngineEnvironment.ProjectPath;
@@ -998,16 +1025,11 @@ public class ContentBrowserPanel
         _rootItem = FileSystemScanner.ScanDirectory(rootPath);
         _fileOperationService.SetRoot(_rootItem);
 
-        // Keep current folder if still valid, otherwise reset to root
-        if (_currentFolder == null || !Directory.Exists(_currentFolder.FullPath))
-        {
-            _currentFolder = _rootItem;
-        }
-        else
-        {
-            // Re-find the matching folder in the new tree
-            _currentFolder = FindFolder(_rootItem, _currentFolder.FullPath) ?? _rootItem;
-        }
+        var targetFolderPath = _pendingCurrentFolderPath ?? _currentFolder?.FullPath;
+        _pendingCurrentFolderPath = null;
+        _currentFolder = string.IsNullOrWhiteSpace(targetFolderPath)
+            ? _rootItem
+            : FindFolder(_rootItem, targetFolderPath) ?? _rootItem;
 
         RefreshTreeView();
         RefreshAssetList();
@@ -1092,6 +1114,8 @@ public class ContentBrowserPanel
     {
         var displayFolder = _currentFolder ?? _rootItem;
         var previousSelection = GetSelectedItems();
+        var pendingSelectionPath = _pendingSelectionPath;
+        _pendingSelectionPath = null;
         if (displayFolder == null)
         {
             _gridView?.SetItems(Array.Empty<ContentItem>());
@@ -1111,6 +1135,17 @@ public class ContentBrowserPanel
         var orderedItems = items.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList();
         _gridView.SetItems(orderedItems);
         _detailView.SetItems(orderedItems);
+
+        if (!string.IsNullOrWhiteSpace(pendingSelectionPath))
+        {
+            var pendingSelection = orderedItems.FirstOrDefault(item => string.Equals(item.FullPath, pendingSelectionPath, StringComparison.OrdinalIgnoreCase));
+            if (pendingSelection != null)
+            {
+                _activeContentView.RestoreSelection(new[] { pendingSelection });
+                return;
+            }
+        }
+
         _activeContentView.RestoreSelection(previousSelection);
     }
 
@@ -1290,5 +1325,77 @@ public class ContentBrowserPanel
                 return;
             }
         }
+    }
+
+    private bool TryCommitInlineRename(ContentItem item, string newName)
+    {
+        var oldName = item.Name;
+        var parentDirectory = Path.GetDirectoryName(item.FullPath);
+        if (string.IsNullOrWhiteSpace(parentDirectory))
+        {
+            return false;
+        }
+
+        var newFullPath = Path.Combine(parentDirectory, newName);
+        if (!_fileOperationService.Rename(item, newName))
+        {
+            return false;
+        }
+
+        if (item.IsDirectory && _currentFolder != null && string.Equals(_currentFolder.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            _pendingCurrentFolderPath = newFullPath;
+        }
+
+        _pendingSelectionPath = newFullPath;
+        RebuildTree();
+
+        var renamedItem = _rootItem == null ? null : FindItemByPath(_rootItem, newFullPath);
+        FileRenamed?.Invoke(renamedItem ?? item, oldName);
+        return true;
+    }
+
+    private bool TryGetRenameAnchorBounds(ContentItem item, out Rectangle anchorBounds)
+    {
+        var selectedFromView = GetSelectedItem();
+        if (selectedFromView != null && string.Equals(selectedFromView.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase)
+            && _activeContentView.TryGetPrimarySelectionBounds(out anchorBounds))
+        {
+            return true;
+        }
+
+        if (_treeView.SelectedItem != null
+            && _itemToFolder.TryGetValue(_treeView.SelectedItem, out var selectedFolder)
+            && string.Equals(selectedFolder.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            var headerBounds = _treeView.SelectedItem.HeaderContent?.ActualLayoutBounds ?? Rectangle.Empty;
+            if (!headerBounds.IsEmpty)
+            {
+                anchorBounds = headerBounds;
+                return true;
+            }
+        }
+
+        anchorBounds = Rectangle.Empty;
+        return false;
+    }
+
+    private static ContentItem? FindItemByPath(ContentItem root, string fullPath)
+    {
+        if (string.Equals(root.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return root;
+        }
+
+        foreach (var child in root.Children)
+        {
+            var found = FindItemByPath(child, fullPath);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
     }
 }

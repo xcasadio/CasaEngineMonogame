@@ -229,7 +229,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### ⬜ Tâche 9 — Renommage en place
+### ✅ Tâche 9 — Renommage en place
 
 **Objectif** : Permettre le renommage d'un fichier/dossier directement dans le Content Browser.
 
