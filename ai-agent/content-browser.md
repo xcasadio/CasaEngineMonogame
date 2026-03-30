@@ -400,7 +400,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 15 — Style et thème visuel
+### ✅ Tâche 15 — Style et thème visuel
 
 **Objectif** : Appliquer un style cohérent et professionnel au Content Browser.
 

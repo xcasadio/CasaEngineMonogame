@@ -14,6 +14,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
@@ -45,6 +46,12 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class ContentBrowserPanel
 {
+    private static readonly Color ToolbarBackgroundColor = new(26, 30, 38);
+    private static readonly Color TreeBackgroundColor = new(22, 25, 31);
+    private static readonly Color ContentBackgroundColor = new(18, 21, 28);
+    private static readonly Color PanelBorderColor = new(62, 72, 88);
+    private static readonly Color AccentSelectionColor = new(58, 110, 182, 185);
+
     private sealed class ContextMenuExtension
     {
         public string Label { get; }
@@ -164,7 +171,7 @@ public class ContentBrowserPanel
         // ────────────────────────────────────────
         //  Toolbar row
         // ────────────────────────────────────────
-        var toolbar = BuildToolbar();
+        var toolbar = WrapPanelSurface(BuildToolbar(), ToolbarBackgroundColor, new Thickness(6, 4, 6, 4));
 
         // ────────────────────────────────────────
         //  Tree view (left pane)
@@ -173,6 +180,8 @@ public class ContentBrowserPanel
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(TreeBackgroundColor)),
+            SelectionBackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(AccentSelectionColor)),
         };
         _treeView.SelectionChanged += OnFolderSelectionChanged;
         _treeView.KeyboardHandler.Pressed += OnTreeViewKeyPressed;
@@ -181,12 +190,13 @@ public class ContentBrowserPanel
 
         var treeScroll = new MGScrollViewer(_window);
         treeScroll.SetContent(_treeView);
+        var treePane = WrapPanelSurface(treeScroll, TreeBackgroundColor);
 
         // ────────────────────────────────────────
         //  Content views (right pane)
         // ────────────────────────────────────────
         _gridView = new GridView(_window, Config.ThumbnailSize, GetGridItemPreviewTexture, ConfigureGridItemElement);
-        _detailView = new DetailView(_window, ConfigureDetailItemElement);
+        _detailView = new DetailView(_window, GetIconForType, ConfigureDetailItemElement);
 
         BindContentViewEvents(_gridView);
         BindContentViewEvents(_detailView);
@@ -200,6 +210,7 @@ public class ContentBrowserPanel
             VerticalAlignment = VerticalAlignment.Stretch,
         };
         _contentViewHost.SetContent(_activeContentView.RootElement);
+        var contentPane = WrapPanelSurface(_contentViewHost, ContentBackgroundColor);
 
         // ────────────────────────────────────────
         //  Grid: [tree | splitter | list]
@@ -216,9 +227,9 @@ public class ContentBrowserPanel
         contentGrid.AddColumn(GridLength.CreatePixelLength(splitter.Size));
         contentGrid.AddColumn(GridLength.CreateWeightedLength(2));
 
-        contentGrid.TryAddChild(0, 0, treeScroll);
+        contentGrid.TryAddChild(0, 0, treePane);
         contentGrid.TryAddChild(0, 1, splitter);
-        contentGrid.TryAddChild(0, 2, _contentViewHost);
+        contentGrid.TryAddChild(0, 2, contentPane);
 
         // ────────────────────────────────────────
         //  Outer dock: toolbar on top, content fills
@@ -640,22 +651,7 @@ public class ContentBrowserPanel
     }
 
     /// <summary>Returns the best icon <see cref="Texture2D"/> for the given type.</summary>
-    private static Texture2D? GetIconForType(ContentItemType type) => type switch
-    {
-        ContentItemType.Folder    => EditorIcons.Folder,
-        ContentItemType.Texture   => EditorIcons.Image,
-        ContentItemType.Model     => EditorIcons.Box,
-        ContentItemType.Sound     => EditorIcons.Volume,
-        ContentItemType.Script    => EditorIcons.FileCode,
-        ContentItemType.Scene     => EditorIcons.Clapperboard,
-        ContentItemType.Shader    => EditorIcons.Settings,
-        ContentItemType.Font      => EditorIcons.Square,
-        ContentItemType.Material  => EditorIcons.Palette,
-        ContentItemType.Prefab    => EditorIcons.Package,
-        ContentItemType.Animation => EditorIcons.Clapperboard,
-        ContentItemType.World     => EditorIcons.Layers,
-        _                         => EditorIcons.FilePlus,
-    };
+    private Texture2D? GetIconForType(ContentItemType type) => ContentItemDisplay.GetIcon(Config, type);
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Context menus
@@ -1192,7 +1188,7 @@ public class ContentBrowserPanel
 
         // Header: icon + name
         var header = new MGStackPanel(_window, Orientation.Horizontal) { Spacing = 4 };
-        var folderIcon = EditorIcons.Folder;
+        var folderIcon = GetIconForType(ContentItemType.Folder);
         if (folderIcon != null)
         {
             header.TryAddChild(new MGImage(_window, folderIcon, Stretch: Stretch.Uniform)
@@ -2016,5 +2012,19 @@ public class ContentBrowserPanel
     {
         _tooltipPreviewImages.Clear();
         _tooltipDimensionTexts.Clear();
+    }
+
+    private MGBorder WrapPanelSurface(MGElement content, Color backgroundColor, Thickness? padding = null)
+    {
+        var border = new MGBorder(_window, new Thickness(1), new MGUniformBorderBrush(new MGSolidFillBrush(PanelBorderColor)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(backgroundColor)),
+            Padding = padding ?? new Thickness(4),
+            CornerRadius = new MGCornerRadius(6),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        border.SetContent(content);
+        return border;
     }
 }

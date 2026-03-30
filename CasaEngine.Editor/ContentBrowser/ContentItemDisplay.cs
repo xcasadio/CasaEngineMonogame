@@ -1,11 +1,37 @@
 using System;
 using System.IO;
 using CasaEngine.Editor.ContentBrowser.Models;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.ContentBrowser;
 
 public static class ContentItemDisplay
 {
+    public static Texture2D? GetIcon(ContentBrowserConfig? config, ContentItemType type)
+    {
+        if (config != null && config.CustomIcons.TryGetValue(type, out var customIcon) && customIcon != null)
+        {
+            return customIcon;
+        }
+
+        return type switch
+        {
+            ContentItemType.Folder => EditorIcons.Folder,
+            ContentItemType.Texture => EditorIcons.Image,
+            ContentItemType.Model => EditorIcons.Box,
+            ContentItemType.Sound => EditorIcons.Volume,
+            ContentItemType.Script => EditorIcons.FileCode,
+            ContentItemType.Scene => EditorIcons.Clapperboard,
+            ContentItemType.Shader => EditorIcons.Settings,
+            ContentItemType.Font => EditorIcons.Square,
+            ContentItemType.Material => EditorIcons.Palette,
+            ContentItemType.Prefab => EditorIcons.Package,
+            ContentItemType.Animation => EditorIcons.Clapperboard,
+            ContentItemType.World => EditorIcons.Layers,
+            _ => EditorIcons.FilePlus,
+        };
+    }
+
     public static string GetTypeLabel(ContentItem item)
     {
         if (item.IsDirectory)

@@ -13,6 +13,7 @@ namespace CasaEngine.Editor.ContentBrowser.Views;
 public sealed class DetailView : IContentView
 {
     private readonly MGWindow _window;
+    private readonly Func<ContentItemType, Texture2D?> _iconSelector;
     private readonly MGListView<ContentItem> _listView;
     private readonly List<ContentItem> _items = new();
     private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
@@ -35,9 +36,10 @@ public sealed class DetailView : IContentView
     public event Action<ContentItem>? FileDoubleClicked;
     public event Action<ContentItem>? DirectoryDoubleClicked;
 
-    public DetailView(MGWindow window, Action<ContentItem, MGElement>? itemElementInitializer = null)
+    public DetailView(MGWindow window, Func<ContentItemType, Texture2D?> iconSelector, Action<ContentItem, MGElement>? itemElementInitializer = null)
     {
         _window = window;
+        _iconSelector = iconSelector ?? throw new ArgumentNullException(nameof(iconSelector));
         _itemElementInitializer = itemElementInitializer;
         _listView = new MGListView<ContentItem>(window)
         {
@@ -192,7 +194,7 @@ public sealed class DetailView : IContentView
 
     private MGElement CreateIconCell(ContentItem item)
     {
-        Texture2D? icon = GetIconForType(item.Type);
+        Texture2D? icon = _iconSelector(item.Type);
         if (icon == null)
         {
             return new MGTextBlock(_window, string.Empty);
@@ -263,21 +265,4 @@ public sealed class DetailView : IContentView
             }
         }
     }
-
-    private static Texture2D? GetIconForType(ContentItemType type) => type switch
-    {
-        ContentItemType.Folder => EditorIcons.Folder,
-        ContentItemType.Texture => EditorIcons.Image,
-        ContentItemType.Model => EditorIcons.Box,
-        ContentItemType.Sound => EditorIcons.Volume,
-        ContentItemType.Script => EditorIcons.FileCode,
-        ContentItemType.Scene => EditorIcons.Clapperboard,
-        ContentItemType.Shader => EditorIcons.Settings,
-        ContentItemType.Font => EditorIcons.Square,
-        ContentItemType.Material => EditorIcons.Palette,
-        ContentItemType.Prefab => EditorIcons.Package,
-        ContentItemType.Animation => EditorIcons.Clapperboard,
-        ContentItemType.World => EditorIcons.Layers,
-        _ => EditorIcons.FilePlus,
-    };
 }

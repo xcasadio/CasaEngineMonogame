@@ -15,8 +15,9 @@ namespace CasaEngine.Editor.ContentBrowser.Controls;
 
 public sealed class InlineRenameOverlay
 {
-    private static readonly IBorderBrush DefaultBorderBrush = new MGSolidFillBrush(new Color(72, 72, 72)).AsUniformBorderBrush();
+    private static readonly IBorderBrush DefaultBorderBrush = new MGSolidFillBrush(new Color(82, 132, 204)).AsUniformBorderBrush();
     private static readonly IBorderBrush InvalidBorderBrush = Color.IndianRed.AsFillBrush().AsUniformBorderBrush();
+    private static readonly VisualStateFillBrush PopupBackgroundBrush = new(new MGSolidFillBrush(new Color(24, 28, 36)));
 
     private readonly MGWindow _parentWindow;
 
@@ -59,6 +60,7 @@ public sealed class InlineRenameOverlay
             MinHeight = popupBounds.Height,
             MaxHeight = popupBounds.Height,
             BorderBrush = MGUniformBorderBrush.Transparent,
+            BackgroundBrush = PopupBackgroundBrush,
         };
 
         var textBox = new MGTextBox(popupWindow, CharacterLimit: 255)

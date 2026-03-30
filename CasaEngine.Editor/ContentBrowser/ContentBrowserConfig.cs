@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using CasaEngine.Editor.ContentBrowser.Models;
+using Microsoft.Xna.Framework.Graphics;
+
 namespace CasaEngine.Editor.ContentBrowser;
 
 public enum ContentViewMode
@@ -19,4 +23,6 @@ public sealed class ContentBrowserConfig
     public ContentViewMode DefaultViewMode { get; set; } = ContentViewMode.Grid;
 
     public bool ShowHiddenFiles { get; set; }
+
+    public Dictionary<ContentItemType, Texture2D?> CustomIcons { get; } = new();
 }
