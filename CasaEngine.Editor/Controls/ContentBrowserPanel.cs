@@ -140,6 +140,7 @@ public class ContentBrowserPanel
         _treeView.SelectionChanged += OnFolderSelectionChanged;
         _treeView.KeyboardHandler.Pressed += OnTreeViewKeyPressed;
         _treeView.MouseHandler.RMBReleasedInside += OnTreeViewRightClick;
+        _window.WindowKeyboardHandler.Pressed += OnGlobalKeyPressed;
 
         var treeScroll = new MGScrollViewer(_window);
         treeScroll.SetContent(_treeView);
@@ -860,7 +861,7 @@ public class ContentBrowserPanel
                 e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
             case Keys.Delete:
-                OnDeleteItemRequested(selected);
+                OnDeleteSelectedItemsRequested();
                 e.SetHandledBy(sender as MGElement ?? _contentViewHost, true);
                 break;
             case Keys.Back:
@@ -1270,6 +1271,105 @@ public class ContentBrowserPanel
     private void OnFileOperationError(string message)
     {
         _pendingOperationError = message;
+    }
+
+    private void OnGlobalKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    {
+        if (e.IsHandled || _inlineRenameOverlay.IsOpen)
+        {
+            return;
+        }
+
+        if (e.Tracker.IsControlDown && e.Key == Keys.F)
+        {
+            FocusSearchBox();
+            e.SetHandledBy(_window, true);
+            return;
+        }
+
+        if (e.Tracker.IsAltDown)
+        {
+            switch (e.Key)
+            {
+                case Keys.Left:
+                    GoBack();
+                    e.SetHandledBy(_window, true);
+                    return;
+
+                case Keys.Right:
+                    GoForward();
+                    e.SetHandledBy(_window, true);
+                    return;
+            }
+        }
+
+        switch (e.Key)
+        {
+            case Keys.F5:
+                Refresh();
+                e.SetHandledBy(_window, true);
+                return;
+        }
+
+        if (_window.Desktop.FocusedKeyboardHandler is MGTextBox)
+        {
+            return;
+        }
+
+        if (e.Key == Keys.Back)
+        {
+            GoUp();
+            e.SetHandledBy(_window, true);
+        }
+    }
+
+    private void FocusSearchBox()
+    {
+        if (_searchBox == null)
+        {
+            return;
+        }
+
+        _searchBox.RequestFocus();
+        _searchBox.SelectAll();
+    }
+
+    private void OnDeleteSelectedItemsRequested()
+    {
+        var selectedItems = GetSelectedItems();
+        if (selectedItems.Count == 0)
+        {
+            return;
+        }
+
+        if (selectedItems.Count == 1)
+        {
+            OnDeleteItemRequested(selectedItems[0]);
+            return;
+        }
+
+        if (FormsMessageBox.Show($"Delete {selectedItems.Count} items?", "Content Browser", FormsMessageBoxButtons.YesNo, FormsMessageBoxIcon.Warning) != FormsDialogResult.Yes)
+        {
+            return;
+        }
+
+        var itemsToDelete = selectedItems.OrderByDescending(item => item.FullPath.Length).ToList();
+        var changed = false;
+        foreach (var item in itemsToDelete)
+        {
+            if (!_fileOperationService.Delete(item))
+            {
+                break;
+            }
+
+            FileDeleted?.Invoke(item);
+            changed = true;
+        }
+
+        if (changed)
+        {
+            RebuildTree();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

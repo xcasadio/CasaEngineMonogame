@@ -294,7 +294,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 11 — Raccourcis clavier spécifiques au Content Browser
+### ✅ Tâche 11 — Raccourcis clavier spécifiques au Content Browser
 
 **Objectif** : Ajouter les raccourcis clavier spécifiques au Content Browser, au-dessus de la navigation clavier native de MGUI (Up/Down/Left/Right/Home/End déjà gérés par MGUI, voir `update-mgui.md` tâches 3-5).
 
