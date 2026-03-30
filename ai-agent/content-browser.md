@@ -342,7 +342,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### ⬜ Tâche 13 — Cache de thumbnails et performances
+### ✅ Tâche 13 — Cache de thumbnails et performances
 
 **Objectif** : Optimiser les performances pour les dossiers contenant beaucoup de fichiers.
 

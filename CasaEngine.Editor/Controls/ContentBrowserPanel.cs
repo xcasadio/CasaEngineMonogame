@@ -58,6 +58,7 @@ public class ContentBrowserPanel
     }
 
     private readonly FileOperationService _fileOperationService = new();
+    private readonly ThumbnailCache _thumbnailCache;
     private string _pendingOperationError = string.Empty;
     private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
@@ -141,6 +142,8 @@ public class ContentBrowserPanel
     {
         _window = window;
         Config = config ?? new ContentBrowserConfig();
+        _thumbnailCache = new ThumbnailCache(window.Desktop.Renderer.GraphicsDevice, Config.ThumbnailSize);
+        _thumbnailCache.ThumbnailReady += OnThumbnailReady;
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
@@ -266,8 +269,11 @@ public class ContentBrowserPanel
 
     public void Update()
     {
+        _thumbnailCache.Update();
+
         if (_fileOperationService.ConsumePendingExternalChanges())
         {
+            _thumbnailCache.InvalidateAll();
             RebuildTree();
         }
 
@@ -612,7 +618,17 @@ public class ContentBrowserPanel
     }
 
     private Texture2D? GetGridItemPreviewTexture(ContentItem item)
-        => item.Thumbnail ?? GetIconForType(item.Type);
+    {
+        var placeholder = GetIconForType(item.Type);
+        var cached = _thumbnailCache.GetOrRequest(item, placeholder);
+        if (cached.IsLoaded && cached.Texture != null)
+        {
+            item.Thumbnail = cached.Texture;
+            return cached.Texture;
+        }
+
+        return item.Thumbnail ?? placeholder;
+    }
 
     /// <summary>Returns the best icon <see cref="Texture2D"/> for the given type.</summary>
     private static Texture2D? GetIconForType(ContentItemType type) => type switch
@@ -776,6 +792,7 @@ public class ContentBrowserPanel
             _currentFolder = item.Parent ?? _rootItem;
         }
 
+        InvalidateThumbnailForItem(item);
         if (_fileOperationService.Delete(item))
         {
             FileDeleted?.Invoke(item);
@@ -1499,6 +1516,7 @@ public class ContentBrowserPanel
         var changed = false;
         foreach (var item in itemsToDelete)
         {
+            InvalidateThumbnailForItem(item);
             if (!_fileOperationService.Delete(item))
             {
                 break;
@@ -1579,6 +1597,10 @@ public class ContentBrowserPanel
         {
             var predictedDestinationPath = PredictDestinationPath(targetFolder, item);
             var oldParent = item.Parent;
+            if (!copied)
+            {
+                InvalidateThumbnailForItem(item);
+            }
             var operationSucceeded = copied
                 ? _fileOperationService.Copy(item, targetFolder)
                 : _fileOperationService.Move(item, targetFolder);
@@ -1799,6 +1821,7 @@ public class ContentBrowserPanel
         }
 
         var newFullPath = Path.Combine(parentDirectory, newName);
+        InvalidateThumbnailForItem(item);
         if (!_fileOperationService.Rename(item, newName))
         {
             return false;
@@ -1860,5 +1883,38 @@ public class ContentBrowserPanel
         }
 
         return null;
+    }
+
+    private void OnThumbnailReady(string path, Texture2D texture, Point sourceSize)
+    {
+        if (_rootItem == null)
+        {
+            return;
+        }
+
+        var item = FindItemByPath(_rootItem, path);
+        if (item == null)
+        {
+            return;
+        }
+
+        item.Thumbnail = texture;
+        _gridView.RefreshItemPresentation(item);
+    }
+
+    private void InvalidateThumbnailForItem(ContentItem item)
+    {
+        if (item == null)
+        {
+            return;
+        }
+
+        _thumbnailCache.Invalidate(item.FullPath);
+        item.Thumbnail = null;
+
+        foreach (var child in item.Children)
+        {
+            InvalidateThumbnailForItem(child);
+        }
     }
 }
