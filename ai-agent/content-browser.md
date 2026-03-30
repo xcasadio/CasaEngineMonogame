@@ -41,7 +41,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 **Légende** : ✅ terminé, 🟡 partiel, ⬜ non commencé
 
-### 🟡 Tâche 1 — Structure du projet et modèle de données
+### ✅ Tâche 1 — Structure du projet et modèle de données
 
 **Objectif** : Créer la structure de fichiers du Content Browser et le modèle de données représentant les assets.
 
