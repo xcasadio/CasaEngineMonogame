@@ -424,7 +424,7 @@ Créer un **Content Browser** (navigateur de contenu) similaire à Unity ou Unre
 
 ---
 
-### 🟡 Tâche 16 — Tests et polish
+### ✅ Tâche 16 — Tests et polish
 
 **Objectif** : Tests finaux, corrections de bugs et polish.
 

@@ -45,7 +45,7 @@ public sealed class ThumbnailCache : IDisposable
 
     private readonly record struct PendingThumbnailLoad(long RequestId, string Path, byte[]? PngBytes, Point? SourceSize, bool Succeeded);
 
-    private readonly GraphicsDevice _graphicsDevice;
+    private readonly GraphicsDevice? _graphicsDevice;
     private readonly int _thumbnailSize;
     private readonly int _maxEntries;
     private readonly Dictionary<string, CacheEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
@@ -56,11 +56,22 @@ public sealed class ThumbnailCache : IDisposable
 
     public event Action<string, Texture2D, Point>? ThumbnailReady;
 
-    public ThumbnailCache(GraphicsDevice graphicsDevice, int thumbnailSize, int maxEntries = 500)
+    public int EntryCount
     {
-        _graphicsDevice = graphicsDevice ?? throw new ArgumentNullException(nameof(graphicsDevice));
+        get
+        {
+            lock (_syncRoot)
+            {
+                return _entries.Count;
+            }
+        }
+    }
+
+    public ThumbnailCache(GraphicsDevice? graphicsDevice, int thumbnailSize, int maxEntries = 500)
+    {
+        _graphicsDevice = graphicsDevice;
         _thumbnailSize = Math.Max(32, thumbnailSize);
-        _maxEntries = Math.Max(32, maxEntries);
+        _maxEntries = Math.Max(1, maxEntries);
     }
 
     public ThumbnailCacheResult GetOrRequest(ContentItem item, Texture2D? placeholder)
@@ -86,22 +97,22 @@ public sealed class ThumbnailCache : IDisposable
             }
 
             var requestId = ++_nextRequestId;
-            entry = new CacheEntry(normalizedPath, CacheEntryStatus.Loading, ++_accessSequence, requestId);
+            var initialStatus = _graphicsDevice == null ? CacheEntryStatus.Failed : CacheEntryStatus.Loading;
+            entry = new CacheEntry(normalizedPath, initialStatus, ++_accessSequence, requestId);
             _entries[normalizedPath] = entry;
-            _ = Task.Run(() => LoadThumbnailAsync(normalizedPath, requestId));
+            if (_graphicsDevice != null)
+            {
+                _ = Task.Run(() => LoadThumbnailAsync(normalizedPath, requestId));
+            }
         }
+
+        TrimToBudget();
 
         return new ThumbnailCacheResult(placeholder, null, false);
     }
 
     public bool TryGetCached(string path, out ThumbnailCacheResult result)
     {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            result = default;
-            return false;
-        }
-
         lock (_syncRoot)
         {
             if (_entries.TryGetValue(NormalizePath(path), out var entry))
@@ -231,7 +242,7 @@ public sealed class ThumbnailCache : IDisposable
         Texture2D? createdTexture = null;
         try
         {
-            if (pendingLoad.Succeeded && pendingLoad.PngBytes != null)
+            if (_graphicsDevice != null && pendingLoad.Succeeded && pendingLoad.PngBytes != null)
             {
                 using var stream = new MemoryStream(pendingLoad.PngBytes, writable: false);
                 createdTexture = Texture2D.FromStream(_graphicsDevice, stream);
@@ -250,7 +261,7 @@ public sealed class ThumbnailCache : IDisposable
                 existingEntry.Texture?.Dispose();
                 existingEntry.Texture = createdTexture;
                 existingEntry.SourceSize = pendingLoad.SourceSize;
-                existingEntry.Status = createdTexture != null ? CacheEntryStatus.Ready : CacheEntryStatus.Failed;
+                existingEntry.Status = createdTexture != null ? CacheEntryStatus.Ready : pendingLoad.Succeeded ? CacheEntryStatus.Loading : CacheEntryStatus.Failed;
                 existingEntry.LastAccessSequence = ++_accessSequence;
             }
 

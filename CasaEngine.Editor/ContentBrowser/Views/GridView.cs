@@ -5,6 +5,7 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.Containers.Grids;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -38,8 +39,10 @@ public sealed class GridView : IContentView
     private static readonly Color IdleBackgroundColor = new(28, 28, 34, 120);
     private static readonly Color IdleBorderColor = new(74, 74, 86, 255);
 
+    private readonly MGGrid _root;
     private readonly MGScrollViewer _scrollViewer;
     private readonly MGWrapPanel _itemsPanel;
+    private readonly MGTextBlock _emptyStateText;
     private readonly Func<ContentItem, Texture2D?> _previewSelector;
     private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
     private readonly Dictionary<string, GridItemCard> _cardsByPath = new(StringComparer.OrdinalIgnoreCase);
@@ -49,7 +52,7 @@ public sealed class GridView : IContentView
     private readonly int _cardWidth;
     private readonly int _cardHeight;
 
-    public MGElement RootElement => _scrollViewer;
+    public MGElement RootElement => _root;
 
     public ContentItem? PressedItem { get; private set; }
 
@@ -85,6 +88,24 @@ public sealed class GridView : IContentView
         };
         _scrollViewer.SetContent(_itemsPanel);
         _scrollViewer.MouseHandler.LMBPressedInside += OnBackgroundPressed;
+
+        _emptyStateText = new MGTextBlock(window, "This folder is empty")
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            IsBold = true,
+            Visibility = Visibility.Collapsed,
+        };
+
+        _root = new MGGrid(window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _root.AddRow(GridLength.CreateWeightedLength(1));
+        _root.AddColumn(GridLength.CreateWeightedLength(1));
+        _root.TryAddChild(0, 0, _scrollViewer);
+        _root.TryAddChild(0, 0, _emptyStateText);
     }
 
     public void SetItems(IReadOnlyList<ContentItem> items)
@@ -107,6 +128,7 @@ public sealed class GridView : IContentView
             _itemsPanel.TryAddChild(card.Border);
         }
 
+        UpdateEmptyState();
         SelectionChanged?.Invoke(Array.Empty<ContentItem>());
     }
 
@@ -404,5 +426,12 @@ public sealed class GridView : IContentView
         }
 
         return string.Concat(name.AsSpan(0, maxLength - 1), "…");
+    }
+
+    private void UpdateEmptyState()
+    {
+        bool hasItems = _items.Count > 0;
+        _scrollViewer.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
+        _emptyStateText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
     }
 }

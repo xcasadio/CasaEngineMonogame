@@ -1258,29 +1258,7 @@ public class ContentBrowserPanel
             return;
         }
 
-        var visibleItems = new List<ContentItem>();
-        if (!string.IsNullOrEmpty(_searchFilter))
-        {
-            foreach (var item in CollectAllDescendants(displayFolder))
-            {
-                if (ShouldIncludeItem(item) && item.Name.Contains(_searchFilter, StringComparison.OrdinalIgnoreCase))
-                {
-                    visibleItems.Add(item);
-                }
-            }
-        }
-        else
-        {
-            foreach (var item in displayFolder.Children)
-            {
-                if (ShouldIncludeItem(item))
-                {
-                    visibleItems.Add(item);
-                }
-            }
-        }
-
-        var orderedItems = visibleItems.OrderByDescending(c => c.IsDirectory).ThenBy(c => c.Name).ToList();
+        var orderedItems = ContentBrowserItemQuery.GetVisibleItems(displayFolder, _searchFilter, ShouldIncludeItem);
         _gridView.SetItems(orderedItems);
         _detailView.SetItems(orderedItems);
 
@@ -1542,20 +1520,6 @@ public class ContentBrowserPanel
     // ─────────────────────────────────────────────────────────────────────────
     //  Helpers
     // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>Returns all descendants (files and folders recursively).</summary>
-    private static IEnumerable<ContentItem> CollectAllDescendants(ContentItem folder)
-    {
-        foreach (var c in folder.Children)
-        {
-            yield return c;
-            if (c.IsDirectory)
-            {
-                foreach (var d in CollectAllDescendants(c))
-                    yield return d;
-            }
-        }
-    }
 
     /// <summary>Finds a folder in the tree by path.</summary>
     private static ContentItem? FindFolder(ContentItem root, string fullPath)

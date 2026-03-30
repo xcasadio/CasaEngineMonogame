@@ -14,12 +14,14 @@ public sealed class DetailView : IContentView
 {
     private readonly MGWindow _window;
     private readonly Func<ContentItemType, Texture2D?> _iconSelector;
+    private readonly MGGrid _root;
     private readonly MGListView<ContentItem> _listView;
     private readonly List<ContentItem> _items = new();
     private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
+    private readonly MGTextBlock _emptyStateText;
     private MGListViewColumn<ContentItem>? _nameColumn;
 
-    public MGElement RootElement => _listView;
+    public MGElement RootElement => _root;
 
     public MGListView<ContentItem> ListView => _listView;
 
@@ -41,6 +43,14 @@ public sealed class DetailView : IContentView
         _window = window;
         _iconSelector = iconSelector ?? throw new ArgumentNullException(nameof(iconSelector));
         _itemElementInitializer = itemElementInitializer;
+        _root = new MGGrid(window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _root.AddRow(GridLength.CreateWeightedLength(1));
+        _root.AddColumn(GridLength.CreateWeightedLength(1));
+
         _listView = new MGListView<ContentItem>(window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -48,6 +58,17 @@ public sealed class DetailView : IContentView
             RowHeight = 28,
             SelectionMode = GridSelectionMode.Row,
         };
+
+        _emptyStateText = new MGTextBlock(window, "This folder is empty")
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            IsBold = true,
+            Visibility = Visibility.Collapsed,
+        };
+
+        _root.TryAddChild(0, 0, _listView);
+        _root.TryAddChild(0, 0, _emptyStateText);
 
         ConfigureColumns();
         _listView.SelectionChanged += OnSelectionChanged;
@@ -64,6 +85,7 @@ public sealed class DetailView : IContentView
 
         _listView.SetItemsSource(_items);
         ApplyItemElementInitializers();
+        UpdateEmptyState();
     }
 
     public void ClearSelection()
@@ -264,5 +286,12 @@ public sealed class DetailView : IContentView
                 _itemElementInitializer(rowItem.Data, cell);
             }
         }
+    }
+
+    private void UpdateEmptyState()
+    {
+        bool hasItems = _items.Count > 0;
+        _listView.Visibility = hasItems ? Visibility.Visible : Visibility.Collapsed;
+        _emptyStateText.Visibility = hasItems ? Visibility.Collapsed : Visibility.Visible;
     }
 }
