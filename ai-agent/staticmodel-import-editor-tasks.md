@@ -13,12 +13,12 @@
   - Afficher le nom d'instance du composant quand il existe, au lieu du seul DisplayName.
   - Exemple cible: `Sub Mesh [WheelFrontRight / chrome]`.
 
-- 🚧 T2 - Générer des noms de slot lisibles
+- ✅ T2 - Générer des noms de slot lisibles
   Objectif:
   - Générer des noms stables à partir du noeud et du matériau source.
   - Exemple cible: `WheelFrontRight / chrome`, `Car / paint`, `glass`.
 
-- ⏳ T3 - Importer les textures vers des slots runtime
+- 🚧 T3 - Importer les textures vers des slots runtime
   Objectif:
   - Importer ou résoudre les textures source en vrais assets utilisables via `TextureAssetId`.
 

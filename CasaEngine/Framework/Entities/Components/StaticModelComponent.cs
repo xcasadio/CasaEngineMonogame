@@ -64,9 +64,15 @@ public class StaticModelComponent : PrimitiveComponent
 
     private void BuildHierarchy(StaticModelNode node, SceneComponent parent, World.World world)
     {
+        StaticModelMesh? modelMesh = null;
+        if (node.MeshIndex >= 0 && node.MeshIndex < StaticModel!.Meshes.Count)
+        {
+            modelMesh = StaticModel.Meshes[node.MeshIndex];
+        }
+
         var sub = new StaticModelSubMeshComponent
         {
-            Name = node.Name,
+            Name = GetGeneratedComponentName(node, modelMesh),
             IsGeneratedFromModel = true,
         };
 
@@ -76,9 +82,9 @@ public class StaticModelComponent : PrimitiveComponent
         sub.Coordinates.Scale       = node.Scale;
 
         // Wire up the mesh if this node has one.
-        if (node.MeshIndex >= 0 && node.MeshIndex < StaticModel!.Meshes.Count)
+        if (modelMesh != null)
         {
-            sub.ModelMesh = StaticModel.Meshes[node.MeshIndex];
+            sub.ModelMesh = modelMesh;
         }
 
         parent.AddChildComponent(sub);
@@ -88,6 +94,45 @@ public class StaticModelComponent : PrimitiveComponent
         {
             BuildHierarchy(child, sub, world);
         }
+    }
+
+    private static string GetGeneratedComponentName(StaticModelNode node, StaticModelMesh? modelMesh)
+    {
+        if (modelMesh == null)
+        {
+            return node.Name;
+        }
+
+        if (string.IsNullOrWhiteSpace(node.Name))
+        {
+            return modelMesh.Name;
+        }
+
+        if (IsSyntheticGeneratedNodeName(node.Name) && !string.IsNullOrWhiteSpace(modelMesh.Name))
+        {
+            return modelMesh.Name;
+        }
+
+        return node.Name;
+    }
+
+    private static bool IsSyntheticGeneratedNodeName(string nodeName)
+    {
+        int index = nodeName.LastIndexOf("_mesh", StringComparison.OrdinalIgnoreCase);
+        if (index < 0 || index == nodeName.Length - 1)
+        {
+            return false;
+        }
+
+        for (int i = index + 5; i < nodeName.Length; i++)
+        {
+            if (!char.IsDigit(nodeName[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     // Draw and BoundingBox are fully delegated to the child StaticModelSubMeshComponents

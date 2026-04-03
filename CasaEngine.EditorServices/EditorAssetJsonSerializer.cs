@@ -6,6 +6,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Materials;
@@ -66,6 +67,10 @@ internal static class EditorAssetJsonSerializer
 
             case UIScreenAsset uiScreenAsset:
                 SaveUIScreenAsset(uiScreenAsset, rootObject);
+                return true;
+
+            case StaticModel staticModel:
+                SaveStaticModel(staticModel, rootObject);
                 return true;
 
             case Texture texture:
@@ -252,6 +257,77 @@ internal static class EditorAssetJsonSerializer
     {
         node.Add("z_offset", layer.zOffset);
         node.Add("tiles", new JArray(layer.tiles));
+    }
+
+    private static void SaveStaticModel(StaticModel staticModel, JObject node)
+    {
+        SaveObjectBase(staticModel, node);
+
+        if (staticModel.RootNode == null)
+        {
+            node.Add("root_node", JValue.CreateNull());
+        }
+        else
+        {
+            var rootNodeObject = new JObject();
+            SaveStaticModelNode(staticModel.RootNode, rootNodeObject);
+            node.Add("root_node", rootNodeObject);
+        }
+
+        node.AddArray("meshes", staticModel.Meshes, SaveStaticModelMesh);
+    }
+
+    private static void SaveStaticModelNode(StaticModelNode staticModelNode, JObject node)
+    {
+        node.Add("name", staticModelNode.Name);
+        node.Add("mesh_index", staticModelNode.MeshIndex);
+
+        var positionNode = new JObject();
+        staticModelNode.Position.Save(positionNode);
+        node.Add("position", positionNode);
+
+        var rotationNode = new JObject();
+        staticModelNode.Rotation.Save(rotationNode);
+        node.Add("rotation", rotationNode);
+
+        var scaleNode = new JObject();
+        staticModelNode.Scale.Save(scaleNode);
+        node.Add("scale", scaleNode);
+
+        node.AddArray("children", staticModelNode.Children, SaveStaticModelNode);
+    }
+
+    private static void SaveStaticModelMesh(StaticModelMesh staticModelMesh, JObject node)
+    {
+        node.Add("name", staticModelMesh.Name);
+        node.Add("primitive_type", staticModelMesh.PrimitiveType.ToString());
+        node.Add("material_index", staticModelMesh.MaterialIndex);
+        node.Add("texture_asset_id", staticModelMesh.TextureAssetId.ToString());
+
+        if (staticModelMesh.MaterialAssetId != Guid.Empty)
+        {
+            node.Add("material_asset_id", staticModelMesh.MaterialAssetId.ToString());
+        }
+
+        if (staticModelMesh.SubMeshes.Count > 0)
+        {
+            node.AddArray("sub_meshes", staticModelMesh.SubMeshes, SaveSubMesh);
+        }
+
+        node.AddArray("vertices", staticModelMesh.GetVertices(), (vertex, vertexNode) => vertex.Save(vertexNode));
+        node.AddArray("indices", staticModelMesh.GetIndices());
+    }
+
+    private static void SaveSubMesh(SubMesh subMesh, JObject node)
+    {
+        node.Add("index_start", subMesh.IndexStart);
+        node.Add("primitive_count", subMesh.PrimitiveCount);
+        node.Add("vertex_offset", subMesh.VertexOffset);
+
+        if (subMesh.MaterialAssetId != Guid.Empty)
+        {
+            node.Add("material_asset_id", subMesh.MaterialAssetId.ToString());
+        }
     }
 
     private static void SaveTileData(TileData tile, JObject node)

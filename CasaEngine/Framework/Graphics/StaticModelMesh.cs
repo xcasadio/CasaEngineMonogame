@@ -57,6 +57,8 @@ public class StaticModelMesh
 
     public IReadOnlyList<VertexPositionNormalTexture> GetVertices() => _vertices;
 
+    public IReadOnlyList<uint> GetIndices() => _indices;
+
     public void SetData(VertexPositionNormalTexture[] vertices, uint[] indices)
     {
         _vertices = vertices;

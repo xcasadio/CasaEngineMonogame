@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 using CasaEngine.Editor.ContentBrowser.Models;
+using CasaEngine.EditorServices;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;
 
@@ -170,6 +171,7 @@ public sealed class FileOperationService : IDisposable
 
         try
         {
+            bool assetCatalogChanged = false;
             using (SuspendWatcherNotifications())
             {
                 foreach (string externalPath in externalPaths)
@@ -188,8 +190,14 @@ public sealed class FileOperationService : IDisposable
                     {
                         string destinationFile = GetUniqueDestinationPath(targetDirectory.FullPath, Path.GetFileName(externalPath), false);
                         File.Copy(externalPath, destinationFile);
+                        assetCatalogChanged |= EditorAssetImportService.ImportFile(externalPath, destinationFile);
                     }
                 }
+            }
+
+            if (assetCatalogChanged)
+            {
+                EditorAssetCatalogService.Save();
             }
 
             RefreshRootModel();
