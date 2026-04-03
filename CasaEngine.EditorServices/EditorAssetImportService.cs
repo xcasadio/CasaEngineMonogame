@@ -3,6 +3,7 @@ using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Graphics;
+using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.EditorServices;
@@ -29,6 +30,8 @@ public static class EditorAssetImportService
             return catalogChanged;
         }
 
+        ApplyTextureImports(model, result.Materials, destinationFilePath);
+
         string staticModelFullPath = Path.ChangeExtension(destinationFilePath, Constants.FileNameExtensions.StaticModel);
         string staticModelRelativePath = GetRelativeProjectPath(staticModelFullPath);
         string staticModelName = Path.GetFileNameWithoutExtension(staticModelFullPath);
@@ -53,8 +56,129 @@ public static class EditorAssetImportService
             return false;
         }
 
-        EnsureAssetInfo(relativeFilePath, Path.GetFileNameWithoutExtension(filePath));
+        EnsureAssetInfo(relativeFilePath, Path.GetFileName(filePath));
         return true;
+    }
+
+    private static void ApplyTextureImports(
+        StaticModel model,
+        IReadOnlyList<StaticModelImportedMaterial> materials,
+        string destinationSourceFilePath)
+    {
+        string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
+        string texturesDirectory = Path.Combine(GetImportedAssetsDirectory(destinationSourceFilePath), "Textures");
+        Directory.CreateDirectory(texturesDirectory);
+
+        var importedTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var usedTextureFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var diffuseTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+
+        foreach (var material in materials)
+        {
+            if (string.IsNullOrWhiteSpace(material.DiffuseTextureFilePath))
+            {
+                continue;
+            }
+
+            Guid textureAssetId = ImportTexture(
+                material.DiffuseTextureFilePath,
+                texturesDirectory,
+                modelBaseName,
+                importedTexturesBySourcePath,
+                usedTextureFileNames);
+
+            if (textureAssetId != Guid.Empty)
+            {
+                diffuseTextureAssetIdsByMaterialIndex[material.MaterialIndex] = textureAssetId;
+            }
+        }
+
+        foreach (var mesh in model.Meshes)
+        {
+            if (mesh.MaterialIndex >= 0
+                && diffuseTextureAssetIdsByMaterialIndex.TryGetValue(mesh.MaterialIndex, out var textureAssetId))
+            {
+                mesh.TextureAssetId = textureAssetId;
+            }
+        }
+    }
+
+    private static Guid ImportTexture(
+        string sourceTexturePath,
+        string texturesDirectory,
+        string modelBaseName,
+        Dictionary<string, Guid> importedTexturesBySourcePath,
+        HashSet<string> usedTextureFileNames)
+    {
+        if (importedTexturesBySourcePath.TryGetValue(sourceTexturePath, out var existingTextureAssetId))
+        {
+            return existingTextureAssetId;
+        }
+
+        if (!File.Exists(sourceTexturePath))
+        {
+            return Guid.Empty;
+        }
+
+        if (!Texture2DLoader.IsTextureFile(sourceTexturePath))
+        {
+            return Guid.Empty;
+        }
+
+        string copiedTextureFileName = CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
+        string copiedTextureFullPath = Path.Combine(texturesDirectory, copiedTextureFileName);
+        File.Copy(sourceTexturePath, copiedTextureFullPath, true);
+
+        string copiedTextureRelativePath = GetRelativeProjectPath(copiedTextureFullPath);
+        string rawTextureAssetName = $"{modelBaseName}_{copiedTextureFileName}";
+        var rawTextureAssetInfo = EnsureAssetInfo(copiedTextureRelativePath, rawTextureAssetName);
+
+        string wrapperRelativePath = Path.ChangeExtension(copiedTextureRelativePath, Constants.FileNameExtensions.Texture);
+        string wrapperAssetName = $"{modelBaseName}_{Path.GetFileNameWithoutExtension(copiedTextureFileName)}";
+        var wrapperAssetInfo = EnsureAssetInfo(wrapperRelativePath, wrapperAssetName);
+
+        var wrapperDocument = CreateTextureWrapperDocument(wrapperAssetInfo.Id, wrapperAssetInfo.Name, rawTextureAssetInfo.Id);
+        EditorAssetWriterService.SaveDocument(wrapperRelativePath, wrapperDocument);
+
+        importedTexturesBySourcePath[sourceTexturePath] = wrapperAssetInfo.Id;
+        return wrapperAssetInfo.Id;
+    }
+
+    private static JObject CreateTextureWrapperDocument(Guid assetId, string assetName, Guid rawTextureAssetId)
+    {
+        var rootObject = new JObject
+        {
+            ["id"] = assetId.ToString(),
+            ["name"] = assetName,
+            ["texture_asset_id"] = rawTextureAssetId.ToString(),
+        };
+
+        var samplerStateObject = new JObject();
+        SamplerState.AnisotropicWrap.Save(samplerStateObject);
+        rootObject["sampler_state"] = samplerStateObject;
+        return rootObject;
+    }
+
+    private static string CreateUniqueImportedFileName(string fileName, HashSet<string> usedFileNames)
+    {
+        string baseName = Path.GetFileNameWithoutExtension(fileName);
+        string extension = Path.GetExtension(fileName);
+        string candidate = fileName;
+        int suffix = 2;
+
+        while (!usedFileNames.Add(candidate))
+        {
+            candidate = $"{baseName}_{suffix++}{extension}";
+        }
+
+        return candidate;
+    }
+
+    private static string GetImportedAssetsDirectory(string destinationSourceFilePath)
+    {
+        string targetDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
+        string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
+        return Path.Combine(targetDirectory, modelBaseName + "_Imported");
     }
 
     private static AssetInfo EnsureAssetInfo(string relativeFilePath, string assetName)

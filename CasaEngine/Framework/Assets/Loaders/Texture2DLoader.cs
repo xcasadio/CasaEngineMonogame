@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Assets.Loaders;
 
 public class Texture2DLoader : IAssetLoader
 {
-    private static readonly string[] _extensionSupported = { ".png", ".gif", ".jpg" };
+    private static readonly string[] _extensionSupported = { ".png", ".gif", ".jpg", ".jpeg", ".bmp", ".tga" };
 
     public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
