@@ -26,6 +26,9 @@
   Objectif:
   - Générer ou résoudre des assets `.material` puis renseigner `MaterialAssetId`.
 
-- 🚧 T5 - Valider build et cas voiture
+- ✅ T5 - Valider build et cas voiture
   Objectif:
   - Vérifier le build ciblé et le pipeline sur `Car.x` / `Car.staticModel`.
+  Validation réalisée:
+  - Smoke test OK sur `kid_idle.FBX`: génération de `kid_idle.staticModel`, des `.texture` et des `.material`, avec `texture_asset_id` et `material_asset_id` non vides sur les meshes.
+  - Smoke test OK sur `Car.x`: génération de `Car.staticModel` avec noms de slots lisibles et `material_asset_id` non vides; `texture_asset_id` reste vide car les textures référencées par `Car.x` ne sont pas présentes dans ce repo.
