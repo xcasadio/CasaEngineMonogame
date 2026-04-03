@@ -34,8 +34,22 @@ public class MaterialLoader : IAssetLoader
             // Resolve texture assets if material is of a known concrete type
             if (material is UnlitTextureMaterial unlit && unlit.BasColorAssetId != Guid.Empty)
             {
-                var tex = assetContentManager.Load<Textures.Texture>(unlit.BasColorAssetId);
+                var tex = LoadTextureAsset(unlit.BasColorAssetId, assetContentManager);
                 unlit.BasColor = tex?.Resource;
+            }
+            else if (material is LitDiffuseMaterial lit)
+            {
+                if (lit.BasColorAssetId != Guid.Empty)
+                {
+                    var tex = LoadTextureAsset(lit.BasColorAssetId, assetContentManager);
+                    lit.BasColor = tex?.Resource;
+                }
+
+                if (lit.NormalMapAssetId != Guid.Empty)
+                {
+                    var tex = LoadTextureAsset(lit.NormalMapAssetId, assetContentManager);
+                    lit.NormalMap = tex?.Resource;
+                }
             }
             else if (material is Material pbr)
             {
@@ -55,5 +69,12 @@ public class MaterialLoader : IAssetLoader
     {
         Logs.WriteWarning($"[MaterialLoader] Unknown material type '{typeName}'. Falling back to UnlitTextureMaterial.");
         return new UnlitTextureMaterial();
+    }
+
+    private static Textures.Texture? LoadTextureAsset(Guid assetId, AssetContentManager assetContentManager)
+    {
+        var texture = assetContentManager.Load<Textures.Texture>(assetId);
+        texture?.Load(assetContentManager);
+        return texture;
     }
 }

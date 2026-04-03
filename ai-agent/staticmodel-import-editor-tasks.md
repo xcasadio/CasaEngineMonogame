@@ -22,10 +22,10 @@
   Objectif:
   - Importer ou résoudre les textures source en vrais assets utilisables via `TextureAssetId`.
 
-- 🚧 T4 - Importer les matériaux vers des slots runtime
+- ✅ T4 - Importer les matériaux vers des slots runtime
   Objectif:
   - Générer ou résoudre des assets `.material` puis renseigner `MaterialAssetId`.
 
-- ⏳ T5 - Valider build et cas voiture
+- 🚧 T5 - Valider build et cas voiture
   Objectif:
   - Vérifier le build ciblé et le pipeline sur `Car.x` / `Car.staticModel`.

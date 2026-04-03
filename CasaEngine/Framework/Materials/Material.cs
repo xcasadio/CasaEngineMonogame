@@ -50,41 +50,49 @@ public class Material : MaterialBase
         if (TextureBaseColorAssetId  != Guid.Empty)
         {
             TextureBaseColor   = content.Load<Texture>(TextureBaseColorAssetId);
+            TextureBaseColor?.Load(content);
         }
 
         if (TextureOpacityAssetId    != Guid.Empty)
         {
             TextureOpacityColor= content.Load<Texture>(TextureOpacityAssetId);
+            TextureOpacityColor?.Load(content);
         }
 
         if (TextureNormalAssetId     != Guid.Empty)
         {
             TextureNormal      = content.Load<Texture>(TextureNormalAssetId);
+            TextureNormal?.Load(content);
         }
 
         if (TextureSpecularAssetId   != Guid.Empty)
         {
             TextureSpecular    = content.Load<Texture>(TextureSpecularAssetId);
+            TextureSpecular?.Load(content);
         }
 
         if (TextureRoughnessAssetId  != Guid.Empty)
         {
             TextureRoughness   = content.Load<Texture>(TextureRoughnessAssetId);
+            TextureRoughness?.Load(content);
         }
 
         if (TextureTangentAssetId    != Guid.Empty)
         {
             TextureTangent     = content.Load<Texture>(TextureTangentAssetId);
+            TextureTangent?.Load(content);
         }
 
         if (TextureHeightAssetId     != Guid.Empty)
         {
             TextureHeight      = content.Load<Texture>(TextureHeightAssetId);
+            TextureHeight?.Load(content);
         }
 
         if (TextureReflectionAssetId != Guid.Empty)
         {
             TextureReflection  = content.Load<Texture>(TextureReflectionAssetId);
+            TextureReflection?.Load(content);
         }
     }
 
