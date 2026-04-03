@@ -305,7 +305,7 @@ public sealed class EntityDetailsPanel
             _componentTree.AddItem(BuildComponentTreeItem(_selectedEntity.RootComponent));
         }
 
-        foreach (var component in _selectedEntity.Components.OrderBy(GetDisplayName, StringComparer.OrdinalIgnoreCase))
+        foreach (var component in _selectedEntity.Components.OrderBy(GetComponentLabel, StringComparer.OrdinalIgnoreCase))
         {
             _componentTree.AddItem(BuildComponentTreeItem(component));
         }
@@ -327,7 +327,7 @@ public sealed class EntityDetailsPanel
 
         if (component is SceneComponent sceneComponent)
         {
-            foreach (var child in sceneComponent.Children.OrderBy(GetDisplayName, StringComparer.OrdinalIgnoreCase))
+            foreach (var child in sceneComponent.Children.OrderBy(GetComponentLabel, StringComparer.OrdinalIgnoreCase))
             {
                 item.AddItem(BuildComponentTreeItem(child));
             }
@@ -357,7 +357,7 @@ public sealed class EntityDetailsPanel
             });
         }
 
-        header.TryAddChild(new MGTextBlock(_window, GetDisplayName(component))
+        header.TryAddChild(new MGTextBlock(_window, GetComponentLabel(component))
         {
             VerticalAlignment = VerticalAlignment.Center,
             IsHitTestVisible = false,
@@ -420,7 +420,7 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(GetDisplayName(_selectedComponent))}[/b]")
+        _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(GetComponentLabel(_selectedComponent))}[/b]")
         {
             WrapText = false,
         });
@@ -640,6 +640,21 @@ public sealed class EntityDetailsPanel
             ?? component.GetType().Name;
     }
 
+    private static string GetComponentLabel(EntityComponent component)
+    {
+        var displayName = GetDisplayName(component);
+        var instanceName = component.Name?.Trim();
+
+        if (string.IsNullOrWhiteSpace(instanceName)
+            || string.Equals(instanceName, displayName, StringComparison.OrdinalIgnoreCase)
+            || instanceName.StartsWith("Object ", StringComparison.OrdinalIgnoreCase))
+        {
+            return displayName;
+        }
+
+        return $"{displayName} [{instanceName}]";
+    }
+
     private static string EscapeMarkup(string value)
     {
         return value.Replace("[", "[[", StringComparison.Ordinal);
@@ -659,7 +674,7 @@ public sealed class EntityDetailsPanel
             return "<null>";
         }
 
-        return $"'{GetDisplayName(component)}' owner={DescribeEntity(component.Owner)}";
+        return $"'{GetComponentLabel(component)}' owner={DescribeEntity(component.Owner)}";
     }
 
     private static void Trace(string message)
