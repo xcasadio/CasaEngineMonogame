@@ -2,6 +2,7 @@ using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Project;
 using CasaEngine.Framework.Rendering;
 
@@ -22,6 +23,8 @@ public sealed class EngineRuntimeContext
     public Func<string, AssetInfo?> ResolveAssetInfoByFileName { get; set; }
 
     public RenderTargetPool? RenderTargetPool { get; set; }
+
+    public MaterialCache? MaterialCache { get; set; }
 
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
 
@@ -70,6 +73,7 @@ public sealed class EngineRuntimeContext
             UICompositionService)
         {
             RenderTargetPool = RenderTargetPool,
+            MaterialCache = MaterialCache,
             WindowInputSource = WindowInputSource,
         };
     }

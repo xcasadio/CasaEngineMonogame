@@ -336,7 +336,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(editor): show material property overrides and reset actions`
 
-- ⏳ **T06.04 — Brancher le hot reload des materials**
+- ✅ **T06.04 — Brancher le hot reload des materials**
   Objectif:
   - Invalider le `MaterialCache` a la sauvegarde ou au rechargement d'un asset material.
   - Faire refleter la modification dans les vues sans redemarrage du moteur.
@@ -346,7 +346,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(editor): hot reload compiled materials after asset save`
 
-- ⏳ **T06.05 — Ajouter un preview material minimal**
+- ✅ **T06.05 — Ajouter un preview material minimal**
   Objectif:
   - Offrir un preview sphere/cube/plane dans l'editeur material.
   - Donner un preset de lumiere simple pour valider les changements rapidement.
@@ -360,7 +360,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 7 — Aligner les overrides par objet avec la nouvelle architecture
 
-- ⏳ **T07.01 — Introduire `MaterialInstanceData`**
+- ✅ **T07.01 — Introduire `MaterialInstanceData`**
   Objectif:
   - Representer les overrides par objet de facon distincte de l'asset material.
   - Garder le systeme leger et compatible avec le rendu par instance.
@@ -369,7 +369,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add per-object material instance data`
 
-- ⏳ **T07.02 — Mapper `MaterialInstanceData` vers `MaterialPropertyBlock` au runtime**
+- ✅ **T07.02 — Mapper `MaterialInstanceData` vers `MaterialPropertyBlock` au runtime**
   Objectif:
   - Conserver `MaterialPropertyBlock` comme outil runtime transitoire et performant.
   - Eviter de dupliquer des assets material pour des changements par entite.
@@ -379,7 +379,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): map material instance data to runtime property blocks`
 
-- ⏳ **T07.03 — Adapter `StaticModelComponent` au nouveau modele de materials**
+- ✅ **T07.03 — Adapter `StaticModelComponent` au nouveau modele de materials**
   Objectif:
   - Faire porter les overrides par slot sur l'asset/instance authoring plutot que sur des `MaterialBase` charges directement.
   - Garder la compatibilite reimport et les orphelins deja gerees.
@@ -389,7 +389,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `refactor(staticmodel): align slot overrides with material instance data`
 
-- ⏳ **T07.04 — Verifier les overrides par slot apres reimport**
+- ✅ **T07.04 — Verifier les overrides par slot apres reimport**
   Objectif:
   - Revalider le comportement sur les slots stables (`SlotName` / `SlotIndex`).
   - Garder les warnings utiles pour les overrides orphelins.

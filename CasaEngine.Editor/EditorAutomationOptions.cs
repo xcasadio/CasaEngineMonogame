@@ -7,6 +7,8 @@ public sealed class EditorAutomationOptions
 {
     public string? ProjectPath { get; private set; }
     public string? OpenAssetPath { get; private set; }
+    public string? SetMaterialPropertyKey { get; private set; }
+    public string? SetMaterialPropertyValue { get; private set; }
     public string? EntityName { get; private set; }
     public int EntityIndex { get; private set; }
     public string? ComponentName { get; private set; }
@@ -39,6 +41,17 @@ public sealed class EditorAutomationOptions
 
                 case "--open-asset":
                     options.OpenAssetPath = next;
+                    index++;
+                    break;
+
+                case "--set-material-property":
+                    int separatorIndex = next.IndexOf('=');
+                    if (separatorIndex > 0 && separatorIndex < next.Length - 1)
+                    {
+                        options.SetMaterialPropertyKey = next[..separatorIndex];
+                        options.SetMaterialPropertyValue = next[(separatorIndex + 1)..];
+                    }
+
                     index++;
                     break;
 

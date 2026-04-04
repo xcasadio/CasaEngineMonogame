@@ -13,6 +13,11 @@ public static class StaticModelMaterialResolver
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
+        if (mesh.MaterialAssetId == Guid.Empty && mesh.Material != null)
+        {
+            return mesh.Material;
+        }
+
         if (TryLoadMaterial(mesh.MaterialAssetId, assetContentManager, out var material))
         {
             return material;
@@ -35,7 +40,7 @@ public static class StaticModelMaterialResolver
 
         if (subMesh.MaterialAssetId == Guid.Empty)
         {
-            return meshMaterial;
+            return subMesh.Material ?? meshMaterial;
         }
 
         if (TryLoadMaterial(subMesh.MaterialAssetId, assetContentManager, out var material))

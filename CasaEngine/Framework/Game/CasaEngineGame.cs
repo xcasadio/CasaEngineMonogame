@@ -14,9 +14,11 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Engine.Input.InputDeviceStateProviders;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Project;
 using MGUI.Shared.Rendering;
 using EventArgs = System.EventArgs;
@@ -54,6 +56,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public IUICompositionService DefaultUICompositionService { get; }
     public IRuntimeViewBootstrapper? RuntimeViewBootstrapper { get; }
     public EngineRuntimeContext RuntimeContext { get; }
+    public MaterialCache MaterialCache { get; }
     public RenderTargetPool RenderTargetPool { get; private set; }
     public GameplayExecutionPolicy ExecutionPolicy { get; set; } = GameplayExecutionPolicies.Runtime;
 
@@ -112,6 +115,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         _projectFileName = projectFileName;
         RuntimeContext = runtimeContext ?? GameSettings.CreateRuntimeContext();
+        MaterialCache = RuntimeContext.MaterialCache ?? new MaterialCache();
+        RuntimeContext.MaterialCache = MaterialCache;
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = RuntimeContext.UIViewRuntimeFactory;
         DefaultUICompositionService = RuntimeContext.UICompositionService;
@@ -649,6 +654,109 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         var metrics = view.UIScaler.ComputeMetrics(viewportSize, view.UISafeAreaInset);
         view.UIView.UpdateMetrics(metrics);
+    }
+
+    public void ReloadMaterialAsset(Guid materialAssetId)
+    {
+        if (materialAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        var affectedMaterialAssetIds = GetAffectedMaterialAssetIds(materialAssetId);
+        foreach (Guid affectedMaterialId in affectedMaterialAssetIds)
+        {
+            MaterialCache.Invalidate(affectedMaterialId);
+        }
+
+        RefreshLoadedStaticModelMaterials(affectedMaterialAssetIds);
+        InvalidateAllViews();
+    }
+
+    private HashSet<Guid> GetAffectedMaterialAssetIds(Guid materialAssetId)
+    {
+        var affectedMaterialAssetIds = new HashSet<Guid> { materialAssetId };
+        bool addedDependentMaterial;
+
+        do
+        {
+            addedDependentMaterial = false;
+
+            foreach (var assetInfo in AssetCatalog.AssetInfos)
+            {
+                if (assetInfo.Id == Guid.Empty
+                    || affectedMaterialAssetIds.Contains(assetInfo.Id)
+                    || !string.Equals(assetInfo.AssetType, "material", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                MaterialAsset? candidateMaterialAsset;
+                try
+                {
+                    candidateMaterialAsset = AssetContentManager.Load<MaterialAsset>(assetInfo.Id, cache: false);
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (candidateMaterialAsset.ParentMaterialAssetId == Guid.Empty
+                    || !affectedMaterialAssetIds.Contains(candidateMaterialAsset.ParentMaterialAssetId))
+                {
+                    continue;
+                }
+
+                if (affectedMaterialAssetIds.Add(assetInfo.Id))
+                {
+                    addedDependentMaterial = true;
+                }
+            }
+        }
+        while (addedDependentMaterial);
+
+        return affectedMaterialAssetIds;
+    }
+
+    private void RefreshLoadedStaticModelMaterials(ISet<Guid> affectedMaterialAssetIds)
+    {
+        var world = GameManager.CurrentWorld;
+        if (world == null)
+        {
+            return;
+        }
+
+        foreach (var entity in EnumerateEntities(world.Entities))
+        {
+            var staticModelComponent = entity.GetComponent<StaticModelComponent>();
+            if (staticModelComponent == null)
+            {
+                continue;
+            }
+
+            staticModelComponent.RefreshResolvedMaterials(AssetContentManager, affectedMaterialAssetIds);
+        }
+    }
+
+    private void InvalidateAllViews()
+    {
+        foreach (var view in GameManager.ViewManager.Views)
+        {
+            view.Invalidate();
+        }
+    }
+
+    private static IEnumerable<Entity> EnumerateEntities(IEnumerable<Entity> entities)
+    {
+        foreach (var entity in entities)
+        {
+            yield return entity;
+
+            foreach (var child in EnumerateEntities(entity.Children))
+            {
+                yield return child;
+            }
+        }
     }
 
     public event EventHandler? FrameComputed;

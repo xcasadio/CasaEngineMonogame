@@ -5,6 +5,7 @@ namespace CasaEngine.Framework.Materials;
 public sealed class MaterialCache
 {
     private readonly Dictionary<Guid, CompiledMaterial> _compiledMaterials = new();
+    private readonly Dictionary<Guid, MaterialBase> _runtimeMaterials = new();
     private readonly MaterialCompiler _materialCompiler;
 
     public MaterialCache(MaterialCompiler? materialCompiler = null)
@@ -16,6 +17,9 @@ public sealed class MaterialCache
 
     public bool TryGet(Guid materialAssetId, out CompiledMaterial compiledMaterial)
         => _compiledMaterials.TryGetValue(materialAssetId, out compiledMaterial!);
+
+    public bool TryGetRuntimeMaterial(Guid materialAssetId, out MaterialBase runtimeMaterial)
+        => _runtimeMaterials.TryGetValue(materialAssetId, out runtimeMaterial!);
 
     public CompiledMaterial GetOrCompile(MaterialAsset materialAsset, AssetContentManager assetContentManager)
     {
@@ -35,16 +39,46 @@ public sealed class MaterialCache
         ArgumentNullException.ThrowIfNull(materialAsset);
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
-        var compiledMaterial = _materialCompiler.Compile(materialAsset, assetContentManager);
-        _compiledMaterials[materialAsset.Id] = compiledMaterial;
-        return compiledMaterial;
+        var compilation = _materialCompiler.CompileBoth(materialAsset, assetContentManager);
+        _compiledMaterials[materialAsset.Id] = compilation.CompiledMaterial;
+        _runtimeMaterials[materialAsset.Id] = compilation.RuntimeMaterial;
+        return compilation.CompiledMaterial;
+    }
+
+    public MaterialBase GetOrCompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
+    {
+        ArgumentNullException.ThrowIfNull(materialAsset);
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        if (_runtimeMaterials.TryGetValue(materialAsset.Id, out var runtimeMaterial))
+        {
+            return runtimeMaterial;
+        }
+
+        return RecompileRuntimeMaterial(materialAsset, assetContentManager);
+    }
+
+    public MaterialBase RecompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
+    {
+        ArgumentNullException.ThrowIfNull(materialAsset);
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        var compilation = _materialCompiler.CompileBoth(materialAsset, assetContentManager);
+        _compiledMaterials[materialAsset.Id] = compilation.CompiledMaterial;
+        _runtimeMaterials[materialAsset.Id] = compilation.RuntimeMaterial;
+        return compilation.RuntimeMaterial;
     }
 
     public bool Invalidate(Guid materialAssetId)
-        => _compiledMaterials.Remove(materialAssetId);
+    {
+        bool removedCompiled = _compiledMaterials.Remove(materialAssetId);
+        bool removedRuntime = _runtimeMaterials.Remove(materialAssetId);
+        return removedCompiled || removedRuntime;
+    }
 
     public void Clear()
     {
         _compiledMaterials.Clear();
+        _runtimeMaterials.Clear();
     }
 }

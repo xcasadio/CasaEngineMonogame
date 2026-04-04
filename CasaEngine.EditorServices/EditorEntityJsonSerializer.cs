@@ -382,6 +382,28 @@ internal static class EditorEntityJsonSerializer
         {
             if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true })
             {
+
+                if (component.MaterialOverrides.Count > 0)
+                {
+                    var overridesArray = new JArray();
+                    for (int i = 0; i < component.MaterialOverrides.Count; i++)
+                    {
+                        var materialOverride = component.MaterialOverrides[i];
+                        if (!materialOverride.HasAnyOverride)
+                        {
+                            continue;
+                        }
+
+                        var overrideNode = new JObject();
+                        MaterialSlotOverrideJsonSerializer.Save(materialOverride, overrideNode);
+                        overridesArray.Add(overrideNode);
+                    }
+
+                    if (overridesArray.Count > 0)
+                    {
+                        node.Add("material_slot_overrides", overridesArray);
+                    }
+                }
                 continue;
             }
 

@@ -8,6 +8,14 @@ namespace CasaEngine.Framework.Materials;
 public sealed class MaterialCompiler
 {
     public CompiledMaterial Compile(MaterialAsset materialAsset, AssetContentManager assetContentManager)
+        => CompileBoth(materialAsset, assetContentManager).CompiledMaterial;
+
+    public MaterialBase CompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
+        => CompileBoth(materialAsset, assetContentManager).RuntimeMaterial;
+
+    internal (CompiledMaterial CompiledMaterial, MaterialBase RuntimeMaterial) CompileBoth(
+        MaterialAsset materialAsset,
+        AssetContentManager assetContentManager)
     {
         ArgumentNullException.ThrowIfNull(materialAsset);
         ArgumentNullException.ThrowIfNull(assetContentManager);
@@ -17,7 +25,7 @@ public sealed class MaterialCompiler
         var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
         var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
 
-        return new CompiledMaterial(
+        var compiledMaterial = new CompiledMaterial(
             definitionId: definition.Id,
             effectiveShader: EffectiveShaderResolver.Resolve(runtimeMaterial),
             properties: BuildCompiledProperties(definition, effectiveValues),
@@ -33,17 +41,8 @@ public sealed class MaterialCompiler
             queue: runtimeMaterial.Queue,
             castShadows: runtimeMaterial.CastShadows,
             receiveShadows: runtimeMaterial.ReceiveShadows);
-    }
 
-    public MaterialBase CompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
-    {
-        ArgumentNullException.ThrowIfNull(materialAsset);
-        ArgumentNullException.ThrowIfNull(assetContentManager);
-
-        var definition = materialAsset.GetRequiredDefinition();
-        var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
-        var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
-        return CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
+        return (compiledMaterial, runtimeMaterial);
     }
 
     private static IReadOnlyDictionary<string, MaterialValue> BuildEffectiveValues(

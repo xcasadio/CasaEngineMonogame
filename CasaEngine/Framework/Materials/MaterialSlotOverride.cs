@@ -11,10 +11,28 @@ public sealed class MaterialSlotOverride : ISerializable
 
     public Guid MaterialAssetId { get; set; } = Guid.Empty;
 
+    public MaterialInstanceData MaterialInstanceData { get; private set; } = new();
+
+    public bool HasAnyOverride => MaterialAssetId != Guid.Empty || !MaterialInstanceData.IsEmpty;
+
+    public MaterialSlotOverride()
+    {
+    }
+
+    public MaterialSlotOverride(MaterialSlotOverride other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        SlotName = other.SlotName;
+        SlotIndex = other.SlotIndex;
+        MaterialAssetId = other.MaterialAssetId;
+        MaterialInstanceData = other.MaterialInstanceData.Clone();
+    }
+
+    public MaterialSlotOverride Clone() => new(this);
+
     public void Load(JObject element)
     {
-        SlotName = element["slot_name"]?.GetString() ?? string.Empty;
-        SlotIndex = element["slot_index"]?.GetInt32() ?? -1;
-        MaterialAssetId = element["material_asset_id"]?.GetGuid() ?? Guid.Empty;
+        MaterialSlotOverrideJsonSerializer.Load(this, element);
     }
 }

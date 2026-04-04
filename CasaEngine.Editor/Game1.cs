@@ -12,6 +12,7 @@ using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Input;
@@ -30,6 +31,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -105,6 +107,9 @@ namespace CasaEngine.Editor
         private bool _automationAssetOpenAttempted;
         private bool _automationAssetOpened;
         private TimeSpan _automationAssetOpenedAt;
+        private bool _automationMaterialEditAttempted;
+        private bool _automationMaterialEdited;
+        private TimeSpan _automationMaterialEditedAt;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -203,6 +208,7 @@ namespace CasaEngine.Editor
             _screenSelection.SelectionChanged += id => { if (_activeScreenPreviewPanel != null) _activeScreenPreviewPanel.SelectedNodeId = id; };
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
+            EditorAssetWriterService.AssetSaved += OnEditorAssetSaved;
 
             if (_automationOptions.HasAutomation)
             {
@@ -214,6 +220,26 @@ namespace CasaEngine.Editor
             }
 
             base.Initialize();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
+                if (_dockHost != null)
+                {
+                    _dockHost.ActivePanelChanged -= OnDockHostActivePanelChanged;
+                    _dockHost.PanelRemoved -= OnDockHostPanelRemoved;
+                }
+
+                foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+                {
+                    materialInspectorPanel.Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
         }
 
         private void BuildMenuBar()
@@ -285,8 +311,53 @@ namespace CasaEngine.Editor
             _automationSelectionApplied = false;
             _automationAssetOpenAttempted = false;
             _automationAssetOpened = false;
+            _automationMaterialEditAttempted = false;
+            _automationMaterialEdited = false;
             _automationDiagnosticsCaptured = false;
             PresentLoadedProject();
+        }
+
+        private void OnEditorAssetSaved(object? sender, EditorAssetSavedEventArgs e)
+        {
+            if (!e.RelativePath.EndsWith(".material", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            RefreshOpenMaterialInspectorPanels();
+
+            if (_editorRuntime == null)
+            {
+                return;
+            }
+
+            Guid materialAssetId = e.AssetId != Guid.Empty
+                ? e.AssetId
+                : ResolveCatalogMaterialAssetId(e.RelativePath);
+            if (materialAssetId == Guid.Empty)
+            {
+                return;
+            }
+
+            _editorRuntime.ReloadMaterialAsset(materialAssetId);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}'");
+        }
+
+        private void RefreshOpenMaterialInspectorPanels()
+        {
+            foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+            {
+                materialInspectorPanel.ReloadFromDisk();
+            }
+        }
+
+        private static Guid ResolveCatalogMaterialAssetId(string relativePath)
+        {
+            string normalizedRelativePath = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
+                ?? AssetCatalog.GetByFileName(normalizedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            return assetInfo?.Id ?? Guid.Empty;
         }
 
         private void PresentLoadedProject()
@@ -395,6 +466,7 @@ namespace CasaEngine.Editor
             _dockHost = new MGDockHost(_mainWindow);
             _dockHost.Name = "EditorDockHost";
             _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
+            _dockHost.PanelRemoved += OnDockHostPanelRemoved;
             _rootPanel.TryAddChild(_dockHost, Dock.Top);
             SetupInitialDockLayout();
         }
@@ -1208,7 +1280,7 @@ namespace CasaEngine.Editor
             var panelId = $"{EditorPanelIds.MaterialAssetDocumentPrefix}{documentId:N}";
             if (!_materialInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
             {
-                inspectorPanel = new MaterialAssetInspectorPanel(_mainWindow);
+                inspectorPanel = new MaterialAssetInspectorPanel(_mainWindow, _editorRuntime, GraphicsDevice);
                 _materialInspectorPanels.Add(panelId, inspectorPanel);
             }
 
@@ -1285,6 +1357,23 @@ namespace CasaEngine.Editor
             {
                 _isSwitchingWorkspace = false;
             }
+        }
+
+        private void OnDockHostPanelRemoved(object? sender, DockPanelNode panel)
+        {
+            if (_isSwitchingWorkspace)
+            {
+                return;
+            }
+
+            if (!TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
+            {
+                return;
+            }
+
+            materialInspectorPanel.Dispose();
+            _materialInspectorPanels.Remove(panel.Id);
+            _materialInspectorPanelTitles.Remove(panel.Id);
         }
 
         private List<string> GetOpenDocumentPanelIds()
@@ -1672,10 +1761,22 @@ namespace CasaEngine.Editor
                 return;
             }
 
+            TryApplyAutomationMaterialEdit(totalGameTime);
+            if (!string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
+                && !_automationMaterialEditAttempted)
+            {
+                return;
+            }
+
             TimeSpan readyAt = _automationSelectionAppliedAt;
             if (_automationAssetOpened && _automationAssetOpenedAt > readyAt)
             {
                 readyAt = _automationAssetOpenedAt;
+            }
+
+            if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
+            {
+                readyAt = _automationMaterialEditedAt;
             }
 
             if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
@@ -1731,6 +1832,39 @@ namespace CasaEngine.Editor
 
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
+        }
+
+        private void TryApplyAutomationMaterialEdit(TimeSpan totalGameTime)
+        {
+            if (_automationMaterialEditAttempted
+                || string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
+                || string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyValue))
+            {
+                return;
+            }
+
+            string? activeDocumentPanelId = GetActiveDocumentPanelId();
+            if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                || !TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            {
+                return;
+            }
+
+            _automationMaterialEditAttempted = true;
+            if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
+                _automationOptions.SetMaterialPropertyKey,
+                _automationOptions.SetMaterialPropertyValue,
+                out string statusMessage))
+            {
+                _automationMaterialEdited = true;
+                _automationMaterialEditedAt = totalGameTime;
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                    $"[Automation] Updated material property '{_automationOptions.SetMaterialPropertyKey}'='{_automationOptions.SetMaterialPropertyValue}'");
+                return;
+            }
+
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
         }
 
         private static string ResolveAutomationAssetPath(string assetPath)
@@ -1823,6 +1957,7 @@ namespace CasaEngine.Editor
             builder.AppendLine($"Captured at: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
             builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
+            builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
             builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
             builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
             string? activeDocumentPanelId = GetActiveDocumentPanelId();
@@ -1830,6 +1965,7 @@ namespace CasaEngine.Editor
             builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
             builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
             AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
+            AppendAutomationSelectionDiagnostics(builder);
             builder.AppendLine($"Entries: {entries.Count}");
             builder.AppendLine();
 
@@ -1851,17 +1987,136 @@ namespace CasaEngine.Editor
             }
 
             var propertyStates = inspectorPanel.GetAutomationPropertyStateSnapshot();
-            if (propertyStates.Count == 0)
+            if (propertyStates.Count > 0)
+            {
+                builder.AppendLine("Material property states:");
+                for (int i = 0; i < propertyStates.Count; i++)
+                {
+                    builder.AppendLine($"  - {propertyStates[i]}");
+                }
+            }
+
+            var previewStates = inspectorPanel.GetAutomationPreviewStateSnapshot();
+            if (previewStates.Count == 0)
             {
                 return;
             }
 
-            builder.AppendLine("Material property states:");
-            for (int i = 0; i < propertyStates.Count; i++)
+            builder.AppendLine("Material preview state:");
+            for (int i = 0; i < previewStates.Count; i++)
             {
-                builder.AppendLine($"  - {propertyStates[i]}");
+                builder.AppendLine($"  - {previewStates[i]}");
             }
         }
+
+        private string FormatAutomationMaterialEdit()
+        {
+            if (string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
+                || string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyValue))
+            {
+                return "<none>";
+            }
+
+            return $"{_automationOptions.SetMaterialPropertyKey}={_automationOptions.SetMaterialPropertyValue}";
+        }
+
+        private void AppendAutomationSelectionDiagnostics(StringBuilder builder)
+        {
+            builder.AppendLine($"Selected entity: {DescribeEntity(_editorSelection.SelectedEntity)}");
+            builder.AppendLine($"Selected component: {DescribeComponent(_editorSelection.SelectedComponent)}");
+
+            switch (_editorSelection.SelectedComponent)
+            {
+                case StaticModelSubMeshComponent staticModelSubMeshComponent:
+                    AppendStaticModelSubMeshDiagnostics(builder, staticModelSubMeshComponent);
+                    break;
+
+                case StaticModelComponent staticModelComponent:
+                    AppendStaticModelComponentDiagnostics(builder, staticModelComponent);
+                    break;
+            }
+        }
+
+        private static void AppendStaticModelSubMeshDiagnostics(StringBuilder builder, StaticModelSubMeshComponent component)
+        {
+            builder.AppendLine("Resolved sub-mesh materials:");
+
+            if (component.ModelMesh == null)
+            {
+                builder.AppendLine("  - <no model mesh>");
+                return;
+            }
+
+            builder.AppendLine($"  - Default: {DescribeRuntimeMaterial(component.ModelMesh.Material)}");
+            if (component.MaterialOverridesBySlotIndex == null || component.MaterialOverridesBySlotIndex.Count == 0)
+            {
+                builder.AppendLine("  - Overrides: <none>");
+                return;
+            }
+
+            foreach (var pair in component.MaterialOverridesBySlotIndex)
+            {
+                builder.AppendLine($"  - Override slot {pair.Key}: {DescribeRuntimeMaterial(pair.Value)}");
+            }
+        }
+
+        private static void AppendStaticModelComponentDiagnostics(StringBuilder builder, StaticModelComponent component)
+        {
+            builder.AppendLine("Resolved static model materials:");
+
+            if (component.StaticModel == null)
+            {
+                builder.AppendLine("  - <no static model>");
+                return;
+            }
+
+            for (int meshIndex = 0; meshIndex < component.StaticModel.Meshes.Count; meshIndex++)
+            {
+                var mesh = component.StaticModel.Meshes[meshIndex];
+                builder.AppendLine($"  - Mesh {meshIndex}: {DescribeRuntimeMaterial(mesh.Material)}");
+            }
+        }
+
+        private static string DescribeRuntimeMaterial(MaterialBase? material)
+        {
+            if (material == null)
+            {
+                return "<null>";
+            }
+
+            var builder = new StringBuilder();
+            builder.Append(material.GetType().Name);
+            builder.Append($" id={material.Id}");
+            if (!string.IsNullOrWhiteSpace(material.Name))
+            {
+                builder.Append($" name={material.Name}");
+            }
+
+            switch (material)
+            {
+                case LitDiffuseMaterial litDiffuseMaterial:
+                    builder.Append($" diffuse_color={FormatColor(litDiffuseMaterial.DiffuseColor)}");
+                    builder.Append($" specular_power={litDiffuseMaterial.SpecularPower.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    builder.Append($" base_color_asset={litDiffuseMaterial.BasColorAssetId}");
+                    break;
+
+                case UnlitTextureMaterial unlitTextureMaterial:
+                    builder.Append($" tint={FormatColor(unlitTextureMaterial.Tint)}");
+                    builder.Append($" alpha={unlitTextureMaterial.Alpha.ToString("0.###", CultureInfo.InvariantCulture)}");
+                    builder.Append($" base_color_asset={unlitTextureMaterial.BasColorAssetId}");
+                    break;
+
+                case Material legacyMaterial:
+                    builder.Append($" base_color_asset={legacyMaterial.TextureBaseColorAssetId}");
+                    builder.Append($" reflection_asset={legacyMaterial.TextureReflectionAssetId}");
+                    break;
+            }
+
+            return builder.ToString();
+        }
+
+        private static string FormatColor(Color color)
+            => string.Create(CultureInfo.InvariantCulture, $"{color.R},{color.G},{color.B},{color.A}");
 
         private static string FormatDocumentPanelIds(IReadOnlyList<string> panelIds)
         {
@@ -1984,6 +2239,10 @@ namespace CasaEngine.Editor
 
             // Refresh the viewport binding after the hosted runtime rendered its view.
             _worldViewportPanel?.DrawViewport(gameTime);
+            foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+            {
+                materialInspectorPanel.RefreshPreviewAfterDraw();
+            }
 
             GraphicsDevice.Clear(Color.DimGray);
 

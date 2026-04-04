@@ -55,9 +55,22 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// Optional per-instance parameter overrides applied after the material's Bind() call.
     /// Allows per-entity colour tint, highlight etc. without duplicating the material asset.
     /// </param>
-    public void AddMesh(StaticModelMesh staticModelMesh, Matrix world, Matrix worldInvertTranspose,
-        IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex = null,
+    public void AddMesh(
+        StaticModelMesh staticModelMesh,
+        Matrix world,
+        Matrix worldInvertTranspose,
         MaterialPropertyBlock? propertyOverrides = null)
+    {
+        AddMesh(staticModelMesh, world, worldInvertTranspose, null, propertyOverrides, null);
+    }
+
+    public void AddMesh(
+        StaticModelMesh staticModelMesh,
+        Matrix world,
+        Matrix worldInvertTranspose,
+        IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex,
+        MaterialPropertyBlock? propertyOverrides = null,
+        IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex = null)
     {
         _meshInfos.Add(new MeshInfo
         {
@@ -67,6 +80,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Material         = staticModelMesh.Material,
             MaterialOverridesBySlotIndex = materialOverridesBySlotIndex,
             PropertyOverrides = propertyOverrides,
+            PropertyOverridesBySlotIndex = propertyOverridesBySlotIndex,
         });
     }
 
@@ -176,6 +190,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         continue;
                     }
 
+                    var propertyOverrides = GetPropertyOverride(meshInfo.PropertyOverridesBySlotIndex, subMesh.MaterialSlotIndex)
+                        ?? meshInfo.PropertyOverrides;
+
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                     var effectiveShader = EffectiveShaderResolver.Resolve(mat);
                     var features = ResolveRenderFeatures(mat, mesh);
@@ -188,7 +205,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         World                 = meshInfo.World,
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
-                        PropertyOverrides     = meshInfo.PropertyOverrides,
+                        PropertyOverrides     = propertyOverrides,
                         Features              = features,
                     };
                     item.SortKey = SortKeyGenerator.Generate(
@@ -209,6 +226,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     continue;
                 }
 
+                var propertyOverrides = GetPropertyOverride(meshInfo.PropertyOverridesBySlotIndex, mesh.MaterialSlotIndex)
+                    ?? meshInfo.PropertyOverrides;
+
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                 var effectiveShader = EffectiveShaderResolver.Resolve(mat);
                 var features = ResolveRenderFeatures(mat, mesh);
@@ -221,7 +241,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     World                 = meshInfo.World,
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
-                    PropertyOverrides     = meshInfo.PropertyOverrides,
+                    PropertyOverrides     = propertyOverrides,
                     Features              = features,
                 };
                 item.SortKey = SortKeyGenerator.Generate(
@@ -320,6 +340,18 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             : null;
     }
 
+    private static MaterialPropertyBlock? GetPropertyOverride(IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex, int slotIndex)
+    {
+        if (propertyOverridesBySlotIndex == null || slotIndex < 0)
+        {
+            return null;
+        }
+
+        return propertyOverridesBySlotIndex.TryGetValue(slotIndex, out var propertyOverride)
+            ? propertyOverride
+            : null;
+    }
+
     private static ShaderFeature ResolveRenderFeatures(MaterialBase material, StaticModelMesh mesh)
         => RenderFeatureResolver.Resolve(new RenderFeatureInput
         {
@@ -336,5 +368,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex;
         /// <summary>Optional per-instance overrides (Phase 6).</summary>
         public MaterialPropertyBlock? PropertyOverrides;
+        public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex;
     }
 }

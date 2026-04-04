@@ -2,7 +2,9 @@ using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Project;
 using CasaEngine.Tests;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -152,6 +154,48 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
+    public void TryLoadRuntimeMaterial_WithMaterialCache_ReusesRuntimeMaterialUntilInvalidated()
+    {
+        using var scope = new TestProjectScope();
+        Guid materialAssetId = Guid.NewGuid();
+        string relativeFileName = Path.Combine("Materials", "CachedAuthoringLit.material");
+
+        var initialDocument = CreateAuthoringMaterialDocument(materialAssetId, "Cached Authoring Lit", 14.0f);
+        scope.WriteAsset(relativeFileName, materialAssetId, "Cached Authoring Lit", initialDocument);
+
+        var runtimeContext = new EngineRuntimeContext(
+            new ProjectSettings(),
+            scope.ProjectPath,
+            AssetCatalog.Get,
+            AssetCatalog.GetByFileName)
+        {
+            MaterialCache = new MaterialCache(),
+        };
+
+        var assetContentManager = CreateAssetContentManager(runtimeContext);
+        bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var firstRuntimeMaterial);
+
+        Assert.True(loaded);
+
+        var updatedDocument = CreateAuthoringMaterialDocument(materialAssetId, "Cached Authoring Lit", 37.5f);
+        scope.WriteAsset(relativeFileName, materialAssetId, "Cached Authoring Lit", updatedDocument);
+
+        bool loadedWithoutInvalidation = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var cachedRuntimeMaterial);
+
+        Assert.True(loadedWithoutInvalidation);
+        Assert.Same(firstRuntimeMaterial, cachedRuntimeMaterial);
+        Assert.Equal(14.0f, Assert.IsType<LitDiffuseMaterial>(cachedRuntimeMaterial).SpecularPower);
+
+        runtimeContext.MaterialCache!.Invalidate(materialAssetId);
+
+        bool loadedAfterInvalidation = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var refreshedRuntimeMaterial);
+
+        Assert.True(loadedAfterInvalidation);
+        Assert.NotSame(firstRuntimeMaterial, refreshedRuntimeMaterial);
+        Assert.Equal(37.5f, Assert.IsType<LitDiffuseMaterial>(refreshedRuntimeMaterial).SpecularPower);
+    }
+
+    [Fact]
     public void TryLoadRuntimeMaterial_LegacyMultiTextureFile_PreservesLegacyTextureSlots()
     {
         using var scope = new TestProjectScope();
@@ -189,11 +233,28 @@ public class MaterialRuntimeResolverTests
         Assert.Equal(reflectionTextureId, legacyMaterial.TextureReflectionAssetId);
     }
 
-    private static AssetContentManager CreateAssetContentManager()
+    private static AssetContentManager CreateAssetContentManager(EngineRuntimeContext? runtimeContext = null)
     {
         var assetContentManager = new AssetContentManager();
         AssetLoaderRegistry.RegisterLoaders(assetContentManager);
+        assetContentManager.RuntimeContext = runtimeContext;
         return assetContentManager;
+    }
+
+    private static JObject CreateAuthoringMaterialDocument(Guid materialAssetId, string name, float specularPower)
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = name,
+        };
+        materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.OrangeRed));
+        materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(specularPower));
+
+        var document = new JObject();
+        MaterialAssetJsonSerializer.Save(materialAsset, document);
+        document["id"] = materialAssetId.ToString();
+        document["name"] = name;
+        return document;
     }
 
     private sealed class TestProjectScope : IDisposable
@@ -224,6 +285,11 @@ public class MaterialRuntimeResolverTests
             string fullFileName = Path.Combine(ProjectPath, relativeFileName);
             Directory.CreateDirectory(Path.GetDirectoryName(fullFileName)!);
             File.WriteAllText(fullFileName, document.ToString());
+
+            if (AssetCatalog.Get(assetId) != null)
+            {
+                return;
+            }
 
             EditorAssetCatalogService.Add(new AssetInfo(assetId)
             {

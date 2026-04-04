@@ -20,13 +20,13 @@ namespace CasaEngine.Demos.Demos;
 ///   Ground              : <see cref="UnlitTextureMaterial"/>  — yellow tint, no lighting
 ///   Red cube            : <see cref="LitDiffuseMaterial"/>    — solid red, Lambert + specular
 ///   Textured cube       : <see cref="LitDiffuseMaterial"/>    — white, procedural checkerboard albedo
-///   Sphere A (left)     : <see cref="LitDiffuseMaterial"/>    — shared material; BLUE  tint via <see cref="MaterialPropertyBlock"/>
-///   Sphere B (right)    : <see cref="LitDiffuseMaterial"/>    — shared material; GREEN tint via <see cref="MaterialPropertyBlock"/>
+///   Sphere A (left)     : <see cref="LitDiffuseMaterial"/>    — shared material; BLUE  tint via <see cref="MaterialInstanceData"/> -> <see cref="MaterialPropertyBlock"/>
+///   Sphere B (right)    : <see cref="LitDiffuseMaterial"/>    — shared material; GREEN tint via <see cref="MaterialInstanceData"/> -> <see cref="MaterialPropertyBlock"/>
 ///   Glass cube          : <see cref="UnlitTextureMaterial"/>  — semi-transparent, <see cref="RenderQueue.Transparent"/>
 ///
 /// Keyboard shortcuts:
 ///   <c>L</c> — cycle directional light count  1 → 2 → 3 → 1
-///   <c>T</c> — cycle per-sphere PropertyBlock tints  (Blue/Green → Red/Cyan → Yellow/Magenta)
+///   <c>T</c> — cycle per-sphere instance tints  (Blue/Green → Red/Cyan → Yellow/Magenta)
 /// </summary>
 public class MaterialDemo : Demo
 {
@@ -35,7 +35,7 @@ public class MaterialDemo : Demo
     public override string Title => "Material system demo";
 
     public override string Description =>
-        "Unlit/Lit materials, LightingContext, per-instance MaterialPropertyBlock, " +
+        "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
         "transparent render queue.  L = cycle lights,  T = cycle sphere tints.";
 
     // -----------------------------------------------------------------------
@@ -48,6 +48,9 @@ public class MaterialDemo : Demo
     // Per-instance PropertyBlocks for the two demo spheres
     private readonly MaterialPropertyBlock _propBlockA = new();
     private readonly MaterialPropertyBlock _propBlockB = new();
+    private readonly MaterialInstanceData _sphereInstanceDataA = new();
+    private readonly MaterialInstanceData _sphereInstanceDataB = new();
+    private MaterialAsset? _sphereMaterialAsset;
 
     // Tint pairs cycled with T key
     private static readonly (Color a, Color b)[] TintCycles =
@@ -133,14 +136,15 @@ public class MaterialDemo : Demo
             BasColor      = CreateCheckerTexture(gd, 128, Color.White, new Color(170, 170, 170)),
         };
 
-        // Shared sphere material — tint overridden per-instance via PropertyBlock
-        var sphereMat = new LitDiffuseMaterial
+        // Shared sphere material — authoring asset compiled once, then overridden per-instance
+        _sphereMaterialAsset = new MaterialAsset("lit-diffuse")
         {
-            Name          = "LitSphereBase",
-            DiffuseColor  = Color.White,   // overridden by PropertyBlock
-            SpecularColor = new Vector3(1.0f),
-            SpecularPower = 64f,
+            Name = "LitSphereBase",
         };
+        _sphereMaterialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.White));
+        _sphereMaterialAsset.SetPropertyValue("specular_color", MaterialValue.FromVector3(new Vector3(1.0f)));
+        _sphereMaterialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(64f));
+        var sphereMat = (LitDiffuseMaterial)new MaterialCompiler().CompileRuntimeMaterial(_sphereMaterialAsset, game.AssetContentManager);
 
         // Semi-transparent glass cube — unlit
         var glassMat = new UnlitTextureMaterial
@@ -153,7 +157,7 @@ public class MaterialDemo : Demo
             BlendState = BlendState.AlphaBlend,
         };
 
-        // Initialise sphere PropertyBlocks with the first tint pair
+        // Initialise sphere PropertyBlocks with the first tint pair through the new instance-data bridge
         ApplyTints();
 
         // ------------------------------------------------------------------
@@ -224,7 +228,7 @@ public class MaterialDemo : Demo
             _renderer.DefaultLighting.ActiveDirectionalLightCount = _lightCount;
         }
 
-        // T — cycle PropertyBlock sphere tints
+        // T — cycle per-sphere instance tints
         if (kb.IsKeyDown(Keys.T) && !_prevKb.IsKeyDown(Keys.T))
         {
             _tintIndex = (_tintIndex + 1) % TintCycles.Length;
@@ -248,14 +252,21 @@ public class MaterialDemo : Demo
     //  Private helpers
     // -----------------------------------------------------------------------
 
-    /// <summary>Writes the current tint pair into both PropertyBlocks.</summary>
+    /// <summary>Writes the current tint pair into both PropertyBlocks via MaterialInstanceData.</summary>
     private void ApplyTints()
     {
+        if (_sphereMaterialAsset == null)
+        {
+            return;
+        }
+
         var (a, b) = TintCycles[_tintIndex];
-        _propBlockA.Clear();
-        _propBlockB.Clear();
-        _propBlockA.SetColor(ShaderParameterNames.DiffuseColor, a);
-        _propBlockB.SetColor(ShaderParameterNames.DiffuseColor, b);
+
+        _sphereInstanceDataA.SetPropertyOverride("diffuse_color", MaterialValue.FromColor(a));
+        _sphereInstanceDataB.SetPropertyOverride("diffuse_color", MaterialValue.FromColor(b));
+
+        MaterialInstancePropertyBlockMapper.Apply(_propBlockA, _sphereMaterialAsset, _sphereInstanceDataA);
+        MaterialInstancePropertyBlockMapper.Apply(_propBlockB, _sphereMaterialAsset, _sphereInstanceDataB);
     }
 
     /// <summary>

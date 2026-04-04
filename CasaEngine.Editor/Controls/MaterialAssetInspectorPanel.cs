@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Materials;
 using CasaEngine.Framework.Assets;
@@ -13,15 +14,17 @@ using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
 
-public sealed class MaterialAssetInspectorPanel
+public sealed class MaterialAssetInspectorPanel : IDisposable
 {
     private readonly MGWindow _window;
     private readonly MaterialDefinitionEditorRegistry _registry;
+    private readonly MaterialPreviewViewport? _materialPreview;
 
     private MGDockPanel? _root;
     private MGTextBlock? _headerText;
@@ -34,15 +37,35 @@ public sealed class MaterialAssetInspectorPanel
     private readonly Dictionary<Guid, MaterialAsset?> _resolvedParentMaterials = new();
 
     public MaterialAssetInspectorPanel(MGWindow window)
-        : this(window, MaterialDefinitionEditorRegistry.Default)
+        : this(window, MaterialDefinitionEditorRegistry.Default, null, null)
+    {
+    }
+
+    internal MaterialAssetInspectorPanel(MGWindow window, HostedEditorGameAdapter editorRuntime, GraphicsDevice graphicsDevice)
+        : this(window, MaterialDefinitionEditorRegistry.Default, editorRuntime, graphicsDevice)
     {
     }
 
     public MaterialAssetInspectorPanel(MGWindow window, MaterialDefinitionEditorRegistry registry)
+        : this(window, registry, null, null)
+    {
+    }
+
+    internal MaterialAssetInspectorPanel(
+        MGWindow window,
+        MaterialDefinitionEditorRegistry registry,
+        HostedEditorGameAdapter? editorRuntime,
+        GraphicsDevice? graphicsDevice)
     {
         _window = window;
         _registry = registry;
+        if (editorRuntime != null && graphicsDevice != null)
+        {
+            _materialPreview = new MaterialPreviewViewport(window, graphicsDevice, editorRuntime);
+        }
     }
+
+    public string? LoadedRelativePath => _loadedRelativePath;
 
     public MGElement CreateContent()
     {
@@ -84,6 +107,10 @@ public sealed class MaterialAssetInspectorPanel
         _root.TryAddChild(_headerText, Dock.Top);
         _root.TryAddChild(_sourceText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
+        if (_materialPreview != null)
+        {
+            _root.TryAddChild(_materialPreview.CreateContent(), Dock.Top);
+        }
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
@@ -98,6 +125,7 @@ public sealed class MaterialAssetInspectorPanel
         _materialAsset = materialAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         _resolvedParentMaterials.Clear();
+        _materialPreview?.SetMaterialAsset(materialAsset);
         RefreshInspector();
     }
 
@@ -131,6 +159,78 @@ public sealed class MaterialAssetInspectorPanel
         return result;
     }
 
+    public IReadOnlyList<string> GetAutomationPreviewStateSnapshot()
+    {
+        return _materialPreview?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
+    }
+
+    public void RefreshPreviewAfterDraw()
+    {
+        _materialPreview?.RefreshAfterDraw();
+    }
+
+    public void Dispose()
+    {
+        _materialPreview?.Dispose();
+    }
+
+    public bool ReloadFromDisk()
+    {
+        if (string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, _loadedRelativePath);
+        if (!TryLoadMaterialAsset(fullPath, out var materialAsset))
+        {
+            return false;
+        }
+
+        LoadAsset(materialAsset, fullPath);
+        return true;
+    }
+
+    public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
+    {
+        statusMessage = string.Empty;
+
+        if (_materialAsset == null)
+        {
+            statusMessage = "No material loaded.";
+            return false;
+        }
+
+        if (!TryFindPropertyDefinition(propertyKey, out var propertyDefinition))
+        {
+            statusMessage = $"Property '{propertyKey}' not found.";
+            return false;
+        }
+
+        if (!TryCreateAutomationValue(propertyDefinition, rawValue, out var value))
+        {
+            statusMessage = $"Unable to parse '{rawValue}' for property '{propertyDefinition.Key}'.";
+            return false;
+        }
+
+        try
+        {
+            _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
+            SaveMaterialAsset();
+            RefreshInspector();
+            statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
+                ? $"Saved property '{propertyDefinition.Key}'."
+                : $"Saved {EscapeMarkup(_loadedRelativePath)} ({propertyDefinition.Key}={rawValue})";
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            statusMessage = exception.Message;
+            return false;
+        }
+    }
+
     private void RefreshInspector()
     {
         if (_propertiesStack == null || _headerText == null || _sourceText == null || _statusText == null)
@@ -145,10 +245,12 @@ public sealed class MaterialAssetInspectorPanel
             _headerText.Text = "[b]Material Inspector[/b]";
             _sourceText.Text = "No material loaded.";
             _statusText.Text = "Open a .material asset from the Content Browser.";
+            _materialPreview?.SetMaterialAsset(null);
             return;
         }
 
         _resolvedParentMaterials.Clear();
+        _materialPreview?.SetMaterialAsset(_materialAsset);
 
         var definition = _materialAsset.GetRequiredDefinition();
         _headerText.Text = $"[b]{EscapeMarkup(_materialAsset.Name)}[/b]";
@@ -622,6 +724,158 @@ public sealed class MaterialAssetInspectorPanel
         {
             _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
         }
+    }
+
+    private bool TryFindPropertyDefinition(string propertyKey, out MaterialPropertyDefinition propertyDefinition)
+    {
+        propertyDefinition = null!;
+        if (_materialAsset == null)
+        {
+            return false;
+        }
+
+        var definition = _materialAsset.GetRequiredDefinition();
+        for (int i = 0; i < definition.Properties.Count; i++)
+        {
+            if (!string.Equals(definition.Properties[i].Key, propertyKey, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            propertyDefinition = definition.Properties[i];
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryCreateAutomationValue(MaterialPropertyDefinition propertyDefinition, string rawValue, out MaterialValue value)
+    {
+        value = null!;
+        string trimmed = rawValue.Trim();
+
+        switch (propertyDefinition.ValueType)
+        {
+            case MaterialPropertyType.Boolean:
+                if (bool.TryParse(trimmed, out bool boolValue))
+                {
+                    value = MaterialValue.FromBoolean(boolValue);
+                    return true;
+                }
+
+                break;
+
+            case MaterialPropertyType.Float:
+                if (float.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out float floatValue))
+                {
+                    value = MaterialValue.FromFloat(floatValue);
+                    return true;
+                }
+
+                break;
+
+            case MaterialPropertyType.Integer:
+                if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out int intValue))
+                {
+                    value = MaterialValue.FromInteger(intValue);
+                    return true;
+                }
+
+                break;
+
+            case MaterialPropertyType.Color:
+                if (TryParseColor(trimmed, out Color colorValue))
+                {
+                    value = MaterialValue.FromColor(colorValue);
+                    return true;
+                }
+
+                break;
+
+            case MaterialPropertyType.Texture:
+                if (Guid.TryParse(trimmed, out Guid textureAssetId))
+                {
+                    value = MaterialValue.FromTextureId(textureAssetId);
+                    return true;
+                }
+
+                break;
+
+            case MaterialPropertyType.Vector3:
+                if (TryParseFloatComponents(trimmed, 3, out var vector3Components))
+                {
+                    value = MaterialValue.FromVector3(new Vector3(vector3Components[0], vector3Components[1], vector3Components[2]));
+                    return true;
+                }
+
+                break;
+        }
+
+        return TryParseTextValue(propertyDefinition, trimmed, out value);
+    }
+
+    private static bool TryLoadMaterialAsset(string fullPath, out MaterialAsset materialAsset)
+    {
+        materialAsset = new MaterialAsset();
+
+        if (!File.Exists(fullPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var document = JObject.Parse(File.ReadAllText(fullPath));
+            if (document["definition_id"] == null && document["type"] == null)
+            {
+                return false;
+            }
+
+            materialAsset.Load(document);
+            materialAsset.FileName = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+
+            var assetInfo = AssetCatalog.GetByFileName(materialAsset.FileName)
+                ?? AssetCatalog.GetByFileName(materialAsset.FileName.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            if (assetInfo != null)
+            {
+                materialAsset.Name = assetInfo.Name;
+                materialAsset.AssetId = assetInfo.Id;
+                materialAsset.FileName = assetInfo.FileName;
+            }
+            else
+            {
+                materialAsset.AssetId = materialAsset.Id;
+            }
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool TryParseColor(string value, out Color color)
+    {
+        color = Color.White;
+
+        string[] tokens = value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (tokens.Length is not 3 and not 4)
+        {
+            return false;
+        }
+
+        byte[] channels = new byte[4] { 255, 255, 255, 255 };
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            if (!byte.TryParse(tokens[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out channels[i]))
+            {
+                return false;
+            }
+        }
+
+        color = new Color(channels[0], channels[1], channels[2], channels[3]);
+        return true;
     }
 
     private static float GetNumericValue(MaterialPropertyDefinition propertyDefinition, MaterialValue? value, float fallback)

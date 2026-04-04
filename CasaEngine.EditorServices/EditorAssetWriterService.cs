@@ -1,4 +1,5 @@
 using CasaEngine.Core.Log;
+using CasaEngine.Core.Serialization;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Graphics;
 using Newtonsoft.Json;
@@ -6,8 +7,26 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.EditorServices;
 
+public sealed class EditorAssetSavedEventArgs : EventArgs
+{
+    public EditorAssetSavedEventArgs(string relativePath, string fullPath, Guid assetId)
+    {
+        RelativePath = relativePath;
+        FullPath = fullPath;
+        AssetId = assetId;
+    }
+
+    public string RelativePath { get; }
+
+    public string FullPath { get; }
+
+    public Guid AssetId { get; }
+}
+
 public static class EditorAssetWriterService
 {
+    public static event EventHandler<EditorAssetSavedEventArgs>? AssetSaved;
+
     public static void SaveAsset(string fileName, object asset)
     {
         if (EditorAssetJsonSerializer.TrySerialize(asset, out var rootObject))
@@ -24,9 +43,13 @@ public static class EditorAssetWriterService
     {
 
         var fullFileName = Path.Combine(EngineEnvironment.ProjectPath, fileName);
-        using StreamWriter file = File.CreateText(fullFileName);
-        using JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented };
-        rootObject.WriteTo(writer);
+        using (StreamWriter file = File.CreateText(fullFileName))
+        using (JsonTextWriter writer = new JsonTextWriter(file) { Formatting = Formatting.Indented })
+        {
+            rootObject.WriteTo(writer);
+        }
+
+        AssetSaved?.Invoke(null, new EditorAssetSavedEventArgs(fileName, fullFileName, rootObject["id"]?.GetGuid() ?? Guid.Empty));
     }
 
     public static void SaveSkeletonAnimationFromRiggedModel(string fileName, RiggedModel.RiggedAnimation riggedAnimation)

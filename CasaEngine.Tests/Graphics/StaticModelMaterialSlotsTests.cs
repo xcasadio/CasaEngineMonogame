@@ -72,6 +72,35 @@ public class StaticModelMaterialSlotsTests
     }
 
     [Fact]
+    public void FindMatchingOverride_UsesSlotNameForInstanceOnlyOverridesAfterReindex()
+    {
+        var slot = new StaticModelMaterialSlot(
+            slotIndex: 8,
+            slotName: "Door",
+            meshIndex: 0,
+            subMeshIndex: -1,
+            mesh: new StaticModelMesh(),
+            subMesh: null);
+
+        var instanceOnlyOverride = new MaterialSlotOverride
+        {
+            SlotName = "Door",
+            SlotIndex = 1,
+            MaterialAssetId = Guid.Empty,
+        };
+        instanceOnlyOverride.MaterialInstanceData.SetPropertyOverride("diffuse_color", MaterialValue.FromColor(Microsoft.Xna.Framework.Color.Gold));
+
+        var overrides = new List<MaterialSlotOverride>
+        {
+            instanceOnlyOverride,
+        };
+
+        var match = StaticModelMaterialSlots.FindMatchingOverride(overrides, slot);
+
+        Assert.Same(instanceOnlyOverride, match);
+    }
+
+    [Fact]
     public void FindOrphanOverrides_ReturnsOnlyOverridesWithoutMatchingSlots()
     {
         var model = new StaticModel();

@@ -20,7 +20,10 @@ public static class MaterialRuntimeResolver
         try
         {
             var materialAsset = assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
-            material = MaterialCompiler.CompileRuntimeMaterial(materialAsset, assetContentManager);
+            var materialCache = assetContentManager.RuntimeContext?.MaterialCache;
+            material = materialCache != null
+                ? materialCache.GetOrCompileRuntimeMaterial(materialAsset, assetContentManager)
+                : MaterialCompiler.CompileRuntimeMaterial(materialAsset, assetContentManager);
             return true;
         }
         catch (Exception exception)

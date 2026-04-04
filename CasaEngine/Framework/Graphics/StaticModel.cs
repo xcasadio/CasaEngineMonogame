@@ -91,6 +91,85 @@ public class StaticModel : ObjectBase
         _isInitialized = true;
     }
 
+    public bool ReferencesAnyMaterialAsset(ISet<Guid> materialAssetIds)
+    {
+        ArgumentNullException.ThrowIfNull(materialAssetIds);
+
+        if (materialAssetIds.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (var mesh in Meshes)
+        {
+            if (mesh.MaterialAssetId != Guid.Empty && materialAssetIds.Contains(mesh.MaterialAssetId))
+            {
+                return true;
+            }
+
+            foreach (var subMesh in mesh.SubMeshes)
+            {
+                Guid referencedMaterialId = subMesh.MaterialAssetId != Guid.Empty
+                    ? subMesh.MaterialAssetId
+                    : mesh.MaterialAssetId;
+                if (referencedMaterialId != Guid.Empty && materialAssetIds.Contains(referencedMaterialId))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public bool RefreshResolvedMaterials(AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
+    {
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        StaticModelMaterialSlots.EnsureMetadata(this);
+
+        bool refreshAllMaterials = affectedMaterialAssetIds == null || affectedMaterialAssetIds.Count == 0;
+        bool refreshedAnyMaterial = false;
+
+        foreach (var mesh in Meshes)
+        {
+            bool refreshMeshMaterial = refreshAllMaterials
+                || (mesh.MaterialAssetId != Guid.Empty && affectedMaterialAssetIds!.Contains(mesh.MaterialAssetId));
+            if (refreshMeshMaterial)
+            {
+                mesh.Material = StaticModelMaterialResolver.ResolveMeshMaterial(mesh, assetContentManager);
+                refreshedAnyMaterial = true;
+            }
+
+            foreach (var subMesh in mesh.SubMeshes)
+            {
+                bool refreshSubMeshMaterial = refreshAllMaterials;
+                if (!refreshSubMeshMaterial)
+                {
+                    Guid referencedMaterialId = subMesh.MaterialAssetId != Guid.Empty
+                        ? subMesh.MaterialAssetId
+                        : mesh.MaterialAssetId;
+                    refreshSubMeshMaterial = referencedMaterialId != Guid.Empty && affectedMaterialAssetIds!.Contains(referencedMaterialId);
+                }
+
+                if (!refreshSubMeshMaterial)
+                {
+                    continue;
+                }
+
+                subMesh.Material = StaticModelMaterialResolver.ResolveSubMeshMaterial(mesh, subMesh, assetContentManager, mesh.Material);
+                refreshedAnyMaterial = true;
+            }
+        }
+
+        if (refreshedAnyMaterial)
+        {
+            _isInitialized = true;
+        }
+
+        return refreshedAnyMaterial;
+    }
+
     // ------------------------------------------------------------------
     //  Serialization
     // ------------------------------------------------------------------
