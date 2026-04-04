@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -77,7 +78,7 @@ public sealed class MaterialPropertyBlock
     /// Call this <em>after</em> <see cref="MaterialBase.Bind"/> so per-instance values
     /// win over the material default.
     /// </summary>
-    public void Apply(ShaderWrapper shader)
+    public void Apply(ShaderWrapper shader, RenderStats? stats = null)
     {
         foreach (var (name, value) in _properties)
         {
@@ -88,7 +89,7 @@ public sealed class MaterialPropertyBlock
                 case Vector3 v3: shader.SetParameter(name, v3); break;
                 case Vector4 v4: shader.SetParameter(name, v4); break;
                 case Matrix m: shader.SetParameter(name, m); break;
-                case Texture2D tex: shader.SetParameter(name, tex); break;
+                case Texture2D tex: shader.SetTextureParameter(name, tex, stats); break;
                 case bool b: shader.SetParameter(name, b); break;
             }
         }

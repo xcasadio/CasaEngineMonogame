@@ -49,7 +49,7 @@ public class UnlitTextureMaterial : MaterialBase
         // basicEffect.fx uses DiffuseColor (float4) — pack Tint + Alpha into it.
         shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(Tint.ToVector3(), Alpha));
         shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
-        shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
+        shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
     }
 
     public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)

@@ -161,7 +161,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): expose per-view render stats`
 
-- ⏳ **T03.02 — Compter les items opaques/transparents et les binds texture**
+- ✅ **T03.02 — Compter les items opaques/transparents et les binds texture**
   Objectif:
   - Alimenter `OpaqueItems`, `TransparentItems` et `TextureBinds` avec de vraies donnees.
   - Ne pas se limiter aux `EffectBinds` et `StateChanges` deja presents.

@@ -243,7 +243,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         {
             // Group by (VertexBuffer ptr, SortKey of first element) — same mesh + material
             var instanceGroups = new Dictionary<(IntPtr, ulong), List<RenderItem>>();
-            var toRemove = new List<int>();
+            var drawnInstancedIndices = new List<int>();
 
             for (int i = 0; i < _renderItems.Count; i++)
             {
@@ -260,7 +260,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     instanceGroups[groupKey] = list;
                 }
                 list.Add(item);
-                toRemove.Add(i);
             }
 
             // Draw groups that exceed the threshold; put the rest back on the regular list
@@ -272,6 +271,15 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 }
 
                 var firstItem = group[0];
+                if (firstItem.Material.Queue >= RenderQueue.Transparent)
+                {
+                    stats.TransparentItems += group.Count;
+                }
+                else
+                {
+                    stats.OpaqueItems += group.Count;
+                }
+
                 _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
                 var resolvedShader = _shaderSelector!.Resolve(in firstItem);
                 _shaderCache.BindGlobals(resolvedShader.Shader, in context);
@@ -280,12 +288,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
                 // Mark as drawn
                 foreach (var item in group)
-                    toRemove.Add(_renderItems.IndexOf(item));
+                {
+                    drawnInstancedIndices.Add(_renderItems.IndexOf(item));
+                }
             }
 
             // Remove instanced items from the regular list (largest index first to preserve indices)
-            toRemove.Sort(static (a, b) => b.CompareTo(a));
-            foreach (var idx in toRemove.Distinct())
+            drawnInstancedIndices.Sort(static (a, b) => b.CompareTo(a));
+            foreach (var idx in drawnInstancedIndices)
                 if (idx >= 0 && idx < _renderItems.Count)
                 {
                     _renderItems.RemoveAt(idx);

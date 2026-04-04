@@ -33,6 +33,11 @@ public sealed class OpaquePass : RenderPass
                 continue;
             }
 
+            if (stats is not null)
+            {
+                stats.OpaqueItems++;
+            }
+
             DrawItem(in item, in context, stateCache, shaderCache, shaderSelector, stats);
         }
     }
@@ -67,6 +72,11 @@ public sealed class TransparentPass : RenderPass
             if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null)
             {
                 continue;
+            }
+
+            if (stats is not null)
+            {
+                stats.TransparentItems++;
             }
 
             DrawItem(in item, in context, stateCache, shaderCache, shaderSelector, stats);

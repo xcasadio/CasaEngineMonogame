@@ -41,7 +41,7 @@ public class Material : MaterialBase
         var wit = Matrix.Transpose(Matrix.Invert(world));
         shader.SetParameter(ShaderParameterNames.WorldInverseTranspose, wit);
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
-        shader.SetParameter(ShaderParameterNames.BasColorTexture, TextureBaseColor?.Resource);
+        shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, TextureBaseColor?.Resource, context.Stats);
         context.Lighting?.Bind(shader);
     }
 

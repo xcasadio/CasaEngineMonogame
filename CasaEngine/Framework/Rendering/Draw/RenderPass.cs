@@ -76,7 +76,7 @@ public abstract class RenderPass
         }
         shaderCache.BindGlobals(shader, in context);
         item.Material.Bind(shader, in context, item.World);
-        item.PropertyOverrides?.Apply(shader);
+        item.PropertyOverrides?.Apply(shader, context.Stats);
 
         if (item.SubMesh is { } sub)
         {

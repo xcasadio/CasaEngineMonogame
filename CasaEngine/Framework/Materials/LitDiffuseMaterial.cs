@@ -60,11 +60,11 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
-        shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
+        shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
 
         if (NormalMap is not null && BasColor is not null)
         {
-            shader.SetParameter(ShaderParameterNames.NormalTexture, NormalMap);
+            shader.SetTextureParameter(ShaderParameterNames.NormalTexture, NormalMap, context.Stats);
         }
 
         context.Lighting?.Bind(shader);
