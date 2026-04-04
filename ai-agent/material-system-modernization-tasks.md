@@ -100,7 +100,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `refactor(rendering): complete shader feature flags`
 
-- ⏳ **T02.02 — Creer un `RenderFeatureResolver` unique**
+- ✅ **T02.02 — Creer un `RenderFeatureResolver` unique**
   Objectif:
   - Centraliser le calcul des features depuis material + mesh + chemin de draw.
   - Eviter la logique eparpillee dans plusieurs renderers.
