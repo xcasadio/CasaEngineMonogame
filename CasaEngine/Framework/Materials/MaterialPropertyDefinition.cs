@@ -80,6 +80,22 @@ public sealed class MaterialPropertyDefinition
         return false;
     }
 
+    public MaterialValue? GetDefaultMaterialValue()
+    {
+        if (DefaultValue is null)
+        {
+            return null;
+        }
+
+        return MaterialValue.FromObject(ValueType, DefaultValue);
+    }
+
+    public bool IsValueCompatible(MaterialValue value, out string? validationError)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return value.IsCompatibleWith(this, out validationError);
+    }
+
     public T? GetDefaultValue<T>()
     {
         if (DefaultValue is null)
@@ -147,42 +163,22 @@ public sealed class MaterialPropertyDefinition
             return;
         }
 
-        if (!IsSupportedDefaultValue(ValueType, defaultValue))
+        MaterialValue materialValue;
+        try
+        {
+            materialValue = MaterialValue.FromObject(ValueType, defaultValue);
+        }
+        catch (ArgumentException)
         {
             throw new ArgumentException(
                 $"Default value '{defaultValue}' is not compatible with material property '{Key}' of type '{ValueType}'.");
         }
 
-        if (ValueType == MaterialPropertyType.Enum)
+        if (!materialValue.IsCompatibleWith(this, out var validationError))
         {
-            var enumValue = (string)defaultValue;
-            for (int i = 0; i < Options.Count; i++)
-            {
-                if (string.Equals(Options[i].Value, enumValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    return;
-                }
-            }
-
-            throw new ArgumentException(
-                $"Default enum value '{enumValue}' is not declared for material property '{Key}'.");
+            throw new ArgumentException(validationError);
         }
     }
-
-    private static bool IsSupportedDefaultValue(MaterialPropertyType valueType, object defaultValue) => valueType switch
-    {
-        MaterialPropertyType.Float => defaultValue is float,
-        MaterialPropertyType.Integer => defaultValue is int,
-        MaterialPropertyType.Boolean => defaultValue is bool,
-        MaterialPropertyType.Color => defaultValue is Color,
-        MaterialPropertyType.Vector2 => defaultValue is Vector2,
-        MaterialPropertyType.Vector3 => defaultValue is Vector3,
-        MaterialPropertyType.Vector4 => defaultValue is Vector4,
-        MaterialPropertyType.Texture => defaultValue is Guid,
-        MaterialPropertyType.Enum => defaultValue is string,
-        MaterialPropertyType.String => defaultValue is string,
-        _ => false,
-    };
 
     private static IReadOnlyList<string> NormalizeAliases(IEnumerable<string>? legacyAliases, string key)
     {

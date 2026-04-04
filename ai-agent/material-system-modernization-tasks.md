@@ -204,7 +204,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add authoring material definitions`
 
-- ⏳ **T04.02 — Introduire `MaterialValue` typee**
+- ✅ **T04.02 — Introduire `MaterialValue` typee**
   Objectif:
   - Representer proprement les valeurs `Float`, `Int`, `Bool`, `Color`, `Vector`, `Texture`, `Enum`.
   - Eviter les dictionnaires runtime de type `string -> object` pour les assets authoring.
