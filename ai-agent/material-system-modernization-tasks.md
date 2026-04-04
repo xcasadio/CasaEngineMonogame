@@ -307,7 +307,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 6 — Brancher l'editeur et le hot reload
 
-- 🚧 **T06.01 — Ajouter un registre editor de definitions de properties**
+- ✅ **T06.01 — Ajouter un registre editor de definitions de properties**
   Objectif:
   - Permettre a l'editeur de generer une UI depuis `MaterialDefinition`.
   - Organiser les properties par groupes semantiques (`Surface`, `Normals`, `PBR`, `Emission`, `UV`, `Advanced`).
@@ -316,7 +316,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(editor): add material definition registry for inspector generation`
 
-- ⏳ **T06.02 — Creer un panneau/inspecteur MGUI de material genere automatiquement**
+- 🚧 **T06.02 — Creer un panneau/inspecteur MGUI de material genere automatiquement**
   Objectif:
   - Editer les `MaterialAsset` sans coder un inspecteur specifique par classe runtime.
   - Afficher les bons controles selon le type de property.
