@@ -242,7 +242,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): compile authoring materials to runtime representation`
 
-- ⏳ **T04.06 — Introduire `MaterialCache` et invalidation**
+- ✅ **T04.06 — Introduire `MaterialCache` et invalidation**
   Objectif:
   - Cacher les `CompiledMaterial` et pouvoir les invalider.
   - Preparer la base du hot reload.
