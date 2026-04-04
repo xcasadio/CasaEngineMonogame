@@ -72,7 +72,41 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new ViewManagerSandbox());
         _demos.Add(new UIOverlayDemo());
 
-        ChangeDemo(0);
+        ChangeDemo(ResolveStartupDemoIndex());
+    }
+
+    private int ResolveStartupDemoIndex()
+    {
+        const int defaultIndex = 0;
+        var requestedDemo = Environment.GetEnvironmentVariable("CASAENGINE_START_DEMO");
+        if (string.IsNullOrWhiteSpace(requestedDemo))
+        {
+            return defaultIndex;
+        }
+
+        if (int.TryParse(requestedDemo, out var parsedIndex))
+        {
+            return Math.Clamp(parsedIndex, 0, _demos.Count - 1);
+        }
+
+        for (int i = 0; i < _demos.Count; i++)
+        {
+            if (string.Equals(_demos[i].Title, requestedDemo, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        for (int i = 0; i < _demos.Count; i++)
+        {
+            if (_demos[i].Title.Contains(requestedDemo, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        Logs.WriteWarning($"[DemosGame] Startup demo '{requestedDemo}' was not found. Falling back to demo index {defaultIndex}.");
+        return defaultIndex;
     }
 
     private void ChangeDemo(int index)

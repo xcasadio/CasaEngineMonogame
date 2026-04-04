@@ -181,7 +181,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): show render stats in debug overlay`
 
-- ⏳ **T03.04 — Ajouter une validation demo pour les stats**
+- ✅ **T03.04 — Ajouter une validation demo pour les stats**
   Objectif:
   - Verifier visuellement que les stats changent quand on change vue, materiaux ou transparence.
   - Documenter la demo de reference pour les futures regressions.
