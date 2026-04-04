@@ -27,6 +27,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     private readonly MaterialPreviewViewport? _materialPreview;
 
     private MGDockPanel? _root;
+    private MGElement _previewContent;
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
@@ -66,6 +67,27 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     }
 
     public string? LoadedRelativePath => _loadedRelativePath;
+
+    public MGElement CreatePreviewContent()
+    {
+        if (_materialPreview != null)
+        {
+            return _materialPreview.CreateContent();
+        }
+
+        if (_previewContent != null)
+        {
+            return _previewContent;
+        }
+
+        _previewContent = new MGTextBlock(_window, "Material preview unavailable.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _previewContent;
+    }
 
     public MGElement CreateContent()
     {
@@ -107,10 +129,6 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         _root.TryAddChild(_headerText, Dock.Top);
         _root.TryAddChild(_sourceText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
-        if (_materialPreview != null)
-        {
-            _root.TryAddChild(_materialPreview.CreateContent(), Dock.Top);
-        }
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();

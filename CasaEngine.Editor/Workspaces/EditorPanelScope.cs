@@ -5,4 +5,5 @@ public enum EditorPanelScope
     Common,
     World,
     UIScreen,
+    Material,
 }

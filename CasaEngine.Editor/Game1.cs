@@ -59,6 +59,7 @@ namespace CasaEngine.Editor
         private EditorPanelRegistry _panelRegistry;
         private WorldEditorWorkspace _worldWorkspace;
         private UIScreenEditorWorkspace _uiScreenWorkspace;
+        private MaterialEditorWorkspace _materialWorkspace;
         private EditorWorkspaceManager _workspaceManager;
         private EditorWorkspaceId _activeWorkspaceId = EditorWorkspaceId.World;
 
@@ -72,12 +73,15 @@ namespace CasaEngine.Editor
         private MGElement _entitiesContent;
         private EntityDetailsPanel _entityDetailsPanel;
         private MGElement _entityDetailsContent;
+        private MaterialDetailsPanel _materialDetailsPanel;
+        private MGElement _materialDetailsContent;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
         private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
+        private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly UICommandStack _screenCommandStack = new();
         private readonly WorldWorkspaceContext _worldWorkspaceContext = new();
@@ -299,6 +303,7 @@ namespace CasaEngine.Editor
 
             _worldWorkspace ??= new WorldEditorWorkspace(_panelRegistry);
             _uiScreenWorkspace ??= new UIScreenEditorWorkspace(_panelRegistry);
+            _materialWorkspace ??= new MaterialEditorWorkspace(_panelRegistry);
             _workspaceManager ??= CreateWorkspaceManager();
             _workspaceManager.ResetWorkspaceLayout(EditorWorkspaceId.World);
         }
@@ -307,6 +312,7 @@ namespace CasaEngine.Editor
         {
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
+            SetActiveMaterialInspectorPanel(null);
             _automationWorldLoaded = false;
             _automationSelectionApplied = false;
             _automationAssetOpenAttempted = false;
@@ -727,6 +733,14 @@ namespace CasaEngine.Editor
             return _entityDetailsContent;
         }
 
+        private MGElement GetOrCreateMaterialDetailsContent()
+        {
+            _materialDetailsPanel ??= new MaterialDetailsPanel(_mainWindow);
+            _materialDetailsContent ??= _materialDetailsPanel.CreateContent();
+            _materialDetailsPanel.SetInspectorPanel(_activeMaterialInspectorPanel);
+            return _materialDetailsContent;
+        }
+
         private MGElement GetOrCreateLogsContent()
         {
             _logsPanel ??= new LogsPanel(_mainWindow, _loggerEditor);
@@ -763,6 +777,14 @@ namespace CasaEngine.Editor
                     Scope = EditorPanelScope.World,
                     Kind = EditorPanelKind.Tool,
                     ContentFactory = GetOrCreateEntityDetailsContent,
+                },
+                new EditorPanelDescriptor
+                {
+                    Id = EditorPanelIds.MaterialDetails,
+                    Title = "Details",
+                    Scope = EditorPanelScope.Material,
+                    Kind = EditorPanelKind.Tool,
+                    ContentFactory = GetOrCreateMaterialDetailsContent,
                 },
                 new EditorPanelDescriptor
                 {
@@ -810,7 +832,7 @@ namespace CasaEngine.Editor
         private EditorWorkspaceManager CreateWorkspaceManager()
         {
             return new EditorWorkspaceManager(
-                new IEditorWorkspace[] { _worldWorkspace, _uiScreenWorkspace },
+                new IEditorWorkspace[] { _worldWorkspace, _uiScreenWorkspace, _materialWorkspace },
                 workspaceId => SavePersistedDockLayout(workspaceId),
                 (workspaceId, logOutcome) => TryLoadPersistedDockLayout(workspaceId, logOutcome),
                 layout => _dockHost.LayoutModel.RootNode = layout,
@@ -848,6 +870,14 @@ namespace CasaEngine.Editor
                 {
                     SwitchWorkspace(EditorWorkspaceId.UIScreen, panel.Id, preferPersistedLayout: true, logOutcome: false);
                     return;
+                }
+            }
+            else if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
+            {
+                SetActiveMaterialInspectorPanel(materialInspectorPanel);
+                if (_activeWorkspaceId != EditorWorkspaceId.Material)
+                {
+                    SwitchWorkspace(EditorWorkspaceId.Material, panel.Id, preferPersistedLayout: true, logOutcome: false);
                 }
             }
         }
@@ -974,6 +1004,11 @@ namespace CasaEngine.Editor
                 return previewPanel.CreateContent;
             }
 
+            if (_materialInspectorPanels.TryGetValue(panelId, out var materialInspectorPanel))
+            {
+                return materialInspectorPanel.CreatePreviewContent;
+            }
+
             return () => CreateUnavailablePanelContent(panelId);
         }
 
@@ -1004,6 +1039,7 @@ namespace CasaEngine.Editor
             {
                 EditorWorkspaceId.World => "layout.world.json",
                 EditorWorkspaceId.UIScreen => "layout.uiscreen.json",
+                EditorWorkspaceId.Material => "layout.material.json",
                 _ => "layout.json",
             };
         }
@@ -1152,7 +1188,12 @@ namespace CasaEngine.Editor
         {
             if (TryGetUIScreenPreviewPanel(panelId, out _))
             {
-                return true;
+                return workspaceId == EditorWorkspaceId.UIScreen;
+            }
+
+            if (TryGetMaterialAssetInspectorPanel(panelId, out _))
+            {
+                return workspaceId == EditorWorkspaceId.Material;
             }
 
             if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
@@ -1160,7 +1201,7 @@ namespace CasaEngine.Editor
                 return false;
             }
 
-            if (descriptor.Kind == EditorPanelKind.Document || descriptor.Scope == EditorPanelScope.Common)
+            if (descriptor.Scope == EditorPanelScope.Common)
             {
                 return true;
             }
@@ -1169,6 +1210,7 @@ namespace CasaEngine.Editor
             {
                 EditorWorkspaceId.World => descriptor.Scope == EditorPanelScope.World,
                 EditorWorkspaceId.UIScreen => descriptor.Scope == EditorPanelScope.UIScreen,
+                EditorWorkspaceId.Material => descriptor.Scope == EditorPanelScope.Material,
                 _ => false,
             };
         }
@@ -1285,11 +1327,14 @@ namespace CasaEngine.Editor
             }
 
             inspectorPanel.LoadAsset(materialAsset, fullPath);
+            SetActiveMaterialInspectorPanel(inspectorPanel);
 
             var panelTitle = string.IsNullOrWhiteSpace(materialAsset.Name)
                 ? Path.GetFileNameWithoutExtension(fullPath)
                 : materialAsset.Name;
             _materialInspectorPanelTitles[panelId] = panelTitle;
+
+            SwitchWorkspace(EditorWorkspaceId.Material, panelId, preferPersistedLayout: true, logOutcome: false);
 
             var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
             if (existingPanel == null)
@@ -1336,6 +1381,10 @@ namespace CasaEngine.Editor
                 openDocumentPanelIds.Add(activePanelId);
             }
 
+            openDocumentPanelIds = openDocumentPanelIds
+                .Where(panelId => IsPanelSupportedInWorkspace(workspaceId, panelId))
+                .ToList();
+
             _isSwitchingWorkspace = true;
             try
             {
@@ -1346,6 +1395,11 @@ namespace CasaEngine.Editor
                 {
                     _uiScreenWorkspaceContext.SetActivePreviewPanel(null);
                     ApplyUIScreenWorkspaceContext();
+                }
+
+                if (workspaceId != EditorWorkspaceId.Material)
+                {
+                    SetActiveMaterialInspectorPanel(null);
                 }
 
                 if (!string.IsNullOrWhiteSpace(activePanelId))
@@ -1374,6 +1428,10 @@ namespace CasaEngine.Editor
             materialInspectorPanel.Dispose();
             _materialInspectorPanels.Remove(panel.Id);
             _materialInspectorPanelTitles.Remove(panel.Id);
+            if (ReferenceEquals(_activeMaterialInspectorPanel, materialInspectorPanel))
+            {
+                SyncActiveMaterialInspectorPanel();
+            }
         }
 
         private List<string> GetOpenDocumentPanelIds()
@@ -1485,7 +1543,7 @@ namespace CasaEngine.Editor
                     CanClose = true,
                     CanFloat = true,
                     CanAutoHide = false,
-                    ContentFactory = materialInspectorPanel.CreateContent,
+                    ContentFactory = materialInspectorPanel.CreatePreviewContent,
                 };
             }
 
@@ -1514,6 +1572,25 @@ namespace CasaEngine.Editor
             }
 
             return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+        }
+
+        private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
+        {
+            _activeMaterialInspectorPanel = inspectorPanel;
+            _materialDetailsPanel?.SetInspectorPanel(inspectorPanel);
+        }
+
+        private void SyncActiveMaterialInspectorPanel()
+        {
+            string? activeDocumentPanelId = GetActiveDocumentPanelId();
+            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                && TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            {
+                SetActiveMaterialInspectorPanel(inspectorPanel);
+                return;
+            }
+
+            SetActiveMaterialInspectorPanel(null);
         }
 
         private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
