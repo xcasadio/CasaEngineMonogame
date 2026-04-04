@@ -54,6 +54,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// Allows per-entity colour tint, highlight etc. without duplicating the material asset.
     /// </param>
     public void AddMesh(StaticModelMesh staticModelMesh, Matrix world, Matrix worldInvertTranspose,
+        IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex = null,
         MaterialPropertyBlock? propertyOverrides = null)
     {
         _meshInfos.Add(new MeshInfo
@@ -62,6 +63,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             World            = world,
             WorldInvertTranspose = worldInvertTranspose,
             Material         = staticModelMesh.Material,
+            MaterialOverridesBySlotIndex = materialOverridesBySlotIndex,
             PropertyOverrides = propertyOverrides,
         });
     }
@@ -118,9 +120,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
 
-        var defaultTexture = (Game as CasaEngineGame)?.AssetContentManager
-            .GetAsset<Assets.Textures.Texture>(Assets.Textures.Texture.DefaultTextureName);
-
         // Reset per-frame state caches
         _stateCache.ResetFrame();
         _shaderCache.ResetFrame();
@@ -157,10 +156,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             {
                 foreach (var subMesh in mesh.SubMeshes)
                 {
-                    var mat = subMesh.Material ?? meshInfo.Material;
+                    var mat = GetMaterialOverride(meshInfo.MaterialOverridesBySlotIndex, subMesh.MaterialSlotIndex)
+                        ?? subMesh.Material
+                        ?? meshInfo.Material;
                     if (mat == null)
                     {
-                        continue; // legacy sub-path handled after sorting
+                        continue;
                     }
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
@@ -185,9 +186,15 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     _renderItems.Add(item);
                 }
             }
-            else if (meshInfo.Material != null)
+            else
             {
-                var mat = meshInfo.Material;
+                var mat = GetMaterialOverride(meshInfo.MaterialOverridesBySlotIndex, mesh.MaterialSlotIndex)
+                    ?? meshInfo.Material;
+                if (mat == null)
+                {
+                    continue;
+                }
+
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                 var features = mat.GetFeatures(mesh);
                 var item = new RenderItem
@@ -275,75 +282,27 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         // --- Phase 10: delegate sorted items to ForwardRenderPipeline ---
         _pipeline.Render(context, _renderItems, _stateCache, _shaderCache, _legacyShaderWrapper!);
 
-        // --- Legacy fallback: items with no material at all ---
-        foreach (var meshInfo in _meshInfos)
-        {
-            if (meshInfo.StaticModelMesh == null)
-            {
-                continue;
-            }
-
-            var vb = meshInfo.StaticModelMesh.VertexBuffer;
-            var ib = meshInfo.StaticModelMesh.IndexBuffer;
-            if (vb == null || ib == null)
-            {
-                continue;
-            }
-
-            var mesh = meshInfo.StaticModelMesh;
-            bool hasAnyMaterial = meshInfo.Material != null || mesh.SubMeshes.Any(s => s.Material != null);
-            if (hasAnyMaterial)
-            {
-                continue;
-            }
-
-            graphicsDevice.SetVertexBuffer(vb);
-            graphicsDevice.Indices = ib;
-
-            int primitiveCount = ib.IndexCount / 3;
-            DrawLegacy(graphicsDevice, mesh, meshInfo, frame, defaultTexture, 0, 0, primitiveCount);
-        }
-
         _meshInfos.Clear();
     }
 
-    private void DrawLegacy(GraphicsDevice graphicsDevice, StaticModelMesh mesh, MeshInfo meshInfo,
-        in RenderFrame frame, Assets.Textures.Texture? defaultTexture,
-        int baseVertex, int startIndex, int primitiveCount)
+    private static MaterialBase? GetMaterialOverride(IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex, int slotIndex)
     {
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.RasterizerState   = RasterizerState.CullCounterClockwise;
-        graphicsDevice.BlendState         = BlendState.Opaque;
-        graphicsDevice.SamplerStates[0]   = SamplerState.AnisotropicClamp;
-
-        // Bind lighting from DefaultLighting (Phase 5: replaces hardcoded values)
-        var sw = _legacyShaderWrapper!;
-        DefaultLighting.Bind(sw);
-
-        var texture = mesh.Texture?.Resource ?? defaultTexture?.Resource;
-        // Always select the matching technique so legacy items rendered after
-        // a material call (which may have changed CurrentTechnique) are correct.
-        _effect.CurrentTechnique = _effect.Techniques[
-            texture != null ? "BasicEffect_PixelLighting_Texture" : "BasicEffect_PixelLighting"];
-        _effect.Parameters["Texture"].SetValue(texture);
-        _effect.Parameters["EyePosition"].SetValue(frame.CameraPosition);
-        _effect.Parameters["World"].SetValue(meshInfo.World);
-        _effect.Parameters["WorldInverseTranspose"].SetValue(meshInfo.WorldInvertTranspose);
-        _effect.Parameters["WorldViewProj"].SetValue(meshInfo.World * frame.ViewProjection);
-
-        foreach (EffectPass effectPass in _effect.CurrentTechnique.Passes)
+        if (materialOverridesBySlotIndex == null || slotIndex < 0)
         {
-            effectPass.Apply();
-            graphicsDevice.DrawIndexedPrimitives(mesh.PrimitiveType, baseVertex, startIndex, primitiveCount);
+            return null;
         }
-    }
 
+        return materialOverridesBySlotIndex.TryGetValue(slotIndex, out var materialOverride)
+            ? materialOverride
+            : null;
+    }
     private class MeshInfo
     {
         public StaticModelMesh? StaticModelMesh;
         public Matrix World;
         public Matrix WorldInvertTranspose;
         public MaterialBase? Material;
+        public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex;
         /// <summary>Optional per-instance overrides (Phase 6).</summary>
         public MaterialPropertyBlock? PropertyOverrides;
     }

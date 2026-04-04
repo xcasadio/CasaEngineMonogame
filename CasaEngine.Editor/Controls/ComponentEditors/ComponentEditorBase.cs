@@ -37,11 +37,13 @@ public abstract class ComponentEditorBase
 
     protected MGWindow Window { get; }
     protected EntityComponent Component { get; }
+    protected Action? RefreshRequested { get; }
 
-    protected ComponentEditorBase(MGWindow window, EntityComponent component)
+    protected ComponentEditorBase(MGWindow window, EntityComponent component, Action? refreshRequested = null)
     {
         Window = window;
         Component = component;
+        RefreshRequested = refreshRequested;
     }
 
     public MGElement CreateView()
@@ -63,6 +65,15 @@ public abstract class ComponentEditorBase
         return new MGTextBlock(Window, text)
         {
             WrapText = true,
+        };
+    }
+
+    protected MGTextBlock CreateReadOnlyValue(string text)
+    {
+        return new MGTextBlock(Window, string.IsNullOrWhiteSpace(text) ? "<none>" : text)
+        {
+            WrapText = true,
+            VerticalAlignment = VerticalAlignment.Center,
         };
     }
 
@@ -182,6 +193,19 @@ public abstract class ComponentEditorBase
             .OfType<DisplayNameAttribute>()
             .FirstOrDefault()?.DisplayName
             ?? component.GetType().Name;
+    }
+
+    protected static string FormatAssetReference(Guid assetId)
+    {
+        if (assetId == Guid.Empty)
+        {
+            return "<none>";
+        }
+
+        var assetInfo = AssetCatalog.Get(assetId);
+        return assetInfo == null
+            ? assetId.ToString()
+            : assetInfo.Name;
     }
 
     protected virtual MGElement? CreatePropertyEditor(object target, PropertyDescriptor property)

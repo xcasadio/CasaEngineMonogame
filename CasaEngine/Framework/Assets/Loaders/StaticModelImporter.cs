@@ -68,6 +68,8 @@ public class StaticModelImporter
             model.RootNode = BuildNode(scene.RootNode, model, importedMaterials);
         }
 
+        StaticModelMaterialSlots.EnsureMetadata(model);
+
         return new StaticModelImportResult(model, importedMaterials);
     }
 
@@ -278,6 +280,7 @@ public class StaticModelImporter
         string baseSlotName = BuildReadableSlotName(nodeName, mesh.Name, materialName, slotIndex);
         string uniqueSlotName = MakeUnique(baseSlotName, usedSlotNames);
         mesh.Name = uniqueSlotName;
+        mesh.SlotName = uniqueSlotName;
         return uniqueSlotName;
     }
 

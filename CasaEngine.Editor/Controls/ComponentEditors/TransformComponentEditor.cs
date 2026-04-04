@@ -22,8 +22,8 @@ public class TransformComponentEditor : ComponentEditorBase
 
     protected SceneComponent SceneComponent => (SceneComponent)Component;
 
-    public TransformComponentEditor(MGWindow window, SceneComponent component)
-        : base(window, component)
+    public TransformComponentEditor(MGWindow window, SceneComponent component, Action? refreshRequested = null)
+        : base(window, component, refreshRequested)
     {
     }
 

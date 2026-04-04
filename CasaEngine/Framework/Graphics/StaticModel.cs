@@ -63,7 +63,7 @@ public class StaticModel : ObjectBase
     // ------------------------------------------------------------------
 
     /// <summary>
-    /// Upload vertex/index buffers for every mesh and load bound textures.
+    /// Upload vertex/index buffers for every mesh and resolve the runtime materials.
     /// Call once after the asset has been loaded.
     /// </summary>
     public void Initialize(AssetContentManager assetContentManager)
@@ -73,43 +73,18 @@ public class StaticModel : ObjectBase
             return;
         }
 
+        StaticModelMaterialSlots.EnsureMetadata(this);
+
         foreach (var mesh in Meshes)
         {
             mesh.Initialize(assetContentManager.GraphicsDevice);
 
-            // Resolve material asset — takes priority over legacy texture slot
-            if (mesh.MaterialAssetId != Guid.Empty)
-            {
-                try
-                {
-                    mesh.Material = assetContentManager.Load<MaterialBase>(mesh.MaterialAssetId);
-                }
-                catch (Exception ex)
-                {
-                    Logs.WriteException(ex);
-                }
-            }
-            else if (mesh.TextureAssetId != Guid.Empty)
-            {
-                mesh.LoadTexture(mesh.TextureAssetId, assetContentManager);
-            }
+            mesh.Material = StaticModelMaterialResolver.ResolveMeshMaterial(mesh, assetContentManager);
 
             // Resolve per-submesh materials
             foreach (var sub in mesh.SubMeshes)
             {
-                if (sub.MaterialAssetId == Guid.Empty)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    sub.Material = assetContentManager.Load<MaterialBase>(sub.MaterialAssetId);
-                }
-                catch (Exception ex)
-                {
-                    Logs.WriteException(ex);
-                }
+                sub.Material = StaticModelMaterialResolver.ResolveSubMeshMaterial(mesh, sub, assetContentManager, mesh.Material);
             }
         }
 
@@ -142,5 +117,7 @@ public class StaticModel : ObjectBase
                 Meshes.Add(mesh);
             }
         }
+
+        StaticModelMaterialSlots.EnsureMetadata(this);
     }
 }

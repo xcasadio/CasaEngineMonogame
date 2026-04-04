@@ -6,22 +6,23 @@ namespace CasaEngine.Editor.Controls.ComponentEditors;
 
 public static class ComponentEditorRegistry
 {
-    private static readonly (Type ComponentType, Func<MGWindow, EntityComponent, ComponentEditorBase> Factory)[] Registrations =
+    private static readonly (Type ComponentType, Func<MGWindow, EntityComponent, Action?, ComponentEditorBase> Factory)[] Registrations =
     [
-        (typeof(StaticModelComponent), (window, component) => new StaticModelComponentEditor(window, (StaticModelComponent)component)),
-        (typeof(CameraComponent), (window, component) => new CameraComponentEditor(window, (CameraComponent)component)),
-        (typeof(PhysicsBaseComponent), (window, component) => new PhysicsComponentEditor(window, (PhysicsBaseComponent)component)),
-        (typeof(SceneComponent), (window, component) => new TransformComponentEditor(window, (SceneComponent)component)),
-        (typeof(EntityComponent), (window, component) => new GenericComponentEditor(window, component)),
+        (typeof(StaticModelComponent), (window, component, refreshRequested) => new StaticModelComponentEditor(window, (StaticModelComponent)component, refreshRequested)),
+        (typeof(StaticModelSubMeshComponent), (window, component, _) => new StaticModelSubMeshComponentEditor(window, (StaticModelSubMeshComponent)component)),
+        (typeof(CameraComponent), (window, component, _) => new CameraComponentEditor(window, (CameraComponent)component)),
+        (typeof(PhysicsBaseComponent), (window, component, _) => new PhysicsComponentEditor(window, (PhysicsBaseComponent)component)),
+        (typeof(SceneComponent), (window, component, _) => new TransformComponentEditor(window, (SceneComponent)component)),
+        (typeof(EntityComponent), (window, component, _) => new GenericComponentEditor(window, component)),
     ];
 
-    public static ComponentEditorBase Create(MGWindow window, EntityComponent component)
+    public static ComponentEditorBase Create(MGWindow window, EntityComponent component, Action? refreshRequested = null)
     {
         foreach (var registration in Registrations)
         {
             if (registration.ComponentType.IsInstanceOfType(component))
             {
-                return registration.Factory(window, component);
+                return registration.Factory(window, component, refreshRequested);
             }
         }
 

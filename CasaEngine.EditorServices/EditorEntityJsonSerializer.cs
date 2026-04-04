@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Graphics.Shapes;
+using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using World = CasaEngine.Framework.World.World;
@@ -391,6 +392,34 @@ internal static class EditorEntityJsonSerializer
 
         node.Add("children_component", childrenArray);
         node.Add("static_model_asset_id", component.StaticModelAssetId.ToString());
+
+        if (component.MaterialOverrides.Count > 0)
+        {
+            var materialOverridesArray = new JArray();
+            foreach (var materialOverride in component.MaterialOverrides)
+            {
+                if (materialOverride.MaterialAssetId == Guid.Empty)
+                {
+                    continue;
+                }
+
+                var overrideNode = new JObject();
+                SaveMaterialSlotOverride(materialOverride, overrideNode);
+                materialOverridesArray.Add(overrideNode);
+            }
+
+            if (materialOverridesArray.Count > 0)
+            {
+                node.Add("material_slot_overrides", materialOverridesArray);
+            }
+        }
+    }
+
+    private static void SaveMaterialSlotOverride(MaterialSlotOverride materialOverride, JObject node)
+    {
+        node.Add("slot_name", materialOverride.SlotName);
+        node.Add("slot_index", materialOverride.SlotIndex);
+        node.Add("material_asset_id", materialOverride.MaterialAssetId.ToString());
     }
 
     private static void SaveSkinnedMeshComponent(SkinnedMeshComponent component, JObject node)

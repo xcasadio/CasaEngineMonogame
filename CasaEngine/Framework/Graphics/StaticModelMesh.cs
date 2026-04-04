@@ -17,6 +17,10 @@ public class StaticModelMesh
 
     public string Name { get; set; } = string.Empty;
 
+    public string SlotName { get; set; } = string.Empty;
+
+    public int MaterialSlotIndex { get; set; } = -1;
+
     public PrimitiveType PrimitiveType { get; set; } = PrimitiveType.TriangleList;
 
     /// <summary>Index into the parent <see cref="StaticModel.Meshes"/> table (not used at mesh level — kept for info).</summary>
@@ -103,6 +107,8 @@ public class StaticModelMesh
     public void Load(JObject element)
     {
         Name = element["name"].GetString();
+        SlotName = element["slot_name"]?.GetString() ?? Name;
+        MaterialSlotIndex = element["material_slot_index"]?.GetInt32() ?? -1;
         PrimitiveType = element["primitive_type"].GetEnum<PrimitiveType>();
         MaterialIndex = element["material_index"].GetInt32();
         TextureAssetId = element["texture_asset_id"].GetGuid();

@@ -10,6 +10,10 @@ namespace CasaEngine.Framework.Graphics;
 /// </summary>
 public class SubMesh : ISerializable
 {
+    public string SlotName { get; set; } = string.Empty;
+
+    public int MaterialSlotIndex { get; set; } = -1;
+
     /// <summary>Starting index in the index buffer.</summary>
     public int IndexStart { get; set; }
 
@@ -27,6 +31,8 @@ public class SubMesh : ISerializable
 
     public void Load(JObject element)
     {
+        SlotName = element["slot_name"]?.Value<string>() ?? string.Empty;
+        MaterialSlotIndex = element["material_slot_index"]?.Value<int>() ?? -1;
         IndexStart    = element["index_start"]?.Value<int>()    ?? 0;
         PrimitiveCount = element["primitive_count"]?.Value<int>() ?? 0;
         VertexOffset  = element["vertex_offset"]?.Value<int>()   ?? 0;

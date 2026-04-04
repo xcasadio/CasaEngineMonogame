@@ -300,6 +300,8 @@ internal static class EditorAssetJsonSerializer
     private static void SaveStaticModelMesh(StaticModelMesh staticModelMesh, JObject node)
     {
         node.Add("name", staticModelMesh.Name);
+        node.Add("slot_name", staticModelMesh.SlotName);
+        node.Add("material_slot_index", staticModelMesh.MaterialSlotIndex);
         node.Add("primitive_type", staticModelMesh.PrimitiveType.ToString());
         node.Add("material_index", staticModelMesh.MaterialIndex);
         node.Add("texture_asset_id", staticModelMesh.TextureAssetId.ToString());
@@ -320,6 +322,8 @@ internal static class EditorAssetJsonSerializer
 
     private static void SaveSubMesh(SubMesh subMesh, JObject node)
     {
+        node.Add("slot_name", subMesh.SlotName);
+        node.Add("material_slot_index", subMesh.MaterialSlotIndex);
         node.Add("index_start", subMesh.IndexStart);
         node.Add("primitive_count", subMesh.PrimitiveCount);
         node.Add("vertex_offset", subMesh.VertexOffset);

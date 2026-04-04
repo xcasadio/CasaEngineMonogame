@@ -39,6 +39,12 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
     public MaterialPropertyBlock? PropertyOverrides { get; set; }
 
     /// <summary>
+    /// Runtime-only per-slot material overrides inherited from the parent
+    /// <see cref="StaticModelComponent"/> instance.
+    /// </summary>
+    public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex { get; set; }
+
+    /// <summary>
     /// <c>true</c> when this component was auto-generated from a <see cref="StaticModelComponent"/>.
     /// The parent's <c>Save()</c> uses this flag to skip serializing generated children.
     /// </summary>
@@ -51,6 +57,7 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
         ModelMesh = other.ModelMesh;
         IsGeneratedFromModel = other.IsGeneratedFromModel;
         PropertyOverrides = other.PropertyOverrides;
+        MaterialOverridesBySlotIndex = other.MaterialOverridesBySlotIndex;
     }
 
     public override StaticModelSubMeshComponent Clone() => new(this);
@@ -72,7 +79,7 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
 
         var world = WorldMatrixWithScale;
         var invTranspose = Matrix.Transpose(Matrix.Invert(world));
-        _meshRendererComponent.AddMesh(ModelMesh, world, invTranspose, PropertyOverrides);
+        _meshRendererComponent.AddMesh(ModelMesh, world, invTranspose, MaterialOverridesBySlotIndex, PropertyOverrides);
     }
 
     public override BoundingBox GetBoundingBox()

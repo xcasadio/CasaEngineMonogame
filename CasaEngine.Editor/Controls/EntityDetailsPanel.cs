@@ -424,8 +424,14 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent);
+        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor);
         _detailsContent.TryAddChild(componentEditor.CreateView());
+    }
+
+    private void RefreshSelectedComponentEditor()
+    {
+        RebuildComponentTree();
+        RebuildPropertyEditors();
     }
 
     private void ClearDetailsContent()
