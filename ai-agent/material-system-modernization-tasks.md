@@ -171,7 +171,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): count texture binds and item buckets`
 
-- ⏳ **T03.03 — Afficher les `RenderStats` dans `DebugOverlay`**
+- ✅ **T03.03 — Afficher les `RenderStats` dans `DebugOverlay`**
   Objectif:
   - Ajouter draw calls, effect binds, texture binds, state changes et compteurs opaques/transparents dans l'overlay.
   - Garder un rendu lisible en split-screen.

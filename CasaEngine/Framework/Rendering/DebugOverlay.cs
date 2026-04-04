@@ -11,7 +11,9 @@ namespace CasaEngine.Framework.Rendering;
 /// <list type="bullet">
 ///   <item>Instantaneous FPS (frames per second).</item>
 ///   <item>View name and update mode.</item>
-///   <item>View resolution (actual RT width × height).</item>
+///   <item>View resolution and camera position.</item>
+///   <item>Per-view render stats: draw calls, shader binds, texture binds, state changes.</item>
+///   <item>Per-view opaque and transparent item counts.</item>
 ///   <item>Active RT count from <see cref="RenderTargetPool"/> (if available).</item>
 /// </list>
 ///
@@ -62,16 +64,16 @@ public sealed class DebugOverlay
         var pool      = RenderTargetPool.Shared;
         var cam       = view.Camera;
         var camPos    = cam?.Position ?? Vector3.Zero;
-        var vp        = view.Surface.ViewportRect;
+        var stats     = view.RenderStats;
         var viewName  = string.IsNullOrEmpty(view.Name) ? "unnamed" : view.Name;
         var lines     = new List<string>(8)
         {
             $"View: {viewName}",
-            $"FPS: {_fps:F1}",
-            $"Mode: {view.UpdateMode}",
-            $"Viewport: ({vp.X},{vp.Y}) {vp.Width}x{vp.Height}",
-            $"CamPos: ({camPos.X:F1}, {camPos.Y:F1}, {camPos.Z:F1})",
-            $"Scale: {view.ResolutionScale:P0}",
+            $"FPS: {_fps:F1}  Mode: {view.UpdateMode}",
+            $"Size: {viewportRect.Width}x{viewportRect.Height}  Scale: {view.ResolutionScale:P0}",
+            $"Cam: {camPos.X:F1}, {camPos.Y:F1}, {camPos.Z:F1}",
+            $"Draws: {stats.DrawCalls}  FX: {stats.EffectBinds}  Tex: {stats.TextureBinds}",
+            $"State: {stats.StateChanges}  O: {stats.OpaqueItems}  T: {stats.TransparentItems}",
         };
 
         if (pool != null)
@@ -79,12 +81,22 @@ public sealed class DebugOverlay
             lines.Add($"RT pool: {pool.TotalCount - pool.FreeCount} active / {pool.FreeCount} free");
         }
 
+        float maxLineWidth = 0f;
+        foreach (var line in lines)
+        {
+            var lineWidth = _font.MeasureString(line).X;
+            if (lineWidth > maxLineWidth)
+            {
+                maxLineWidth = lineWidth;
+            }
+        }
+
         // Background rect
-        int bgW = 220;
+        int bgW = (int)MathF.Ceiling(maxLineWidth) + Padding * 2;
         int bgH = Padding * 2 + lines.Count * LineSpacing;
         var bgRect = new Rectangle(
-            viewportRect.X + Padding,
-            viewportRect.Y + Padding,
+            Padding,
+            Padding,
             bgW, bgH);
 
         _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend,
