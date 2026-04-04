@@ -264,7 +264,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add material asset serialization`
 
-- ⏳ **T05.02 — Ajouter un adaptateur legacy `.material` -> `MaterialAsset`**
+- ✅ **T05.02 — Ajouter un adaptateur legacy `.material` -> `MaterialAsset`**
   Objectif:
   - Continuer a charger les anciens JSON `MaterialBase` existants.
   - Les convertir vers le nouveau modele authoring pendant la lecture.

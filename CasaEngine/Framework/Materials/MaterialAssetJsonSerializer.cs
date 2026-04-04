@@ -51,6 +51,16 @@ public static class MaterialAssetJsonSerializer
         ArgumentNullException.ThrowIfNull(materialAsset);
         ArgumentNullException.ThrowIfNull(node);
 
+        if (node["definition_id"] is null)
+        {
+            if (LegacyMaterialAssetAdapter.TryLoad(materialAsset, node))
+            {
+                return;
+            }
+
+            throw new InvalidOperationException("Material asset is missing 'definition_id'.");
+        }
+
         materialAsset.ClearPropertyValues();
         materialAsset.DefinitionId = node["definition_id"]?.Value<string>()
             ?? throw new InvalidOperationException("Material asset is missing 'definition_id'.");
