@@ -16,7 +16,7 @@ public sealed class OpaquePass : RenderPass
         IReadOnlyList<RenderItem> items,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper legacyShader)
+        RenderShaderSelector shaderSelector)
     {
         var stats = context.Stats;
 
@@ -33,7 +33,7 @@ public sealed class OpaquePass : RenderPass
                 continue;
             }
 
-            DrawItem(in item, in context, stateCache, shaderCache, legacyShader, stats);
+            DrawItem(in item, in context, stateCache, shaderCache, shaderSelector, stats);
         }
     }
 }
@@ -51,7 +51,7 @@ public sealed class TransparentPass : RenderPass
         IReadOnlyList<RenderItem> items,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper legacyShader)
+        RenderShaderSelector shaderSelector)
     {
         var stats = context.Stats;
 
@@ -69,7 +69,7 @@ public sealed class TransparentPass : RenderPass
                 continue;
             }
 
-            DrawItem(in item, in context, stateCache, shaderCache, legacyShader, stats);
+            DrawItem(in item, in context, stateCache, shaderCache, shaderSelector, stats);
         }
     }
 }

@@ -67,7 +67,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): resolve effective shader for runtime materials`
 
-- ⏳ **T01.02 — Brancher la selection de shader dans le draw path normal**
+- ✅ **T01.02 — Brancher la selection de shader dans le draw path normal**
   Objectif:
   - Faire choisir le shader/variant dans le chemin opaque/transparent normal.
   - Arreter d'utiliser `legacyShader` comme chemin principal pour tous les draws.

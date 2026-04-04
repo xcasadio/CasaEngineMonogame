@@ -25,5 +25,5 @@ public interface IRenderPipeline3D
         IReadOnlyList<RenderItem> items,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper legacyShader);
+        RenderShaderSelector shaderSelector);
 }

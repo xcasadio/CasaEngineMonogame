@@ -23,6 +23,12 @@ public struct RenderItem
     /// <summary>Material to bind for this draw call.</summary>
     public MaterialBase Material;
 
+    /// <summary>
+    /// Effective runtime shader id resolved from the material. This can be a real shader asset id
+    /// or a stable built-in id produced by <see cref="Shaders.EffectiveShaderResolver"/>.
+    /// </summary>
+    public Guid EffectiveShaderId;
+
     /// <summary>World transform matrix.</summary>
     public Matrix World;
 

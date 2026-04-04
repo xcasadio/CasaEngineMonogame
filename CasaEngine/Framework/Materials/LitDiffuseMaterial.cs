@@ -22,9 +22,8 @@ public class LitDiffuseMaterial : MaterialBase
     public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
 
-    public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
+    public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {
-        // Select technique based on texture, normal map, and active light count
         var hasBasColor = BasColor is not null;
         var hasNormalMap = NormalMap is not null && hasBasColor;
         var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
@@ -43,6 +42,10 @@ public class LitDiffuseMaterial : MaterialBase
                 (false, false) => "BasicEffect_PixelLighting",
             });
         }
+    }
+
+    public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
+    {
 
         var worldViewProj = world * context.Frame.ViewProjection;
         shader.SetParameter(ShaderParameterNames.WorldViewProj, worldViewProj);
@@ -57,7 +60,7 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
         shader.SetParameter(ShaderParameterNames.BasColorTexture, BasColor);
 
-        if (hasNormalMap)
+        if (NormalMap is not null && BasColor is not null)
         {
             shader.SetParameter(ShaderParameterNames.NormalTexture, NormalMap);
         }

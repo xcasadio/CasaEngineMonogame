@@ -49,7 +49,7 @@ public abstract class RenderPass
         IReadOnlyList<RenderItem> items,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper legacyShader);
+        RenderShaderSelector shaderSelector);
 
     // -----------------------------------------------------------------------
     //  Helpers shared by concrete passes
@@ -60,14 +60,16 @@ public abstract class RenderPass
         in RenderContext context,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper shader,
+        RenderShaderSelector shaderSelector,
         RenderStats? stats)
     {
+        var shader = shaderSelector.Resolve(in item);
         var device = context.Device;
         device.SetVertexBuffer(item.Mesh.VertexBuffer);
         device.Indices = item.Mesh.IndexBuffer;
 
         stateCache.Apply(device, item.Material, stats);
+        item.Material.SelectTechnique(shader, in context, item.Features);
         shaderCache.BindGlobals(shader, in context);
         item.Material.Bind(shader, in context, item.World);
         item.PropertyOverrides?.Apply(shader);

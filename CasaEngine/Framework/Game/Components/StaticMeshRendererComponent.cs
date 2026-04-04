@@ -14,6 +14,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
     private ShaderWrapper? _legacyShaderWrapper;
+    private ShaderWrapper? _unlitShaderWrapper;
 
     // Phase 4 — per-frame caches that minimise redundant state/shader changes
     private readonly RenderStateCache _stateCache   = new();
@@ -23,6 +24,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     // Phase 7 — shader variant system
     private ShaderManager?         _shaderManager;
     private ShaderVariantLibrary?  _variantLibrary;
+    private RenderShaderSelector?  _shaderSelector;
 
     // Phase 9 — hardware instancing
     private InstanceBatcher? _instanceBatcher;
@@ -72,6 +74,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     {
         _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
         _effect.CurrentTechnique = _effect.Techniques["BasicEffect_PixelLighting_Texture"];
+        var unlitEffect = Game.Content.Load<Effect>("Shaders\\UnlitTexture");
 
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
@@ -96,6 +99,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             new Vector3(0.36f, 0.36f, 0.36f));
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
+        _unlitShaderWrapper = new ShaderWrapper(unlitEffect);
 
         // Phase 7: initialise shader variant system
         var acm = (Game as CasaEngineGame)?.AssetContentManager;
@@ -104,6 +108,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
         }
+
+        _shaderSelector = new RenderShaderSelector(_legacyShaderWrapper, _shaderManager, _variantLibrary);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
 
         // Phase 9: hardware instancing batcher
         _instanceBatcher = new InstanceBatcher(_effect.GraphicsDevice);
@@ -165,12 +173,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     }
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                    var effectiveShader = EffectiveShaderResolver.Resolve(mat);
                     var features = mat.GetFeatures(mesh);
                     var item = new RenderItem
                     {
                         Mesh                  = mesh,
                         SubMesh               = subMesh,
                         Material              = mat,
+                        EffectiveShaderId     = effectiveShader.ShaderId,
                         World                 = meshInfo.World,
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
@@ -179,7 +189,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     };
                     item.SortKey = SortKeyGenerator.Generate(
                         mat.Queue,
-                        mat.ShaderAssetId.GetHashCode(),
+                        effectiveShader.ShaderId.GetHashCode(),
                         mat.Id.GetHashCode(),
                         vb.GetHashCode(),
                         dist);
@@ -196,12 +206,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 }
 
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
+                var effectiveShader = EffectiveShaderResolver.Resolve(mat);
                 var features = mat.GetFeatures(mesh);
                 var item = new RenderItem
                 {
                     Mesh                  = mesh,
                     SubMesh               = null,
                     Material              = mat,
+                    EffectiveShaderId     = effectiveShader.ShaderId,
                     World                 = meshInfo.World,
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
@@ -210,7 +222,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 };
                 item.SortKey = SortKeyGenerator.Generate(
                     mat.Queue,
-                    mat.ShaderAssetId.GetHashCode(),
+                    effectiveShader.ShaderId.GetHashCode(),
                     mat.Id.GetHashCode(),
                     vb.GetHashCode(),
                     dist);
@@ -257,10 +269,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
                 var firstItem = group[0];
                 _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
-                var shader = (_variantLibrary is not null && firstItem.Material.ShaderAssetId != Guid.Empty)
-                    ? _variantLibrary.Get(new ShaderVariantKey(firstItem.Material.ShaderAssetId, firstItem.Features))
-                        ?? _legacyShaderWrapper!
-                    : _legacyShaderWrapper!;
+                var shader = _shaderSelector!.Resolve(in firstItem);
                 _shaderCache.BindGlobals(shader, in context);
                 _instanceBatcher.DrawInstancedGroup(group, shader, in context);
                 stats.DrawCalls++;
@@ -280,7 +289,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         }
 
         // --- Phase 10: delegate sorted items to ForwardRenderPipeline ---
-        _pipeline.Render(context, _renderItems, _stateCache, _shaderCache, _legacyShaderWrapper!);
+        _pipeline.Render(context, _renderItems, _stateCache, _shaderCache, _shaderSelector!);
 
         _meshInfos.Clear();
     }

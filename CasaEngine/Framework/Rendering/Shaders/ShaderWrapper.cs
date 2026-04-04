@@ -33,6 +33,8 @@ public class ShaderWrapper
 
     public bool HasParameter(string name) => GetParameter(name) != null;
 
+    public bool HasTechnique(string techniqueName) => _effect.Techniques[techniqueName] != null;
+
     // --- Typed setters (no-op if parameter doesn't exist) ---
 
     public void SetParameter(string name, float value) => GetParameter(name)?.SetValue(value);

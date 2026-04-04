@@ -68,9 +68,9 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
         IReadOnlyList<RenderItem> items,
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
-        ShaderWrapper legacyShader)
+        RenderShaderSelector shaderSelector)
     {
         foreach (var pass in _passes)
-            pass.Execute(context, items, stateCache, shaderCache, legacyShader);
+            pass.Execute(context, items, stateCache, shaderCache, shaderSelector);
     }
 }

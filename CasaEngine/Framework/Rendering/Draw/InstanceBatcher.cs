@@ -103,6 +103,7 @@ public sealed class InstanceBatcher : IDisposable
         _device.Indices = mesh.IndexBuffer;
 
         // Bind material params (world will come from the instance stream)
+        firstItem.Material.SelectTechnique(shader, in context, firstItem.Features);
         firstItem.Material.Bind(shader, in context, Microsoft.Xna.Framework.Matrix.Identity);
 
         int primCount = mesh.IndexBuffer!.IndexCount / 3;

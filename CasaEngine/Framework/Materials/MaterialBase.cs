@@ -53,6 +53,15 @@ public abstract class MaterialBase : ISerializable
     // -------------------------------------------------------------------------
 
     /// <summary>
+    /// Selects the technique to use for this material on the already resolved shader.
+    /// Called by the renderer before <see cref="Bind"/> so shader routing and technique selection
+    /// are no longer hidden inside material parameter uploads.
+    /// </summary>
+    public virtual void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
+    {
+    }
+
+    /// <summary>
     /// Pushes all material-specific shader parameters (WVP, textures, scalars…).
     /// Called once per draw item after render states are applied.
     /// </summary>
