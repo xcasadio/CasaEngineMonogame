@@ -34,7 +34,7 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
         // 2. Flush each renderer for this view's camera frame.
         foreach (var renderer in renderers)
         {
-            renderer.Flush(in frame);
+            renderer.Flush(in frame, view.RenderStats);
         }
 
         // 3. Compose the UI phase on top of the 3D scene while the view's

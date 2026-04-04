@@ -152,7 +152,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 3 — Rendre `RenderStats` reelles et visibles
 
-- ⏳ **T03.01 — Introduire une collecte de stats par vue**
+- ✅ **T03.01 — Introduire une collecte de stats par vue**
   Objectif:
   - Faire survivre les stats d'un renderer au-dela du `Flush()` local.
   - Rendre ces stats accessibles au pipeline de vue.

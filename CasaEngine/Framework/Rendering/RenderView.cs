@@ -162,6 +162,12 @@ public sealed class RenderView
     /// </summary>
     public bool ShowDebugOverlay { get; set; }
 
+    /// <summary>
+    /// Aggregated render statistics for the last completed render of this view.
+    /// Reset by <see cref="RenderPipeline"/> before each rendered frame.
+    /// </summary>
+    public RenderStats RenderStats { get; } = new();
+
     // ---- User / editor metadata ----
 
     /// <summary>Raised whenever <see cref="Invalidate"/> marks the view dirty.</summary>

@@ -38,7 +38,7 @@ public sealed class AssetPreviewPipeline : IViewRenderPipeline
 
         foreach (var renderer in renderers)
         {
-            renderer.Flush(in frame);
+            renderer.Flush(in frame, view.RenderStats);
         }
     }
 }

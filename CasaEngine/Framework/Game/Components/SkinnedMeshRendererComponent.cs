@@ -72,7 +72,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     }
 
     /// <inheritdoc/>
-    public void Flush(in RenderFrame frame)
+    public void Flush(in RenderFrame frame, RenderStats? stats = null)
     {
         if (_meshInfos.Count == 0)
         {

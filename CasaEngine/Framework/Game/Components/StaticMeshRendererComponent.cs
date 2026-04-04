@@ -128,7 +128,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// WorldViewProj and EyePosition are computed from <paramref name="frame"/> at flush time,
     /// so each view correctly uses its own camera data.
     /// </remarks>
-    public void Flush(in RenderFrame frame)
+    public void Flush(in RenderFrame frame, RenderStats? stats = null)
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
 
@@ -136,7 +136,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _stateCache.ResetFrame();
         _shaderCache.ResetFrame();
 
-        var stats   = new RenderStats();
+        stats ??= new RenderStats();
         var context = new RenderContext
         {
             Device   = graphicsDevice,

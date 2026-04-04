@@ -173,6 +173,9 @@ public sealed class RenderPipeline
             // 4. Build the camera frame for this view
             var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect);
 
+            // Reset per-view counters before renderer flushes aggregate into them.
+            view.RenderStats.Reset();
+
             // 5. Delegate to the per-view pipeline (or the shared default)
             var pipeline = view.Pipeline ?? _defaultPipeline;
             pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
