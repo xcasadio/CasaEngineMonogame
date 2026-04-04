@@ -232,7 +232,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add compiled material runtime representation`
 
-- ⏳ **T04.05 — Introduire `MaterialCompiler` minimal**
+- ✅ **T04.05 — Introduire `MaterialCompiler` minimal**
   Objectif:
   - Compiler au minimum `LitDiffuse` et `UnlitTexture` vers `CompiledMaterial`.
   - Garder la compatibilite avec le pipeline existant pendant la transition.
