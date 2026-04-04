@@ -2,11 +2,13 @@ using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Session;
 using CasaEngine.Engine;
 using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.ScreenEditor;
 
+[Collection(ProjectEnvironmentCollection.Name)]
 public class UIScreenEditorSessionTests
 {
     [Fact]

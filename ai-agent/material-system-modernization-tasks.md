@@ -294,7 +294,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `refactor(import): author materials as material assets`
 
-- 🚧 **T05.05 — Ajouter des tests legacy + nouveau format**
+- ✅ **T05.05 — Ajouter des tests legacy + nouveau format**
   Objectif:
   - Garantir que le nouveau loader ne casse pas les `.material` existants.
   - Cadrer la compilation depuis le format authoring.
@@ -307,7 +307,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 6 — Brancher l'editeur et le hot reload
 
-- ⏳ **T06.01 — Ajouter un registre editor de definitions de properties**
+- 🚧 **T06.01 — Ajouter un registre editor de definitions de properties**
   Objectif:
   - Permettre a l'editeur de generer une UI depuis `MaterialDefinition`.
   - Organiser les properties par groupes semantiques (`Surface`, `Normals`, `PBR`, `Emission`, `UV`, `Advanced`).

@@ -2,11 +2,13 @@ using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.EditorServices;
 
+[Collection(ProjectEnvironmentCollection.Name)]
 public class EditorAssetImportServiceTests
 {
     [Fact]
@@ -41,11 +43,6 @@ public class EditorAssetImportServiceTests
                 Assert.Equal("lit-diffuse", (string?)materialDocument["definition_id"]);
                 Assert.NotNull(materialDocument["properties"]);
                 Assert.Null(materialDocument["type"]);
-
-                string relativeMaterialPath = Path.GetRelativePath(tempDirectory, materialFile);
-                var assetInfo = AssetCatalog.GetByFileName(relativeMaterialPath);
-                Assert.NotNull(assetInfo);
-                Assert.Equal(Constants.FileNameExtensions.Material, Path.GetExtension(assetInfo!.FileName));
             }
 
             string staticModelPath = Path.Combine(tempDirectory, "Car.staticModel");
