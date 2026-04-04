@@ -139,7 +139,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `refactor(rendering): route render item features through resolver`
 
-- ⏳ **T02.06 — Ajouter des tests cibles pour les features et la selection de variant**
+- ✅ **T02.06 — Ajouter des tests cibles pour les features et la selection de variant**
   Objectif:
   - Cadrer le comportement attendu de `RenderFeatureResolver`.
   - Cadrer le mapping variant -> technique.
