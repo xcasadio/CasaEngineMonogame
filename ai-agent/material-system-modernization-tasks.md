@@ -223,7 +223,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add authoring material asset model`
 
-- ⏳ **T04.04 — Introduire `CompiledMaterial` runtime**
+- ✅ **T04.04 — Introduire `CompiledMaterial` runtime**
   Objectif:
   - Isoler la representation runtime compilee des assets editoriaux.
   - Y stocker shader effectif, permutation, textures resolues et etats prepares.
