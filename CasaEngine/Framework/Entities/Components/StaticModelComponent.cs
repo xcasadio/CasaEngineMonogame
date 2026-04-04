@@ -354,8 +354,7 @@ public class StaticModelComponent : PrimitiveComponent
 
         try
         {
-            var loadedMaterial = assetContentManager.Load<MaterialBase>(slotOverride.MaterialAssetId);
-            if (loadedMaterial == null)
+            if (!MaterialRuntimeResolver.TryLoadRuntimeMaterial(slotOverride.MaterialAssetId, assetContentManager, out var loadedMaterial))
             {
                 return false;
             }

@@ -35,6 +35,17 @@ public sealed class MaterialCompiler
             receiveShadows: runtimeMaterial.ReceiveShadows);
     }
 
+    public MaterialBase CompileRuntimeMaterial(MaterialAsset materialAsset, AssetContentManager assetContentManager)
+    {
+        ArgumentNullException.ThrowIfNull(materialAsset);
+        ArgumentNullException.ThrowIfNull(assetContentManager);
+
+        var definition = materialAsset.GetRequiredDefinition();
+        var effectiveValues = BuildEffectiveValues(materialAsset, definition);
+        var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
+        return CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
+    }
+
     private static IReadOnlyDictionary<string, MaterialValue> BuildEffectiveValues(
         MaterialAsset materialAsset,
         MaterialDefinition definition)
@@ -104,6 +115,7 @@ public sealed class MaterialCompiler
         {
             "lit-diffuse" => CreateLitDiffuseMaterial(materialAsset, effectiveValues, resolvedTextures),
             "unlit-texture" => CreateUnlitTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
+            "legacy-multi-texture" => CreateLegacyMultiTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
             _ => throw new NotSupportedException(
                 $"Material compiler does not support material definition '{definition.Id}' yet."),
         };
@@ -144,6 +156,34 @@ public sealed class MaterialCompiler
         return material;
     }
 
+    private static Material CreateLegacyMultiTextureMaterial(
+        MaterialAsset materialAsset,
+        IReadOnlyDictionary<string, MaterialValue> effectiveValues,
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
+    {
+        var material = new Material();
+        ApplyCommonSettings(materialAsset, material);
+
+        material.TextureBaseColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
+        material.TextureBaseColor = WrapTexture(resolvedTextures["base_color_texture"]);
+        material.TextureOpacityAssetId = GetTextureId(effectiveValues["opacity_texture"], "opacity_texture");
+        material.TextureOpacityColor = WrapTexture(resolvedTextures["opacity_texture"]);
+        material.TextureNormalAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
+        material.TextureNormal = WrapTexture(resolvedTextures["normal_texture"]);
+        material.TextureSpecularAssetId = GetTextureId(effectiveValues["specular_texture"], "specular_texture");
+        material.TextureSpecular = WrapTexture(resolvedTextures["specular_texture"]);
+        material.TextureRoughnessAssetId = GetTextureId(effectiveValues["roughness_texture"], "roughness_texture");
+        material.TextureRoughness = WrapTexture(resolvedTextures["roughness_texture"]);
+        material.TextureTangentAssetId = GetTextureId(effectiveValues["tangent_texture"], "tangent_texture");
+        material.TextureTangent = WrapTexture(resolvedTextures["tangent_texture"]);
+        material.TextureHeightAssetId = GetTextureId(effectiveValues["height_texture"], "height_texture");
+        material.TextureHeight = WrapTexture(resolvedTextures["height_texture"]);
+        material.TextureReflectionAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
+        material.TextureReflection = WrapTexture(resolvedTextures["reflection_texture"]);
+
+        return material;
+    }
+
     private static void ApplyCommonSettings(MaterialAsset materialAsset, MaterialBase material)
     {
         material.Id = materialAsset.Id;
@@ -177,6 +217,9 @@ public sealed class MaterialCompiler
             return null;
         }
     }
+
+    private static Assets.Textures.Texture? WrapTexture(Texture2D? textureResource)
+        => textureResource is null ? null : new Assets.Textures.Texture(textureResource);
 
     private static Guid GetTextureId(MaterialValue value, string propertyKey)
     {

@@ -274,7 +274,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): bridge legacy material files to authoring assets`
 
-- ⏳ **T05.03 — Faire compiler `MaterialAsset` vers les materials runtime actuels**
+- ✅ **T05.03 — Faire compiler `MaterialAsset` vers les materials runtime actuels**
   Objectif:
   - Garder le pipeline fonctionnel pendant la transition.
   - Permettre au renderer actuel de consommer les materials compiles sans tout reecrire d'un coup.

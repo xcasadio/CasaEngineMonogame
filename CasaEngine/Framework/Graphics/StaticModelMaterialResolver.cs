@@ -80,28 +80,7 @@ public static class StaticModelMaterialResolver
 
     private static bool TryLoadMaterial(Guid materialAssetId, AssetContentManager assetContentManager, out MaterialBase material)
     {
-        material = null!;
-        if (materialAssetId == Guid.Empty)
-        {
-            return false;
-        }
-
-        try
-        {
-            var loadedMaterial = assetContentManager.Load<MaterialBase>(materialAssetId);
-            if (loadedMaterial == null)
-            {
-                return false;
-            }
-
-            material = loadedMaterial;
-            return true;
-        }
-        catch (Exception ex)
-        {
-            Logs.WriteException(ex);
-            return false;
-        }
+        return MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out material);
     }
 
     private static bool TryLoadTexture(StaticModelMesh mesh, AssetContentManager assetContentManager, out Texture2D textureResource)
