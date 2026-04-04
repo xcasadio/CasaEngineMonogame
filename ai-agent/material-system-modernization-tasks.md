@@ -214,7 +214,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): add typed material property values`
 
-- ⏳ **T04.03 — Introduire `MaterialAsset` authoring**
+- ✅ **T04.03 — Introduire `MaterialAsset` authoring**
   Objectif:
   - Stocker `DefinitionId`, valeurs persistantes, parent eventuel et options structurelles.
   - Garder les render states encadres, pas libres partout.
