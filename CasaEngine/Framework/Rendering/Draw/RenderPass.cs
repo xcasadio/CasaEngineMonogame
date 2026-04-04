@@ -63,13 +63,17 @@ public abstract class RenderPass
         RenderShaderSelector shaderSelector,
         RenderStats? stats)
     {
-        var shader = shaderSelector.Resolve(in item);
+        var resolvedShader = shaderSelector.Resolve(in item);
+        var shader = resolvedShader.Shader;
         var device = context.Device;
         device.SetVertexBuffer(item.Mesh.VertexBuffer);
         device.Indices = item.Mesh.IndexBuffer;
 
         stateCache.Apply(device, item.Material, stats);
-        item.Material.SelectTechnique(shader, in context, item.Features);
+        if (!resolvedShader.TechniqueSelectedBySelector || !item.Material.SupportsVariantTechniqueSelection)
+        {
+            item.Material.SelectTechnique(shader, in context, item.Features);
+        }
         shaderCache.BindGlobals(shader, in context);
         item.Material.Bind(shader, in context, item.World);
         item.PropertyOverrides?.Apply(shader);

@@ -67,6 +67,19 @@ public sealed class ShaderVariantLibrary
             ["Skinned_Textured"]   = "BasicEffect_PixelLighting_Texture",
         };
 
+    /// <summary>Returns alias map for mapping canonical technique names to UnlitTexture.fx ones.</summary>
+    public static Dictionary<string, string> BuildUnlitTextureAliases() =>
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Opaque"]             = "Unlit_Colored",
+            ["Opaque_Textured"]    = "Unlit_Textured",
+            ["AlphaTest"]          = "Unlit_Colored",
+            ["AlphaTest_Textured"] = "Unlit_Textured",
+            ["Transparent"]        = "Unlit_Textured",
+            ["Skinned"]            = "Unlit_Colored",
+            ["Skinned_Textured"]   = "Unlit_Textured",
+        };
+
     // Lookup -------------------------------------------------------------
 
     /// <summary>
@@ -119,20 +132,49 @@ public sealed class ShaderVariantLibrary
 
     private void ApplyTechnique(ShaderWrapper shader, Guid shaderBaseId, ShaderFeature features)
     {
+        foreach (var candidate in BuildTechniqueFallbackChain(features))
+        {
+            string techniqueName = candidate;
+            if (_aliasMap.TryGetValue(shaderBaseId, out var aliases) &&
+                aliases.TryGetValue(candidate, out var aliased))
+            {
+                techniqueName = aliased;
+            }
+
+            if (shader.HasTechnique(techniqueName))
+            {
+                shader.SelectTechnique(techniqueName);
+                return;
+            }
+        }
+
+        var requestedTechnique = BuildTechniqueName(features) ?? "<none>";
+        Core.Log.Logs.WriteWarning(
+            $"ShaderVariantLibrary: no compatible technique found for shader '{shaderBaseId}' and canonical technique '{requestedTechnique}'.");
+    }
+
+    private static IEnumerable<string> BuildTechniqueFallbackChain(ShaderFeature features)
+    {
         var canonical = BuildTechniqueName(features);
         if (canonical is null)
         {
-            return;
+            yield break;
         }
 
-        string techniqueName = canonical;
-        if (_aliasMap.TryGetValue(shaderBaseId, out var aliases) &&
-            aliases.TryGetValue(canonical, out var aliased))
+        yield return canonical;
+
+        bool textured = (features & ShaderFeature.BasColorTexture) != 0;
+        var texturedFallback = textured ? "Opaque_Textured" : "Opaque";
+
+        if (!string.Equals(canonical, texturedFallback, StringComparison.OrdinalIgnoreCase))
         {
-            techniqueName = aliased;
+            yield return texturedFallback;
         }
 
-        shader.SelectTechnique(techniqueName);
+        if (!string.Equals(texturedFallback, "Opaque", StringComparison.OrdinalIgnoreCase))
+        {
+            yield return "Opaque";
+        }
     }
 
     /// <summary>

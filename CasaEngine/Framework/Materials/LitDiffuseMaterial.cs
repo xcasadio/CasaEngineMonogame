@@ -13,6 +13,8 @@ namespace CasaEngine.Framework.Materials;
 /// </summary>
 public class LitDiffuseMaterial : MaterialBase
 {
+    public override bool SupportsVariantTechniqueSelection => false;
+
     public Texture2D? BasColor { get; set; }
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
     public Texture2D? NormalMap { get; set; }

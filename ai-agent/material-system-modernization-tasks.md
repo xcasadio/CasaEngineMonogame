@@ -77,7 +77,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): use shader selection in regular draw path`
 
-- ⏳ **T01.03 — Declarer les alias de techniques pour les shaders existants**
+- ✅ **T01.03 — Declarer les alias de techniques pour les shaders existants**
   Objectif:
   - Enregistrer les alias necessaires pour `basicEffect` et `UnlitTexture`.
   - Verifier les fallbacks de technique si une permutation n'existe pas.

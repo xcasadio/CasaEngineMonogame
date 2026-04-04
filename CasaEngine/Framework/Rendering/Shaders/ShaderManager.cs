@@ -71,6 +71,22 @@ public sealed class ShaderManager : IDisposable
     }
 
     /// <summary>
+    /// Registers an already created shader wrapper under a stable id.
+    /// Useful for built-in shaders that are loaded by content path instead of asset catalog id.
+    /// </summary>
+    public void RegisterShader(Guid shaderAssetId, ShaderWrapper shader)
+    {
+        ArgumentNullException.ThrowIfNull(shader);
+
+        if (shaderAssetId == Guid.Empty)
+        {
+            throw new ArgumentException("A stable shader id is required.", nameof(shaderAssetId));
+        }
+
+        _cache[shaderAssetId] = shader;
+    }
+
+    /// <summary>
     /// Evicts a single shader from the cache so it will be reloaded next time.
     /// </summary>
     public void Invalidate(Guid shaderAssetId) => _cache.Remove(shaderAssetId);

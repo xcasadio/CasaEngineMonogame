@@ -107,6 +107,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         {
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.BasicEffectShaderId, ShaderVariantLibrary.BuildBasicEffectAliases());
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.UnlitTextureShaderId, ShaderVariantLibrary.BuildUnlitTextureAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_legacyShaderWrapper, _shaderManager, _variantLibrary);
@@ -269,9 +273,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
                 var firstItem = group[0];
                 _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
-                var shader = _shaderSelector!.Resolve(in firstItem);
-                _shaderCache.BindGlobals(shader, in context);
-                _instanceBatcher.DrawInstancedGroup(group, shader, in context);
+                var resolvedShader = _shaderSelector!.Resolve(in firstItem);
+                _shaderCache.BindGlobals(resolvedShader.Shader, in context);
+                _instanceBatcher.DrawInstancedGroup(group, resolvedShader.Shader, in context, resolvedShader.TechniqueSelectedBySelector);
                 stats.DrawCalls++;
 
                 // Mark as drawn

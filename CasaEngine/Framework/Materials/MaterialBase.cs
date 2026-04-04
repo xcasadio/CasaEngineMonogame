@@ -23,6 +23,8 @@ public enum RenderQueue
 /// </summary>
 public abstract class MaterialBase : ISerializable
 {
+    public virtual bool SupportsVariantTechniqueSelection => true;
+
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = string.Empty;
 

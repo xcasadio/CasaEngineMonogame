@@ -78,7 +78,11 @@ public sealed class InstanceBatcher : IDisposable
     /// <param name="items">Render items to batch (same mesh + material).</param>
     /// <param name="shader">Bound and configured shader wrapper.</param>
     /// <param name="context">Current render context.</param>
-    public void DrawInstancedGroup(IReadOnlyList<RenderItem> items, ShaderWrapper shader, in RenderContext context)
+    public void DrawInstancedGroup(
+        IReadOnlyList<RenderItem> items,
+        ShaderWrapper shader,
+        in RenderContext context,
+        bool techniqueSelectedBySelector = false)
     {
         if (items.Count == 0)
         {
@@ -103,7 +107,10 @@ public sealed class InstanceBatcher : IDisposable
         _device.Indices = mesh.IndexBuffer;
 
         // Bind material params (world will come from the instance stream)
-        firstItem.Material.SelectTechnique(shader, in context, firstItem.Features);
+        if (!techniqueSelectedBySelector || !firstItem.Material.SupportsVariantTechniqueSelection)
+        {
+            firstItem.Material.SelectTechnique(shader, in context, firstItem.Features);
+        }
         firstItem.Material.Bind(shader, in context, Microsoft.Xna.Framework.Matrix.Identity);
 
         int primCount = mesh.IndexBuffer!.IndexCount / 3;

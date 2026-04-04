@@ -7,6 +7,19 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// Built-in shaders are registered explicitly, while asset-backed shaders can flow through the
 /// variant library and the shader manager.
 /// </summary>
+public readonly struct ResolvedShader
+{
+    public ResolvedShader(ShaderWrapper shader, bool techniqueSelectedBySelector)
+    {
+        Shader = shader;
+        TechniqueSelectedBySelector = techniqueSelectedBySelector;
+    }
+
+    public ShaderWrapper Shader { get; }
+
+    public bool TechniqueSelectedBySelector { get; }
+}
+
 public sealed class RenderShaderSelector
 {
     private readonly ShaderWrapper _fallbackShader;
@@ -36,16 +49,11 @@ public sealed class RenderShaderSelector
         _registeredShaders[shaderId] = shader;
     }
 
-    public ShaderWrapper Resolve(in RenderItem item)
+    public ResolvedShader Resolve(in RenderItem item)
     {
         if (item.EffectiveShaderId == Guid.Empty)
         {
-            return _fallbackShader;
-        }
-
-        if (_registeredShaders.TryGetValue(item.EffectiveShaderId, out var registeredShader))
-        {
-            return registeredShader;
+            return new ResolvedShader(_fallbackShader, techniqueSelectedBySelector: false);
         }
 
         if (_variantLibrary is not null)
@@ -53,8 +61,13 @@ public sealed class RenderShaderSelector
             var variantShader = _variantLibrary.Get(new ShaderVariantKey(item.EffectiveShaderId, item.Features));
             if (variantShader is not null)
             {
-                return variantShader;
+                return new ResolvedShader(variantShader, techniqueSelectedBySelector: true);
             }
+        }
+
+        if (_registeredShaders.TryGetValue(item.EffectiveShaderId, out var registeredShader))
+        {
+            return new ResolvedShader(registeredShader, techniqueSelectedBySelector: false);
         }
 
         if (_shaderManager is not null)
@@ -62,10 +75,10 @@ public sealed class RenderShaderSelector
             var shader = _shaderManager.GetShader(item.EffectiveShaderId);
             if (shader is not null)
             {
-                return shader;
+                return new ResolvedShader(shader, techniqueSelectedBySelector: false);
             }
         }
 
-        return _fallbackShader;
+        return new ResolvedShader(_fallbackShader, techniqueSelectedBySelector: false);
     }
 }
