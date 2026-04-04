@@ -3,6 +3,7 @@ using CasaEngine.Engine;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.Materials;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
@@ -14,6 +15,7 @@ using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Materials;
 using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
@@ -72,6 +74,8 @@ namespace CasaEngine.Editor
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly UICommandStack _screenCommandStack = new();
         private readonly WorldWorkspaceContext _worldWorkspaceContext = new();
@@ -98,6 +102,9 @@ namespace CasaEngine.Editor
         private bool _automationSelectionApplied;
         private bool _automationDiagnosticsCaptured;
         private TimeSpan _automationSelectionAppliedAt;
+        private bool _automationAssetOpenAttempted;
+        private bool _automationAssetOpened;
+        private TimeSpan _automationAssetOpenedAt;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -276,6 +283,8 @@ namespace CasaEngine.Editor
             _editorSelection.Clear();
             _automationWorldLoaded = false;
             _automationSelectionApplied = false;
+            _automationAssetOpenAttempted = false;
+            _automationAssetOpened = false;
             _automationDiagnosticsCaptured = false;
             PresentLoadedProject();
         }
@@ -1104,7 +1113,17 @@ namespace CasaEngine.Editor
 
         private void OnContentBrowserFileOpened(ContentBrowser.Models.ContentItem item)
         {
-            TryOpenUIScreenAsset(item.FullPath);
+            TryOpenEditorAsset(item.FullPath);
+        }
+
+        private bool TryOpenEditorAsset(string fullPath)
+        {
+            if (TryOpenUIScreenAsset(fullPath))
+            {
+                return true;
+            }
+
+            return TryOpenMaterialAsset(fullPath);
         }
 
         private bool TryOpenUIScreenAsset(string fullPath)
@@ -1173,6 +1192,62 @@ namespace CasaEngine.Editor
             }
 
             ActivateDockPanel(panelId);
+            return true;
+        }
+
+        private bool TryOpenMaterialAsset(string fullPath)
+        {
+            if (!TryLoadMaterialAsset(fullPath, out var materialAsset))
+            {
+                return false;
+            }
+
+            EnsureDockHostInitialized();
+
+            Guid documentId = materialAsset.AssetId != Guid.Empty ? materialAsset.AssetId : materialAsset.Id;
+            var panelId = $"{EditorPanelIds.MaterialAssetDocumentPrefix}{documentId:N}";
+            if (!_materialInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
+            {
+                inspectorPanel = new MaterialAssetInspectorPanel(_mainWindow);
+                _materialInspectorPanels.Add(panelId, inspectorPanel);
+            }
+
+            inspectorPanel.LoadAsset(materialAsset, fullPath);
+
+            var panelTitle = string.IsNullOrWhiteSpace(materialAsset.Name)
+                ? Path.GetFileNameWithoutExtension(fullPath)
+                : materialAsset.Name;
+            _materialInspectorPanelTitles[panelId] = panelTitle;
+
+            var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+            if (existingPanel == null)
+            {
+                var panelNode = new DockPanelNode(panelId)
+                {
+                    Title = panelTitle,
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = inspectorPanel.CreateContent,
+                };
+
+                var targetGroup = GetDocumentDockGroup();
+                if (targetGroup == null)
+                {
+                    return false;
+                }
+
+                DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+            }
+            else
+            {
+                existingPanel.Title = panelTitle;
+            }
+
+            ActivateDockPanel(panelId);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Editor] Opened material asset='{materialAsset.Name}', panel='{panelId}'");
             return true;
         }
 
@@ -1312,6 +1387,19 @@ namespace CasaEngine.Editor
                 };
             }
 
+            if (TryGetMaterialAssetInspectorPanel(panelId, out var materialInspectorPanel))
+            {
+                return new DockPanelNode(panelId)
+                {
+                    Title = _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = materialInspectorPanel.CreateContent,
+                };
+            }
+
             return null;
         }
 
@@ -1325,6 +1413,18 @@ namespace CasaEngine.Editor
             }
 
             return _screenPreviewPanels.TryGetValue(panelId, out previewPanel);
+        }
+
+        private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
+        {
+            inspectorPanel = null!;
+
+            if (!panelId.StartsWith(EditorPanelIds.MaterialAssetDocumentPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
         }
 
         private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
@@ -1381,6 +1481,47 @@ namespace CasaEngine.Editor
                     screenAsset.Name = assetInfo.Name;
                     screenAsset.AssetId = assetInfo.Id;
                     screenAsset.FileName = assetInfo.FileName;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryLoadMaterialAsset(string fullPath, out MaterialAsset materialAsset)
+        {
+            materialAsset = new MaterialAsset();
+
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                var document = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(fullPath));
+                if (document["definition_id"] == null && document["type"] == null)
+                {
+                    return false;
+                }
+
+                materialAsset.Load(document);
+                materialAsset.FileName = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+
+                var assetInfo = AssetCatalog.GetByFileName(materialAsset.FileName)
+                    ?? AssetCatalog.GetByFileName(materialAsset.FileName.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (assetInfo != null)
+                {
+                    materialAsset.Name = assetInfo.Name;
+                    materialAsset.AssetId = assetInfo.Id;
+                    materialAsset.FileName = assetInfo.FileName;
+                }
+                else
+                {
+                    materialAsset.AssetId = materialAsset.Id;
                 }
 
                 return true;
@@ -1518,6 +1659,8 @@ namespace CasaEngine.Editor
                 return;
             }
 
+            TryApplyAutomationAssetOpen(totalGameTime);
+
             if (!_automationSelectionApplied || !IsAutomationSelectionActive())
             {
                 if (TryApplyAutomationSelection())
@@ -1529,7 +1672,13 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            if (totalGameTime - _automationSelectionAppliedAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
+            TimeSpan readyAt = _automationSelectionAppliedAt;
+            if (_automationAssetOpened && _automationAssetOpenedAt > readyAt)
+            {
+                readyAt = _automationAssetOpenedAt;
+            }
+
+            if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
             {
                 return;
             }
@@ -1559,6 +1708,39 @@ namespace CasaEngine.Editor
 
             var desiredComponent = desiredEntity == null ? null : FindAutomationComponent(desiredEntity);
             return ReferenceEquals(_editorSelection.SelectedComponent, desiredComponent);
+        }
+
+        private void TryApplyAutomationAssetOpen(TimeSpan totalGameTime)
+        {
+            if (_automationAssetOpenAttempted || string.IsNullOrWhiteSpace(_automationOptions.OpenAssetPath))
+            {
+                return;
+            }
+
+            _automationAssetOpenAttempted = true;
+
+            string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
+            if (TryOpenEditorAsset(fullPath))
+            {
+                _automationAssetOpened = true;
+                _automationAssetOpenedAt = totalGameTime;
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                    $"[Automation] Opened asset='{_automationOptions.OpenAssetPath}'");
+                return;
+            }
+
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
+        }
+
+        private static string ResolveAutomationAssetPath(string assetPath)
+        {
+            if (Path.IsPathRooted(assetPath))
+            {
+                return Path.GetFullPath(assetPath);
+            }
+
+            return Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, assetPath));
         }
 
         private bool TryApplyAutomationSelection()
@@ -1640,8 +1822,11 @@ namespace CasaEngine.Editor
             builder.AppendLine("CasaEngine Editor diagnostics");
             builder.AppendLine($"Captured at: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
             builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
+            builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
             builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
             builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
+            builder.AppendLine($"Active document panel: {GetActiveDocumentPanelId() ?? "<none>"}");
+            builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(GetOpenDocumentPanelIds())}");
             builder.AppendLine($"Entries: {entries.Count}");
             builder.AppendLine();
 
@@ -1652,6 +1837,16 @@ namespace CasaEngine.Editor
 
             File.WriteAllText(outputPath, builder.ToString());
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Diagnostics exported to '{outputPath}'");
+        }
+
+        private static string FormatDocumentPanelIds(IReadOnlyList<string> panelIds)
+        {
+            if (panelIds.Count == 0)
+            {
+                return "<none>";
+            }
+
+            return string.Join(", ", panelIds);
         }
 
         private string ResolveAutomationDiagnosticsPath()

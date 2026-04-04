@@ -6,6 +6,7 @@ namespace CasaEngine.Editor;
 public sealed class EditorAutomationOptions
 {
     public string? ProjectPath { get; private set; }
+    public string? OpenAssetPath { get; private set; }
     public string? EntityName { get; private set; }
     public int EntityIndex { get; private set; }
     public string? ComponentName { get; private set; }
@@ -33,6 +34,11 @@ public sealed class EditorAutomationOptions
 
                 case "--entity":
                     options.EntityName = next;
+                    index++;
+                    break;
+
+                case "--open-asset":
+                    options.OpenAssetPath = next;
                     index++;
                     break;
 
