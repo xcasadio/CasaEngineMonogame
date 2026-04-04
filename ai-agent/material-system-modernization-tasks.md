@@ -119,7 +119,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): expose material-driven shader features`
 
-- ⏳ **T02.04 — Completer les features derivees du mesh et du renderer**
+- ✅ **T02.04 — Completer les features derivees du mesh et du renderer**
   Objectif:
   - Remonter `Skinned`, `Instanced` et `VertexColor` depuis les donnees de draw reelles.
   - Eviter qu'un material declare seul des features qui appartiennent au mesh ou au pass.

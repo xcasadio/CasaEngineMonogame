@@ -16,6 +16,8 @@ public readonly struct RenderFeatureInput
 
     public StaticModelMesh? Mesh { get; init; }
 
+    public RiggedModel.RiggedModelMesh? SkinnedMesh { get; init; }
+
     public bool IsSkinned { get; init; }
 
     public bool IsInstanced { get; init; }
@@ -36,7 +38,10 @@ public static class RenderFeatureResolver
 
         var features = ResolveMaterialFeatures(input.Material);
 
-        if (input.IsSkinned)
+        bool hasVertexColor = input.HasVertexColor || HasVertexColor(input.Mesh) || HasVertexColor(input.SkinnedMesh);
+        bool isSkinned = input.IsSkinned || input.SkinnedMesh is not null;
+
+        if (isSkinned)
         {
             features |= ShaderFeature.Skinned;
         }
@@ -46,7 +51,7 @@ public static class RenderFeatureResolver
             features |= ShaderFeature.Instanced;
         }
 
-        if (input.HasVertexColor)
+        if (hasVertexColor)
         {
             features |= ShaderFeature.VertexColor;
         }
@@ -103,6 +108,21 @@ public static class RenderFeatureResolver
             HasVertexColor = hasVertexColor,
         });
 
+    public static ShaderFeature ResolveSkinned(
+        MaterialBase material,
+        RiggedModel.RiggedModelMesh skinnedMesh,
+        bool isInstanced = false)
+        => Resolve(new RenderFeatureInput
+        {
+            Material = material,
+            SkinnedMesh = skinnedMesh,
+            IsSkinned = true,
+            IsInstanced = isInstanced,
+        });
+
+    public static ShaderFeature AddInstancedFeature(ShaderFeature features)
+        => features | ShaderFeature.Instanced;
+
     private static bool HasBasColorTexture(MaterialBase material) => material switch
     {
         LitDiffuseMaterial lit => lit.BasColor is not null || lit.BasColorAssetId != Guid.Empty,
@@ -142,5 +162,25 @@ public static class RenderFeatureResolver
         }
 
         return material is UnlitTextureMaterial { Alpha: < 0.999f };
+    }
+
+    private static bool HasVertexColor(StaticModelMesh? mesh)
+        => mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&
+           HasVertexElement(vertexDeclaration, VertexElementUsage.Color);
+
+    private static bool HasVertexColor(RiggedModel.RiggedModelMesh? mesh)
+        => mesh?.HasVertexColors ?? false;
+
+    private static bool HasVertexElement(VertexDeclaration vertexDeclaration, VertexElementUsage usage)
+    {
+        foreach (var element in vertexDeclaration.GetVertexElements())
+        {
+            if (element.VertexElementUsage == usage)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

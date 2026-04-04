@@ -655,7 +655,9 @@ public class RiggedModelLoader
             // maybe its multi colored or something ill have to read up on this ...  not sure this is the right way to do it ?
             //  This will have to be made from scratch need v4 to mg and other stuff
             //
-            if (mesh.HasVertexColors(0))
+            model.Meshes[mloop].HasVertexColors = mesh.HasVertexColors(0);
+
+            if (model.Meshes[mloop].HasVertexColors)
             {
                 var cchan0 = mesh.VertexColorChannels[0];
                 for (int k = 0; k < cchan0.Count; k++)
@@ -672,7 +674,7 @@ public class RiggedModelLoader
             }
             else
             {
-                for (int k = 0; k < mesh.VertexColorChannels[0].Count; k++)
+                for (int k = 0; k < v.Length; k++)
                 {
                     v[k].Color = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
                 }

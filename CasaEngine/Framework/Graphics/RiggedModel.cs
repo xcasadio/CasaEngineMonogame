@@ -345,6 +345,7 @@ public class RiggedModel
         public Texture2D TextureReflectionMap;
         public VertexPositionTextureNormalTangentWeights[] Vertices;
         public int[] Indices;
+        public bool HasVertexColors { get; set; }
         public string NameOfMesh = "";
         public int NumberOfIndices => Indices.Length;
 
