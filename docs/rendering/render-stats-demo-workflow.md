@@ -52,8 +52,10 @@ Attendus minimaux :
 1. Le titre de fenetre devient `Split-screen demo (2 views)`.
 2. Les deux moities de l'ecran affichent chacune un `DebugOverlay` en haut a gauche de leur viewport.
 3. Chaque overlay affiche les lignes `Draws`, `FX`, `Tex`, `State`, `O`, `T`.
-4. Dans la scene actuelle, les compteurs opaques sont strictement positifs et `T` reste a `0`.
+4. La vue gauche affiche `View 1 (stats heavy)` et la vue droite `View 2 (stats light)`.
 5. Les positions camera affichees dans `Cam:` different entre la vue gauche et la vue droite.
+6. Les compteurs `Draws` et `O` de la vue gauche sont strictement superieurs a ceux de la vue droite.
+7. Le compteur `T` de la vue gauche est strictement positif alors que la vue droite reste sur un cas plus leger sans transparence visible.
 
 ## Checklist ViewManagerSandbox
 
@@ -86,3 +88,4 @@ Points a verifier :
 - `Draws` compte les draws executes par la vue, y compris le chemin instancie quand il est utilise.
 - `Tex` compte les affectations de textures envoyees aux shaders par les materials et les `MaterialPropertyBlock`.
 - `O` et `T` comptent les items opaques et transparents routes vers la vue courante.
+- `SplitScreenDemo` est volontairement asymetrique: il sert de scene de regression pour verifier que les stats sont bien scopees par vue et pas mutualisees globalement.

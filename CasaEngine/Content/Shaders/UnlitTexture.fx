@@ -19,6 +19,7 @@ float4x4 WorldViewProj;
 float4x4 World;
 float4   TintColor = float4(1, 1, 1, 1);
 float    Alpha     = 1.0f;
+float    AlphaCutoff = 0.0f;
 
 DECLARE_TEXTURE(Texture, 0);
 
@@ -37,6 +38,14 @@ struct VS_OUTPUT
     float2 TexCoord : TEXCOORD0;
 };
 
+void ApplyAlphaTest(float alpha)
+{
+    if (AlphaCutoff > 0.0f)
+    {
+        clip(alpha - AlphaCutoff);
+    }
+}
+
 VS_OUTPUT VS_Main(VS_INPUT input)
 {
     VS_OUTPUT output;
@@ -51,12 +60,15 @@ float4 PS_Textured(VS_OUTPUT input) : SV_TARGET
 {
     float4 color = SAMPLE_TEXTURE(Texture, input.TexCoord) * TintColor;
     color.a *= Alpha;
+    ApplyAlphaTest(color.a);
     return color;
 }
 
 float4 PS_Colored(VS_OUTPUT input) : SV_TARGET
 {
-    return float4(TintColor.rgb, TintColor.a * Alpha);
+    float4 color = float4(TintColor.rgb, TintColor.a * Alpha);
+    ApplyAlphaTest(color.a);
+    return color;
 }
 
 // --- Techniques ---

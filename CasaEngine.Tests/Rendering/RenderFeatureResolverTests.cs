@@ -27,8 +27,7 @@ public class RenderFeatureResolverTests
             ShaderFeature.BasColorTexture |
             ShaderFeature.NormalMap |
             ShaderFeature.Emissive |
-            ShaderFeature.AlphaTest |
-            ShaderFeature.Transparent,
+            ShaderFeature.AlphaTest,
             features);
     }
 
@@ -48,6 +47,52 @@ public class RenderFeatureResolverTests
             ShaderFeature.Instanced |
             ShaderFeature.VertexColor,
             features);
+    }
+
+    [Fact]
+    public void Resolve_ClearsNormalMap_WhenStaticMeshHasNoTangents()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            BasColorAssetId = Guid.NewGuid(),
+            NormalMapAssetId = Guid.NewGuid(),
+        };
+        var mesh = new StaticModelMesh();
+        mesh.SetData(
+            new[]
+            {
+                new VertexPositionNormalTexture(new Vector3(-1f, 0f, 0f), Vector3.Up, Vector2.Zero),
+                new VertexPositionNormalTexture(new Vector3(1f, 0f, 0f), Vector3.Up, Vector2.UnitX),
+                new VertexPositionNormalTexture(new Vector3(0f, 0f, 1f), Vector3.Up, Vector2.UnitY),
+            },
+            new uint[] { 0, 1, 2 });
+
+        var features = RenderFeatureResolver.Resolve(material, mesh);
+
+        Assert.Equal(ShaderFeature.BasColorTexture, features);
+    }
+
+    [Fact]
+    public void Resolve_PreservesNormalMap_WhenStaticMeshHasTangents()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            BasColorAssetId = Guid.NewGuid(),
+            NormalMapAssetId = Guid.NewGuid(),
+        };
+        var mesh = new StaticModelMesh();
+        mesh.SetData(
+            new[]
+            {
+                new VertexPositionNormalTextureTangent(new Vector3(-1f, 0f, 0f), Vector3.Up, Vector2.Zero, Vector4.UnitX),
+                new VertexPositionNormalTextureTangent(new Vector3(1f, 0f, 0f), Vector3.Up, Vector2.UnitX, Vector4.UnitX),
+                new VertexPositionNormalTextureTangent(new Vector3(0f, 0f, 1f), Vector3.Up, Vector2.UnitY, Vector4.UnitX),
+            },
+            new uint[] { 0, 1, 2 });
+
+        var features = RenderFeatureResolver.Resolve(material, mesh);
+
+        Assert.Equal(ShaderFeature.BasColorTexture | ShaderFeature.NormalMap, features);
     }
 
     [Fact]
@@ -76,11 +121,39 @@ public class RenderFeatureResolverTests
         Assert.Equal(ShaderFeature.Transparent, features);
     }
 
+    [Fact]
+    public void ResolveMaterialFeatures_ReturnsTransparent_ForUnlitMaterialWithTintAlphaBelowOne()
+    {
+        var material = new UnlitTextureMaterial
+        {
+            Tint = new Color(255, 255, 255, 64),
+        };
+
+        var features = RenderFeatureResolver.ResolveMaterialFeatures(material);
+
+        Assert.Equal(ShaderFeature.Transparent, features);
+    }
+
+    [Fact]
+    public void ResolveMaterialFeatures_DoesNotMarkAlphaTestMaterialAsTransparent()
+    {
+        var material = new UnlitTextureMaterial
+        {
+            Alpha = 0.25f,
+            Queue = RenderQueue.AlphaTest,
+        };
+
+        var features = RenderFeatureResolver.ResolveMaterialFeatures(material);
+
+        Assert.Equal(ShaderFeature.AlphaTest, features);
+    }
+
     [Theory]
     [InlineData(ShaderFeature.None, "Opaque")]
     [InlineData(ShaderFeature.BasColorTexture, "Opaque_Textured")]
     [InlineData(ShaderFeature.AlphaTest | ShaderFeature.BasColorTexture, "AlphaTest_Textured")]
-    [InlineData(ShaderFeature.Transparent | ShaderFeature.BasColorTexture, "Transparent")]
+    [InlineData(ShaderFeature.Transparent, "Transparent")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.BasColorTexture, "Transparent_Textured")]
     [InlineData(ShaderFeature.Skinned, "Skinned")]
     [InlineData(ShaderFeature.Skinned | ShaderFeature.BasColorTexture, "Skinned_Textured")]
     public void BuildTechniqueName_ReturnsExpectedCanonicalTechnique(ShaderFeature features, string expectedTechnique)
@@ -96,9 +169,11 @@ public class RenderFeatureResolverTests
         var basicEffectAliases = ShaderVariantLibrary.BuildBasicEffectAliases();
         var unlitAliases = ShaderVariantLibrary.BuildUnlitTextureAliases();
 
-        Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Transparent"]);
+        Assert.Equal("BasicEffect_PixelLighting", basicEffectAliases["Transparent"]);
+        Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Transparent_Textured"]);
         Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Skinned_Textured"]);
-        Assert.Equal("Unlit_Textured", unlitAliases["Transparent"]);
+        Assert.Equal("Unlit_Colored", unlitAliases["Transparent"]);
+        Assert.Equal("Unlit_Textured", unlitAliases["Transparent_Textured"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Skinned_Textured"]);
     }
 }

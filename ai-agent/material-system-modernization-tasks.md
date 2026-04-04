@@ -403,7 +403,18 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 8 — Demos, documentation et cloture
 
-- ⏳ **T08.01 — Etendre `MaterialDemo` pour couvrir variants et transparence**
+- ✅ **T08.00 — Verifier l'architecture des materials transparents**
+  Objectif:
+  - Centraliser la resolution des etats pipeline lies a la transparence au lieu de les laisser derives implicitement par les demos ou la selection de technique.
+  - Garantir la coherence authoring/runtime entre `MaterialAsset`, queue de rendu, blend state, depth state et selection de variants texturés ou non texturés.
+  - Corriger les cas ou une propriete `AffectsTransparency` ne respecte pas proprement l'architecture du pipeline.
+  Validation:
+  - Build solution.
+  - Tests filtres `MaterialCompiler`, `RenderFeature`.
+  Commit conseille:
+  - `refactor(rendering): centralize transparent material pipeline resolution`
+
+- ✅ **T08.01 — Etendre `MaterialDemo` pour couvrir variants et transparence**
   Objectif:
   - Ajouter un cas visible `AlphaTest` / `Transparent` / `NormalMap`.
   - Faciliter la verification manuelle du pipeline modernise.
@@ -413,7 +424,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(demos): extend material demo for variants and transparency`
 
-- ⏳ **T08.02 — Ajouter un cas de validation overlay stats**
+- ✅ **T08.02 — Ajouter un cas de validation overlay stats**
   Objectif:
   - Rendre evidente l'utilite des `RenderStats` en split-screen ou multi-view.
   - Donner un scenario de regression simple.
@@ -423,7 +434,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(demos): add debug overlay stats validation scene`
 
-- ⏳ **T08.03 — Documenter le workflow materials**
+- ✅ **T08.03 — Documenter le workflow materials**
   Objectif:
   - Documenter la separation `MaterialAsset` / `CompiledMaterial` / overrides.
   - Documenter le workflow editeur + hot reload + preview.
@@ -432,7 +443,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `docs(materials): document authoring runtime and override workflow`
 
-- ⏳ **T08.04 — Validation finale de la migration**
+- ✅ **T08.04 — Validation finale de la migration**
   Objectif:
   - Lancer un build solution final.
   - Rejouer les demos de reference et les tests filtres principaux.

@@ -20,6 +20,7 @@ public class MaterialCompilerTests
         };
         materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(24.0f));
         materialAsset.SetPropertyValue("emissive_color", MaterialValue.FromVector3(new Vector3(0.25f, 0.5f, 0.75f)));
+        materialAsset.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(0.42f));
 
         var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
 
@@ -29,13 +30,15 @@ public class MaterialCompilerTests
         Assert.Equal(EffectiveShaderResolver.BasicEffectShaderId, compiledMaterial.EffectiveShader.ShaderId);
         Assert.Equal(
             ShaderFeature.Emissive |
-            ShaderFeature.AlphaTest |
-            ShaderFeature.Transparent,
+            ShaderFeature.AlphaTest,
             compiledMaterial.Features);
         Assert.Same(BlendState.AlphaBlend, compiledMaterial.BlendState);
         Assert.True(compiledMaterial.TryGetPropertyValue("specular_power", out var specularPowerValue));
         Assert.True(specularPowerValue.TryGetFloat(out var specularPower));
         Assert.Equal(24.0f, specularPower);
+        Assert.True(compiledMaterial.TryGetPropertyValue("alpha_cutoff", out var alphaCutoffValue));
+        Assert.True(alphaCutoffValue.TryGetFloat(out var alphaCutoff));
+        Assert.Equal(0.42f, alphaCutoff);
         Assert.True(compiledMaterial.TryGetPropertyValue("diffuse_color", out var diffuseColorValue));
         Assert.True(diffuseColorValue.TryGetColor(out var diffuseColor));
         Assert.Equal(Color.White, diffuseColor);
@@ -61,11 +64,51 @@ public class MaterialCompilerTests
             ShaderFeature.BasColorTexture |
             ShaderFeature.Transparent,
             compiledMaterial.Features);
+        Assert.True(compiledMaterial.IsTransparent);
+        Assert.Equal(RenderQueue.Transparent, compiledMaterial.Queue);
+        Assert.Same(BlendState.AlphaBlend, compiledMaterial.BlendState);
+        Assert.Same(DepthStencilState.DepthRead, compiledMaterial.DepthStencilState);
         Assert.True(compiledMaterial.TryGetPropertyValue("tint_color", out var tintValue));
         Assert.True(tintValue.TryGetColor(out var tintColor));
         Assert.Equal(Color.CornflowerBlue, tintColor);
         Assert.True(compiledMaterial.TryGetTexture("base_color_texture", out var baseColorTexture));
         Assert.Null(baseColorTexture);
+    }
+
+    [Fact]
+    public void Compile_UnlitTextureMaterial_WithTintAlpha_InfersTransparentPipelineState()
+    {
+        var materialAsset = new MaterialAsset("unlit-texture")
+        {
+            Name = "Tint Transparent",
+        };
+        materialAsset.SetPropertyValue("tint_color", MaterialValue.FromColor(new Color(255, 255, 255, 96)));
+
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+
+        Assert.Equal(ShaderFeature.Transparent, compiledMaterial.Features);
+        Assert.True(compiledMaterial.IsTransparent);
+        Assert.Equal(RenderQueue.Transparent, compiledMaterial.Queue);
+        Assert.Same(BlendState.AlphaBlend, compiledMaterial.BlendState);
+        Assert.Same(DepthStencilState.DepthRead, compiledMaterial.DepthStencilState);
+    }
+
+    [Fact]
+    public void Compile_LitDiffuseMaterial_WithDiffuseAlpha_InfersTransparentPipelineState()
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Lit Transparent",
+        };
+        materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(new Color(255, 200, 180, 96)));
+
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+
+        Assert.Equal(ShaderFeature.Transparent, compiledMaterial.Features);
+        Assert.True(compiledMaterial.IsTransparent);
+        Assert.Equal(RenderQueue.Transparent, compiledMaterial.Queue);
+        Assert.Same(BlendState.AlphaBlend, compiledMaterial.BlendState);
+        Assert.Same(DepthStencilState.DepthRead, compiledMaterial.DepthStencilState);
     }
 
     [Fact]
@@ -92,12 +135,14 @@ public class MaterialCompilerTests
         var materialAsset = new MaterialAsset("lit-diffuse");
         materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.Orange));
         materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(12.0f));
+        materialAsset.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(0.38f));
 
         var runtimeMaterial = new MaterialCompiler().CompileRuntimeMaterial(materialAsset, new AssetContentManager());
 
         var litMaterial = Assert.IsType<LitDiffuseMaterial>(runtimeMaterial);
         Assert.Equal(Color.Orange, litMaterial.DiffuseColor);
         Assert.Equal(12.0f, litMaterial.SpecularPower);
+        Assert.Equal(0.38f, litMaterial.AlphaCutoff);
     }
 
     [Fact]

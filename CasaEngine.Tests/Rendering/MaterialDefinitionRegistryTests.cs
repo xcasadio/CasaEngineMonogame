@@ -46,10 +46,18 @@ public class MaterialDefinitionRegistryTests
         Assert.Equal(0.0f, specularPowerProperty.MinValue);
         Assert.Equal(128.0f, specularPowerProperty.MaxValue);
         Assert.Equal(1.0f, specularPowerProperty.Step);
+
+        var alphaCutoffProperty = definition.GetRequiredProperty("alpha_cutoff");
+        Assert.Equal(MaterialPropertyType.Float, alphaCutoffProperty.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Rendering, alphaCutoffProperty.Group);
+        Assert.Equal(0.5f, alphaCutoffProperty.GetDefaultValue<float>());
+        Assert.Equal(0.0f, alphaCutoffProperty.MinValue);
+        Assert.Equal(1.0f, alphaCutoffProperty.MaxValue);
+        Assert.Equal(0.01f, alphaCutoffProperty.Step);
     }
 
     [Fact]
-    public void UnlitDefinition_ExposesAlphaAsRenderingProperty()
+    public void UnlitDefinition_ExposesAlphaSettingsAsRenderingProperties()
     {
         var definition = MaterialDefinitionRegistry.GetRequiredById("unlit-texture");
 
@@ -60,6 +68,14 @@ public class MaterialDefinitionRegistryTests
         Assert.Equal(0.0f, alphaProperty.MinValue);
         Assert.Equal(1.0f, alphaProperty.MaxValue);
         Assert.Equal(0.01f, alphaProperty.Step);
+
+        var alphaCutoffProperty = definition.GetRequiredProperty("alpha_cutoff");
+        Assert.Equal(MaterialPropertyType.Float, alphaCutoffProperty.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Rendering, alphaCutoffProperty.Group);
+        Assert.Equal(0.5f, alphaCutoffProperty.GetDefaultValue<float>());
+        Assert.Equal(0.0f, alphaCutoffProperty.MinValue);
+        Assert.Equal(1.0f, alphaCutoffProperty.MaxValue);
+        Assert.Equal(0.01f, alphaCutoffProperty.Step);
     }
 
     [Fact]

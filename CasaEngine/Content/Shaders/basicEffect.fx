@@ -32,6 +32,7 @@ BEGIN_CONSTANTS
     float3 DirLight2SpecularColor _vs(c12) _ps(c13) _cb(c11);
 
     float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
+    float AlphaCutoff _ps(c15) _cb(c12.w);
 
     float4x4 World _vs(c19) _cb(c15);
     float3x3 WorldInverseTranspose _vs(c23) _cb(c19);
@@ -45,6 +46,15 @@ END_CONSTANTS
 
 #include "Structures.fxh"
 #include "Lighting.fxh"
+
+
+void ApplyAlphaTest(float alpha)
+{
+    if (AlphaCutoff > 0.0f)
+    {
+        clip(alpha - AlphaCutoff);
+    }
+}
 
 
 // Vertex shader: basic.
@@ -275,6 +285,7 @@ VSOutputPixelLightingTx VSBasicPixelLightingTxVc(VSInputNmTxVc vin)
 // Pixel shader: basic.
 float4 PSBasic(VSOutput pin) : SV_Target0
 {
+    ApplyAlphaTest(pin.Diffuse.a);
     return pin.Diffuse;
 }
 
@@ -282,7 +293,9 @@ float4 PSBasic(VSOutput pin) : SV_Target0
 // Pixel shader: texture.
 float4 PSBasicTx(VSOutputTx pin) : SV_Target0
 {
-    return SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    ApplyAlphaTest(color.a);
+    return color;
 }
 
 
@@ -290,6 +303,8 @@ float4 PSBasicTx(VSOutputTx pin) : SV_Target0
 float4 PSBasicVertexLighting(VSOutput pin) : SV_Target0
 {
     float4 color = pin.Diffuse;
+
+    ApplyAlphaTest(color.a);
 
     AddSpecular(color, pin.Specular.rgb);
     
@@ -301,6 +316,8 @@ float4 PSBasicVertexLighting(VSOutput pin) : SV_Target0
 float4 PSBasicVertexLightingTx(VSOutputTx pin) : SV_Target0
 {
     float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+
+    ApplyAlphaTest(color.a);
     
     AddSpecular(color, pin.Specular.rgb);
     
@@ -319,6 +336,8 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
 
     color.rgb *= lightResult.Diffuse;
+
+    ApplyAlphaTest(color.a);
     
     AddSpecular(color, lightResult.Specular);
     
@@ -338,6 +357,8 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
     
     color.rgb *= lightResult.Diffuse;
 
+    ApplyAlphaTest(color.a);
+
     AddSpecular(color, lightResult.Specular);
     
     return color;
@@ -356,6 +377,8 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
 
     color.rgb *= lightResult.Diffuse;
 
+    ApplyAlphaTest(color.a);
+
     AddSpecular(color, lightResult.Specular);
 
     return color;
@@ -373,6 +396,8 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 1);
 
     color.rgb *= lightResult.Diffuse;
+
+    ApplyAlphaTest(color.a);
 
     AddSpecular(color, lightResult.Specular);
 
@@ -418,6 +443,7 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
 
     color.rgb *= lightResult.Diffuse;
+    ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
 
     return color;

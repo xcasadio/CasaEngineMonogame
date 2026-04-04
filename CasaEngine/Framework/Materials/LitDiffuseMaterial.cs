@@ -26,8 +26,8 @@ public class LitDiffuseMaterial : MaterialBase
 
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {
-        var hasBasColor = BasColor is not null;
-        var hasNormalMap = NormalMap is not null && hasBasColor;
+        bool hasBasColor = (features & ShaderFeature.BasColorTexture) != 0;
+        bool hasNormalMap = hasBasColor && (features & ShaderFeature.NormalMap) != 0;
         var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
 
         if (hasNormalMap)
@@ -57,6 +57,7 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
 
         shader.SetParameter(ShaderParameterNames.DiffuseColor, DiffuseColor.ToVector4());
+        shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);

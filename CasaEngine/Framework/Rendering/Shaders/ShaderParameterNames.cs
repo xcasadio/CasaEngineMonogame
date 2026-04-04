@@ -23,6 +23,7 @@ public static class ShaderParameterNames
     public const string BasColorTexture = "Texture";
     public const string TintColor = "TintColor";
     public const string Alpha = "Alpha";
+    public const string AlphaCutoff = "AlphaCutoff";
     public const string OpacityTexture = "OpacityTexture";
     public const string NormalTexture = "NormalTexture";
 

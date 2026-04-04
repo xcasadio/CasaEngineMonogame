@@ -13,6 +13,7 @@ namespace CasaEngine.Framework.Graphics;
 public class StaticModelMesh
 {
     private VertexPositionNormalTexture[] _vertices = Array.Empty<VertexPositionNormalTexture>();
+    private VertexPositionNormalTextureTangent[] _tangentVertices = Array.Empty<VertexPositionNormalTextureTangent>();
     private uint[] _indices = Array.Empty<uint>();
 
     public string Name { get; set; } = string.Empty;
@@ -54,6 +55,7 @@ public class StaticModelMesh
     // --- GPU resources (created inside Initialize) ---
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
+    public bool HasTangents => _tangentVertices.Length > 0;
 
     // --- Bounding info ---
     public Vector3 Min { get; set; }
@@ -65,30 +67,48 @@ public class StaticModelMesh
 
     public void SetData(VertexPositionNormalTexture[] vertices, uint[] indices)
     {
-        _vertices = vertices;
-        _indices = indices;
+        ArgumentNullException.ThrowIfNull(vertices);
+        ArgumentNullException.ThrowIfNull(indices);
 
-        if (vertices.Length > 0)
-        {
-            Min = vertices[0].Position;
-            Max = vertices[0].Position;
-            foreach (var v in vertices)
-            {
-                Min = Vector3.Min(Min, v.Position);
-                Max = Vector3.Max(Max, v.Position);
-            }
-        }
+        _vertices = vertices;
+        _tangentVertices = Array.Empty<VertexPositionNormalTextureTangent>();
+        _indices = indices;
+        UpdateBounds(vertices);
+    }
+
+    public void SetData(VertexPositionNormalTextureTangent[] vertices, uint[] indices)
+    {
+        ArgumentNullException.ThrowIfNull(vertices);
+        ArgumentNullException.ThrowIfNull(indices);
+
+        _tangentVertices = vertices;
+        _vertices = ConvertVertices(vertices);
+        _indices = indices;
+        UpdateBounds(_vertices);
     }
 
     public void Initialize(GraphicsDevice graphicsDevice)
     {
-        if (_vertices.Length == 0)
+        if (HasTangents)
         {
-            return;
-        }
+            if (_tangentVertices.Length == 0)
+            {
+                return;
+            }
 
-        VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Length, BufferUsage.None);
-        VertexBuffer.SetData(_vertices);
+            VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTextureTangent), _tangentVertices.Length, BufferUsage.None);
+            VertexBuffer.SetData(_tangentVertices);
+        }
+        else
+        {
+            if (_vertices.Length == 0)
+            {
+                return;
+            }
+
+            VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionNormalTexture), _vertices.Length, BufferUsage.None);
+            VertexBuffer.SetData(_vertices);
+        }
 
         IndexBuffer = new IndexBuffer(graphicsDevice, typeof(uint), _indices.Length, BufferUsage.None);
         IndexBuffer.SetData(_indices);
@@ -127,19 +147,43 @@ public class StaticModelMesh
                 SubMeshes.Add(sm);
             }
 }
-
+        _tangentVertices = Array.Empty<VertexPositionNormalTextureTangent>();
         _vertices = element.GetElements("vertices", o => o.GetVertexPositionNormalTexture()).ToArray();
         _indices = element.GetElements("indices", o => o.GetUInt32()).ToArray();
+        UpdateBounds(_vertices);
+    }
 
-        if (_vertices.Length > 0)
+    private static VertexPositionNormalTexture[] ConvertVertices(VertexPositionNormalTextureTangent[] vertices)
+    {
+        var converted = new VertexPositionNormalTexture[vertices.Length];
+
+        for (int i = 0; i < vertices.Length; i++)
         {
-            Min = _vertices[0].Position;
-            Max = _vertices[0].Position;
-            foreach (var v in _vertices)
-            {
-                Min = Vector3.Min(Min, v.Position);
-                Max = Vector3.Max(Max, v.Position);
-            }
+            converted[i] = new VertexPositionNormalTexture(
+                vertices[i].Position,
+                vertices[i].Normal,
+                vertices[i].TextureCoordinate);
+        }
+
+        return converted;
+    }
+
+    private void UpdateBounds(IReadOnlyList<VertexPositionNormalTexture> vertices)
+    {
+        if (vertices.Count == 0)
+        {
+            Min = Vector3.Zero;
+            Max = Vector3.Zero;
+            return;
+        }
+
+        Min = vertices[0].Position;
+        Max = vertices[0].Position;
+
+        for (int i = 1; i < vertices.Count; i++)
+        {
+            Min = Vector3.Min(Min, vertices[i].Position);
+            Max = Vector3.Max(Max, vertices[i].Position);
         }
     }
 }

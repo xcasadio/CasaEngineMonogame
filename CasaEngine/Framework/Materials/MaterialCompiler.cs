@@ -32,7 +32,7 @@ public sealed class MaterialCompiler
             textures: resolvedTextures,
             sourceAssetId: materialAsset.Id,
             name: materialAsset.Name,
-            features: RenderFeatureResolver.Resolve(runtimeMaterial),
+            features: RenderFeatureResolver.ResolveMaterialFeatures(runtimeMaterial),
             blendState: runtimeMaterial.BlendState,
             depthStencilState: runtimeMaterial.DepthStencilState,
             rasterizerState: runtimeMaterial.RasterizerState,
@@ -147,13 +147,14 @@ public sealed class MaterialCompiler
         IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
     {
         var material = new LitDiffuseMaterial();
-        ApplyCommonSettings(materialAsset, material);
+        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("lit-diffuse"), effectiveValues);
 
         material.BasColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.BasColor = resolvedTextures["base_color_texture"];
         material.NormalMapAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
         material.NormalMap = resolvedTextures["normal_texture"];
         material.DiffuseColor = GetColor(effectiveValues["diffuse_color"], "diffuse_color");
+        material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
         material.SpecularColor = GetVector3(effectiveValues["specular_color"], "specular_color");
         material.SpecularPower = GetFloat(effectiveValues["specular_power"], "specular_power");
@@ -167,12 +168,13 @@ public sealed class MaterialCompiler
         IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
     {
         var material = new UnlitTextureMaterial();
-        ApplyCommonSettings(materialAsset, material);
+        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("unlit-texture"), effectiveValues);
 
         material.BasColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.BasColor = resolvedTextures["base_color_texture"];
         material.Tint = GetColor(effectiveValues["tint_color"], "tint_color");
         material.Alpha = GetFloat(effectiveValues["alpha"], "alpha");
+        material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
 
         return material;
     }
@@ -183,7 +185,7 @@ public sealed class MaterialCompiler
         IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
     {
         var material = new Material();
-        ApplyCommonSettings(materialAsset, material);
+        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("legacy-multi-texture"), effectiveValues);
 
         material.TextureBaseColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.TextureBaseColor = WrapTexture(resolvedTextures["base_color_texture"]);
@@ -205,17 +207,23 @@ public sealed class MaterialCompiler
         return material;
     }
 
-    private static void ApplyCommonSettings(MaterialAsset materialAsset, MaterialBase material)
+    private static void ApplyCommonSettings(
+        MaterialAsset materialAsset,
+        MaterialBase material,
+        MaterialDefinition definition,
+        IReadOnlyDictionary<string, MaterialValue> effectiveValues)
     {
+        var resolvedRenderState = MaterialRenderStateResolver.Resolve(materialAsset, definition, effectiveValues);
+
         material.Id = materialAsset.Id;
         material.Name = materialAsset.Name;
         material.ShaderAssetId = materialAsset.ShaderAssetId;
-        material.IsTransparent = materialAsset.IsTransparent;
-        material.Queue = materialAsset.Queue;
+        material.IsTransparent = resolvedRenderState.IsTransparent;
+        material.Queue = resolvedRenderState.Queue;
         material.CastShadows = materialAsset.CastShadows;
         material.ReceiveShadows = materialAsset.ReceiveShadows;
-        material.SetBlendStateByName(materialAsset.BlendStateName);
-        material.SetDepthStateByName(materialAsset.DepthStencilStateName);
+        material.SetBlendStateByName(resolvedRenderState.BlendStateName);
+        material.SetDepthStateByName(resolvedRenderState.DepthStencilStateName);
         material.SetRasterizerStateByName(materialAsset.RasterizerStateName);
         material.SetSamplerStateByName(materialAsset.SamplerStateName);
     }

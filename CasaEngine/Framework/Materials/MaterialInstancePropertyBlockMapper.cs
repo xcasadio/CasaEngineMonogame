@@ -105,8 +105,7 @@ public static class MaterialInstancePropertyBlockMapper
             ? alphaValueOverride
             : GetEffectiveFloat(materialAsset, "alpha", 1.0f, parentResolver);
 
-        propertyBlock.SetVector4(ShaderParameterNames.DiffuseColor, new Vector4(tintColor.ToVector3(), alpha));
-        propertyBlock.SetVector4(ShaderParameterNames.TintColor, new Vector4(tintColor.ToVector3(), 1.0f));
+        propertyBlock.SetVector4(ShaderParameterNames.TintColor, tintColor.ToVector4());
         propertyBlock.SetFloat(ShaderParameterNames.Alpha, alpha);
     }
 

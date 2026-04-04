@@ -43,10 +43,8 @@ public class MaterialInstancePropertyBlockMapperTests
         var propertyBlock = new MaterialPropertyBlock();
         MaterialInstancePropertyBlockMapper.Apply(propertyBlock, materialAsset, materialInstanceData);
 
-        Assert.True(propertyBlock.TryGetVector4(ShaderParameterNames.DiffuseColor, out var diffuseColor));
-        Assert.Equal(new Vector4(Color.Aqua.ToVector3(), 0.35f), diffuseColor);
         Assert.True(propertyBlock.TryGetVector4(ShaderParameterNames.TintColor, out var tintColor));
-        Assert.Equal(new Vector4(Color.Aqua.ToVector3(), 1.0f), tintColor);
+        Assert.Equal(Color.Aqua.ToVector4(), tintColor);
         Assert.True(propertyBlock.TryGetFloat(ShaderParameterNames.Alpha, out var alpha));
         Assert.Equal(0.35f, alpha);
     }
@@ -68,18 +66,10 @@ public class MaterialInstancePropertyBlockMapperTests
 
         var propertyBlock = MaterialInstancePropertyBlockMapper.Create(materialAsset, materialInstanceData);
 
-        Assert.True(propertyBlock.TryGetVector4(ShaderParameterNames.DiffuseColor, out var diffuseColor));
-        Assert.Equal(new Vector4(Vector3.One, 0.25f), diffuseColor);
         Assert.True(propertyBlock.TryGetVector4(ShaderParameterNames.TintColor, out var tintColor));
-        Assert.Equal(new Vector4(Vector3.One, 1.0f), tintColor);
+        Assert.Equal(Color.White.ToVector4(), tintColor);
         Assert.True(propertyBlock.TryGetFloat(ShaderParameterNames.Alpha, out var alpha));
         Assert.Equal(0.25f, alpha);
-    }
-
-    [Fact]
-    public void UnlitTextureMaterial_DisablesVariantTechniqueSelection()
-    {
-        Assert.False(new UnlitTextureMaterial().SupportsVariantTechniqueSelection);
     }
 
     [Fact]

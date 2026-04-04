@@ -7,7 +7,8 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// Manages a collection of compiled shader variants keyed by (<see cref="ShaderVariantKey"/>).
 ///
 /// Technique name conventions (Phase 8):
-/// Opaque, Opaque_Textured, AlphaTest, AlphaTest_Textured, Transparent, Skinned, Skinned_Textured.
+/// Opaque, Opaque_Textured, AlphaTest, AlphaTest_Textured, Transparent,
+/// Transparent_Textured, Skinned, Skinned_Textured.
 ///
 /// Alias maps translate these canonical names to the actual technique names defined
 /// in each .fx file (e.g. BasicEffect_PixelLighting_Texture).
@@ -62,7 +63,8 @@ public sealed class ShaderVariantLibrary
             ["Opaque_Textured"]    = "BasicEffect_PixelLighting_Texture",
             ["AlphaTest"]          = "BasicEffect_PixelLighting",
             ["AlphaTest_Textured"] = "BasicEffect_PixelLighting_Texture",
-            ["Transparent"]        = "BasicEffect_PixelLighting_Texture",
+            ["Transparent"]        = "BasicEffect_PixelLighting",
+            ["Transparent_Textured"] = "BasicEffect_PixelLighting_Texture",
             ["Skinned"]            = "BasicEffect_PixelLighting",
             ["Skinned_Textured"]   = "BasicEffect_PixelLighting_Texture",
         };
@@ -75,7 +77,8 @@ public sealed class ShaderVariantLibrary
             ["Opaque_Textured"]    = "Unlit_Textured",
             ["AlphaTest"]          = "Unlit_Colored",
             ["AlphaTest_Textured"] = "Unlit_Textured",
-            ["Transparent"]        = "Unlit_Textured",
+            ["Transparent"]        = "Unlit_Colored",
+            ["Transparent_Textured"] = "Unlit_Textured",
             ["Skinned"]            = "Unlit_Colored",
             ["Skinned_Textured"]   = "Unlit_Textured",
         };
@@ -195,7 +198,7 @@ public sealed class ShaderVariantLibrary
 
         if (transparent)
         {
-            return "Transparent";
+            return textured ? "Transparent_Textured" : "Transparent";
         }
 
         if (alphaTest)

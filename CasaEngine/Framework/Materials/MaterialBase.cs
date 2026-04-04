@@ -39,6 +39,7 @@ public abstract class MaterialBase : ISerializable
 
     public bool IsTransparent { get; set; }
     public RenderQueue Queue { get; set; } = RenderQueue.Opaque;
+    public float AlphaCutoff { get; set; } = 0.5f;
 
     // --- Shadow casting/receiving (placeholder — used from Phase 10) ---
 
@@ -90,6 +91,7 @@ public abstract class MaterialBase : ISerializable
 
         Name = element["name"]?.Value<string>() ?? string.Empty;
         IsTransparent = element["is_transparent"]?.Value<bool>() ?? false;
+        AlphaCutoff = element["alpha_cutoff"]?.Value<float>() ?? AlphaCutoff;
 
         if (element["queue"] is { } queueToken &&
             Enum.TryParse<RenderQueue>(queueToken.Value<string>(), out var queue))

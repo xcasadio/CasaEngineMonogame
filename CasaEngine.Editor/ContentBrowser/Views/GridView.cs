@@ -50,7 +50,7 @@ public sealed class GridView : IContentView
     private readonly List<ContentItem> _items = new();
     private readonly int _thumbnailSize;
     private readonly int _cardWidth;
-    private readonly int _cardHeight;
+    private readonly int _cardMinHeight;
 
     public MGElement RootElement => _root;
 
@@ -70,7 +70,7 @@ public sealed class GridView : IContentView
     {
         _thumbnailSize = Math.Max(48, thumbnailSize);
         _cardWidth = _thumbnailSize + 36;
-        _cardHeight = _thumbnailSize + 54;
+        _cardMinHeight = _thumbnailSize + 72;
         _previewSelector = previewSelector ?? throw new ArgumentNullException(nameof(previewSelector));
         _itemElementInitializer = itemElementInitializer;
 
@@ -246,16 +246,18 @@ public sealed class GridView : IContentView
         var nameText = new MGTextBlock(_scrollViewer.SelfOrParentWindow, GetDisplayName(item.Name))
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Top,
             WrapText = true,
             MaxLines = 2,
+            Margin = new Thickness(0, 2, 0, 0),
         };
 
         var content = new MGStackPanel(_scrollViewer.SelfOrParentWindow, Orientation.Vertical)
         {
             Spacing = 8,
             HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
+            VerticalContentAlignment = VerticalAlignment.Top,
         };
         content.TryAddChild(previewHost);
         content.TryAddChild(nameText);
@@ -266,9 +268,8 @@ public sealed class GridView : IContentView
             Margin = new Thickness(2),
             CornerRadius = new MGCornerRadius(8),
             PreferredWidth = _cardWidth,
-            PreferredHeight = _cardHeight,
             MinWidth = _cardWidth,
-            MinHeight = _cardHeight,
+            MinHeight = _cardMinHeight,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(IdleBackgroundColor)),

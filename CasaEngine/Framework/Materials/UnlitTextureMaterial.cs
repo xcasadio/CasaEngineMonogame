@@ -12,8 +12,6 @@ namespace CasaEngine.Framework.Materials;
 /// </summary>
 public class UnlitTextureMaterial : MaterialBase
 {
-    public override bool SupportsVariantTechniqueSelection => false;
-
     /// <summary>Runtime BasColor texture (loaded from <see cref="BasColorAssetId"/>).</summary>
     public Texture2D? BasColor { get; set; }
 
@@ -48,11 +46,9 @@ public class UnlitTextureMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.World, world);
 
         // -- Material params --
-        // Keep the legacy DiffuseColor fallback for basicEffect while also driving
-        // the dedicated UnlitTexture shader parameters.
-        shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(Tint.ToVector3(), Alpha));
-        shader.SetParameter(ShaderParameterNames.TintColor, new Vector4(Tint.ToVector3(), 1.0f));
+        shader.SetParameter(ShaderParameterNames.TintColor, Tint.ToVector4());
         shader.SetParameter(ShaderParameterNames.Alpha, Alpha);
+        shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
         shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
     }

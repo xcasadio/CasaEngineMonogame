@@ -1,0 +1,33 @@
+{
+  "id": "905f151b-ae42-41bd-8a41-886f7ddc1c73",
+  "name": "Car_chrome",
+  "is_transparent": false,
+  "queue": "Opaque",
+  "shader_asset_id": "00000000-0000-0000-0000-000000000000",
+  "cast_shadows": true,
+  "receive_shadows": true,
+  "blend_state": "Opaque",
+  "depth_stencil_state": "Default",
+  "rasterizer_state": "CullCounterClockwise",
+  "sampler_state": "AnisotropicClamp",
+  "type": "LitDiffuseMaterial",
+  "BasColor_asset_id": "00000000-0000-0000-0000-000000000000",
+  "normal_map_asset_id": "00000000-0000-0000-0000-000000000000",
+  "diffuse_color": {
+    "r": 255,
+    "g": 255,
+    "b": 255,
+    "a": 255
+  },
+  "emissive_color": {
+    "r": 0.0,
+    "g": 0.0,
+    "b": 0.0
+  },
+  "specular_color": {
+    "r": 1.0,
+    "g": 1.0,
+    "b": 1.0
+  },
+  "specular_power": 0.0
+}

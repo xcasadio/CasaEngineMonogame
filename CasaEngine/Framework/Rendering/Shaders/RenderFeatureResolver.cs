@@ -37,9 +37,14 @@ public static class RenderFeatureResolver
         ArgumentNullException.ThrowIfNull(input.Material);
 
         var features = ResolveMaterialFeatures(input.Material);
+        bool isSkinned = input.IsSkinned || input.SkinnedMesh is not null;
+
+        if ((features & ShaderFeature.NormalMap) != 0 && !SupportsNormalMapping(input, isSkinned))
+        {
+            features &= ~ShaderFeature.NormalMap;
+        }
 
         bool hasVertexColor = input.HasVertexColor || HasVertexColor(input.Mesh) || HasVertexColor(input.SkinnedMesh);
-        bool isSkinned = input.IsSkinned || input.SkinnedMesh is not null;
 
         if (isSkinned)
         {
@@ -64,13 +69,14 @@ public static class RenderFeatureResolver
         ArgumentNullException.ThrowIfNull(material);
 
         var features = ShaderFeature.None;
+        bool hasBasColorTexture = HasBasColorTexture(material);
 
-        if (HasBasColorTexture(material))
+        if (hasBasColorTexture)
         {
             features |= ShaderFeature.BasColorTexture;
         }
 
-        if (HasNormalMap(material))
+        if (hasBasColorTexture && HasNormalMap(material))
         {
             features |= ShaderFeature.NormalMap;
         }
@@ -149,6 +155,11 @@ public static class RenderFeatureResolver
 
     private static bool IsTransparent(MaterialBase material)
     {
+        if (material.Queue == RenderQueue.AlphaTest)
+        {
+            return false;
+        }
+
         if (material.IsTransparent || material.Queue >= RenderQueue.Transparent)
         {
             return true;
@@ -161,12 +172,33 @@ public static class RenderFeatureResolver
             return true;
         }
 
-        return material is UnlitTextureMaterial { Alpha: < 0.999f };
+        return material switch
+        {
+            UnlitTextureMaterial { Alpha: < 0.999f } => true,
+            UnlitTextureMaterial unlit when unlit.Tint.A < byte.MaxValue => true,
+            LitDiffuseMaterial lit when lit.DiffuseColor.A < byte.MaxValue => true,
+            _ => false,
+        };
     }
 
     private static bool HasVertexColor(StaticModelMesh? mesh)
         => mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&
            HasVertexElement(vertexDeclaration, VertexElementUsage.Color);
+
+    private static bool SupportsNormalMapping(in RenderFeatureInput input, bool isSkinned)
+    {
+        if (isSkinned || input.SkinnedMesh is not null)
+        {
+            return false;
+        }
+
+        return HasTangents(input.Mesh);
+    }
+
+    private static bool HasTangents(StaticModelMesh? mesh)
+        => mesh?.HasTangents == true ||
+           mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&
+           HasVertexElement(vertexDeclaration, VertexElementUsage.Tangent);
 
     private static bool HasVertexColor(RiggedModel.RiggedModelMesh? mesh)
         => mesh?.HasVertexColors ?? false;

@@ -63,7 +63,7 @@
         },
         "children": [
           {
-            "name": "Car_mesh1",
+            "name": "Car [gummi]",
             "mesh_index": 2,
             "position": {
               "x": 0.0,
@@ -84,7 +84,7 @@
             "children": []
           },
           {
-            "name": "Car_mesh2",
+            "name": "Car [chrome]",
             "mesh_index": 3,
             "position": {
               "x": 0.0,
@@ -127,7 +127,7 @@
         },
         "children": [
           {
-            "name": "WheelFrontRight_mesh1",
+            "name": "WheelFrontRight [chrome]",
             "mesh_index": 5,
             "position": {
               "x": 0.0,
@@ -170,7 +170,7 @@
         },
         "children": [
           {
-            "name": "WheelBackRight_mesh1",
+            "name": "WheelBackRight [chrome]",
             "mesh_index": 7,
             "position": {
               "x": 0.0,
@@ -213,7 +213,7 @@
         },
         "children": [
           {
-            "name": "WheelBackLeft_mesh1",
+            "name": "WheelBackLeft [chrome]",
             "mesh_index": 9,
             "position": {
               "x": 0.0,
@@ -256,7 +256,7 @@
         },
         "children": [
           {
-            "name": "WheelFrontLeft_mesh1",
+            "name": "WheelFrontLeft [chrome]",
             "mesh_index": 11,
             "position": {
               "x": 0.0,
@@ -282,10 +282,11 @@
   },
   "meshes": [
     {
-      "name": "",
+      "name": "glass [Standard 19]",
       "primitive_type": "TriangleList",
       "material_index": 0,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "3c4ecd7f-cbda-43b8-bea2-827e11319367",
       "vertices": [
         {
           "position": {
@@ -11264,10 +11265,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "Car [lack]",
       "primitive_type": "TriangleList",
       "material_index": 1,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "bed30dc0-1c34-45d2-9d46-599a2309f8d0",
       "vertices": [
         {
           "position": {
@@ -125462,10 +125464,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "Car [gummi]",
       "primitive_type": "TriangleList",
       "material_index": 2,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "0df807f6-1bf5-48d2-9e16-887e76455257",
       "vertices": [
         {
           "position": {
@@ -181024,10 +181027,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "Car [chrome]",
       "primitive_type": "TriangleList",
       "material_index": 3,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "905f151b-ae42-41bd-8a41-886f7ddc1c73",
       "vertices": [
         {
           "position": {
@@ -195650,10 +195654,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelFrontRight [gummi]",
       "primitive_type": "TriangleList",
       "material_index": 4,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "081f20b4-7792-4bba-b540-ed779aa68132",
       "vertices": [
         {
           "position": {
@@ -199054,10 +199059,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelFrontRight [chrome]",
       "primitive_type": "TriangleList",
       "material_index": 5,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "6469d457-d8b7-4ec7-b019-d90c27ca43a8",
       "vertices": [
         {
           "position": {
@@ -209860,10 +209866,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelBackRight [gummi]",
       "primitive_type": "TriangleList",
       "material_index": 4,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "081f20b4-7792-4bba-b540-ed779aa68132",
       "vertices": [
         {
           "position": {
@@ -213264,10 +213271,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelBackRight [chrome]",
       "primitive_type": "TriangleList",
       "material_index": 5,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "6469d457-d8b7-4ec7-b019-d90c27ca43a8",
       "vertices": [
         {
           "position": {
@@ -224070,10 +224078,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelBackLeft [gummi]",
       "primitive_type": "TriangleList",
       "material_index": 4,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "081f20b4-7792-4bba-b540-ed779aa68132",
       "vertices": [
         {
           "position": {
@@ -227474,10 +227483,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelBackLeft [chrome]",
       "primitive_type": "TriangleList",
       "material_index": 5,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "6469d457-d8b7-4ec7-b019-d90c27ca43a8",
       "vertices": [
         {
           "position": {
@@ -238280,10 +238290,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelFrontLeft [gummi]",
       "primitive_type": "TriangleList",
       "material_index": 4,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "081f20b4-7792-4bba-b540-ed779aa68132",
       "vertices": [
         {
           "position": {
@@ -241684,10 +241695,11 @@
       ]
     },
     {
-      "name": "",
+      "name": "WheelFrontLeft [chrome]",
       "primitive_type": "TriangleList",
       "material_index": 5,
       "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+      "material_asset_id": "6469d457-d8b7-4ec7-b019-d90c27ca43a8",
       "vertices": [
         {
           "position": {

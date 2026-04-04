@@ -57,6 +57,10 @@ git clone https://github.com/xcasadio/CasaEngineMonogame.git
     * Select the RPGDemo or DemosGame project as startup project
     * Compile and launch
 
+## Documentation
+- Materials workflow: [docs/rendering/materials-workflow.md](docs/rendering/materials-workflow.md)
+- Render stats validation workflow: [docs/rendering/render-stats-demo-workflow.md](docs/rendering/render-stats-demo-workflow.md)
+
 ## Screenshots
 ![Editor](/github/screenshot_editor.jpg)
 ![Sprite Editor](/github/screenshot_sprite_editor.jpg)

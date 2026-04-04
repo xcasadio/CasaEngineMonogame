@@ -12,7 +12,7 @@ public class MaterialDefinitionEditorRegistryTests
 
         var descriptors = registry.GetDescriptors("lit-diffuse");
 
-        Assert.Equal(6, descriptors.Count);
+        Assert.Equal(7, descriptors.Count);
 
         var baseColor = GetDescriptor(descriptors, "base_color_texture");
         Assert.Equal("Surface", baseColor.Category);
@@ -26,6 +26,10 @@ public class MaterialDefinitionEditorRegistryTests
         var diffuseColor = GetDescriptor(descriptors, "diffuse_color");
         Assert.Equal("Surface", diffuseColor.Category);
         Assert.Equal("ColorPicker", diffuseColor.EditorControlHint);
+
+        var alphaCutoff = GetDescriptor(descriptors, "alpha_cutoff");
+        Assert.Equal("Surface", alphaCutoff.Category);
+        Assert.Equal("Slider", alphaCutoff.EditorControlHint);
 
         var emissiveColor = GetDescriptor(descriptors, "emissive_color");
         Assert.Equal("Emission", emissiveColor.Category);
@@ -52,7 +56,7 @@ public class MaterialDefinitionEditorRegistryTests
             surface =>
             {
                 Assert.Equal("Surface", surface.Key);
-                Assert.Equal(new[] { "base_color_texture", "diffuse_color" }, GetKeys(surface));
+                Assert.Equal(new[] { "base_color_texture", "diffuse_color", "alpha_cutoff" }, GetKeys(surface));
             },
             normals =>
             {

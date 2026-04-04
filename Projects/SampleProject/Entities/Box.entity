@@ -82,7 +82,14 @@
         }
       }
     ],
-    "static_model_asset_id": "6a220bb5-1903-4943-a7ff-297fc87f4201"
+    "static_model_asset_id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
+    "material_slot_overrides": [
+      {
+        "slot_name": "Mesh",
+        "slot_index": 0,
+        "material_asset_id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1"
+      }
+    ]
   },
   "components": [],
   "script_class_name": null,
