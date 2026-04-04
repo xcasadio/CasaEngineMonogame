@@ -195,7 +195,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 4 — Poser la separation authoring / runtime
 
-- ⏳ **T04.01 — Introduire `MaterialDefinition` et `MaterialPropertyDefinition`**
+- ✅ **T04.01 — Introduire `MaterialDefinition` et `MaterialPropertyDefinition`**
   Objectif:
   - Declarer les types de materials et leurs proprietes exposees.
   - Definir groupes, types, flags, valeurs par defaut et metadata editoriales.
