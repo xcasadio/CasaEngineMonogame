@@ -22,4 +22,6 @@ public enum ShaderFeature : uint
     NormalMap     = 1 << 5,
     /// <summary>Material has an emissive texture or non-zero emissive colour.</summary>
     Emissive      = 1 << 6,
+    /// <summary>Draw call renders through a transparent queue / blend path.</summary>
+    Transparent   = 1 << 7,
 }

@@ -186,10 +186,16 @@ public sealed class ShaderVariantLibrary
         bool textured  = (features & ShaderFeature.BasColorTexture) != 0;
         bool alphaTest = (features & ShaderFeature.AlphaTest)     != 0;
         bool skinned   = (features & ShaderFeature.Skinned)       != 0;
+        bool transparent = (features & ShaderFeature.Transparent) != 0;
 
         if (skinned)
         {
             return textured ? "Skinned_Textured"   : "Skinned";
+        }
+
+        if (transparent)
+        {
+            return "Transparent";
         }
 
         if (alphaTest)

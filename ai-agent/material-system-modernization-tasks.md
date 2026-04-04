@@ -91,7 +91,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 2 — Completer le calcul des features runtime
 
-- ⏳ **T02.01 — Etendre `ShaderFeature` avec les flags manquants**
+- ✅ **T02.01 — Etendre `ShaderFeature` avec les flags manquants**
   Objectif:
   - Ajouter explicitement `Transparent` si necessaire.
   - Verifier que les flags couvrent bien `NormalMap`, `AlphaTest`, `Skinned`, `Instanced` et `VertexColor`.
