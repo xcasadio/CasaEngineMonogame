@@ -1,5 +1,7 @@
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering.Shaders;
 
@@ -32,7 +34,7 @@ public static class RenderFeatureResolver
     {
         ArgumentNullException.ThrowIfNull(input.Material);
 
-        var features = input.Material.GetFeatures(input.Mesh);
+        var features = ResolveMaterialFeatures(input.Material);
 
         if (input.IsSkinned)
         {
@@ -52,6 +54,40 @@ public static class RenderFeatureResolver
         return features;
     }
 
+    public static ShaderFeature ResolveMaterialFeatures(MaterialBase material)
+    {
+        ArgumentNullException.ThrowIfNull(material);
+
+        var features = ShaderFeature.None;
+
+        if (HasBasColorTexture(material))
+        {
+            features |= ShaderFeature.BasColorTexture;
+        }
+
+        if (HasNormalMap(material))
+        {
+            features |= ShaderFeature.NormalMap;
+        }
+
+        if (HasEmissive(material))
+        {
+            features |= ShaderFeature.Emissive;
+        }
+
+        if (IsAlphaTest(material))
+        {
+            features |= ShaderFeature.AlphaTest;
+        }
+
+        if (IsTransparent(material))
+        {
+            features |= ShaderFeature.Transparent;
+        }
+
+        return features;
+    }
+
     public static ShaderFeature Resolve(
         MaterialBase material,
         StaticModelMesh? mesh = null,
@@ -66,4 +102,45 @@ public static class RenderFeatureResolver
             IsInstanced = isInstanced,
             HasVertexColor = hasVertexColor,
         });
+
+    private static bool HasBasColorTexture(MaterialBase material) => material switch
+    {
+        LitDiffuseMaterial lit => lit.BasColor is not null || lit.BasColorAssetId != Guid.Empty,
+        UnlitTextureMaterial unlit => unlit.BasColor is not null || unlit.BasColorAssetId != Guid.Empty,
+        Material rich => rich.TextureBaseColor?.Resource is not null || rich.TextureBaseColorAssetId != Guid.Empty,
+        _ => false,
+    };
+
+    private static bool HasNormalMap(MaterialBase material) => material switch
+    {
+        LitDiffuseMaterial lit => lit.NormalMap is not null || lit.NormalMapAssetId != Guid.Empty,
+        Material rich => rich.TextureNormal?.Resource is not null || rich.TextureNormalAssetId != Guid.Empty,
+        _ => false,
+    };
+
+    private static bool HasEmissive(MaterialBase material) => material switch
+    {
+        LitDiffuseMaterial lit => lit.EmissiveColor != Vector3.Zero,
+        _ => false,
+    };
+
+    private static bool IsAlphaTest(MaterialBase material)
+        => material.Queue == RenderQueue.AlphaTest;
+
+    private static bool IsTransparent(MaterialBase material)
+    {
+        if (material.IsTransparent || material.Queue >= RenderQueue.Transparent)
+        {
+            return true;
+        }
+
+        if (ReferenceEquals(material.BlendState, BlendState.AlphaBlend) ||
+            ReferenceEquals(material.BlendState, BlendState.NonPremultiplied) ||
+            ReferenceEquals(material.BlendState, BlendState.Additive))
+        {
+            return true;
+        }
+
+        return material is UnlitTextureMaterial { Alpha: < 0.999f };
+    }
 }

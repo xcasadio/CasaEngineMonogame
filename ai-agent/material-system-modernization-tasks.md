@@ -109,7 +109,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): add unified render feature resolver`
 
-- ⏳ **T02.03 — Completer les features derivees du material**
+- ✅ **T02.03 — Completer les features derivees du material**
   Objectif:
   - Deriver correctement `BasColorTexture`, `NormalMap`, `Emissive`, `AlphaTest`, `Transparent`.
   - Faire remonter les informations structurelles sans y melanger les valeurs artistiques.
