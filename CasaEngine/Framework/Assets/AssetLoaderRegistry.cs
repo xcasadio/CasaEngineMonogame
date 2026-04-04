@@ -35,6 +35,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(UIScreenAsset), new AssetLoader<UIScreenAsset>());
         assetContentManager.RegisterAssetLoader(typeof(World.World), new AssetLoader<World.World>());
         assetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
+        assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialBase), new MaterialLoader());
     }
 }

@@ -255,7 +255,7 @@ Le resultat cible doit couvrir ces points :
 
 ## Phase 5 — Migrer le chargement sans casser la compatibilite
 
-- ⏳ **T05.01 — Ajouter le format de serialisation de `MaterialAsset`**
+- ✅ **T05.01 — Ajouter le format de serialisation de `MaterialAsset`**
   Objectif:
   - Pouvoir sauver/charger le nouvel asset authoring dans `.material`.
   - Garder le format lisible et stable pour l'editeur.

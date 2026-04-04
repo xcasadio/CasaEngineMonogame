@@ -53,6 +53,10 @@ internal static class EditorAssetJsonSerializer
                 SaveMaterial(material, rootObject);
                 return true;
 
+            case MaterialAsset materialAsset:
+                SaveMaterialAsset(materialAsset, rootObject);
+                return true;
+
             case SpriteData spriteData:
                 SaveSpriteData(spriteData, rootObject);
                 return true;
@@ -251,6 +255,11 @@ internal static class EditorAssetJsonSerializer
         node.Add("preview_resolution", previewResolutionNode);
 
         node.Add("resource_files", new JArray(uiScreenAsset.ResourceFiles));
+    }
+
+    private static void SaveMaterialAsset(MaterialAsset materialAsset, JObject node)
+    {
+        MaterialAssetJsonSerializer.Save(materialAsset, node);
     }
 
     private static void SaveTileMapLayerData(TileMapLayerData layer, JObject node)

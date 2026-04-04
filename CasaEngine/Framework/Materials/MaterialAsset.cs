@@ -1,4 +1,5 @@
 using CasaEngine.Framework;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Materials;
 
@@ -207,6 +208,12 @@ public sealed class MaterialAsset : ObjectBase
         }
 
         return errors.Count == 0 ? Array.Empty<string>() : errors.ToArray();
+    }
+
+    public override void Load(JObject element)
+    {
+        base.Load(element);
+        MaterialAssetJsonSerializer.Load(this, element);
     }
 
     private void RemoveIncompatiblePropertyValues(MaterialDefinition definition)
