@@ -133,12 +133,41 @@ public sealed class MaterialAsset : ObjectBase
         return _propertyValues.TryGetValue(propertyDefinition.Key, out value!);
     }
 
+    public bool HasLocalPropertyValue(string keyOrAlias)
+    {
+        if (!TryGetPropertyDefinition(keyOrAlias, out var propertyDefinition))
+        {
+            return false;
+        }
+
+        return _propertyValues.ContainsKey(propertyDefinition.Key);
+    }
+
+    public bool TryGetInheritedPropertyValue(string keyOrAlias, Func<Guid, MaterialAsset?>? parentResolver, out MaterialValue value)
+    {
+        if (!TryGetPropertyDefinition(keyOrAlias, out var propertyDefinition))
+        {
+            value = null!;
+            return false;
+        }
+
+        return TryGetInheritedPropertyValue(propertyDefinition.Key, parentResolver, new HashSet<Guid> { Id }, out value!);
+    }
+
     public MaterialValue? GetPropertyValueOrDefault(string keyOrAlias)
+        => GetPropertyValueOrDefault(keyOrAlias, null);
+
+    public MaterialValue? GetPropertyValueOrDefault(string keyOrAlias, Func<Guid, MaterialAsset?>? parentResolver)
     {
         var propertyDefinition = GetRequiredPropertyDefinition(keyOrAlias);
         if (_propertyValues.TryGetValue(propertyDefinition.Key, out var value))
         {
             return value;
+        }
+
+        if (TryGetInheritedPropertyValue(propertyDefinition.Key, parentResolver, new HashSet<Guid> { Id }, out var inheritedValue))
+        {
+            return inheritedValue;
         }
 
         return propertyDefinition.GetDefaultMaterialValue();
@@ -160,6 +189,9 @@ public sealed class MaterialAsset : ObjectBase
     }
 
     public IReadOnlyList<string> Validate()
+        => Validate(null);
+
+    public IReadOnlyList<string> Validate(Func<Guid, MaterialAsset?>? parentResolver)
     {
         MaterialDefinition definition;
         try
@@ -177,6 +209,11 @@ public sealed class MaterialAsset : ObjectBase
             errors.Add("Material asset cannot parent itself.");
         }
 
+        if (HasParentCycle(parentResolver, new HashSet<Guid> { Id }))
+        {
+            errors.Add($"Material asset '{Name}' participates in a parent cycle.");
+        }
+
         for (int i = 0; i < definition.Properties.Count; i++)
         {
             var propertyDefinition = definition.Properties[i];
@@ -185,7 +222,7 @@ public sealed class MaterialAsset : ObjectBase
                 continue;
             }
 
-            if (_propertyValues.ContainsKey(propertyDefinition.Key) || propertyDefinition.DefaultValue is not null)
+            if (GetPropertyValueOrDefault(propertyDefinition.Key, parentResolver) is not null)
             {
                 continue;
             }
@@ -243,6 +280,54 @@ public sealed class MaterialAsset : ObjectBase
         {
             _propertyValues.Remove(keysToRemove[i]);
         }
+    }
+
+    private bool TryGetInheritedPropertyValue(
+        string propertyKey,
+        Func<Guid, MaterialAsset?>? parentResolver,
+        HashSet<Guid> visitedAssetIds,
+        out MaterialValue value)
+    {
+        value = null!;
+
+        if (ParentMaterialAssetId == Guid.Empty || parentResolver is null)
+        {
+            return false;
+        }
+
+        if (!visitedAssetIds.Add(ParentMaterialAssetId))
+        {
+            return false;
+        }
+
+        var parentMaterial = parentResolver(ParentMaterialAssetId);
+        if (parentMaterial == null)
+        {
+            return false;
+        }
+
+        if (parentMaterial._propertyValues.TryGetValue(propertyKey, out value!))
+        {
+            return true;
+        }
+
+        return parentMaterial.TryGetInheritedPropertyValue(propertyKey, parentResolver, visitedAssetIds, out value!);
+    }
+
+    private bool HasParentCycle(Func<Guid, MaterialAsset?>? parentResolver, HashSet<Guid> visitedAssetIds)
+    {
+        if (ParentMaterialAssetId == Guid.Empty || parentResolver is null)
+        {
+            return false;
+        }
+
+        if (!visitedAssetIds.Add(ParentMaterialAssetId))
+        {
+            return true;
+        }
+
+        var parentMaterial = parentResolver(ParentMaterialAssetId);
+        return parentMaterial != null && parentMaterial.HasParentCycle(parentResolver, visitedAssetIds);
     }
 
     private bool TryGetPropertyDefinition(string keyOrAlias, out MaterialPropertyDefinition propertyDefinition)

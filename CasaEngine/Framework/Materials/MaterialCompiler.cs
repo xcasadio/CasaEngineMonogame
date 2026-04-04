@@ -13,7 +13,7 @@ public sealed class MaterialCompiler
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
         var definition = materialAsset.GetRequiredDefinition();
-        var effectiveValues = BuildEffectiveValues(materialAsset, definition);
+        var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
         var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
         var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
 
@@ -41,21 +41,43 @@ public sealed class MaterialCompiler
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
         var definition = materialAsset.GetRequiredDefinition();
-        var effectiveValues = BuildEffectiveValues(materialAsset, definition);
+        var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
         var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
         return CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
     }
 
     private static IReadOnlyDictionary<string, MaterialValue> BuildEffectiveValues(
         MaterialAsset materialAsset,
-        MaterialDefinition definition)
+        MaterialDefinition definition,
+        AssetContentManager assetContentManager)
     {
         var values = new Dictionary<string, MaterialValue>(StringComparer.OrdinalIgnoreCase);
+        var resolvedParents = new Dictionary<Guid, MaterialAsset?>();
+
+        MaterialAsset? ResolveParent(Guid assetId)
+        {
+            if (resolvedParents.TryGetValue(assetId, out var cachedMaterial))
+            {
+                return cachedMaterial;
+            }
+
+            try
+            {
+                cachedMaterial = assetContentManager.Load<MaterialAsset>(assetId, cache: false);
+            }
+            catch
+            {
+                cachedMaterial = null;
+            }
+
+            resolvedParents[assetId] = cachedMaterial;
+            return cachedMaterial;
+        }
 
         for (int i = 0; i < definition.Properties.Count; i++)
         {
             var propertyDefinition = definition.Properties[i];
-            var value = materialAsset.GetPropertyValueOrDefault(propertyDefinition.Key);
+            var value = materialAsset.GetPropertyValueOrDefault(propertyDefinition.Key, ResolveParent);
             if (value is null)
             {
                 throw new InvalidOperationException(

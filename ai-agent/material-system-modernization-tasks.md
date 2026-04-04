@@ -326,7 +326,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(editor): generate material inspector from definitions`
 
-- ⏳ **T06.03 — Ajouter les marqueurs d'override et le reset par property**
+- ✅ **T06.03 — Ajouter les marqueurs d'override et le reset par property**
   Objectif:
   - Preparer l'heritage parent/enfant de materials.
   - Rendre visibles les valeurs locales vs heritees.

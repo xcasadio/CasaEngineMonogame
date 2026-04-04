@@ -38,6 +38,51 @@ public class MaterialAssetTests
     }
 
     [Fact]
+    public void GetPropertyValueOrDefault_UsesInheritedParentValueWhenLocalOverrideIsMissing()
+    {
+        var parentMaterial = new MaterialAsset("lit-diffuse");
+        parentMaterial.SetPropertyValue("specular_power", MaterialValue.FromFloat(24.0f));
+
+        var childMaterial = new MaterialAsset("lit-diffuse")
+        {
+            ParentMaterialAssetId = parentMaterial.Id,
+        };
+
+        MaterialValue? resolvedValue = childMaterial.GetPropertyValueOrDefault(
+            "specular_power",
+            assetId => assetId == parentMaterial.Id ? parentMaterial : null);
+
+        Assert.NotNull(resolvedValue);
+        Assert.True(resolvedValue!.TryGetFloat(out var specularPower));
+        Assert.Equal(24.0f, specularPower);
+        Assert.False(childMaterial.HasLocalPropertyValue("specular_power"));
+        Assert.True(childMaterial.TryGetInheritedPropertyValue(
+            "specular_power",
+            assetId => assetId == parentMaterial.Id ? parentMaterial : null,
+            out var inheritedValue));
+        Assert.Equal(MaterialValue.FromFloat(24.0f), inheritedValue);
+    }
+
+    [Fact]
+    public void GetPropertyValueOrDefault_WhenParentChainCycles_FallsBackToDefinitionDefaultValue()
+    {
+        var parentMaterial = new MaterialAsset("unlit-texture");
+        var childMaterial = new MaterialAsset("unlit-texture")
+        {
+            ParentMaterialAssetId = parentMaterial.Id,
+        };
+        parentMaterial.ParentMaterialAssetId = childMaterial.Id;
+
+        MaterialValue? resolvedValue = childMaterial.GetPropertyValueOrDefault(
+            "alpha",
+            assetId => assetId == parentMaterial.Id ? parentMaterial : childMaterial);
+
+        Assert.NotNull(resolvedValue);
+        Assert.True(resolvedValue!.TryGetFloat(out var alpha));
+        Assert.Equal(1.0f, alpha);
+    }
+
+    [Fact]
     public void SetPropertyValue_RejectsIncompatibleOrOutOfRangeValues()
     {
         var materialAsset = new MaterialAsset("unlit-texture");
@@ -77,6 +122,21 @@ public class MaterialAssetTests
 
         Assert.Single(errors);
         Assert.Equal("Material asset cannot parent itself.", errors[0]);
+    }
+
+    [Fact]
+    public void Validate_WithParentResolver_ReturnsCycleErrorWhenParentChainLoops()
+    {
+        var parentMaterial = new MaterialAsset("lit-diffuse");
+        var childMaterial = new MaterialAsset("lit-diffuse")
+        {
+            ParentMaterialAssetId = parentMaterial.Id,
+        };
+        parentMaterial.ParentMaterialAssetId = childMaterial.Id;
+
+        var errors = childMaterial.Validate(assetId => assetId == parentMaterial.Id ? parentMaterial : childMaterial);
+
+        Assert.Contains($"Material asset '{childMaterial.Name}' participates in a parent cycle.", errors);
     }
 
     [Fact]

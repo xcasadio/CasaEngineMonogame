@@ -105,6 +105,53 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
+    public void TryLoadRuntimeMaterial_AuthoringChildFile_InheritsMissingParentProperties()
+    {
+        using var scope = new TestProjectScope();
+        Guid parentMaterialAssetId = Guid.NewGuid();
+        Guid childMaterialAssetId = Guid.NewGuid();
+        string parentRelativeFileName = Path.Combine("Materials", "ParentLit.material");
+        string childRelativeFileName = Path.Combine("Materials", "ChildLit.material");
+
+        var parentMaterialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Parent Lit",
+        };
+        parentMaterialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(18.0f));
+        parentMaterialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.CornflowerBlue));
+
+        var parentDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(parentMaterialAsset, parentDocument);
+        parentDocument["id"] = parentMaterialAssetId.ToString();
+        parentDocument["name"] = "Parent Lit";
+
+        scope.WriteAsset(parentRelativeFileName, parentMaterialAssetId, "Parent Lit", parentDocument);
+
+        var childMaterialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Child Lit",
+            ParentMaterialAssetId = parentMaterialAssetId,
+        };
+        childMaterialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.Goldenrod));
+
+        var childDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(childMaterialAsset, childDocument);
+        childDocument["id"] = childMaterialAssetId.ToString();
+        childDocument["name"] = "Child Lit";
+
+        scope.WriteAsset(childRelativeFileName, childMaterialAssetId, "Child Lit", childDocument);
+
+        var assetContentManager = CreateAssetContentManager();
+        bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(childMaterialAssetId, assetContentManager, out var runtimeMaterial);
+
+        Assert.True(loaded);
+        var litMaterial = Assert.IsType<LitDiffuseMaterial>(runtimeMaterial);
+        Assert.Equal(Color.Goldenrod, litMaterial.DiffuseColor);
+        Assert.Equal(18.0f, litMaterial.SpecularPower);
+        Assert.Equal(childMaterialAssetId, litMaterial.Id);
+    }
+
+    [Fact]
     public void TryLoadRuntimeMaterial_LegacyMultiTextureFile_PreservesLegacyTextureSlots()
     {
         using var scope = new TestProjectScope();

@@ -9,6 +9,8 @@ using CasaEngine.EditorServices.Materials;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Border_Brushes;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
@@ -29,6 +31,7 @@ public sealed class MaterialAssetInspectorPanel
 
     private MaterialAsset? _materialAsset;
     private string? _loadedRelativePath;
+    private readonly Dictionary<Guid, MaterialAsset?> _resolvedParentMaterials = new();
 
     public MaterialAssetInspectorPanel(MGWindow window)
         : this(window, MaterialDefinitionEditorRegistry.Default)
@@ -94,7 +97,38 @@ public sealed class MaterialAssetInspectorPanel
 
         _materialAsset = materialAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+        _resolvedParentMaterials.Clear();
         RefreshInspector();
+    }
+
+    public IReadOnlyList<string> GetAutomationPropertyStateSnapshot()
+    {
+        if (_materialAsset == null)
+        {
+            return Array.Empty<string>();
+        }
+
+        _resolvedParentMaterials.Clear();
+
+        var definition = _materialAsset.GetRequiredDefinition();
+        var result = new List<string>();
+        foreach (var section in _registry.GetSections(definition.Id))
+        {
+            for (int i = 0; i < section.Properties.Count; i++)
+            {
+                var descriptor = section.Properties[i];
+                var propertyState = ResolvePropertyState(descriptor.Definition);
+                string line = $"{descriptor.Definition.Key}: {propertyState.BadgeText}";
+                if (!string.IsNullOrWhiteSpace(propertyState.SourceText))
+                {
+                    line += $" ({propertyState.SourceText})";
+                }
+
+                result.Add(line);
+            }
+        }
+
+        return result;
     }
 
     private void RefreshInspector()
@@ -114,9 +148,11 @@ public sealed class MaterialAssetInspectorPanel
             return;
         }
 
+        _resolvedParentMaterials.Clear();
+
         var definition = _materialAsset.GetRequiredDefinition();
         _headerText.Text = $"[b]{EscapeMarkup(_materialAsset.Name)}[/b]";
-        _sourceText.Text = $"Definition: {EscapeMarkup(definition.DisplayName)}";
+        _sourceText.Text = BuildSourceText(definition);
         _statusText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
             ? string.Empty
             : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
@@ -143,26 +179,55 @@ public sealed class MaterialAssetInspectorPanel
 
     private MGElement BuildPropertyRow(MaterialPropertyDescriptor descriptor)
     {
-        var row = new MGDockPanel(_window)
+        var propertyState = ResolvePropertyState(descriptor.Definition);
+
+        var row = new MGStackPanel(_window, Orientation.Vertical)
         {
-            Margin = new Thickness(2, 1, 2, 1),
+            Spacing = 2,
+            Margin = new Thickness(2, 2, 2, 4),
         };
 
-        row.TryAddChild(new MGTextBlock(_window, EscapeMarkup(descriptor.DisplayName))
+        var header = new MGDockPanel(_window);
+        header.TryAddChild(new MGTextBlock(_window, EscapeMarkup(descriptor.DisplayName))
         {
-            PreferredWidth = 120,
             Margin = new Thickness(2, 0, 6, 0),
             VerticalAlignment = VerticalAlignment.Center,
         }, Dock.Left);
 
-        row.TryAddChild(BuildEditor(descriptor), Dock.Left);
+        var actions = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        actions.TryAddChild(BuildPropertyStateBadge(propertyState));
+        actions.TryAddChild(BuildResetButton(descriptor.Definition, propertyState.HasLocalOverride));
+        header.TryAddChild(actions, Dock.Right);
+
+        var editorRow = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            Margin = new Thickness(14, 0, 0, 0),
+        };
+        editorRow.TryAddChild(BuildEditor(descriptor, propertyState));
+
+        if (!string.IsNullOrWhiteSpace(propertyState.SourceText))
+        {
+            editorRow.TryAddChild(new MGTextBlock(_window, EscapeMarkup(propertyState.SourceText))
+            {
+                FontSize = 10,
+                Opacity = 0.7f,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+        }
+
+        row.TryAddChild(header);
+        row.TryAddChild(editorRow);
         return row;
     }
 
-    private MGElement BuildEditor(MaterialPropertyDescriptor descriptor)
+    private MGElement BuildEditor(MaterialPropertyDescriptor descriptor, PropertyDisplayState propertyState)
     {
         var propertyDefinition = descriptor.Definition;
-        var value = _materialAsset!.GetPropertyValueOrDefault(propertyDefinition.Key);
+        var value = propertyState.EffectiveValue;
 
         return propertyDefinition.ValueType switch
         {
@@ -176,6 +241,161 @@ public sealed class MaterialAssetInspectorPanel
             MaterialPropertyType.Vector3 => BuildVector3Editor(propertyDefinition, value),
             _ => BuildTextEditor(propertyDefinition, value),
         };
+    }
+
+    private string BuildSourceText(MaterialDefinition definition)
+    {
+        string sourceText = $"Definition: {EscapeMarkup(definition.DisplayName)}";
+        if (_materialAsset == null || _materialAsset.ParentMaterialAssetId == Guid.Empty)
+        {
+            return sourceText;
+        }
+
+        var parentMaterial = ResolveMaterialAsset(_materialAsset.ParentMaterialAssetId);
+        if (parentMaterial == null)
+        {
+            return sourceText + " | Parent: unresolved";
+        }
+
+        return sourceText + $" | Parent: {EscapeMarkup(parentMaterial.Name)}";
+    }
+
+    private PropertyDisplayState ResolvePropertyState(MaterialPropertyDefinition propertyDefinition)
+    {
+        if (_materialAsset == null)
+        {
+            return PropertyDisplayState.Default(propertyDefinition.GetDefaultMaterialValue());
+        }
+
+        bool hasLocalOverride = _materialAsset.HasLocalPropertyValue(propertyDefinition.Key);
+        var effectiveValue = _materialAsset.GetPropertyValueOrDefault(propertyDefinition.Key, ResolveMaterialAsset);
+        if (hasLocalOverride)
+        {
+            return PropertyDisplayState.Local(effectiveValue);
+        }
+
+        if (TryGetInheritedPropertySource(propertyDefinition.Key, out var sourceAsset, out _))
+        {
+            return PropertyDisplayState.Inherited(effectiveValue, $"From {sourceAsset.Name}");
+        }
+
+        return PropertyDisplayState.Default(effectiveValue);
+    }
+
+    private bool TryGetInheritedPropertySource(string propertyKey, out MaterialAsset sourceAsset, out MaterialValue value)
+    {
+        sourceAsset = null!;
+        value = null!;
+
+        if (_materialAsset == null || _materialAsset.ParentMaterialAssetId == Guid.Empty)
+        {
+            return false;
+        }
+
+        var visitedAssetIds = new HashSet<Guid> { _materialAsset.Id };
+        Guid currentParentId = _materialAsset.ParentMaterialAssetId;
+
+        while (currentParentId != Guid.Empty && visitedAssetIds.Add(currentParentId))
+        {
+            var parentMaterial = ResolveMaterialAsset(currentParentId);
+            if (parentMaterial == null)
+            {
+                return false;
+            }
+
+            if (parentMaterial.TryGetPropertyValue(propertyKey, out value))
+            {
+                sourceAsset = parentMaterial;
+                return true;
+            }
+
+            currentParentId = parentMaterial.ParentMaterialAssetId;
+        }
+
+        return false;
+    }
+
+    private MaterialAsset? ResolveMaterialAsset(Guid assetId)
+    {
+        if (assetId == Guid.Empty)
+        {
+            return null;
+        }
+
+        if (_resolvedParentMaterials.TryGetValue(assetId, out var cachedMaterial))
+        {
+            return cachedMaterial;
+        }
+
+        var assetInfo = AssetCatalog.Get(assetId);
+        if (assetInfo == null || string.IsNullOrWhiteSpace(assetInfo.FileName))
+        {
+            _resolvedParentMaterials[assetId] = null;
+            return null;
+        }
+
+        string relativePath = assetInfo.FileName.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, relativePath);
+        if (!File.Exists(fullPath))
+        {
+            _resolvedParentMaterials[assetId] = null;
+            return null;
+        }
+
+        try
+        {
+            var document = JObject.Parse(File.ReadAllText(fullPath));
+            if (document["definition_id"] == null && document["type"] == null)
+            {
+                _resolvedParentMaterials[assetId] = null;
+                return null;
+            }
+
+            var materialAsset = new MaterialAsset();
+            materialAsset.Load(document);
+            materialAsset.Name = assetInfo.Name;
+            materialAsset.AssetId = assetInfo.Id;
+            materialAsset.FileName = assetInfo.FileName;
+
+            _resolvedParentMaterials[assetId] = materialAsset;
+            return materialAsset;
+        }
+        catch
+        {
+            _resolvedParentMaterials[assetId] = null;
+            return null;
+        }
+    }
+
+    private MGElement BuildPropertyStateBadge(PropertyDisplayState propertyState)
+    {
+        var badgeBorder = new MGBorder(_window, new Thickness(1), new MGUniformBorderBrush(new MGSolidFillBrush(propertyState.BorderColor)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(propertyState.BackgroundColor)),
+            Padding = new Thickness(6, 2, 6, 2),
+        };
+        badgeBorder.SetContent(new MGTextBlock(_window, propertyState.BadgeText, propertyState.ForegroundColor, 10)
+        {
+            Opacity = 0.95f,
+        });
+
+        return badgeBorder;
+    }
+
+    private MGElement BuildResetButton(MaterialPropertyDefinition propertyDefinition, bool hasLocalOverride)
+    {
+        var button = new MGButton(_window, _ => ApplyPropertyValue(propertyDefinition, null))
+        {
+            IsEnabled = hasLocalOverride,
+            PreferredWidth = 54,
+        };
+        button.SetContent(new MGTextBlock(_window, "Reset")
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        return button;
     }
 
     private MGElement BuildBooleanEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
@@ -371,6 +591,11 @@ public sealed class MaterialAssetInspectorPanel
             }
 
             SaveMaterialAsset();
+            RefreshInspector();
+            if (_statusText != null && !string.IsNullOrWhiteSpace(_loadedRelativePath))
+            {
+                _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
+            }
         }
         catch (Exception exception)
         {
@@ -532,4 +757,44 @@ public sealed class MaterialAssetInspectorPanel
 
     private static string EscapeMarkup(string value)
         => value.Replace("[", "\\[").Replace("]", "\\]");
+
+    private readonly record struct PropertyDisplayState(
+        MaterialValue? EffectiveValue,
+        bool HasLocalOverride,
+        string BadgeText,
+        string? SourceText,
+        Color BackgroundColor,
+        Color BorderColor,
+        Color ForegroundColor)
+    {
+        public static PropertyDisplayState Local(MaterialValue? effectiveValue)
+            => new(
+                effectiveValue,
+                true,
+                "Override",
+                null,
+                new Color(94, 61, 20),
+                new Color(201, 145, 53),
+                new Color(255, 241, 210));
+
+        public static PropertyDisplayState Inherited(MaterialValue? effectiveValue, string sourceText)
+            => new(
+                effectiveValue,
+                false,
+                "Inherited",
+                sourceText,
+                new Color(33, 52, 74),
+                new Color(98, 143, 188),
+                new Color(223, 238, 255));
+
+        public static PropertyDisplayState Default(MaterialValue? effectiveValue)
+            => new(
+                effectiveValue,
+                false,
+                "Default",
+                null,
+                new Color(42, 42, 48),
+                new Color(92, 92, 104),
+                new Color(226, 226, 230));
+    }
 }

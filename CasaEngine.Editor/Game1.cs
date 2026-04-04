@@ -1825,8 +1825,11 @@ namespace CasaEngine.Editor
             builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
             builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
             builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
-            builder.AppendLine($"Active document panel: {GetActiveDocumentPanelId() ?? "<none>"}");
-            builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(GetOpenDocumentPanelIds())}");
+            string? activeDocumentPanelId = GetActiveDocumentPanelId();
+            var openDocumentPanelIds = GetOpenDocumentPanelIds();
+            builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
+            builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
+            AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
             builder.AppendLine($"Entries: {entries.Count}");
             builder.AppendLine();
 
@@ -1837,6 +1840,27 @@ namespace CasaEngine.Editor
 
             File.WriteAllText(outputPath, builder.ToString());
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Diagnostics exported to '{outputPath}'");
+        }
+
+        private void AppendMaterialInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+        {
+            if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                || !TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            {
+                return;
+            }
+
+            var propertyStates = inspectorPanel.GetAutomationPropertyStateSnapshot();
+            if (propertyStates.Count == 0)
+            {
+                return;
+            }
+
+            builder.AppendLine("Material property states:");
+            for (int i = 0; i < propertyStates.Count; i++)
+            {
+                builder.AppendLine($"  - {propertyStates[i]}");
+            }
         }
 
         private static string FormatDocumentPanelIds(IReadOnlyList<string> panelIds)
