@@ -19,6 +19,7 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Materials;
 using FontStashSharp;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Docking;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
@@ -42,6 +43,11 @@ namespace CasaEngine.Editor
     {
         private const string EditorLayoutDirectoryName = ".casaeditor";
         private const string EditorLayoutFileName = "layout.json";
+        private static readonly HashSet<string> CommonPanelIds = new(StringComparer.Ordinal)
+        {
+            EditorPanelIds.ContentBrowser,
+            EditorPanelIds.Output,
+        };
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -500,6 +506,7 @@ namespace CasaEngine.Editor
             _worldViewportContent ??= _worldViewportPanel.CreateContent();
             _worldWorkspaceContext.ViewportPanel = _worldViewportPanel;
             ApplyWorldWorkspaceContext();
+            ApplyMaterialWorkspaceContext();
             return _worldViewportContent;
         }
 
@@ -857,6 +864,11 @@ namespace CasaEngine.Editor
 
             if (panel.Id == EditorPanelIds.WorldViewport)
             {
+                if (_activeWorkspaceId == EditorWorkspaceId.Material && _activeMaterialInspectorPanel != null)
+                {
+                    return;
+                }
+
                 if (_activeWorkspaceId != EditorWorkspaceId.World)
                 {
                     SwitchWorkspace(EditorWorkspaceId.World, EditorPanelIds.WorldViewport, preferPersistedLayout: true, logOutcome: false);
@@ -1006,7 +1018,7 @@ namespace CasaEngine.Editor
 
             if (_materialInspectorPanels.TryGetValue(panelId, out var materialInspectorPanel))
             {
-                return materialInspectorPanel.CreatePreviewContent;
+                return null;
             }
 
             return () => CreateUnavailablePanelContent(panelId);
@@ -1150,6 +1162,191 @@ namespace CasaEngine.Editor
             }
         }
 
+        private bool ShouldPreserveCommonPanelsForSwitch(EditorWorkspaceId workspaceId)
+        {
+            return _activeWorkspaceId != EditorWorkspaceId.World || workspaceId != EditorWorkspaceId.World;
+        }
+
+        private DockNode CaptureCommonPanelsLayout()
+        {
+            var rootNode = _dockHost?.LayoutModel?.RootNode;
+            var commonPanelsNode = FindCommonPanelsSubtree(rootNode);
+            return commonPanelsNode == null ? null : CloneDockNode(commonPanelsNode);
+        }
+
+        private void ApplyPreservedCommonPanelsLayout(DockNode commonPanelsLayout)
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return;
+            }
+
+            RemoveCommonPanelsFromCurrentLayout();
+
+            if (commonPanelsLayout == null)
+            {
+                return;
+            }
+
+            if (_dockHost.LayoutModel.RootNode == null)
+            {
+                _dockHost.LayoutModel.RootNode = commonPanelsLayout;
+                return;
+            }
+
+            if (_dockHost.LayoutModel.RootNode is DockSplitNode splitNode
+                && splitNode.Orientation == Orientation.Vertical
+                && (splitNode.SecondChild == null || ContainsOnlyCommonPanels(splitNode.SecondChild)))
+            {
+                splitNode.SecondChild = commonPanelsLayout;
+                return;
+            }
+
+            _dockHost.LayoutModel.RootNode = new DockSplitNode
+            {
+                Orientation = Orientation.Vertical,
+                FirstChild = _dockHost.LayoutModel.RootNode,
+                SecondChild = commonPanelsLayout,
+                SplitRatio = 0.72f,
+                MinFirstSize = 250,
+                MinSecondSize = 120,
+            };
+        }
+
+        private void RemoveCommonPanelsFromCurrentLayout()
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return;
+            }
+
+            foreach (var panel in _dockHost.LayoutModel.GetAllPanels()
+                         .Where(panel => CommonPanelIds.Contains(panel.Id))
+                         .ToList())
+            {
+                DockOperation.RemovePanel(_dockHost.LayoutModel, panel);
+            }
+        }
+
+        private static DockNode FindCommonPanelsSubtree(DockNode node)
+        {
+            if (node == null)
+            {
+                return null;
+            }
+
+            if (ContainsAnyCommonPanels(node) && ContainsOnlyCommonPanels(node))
+            {
+                return node;
+            }
+
+            foreach (var child in node.GetChildren())
+            {
+                var result = FindCommonPanelsSubtree(child);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool ContainsAnyCommonPanels(DockNode node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            if (node is DockPanelNode panelNode)
+            {
+                return CommonPanelIds.Contains(panelNode.Id);
+            }
+
+            return node.GetChildren().Any(ContainsAnyCommonPanels);
+        }
+
+        private static bool ContainsOnlyCommonPanels(DockNode node)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            if (node is DockPanelNode panelNode)
+            {
+                return CommonPanelIds.Contains(panelNode.Id);
+            }
+
+            var children = node.GetChildren().ToList();
+            return children.Count != 0 && children.All(ContainsOnlyCommonPanels);
+        }
+
+        private DockNode CloneDockNode(DockNode node)
+        {
+            return node switch
+            {
+                DockPanelNode panelNode => CloneDockPanelNode(panelNode),
+                DockTabGroupNode tabGroupNode => CloneDockTabGroupNode(tabGroupNode),
+                DockSplitNode splitNode => CloneDockSplitNode(splitNode),
+                _ => throw new InvalidOperationException($"Unsupported dock node type '{node.GetType().Name}'."),
+            };
+        }
+
+        private DockPanelNode CloneDockPanelNode(DockPanelNode panelNode)
+        {
+            return new DockPanelNode(panelNode.Id)
+            {
+                Title = panelNode.Title,
+                Icon = panelNode.Icon,
+                ContentFactory = GetPanelContentFactory(panelNode.Id),
+                CanClose = panelNode.CanClose,
+                CanFloat = panelNode.CanFloat,
+                CanAutoHide = panelNode.CanAutoHide,
+                IsPinned = panelNode.IsPinned,
+                AutoHideSide = panelNode.AutoHideSide,
+                DrawerSize = panelNode.DrawerSize,
+                DockableType = panelNode.DockableType,
+                Family = panelNode.Family,
+                AllowedZones = panelNode.AllowedZones,
+            };
+        }
+
+        private DockTabGroupNode CloneDockTabGroupNode(DockTabGroupNode tabGroupNode)
+        {
+            var clone = new DockTabGroupNode(tabGroupNode.Id)
+            {
+                IsDocumentArea = tabGroupNode.IsDocumentArea,
+            };
+
+            foreach (var panel in tabGroupNode.Panels)
+            {
+                clone.AddPanel(CloneDockPanelNode(panel), -1);
+            }
+
+            if (!string.IsNullOrWhiteSpace(tabGroupNode.ActivePanelId)
+                && clone.Panels.Any(panel => panel.Id == tabGroupNode.ActivePanelId))
+            {
+                clone.SetActivePanel(tabGroupNode.ActivePanelId);
+            }
+
+            return clone;
+        }
+
+        private DockSplitNode CloneDockSplitNode(DockSplitNode splitNode)
+        {
+            return new DockSplitNode(splitNode.Id)
+            {
+                Orientation = splitNode.Orientation,
+                SplitRatio = splitNode.SplitRatio,
+                MinFirstSize = splitNode.MinFirstSize,
+                MinSecondSize = splitNode.MinSecondSize,
+                FirstChild = splitNode.FirstChild == null ? null : CloneDockNode(splitNode.FirstChild),
+                SecondChild = splitNode.SecondChild == null ? null : CloneDockNode(splitNode.SecondChild),
+            };
+        }
+
         private string GetCurrentProjectDirectory()
         {
             var projectFile = EditorProjectSession.CurrentProjectFilePath;
@@ -1186,6 +1383,11 @@ namespace CasaEngine.Editor
 
         private bool IsPanelSupportedInWorkspace(EditorWorkspaceId workspaceId, string panelId)
         {
+            if (panelId == EditorPanelIds.WorldViewport)
+            {
+                return workspaceId == EditorWorkspaceId.World || workspaceId == EditorWorkspaceId.Material;
+            }
+
             if (TryGetUIScreenPreviewPanel(panelId, out _))
             {
                 return workspaceId == EditorWorkspaceId.UIScreen;
@@ -1193,7 +1395,7 @@ namespace CasaEngine.Editor
 
             if (TryGetMaterialAssetInspectorPanel(panelId, out _))
             {
-                return workspaceId == EditorWorkspaceId.Material;
+                return false;
             }
 
             if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
@@ -1329,42 +1531,10 @@ namespace CasaEngine.Editor
             inspectorPanel.LoadAsset(materialAsset, fullPath);
             SetActiveMaterialInspectorPanel(inspectorPanel);
 
-            var panelTitle = string.IsNullOrWhiteSpace(materialAsset.Name)
-                ? Path.GetFileNameWithoutExtension(fullPath)
-                : materialAsset.Name;
-            _materialInspectorPanelTitles[panelId] = panelTitle;
-
-            SwitchWorkspace(EditorWorkspaceId.Material, panelId, preferPersistedLayout: true, logOutcome: false);
-
-            var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
-            if (existingPanel == null)
-            {
-                var panelNode = new DockPanelNode(panelId)
-                {
-                    Title = panelTitle,
-                    DockableType = DockableType.Document,
-                    CanClose = true,
-                    CanFloat = true,
-                    CanAutoHide = false,
-                    ContentFactory = inspectorPanel.CreateContent,
-                };
-
-                var targetGroup = GetDocumentDockGroup();
-                if (targetGroup == null)
-                {
-                    return false;
-                }
-
-                DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
-            }
-            else
-            {
-                existingPanel.Title = panelTitle;
-            }
-
-            ActivateDockPanel(panelId);
+            SwitchWorkspace(EditorWorkspaceId.Material, EditorPanelIds.WorldViewport, preferPersistedLayout: true, logOutcome: false);
+            ActivateDockPanel(EditorPanelIds.WorldViewport);
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Editor] Opened material asset='{materialAsset.Name}', panel='{panelId}'");
+                $"[Editor] Opened material asset='{materialAsset.Name}', viewport='{EditorPanelIds.WorldViewport}'");
             return true;
         }
 
@@ -1385,11 +1555,16 @@ namespace CasaEngine.Editor
                 .Where(panelId => IsPanelSupportedInWorkspace(workspaceId, panelId))
                 .ToList();
 
+            DockNode preservedCommonPanelsLayout = ShouldPreserveCommonPanelsForSwitch(workspaceId)
+                ? CaptureCommonPanelsLayout()
+                : null;
+
             _isSwitchingWorkspace = true;
             try
             {
                 _workspaceManager.ActivateWorkspace(workspaceId, preferPersistedLayout, logOutcome);
                 RestoreDocumentPanels(openDocumentPanelIds);
+                EnsureRequiredPanelsForWorkspace(workspaceId);
 
                 if (workspaceId != EditorWorkspaceId.UIScreen)
                 {
@@ -1400,6 +1575,15 @@ namespace CasaEngine.Editor
                 if (workspaceId != EditorWorkspaceId.Material)
                 {
                     SetActiveMaterialInspectorPanel(null);
+                }
+                else
+                {
+                    ApplyMaterialWorkspaceContext();
+                }
+
+                if (preservedCommonPanelsLayout != null || ShouldPreserveCommonPanelsForSwitch(workspaceId))
+                {
+                    ApplyPreservedCommonPanelsLayout(preservedCommonPanelsLayout);
                 }
 
                 if (!string.IsNullOrWhiteSpace(activePanelId))
@@ -1534,20 +1718,75 @@ namespace CasaEngine.Editor
                 };
             }
 
-            if (TryGetMaterialAssetInspectorPanel(panelId, out var materialInspectorPanel))
+            return null;
+        }
+
+        private DockPanelNode? CreateRegisteredPanelNode(string panelId)
+        {
+            if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
             {
-                return new DockPanelNode(panelId)
-                {
-                    Title = _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
-                    DockableType = DockableType.Document,
-                    CanClose = true,
-                    CanFloat = true,
-                    CanAutoHide = false,
-                    ContentFactory = materialInspectorPanel.CreatePreviewContent,
-                };
+                return null;
             }
 
-            return null;
+            return new DockPanelNode(descriptor.Id)
+            {
+                Title = descriptor.Title,
+                DockableType = descriptor.Kind == EditorPanelKind.Document ? DockableType.Document : DockableType.Tool,
+                CanClose = descriptor.CanClose,
+                CanFloat = descriptor.CanFloat,
+                CanAutoHide = descriptor.CanAutoHide,
+                ContentFactory = descriptor.ContentFactory,
+            };
+        }
+
+        private void EnsureRequiredPanelsForWorkspace(EditorWorkspaceId workspaceId)
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return;
+            }
+
+            if (workspaceId != EditorWorkspaceId.Material)
+            {
+                return;
+            }
+
+            EnsureDocumentPanelPresent(EditorPanelIds.WorldViewport);
+            EnsureToolPanelPresent(EditorPanelIds.MaterialDetails, DockZone.Right);
+        }
+
+        private void EnsureDocumentPanelPresent(string panelId)
+        {
+            if (_dockHost?.LayoutModel == null || _dockHost.LayoutModel.FindPanelById(panelId) != null)
+            {
+                return;
+            }
+
+            var documentGroup = GetDocumentDockGroup();
+            var panelNode = CreateDocumentPanelNode(panelId);
+            if (documentGroup == null || panelNode == null)
+            {
+                return;
+            }
+
+            DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, documentGroup);
+        }
+
+        private void EnsureToolPanelPresent(string panelId, DockZone zone)
+        {
+            if (_dockHost?.LayoutModel == null || _dockHost.LayoutModel.FindPanelById(panelId) != null)
+            {
+                return;
+            }
+
+            var targetGroup = GetDocumentDockGroup();
+            var panelNode = CreateRegisteredPanelNode(panelId);
+            if (targetGroup == null || panelNode == null)
+            {
+                return;
+            }
+
+            DockOperation.SplitDock(_dockHost.LayoutModel, panelNode, targetGroup, zone);
         }
 
         private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
@@ -1574,23 +1813,47 @@ namespace CasaEngine.Editor
             return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
         }
 
+        private bool TryGetActiveMaterialInspectorPanel(out MaterialAssetInspectorPanel inspectorPanel)
+        {
+            inspectorPanel = _activeMaterialInspectorPanel;
+            return inspectorPanel != null;
+        }
+
         private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
         {
             _activeMaterialInspectorPanel = inspectorPanel;
             _materialDetailsPanel?.SetInspectorPanel(inspectorPanel);
+            ApplyMaterialWorkspaceContext();
         }
 
         private void SyncActiveMaterialInspectorPanel()
         {
-            string? activeDocumentPanelId = GetActiveDocumentPanelId();
-            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
-                && TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            if (_activeMaterialInspectorPanel != null
+                && _materialInspectorPanels.Values.Contains(_activeMaterialInspectorPanel))
             {
-                SetActiveMaterialInspectorPanel(inspectorPanel);
+                ApplyMaterialWorkspaceContext();
                 return;
             }
 
             SetActiveMaterialInspectorPanel(null);
+        }
+
+        private void ApplyMaterialWorkspaceContext()
+        {
+            _materialDetailsPanel?.SetInspectorPanel(_activeMaterialInspectorPanel);
+
+            if (_worldViewportPanel == null)
+            {
+                return;
+            }
+
+            if (_activeWorkspaceId == EditorWorkspaceId.Material && _activeMaterialInspectorPanel != null)
+            {
+                _worldViewportPanel.SetWorldOverride(_activeMaterialInspectorPanel.GetOrCreatePreviewWorld());
+                return;
+            }
+
+            _worldViewportPanel.SetWorldOverride(null);
         }
 
         private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
@@ -1747,9 +2010,13 @@ namespace CasaEngine.Editor
             Logs.WriteTrace($"[WorldWorkspace] ApplyWorldWorkspaceContext entity={DescribeEntity(_worldWorkspaceContext.SelectedEntity)} component={DescribeComponent(_worldWorkspaceContext.SelectedComponent)}");
             _entitiesPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
 
-            if (!_automationOptions.HasAutomation)
+            if (!_automationOptions.HasAutomation && _activeWorkspaceId != EditorWorkspaceId.Material)
             {
                 _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+            }
+            else if (_activeWorkspaceId == EditorWorkspaceId.Material)
+            {
+                _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(null);
             }
 
             _entityDetailsPanel?.SyncSelection(_worldWorkspaceContext.SelectedEntity, _worldWorkspaceContext.SelectedComponent);
@@ -1920,9 +2187,7 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            string? activeDocumentPanelId = GetActiveDocumentPanelId();
-            if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
-                || !TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            if (!TryGetActiveMaterialInspectorPanel(out var inspectorPanel))
             {
                 return;
             }
@@ -2057,8 +2322,7 @@ namespace CasaEngine.Editor
 
         private void AppendMaterialInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
         {
-            if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
-                || !TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var inspectorPanel))
+            if (!TryGetActiveMaterialInspectorPanel(out var inspectorPanel))
             {
                 return;
             }

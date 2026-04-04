@@ -189,14 +189,17 @@ internal sealed class MaterialPreviewViewport : IDisposable
         return _root;
     }
 
+    public World? GetOrCreatePreviewWorld()
+    {
+        EnsurePreviewSceneCreated();
+        return _previewWorld;
+    }
+
     public void SetMaterialAsset(MaterialAsset? materialAsset)
     {
         _materialAsset = materialAsset;
 
-        if (_renderView == null)
-        {
-            return;
-        }
+        EnsurePreviewSceneCreated();
 
         RefreshMaterial();
     }
@@ -212,7 +215,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         {
             $"Shape: {_activeShape}",
             $"Texture: {DescribeBoundTexture()}",
-            $"View mode: {_renderView?.UpdateMode.ToString() ?? "<none>"}",
+            $"View mode: {_renderView?.UpdateMode.ToString() ?? (_previewWorld != null ? "ExternalWorldViewport" : "<none>")}",
             $"Status: {_statusMessage}",
         };
 
@@ -293,7 +296,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
             return;
         }
 
-        EnsurePreviewWorldCreated();
+        EnsurePreviewSceneCreated();
 
         _cameraEntity = new Entity
         {
@@ -333,9 +336,13 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _renderViewHost = new MguiPreviewViewHost(renderView.Id,
             () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
         _renderView.Host = _renderViewHost;
-
-        ApplyShapeToPreview();
         _renderView.Invalidate();
+    }
+
+    private void EnsurePreviewSceneCreated()
+    {
+        EnsurePreviewWorldCreated();
+        ApplyShapeToPreview();
     }
 
     private void EnsurePreviewWorldCreated()

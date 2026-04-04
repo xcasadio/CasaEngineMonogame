@@ -9,6 +9,7 @@ using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Materials;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -180,6 +181,11 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     public IReadOnlyList<string> GetAutomationPreviewStateSnapshot()
     {
         return _materialPreview?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
+    }
+
+    public World? GetOrCreatePreviewWorld()
+    {
+        return _materialPreview?.GetOrCreatePreviewWorld();
     }
 
     public void RefreshPreviewAfterDraw()

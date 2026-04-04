@@ -114,11 +114,13 @@ public class WorldViewportPanel : IDisposable
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
     private World? _observedWorld;
+    private World? _renderWorldOverride;
     private Entity? _cameraEntity;
     private Entity? _selectedEntity;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
+    private EditorViewportCameraState? _savedPrimaryWorldCameraState;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
     private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
@@ -187,7 +189,15 @@ public class WorldViewportPanel : IDisposable
     {
         SynchronizeRenderViewWorld();
         SynchronizeCamera();
-        SynchronizeGizmo();
+        if (HasWorldOverride)
+        {
+            _gizmoController.Deactivate();
+        }
+        else
+        {
+            SynchronizeGizmo();
+        }
+
         RefreshTextureBinding();
     }
 
@@ -217,7 +227,10 @@ public class WorldViewportPanel : IDisposable
                 () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
         }
 
-        UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+        if (!HasWorldOverride)
+        {
+            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+        }
     }
 
     private static bool IsPointerInputRoutedToView(ViewInputContext inputContext, ViewId viewId)
@@ -237,6 +250,51 @@ public class WorldViewportPanel : IDisposable
     {
         _selectedEntity = entity;
         _gizmoController.SetSelectedEntity(entity);
+    }
+
+    public bool HasWorldOverride => _renderWorldOverride != null;
+
+    public void SetWorldOverride(World? world)
+    {
+        if (ReferenceEquals(_renderWorldOverride, world))
+        {
+            return;
+        }
+
+        bool enteringPreview = _renderWorldOverride == null && world != null;
+        bool leavingPreview = _renderWorldOverride != null && world == null;
+
+        if (enteringPreview)
+        {
+            _savedPrimaryWorldCameraState = _cameraController.CaptureState();
+        }
+
+        _renderWorldOverride = world;
+
+        if (_renderWorldOverride != null)
+        {
+            if (_selectedEntity != null)
+            {
+                _selectedEntity = null;
+                SelectedEntityChanged?.Invoke(null);
+            }
+
+            _gizmoController.SetSelectedEntity(null);
+            _cameraController.SetState(MathHelper.PiOver4, -MathHelper.Pi / 6f, 4.2f, Vector3.Zero);
+        }
+        else if (leavingPreview && _savedPrimaryWorldCameraState.HasValue)
+        {
+            _cameraController.RestoreState(_savedPrimaryWorldCameraState.Value);
+            _savedPrimaryWorldCameraState = null;
+        }
+
+        if (_camera != null)
+        {
+            _cameraController.ApplyTo(_camera);
+        }
+
+        SynchronizeRenderViewWorld();
+        _renderView?.Invalidate();
     }
 
     public void FocusEntity(Entity? entity)
@@ -306,6 +364,11 @@ public class WorldViewportPanel : IDisposable
 
     private bool CanDropAssets(IReadOnlyList<ContentItem>? draggedItems)
     {
+        if (HasWorldOverride)
+        {
+            return false;
+        }
+
         if (_editorRuntime.GameManager.CurrentWorld == null || !AssetCatalog.IsLoaded)
         {
             return false;
@@ -604,6 +667,11 @@ public class WorldViewportPanel : IDisposable
 
     private World GetRenderWorld()
     {
+        if (_renderWorldOverride != null)
+        {
+            return _renderWorldOverride;
+        }
+
         var currentWorld = _editorRuntime.GameManager.CurrentWorld;
         if (currentWorld != null)
         {
@@ -632,7 +700,7 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        var desiredWorld = _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld ?? CreateFallbackWorld();
+        var desiredWorld = _renderWorldOverride ?? _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld ?? CreateFallbackWorld();
         AttachWorld(desiredWorld);
         if (ReferenceEquals(_renderView.World, desiredWorld))
         {

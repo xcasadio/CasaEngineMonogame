@@ -19,6 +19,7 @@ public sealed class MaterialEditorWorkspace : EditorWorkspaceBase
 
     public override DockNode CreateDefaultLayout()
     {
+        var worldViewport = CreatePanelNode(EditorPanelIds.WorldViewport);
         var details = CreatePanelNode(EditorPanelIds.MaterialDetails);
         var contentBrowser = CreatePanelNode(EditorPanelIds.ContentBrowser);
         var output = CreatePanelNode(EditorPanelIds.Output);
@@ -35,6 +36,8 @@ public sealed class MaterialEditorWorkspace : EditorWorkspaceBase
         {
             IsDocumentArea = true,
         };
+        documentGroup.AddPanel(worldViewport, -1);
+        documentGroup.SetActivePanel(worldViewport.Id);
 
         var detailsGroup = new DockTabGroupNode();
         detailsGroup.AddPanel(details, -1);

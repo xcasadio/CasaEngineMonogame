@@ -6,6 +6,25 @@ using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Editor.Runtime;
 
+internal readonly struct EditorViewportCameraState
+{
+    public EditorViewportCameraState(float yaw, float pitch, float distance, Vector3 target)
+    {
+        Yaw = yaw;
+        Pitch = pitch;
+        Distance = distance;
+        Target = target;
+    }
+
+    public float Yaw { get; }
+
+    public float Pitch { get; }
+
+    public float Distance { get; }
+
+    public Vector3 Target { get; }
+}
+
 internal sealed class EditorViewportCameraController
 {
     private const float OrbitSensitivity = 0.005f;
@@ -41,6 +60,27 @@ internal sealed class EditorViewportCameraController
         camera.Distance = Distance;
         camera.Yaw = Yaw;
         camera.Pitch = Pitch;
+    }
+
+    public EditorViewportCameraState CaptureState()
+    {
+        return new EditorViewportCameraState(Yaw, Pitch, Distance, Target);
+    }
+
+    public void RestoreState(in EditorViewportCameraState state)
+    {
+        SetState(state.Yaw, state.Pitch, state.Distance, state.Target);
+    }
+
+    public void SetState(float yaw, float pitch, float distance, Vector3 target)
+    {
+        Yaw = yaw;
+        Pitch = Math.Clamp(
+            pitch,
+            -MathHelper.PiOver2 + 0.01f,
+            MathHelper.PiOver2 - 0.01f);
+        Distance = Math.Clamp(distance, MinDistance, MaxDistance);
+        Target = target;
     }
 
     public void Focus(Vector3 target, float? distance = null)

@@ -37,7 +37,9 @@ public class MaterialEditorWorkspaceTests
 
         var documentGroup = Assert.IsType<DockTabGroupNode>(topArea.FirstChild);
         Assert.True(documentGroup.IsDocumentArea);
-        Assert.Empty(documentGroup.Panels);
+        var worldViewportPanel = Assert.Single(documentGroup.Panels);
+        Assert.Equal(EditorPanelIds.WorldViewport, worldViewportPanel.Id);
+        Assert.False(worldViewportPanel.CanClose);
 
         var detailsGroup = Assert.IsType<DockTabGroupNode>(topArea.SecondChild);
         var detailsPanel = Assert.Single(detailsGroup.Panels);
@@ -59,6 +61,16 @@ public class MaterialEditorWorkspaceTests
     {
         return new EditorPanelRegistry(new[]
         {
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.WorldViewport,
+                Title = "World Viewport",
+                Scope = EditorPanelScope.World,
+                Kind = EditorPanelKind.Document,
+                CanClose = false,
+                CanFloat = false,
+                ContentFactory = CreateUnavailableContent,
+            },
             new EditorPanelDescriptor
             {
                 Id = EditorPanelIds.MaterialDetails,
