@@ -284,7 +284,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(materials): bridge compiled materials to current renderer runtime`
 
-- ⏳ **T05.04 — Faire produire des `MaterialAsset` a l'import static model**
+- ✅ **T05.04 — Faire produire des `MaterialAsset` a l'import static model**
   Objectif:
   - Remplacer la creation directe de `LitDiffuseMaterial` dans l'importeur par la creation d'assets authoring.
   - Conserver les GUIDs et le workflow du content browser.
@@ -294,7 +294,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `refactor(import): author materials as material assets`
 
-- ⏳ **T05.05 — Ajouter des tests legacy + nouveau format**
+- 🚧 **T05.05 — Ajouter des tests legacy + nouveau format**
   Objectif:
   - Garantir que le nouveau loader ne casse pas les `.material` existants.
   - Cadrer la compilation depuis le format authoring.

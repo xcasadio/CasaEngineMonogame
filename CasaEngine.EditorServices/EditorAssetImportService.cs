@@ -149,23 +149,23 @@ public static class EditorAssetImportService
             string materialAssetName = $"{modelBaseName}_{Path.GetFileNameWithoutExtension(materialFileName)}";
             var materialAssetInfo = EnsureAssetInfo(materialRelativePath, materialAssetName);
 
-            var material = new LitDiffuseMaterial
+            var material = new MaterialAsset("lit-diffuse")
             {
                 Name = materialAssetInfo.Name,
-                DiffuseColor = importedMaterial.DiffuseColor,
-                EmissiveColor = importedMaterial.EmissiveColor,
-                SpecularColor = importedMaterial.SpecularColor,
-                SpecularPower = importedMaterial.SpecularPower,
             };
+            material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
+            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(importedMaterial.EmissiveColor));
+            material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
+            material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
 
             if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
             {
-                material.BasColorAssetId = diffuseTextureAssetId;
+                material.SetPropertyValue("base_color_texture", MaterialValue.FromTextureId(diffuseTextureAssetId));
             }
 
             if (importedTextureAssets.NormalTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var normalTextureAssetId))
             {
-                material.NormalMapAssetId = normalTextureAssetId;
+                material.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(normalTextureAssetId));
             }
 
             var materialDocument = SerializeAsset(material, materialAssetInfo.Id, materialAssetInfo.Name);
