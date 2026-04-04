@@ -178,7 +178,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                     var effectiveShader = EffectiveShaderResolver.Resolve(mat);
-                    var features = mat.GetFeatures(mesh);
+                    var features = ResolveRenderFeatures(mat, mesh);
                     var item = new RenderItem
                     {
                         Mesh                  = mesh,
@@ -211,7 +211,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
                 var effectiveShader = EffectiveShaderResolver.Resolve(mat);
-                var features = mat.GetFeatures(mesh);
+                var features = ResolveRenderFeatures(mat, mesh);
                 var item = new RenderItem
                 {
                     Mesh                  = mesh,
@@ -309,6 +309,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             ? materialOverride
             : null;
     }
+
+    private static ShaderFeature ResolveRenderFeatures(MaterialBase material, StaticModelMesh mesh)
+        => RenderFeatureResolver.Resolve(new RenderFeatureInput
+        {
+            Material = material,
+            Mesh = mesh,
+        });
+
     private class MeshInfo
     {
         public StaticModelMesh? StaticModelMesh;

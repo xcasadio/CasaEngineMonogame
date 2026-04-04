@@ -129,7 +129,7 @@ Le resultat cible doit couvrir ces points :
   Commit conseille:
   - `feat(rendering): derive mesh and draw-path shader features`
 
-- ⏳ **T02.05 — Brancher `RenderFeatureResolver` dans les renderers**
+- ✅ **T02.05 — Brancher `RenderFeatureResolver` dans les renderers**
   Objectif:
   - Utiliser le resolver dans `StaticMeshRendererComponent` et la voie skinned si applicable.
   - Supprimer les calculs ad hoc restants.
