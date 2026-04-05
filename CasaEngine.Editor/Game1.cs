@@ -1036,7 +1036,6 @@ namespace CasaEngine.Editor
                     break;
 
                 case EditorHistoryContextKind.ContentBrowser:
-                    _contentBrowserPanel?.Refresh();
                     break;
             }
         }

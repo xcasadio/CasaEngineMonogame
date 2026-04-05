@@ -532,13 +532,13 @@ La feature sera consideree complete quand :
 - `feat(content-browser): add undo redo for browser actions`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `72139213` `feat(content-browser): add undo redo for browser actions`
 
 ---
 
-### ⏳ Phase 7 - Stabilisation, validation et doc
+### 🚧 Phase 7 - Stabilisation, validation et doc
 
-#### ⏳ Tache 7.1 - Optimiser les refresh et la restauration de selection
+#### 🧪 Tache 7.1 - Optimiser les refresh et la restauration de selection
 
 **Objectif :** eviter les refresh trop larges et les regressions UX apres undo/redo.
 
@@ -559,11 +559,11 @@ La feature sera consideree complete quand :
 - `fix(editor-history): stabilize panel refresh after undo redo`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
-#### ⏳ Tache 7.2 - Ajouter une validation smoke ciblee
+#### 🚧 Tache 7.2 - Ajouter une validation smoke ciblee
 
 **Objectif :** prouver que la feature marche sur toutes les surfaces editables.
 

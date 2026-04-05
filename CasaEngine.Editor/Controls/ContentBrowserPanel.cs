@@ -1668,9 +1668,9 @@ public class ContentBrowserPanel
         }
 
         string? executeFolderPath = _currentFolder?.FullPath;
-        if (!copied && items.Count == 1)
+        if (!copied)
         {
-            executeFolderPath = TranslateFolderPath(_currentFolder?.FullPath, items[0].FullPath, operation.SelectionAfterExecute.Count > 0 ? operation.SelectionAfterExecute[0] : targetFolder.FullPath);
+            executeFolderPath = TranslateFolderPath(_currentFolder?.FullPath, sourcePaths, operation.SelectionAfterExecute);
         }
 
         var executeViewState = CreateViewState(executeFolderPath, operation.SelectionAfterExecute);
@@ -1861,6 +1861,18 @@ public class ContentBrowserPanel
         return string.IsNullOrWhiteSpace(relativeSuffix)
             ? destinationPath
             : Path.Combine(destinationPath, relativeSuffix);
+    }
+
+    private static string? TranslateFolderPath(string? folderPath, IReadOnlyList<string> sourcePaths, IReadOnlyList<string> destinationPaths)
+    {
+        string? translatedPath = folderPath;
+        int count = Math.Min(sourcePaths.Count, destinationPaths.Count);
+        for (int i = 0; i < count; i++)
+        {
+            translatedPath = TranslateFolderPath(translatedPath, sourcePaths[i], destinationPaths[i]);
+        }
+
+        return translatedPath;
     }
 
     private static bool IsSamePathOrDescendant(string path, string rootPath)
