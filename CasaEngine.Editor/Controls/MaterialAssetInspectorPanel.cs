@@ -17,6 +17,7 @@ using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
@@ -36,6 +37,8 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
     private MaterialAsset? _materialAsset;
     private string? _loadedRelativePath;
+    private string? _savedSnapshot;
+    private bool _isDirty;
     private readonly Dictionary<Guid, MaterialAsset?> _resolvedParentMaterials = new();
     private readonly Dictionary<string, PropertyRowBinding> _propertyRows = new(StringComparer.OrdinalIgnoreCase);
 
@@ -71,6 +74,10 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     public string? LoadedRelativePath => _loadedRelativePath;
 
     public MaterialAsset? LoadedMaterialAsset => _materialAsset;
+
+    public bool IsDirty => _isDirty;
+
+    public event Action<MaterialAssetInspectorPanel>? DirtyStateChanged;
 
     public MGElement CreatePreviewContent()
     {
@@ -146,8 +153,10 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
         _materialAsset = materialAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+        _savedSnapshot = SerializeMaterialAsset(materialAsset);
         _resolvedParentMaterials.Clear();
         _materialPreview?.SetMaterialAsset(materialAsset);
+        SetDirty(false);
         RefreshInspector();
     }
 
@@ -208,6 +217,16 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             return false;
         }
 
+        if (IsDirty)
+        {
+            if (_statusText != null)
+            {
+                _statusText.Text = $"Unsaved changes kept for {EscapeMarkup(_loadedRelativePath)}";
+            }
+
+            return false;
+        }
+
         string fullPath = Path.Combine(EngineEnvironment.ProjectPath, _loadedRelativePath);
         if (!TryLoadMaterialAsset(fullPath, out var materialAsset))
         {
@@ -243,7 +262,13 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         try
         {
             _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
-            SaveMaterialAsset();
+            UpdateDirtyStateFromCurrentMaterial();
+            if (!TrySaveLoadedAsset(out string? saveError))
+            {
+                statusMessage = saveError ?? "Unable to save material asset.";
+                return false;
+            }
+
             RefreshEditedProperty(propertyDefinition, refreshEditorValue: true);
             statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
                 ? $"Saved property '{propertyDefinition.Key}'."
@@ -681,11 +706,13 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
                 _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
             }
 
-            SaveMaterialAsset();
+            UpdateDirtyStateFromCurrentMaterial();
             RefreshEditedProperty(propertyDefinition, refreshEditorValue);
             if (_statusText != null && !string.IsNullOrWhiteSpace(_loadedRelativePath))
             {
-                _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
+                _statusText.Text = IsDirty
+                    ? $"Modified {EscapeMarkup(_loadedRelativePath)}"
+                    : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
             }
         }
         catch (Exception exception)
@@ -720,21 +747,81 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
     }
 
-    private void SaveMaterialAsset()
+    public bool TrySaveLoadedAsset(out string? errorMessage)
     {
+        errorMessage = null;
+
         if (_materialAsset == null || string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            errorMessage = "No material is loaded.";
+            return false;
+        }
+
+        if (!IsDirty)
+        {
+            if (_statusText != null)
+            {
+                _statusText.Text = $"Already saved {EscapeMarkup(_loadedRelativePath)}";
+            }
+
+            return true;
+        }
+
+        try
+        {
+            var document = new JObject();
+            MaterialAssetJsonSerializer.Save(_materialAsset, document);
+            EditorAssetWriterService.SaveDocument(_loadedRelativePath, document, EditorAssetSaveSource.MaterialInspectorPanel);
+            _savedSnapshot = document.ToString(Formatting.None);
+            SetDirty(false);
+
+            if (_statusText != null)
+            {
+                _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
+            }
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            errorMessage = exception.Message;
+            if (_statusText != null)
+            {
+                _statusText.Text = $"Failed to save {EscapeMarkup(_loadedRelativePath)}: {exception.Message}";
+            }
+
+            return false;
+        }
+    }
+
+    private void UpdateDirtyStateFromCurrentMaterial()
+    {
+        if (_materialAsset == null)
+        {
+            SetDirty(false);
+            return;
+        }
+
+        SetDirty(!string.Equals(SerializeMaterialAsset(_materialAsset), _savedSnapshot, StringComparison.Ordinal));
+    }
+
+    private void SetDirty(bool isDirty)
+    {
+        if (_isDirty == isDirty)
         {
             return;
         }
 
-        var document = new JObject();
-        MaterialAssetJsonSerializer.Save(_materialAsset, document);
-        EditorAssetWriterService.SaveDocument(_loadedRelativePath, document, EditorAssetSaveSource.MaterialInspectorPanel);
+        _isDirty = isDirty;
+        DirtyStateChanged?.Invoke(this);
+    }
 
-        if (_statusText != null)
-        {
-            _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
-        }
+    private static string SerializeMaterialAsset(MaterialAsset materialAsset)
+    {
+        var document = new JObject();
+        MaterialAssetJsonSerializer.Save(materialAsset, document);
+        return document.ToString(Formatting.None);
     }
 
     private bool TryFindPropertyDefinition(string propertyKey, out MaterialPropertyDefinition propertyDefinition)

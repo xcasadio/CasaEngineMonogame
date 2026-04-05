@@ -328,7 +328,7 @@ La feature sera consideree complete quand :
 - `feat(screen-editor): group drag and multi-property edits`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `1dbaede9` `feat(screen-editor): group drag and multi-property edits`
 
 ---
 
@@ -409,9 +409,9 @@ La feature sera consideree complete quand :
 
 ---
 
-### ⏳ Phase 5 - Couvrir le material editor
+### 🚧 Phase 5 - Couvrir le material editor
 
-#### 🚧 Tache 5.1 - Introduire une session d'authoring material avec dirty state
+#### ✅ Tache 5.1 - Introduire une session d'authoring material avec dirty state
 
 **Objectif :** supprimer la sauvegarde immediate a chaque edit et revenir a un flux moderne.
 
@@ -431,11 +431,11 @@ La feature sera consideree complete quand :
 - `feat(material-editor): add material authoring session and dirty tracking`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
-#### ⏳ Tache 5.2 - Encapsuler les edits material en commandes
+#### 🚧 Tache 5.2 - Encapsuler les edits material en commandes
 
 **Objectif :** couvrir toutes les mutations faites dans `MaterialAssetInspectorPanel`.
 
