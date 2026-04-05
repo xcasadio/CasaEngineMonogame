@@ -481,13 +481,13 @@ La feature sera consideree complete quand :
 - `feat(material-editor): connect save and hot reload to material history`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `dd93a324` `feat(material-editor): connect save and hot reload to material history`
 
 ---
 
-### ⏳ Phase 6 - Couvrir le content browser
+### 🚧 Phase 6 - Couvrir le content browser
 
-#### ⏳ Tache 6.1 - Ajouter une infrastructure de file operations reversibles
+#### 🧪 Tache 6.1 - Ajouter une infrastructure de file operations reversibles
 
 **Objectif :** rendre undoables les operations du content browser sans casser le file watcher ni le catalogue.
 
@@ -507,11 +507,11 @@ La feature sera consideree complete quand :
 - `feat(content-browser): add reversible file operation infrastructure`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
-#### ⏳ Tache 6.2 - Brancher `ContentBrowserPanel` sur l'historique global
+#### 🚧 Tache 6.2 - Brancher `ContentBrowserPanel` sur l'historique global
 
 **Objectif :** remplacer les appels directs par des commandes undoables.
 

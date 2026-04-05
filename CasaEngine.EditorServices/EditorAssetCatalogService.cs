@@ -35,6 +35,15 @@ public static class EditorAssetCatalogService
         AssetAdded?.Invoke(null, assetInfo);
     }
 
+    public static bool TryRemoveEntry(Guid id, out AssetInfo? assetInfo)
+        => AssetCatalog.RemoveInternal(id, out assetInfo);
+
+    public static void RestoreEntry(AssetInfo assetInfo)
+    {
+        ArgumentNullException.ThrowIfNull(assetInfo);
+        AssetCatalog.AddInternal(assetInfo);
+    }
+
     public static void Remove(Guid id)
     {
         if (!AssetCatalog.RemoveInternal(id, out var assetInfo) || assetInfo == null)
