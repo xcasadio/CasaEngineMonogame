@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CasaEngine.Editor.History;
+using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game.Components.DebugTools;
@@ -17,11 +20,27 @@ namespace CasaEngine.Editor.Runtime;
 
 internal sealed class EditorViewportGizmoController : IDisposable
 {
+    private readonly record struct TransformSnapshot(ITransformableObject Transformable, Vector3 Position, Quaternion Orientation, Vector3 Scale);
+
+    private sealed class ManipulationSession
+    {
+        public ManipulationSession(string description, List<TransformSnapshot> initialSnapshots)
+        {
+            Description = description;
+            InitialSnapshots = initialSnapshots;
+        }
+
+        public string Description { get; }
+
+        public List<TransformSnapshot> InitialSnapshots { get; }
+    }
+
     private readonly HostedEditorGameAdapter _editorRuntime;
     private TransformGizmoComponent? _gizmo;
     private MouseState _previousMouseState;
     private KeyboardState _previousKeyboardState;
     private bool _suppressSelectionChanged;
+    private ManipulationSession? _activeManipulation;
 
     public EditorViewportGizmoController(HostedEditorGameAdapter editorRuntime)
     {
@@ -75,6 +94,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
             return;
         }
 
+        CancelManipulation();
         _gizmo.SelectionWorld = world;
         ApplySelectionUpdate(() =>
         {
@@ -91,6 +111,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
             return;
         }
 
+        CancelManipulation();
         _gizmo.SelectionWorld = world;
         ApplySelectionUpdate(() =>
         {
@@ -121,6 +142,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
             return;
         }
 
+        CancelManipulation();
         ApplySelectionUpdate(() =>
         {
             _gizmo.ClearSelection();
@@ -145,6 +167,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     {
         if (_gizmo == null || camera == null || surface == null)
         {
+            CancelManipulation();
             _previousKeyboardState = inputContext.KeyboardState;
             _previousMouseState = inputContext.MouseState;
             return;
@@ -158,6 +181,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         if (!receivesInput && !isKeyboardFocused)
         {
+            CancelManipulation();
             _gizmo.IsActiveViewport = false;
             _gizmo.Gizmo.RefreshPresentation();
             _previousKeyboardState = inputContext.KeyboardState;
@@ -222,15 +246,24 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         bool leftJustPressed = mouseState.LeftButton == ButtonState.Pressed
             && _previousMouseState.LeftButton == ButtonState.Released;
+        bool leftJustReleased = mouseState.LeftButton == ButtonState.Released
+            && _previousMouseState.LeftButton == ButtonState.Pressed;
 
         if (leftJustPressed)
         {
+            BeginManipulationIfNeeded();
+
             bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
             bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
             _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
         }
 
         _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
+
+        if (leftJustReleased)
+        {
+            CommitManipulationIfNeeded();
+        }
 
         _previousKeyboardState = keyboardState;
         _previousMouseState = mouseState;
@@ -240,6 +273,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     {
         if (_gizmo != null)
         {
+            CancelManipulation();
             _gizmo.SelectionChanged -= OnGizmoSelectionChanged;
             _gizmo.ClearSelection();
             _editorRuntime.Components.Remove(_gizmo);
@@ -293,6 +327,127 @@ internal sealed class EditorViewportGizmoController : IDisposable
         }
 
         _gizmo?.Gizmo.RefreshPresentation();
+    }
+
+    private void BeginManipulationIfNeeded()
+    {
+        if (_gizmo == null
+            || _gizmo.Gizmo.ActiveAxis == GizmoAxis.None
+            || _gizmo.CurrentSelection.Count == 0)
+        {
+            return;
+        }
+
+        _activeManipulation = new ManipulationSession(
+            BuildManipulationDescription(_gizmo.Gizmo.ActiveMode, _gizmo.CurrentSelection.Count),
+            CaptureSelectionSnapshots(_gizmo.CurrentSelection));
+    }
+
+    private void CommitManipulationIfNeeded()
+    {
+        if (_gizmo == null || _activeManipulation == null)
+        {
+            return;
+        }
+
+        var initialSnapshots = _activeManipulation.InitialSnapshots;
+        string description = _activeManipulation.Description;
+        var finalSnapshots = CaptureSnapshots(initialSnapshots);
+        if (!HasTransformDifference(initialSnapshots, finalSnapshots))
+        {
+            _activeManipulation = null;
+            return;
+        }
+
+        var command = new EditorDelegateCommand(
+            description,
+            () => ApplySnapshots(finalSnapshots),
+            () => ApplySnapshots(initialSnapshots));
+
+        _activeManipulation = null;
+        EditorHistoryService.Current.Execute(
+            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            command);
+    }
+
+    private void CancelManipulation()
+    {
+        _activeManipulation = null;
+    }
+
+    private void ApplySnapshots(IReadOnlyList<TransformSnapshot> snapshots)
+    {
+        for (int index = 0; index < snapshots.Count; index++)
+        {
+            var snapshot = snapshots[index];
+            snapshot.Transformable.Position = snapshot.Position;
+            snapshot.Transformable.Orientation = snapshot.Orientation;
+            snapshot.Transformable.Scale = snapshot.Scale;
+        }
+
+        RefreshPresentation();
+    }
+
+    private static List<TransformSnapshot> CaptureSelectionSnapshots(IReadOnlyList<ITransformableObject> selection)
+    {
+        var snapshots = new List<TransformSnapshot>(selection.Count);
+        for (int index = 0; index < selection.Count; index++)
+        {
+            var transformable = selection[index];
+            snapshots.Add(new TransformSnapshot(transformable, transformable.Position, transformable.Orientation, transformable.Scale));
+        }
+
+        return snapshots;
+    }
+
+    private static List<TransformSnapshot> CaptureSnapshots(IReadOnlyList<TransformSnapshot> snapshots)
+    {
+        var result = new List<TransformSnapshot>(snapshots.Count);
+        for (int index = 0; index < snapshots.Count; index++)
+        {
+            var transformable = snapshots[index].Transformable;
+            result.Add(new TransformSnapshot(transformable, transformable.Position, transformable.Orientation, transformable.Scale));
+        }
+
+        return result;
+    }
+
+    private static bool HasTransformDifference(IReadOnlyList<TransformSnapshot> initialSnapshots, IReadOnlyList<TransformSnapshot> finalSnapshots)
+    {
+        if (initialSnapshots.Count != finalSnapshots.Count)
+        {
+            return true;
+        }
+
+        for (int index = 0; index < initialSnapshots.Count; index++)
+        {
+            var initial = initialSnapshots[index];
+            var final = finalSnapshots[index];
+            if (!Equals(initial.Transformable, final.Transformable)
+                || initial.Position != final.Position
+                || initial.Orientation != final.Orientation
+                || initial.Scale != final.Scale)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string BuildManipulationDescription(GizmoMode mode, int selectionCount)
+    {
+        string operation = mode switch
+        {
+            GizmoMode.Rotate => "Rotate",
+            GizmoMode.NonUniformScale => "Scale",
+            GizmoMode.UniformScale => "Scale",
+            _ => "Move",
+        };
+
+        return selectionCount == 1
+            ? $"{operation} Entity"
+            : $"{operation} {selectionCount} Entities";
     }
 
     private bool IsNewKeyPress(KeyboardState keyboardState, Keys key)

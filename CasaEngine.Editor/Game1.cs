@@ -6,6 +6,7 @@ using CasaEngine.Editor.Docking;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Materials;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
@@ -132,6 +133,7 @@ namespace CasaEngine.Editor
         public Game1(EditorAutomationOptions? automationOptions = null)
         {
             _automationOptions = automationOptions ?? new EditorAutomationOptions();
+            _editorHistory.HistoryChanged += OnEditorHistoryChanged;
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)
                 ? GraphicsProfile.HiDef
@@ -1028,6 +1030,15 @@ namespace CasaEngine.Editor
                 case EditorHistoryContextKind.ContentBrowser:
                     _contentBrowserPanel?.Refresh();
                     break;
+            }
+        }
+
+        private void OnEditorHistoryChanged(object? sender, EditorHistoryChangedEventArgs e)
+        {
+            if (e.ChangeKind == EditorHistoryStackChangeKind.Executed
+                && e.Context.Kind == EditorHistoryContextKind.World)
+            {
+                RefreshWorldSelectionViews();
             }
         }
 

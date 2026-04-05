@@ -380,7 +380,7 @@ La feature sera consideree complete quand :
 - `feat(world-editor): add undo redo for entity inspector edits`
 
 **Commit realise :**
-- `e5a647c0` `feat(world-editor): add undo redo for entity inspector edits` + correctif camera `a renseigner au commit suivant`
+- `e5a647c0` `feat(world-editor): add undo redo for entity inspector edits` + `ece7a88a` `fix(world-editor): route camera inspector edits through history`
 
 ---
 
