@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using CasaEngine.Editor.Controls;
+using CasaEngine.Editor.History;
+using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -208,6 +211,59 @@ public abstract class ComponentEditorBase
             : assetInfo.Name;
     }
 
+    protected string BuildComponentCommandDescription(string subject)
+        => $"Edit {GetDisplayName(Component)} {subject}";
+
+    protected void ApplyPropertyChange(object target, PropertyDescriptor property, object? newValue, Action? afterApply = null)
+    {
+        ArgumentNullException.ThrowIfNull(target);
+        ArgumentNullException.ThrowIfNull(property);
+
+        var currentValue = property.GetValue(target);
+        if (Equals(currentValue, newValue))
+        {
+            return;
+        }
+
+        ExecuteWorldCommand(
+            BuildComponentCommandDescription(property.DisplayName),
+            () =>
+            {
+                property.SetValue(target, newValue);
+                afterApply?.Invoke();
+            },
+            () =>
+            {
+                property.SetValue(target, currentValue);
+                afterApply?.Invoke();
+            });
+    }
+
+    protected void ApplyValueChange<T>(string description, Func<T> getter, Action<T> setter, T newValue, Action? afterApply = null)
+    {
+        ArgumentNullException.ThrowIfNull(getter);
+        ArgumentNullException.ThrowIfNull(setter);
+
+        var currentValue = getter();
+        if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
+        {
+            return;
+        }
+
+        ExecuteWorldCommand(
+            description,
+            () =>
+            {
+                setter(newValue);
+                afterApply?.Invoke();
+            },
+            () =>
+            {
+                setter(currentValue);
+                afterApply?.Invoke();
+            });
+    }
+
     protected virtual MGElement? CreatePropertyEditor(object target, PropertyDescriptor property)
     {
         var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
@@ -220,7 +276,7 @@ public abstract class ComponentEditorBase
                 HorizontalAlignment = HorizontalAlignment.Stretch,
             };
             textBox.SetText((string?)currentValue ?? string.Empty);
-            textBox.TextChanged += (_, e) => property.SetValue(target, e.NewValue);
+            textBox.TextChanged += (_, e) => ApplyPropertyChange(target, property, e.NewValue);
             return textBox;
         }
 
@@ -230,7 +286,7 @@ public abstract class ComponentEditorBase
             {
                 IsChecked = (bool?)currentValue ?? false,
             };
-            checkBox.OnCheckStateChanged += (_, e) => property.SetValue(target, e.NewValue ?? false);
+            checkBox.OnCheckStateChanged += (_, e) => ApplyPropertyChange(target, property, e.NewValue ?? false);
             return checkBox;
         }
 
@@ -256,7 +312,7 @@ public abstract class ComponentEditorBase
                     : propertyType == typeof(double)
                         ? value
                         : value;
-                property.SetValue(target, converted);
+                ApplyPropertyChange(target, property, converted);
             };
 
             return numericField;
@@ -268,14 +324,14 @@ public abstract class ComponentEditorBase
             {
                 Value = currentValue is Vector3 vector ? vector : Vector3.Zero,
             };
-            vectorEditor.ValueChanged += (_, value) => property.SetValue(target, value);
+            vectorEditor.ValueChanged += (_, value) => ApplyPropertyChange(target, property, value);
             return vectorEditor;
         }
 
         if (propertyType == typeof(Color))
         {
             var colorEditor = new ColorEditor(Window, currentValue is Color color ? color : Color.White);
-            colorEditor.ValueChanged += (_, value) => property.SetValue(target, value);
+            colorEditor.ValueChanged += (_, value) => ApplyPropertyChange(target, property, value);
             return colorEditor;
         }
 
@@ -287,7 +343,7 @@ public abstract class ComponentEditorBase
                 {
                     AssetId = currentValue is Guid assetGuid ? assetGuid : Guid.Empty,
                 };
-                selector.AssetChanged += (_, value) => property.SetValue(target, value);
+                selector.AssetChanged += (_, value) => ApplyPropertyChange(target, property, value);
                 return selector;
             }
 
@@ -300,7 +356,7 @@ public abstract class ComponentEditorBase
             {
                 if (Guid.TryParse(e.NewValue, out var parsedGuid))
                 {
-                    property.SetValue(target, parsedGuid);
+                    ApplyPropertyChange(target, property, parsedGuid);
                 }
             };
             return guidBox;
@@ -310,7 +366,7 @@ public abstract class ComponentEditorBase
         {
             return CreateStringCombo(Enum.GetNames(propertyType), currentValue?.ToString(), value =>
             {
-                property.SetValue(target, Enum.Parse(propertyType, value));
+                ApplyPropertyChange(target, property, Enum.Parse(propertyType, value));
             });
         }
 
@@ -343,5 +399,12 @@ public abstract class ComponentEditorBase
         }
 
         return includeProperty?.Invoke(property) ?? true;
+    }
+
+    private static void ExecuteWorldCommand(string description, Action execute, Action undo)
+    {
+        EditorHistoryService.Current.Execute(
+            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            new EditorDelegateCommand(description, execute, undo));
     }
 }

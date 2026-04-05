@@ -5,6 +5,9 @@ using System.Linq;
 using System.Reflection;
 using CasaEngine.Core.Log;
 using CasaEngine.Editor.Controls.ComponentEditors;
+using CasaEngine.Editor.History;
+using CasaEngine.Editor.Workspaces;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -267,7 +270,20 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        _selectedEntity.Name = newName;
+        var entity = _selectedEntity;
+        var previousName = entity.Name;
+        ExecuteWorldCommand(
+            "Rename Entity",
+            () =>
+            {
+                entity.Name = newName;
+                RefreshEntityHeader();
+            },
+            () =>
+            {
+                entity.Name = previousName;
+                RefreshEntityHeader();
+            });
     }
 
     private void RefreshEntityHeader()
@@ -533,29 +549,78 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        if (_selectedComponent is SceneComponent selectedSceneComponent && component is SceneComponent childSceneComponent)
-        {
-            selectedSceneComponent.AddChildComponent(childSceneComponent);
-        }
-        else if (component is SceneComponent sceneComponent && _selectedEntity.RootComponent == null)
-        {
-            _selectedEntity.RootComponent = sceneComponent;
-        }
-        else
-        {
-            _selectedEntity.AddComponent(component);
-        }
+        var entity = _selectedEntity;
+        var previousComponent = _selectedComponent;
+        var selectedSceneComponent = _selectedComponent as SceneComponent;
+        bool attachAsChild = selectedSceneComponent != null && component is SceneComponent;
+        bool attachAsRoot = !attachAsChild && component is SceneComponent && entity.RootComponent == null;
 
-        component.Initialize();
-        if (_selectedEntity.World != null)
-        {
-            component.InitializeWithWorld(_selectedEntity.World);
-        }
+        ExecuteWorldCommand(
+            "Add Component",
+            () =>
+            {
+                AttachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
+                ApplyComponentMutationSelection(component);
+            },
+            () =>
+            {
+                DetachComponent(entity, component, selectedSceneComponent, attachAsChild, attachAsRoot);
+                ApplyComponentMutationSelection(previousComponent);
+            });
+    }
 
+    private void ExecuteWorldCommand(string description, Action execute, Action undo)
+    {
+        EditorHistoryService.Current.Execute(
+            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            new EditorDelegateCommand(description, execute, undo));
+    }
+
+    private void ApplyComponentMutationSelection(EntityComponent? component)
+    {
         _selectedComponent = component;
         RebuildComponentTree();
         SetSelectedComponent(component);
         SelectedComponentChanged?.Invoke(component);
+    }
+
+    private static void AttachComponent(Entity entity, EntityComponent component, SceneComponent? selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
+    {
+        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
+        {
+            selectedSceneComponent.AddChildComponent(childSceneComponent);
+        }
+        else if (attachAsRoot && component is SceneComponent rootSceneComponent)
+        {
+            entity.RootComponent = rootSceneComponent;
+        }
+        else
+        {
+            entity.AddComponent(component);
+        }
+
+        component.Initialize();
+        if (entity.World != null)
+        {
+            component.InitializeWithWorld(entity.World);
+        }
+    }
+
+    private static void DetachComponent(Entity entity, EntityComponent component, SceneComponent? selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
+    {
+        if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
+        {
+            selectedSceneComponent.RemoveChildComponent(childSceneComponent);
+            return;
+        }
+
+        if (attachAsRoot && component is SceneComponent rootSceneComponent && ReferenceEquals(entity.RootComponent, rootSceneComponent))
+        {
+            entity.RootComponent = null;
+            return;
+        }
+
+        entity.RemoveComponent(component);
     }
 
     private void UpdateSummary()

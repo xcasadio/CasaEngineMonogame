@@ -44,23 +44,30 @@ public sealed class StaticModelComponentEditor : TransformComponentEditor
         {
             AssetId = StaticModelComponent.StaticModelAssetId,
         };
-        modelSelector.AssetChanged += (_, assetId) => OnModelAssetChanged(assetId);
+        modelSelector.AssetChanged += (_, assetId) => OnModelAssetChanged(modelSelector, assetId);
         AddPropertyRow(grid, 0, "Model Asset", modelSelector);
 
         section.SetContent(grid);
         return section;
     }
 
-    private void OnModelAssetChanged(Guid assetId)
+    private void OnModelAssetChanged(AssetSelector modelSelector, Guid assetId)
     {
-        StaticModelComponent.StaticModelAssetId = assetId;
+        ApplyValueChange(
+            BuildComponentCommandDescription("Model Asset"),
+            () => StaticModelComponent.StaticModelAssetId,
+            nextValue =>
+            {
+                StaticModelComponent.StaticModelAssetId = nextValue;
+                modelSelector.AssetId = nextValue;
 
-        if (StaticModelComponent.Owner?.World is { } world)
-        {
-            StaticModelComponent.InitializeWithWorld(world);
-        }
-
-        RefreshRequested?.Invoke();
+                if (StaticModelComponent.Owner?.World is { } world)
+                {
+                    StaticModelComponent.InitializeWithWorld(world);
+                }
+            },
+            assetId,
+            RefreshRequested);
     }
 
     private MGExpander CreateMaterialsSection()
@@ -131,9 +138,25 @@ public sealed class StaticModelComponentEditor : TransformComponentEditor
 
         var resetButton = new MGButton(Window, _ =>
         {
-            StaticModelComponent.ClearMaterialOverride(slot);
-            selector.AssetId = Guid.Empty;
-            summaryText.Text = GetSlotSummary(slot);
+            ApplyValueChange(
+                BuildComponentCommandDescription(GetSlotLabel(slot)),
+                () => StaticModelComponent.GetMaterialOverrideAssetId(slot),
+                nextValue =>
+                {
+                    if (nextValue == Guid.Empty)
+                    {
+                        StaticModelComponent.ClearMaterialOverride(slot);
+                    }
+                    else
+                    {
+                        StaticModelComponent.SetMaterialOverride(slot, nextValue);
+                    }
+
+                    selector.AssetId = nextValue;
+                    summaryText.Text = GetSlotSummary(slot);
+                },
+                Guid.Empty,
+                RefreshRequested);
         });
         resetButton.SetContent(new MGTextBlock(Window, "Reset")
         {
@@ -144,8 +167,25 @@ public sealed class StaticModelComponentEditor : TransformComponentEditor
 
         selector.AssetChanged += (_, assetId) =>
         {
-            StaticModelComponent.SetMaterialOverride(slot, assetId);
-            summaryText.Text = GetSlotSummary(slot);
+            ApplyValueChange(
+                BuildComponentCommandDescription(GetSlotLabel(slot)),
+                () => StaticModelComponent.GetMaterialOverrideAssetId(slot),
+                nextValue =>
+                {
+                    if (nextValue == Guid.Empty)
+                    {
+                        StaticModelComponent.ClearMaterialOverride(slot);
+                    }
+                    else
+                    {
+                        StaticModelComponent.SetMaterialOverride(slot, nextValue);
+                    }
+
+                    selector.AssetId = nextValue;
+                    summaryText.Text = GetSlotSummary(slot);
+                },
+                assetId,
+                RefreshRequested);
         };
 
         selectorRow.TryAddChild(selector);

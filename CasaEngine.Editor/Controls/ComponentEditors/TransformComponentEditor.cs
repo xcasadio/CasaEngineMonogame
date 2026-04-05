@@ -52,24 +52,33 @@ public class TransformComponentEditor : ComponentEditorBase
         {
             Value = SceneComponent.Coordinates.Position,
         };
-        positionEditor.ValueChanged += (_, value) => SceneComponent.Coordinates.Position = value;
+        positionEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Position"),
+            () => SceneComponent.Coordinates.Position,
+            nextValue => SceneComponent.Coordinates.Position = nextValue,
+            value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Position", positionEditor);
 
         var rotationEditor = new Vector3Editor(Window)
         {
             Value = SceneComponent.Coordinates.Orientation.GetYawPitchRoll(),
         };
-        rotationEditor.ValueChanged += (_, value) =>
-        {
-            SceneComponent.Coordinates.Orientation = Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z);
-        };
+        rotationEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Rotation"),
+            () => SceneComponent.Coordinates.Orientation,
+            nextValue => SceneComponent.Coordinates.Orientation = nextValue,
+            Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z));
         rowIndex = AddPropertyRow(grid, rowIndex, "Rotation", rotationEditor);
 
         var scaleEditor = new Vector3Editor(Window)
         {
             Value = SceneComponent.Coordinates.Scale,
         };
-        scaleEditor.ValueChanged += (_, value) => SceneComponent.Coordinates.Scale = value;
+        scaleEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Scale"),
+            () => SceneComponent.Coordinates.Scale,
+            nextValue => SceneComponent.Coordinates.Scale = nextValue,
+            value);
         AddPropertyRow(grid, rowIndex, "Scale", scaleEditor);
 
         section.SetContent(grid);

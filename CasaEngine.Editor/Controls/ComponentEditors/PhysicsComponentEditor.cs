@@ -55,12 +55,20 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
         {
             IsChecked = PhysicsComponent.SimulatePhysics,
         };
-        simulatePhysicsCheckBox.OnCheckStateChanged += (_, e) => PhysicsComponent.SimulatePhysics = e.NewValue ?? false;
+        simulatePhysicsCheckBox.OnCheckStateChanged += (_, e) => ApplyValueChange(
+            BuildComponentCommandDescription("Simulate Physics"),
+            () => PhysicsComponent.SimulatePhysics,
+            value => PhysicsComponent.SimulatePhysics = value,
+            e.NewValue ?? false);
         rowIndex = AddPropertyRow(grid, rowIndex, "Simulate Physics", simulatePhysicsCheckBox);
 
         var physicsTypeCombo = CreateStringCombo(Enum.GetNames(typeof(PhysicsType)), PhysicsComponent.PhysicsDefinition.PhysicsType.ToString(), value =>
         {
-            PhysicsComponent.PhysicsDefinition.PhysicsType = Enum.Parse<PhysicsType>(value);
+            ApplyValueChange(
+                BuildComponentCommandDescription("Physics Type"),
+                () => PhysicsComponent.PhysicsDefinition.PhysicsType,
+                nextValue => PhysicsComponent.PhysicsDefinition.PhysicsType = nextValue,
+                Enum.Parse<PhysicsType>(value));
         });
         rowIndex = AddPropertyRow(grid, rowIndex, "Physics Type", physicsTypeCombo);
 
@@ -73,11 +81,19 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
         {
             IsChecked = PhysicsComponent.PhysicsDefinition.ApplyGravity,
         };
-        applyGravityCheckBox.OnCheckStateChanged += (_, e) => PhysicsComponent.PhysicsDefinition.ApplyGravity = e.NewValue ?? false;
+        applyGravityCheckBox.OnCheckStateChanged += (_, e) => ApplyValueChange(
+            BuildComponentCommandDescription("Apply Gravity"),
+            () => PhysicsComponent.PhysicsDefinition.ApplyGravity,
+            value => PhysicsComponent.PhysicsDefinition.ApplyGravity = value,
+            e.NewValue ?? false);
         rowIndex = AddPropertyRow(grid, rowIndex, "Apply Gravity", applyGravityCheckBox);
 
         var debugColorEditor = new ColorEditor(Window, PhysicsComponent.PhysicsDefinition.DebugColor ?? Microsoft.Xna.Framework.Color.White);
-        debugColorEditor.ValueChanged += (_, value) => PhysicsComponent.PhysicsDefinition.DebugColor = value;
+        debugColorEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Debug Color"),
+            () => PhysicsComponent.PhysicsDefinition.DebugColor,
+            nextValue => PhysicsComponent.PhysicsDefinition.DebugColor = nextValue,
+            value);
         AddPropertyRow(grid, rowIndex, "Debug Color", debugColorEditor);
 
         section.SetContent(grid);
@@ -97,7 +113,11 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
                 {
                     Value = boxCollisionComponent.Box.Size,
                 };
-                sizeEditor.ValueChanged += (_, value) => boxCollisionComponent.Box.Size = value;
+                sizeEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Box Size"),
+                    () => boxCollisionComponent.Box.Size,
+                    nextValue => boxCollisionComponent.Box.Size = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Box Size", sizeEditor);
                 break;
             }
@@ -107,7 +127,11 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
                 {
                     Value = sphereCollisionComponent.Sphere.Radius,
                 };
-                radiusEditor.ValueChanged += (_, value) => sphereCollisionComponent.Sphere.Radius = value;
+                radiusEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Radius"),
+                    () => sphereCollisionComponent.Sphere.Radius,
+                    nextValue => sphereCollisionComponent.Sphere.Radius = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Radius", radiusEditor);
                 break;
             }
@@ -117,14 +141,22 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
                 {
                     Value = capsuleCollisionComponent.Capsule.Radius,
                 };
-                radiusEditor.ValueChanged += (_, value) => capsuleCollisionComponent.Capsule.Radius = value;
+                radiusEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Capsule Radius"),
+                    () => capsuleCollisionComponent.Capsule.Radius,
+                    nextValue => capsuleCollisionComponent.Capsule.Radius = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Radius", radiusEditor);
 
                 var lengthEditor = new NumericField(Window, step: 0.1f, min: 0f)
                 {
                     Value = capsuleCollisionComponent.Capsule.Length,
                 };
-                lengthEditor.ValueChanged += (_, value) => capsuleCollisionComponent.Capsule.Length = value;
+                lengthEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Capsule Length"),
+                    () => capsuleCollisionComponent.Capsule.Length,
+                    nextValue => capsuleCollisionComponent.Capsule.Length = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Length", lengthEditor);
                 break;
             }
@@ -134,14 +166,22 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
                 {
                     Value = cylinderCollisionComponent.Cylinder.Radius,
                 };
-                radiusEditor.ValueChanged += (_, value) => cylinderCollisionComponent.Cylinder.Radius = value;
+                radiusEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Cylinder Radius"),
+                    () => cylinderCollisionComponent.Cylinder.Radius,
+                    nextValue => cylinderCollisionComponent.Cylinder.Radius = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Radius", radiusEditor);
 
                 var lengthEditor = new NumericField(Window, step: 0.1f, min: 0f)
                 {
                     Value = cylinderCollisionComponent.Cylinder.Length,
                 };
-                lengthEditor.ValueChanged += (_, value) => cylinderCollisionComponent.Cylinder.Length = value;
+                lengthEditor.ValueChanged += (_, value) => ApplyValueChange(
+                    BuildComponentCommandDescription("Cylinder Length"),
+                    () => cylinderCollisionComponent.Cylinder.Length,
+                    nextValue => cylinderCollisionComponent.Cylinder.Length = nextValue,
+                    value);
                 rowIndex = AddPropertyRow(grid, rowIndex, "Length", lengthEditor);
                 break;
             }
@@ -163,7 +203,7 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
         {
             Value = getter(),
         };
-        editor.ValueChanged += (_, value) => setter(value);
+        editor.ValueChanged += (_, value) => ApplyValueChange(BuildComponentCommandDescription(label), getter, setter, value);
         return AddPropertyRow(grid, rowIndex, label, editor);
     }
 }
