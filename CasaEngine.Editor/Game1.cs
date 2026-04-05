@@ -399,7 +399,14 @@ namespace CasaEngine.Editor
                     continue;
                 }
 
-                materialInspectorPanel.ReloadFromDisk();
+                if (materialInspectorPanel.ReloadFromDisk()
+                    && TryGetMaterialInspectorPanelId(materialInspectorPanel, out var panelId))
+                {
+                    var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Material, panelId);
+                    _editorHistory.Clear(historyContext);
+                    _editorDirtyState.MarkSaved(historyContext);
+                }
+
                 UpdateDockPanelTitleForMaterialInspector(materialInspectorPanel);
             }
         }
@@ -1242,6 +1249,7 @@ namespace CasaEngine.Editor
             {
                 if (materialInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
                 {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, materialPanelId));
                     UpdateDockPanelTitle(materialPanelId, GetMaterialDocumentTitle(materialPanelId));
                     Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
                 }
@@ -1252,6 +1260,8 @@ namespace CasaEngine.Editor
 
                 return;
             }
+
+            SaveDirtyMaterialInspectors();
 
             EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
             EditorAssetCatalogService.Save();
@@ -1825,15 +1835,21 @@ namespace CasaEngine.Editor
 
             Guid documentId = materialAsset.AssetId != Guid.Empty ? materialAsset.AssetId : materialAsset.Id;
             var panelId = $"{EditorPanelIds.MaterialAssetDocumentPrefix}{documentId:N}";
+            bool createdPanel = false;
             if (!_materialInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
             {
                 inspectorPanel = new MaterialAssetInspectorPanel(_mainWindow, _editorRuntime, GraphicsDevice);
                 inspectorPanel.DirtyStateChanged += OnMaterialInspectorDirtyStateChanged;
                 _materialInspectorPanels.Add(panelId, inspectorPanel);
+                createdPanel = true;
             }
 
             inspectorPanel.SetHistoryContextId(panelId);
-            inspectorPanel.LoadAsset(materialAsset, fullPath);
+            if (createdPanel)
+            {
+                inspectorPanel.LoadAsset(materialAsset, fullPath);
+            }
+
             _ = GetOrCreateMaterialViewportPanel(panelId, inspectorPanel);
 
             var panelTitle = string.IsNullOrWhiteSpace(materialAsset.Name)
@@ -1876,15 +1892,49 @@ namespace CasaEngine.Editor
             UpdateDockPanelTitleForMaterialInspector(inspectorPanel);
         }
 
-        private void UpdateDockPanelTitleForMaterialInspector(MaterialAssetInspectorPanel inspectorPanel)
+        private bool TryGetMaterialInspectorPanelId(MaterialAssetInspectorPanel inspectorPanel, out string panelId)
         {
             foreach (var pair in _materialInspectorPanels)
             {
                 if (ReferenceEquals(pair.Value, inspectorPanel))
                 {
-                    UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
-                    break;
+                    panelId = pair.Key;
+                    return true;
                 }
+            }
+
+            panelId = string.Empty;
+            return false;
+        }
+
+        private void SaveDirtyMaterialInspectors()
+        {
+            foreach (var pair in _materialInspectorPanels)
+            {
+                var materialInspectorPanel = pair.Value;
+                if (!materialInspectorPanel.IsDirty)
+                {
+                    continue;
+                }
+
+                if (materialInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
+                {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, pair.Key));
+                    UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
+                    Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
+                }
+                else if (!string.IsNullOrWhiteSpace(errorMessage))
+                {
+                    Logs.WriteWarning(errorMessage);
+                }
+            }
+        }
+
+        private void UpdateDockPanelTitleForMaterialInspector(MaterialAssetInspectorPanel inspectorPanel)
+        {
+            if (TryGetMaterialInspectorPanelId(inspectorPanel, out var panelId))
+            {
+                UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
             }
         }
 
@@ -2399,6 +2449,12 @@ namespace CasaEngine.Editor
                 _automationOptions.SetMaterialPropertyValue,
                 out string statusMessage))
             {
+                if (TryGetMaterialInspectorPanelId(inspectorPanel, out var panelId))
+                {
+                    _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
+                    UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
+                }
+
                 _automationMaterialEdited = true;
                 _automationMaterialEditedAt = totalGameTime;
                 EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
@@ -2485,7 +2541,14 @@ namespace CasaEngine.Editor
                     continue;
                 }
 
-                materialInspectorPanel.ReloadFromDisk();
+                if (materialInspectorPanel.ReloadFromDisk()
+                    && TryGetMaterialInspectorPanelId(materialInspectorPanel, out var panelId))
+                {
+                    var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Material, panelId);
+                    _editorHistory.Clear(historyContext);
+                    _editorDirtyState.MarkSaved(historyContext);
+                    UpdateDockPanelTitle(panelId, GetMaterialDocumentTitle(panelId));
+                }
             }
 
             if (_editorRuntime == null)

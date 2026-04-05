@@ -409,7 +409,7 @@ La feature sera consideree complete quand :
 
 ---
 
-### 🚧 Phase 5 - Couvrir le material editor
+### 🧪 Phase 5 - Couvrir le material editor
 
 #### ✅ Tache 5.1 - Introduire une session d'authoring material avec dirty state
 
@@ -456,11 +456,11 @@ La feature sera consideree complete quand :
 - `feat(material-editor): add undo redo for material property edits`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `a127a653` `feat(material-editor): add undo redo for material property edits`
 
 ---
 
-#### 🚧 Tache 5.3 - Rebrancher Save et hot reload sur la nouvelle session
+#### 🧪 Tache 5.3 - Rebrancher Save et hot reload sur la nouvelle session
 
 **Objectif :** finaliser le flux material sans regressions de preview ou de persistance.
 
@@ -481,7 +481,7 @@ La feature sera consideree complete quand :
 - `feat(material-editor): connect save and hot reload to material history`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
