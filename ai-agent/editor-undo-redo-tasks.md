@@ -155,7 +155,7 @@ La feature sera consideree complete quand :
 
 ## Decoupage des taches
 
-### 🚧 Phase 1 - Socle global de l'historique
+### ✅ Phase 1 - Socle global de l'historique
 
 #### ✅ Tache 1.1 - Formaliser les abstractions generiques
 
@@ -225,7 +225,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add transactions and input arbitration`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `7cbc7422` `feat(editor-history): add transactions and input arbitration`
 
 ---
 
@@ -280,9 +280,9 @@ La feature sera consideree complete quand :
 
 ---
 
-### ⏳ Phase 3 - Migrer le screen editor sans regression
+### 🚧 Phase 3 - Migrer le screen editor sans regression
 
-#### ⏳ Tache 3.1 - Rebrancher les commandes UIScreen sur le nouveau socle
+#### ✅ Tache 3.1 - Rebrancher les commandes UIScreen sur le nouveau socle
 
 **Objectif :** conserver l'existant du screen editor tout en l'integrant au service global.
 
@@ -303,7 +303,7 @@ La feature sera consideree complete quand :
 - `feat(screen-editor): connect ui screen history to global editor history`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 

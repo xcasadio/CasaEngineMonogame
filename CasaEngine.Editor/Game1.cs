@@ -93,7 +93,7 @@ namespace CasaEngine.Editor
         private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
         private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
-        private readonly UICommandStack _screenCommandStack = new();
+        private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
         private UIScreenInspectorPanel? _screenInspectorPanel;
@@ -693,7 +693,6 @@ namespace CasaEngine.Editor
             if (_screenHierarchyPanel == null)
             {
                 _screenHierarchyPanel = new UIScreenHierarchyPanel(_mainWindow, _screenSelection);
-                _screenHierarchyPanel.SetCommandStack(_screenCommandStack);
                 _screenHierarchyPanel.NodeDeleted += doc =>
                 {
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
@@ -702,15 +701,23 @@ namespace CasaEngine.Editor
                 };
                 _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
                 {
+                    if (!TryGetActiveScreenCommandStack(out var commandStack))
+                    {
+                        return;
+                    }
+
                     var dupCmd = new DuplicateNodeCommand(doc, nodeId);
-                    _screenCommandStack.Execute(dupCmd);
+                    commandStack.Execute(dupCmd);
                     RefreshScreenPanelsAfterCommand();
                     if (dupCmd.CreatedNode != null)
+                    {
                         _screenSelection.Select(dupCmd.CreatedNode.Id);
+                    }
                 };
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
+            AttachActiveScreenCommandStack();
             RefreshScreenViews();
             return _screenHierarchyContent;
         }
@@ -720,7 +727,6 @@ namespace CasaEngine.Editor
             if (_screenInspectorPanel == null)
             {
                 _screenInspectorPanel = new UIScreenInspectorPanel(_mainWindow, _screenSelection);
-                _screenInspectorPanel.SetCommandStack(_screenCommandStack);
                 _screenInspectorPanel.DocumentModified += doc =>
                 {
                     // Only called for structural changes (e.g. Name field edits visible in tree)
@@ -737,6 +743,7 @@ namespace CasaEngine.Editor
             }
 
             _screenInspectorContent ??= _screenInspectorPanel.CreateContent();
+            AttachActiveScreenCommandStack();
             RefreshScreenViews();
             return _screenInspectorContent;
         }
@@ -789,6 +796,42 @@ namespace CasaEngine.Editor
             return _screenToolboxContent;
         }
 
+        private UICommandStack GetOrCreateScreenCommandStack(string panelId)
+        {
+            if (!_screenCommandStacks.TryGetValue(panelId, out var commandStack))
+            {
+                commandStack = new UICommandStack(_editorHistory.GetOrCreate(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId)));
+                _screenCommandStacks.Add(panelId, commandStack);
+            }
+
+            return commandStack;
+        }
+
+        private bool TryGetActiveScreenCommandStack(out UICommandStack? commandStack)
+        {
+            commandStack = null;
+
+            if (_editorContext.ActiveDocument?.Kind != EditorDocumentKind.UIScreen
+                || string.IsNullOrWhiteSpace(_editorContext.ActiveDocument.Id))
+            {
+                return false;
+            }
+
+            commandStack = GetOrCreateScreenCommandStack(_editorContext.ActiveDocument.Id);
+            return true;
+        }
+
+        private void AttachActiveScreenCommandStack()
+        {
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            _screenHierarchyPanel?.SetCommandStack(commandStack!);
+            _screenInspectorPanel?.SetCommandStack(commandStack!);
+        }
+
         private void OnToolboxControlRequested(CasaEngine.EditorServices.ScreenEditor.Toolbox.UIControlRegistryEntry entry)
         {
             if (_activeScreenPreviewPanel == null)
@@ -810,7 +853,12 @@ namespace CasaEngine.Editor
             }
 
             var cmd = new AddNodeCommand(document, entry, parentNode);
-            _screenCommandStack.Execute(cmd);
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(cmd);
             var newNode = cmd.CreatedNode;
 
             // Rebuild preview and sync tree / inspector
@@ -825,23 +873,23 @@ namespace CasaEngine.Editor
 
         private void ExecuteUndo()
         {
-            if (!_screenCommandStack.CanUndo)
+            if (!TryGetActiveScreenCommandStack(out var commandStack) || !commandStack.CanUndo)
             {
                 return;
             }
 
-            _screenCommandStack.Undo();
+            commandStack.Undo();
             RefreshScreenPanelsAfterCommand();
         }
 
         private void ExecuteRedo()
         {
-            if (!_screenCommandStack.CanRedo)
+            if (!TryGetActiveScreenCommandStack(out var commandStack) || !commandStack.CanRedo)
             {
                 return;
             }
 
-            _screenCommandStack.Redo();
+            commandStack.Redo();
             RefreshScreenPanelsAfterCommand();
         }
 
@@ -852,7 +900,12 @@ namespace CasaEngine.Editor
             if (document == null) return;
 
             var cmd = new DuplicateNodeCommand(document, _screenSelection.SelectedNodeId.Value);
-            _screenCommandStack.Execute(cmd);
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(cmd);
             RefreshScreenPanelsAfterCommand();
 
             if (cmd.CreatedNode != null)
@@ -884,7 +937,12 @@ namespace CasaEngine.Editor
             var node = document.FindNode(_screenSelection.SelectedNodeId.Value);
             if (node == null) return;
             var cmd = new RemoveNodeCommand(document, node);
-            _screenCommandStack.Execute(cmd);
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(cmd);
             _screenSelection.ClearSelection();
             RefreshScreenPanelsAfterCommand();
         }
@@ -908,7 +966,12 @@ namespace CasaEngine.Editor
             if (parsedDoc.Root == null) return;
             var pasteNode = parsedDoc.Root.DeepClone();
             var cmd = new PasteNodeCommand(document, pasteNode, _screenSelection.SelectedNodeId);
-            _screenCommandStack.Execute(cmd);
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(cmd);
             RefreshScreenPanelsAfterCommand();
             _screenSelection.Select(cmd.InsertedNode.Id);
         }
@@ -1297,6 +1360,7 @@ namespace CasaEngine.Editor
             {
                 _screenPreviewPanels.Remove(panel.Id);
                 _screenPreviewPanelTitles.Remove(panel.Id);
+                _screenCommandStacks.Remove(panel.Id);
                 _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
                 if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
                 {
@@ -1512,6 +1576,7 @@ namespace CasaEngine.Editor
                 panelId,
                 _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
                 previewPanel));
+            AttachActiveScreenCommandStack();
             SyncGlobalSelectionFromActiveDocument();
             RefreshActiveHistoryContext();
         }
@@ -2746,7 +2811,12 @@ namespace CasaEngine.Editor
                     int newIdx = Math.Clamp(oldIdx + (delta > 0 ? 1 : -1), 0, node.Parent.Children.Count - 1);
                     if (newIdx != oldIdx)
                     {
-                        _screenCommandStack.Execute(new MoveChildCommand(node, newIdx));
+                        if (!TryGetActiveScreenCommandStack(out var reorderCommandStack))
+                        {
+                            return;
+                        }
+
+                        reorderCommandStack.Execute(new MoveChildCommand(node, newIdx));
                         RefreshScreenPanelsAfterCommand();
                     }
                 }
@@ -2769,7 +2839,12 @@ namespace CasaEngine.Editor
 
             var newMargin = $"{left},{top},{right},{bottom}";
             var cmd = new SetPropertyCommand(node, "Margin", newMargin);
-            _screenCommandStack.Execute(cmd);
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(cmd);
             RefreshScreenPanelsAfterCommand();
         }
 
@@ -2832,7 +2907,12 @@ namespace CasaEngine.Editor
                 commands.Add(new SetPropertyCommand(node, "Margin", $"{marginLeft},{marginTop},{marginRight},{marginBottom}"));
 
             // R-06: group as a single undoable composite
-            _screenCommandStack.Execute(new CompositeCommand("Resize", commands.ToArray()));
+            if (!TryGetActiveScreenCommandStack(out var commandStack))
+            {
+                return;
+            }
+
+            commandStack.Execute(new CompositeCommand("Resize", commands.ToArray()));
             RefreshScreenPanelsAfterCommand();
         }
 
