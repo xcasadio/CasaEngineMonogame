@@ -19,6 +19,11 @@ internal sealed class ResolvedStaticModelMaterialOverrides
     public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex { get; }
 }
 
+internal readonly record struct MaterialOverrideResolutionMetrics(
+    int RecalculatedSlotCount,
+    int AuthoringMaterialCacheHitCount,
+    int AuthoringMaterialCacheMissCount);
+
 internal static class StaticModelMaterialOverrideResolver
 {
     private static readonly MaterialCompiler MaterialCompiler = new();
@@ -27,6 +32,13 @@ internal static class StaticModelMaterialOverrideResolver
         StaticModelMesh modelMesh,
         IReadOnlyList<MaterialSlotOverride> materialOverrides,
         AssetContentManager assetContentManager)
+        => ResolveForMesh(modelMesh, materialOverrides, assetContentManager, out _);
+
+    internal static ResolvedStaticModelMaterialOverrides? ResolveForMesh(
+        StaticModelMesh modelMesh,
+        IReadOnlyList<MaterialSlotOverride> materialOverrides,
+        AssetContentManager assetContentManager,
+        out MaterialOverrideResolutionMetrics metrics)
     {
         ArgumentNullException.ThrowIfNull(modelMesh);
         ArgumentNullException.ThrowIfNull(materialOverrides);
@@ -34,12 +46,17 @@ internal static class StaticModelMaterialOverrideResolver
 
         if (materialOverrides.Count == 0)
         {
+            metrics = default;
             return null;
         }
 
         Dictionary<int, MaterialBase>? resolvedMaterials = null;
         Dictionary<int, MaterialPropertyBlock>? resolvedPropertyBlocks = null;
         var resolvedMaterialAssets = new Dictionary<Guid, MaterialAsset?>();
+        var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
+        int recalculatedSlotCount = 0;
+        int authoringMaterialCacheHitCount = 0;
+        int authoringMaterialCacheMissCount = 0;
 
         MaterialAsset? ResolveMaterialAsset(Guid materialAssetId)
         {
@@ -55,7 +72,17 @@ internal static class StaticModelMaterialOverrideResolver
 
             try
             {
-                cachedMaterialAsset = assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
+                if (authoringMaterialCache != null && authoringMaterialCache.TryGet(materialAssetId, out cachedMaterialAsset))
+                {
+                    authoringMaterialCacheHitCount++;
+                }
+                else
+                {
+                    cachedMaterialAsset = authoringMaterialCache != null
+                        ? authoringMaterialCache.GetOrLoad(materialAssetId, assetContentManager)
+                        : assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
+                    authoringMaterialCacheMissCount++;
+                }
             }
             catch (Exception ex)
             {
@@ -80,6 +107,11 @@ internal static class StaticModelMaterialOverrideResolver
             }
         }
 
+        metrics = new MaterialOverrideResolutionMetrics(
+            recalculatedSlotCount,
+            authoringMaterialCacheHitCount,
+            authoringMaterialCacheMissCount);
+
         return resolvedMaterials == null && resolvedPropertyBlocks == null
             ? null
             : new ResolvedStaticModelMaterialOverrides(resolvedMaterials, resolvedPropertyBlocks);
@@ -92,17 +124,31 @@ internal static class StaticModelMaterialOverrideResolver
                 return;
             }
 
+            recalculatedSlotCount++;
+
             MaterialAsset? overrideMaterialAsset = null;
             bool hasResolvedMaterialOverride = false;
             if (slotOverride.MaterialAssetId != Guid.Empty)
             {
-                overrideMaterialAsset = ResolveMaterialAsset(slotOverride.MaterialAssetId);
-                if (overrideMaterialAsset != null
-                    && TryCreateRuntimeMaterial(overrideMaterialAsset, assetContentManager, out var materialOverride))
+                if (slotOverride.MaterialInstanceData.IsEmpty)
                 {
-                    resolvedMaterials ??= new Dictionary<int, MaterialBase>();
-                    resolvedMaterials[slot.SlotIndex] = materialOverride;
-                    hasResolvedMaterialOverride = true;
+                    if (MaterialRuntimeResolver.TryLoadRuntimeMaterial(slotOverride.MaterialAssetId, assetContentManager, out var materialOverride))
+                    {
+                        resolvedMaterials ??= new Dictionary<int, MaterialBase>();
+                        resolvedMaterials[slot.SlotIndex] = materialOverride;
+                        hasResolvedMaterialOverride = true;
+                    }
+                }
+                else
+                {
+                    overrideMaterialAsset = ResolveMaterialAsset(slotOverride.MaterialAssetId);
+                    if (overrideMaterialAsset != null
+                        && TryCreateRuntimeMaterial(overrideMaterialAsset, assetContentManager, out var materialOverride))
+                    {
+                        resolvedMaterials ??= new Dictionary<int, MaterialBase>();
+                        resolvedMaterials[slot.SlotIndex] = materialOverride;
+                        hasResolvedMaterialOverride = true;
+                    }
                 }
             }
 

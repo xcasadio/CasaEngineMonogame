@@ -106,24 +106,31 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
     public bool RefreshResolvedMaterials(Assets.AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
+        => RefreshResolvedMaterialsDetailed(assetContentManager, affectedMaterialAssetIds).RefreshedAny;
+
+    internal StaticModelComponentRefreshMetrics RefreshResolvedMaterialsDetailed(Assets.AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
     {
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
         if (StaticModel == null)
         {
-            return false;
+            return default;
         }
 
         if (affectedMaterialAssetIds != null
             && affectedMaterialAssetIds.Count > 0
             && !ReferencesAnyMaterialAsset(affectedMaterialAssetIds))
         {
-            return false;
+            return default;
         }
 
         bool refreshedModelMaterials = StaticModel.RefreshResolvedMaterials(assetContentManager, affectedMaterialAssetIds);
-        RefreshGeneratedMaterialOverrides();
-        return refreshedModelMaterials || MaterialOverrides.Count > 0;
+        var refreshedMaterialOverrides = RefreshGeneratedMaterialOverrides(affectedMaterialAssetIds);
+        return new StaticModelComponentRefreshMetrics(
+            refreshedModelMaterials || refreshedMaterialOverrides.RefreshedAny,
+            refreshedMaterialOverrides.RecalculatedOverrideSlotCount,
+            refreshedMaterialOverrides.AuthoringMaterialCacheHitCount,
+            refreshedMaterialOverrides.AuthoringMaterialCacheMissCount);
     }
 
     public void SetMaterialOverride(StaticModelMaterialSlot slot, Guid materialAssetId)
@@ -226,7 +233,7 @@ public class StaticModelComponent : PrimitiveComponent
         if (modelMesh != null)
         {
             sub.ModelMesh = modelMesh;
-            var resolvedOverrides = CreateResolvedMaterialOverrides(modelMesh, world.Game.AssetContentManager);
+            var resolvedOverrides = CreateResolvedMaterialOverrides(modelMesh, world.Game.AssetContentManager, out _);
             sub.MaterialOverridesBySlotIndex = resolvedOverrides?.MaterialOverridesBySlotIndex;
             sub.PropertyOverridesBySlotIndex = resolvedOverrides?.PropertyOverridesBySlotIndex;
         }
@@ -313,47 +320,147 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
     private void RefreshGeneratedMaterialOverrides()
+        => _ = RefreshGeneratedMaterialOverrides(affectedMaterialAssetIds: null);
+
+    private StaticModelOverrideRefreshMetrics RefreshGeneratedMaterialOverrides(ISet<Guid>? affectedMaterialAssetIds)
     {
         if (StaticModel == null || Owner?.World == null)
         {
-            return;
+            return default;
         }
 
         NormalizeMaterialOverrides();
-        RefreshGeneratedMaterialOverrides(this, Owner.World.Game.AssetContentManager);
+        var resolvedOverridesByMesh = new Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides? Overrides, MaterialOverrideResolutionMetrics Metrics)>();
+        return RefreshGeneratedMaterialOverrides(this, Owner.World.Game.AssetContentManager, affectedMaterialAssetIds, resolvedOverridesByMesh);
     }
 
-    private void RefreshGeneratedMaterialOverrides(SceneComponent parent, Assets.AssetContentManager assetContentManager)
+    private StaticModelOverrideRefreshMetrics RefreshGeneratedMaterialOverrides(
+        SceneComponent parent,
+        Assets.AssetContentManager assetContentManager,
+        ISet<Guid>? affectedMaterialAssetIds,
+        Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides? Overrides, MaterialOverrideResolutionMetrics Metrics)> resolvedOverridesByMesh)
     {
+        bool refreshedAnyOverrides = false;
+        int recalculatedOverrideSlotCount = 0;
+        int authoringMaterialCacheHitCount = 0;
+        int authoringMaterialCacheMissCount = 0;
+
         foreach (var child in parent.Children)
         {
             if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true } generatedSubMeshComponent)
             {
                 if (generatedSubMeshComponent.ModelMesh == null)
                 {
-                    generatedSubMeshComponent.MaterialOverridesBySlotIndex = null;
-                    generatedSubMeshComponent.PropertyOverridesBySlotIndex = null;
+                    if (affectedMaterialAssetIds == null || affectedMaterialAssetIds.Count == 0)
+                    {
+                        generatedSubMeshComponent.MaterialOverridesBySlotIndex = null;
+                        generatedSubMeshComponent.PropertyOverridesBySlotIndex = null;
+                        refreshedAnyOverrides = true;
+                    }
                 }
-                else
+                else if (ShouldRefreshGeneratedMaterialOverrides(generatedSubMeshComponent.ModelMesh, affectedMaterialAssetIds))
                 {
-                    var resolvedOverrides = CreateResolvedMaterialOverrides(generatedSubMeshComponent.ModelMesh, assetContentManager);
-                    generatedSubMeshComponent.MaterialOverridesBySlotIndex = resolvedOverrides?.MaterialOverridesBySlotIndex;
-                    generatedSubMeshComponent.PropertyOverridesBySlotIndex = resolvedOverrides?.PropertyOverridesBySlotIndex;
+                    if (!resolvedOverridesByMesh.TryGetValue(generatedSubMeshComponent.ModelMesh, out var resolvedOverrideResult))
+                    {
+                        var resolvedOverrides = CreateResolvedMaterialOverrides(generatedSubMeshComponent.ModelMesh, assetContentManager, out var metrics);
+                        resolvedOverrideResult = (resolvedOverrides, metrics);
+                        resolvedOverridesByMesh.Add(generatedSubMeshComponent.ModelMesh, resolvedOverrideResult);
+                        recalculatedOverrideSlotCount += metrics.RecalculatedSlotCount;
+                        authoringMaterialCacheHitCount += metrics.AuthoringMaterialCacheHitCount;
+                        authoringMaterialCacheMissCount += metrics.AuthoringMaterialCacheMissCount;
+                    }
+
+                    generatedSubMeshComponent.MaterialOverridesBySlotIndex = resolvedOverrideResult.Overrides?.MaterialOverridesBySlotIndex;
+                    generatedSubMeshComponent.PropertyOverridesBySlotIndex = resolvedOverrideResult.Overrides?.PropertyOverridesBySlotIndex;
+                    refreshedAnyOverrides = true;
                 }
             }
 
-            RefreshGeneratedMaterialOverrides(child, assetContentManager);
+            var childMetrics = RefreshGeneratedMaterialOverrides(child, assetContentManager, affectedMaterialAssetIds, resolvedOverridesByMesh);
+            refreshedAnyOverrides |= childMetrics.RefreshedAny;
+            recalculatedOverrideSlotCount += childMetrics.RecalculatedOverrideSlotCount;
+            authoringMaterialCacheHitCount += childMetrics.AuthoringMaterialCacheHitCount;
+            authoringMaterialCacheMissCount += childMetrics.AuthoringMaterialCacheMissCount;
         }
+
+        return new StaticModelOverrideRefreshMetrics(
+            refreshedAnyOverrides,
+            recalculatedOverrideSlotCount,
+            authoringMaterialCacheHitCount,
+            authoringMaterialCacheMissCount);
     }
 
-    private ResolvedStaticModelMaterialOverrides? CreateResolvedMaterialOverrides(StaticModelMesh modelMesh, Assets.AssetContentManager assetContentManager)
+    private ResolvedStaticModelMaterialOverrides? CreateResolvedMaterialOverrides(
+        StaticModelMesh modelMesh,
+        Assets.AssetContentManager assetContentManager,
+        out MaterialOverrideResolutionMetrics metrics)
     {
         if (MaterialOverrides.Count == 0)
         {
+            metrics = default;
             return null;
         }
 
-        return StaticModelMaterialOverrideResolver.ResolveForMesh(modelMesh, MaterialOverrides, assetContentManager);
+        return StaticModelMaterialOverrideResolver.ResolveForMesh(modelMesh, MaterialOverrides, assetContentManager, out metrics);
+    }
+
+    private bool ShouldRefreshGeneratedMaterialOverrides(StaticModelMesh modelMesh, ISet<Guid>? affectedMaterialAssetIds)
+    {
+        ArgumentNullException.ThrowIfNull(modelMesh);
+
+        if (affectedMaterialAssetIds == null || affectedMaterialAssetIds.Count == 0)
+        {
+            return true;
+        }
+
+        if (MaterialOverrides.Count == 0)
+        {
+            return false;
+        }
+
+        if (modelMesh.SubMeshes.Count == 0)
+        {
+            return IsAffectedMaterialOverrideSlot(
+                new StaticModelMaterialSlot(modelMesh.MaterialSlotIndex, modelMesh.SlotName, -1, -1, modelMesh, null),
+                affectedMaterialAssetIds);
+        }
+
+        for (int subMeshIndex = 0; subMeshIndex < modelMesh.SubMeshes.Count; subMeshIndex++)
+        {
+            var subMesh = modelMesh.SubMeshes[subMeshIndex];
+            if (IsAffectedMaterialOverrideSlot(
+                new StaticModelMaterialSlot(subMesh.MaterialSlotIndex, subMesh.SlotName, -1, subMeshIndex, modelMesh, subMesh),
+                affectedMaterialAssetIds))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsAffectedMaterialOverrideSlot(StaticModelMaterialSlot slot, ISet<Guid> affectedMaterialAssetIds)
+    {
+        var slotOverride = StaticModelMaterialSlots.FindMatchingOverride(MaterialOverrides, slot);
+        if (slotOverride == null || !slotOverride.HasAnyOverride)
+        {
+            return false;
+        }
+
+        if (slotOverride.MaterialAssetId != Guid.Empty && affectedMaterialAssetIds.Contains(slotOverride.MaterialAssetId))
+        {
+            return true;
+        }
+
+        if (slotOverride.MaterialInstanceData.IsEmpty)
+        {
+            return false;
+        }
+
+        Guid instanceMaterialAssetId = slotOverride.MaterialAssetId != Guid.Empty
+            ? slotOverride.MaterialAssetId
+            : slot.DefaultMaterialAssetId;
+        return instanceMaterialAssetId != Guid.Empty && affectedMaterialAssetIds.Contains(instanceMaterialAssetId);
     }
 
     private void NormalizeMaterialOverrides()
@@ -415,3 +522,15 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
 }
+
+internal readonly record struct StaticModelComponentRefreshMetrics(
+    bool RefreshedAny,
+    int RecalculatedOverrideSlotCount,
+    int AuthoringMaterialCacheHitCount,
+    int AuthoringMaterialCacheMissCount);
+
+internal readonly record struct StaticModelOverrideRefreshMetrics(
+    bool RefreshedAny,
+    int RecalculatedOverrideSlotCount,
+    int AuthoringMaterialCacheHitCount,
+    int AuthoringMaterialCacheMissCount);

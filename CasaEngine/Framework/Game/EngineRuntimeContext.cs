@@ -26,6 +26,8 @@ public sealed class EngineRuntimeContext
 
     public MaterialCache? MaterialCache { get; set; }
 
+    internal MaterialAuthoringAssetCache? MaterialAuthoringCache { get; set; }
+
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
 
     public IUICompositionService UICompositionService { get; set; }
@@ -74,6 +76,7 @@ public sealed class EngineRuntimeContext
         {
             RenderTargetPool = RenderTargetPool,
             MaterialCache = MaterialCache,
+            MaterialAuthoringCache = MaterialAuthoringCache,
             WindowInputSource = WindowInputSource,
         };
     }

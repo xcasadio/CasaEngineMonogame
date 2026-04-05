@@ -52,6 +52,7 @@ public sealed class MaterialCompiler
     {
         var values = new Dictionary<string, MaterialValue>(StringComparer.OrdinalIgnoreCase);
         var resolvedParents = new Dictionary<Guid, MaterialAsset?>();
+        var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
 
         MaterialAsset? ResolveParent(Guid assetId)
         {
@@ -62,7 +63,9 @@ public sealed class MaterialCompiler
 
             try
             {
-                cachedMaterial = assetContentManager.Load<MaterialAsset>(assetId, cache: false);
+                cachedMaterial = authoringMaterialCache != null
+                    ? authoringMaterialCache.GetOrLoad(assetId, assetContentManager)
+                    : assetContentManager.Load<MaterialAsset>(assetId, cache: false);
             }
             catch
             {

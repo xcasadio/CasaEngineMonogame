@@ -196,6 +196,108 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
+    public void TryLoadRuntimeMaterial_WithCachedRuntimeMaterial_DoesNotRequireAssetReload()
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Cached Authoring Lit",
+        };
+        materialAsset.SetPropertyValue("base_color_texture", MaterialValue.FromTextureId(Guid.Empty));
+        materialAsset.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(Guid.Empty));
+        materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.OrangeRed));
+        materialAsset.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(0.0f));
+        materialAsset.SetPropertyValue("emissive_color", MaterialValue.FromVector3(Vector3.Zero));
+        materialAsset.SetPropertyValue("specular_color", MaterialValue.FromVector3(new Vector3(0.5f)));
+        materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(14.0f));
+
+        var runtimeContext = new EngineRuntimeContext(
+            new ProjectSettings(),
+            string.Empty,
+            _ => null,
+            _ => null)
+        {
+            MaterialCache = new MaterialCache(),
+        };
+
+        var seedingAssetContentManager = CreateAssetContentManager(runtimeContext);
+        var cachedRuntimeMaterial = runtimeContext.MaterialCache.GetOrCompileRuntimeMaterial(materialAsset, seedingAssetContentManager);
+
+        var cachedOnlyAssetContentManager = CreateAssetContentManager(runtimeContext);
+        bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAsset.Id, cachedOnlyAssetContentManager, out var runtimeMaterial);
+
+        Assert.True(loaded);
+        Assert.Same(cachedRuntimeMaterial, runtimeMaterial);
+    }
+
+    [Fact]
+    public void MaterialAuthoringCache_ReusesCachedAssetUntilInvalidated()
+    {
+        using var scope = new TestProjectScope();
+        Guid materialAssetId = Guid.NewGuid();
+        string relativeFileName = Path.Combine("Materials", "CachedAuthoringSource.material");
+
+        var initialDocument = CreateAuthoringMaterialDocument(materialAssetId, "Cached Authoring Source", 14.0f);
+        scope.WriteAsset(relativeFileName, materialAssetId, "Cached Authoring Source", initialDocument);
+
+        var runtimeContext = new EngineRuntimeContext(
+            new ProjectSettings(),
+            scope.ProjectPath,
+            AssetCatalog.Get,
+            AssetCatalog.GetByFileName)
+        {
+            MaterialAuthoringCache = new MaterialAuthoringAssetCache(),
+        };
+
+        var assetContentManager = CreateAssetContentManager(runtimeContext);
+        var firstAuthoringMaterial = runtimeContext.MaterialAuthoringCache.GetOrLoad(materialAssetId, assetContentManager);
+
+        var updatedDocument = CreateAuthoringMaterialDocument(materialAssetId, "Cached Authoring Source", 37.5f);
+        scope.WriteAsset(relativeFileName, materialAssetId, "Cached Authoring Source", updatedDocument);
+
+        var cachedAuthoringMaterial = runtimeContext.MaterialAuthoringCache.GetOrLoad(materialAssetId, assetContentManager);
+        Assert.Same(firstAuthoringMaterial, cachedAuthoringMaterial);
+        Assert.True(cachedAuthoringMaterial.TryGetPropertyValue("specular_power", out var cachedSpecularPower));
+        Assert.True(cachedSpecularPower.TryGetFloat(out var cachedValue));
+        Assert.Equal(14.0f, cachedValue);
+
+        Assert.True(runtimeContext.MaterialAuthoringCache.Invalidate(materialAssetId));
+
+        var refreshedAuthoringMaterial = runtimeContext.MaterialAuthoringCache.GetOrLoad(materialAssetId, assetContentManager);
+        Assert.NotSame(firstAuthoringMaterial, refreshedAuthoringMaterial);
+        Assert.True(refreshedAuthoringMaterial.TryGetPropertyValue("specular_power", out var refreshedSpecularPower));
+        Assert.True(refreshedSpecularPower.TryGetFloat(out var refreshedValue));
+        Assert.Equal(37.5f, refreshedValue);
+    }
+
+    [Fact]
+    public void TryLoadRuntimeMaterial_WithSeededAuthoringCache_DoesNotRequireAssetReload()
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Seeded Authoring Lit",
+        };
+        Guid materialAssetId = materialAsset.Id;
+        materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.OrangeRed));
+        materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(27.5f));
+
+        var runtimeContext = new EngineRuntimeContext(
+            new ProjectSettings(),
+            string.Empty,
+            _ => null,
+            _ => null)
+        {
+            MaterialAuthoringCache = new MaterialAuthoringAssetCache(),
+        };
+        runtimeContext.MaterialAuthoringCache.Set(materialAsset);
+
+        var assetContentManager = CreateAssetContentManager(runtimeContext);
+        bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var runtimeMaterial);
+
+        Assert.True(loaded);
+        Assert.Equal(27.5f, Assert.IsType<LitDiffuseMaterial>(runtimeMaterial).SpecularPower);
+    }
+
+    [Fact]
     public void TryLoadRuntimeMaterial_LegacyMultiTextureFile_PreservesLegacyTextureSlots()
     {
         using var scope = new TestProjectScope();

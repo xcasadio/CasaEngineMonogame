@@ -19,8 +19,16 @@ public static class MaterialRuntimeResolver
 
         try
         {
-            var materialAsset = assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
             var materialCache = assetContentManager.RuntimeContext?.MaterialCache;
+            if (materialCache != null && materialCache.TryGetRuntimeMaterial(materialAssetId, out material))
+            {
+                return true;
+            }
+
+            var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
+            var materialAsset = authoringMaterialCache != null
+                ? authoringMaterialCache.GetOrLoad(materialAssetId, assetContentManager)
+                : assetContentManager.Load<MaterialAsset>(materialAssetId, cache: false);
             material = materialCache != null
                 ? materialCache.GetOrCompileRuntimeMaterial(materialAsset, assetContentManager)
                 : MaterialCompiler.CompileRuntimeMaterial(materialAsset, assetContentManager);

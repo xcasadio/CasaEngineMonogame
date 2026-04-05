@@ -118,6 +118,8 @@ namespace CasaEngine.Editor
         private bool _automationMaterialEditAttempted;
         private bool _automationMaterialEdited;
         private TimeSpan _automationMaterialEditedAt;
+        private readonly Dictionary<string, string> _automationEditedFileSnapshots = new(StringComparer.OrdinalIgnoreCase);
+        private bool _automationEditedFilesRestored;
 
         // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
         public event EventHandler<TimeSpan> PreviewUpdate;
@@ -234,6 +236,7 @@ namespace CasaEngine.Editor
         {
             if (disposing)
             {
+                RestoreAutomationEditedFilesIfNeeded();
                 EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
                 if (_dockHost != null)
                 {
@@ -333,6 +336,7 @@ namespace CasaEngine.Editor
                 return;
             }
 
+            MaterialAsset? savedMaterialAsset = TryGetSavedMaterialAssetForHotReload(e);
             RefreshSavedMaterialInspectorPanels(e);
 
             if (_editorRuntime == null)
@@ -348,9 +352,11 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            _editorRuntime.ReloadMaterialAsset(materialAssetId);
+            var hotReloadMetrics = savedMaterialAsset != null
+                ? _editorRuntime.ReloadMaterialAsset(materialAssetId, savedMaterialAsset)
+                : _editorRuntime.ReloadMaterialAsset(materialAssetId);
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}'");
+                $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}' affectedMaterials={hotReloadMetrics.AffectedMaterialCount} invalidatedRuntimeMaterials={hotReloadMetrics.InvalidatedRuntimeMaterialCount} invalidatedAuthoringMaterials={hotReloadMetrics.InvalidatedAuthoringMaterialCount} refreshedStaticModelComponents={hotReloadMetrics.RefreshedStaticModelComponentCount} recalculatedOverrideSlots={hotReloadMetrics.RecalculatedOverrideSlotCount} authoringCacheHits={hotReloadMetrics.AuthoringMaterialCacheHitCount} authoringCacheMisses={hotReloadMetrics.AuthoringMaterialCacheMissCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
         }
 
         private void RefreshSavedMaterialInspectorPanels(EditorAssetSavedEventArgs e)
@@ -370,6 +376,30 @@ namespace CasaEngine.Editor
 
                 materialInspectorPanel.ReloadFromDisk();
             }
+        }
+
+        private MaterialAsset? TryGetSavedMaterialAssetForHotReload(EditorAssetSavedEventArgs e)
+        {
+            if (e.SaveSource != EditorAssetSaveSource.MaterialInspectorPanel)
+            {
+                return null;
+            }
+
+            string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
+            foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+            {
+                if (!IsMatchingMaterialInspectorPanel(materialInspectorPanel, e.AssetId, normalizedRelativePath))
+                {
+                    continue;
+                }
+
+                if (materialInspectorPanel.LoadedMaterialAsset != null)
+                {
+                    return materialInspectorPanel.LoadedMaterialAsset;
+                }
+            }
+
+            return null;
         }
 
         private static bool IsMatchingMaterialInspectorPanel(MaterialAssetInspectorPanel materialInspectorPanel, Guid assetId, string normalizedRelativePath)
@@ -2025,6 +2055,7 @@ namespace CasaEngine.Editor
             }
 
             CaptureAutomationDiagnostics();
+            RestoreAutomationEditedFilesIfNeeded();
             _automationDiagnosticsCaptured = true;
 
             if (_automationOptions.ExitAfterCapture)
@@ -2089,6 +2120,13 @@ namespace CasaEngine.Editor
             }
 
             _automationMaterialEditAttempted = true;
+            if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string? snapshotError))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                    $"[Automation] Refused to update material property '{_automationOptions.SetMaterialPropertyKey}': {snapshotError}");
+                return;
+            }
+
             if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
                 _automationOptions.SetMaterialPropertyKey,
                 _automationOptions.SetMaterialPropertyValue,
@@ -2103,6 +2141,99 @@ namespace CasaEngine.Editor
 
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
+        }
+
+        private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string? errorMessage)
+        {
+            errorMessage = null;
+
+            if (inspectorPanel.LoadedMaterialAsset == null || string.IsNullOrWhiteSpace(inspectorPanel.LoadedRelativePath))
+            {
+                errorMessage = "no loaded material file is associated with the active inspector.";
+                return false;
+            }
+
+            string fullPath = Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath);
+            if (_automationEditedFileSnapshots.ContainsKey(fullPath))
+            {
+                return true;
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                errorMessage = $"unable to snapshot '{fullPath}' because the file does not exist.";
+                return false;
+            }
+
+            _automationEditedFileSnapshots.Add(fullPath, File.ReadAllText(fullPath));
+            _automationEditedFilesRestored = false;
+            return true;
+        }
+
+        private void RestoreAutomationEditedFilesIfNeeded()
+        {
+            if (_automationEditedFilesRestored || _automationEditedFileSnapshots.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var pair in _automationEditedFileSnapshots)
+            {
+                string fullPath = pair.Key;
+                string originalContent = pair.Value;
+
+                if (!File.Exists(fullPath) || !string.Equals(File.ReadAllText(fullPath), originalContent, StringComparison.Ordinal))
+                {
+                    File.WriteAllText(fullPath, originalContent);
+                }
+
+                ReloadRestoredAutomationAsset(fullPath);
+            }
+
+            _automationEditedFilesRestored = true;
+        }
+
+        private void ReloadRestoredAutomationAsset(string fullPath)
+        {
+            if (string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))
+            {
+                return;
+            }
+
+            string relativePath = NormalizeRelativePath(Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath));
+            if (!relativePath.EndsWith(".material", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+            {
+                if (string.IsNullOrWhiteSpace(materialInspectorPanel.LoadedRelativePath))
+                {
+                    continue;
+                }
+
+                if (!string.Equals(NormalizeRelativePath(materialInspectorPanel.LoadedRelativePath), relativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                materialInspectorPanel.ReloadFromDisk();
+            }
+
+            if (_editorRuntime == null)
+            {
+                return;
+            }
+
+            Guid materialAssetId = ResolveCatalogMaterialAssetId(relativePath);
+            if (materialAssetId == Guid.Empty)
+            {
+                return;
+            }
+
+            _editorRuntime.ReloadMaterialAsset(materialAssetId);
+            Logs.WriteInfo($"[Automation] Restored edited material '{relativePath}' after diagnostics capture.");
         }
 
         private static string ResolveAutomationAssetPath(string assetPath)

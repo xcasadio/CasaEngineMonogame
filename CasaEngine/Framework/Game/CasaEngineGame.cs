@@ -21,6 +21,7 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Project;
 using MGUI.Shared.Rendering;
+using System.Diagnostics;
 using EventArgs = System.EventArgs;
 using EventHandler = System.EventHandler;
 using RenderingBackBufferSurface = CasaEngine.Framework.Rendering.BackBufferSurface;
@@ -118,6 +119,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         RuntimeContext = runtimeContext ?? GameSettings.CreateRuntimeContext();
         MaterialCache = RuntimeContext.MaterialCache ?? new MaterialCache();
         RuntimeContext.MaterialCache = MaterialCache;
+        RuntimeContext.MaterialAuthoringCache ??= new MaterialAuthoringAssetCache();
         GameManager = new GameManager(this);
         UIViewRuntimeFactory = RuntimeContext.UIViewRuntimeFactory;
         DefaultUICompositionService = RuntimeContext.UICompositionService;
@@ -658,31 +660,74 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         view.UIView.UpdateMetrics(metrics);
     }
 
-    public void ReloadMaterialAsset(Guid materialAssetId)
+    public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId)
+        => ReloadMaterialAsset(materialAssetId, null);
+
+    public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId, MaterialAsset? authoringMaterialAsset)
     {
         if (materialAssetId == Guid.Empty)
         {
-            return;
+            return default;
         }
 
+        var stopwatch = Stopwatch.StartNew();
         _materialDependencyIndex.RefreshMaterialDependency(materialAssetId);
         var affectedMaterialAssetIds = _materialDependencyIndex.GetAffectedMaterialAssetIds(materialAssetId);
+        int invalidatedRuntimeMaterialCount = 0;
         foreach (Guid affectedMaterialId in affectedMaterialAssetIds)
         {
-            MaterialCache.Invalidate(affectedMaterialId);
+            if (MaterialCache.Invalidate(affectedMaterialId))
+            {
+                invalidatedRuntimeMaterialCount++;
+            }
         }
 
-        RefreshLoadedStaticModelMaterials(affectedMaterialAssetIds);
-        InvalidateAllViews();
+        int invalidatedAuthoringMaterialCount = 0;
+        if (RuntimeContext.MaterialAuthoringCache != null)
+        {
+            if (authoringMaterialAsset != null && authoringMaterialAsset.Id == materialAssetId)
+            {
+                RuntimeContext.MaterialAuthoringCache.Set(authoringMaterialAsset);
+            }
+            else if (RuntimeContext.MaterialAuthoringCache.Invalidate(materialAssetId))
+            {
+                invalidatedAuthoringMaterialCount = 1;
+            }
+        }
+
+        var staticModelHotReloadMetrics = RefreshLoadedStaticModelMaterials(affectedMaterialAssetIds);
+        int invalidatedViewCount = InvalidateAllViews();
+        stopwatch.Stop();
+
+        var hotReloadMetrics = new MaterialHotReloadMetrics(
+            affectedMaterialAssetIds.Count,
+            invalidatedRuntimeMaterialCount,
+            invalidatedAuthoringMaterialCount,
+            staticModelHotReloadMetrics.RefreshedStaticModelComponentCount,
+            staticModelHotReloadMetrics.RecalculatedOverrideSlotCount,
+            staticModelHotReloadMetrics.AuthoringMaterialCacheHitCount,
+            staticModelHotReloadMetrics.AuthoringMaterialCacheMissCount,
+            invalidatedViewCount,
+            stopwatch.Elapsed.TotalMilliseconds);
+
+        Logs.WriteInfo(
+            $"[MaterialHotReload] material='{materialAssetId}' affectedMaterials={hotReloadMetrics.AffectedMaterialCount} invalidatedRuntimeMaterials={hotReloadMetrics.InvalidatedRuntimeMaterialCount} invalidatedAuthoringMaterials={hotReloadMetrics.InvalidatedAuthoringMaterialCount} refreshedStaticModelComponents={hotReloadMetrics.RefreshedStaticModelComponentCount} recalculatedOverrideSlots={hotReloadMetrics.RecalculatedOverrideSlotCount} authoringCacheHits={hotReloadMetrics.AuthoringMaterialCacheHitCount} authoringCacheMisses={hotReloadMetrics.AuthoringMaterialCacheMissCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+
+        return hotReloadMetrics;
     }
 
-    private void RefreshLoadedStaticModelMaterials(ISet<Guid> affectedMaterialAssetIds)
+    private StaticModelHotReloadMetrics RefreshLoadedStaticModelMaterials(ISet<Guid> affectedMaterialAssetIds)
     {
         var world = GameManager.CurrentWorld;
         if (world == null)
         {
-            return;
+            return default;
         }
+
+        int refreshedStaticModelComponentCount = 0;
+        int recalculatedOverrideSlotCount = 0;
+        int authoringMaterialCacheHitCount = 0;
+        int authoringMaterialCacheMissCount = 0;
 
         foreach (var entity in EnumerateEntities(world.Entities))
         {
@@ -692,16 +737,35 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
                 continue;
             }
 
-            staticModelComponent.RefreshResolvedMaterials(AssetContentManager, affectedMaterialAssetIds);
+            var refreshMetrics = staticModelComponent.RefreshResolvedMaterialsDetailed(AssetContentManager, affectedMaterialAssetIds);
+            if (!refreshMetrics.RefreshedAny)
+            {
+                continue;
+            }
+
+            refreshedStaticModelComponentCount++;
+            recalculatedOverrideSlotCount += refreshMetrics.RecalculatedOverrideSlotCount;
+            authoringMaterialCacheHitCount += refreshMetrics.AuthoringMaterialCacheHitCount;
+            authoringMaterialCacheMissCount += refreshMetrics.AuthoringMaterialCacheMissCount;
         }
+
+        return new StaticModelHotReloadMetrics(
+            refreshedStaticModelComponentCount,
+            recalculatedOverrideSlotCount,
+            authoringMaterialCacheHitCount,
+            authoringMaterialCacheMissCount);
     }
 
-    private void InvalidateAllViews()
+    private int InvalidateAllViews()
     {
+        int invalidatedViewCount = 0;
         foreach (var view in GameManager.ViewManager.Views)
         {
             view.Invalidate();
+            invalidatedViewCount++;
         }
+
+        return invalidatedViewCount;
     }
 
     private static IEnumerable<Entity> EnumerateEntities(IEnumerable<Entity> entities)
