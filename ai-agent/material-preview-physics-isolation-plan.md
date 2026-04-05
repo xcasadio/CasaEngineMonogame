@@ -59,9 +59,17 @@
   - les lignes physics debug sont donc ajoutées à la queue `Line3dRendererComponent` juste avant le flush de la vue propriétaire, ce qui supprime le report au frame suivant dans une autre vue.
   Commit conseillé: `fix(rendering): scope physics debug rendering to the owning view`
 
-- ⏳ Valider l'isolation world principal / world material preview
+- ✅ Valider l'isolation world principal / world material preview
   Objectif: vérifier qu'aucune forme debug physics du world principal n'apparaît dans l'onglet material preview.
   Fichiers ciblés:
   - `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
   - `CasaEngine.Editor/Controls/MaterialPreviewViewport.cs`
+  Validation automatisée:
+  - les diagnostics éditeur exportent maintenant `World viewport state` et `Material preview state` avec le world debug physics routé pour chaque vue.
+  - smoke exécuté via `CasaEngine.Editor` automation sur `Projects/SampleProject/SampleProject.json` avec ouverture de `NewLitDiffuseMaterial.material`.
+  - résultat observé dans `ai-agent/material-preview-smoke.txt`:
+    - `World viewport state -> Physics debug world: DefaultWorld`
+    - `Material preview state -> Preview world: MaterialPreviewWorld`
+    - `Material preview state -> Physics isolated from main world: True`
+    - `Material preview state -> Physics debug world: MaterialPreviewWorld`
   Commit conseillé: `test(editor): validate physics debug isolation for material preview`

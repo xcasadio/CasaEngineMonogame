@@ -7,6 +7,8 @@ namespace CasaEngine.Framework.Game.Components.Physics;
 public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 {
     private PhysicsDebugDrawComponent _physicsDebugRenderer;
+    private readonly Dictionary<ViewId, string> _lastPhysicsWorldNamesByViewId = [];
+    private readonly Dictionary<ViewId, int> _lastPhysicsObjectCountsByViewId = [];
 
     public bool DisplayPhysics { get; set; } = true;
 
@@ -43,6 +45,23 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
         }
 
         _physicsDebugRenderer.DrawDebugWorld(dynamicsWorld);
+        _lastPhysicsWorldNamesByViewId[view.Id] = view.World.Name;
+        _lastPhysicsObjectCountsByViewId[view.Id] = dynamicsWorld.CollisionObjectArray.Count;
+    }
+
+    public bool TryGetLastRenderedPhysicsWorldName(ViewId viewId, out string worldName)
+    {
+        return _lastPhysicsWorldNamesByViewId.TryGetValue(viewId, out worldName);
+    }
+
+    public int GetLastRenderedPhysicsObjectCount(ViewId viewId)
+    {
+        if (_lastPhysicsObjectCountsByViewId.TryGetValue(viewId, out int count))
+        {
+            return count;
+        }
+
+        return -1;
     }
 
     public override void Draw(GameTime gameTime)

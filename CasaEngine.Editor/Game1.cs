@@ -2202,6 +2202,7 @@ namespace CasaEngine.Editor
             var openDocumentPanelIds = GetOpenDocumentPanelIds();
             builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
             builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
+            AppendWorldViewportDiagnostics(builder);
             AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
             AppendAutomationSelectionDiagnostics(builder);
             builder.AppendLine($"Entries: {entries.Count}");
@@ -2214,6 +2215,26 @@ namespace CasaEngine.Editor
 
             File.WriteAllText(outputPath, builder.ToString());
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Diagnostics exported to '{outputPath}'");
+        }
+
+        private void AppendWorldViewportDiagnostics(StringBuilder builder)
+        {
+            if (_worldViewportPanel == null)
+            {
+                return;
+            }
+
+            var viewportStates = _worldViewportPanel.GetAutomationStateSnapshot();
+            if (viewportStates.Count == 0)
+            {
+                return;
+            }
+
+            builder.AppendLine("World viewport state:");
+            for (int i = 0; i < viewportStates.Count; i++)
+            {
+                builder.AppendLine($"  - {viewportStates[i]}");
+            }
         }
 
         private void AppendMaterialInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)

@@ -216,13 +216,22 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
     {
-        var result = new List<string>(4)
+        var result = new List<string>(7)
         {
             $"Shape: {_activeShape}",
             $"Texture: {DescribeBoundTexture()}",
             $"View mode: {_renderView?.UpdateMode.ToString() ?? (_previewWorld != null ? "ExternalWorldViewport" : "<none>")}",
             $"Status: {_statusMessage}",
+            $"Preview world: {DescribePreviewWorld()}",
+            $"Physics isolated from main world: {DescribePhysicsIsolation()}",
+            $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
         };
+
+        int debugBodyCount = DescribeLastPhysicsDebugObjectCount();
+        if (debugBodyCount >= 0)
+        {
+            result.Add($"Physics debug bodies: {debugBodyCount}");
+        }
 
         return result;
     }
@@ -561,6 +570,43 @@ internal sealed class MaterialPreviewViewport : IDisposable
         return _boundTexture == null
             ? "<none>"
             : $"{_boundTexture.Width}x{_boundTexture.Height}";
+    }
+
+    private string DescribePreviewWorld()
+    {
+        return _previewWorld?.Name ?? "<none>";
+    }
+
+    private string DescribePhysicsIsolation()
+    {
+        if (_previewWorld == null || _editorRuntime.GameManager.CurrentWorld == null)
+        {
+            return "<n/a>";
+        }
+
+        return (!ReferenceEquals(_previewWorld.PhysicsWorldContext, _editorRuntime.GameManager.CurrentWorld.PhysicsWorldContext)).ToString();
+    }
+
+    private string DescribeLastPhysicsDebugWorld()
+    {
+        if (_renderView == null)
+        {
+            return _previewWorld?.Name ?? "<none>";
+        }
+
+        return _editorRuntime.PhysicsDebugViewRendererComponent.TryGetLastRenderedPhysicsWorldName(_renderView.Id, out string worldName)
+            ? worldName
+            : _renderView.World.Name;
+    }
+
+    private int DescribeLastPhysicsDebugObjectCount()
+    {
+        if (_renderView == null)
+        {
+            return -1;
+        }
+
+        return _editorRuntime.PhysicsDebugViewRendererComponent.GetLastRenderedPhysicsObjectCount(_renderView.Id);
     }
 
     private static string EscapeMarkup(string value)

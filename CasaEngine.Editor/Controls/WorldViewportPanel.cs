@@ -201,6 +201,25 @@ public class WorldViewportPanel : IDisposable
         RefreshTextureBinding();
     }
 
+    public IReadOnlyList<string> GetAutomationStateSnapshot()
+    {
+        var result = new List<string>(5)
+        {
+            $"View world: {_renderView?.World.Name ?? "<none>"}",
+            $"World override: {_renderWorldOverride?.Name ?? "<none>"}",
+            $"Texture: {DescribeBoundTexture()}",
+            $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
+        };
+
+        int debugBodyCount = DescribeLastPhysicsDebugObjectCount();
+        if (debugBodyCount >= 0)
+        {
+            result.Add($"Physics debug bodies: {debugBodyCount}");
+        }
+
+        return result;
+    }
+
     public void UpdateInput(GameTime gameTime)
     {
         if (_viewportHost == null)
@@ -811,6 +830,35 @@ public class WorldViewportPanel : IDisposable
         {
             _viewportImage.Source = new MGTextureData(texture);
         }
+    }
+
+    private string DescribeBoundTexture()
+    {
+        return _boundTexture == null
+            ? "<none>"
+            : $"{_boundTexture.Width}x{_boundTexture.Height}";
+    }
+
+    private string DescribeLastPhysicsDebugWorld()
+    {
+        if (_renderView == null)
+        {
+            return "<none>";
+        }
+
+        return _editorRuntime.PhysicsDebugViewRendererComponent.TryGetLastRenderedPhysicsWorldName(_renderView.Id, out string worldName)
+            ? worldName
+            : _renderView.World.Name;
+    }
+
+    private int DescribeLastPhysicsDebugObjectCount()
+    {
+        if (_renderView == null)
+        {
+            return -1;
+        }
+
+        return _editorRuntime.PhysicsDebugViewRendererComponent.GetLastRenderedPhysicsObjectCount(_renderView.Id);
     }
 
     private void EnsureEditorGizmo(World world)
