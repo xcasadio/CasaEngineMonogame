@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Entities.Components;
 public static class Physics2dHelper
 {
     public static CollisionObject? CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
-        PhysicsEngineComponent physicsEngineComponent, ICollideableComponent collideableComponent, Color color)
+        IPhysicsWorldContext physicsWorldContext, ICollideableComponent collideableComponent, Color color)
     {
         switch (collisionShape.Shape.Type)
         {
@@ -23,7 +23,7 @@ public static class Physics2dHelper
                 var box = new BoxShape(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
                 box.LocalScaling = localScale;
                 box.UserObject = collideableComponent;
-                return physicsEngineComponent.CreateGhostObject(worldMatrix, collideableComponent, box, color);
+                return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, color);
             //case Shape2dType.Circle:
             //    break;
             //case Shape2dType.Line:

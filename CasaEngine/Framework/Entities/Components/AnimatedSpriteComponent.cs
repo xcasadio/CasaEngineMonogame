@@ -28,7 +28,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private readonly List<Guid> _animationAssetIds = new();
 
     private AssetContentManager _assetContentManager;
-    private PhysicsEngineComponent? _physicsEngineComponent;
+    private IPhysicsWorldContext? _physicsWorldContext;
     private SpriteRendererComponent _spriteRenderer;
 
     public Color Color { get; set; }
@@ -148,7 +148,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
         _assetContentManager = Owner.World.Game.AssetContentManager;
-        _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
+        _physicsWorldContext = Owner.World.PhysicsWorldContext;
 
         Animations.Clear();
 
@@ -178,7 +178,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
                 foreach (var collisionShape in spriteData.CollisionShapes)
                 {
                     var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsEngineComponent, this, color);
+                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
                     if (collisionObject != null)
                     {
                         _collisionObjectByFrameId[frame.SpriteId].Add(new(collisionShape.Shape, collisionObject));
@@ -282,7 +282,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
                     collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
                 if (addCollision)
                 {
-                    _physicsEngineComponent.AddCollisionObject(collisionObject);
+                    _physicsWorldContext.AddCollisionObject(collisionObject);
                 }
             }
         }
@@ -294,8 +294,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             foreach (var (shape2d, collisionObject) in collisionObjects)
             {
-                _physicsEngineComponent.RemoveCollisionObject(collisionObject);
-                _physicsEngineComponent.ClearCollisionDataFrom(this);
+                _physicsWorldContext.RemoveCollisionObject(collisionObject);
+                _physicsWorldContext.ClearCollisionDataFrom(this);
             }
         }
     }

@@ -8,10 +8,14 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Game.Components.Physics;
 
-public class PhysicsEngineComponent : GameComponent
+public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
 {
     private readonly CasaEngineGame? _casaEngineGame;
-    public PhysicsEngine PhysicsEngine { get; private set; }
+    private readonly Dictionary<World.World, PhysicsWorldContext> _physicsWorldContexts = [];
+    private readonly List<World.World> _worldsToUpdate = [];
+    private PhysicsWorldContext? _bootstrapContext;
+
+    public PhysicsEngine PhysicsEngine => ResolveCurrentContext().PhysicsEngine;
 
     public PhysicsEngineComponent(CasaEngineGame game) : base(game)
     {
@@ -22,8 +26,36 @@ public class PhysicsEngineComponent : GameComponent
 
     public override void Initialize()
     {
-        PhysicsEngine = new PhysicsEngine(GameSettings.PhysicsEngineSettings);
         base.Initialize();
+    }
+
+    public PhysicsWorldContext GetOrCreateContext(World.World world)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+
+        if (_physicsWorldContexts.TryGetValue(world, out var context))
+        {
+            return context;
+        }
+
+        context = new PhysicsWorldContext(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
+        if (_bootstrapContext?.PhysicsEngine.World?.DebugDrawer != null)
+        {
+            context.PhysicsEngine.World.DebugDrawer = _bootstrapContext.PhysicsEngine.World.DebugDrawer;
+        }
+
+        _physicsWorldContexts.Add(world, context);
+        return context;
+    }
+
+    public void ReleaseContext(World.World world)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+
+        if (_physicsWorldContexts.Remove(world, out var context))
+        {
+            context.Dispose();
+        }
     }
 
     public override void Update(GameTime gameTime)
@@ -33,135 +65,131 @@ public class PhysicsEngineComponent : GameComponent
             return;
         }
 
-        PhysicsEngine.Update(GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime));
-        PhysicsEngine.UpdateContacts();
-        PhysicsEngine.SendEvents();
+        float elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        _worldsToUpdate.Clear();
+
+        if (_casaEngineGame != null)
+        {
+            var views = _casaEngineGame.GameManager.ViewManager.Views;
+            for (int i = 0; i < views.Count; i++)
+            {
+                AddWorldToUpdate(views[i].World);
+            }
+
+            var currentWorld = _casaEngineGame.GameManager.CurrentWorld;
+            if (currentWorld != null)
+            {
+                AddWorldToUpdate(currentWorld);
+            }
+        }
+
+        for (int i = 0; i < _worldsToUpdate.Count; i++)
+        {
+            GetOrCreateContext(_worldsToUpdate[i]).Update(elapsedTime);
+        }
+    }
+
+    public void Update(float elapsedTime)
+    {
+        ResolveCurrentContext().Update(elapsedTime);
+    }
+
+    private void AddWorldToUpdate(World.World world)
+    {
+        if (!_worldsToUpdate.Contains(world))
+        {
+            _worldsToUpdate.Add(world);
+        }
+    }
+
+    private PhysicsWorldContext ResolveCurrentContext()
+    {
+        var currentWorld = _casaEngineGame?.GameManager.CurrentWorld;
+        if (currentWorld != null)
+        {
+            return GetOrCreateContext(currentWorld);
+        }
+
+        _bootstrapContext ??= new PhysicsWorldContext(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
+        return _bootstrapContext;
     }
 
     public CollisionObject AddGhostObject(CollisionShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
-        var collisionObject = AddGhostObject(worldMatrix, collideableComponent, collisionShape, color);
-        return collisionObject;
-    }
-
-    private PairCachingGhostObject AddGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
-    {
-        var collisionObject = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
-        PhysicsEngine.World.AddCollisionObject(collisionObject);
-        return collisionObject;
+        return ResolveCurrentContext().AddGhostObject(collisionShape, ref worldMatrix, collideableComponent, color);
     }
 
     public PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
     {
-        var ghostObject = new PairCachingGhostObject
-        {
-            CollisionShape = collisionShape,
-            UserObject = collideableComponent,
-            WorldTransform = worldMatrix
-        };
-        ghostObject.CollisionFlags |= CollisionFlags.NoContactResponse;
-
-        if (color.HasValue)
-        {
-            ghostObject.SetCustomDebugColor(color.Value.ToVector3());
-        }
-
-        return ghostObject;
+        return ResolveCurrentContext().CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
     }
 
     public RigidBody AddStaticObject(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        physicsDefinition.Mass = 0f;
-        return AddRigidBody(collisionShape, localScale, ref worldMatrix, component, physicsDefinition);
+        return ResolveCurrentContext().AddStaticObject(collisionShape, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
     public RigidBody AddRigidBody(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
     {
-        return AddRigidBody(collisionShape, ref worldMatrix, component, physicsDefinition);
+        return ResolveCurrentContext().AddRigidBody(collisionShape, localScale, ref worldMatrix, component, physicsDefinition);
     }
 
     public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
     {
-        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, null, collisionShape);
-        rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
-        rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
-        rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;
-        rbInfo.AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
-        rbInfo.AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
-        rbInfo.AngularDamping = physicsDefinition.AngularDamping;
-        rbInfo.AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
-        rbInfo.Friction = physicsDefinition.Friction;
-        rbInfo.LinearDamping = physicsDefinition.LinearDamping;
-        rbInfo.LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
-        //rbInfo.LocalInertia = physicsDefinition.LocalInertia;
-        rbInfo.Restitution = physicsDefinition.Restitution;
-        rbInfo.RollingFriction = physicsDefinition.RollingFriction;
-
-        bool isDynamic = physicsDefinition.Mass != 0.0f;
-        if (isDynamic)
-        {
-            rbInfo.LocalInertia = collisionShape.CalculateLocalInertia(physicsDefinition.Mass);
-            rbInfo.MotionState = new DefaultMotionState(worldMatrix);
-        }
-
-        var body = new RigidBody(rbInfo)
-        {
-            Gravity = physicsDefinition.ApplyGravity is true ? GameSettings.PhysicsEngineSettings.Gravity : Vector3.Zero,
-            UserObject = userObject,
-            WorldTransform = worldMatrix,
-            LinearFactor = physicsDefinition.LinearFactor,
-            AngularFactor = physicsDefinition.AngularFactor
-        };
-
-    if (!isDynamic && _casaEngineGame?.ExecutionPolicy.UseExternalViewManagement != true)
-        {
-            body.CollisionFlags |= CollisionFlags.StaticObject;
-        }
-
-
-        if (physicsDefinition.DebugColor.HasValue)
-        {
-            body.SetCustomDebugColor(physicsDefinition.DebugColor.Value.ToVector3());
-        }
-
-        PhysicsEngine.World.AddRigidBody(body);
-
-        if (physicsDefinition.ApplyGravity is false)
-        {
-            body.Gravity = Vector3.Zero;
-        }
-
-        return body;
+        return ResolveCurrentContext().AddRigidBody(collisionShape, ref worldMatrix, userObject, physicsDefinition);
     }
 
     public void AddCollisionObject(CollisionObject collisionObject)
     {
-        if (!PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
-        {
-            PhysicsEngine.World.AddCollisionObject(collisionObject);
-        }
+        ResolveCurrentContext().AddCollisionObject(collisionObject);
     }
 
     public void RemoveCollisionObject(CollisionObject collisionObject)
     {
-        if (PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
-        {
-            PhysicsEngine.World.RemoveCollisionObject(collisionObject);
-        }
+        ResolveCurrentContext().RemoveCollisionObject(collisionObject);
     }
 
     public void AddRigidBody(RigidBody rigidBody)
     {
-        PhysicsEngine.World.AddRigidBody(rigidBody);
+        ResolveCurrentContext().AddRigidBody(rigidBody);
     }
 
     public void RemoveRigidBody(RigidBody rigidBody)
     {
-        PhysicsEngine.World.RemoveRigidBody(rigidBody);
+        ResolveCurrentContext().RemoveRigidBody(rigidBody);
     }
 
     public void ClearCollisionDataFrom(ICollideableComponent component)
     {
-        PhysicsEngine.ClearCollisionDataOf(component);
+        ResolveCurrentContext().ClearCollisionDataFrom(component);
+    }
+
+    public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)
+    {
+        return ResolveCurrentContext().WorldRayCast(ref start, ref end, dir);
+    }
+
+    public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal)
+    {
+        return ResolveCurrentContext().NearBodyWorldRayCast(ref position, ref feelers, out contactPoint, out contactNormal);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _bootstrapContext?.Dispose();
+            _bootstrapContext = null;
+
+            foreach (var context in _physicsWorldContexts.Values)
+            {
+                context.Dispose();
+            }
+
+            _physicsWorldContexts.Clear();
+            _worldsToUpdate.Clear();
+        }
+
+        base.Dispose(disposing);
     }
 }

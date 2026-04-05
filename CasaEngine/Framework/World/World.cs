@@ -6,6 +6,7 @@ using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Rendering;
@@ -31,6 +32,7 @@ public sealed class World : ObjectBase
     private readonly List<PlayerController> _playerControllers = [];
 
     public CasaEngineGame Game { get; private set; }
+    public IPhysicsWorldContext PhysicsWorldContext { get; private set; } = null!;
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
@@ -70,6 +72,7 @@ public sealed class World : ObjectBase
         _worldUiComponents.Clear();
 
         ClearEntities(true);
+        DisposePhysicsWorldContext();
     }
 
     public Entity SpawnEntity<T>(string assetName) where T : Entity
@@ -126,7 +129,25 @@ public sealed class World : ObjectBase
     public void LoadContent(CasaEngineGame game)
     {
         Game = game;
+        InitializePhysicsWorldContext();
         LoadContent(AssetCatalog.IsLoaded);
+    }
+
+    private void InitializePhysicsWorldContext()
+    {
+        DisposePhysicsWorldContext();
+        PhysicsWorldContext = Game.PhysicsEngineComponent.GetOrCreateContext(this);
+    }
+
+    private void DisposePhysicsWorldContext()
+    {
+        if (Game == null)
+        {
+            return;
+        }
+
+        Game.PhysicsEngineComponent.ReleaseContext(this);
+        PhysicsWorldContext = null!;
     }
 
     private void LoadContent(bool withReference)

@@ -22,7 +22,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private SpriteData? _spriteData;
     private SpriteRendererComponent? _spriteRendererComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
-    private PhysicsEngineComponent? _physicsEngineComponent;
+    private IPhysicsWorldContext? _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }
 
@@ -58,7 +58,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         base.InitializeWithWorld(world);
 
         _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
-        _physicsEngineComponent = Owner.World.Game.GetGameComponent<PhysicsEngineComponent>();
+        _physicsWorldContext = Owner.World.PhysicsWorldContext;
 
         if (SpriteAssetId != Guid.Empty && _spriteData == null)
         {
@@ -170,12 +170,12 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
             var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsEngineComponent, this, color);
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
             if (collisionObject != null)
             {
                 Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
                     collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
-                _physicsEngineComponent.AddCollisionObject(collisionObject);
+                _physicsWorldContext.AddCollisionObject(collisionObject);
                 _collisionObjects.Add(new(collisionShape.Shape, collisionObject));
             }
         }
@@ -185,8 +185,8 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         foreach (var (shape2d, collisionObject) in _collisionObjects)
         {
-            _physicsEngineComponent.RemoveCollisionObject(collisionObject);
-            _physicsEngineComponent.ClearCollisionDataFrom(this);
+            _physicsWorldContext.RemoveCollisionObject(collisionObject);
+            _physicsWorldContext.ClearCollisionDataFrom(this);
         }
     }
 

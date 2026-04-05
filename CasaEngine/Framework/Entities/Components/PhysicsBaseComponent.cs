@@ -11,7 +11,7 @@ namespace CasaEngine.Framework.Entities.Components;
 
 public abstract class PhysicsBaseComponent : SceneComponent, ICollideableComponent
 {
-    protected PhysicsEngineComponent? PhysicsEngineComponent;
+    protected IPhysicsWorldContext? PhysicsWorldContext;
     private BoundingBox _boundingBox;
     private bool _lock;
 
@@ -76,8 +76,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         base.InitializeWithWorld(world);
 
-        PhysicsEngineComponent = world.Game.GetGameComponent<PhysicsEngineComponent>();
-        Debug.Assert(PhysicsEngineComponent != null);
+        PhysicsWorldContext = world.PhysicsWorldContext;
+        Debug.Assert(PhysicsWorldContext != null);
 
     if (world.Game.ExecutionPolicy.UseExternalViewManagement)
     {
@@ -173,7 +173,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     private void CreatePhysicsObject()
     {
-        if (PhysicsEngineComponent == null || !SimulatePhysics)
+        if (PhysicsWorldContext == null || !SimulatePhysics)
         {
             return;
         }
@@ -187,13 +187,13 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         switch (PhysicsType)
         {
             case PhysicsType.Static:
-                _collisionObject = PhysicsEngineComponent.AddStaticObject(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
+                _collisionObject = PhysicsWorldContext.AddStaticObject(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = PhysicsEngineComponent.AddGhostObject(collisionShape, ref worldMatrix, this);
+                _collisionObject = PhysicsWorldContext.AddGhostObject(collisionShape, ref worldMatrix, this);
                 break;
             default:
-                _rigidBody = PhysicsEngineComponent.AddRigidBody(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
+                _rigidBody = PhysicsWorldContext.AddRigidBody(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
         }
     }
@@ -202,24 +202,24 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     private void DestroyPhysicsObject()
     {
-        if (PhysicsEngineComponent == null)
+        if (PhysicsWorldContext == null)
         {
             return;
         }
 
         if (_collisionObject != null)
         {
-            PhysicsEngineComponent.RemoveCollisionObject(_collisionObject);
+            PhysicsWorldContext.RemoveCollisionObject(_collisionObject);
             _collisionObject = null;
         }
 
         if (_rigidBody != null)
         {
-            PhysicsEngineComponent.RemoveRigidBody(_rigidBody);
+            PhysicsWorldContext.RemoveRigidBody(_rigidBody);
             _rigidBody = null;
         }
 
-        PhysicsEngineComponent.ClearCollisionDataFrom(this);
+        PhysicsWorldContext.ClearCollisionDataFrom(this);
     }
 
     public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)

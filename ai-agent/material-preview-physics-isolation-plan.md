@@ -31,12 +31,18 @@
   - En mode éditeur, `HostedEditorGameAdapter` héberge simultanément le world principal, des `MaterialPreviewWorld` et un éventuel `EditorPreviewWorld`; sans contexte physics par world, ils partagent tous la même `DynamicsWorld`.
   Commit conseillé: `docs(physics): map editor multi-world physics dependencies`
 
-- ⏳ Découpler la simulation physique du singleton de jeu
+- ✅ Découpler la simulation physique du singleton de jeu
   Objectif: rattacher le contexte physics au world ou introduire une abstraction stable par world pour supprimer le partage de `DynamicsWorld` entre mondes de l'éditeur.
   Fichiers ciblés:
   - `CasaEngine/Framework/World/World.cs`
   - `CasaEngine/Framework/Game/Components/Physics/PhysicsEngineComponent.cs`
   - `CasaEngine/Framework/Entities/Components/PhysicsBaseComponent.cs`
+  Implémentation réalisée:
+  - ajout de `IPhysicsWorldContext` et `PhysicsWorldContext` pour porter un `PhysicsEngine` dédié à chaque world.
+  - `World.LoadContent()` alloue désormais son contexte physics via `PhysicsEngineComponent`, et `World.Clear()` le libère explicitement après teardown des entités.
+  - `PhysicsEngineComponent` devient un registre de contextes par world avec compatibilité legacy sur le world courant, au lieu d'héberger une unique `DynamicsWorld` globale.
+  - les consommateurs runtime (`PhysicsBaseComponent`, sprites 2D, tilemap, navigation) résolvent maintenant la physique depuis `world.PhysicsWorldContext` au lieu de `world.Game.GetGameComponent<PhysicsEngineComponent>()`.
+  - conséquence: le world principal, le material preview world et le fallback editor preview world disposent désormais de backends physics distincts.
   Commit conseillé: `refactor(physics): isolate physics runtime per world`
 
 - ⏳ Rendre le debug physics scope par view ou par world
