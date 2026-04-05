@@ -559,11 +559,11 @@ La feature sera consideree complete quand :
 - `fix(editor-history): stabilize panel refresh after undo redo`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `96bf0193` `fix(editor-history): stabilize panel refresh after undo redo`
 
 ---
 
-#### 🚧 Tache 7.2 - Ajouter une validation smoke ciblee
+#### 🧪 Tache 7.2 - Ajouter une validation smoke ciblee
 
 **Objectif :** prouver que la feature marche sur toutes les surfaces editables.
 
@@ -590,11 +590,11 @@ La feature sera consideree complete quand :
 - `test(editor-history): add undo redo smoke coverage`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
-#### ⏳ Tache 7.3 - Mettre a jour la documentation
+#### 🚧 Tache 7.3 - Mettre a jour la documentation
 
 **Objectif :** documenter l'architecture et le workflow utilisateur.
 
