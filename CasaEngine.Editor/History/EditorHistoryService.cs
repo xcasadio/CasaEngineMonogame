@@ -108,6 +108,28 @@ public sealed class EditorHistoryService
         }
     }
 
+    public EditorHistoryTransactionScope OpenTransaction(EditorHistoryContext context, string description)
+        => GetOrCreate(context).OpenTransaction(description);
+
+    public void BeginTransaction(EditorHistoryContext context, string description)
+        => GetOrCreate(context).BeginTransaction(description);
+
+    public void CommitTransaction(EditorHistoryContext context, string? description = null)
+    {
+        if (TryGet(context, out var stack))
+        {
+            stack!.CommitTransaction(description);
+        }
+    }
+
+    public void CancelTransaction(EditorHistoryContext context)
+    {
+        if (TryGet(context, out var stack))
+        {
+            stack!.CancelTransaction();
+        }
+    }
+
     public bool Undo()
     {
         if (_activeStack?.CanUndo != true)

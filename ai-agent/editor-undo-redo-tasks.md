@@ -201,11 +201,11 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add active-context history service`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `27262616` `feat(editor-history): add active-context history service`
 
 ---
 
-#### ⏳ Tache 1.3 - Ajouter transactions, coalescing et arbitrage input
+#### ✅ Tache 1.3 - Ajouter transactions, coalescing et arbitrage input
 
 **Objectif :** obtenir un comportement moderne pour typing, slider, drag et gizmo.
 
@@ -225,7 +225,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add transactions and input arbitration`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 

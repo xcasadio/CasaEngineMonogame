@@ -12,6 +12,11 @@ public sealed class UICommandStack
 {
     private readonly EditorHistoryStack _inner;
 
+    public UICommandStack(EditorHistoryStack historyStack)
+    {
+        _inner = historyStack ?? throw new ArgumentNullException(nameof(historyStack));
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     //  Events
     // ─────────────────────────────────────────────────────────────────────
@@ -43,6 +48,16 @@ public sealed class UICommandStack
 
     public string? UndoDescription => _inner.UndoDescription;
     public string? RedoDescription => _inner.RedoDescription;
+    public bool IsTransactionOpen => _inner.IsTransactionOpen;
+    public EditorHistoryStack UnderlyingStack => _inner;
+
+    public EditorHistoryTransactionScope OpenTransaction(string description) => _inner.OpenTransaction(description);
+
+    public void BeginTransaction(string description) => _inner.BeginTransaction(description);
+
+    public void CommitTransaction(string? description = null) => _inner.CommitTransaction(description);
+
+    public void CancelTransaction() => _inner.CancelTransaction();
 
     // ─────────────────────────────────────────────────────────────────────
     //  Operations
