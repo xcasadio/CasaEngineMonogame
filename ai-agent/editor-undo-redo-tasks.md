@@ -536,7 +536,7 @@ La feature sera consideree complete quand :
 
 ---
 
-### 🚧 Phase 7 - Stabilisation, validation et doc
+### 🧪 Phase 7 - Stabilisation, validation et doc
 
 #### 🧪 Tache 7.1 - Optimiser les refresh et la restauration de selection
 
@@ -590,11 +590,11 @@ La feature sera consideree complete quand :
 - `test(editor-history): add undo redo smoke coverage`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `b54de9aa` `test(editor-history): add undo redo smoke coverage`
 
 ---
 
-#### 🚧 Tache 7.3 - Mettre a jour la documentation
+#### ✅ Tache 7.3 - Mettre a jour la documentation
 
 **Objectif :** documenter l'architecture et le workflow utilisateur.
 
@@ -614,7 +614,7 @@ La feature sera consideree complete quand :
 - `docs(editor-history): document global undo redo workflow`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
