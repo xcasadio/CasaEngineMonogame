@@ -204,6 +204,11 @@ internal sealed class MaterialPreviewViewport : IDisposable
         RefreshMaterial();
     }
 
+    public void RefreshMaterialAsset()
+    {
+        RefreshMaterial();
+    }
+
     public void RefreshAfterDraw()
     {
         RefreshTextureBinding();
@@ -390,9 +395,12 @@ internal sealed class MaterialPreviewViewport : IDisposable
         mesh.Material = _runtimeMaterial ?? StaticModelMaterialResolver.CreateMissingMaterial("Preview");
 
         _previewMeshComponent.ModelMesh = mesh;
-        _previewMeshComponent.LocalPosition = Vector3.Zero;
-        _previewMeshComponent.LocalScale = Vector3.One;
-        _previewMeshComponent.LocalOrientation = GetOrientation(_activeShape);
+        _previewMeshComponent.Position = Vector3.Zero;
+        _previewMeshComponent.Scale = Vector3.One;
+        _previewMeshComponent.Orientation = GetOrientation(_activeShape);
+
+        // Materialize the queued preview entity and refresh its bounds after shape changes.
+        _previewWorld?.Update(0f);
 
         ConfigureCamera();
         UpdateShapeButtons();

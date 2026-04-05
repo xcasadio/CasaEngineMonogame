@@ -37,6 +37,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     private MaterialAsset? _materialAsset;
     private string? _loadedRelativePath;
     private readonly Dictionary<Guid, MaterialAsset?> _resolvedParentMaterials = new();
+    private readonly Dictionary<string, PropertyRowBinding> _propertyRows = new(StringComparer.OrdinalIgnoreCase);
 
     public MaterialAssetInspectorPanel(MGWindow window)
         : this(window, MaterialDefinitionEditorRegistry.Default, null, null)
@@ -243,7 +244,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         {
             _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
             SaveMaterialAsset();
-            RefreshInspector();
+            RefreshEditedProperty(propertyDefinition, refreshEditorValue: true);
             statusMessage = string.IsNullOrWhiteSpace(_loadedRelativePath)
                 ? $"Saved property '{propertyDefinition.Key}'."
                 : $"Saved {EscapeMarkup(_loadedRelativePath)} ({propertyDefinition.Key}={rawValue})";
@@ -264,6 +265,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             return;
         }
 
+        _propertyRows.Clear();
         _propertiesStack.TryRemoveAll();
 
         if (_materialAsset == null)
@@ -291,7 +293,9 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
             for (int i = 0; i < section.Properties.Count; i++)
             {
-                _propertiesStack.TryAddChild(BuildPropertyRow(section.Properties[i]));
+                var propertyRow = BuildPropertyRow(section.Properties[i]);
+                _propertiesStack.TryAddChild(propertyRow.Root);
+                _propertyRows[propertyRow.Descriptor.Definition.Key] = propertyRow;
             }
         }
     }
@@ -305,7 +309,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         };
     }
 
-    private MGElement BuildPropertyRow(MaterialPropertyDescriptor descriptor)
+    private PropertyRowBinding BuildPropertyRow(MaterialPropertyDescriptor descriptor)
     {
         var propertyState = ResolvePropertyState(descriptor.Definition);
 
@@ -326,8 +330,25 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         {
             Spacing = 4,
         };
-        actions.TryAddChild(BuildPropertyStateBadge(propertyState));
-        actions.TryAddChild(BuildResetButton(descriptor.Definition, propertyState.HasLocalOverride));
+
+        var badgeText = new MGTextBlock(_window, propertyState.BadgeText, propertyState.ForegroundColor, 10)
+        {
+            Opacity = 0.95f,
+        };
+        var badgeBorder = new MGBorder(
+            _window,
+            new Thickness(1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(propertyState.BorderColor)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(propertyState.BackgroundColor)),
+            Padding = new Thickness(6, 2, 6, 2),
+        };
+        badgeBorder.SetContent(badgeText);
+
+        var resetButton = BuildResetButton(descriptor.Definition, propertyState.HasLocalOverride);
+
+        actions.TryAddChild(badgeBorder);
+        actions.TryAddChild(resetButton);
         header.TryAddChild(actions, Dock.Right);
 
         var editorRow = new MGStackPanel(_window, Orientation.Horizontal)
@@ -335,24 +356,32 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             Spacing = 6,
             Margin = new Thickness(14, 0, 0, 0),
         };
-        editorRow.TryAddChild(BuildEditor(descriptor, propertyState));
+
+        var editorBinding = BuildEditorBinding(descriptor, propertyState);
+        editorRow.TryAddChild(editorBinding.Element);
+
+        var sourceText = new MGTextBlock(_window, string.Empty)
+        {
+            FontSize = 10,
+            Opacity = 0.7f,
+            VerticalAlignment = VerticalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+        };
 
         if (!string.IsNullOrWhiteSpace(propertyState.SourceText))
         {
-            editorRow.TryAddChild(new MGTextBlock(_window, EscapeMarkup(propertyState.SourceText))
-            {
-                FontSize = 10,
-                Opacity = 0.7f,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
+            sourceText.Text = EscapeMarkup(propertyState.SourceText);
+            sourceText.Visibility = Visibility.Visible;
         }
+
+        editorRow.TryAddChild(sourceText);
 
         row.TryAddChild(header);
         row.TryAddChild(editorRow);
-        return row;
+        return new PropertyRowBinding(descriptor, row, badgeBorder, badgeText, resetButton, sourceText, editorBinding);
     }
 
-    private MGElement BuildEditor(MaterialPropertyDescriptor descriptor, PropertyDisplayState propertyState)
+    private IPropertyEditorBinding BuildEditorBinding(MaterialPropertyDescriptor descriptor, PropertyDisplayState propertyState)
     {
         var propertyDefinition = descriptor.Definition;
         var value = propertyState.EffectiveValue;
@@ -495,24 +524,9 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
     }
 
-    private MGElement BuildPropertyStateBadge(PropertyDisplayState propertyState)
+    private MGButton BuildResetButton(MaterialPropertyDefinition propertyDefinition, bool hasLocalOverride)
     {
-        var badgeBorder = new MGBorder(_window, new Thickness(1), new MGUniformBorderBrush(new MGSolidFillBrush(propertyState.BorderColor)))
-        {
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(propertyState.BackgroundColor)),
-            Padding = new Thickness(6, 2, 6, 2),
-        };
-        badgeBorder.SetContent(new MGTextBlock(_window, propertyState.BadgeText, propertyState.ForegroundColor, 10)
-        {
-            Opacity = 0.95f,
-        });
-
-        return badgeBorder;
-    }
-
-    private MGElement BuildResetButton(MaterialPropertyDefinition propertyDefinition, bool hasLocalOverride)
-    {
-        var button = new MGButton(_window, _ => ApplyPropertyValue(propertyDefinition, null))
+        var button = new MGButton(_window, _ => ApplyPropertyValue(propertyDefinition, null, refreshEditorValue: true))
         {
             IsEnabled = hasLocalOverride,
             PreferredWidth = 54,
@@ -526,7 +540,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         return button;
     }
 
-    private MGElement BuildBooleanEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildBooleanEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         bool isChecked = value != null && value.TryGetBoolean(out var booleanValue) && booleanValue;
 
@@ -534,15 +548,11 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         {
             IsChecked = isChecked,
         };
-        checkBox.OnCheckStateChanged += (_, args) =>
-        {
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromBoolean(args.NewValue == true));
-        };
 
-        return checkBox;
+        return new BooleanEditorBinding(checkBox, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildSliderEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildSliderEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         float minimum = propertyDefinition.MinValue ?? 0.0f;
         float maximum = propertyDefinition.MaxValue ?? 1.0f;
@@ -555,21 +565,11 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             ShowValueLabel = true,
             ValueLabelFormat = propertyDefinition.ValueType == MaterialPropertyType.Integer ? "F0" : "F2",
         };
-        slider.ValueChanged += (_, args) =>
-        {
-            if (propertyDefinition.ValueType == MaterialPropertyType.Integer)
-            {
-                ApplyPropertyValue(propertyDefinition, MaterialValue.FromInteger((int)Math.Round(args.NewValue)));
-                return;
-            }
 
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromFloat(args.NewValue));
-        };
-
-        return slider;
+        return new SliderEditorBinding(slider, propertyDefinition, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildNumericEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildNumericEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var numericField = new NumericField(
             _window,
@@ -580,31 +580,18 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         numericField.Value = GetNumericValue(propertyDefinition, value, 0.0f);
-        numericField.ValueChanged += (_, numericValue) =>
-        {
-            if (propertyDefinition.ValueType == MaterialPropertyType.Integer)
-            {
-                ApplyPropertyValue(propertyDefinition, MaterialValue.FromInteger((int)Math.Round(numericValue)));
-                return;
-            }
 
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromFloat(numericValue));
-        };
-
-        return numericField;
+        return new NumericEditorBinding(numericField, propertyDefinition, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildColorEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildColorEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var colorEditor = new ColorEditor(_window, value != null && value.TryGetColor(out var color) ? color : Color.White);
-        colorEditor.ValueChanged += (_, selectedColor) =>
-        {
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromColor(selectedColor));
-        };
-        return colorEditor;
+
+        return new ColorEditorBinding(colorEditor, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildVector3Editor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildVector3Editor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var vectorEditor = new Vector3Editor(_window, propertyDefinition.Step ?? 0.1f)
         {
@@ -615,15 +602,10 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             vectorEditor.Value = vector3Value;
         }
 
-        vectorEditor.ValueChanged += (_, updatedValue) =>
-        {
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromVector3(updatedValue));
-        };
-
-        return vectorEditor;
+        return new Vector3EditorBinding(vectorEditor, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildTextureEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildTextureEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var assetSelector = new AssetSelector(_window)
         {
@@ -635,15 +617,10 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             assetSelector.Filter = assetInfo => string.Equals(assetInfo.AssetType, propertyDefinition.AssetKind, StringComparison.OrdinalIgnoreCase);
         }
 
-        assetSelector.AssetChanged += (_, assetId) =>
-        {
-            ApplyPropertyValue(propertyDefinition, MaterialValue.FromTextureId(assetId));
-        };
-
-        return assetSelector;
+        return new TextureEditorBinding(assetSelector, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildEnumEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildEnumEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var combo = new MGComboBox<MaterialPropertyOption>(_window)
         {
@@ -671,36 +648,22 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
         string? currentValue = value != null && value.TryGetEnum(out var enumValue) ? enumValue : null;
         combo.SelectedItem = GetSelectedOption(options, currentValue);
-        combo.SelectedItemChanged += (_, args) =>
-        {
-            if (args.NewValue != null)
-            {
-                ApplyPropertyValue(propertyDefinition, MaterialValue.FromEnum(args.NewValue.Value));
-            }
-        };
 
-        return combo;
+        return new EnumEditorBinding(combo, options, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private MGElement BuildTextEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private IPropertyEditorBinding BuildTextEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
         var textBox = new MGTextBox(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         textBox.SetText(FormatTextValue(propertyDefinition, value));
-        textBox.TextChanged += (_, args) =>
-        {
-            if (TryParseTextValue(propertyDefinition, args.NewValue, out var parsedValue))
-            {
-                ApplyPropertyValue(propertyDefinition, parsedValue);
-            }
-        };
 
-        return textBox;
+        return new TextEditorBinding(textBox, propertyDefinition, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
-    private void ApplyPropertyValue(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    private void ApplyPropertyValue(MaterialPropertyDefinition propertyDefinition, MaterialValue? value, bool refreshEditorValue = false)
     {
         if (_materialAsset == null)
         {
@@ -719,7 +682,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             }
 
             SaveMaterialAsset();
-            RefreshInspector();
+            RefreshEditedProperty(propertyDefinition, refreshEditorValue);
             if (_statusText != null && !string.IsNullOrWhiteSpace(_loadedRelativePath))
             {
                 _statusText.Text = $"Saved {EscapeMarkup(_loadedRelativePath)}";
@@ -735,6 +698,28 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         }
     }
 
+    private void RefreshEditedProperty(MaterialPropertyDefinition propertyDefinition, bool refreshEditorValue)
+    {
+        _resolvedParentMaterials.Clear();
+        RefreshPropertyRow(propertyDefinition, refreshEditorValue);
+        _materialPreview?.RefreshMaterialAsset();
+    }
+
+    private void RefreshPropertyRow(MaterialPropertyDefinition propertyDefinition, bool refreshEditorValue)
+    {
+        if (!_propertyRows.TryGetValue(propertyDefinition.Key, out var propertyRow))
+        {
+            return;
+        }
+
+        var propertyState = ResolvePropertyState(propertyDefinition);
+        propertyRow.ApplyState(propertyState);
+        if (refreshEditorValue)
+        {
+            propertyRow.EditorBinding.UpdateValue(propertyState.EffectiveValue);
+        }
+    }
+
     private void SaveMaterialAsset()
     {
         if (_materialAsset == null || string.IsNullOrWhiteSpace(_loadedRelativePath))
@@ -744,7 +729,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
         var document = new JObject();
         MaterialAssetJsonSerializer.Save(_materialAsset, document);
-        EditorAssetWriterService.SaveDocument(_loadedRelativePath, document);
+        EditorAssetWriterService.SaveDocument(_loadedRelativePath, document, EditorAssetSaveSource.MaterialInspectorPanel);
 
         if (_statusText != null)
         {
@@ -1037,6 +1022,337 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
     private static string EscapeMarkup(string value)
         => value.Replace("[", "\\[").Replace("]", "\\]");
+
+    private interface IPropertyEditorBinding
+    {
+        MGElement Element { get; }
+
+        void UpdateValue(MaterialValue? value);
+    }
+
+    private sealed class PropertyRowBinding
+    {
+        public PropertyRowBinding(
+            MaterialPropertyDescriptor descriptor,
+            MGElement root,
+            MGBorder badgeBorder,
+            MGTextBlock badgeText,
+            MGButton resetButton,
+            MGTextBlock sourceText,
+            IPropertyEditorBinding editorBinding)
+        {
+            Descriptor = descriptor;
+            Root = root;
+            BadgeBorder = badgeBorder;
+            BadgeText = badgeText;
+            ResetButton = resetButton;
+            SourceText = sourceText;
+            EditorBinding = editorBinding;
+        }
+
+        public MaterialPropertyDescriptor Descriptor { get; }
+
+        public MGElement Root { get; }
+
+        public MGBorder BadgeBorder { get; }
+
+        public MGTextBlock BadgeText { get; }
+
+        public MGButton ResetButton { get; }
+
+        public MGTextBlock SourceText { get; }
+
+        public IPropertyEditorBinding EditorBinding { get; }
+
+        public void ApplyState(PropertyDisplayState propertyState)
+        {
+            BadgeBorder.BorderBrush = new MGUniformBorderBrush(new MGSolidFillBrush(propertyState.BorderColor));
+            BadgeBorder.BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(propertyState.BackgroundColor));
+            BadgeText.Text = propertyState.BadgeText;
+            BadgeText.Foreground = new VisualStateSetting<Color?>(propertyState.ForegroundColor, propertyState.ForegroundColor, propertyState.ForegroundColor);
+            ResetButton.IsEnabled = propertyState.HasLocalOverride;
+
+            if (string.IsNullOrWhiteSpace(propertyState.SourceText))
+            {
+                SourceText.Text = string.Empty;
+                SourceText.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            SourceText.Text = EscapeMarkup(propertyState.SourceText);
+            SourceText.Visibility = Visibility.Visible;
+        }
+    }
+
+    private sealed class BooleanEditorBinding : IPropertyEditorBinding
+    {
+        private readonly MGCheckBox _checkBox;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public BooleanEditorBinding(MGCheckBox checkBox, Action<MaterialValue?> applyValue)
+        {
+            _checkBox = checkBox;
+            _applyValue = applyValue;
+            _checkBox.OnCheckStateChanged += (_, args) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromBoolean(args.NewValue == true));
+            };
+        }
+
+        public MGElement Element => _checkBox;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            bool isChecked = value != null && value.TryGetBoolean(out var booleanValue) && booleanValue;
+            _isUpdating = true;
+            _checkBox.IsChecked = isChecked;
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class SliderEditorBinding : IPropertyEditorBinding
+    {
+        private readonly MGSlider _slider;
+        private readonly MaterialPropertyDefinition _propertyDefinition;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public SliderEditorBinding(MGSlider slider, MaterialPropertyDefinition propertyDefinition, Action<MaterialValue?> applyValue)
+        {
+            _slider = slider;
+            _propertyDefinition = propertyDefinition;
+            _applyValue = applyValue;
+            _slider.ValueChanged += (_, args) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                if (_propertyDefinition.ValueType == MaterialPropertyType.Integer)
+                {
+                    _applyValue(MaterialValue.FromInteger((int)Math.Round(args.NewValue)));
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromFloat(args.NewValue));
+            };
+        }
+
+        public MGElement Element => _slider;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            float fallback = _propertyDefinition.MinValue ?? 0.0f;
+            _isUpdating = true;
+            _slider.Value = GetNumericValue(_propertyDefinition, value, fallback);
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class NumericEditorBinding : IPropertyEditorBinding
+    {
+        private readonly NumericField _numericField;
+        private readonly MaterialPropertyDefinition _propertyDefinition;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public NumericEditorBinding(NumericField numericField, MaterialPropertyDefinition propertyDefinition, Action<MaterialValue?> applyValue)
+        {
+            _numericField = numericField;
+            _propertyDefinition = propertyDefinition;
+            _applyValue = applyValue;
+            _numericField.ValueChanged += (_, numericValue) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                if (_propertyDefinition.ValueType == MaterialPropertyType.Integer)
+                {
+                    _applyValue(MaterialValue.FromInteger((int)Math.Round(numericValue)));
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromFloat(numericValue));
+            };
+        }
+
+        public MGElement Element => _numericField;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _isUpdating = true;
+            _numericField.Value = GetNumericValue(_propertyDefinition, value, 0.0f);
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class ColorEditorBinding : IPropertyEditorBinding
+    {
+        private readonly ColorEditor _colorEditor;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public ColorEditorBinding(ColorEditor colorEditor, Action<MaterialValue?> applyValue)
+        {
+            _colorEditor = colorEditor;
+            _applyValue = applyValue;
+            _colorEditor.ValueChanged += (_, selectedColor) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromColor(selectedColor));
+            };
+        }
+
+        public MGElement Element => _colorEditor;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _isUpdating = true;
+            _colorEditor.Value = value != null && value.TryGetColor(out var color) ? color : Color.White;
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class Vector3EditorBinding : IPropertyEditorBinding
+    {
+        private readonly Vector3Editor _vectorEditor;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public Vector3EditorBinding(Vector3Editor vectorEditor, Action<MaterialValue?> applyValue)
+        {
+            _vectorEditor = vectorEditor;
+            _applyValue = applyValue;
+            _vectorEditor.ValueChanged += (_, updatedValue) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromVector3(updatedValue));
+            };
+        }
+
+        public MGElement Element => _vectorEditor;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _isUpdating = true;
+            _vectorEditor.Value = value != null && value.TryGetVector3(out var vector3Value)
+                ? vector3Value
+                : Vector3.Zero;
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class TextureEditorBinding : IPropertyEditorBinding
+    {
+        private readonly AssetSelector _assetSelector;
+        private readonly Action<MaterialValue?> _applyValue;
+
+        public TextureEditorBinding(AssetSelector assetSelector, Action<MaterialValue?> applyValue)
+        {
+            _assetSelector = assetSelector;
+            _applyValue = applyValue;
+            _assetSelector.AssetChanged += (_, assetId) => _applyValue(MaterialValue.FromTextureId(assetId));
+        }
+
+        public MGElement Element => _assetSelector;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _assetSelector.AssetId = value != null && value.TryGetTextureId(out var textureAssetId)
+                ? textureAssetId
+                : Guid.Empty;
+        }
+    }
+
+    private sealed class EnumEditorBinding : IPropertyEditorBinding
+    {
+        private readonly MGComboBox<MaterialPropertyOption> _combo;
+        private readonly IReadOnlyList<MaterialPropertyOption> _options;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public EnumEditorBinding(
+            MGComboBox<MaterialPropertyOption> combo,
+            IReadOnlyList<MaterialPropertyOption> options,
+            Action<MaterialValue?> applyValue)
+        {
+            _combo = combo;
+            _options = options;
+            _applyValue = applyValue;
+            _combo.SelectedItemChanged += (_, args) =>
+            {
+                if (_isUpdating || args.NewValue == null)
+                {
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromEnum(args.NewValue.Value));
+            };
+        }
+
+        public MGElement Element => _combo;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            string? currentValue = value != null && value.TryGetEnum(out var enumValue) ? enumValue : null;
+            _isUpdating = true;
+            _combo.SelectedItem = GetSelectedOption(_options, currentValue);
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class TextEditorBinding : IPropertyEditorBinding
+    {
+        private readonly MGTextBox _textBox;
+        private readonly MaterialPropertyDefinition _propertyDefinition;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public TextEditorBinding(MGTextBox textBox, MaterialPropertyDefinition propertyDefinition, Action<MaterialValue?> applyValue)
+        {
+            _textBox = textBox;
+            _propertyDefinition = propertyDefinition;
+            _applyValue = applyValue;
+            _textBox.TextChanged += (_, args) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                if (TryParseTextValue(_propertyDefinition, args.NewValue, out var parsedValue))
+                {
+                    _applyValue(parsedValue);
+                }
+            };
+        }
+
+        public MGElement Element => _textBox;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _isUpdating = true;
+            _textBox.SetText(FormatTextValue(_propertyDefinition, value));
+            _isUpdating = false;
+        }
+    }
 
     private readonly record struct PropertyDisplayState(
         MaterialValue? EffectiveValue,

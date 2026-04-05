@@ -13,6 +13,12 @@
   "sampler_state": "AnisotropicClamp",
   "properties": {
     "base_color_texture": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
-    "specular_power": 81.52381
+    "alpha_cutoff": 0.83928573,
+    "specular_color": {
+      "x": 1.0000001,
+      "y": 0.5,
+      "z": 0.5
+    },
+    "specular_power": 12.5
   }
 }

@@ -333,7 +333,7 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            RefreshOpenMaterialInspectorPanels();
+            RefreshSavedMaterialInspectorPanels(e);
 
             if (_editorRuntime == null)
             {
@@ -353,17 +353,52 @@ namespace CasaEngine.Editor
                 $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}'");
         }
 
-        private void RefreshOpenMaterialInspectorPanels()
+        private void RefreshSavedMaterialInspectorPanels(EditorAssetSavedEventArgs e)
         {
+            if (e.SaveSource == EditorAssetSaveSource.MaterialInspectorPanel)
+            {
+                return;
+            }
+
+            string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
             foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
             {
+                if (!IsMatchingMaterialInspectorPanel(materialInspectorPanel, e.AssetId, normalizedRelativePath))
+                {
+                    continue;
+                }
+
                 materialInspectorPanel.ReloadFromDisk();
             }
         }
 
+        private static bool IsMatchingMaterialInspectorPanel(MaterialAssetInspectorPanel materialInspectorPanel, Guid assetId, string normalizedRelativePath)
+        {
+            var loadedMaterialAsset = materialInspectorPanel.LoadedMaterialAsset;
+            if (assetId != Guid.Empty
+                && loadedMaterialAsset != null
+                && (loadedMaterialAsset.AssetId == assetId || loadedMaterialAsset.Id == assetId))
+            {
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(materialInspectorPanel.LoadedRelativePath))
+            {
+                return false;
+            }
+
+            return string.Equals(
+                NormalizeRelativePath(materialInspectorPanel.LoadedRelativePath),
+                normalizedRelativePath,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string NormalizeRelativePath(string relativePath)
+            => relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
         private static Guid ResolveCatalogMaterialAssetId(string relativePath)
         {
-            string normalizedRelativePath = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            string normalizedRelativePath = NormalizeRelativePath(relativePath);
             var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
                 ?? AssetCatalog.GetByFileName(normalizedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             return assetInfo?.Id ?? Guid.Empty;

@@ -59,6 +59,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public MaterialCache MaterialCache { get; }
     public RenderTargetPool RenderTargetPool { get; private set; }
     public GameplayExecutionPolicy ExecutionPolicy { get; set; } = GameplayExecutionPolicies.Runtime;
+    private readonly MaterialDependencyIndex _materialDependencyIndex = new();
 
     // ---- Multi-view render pipeline ----
     private RenderPipeline? _renderPipeline;
@@ -663,7 +664,8 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             return;
         }
 
-        var affectedMaterialAssetIds = GetAffectedMaterialAssetIds(materialAssetId);
+        _materialDependencyIndex.RefreshMaterialDependency(materialAssetId);
+        var affectedMaterialAssetIds = _materialDependencyIndex.GetAffectedMaterialAssetIds(materialAssetId);
         foreach (Guid affectedMaterialId in affectedMaterialAssetIds)
         {
             MaterialCache.Invalidate(affectedMaterialId);
@@ -671,51 +673,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         RefreshLoadedStaticModelMaterials(affectedMaterialAssetIds);
         InvalidateAllViews();
-    }
-
-    private HashSet<Guid> GetAffectedMaterialAssetIds(Guid materialAssetId)
-    {
-        var affectedMaterialAssetIds = new HashSet<Guid> { materialAssetId };
-        bool addedDependentMaterial;
-
-        do
-        {
-            addedDependentMaterial = false;
-
-            foreach (var assetInfo in AssetCatalog.AssetInfos)
-            {
-                if (assetInfo.Id == Guid.Empty
-                    || affectedMaterialAssetIds.Contains(assetInfo.Id)
-                    || !string.Equals(assetInfo.AssetType, "material", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                MaterialAsset? candidateMaterialAsset;
-                try
-                {
-                    candidateMaterialAsset = AssetContentManager.Load<MaterialAsset>(assetInfo.Id, cache: false);
-                }
-                catch
-                {
-                    continue;
-                }
-
-                if (candidateMaterialAsset.ParentMaterialAssetId == Guid.Empty
-                    || !affectedMaterialAssetIds.Contains(candidateMaterialAsset.ParentMaterialAssetId))
-                {
-                    continue;
-                }
-
-                if (affectedMaterialAssetIds.Add(assetInfo.Id))
-                {
-                    addedDependentMaterial = true;
-                }
-            }
-        }
-        while (addedDependentMaterial);
-
-        return affectedMaterialAssetIds;
     }
 
     private void RefreshLoadedStaticModelMaterials(ISet<Guid> affectedMaterialAssetIds)
