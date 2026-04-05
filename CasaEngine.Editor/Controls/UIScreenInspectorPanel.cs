@@ -28,9 +28,18 @@ public sealed class UIScreenInspectorPanel
     private MGStackPanel? _propertiesStack;
     private MGTextBlock? _headerText;
     private MGTextBlock? _statusText;
+    private MGTextBox? _nameEditor;
+    private bool _hasDesktopFocusSubscription;
 
     private UIScreenDocument? _document;
     private bool _refreshPending;
+    private bool _suppressEditorEvents;
+
+    private MGTextBox? _activeTextTransactionEditor;
+    private UIScreenNode? _activeTextTransactionNode;
+    private string? _activeTextTransactionPropertyName;
+    private string? _activeTextTransactionInitialValue;
+    private string? _activeTextTransactionDescription;
 
     // R-05: track last node to skip full rebuild on same-node re-selection
     private DocumentNodeId? _lastRenderedNodeId;
@@ -82,6 +91,7 @@ public sealed class UIScreenInspectorPanel
 
     public void SetDocument(UIScreenDocument? document)
     {
+        FinalizeActiveTextTransaction();
         _document = document;
         ScheduleRefreshInspector();
     }
@@ -119,6 +129,12 @@ public sealed class UIScreenInspectorPanel
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
+        if (!_hasDesktopFocusSubscription && _window.Desktop != null)
+        {
+            _window.Desktop.FocusedKeyboardHandlerChanged += OnFocusedKeyboardHandlerChanged;
+            _hasDesktopFocusSubscription = true;
+        }
+
         if (_refreshPending || _document != null)
         {
             _refreshPending = false;
@@ -134,6 +150,7 @@ public sealed class UIScreenInspectorPanel
 
     private void OnSelectionChanged(DocumentNodeId? nodeId)
     {
+        FinalizeActiveTextTransaction();
         ScheduleRefreshInspector();
     }
 
@@ -201,6 +218,23 @@ public sealed class UIScreenInspectorPanel
     /// <summary>Updates only the text-box values of existing editor rows — no MGUI element recreation.</summary>
     private void UpdateEditorValues(UIScreenNode node)
     {
+        if (_nameEditor != null)
+        {
+            string currentName = node.Name ?? string.Empty;
+            if (!string.Equals(_nameEditor.Text, currentName, StringComparison.Ordinal))
+            {
+                _suppressEditorEvents = true;
+                try
+                {
+                    _nameEditor.Text = currentName;
+                }
+                finally
+                {
+                    _suppressEditorEvents = false;
+                }
+            }
+        }
+
         foreach (var (editor, desc, _) in _editors)
         {
             var currentValue = node.Properties.TryGetValue(desc.Name, out var prop)
@@ -210,7 +244,15 @@ public sealed class UIScreenInspectorPanel
             // Suppress the TextChanged event while updating to avoid a feedback loop
             if (!string.Equals(editor.Text, currentValue, StringComparison.Ordinal))
             {
-                editor.Text = currentValue;
+                _suppressEditorEvents = true;
+                try
+                {
+                    editor.Text = currentValue;
+                }
+                finally
+                {
+                    _suppressEditorEvents = false;
+                }
             }
         }
     }
@@ -291,20 +333,22 @@ public sealed class UIScreenInspectorPanel
             Text = node.Name ?? string.Empty,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
+        _nameEditor = textBox;
         textBox.TextChanged += (_, args) =>
         {
+            if (_suppressEditorEvents)
+            {
+                return;
+            }
+
             var newName = args.NewValue?.Trim();
             if (string.Equals(node.Name, newName, StringComparison.Ordinal))
             {
                 return;
             }
 
-            node.Name = string.IsNullOrEmpty(newName) ? null : newName;
+            ApplyNodeNameChange(node, textBox, string.IsNullOrEmpty(newName) ? null : newName);
             errorLabel.Text = string.Empty;
-            if (_document != null)
-            {
-                DocumentModified?.Invoke(_document);
-            }
         };
 
         var col = new MGStackPanel(_window, Orientation.Vertical) { HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -356,7 +400,7 @@ public sealed class UIScreenInspectorPanel
                 var serialized = args.NewValue == true ? "True" : "False";
                 if (_commandStack != null)
                 {
-                    _commandStack.Execute(new CasaEngine.EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, desc.Name, serialized));
+                    _commandStack.Execute(new SetPropertyCommand(node, desc.Name, serialized));
                 }
                 else
                 {
@@ -366,7 +410,6 @@ public sealed class UIScreenInspectorPanel
                 if (_document != null)
                 {
                     PropertyModified?.Invoke(_document, node.Id, desc.Name, serialized);
-                    DocumentModified?.Invoke(_document);
                 }
             };
             row.TryAddChild(checkBox, Dock.Left);
@@ -382,6 +425,11 @@ public sealed class UIScreenInspectorPanel
 
         editor.TextChanged += (_, args) =>
         {
+            if (_suppressEditorEvents)
+            {
+                return;
+            }
+
             var raw = args.NewValue ?? string.Empty;
             var error = Validate(raw, desc.ValueType);
             errorLabel.Text = error ?? string.Empty;
@@ -389,19 +437,8 @@ public sealed class UIScreenInspectorPanel
             if (error == null)
             {
                 var serialized = string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
-                if (_commandStack != null)
-                {
-                    _commandStack.Execute(new CasaEngine.EditorServices.ScreenEditor.Commands.SetPropertyCommand(node, desc.Name, serialized));
-                }
-                else
-                {
-                    node.SetProperty(desc.Name, serialized);
-                }
-                if (_document != null)
-                {
-                    PropertyModified?.Invoke(_document, node.Id, desc.Name, serialized);
-                    DocumentModified?.Invoke(_document);
-                }
+                ApplyPropertyChange(node, desc, editor, serialized);
+                errorLabel.Text = string.Empty;
             }
         };
 
@@ -423,6 +460,142 @@ public sealed class UIScreenInspectorPanel
             FontSize = 8,
             WrapText = true,
         };
+    }
+
+    private void ApplyNodeNameChange(UIScreenNode node, MGTextBox editor, string? newName)
+    {
+        if (_commandStack != null)
+        {
+            EnsureTextTransaction(editor, node, propertyName: null, node.Name, "Rename UI node");
+            _commandStack.Execute(new RenameNodeCommand(node, newName));
+            return;
+        }
+
+        node.Name = newName;
+        if (_document != null)
+        {
+            DocumentModified?.Invoke(_document);
+        }
+    }
+
+    private void ApplyPropertyChange(UIScreenNode node, UIPropertyDescriptor descriptor, MGTextBox editor, string? serializedValue)
+    {
+        string? currentValue = node.Properties.TryGetValue(descriptor.Name, out var property)
+            ? property.SerializedValue
+            : null;
+        if (string.Equals(currentValue, serializedValue, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        if (_commandStack != null)
+        {
+            EnsureTextTransaction(editor, node, descriptor.Name, currentValue, $"Edit {descriptor.DisplayName}");
+            _commandStack.Execute(new SetPropertyCommand(node, descriptor.Name, serializedValue));
+        }
+        else
+        {
+            node.SetProperty(descriptor.Name, serializedValue);
+        }
+
+        if (_document != null)
+        {
+            PropertyModified?.Invoke(_document, node.Id, descriptor.Name, serializedValue);
+        }
+    }
+
+    private void EnsureTextTransaction(MGTextBox editor, UIScreenNode node, string? propertyName, string? initialValue, string description)
+    {
+        if (_commandStack == null)
+        {
+            return;
+        }
+
+        if (ReferenceEquals(_activeTextTransactionEditor, editor))
+        {
+            return;
+        }
+
+        FinalizeActiveTextTransaction();
+        _commandStack.BeginTransaction(description);
+        _activeTextTransactionEditor = editor;
+        _activeTextTransactionNode = node;
+        _activeTextTransactionPropertyName = propertyName;
+        _activeTextTransactionInitialValue = initialValue;
+        _activeTextTransactionDescription = description;
+    }
+
+    private void FinalizeActiveTextTransaction()
+    {
+        if (_commandStack == null || _activeTextTransactionEditor == null)
+        {
+            ClearTextTransaction();
+            return;
+        }
+
+        if (!_commandStack.IsTransactionOpen)
+        {
+            ClearTextTransaction();
+            return;
+        }
+
+        string? currentValue = GetCurrentTransactionValue();
+        bool hasChanged = !string.Equals(currentValue, _activeTextTransactionInitialValue, StringComparison.Ordinal);
+
+        if (hasChanged)
+        {
+            _commandStack.CommitTransaction(_activeTextTransactionDescription);
+            if (_document != null && _activeTextTransactionPropertyName == null)
+            {
+                DocumentModified?.Invoke(_document);
+            }
+        }
+        else
+        {
+            _commandStack.CancelTransaction();
+            if (_document != null && _activeTextTransactionPropertyName != null && _activeTextTransactionNode != null)
+            {
+                PropertyModified?.Invoke(_document, _activeTextTransactionNode.Id, _activeTextTransactionPropertyName, _activeTextTransactionInitialValue);
+            }
+        }
+
+        ClearTextTransaction();
+    }
+
+    private string? GetCurrentTransactionValue()
+    {
+        if (_activeTextTransactionNode == null)
+        {
+            return null;
+        }
+
+        if (_activeTextTransactionPropertyName == null)
+        {
+            return _activeTextTransactionNode.Name;
+        }
+
+        return _activeTextTransactionNode.Properties.TryGetValue(_activeTextTransactionPropertyName, out var property)
+            ? property.SerializedValue
+            : null;
+    }
+
+    private void ClearTextTransaction()
+    {
+        _activeTextTransactionEditor = null;
+        _activeTextTransactionNode = null;
+        _activeTextTransactionPropertyName = null;
+        _activeTextTransactionInitialValue = null;
+        _activeTextTransactionDescription = null;
+    }
+
+    private void OnFocusedKeyboardHandlerChanged(object? sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
+    {
+        if (_activeTextTransactionEditor != null
+            && ReferenceEquals(e.PreviousValue, _activeTextTransactionEditor)
+            && !ReferenceEquals(e.NewValue, _activeTextTransactionEditor))
+        {
+            FinalizeActiveTextTransaction();
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────

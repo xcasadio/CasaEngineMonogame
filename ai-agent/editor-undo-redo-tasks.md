@@ -307,7 +307,7 @@ La feature sera consideree complete quand :
 
 ---
 
-#### ⏳ Tache 3.2 - Regrouper preview drag et editions multi-proprietes
+#### 🧪 Tache 3.2 - Regrouper preview drag et editions multi-proprietes
 
 **Objectif :** corriger le point faible deja documente dans le screen editor (`R-06`).
 
@@ -328,7 +328,7 @@ La feature sera consideree complete quand :
 - `feat(screen-editor): group drag and multi-property edits`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
@@ -405,13 +405,13 @@ La feature sera consideree complete quand :
 - `feat(world-editor): add undo redo for viewport gizmo edits`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `bf093e10` `feat(world-editor): add undo redo for viewport gizmo edits`
 
 ---
 
 ### ⏳ Phase 5 - Couvrir le material editor
 
-#### ⏳ Tache 5.1 - Introduire une session d'authoring material avec dirty state
+#### 🚧 Tache 5.1 - Introduire une session d'authoring material avec dirty state
 
 **Objectif :** supprimer la sauvegarde immediate a chaque edit et revenir a un flux moderne.
 

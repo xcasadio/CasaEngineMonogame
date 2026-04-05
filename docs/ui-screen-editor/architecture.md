@@ -177,6 +177,11 @@ Conséquences pratiques :
 5. la preview runtime est reconstruite depuis le document
 6. l'UI se resynchronise sur l'état de session
 
+Règles d'interaction retenues pour l'édition courante :
+- un drag de preview ou un resize produit une seule commande d'historique à la fin de l'interaction
+- une saisie texte dans l'inspector peut mettre à jour la preview en direct, mais le commit undo/redo est regroupé en une seule transaction à la sortie du champ
+- les toggles booléens et actions structurelles restent des opérations unitaires immédiates
+
 ### 5.3 Sauvegarde
 1. `Editor Services` récupère le document courant
 2. le serializer produit le XAML
