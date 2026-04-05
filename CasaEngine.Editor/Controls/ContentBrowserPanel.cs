@@ -4,12 +4,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CasaEngine.Core.Design;
+using CasaEngine.Editor.History;
 using CasaEngine.Editor.ContentBrowser;
 using CasaEngine.Editor.ContentBrowser.Controls;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
 using CasaEngine.Editor.ContentBrowser.Views;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Project;
@@ -64,6 +66,73 @@ public class ContentBrowserPanel
         }
     }
 
+    private sealed class ContentBrowserViewState
+    {
+        public ContentBrowserViewState(string? folderPath, IReadOnlyList<string> selectionPaths)
+        {
+            FolderPath = folderPath;
+            SelectionPaths = selectionPaths;
+        }
+
+        public string? FolderPath { get; }
+
+        public IReadOnlyList<string> SelectionPaths { get; }
+    }
+
+    private sealed class ExecutedContentBrowserCommand : IEditorCommand
+    {
+        private readonly FileOperationService _fileOperationService;
+        private readonly ReversibleFileOperation _operation;
+        private readonly Action _applyExecuteViewState;
+        private readonly Action _applyUndoViewState;
+        private bool _isInitialized;
+
+        public ExecutedContentBrowserCommand(
+            string description,
+            FileOperationService fileOperationService,
+            ReversibleFileOperation operation,
+            Action applyExecuteViewState,
+            Action applyUndoViewState)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(description);
+            ArgumentNullException.ThrowIfNull(fileOperationService);
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentNullException.ThrowIfNull(applyExecuteViewState);
+            ArgumentNullException.ThrowIfNull(applyUndoViewState);
+
+            Description = description;
+            _fileOperationService = fileOperationService;
+            _operation = operation;
+            _applyExecuteViewState = applyExecuteViewState;
+            _applyUndoViewState = applyUndoViewState;
+        }
+
+        public string Description { get; }
+
+        public void Execute()
+        {
+            if (!_isInitialized)
+            {
+                _isInitialized = true;
+                _applyExecuteViewState();
+                return;
+            }
+
+            if (_operation.Redo(_fileOperationService))
+            {
+                _applyExecuteViewState();
+            }
+        }
+
+        public void Undo()
+        {
+            if (_operation.Undo(_fileOperationService))
+            {
+                _applyUndoViewState();
+            }
+        }
+    }
+
     private readonly FileOperationService _fileOperationService = new();
     private readonly ThumbnailCache _thumbnailCache;
     private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
@@ -72,7 +141,7 @@ public class ContentBrowserPanel
     private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
     private string? _pendingCurrentFolderPath;
-    private string? _pendingSelectionPath;
+    private List<string>? _pendingSelectionPaths;
     private readonly List<string> _clipboardPaths = new();
     private bool _clipboardMoveOperation;
     private readonly Dictionary<ContentItemType, List<ContextMenuExtension>> _contextMenuExtensions = new();
@@ -744,9 +813,11 @@ public class ContentBrowserPanel
             candidatePath = Path.Combine(_currentFolder.FullPath, folderName);
         }
 
-        if (_fileOperationService.CreateDirectory(_currentFolder.FullPath, folderName))
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryCreateDirectoryOperation(_currentFolder.FullPath, folderName, out var operation))
         {
-            RebuildTree();
+            var executeViewState = CreateViewState(_currentFolder.FullPath, operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Create Folder", operation, executeViewState, undoViewState);
         }
     }
 
@@ -792,17 +863,14 @@ public class ContentBrowserPanel
             return;
         }
 
-        if (_currentFolder == item)
-        {
-            _currentFolder = item.Parent ?? _rootItem;
-        }
-
         InvalidateThumbnailForItem(item);
-        if (_fileOperationService.Delete(item))
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryDeleteOperation(new[] { item.FullPath }, out var operation))
         {
+            var executeViewState = CreateViewState(GetFolderPathAfterDelete(new[] { item }), operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Delete", operation, executeViewState, undoViewState);
             FileDeleted?.Invoke(item);
             Events.RaiseFileDeleted(item);
-            RebuildTree();
         }
     }
 
@@ -813,9 +881,11 @@ public class ContentBrowserPanel
             return;
         }
 
-        if (_fileOperationService.Copy(item, item.Parent))
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryCopyOperation(new[] { item.FullPath }, item.Parent.FullPath, out var operation))
         {
-            RebuildTree();
+            var executeViewState = CreateViewState(_currentFolder?.FullPath, operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Duplicate", operation, executeViewState, undoViewState);
         }
     }
 
@@ -870,9 +940,11 @@ public class ContentBrowserPanel
             return;
         }
 
-        if (_fileOperationService.Import(dialog.FileNames, _currentFolder))
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryImportOperation(dialog.FileNames, _currentFolder.FullPath, out var operation))
         {
-            RebuildTree();
+            var executeViewState = CreateViewState(_currentFolder.FullPath, operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Import", operation, executeViewState, undoViewState);
         }
     }
 
@@ -1248,8 +1320,8 @@ public class ContentBrowserPanel
     {
         var displayFolder = _currentFolder ?? _rootItem;
         var previousSelection = GetSelectedItems();
-        var pendingSelectionPath = _pendingSelectionPath;
-        _pendingSelectionPath = null;
+        var pendingSelectionPaths = _pendingSelectionPaths;
+        _pendingSelectionPaths = null;
         ClearTooltipRegistrations();
         if (displayFolder == null)
         {
@@ -1262,12 +1334,27 @@ public class ContentBrowserPanel
         _gridView.SetItems(orderedItems);
         _detailView.SetItems(orderedItems);
 
-        if (!string.IsNullOrWhiteSpace(pendingSelectionPath))
+        if (pendingSelectionPaths != null && pendingSelectionPaths.Count > 0)
         {
-            var pendingSelection = orderedItems.FirstOrDefault(item => string.Equals(item.FullPath, pendingSelectionPath, StringComparison.OrdinalIgnoreCase));
-            if (pendingSelection != null)
+            var restoredSelection = new List<ContentItem>();
+            for (int selectionIndex = 0; selectionIndex < pendingSelectionPaths.Count; selectionIndex++)
             {
-                _activeContentView.RestoreSelection(new[] { pendingSelection });
+                string selectionPath = pendingSelectionPaths[selectionIndex];
+                for (int itemIndex = 0; itemIndex < orderedItems.Count; itemIndex++)
+                {
+                    if (!string.Equals(orderedItems[itemIndex].FullPath, selectionPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    restoredSelection.Add(orderedItems[itemIndex]);
+                    break;
+                }
+            }
+
+            if (restoredSelection.Count > 0)
+            {
+                _activeContentView.RestoreSelection(restoredSelection);
                 return;
             }
         }
@@ -1497,23 +1584,27 @@ public class ContentBrowserPanel
         }
 
         var itemsToDelete = selectedItems.OrderByDescending(item => item.FullPath.Length).ToList();
-        var changed = false;
-        foreach (var item in itemsToDelete)
+        for (int i = 0; i < itemsToDelete.Count; i++)
         {
-            InvalidateThumbnailForItem(item);
-            if (!_fileOperationService.Delete(item))
-            {
-                break;
-            }
-
-            FileDeleted?.Invoke(item);
-            Events.RaiseFileDeleted(item);
-            changed = true;
+            InvalidateThumbnailForItem(itemsToDelete[i]);
         }
 
-        if (changed)
+        var sourcePaths = new List<string>(itemsToDelete.Count);
+        for (int i = 0; i < itemsToDelete.Count; i++)
         {
-            RebuildTree();
+            sourcePaths.Add(itemsToDelete[i].FullPath);
+        }
+
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryDeleteOperation(sourcePaths, out var operation))
+        {
+            var executeViewState = CreateViewState(GetFolderPathAfterDelete(itemsToDelete), operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Delete Items", operation, executeViewState, undoViewState);
+            for (int i = 0; i < itemsToDelete.Count; i++)
+            {
+                FileDeleted?.Invoke(itemsToDelete[i]);
+                Events.RaiseFileDeleted(itemsToDelete[i]);
+            }
         }
     }
 
@@ -1560,49 +1651,45 @@ public class ContentBrowserPanel
 
     private bool TransferItems(ContentItem targetFolder, IReadOnlyList<ContentItem> items, bool copied)
     {
-        var movedItems = new List<(string destinationPath, ContentItem oldParent)>();
-        var changed = false;
-
-        foreach (var item in items)
+        var sourcePaths = new List<string>(items.Count);
+        for (int i = 0; i < items.Count; i++)
         {
-            var predictedDestinationPath = PredictDestinationPath(targetFolder, item);
-            var oldParent = item.Parent;
-            if (!copied)
-            {
-                InvalidateThumbnailForItem(item);
-            }
-            var operationSucceeded = copied
-                ? _fileOperationService.Copy(item, targetFolder)
-                : _fileOperationService.Move(item, targetFolder);
-
-            if (!operationSucceeded)
-            {
-                break;
-            }
-
-            if (!copied && oldParent != null)
-            {
-                movedItems.Add((predictedDestinationPath, oldParent));
-            }
-
-            changed = true;
+            sourcePaths.Add(items[i].FullPath);
         }
 
-        if (changed)
+        var undoViewState = CaptureViewState();
+        ReversibleFileOperation operation;
+        bool succeeded = copied
+            ? _fileOperationService.TryCopyOperation(sourcePaths, targetFolder.FullPath, out operation)
+            : _fileOperationService.TryMoveOperation(sourcePaths, targetFolder.FullPath, out operation);
+        if (!succeeded)
         {
-            RebuildTree();
-            foreach (var movedItem in movedItems)
+            return false;
+        }
+
+        string? executeFolderPath = _currentFolder?.FullPath;
+        if (!copied && items.Count == 1)
+        {
+            executeFolderPath = TranslateFolderPath(_currentFolder?.FullPath, items[0].FullPath, operation.SelectionAfterExecute.Count > 0 ? operation.SelectionAfterExecute[0] : targetFolder.FullPath);
+        }
+
+        var executeViewState = CreateViewState(executeFolderPath, operation.SelectionAfterExecute);
+        ExecuteHistoryOperation(copied ? "Copy Items" : "Move Items", operation, executeViewState, undoViewState);
+
+        if (!copied)
+        {
+            for (int i = 0; i < items.Count; i++)
             {
-                var currentItem = _rootItem == null ? null : FindItemByPath(_rootItem, movedItem.destinationPath);
-                if (currentItem != null)
+                if (items[i].Parent == null)
                 {
-                    FileMoved?.Invoke(currentItem, movedItem.oldParent);
-                    Events.RaiseFileMoved(currentItem, movedItem.oldParent);
+                    continue;
                 }
+
+                Events.RaiseFileMoved(items[i], items[i].Parent);
             }
         }
 
-        return changed;
+        return true;
     }
 
     private static string PredictDestinationPath(ContentItem targetFolder, ContentItem item)
@@ -1684,6 +1771,109 @@ public class ContentBrowserPanel
         }
 
         return new[] { item };
+    }
+
+    private ContentBrowserViewState CaptureViewState()
+    {
+        var selectionPaths = new List<string>();
+        var selectedItems = GetSelectedItems();
+        for (int i = 0; i < selectedItems.Count; i++)
+        {
+            selectionPaths.Add(selectedItems[i].FullPath);
+        }
+
+        return new ContentBrowserViewState(_currentFolder?.FullPath, selectionPaths);
+    }
+
+    private ContentBrowserViewState CreateViewState(string? folderPath, IReadOnlyList<string> selectionPaths)
+        => new(folderPath, selectionPaths);
+
+    private void RestoreViewState(ContentBrowserViewState viewState)
+    {
+        _pendingCurrentFolderPath = viewState.FolderPath;
+        SetPendingSelectionPaths(viewState.SelectionPaths);
+        RebuildTree();
+    }
+
+    private void SetPendingSelectionPaths(IReadOnlyList<string> selectionPaths)
+    {
+        if (selectionPaths == null || selectionPaths.Count == 0)
+        {
+            _pendingSelectionPaths = null;
+            return;
+        }
+
+        _pendingSelectionPaths = new List<string>(selectionPaths.Count);
+        for (int i = 0; i < selectionPaths.Count; i++)
+        {
+            _pendingSelectionPaths.Add(selectionPaths[i]);
+        }
+    }
+
+    private void ExecuteHistoryOperation(
+        string description,
+        ReversibleFileOperation operation,
+        ContentBrowserViewState executeViewState,
+        ContentBrowserViewState undoViewState)
+    {
+        EditorHistoryService.Current.Execute(
+            EditorHistoryContext.ContentBrowser,
+            new ExecutedContentBrowserCommand(
+                description,
+                _fileOperationService,
+                operation,
+                () => RestoreViewState(executeViewState),
+                () => RestoreViewState(undoViewState)));
+    }
+
+    private string? GetFolderPathAfterDelete(IReadOnlyList<ContentItem> removedItems)
+    {
+        if (_currentFolder == null)
+        {
+            return null;
+        }
+
+        string currentFolderPath = _currentFolder.FullPath;
+        for (int i = 0; i < removedItems.Count; i++)
+        {
+            if (IsSamePathOrDescendant(currentFolderPath, removedItems[i].FullPath))
+            {
+                return removedItems[i].Parent?.FullPath ?? _rootItem?.FullPath;
+            }
+        }
+
+        return currentFolderPath;
+    }
+
+    private static string? TranslateFolderPath(string? folderPath, string sourcePath, string destinationPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath) || !IsSamePathOrDescendant(folderPath, sourcePath))
+        {
+            return folderPath;
+        }
+
+        if (string.Equals(folderPath, sourcePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return destinationPath;
+        }
+
+        string relativeSuffix = folderPath[sourcePath.Length..].TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return string.IsNullOrWhiteSpace(relativeSuffix)
+            ? destinationPath
+            : Path.Combine(destinationPath, relativeSuffix);
+    }
+
+    private static bool IsSamePathOrDescendant(string path, string rootPath)
+    {
+        if (string.Equals(path, rootPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string normalizedRootPath = rootPath.EndsWith(Path.DirectorySeparatorChar) || rootPath.EndsWith(Path.AltDirectorySeparatorChar)
+            ? rootPath
+            : rootPath + Path.DirectorySeparatorChar;
+        return path.StartsWith(normalizedRootPath, StringComparison.OrdinalIgnoreCase);
     }
 
     private string BuildPropertiesText(ContentItem item)
@@ -1783,7 +1973,6 @@ public class ContentBrowserPanel
 
     private bool TryCommitInlineRename(ContentItem item, string newName)
     {
-        var oldName = item.Name;
         var parentDirectory = Path.GetDirectoryName(item.FullPath);
         if (string.IsNullOrWhiteSpace(parentDirectory))
         {
@@ -1792,22 +1981,19 @@ public class ContentBrowserPanel
 
         var newFullPath = Path.Combine(parentDirectory, newName);
         InvalidateThumbnailForItem(item);
-        if (!_fileOperationService.Rename(item, newName))
+        var oldName = item.Name;
+        var undoViewState = CaptureViewState();
+        if (!_fileOperationService.TryRenameOperation(item.FullPath, newName, out var operation))
         {
             return false;
         }
 
-        if (item.IsDirectory && _currentFolder != null && string.Equals(_currentFolder.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase))
-        {
-            _pendingCurrentFolderPath = newFullPath;
-        }
+        var executeFolderPath = TranslateFolderPath(_currentFolder?.FullPath, item.FullPath, newFullPath);
+        var executeViewState = CreateViewState(executeFolderPath, operation.SelectionAfterExecute);
+        ExecuteHistoryOperation("Rename", operation, executeViewState, undoViewState);
 
-        _pendingSelectionPath = newFullPath;
-        RebuildTree();
-
-        var renamedItem = _rootItem == null ? null : FindItemByPath(_rootItem, newFullPath);
-        FileRenamed?.Invoke(renamedItem ?? item, oldName);
-        Events.RaiseFileRenamed(renamedItem ?? item, oldName);
+        FileRenamed?.Invoke(item, oldName);
+        Events.RaiseFileRenamed(item, oldName);
         return true;
     }
 

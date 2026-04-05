@@ -485,7 +485,7 @@ La feature sera consideree complete quand :
 
 ---
 
-### 🚧 Phase 6 - Couvrir le content browser
+### 🧪 Phase 6 - Couvrir le content browser
 
 #### 🧪 Tache 6.1 - Ajouter une infrastructure de file operations reversibles
 
@@ -507,11 +507,11 @@ La feature sera consideree complete quand :
 - `feat(content-browser): add reversible file operation infrastructure`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `47cf9525` `feat(content-browser): add reversible file operation infrastructure`
 
 ---
 
-#### 🚧 Tache 6.2 - Brancher `ContentBrowserPanel` sur l'historique global
+#### 🧪 Tache 6.2 - Brancher `ContentBrowserPanel` sur l'historique global
 
 **Objectif :** remplacer les appels directs par des commandes undoables.
 
@@ -532,7 +532,7 @@ La feature sera consideree complete quand :
 - `feat(content-browser): add undo redo for browser actions`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
