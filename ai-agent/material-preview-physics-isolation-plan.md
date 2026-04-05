@@ -17,12 +17,18 @@
 
 ## Tâches
 
-- ⏳ Cartographier les dépendances world -> physics runtime
+- ✅ Cartographier les dépendances world -> physics runtime
   Objectif: identifier tous les composants qui résolvent `PhysicsEngineComponent` depuis `world.Game` et vérifier les hypothèses d'isolation multi-world.
   Fichiers ciblés:
   - `CasaEngine/Framework/Entities/Components/PhysicsBaseComponent.cs`
   - `CasaEngine/Framework/Game/Components/Physics/PhysicsEngineComponent.cs`
   - `CasaEngine/Framework/Game/CasaEngineGame.cs`
+  Cartographie validée:
+  - `CasaEngineGame.Initialize()` instancie un unique `PhysicsEngineComponent` par runtime, exposé aussi via `CasaEngineGame.PhysicsEngineComponent`.
+  - `World` ne porte aujourd'hui aucun contexte physics propre: il ne stocke que `Game`, donc les composants world-scoped retombent sur le singleton du jeu.
+  - Les résolutions directes depuis `world.Game` sont présentes dans `PhysicsBaseComponent`, `AnimatedSpriteComponent`, `StaticSpriteComponent`, `TileMapComponent` et `MovingObject`.
+  - `PhysicsDebugViewRendererComponent` branche `DebugDrawer` sur le `PhysicsEngine.World` partagé puis dessine ce même monde après le pipeline multi-view, ce qui explique les fuites visuelles entre vues.
+  - En mode éditeur, `HostedEditorGameAdapter` héberge simultanément le world principal, des `MaterialPreviewWorld` et un éventuel `EditorPreviewWorld`; sans contexte physics par world, ils partagent tous la même `DynamicsWorld`.
   Commit conseillé: `docs(physics): map editor multi-world physics dependencies`
 
 - ⏳ Découpler la simulation physique du singleton de jeu
