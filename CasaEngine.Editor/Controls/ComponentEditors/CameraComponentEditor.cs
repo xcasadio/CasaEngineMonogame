@@ -47,7 +47,11 @@ public sealed class CameraComponentEditor : TransformComponentEditor
             {
                 Value = camera3dComponent.FieldOfView,
             };
-            fieldOfViewEditor.ValueChanged += (_, value) => camera3dComponent.FieldOfView = value;
+            fieldOfViewEditor.ValueChanged += (_, value) => ApplyValueChange(
+                BuildComponentCommandDescription("Field Of View"),
+                () => camera3dComponent.FieldOfView,
+                nextValue => camera3dComponent.FieldOfView = nextValue,
+                value);
             rowIndex = AddPropertyRow(grid, rowIndex, "Field Of View", fieldOfViewEditor);
         }
 
@@ -55,14 +59,22 @@ public sealed class CameraComponentEditor : TransformComponentEditor
         {
             Value = CameraComponent.NearPlane,
         };
-        nearPlaneEditor.ValueChanged += (_, value) => CameraComponent.NearPlane = value;
+        nearPlaneEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Near Plane"),
+            () => CameraComponent.NearPlane,
+            nextValue => CameraComponent.NearPlane = nextValue,
+            value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Near Plane", nearPlaneEditor);
 
         var farPlaneEditor = new NumericField(Window, step: 1f, min: 0.01f)
         {
             Value = CameraComponent.FarPlane,
         };
-        farPlaneEditor.ValueChanged += (_, value) => CameraComponent.FarPlane = value;
+        farPlaneEditor.ValueChanged += (_, value) => ApplyValueChange(
+            BuildComponentCommandDescription("Far Plane"),
+            () => CameraComponent.FarPlane,
+            nextValue => CameraComponent.FarPlane = nextValue,
+            value);
         AddPropertyRow(grid, rowIndex, "Far Plane", farPlaneEditor);
 
         section.SetContent(grid);

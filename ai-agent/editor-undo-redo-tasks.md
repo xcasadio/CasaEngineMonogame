@@ -380,11 +380,11 @@ La feature sera consideree complete quand :
 - `feat(world-editor): add undo redo for entity inspector edits`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `e5a647c0` `feat(world-editor): add undo redo for entity inspector edits` + correctif camera `a renseigner au commit suivant`
 
 ---
 
-#### 🚧 Tache 4.3 - Rendre undoable le gizmo et les edits viewport
+#### 🧪 Tache 4.3 - Rendre undoable le gizmo et les edits viewport
 
 **Objectif :** couvrir translate / rotate / scale et autres interactions directes du viewport.
 
@@ -405,7 +405,7 @@ La feature sera consideree complete quand :
 - `feat(world-editor): add undo redo for viewport gizmo edits`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
