@@ -177,11 +177,11 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add generic undo redo abstractions`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `cf44741d` `feat(editor-history): add generic undo redo abstractions`
 
 ---
 
-#### ⏳ Tache 1.2 - Ajouter un service global route par contexte actif
+#### ✅ Tache 1.2 - Ajouter un service global route par contexte actif
 
 **Objectif :** disposer d'un point d'entree unique pour l'historique de l'editeur.
 
@@ -201,7 +201,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add active-context history service`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 

@@ -3,6 +3,7 @@ using CasaEngine.Engine;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.Docking;
+using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Materials;
@@ -65,6 +66,7 @@ namespace CasaEngine.Editor
         private LoggerEditor _loggerEditor;
         private EngineRuntimeContext _editorRuntimeContext;
         private readonly EditorContextService _editorContext = EditorContextService.Current;
+        private readonly EditorHistoryService _editorHistory = EditorHistoryService.Current;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
         private MGElement _worldViewportContent;
@@ -312,6 +314,7 @@ namespace CasaEngine.Editor
 
         private void OnProjectLoaded(object? sender, EventArgs e)
         {
+            _editorHistory.ClearAll();
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
             _screenSelection.ClearSelection();
@@ -319,6 +322,7 @@ namespace CasaEngine.Editor
             SetActiveMaterialInspectorPanel(null);
             _editorContext.SetActiveDocument(EditorDocumentContext.Empty);
             _editorContext.ClearSelection();
+            _editorHistory.Deactivate();
             _automationWorldLoaded = false;
             _automationSelectionApplied = false;
             _automationAssetOpenAttempted = false;
@@ -1016,6 +1020,8 @@ namespace CasaEngine.Editor
             {
                 ActivateMaterialDocument(panel.Id, materialInspectorPanel);
             }
+
+            RefreshActiveHistoryContext(panel.Id);
         }
 
         private void ActivateDockPanel(string panelId)
@@ -1291,6 +1297,7 @@ namespace CasaEngine.Editor
             {
                 _screenPreviewPanels.Remove(panel.Id);
                 _screenPreviewPanelTitles.Remove(panel.Id);
+                _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
                 if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
                 {
                     _activeScreenPreviewPanel = null;
@@ -1301,6 +1308,7 @@ namespace CasaEngine.Editor
             {
                 materialInspectorPanel.Dispose();
                 _materialInspectorPanels.Remove(panel.Id);
+                _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panel.Id));
                 if (_materialViewportPanels.Remove(panel.Id, out var materialViewportPanel))
                 {
                     materialViewportPanel.Dispose();
@@ -1314,6 +1322,25 @@ namespace CasaEngine.Editor
             }
 
             SyncActiveEditorDocumentFromDockState();
+            RefreshActiveHistoryContext();
+        }
+
+        private void RefreshActiveHistoryContext(string? activePanelId = null)
+        {
+            if (string.Equals(activePanelId, EditorPanelIds.ContentBrowser, StringComparison.Ordinal))
+            {
+                _editorHistory.SetActiveContext(EditorHistoryContext.ContentBrowser);
+                return;
+            }
+
+            var context = EditorHistoryContext.FromDocument(_editorContext.ActiveDocument);
+            if (context.IsEmpty)
+            {
+                _editorHistory.Deactivate();
+                return;
+            }
+
+            _editorHistory.SetActiveContext(context);
         }
 
         private string? GetActiveDocumentPanelId()
@@ -1473,6 +1500,7 @@ namespace CasaEngine.Editor
                 "World",
                 _editorRuntime?.GameManager.CurrentWorld));
             SyncGlobalSelectionFromActiveDocument();
+            RefreshActiveHistoryContext();
         }
 
         private void ActivateScreenDocument(string panelId, UIScreenPreviewPanel previewPanel)
@@ -1485,6 +1513,7 @@ namespace CasaEngine.Editor
                 _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
                 previewPanel));
             SyncGlobalSelectionFromActiveDocument();
+            RefreshActiveHistoryContext();
         }
 
         private void ActivateMaterialDocument(string panelId, MaterialAssetInspectorPanel inspectorPanel)
@@ -1496,6 +1525,7 @@ namespace CasaEngine.Editor
                 _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
                 inspectorPanel));
             SyncGlobalSelectionFromActiveDocument();
+            RefreshActiveHistoryContext();
         }
 
         private void SyncActiveEditorDocumentFromDockState()
