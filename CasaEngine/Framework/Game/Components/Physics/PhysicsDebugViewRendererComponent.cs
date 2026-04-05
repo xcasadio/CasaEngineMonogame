@@ -1,4 +1,5 @@
 ﻿using BulletSharp;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Game.Components.Physics;
@@ -6,13 +7,11 @@ namespace CasaEngine.Framework.Game.Components.Physics;
 public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 {
     private PhysicsDebugDrawComponent _physicsDebugRenderer;
-    private readonly CasaEngineGame _game;
 
     public bool DisplayPhysics { get; set; } = true;
 
     public PhysicsDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
-        _game = (game as CasaEngineGame)!;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.DebugPhysics;
         DrawOrder = (int)ComponentDrawOrder.DebugPhysics;
@@ -22,16 +21,31 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     {
         base.LoadContent();
         var line3dRendererComponent = Game.GetGameComponent<Line3dRendererComponent>();
-        var physicsEngineComponent = Game.GetGameComponent<PhysicsEngineComponent>();
         _physicsDebugRenderer = new PhysicsDebugDrawComponent(line3dRendererComponent) { DebugMode = DebugDrawModes.MaxDebugDrawMode };
-        physicsEngineComponent.PhysicsEngine.World.DebugDrawer = _physicsDebugRenderer;
+    }
+
+    public void RenderForView(RenderView view)
+    {
+        if (!DisplayPhysics)
+        {
+            return;
+        }
+
+        var dynamicsWorld = view.World.PhysicsWorldContext.PhysicsEngine.World;
+        if (dynamicsWorld == null)
+        {
+            return;
+        }
+
+        if (!ReferenceEquals(dynamicsWorld.DebugDrawer, _physicsDebugRenderer))
+        {
+            dynamicsWorld.DebugDrawer = _physicsDebugRenderer;
+        }
+
+        _physicsDebugRenderer.DrawDebugWorld(dynamicsWorld);
     }
 
     public override void Draw(GameTime gameTime)
     {
-        if (DisplayPhysics)
-        {
-            _physicsDebugRenderer.DrawDebugWorld(_game.PhysicsEngineComponent.PhysicsEngine.World);
-        }
     }
 }

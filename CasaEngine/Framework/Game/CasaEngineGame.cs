@@ -362,6 +362,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             Line3dRendererComponent,
             Renderer2DComponent,
         }, SpriteBatch!);
+        _renderPipeline.BeforeViewRender = view => PhysicsDebugViewRendererComponent.RenderForView(view);
 
         // Initialize the shared RT pool so RenderTargetSurface can return obsolete
         // targets to the pool instead of disposing them immediately.

@@ -37,6 +37,13 @@ public sealed class RenderPipeline
     /// </summary>
     public DebugOverlay? DebugOverlay { get; set; }
 
+    /// <summary>
+    /// Optional callback executed just before a view pipeline renders a view.
+    /// Useful for view-scoped debug systems that must enqueue primitives into the
+    /// same renderer flush as the owning view.
+    /// </summary>
+    public Action<RenderView>? BeforeViewRender { get; set; }
+
 #if DEBUG
     /// <summary>
     /// When true (debug builds only), logs a warning if a renderer leaves the
@@ -175,6 +182,8 @@ public sealed class RenderPipeline
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();
+
+            BeforeViewRender?.Invoke(view);
 
             // 5. Delegate to the per-view pipeline (or the shared default)
             var pipeline = view.Pipeline ?? _defaultPipeline;

@@ -45,13 +45,18 @@
   - conséquence: le world principal, le material preview world et le fallback editor preview world disposent désormais de backends physics distincts.
   Commit conseillé: `refactor(physics): isolate physics runtime per world`
 
-- ⏳ Rendre le debug physics scope par view ou par world
+- ✅ Rendre le debug physics scope par view ou par world
   Objectif: empêcher qu'une file globale de lignes debug soit flushée dans la mauvaise vue quand seul l'onglet material est visible.
   Fichiers ciblés:
   - `CasaEngine/Framework/Game/Components/Physics/PhysicsDebugViewRendererComponent.cs`
   - `CasaEngine/Framework/Game/Components/Physics/PhysicsDebugDrawComponent.cs`
   - `CasaEngine/Framework/Game/Components/Line3dRendererComponent.cs`
   - `CasaEngine/Framework/Rendering/RenderPipeline.cs`
+  Implémentation réalisée:
+  - le composant `PhysicsDebugViewRendererComponent` n'injecte plus ses lignes debug dans une phase `Draw()` globale après le pipeline.
+  - `RenderPipeline` expose désormais un hook `BeforeViewRender` exécuté dans le passage de la vue en cours.
+  - `CasaEngineGame` branche ce hook sur `PhysicsDebugViewRendererComponent.RenderForView(view)` pour dessiner uniquement le `DynamicsWorld` du world porté par cette vue.
+  - les lignes physics debug sont donc ajoutées à la queue `Line3dRendererComponent` juste avant le flush de la vue propriétaire, ce qui supprime le report au frame suivant dans une autre vue.
   Commit conseillé: `fix(rendering): scope physics debug rendering to the owning view`
 
 - ⏳ Valider l'isolation world principal / world material preview
