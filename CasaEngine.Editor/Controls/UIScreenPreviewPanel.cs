@@ -48,6 +48,9 @@ public sealed class UIScreenPreviewPanel
     // ── drag-to-move / drag-to-resize state ──────────────────────────────
     private DocumentNodeId? _draggingNodeId;
     private ResizeAnchor? _resizeAnchor;   // null = move drag
+    // Anchor captured at LMBPress (before DragStart fires) to avoid re-detection lag
+    private DocumentNodeId? _pendingResizeNodeId;
+    private ResizeAnchor?   _pendingResizeAnchor;
     private const int ResizeHandleSize = 12;
     private const int MinDragThreshold = 3;
 
@@ -680,16 +683,28 @@ public sealed class UIScreenPreviewPanel
     {
         var click = e.Position;
 
-        // If the click lands on a resize handle of the currently-selected element, do NOT
-        // re-run the hit-test.  The selection stays unchanged so that OnPreviewDragStart
-        // can detect the correct anchor.  Without this guard the "smallest element wins"
-        // picker can replace SelectedNodeId with a child element whose corners don't match
-        // those of the selected parent, causing anchor detection to silently fail.
+        // Reset any pending resize captured from a previous press.
+        _pendingResizeNodeId = null;
+        _pendingResizeAnchor = null;
+
+        // If the click lands on a resize handle of the currently-selected element:
+        // – capture the anchor now (at press time, so DragStart doesn't need to recompute
+        //   against possibly-stale bounds or coordinates);
+        // – do NOT re-run the picker so the selection stays on the element whose handle
+        //   was clicked.
         if (SelectedNodeId.HasValue)
         {
             var selBounds = GetElementBounds(SelectedNodeId.Value);
-            if (selBounds.HasValue && IsOnResizeHandle(selBounds.Value, click))
-                return;
+            if (selBounds.HasValue)
+            {
+                var anchor = GetResizeAnchor(selBounds.Value, click);
+                if (anchor.HasValue)
+                {
+                    _pendingResizeNodeId = SelectedNodeId;
+                    _pendingResizeAnchor = anchor;
+                    return; // Don't re-select; DragStart will use the pending values.
+                }
+            }
         }
 
         DocumentNodeId? bestId = null;
@@ -745,13 +760,16 @@ public sealed class UIScreenPreviewPanel
         return document.Root != null ? Recurse(document.Root, id, 0) : -1;
     }
 
-    private bool IsOnResizeHandle(Microsoft.Xna.Framework.Rectangle r, Microsoft.Xna.Framework.Point pos)
+    /// <summary>Returns the <see cref="ResizeAnchor"/> whose hit-zone contains <paramref name="pos"/>,
+    /// or <c>null</c> if the position is not on any corner handle.</summary>
+    private ResizeAnchor? GetResizeAnchor(Microsoft.Xna.Framework.Rectangle r, Microsoft.Xna.Framework.Point pos)
     {
         int h = ResizeHandleSize;
-        return new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,        h, h).Contains(pos)
-            || new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,        h, h).Contains(pos)
-            || new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)
-            || new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos);
+        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopLeft;
+        if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopRight;
+        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomLeft;
+        if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomRight;
+        return null;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -760,30 +778,38 @@ public sealed class UIScreenPreviewPanel
 
     private void OnPreviewDragStart(object? sender, BaseMouseDragStartEventArgs e)
     {
-        if (!e.IsLMB || !SelectedNodeId.HasValue)
+        if (!e.IsLMB)
+        {
+            _draggingNodeId = null;
+            return;
+        }
+
+        // Fast path: anchor was captured at LMBPress time (most reliable — avoids
+        // re-comparing a possibly-stale position against updated layout bounds).
+        if (_pendingResizeNodeId.HasValue)
+        {
+            _draggingNodeId  = _pendingResizeNodeId;
+            _resizeAnchor    = _pendingResizeAnchor;
+            _pendingResizeNodeId = null;
+            _pendingResizeAnchor = null;
+            return;
+        }
+
+        // Slow path: no pre-captured handle — use selected node for a move drag.
+        if (!SelectedNodeId.HasValue)
         {
             _draggingNodeId = null;
             return;
         }
 
         var nodeId = SelectedNodeId.Value;
-        var bounds = GetElementBounds(nodeId);
-        if (bounds == null)
+        if (GetElementBounds(nodeId) == null)
         {
             _draggingNodeId = null;
             return;
         }
 
-        var r = bounds.Value;
-        int h = ResizeHandleSize;
-        var pos = e.Position;
-        _resizeAnchor = null;
-
-        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,            h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.TopLeft;
-        else if (new Microsoft.Xna.Framework.Rectangle(r.Right - h, r.Top,        h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.TopRight;
-        else if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.BottomLeft;
-        else if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos)) _resizeAnchor = ResizeAnchor.BottomRight;
-
+        _resizeAnchor   = null;   // move drag
         _draggingNodeId = nodeId;
     }
 
