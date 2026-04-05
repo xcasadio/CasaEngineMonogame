@@ -110,6 +110,7 @@ namespace CasaEngine.Editor
         private readonly EditorSelection _editorSelection = EditorSelection.Current;
         private bool _isSynchronizingEntitySelection;
         private readonly EditorAutomationOptions _automationOptions;
+        private KeyboardState _previousShortcutKeyboardState;
         private bool _automationWorldLoaded;
         private bool _automationSelectionApplied;
         private bool _automationDiagnosticsCaptured;
@@ -272,15 +273,10 @@ namespace CasaEngine.Editor
             // Edit menu
             _menuBar.AddItem("Edit", item =>
             {
-                item.Submenu = new MGContextMenu(_mainWindow, null);
-                item.Submenu.AddButton("Undo", _ => ExecuteUndo());
-                item.Submenu.AddButton("Redo", _ => ExecuteRedo());
-                item.Submenu.AddSeparator();
-                item.Submenu.AddButton("Duplicate", _ => ExecuteDuplicate());
-                item.Submenu.AddSeparator();
-                item.Submenu.AddButton("Cut", _ => ExecuteCut());
-                item.Submenu.AddButton("Copy", _ => ExecuteCopy());
-                item.Submenu.AddButton("Paste", _ => ExecutePaste());
+                item.Submenu = new MGContextMenu(_mainWindow, null)
+                {
+                    ItemsFactory = BuildEditMenu,
+                };
             });
 
             // Windows menu
@@ -300,6 +296,25 @@ namespace CasaEngine.Editor
                 item.Submenu.AddButton("About CasaEngine", _ => { });
             });
         }
+
+        private void BuildEditMenu(MGContextMenu menu)
+        {
+            var undoButton = menu.AddButton(BuildHistoryMenuLabel("Undo", _editorHistory.UndoDescription), _ => ExecuteUndo());
+            undoButton.IsEnabled = _editorHistory.CanUndo;
+
+            var redoButton = menu.AddButton(BuildHistoryMenuLabel("Redo", _editorHistory.RedoDescription), _ => ExecuteRedo());
+            redoButton.IsEnabled = _editorHistory.CanRedo;
+
+            menu.AddSeparator();
+            menu.AddButton("Duplicate", _ => ExecuteDuplicate());
+            menu.AddSeparator();
+            menu.AddButton("Cut", _ => ExecuteCut());
+            menu.AddButton("Copy", _ => ExecuteCopy());
+            menu.AddButton("Paste", _ => ExecutePaste());
+        }
+
+        private static string BuildHistoryMenuLabel(string prefix, string? description)
+            => string.IsNullOrWhiteSpace(description) ? prefix : $"{prefix} {description}";
 
         private void SetupInitialDockLayout()
         {
@@ -873,24 +888,24 @@ namespace CasaEngine.Editor
 
         private void ExecuteUndo()
         {
-            if (!TryGetActiveScreenCommandStack(out var commandStack) || !commandStack.CanUndo)
+            var historyContext = _editorHistory.ActiveContext;
+            if (!_editorHistory.Undo())
             {
                 return;
             }
 
-            commandStack.Undo();
-            RefreshScreenPanelsAfterCommand();
+            RefreshViewsAfterHistoryCommand(historyContext);
         }
 
         private void ExecuteRedo()
         {
-            if (!TryGetActiveScreenCommandStack(out var commandStack) || !commandStack.CanRedo)
+            var historyContext = _editorHistory.ActiveContext;
+            if (!_editorHistory.Redo())
             {
                 return;
             }
 
-            commandStack.Redo();
-            RefreshScreenPanelsAfterCommand();
+            RefreshViewsAfterHistoryCommand(historyContext);
         }
 
         private void ExecuteDuplicate()
@@ -988,6 +1003,28 @@ namespace CasaEngine.Editor
 
             var doc = _activeScreenPreviewPanel.CurrentDocument;
             _activeScreenPreviewPanel.LoadDocumentDirectly(doc);
+        }
+
+        private void RefreshViewsAfterHistoryCommand(EditorHistoryContext context)
+        {
+            switch (context.Kind)
+            {
+                case EditorHistoryContextKind.World:
+                    RefreshWorldSelectionViews();
+                    break;
+
+                case EditorHistoryContextKind.UIScreen:
+                    RefreshScreenPanelsAfterCommand();
+                    break;
+
+                case EditorHistoryContextKind.Material:
+                    RefreshMaterialViews();
+                    break;
+
+                case EditorHistoryContextKind.ContentBrowser:
+                    _contentBrowserPanel?.Refresh();
+                    break;
+            }
         }
 
         private MGElement GetOrCreateEntityDetailsContent()
@@ -2053,30 +2090,38 @@ namespace CasaEngine.Editor
             var kb = Microsoft.Xna.Framework.Input.Keyboard.GetState();
             bool ctrl = kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftControl)
                      || kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightControl);
-            if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Z))
-            {
-                ExecuteUndo();
-            }
-            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Y))
+            bool shift = kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.LeftShift)
+                      || kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.RightShift);
+            if (ctrl && shift && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.Z))
             {
                 ExecuteRedo();
             }
-            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.D))
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.Z))
+            {
+                ExecuteUndo();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.Y))
+            {
+                ExecuteRedo();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.D))
             {
                 ExecuteDuplicate();
             }
-            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.C))
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.C))
             {
                 ExecuteCopy();
             }
-            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.X))
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.X))
             {
                 ExecuteCut();
             }
-            else if (ctrl && kb.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.V))
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Microsoft.Xna.Framework.Input.Keys.V))
             {
                 ExecutePaste();
             }
+
+            _previousShortcutKeyboardState = kb;
 
             foreach (var previewPanel in _screenPreviewPanels.Values)
             {
@@ -2787,6 +2832,9 @@ namespace CasaEngine.Editor
                 System.Diagnostics.Debug.WriteLine($"[ExportPNG] {ex.Message}");
             }
         }
+
+        private static bool IsShortcutJustPressed(KeyboardState current, KeyboardState previous, Keys key)
+            => current.IsKeyDown(key) && !previous.IsKeyDown(key);
 
         private static readonly HashSet<string> _layoutContainers =
             new(StringComparer.OrdinalIgnoreCase) { "StackPanel", "DockPanel", "Grid", "UniformGrid" };

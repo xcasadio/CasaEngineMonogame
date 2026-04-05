@@ -229,9 +229,9 @@ La feature sera consideree complete quand :
 
 ---
 
-### ⏳ Phase 2 - Integrer le shell editeur
+### 🚧 Phase 2 - Integrer le shell editeur
 
-#### ⏳ Tache 2.1 - Router le menu Edit et les raccourcis vers l'historique actif
+#### ✅ Tache 2.1 - Router le menu Edit et les raccourcis vers l'historique actif
 
 **Objectif :** rendre `Undo/Redo` global et contextuel au document/contexte authoring actif.
 
@@ -252,7 +252,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): route shell undo redo through active context`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
@@ -303,7 +303,7 @@ La feature sera consideree complete quand :
 - `feat(screen-editor): connect ui screen history to global editor history`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `d51faedb` `feat(screen-editor): connect ui screen history to global editor history`
 
 ---
 
