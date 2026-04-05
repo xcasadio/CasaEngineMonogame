@@ -9,8 +9,6 @@ public sealed class EditorPanelDescriptor
 
     public required string Title { get; init; }
 
-    public required EditorPanelScope Scope { get; init; }
-
     public required EditorPanelKind Kind { get; init; }
 
     public required Func<MGElement> ContentFactory { get; init; }

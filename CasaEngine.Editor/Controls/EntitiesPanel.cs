@@ -30,6 +30,7 @@ public sealed class EntitiesPanel
     private MGTextBlock? _summaryText;
     private World? _currentWorld;
     private Entity? _selectedEntity;
+    private int _selectedEntityCount;
     private string _filterText = string.Empty;
     private bool _suppressSelectionChanged;
 
@@ -104,7 +105,14 @@ public sealed class EntitiesPanel
 
     public void SetSelectedEntity(Entity? entity)
     {
+        SetSelectionState(entity, entity != null ? 1 : 0);
+    }
+
+    public void SetSelectionState(Entity? entity, int selectedEntityCount)
+    {
         _selectedEntity = entity;
+        _selectedEntityCount = selectedEntityCount;
+        UpdateSummary();
 
         if (_treeView == null)
         {
@@ -491,6 +499,12 @@ public sealed class EntitiesPanel
         }
 
         int entityCount = EnumerateEntities(_currentWorld.Entities).Count();
+        if (_selectedEntityCount > 0)
+        {
+            _summaryText.SetText($"{entityCount} entit{(entityCount == 1 ? "y" : "ies")} - {_selectedEntityCount} selected");
+            return;
+        }
+
         _summaryText.SetText($"{entityCount} entit{(entityCount == 1 ? "y" : "ies")}");
     }
 

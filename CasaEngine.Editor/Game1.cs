@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Core.Log;
 using CasaEngine.Engine;
 using CasaEngine.Editor.Controls;
+using CasaEngine.Editor.Controls.ContextualPanels;
+using CasaEngine.Editor.Docking;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.Materials;
@@ -42,12 +44,7 @@ namespace CasaEngine.Editor
     public class Game1 : Game, IObservableUpdate
     {
         private const string EditorLayoutDirectoryName = ".casaeditor";
-        private const string EditorLayoutFileName = "layout.json";
-        private static readonly HashSet<string> CommonPanelIds = new(StringComparer.Ordinal)
-        {
-            EditorPanelIds.ContentBrowser,
-            EditorPanelIds.Output,
-        };
+        private const string EditorLayoutFileName = "layout.editor.json";
 
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
@@ -63,35 +60,38 @@ namespace CasaEngine.Editor
         private MGDockHost _dockHost;
         private MGMenuBar _menuBar;
         private EditorPanelRegistry _panelRegistry;
-        private WorldEditorWorkspace _worldWorkspace;
-        private UIScreenEditorWorkspace _uiScreenWorkspace;
-        private MaterialEditorWorkspace _materialWorkspace;
-        private EditorWorkspaceManager _workspaceManager;
-        private EditorWorkspaceId _activeWorkspaceId = EditorWorkspaceId.World;
 
         // ── Editor panels ──────────────────────────────────────────────────
         private LoggerEditor _loggerEditor;
         private EngineRuntimeContext _editorRuntimeContext;
+        private readonly EditorContextService _editorContext = EditorContextService.Current;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
         private MGElement _worldViewportContent;
+        private ContextualDockPanelHost? _hierarchyPanelHost;
+        private MGElement? _hierarchyContent;
         private EntitiesPanel _entitiesPanel;
         private MGElement _entitiesContent;
+        private MaterialHierarchyPanel? _materialHierarchyPanel;
+        private MGElement? _materialHierarchyContent;
+        private ContextualDockPanelHost? _inspectorPanelHost;
+        private MGElement? _inspectorContent;
         private EntityDetailsPanel _entityDetailsPanel;
         private MGElement _entityDetailsContent;
-        private MaterialDetailsPanel _materialDetailsPanel;
-        private MGElement _materialDetailsContent;
+        private MaterialInspectorView? _materialInspectorView;
+        private MGElement? _materialInspectorContent;
+        private ContextualDockPanelHost? _toolboxPanelHost;
+        private MGElement? _toolboxContent;
         private ContentBrowserPanel _contentBrowserPanel;
         private MGElement _contentBrowserContent;
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
         private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
         private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly UICommandStack _screenCommandStack = new();
-        private readonly WorldWorkspaceContext _worldWorkspaceContext = new();
-        private readonly UIScreenWorkspaceContext _uiScreenWorkspaceContext;
         private UIScreenHierarchyPanel? _screenHierarchyPanel;
         private MGElement? _screenHierarchyContent;
         private UIScreenInspectorPanel? _screenInspectorPanel;
@@ -107,8 +107,6 @@ namespace CasaEngine.Editor
         private FrameCachedWindowInputSource _windowInputSource;
         private readonly EditorSelection _editorSelection = EditorSelection.Current;
         private bool _isSynchronizingEntitySelection;
-        private bool _isSwitchingWorkspace;
-        private Entity _selectedEntity;
         private readonly EditorAutomationOptions _automationOptions;
         private bool _automationWorldLoaded;
         private bool _automationSelectionApplied;
@@ -128,7 +126,6 @@ namespace CasaEngine.Editor
         public Game1(EditorAutomationOptions? automationOptions = null)
         {
             _automationOptions = automationOptions ?? new EditorAutomationOptions();
-            _uiScreenWorkspaceContext = new UIScreenWorkspaceContext(_screenSelection);
             _graphics = new GraphicsDeviceManager(this);
             _graphics.GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)
                 ? GraphicsProfile.HiDef
@@ -215,7 +212,8 @@ namespace CasaEngine.Editor
 
             _editorSelection.SelectionChanged += OnEditorSelectionChanged;
             _editorSelection.ComponentSelectionChanged += OnEditorComponentSelectionChanged;
-            _screenSelection.SelectionChanged += id => { if (_activeScreenPreviewPanel != null) _activeScreenPreviewPanel.SelectedNodeId = id; };
+            _screenSelection.SelectionChanged += OnScreenSelectionChanged;
+            _screenSelection.MultiSelectionChanged += _ => OnScreenSelectionChanged(_screenSelection.SelectedNodeId);
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
             EditorAssetWriterService.AssetSaved += OnEditorAssetSaved;
@@ -287,7 +285,7 @@ namespace CasaEngine.Editor
                 item.Submenu.AddButton("Save Layout", _ => SaveDockLayout());
                 item.Submenu.AddButton("Load Layout", _ => LoadDockLayout());
                 item.Submenu.AddSeparator();
-                item.Submenu.AddButton("Reset Layout", _ => ResetActiveWorkspaceLayout());
+                item.Submenu.AddButton("Reset Layout", _ => ResetDockLayout());
             });
 
             // Help menu
@@ -306,19 +304,18 @@ namespace CasaEngine.Editor
             }
 
             _panelRegistry ??= CreatePanelRegistry();
-
-            _worldWorkspace ??= new WorldEditorWorkspace(_panelRegistry);
-            _uiScreenWorkspace ??= new UIScreenEditorWorkspace(_panelRegistry);
-            _materialWorkspace ??= new MaterialEditorWorkspace(_panelRegistry);
-            _workspaceManager ??= CreateWorkspaceManager();
-            _workspaceManager.ResetWorkspaceLayout(EditorWorkspaceId.World);
+            ResetDockLayoutToDefault();
         }
 
         private void OnProjectLoaded(object? sender, EventArgs e)
         {
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
+            _screenSelection.ClearSelection();
+            _activeScreenPreviewPanel = null;
             SetActiveMaterialInspectorPanel(null);
+            _editorContext.SetActiveDocument(EditorDocumentContext.Empty);
+            _editorContext.ClearSelection();
             _automationWorldLoaded = false;
             _automationSelectionApplied = false;
             _automationAssetOpenAttempted = false;
@@ -377,15 +374,19 @@ namespace CasaEngine.Editor
             EnsureShellChromeInitialized();
             EnsureDockHostInitialized();
 
-            _workspaceManager ??= CreateWorkspaceManager();
-            _workspaceManager.ActivateWorkspace(EditorWorkspaceId.World, preferPersistedLayout: true, logOutcome: false);
+            if (!TryLoadPersistedDockLayout(logOutcome: false))
+            {
+                ResetDockLayoutToDefault();
+            }
 
             _ = GetOrCreateWorldViewportContent();
-            _ = GetOrCreateEntitiesContent();
-            _ = GetOrCreateEntityDetailsContent();
+            _ = GetOrCreateHierarchyContent();
+            _ = GetOrCreateInspectorContent();
+            _ = GetOrCreateToolboxContent();
             _ = GetOrCreateContentBrowserContent();
 
             _contentBrowserPanel?.Refresh();
+            ActivateWorldDocument();
             ActivateDockPanel(EditorPanelIds.ContentBrowser);
             LoadInitialWorldIntoEditorRuntime();
             UpdateWindowTitle();
@@ -504,10 +505,52 @@ namespace CasaEngine.Editor
             }
 
             _worldViewportContent ??= _worldViewportPanel.CreateContent();
-            _worldWorkspaceContext.ViewportPanel = _worldViewportPanel;
-            ApplyWorldWorkspaceContext();
-            ApplyMaterialWorkspaceContext();
+            RefreshWorldSelectionViews();
             return _worldViewportContent;
+        }
+
+        private MGElement GetOrCreateHierarchyContent()
+        {
+            if (_hierarchyPanelHost == null)
+            {
+                _hierarchyPanelHost = new ContextualDockPanelHost(
+                    _mainWindow,
+                    _editorContext,
+                    EditorPanelRole.Hierarchy,
+                    "Hierarchy",
+                    "No hierarchy is available for the active editor.");
+
+                _hierarchyPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Hierarchy,
+                    DocumentKind = EditorDocumentKind.World,
+                    Title = "Hierarchy",
+                    ContentFactory = GetOrCreateEntitiesContent,
+                    Refresh = _ => RefreshWorldHierarchyView(),
+                });
+
+                _hierarchyPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Hierarchy,
+                    DocumentKind = EditorDocumentKind.UIScreen,
+                    Title = "Hierarchy",
+                    ContentFactory = GetOrCreateScreenHierarchyContent,
+                    Refresh = _ => RefreshScreenViews(),
+                });
+
+                _hierarchyPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Hierarchy,
+                    DocumentKind = EditorDocumentKind.Material,
+                    Title = "Hierarchy",
+                    ContentFactory = GetOrCreateMaterialHierarchyContent,
+                    Refresh = _ => RefreshMaterialViews(),
+                });
+            }
+
+            _hierarchyContent ??= _hierarchyPanelHost.CreateContent();
+            _hierarchyPanelHost.Refresh();
+            return _hierarchyContent;
         }
 
         private MGElement GetOrCreateEntitiesContent()
@@ -520,8 +563,60 @@ namespace CasaEngine.Editor
             }
 
             _entitiesContent ??= _entitiesPanel.CreateContent();
-            ApplyWorldWorkspaceContext();
+            RefreshWorldHierarchyView();
             return _entitiesContent;
+        }
+
+        private MGElement GetOrCreateMaterialHierarchyContent()
+        {
+            _materialHierarchyPanel ??= new MaterialHierarchyPanel(_mainWindow);
+            _materialHierarchyContent ??= _materialHierarchyPanel.CreateContent();
+            _materialHierarchyPanel.SetInspectorPanel(_activeMaterialInspectorPanel);
+            return _materialHierarchyContent;
+        }
+
+        private MGElement GetOrCreateInspectorContent()
+        {
+            if (_inspectorPanelHost == null)
+            {
+                _inspectorPanelHost = new ContextualDockPanelHost(
+                    _mainWindow,
+                    _editorContext,
+                    EditorPanelRole.Inspector,
+                    "Inspector",
+                    "No inspector is available for the active editor.");
+
+                _inspectorPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Inspector,
+                    DocumentKind = EditorDocumentKind.World,
+                    Title = "Inspector",
+                    ContentFactory = GetOrCreateEntityDetailsContent,
+                    Refresh = _ => RefreshWorldInspectorView(),
+                });
+
+                _inspectorPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Inspector,
+                    DocumentKind = EditorDocumentKind.UIScreen,
+                    Title = "Inspector",
+                    ContentFactory = GetOrCreateScreenInspectorContent,
+                    Refresh = _ => RefreshScreenViews(),
+                });
+
+                _inspectorPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Inspector,
+                    DocumentKind = EditorDocumentKind.Material,
+                    Title = "Inspector",
+                    ContentFactory = GetOrCreateMaterialInspectorContent,
+                    Refresh = _ => RefreshMaterialViews(),
+                });
+            }
+
+            _inspectorContent ??= _inspectorPanelHost.CreateContent();
+            _inspectorPanelHost.Refresh();
+            return _inspectorContent;
         }
 
         private MGElement GetOrCreateScreenHierarchyContent()
@@ -533,7 +628,8 @@ namespace CasaEngine.Editor
                 _screenHierarchyPanel.NodeDeleted += doc =>
                 {
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
-                    ApplyUIScreenWorkspaceContext();
+                    RefreshScreenViews();
+                    SyncGlobalSelectionFromActiveDocument();
                 };
                 _screenHierarchyPanel.NodeDuplicateRequested += (doc, nodeId) =>
                 {
@@ -546,7 +642,7 @@ namespace CasaEngine.Editor
             }
 
             _screenHierarchyContent ??= _screenHierarchyPanel.CreateContent();
-            ApplyUIScreenWorkspaceContext();
+            RefreshScreenViews();
             return _screenHierarchyContent;
         }
 
@@ -560,7 +656,8 @@ namespace CasaEngine.Editor
                 {
                     // Only called for structural changes (e.g. Name field edits visible in tree)
                     _activeScreenPreviewPanel?.LoadDocumentDirectly(doc);
-                    ApplyUIScreenWorkspaceContext();
+                    RefreshScreenViews();
+                    SyncGlobalSelectionFromActiveDocument();
                 };
                 _screenInspectorPanel.PropertyModified += (doc, nodeId, propName, value) =>
                 {
@@ -571,8 +668,42 @@ namespace CasaEngine.Editor
             }
 
             _screenInspectorContent ??= _screenInspectorPanel.CreateContent();
-            ApplyUIScreenWorkspaceContext();
+            RefreshScreenViews();
             return _screenInspectorContent;
+        }
+
+        private MGElement GetOrCreateMaterialInspectorContent()
+        {
+            _materialInspectorView ??= new MaterialInspectorView(_mainWindow);
+            _materialInspectorContent ??= _materialInspectorView.CreateContent();
+            _materialInspectorView.SetInspectorPanel(_activeMaterialInspectorPanel);
+            return _materialInspectorContent;
+        }
+
+        private MGElement GetOrCreateToolboxContent()
+        {
+            if (_toolboxPanelHost == null)
+            {
+                _toolboxPanelHost = new ContextualDockPanelHost(
+                    _mainWindow,
+                    _editorContext,
+                    EditorPanelRole.Toolbox,
+                    "Toolbox",
+                    "No contextual tools are available for the active editor.");
+
+                _toolboxPanelHost.Register(new ContextualPanelDefinition
+                {
+                    Role = EditorPanelRole.Toolbox,
+                    DocumentKind = EditorDocumentKind.UIScreen,
+                    Title = "Toolbox",
+                    ContentFactory = GetOrCreateScreenToolboxContent,
+                    Refresh = _ => RefreshScreenViews(),
+                });
+            }
+
+            _toolboxContent ??= _toolboxPanelHost.CreateContent();
+            _toolboxPanelHost.Refresh();
+            return _toolboxContent;
         }
 
         private MGElement GetOrCreateScreenToolboxContent()
@@ -585,7 +716,7 @@ namespace CasaEngine.Editor
             }
 
             _screenToolboxContent ??= _screenToolboxPanel.CreateContent();
-            ApplyUIScreenWorkspaceContext();
+            RefreshScreenViews();
             return _screenToolboxContent;
         }
 
@@ -736,16 +867,8 @@ namespace CasaEngine.Editor
             }
 
             _entityDetailsContent ??= _entityDetailsPanel.CreateContent();
-            ApplyWorldWorkspaceContext();
+            RefreshWorldInspectorView();
             return _entityDetailsContent;
-        }
-
-        private MGElement GetOrCreateMaterialDetailsContent()
-        {
-            _materialDetailsPanel ??= new MaterialDetailsPanel(_mainWindow);
-            _materialDetailsContent ??= _materialDetailsPanel.CreateContent();
-            _materialDetailsPanel.SetInspectorPanel(_activeMaterialInspectorPanel);
-            return _materialDetailsContent;
         }
 
         private MGElement GetOrCreateLogsContent()
@@ -763,7 +886,6 @@ namespace CasaEngine.Editor
                 {
                     Id = EditorPanelIds.WorldViewport,
                     Title = "World Viewport",
-                    Scope = EditorPanelScope.World,
                     Kind = EditorPanelKind.Document,
                     CanClose = false,
                     CanFloat = false,
@@ -771,33 +893,32 @@ namespace CasaEngine.Editor
                 },
                 new EditorPanelDescriptor
                 {
-                    Id = EditorPanelIds.Entities,
-                    Title = "Entities",
-                    Scope = EditorPanelScope.World,
+                    Id = EditorPanelIds.Hierarchy,
+                    Title = "Hierarchy",
                     Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateEntitiesContent,
+                    CanClose = false,
+                    ContentFactory = GetOrCreateHierarchyContent,
                 },
                 new EditorPanelDescriptor
                 {
-                    Id = EditorPanelIds.EntityDetails,
-                    Title = "Details",
-                    Scope = EditorPanelScope.World,
+                    Id = EditorPanelIds.Inspector,
+                    Title = "Inspector",
                     Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateEntityDetailsContent,
+                    CanClose = false,
+                    ContentFactory = GetOrCreateInspectorContent,
                 },
                 new EditorPanelDescriptor
                 {
-                    Id = EditorPanelIds.MaterialDetails,
-                    Title = "Details",
-                    Scope = EditorPanelScope.Material,
+                    Id = EditorPanelIds.Toolbox,
+                    Title = "Toolbox",
                     Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateMaterialDetailsContent,
+                    CanClose = false,
+                    ContentFactory = GetOrCreateToolboxContent,
                 },
                 new EditorPanelDescriptor
                 {
                     Id = EditorPanelIds.ContentBrowser,
                     Title = "Content Browser",
-                    Scope = EditorPanelScope.Common,
                     Kind = EditorPanelKind.Tool,
                     ContentFactory = GetOrCreateContentBrowserContent,
                 },
@@ -805,58 +926,14 @@ namespace CasaEngine.Editor
                 {
                     Id = EditorPanelIds.Output,
                     Title = "Output / Logs",
-                    Scope = EditorPanelScope.Common,
                     Kind = EditorPanelKind.Tool,
                     ContentFactory = GetOrCreateLogsContent,
-                },
-                new EditorPanelDescriptor
-                {
-                    Id = EditorPanelIds.UIScreenHierarchy,
-                    Title = "Screen Hierarchy",
-                    Scope = EditorPanelScope.UIScreen,
-                    Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateScreenHierarchyContent,
-                },
-                new EditorPanelDescriptor
-                {
-                    Id = EditorPanelIds.UIScreenInspector,
-                    Title = "Screen Inspector",
-                    Scope = EditorPanelScope.UIScreen,
-                    Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateScreenInspectorContent,
-                },
-                new EditorPanelDescriptor
-                {
-                    Id = EditorPanelIds.UIScreenToolbox,
-                    Title = "Screen Toolbox",
-                    Scope = EditorPanelScope.UIScreen,
-                    Kind = EditorPanelKind.Tool,
-                    ContentFactory = GetOrCreateScreenToolboxContent,
                 },
             });
         }
 
-        private EditorWorkspaceManager CreateWorkspaceManager()
-        {
-            return new EditorWorkspaceManager(
-                new IEditorWorkspace[] { _worldWorkspace, _uiScreenWorkspace, _materialWorkspace },
-                workspaceId => SavePersistedDockLayout(workspaceId),
-                (workspaceId, logOutcome) => TryLoadPersistedDockLayout(workspaceId, logOutcome),
-                layout => _dockHost.LayoutModel.RootNode = layout,
-                () =>
-                {
-                    _activeWorkspaceId = _workspaceManager?.ActiveWorkspaceId ?? _activeWorkspaceId;
-                    _ = GetOrCreateLogsContent();
-                });
-        }
-
         private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)
         {
-            if (_isSwitchingWorkspace)
-            {
-                return;
-            }
-
             if (panel.Id == EditorPanelIds.Output)
             {
                 _logsPanel?.Refresh();
@@ -864,33 +941,15 @@ namespace CasaEngine.Editor
 
             if (panel.Id == EditorPanelIds.WorldViewport)
             {
-                if (_activeWorkspaceId == EditorWorkspaceId.Material && _activeMaterialInspectorPanel != null)
-                {
-                    return;
-                }
-
-                if (_activeWorkspaceId != EditorWorkspaceId.World)
-                {
-                    SwitchWorkspace(EditorWorkspaceId.World, EditorPanelIds.WorldViewport, preferPersistedLayout: true, logOutcome: false);
-                    return;
-                }
+                ActivateWorldDocument();
             }
             else if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
             {
-                SetActiveScreenPreviewPanel(previewPanel);
-                if (_activeWorkspaceId != EditorWorkspaceId.UIScreen)
-                {
-                    SwitchWorkspace(EditorWorkspaceId.UIScreen, panel.Id, preferPersistedLayout: true, logOutcome: false);
-                    return;
-                }
+                ActivateScreenDocument(panel.Id, previewPanel);
             }
             else if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
             {
-                SetActiveMaterialInspectorPanel(materialInspectorPanel);
-                if (_activeWorkspaceId != EditorWorkspaceId.Material)
-                {
-                    SwitchWorkspace(EditorWorkspaceId.Material, panel.Id, preferPersistedLayout: true, logOutcome: false);
-                }
+                ActivateMaterialDocument(panel.Id, materialInspectorPanel);
             }
         }
 
@@ -921,7 +980,13 @@ namespace CasaEngine.Editor
         private void HookViewportInputCoordination()
         {
             _desktop.HighPriorityMouseHandler.LMBPressedInside += (_, e) =>
+            {
                 _worldViewportPanel?.ReleaseInputIfOutside(e.Position);
+                foreach (var materialViewportPanel in _materialViewportPanels.Values)
+                {
+                    materialViewportPanel.ReleaseInputIfOutside(e.Position);
+                }
+            };
         }
 
         private void QueueProjectOpen(string fileName)
@@ -984,7 +1049,7 @@ namespace CasaEngine.Editor
                 return;
             }
 
-            EditorProjectAuthoringService.SaveProject();
+            EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
             EditorAssetCatalogService.Save();
             Logs.WriteInfo($"Project saved: {EditorProjectSession.CurrentProjectFilePath}");
         }
@@ -996,12 +1061,18 @@ namespace CasaEngine.Editor
 
         private void LoadDockLayout()
         {
-            SwitchWorkspace(_activeWorkspaceId, GetActiveDocumentPanelId(), preferPersistedLayout: true, logOutcome: true);
+            if (!TryLoadPersistedDockLayout(logOutcome: true))
+            {
+                ResetDockLayoutToDefault();
+            }
+
+            SyncActiveEditorDocumentFromDockState();
         }
 
-        private void ResetActiveWorkspaceLayout()
+        private void ResetDockLayout()
         {
-            SwitchWorkspace(_activeWorkspaceId, GetActiveDocumentPanelId(), preferPersistedLayout: false, logOutcome: false);
+            ResetDockLayoutToDefault();
+            SyncActiveEditorDocumentFromDockState();
         }
 
         private Func<MGElement> GetPanelContentFactory(string panelId)
@@ -1016,9 +1087,9 @@ namespace CasaEngine.Editor
                 return previewPanel.CreateContent;
             }
 
-            if (_materialInspectorPanels.TryGetValue(panelId, out var materialInspectorPanel))
+            if (_materialInspectorPanels.TryGetValue(panelId, out _))
             {
-                return null;
+                return () => GetOrCreateMaterialViewportContent(panelId);
             }
 
             return () => CreateUnavailablePanelContent(panelId);
@@ -1045,18 +1116,7 @@ namespace CasaEngine.Editor
             return panel;
         }
 
-        private static string GetLayoutFileName(EditorWorkspaceId workspaceId)
-        {
-            return workspaceId switch
-            {
-                EditorWorkspaceId.World => "layout.world.json",
-                EditorWorkspaceId.UIScreen => "layout.uiscreen.json",
-                EditorWorkspaceId.Material => "layout.material.json",
-                _ => "layout.json",
-            };
-        }
-
-        private string GetLegacyPersistedLayoutPath()
+        private string GetPersistedLayoutPath()
         {
             var projectDirectory = GetCurrentProjectDirectory();
             if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
@@ -1067,30 +1127,14 @@ namespace CasaEngine.Editor
             return Path.Combine(projectDirectory, EditorLayoutDirectoryName, EditorLayoutFileName);
         }
 
-        private string GetPersistedLayoutPath(EditorWorkspaceId workspaceId)
-        {
-            var projectDirectory = GetCurrentProjectDirectory();
-            if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
-            {
-                return null;
-            }
-
-            return Path.Combine(projectDirectory, EditorLayoutDirectoryName, GetLayoutFileName(workspaceId));
-        }
-
         private void SavePersistedDockLayout()
-        {
-            SavePersistedDockLayout(_activeWorkspaceId);
-        }
-
-        private void SavePersistedDockLayout(EditorWorkspaceId workspaceId)
         {
             if (_dockHost == null)
             {
                 return;
             }
 
-            var layoutPath = GetPersistedLayoutPath(workspaceId);
+            var layoutPath = GetPersistedLayoutPath();
             if (string.IsNullOrWhiteSpace(layoutPath))
             {
                 Logs.WriteWarning("Cannot save editor layout because no project directory is available.");
@@ -1104,39 +1148,22 @@ namespace CasaEngine.Editor
             }
 
             File.WriteAllText(layoutPath, _dockHost.SaveLayoutToJson(indented: true));
-            Logs.WriteInfo($"Editor layout saved for workspace '{workspaceId}': {layoutPath}");
+            Logs.WriteInfo($"Editor layout saved: {layoutPath}");
         }
 
         private bool TryLoadPersistedDockLayout(bool logOutcome)
-        {
-            return TryLoadPersistedDockLayout(_activeWorkspaceId, logOutcome);
-        }
-
-        private bool TryLoadPersistedDockLayout(EditorWorkspaceId workspaceId, bool logOutcome)
         {
             if (_dockHost == null)
             {
                 return false;
             }
 
-            var layoutPath = GetPersistedLayoutPath(workspaceId);
-            if (string.IsNullOrWhiteSpace(layoutPath) || !File.Exists(layoutPath))
-            {
-                if (workspaceId == EditorWorkspaceId.World)
-                {
-                    var legacyLayoutPath = GetLegacyPersistedLayoutPath();
-                    if (!string.IsNullOrWhiteSpace(legacyLayoutPath) && File.Exists(legacyLayoutPath))
-                    {
-                        layoutPath = legacyLayoutPath;
-                    }
-                }
-            }
-
+            var layoutPath = GetPersistedLayoutPath();
             if (string.IsNullOrWhiteSpace(layoutPath) || !File.Exists(layoutPath))
             {
                 if (logOutcome)
                 {
-                    Logs.WriteWarning($"No persisted editor layout was found for workspace '{workspaceId}'.");
+                    Logs.WriteWarning("No persisted editor layout was found.");
                 }
 
                 return false;
@@ -1146,11 +1173,11 @@ namespace CasaEngine.Editor
             {
                 var json = File.ReadAllText(layoutPath);
                 _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
-                PruneUnsupportedPanels(workspaceId);
+                _ = GetOrCreateLogsContent();
 
                 if (logOutcome)
                 {
-                    Logs.WriteInfo($"Editor layout loaded for workspace '{workspaceId}': {layoutPath}");
+                    Logs.WriteInfo($"Editor layout loaded: {layoutPath}");
                 }
 
                 return true;
@@ -1162,189 +1189,20 @@ namespace CasaEngine.Editor
             }
         }
 
-        private bool ShouldPreserveCommonPanelsForSwitch(EditorWorkspaceId workspaceId)
+        private void ResetDockLayoutToDefault()
         {
-            return _activeWorkspaceId != EditorWorkspaceId.World || workspaceId != EditorWorkspaceId.World;
-        }
-
-        private DockNode CaptureCommonPanelsLayout()
-        {
-            var rootNode = _dockHost?.LayoutModel?.RootNode;
-            var commonPanelsNode = FindCommonPanelsSubtree(rootNode);
-            return commonPanelsNode == null ? null : CloneDockNode(commonPanelsNode);
-        }
-
-        private void ApplyPreservedCommonPanelsLayout(DockNode commonPanelsLayout)
-        {
-            if (_dockHost?.LayoutModel == null)
+            if (_dockHost == null)
             {
                 return;
             }
 
-            RemoveCommonPanelsFromCurrentLayout();
-
-            if (commonPanelsLayout == null)
-            {
-                return;
-            }
-
-            if (_dockHost.LayoutModel.RootNode == null)
-            {
-                _dockHost.LayoutModel.RootNode = commonPanelsLayout;
-                return;
-            }
-
-            if (_dockHost.LayoutModel.RootNode is DockSplitNode splitNode
-                && splitNode.Orientation == Orientation.Vertical
-                && (splitNode.SecondChild == null || ContainsOnlyCommonPanels(splitNode.SecondChild)))
-            {
-                splitNode.SecondChild = commonPanelsLayout;
-                return;
-            }
-
-            _dockHost.LayoutModel.RootNode = new DockSplitNode
-            {
-                Orientation = Orientation.Vertical,
-                FirstChild = _dockHost.LayoutModel.RootNode,
-                SecondChild = commonPanelsLayout,
-                SplitRatio = 0.72f,
-                MinFirstSize = 250,
-                MinSecondSize = 120,
-            };
+            _dockHost.LayoutModel.RootNode = CreateDefaultDockLayout();
         }
 
-        private void RemoveCommonPanelsFromCurrentLayout()
+        private DockNode CreateDefaultDockLayout()
         {
-            if (_dockHost?.LayoutModel == null)
-            {
-                return;
-            }
-
-            foreach (var panel in _dockHost.LayoutModel.GetAllPanels()
-                         .Where(panel => CommonPanelIds.Contains(panel.Id))
-                         .ToList())
-            {
-                DockOperation.RemovePanel(_dockHost.LayoutModel, panel);
-            }
-        }
-
-        private static DockNode FindCommonPanelsSubtree(DockNode node)
-        {
-            if (node == null)
-            {
-                return null;
-            }
-
-            if (ContainsAnyCommonPanels(node) && ContainsOnlyCommonPanels(node))
-            {
-                return node;
-            }
-
-            foreach (var child in node.GetChildren())
-            {
-                var result = FindCommonPanelsSubtree(child);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-
-        private static bool ContainsAnyCommonPanels(DockNode node)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            if (node is DockPanelNode panelNode)
-            {
-                return CommonPanelIds.Contains(panelNode.Id);
-            }
-
-            return node.GetChildren().Any(ContainsAnyCommonPanels);
-        }
-
-        private static bool ContainsOnlyCommonPanels(DockNode node)
-        {
-            if (node == null)
-            {
-                return false;
-            }
-
-            if (node is DockPanelNode panelNode)
-            {
-                return CommonPanelIds.Contains(panelNode.Id);
-            }
-
-            var children = node.GetChildren().ToList();
-            return children.Count != 0 && children.All(ContainsOnlyCommonPanels);
-        }
-
-        private DockNode CloneDockNode(DockNode node)
-        {
-            return node switch
-            {
-                DockPanelNode panelNode => CloneDockPanelNode(panelNode),
-                DockTabGroupNode tabGroupNode => CloneDockTabGroupNode(tabGroupNode),
-                DockSplitNode splitNode => CloneDockSplitNode(splitNode),
-                _ => throw new InvalidOperationException($"Unsupported dock node type '{node.GetType().Name}'."),
-            };
-        }
-
-        private DockPanelNode CloneDockPanelNode(DockPanelNode panelNode)
-        {
-            return new DockPanelNode(panelNode.Id)
-            {
-                Title = panelNode.Title,
-                Icon = panelNode.Icon,
-                ContentFactory = GetPanelContentFactory(panelNode.Id),
-                CanClose = panelNode.CanClose,
-                CanFloat = panelNode.CanFloat,
-                CanAutoHide = panelNode.CanAutoHide,
-                IsPinned = panelNode.IsPinned,
-                AutoHideSide = panelNode.AutoHideSide,
-                DrawerSize = panelNode.DrawerSize,
-                DockableType = panelNode.DockableType,
-                Family = panelNode.Family,
-                AllowedZones = panelNode.AllowedZones,
-            };
-        }
-
-        private DockTabGroupNode CloneDockTabGroupNode(DockTabGroupNode tabGroupNode)
-        {
-            var clone = new DockTabGroupNode(tabGroupNode.Id)
-            {
-                IsDocumentArea = tabGroupNode.IsDocumentArea,
-            };
-
-            foreach (var panel in tabGroupNode.Panels)
-            {
-                clone.AddPanel(CloneDockPanelNode(panel), -1);
-            }
-
-            if (!string.IsNullOrWhiteSpace(tabGroupNode.ActivePanelId)
-                && clone.Panels.Any(panel => panel.Id == tabGroupNode.ActivePanelId))
-            {
-                clone.SetActivePanel(tabGroupNode.ActivePanelId);
-            }
-
-            return clone;
-        }
-
-        private DockSplitNode CloneDockSplitNode(DockSplitNode splitNode)
-        {
-            return new DockSplitNode(splitNode.Id)
-            {
-                Orientation = splitNode.Orientation,
-                SplitRatio = splitNode.SplitRatio,
-                MinFirstSize = splitNode.MinFirstSize,
-                MinSecondSize = splitNode.MinSecondSize,
-                FirstChild = splitNode.FirstChild == null ? null : CloneDockNode(splitNode.FirstChild),
-                SecondChild = splitNode.SecondChild == null ? null : CloneDockNode(splitNode.SecondChild),
-            };
+            _panelRegistry ??= CreatePanelRegistry();
+            return new EditorShellLayoutBuilder(_panelRegistry).CreateDefaultLayout();
         }
 
         private string GetCurrentProjectDirectory()
@@ -1362,59 +1220,263 @@ namespace CasaEngine.Editor
             return Environment.CurrentDirectory;
         }
 
-        private void PruneUnsupportedPanels(EditorWorkspaceId workspaceId)
+        private void OnDockHostPanelRemoved(object? sender, DockPanelNode panel)
+        {
+            if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
+            {
+                _screenPreviewPanels.Remove(panel.Id);
+                _screenPreviewPanelTitles.Remove(panel.Id);
+                if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
+                {
+                    _activeScreenPreviewPanel = null;
+                }
+            }
+
+            if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
+            {
+                materialInspectorPanel.Dispose();
+                _materialInspectorPanels.Remove(panel.Id);
+                if (_materialViewportPanels.Remove(panel.Id, out var materialViewportPanel))
+                {
+                    materialViewportPanel.Dispose();
+                }
+
+                _materialInspectorPanelTitles.Remove(panel.Id);
+                if (ReferenceEquals(_activeMaterialInspectorPanel, materialInspectorPanel))
+                {
+                    SetActiveMaterialInspectorPanel(null);
+                }
+            }
+
+            SyncActiveEditorDocumentFromDockState();
+        }
+
+        private string? GetActiveDocumentPanelId()
         {
             if (_dockHost?.LayoutModel == null)
             {
-                return;
+                return null;
             }
 
-            foreach (var panel in _dockHost.LayoutModel.GetAllPanels().ToList())
+            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
             {
-                if (IsPanelSupportedInWorkspace(workspaceId, panel.Id))
+                if (group.IsDocumentArea && !string.IsNullOrWhiteSpace(group.ActivePanelId))
+                {
+                    return group.ActivePanelId;
+                }
+            }
+
+            return null;
+        }
+
+        private List<string> GetOpenDocumentPanelIds()
+        {
+            var result = new List<string>();
+            if (_dockHost?.LayoutModel == null)
+            {
+                return result;
+            }
+
+            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
+            {
+                if (!group.IsDocumentArea)
                 {
                     continue;
                 }
 
-                DockOperation.RemovePanel(_dockHost.LayoutModel, panel);
-                Logs.WriteInfo($"Removed panel '{panel.Id}' from workspace '{workspaceId}' because it is not supported by that workspace.");
+                foreach (var panel in group.Panels)
+                {
+                    if (!result.Contains(panel.Id))
+                    {
+                        result.Add(panel.Id);
+                    }
+                }
             }
+
+            return result;
         }
 
-        private bool IsPanelSupportedInWorkspace(EditorWorkspaceId workspaceId, string panelId)
+        private DockPanelNode? CreateDocumentPanelNode(string panelId)
         {
-            if (panelId == EditorPanelIds.WorldViewport)
+            if (_panelRegistry != null
+                && _panelRegistry.TryGetDescriptor(panelId, out var descriptor)
+                && descriptor.Kind == EditorPanelKind.Document)
             {
-                return workspaceId == EditorWorkspaceId.World || workspaceId == EditorWorkspaceId.Material;
+                return new DockPanelNode(descriptor.Id)
+                {
+                    Title = descriptor.Title,
+                    DockableType = DockableType.Document,
+                    CanClose = descriptor.CanClose,
+                    CanFloat = descriptor.CanFloat,
+                    CanAutoHide = descriptor.CanAutoHide,
+                    ContentFactory = descriptor.ContentFactory,
+                };
             }
 
-            if (TryGetUIScreenPreviewPanel(panelId, out _))
+            if (TryGetUIScreenPreviewPanel(panelId, out var previewPanel))
             {
-                return workspaceId == EditorWorkspaceId.UIScreen;
+                return new DockPanelNode(panelId)
+                {
+                    Title = _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = previewPanel.CreateContent,
+                };
             }
 
             if (TryGetMaterialAssetInspectorPanel(panelId, out _))
             {
-                return false;
+                return new DockPanelNode(panelId)
+                {
+                    Title = _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = () => GetOrCreateMaterialViewportContent(panelId),
+                };
             }
 
-            if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
+            return null;
+        }
+
+        private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
+        {
+            previewPanel = null!;
+
+            if (!panelId.StartsWith(EditorPanelIds.UIScreenDocumentPrefix, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            if (descriptor.Scope == EditorPanelScope.Common)
+            return _screenPreviewPanels.TryGetValue(panelId, out previewPanel);
+        }
+
+        private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
+        {
+            inspectorPanel = null!;
+
+            if (!panelId.StartsWith(EditorPanelIds.MaterialAssetDocumentPrefix, StringComparison.Ordinal))
             {
-                return true;
+                return false;
             }
 
-            return workspaceId switch
+            return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+        }
+
+        private bool TryGetActiveMaterialInspectorPanel(out MaterialAssetInspectorPanel inspectorPanel)
+        {
+            inspectorPanel = _activeMaterialInspectorPanel!;
+            return inspectorPanel != null;
+        }
+
+        private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel? inspectorPanel)
+        {
+            _activeMaterialInspectorPanel = inspectorPanel;
+            RefreshMaterialViews();
+        }
+
+        private MGElement GetOrCreateMaterialViewportContent(string panelId)
+        {
+            if (!TryGetMaterialAssetInspectorPanel(panelId, out var inspectorPanel))
             {
-                EditorWorkspaceId.World => descriptor.Scope == EditorPanelScope.World,
-                EditorWorkspaceId.UIScreen => descriptor.Scope == EditorPanelScope.UIScreen,
-                EditorWorkspaceId.Material => descriptor.Scope == EditorPanelScope.Material,
-                _ => false,
-            };
+                return CreateUnavailablePanelContent(panelId);
+            }
+
+            return GetOrCreateMaterialViewportPanel(panelId, inspectorPanel).CreateContent();
+        }
+
+        private WorldViewportPanel GetOrCreateMaterialViewportPanel(string panelId, MaterialAssetInspectorPanel inspectorPanel)
+        {
+            if (!_materialViewportPanels.TryGetValue(panelId, out var viewportPanel))
+            {
+                viewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+                _materialViewportPanels.Add(panelId, viewportPanel);
+            }
+
+            viewportPanel.SetWorldOverride(inspectorPanel.GetOrCreatePreviewWorld());
+            return viewportPanel;
+        }
+
+        private void ActivateWorldDocument()
+        {
+            _editorContext.SetActiveDocument(new EditorDocumentContext(
+                EditorDocumentKind.World,
+                EditorPanelIds.WorldViewport,
+                "World",
+                _editorRuntime?.GameManager.CurrentWorld));
+            SyncGlobalSelectionFromActiveDocument();
+        }
+
+        private void ActivateScreenDocument(string panelId, UIScreenPreviewPanel previewPanel)
+        {
+            _activeScreenPreviewPanel = previewPanel;
+            RefreshScreenViews();
+            _editorContext.SetActiveDocument(new EditorDocumentContext(
+                EditorDocumentKind.UIScreen,
+                panelId,
+                _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
+                previewPanel));
+            SyncGlobalSelectionFromActiveDocument();
+        }
+
+        private void ActivateMaterialDocument(string panelId, MaterialAssetInspectorPanel inspectorPanel)
+        {
+            SetActiveMaterialInspectorPanel(inspectorPanel);
+            _editorContext.SetActiveDocument(new EditorDocumentContext(
+                EditorDocumentKind.Material,
+                panelId,
+                _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
+                inspectorPanel));
+            SyncGlobalSelectionFromActiveDocument();
+        }
+
+        private void SyncActiveEditorDocumentFromDockState()
+        {
+            var activeDocumentPanelId = GetActiveDocumentPanelId();
+            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                && TryGetUIScreenPreviewPanel(activeDocumentPanelId, out var previewPanel))
+            {
+                ActivateScreenDocument(activeDocumentPanelId, previewPanel);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                && TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var materialInspectorPanel))
+            {
+                ActivateMaterialDocument(activeDocumentPanelId, materialInspectorPanel);
+                return;
+            }
+
+            ActivateWorldDocument();
+        }
+
+        private void RefreshScreenViews()
+        {
+            var activeDocument = _activeScreenPreviewPanel?.CurrentDocument;
+            _screenHierarchyPanel?.SetDocument(activeDocument);
+            _screenInspectorPanel?.SetDocument(activeDocument);
+            _screenToolboxPanel?.SetDocument(activeDocument);
+        }
+
+        private void RefreshMaterialViews()
+        {
+            _materialHierarchyPanel?.SetInspectorPanel(_activeMaterialInspectorPanel);
+            _materialInspectorView?.SetInspectorPanel(_activeMaterialInspectorPanel);
+        }
+
+        private DockTabGroupNode? GetDocumentDockGroup()
+        {
+            if (_dockHost?.LayoutModel == null)
+            {
+                return null;
+            }
+
+            return _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.IsDocumentArea)
+                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.Panels.Any(panel => panel.Id == EditorPanelIds.WorldViewport))
+                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault();
         }
 
         private void OnEntitiesPanelSelectionChanged(Entity? entity)
@@ -1451,22 +1513,29 @@ namespace CasaEngine.Editor
 
             EnsureDockHostInitialized();
 
-            var panelId = $"panel_ui_screen_{screenAsset.Id:N}";
+            var panelId = $"{EditorPanelIds.UIScreenDocumentPrefix}{screenAsset.Id:N}";
             if (!_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
             {
                 previewPanel = new UIScreenPreviewPanel(_mainWindow);
                 previewPanel.SetSelectionService(_screenSelection);
-                previewPanel.DocumentLoaded += doc =>
+                previewPanel.DocumentLoaded += _ =>
                 {
-                    if (ReferenceEquals(_uiScreenWorkspaceContext.ActivePreviewPanel, previewPanel))
+                    if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
                     {
-                        ApplyUIScreenWorkspaceContext();
+                        RefreshScreenViews();
+                        SyncGlobalSelectionFromActiveDocument();
                     }
                 };
                 previewPanel.NodePicked += id =>
                 {
-                    if (id.HasValue) _screenSelection.Select(id.Value);
-                    else _screenSelection.ClearSelection();
+                    if (id.HasValue)
+                    {
+                        _screenSelection.Select(id.Value);
+                    }
+                    else
+                    {
+                        _screenSelection.ClearSelection();
+                    }
                 };
                 previewPanel.NodeMoveRequested += OnScreenNodeMoveRequested;
                 previewPanel.NodeResizeRequested += OnScreenNodeResizeRequested;
@@ -1475,11 +1544,10 @@ namespace CasaEngine.Editor
             }
 
             previewPanel.LoadAsset(screenAsset, fullPath);
-            var panelTitle = string.IsNullOrWhiteSpace(screenAsset.Name) ? Path.GetFileNameWithoutExtension(fullPath) : screenAsset.Name;
+            var panelTitle = string.IsNullOrWhiteSpace(screenAsset.Name)
+                ? Path.GetFileNameWithoutExtension(fullPath)
+                : screenAsset.Name;
             _screenPreviewPanelTitles[panelId] = panelTitle;
-            SetActiveScreenPreviewPanel(previewPanel);
-
-            SwitchWorkspace(EditorWorkspaceId.UIScreen, panelId, preferPersistedLayout: true, logOutcome: false);
 
             var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
             if (existingPanel == null)
@@ -1507,6 +1575,7 @@ namespace CasaEngine.Editor
                 existingPanel.Title = panelTitle;
             }
 
+            ActivateScreenDocument(panelId, previewPanel);
             ActivateDockPanel(panelId);
             return true;
         }
@@ -1529,358 +1598,36 @@ namespace CasaEngine.Editor
             }
 
             inspectorPanel.LoadAsset(materialAsset, fullPath);
-            SetActiveMaterialInspectorPanel(inspectorPanel);
+            _ = GetOrCreateMaterialViewportPanel(panelId, inspectorPanel);
 
-            SwitchWorkspace(EditorWorkspaceId.Material, EditorPanelIds.WorldViewport, preferPersistedLayout: true, logOutcome: false);
-            ActivateDockPanel(EditorPanelIds.WorldViewport);
-            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Editor] Opened material asset='{materialAsset.Name}', viewport='{EditorPanelIds.WorldViewport}'");
-            return true;
-        }
+            var panelTitle = string.IsNullOrWhiteSpace(materialAsset.Name)
+                ? Path.GetFileNameWithoutExtension(fullPath)
+                : materialAsset.Name;
+            _materialInspectorPanelTitles[panelId] = panelTitle;
 
-        private void SwitchWorkspace(EditorWorkspaceId workspaceId, string? activePanelId, bool preferPersistedLayout, bool logOutcome)
-        {
-            if (_workspaceManager == null || _dockHost == null)
+            var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+            if (existingPanel == null)
             {
-                return;
-            }
-
-            var openDocumentPanelIds = GetOpenDocumentPanelIds();
-            if (!string.IsNullOrWhiteSpace(activePanelId) && !openDocumentPanelIds.Contains(activePanelId))
-            {
-                openDocumentPanelIds.Add(activePanelId);
-            }
-
-            openDocumentPanelIds = openDocumentPanelIds
-                .Where(panelId => IsPanelSupportedInWorkspace(workspaceId, panelId))
-                .ToList();
-
-            DockNode preservedCommonPanelsLayout = ShouldPreserveCommonPanelsForSwitch(workspaceId)
-                ? CaptureCommonPanelsLayout()
-                : null;
-
-            _isSwitchingWorkspace = true;
-            try
-            {
-                _workspaceManager.ActivateWorkspace(workspaceId, preferPersistedLayout, logOutcome);
-                RestoreDocumentPanels(openDocumentPanelIds);
-                EnsureRequiredPanelsForWorkspace(workspaceId);
-
-                if (workspaceId != EditorWorkspaceId.UIScreen)
-                {
-                    _uiScreenWorkspaceContext.SetActivePreviewPanel(null);
-                    ApplyUIScreenWorkspaceContext();
-                }
-
-                if (workspaceId != EditorWorkspaceId.Material)
-                {
-                    SetActiveMaterialInspectorPanel(null);
-                }
-                else
-                {
-                    ApplyMaterialWorkspaceContext();
-                }
-
-                if (preservedCommonPanelsLayout != null || ShouldPreserveCommonPanelsForSwitch(workspaceId))
-                {
-                    ApplyPreservedCommonPanelsLayout(preservedCommonPanelsLayout);
-                }
-
-                if (!string.IsNullOrWhiteSpace(activePanelId))
-                {
-                    ActivateDockPanel(activePanelId);
-                }
-            }
-            finally
-            {
-                _isSwitchingWorkspace = false;
-            }
-        }
-
-        private void OnDockHostPanelRemoved(object? sender, DockPanelNode panel)
-        {
-            if (_isSwitchingWorkspace)
-            {
-                return;
-            }
-
-            if (!TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
-            {
-                return;
-            }
-
-            materialInspectorPanel.Dispose();
-            _materialInspectorPanels.Remove(panel.Id);
-            _materialInspectorPanelTitles.Remove(panel.Id);
-            if (ReferenceEquals(_activeMaterialInspectorPanel, materialInspectorPanel))
-            {
-                SyncActiveMaterialInspectorPanel();
-            }
-        }
-
-        private List<string> GetOpenDocumentPanelIds()
-        {
-            var result = new List<string>();
-            if (_dockHost?.LayoutModel == null)
-            {
-                return result;
-            }
-
-            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
-            {
-                if (!group.IsDocumentArea)
-                {
-                    continue;
-                }
-
-                foreach (var panel in group.Panels)
-                {
-                    if (!result.Contains(panel.Id))
-                    {
-                        result.Add(panel.Id);
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        private string? GetActiveDocumentPanelId()
-        {
-            if (_dockHost?.LayoutModel == null)
-            {
-                return null;
-            }
-
-            foreach (var group in _dockHost.LayoutModel.GetAllTabGroups())
-            {
-                if (group.IsDocumentArea && !string.IsNullOrWhiteSpace(group.ActivePanelId))
-                {
-                    return group.ActivePanelId;
-                }
-            }
-
-            return null;
-        }
-
-        private void RestoreDocumentPanels(IReadOnlyList<string> panelIds)
-        {
-            var targetGroup = GetDocumentDockGroup();
-            if (targetGroup == null || _dockHost?.LayoutModel == null)
-            {
-                return;
-            }
-
-            foreach (var panelId in panelIds)
-            {
-                if (_dockHost.LayoutModel.FindPanelById(panelId) != null)
-                {
-                    continue;
-                }
-
                 var panelNode = CreateDocumentPanelNode(panelId);
-                if (panelNode == null)
+                var targetGroup = GetDocumentDockGroup();
+                if (panelNode == null || targetGroup == null)
                 {
-                    continue;
+                    return false;
                 }
 
-                DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, targetGroup);
+                panelNode.Title = panelTitle;
+                DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
             }
-        }
-
-        private DockPanelNode? CreateDocumentPanelNode(string panelId)
-        {
-            if (_panelRegistry != null
-                && _panelRegistry.TryGetDescriptor(panelId, out var descriptor)
-                && descriptor.Kind == EditorPanelKind.Document)
+            else
             {
-                return new DockPanelNode(descriptor.Id)
-                {
-                    Title = descriptor.Title,
-                    DockableType = DockableType.Document,
-                    CanClose = descriptor.CanClose,
-                    CanFloat = descriptor.CanFloat,
-                    CanAutoHide = descriptor.CanAutoHide,
-                    ContentFactory = descriptor.ContentFactory,
-                };
+                existingPanel.Title = panelTitle;
             }
 
-            if (TryGetUIScreenPreviewPanel(panelId, out var previewPanel))
-            {
-                return new DockPanelNode(panelId)
-                {
-                    Title = _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
-                    DockableType = DockableType.Document,
-                    CanClose = true,
-                    CanFloat = true,
-                    CanAutoHide = false,
-                    ContentFactory = previewPanel.CreateContent,
-                };
-            }
-
-            return null;
-        }
-
-        private DockPanelNode? CreateRegisteredPanelNode(string panelId)
-        {
-            if (_panelRegistry == null || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor))
-            {
-                return null;
-            }
-
-            return new DockPanelNode(descriptor.Id)
-            {
-                Title = descriptor.Title,
-                DockableType = descriptor.Kind == EditorPanelKind.Document ? DockableType.Document : DockableType.Tool,
-                CanClose = descriptor.CanClose,
-                CanFloat = descriptor.CanFloat,
-                CanAutoHide = descriptor.CanAutoHide,
-                ContentFactory = descriptor.ContentFactory,
-            };
-        }
-
-        private void EnsureRequiredPanelsForWorkspace(EditorWorkspaceId workspaceId)
-        {
-            if (_dockHost?.LayoutModel == null)
-            {
-                return;
-            }
-
-            if (workspaceId != EditorWorkspaceId.Material)
-            {
-                return;
-            }
-
-            EnsureDocumentPanelPresent(EditorPanelIds.WorldViewport);
-            EnsureToolPanelPresent(EditorPanelIds.MaterialDetails, DockZone.Right);
-        }
-
-        private void EnsureDocumentPanelPresent(string panelId)
-        {
-            if (_dockHost?.LayoutModel == null || _dockHost.LayoutModel.FindPanelById(panelId) != null)
-            {
-                return;
-            }
-
-            var documentGroup = GetDocumentDockGroup();
-            var panelNode = CreateDocumentPanelNode(panelId);
-            if (documentGroup == null || panelNode == null)
-            {
-                return;
-            }
-
-            DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, documentGroup);
-        }
-
-        private void EnsureToolPanelPresent(string panelId, DockZone zone)
-        {
-            if (_dockHost?.LayoutModel == null || _dockHost.LayoutModel.FindPanelById(panelId) != null)
-            {
-                return;
-            }
-
-            var targetGroup = GetDocumentDockGroup();
-            var panelNode = CreateRegisteredPanelNode(panelId);
-            if (targetGroup == null || panelNode == null)
-            {
-                return;
-            }
-
-            DockOperation.SplitDock(_dockHost.LayoutModel, panelNode, targetGroup, zone);
-        }
-
-        private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
-        {
-            previewPanel = null!;
-
-            if (!panelId.StartsWith(EditorPanelIds.UIScreenDocumentPrefix, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return _screenPreviewPanels.TryGetValue(panelId, out previewPanel);
-        }
-
-        private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
-        {
-            inspectorPanel = null!;
-
-            if (!panelId.StartsWith(EditorPanelIds.MaterialAssetDocumentPrefix, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
-        }
-
-        private bool TryGetActiveMaterialInspectorPanel(out MaterialAssetInspectorPanel inspectorPanel)
-        {
-            inspectorPanel = _activeMaterialInspectorPanel;
-            return inspectorPanel != null;
-        }
-
-        private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
-        {
-            _activeMaterialInspectorPanel = inspectorPanel;
-            _materialDetailsPanel?.SetInspectorPanel(inspectorPanel);
-            ApplyMaterialWorkspaceContext();
-        }
-
-        private void SyncActiveMaterialInspectorPanel()
-        {
-            if (_activeMaterialInspectorPanel != null
-                && _materialInspectorPanels.Values.Contains(_activeMaterialInspectorPanel))
-            {
-                ApplyMaterialWorkspaceContext();
-                return;
-            }
-
-            SetActiveMaterialInspectorPanel(null);
-        }
-
-        private void ApplyMaterialWorkspaceContext()
-        {
-            _materialDetailsPanel?.SetInspectorPanel(_activeMaterialInspectorPanel);
-
-            if (_worldViewportPanel == null)
-            {
-                return;
-            }
-
-            if (_activeWorkspaceId == EditorWorkspaceId.Material && _activeMaterialInspectorPanel != null)
-            {
-                _worldViewportPanel.SetWorldOverride(_activeMaterialInspectorPanel.GetOrCreatePreviewWorld());
-                return;
-            }
-
-            _worldViewportPanel.SetWorldOverride(null);
-        }
-
-        private void SetActiveScreenPreviewPanel(UIScreenPreviewPanel previewPanel)
-        {
-            _activeScreenPreviewPanel = previewPanel;
-            _uiScreenWorkspaceContext.SetActivePreviewPanel(previewPanel);
-            ApplyUIScreenWorkspaceContext();
-        }
-
-        private void ApplyUIScreenWorkspaceContext()
-        {
-            var activeDocument = _uiScreenWorkspaceContext.ActiveDocument;
-            _screenHierarchyPanel?.SetDocument(activeDocument);
-            _screenInspectorPanel?.SetDocument(activeDocument);
-            _screenToolboxPanel?.SetDocument(activeDocument);
-        }
-
-        private DockTabGroupNode? GetDocumentDockGroup()
-        {
-            if (_dockHost?.LayoutModel == null)
-            {
-                return null;
-            }
-
-            return _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.IsDocumentArea)
-                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => group.Panels.Any(panel => panel.Id == EditorPanelIds.WorldViewport))
-                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault();
+            ActivateMaterialDocument(panelId, inspectorPanel);
+            ActivateDockPanel(panelId);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Editor] Opened material asset='{materialAsset.Name}', viewport='{panelId}'");
+            return true;
         }
 
         private static bool TryLoadUIScreenAsset(string fullPath, out UIScreenAsset screenAsset)
@@ -1971,11 +1718,21 @@ namespace CasaEngine.Editor
             _editorSelection.SetSelectedEntity(entity);
         }
 
+        private void OnScreenSelectionChanged(DocumentNodeId? nodeId)
+        {
+            if (_activeScreenPreviewPanel != null)
+            {
+                _activeScreenPreviewPanel.SelectedNodeId = nodeId;
+            }
+
+            if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.UIScreen)
+            {
+                SyncGlobalSelectionFromActiveDocument();
+            }
+        }
+
         private void OnEditorSelectionChanged(Entity? entity)
         {
-            _selectedEntity = entity;
-            _worldWorkspaceContext.SelectedEntity = entity;
-
             if (_isSynchronizingEntitySelection)
             {
                 return;
@@ -1984,7 +1741,11 @@ namespace CasaEngine.Editor
             _isSynchronizingEntitySelection = true;
             try
             {
-                ApplyWorldWorkspaceContext();
+                RefreshWorldSelectionViews();
+                if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.World)
+                {
+                    SyncGlobalSelectionFromActiveDocument();
+                }
             }
             finally
             {
@@ -1994,32 +1755,128 @@ namespace CasaEngine.Editor
 
         private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
-            Logs.WriteTrace($"[WorldWorkspace] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
-            _worldWorkspaceContext.SelectedComponent = component;
-            ApplyWorldWorkspaceContext();
+            Logs.WriteTrace($"[WorldSelection] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
+            RefreshWorldInspectorView();
+            if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.World)
+            {
+                SyncGlobalSelectionFromActiveDocument();
+            }
         }
 
         private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
         {
-            Logs.WriteTrace($"[WorldWorkspace] Details panel selected component={DescribeComponent(component)}");
+            Logs.WriteTrace($"[WorldSelection] Inspector selected component={DescribeComponent(component)}");
             _editorSelection.SetSelectedComponent(component);
         }
 
-        private void ApplyWorldWorkspaceContext()
+        private void RefreshWorldHierarchyView()
         {
-            Logs.WriteTrace($"[WorldWorkspace] ApplyWorldWorkspaceContext entity={DescribeEntity(_worldWorkspaceContext.SelectedEntity)} component={DescribeComponent(_worldWorkspaceContext.SelectedComponent)}");
-            _entitiesPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+            _entitiesPanel?.Update();
+            _entitiesPanel?.SetSelectionState(GetSelectedWorldEntity(), GetWorldSelectionCount());
+        }
 
-            if (!_automationOptions.HasAutomation && _activeWorkspaceId != EditorWorkspaceId.Material)
+        private void RefreshWorldInspectorView()
+        {
+            _entityDetailsPanel?.SyncSelection(GetSelectedWorldEntity(), _editorSelection.SelectedComponent);
+        }
+
+        private void RefreshWorldSelectionViews()
+        {
+            RefreshWorldHierarchyView();
+            RefreshWorldInspectorView();
+
+            if (!_automationOptions.HasAutomation)
             {
-                _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(_worldWorkspaceContext.SelectedEntity);
+                _worldViewportPanel?.SetSelectedEntity(GetSelectedWorldEntity());
             }
-            else if (_activeWorkspaceId == EditorWorkspaceId.Material)
+        }
+
+        private Entity? GetSelectedWorldEntity()
+        {
+            return _editorSelection.SelectedComponent?.Owner ?? _editorSelection.SelectedEntity;
+        }
+
+        private int GetWorldSelectionCount()
+        {
+            return GetSelectedWorldEntity() == null ? 0 : 1;
+        }
+
+        private void SyncGlobalSelectionFromActiveDocument()
+        {
+            switch (_editorContext.ActiveDocument?.Kind ?? EditorDocumentKind.None)
             {
-                _worldWorkspaceContext.ViewportPanel?.SetSelectedEntity(null);
+                case EditorDocumentKind.World:
+                    _editorContext.SetSelection(CreateWorldSelectionState());
+                    break;
+                case EditorDocumentKind.UIScreen:
+                    _editorContext.SetSelection(CreateUIScreenSelectionState());
+                    break;
+                case EditorDocumentKind.Material:
+                    _editorContext.SetSelection(CreateMaterialSelectionState());
+                    break;
+                default:
+                    _editorContext.ClearSelection();
+                    break;
+            }
+        }
+
+        private EditorSelectionState CreateWorldSelectionState()
+        {
+            if (_editorSelection.SelectedComponent != null)
+            {
+                return new EditorSelectionState(
+                    EditorSelectionKind.WorldComponent,
+                    _editorSelection.SelectedComponent,
+                    1,
+                    _editorSelection.SelectedComponent.GetType().Name);
             }
 
-            _entityDetailsPanel?.SyncSelection(_worldWorkspaceContext.SelectedEntity, _worldWorkspaceContext.SelectedComponent);
+            if (_editorSelection.SelectedEntity != null)
+            {
+                int count = GetWorldSelectionCount();
+                return new EditorSelectionState(
+                    EditorSelectionKind.WorldEntity,
+                    _editorSelection.SelectedEntity,
+                    count,
+                    $"{count} entit{(count == 1 ? "y" : "ies")} selected");
+            }
+
+            return EditorSelectionState.Empty;
+        }
+
+        private EditorSelectionState CreateUIScreenSelectionState()
+        {
+            int selectionCount = _screenSelection.MultiSelection.Count;
+            if (selectionCount == 0 && _screenSelection.SelectedNodeId.HasValue)
+            {
+                selectionCount = 1;
+            }
+
+            if (selectionCount == 0)
+            {
+                return EditorSelectionState.Empty;
+            }
+
+            return new EditorSelectionState(
+                EditorSelectionKind.UIScreenNode,
+                _screenSelection.SelectedNodeId,
+                selectionCount,
+                $"{selectionCount} control{(selectionCount == 1 ? string.Empty : "s")} selected");
+        }
+
+        private EditorSelectionState CreateMaterialSelectionState()
+        {
+            var materialAsset = _activeMaterialInspectorPanel?.LoadedMaterialAsset;
+            if (materialAsset == null)
+            {
+                return EditorSelectionState.Empty;
+            }
+
+            return new EditorSelectionState(
+                EditorSelectionKind.MaterialAsset,
+                materialAsset,
+                1,
+                $"Material {materialAsset.Name} selected");
         }
 
         protected override void LoadContent()
@@ -2073,6 +1930,10 @@ namespace CasaEngine.Editor
             _editorRuntime?.UpdateHost(gameTime);
             _entitiesPanel?.Update();
             _worldViewportPanel?.UpdateInput(gameTime);
+            foreach (var materialViewportPanel in _materialViewportPanels.Values)
+            {
+                materialViewportPanel.UpdateInput(gameTime);
+            }
             RunAutomation(gameTime.TotalGameTime);
 
             base.Update(gameTime);
@@ -2580,6 +2441,10 @@ namespace CasaEngine.Editor
 
             // Refresh the viewport binding after the hosted runtime rendered its view.
             _worldViewportPanel?.DrawViewport(gameTime);
+            foreach (var materialViewportPanel in _materialViewportPanels.Values)
+            {
+                materialViewportPanel.DrawViewport(gameTime);
+            }
             foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
             {
                 materialInspectorPanel.RefreshPreviewAfterDraw();

@@ -69,6 +69,8 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
     public string? LoadedRelativePath => _loadedRelativePath;
 
+    public MaterialAsset? LoadedMaterialAsset => _materialAsset;
+
     public MGElement CreatePreviewContent()
     {
         if (_materialPreview != null)

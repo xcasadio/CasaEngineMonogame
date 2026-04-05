@@ -4,7 +4,6 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Project;
 using CasaEngine.Framework.World;
-using Newtonsoft.Json;
 
 namespace CasaEngine.EditorServices;
 
@@ -72,16 +71,30 @@ public static class EditorProjectAuthoringService
 #endif
     }
 
-    public static void SaveProject()
+    public static void SaveProject(World? world = null)
     {
         if (string.IsNullOrWhiteSpace(EditorProjectSession.CurrentProjectFilePath))
         {
             throw new InvalidOperationException("No editor project is currently open.");
         }
 
-        using StreamWriter file = File.CreateText(EditorProjectSession.CurrentProjectFilePath);
-        using JsonTextWriter writer = new(file) { Formatting = Formatting.Indented };
-        var jsonSerializer = new JsonSerializer();
-        jsonSerializer.Serialize(writer, GameSettings.ProjectSettings);
+        if (world != null)
+        {
+            string worldFileName = world.FileName;
+            if (string.IsNullOrWhiteSpace(worldFileName))
+            {
+                worldFileName = GameSettings.ProjectSettings.FirstWorldLoaded;
+            }
+
+            if (string.IsNullOrWhiteSpace(worldFileName))
+            {
+                throw new InvalidOperationException("The current world does not have a file name and cannot be saved.");
+            }
+
+            world.FileName = worldFileName;
+            EditorWorldWriter.SaveWorld(world);
+        }
+
+        ProjectSettingsHelper.Save(EditorProjectSession.CurrentProjectFilePath, GameSettings.ProjectSettings);
     }
 }

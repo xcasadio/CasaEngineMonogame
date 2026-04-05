@@ -1,100 +1,90 @@
-# Layouts par workspace dans CasaEngine.Editor
+# Panels contextuels dans CasaEngine.Editor
 
 ## Résumé
 
-`CasaEngine.Editor` utilise désormais des **workspaces d'édition** pour séparer les panneaux contextuels par mode tout en gardant un shell commun.
+`CasaEngine.Editor` n'utilise plus de layout special par type d'editeur.
 
-Le shell commun conserve :
-- la barre de menus
-- la status bar
-- le `MGDockHost`
-- les panneaux communs comme `Content Browser` et `Logs`
+Le shell MGUI est maintenant stable :
+- barre de menus
+- status bar
+- `MGDockHost`
+- un seul layout persiste par projet
 
-Les workspaces gèrent :
-- leur layout par défaut
-- leurs panneaux contextuels
-- leur fichier de persistance de layout
+Les panneaux dockables principaux sont semantiques :
+- `Hierarchy`
+- `Inspector`
+- `Toolbox`
+- `Content Browser`
+- `Output / Logs`
 
-## Workspaces disponibles
+Le contenu de `Hierarchy`, `Inspector` et `Toolbox` change selon le document actif, mais leur emplacement dans le shell ne change pas.
+
+## Layout shell par défaut
+
+Le layout par défaut est :
+- gauche : `Hierarchy` et `Toolbox`
+- centre : zone document
+- droite : `Inspector`
+- bas : `Content Browser` et `Output / Logs`
+
+Le document `World Viewport` reste le document par défaut ouvert dans la zone centrale.
+
+## Contexte global
+
+Le shell s'appuie sur un `EditorContextService` qui projette :
+- le document actif
+- le type du document actif
+- la sélection active
+- le nombre d'elements selectionnes
+
+Le contexte global ne remplace pas les services locaux de chaque editeur.
+Il sert de couche de coordination pour les panels contextuels.
+
+## Documents pris en charge
 
 ### World
 
-Panneaux attendus :
-- `World Viewport`
-- `Entities`
-- `Details`
-- `Content Browser`
-- `Output / Logs`
-
-Classe :
-- `CasaEngine.Editor/Workspaces/WorldEditorWorkspace.cs`
+Le document actif `World` pilote :
+- `Hierarchy` -> `EntitiesPanel`
+- `Inspector` -> `EntityDetailsPanel`
+- `Toolbox` -> empty state
 
 ### UIScreen
 
-Panneaux attendus :
-- `Screen Hierarchy`
-- `Screen Toolbox`
-- `Screen Inspector`
-- document(s) `UIScreen`
-- `Content Browser`
-- `Output / Logs`
+Le document actif `UIScreen` pilote :
+- `Hierarchy` -> `UIScreenHierarchyPanel`
+- `Inspector` -> `UIScreenInspectorPanel`
+- `Toolbox` -> `UIScreenToolboxPanel`
 
-Classe :
-- `CasaEngine.Editor/Workspaces/UIScreenEditorWorkspace.cs`
+### Material
 
-## Fichiers principaux
-
-- `CasaEngine.Editor/Workspaces/EditorWorkspaceManager.cs`
-- `CasaEngine.Editor/Workspaces/EditorPanelRegistry.cs`
-- `CasaEngine.Editor/Workspaces/EditorPanelIds.cs`
-- `CasaEngine.Editor/Workspaces/UIScreenWorkspaceContext.cs`
-- `CasaEngine.Editor/Workspaces/WorldWorkspaceContext.cs`
-- `CasaEngine.Editor/Game1.cs`
+Le document actif `Material` pilote :
+- `Hierarchy` -> `MaterialHierarchyPanel`
+- `Inspector` -> `MaterialInspectorView`
+- `Toolbox` -> empty state
 
 ## Persistance
 
-Les layouts sont persistés par projet dans le dossier :
+Le layout est maintenant persiste par projet dans :
 
-- `.casaeditor/layout.world.json`
-- `.casaeditor/layout.uiscreen.json`
+- `.casaeditor/layout.editor.json`
 
-Compatibilité legacy :
-- l'ancien fichier global `layout.json` reste lu comme fallback pour le workspace `World`
+Il n'existe plus de fichiers de layout par workspace.
 
-## Règles de bascule
+## Points d'extension
 
-- Au chargement d'un projet, le workspace `World` est activé explicitement.
-- Lorsqu'un document `UIScreen` devient actif, le workspace `UIScreen` est activé.
-- Lorsqu'un document `World Viewport` redevient actif, le workspace `World` est réactivé.
-- Les onglets document connus sont restaurés lors d'un changement de workspace pour limiter les pertes de contexte.
+Pour ajouter un nouvel editeur demain :
 
-## Règles de restauration
+1. Ajouter un nouveau `EditorDocumentKind`
+2. Publier le document actif dans `EditorContextService`
+3. Publier la selection active dans `EditorContextService`
+4. Enregistrer les vues adaptees pour `Hierarchy`, `Inspector` et/ou `Toolbox`
+5. Ajouter le document correspondant a la zone document du dock si necessaire
 
-- Les panneaux inconnus utilisent toujours un fallback visuel de type `Panel unavailable`.
-- Après chargement d'un layout persisté, les panneaux outil incompatibles avec le workspace courant sont retirés automatiquement.
-- Les documents restent autorisés pour éviter de casser les onglets ouverts lors d'une bascule de workspace.
-
-## Contextes métier
-
-### UIScreenWorkspaceContext
-
-Responsable de :
-- la preview UI active
-- le document UI actif
-- la sélection partagée de noeuds UI
-
-Les panneaux `Hierarchy`, `Inspector` et `Toolbox` sont alimentés à partir de ce contexte.
-
-### WorldWorkspaceContext
-
-Responsable de :
-- la sélection d'entité active
-- le composant sélectionné
-- le viewport monde actif
-
-Les panneaux `Entities`, `Details` et le `World Viewport` sont synchronisés à partir de ce contexte.
+Le shell docking n'a pas besoin d'etre reconfigure pour ce nouveau type d'editeur.
 
 ## Limites actuelles
 
-- Les documents `UIScreen` restaurés depuis un layout persisté nécessitent que leur preview existe déjà dans la session courante pour retrouver leur contenu complet.
-- La validation fonctionnelle a été faite par build ciblé ; aucun scénario UI automatisé de bout en bout n'a encore été ajouté.
+- La multi-selection reste volontairement simple : seul le compteur de selection est expose au shell.
+- Les documents dynamiques restaures depuis un layout persiste ne retrouvent leur contenu complet que si leur preview/inspector a ete recree dans la session courante.
+- La validation a ete faite par build cible du projet editeur ; aucun scenario UI automatise de bout en bout n'a encore ete ajoute.

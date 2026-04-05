@@ -96,17 +96,17 @@
               }
             }
           ],
-          "static_model_asset_id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da"
+          "static_model_asset_id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
+          "material_slot_overrides": [
+            {
+              "slot_name": "Mesh",
+              "slot_index": 0,
+              "material_asset_id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1"
+            }
+          ]
         },
         "components": [],
-        "script_class_name": null,
-        "flow_graph": {
-          "type": "sequence",
-          "id": 8,
-          "name": "sequence",
-          "description": null,
-          "nodes": []
-        }
+        "script_class_name": null
       }
     },
     {
@@ -294,14 +294,7 @@
           "static_model_asset_id": "e12bf9ef-d742-43ec-af48-767f2b4c91e9"
         },
         "components": [],
-        "script_class_name": null,
-        "flow_graph": {
-          "type": "sequence",
-          "id": 8,
-          "name": "sequence",
-          "description": null,
-          "nodes": []
-        }
+        "script_class_name": null
       }
     },
     {
@@ -332,17 +325,10 @@
             }
           },
           "children_component": [],
-          "skinned_mesh_id": "e6a898ce-3e56-4d33-a0dc-cdab14badbe3"
+          "skinned_mesh_id": "00000000-0000-0000-0000-000000000000"
         },
         "components": [],
-        "script_class_name": null,
-        "flow_graph": {
-          "type": "sequence",
-          "id": 9,
-          "name": "sequence",
-          "description": null,
-          "nodes": []
-        }
+        "script_class_name": null
       }
     }
   ],

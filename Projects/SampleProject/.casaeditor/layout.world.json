@@ -4,7 +4,7 @@
     "type": "Split",
     "id": "4ce7d337-94e2-495c-95ca-9dec5a58ff80",
     "orientation": "Vertical",
-    "splitRatio": 0.7,
+    "splitRatio": 0.5089431,
     "minFirstSize": 250,
     "minSecondSize": 120,
     "firstChild": {

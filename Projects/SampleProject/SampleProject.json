@@ -1,5 +1,4 @@
 {
-  "Version": 1,
   "WindowTitle": "Sample Project",
   "ProjectName": "SampleProject",
   "FirstScreenName": "",
@@ -8,7 +7,9 @@
   "IsMouseVisible": false,
   "FirstWorldLoaded": "DefaultWorld.world",
   "GameplayDllName": "",
+  "ExternalToolsDirectory": "ExternalTools",
   "DebugIsFullScreen": false,
+  "DebugHeight": 768,
   "DebugWidth": 1024,
-  "DebugHeight": 768
+  "VSyncEnabled": true
 }

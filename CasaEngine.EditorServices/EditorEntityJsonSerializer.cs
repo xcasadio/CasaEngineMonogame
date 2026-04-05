@@ -382,28 +382,6 @@ internal static class EditorEntityJsonSerializer
         {
             if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true })
             {
-
-                if (component.MaterialOverrides.Count > 0)
-                {
-                    var overridesArray = new JArray();
-                    for (int i = 0; i < component.MaterialOverrides.Count; i++)
-                    {
-                        var materialOverride = component.MaterialOverrides[i];
-                        if (!materialOverride.HasAnyOverride)
-                        {
-                            continue;
-                        }
-
-                        var overrideNode = new JObject();
-                        MaterialSlotOverrideJsonSerializer.Save(materialOverride, overrideNode);
-                        overridesArray.Add(overrideNode);
-                    }
-
-                    if (overridesArray.Count > 0)
-                    {
-                        node.Add("material_slot_overrides", overridesArray);
-                    }
-                }
                 continue;
             }
 
@@ -420,13 +398,13 @@ internal static class EditorEntityJsonSerializer
             var materialOverridesArray = new JArray();
             foreach (var materialOverride in component.MaterialOverrides)
             {
-                if (materialOverride.MaterialAssetId == Guid.Empty)
+                if (!materialOverride.HasAnyOverride)
                 {
                     continue;
                 }
 
                 var overrideNode = new JObject();
-                SaveMaterialSlotOverride(materialOverride, overrideNode);
+                MaterialSlotOverrideJsonSerializer.Save(materialOverride, overrideNode);
                 materialOverridesArray.Add(overrideNode);
             }
 
@@ -435,13 +413,6 @@ internal static class EditorEntityJsonSerializer
                 node.Add("material_slot_overrides", materialOverridesArray);
             }
         }
-    }
-
-    private static void SaveMaterialSlotOverride(MaterialSlotOverride materialOverride, JObject node)
-    {
-        node.Add("slot_name", materialOverride.SlotName);
-        node.Add("slot_index", materialOverride.SlotIndex);
-        node.Add("material_asset_id", materialOverride.MaterialAssetId.ToString());
     }
 
     private static void SaveSkinnedMeshComponent(SkinnedMeshComponent component, JObject node)
