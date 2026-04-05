@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using CasaEngine.EditorServices.History;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 
@@ -10,18 +10,18 @@ namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 /// </summary>
 public sealed class UICommandStack
 {
-    private const int DefaultCapacity = 100;
-
-    private readonly LinkedList<IUIScreenCommand> _undoStack = new();
-    private readonly LinkedList<IUIScreenCommand> _redoStack = new();
-    private readonly int _capacity;
+    private readonly EditorHistoryStack _inner;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Events
     // ─────────────────────────────────────────────────────────────────────
 
     /// <summary>Fired after any push, undo, redo, or clear.</summary>
-    public event Action? StackChanged;
+    public event Action? StackChanged
+    {
+        add => _inner.StackChanged += value;
+        remove => _inner.StackChanged -= value;
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -29,23 +29,20 @@ public sealed class UICommandStack
 
     public UICommandStack(int capacity = DefaultCapacity)
     {
-        if (capacity <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(capacity));
-        }
-
-        _capacity = capacity;
+        _inner = new EditorHistoryStack(capacity);
     }
 
     // ─────────────────────────────────────────────────────────────────────
     //  State
     // ─────────────────────────────────────────────────────────────────────
 
-    public bool CanUndo => _undoStack.Count > 0;
-    public bool CanRedo => _redoStack.Count > 0;
+    private const int DefaultCapacity = 100;
 
-    public string? UndoDescription => _undoStack.Last?.Value.Description;
-    public string? RedoDescription => _redoStack.Last?.Value.Description;
+    public bool CanUndo => _inner.CanUndo;
+    public bool CanRedo => _inner.CanRedo;
+
+    public string? UndoDescription => _inner.UndoDescription;
+    public string? RedoDescription => _inner.RedoDescription;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Operations
@@ -57,58 +54,24 @@ public sealed class UICommandStack
     /// </summary>
     public void Execute(IUIScreenCommand command)
     {
-        ArgumentNullException.ThrowIfNull(command);
-
-        command.Execute();
-        _redoStack.Clear();
-        _undoStack.AddLast(command);
-
-        // Trim if over capacity (remove oldest)
-        while (_undoStack.Count > _capacity)
-        {
-            _undoStack.RemoveFirst();
-        }
-
-        StackChanged?.Invoke();
+        _inner.Execute(command);
     }
 
     /// <summary>Undoes the most recent command.</summary>
     public void Undo()
     {
-        if (_undoStack.Last == null)
-        {
-            return;
-        }
-
-        var command = _undoStack.Last.Value;
-        _undoStack.RemoveLast();
-        command.Undo();
-        _redoStack.AddLast(command);
-
-        StackChanged?.Invoke();
+        _inner.Undo();
     }
 
     /// <summary>Re-executes the most recently undone command.</summary>
     public void Redo()
     {
-        if (_redoStack.Last == null)
-        {
-            return;
-        }
-
-        var command = _redoStack.Last.Value;
-        _redoStack.RemoveLast();
-        command.Execute();
-        _undoStack.AddLast(command);
-
-        StackChanged?.Invoke();
+        _inner.Redo();
     }
 
     /// <summary>Clears both undo and redo stacks.</summary>
     public void Clear()
     {
-        _undoStack.Clear();
-        _redoStack.Clear();
-        StackChanged?.Invoke();
+        _inner.Clear();
     }
 }

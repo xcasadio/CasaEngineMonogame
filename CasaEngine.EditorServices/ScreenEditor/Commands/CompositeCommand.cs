@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using CasaEngine.EditorServices.History;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 
@@ -10,35 +10,21 @@ namespace CasaEngine.EditorServices.ScreenEditor.Commands;
 /// </summary>
 public sealed class CompositeCommand : IUIScreenCommand
 {
-    private readonly IUIScreenCommand[] _commands;
+    private readonly EditorCompositeCommand _inner;
 
-    public string Description { get; }
+    public string Description => _inner.Description;
 
     public CompositeCommand(string description, params IUIScreenCommand[] commands)
     {
-        Description = description;
-        _commands = (IUIScreenCommand[])commands.Clone();
+        _inner = new EditorCompositeCommand(description, commands);
     }
 
     public CompositeCommand(string description, IEnumerable<IUIScreenCommand> commands)
     {
-        Description = description;
-        _commands = commands.ToArray();
+        _inner = new EditorCompositeCommand(description, commands);
     }
 
-    public void Execute()
-    {
-        foreach (var command in _commands)
-        {
-            command.Execute();
-        }
-    }
+    public void Execute() => _inner.Execute();
 
-    public void Undo()
-    {
-        for (var i = _commands.Length - 1; i >= 0; i--)
-        {
-            _commands[i].Undo();
-        }
-    }
+    public void Undo() => _inner.Undo();
 }
