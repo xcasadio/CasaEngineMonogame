@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CasaEngine.Editor.History;
+using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.World;
 using MGUI.Core.UI;
@@ -527,24 +530,25 @@ public sealed class EntitiesPanel
             return;
         }
 
+        var world = _currentWorld;
+        var previousSelection = _selectedEntity;
         var entity = new Entity
         {
             Name = GenerateUniqueEntityName("Entity"),
         };
-        entity.Initialize();
 
-        if (parent != null)
-        {
-            parent.AddChild(entity);
-            entity.InitializeWithWorld(_currentWorld);
-        }
-        else
-        {
-            EditorWorldEditingService.AddEntity(_currentWorld, entity);
-        }
-
-        RebuildTree();
-        SetSelectedEntity(entity);
+        ExecuteWorldCommand(
+            "Add Entity",
+            () =>
+            {
+                EditorWorldEditingService.AttachEntity(world, entity, parent);
+                ApplySelectionAfterMutation(entity);
+            },
+            () =>
+            {
+                EditorWorldEditingService.DetachEntity(world, entity);
+                ApplySelectionAfterMutation(previousSelection);
+            });
     }
 
     private void DuplicateSelectedEntity()
@@ -562,22 +566,24 @@ public sealed class EntitiesPanel
             return;
         }
 
+        var world = _currentWorld;
+        var parent = entity.Parent;
+        var previousSelection = _selectedEntity;
         var duplicate = entity.Clone();
         duplicate.Name = GenerateUniqueEntityName($"{entity.Name} Copy");
-        duplicate.Initialize();
 
-        if (entity.Parent != null)
-        {
-            entity.Parent.AddChild(duplicate);
-            duplicate.InitializeWithWorld(_currentWorld);
-        }
-        else
-        {
-            EditorWorldEditingService.AddEntity(_currentWorld, duplicate);
-        }
-
-        RebuildTree();
-        SetSelectedEntity(duplicate);
+        ExecuteWorldCommand(
+            "Duplicate Entity",
+            () =>
+            {
+                EditorWorldEditingService.AttachEntity(world, duplicate, parent);
+                ApplySelectionAfterMutation(duplicate);
+            },
+            () =>
+            {
+                EditorWorldEditingService.DetachEntity(world, duplicate);
+                ApplySelectionAfterMutation(previousSelection ?? entity);
+            });
     }
 
     private void DeleteSelectedEntity()
@@ -595,26 +601,22 @@ public sealed class EntitiesPanel
             return;
         }
 
-        var nextSelection = entity.Parent;
+        var world = _currentWorld;
+        var parent = entity.Parent;
+        var nextSelection = parent;
 
-        if (entity.Parent != null)
-        {
-            entity.Parent.RemoveChild(entity);
-            entity.Destroy();
-        }
-        else
-        {
-            EditorWorldEditingService.RemoveEntity(_currentWorld, entity);
-        }
-
-        if (ReferenceEquals(_selectedEntity, entity))
-        {
-            _selectedEntity = nextSelection;
-            SelectedEntityChanged?.Invoke(_selectedEntity);
-        }
-
-        RebuildTree();
-        SetSelectedEntity(nextSelection);
+        ExecuteWorldCommand(
+            "Delete Entity",
+            () =>
+            {
+                EditorWorldEditingService.DetachEntity(world, entity);
+                ApplySelectionAfterMutation(nextSelection);
+            },
+            () =>
+            {
+                EditorWorldEditingService.AttachEntity(world, entity, parent);
+                ApplySelectionAfterMutation(entity);
+            });
     }
 
     private void RenameEntity(Entity entity)
@@ -624,10 +626,41 @@ public sealed class EntitiesPanel
             entity.Name,
             value =>
             {
-                entity.Name = value;
-                RebuildTree();
-                SetSelectedEntity(entity);
+                var previousName = entity.Name;
+                if (string.Equals(previousName, value, StringComparison.Ordinal))
+                {
+                    return;
+                }
+
+                ExecuteWorldCommand(
+                    "Rename Entity",
+                    () =>
+                    {
+                        entity.Name = value;
+                        ApplySelectionAfterMutation(entity);
+                    },
+                    () =>
+                    {
+                        entity.Name = previousName;
+                        ApplySelectionAfterMutation(entity);
+                    });
             });
+    }
+
+    private void ExecuteWorldCommand(string description, Action execute, Action undo)
+    {
+        EditorHistoryService.Current.Execute(
+            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            new EditorDelegateCommand(description, execute, undo));
+    }
+
+    private void ApplySelectionAfterMutation(Entity? entity)
+    {
+        _selectedEntity = entity;
+        _selectedEntityCount = entity != null ? 1 : 0;
+        SelectedEntityChanged?.Invoke(entity);
+        RebuildTree();
+        SetSelectedEntity(entity);
     }
 
     private void ShowNameEditor(string title, string initialValue, Action<string> onConfirm)

@@ -276,7 +276,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add dirty tracking and change notifications`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `85b42dcb` `feat(editor-history): add dirty tracking and change notifications`
 
 ---
 
@@ -332,9 +332,9 @@ La feature sera consideree complete quand :
 
 ---
 
-### ⏳ Phase 4 - Couvrir le world editor
+### 🚧 Phase 4 - Couvrir le world editor
 
-#### ⏳ Tache 4.1 - Rendre undoable la hierarchy des entites
+#### ✅ Tache 4.1 - Rendre undoable la hierarchy des entites
 
 **Objectif :** couvrir les operations structurelles du monde.
 
@@ -355,7 +355,7 @@ La feature sera consideree complete quand :
 - `feat(world-editor): add undo redo for entity hierarchy operations`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 

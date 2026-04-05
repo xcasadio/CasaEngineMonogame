@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.ContentBrowser.Models;
+using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
@@ -417,8 +420,7 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        Entity? lastCreatedEntity = null;
-        int createdCount = 0;
+        var createdEntities = new List<Entity>();
 
         for (int index = 0; index < draggedItems.Count; index++)
         {
@@ -427,20 +429,41 @@ public class WorldViewportPanel : IDisposable
                 continue;
             }
 
-            var entity = CreateEntityForDroppedAsset(draggedItems[index], assetInfo, createdCount);
-            EditorWorldEditingService.AddEntity(world, entity);
-            lastCreatedEntity = entity;
-            createdCount++;
+            var entity = CreateEntityForDroppedAsset(draggedItems[index], assetInfo, createdEntities.Count);
+            createdEntities.Add(entity);
         }
 
-        if (lastCreatedEntity == null)
+        if (createdEntities.Count == 0)
         {
             return;
         }
 
-        _selectedEntity = lastCreatedEntity;
-        _gizmoController.SetSelectedEntity(lastCreatedEntity);
-        SelectedEntityChanged?.Invoke(lastCreatedEntity);
+        var previousSelection = _selectedEntity;
+        var lastCreatedEntity = createdEntities[^1];
+        string description = createdEntities.Count == 1
+            ? "Drop Asset Entity"
+            : $"Drop {createdEntities.Count} Asset Entities";
+
+        ExecuteWorldCommand(
+            description,
+            () =>
+            {
+                for (int index = 0; index < createdEntities.Count; index++)
+                {
+                    EditorWorldEditingService.AttachEntity(world, createdEntities[index], parent: null);
+                }
+
+                ApplySelection(lastCreatedEntity);
+            },
+            () =>
+            {
+                for (int index = createdEntities.Count - 1; index >= 0; index--)
+                {
+                    EditorWorldEditingService.DetachEntity(world, createdEntities[index]);
+                }
+
+                ApplySelection(previousSelection);
+            });
     }
 
     private bool TryResolveDroppableAsset(ContentItem item, out AssetInfo assetInfo)
@@ -564,6 +587,20 @@ public class WorldViewportPanel : IDisposable
         }
 
         return entity;
+    }
+
+    private void ExecuteWorldCommand(string description, Action execute, Action undo)
+    {
+        EditorHistoryService.Current.Execute(
+            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            new EditorDelegateCommand(description, execute, undo));
+    }
+
+    private void ApplySelection(Entity? entity)
+    {
+        _selectedEntity = entity;
+        _gizmoController.SetSelectedEntity(entity);
+        SelectedEntityChanged?.Invoke(entity);
     }
 
     private Vector3 GetDropSpawnPosition(int dropIndex)

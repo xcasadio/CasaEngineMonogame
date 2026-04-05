@@ -17,6 +17,8 @@ public static class EditorWorldEditingService
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(entity);
 
+        entity.ReActivate();
+
         var entityReference = new EntityReference
         {
             Name = entity.Name,
@@ -41,5 +43,36 @@ public static class EditorWorldEditingService
         ArgumentNullException.ThrowIfNull(entity);
 
         world.RemoveEntityImmediate(entity);
+    }
+
+    public static void AttachEntity(World world, Entity entity, Entity? parent)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(entity);
+
+        entity.ReActivate();
+
+        if (parent != null)
+        {
+            parent.AddChild(entity);
+            return;
+        }
+
+        AddEntity(world, entity);
+    }
+
+    public static void DetachEntity(World world, Entity entity)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+        ArgumentNullException.ThrowIfNull(entity);
+
+        if (entity.Parent != null)
+        {
+            entity.Parent.RemoveChild(entity);
+            entity.Destroy();
+            return;
+        }
+
+        RemoveEntity(world, entity);
     }
 }
