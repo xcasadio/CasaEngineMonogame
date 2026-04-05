@@ -34,10 +34,8 @@ public sealed class GridView : IContentView
     }
 
     private static readonly Color SelectedBackgroundColor = new(52, 96, 156, 180);
-    private static readonly Color SelectedBorderColor = new(112, 176, 255, 255);
     private static readonly Color HoverBackgroundColor = new(50, 50, 58, 180);
-    private static readonly Color IdleBackgroundColor = new(28, 28, 34, 120);
-    private static readonly Color IdleBorderColor = new(74, 74, 86, 255);
+    private static readonly Color IdleBackgroundColor = Color.Transparent;
 
     private readonly MGGrid _root;
     private readonly MGScrollViewer _scrollViewer;
@@ -49,8 +47,8 @@ public sealed class GridView : IContentView
     private readonly HashSet<string> _selectedPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<ContentItem> _items = new();
     private readonly int _thumbnailSize;
+    private readonly int _previewSize;
     private readonly int _cardWidth;
-    private readonly int _cardMinHeight;
 
     public MGElement RootElement => _root;
 
@@ -69,8 +67,8 @@ public sealed class GridView : IContentView
         Action<ContentItem, MGElement>? itemElementInitializer = null)
     {
         _thumbnailSize = Math.Max(48, thumbnailSize);
-        _cardWidth = _thumbnailSize + 36;
-        _cardMinHeight = _thumbnailSize + 72;
+        _previewSize = Math.Max(40, _thumbnailSize - 12);
+        _cardWidth = _thumbnailSize + 32;
         _previewSelector = previewSelector ?? throw new ArgumentNullException(nameof(previewSelector));
         _itemElementInitializer = itemElementInitializer;
 
@@ -78,7 +76,7 @@ public sealed class GridView : IContentView
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
-            Spacing = 10,
+            Spacing = 4,
         };
 
         _scrollViewer = new MGScrollViewer(window)
@@ -220,21 +218,19 @@ public sealed class GridView : IContentView
         {
             previewImage = new MGImage(_scrollViewer.SelfOrParentWindow, previewTexture, Stretch: Stretch.Uniform)
             {
-                PreferredWidth = _thumbnailSize,
-                PreferredHeight = _thumbnailSize,
+                PreferredWidth = _previewSize,
+                PreferredHeight = _previewSize,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
             };
         }
 
-        var previewHost = new MGBorder(_scrollViewer.SelfOrParentWindow, new Thickness(1), new MGSolidFillBrush(new Color(62, 62, 72)))
+        var previewHost = new MGBorder(_scrollViewer.SelfOrParentWindow, new Thickness(0), MGUniformBorderBrush.Black)
         {
-            Padding = new Thickness(8),
-            CornerRadius = new MGCornerRadius(6),
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            MinWidth = _thumbnailSize + 12,
-            MinHeight = _thumbnailSize + 12,
+            Padding = new Thickness(0),
+            CornerRadius = MGCornerRadius.Zero,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(18, 18, 22))),
         };
 
@@ -247,14 +243,18 @@ public sealed class GridView : IContentView
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
+            HorizontalContentAlignment = HorizontalAlignment.Center,
+            TextAlignment = HorizontalAlignment.Center,
             WrapText = true,
             MaxLines = 2,
-            Margin = new Thickness(0, 2, 0, 0),
+            Margin = new Thickness(4, 1, 4, 0),
+            Padding = new Thickness(0, 0, 0, 0),
+            LinePadding = 1,
         };
 
         var content = new MGStackPanel(_scrollViewer.SelfOrParentWindow, Orientation.Vertical)
         {
-            Spacing = 8,
+            Spacing = 0,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
             VerticalContentAlignment = VerticalAlignment.Top,
@@ -262,14 +262,13 @@ public sealed class GridView : IContentView
         content.TryAddChild(previewHost);
         content.TryAddChild(nameText);
 
-        var border = new MGBorder(_scrollViewer.SelfOrParentWindow, new Thickness(1), new MGUniformBorderBrush(new MGSolidFillBrush(IdleBorderColor)))
+        var border = new MGBorder(_scrollViewer.SelfOrParentWindow, new Thickness(0), MGUniformBorderBrush.Black)
         {
-            Padding = new Thickness(10),
-            Margin = new Thickness(2),
+            Padding = new Thickness(2),
+            Margin = new Thickness(0),
             CornerRadius = new MGCornerRadius(8),
             PreferredWidth = _cardWidth,
             MinWidth = _cardWidth,
-            MinHeight = _cardMinHeight,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(IdleBackgroundColor)),
@@ -406,10 +405,8 @@ public sealed class GridView : IContentView
             : isHovered
                 ? HoverBackgroundColor
                 : IdleBackgroundColor;
-        var borderColor = isSelected ? SelectedBorderColor : IdleBorderColor;
 
         card.Border.BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(backgroundColor));
-        card.Border.BorderBrush = new MGUniformBorderBrush(new MGSolidFillBrush(borderColor));
     }
 
     private static bool IsControlDown()
