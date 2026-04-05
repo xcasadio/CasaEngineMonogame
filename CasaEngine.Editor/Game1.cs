@@ -1832,6 +1832,7 @@ namespace CasaEngine.Editor
                 _materialInspectorPanels.Add(panelId, inspectorPanel);
             }
 
+            inspectorPanel.SetHistoryContextId(panelId);
             inspectorPanel.LoadAsset(materialAsset, fullPath);
             _ = GetOrCreateMaterialViewportPanel(panelId, inspectorPanel);
 

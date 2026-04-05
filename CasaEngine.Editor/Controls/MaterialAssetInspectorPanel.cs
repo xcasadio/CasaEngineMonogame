@@ -4,8 +4,10 @@ using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Log;
 using CasaEngine.Engine;
+using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Materials;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
@@ -37,6 +39,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
     private MaterialAsset? _materialAsset;
     private string? _loadedRelativePath;
+    private string? _historyContextId;
     private string? _savedSnapshot;
     private bool _isDirty;
     private readonly Dictionary<Guid, MaterialAsset?> _resolvedParentMaterials = new();
@@ -158,6 +161,11 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         _materialPreview?.SetMaterialAsset(materialAsset);
         SetDirty(false);
         RefreshInspector();
+    }
+
+    public void SetHistoryContextId(string historyContextId)
+    {
+        _historyContextId = historyContextId;
     }
 
     public IReadOnlyList<string> GetAutomationPropertyStateSnapshot()
@@ -695,25 +703,16 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             return;
         }
 
+        bool hadLocalOverride = _materialAsset.TryGetPropertyValue(propertyDefinition.Key, out var previousValue);
+        bool hasNextLocalOverride = value != null;
+        if (hadLocalOverride == hasNextLocalOverride && Equals(previousValue, value))
+        {
+            return;
+        }
+
         try
         {
-            if (value == null)
-            {
-                _materialAsset.RemovePropertyValue(propertyDefinition.Key);
-            }
-            else
-            {
-                _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
-            }
-
-            UpdateDirtyStateFromCurrentMaterial();
-            RefreshEditedProperty(propertyDefinition, refreshEditorValue);
-            if (_statusText != null && !string.IsNullOrWhiteSpace(_loadedRelativePath))
-            {
-                _statusText.Text = IsDirty
-                    ? $"Modified {EscapeMarkup(_loadedRelativePath)}"
-                    : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
-            }
+            ExecuteMaterialPropertyCommand(propertyDefinition, hadLocalOverride, previousValue, hasNextLocalOverride, value, refreshEditorValue);
         }
         catch (Exception exception)
         {
@@ -805,6 +804,75 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
         SetDirty(!string.Equals(SerializeMaterialAsset(_materialAsset), _savedSnapshot, StringComparison.Ordinal));
     }
+
+    private void ExecuteMaterialPropertyCommand(
+        MaterialPropertyDefinition propertyDefinition,
+        bool hadPreviousLocalOverride,
+        MaterialValue? previousValue,
+        bool hasNextLocalOverride,
+        MaterialValue? nextValue,
+        bool refreshEditorValue)
+    {
+        if (TryGetHistoryContext(out var historyContext))
+        {
+            EditorHistoryService.Current.Execute(
+                historyContext,
+                new EditorDelegateCommand(
+                    BuildMaterialCommandDescription(propertyDefinition, hasNextLocalOverride),
+                    () => ApplyLocalPropertyState(propertyDefinition, hasNextLocalOverride, nextValue, refreshEditorValue: true),
+                    () => ApplyLocalPropertyState(propertyDefinition, hadPreviousLocalOverride, previousValue, refreshEditorValue: true)));
+            return;
+        }
+
+        ApplyLocalPropertyState(propertyDefinition, hasNextLocalOverride, nextValue, refreshEditorValue);
+    }
+
+    private void ApplyLocalPropertyState(
+        MaterialPropertyDefinition propertyDefinition,
+        bool hasLocalOverride,
+        MaterialValue? value,
+        bool refreshEditorValue)
+    {
+        if (_materialAsset == null)
+        {
+            return;
+        }
+
+        if (hasLocalOverride && value != null)
+        {
+            _materialAsset.SetPropertyValue(propertyDefinition.Key, value);
+        }
+        else
+        {
+            _materialAsset.RemovePropertyValue(propertyDefinition.Key);
+        }
+
+        UpdateDirtyStateFromCurrentMaterial();
+        RefreshEditedProperty(propertyDefinition, refreshEditorValue);
+        if (_statusText != null && !string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            _statusText.Text = IsDirty
+                ? $"Modified {EscapeMarkup(_loadedRelativePath)}"
+                : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
+        }
+    }
+
+    private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
+    {
+        if (string.IsNullOrWhiteSpace(_historyContextId))
+        {
+            historyContext = EditorHistoryContext.Empty;
+            return false;
+        }
+
+        historyContext = new EditorHistoryContext(EditorHistoryContextKind.Material, _historyContextId);
+        return true;
+    }
+
+    private static string BuildMaterialCommandDescription(MaterialPropertyDefinition propertyDefinition, bool hasLocalOverride)
+        => hasLocalOverride
+            ? $"Set {propertyDefinition.DisplayName}"
+            : $"Reset {propertyDefinition.DisplayName}";
 
     private void SetDirty(bool isDirty)
     {

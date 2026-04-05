@@ -431,11 +431,11 @@ La feature sera consideree complete quand :
 - `feat(material-editor): add material authoring session and dirty tracking`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `098d9416` `feat(material-editor): add material authoring session and dirty tracking`
 
 ---
 
-#### 🚧 Tache 5.2 - Encapsuler les edits material en commandes
+#### 🧪 Tache 5.2 - Encapsuler les edits material en commandes
 
 **Objectif :** couvrir toutes les mutations faites dans `MaterialAssetInspectorPanel`.
 
@@ -456,11 +456,11 @@ La feature sera consideree complete quand :
 - `feat(material-editor): add undo redo for material property edits`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
-#### ⏳ Tache 5.3 - Rebrancher Save et hot reload sur la nouvelle session
+#### 🚧 Tache 5.3 - Rebrancher Save et hot reload sur la nouvelle session
 
 **Objectif :** finaliser le flux material sans regressions de preview ou de persistance.
 
