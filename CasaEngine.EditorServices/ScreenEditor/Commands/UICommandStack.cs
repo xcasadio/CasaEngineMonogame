@@ -15,6 +15,7 @@ public sealed class UICommandStack
     public UICommandStack(EditorHistoryStack historyStack)
     {
         _inner = historyStack ?? throw new ArgumentNullException(nameof(historyStack));
+        _inner.StackChanged += OnInnerStackChanged;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -22,11 +23,7 @@ public sealed class UICommandStack
     // ─────────────────────────────────────────────────────────────────────
 
     /// <summary>Fired after any push, undo, redo, or clear.</summary>
-    public event Action? StackChanged
-    {
-        add => _inner.StackChanged += value;
-        remove => _inner.StackChanged -= value;
-    }
+    public event Action? StackChanged;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -35,6 +32,7 @@ public sealed class UICommandStack
     public UICommandStack(int capacity = DefaultCapacity)
     {
         _inner = new EditorHistoryStack(capacity);
+        _inner.StackChanged += OnInnerStackChanged;
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -88,5 +86,10 @@ public sealed class UICommandStack
     public void Clear()
     {
         _inner.Clear();
+    }
+
+    private void OnInnerStackChanged(object? sender, EditorHistoryStackChangedEventArgs e)
+    {
+        StackChanged?.Invoke();
     }
 }

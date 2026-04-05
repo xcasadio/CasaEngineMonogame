@@ -9,12 +9,15 @@ public sealed class EditorHistoryService
     public static EditorHistoryService Current { get; } = new();
 
     private readonly Dictionary<EditorHistoryContext, EditorHistoryStack> _stacks = new();
+    private readonly Dictionary<EditorHistoryStack, EditorHistoryContext> _stackContexts = new();
     private EditorHistoryContext _activeContext = EditorHistoryContext.Empty;
     private EditorHistoryStack? _activeStack;
 
     public event Action<EditorHistoryContext>? ActiveContextChanged;
 
     public event Action? ActiveHistoryChanged;
+
+    public event EventHandler<EditorHistoryChangedEventArgs>? HistoryChanged;
 
     public EditorHistoryContext ActiveContext => _activeContext;
 
@@ -46,6 +49,8 @@ public sealed class EditorHistoryService
 
         var stack = new EditorHistoryStack();
         _stacks.Add(context, stack);
+        _stackContexts.Add(stack, context);
+        stack.StackChanged += OnStackChanged;
         return stack;
     }
 
@@ -77,7 +82,6 @@ public sealed class EditorHistoryService
 
         _activeContext = context;
         _activeStack = GetOrCreate(context);
-        _activeStack.StackChanged += OnActiveStackChanged;
 
         ActiveContextChanged?.Invoke(_activeContext);
         ActiveHistoryChanged?.Invoke();
@@ -101,11 +105,6 @@ public sealed class EditorHistoryService
     {
         ArgumentNullException.ThrowIfNull(command);
         GetOrCreate(context).Execute(command);
-
-        if (_activeContext.Equals(context))
-        {
-            ActiveHistoryChanged?.Invoke();
-        }
     }
 
     public EditorHistoryTransactionScope OpenTransaction(EditorHistoryContext context, string description)
@@ -172,6 +171,9 @@ public sealed class EditorHistoryService
             return;
         }
 
+        removedStack.StackChanged -= OnStackChanged;
+        _stackContexts.Remove(removedStack);
+
         if (ReferenceEquals(removedStack, _activeStack))
         {
             DetachActiveStack();
@@ -184,7 +186,14 @@ public sealed class EditorHistoryService
     public void ClearAll()
     {
         DetachActiveStack();
+
+        foreach (var stack in _stackContexts.Keys)
+        {
+            stack.StackChanged -= OnStackChanged;
+        }
+
         _stacks.Clear();
+        _stackContexts.Clear();
         _activeContext = EditorHistoryContext.Empty;
 
         ActiveContextChanged?.Invoke(_activeContext);
@@ -193,17 +202,21 @@ public sealed class EditorHistoryService
 
     private void DetachActiveStack()
     {
-        if (_activeStack == null)
+        _activeStack = null;
+    }
+
+    private void OnStackChanged(object? sender, EditorHistoryStackChangedEventArgs e)
+    {
+        if (sender is not EditorHistoryStack stack || !_stackContexts.TryGetValue(stack, out var context))
         {
             return;
         }
 
-        _activeStack.StackChanged -= OnActiveStackChanged;
-        _activeStack = null;
-    }
+        if (_activeContext.Equals(context))
+        {
+            ActiveHistoryChanged?.Invoke();
+        }
 
-    private void OnActiveStackChanged()
-    {
-        ActiveHistoryChanged?.Invoke();
+        HistoryChanged?.Invoke(this, new EditorHistoryChangedEventArgs(context, e.ChangeKind, e.CurrentRevision));
     }
 }

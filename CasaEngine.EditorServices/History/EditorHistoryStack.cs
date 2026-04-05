@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace CasaEngine.EditorServices.History;
@@ -7,15 +8,18 @@ namespace CasaEngine.EditorServices.History;
 /// </summary>
 public sealed class EditorHistoryStack
 {
+    private readonly record struct HistoryEntry(long Revision, IEditorCommand Command);
+
     private const int DefaultCapacity = 100;
 
-    private readonly LinkedList<IEditorCommand> _undoStack = new();
-    private readonly LinkedList<IEditorCommand> _redoStack = new();
+    private readonly LinkedList<HistoryEntry> _undoStack = new();
+    private readonly LinkedList<HistoryEntry> _redoStack = new();
     private readonly int _capacity;
     private List<IEditorCommand>? _pendingTransactionCommands;
     private string? _pendingTransactionDescription;
+    private long _nextRevision = 1;
 
-    public event Action? StackChanged;
+    public event EventHandler<EditorHistoryStackChangedEventArgs>? StackChanged;
 
     public EditorHistoryStack(int capacity = DefaultCapacity)
     {
@@ -31,9 +35,11 @@ public sealed class EditorHistoryStack
 
     public bool CanRedo => _redoStack.Count > 0;
 
-    public string? UndoDescription => _undoStack.Last?.Value.Description;
+    public string? UndoDescription => _undoStack.Last?.Value.Command.Description;
 
-    public string? RedoDescription => _redoStack.Last?.Value.Description;
+    public string? RedoDescription => _redoStack.Last?.Value.Command.Description;
+
+    public long CurrentRevision => _undoStack.Last?.Value.Revision ?? 0;
 
     public bool IsTransactionOpen => _pendingTransactionCommands != null;
 
@@ -80,12 +86,12 @@ public sealed class EditorHistoryStack
             return;
         }
 
-        var command = _undoStack.Last.Value;
+        var entry = _undoStack.Last.Value;
         _undoStack.RemoveLast();
-        command.Undo();
-        _redoStack.AddLast(command);
+        entry.Command.Undo();
+        _redoStack.AddLast(entry);
 
-        StackChanged?.Invoke();
+        OnStackChanged(EditorHistoryStackChangeKind.Undone);
     }
 
     public void Redo()
@@ -95,12 +101,12 @@ public sealed class EditorHistoryStack
             return;
         }
 
-        var command = _redoStack.Last.Value;
+        var entry = _redoStack.Last.Value;
         _redoStack.RemoveLast();
-        command.Execute();
-        _undoStack.AddLast(command);
+        entry.Command.Execute();
+        _undoStack.AddLast(entry);
 
-        StackChanged?.Invoke();
+        OnStackChanged(EditorHistoryStackChangeKind.Redone);
     }
 
     public void CommitTransaction(string? description = null)
@@ -158,19 +164,25 @@ public sealed class EditorHistoryStack
 
         _undoStack.Clear();
         _redoStack.Clear();
-        StackChanged?.Invoke();
+        OnStackChanged(EditorHistoryStackChangeKind.Cleared);
     }
 
     private void PushExecutedCommand(IEditorCommand command)
     {
+        var entry = new HistoryEntry(_nextRevision++, command);
         _redoStack.Clear();
-        _undoStack.AddLast(command);
+        _undoStack.AddLast(entry);
 
         while (_undoStack.Count > _capacity)
         {
             _undoStack.RemoveFirst();
         }
 
-        StackChanged?.Invoke();
+        OnStackChanged(EditorHistoryStackChangeKind.Executed);
+    }
+
+    private void OnStackChanged(EditorHistoryStackChangeKind changeKind)
+    {
+        StackChanged?.Invoke(this, new EditorHistoryStackChangedEventArgs(changeKind, CurrentRevision));
     }
 }

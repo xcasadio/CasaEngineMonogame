@@ -67,6 +67,7 @@ namespace CasaEngine.Editor
         private EngineRuntimeContext _editorRuntimeContext;
         private readonly EditorContextService _editorContext = EditorContextService.Current;
         private readonly EditorHistoryService _editorHistory = EditorHistoryService.Current;
+        private readonly EditorDirtyStateService _editorDirtyState = EditorDirtyStateService.Current;
         private HostedEditorGameAdapter _editorRuntime;
         private WorldViewportPanel _worldViewportPanel;
         private MGElement _worldViewportContent;
@@ -219,6 +220,7 @@ namespace CasaEngine.Editor
             _editorSelection.ComponentSelectionChanged += OnEditorComponentSelectionChanged;
             _screenSelection.SelectionChanged += OnScreenSelectionChanged;
             _screenSelection.MultiSelectionChanged += _ => OnScreenSelectionChanged(_screenSelection.SelectedNodeId);
+            _editorDirtyState.DirtyStateChanged += OnDirtyStateChanged;
 
             EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
             EditorAssetWriterService.AssetSaved += OnEditorAssetSaved;
@@ -241,6 +243,7 @@ namespace CasaEngine.Editor
             {
                 RestoreAutomationEditedFilesIfNeeded();
                 EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
+                _editorDirtyState.DirtyStateChanged -= OnDirtyStateChanged;
                 if (_dockHost != null)
                 {
                     _dockHost.ActivePanelChanged -= OnDockHostActivePanelChanged;
@@ -330,6 +333,7 @@ namespace CasaEngine.Editor
         private void OnProjectLoaded(object? sender, EventArgs e)
         {
             _editorHistory.ClearAll();
+            _editorDirtyState.ClearAll();
             SynchronizeEditorRuntimeContext();
             _editorSelection.Clear();
             _screenSelection.ClearSelection();
@@ -1222,6 +1226,7 @@ namespace CasaEngine.Editor
 
             EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
             EditorAssetCatalogService.Save();
+            _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport));
             Logs.WriteInfo($"Project saved: {EditorProjectSession.CurrentProjectFilePath}");
         }
 
@@ -1399,6 +1404,7 @@ namespace CasaEngine.Editor
                 _screenPreviewPanelTitles.Remove(panel.Id);
                 _screenCommandStacks.Remove(panel.Id);
                 _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
+                _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panel.Id));
                 if (ReferenceEquals(_activeScreenPreviewPanel, previewPanel))
                 {
                     _activeScreenPreviewPanel = null;
@@ -1410,6 +1416,7 @@ namespace CasaEngine.Editor
                 materialInspectorPanel.Dispose();
                 _materialInspectorPanels.Remove(panel.Id);
                 _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panel.Id));
+                _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Material, panel.Id));
                 if (_materialViewportPanels.Remove(panel.Id, out var materialViewportPanel))
                 {
                     materialViewportPanel.Dispose();
@@ -1497,7 +1504,7 @@ namespace CasaEngine.Editor
             {
                 return new DockPanelNode(descriptor.Id)
                 {
-                    Title = descriptor.Title,
+                    Title = descriptor.Id == EditorPanelIds.WorldViewport ? GetWorldDocumentTitle() : descriptor.Title,
                     DockableType = DockableType.Document,
                     CanClose = descriptor.CanClose,
                     CanFloat = descriptor.CanFloat,
@@ -1510,7 +1517,7 @@ namespace CasaEngine.Editor
             {
                 return new DockPanelNode(panelId)
                 {
-                    Title = _screenPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "UIScreen",
+                    Title = GetScreenDocumentTitle(panelId),
                     DockableType = DockableType.Document,
                     CanClose = true,
                     CanFloat = true,
@@ -1523,7 +1530,7 @@ namespace CasaEngine.Editor
             {
                 return new DockPanelNode(panelId)
                 {
-                    Title = _materialInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Material",
+                    Title = GetMaterialDocumentTitle(panelId),
                     DockableType = DockableType.Document,
                     CanClose = true,
                     CanFloat = true,
@@ -1751,7 +1758,7 @@ namespace CasaEngine.Editor
             {
                 var panelNode = new DockPanelNode(panelId)
                 {
-                    Title = panelTitle,
+                    Title = GetScreenDocumentTitle(panelId),
                     DockableType = DockableType.Document,
                     CanClose = true,
                     CanFloat = true,
@@ -1769,7 +1776,7 @@ namespace CasaEngine.Editor
             }
             else
             {
-                existingPanel.Title = panelTitle;
+                existingPanel.Title = GetScreenDocumentTitle(panelId);
             }
 
             ActivateScreenDocument(panelId, previewPanel);
@@ -1812,12 +1819,12 @@ namespace CasaEngine.Editor
                     return false;
                 }
 
-                panelNode.Title = panelTitle;
+                panelNode.Title = GetMaterialDocumentTitle(panelId);
                 DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
             }
             else
             {
-                existingPanel.Title = panelTitle;
+                existingPanel.Title = GetMaterialDocumentTitle(panelId);
             }
 
             ActivateMaterialDocument(panelId, inspectorPanel);
@@ -1826,6 +1833,71 @@ namespace CasaEngine.Editor
                 $"[Editor] Opened material asset='{materialAsset.Name}', viewport='{panelId}'");
             return true;
         }
+
+        private void OnDirtyStateChanged(object? sender, EditorDirtyStateChangedEventArgs e)
+        {
+            RefreshHistoryContextTitle(e.Context);
+        }
+
+        private void RefreshHistoryContextTitle(EditorHistoryContext context)
+        {
+            switch (context.Kind)
+            {
+                case EditorHistoryContextKind.World:
+                    UpdateDockPanelTitle(EditorPanelIds.WorldViewport, GetWorldDocumentTitle());
+                    break;
+
+                case EditorHistoryContextKind.UIScreen:
+                    if (_screenPreviewPanelTitles.ContainsKey(context.Id))
+                    {
+                        UpdateDockPanelTitle(context.Id, GetScreenDocumentTitle(context.Id));
+                    }
+
+                    break;
+
+                case EditorHistoryContextKind.Material:
+                    if (_materialInspectorPanelTitles.ContainsKey(context.Id))
+                    {
+                        UpdateDockPanelTitle(context.Id, GetMaterialDocumentTitle(context.Id));
+                    }
+
+                    break;
+
+                case EditorHistoryContextKind.ContentBrowser:
+                    UpdateDockPanelTitle(EditorPanelIds.ContentBrowser, GetContentBrowserTitle());
+                    break;
+            }
+        }
+
+        private void UpdateDockPanelTitle(string panelId, string title)
+        {
+            var panelNode = _dockHost?.LayoutModel?.FindPanelById(panelId);
+            if (panelNode != null && !string.Equals(panelNode.Title, title, StringComparison.Ordinal))
+            {
+                panelNode.Title = title;
+            }
+        }
+
+        private string GetWorldDocumentTitle()
+            => DecorateDirtyTitle(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport), "World Viewport");
+
+        private string GetScreenDocumentTitle(string panelId)
+        {
+            var title = _screenPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "UIScreen";
+            return DecorateDirtyTitle(new EditorHistoryContext(EditorHistoryContextKind.UIScreen, panelId), title);
+        }
+
+        private string GetMaterialDocumentTitle(string panelId)
+        {
+            var title = _materialInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Material";
+            return DecorateDirtyTitle(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId), title);
+        }
+
+        private string GetContentBrowserTitle()
+            => DecorateDirtyTitle(EditorHistoryContext.ContentBrowser, "Content Browser");
+
+        private string DecorateDirtyTitle(EditorHistoryContext context, string title)
+            => _editorDirtyState.IsDirty(context) ? $"{title} *" : title;
 
         private static bool TryLoadUIScreenAsset(string fullPath, out UIScreenAsset screenAsset)
         {

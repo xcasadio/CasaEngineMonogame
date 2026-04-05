@@ -229,7 +229,7 @@ La feature sera consideree complete quand :
 
 ---
 
-### 🚧 Phase 2 - Integrer le shell editeur
+### ✅ Phase 2 - Integrer le shell editeur
 
 #### ✅ Tache 2.1 - Router le menu Edit et les raccourcis vers l'historique actif
 
@@ -252,11 +252,11 @@ La feature sera consideree complete quand :
 - `feat(editor-history): route shell undo redo through active context`
 
 **Commit realise :**
-- `a renseigner au commit suivant`
+- `6a1c217e` `feat(editor-history): route shell undo redo through active context`
 
 ---
 
-#### ⏳ Tache 2.2 - Ajouter dirty tracking et notifications globales
+#### ✅ Tache 2.2 - Ajouter dirty tracking et notifications globales
 
 **Objectif :** garder les panels, tabs et sauvegardes coherents avec l'historique.
 
@@ -276,7 +276,7 @@ La feature sera consideree complete quand :
 - `feat(editor-history): add dirty tracking and change notifications`
 
 **Commit realise :**
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
