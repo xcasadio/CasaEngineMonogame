@@ -4,6 +4,7 @@ using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Quaternion = Microsoft.Xna.Framework.Quaternion;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -12,8 +13,9 @@ namespace CasaEngine.Framework.Assets.Loaders;
 
 /// <summary>
 /// Imports a 3-D file (FBX, OBJ, GLTF, …) as a <see cref="StaticModel"/> asset
-/// using AssimpNet.  Only the geometry, hierarchy and diffuse texture paths are
-/// preserved.  No skeleton or animation data is read.
+/// using AssimpNet. Geometry, hierarchy, texture paths and legacy .X effect
+/// metadata used by RacingGame scenery materials are preserved. No skeleton or
+/// animation data is read.
 /// </summary>
 public class StaticModelImporter
 {
@@ -21,6 +23,19 @@ public class StaticModelImporter
     private static readonly Regex MaterialPrefixRegex = new(@"^Material_+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex NumericPrefixRegex = new(@"^\d+_+", RegexOptions.Compiled);
     private static readonly Regex MaterialSuffixRegex = new(@"Sub\d+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    private sealed class LegacyEffectInstance
+    {
+        public string MaterialName { get; init; } = string.Empty;
+
+        public string EffectFilePath { get; set; } = string.Empty;
+
+        public Dictionary<string, int> Dwords { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public Dictionary<string, float[]> Floats { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+        public Dictionary<string, string> Strings { get; } = new(StringComparer.OrdinalIgnoreCase);
+    }
 
     // -----------------------------------------------------------------------
     //  Public API
@@ -54,7 +69,7 @@ public class StaticModelImporter
             Name = Path.GetFileNameWithoutExtension(filePath),
         };
 
-        var importedMaterials = BuildMaterials(scene, filePath);
+        var importedMaterials = BuildMaterials(scene, filePath, ParseLegacyEffectInstances(filePath));
 
         for (int i = 0; i < scene.Meshes.Count; i++)
         {
@@ -100,7 +115,7 @@ public class StaticModelImporter
             return Array.Empty<string>();
         }
 
-        foreach (var material in BuildMaterials(scene, filePath))
+        foreach (var material in BuildMaterials(scene, filePath, ParseLegacyEffectInstances(filePath)))
         {
             if (!string.IsNullOrWhiteSpace(material.DiffuseTextureFilePath) && !paths.Contains(material.DiffuseTextureFilePath))
             {
@@ -125,7 +140,10 @@ public class StaticModelImporter
         return _assimpContext.ImportFile(filePath, postProcessSteps);
     }
 
-    private static List<StaticModelImportedMaterial> BuildMaterials(Scene? scene, string filePath)
+    private static List<StaticModelImportedMaterial> BuildMaterials(
+        Scene? scene,
+        string filePath,
+        IReadOnlyDictionary<string, LegacyEffectInstance> legacyEffectsByMaterial)
     {
         var result = new List<StaticModelImportedMaterial>();
         if (scene == null)
@@ -136,13 +154,14 @@ public class StaticModelImporter
         for (int i = 0; i < scene.Materials.Count; i++)
         {
             var material = scene.Materials[i];
-            result.Add(new StaticModelImportedMaterial
+            var importedMaterial = new StaticModelImportedMaterial
             {
                 MaterialIndex = i,
                 Name = material.Name ?? string.Empty,
                 DisplayName = BuildMaterialDisplayName(material, i, filePath),
                 DiffuseTextureFilePath = ResolveTextureFilePath(material, filePath, TextureType.Diffuse),
                 NormalTextureFilePath = ResolveNormalTextureFilePath(material, filePath),
+                AmbientColor = Vector3.Zero,
                 DiffuseColor = material.HasColorDiffuse
                     ? ToXnaColor(material.ColorDiffuse)
                     : Color.White,
@@ -155,10 +174,290 @@ public class StaticModelImporter
                 SpecularPower = material.HasShininess
                     ? material.Shininess
                     : 16.0f,
-            });
+            };
+
+            if (legacyEffectsByMaterial.TryGetValue(importedMaterial.Name, out LegacyEffectInstance? effectInstance))
+            {
+                ApplyLegacyEffectMetadata(importedMaterial, effectInstance, filePath);
+            }
+
+            result.Add(importedMaterial);
         }
 
         return result;
+    }
+
+    private static IReadOnlyDictionary<string, LegacyEffectInstance> ParseLegacyEffectInstances(string filePath)
+    {
+        var result = new Dictionary<string, LegacyEffectInstance>(StringComparer.Ordinal);
+        if (!Path.GetExtension(filePath).Equals(".x", StringComparison.OrdinalIgnoreCase)
+            || !File.Exists(filePath))
+        {
+            return result;
+        }
+
+        string text = File.ReadAllText(filePath);
+        int searchIndex = 0;
+
+        while (true)
+        {
+            int materialIndex = IndexOfToken(text, "Material", searchIndex);
+            if (materialIndex < 0)
+            {
+                break;
+            }
+
+            int nameIndex = materialIndex + "Material".Length;
+            SkipWhitespace(text, ref nameIndex);
+
+            string materialName = ReadIdentifier(text, ref nameIndex);
+            if (string.IsNullOrWhiteSpace(materialName))
+            {
+                searchIndex = materialIndex + "Material".Length;
+                continue;
+            }
+
+            int braceOpenIndex = text.IndexOf('{', nameIndex);
+            if (braceOpenIndex < 0)
+            {
+                break;
+            }
+
+            string materialBody = ExtractBraceBlock(text, braceOpenIndex, out int braceCloseIndex);
+            LegacyEffectInstance? effectInstance = ParseLegacyEffectInstance(materialName, materialBody);
+            if (effectInstance != null)
+            {
+                result[materialName] = effectInstance;
+            }
+
+            searchIndex = braceCloseIndex + 1;
+        }
+
+        return result;
+    }
+
+    private static LegacyEffectInstance? ParseLegacyEffectInstance(string materialName, string materialBody)
+    {
+        int searchIndex = 0;
+        LegacyEffectInstance? lastInstance = null;
+
+        while (true)
+        {
+            int effectIndex = IndexOfToken(materialBody, "EffectInstance", searchIndex);
+            if (effectIndex < 0)
+            {
+                break;
+            }
+
+            int braceOpenIndex = materialBody.IndexOf('{', effectIndex);
+            if (braceOpenIndex < 0)
+            {
+                break;
+            }
+
+            string effectBody = ExtractBraceBlock(materialBody, braceOpenIndex, out int braceCloseIndex);
+            LegacyEffectInstance effectInstance = ParseSingleLegacyEffectInstance(materialName, effectBody);
+            if (!string.IsNullOrWhiteSpace(effectInstance.EffectFilePath))
+            {
+                lastInstance = effectInstance;
+            }
+
+            searchIndex = braceCloseIndex + 1;
+        }
+
+        return lastInstance;
+    }
+
+    private static LegacyEffectInstance ParseSingleLegacyEffectInstance(string materialName, string effectBody)
+    {
+        var effectInstance = new LegacyEffectInstance
+        {
+            MaterialName = materialName,
+        };
+
+        Match fileMatch = Regex.Match(
+            effectBody,
+            "EffectFilename\\s*\\{\\s*\"(?<path>[^\"]+\\.fx)\"\\s*;\\s*\\}",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        if (!fileMatch.Success)
+        {
+            fileMatch = Regex.Match(
+                effectBody,
+                "\"(?<path>[^\"]+\\.fx)\"\\s*;",
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        }
+
+        if (fileMatch.Success)
+        {
+            effectInstance.EffectFilePath = fileMatch.Groups["path"].Value;
+        }
+
+        foreach (Match match in Regex.Matches(
+                     effectBody,
+                     "EffectParamDWord\\s*\\{\\s*\"(?<name>[^\"]+)\"\\s*;\\s*(?<value>\\d+)\\s*;\\s*\\}",
+                     RegexOptions.IgnoreCase | RegexOptions.Singleline))
+        {
+            if (int.TryParse(match.Groups["value"].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+            {
+                effectInstance.Dwords[match.Groups["name"].Value] = value;
+            }
+        }
+
+        foreach (Match match in Regex.Matches(
+                     effectBody,
+                     "EffectParamString\\s*\\{\\s*\"(?<name>[^\"]+)\"\\s*;\\s*\"(?<value>[^\"]*)\"\\s*;\\s*\\}",
+                     RegexOptions.IgnoreCase | RegexOptions.Singleline))
+        {
+            effectInstance.Strings[match.Groups["name"].Value] = match.Groups["value"].Value;
+        }
+
+        foreach (Match match in Regex.Matches(
+                     effectBody,
+                     "EffectParamFloats\\s*\\{\\s*\"(?<name>[^\"]+)\"\\s*;\\s*(?<count>\\d+)\\s*;\\s*(?<values>[^;]+?)\\s*;\\s*\\}",
+                     RegexOptions.IgnoreCase | RegexOptions.Singleline))
+        {
+            float[] values = ParseFloatList(match.Groups["values"].Value);
+            if (values.Length > 0)
+            {
+                effectInstance.Floats[match.Groups["name"].Value] = values;
+            }
+        }
+
+        return effectInstance;
+    }
+
+    private static void ApplyLegacyEffectMetadata(
+        StaticModelImportedMaterial importedMaterial,
+        LegacyEffectInstance effectInstance,
+        string modelFilePath)
+    {
+        importedMaterial.EffectFilePath = ResolveRelativePath(modelFilePath, effectInstance.EffectFilePath);
+
+        if (effectInstance.Dwords.TryGetValue("technique", out int techniqueIndex))
+        {
+            importedMaterial.LegacyTechniqueIndex = techniqueIndex;
+        }
+
+        if (TryReadVector3(effectInstance.Floats, "ambientColor", out Vector3 ambientColor))
+        {
+            importedMaterial.AmbientColor = ambientColor;
+        }
+
+        if (TryReadColor(effectInstance.Floats, "diffuseColor", out Color diffuseColor))
+        {
+            importedMaterial.DiffuseColor = diffuseColor;
+        }
+
+        if (TryReadVector3(effectInstance.Floats, "specularColor", out Vector3 specularColor))
+        {
+            importedMaterial.SpecularColor = specularColor;
+        }
+
+        if (TryReadFloat(effectInstance.Floats, "shininess", out float specularPower))
+        {
+            importedMaterial.SpecularPower = specularPower;
+        }
+
+        if (effectInstance.Strings.TryGetValue("diffuseTexture", out string? diffuseTexturePath))
+        {
+            importedMaterial.DiffuseTextureFilePath = ResolveTexturePath(modelFilePath, diffuseTexturePath) ?? importedMaterial.DiffuseTextureFilePath;
+        }
+
+        if (effectInstance.Strings.TryGetValue("normalTexture", out string? normalTexturePath))
+        {
+            importedMaterial.NormalTextureFilePath = ResolveTexturePath(modelFilePath, normalTexturePath) ?? importedMaterial.NormalTextureFilePath;
+        }
+
+        if (effectInstance.Strings.TryGetValue("reflectionCubeTexture", out string? reflectionTexturePath))
+        {
+            importedMaterial.ReflectionTextureFilePath = ResolveTexturePath(modelFilePath, reflectionTexturePath)
+                ?? ResolveRelativePath(modelFilePath, reflectionTexturePath);
+        }
+
+        importedMaterial.UsesReflection = UsesReflectionTechnique(importedMaterial.EffectFilePath, importedMaterial.LegacyTechniqueIndex);
+    }
+
+    private static bool UsesReflectionTechnique(string? effectFilePath, int techniqueIndex)
+    {
+        string effectFileName = Path.GetFileName(effectFilePath ?? string.Empty);
+        if (effectFileName.Equals("ReflectionSimpleGlass.fx", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!effectFileName.Equals("NormalMapping.fx", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return techniqueIndex is 7 or 8 or 9 or 10 or 11;
+    }
+
+    private static bool TryReadColor(
+        IReadOnlyDictionary<string, float[]> valuesByName,
+        string key,
+        out Color color)
+    {
+        color = Color.White;
+        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length < 3)
+        {
+            return false;
+        }
+
+        float alpha = values.Length >= 4 ? values[3] : 1.0f;
+        color = new Color(
+            ClampByte(values[0]),
+            ClampByte(values[1]),
+            ClampByte(values[2]),
+            ClampByte(alpha));
+        return true;
+    }
+
+    private static bool TryReadVector3(
+        IReadOnlyDictionary<string, float[]> valuesByName,
+        string key,
+        out Vector3 vector)
+    {
+        vector = Vector3.Zero;
+        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length < 3)
+        {
+            return false;
+        }
+
+        vector = new Vector3(values[0], values[1], values[2]);
+        return true;
+    }
+
+    private static bool TryReadFloat(
+        IReadOnlyDictionary<string, float[]> valuesByName,
+        string key,
+        out float value)
+    {
+        value = 0.0f;
+        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length == 0)
+        {
+            return false;
+        }
+
+        value = values[0];
+        return true;
+    }
+
+    private static float[] ParseFloatList(string valueList)
+    {
+        string normalized = valueList.Replace(";", string.Empty);
+        string[] parts = normalized.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var values = new List<float>(parts.Length);
+
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (float.TryParse(parts[i], NumberStyles.Float, CultureInfo.InvariantCulture, out float value))
+            {
+                values.Add(value);
+            }
+        }
+
+        return values.ToArray();
     }
 
     private static StaticModelMesh BuildMesh(Mesh assimpMesh, IReadOnlyList<StaticModelImportedMaterial> importedMaterials)
@@ -381,6 +680,17 @@ public class StaticModelImporter
             : null;
     }
 
+    private static string ResolveRelativePath(string modelFilePath, string? relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return string.Empty;
+        }
+
+        string modelDirectory = Path.GetDirectoryName(modelFilePath)!;
+        return Path.GetFullPath(Path.Combine(modelDirectory, relativePath));
+    }
+
     private static string SanitizeMaterialDisplayName(string? materialName)
     {
         if (string.IsNullOrWhiteSpace(materialName))
@@ -456,6 +766,62 @@ public class StaticModelImporter
         scaled = Math.Clamp(scaled, 0.0f, 255.0f);
         return (byte)scaled;
     }
+
+    private static int IndexOfToken(string text, string token, int startIndex)
+        => text.IndexOf(token, startIndex, StringComparison.OrdinalIgnoreCase);
+
+    private static void SkipWhitespace(string text, ref int index)
+    {
+        while (index < text.Length && char.IsWhiteSpace(text[index]))
+        {
+            index++;
+        }
+    }
+
+    private static string ReadIdentifier(string text, ref int index)
+    {
+        SkipWhitespace(text, ref index);
+
+        int start = index;
+        while (index < text.Length)
+        {
+            char character = text[index];
+            if (char.IsLetterOrDigit(character) || character == '_' || character == '-')
+            {
+                index++;
+                continue;
+            }
+
+            break;
+        }
+
+        return text.Substring(start, index - start).Trim();
+    }
+
+    private static string ExtractBraceBlock(string text, int braceOpenIndex, out int braceCloseIndex)
+    {
+        int depth = 0;
+
+        for (int i = braceOpenIndex; i < text.Length; i++)
+        {
+            char character = text[i];
+            if (character == '{')
+            {
+                depth++;
+            }
+            else if (character == '}')
+            {
+                depth--;
+                if (depth == 0)
+                {
+                    braceCloseIndex = i;
+                    return text.Substring(braceOpenIndex + 1, i - braceOpenIndex - 1);
+                }
+            }
+        }
+
+        throw new InvalidOperationException("Unmatched braces while parsing .x file.");
+    }
 }
 
 public sealed class StaticModelImportResult
@@ -482,6 +848,16 @@ public sealed class StaticModelImportedMaterial
     public string? DiffuseTextureFilePath { get; set; }
 
     public string? NormalTextureFilePath { get; set; }
+
+    public string? ReflectionTextureFilePath { get; set; }
+
+    public string? EffectFilePath { get; set; }
+
+    public int LegacyTechniqueIndex { get; set; } = -1;
+
+    public bool UsesReflection { get; set; }
+
+    public Vector3 AmbientColor { get; set; } = Vector3.Zero;
 
     public Color DiffuseColor { get; set; } = Color.White;
 

@@ -152,11 +152,20 @@ public static class EditorAssetImportService
             var material = new MaterialAsset("lit-diffuse")
             {
                 Name = materialAssetInfo.Name,
+                Queue = ShouldUseAlphaCutout(modelBaseName, importedMaterial)
+                    ? RenderQueue.AlphaTest
+                    : RenderQueue.Opaque,
+                RasterizerStateName = ShouldUseAlphaCutout(modelBaseName, importedMaterial)
+                    ? "CullNone"
+                    : MaterialAsset.DefaultRasterizerStateName,
+                SamplerStateName = "AnisotropicWrap",
             };
             material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
-            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(importedMaterial.EmissiveColor));
+            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(ComputeImportedMaterialEmissiveColor(modelBaseName, importedMaterial)));
             material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
             material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
+            material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(
+                ShouldUseAlphaCutout(modelBaseName, importedMaterial) ? 0.35f : 0.5f));
 
             if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
             {
@@ -181,6 +190,46 @@ public static class EditorAssetImportService
                 mesh.MaterialAssetId = materialAssetId;
             }
         }
+    }
+
+    private static Vector3 ComputeImportedMaterialEmissiveColor(string modelName, StaticModelImportedMaterial importedMaterial)
+    {
+        Vector3 emissiveColor = importedMaterial.AmbientColor + importedMaterial.EmissiveColor;
+        if (UsesLegacyBrightAmbient(modelName))
+        {
+            const float signAmbient = 128f / 255f;
+            Vector3 boostedAmbient = new(signAmbient, signAmbient, signAmbient);
+            emissiveColor = Vector3.Max(emissiveColor, boostedAmbient);
+        }
+
+        return Vector3.Clamp(emissiveColor, Vector3.Zero, Vector3.One);
+    }
+
+    private static bool UsesLegacyBrightAmbient(string modelName)
+    {
+        return modelName.StartsWith("Sign", StringComparison.OrdinalIgnoreCase)
+            || modelName.StartsWith("Banner", StringComparison.OrdinalIgnoreCase)
+            || modelName.StartsWith("Windmill", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ShouldUseAlphaCutout(string modelName, StaticModelImportedMaterial importedMaterial)
+    {
+        if (modelName.StartsWith("Alpha", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string? diffusePath = importedMaterial.DiffuseTextureFilePath;
+        if (string.IsNullOrWhiteSpace(diffusePath))
+        {
+            return false;
+        }
+
+        string textureName = Path.GetFileNameWithoutExtension(diffusePath);
+        return textureName.Contains("Palm", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("Leave", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("Ast", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("plants", StringComparison.OrdinalIgnoreCase);
     }
 
     private static Guid ImportTexture(
