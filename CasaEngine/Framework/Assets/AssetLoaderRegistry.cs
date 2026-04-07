@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.UI.MGUI;
@@ -37,6 +38,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(UIScreenAsset), new AssetLoader<UIScreenAsset>());
         assetContentManager.RegisterAssetLoader(typeof(CasaEngine.Framework.Scene.World.World), new AssetLoader<CasaEngine.Framework.Scene.World.World>());
         assetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
+        assetContentManager.RegisterAssetLoader(typeof(EnvironmentAsset), new EnvironmentAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
     }
 }

@@ -1,4 +1,7 @@
+using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Rendering.Environment;
 
@@ -15,12 +18,34 @@ public static class EnvironmentResolver
         ArgumentNullException.ThrowIfNull(view);
 
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
+        var environmentAsset = TryLoadEnvironmentAsset(view, source.EnvironmentAssetId);
+        Guid backgroundCubemapAssetId = source.BackgroundCubemapAssetId != Guid.Empty
+            ? source.BackgroundCubemapAssetId
+            : environmentAsset?.BackgroundCubemapAssetId ?? Guid.Empty;
+        Guid specularCubemapAssetId = source.SpecularEnvironmentCubemapAssetId != Guid.Empty
+            ? source.SpecularEnvironmentCubemapAssetId
+            : environmentAsset?.SpecularCubemapAssetId ?? Guid.Empty;
+        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? TryLoadTextureCube(view, backgroundCubemapAssetId);
+        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? TryLoadTextureCube(view, specularCubemapAssetId);
+        if (specularEnvironmentCubemap is null)
+        {
+            specularEnvironmentCubemap = backgroundCubemap;
+            specularCubemapAssetId = specularCubemapAssetId != Guid.Empty ? specularCubemapAssetId : backgroundCubemapAssetId;
+        }
+
+        Vector3 ambientColor = environmentAsset?.AmbientColor ?? source.AmbientColor;
+        float ambientIntensity = (environmentAsset?.AmbientIntensity ?? 1.0f) * source.AmbientIntensity;
+        float specularIntensity = (environmentAsset?.SpecularIntensity ?? 1.0f) * source.SpecularIntensity;
+        bool hasEnvironmentCubemap = backgroundCubemap is not null;
+        bool hasExplicitLighting = source.EnvironmentAssetId != Guid.Empty
+            || source.SpecularEnvironmentCubemapAssetId != Guid.Empty
+            || source.SpecularEnvironmentCubemap is not null
+            || hasEnvironmentCubemap
+            || ambientColor != LegacyAmbientColor
+            || ambientIntensity != 1.0f
+            || specularIntensity != 1.0f;
         bool usesLegacyClearColor = source.BackgroundMode == EnvironmentBackgroundMode.LegacyClearColor;
-        bool hasEnvironmentCubemap = source.BackgroundCubemap is not null || source.BackgroundCubemapAssetId != Guid.Empty;
-        bool usesLegacyLighting = source.Type == EnvironmentType.None
-            && source.EnvironmentAssetId == Guid.Empty
-            && source.SpecularEnvironmentCubemap is null
-            && !hasEnvironmentCubemap;
+        bool usesLegacyLighting = !hasExplicitLighting && source.Type == EnvironmentType.None;
 
         if (!usesLegacyClearColor
             && source.BackgroundMode == EnvironmentBackgroundMode.Environment
@@ -35,18 +60,70 @@ public static class EnvironmentResolver
 
         return new ResolvedEnvironmentSettings
         {
-            Type = source.Type,
+            Type = ResolveEnvironmentType(source, environmentAsset, hasEnvironmentCubemap),
             BackgroundMode = usesLegacyClearColor ? EnvironmentBackgroundMode.LegacyClearColor : source.BackgroundMode,
             BackgroundColor = backgroundColor,
             EnvironmentAssetId = source.EnvironmentAssetId,
-            BackgroundCubemapAssetId = source.BackgroundCubemapAssetId,
-            BackgroundCubemap = hasEnvironmentCubemap ? source.BackgroundCubemap : null,
-            SpecularEnvironmentCubemap = source.SpecularEnvironmentCubemap,
-            AmbientColor = usesLegacyLighting ? LegacyAmbientColor : source.AmbientColor,
-            AmbientIntensity = source.AmbientIntensity,
-            SpecularIntensity = source.SpecularIntensity,
+            BackgroundCubemapAssetId = backgroundCubemapAssetId,
+            SpecularEnvironmentCubemapAssetId = specularCubemapAssetId,
+            BackgroundCubemap = backgroundCubemap,
+            SpecularEnvironmentCubemap = specularEnvironmentCubemap,
+            AmbientColor = usesLegacyLighting ? LegacyAmbientColor : ambientColor,
+            AmbientIntensity = usesLegacyLighting ? 1.0f : ambientIntensity,
+            SpecularIntensity = usesLegacyLighting ? 1.0f : specularIntensity,
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };
+    }
+
+    private static EnvironmentType ResolveEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset, bool hasEnvironmentCubemap)
+    {
+        if (source.Type != EnvironmentType.None)
+        {
+            return source.Type;
+        }
+
+        if (environmentAsset != null)
+        {
+            return environmentAsset.Type;
+        }
+
+        return hasEnvironmentCubemap ? EnvironmentType.Cubemap : EnvironmentType.None;
+    }
+
+    private static EnvironmentAsset? TryLoadEnvironmentAsset(RenderView view, Guid assetId)
+        => TryLoadAsset<EnvironmentAsset>(view, assetId);
+
+    private static XnaTextureCube? TryLoadTextureCube(RenderView view, Guid assetId)
+        => TryLoadAsset<XnaTextureCube>(view, assetId);
+
+    private static T? TryLoadAsset<T>(RenderView view, Guid assetId) where T : class
+    {
+        if (assetId == Guid.Empty)
+        {
+            return null;
+        }
+
+        var assetContentManager = view.World.Game.AssetContentManager;
+        var cachedAsset = assetContentManager.GetAsset<T>(assetId);
+        if (cachedAsset is not null)
+        {
+            return cachedAsset;
+        }
+
+        if (AssetCatalog.Get(assetId) is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return assetContentManager.Load<T>(assetId);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            return null;
+        }
     }
 }

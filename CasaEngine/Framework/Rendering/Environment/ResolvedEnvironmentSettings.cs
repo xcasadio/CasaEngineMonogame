@@ -18,6 +18,8 @@ public readonly struct ResolvedEnvironmentSettings
 
     public Guid BackgroundCubemapAssetId { get; init; }
 
+    public Guid SpecularEnvironmentCubemapAssetId { get; init; }
+
     public XnaTextureCube? BackgroundCubemap { get; init; }
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; init; }

@@ -227,7 +227,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-008 — Introduire un asset d'environnement global
+### ✅ ENV-008 — Introduire un asset d'environnement global
 Objectif:
 sortir la donnee d'environnement du simple champ texture et preparer les futures donnees de lighting.
 

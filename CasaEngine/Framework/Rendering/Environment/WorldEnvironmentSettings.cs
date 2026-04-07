@@ -22,6 +22,8 @@ public sealed class WorldEnvironmentSettings
 
     public Guid BackgroundCubemapAssetId { get; set; } = Guid.Empty;
 
+    public Guid SpecularEnvironmentCubemapAssetId { get; set; } = Guid.Empty;
+
     public XnaTextureCube? BackgroundCubemap { get; set; }
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; set; }
@@ -43,6 +45,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundColor = Color.CornflowerBlue;
         EnvironmentAssetId = Guid.Empty;
         BackgroundCubemapAssetId = Guid.Empty;
+        SpecularEnvironmentCubemapAssetId = Guid.Empty;
         BackgroundCubemap = null;
         SpecularEnvironmentCubemap = null;
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f);
@@ -82,6 +85,11 @@ public sealed class WorldEnvironmentSettings
             BackgroundCubemapAssetId = backgroundCubemapAssetIdNode.GetGuid();
         }
 
+        if (element.TryGetValue("specular_cubemap_asset_id", StringComparison.OrdinalIgnoreCase, out var specularCubemapAssetIdNode))
+        {
+            SpecularEnvironmentCubemapAssetId = specularCubemapAssetIdNode.GetGuid();
+        }
+
         if (element.TryGetValue("ambient_color", StringComparison.OrdinalIgnoreCase, out var ambientColorNode))
         {
             AmbientColor = ambientColorNode.GetVector3();
@@ -118,6 +126,7 @@ public sealed class WorldEnvironmentSettings
             BackgroundColor = BackgroundColor,
             EnvironmentAssetId = EnvironmentAssetId,
             BackgroundCubemapAssetId = BackgroundCubemapAssetId,
+            SpecularEnvironmentCubemapAssetId = SpecularEnvironmentCubemapAssetId,
             BackgroundCubemap = BackgroundCubemap,
             SpecularEnvironmentCubemap = SpecularEnvironmentCubemap,
             AmbientColor = AmbientColor,
@@ -135,6 +144,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundColor = other.BackgroundColor;
         EnvironmentAssetId = other.EnvironmentAssetId;
         BackgroundCubemapAssetId = other.BackgroundCubemapAssetId;
+        SpecularEnvironmentCubemapAssetId = other.SpecularEnvironmentCubemapAssetId;
         BackgroundCubemap = other.BackgroundCubemap;
         SpecularEnvironmentCubemap = other.SpecularEnvironmentCubemap;
         AmbientColor = other.AmbientColor;
