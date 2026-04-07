@@ -211,7 +211,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(rendering): thread compiled material data into static draw path`
 
-- ⏳ **T03.02 - Completer la representation compilee des textures et de la reflection**
+- ✅ **T03.02 - Completer la representation compilee des textures et de la reflection**
   Objectif :
   - Corriger le fait que `CompiledMaterial` ne represente pas completement l'etat reflection/cubemap actuellement charge par le runtime.
   - Decider si la reflection doit etre normalisee par semantique ou via un type de ressource compilee plus riche.

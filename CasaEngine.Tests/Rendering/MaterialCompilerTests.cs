@@ -163,6 +163,9 @@ public class MaterialCompilerTests
         Assert.Equal(ShaderFeature.Reflection, compiledMaterial.Features);
         Assert.True(compiledMaterial.TryGetTexture("reflection_texture", out var reflectionTexture));
         Assert.Null(reflectionTexture);
+        Assert.True(compiledMaterial.TryGetTextureBinding("reflection_texture", out var reflectionBinding));
+        Assert.Equal(CompiledMaterialTextureBindingKind.TextureCube, reflectionBinding.Kind);
+        Assert.Equal(reflectionTextureId, reflectionBinding.AssetId);
         Assert.Equal(new Vector3(0.2f, 0.3f, 0.4f), runtimeMaterial.AmbientColor);
         Assert.Equal(reflectionTextureId, runtimeMaterial.ReflectionCubeAssetId);
     }
@@ -181,6 +184,20 @@ public class MaterialCompilerTests
         var legacyMaterial = Assert.IsType<Material>(runtimeMaterial);
         Assert.Equal(baseColorTextureId, legacyMaterial.TextureBaseColorAssetId);
         Assert.Equal(reflectionTextureId, legacyMaterial.TextureReflectionAssetId);
+    }
+
+    [Fact]
+    public void Compile_LegacyMultiTextureMaterial_RepresentsReflectionAsTexture2DBinding()
+    {
+        var reflectionTextureId = Guid.NewGuid();
+        var materialAsset = new MaterialAsset("legacy-multi-texture");
+        materialAsset.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureId));
+
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+
+        Assert.True(compiledMaterial.TryGetTextureBinding("reflection_texture", out var reflectionBinding));
+        Assert.Equal(CompiledMaterialTextureBindingKind.Texture2D, reflectionBinding.Kind);
+        Assert.Equal(reflectionTextureId, reflectionBinding.AssetId);
     }
 
     [Fact]

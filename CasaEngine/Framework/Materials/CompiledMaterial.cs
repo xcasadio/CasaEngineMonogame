@@ -7,12 +7,14 @@ public sealed class CompiledMaterial
 {
     private readonly Dictionary<string, MaterialValue> _properties;
     private readonly Dictionary<string, Texture2D?> _textures;
+    private readonly Dictionary<string, CompiledMaterialTextureBinding> _textureBindings;
 
     public CompiledMaterial(
         string definitionId,
         EffectiveShaderReference effectiveShader,
         IEnumerable<KeyValuePair<string, MaterialValue>> properties,
         IEnumerable<KeyValuePair<string, Texture2D?>>? textures = null,
+        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>>? textureBindings = null,
         Guid sourceAssetId = default,
         string name = "",
         ShaderFeature features = ShaderFeature.None,
@@ -48,6 +50,7 @@ public sealed class CompiledMaterial
         ReceiveShadows = receiveShadows;
         _properties = BuildPropertyLookup(properties);
         _textures = BuildTextureLookup(textures);
+        _textureBindings = BuildTextureBindingLookup(_textures, textureBindings);
     }
 
     public Guid SourceAssetId { get; }
@@ -80,6 +83,8 @@ public sealed class CompiledMaterial
 
     public IReadOnlyDictionary<string, Texture2D?> Textures => _textures;
 
+    public IReadOnlyDictionary<string, CompiledMaterialTextureBinding> TextureBindings => _textureBindings;
+
     public bool TryGetPropertyValue(string key, out MaterialValue value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -90,6 +95,12 @@ public sealed class CompiledMaterial
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         return _textures.TryGetValue(key, out texture);
+    }
+
+    public bool TryGetTextureBinding(string key, out CompiledMaterialTextureBinding textureBinding)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        return _textureBindings.TryGetValue(key, out textureBinding);
     }
 
     private static Dictionary<string, MaterialValue> BuildPropertyLookup(
@@ -139,6 +150,48 @@ public sealed class CompiledMaterial
                     $"Compiled material contains duplicate texture key '{pair.Key}'.",
                     nameof(textures));
             }
+        }
+
+        return lookup;
+    }
+
+    private static Dictionary<string, CompiledMaterialTextureBinding> BuildTextureBindingLookup(
+        IReadOnlyDictionary<string, Texture2D?> textures,
+        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>>? textureBindings)
+    {
+        var lookup = new Dictionary<string, CompiledMaterialTextureBinding>(StringComparer.OrdinalIgnoreCase);
+
+        if (textureBindings is not null)
+        {
+            foreach (var pair in textureBindings)
+            {
+                if (string.IsNullOrWhiteSpace(pair.Key))
+                {
+                    throw new ArgumentException("Compiled material texture binding keys cannot be empty.", nameof(textureBindings));
+                }
+
+                if (!lookup.TryAdd(pair.Key, pair.Value))
+                {
+                    throw new ArgumentException(
+                        $"Compiled material contains duplicate texture binding key '{pair.Key}'.",
+                        nameof(textureBindings));
+                }
+            }
+        }
+
+        foreach (var pair in textures)
+        {
+            if (lookup.ContainsKey(pair.Key))
+            {
+                continue;
+            }
+
+            lookup.Add(
+                pair.Key,
+                new CompiledMaterialTextureBinding(
+                    Guid.Empty,
+                    CompiledMaterialTextureBindingKind.Texture2D,
+                    texture: pair.Value));
         }
 
         return lookup;

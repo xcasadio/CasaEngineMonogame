@@ -55,6 +55,8 @@ public class CompiledMaterialTests
         Assert.Equal(0.5f, alpha);
         Assert.True(compiledMaterial.TryGetTexture("base_color_texture", out var texture));
         Assert.Null(texture);
+        Assert.True(compiledMaterial.TryGetTextureBinding("base_color_texture", out var textureBinding));
+        Assert.Equal(CompiledMaterialTextureBindingKind.Texture2D, textureBinding.Kind);
     }
 
     [Fact]
@@ -100,6 +102,26 @@ public class CompiledMaterialTests
             effectiveShader: new EffectiveShaderReference(Guid.NewGuid()),
             properties: Array.Empty<KeyValuePair<string, MaterialValue>>(),
             textures: textures));
+    }
+
+    [Fact]
+    public void Constructor_RejectsDuplicateTextureBindingKeysIgnoringCase()
+    {
+        var textureBindings = new[]
+        {
+            new KeyValuePair<string, CompiledMaterialTextureBinding>(
+                "reflection_texture",
+                new CompiledMaterialTextureBinding(Guid.NewGuid(), CompiledMaterialTextureBindingKind.TextureCube)),
+            new KeyValuePair<string, CompiledMaterialTextureBinding>(
+                "REFLECTION_TEXTURE",
+                new CompiledMaterialTextureBinding(Guid.NewGuid(), CompiledMaterialTextureBindingKind.TextureCube)),
+        };
+
+        Assert.Throws<ArgumentException>(() => new CompiledMaterial(
+            definitionId: "lit-diffuse",
+            effectiveShader: new EffectiveShaderReference(Guid.NewGuid()),
+            properties: Array.Empty<KeyValuePair<string, MaterialValue>>(),
+            textureBindings: textureBindings));
     }
 
     [Fact]

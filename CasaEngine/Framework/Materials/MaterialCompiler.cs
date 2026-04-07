@@ -36,12 +36,14 @@ public sealed class MaterialCompiler
         var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
         var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
         var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
+        var compiledTextureBindings = BuildCompiledTextureBindings(definition, effectiveValues, resolvedTextures, runtimeMaterial);
 
         var compiledMaterial = new CompiledMaterial(
             definitionId: definition.Id,
             effectiveShader: EffectiveShaderResolver.Resolve(runtimeMaterial),
             properties: BuildCompiledProperties(definition, effectiveValues),
             textures: resolvedTextures,
+            textureBindings: compiledTextureBindings,
             sourceAssetId: materialAsset.Id,
             name: materialAsset.Name,
             features: RenderFeatureResolver.ResolveMaterialFeatures(runtimeMaterial),
@@ -146,7 +148,7 @@ public sealed class MaterialCompiler
                 continue;
             }
 
-            if (string.Equals(propertyDefinition.Key, "reflection_texture", StringComparison.OrdinalIgnoreCase))
+            if (IsTextureCubeProperty(propertyDefinition))
             {
                 textures.Add(propertyDefinition.Key, null);
                 continue;
@@ -157,6 +159,45 @@ public sealed class MaterialCompiler
         }
 
         return textures;
+    }
+
+    private static IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>> BuildCompiledTextureBindings(
+        MaterialDefinition definition,
+        IReadOnlyDictionary<string, MaterialValue> effectiveValues,
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        MaterialBase runtimeMaterial)
+    {
+        for (int i = 0; i < definition.Properties.Count; i++)
+        {
+            var propertyDefinition = definition.Properties[i];
+            if (propertyDefinition.ValueType != MaterialPropertyType.Texture)
+            {
+                continue;
+            }
+
+            var textureAssetId = GetTextureId(effectiveValues[propertyDefinition.Key], propertyDefinition.Key);
+            if (IsTextureCubeProperty(propertyDefinition))
+            {
+                var reflectionCube = runtimeMaterial is LitDiffuseMaterial litMaterial
+                    ? litMaterial.ReflectionCube
+                    : null;
+                yield return new KeyValuePair<string, CompiledMaterialTextureBinding>(
+                    propertyDefinition.Key,
+                    new CompiledMaterialTextureBinding(
+                        textureAssetId,
+                        CompiledMaterialTextureBindingKind.TextureCube,
+                        textureCube: reflectionCube));
+                continue;
+            }
+
+            resolvedTextures.TryGetValue(propertyDefinition.Key, out var texture);
+            yield return new KeyValuePair<string, CompiledMaterialTextureBinding>(
+                propertyDefinition.Key,
+                new CompiledMaterialTextureBinding(
+                    textureAssetId,
+                    CompiledMaterialTextureBindingKind.Texture2D,
+                    texture: texture));
+        }
     }
 
     private static IEnumerable<KeyValuePair<string, MaterialValue>> BuildCompiledProperties(
@@ -337,6 +378,10 @@ public sealed class MaterialCompiler
 
     private static Assets.Textures.Texture? WrapTexture(Texture2D? textureResource)
         => textureResource is null ? null : new Assets.Textures.Texture(textureResource);
+
+    private static bool IsTextureCubeProperty(MaterialPropertyDefinition propertyDefinition)
+        => string.Equals(propertyDefinition.Key, "reflection_texture", StringComparison.OrdinalIgnoreCase)
+           && string.Equals(propertyDefinition.AssetKind, "dds", StringComparison.OrdinalIgnoreCase);
 
     private static Guid GetTextureId(MaterialValue value, string propertyKey)
     {
