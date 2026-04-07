@@ -424,7 +424,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-018 — Brancher undo/redo, dirty state et persistance des parametres world
+### ✅ ENV-018 — Brancher undo/redo, dirty state et persistance des parametres world
 Objectif:
 faire des modifications d'environnement du world un vrai flux d'authoring editor, avec historique et sauvegarde.
 

@@ -5,8 +5,10 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 
 using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Tests;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -130,6 +132,73 @@ public class EditorProjectAuthoringServiceTests
             var materialInstanceNode = Assert.IsType<JObject>(overrideNode["material_instance"]);
             var propertyOverridesNode = Assert.IsType<JObject>(materialInstanceNode["property_overrides"]);
             Assert.NotNull(propertyOverridesNode["specular_power"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SaveProject_WithWorldEnvironment_PersistsAndReloadsEnvironmentSettings()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "DefaultWorld",
+                FileName = "DefaultWorld.world",
+            };
+
+            world.EnvironmentSettings.Type = EnvironmentType.Cubemap;
+            world.EnvironmentSettings.BackgroundMode = EnvironmentBackgroundMode.Environment;
+            world.EnvironmentSettings.BackgroundColor = new Color(12, 34, 56, 78);
+            world.EnvironmentSettings.EnvironmentAssetId = Guid.Parse("11111111-2222-3333-4444-555555555555");
+            world.EnvironmentSettings.BackgroundCubemapAssetId = Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa");
+            world.EnvironmentSettings.SpecularEnvironmentCubemapAssetId = Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+            world.EnvironmentSettings.AmbientColor = new Vector3(0.2f, 0.3f, 0.4f);
+            world.EnvironmentSettings.AmbientIntensity = 1.5f;
+            world.EnvironmentSettings.SpecularIntensity = 2.5f;
+
+            EditorProjectAuthoringService.SaveProject(world);
+
+            var worldDocument = JObject.Parse(File.ReadAllText(Path.Combine(tempDirectory, "DefaultWorld.world")));
+            var environmentNode = Assert.IsType<JObject>(worldDocument["environment"]);
+            Assert.Equal("Cubemap", (string?)environmentNode["type"]);
+            Assert.Equal("Environment", (string?)environmentNode["background_mode"]);
+            Assert.Equal("11111111-2222-3333-4444-555555555555", (string?)environmentNode["environment_asset_id"]);
+            Assert.Equal("66666666-7777-8888-9999-aaaaaaaaaaaa", (string?)environmentNode["background_cubemap_asset_id"]);
+            Assert.Equal("bbbbbbbb-cccc-dddd-eeee-ffffffffffff", (string?)environmentNode["specular_cubemap_asset_id"]);
+            Assert.Equal(1.5f, (float?)environmentNode["ambient_intensity"]);
+            Assert.Equal(2.5f, (float?)environmentNode["specular_intensity"]);
+
+            var reloadedWorld = new World();
+            reloadedWorld.Load(worldDocument);
+
+            Assert.Equal(EnvironmentType.Cubemap, reloadedWorld.EnvironmentSettings.Type);
+            Assert.Equal(EnvironmentBackgroundMode.Environment, reloadedWorld.EnvironmentSettings.BackgroundMode);
+            Assert.Equal(new Color(12, 34, 56, 78), reloadedWorld.EnvironmentSettings.BackgroundColor);
+            Assert.Equal(Guid.Parse("11111111-2222-3333-4444-555555555555"), reloadedWorld.EnvironmentSettings.EnvironmentAssetId);
+            Assert.Equal(Guid.Parse("66666666-7777-8888-9999-aaaaaaaaaaaa"), reloadedWorld.EnvironmentSettings.BackgroundCubemapAssetId);
+            Assert.Equal(Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"), reloadedWorld.EnvironmentSettings.SpecularEnvironmentCubemapAssetId);
+            Assert.Equal(new Vector3(0.2f, 0.3f, 0.4f), reloadedWorld.EnvironmentSettings.AmbientColor);
+            Assert.Equal(1.5f, reloadedWorld.EnvironmentSettings.AmbientIntensity);
+            Assert.Equal(2.5f, reloadedWorld.EnvironmentSettings.SpecularIntensity);
         }
         finally
         {

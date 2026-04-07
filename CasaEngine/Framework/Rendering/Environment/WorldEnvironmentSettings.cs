@@ -106,6 +106,21 @@ public sealed class WorldEnvironmentSettings
         }
     }
 
+    public void Save(JObject element)
+    {
+        ArgumentNullException.ThrowIfNull(element);
+
+        element["type"] = Type.ToString();
+        element["background_mode"] = BackgroundMode.ToString();
+        element["background_color"] = SaveColor(BackgroundColor);
+        element["environment_asset_id"] = EnvironmentAssetId.ToString();
+        element["background_cubemap_asset_id"] = BackgroundCubemapAssetId.ToString();
+        element["specular_cubemap_asset_id"] = SpecularEnvironmentCubemapAssetId.ToString();
+        element["ambient_color"] = SaveVector3(AmbientColor);
+        element["ambient_intensity"] = AmbientIntensity;
+        element["specular_intensity"] = SpecularIntensity;
+    }
+
     public void MarkDirty()
     {
         IsDirty = true;
@@ -158,5 +173,26 @@ public sealed class WorldEnvironmentSettings
         {
             MarkClean();
         }
+    }
+
+    private static JObject SaveColor(Color value)
+    {
+        return new JObject
+        {
+            ["r"] = value.R,
+            ["g"] = value.G,
+            ["b"] = value.B,
+            ["a"] = value.A,
+        };
+    }
+
+    private static JObject SaveVector3(Vector3 value)
+    {
+        return new JObject
+        {
+            ["x"] = value.X,
+            ["y"] = value.Y,
+            ["z"] = value.Z,
+        };
     }
 }

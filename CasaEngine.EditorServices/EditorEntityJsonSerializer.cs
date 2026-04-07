@@ -36,6 +36,10 @@ internal static class EditorEntityJsonSerializer
         node.Add("entity_references", entityReferencesArray);
         node.Add("script_class_name", world.GameplayProxyClassName);
         node.Add("game_mode_asset_id", world.GameModeAssetId);
+
+        var environmentNode = new JObject();
+        world.EnvironmentSettings.Save(environmentNode);
+        node.Add("environment", environmentNode);
     }
 
     public static void SaveEntity(Entity entity, JObject node)
