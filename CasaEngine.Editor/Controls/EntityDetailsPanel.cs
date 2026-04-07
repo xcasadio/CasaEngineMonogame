@@ -11,6 +11,7 @@ using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
@@ -31,10 +32,12 @@ public sealed class EntityDetailsPanel
 
     private MGDockPanel? _root;
     private MGTextBox? _entityNameTextBox;
+    private MGButton? _addComponentButton;
     private MGTreeView? _componentTree;
     private MGScrollViewer? _detailsScrollViewer;
     private MGStackPanel? _detailsContent;
     private MGTextBlock? _componentSummaryText;
+    private World? _selectedWorld;
     private Entity? _selectedEntity;
     private EntityComponent? _selectedComponent;
     private bool _suppressEntityNameChanged;
@@ -94,7 +97,12 @@ public sealed class EntityDetailsPanel
 
     public void SetSelectedEntity(Entity? entity)
     {
-        SyncSelection(entity, ReferenceEquals(_selectedEntity, entity) ? _selectedComponent : null);
+        SyncSelection(entity?.World, entity, ReferenceEquals(_selectedEntity, entity) ? _selectedComponent : null);
+    }
+
+    public void SetSelectedWorld(World? world)
+    {
+        SyncSelection(world, null, null);
     }
 
     public void SetSelectedComponent(EntityComponent? component)
@@ -102,28 +110,44 @@ public sealed class EntityDetailsPanel
         ApplyComponentSelection(component, rebuildPropertyEditors: true);
     }
 
-    public void SyncSelection(Entity? entity, EntityComponent? component)
+    public void SyncSelection(World? world, Entity? entity, EntityComponent? component)
     {
+        bool worldChanged = !ReferenceEquals(_selectedWorld, world);
         bool entityChanged = !ReferenceEquals(_selectedEntity, entity);
         bool componentChanged = !ReferenceEquals(_selectedComponent, component);
 
-        if (!entityChanged && !componentChanged)
+        if (!worldChanged && !entityChanged && !componentChanged)
         {
             return;
         }
 
-        Trace($"SyncSelection entity={DescribeEntity(entity)} component={DescribeComponent(component)} entityChanged={entityChanged} componentChanged={componentChanged}");
+        Trace($"SyncSelection world={DescribeWorld(world)} entity={DescribeEntity(entity)} component={DescribeComponent(component)} worldChanged={worldChanged} entityChanged={entityChanged} componentChanged={componentChanged}");
 
         if (entityChanged)
         {
             DetachEntity();
+        }
+
+        _selectedWorld = world;
+
+        if (entityChanged)
+        {
             _selectedEntity = entity;
             AttachEntity();
+        }
+
+        if (worldChanged || entityChanged)
+        {
             RefreshEntityHeader();
             RebuildComponentTree();
         }
 
         ApplyComponentSelection(component, rebuildPropertyEditors: true);
+    }
+
+    public void SyncSelection(Entity? entity, EntityComponent? component)
+    {
+        SyncSelection(entity?.World, entity, component);
     }
 
     private void ApplyComponentSelection(EntityComponent? component, bool rebuildPropertyEditors)
@@ -192,14 +216,14 @@ public sealed class EntityDetailsPanel
         };
         _entityNameTextBox.TextChanged += OnEntityNameChanged;
 
-        var addComponentButton = new MGButton(_window, _ => ShowAddComponentDialog())
+        _addComponentButton = new MGButton(_window, _ => ShowAddComponentDialog())
         {
             PreferredWidth = 34,
             PreferredHeight = 28,
         };
         if (EditorIcons.FilePlus != null)
         {
-            addComponentButton.SetContent(new MGImage(_window, EditorIcons.FilePlus, Stretch: Stretch.Uniform)
+            _addComponentButton.SetContent(new MGImage(_window, EditorIcons.FilePlus, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,
@@ -209,7 +233,7 @@ public sealed class EntityDetailsPanel
         }
         else
         {
-            addComponentButton.SetContent(new MGTextBlock(_window, "+")
+            _addComponentButton.SetContent(new MGTextBlock(_window, "+")
             {
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -217,7 +241,7 @@ public sealed class EntityDetailsPanel
         }
 
         toolbar.TryAddChild(_entityNameTextBox);
-        toolbar.TryAddChild(addComponentButton);
+        toolbar.TryAddChild(_addComponentButton);
         return toolbar;
     }
 
@@ -294,8 +318,14 @@ public sealed class EntityDetailsPanel
         }
 
         _suppressEntityNameChanged = true;
-        _entityNameTextBox.SetText(_selectedEntity?.Name ?? string.Empty);
+        _entityNameTextBox.SetText(_selectedEntity?.Name ?? _selectedWorld?.Name ?? string.Empty);
+        _entityNameTextBox.IsEnabled = _selectedEntity != null;
         _suppressEntityNameChanged = false;
+
+        if (_addComponentButton != null)
+        {
+            _addComponentButton.IsEnabled = _selectedEntity != null;
+        }
     }
 
     private void RebuildComponentTree()
@@ -420,10 +450,21 @@ public sealed class EntityDetailsPanel
 
         if (_selectedEntity == null)
         {
-            _detailsContent.TryAddChild(new MGTextBlock(_window, "Select an entity to inspect its components.")
+            if (_selectedWorld != null)
             {
-                WrapText = true,
-            });
+                _detailsContent.TryAddChild(new MGTextBlock(_window, "World selected.")
+                {
+                    WrapText = true,
+                });
+            }
+            else
+            {
+                _detailsContent.TryAddChild(new MGTextBlock(_window, "Select an entity or the world to inspect its properties.")
+                {
+                    WrapText = true,
+                });
+            }
+
             return;
         }
 
@@ -632,7 +673,7 @@ public sealed class EntityDetailsPanel
 
         if (_selectedEntity == null)
         {
-            _componentSummaryText.SetText("No entity selected");
+            _componentSummaryText.SetText(_selectedWorld != null ? "World selected" : "No entity selected");
             return;
         }
 
@@ -736,6 +777,13 @@ public sealed class EntityDetailsPanel
         return entity == null
             ? "<null>"
             : $"'{entity.Name}'";
+    }
+
+    private static string DescribeWorld(World? world)
+    {
+        return world == null
+            ? "<null>"
+            : $"'{world.Name}'";
     }
 
     private static string DescribeComponent(EntityComponent? component)

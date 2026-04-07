@@ -29,9 +29,11 @@ public sealed class EntitiesPanel
 
     private MGDockPanel? _root;
     private MGTreeView? _treeView;
+    private MGTreeViewItem? _worldRootItem;
     private MGTextBox? _searchBox;
     private MGTextBlock? _summaryText;
     private World? _currentWorld;
+    private World? _selectedWorld;
     private Entity? _selectedEntity;
     private int _selectedEntityCount;
     private string _filterText = string.Empty;
@@ -44,6 +46,8 @@ public sealed class EntitiesPanel
     }
 
     public event Action<Entity?>? SelectedEntityChanged;
+
+    public event Action<World?>? SelectedWorldChanged;
 
     public event Action<Entity>? EntityDoubleClicked;
 
@@ -108,11 +112,17 @@ public sealed class EntitiesPanel
 
     public void SetSelectedEntity(Entity? entity)
     {
-        SetSelectionState(entity, entity != null ? 1 : 0);
+        SetSelectionState(null, entity, entity != null ? 1 : 0);
     }
 
-    public void SetSelectionState(Entity? entity, int selectedEntityCount)
+    public void SetSelectedWorld(World? world)
     {
+        SetSelectionState(world, null, world != null ? 1 : 0);
+    }
+
+    public void SetSelectionState(World? world, Entity? entity, int selectedEntityCount)
+    {
+        _selectedWorld = world;
         _selectedEntity = entity;
         _selectedEntityCount = selectedEntityCount;
         UpdateSummary();
@@ -127,7 +137,16 @@ public sealed class EntitiesPanel
         {
             if (entity == null)
             {
-                _treeView.ClearSelection();
+                if (world != null && _worldRootItem != null)
+                {
+                    _treeView.SelectItem(_worldRootItem);
+                    _treeView.ScrollIntoView(_worldRootItem);
+                }
+                else
+                {
+                    _treeView.ClearSelection();
+                }
+
                 return;
             }
 
@@ -227,7 +246,20 @@ public sealed class EntitiesPanel
             return;
         }
 
+        if (ReferenceEquals(item, _worldRootItem))
+        {
+            _selectedWorld = _currentWorld;
+            _selectedEntity = null;
+            _selectedEntityCount = _selectedWorld != null ? 1 : 0;
+            UpdateSummary();
+            SelectedWorldChanged?.Invoke(_selectedWorld);
+            return;
+        }
+
+        _selectedWorld = null;
         _selectedEntity = _itemToEntity.TryGetValue(item, out var entity) ? entity : null;
+        _selectedEntityCount = _selectedEntity != null ? 1 : 0;
+        UpdateSummary();
         SelectedEntityChanged?.Invoke(_selectedEntity);
     }
 
@@ -396,6 +428,7 @@ public sealed class EntitiesPanel
         _itemToEntity.Clear();
         _entityToItem.Clear();
         _treeView.ClearItems();
+        _worldRootItem = null;
 
         if (_currentWorld == null)
         {
@@ -403,13 +436,48 @@ public sealed class EntitiesPanel
             return;
         }
 
+        _worldRootItem = new MGTreeViewItem(_window)
+        {
+            IsExpanded = true,
+            Header = BuildWorldHeader(_currentWorld),
+        };
+
         foreach (var entity in _currentWorld.Entities.Where(ShouldIncludeEntity).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
         {
-            _treeView.AddItem(BuildTreeItem(entity));
+            _worldRootItem.AddItem(BuildTreeItem(entity));
         }
 
+        _treeView.AddItem(_worldRootItem);
+
         UpdateSummary();
-        SetSelectedEntity(_selectedEntity);
+        SetSelectionState(_selectedWorld, _selectedEntity, _selectedEntityCount);
+    }
+
+    private MGElement BuildWorldHeader(World world)
+    {
+        var header = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        var icon = EditorIcons.Layers ?? EditorIcons.ListTree ?? EditorIcons.Box;
+        if (icon != null)
+        {
+            header.TryAddChild(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth = 16,
+                PreferredHeight = 16,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+        }
+
+        header.TryAddChild(new MGTextBlock(_window, string.IsNullOrWhiteSpace(world.Name) ? "World" : world.Name)
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        return header;
     }
 
     private MGTreeViewItem BuildTreeItem(Entity entity)
@@ -502,6 +570,12 @@ public sealed class EntitiesPanel
         }
 
         int entityCount = EnumerateEntities(_currentWorld.Entities).Count();
+        if (_selectedWorld != null && _selectedEntity == null)
+        {
+            _summaryText.SetText($"{entityCount} entit{(entityCount == 1 ? "y" : "ies")} - world selected");
+            return;
+        }
+
         if (_selectedEntityCount > 0)
         {
             _summaryText.SetText($"{entityCount} entit{(entityCount == 1 ? "y" : "ies")} - {_selectedEntityCount} selected");
@@ -656,6 +730,7 @@ public sealed class EntitiesPanel
 
     private void ApplySelectionAfterMutation(Entity? entity)
     {
+        _selectedWorld = null;
         _selectedEntity = entity;
         _selectedEntityCount = entity != null ? 1 : 0;
         SelectedEntityChanged?.Invoke(entity);

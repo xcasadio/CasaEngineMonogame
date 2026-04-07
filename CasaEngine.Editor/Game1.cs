@@ -110,7 +110,7 @@ namespace CasaEngine.Editor
         private Action? _pendingProjectLauncherAction;
         private FrameCachedWindowInputSource _windowInputSource;
         private readonly EditorSelection _editorSelection = EditorSelection.Current;
-        private bool _isSynchronizingEntitySelection;
+        private bool _isSynchronizingSelection;
         private readonly EditorAutomationOptions _automationOptions;
         private KeyboardState _previousShortcutKeyboardState;
         private bool _automationWorldLoaded;
@@ -219,6 +219,7 @@ namespace CasaEngine.Editor
             HookViewportInputCoordination();
 
             _editorSelection.SelectionChanged += OnEditorSelectionChanged;
+            _editorSelection.WorldSelectionChanged += OnEditorWorldSelectionChanged;
             _editorSelection.ComponentSelectionChanged += OnEditorComponentSelectionChanged;
             _screenSelection.SelectionChanged += OnScreenSelectionChanged;
             _screenSelection.MultiSelectionChanged += _ => OnScreenSelectionChanged(_screenSelection.SelectedNodeId);
@@ -657,6 +658,7 @@ namespace CasaEngine.Editor
             {
                 _entitiesPanel = new EntitiesPanel(_mainWindow, () => _editorRuntime?.GameManager.CurrentWorld);
                 _entitiesPanel.SelectedEntityChanged += OnEntitiesPanelSelectionChanged;
+                _entitiesPanel.SelectedWorldChanged += OnEntitiesPanelWorldSelectionChanged;
                 _entitiesPanel.EntityDoubleClicked += OnEntitiesPanelEntityDoubleClicked;
             }
 
@@ -1727,6 +1729,11 @@ namespace CasaEngine.Editor
             _editorSelection.SetSelectedEntity(entity);
         }
 
+        private void OnEntitiesPanelWorldSelectionChanged(Framework.Scene.World.World? world)
+        {
+            _editorSelection.SetSelectedWorld(world);
+        }
+
         private void OnEntitiesPanelEntityDoubleClicked(Entity entity)
         {
             _worldViewportPanel?.FocusEntity(entity);
@@ -2106,12 +2113,12 @@ namespace CasaEngine.Editor
 
         private void OnEditorSelectionChanged(Entity? entity)
         {
-            if (_isSynchronizingEntitySelection)
+            if (_isSynchronizingSelection)
             {
                 return;
             }
 
-            _isSynchronizingEntitySelection = true;
+            _isSynchronizingSelection = true;
             try
             {
                 RefreshWorldSelectionViews();
@@ -2122,7 +2129,29 @@ namespace CasaEngine.Editor
             }
             finally
             {
-                _isSynchronizingEntitySelection = false;
+                _isSynchronizingSelection = false;
+            }
+        }
+
+        private void OnEditorWorldSelectionChanged(Framework.Scene.World.World? world)
+        {
+            if (_isSynchronizingSelection)
+            {
+                return;
+            }
+
+            _isSynchronizingSelection = true;
+            try
+            {
+                RefreshWorldSelectionViews();
+                if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.World)
+                {
+                    SyncGlobalSelectionFromActiveDocument();
+                }
+            }
+            finally
+            {
+                _isSynchronizingSelection = false;
             }
         }
 
@@ -2145,12 +2174,12 @@ namespace CasaEngine.Editor
         private void RefreshWorldHierarchyView()
         {
             _entitiesPanel?.Update();
-            _entitiesPanel?.SetSelectionState(GetSelectedWorldEntity(), GetWorldSelectionCount());
+            _entitiesPanel?.SetSelectionState(_editorSelection.SelectedWorld, GetSelectedWorldEntity(), GetWorldSelectionCount());
         }
 
         private void RefreshWorldInspectorView()
         {
-            _entityDetailsPanel?.SyncSelection(GetSelectedWorldEntity(), _editorSelection.SelectedComponent);
+            _entityDetailsPanel?.SyncSelection(_editorSelection.SelectedWorld, GetSelectedWorldEntity(), _editorSelection.SelectedComponent);
         }
 
         private void RefreshWorldSelectionViews()
@@ -2171,7 +2200,7 @@ namespace CasaEngine.Editor
 
         private int GetWorldSelectionCount()
         {
-            return GetSelectedWorldEntity() == null ? 0 : 1;
+            return _editorSelection.SelectedWorld != null || GetSelectedWorldEntity() != null ? 1 : 0;
         }
 
         private void SyncGlobalSelectionFromActiveDocument()
@@ -2212,6 +2241,15 @@ namespace CasaEngine.Editor
                     _editorSelection.SelectedEntity,
                     count,
                     $"{count} entit{(count == 1 ? "y" : "ies")} selected");
+            }
+
+            if (_editorSelection.SelectedWorld != null)
+            {
+                return new EditorSelectionState(
+                    EditorSelectionKind.WorldRoot,
+                    _editorSelection.SelectedWorld,
+                    1,
+                    string.IsNullOrWhiteSpace(_editorSelection.SelectedWorld.Name) ? "World selected" : _editorSelection.SelectedWorld.Name);
             }
 
             return EditorSelectionState.Empty;

@@ -377,7 +377,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-016 — Ajouter la selection du world dans l'editeur
+### ✅ ENV-016 — Ajouter la selection du world dans l'editeur
 Objectif:
 permettre au document world de selectionner explicitement le world racine, et pas seulement une entite ou un composant.
 
