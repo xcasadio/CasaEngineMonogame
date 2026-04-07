@@ -118,7 +118,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(racinggame): move legacy technique mapping into optional import profile`
 
-- ⏳ **T02.03 — Deplacer les exceptions `Sign/Banner/Windmill` dans le profil RacingGame**
+- ✅ **T02.03 — Deplacer les exceptions `Sign/Banner/Windmill` dans le profil RacingGame**
   Objectif :
   - Sortir ces exceptions du moteur et les exprimer via le profil RacingGame.
   Validation :

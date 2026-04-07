@@ -43,7 +43,7 @@ public class StaticModelImporterTests
         Assert.Equal("NormalMapping.fx", Path.GetFileName(signMaterial.EffectFilePath));
         Assert.Equal(8, signMaterial.LegacyTechniqueIndex);
         Assert.True(signMaterial.UsesReflection);
-        Assert.True(signMaterial.BrightAmbientHint);
+        Assert.False(signMaterial.BrightAmbientHint);
         Assert.False(signMaterial.AlphaCutoutHint);
     }
 

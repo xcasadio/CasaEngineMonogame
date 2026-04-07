@@ -418,9 +418,6 @@ public class StaticModelImporter
     {
         string modelName = Path.GetFileNameWithoutExtension(modelFilePath);
         importedMaterial.AlphaCutoutHint = ComputeAlphaCutoutHint(modelName, importedMaterial);
-        importedMaterial.BrightAmbientHint = modelName.StartsWith("Sign", StringComparison.OrdinalIgnoreCase)
-            || modelName.StartsWith("Banner", StringComparison.OrdinalIgnoreCase)
-            || modelName.StartsWith("Windmill", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool ComputeAlphaCutoutHint(string modelName, StaticModelImportedMaterial importedMaterial)
