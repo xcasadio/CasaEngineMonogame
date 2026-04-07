@@ -99,7 +99,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
 
 ## Phase 2 — Implementer le profil RacingGame hors du moteur
 
-- ⏳ **T02.01 — Creer l'emplacement du profil RacingGame optionnel**
+- ✅ **T02.01 — Creer l'emplacement du profil RacingGame optionnel**
   Objectif :
   - Ajouter une implementation cote `RacingGameCasaEngine` ou dans une zone RacingGame adaptee, sans la mettre dans CasaEngine.
   - Documenter son point de bootstrap.
