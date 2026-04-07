@@ -22,7 +22,7 @@ public class StaticModelImporterTests
         Assert.Equal("PalmLeaveNormal.tga", Path.GetFileName(leafMaterial.NormalTextureFilePath));
         Assert.Equal("NormalMapping.fx", Path.GetFileName(leafMaterial.EffectFilePath));
         Assert.Equal(4, leafMaterial.LegacyTechniqueIndex);
-        Assert.True(leafMaterial.AlphaCutoutHint);
+        Assert.False(leafMaterial.AlphaCutoutHint);
         Assert.False(leafMaterial.BrightAmbientHint);
     }
 

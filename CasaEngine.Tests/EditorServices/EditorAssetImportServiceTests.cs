@@ -120,7 +120,7 @@ public class EditorAssetImportServiceTests
     }
 
     [Fact]
-    public void ImportFile_AlphaCutoutLegacyModel_PersistsExplicitAlphaCutoutIntent()
+    public void ImportFile_AlphaCutoutLegacyModel_UsesOptionalLegacyImportProfileInterpretation()
     {
         string workspaceRoot = FindWorkspaceRoot();
         string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "AlphaPalm.X");
@@ -135,7 +135,12 @@ public class EditorAssetImportServiceTests
             EngineEnvironment.ProjectPath = tempDirectory;
             EditorAssetCatalogService.Clear();
 
-            bool catalogChanged = EditorAssetImportService.ImportFile(sourceFilePath, destinationFilePath);
+            bool catalogChanged = EditorAssetImportService.ImportFile(
+                sourceFilePath,
+                destinationFilePath,
+                new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                    LegacyMaterialSurfaceIntent.AlphaCutoutLit,
+                    LegacyMaterialImportHint.AlphaCutout)));
 
             Assert.True(catalogChanged);
 

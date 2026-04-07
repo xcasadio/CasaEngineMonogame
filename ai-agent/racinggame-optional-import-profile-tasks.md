@@ -127,7 +127,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(racinggame): move bright ambient exceptions into import profile`
 
-- ⏳ **T02.04 — Deplacer les heuristiques `Alpha/Palm/Leave/Ast/plants` dans le profil RacingGame**
+- ✅ **T02.04 — Deplacer les heuristiques `Alpha/Palm/Leave/Ast/plants` dans le profil RacingGame**
   Objectif :
   - Sortir ces heuristiques du moteur et les conserver uniquement dans le profil optionnel si elles restent necessaires.
   Validation :

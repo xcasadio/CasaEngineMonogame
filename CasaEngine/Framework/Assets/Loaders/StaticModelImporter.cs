@@ -397,9 +397,6 @@ public class StaticModelImporter
         string modelFilePath,
         ILegacyMaterialImportProfile legacyMaterialImportProfile)
     {
-        // Keep the current importer behavior until the RacingGame profile fully owns these rules.
-        ApplyLegacyImportHints(importedMaterial, modelFilePath);
-
         string modelName = Path.GetFileNameWithoutExtension(modelFilePath);
         var interpretation = legacyMaterialImportProfile.Interpret(new LegacyMaterialImportContext(
             SourceAssetPath: modelFilePath,
@@ -410,34 +407,6 @@ public class StaticModelImporter
         importedMaterial.AlphaCutoutHint = interpretation.AlphaCutout;
         importedMaterial.BrightAmbientHint = interpretation.BrightAmbient;
         importedMaterial.UsesReflection |= interpretation.Reflection;
-    }
-
-    // Legacy .X assets do not expose explicit cutout/signage flags, so import-time hints
-    // preserve the authored behaviour while keeping later runtime/editor paths metadata-driven.
-    private static void ApplyLegacyImportHints(StaticModelImportedMaterial importedMaterial, string modelFilePath)
-    {
-        string modelName = Path.GetFileNameWithoutExtension(modelFilePath);
-        importedMaterial.AlphaCutoutHint = ComputeAlphaCutoutHint(modelName, importedMaterial);
-    }
-
-    private static bool ComputeAlphaCutoutHint(string modelName, StaticModelImportedMaterial importedMaterial)
-    {
-        if (modelName.StartsWith("Alpha", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        string? diffusePath = importedMaterial.DiffuseTextureFilePath;
-        if (string.IsNullOrWhiteSpace(diffusePath))
-        {
-            return false;
-        }
-
-        string textureName = Path.GetFileNameWithoutExtension(diffusePath);
-        return textureName.Contains("Palm", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("Leave", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("Ast", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("plants", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool TryReadColor(
