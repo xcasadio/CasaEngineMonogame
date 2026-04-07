@@ -8,13 +8,49 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 ///
 /// Technique name conventions (Phase 8):
 /// Opaque, Opaque_Textured, AlphaTest, AlphaTest_Textured, Transparent,
-/// Transparent_Textured, Skinned, Skinned_Textured.
+/// Transparent_Textured, Skinned, Skinned_Textured, with optional draw-path
+/// suffixes _VertexColor and _Instanced.
 ///
 /// Alias maps translate these canonical names to the actual technique names defined
-/// in each .fx file (e.g. LitForward_PixelLighting_Texture).
+/// in each .fx file (e.g. LitForward_PixelLighting_Texture_VertexColor).
+/// NormalMap, Reflection, and light-count specialisation stay material-specific.
 /// </summary>
 public sealed class ShaderVariantLibrary
 {
+    private static readonly ShaderFeature[] CanonicalBaseFeatureSets =
+    {
+        ShaderFeature.None,
+        ShaderFeature.BasColorTexture,
+        ShaderFeature.AlphaTest,
+        ShaderFeature.AlphaTest | ShaderFeature.BasColorTexture,
+        ShaderFeature.Transparent,
+        ShaderFeature.Transparent | ShaderFeature.BasColorTexture,
+        ShaderFeature.Skinned,
+        ShaderFeature.Skinned | ShaderFeature.BasColorTexture,
+    };
+
+    private static readonly ShaderFeature[] CanonicalDrawPathFeatureSets =
+    {
+        ShaderFeature.None,
+        ShaderFeature.VertexColor,
+        ShaderFeature.Instanced,
+        ShaderFeature.VertexColor | ShaderFeature.Instanced,
+    };
+
+    private static readonly ShaderFeature[] TechniqueFallbackFeatureOrder =
+    {
+        ShaderFeature.Instanced,
+        ShaderFeature.VertexColor,
+    };
+
+    private const ShaderFeature CanonicalTechniqueFeatureMask =
+        ShaderFeature.BasColorTexture |
+        ShaderFeature.VertexColor |
+        ShaderFeature.AlphaTest |
+        ShaderFeature.Skinned |
+        ShaderFeature.Instanced |
+        ShaderFeature.Transparent;
+
     private readonly ShaderManager _shaderManager;
 
     // Explicit variant registrations: key -> asset Guid of the compiled effect
@@ -56,46 +92,16 @@ public sealed class ShaderVariantLibrary
     }
 
     /// <summary>Returns alias map for mapping canonical technique names to LitForward.fx ones.</summary>
-    public static Dictionary<string, string> BuildLitForwardAliases() =>
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Opaque"]             = "LitForward_PixelLighting",
-            ["Opaque_Textured"]    = "LitForward_PixelLighting_Texture",
-            ["AlphaTest"]          = "LitForward_PixelLighting",
-            ["AlphaTest_Textured"] = "LitForward_PixelLighting_Texture",
-            ["Transparent"]        = "LitForward_PixelLighting",
-            ["Transparent_Textured"] = "LitForward_PixelLighting_Texture",
-            ["Skinned"]            = "LitForward_PixelLighting",
-            ["Skinned_Textured"]   = "LitForward_PixelLighting_Texture",
-        };
+    public static Dictionary<string, string> BuildLitForwardAliases()
+        => BuildCanonicalAliasMap(ResolveLitForwardTechnique);
 
     /// <summary>Returns alias map for mapping canonical technique names to UnlitTexture.fx ones.</summary>
-    public static Dictionary<string, string> BuildUnlitTextureAliases() =>
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Opaque"]             = "Unlit_Colored",
-            ["Opaque_Textured"]    = "Unlit_Textured",
-            ["AlphaTest"]          = "Unlit_Colored",
-            ["AlphaTest_Textured"] = "Unlit_Textured",
-            ["Transparent"]        = "Unlit_Colored",
-            ["Transparent_Textured"] = "Unlit_Textured",
-            ["Skinned"]            = "Unlit_Colored",
-            ["Skinned_Textured"]   = "Unlit_Textured",
-        };
+    public static Dictionary<string, string> BuildUnlitTextureAliases()
+        => BuildCanonicalAliasMap(ResolveUnlitTechnique);
 
     /// <summary>Returns alias map for mapping canonical technique names to skinEffect.fx ones.</summary>
-    public static Dictionary<string, string> BuildSkinnedEffectAliases() =>
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Opaque"]               = "RiggedModelDraw",
-            ["Opaque_Textured"]      = "RiggedModelDraw",
-            ["AlphaTest"]            = "RiggedModelDraw",
-            ["AlphaTest_Textured"]   = "RiggedModelDraw",
-            ["Transparent"]          = "RiggedModelDraw",
-            ["Transparent_Textured"] = "RiggedModelDraw",
-            ["Skinned"]              = "RiggedModelDraw",
-            ["Skinned_Textured"]     = "RiggedModelDraw",
-        };
+    public static Dictionary<string, string> BuildSkinnedEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDraw");
 
     // Lookup -------------------------------------------------------------
 
@@ -167,10 +173,63 @@ public sealed class ShaderVariantLibrary
 
     // Technique helpers --------------------------------------------------
 
+    private static Dictionary<string, string> BuildCanonicalAliasMap(Func<ShaderFeature, string> actualTechniqueResolver)
+    {
+        var aliases = new Dictionary<string, string>(
+            CanonicalBaseFeatureSets.Length * CanonicalDrawPathFeatureSets.Length,
+            StringComparer.OrdinalIgnoreCase);
+
+        for (int baseIndex = 0; baseIndex < CanonicalBaseFeatureSets.Length; baseIndex++)
+        {
+            for (int drawPathIndex = 0; drawPathIndex < CanonicalDrawPathFeatureSets.Length; drawPathIndex++)
+            {
+                var features = CanonicalBaseFeatureSets[baseIndex] | CanonicalDrawPathFeatureSets[drawPathIndex];
+                var canonicalTechnique = BuildTechniqueName(features);
+                if (canonicalTechnique is null)
+                {
+                    continue;
+                }
+
+                aliases[canonicalTechnique] = actualTechniqueResolver(features);
+            }
+        }
+
+        return aliases;
+    }
+
+    private static string ResolveLitForwardTechnique(ShaderFeature features)
+    {
+        bool textured = (features & ShaderFeature.BasColorTexture) != 0;
+        bool vertexColor = (features & ShaderFeature.VertexColor) != 0;
+
+        if (textured)
+        {
+            return vertexColor
+                ? "LitForward_PixelLighting_Texture_VertexColor"
+                : "LitForward_PixelLighting_Texture";
+        }
+
+        return vertexColor
+            ? "LitForward_PixelLighting_VertexColor"
+            : "LitForward_PixelLighting";
+    }
+
+    private static string ResolveUnlitTechnique(ShaderFeature features)
+        => (features & ShaderFeature.BasColorTexture) != 0 ? "Unlit_Textured" : "Unlit_Colored";
+
     private void ApplyTechnique(ShaderWrapper shader, Guid shaderBaseId, ShaderFeature features)
     {
-        foreach (var candidate in BuildTechniqueFallbackChain(features))
+        Span<ShaderFeature> fallbackCandidates = stackalloc ShaderFeature[5];
+        int fallbackCandidateCount = BuildTechniqueFallbackCandidates(features, fallbackCandidates);
+
+        for (int i = 0; i < fallbackCandidateCount; i++)
         {
+            string? candidate = BuildTechniqueName(fallbackCandidates[i]);
+            if (candidate is null)
+            {
+                continue;
+            }
+
             string techniqueName = candidate;
             if (_aliasMap.TryGetValue(shaderBaseId, out var aliases) &&
                 aliases.TryGetValue(candidate, out var aliased))
@@ -190,56 +249,92 @@ public sealed class ShaderVariantLibrary
             $"ShaderVariantLibrary: no compatible technique found for shader '{shaderBaseId}' and canonical technique '{requestedTechnique}'.");
     }
 
-    private static IEnumerable<string> BuildTechniqueFallbackChain(ShaderFeature features)
+    private static int BuildTechniqueFallbackCandidates(ShaderFeature features, Span<ShaderFeature> destination)
     {
-        var canonical = BuildTechniqueName(features);
-        if (canonical is null)
+        int count = 0;
+        ShaderFeature current = features & CanonicalTechniqueFeatureMask;
+        AddTechniqueCandidate(destination, ref count, current);
+
+        for (int i = 0; i < TechniqueFallbackFeatureOrder.Length; i++)
         {
-            yield break;
+            var optionalFeature = TechniqueFallbackFeatureOrder[i];
+            if ((current & optionalFeature) == 0)
+            {
+                continue;
+            }
+
+            current &= ~optionalFeature;
+            AddTechniqueCandidate(destination, ref count, current);
         }
 
-        yield return canonical;
+        ShaderFeature texturedFallback = (current & ShaderFeature.BasColorTexture) != 0
+            ? ShaderFeature.BasColorTexture
+            : ShaderFeature.None;
+        AddTechniqueCandidate(destination, ref count, texturedFallback);
 
-        bool textured = (features & ShaderFeature.BasColorTexture) != 0;
-        var texturedFallback = textured ? "Opaque_Textured" : "Opaque";
-
-        if (!string.Equals(canonical, texturedFallback, StringComparison.OrdinalIgnoreCase))
+        if (texturedFallback != ShaderFeature.None)
         {
-            yield return texturedFallback;
+            AddTechniqueCandidate(destination, ref count, ShaderFeature.None);
         }
 
-        if (!string.Equals(texturedFallback, "Opaque", StringComparison.OrdinalIgnoreCase))
+        return count;
+    }
+
+    private static void AddTechniqueCandidate(Span<ShaderFeature> destination, ref int count, ShaderFeature candidate)
+    {
+        if (count > 0 && destination[count - 1] == candidate)
         {
-            yield return "Opaque";
+            return;
         }
+
+        destination[count++] = candidate;
     }
 
     /// <summary>
     /// Maps ShaderFeature flags to a canonical technique name (Phase 8 convention).
-    /// Returns null to skip technique selection.
+    /// NormalMap, Reflection, and other material-specialised features are intentionally
+    /// excluded so they remain under explicit material control.
     /// </summary>
     public static string? BuildTechniqueName(ShaderFeature features)
     {
+        features &= CanonicalTechniqueFeatureMask;
+
         bool textured  = (features & ShaderFeature.BasColorTexture) != 0;
         bool alphaTest = (features & ShaderFeature.AlphaTest)     != 0;
         bool skinned   = (features & ShaderFeature.Skinned)       != 0;
         bool transparent = (features & ShaderFeature.Transparent) != 0;
+        bool vertexColor = (features & ShaderFeature.VertexColor) != 0;
+        bool instanced = (features & ShaderFeature.Instanced) != 0;
+
+        string techniqueName;
 
         if (skinned)
         {
-            return textured ? "Skinned_Textured"   : "Skinned";
+            techniqueName = textured ? "Skinned_Textured" : "Skinned";
         }
-
-        if (transparent)
+        else if (transparent)
         {
-            return textured ? "Transparent_Textured" : "Transparent";
+            techniqueName = textured ? "Transparent_Textured" : "Transparent";
         }
-
-        if (alphaTest)
+        else if (alphaTest)
         {
-            return textured ? "AlphaTest_Textured" : "AlphaTest";
+            techniqueName = textured ? "AlphaTest_Textured" : "AlphaTest";
+        }
+        else
+        {
+            techniqueName = textured ? "Opaque_Textured" : "Opaque";
         }
 
-        return textured ? "Opaque_Textured" : "Opaque";
+        if (vertexColor)
+        {
+            techniqueName += "_VertexColor";
+        }
+
+        if (instanced)
+        {
+            techniqueName += "_Instanced";
+        }
+
+        return techniqueName;
     }
 }

@@ -70,7 +70,10 @@ public abstract class RenderPass
         device.Indices = item.Mesh.IndexBuffer;
 
         stateCache.Apply(device, item, stats);
-        if (!resolvedShader.TechniqueSelectedBySelector || !item.Material.SupportsVariantTechniqueSelection)
+        if (item.Material.RequiresMaterialTechniqueSelection(
+            resolvedShader.TechniqueSelectedBySelector,
+            in context,
+            item.Features))
         {
             item.Material.SelectTechnique(shader, in context, item.Features);
         }

@@ -11,7 +11,7 @@ public class ShaderTechniqueCoverageTests
         @"TECHNIQUE\s*\(\s*(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*,",
         RegexOptions.Compiled);
 
-    private static readonly ShaderFeature[] CanonicalFeatureSets =
+    private static readonly ShaderFeature[] CanonicalBaseFeatureSets =
     {
         ShaderFeature.None,
         ShaderFeature.BasColorTexture,
@@ -21,10 +21,14 @@ public class ShaderTechniqueCoverageTests
         ShaderFeature.Transparent | ShaderFeature.BasColorTexture,
         ShaderFeature.Skinned,
         ShaderFeature.Skinned | ShaderFeature.BasColorTexture,
+    };
+
+    private static readonly ShaderFeature[] CanonicalDrawPathFeatureSets =
+    {
+        ShaderFeature.None,
         ShaderFeature.VertexColor,
-        ShaderFeature.VertexColor | ShaderFeature.BasColorTexture,
         ShaderFeature.Instanced,
-        ShaderFeature.Instanced | ShaderFeature.BasColorTexture,
+        ShaderFeature.VertexColor | ShaderFeature.Instanced,
     };
 
     [Fact]
@@ -39,25 +43,33 @@ public class ShaderTechniqueCoverageTests
             {
                 foreach (bool hasReflection in new[] { false, true })
                 {
-                    foreach (bool oneLight in new[] { false, true })
+                    foreach (bool hasVertexColor in new[] { false, true })
                     {
-                        var features = ShaderFeature.None;
-                        if (hasBasColor)
+                        foreach (bool oneLight in new[] { false, true })
                         {
-                            features |= ShaderFeature.BasColorTexture;
-                        }
+                            var features = ShaderFeature.None;
+                            if (hasBasColor)
+                            {
+                                features |= ShaderFeature.BasColorTexture;
+                            }
 
-                        if (hasBasColor && hasNormalMap)
-                        {
-                            features |= ShaderFeature.NormalMap;
-                        }
+                            if (hasBasColor && hasNormalMap)
+                            {
+                                features |= ShaderFeature.NormalMap;
+                            }
 
-                        if (hasReflection)
-                        {
-                            features |= ShaderFeature.Reflection;
-                        }
+                            if (hasReflection)
+                            {
+                                features |= ShaderFeature.Reflection;
+                            }
 
-                        requestedTechniques.Add(LitDiffuseMaterial.GetTechniqueName(features, oneLight));
+                            if (hasVertexColor)
+                            {
+                                features |= ShaderFeature.VertexColor;
+                            }
+
+                            requestedTechniques.Add(LitDiffuseMaterial.GetTechniqueName(features, oneLight));
+                        }
                     }
                 }
             }
@@ -105,7 +117,7 @@ public class ShaderTechniqueCoverageTests
             (Name: "skinEffect.fx", Aliases: ShaderVariantLibrary.BuildSkinnedEffectAliases()),
         };
 
-        foreach (var features in CanonicalFeatureSets)
+        foreach (var features in EnumerateCanonicalFeatureSets())
         {
             var canonicalTechnique = ShaderVariantLibrary.BuildTechniqueName(features);
             Assert.False(string.IsNullOrWhiteSpace(canonicalTechnique));
@@ -115,6 +127,17 @@ public class ShaderTechniqueCoverageTests
                 Assert.True(
                     aliasMap.Aliases.ContainsKey(canonicalTechnique!),
                     $"Alias map for '{aliasMap.Name}' does not define canonical technique '{canonicalTechnique}' for features '{features}'.");
+            }
+        }
+    }
+
+    private static IEnumerable<ShaderFeature> EnumerateCanonicalFeatureSets()
+    {
+        foreach (var baseFeatures in CanonicalBaseFeatureSets)
+        {
+            foreach (var drawPathFeatures in CanonicalDrawPathFeatureSets)
+            {
+                yield return baseFeatures | drawPathFeatures;
             }
         }
     }

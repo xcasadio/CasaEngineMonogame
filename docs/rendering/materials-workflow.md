@@ -42,7 +42,9 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 6. Au draw:
    - `RenderFeatureResolver` combine structure du material et capacites du mesh,
    - `EffectiveShaderResolver` choisit le shader effectif,
-   - `ShaderVariantLibrary` route vers la permutation canonique,
+  - `ShaderVariantLibrary` route vers la permutation canonique,
+  - la policy canonique couvre explicitement les dimensions draw-path stables (`BasColorTexture`, `AlphaTest`, `Transparent`, `Skinned`, `VertexColor`, `Instanced`),
+  - les variantes material-specifiques (`NormalMap`, `Reflection`, specialisation `OneLight`) restent sous le controle explicite du material quand elles ne sont pas partagees par toutes les familles de shaders,
    - le renderer applique les render states,
    - `MaterialBase.Bind(...)` pousse les parametres,
    - le `MaterialPropertyBlock` est applique en dernier pour les overrides par instance.

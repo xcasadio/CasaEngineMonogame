@@ -239,12 +239,29 @@ public class RenderFeatureResolverTests
     [Theory]
     [InlineData(ShaderFeature.None, "Opaque")]
     [InlineData(ShaderFeature.BasColorTexture, "Opaque_Textured")]
+    [InlineData(ShaderFeature.VertexColor, "Opaque_VertexColor")]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.VertexColor, "Opaque_Textured_VertexColor")]
+    [InlineData(ShaderFeature.Instanced, "Opaque_Instanced")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.VertexColor | ShaderFeature.Instanced, "Transparent_VertexColor_Instanced")]
+    [InlineData(ShaderFeature.Transparent | ShaderFeature.BasColorTexture | ShaderFeature.VertexColor, "Transparent_Textured_VertexColor")]
     [InlineData(ShaderFeature.AlphaTest | ShaderFeature.BasColorTexture, "AlphaTest_Textured")]
     [InlineData(ShaderFeature.Transparent, "Transparent")]
     [InlineData(ShaderFeature.Transparent | ShaderFeature.BasColorTexture, "Transparent_Textured")]
     [InlineData(ShaderFeature.Skinned, "Skinned")]
     [InlineData(ShaderFeature.Skinned | ShaderFeature.BasColorTexture, "Skinned_Textured")]
+    [InlineData(ShaderFeature.Skinned | ShaderFeature.BasColorTexture | ShaderFeature.VertexColor | ShaderFeature.Instanced, "Skinned_Textured_VertexColor_Instanced")]
     public void BuildTechniqueName_ReturnsExpectedCanonicalTechnique(ShaderFeature features, string expectedTechnique)
+    {
+        var techniqueName = ShaderVariantLibrary.BuildTechniqueName(features);
+
+        Assert.Equal(expectedTechnique, techniqueName);
+    }
+
+    [Theory]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.NormalMap, "Opaque_Textured")]
+    [InlineData(ShaderFeature.Reflection | ShaderFeature.VertexColor, "Opaque_VertexColor")]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.Reflection | ShaderFeature.Instanced, "Opaque_Textured_Instanced")]
+    public void BuildTechniqueName_IgnoresMaterialSpecificDimensionsOutsideCanonicalPolicy(ShaderFeature features, string expectedTechnique)
     {
         var techniqueName = ShaderVariantLibrary.BuildTechniqueName(features);
 
@@ -260,11 +277,15 @@ public class RenderFeatureResolverTests
 
         Assert.Equal("LitForward_PixelLighting", litForwardAliases["Transparent"]);
         Assert.Equal("LitForward_PixelLighting_Texture", litForwardAliases["Transparent_Textured"]);
+        Assert.Equal("LitForward_PixelLighting_VertexColor", litForwardAliases["Opaque_VertexColor"]);
+        Assert.Equal("LitForward_PixelLighting_Texture_VertexColor", litForwardAliases["Transparent_Textured_VertexColor_Instanced"]);
         Assert.Equal("LitForward_PixelLighting_Texture", litForwardAliases["Skinned_Textured"]);
         Assert.Equal("Unlit_Colored", unlitAliases["Transparent"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Transparent_Textured"]);
+        Assert.Equal("Unlit_Textured", unlitAliases["Opaque_Textured_Instanced"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Skinned_Textured"]);
         Assert.Equal("RiggedModelDraw", skinnedAliases["Opaque"]);
+        Assert.Equal("RiggedModelDraw", skinnedAliases["Skinned_VertexColor_Instanced"]);
         Assert.Equal("RiggedModelDraw", skinnedAliases["Skinned_Textured"]);
     }
 }

@@ -14,8 +14,6 @@ namespace CasaEngine.Framework.Materials;
 /// </summary>
 public class LitDiffuseMaterial : MaterialBase
 {
-    public override bool SupportsVariantTechniqueSelection => false;
-
     public Texture2D? BasColor { get; set; }
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
     public Texture2D? NormalMap { get; set; }
@@ -33,6 +31,7 @@ public class LitDiffuseMaterial : MaterialBase
         bool hasBasColor = (features & ShaderFeature.BasColorTexture) != 0;
         bool hasNormalMap = hasBasColor && (features & ShaderFeature.NormalMap) != 0;
         bool hasReflection = (features & ShaderFeature.Reflection) != 0;
+        bool hasVertexColor = (features & ShaderFeature.VertexColor) != 0;
 
         if (hasReflection)
         {
@@ -49,13 +48,33 @@ public class LitDiffuseMaterial : MaterialBase
             return "LitForward_PixelLighting_Texture_NormalMap";
         }
 
-        return (hasBasColor, oneLight) switch
+        var techniqueName = (hasBasColor, oneLight) switch
         {
             (true, true) => "LitForward_PixelLighting_OneLight_Texture",
             (true, false) => "LitForward_PixelLighting_Texture",
             (false, true) => "LitForward_PixelLighting_OneLight",
             _ => "LitForward_PixelLighting",
         };
+
+        return hasVertexColor ? techniqueName + "_VertexColor" : techniqueName;
+    }
+
+    public override bool RequiresMaterialTechniqueSelection(
+        bool techniqueSelectedBySelector,
+        in RenderContext context,
+        ShaderFeature features)
+    {
+        if (!techniqueSelectedBySelector)
+        {
+            return true;
+        }
+
+        if ((features & (ShaderFeature.NormalMap | ShaderFeature.Reflection)) != 0)
+        {
+            return true;
+        }
+
+        return context.Lighting is { ActiveDirectionalLightCount: 1 };
     }
 
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)

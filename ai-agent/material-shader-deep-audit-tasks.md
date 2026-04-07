@@ -284,7 +284,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(shaders): rename main lit effect for architectural clarity`
 
-- ⏳ **T05.02 - Completer la politique canonique de variantes shader**
+- ✅ **T05.02 - Completer la politique canonique de variantes shader**
   Objectif :
   - Revoir `ShaderVariantLibrary.BuildTechniqueName(...)` et les alias pour couvrir explicitement les dimensions deja supportees par le moteur (`NormalMap`, `Reflection`, `VertexColor`, `Instanced`) ou documenter pourquoi certaines restent hors policy.
   - Reduire la dependance au `SelectTechnique(...)` imperatif dans les classes material quand c'est possible.

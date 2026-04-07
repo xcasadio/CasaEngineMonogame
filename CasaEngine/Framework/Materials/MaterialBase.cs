@@ -65,6 +65,16 @@ public abstract class MaterialBase : ISerializable
     }
 
     /// <summary>
+    /// Returns true when the material must choose or override the technique after shader resolution.
+    /// Materials that only rely on canonical shader variants can keep the selector decision.
+    /// </summary>
+    public virtual bool RequiresMaterialTechniqueSelection(
+        bool techniqueSelectedBySelector,
+        in RenderContext context,
+        ShaderFeature features)
+        => !techniqueSelectedBySelector || !SupportsVariantTechniqueSelection;
+
+    /// <summary>
     /// Pushes all material-specific shader parameters (WVP, textures, scalars…).
     /// Called once per draw item after render states are applied.
     /// </summary>

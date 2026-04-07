@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Xunit;
 
@@ -35,5 +37,46 @@ public class ShaderVariantLibraryTests
         var third = ShaderVariantLibrary.GetOrResolve(opaqueKey, resolved, ResolveSharedShader, ApplySelection);
         Assert.Same(sharedShader, third);
         Assert.Equal("Opaque", sharedShader.CurrentTechnique);
+    }
+
+    [Fact]
+    public void RequiresMaterialTechniqueSelection_OnlyOverridesCanonicalLitVariantsWhenNeeded()
+    {
+        var material = new LitDiffuseMaterial();
+        var defaultContext = default(RenderContext);
+
+        Assert.False(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: true,
+            in defaultContext,
+            ShaderFeature.BasColorTexture | ShaderFeature.VertexColor));
+        Assert.False(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: true,
+            in defaultContext,
+            ShaderFeature.BasColorTexture | ShaderFeature.Instanced));
+        Assert.True(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: true,
+            in defaultContext,
+            ShaderFeature.BasColorTexture | ShaderFeature.NormalMap));
+        Assert.True(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: true,
+            in defaultContext,
+            ShaderFeature.Reflection));
+
+        var oneLightContext = new RenderContext
+        {
+            Lighting = new LightingContext
+            {
+                ActiveDirectionalLightCount = 1,
+            },
+        };
+
+        Assert.True(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: true,
+            in oneLightContext,
+            ShaderFeature.BasColorTexture));
+        Assert.True(material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector: false,
+            in defaultContext,
+            ShaderFeature.BasColorTexture));
     }
 }

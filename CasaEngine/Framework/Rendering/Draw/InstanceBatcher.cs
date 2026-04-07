@@ -107,7 +107,10 @@ public sealed class InstanceBatcher : IDisposable
         _device.Indices = mesh.IndexBuffer;
 
         // Bind material params (world will come from the instance stream)
-        if (!techniqueSelectedBySelector || !firstItem.Material.SupportsVariantTechniqueSelection)
+        if (firstItem.Material.RequiresMaterialTechniqueSelection(
+            techniqueSelectedBySelector,
+            in context,
+            firstItem.Features))
         {
             firstItem.Material.SelectTechnique(shader, in context, firstItem.Features);
         }
