@@ -45,6 +45,12 @@ Créer un projet `RacingGameCasaEngine` qui porte `RacingGame` sur `CasaEngine`,
 - Le statut de l'étape principale devient `🟨` dès qu'une sous-étape a commencé.
 - Le statut de l'étape principale devient `✅` seulement quand toutes ses sous-étapes sont terminées.
 
+## Validation minimale transversale
+
+- Build borné obligatoire : `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj`
+- Si une étape touche le front-end, le `ScreenManager` ou la navigation de course : lancer aussi `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`
+- Ne pas utiliser la tâche VS Code `Build RacingGame.Shared` pour valider ce plan : elle est mal configurée en PowerShell dans ce workspace.
+
 ## Plan committable
 
 ## ✅ Étape 1 - Cadrer la migration et geler l'architecture cible
@@ -291,7 +297,7 @@ Remplacer le pilotage global par un monde runtime CasaEngine cohérent.
 
 **But**
 
-Afficher la piste et son décor sans le pipeline historique de `RacingGame`.
+Afficher une première version de la piste et de son décor sans le pipeline historique de `RacingGame`.
 
 **Travail**
 
@@ -323,30 +329,70 @@ Afficher la piste et son décor sans le pipeline historique de `RacingGame`.
 - Les fichiers legacy `TrackBeginner.Track`, `TrackAdvanced.Track`, `TrackExpert.Track`, les `CombiModel` et les modèles `.X` sont maintenant copiés dans `RacingGameCasaEngine/Content` via le projet du jeu, sans réintroduire de pipeline MonoGame dédié au nouveau projet.
 - `RacingGameCasaEngine` charge les vraies données de piste via un loader projet local, génère la chaussée en `StaticModel` CasaEngine à partir des points du `.Track`, et dérive désormais le `PlayerStart` ainsi que les checkpoints depuis cette géométrie.
 - Le décor principal est assemblé à partir des `NeutralsObjects` des pistes legacy, avec expansion des `CombiModel` et import runtime des modèles `.X` en `StaticModelComponent`.
-- Les matériaux de décor utilisent pour l'instant des couleurs lit fallback par famille d'objets. Le remappage des textures legacy reste une amélioration visuelle ultérieure, mais le monde de course se charge déjà avec une vraie piste et un décor cohérent.
+- Les matériaux du circuit utilisent encore principalement des fallbacks unis. L'affichage final du circuit avec textures, matériaux cibles et éclairage dédié est traité par l'étape suivante.
 - Validation effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course avec la piste `Beginner` et son décor.
 
-## 🟨 Étape 8 - Porter la voiture joueur en Entity/Pawn CasaEngine
+## 🟨 Étape 8 - Finaliser l'affichage du circuit
 
 **But**
 
-Faire de la voiture un objet de jeu moderne, composé et contrôlable.
+Faire du circuit la priorité visuelle immédiate : scène lisible, modèles statiques texturés, matériaux cohérents et éclairage de course.
 
 **Travail**
 
-- Créer `RacingCarPawn` ou `RacingCarEntity`.
-- Décomposer la voiture en composants :
-  - visuel
-  - collision/physique
-  - gameplay proxy ou contrôleur arcade
-  - audio moteur si nécessaire
-  - caméra de poursuite ou point d'ancrage caméra
-- Porter la logique de contrôle, vitesse, accélération, rotation, collisions et état de course.
-- Si nécessaire, créer d'abord dans `RacingGameCasaEngine` les briques dédiées au jeu : contrôleur véhicule arcade, état runtime exposé au HUD, réglages de tuning.
+- Structurer le circuit en entités runtime explicites plutôt qu'en simple liste d'entités générées à plat.
+- Mapper les modèles statiques `.X` du circuit et du décor à leurs textures et slots de matériaux utiles.
+- Appliquer des matériaux cibles à la route, au sol et aux objets de décor au lieu de couleurs unies de fallback.
+- Ajouter un setup d'éclairage dédié à la scène de course.
 
 **Validation**
 
-- La voiture apparaît, répond aux inputs et se déplace dans le monde.
+- Une piste complète s'affiche avec ses modèles statiques principaux, ses textures utiles et une lumière de course cohérente.
+- Le rendu du circuit reste autonome côté `RacingGameCasaEngine`, sans retour vers le renderer legacy.
+
+**Commit**
+
+- `feat(racing-casa): finalize race track visual rendering`
+
+**Sous-étapes**
+
+- `✅ 8.1` Structurer le circuit en entités runtime explicites
+- `✅ 8.2` Mapper les modèles statiques du circuit à leurs textures
+- `✅ 8.3` Appliquer des matériaux cibles à la route, au sol et au décor
+- `✅ 8.4` Ajouter l'éclairage de la scène de course
+- `🧪 8.5` Vérifier qu'une piste lisible s'affiche avec textures et lumière
+
+**Notes**
+
+- La priorité immédiate du plan est d'afficher correctement le circuit avant de finaliser l'affichage de la voiture.
+- `RacingGameCasaEngine` copie désormais toutes les textures legacy du projet original dans `Content/Textures`, ce qui permet au chargement runtime des `.X` et des matériaux du sol/route d'utiliser les vrais fichiers du jeu.
+- `LegacyTrackSceneFactory` sépare maintenant les entités de piste (`Track.Ground.*`, `Track.Road.*`) et de décor (`Track.Scenery.*`), applique les matériaux importés quand ils existent, et complète le reste avec des fallbacks ciblés.
+- `RacingGameCasaEngineGame` applique un setup d'éclairage dédié quand un monde de course est chargé.
+- Validation automatisée effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course, le HUD et le retour menu après création des entités de piste et de décor.
+- Il reste à confirmer visuellement en exécution interactive que le rendu obtenu est suffisamment lisible et fidèle sur les trois pistes avant de solder l'étape en `✅`.
+
+## 🟨 Étape 9 - Porter la voiture joueur en Entity/Pawn CasaEngine
+
+**But**
+
+Faire de la voiture un objet de jeu moderne, composé et contrôlable, après que le circuit soit lisible visuellement.
+
+**Travail**
+
+- Créer `RacingCarPawn` ou `RacingCarEntity` comme agrégat runtime stable.
+- Décomposer la voiture en composants :
+  - racine physique
+  - pivot visuel
+  - rendu voiture
+  - gameplay proxy ou contrôleur arcade
+  - audio moteur si nécessaire
+  - point d'ancrage caméra
+- Raccorder le rendu de la voiture à un vrai modèle et à ses matériaux.
+- Brancher ensuite la physique gameplay de la voiture sur la physique du circuit.
+
+**Validation**
+
+- La voiture apparaît avec un vrai rendu dans le monde.
 - Le code gameplay n'est pas couplé à l'ancien `RacingGameManager`.
 
 **Commit**
@@ -355,19 +401,55 @@ Faire de la voiture un objet de jeu moderne, composé et contrôlable.
 
 **Sous-étapes**
 
-- `✅ 8.1` Créer l'entité ou le pawn de voiture
-- `✅ 8.2` Ajouter le composant visuel de la voiture
-- `⬜ 8.3` Ajouter la collision et la base physique
-- `✅ 8.4` Ajouter le contrôleur arcade de déplacement
-- `✅ 8.5` Brancher les inputs joueur
-- `✅ 8.6` Exposer l'état runtime utile au HUD et au `GameMode`
-- `⬜ 8.7` Vérifier que la voiture roule sur une piste simple
+- `✅ 9.1` Créer l'entité ou le pawn de voiture
+- `⬜ 9.2` Figer la hiérarchie ECS et les points d'ancrage de la voiture
+- `✅ 9.3` Ajouter un premier visuel debug de la voiture
+- `⬜ 9.4` Remplacer le visuel debug par un vrai rendu de voiture
+- `⬜ 9.5` Brancher les matériaux et textures de la voiture
+- `✅ 9.6` Ajouter le contrôleur arcade de déplacement
+- `✅ 9.7` Brancher les inputs joueur
+- `✅ 9.8` Exposer l'état runtime utile au HUD et au `GameMode`
+- `⬜ 9.9` Brancher la physique gameplay de la voiture sur la physique du circuit
+- `⬜ 9.10` Vérifier que la voiture roule sur une piste simple
 
 **Notes**
 
-- En attendant les vrais assets et la physique complète, la voiture utilise un rendu debug filaire, un déplacement arcade au clavier et un état runtime exposé au HUD live.
+- À ce stade, la voiture utilise encore un rendu debug filaire. Le but de cette étape est de la convertir en vraie entité rendue et composée, puis de la raccorder à la physique du circuit.
 
-## 🟨 Étape 9 - Porter la caméra de poursuite et le ressenti de conduite
+## ⬜ Étape 10 - Construire la physique du circuit et les triggers de course
+
+**But**
+
+Donner au circuit une représentation physique exploitable pour le roulage, les collisions de bord et la progression de course.
+
+**Travail**
+
+- Générer ou déduire une surface de roulage physique à partir des données de piste.
+- Ajouter les collisions de bord de piste et des obstacles prioritaires.
+- Remplacer les checkpoints basés sur la distance par des triggers runtime explicites.
+- Préparer un socle physique stable pour la voiture joueur et, plus tard, le ghost car.
+
+**Validation**
+
+- Une voiture peut rouler sur la piste via la physique du circuit et non uniquement par translation libre.
+- Un tour n'est validé qu'en franchissant les checkpoints dans l'ordre.
+
+**Commit**
+
+- `feat(racing-casa): build race track physics`
+
+**Sous-étapes**
+
+- `⬜ 10.1` Construire la surface de roulage physique du circuit
+- `⬜ 10.2` Ajouter les collisions de bord de piste et des obstacles prioritaires
+- `⬜ 10.3` Remplacer les checkpoints par des triggers runtime
+- `⬜ 10.4` Vérifier qu'une piste jouable combine rendu et physique cohérents
+
+**Notes**
+
+- Cette étape débloque directement `9.9` et `9.10` pour la voiture.
+
+## 🟨 Étape 11 - Porter la caméra de poursuite et le ressenti de conduite
 
 **But**
 
@@ -390,17 +472,17 @@ Retrouver le feel RacingGame sans réintroduire l'architecture ancienne.
 
 **Sous-étapes**
 
-- `✅ 9.1` Créer la caméra de poursuite de base
-- `✅ 9.2` Ajouter le suivi position/orientation du véhicule
-- `⬜ 9.3` Ajouter le zoom et la distance dynamique
-- `⬜ 9.4` Ajouter le mode game over ou orbit caméra
-- `⬜ 9.5` Ajuster le feel sans recoupler caméra et physique
+- `✅ 11.1` Créer la caméra de poursuite de base
+- `✅ 11.2` Ajouter le suivi position/orientation du véhicule
+- `⬜ 11.3` Ajouter le zoom et la distance dynamique
+- `⬜ 11.4` Ajouter le mode game over ou orbit caméra
+- `⬜ 11.5` Ajuster le feel sans recoupler caméra et physique
 
 **Notes**
 
 - La caméra de course suit maintenant le `RacingCarPawn` avec un offset lissé et un point de visée anticipé. Le zoom dynamique et les variantes de caméra restent à faire.
 
-## ⬜ Étape 10 - Migrer le flow de course
+## 🟨 Étape 12 - Migrer le flow de course
 
 **But**
 
@@ -428,19 +510,19 @@ Recréer la boucle de jeu complète.
 
 **Sous-étapes**
 
-- `✅ 10.1` Créer le countdown et l'état de départ de course
-- `✅ 10.2` Ajouter la logique de checkpoints
-- `✅ 10.3` Ajouter le comptage de tours
-- `✅ 10.4` Ajouter la logique de victoire et défaite
-- `⬜ 10.5` Ajouter pause et reprise
-- `⬜ 10.6` Raccorder les états de course au `GameScreenManager`
-- `⬜ 10.7` Vérifier la boucle complète début de course -> fin -> retour menu
+- `✅ 12.1` Créer le countdown et l'état de départ de course
+- `✅ 12.2` Ajouter la logique de checkpoints
+- `✅ 12.3` Ajouter le comptage de tours
+- `✅ 12.4` Ajouter la logique de victoire et défaite
+- `⬜ 12.5` Ajouter pause et reprise côté logique
+- `⬜ 12.6` Raccorder les états de course au `GameScreenManager`
+- `⬜ 12.7` Vérifier la boucle complète début de course -> fin -> retour menu
 
 **Notes**
 
 - Le flow de course minimal gère maintenant un countdown, la progression ordonnée sur checkpoints, le comptage de tours et l'état de fin de course directement côté projet.
 
-## ⬜ Étape 11 - Migrer le HUD et les overlays en jeu
+## 🟨 Étape 13 - Migrer le HUD et les overlays en jeu
 
 **But**
 
@@ -448,10 +530,9 @@ Afficher les informations de course via MGUI, sans renderer UI legacy.
 
 **Travail**
 
-- Créer le HUD de course : vitesse, tour, chrono, meilleur temps, aides contextuelles.
-- Créer l'overlay pause.
-- Créer l'overlay de fin de partie.
-- Raccorder le HUD aux données runtime du véhicule et de la course.
+- Faire évoluer le HUD actuel de télémétrie vers un HUD orienté joueur.
+- Ajouter les overlays de pause et de fin de partie.
+- Raccorder le HUD et les overlays aux données runtime du véhicule et de la course.
 
 **Validation**
 
@@ -464,13 +545,18 @@ Afficher les informations de course via MGUI, sans renderer UI legacy.
 
 **Sous-étapes**
 
-- `⬜ 11.1` Créer le HUD vitesse/tour/chrono
-- `⬜ 11.2` Afficher meilleur temps et informations de course
-- `⬜ 11.3` Ajouter l'overlay pause
-- `⬜ 11.4` Ajouter l'écran ou overlay de game over
-- `⬜ 11.5` Brancher toutes les données runtime au HUD
+- `✅ 13.1` Créer un premier HUD de course de télémétrie
+- `⬜ 13.2` Afficher vitesse, tour et chrono sur un HUD orienté joueur
+- `⬜ 13.3` Afficher meilleur temps et informations de course
+- `⬜ 13.4` Ajouter l'overlay pause
+- `⬜ 13.5` Ajouter l'écran ou overlay de game over
+- `⬜ 13.6` Brancher toutes les données runtime au HUD
 
-## ⬜ Étape 12 - Porter le ghost car, les highscores et la persistance
+**Notes**
+
+- `RaceHudScreen` existe déjà, mais reste pour l'instant un panneau texte de télémétrie plus proche d'un HUD de debug que du HUD final.
+
+## ⬜ Étape 14 - Porter le ghost car, les highscores et la persistance
 
 **But**
 
@@ -478,9 +564,9 @@ Conserver les fonctionnalités identitaires du jeu original.
 
 **Travail**
 
+- Introduire une vraie persistance des meilleurs temps par piste.
 - Migrer ou réimplémenter le système de replay échantillonné.
 - Afficher une ghost car dans le monde.
-- Sauvegarder et charger les meilleurs temps.
 - Migrer les options utiles : vidéo, audio, affichage, vibration si conservée.
 
 **Validation**
@@ -494,14 +580,14 @@ Conserver les fonctionnalités identitaires du jeu original.
 
 **Sous-étapes**
 
-- `⬜ 12.1` Introduire la structure de replay runtime
-- `⬜ 12.2` Enregistrer les échantillons de course nécessaires
-- `⬜ 12.3` Lire et interpoler un ghost car
-- `⬜ 12.4` Sauvegarder les meilleurs temps
-- `⬜ 12.5` Recharger les meilleurs temps au démarrage
-- `⬜ 12.6` Brancher les options de persistance utiles
+- `⬜ 14.1` Sauvegarder les meilleurs temps
+- `⬜ 14.2` Recharger les meilleurs temps au démarrage
+- `⬜ 14.3` Introduire la structure de replay runtime
+- `⬜ 14.4` Enregistrer les échantillons de course nécessaires
+- `⬜ 14.5` Lire et interpoler un ghost car
+- `⬜ 14.6` Brancher les options de persistance utiles
 
-## ⬜ Étape 13 - Finaliser l'intégration audio, collisions et feedbacks
+## ⬜ Étape 15 - Finaliser l'intégration audio et les feedbacks
 
 **But**
 
@@ -509,9 +595,9 @@ Retrouver le ressenti du jeu complet.
 
 **Travail**
 
-- Migrer musique, effets sonores, son moteur, collisions, bips de checkpoints et victoire/défaite.
-- Vérifier les collisions et réactions de la voiture.
-- Ajuster les feedbacks visuels et sonores.
+- Migrer musique, effets sonores et son moteur.
+- Ajouter les feedbacks checkpoint, victoire, défaite et collisions.
+- Ajuster les réactions visuelles et sonores restantes.
 
 **Validation**
 
@@ -523,13 +609,13 @@ Retrouver le ressenti du jeu complet.
 
 **Sous-étapes**
 
-- `⬜ 13.1` Brancher les musiques et SFX de base
-- `⬜ 13.2` Ajouter le son moteur et ses variations
-- `⬜ 13.3` Ajouter les feedbacks checkpoint/victoire/défaite
-- `⬜ 13.4` Ajuster collisions et réactions du véhicule
-- `⬜ 13.5` Ajuster les feedbacks visuels restants
+- `⬜ 15.1` Brancher les musiques de menu et de course
+- `⬜ 15.2` Ajouter le son moteur et ses variations
+- `⬜ 15.3` Ajouter les feedbacks checkpoint, victoire et défaite
+- `⬜ 15.4` Ajuster les réactions audio et visuelles des collisions
+- `⬜ 15.5` Ajuster les feedbacks visuels restants
 
-## ⬜ Étape 14 - Stabiliser, nettoyer et documenter
+## ⬜ Étape 16 - Stabiliser, nettoyer et documenter
 
 **But**
 
@@ -554,30 +640,30 @@ Clore la migration avec un état maintenable.
 
 **Sous-étapes**
 
-- `⬜ 14.1` Supprimer les dépendances legacy devenues inutiles
-- `⬜ 14.2` Vérifier les références et l'initialisation du projet
-- `⬜ 14.3` Documenter la structure finale du jeu
-- `⬜ 14.4` Documenter les écarts fonctionnels restants avec `RacingGame`
-- `⬜ 14.5` Documenter les extractions moteur réalisées pendant la migration
+- `⬜ 16.1` Supprimer les dépendances legacy devenues inutiles
+- `⬜ 16.2` Vérifier les références et l'initialisation du projet
+- `⬜ 16.3` Documenter la structure finale du jeu
+- `⬜ 16.4` Documenter les écarts fonctionnels restants avec `RacingGame`
+- `⬜ 16.5` Documenter les extractions moteur réalisées pendant la migration
 
 ## Ordre d'exécution recommandé
 
-1. Étapes 1 à 4
-2. Étapes 5 et 6
-3. Étapes 7 à 10
-4. Étapes 11 à 13
-5. Étape 14
+1. Étapes 1 à 7
+2. Étape 8
+3. Étape 9 jusqu'à l'obtention d'une vraie voiture visible (`9.2` à `9.5`)
+4. Étape 10 puis fin de l'étape 9 (`9.9` et `9.10`)
+5. Étapes 11 à 13
+6. Étapes 14 et 15
+7. Étape 16
 
-## Premier lot conseillé pour un agent autonome
+## Lot prioritaire conseillé pour un agent autonome
 
-1. `1.1` à `1.4`
-2. `2.1` à `2.6`
-3. `3.1` à `3.6`
-4. `4.1` à `4.6`
+1. `8.1` à `8.5`
+2. `9.2` à `9.5`
+3. `10.1` à `10.4`
+4. `9.9` à `9.10`
 
-Ce premier lot doit aboutir à un projet `RacingGameCasaEngine` qui démarre, charge un monde vide, possède une vue UI CasaEngine/MGUI fonctionnelle et ne dépend pas du `ContentPipeline` MonoGame du jeu original.
-4. Étapes 11 à 13
-5. Étape 14
+Ce lot doit aboutir à un projet `RacingGameCasaEngine` où le circuit s'affiche correctement avec ses textures et sa lumière, puis où la voiture apparaît comme une vraie entité rendue avant le raccord complet à la physique du circuit.
 
 ## Règle de blocage
 
@@ -587,11 +673,13 @@ Si une étape dépend d'une brique absente ou encore floue, l'agent doit insére
 
 Les points suivants ne sont pas traités comme des évolutions du moteur `CasaEngine`, mais comme des briques propres au projet `RacingGameCasaEngine` :
 
-- véhicule arcade et tuning de conduite ;
+- hiérarchie ECS, rendu, matériaux et physique de la voiture joueur ;
+- rendu du circuit : scene graph, modèles statiques, textures, matériaux et éclairage ;
+- physique du circuit : surface roulable, collisions de bord et triggers de checkpoints ;
 - système de course : checkpoints, tours, départ, fin ;
 - caméra de poursuite véhicule ;
 - ghost car et replay ;
 - workflow d'import et de mapping des assets du jeu ;
-- triggers gameplay utiles à la course.
+- feedbacks audio et visuels utiles à la course.
 
 Ils doivent être implémentés au fil des étapes du plan, dans le projet du jeu, sans créer de backlog séparé côté moteur.

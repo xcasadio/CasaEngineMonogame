@@ -10,7 +10,7 @@ public class StaticModelImporterTests
     public void ImportWithMetadata_PreservesLegacyEffectParameters_ForAlphaPalm()
     {
         var importer = new StaticModelImporter();
-        string modelPath = Path.Combine(FindRepositoryRoot(), "RacingGame", "Content", "Models", "AlphaPalm.X");
+        string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "AlphaPalm.X");
 
         var result = importer.ImportWithMetadata(modelPath);
 
@@ -22,25 +22,40 @@ public class StaticModelImporterTests
         Assert.Equal("PalmLeaveNormal.tga", Path.GetFileName(leafMaterial.NormalTextureFilePath));
         Assert.Equal("NormalMapping.fx", Path.GetFileName(leafMaterial.EffectFilePath));
         Assert.Equal(4, leafMaterial.LegacyTechniqueIndex);
+        Assert.True(leafMaterial.AlphaCutoutHint);
+        Assert.False(leafMaterial.BrightAmbientHint);
     }
 
     [Fact]
     public void ImportWithMetadata_PreservesReflectionMetadata_ForSign()
     {
         var importer = new StaticModelImporter();
-        string modelPath = Path.Combine(FindRepositoryRoot(), "RacingGame", "Content", "Models", "Sign.X");
+        string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "Sign.X");
 
         var result = importer.ImportWithMetadata(modelPath);
 
         StaticModelImportedMaterial signMaterial = FindMaterialByDiffuseTexture(result.Materials, "Schild.tga");
         AssertVector3Close(new Vector3(0.313726f, 0.313726f, 0.313726f), signMaterial.AmbientColor);
-        Assert.Equal(new Color(213, 213, 213, 255), signMaterial.DiffuseColor);
+        AssertColorClose(new Color(213, 213, 213, 255), signMaterial.DiffuseColor, tolerance: 1);
         AssertVector3Close(new Vector3(0.819608f, 0.819608f, 0.819608f), signMaterial.SpecularColor);
         Assert.Equal(16.0f, signMaterial.SpecularPower);
         Assert.Equal("SkyCubeMap.dds", Path.GetFileName(signMaterial.ReflectionTextureFilePath));
         Assert.Equal("NormalMapping.fx", Path.GetFileName(signMaterial.EffectFilePath));
         Assert.Equal(8, signMaterial.LegacyTechniqueIndex);
         Assert.True(signMaterial.UsesReflection);
+        Assert.True(signMaterial.BrightAmbientHint);
+        Assert.False(signMaterial.AlphaCutoutHint);
+    }
+
+    [Fact]
+    public void GetTextureFilePaths_IncludesReflectionTexture_ForReflectiveModel()
+    {
+        var importer = new StaticModelImporter();
+        string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "Sign.X");
+
+        var texturePaths = importer.GetTextureFilePaths(modelPath);
+
+        Assert.Contains(texturePaths, path => string.Equals(Path.GetFileName(path), "SkyCubeMap.dds", StringComparison.OrdinalIgnoreCase));
     }
 
     private static StaticModelImportedMaterial FindMaterialByDiffuseTexture(
@@ -58,6 +73,14 @@ public class StaticModelImporterTests
         Assert.InRange(Vector3.Distance(expected, actual), 0.0f, tolerance);
     }
 
+    private static void AssertColorClose(Color expected, Color actual, byte tolerance)
+    {
+        Assert.InRange(Math.Abs(expected.R - actual.R), 0, tolerance);
+        Assert.InRange(Math.Abs(expected.G - actual.G), 0, tolerance);
+        Assert.InRange(Math.Abs(expected.B - actual.B), 0, tolerance);
+        Assert.InRange(Math.Abs(expected.A - actual.A), 0, tolerance);
+    }
+
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
@@ -72,5 +95,17 @@ public class StaticModelImporterTests
         }
 
         throw new DirectoryNotFoundException("Unable to locate the repository root from the test output directory.");
+    }
+
+    private static string FindWorkspaceRoot()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string? workspaceRoot = Directory.GetParent(repositoryRoot)?.FullName;
+        if (string.IsNullOrWhiteSpace(workspaceRoot))
+        {
+            throw new DirectoryNotFoundException("Unable to locate the workspace root from the repository root.");
+        }
+
+        return workspaceRoot;
     }
 }

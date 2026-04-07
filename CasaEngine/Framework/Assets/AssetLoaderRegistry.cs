@@ -10,6 +10,7 @@ using CasaEngine.Framework.GUI.MGUI;
 using CasaEngine.Framework.Materials;
 using Microsoft.Xna.Framework.Graphics;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -18,6 +19,7 @@ public static class AssetLoaderRegistry
     public static void RegisterLoaders(AssetContentManager assetContentManager)
     {
         assetContentManager.RegisterAssetLoader(typeof(Texture2D), new Texture2DLoader());
+        assetContentManager.RegisterAssetLoader(typeof(XnaTextureCube), new TextureCubeLoader());
         assetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
         assetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
         //assetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());

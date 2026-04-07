@@ -26,6 +26,8 @@ namespace CasaEngine.Demos.Demos;
 ///   Alpha-test panel    : <see cref="LitDiffuseMaterial"/>    — cutout texture + <see cref="RenderQueue.AlphaTest"/>
 ///   Glass cube          : <see cref="UnlitTextureMaterial"/>  — semi-transparent, <see cref="RenderQueue.Transparent"/>
 ///   Normal-map box      : <see cref="LitDiffuseMaterial"/>    — tangent-ready mesh with procedural normal map
+///   Reflection sphere   : <see cref="LitDiffuseMaterial"/>    — procedural cubemap reflection path
+///   Ambient / Emissive  : <see cref="LitDiffuseMaterial"/>    — side-by-side ambient and emissive comparison
 ///
 /// Keyboard shortcuts:
 ///   <c>L</c> — cycle directional light count  1 → 2 → 3 → 1
@@ -39,7 +41,8 @@ public class MaterialDemo : Demo
 
     public override string Description =>
         "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
-        "alpha-test cutout, tangent-space normal map, transparent render queue.  L = cycle lights,  T = cycle sphere tints.";
+        "alpha-test cutout, tangent-space normal map, transparent render queue, reflective cubemap path, ambient-vs-emissive reference.  " +
+        "L = cycle lights,  T = cycle sphere tints.";
 
     // -----------------------------------------------------------------------
     //  Runtime state
@@ -174,6 +177,36 @@ public class MaterialDemo : Demo
         normalMapMat.BasColor = CreateCheckerTexture(gd, 128, new Color(215, 219, 230), new Color(122, 126, 145));
         normalMapMat.NormalMap = CreateWaveNormalMap(gd, 128);
 
+        var reflectiveMat = new LitDiffuseMaterial
+        {
+            Name = "ReflectiveSphere",
+            DiffuseColor = new Color(214, 224, 236),
+            AmbientColor = new Vector3(0.18f, 0.18f, 0.2f),
+            SpecularColor = new Vector3(1.0f),
+            SpecularPower = 96f,
+            ReflectionCube = CreateDebugReflectionCube(gd, 16),
+        };
+
+        var ambientOnlyAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "AmbientReference",
+        };
+        ambientOnlyAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(new Color(178, 190, 210)));
+        ambientOnlyAsset.SetPropertyValue("ambient_color", MaterialValue.FromVector3(new Vector3(0.9f, 0.75f, 0.55f)));
+        ambientOnlyAsset.SetPropertyValue("specular_color", MaterialValue.FromVector3(new Vector3(0.15f)));
+        ambientOnlyAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(10f));
+        var ambientOnlyMat = (LitDiffuseMaterial)materialCompiler.CompileRuntimeMaterial(ambientOnlyAsset, game.AssetContentManager);
+
+        var emissiveOnlyAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "EmissiveReference",
+        };
+        emissiveOnlyAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(new Color(178, 190, 210)));
+        emissiveOnlyAsset.SetPropertyValue("emissive_color", MaterialValue.FromVector3(new Vector3(0.35f, 0.22f, 0.08f)));
+        emissiveOnlyAsset.SetPropertyValue("specular_color", MaterialValue.FromVector3(new Vector3(0.15f)));
+        emissiveOnlyAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(10f));
+        var emissiveOnlyMat = (LitDiffuseMaterial)materialCompiler.CompileRuntimeMaterial(emissiveOnlyAsset, game.AssetContentManager);
+
         // Semi-transparent glass cube — unlit
         var glassMat = new UnlitTextureMaterial
         {
@@ -244,6 +277,24 @@ public class MaterialDemo : Demo
             Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(28f), MathHelper.ToRadians(-16f), 0f),
             normalMapMat,
             useTangents: true);
+
+        SpawnStaticModel("ReflectionSphere", world, gd,
+            new SpherePrimitive(1.0f, 24),
+            new Vector3(1.8f, 1.0f, -3.4f),
+            Quaternion.Identity,
+            reflectiveMat);
+
+        SpawnStaticModel("AmbientReference", world, gd,
+            new BoxPrimitive(1.1f, 1.1f, 1.1f),
+            new Vector3(4.2f, 0.55f, 2.6f),
+            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(18f), MathHelper.ToRadians(-10f), 0f),
+            ambientOnlyMat);
+
+        SpawnStaticModel("EmissiveReference", world, gd,
+            new BoxPrimitive(1.1f, 1.1f, 1.1f),
+            new Vector3(6.0f, 0.55f, 2.6f),
+            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-18f), MathHelper.ToRadians(-10f), 0f),
+            emissiveOnlyMat);
     }
 
     // -----------------------------------------------------------------------
@@ -466,6 +517,34 @@ public class MaterialDemo : Demo
 
         tex.SetData(data);
         return tex;
+    }
+
+    private static TextureCube CreateDebugReflectionCube(GraphicsDevice gd, int size)
+    {
+        var textureCube = new TextureCube(gd, size, false, SurfaceFormat.Color);
+        FillCubeFace(textureCube, CubeMapFace.PositiveX, size, new Color(210, 118, 82), new Color(255, 222, 180));
+        FillCubeFace(textureCube, CubeMapFace.NegativeX, size, new Color(58, 116, 196), new Color(162, 214, 255));
+        FillCubeFace(textureCube, CubeMapFace.PositiveY, size, new Color(248, 244, 210), Color.White);
+        FillCubeFace(textureCube, CubeMapFace.NegativeY, size, new Color(58, 74, 88), new Color(130, 146, 160));
+        FillCubeFace(textureCube, CubeMapFace.PositiveZ, size, new Color(78, 176, 150), new Color(210, 246, 226));
+        FillCubeFace(textureCube, CubeMapFace.NegativeZ, size, new Color(188, 90, 170), new Color(246, 204, 238));
+        return textureCube;
+    }
+
+    private static void FillCubeFace(TextureCube textureCube, CubeMapFace face, int size, Color start, Color end)
+    {
+        var data = new Color[size * size];
+
+        for (int y = 0; y < size; y++)
+        for (int x = 0; x < size; x++)
+        {
+            float u = size == 1 ? 0.0f : x / (size - 1f);
+            float v = size == 1 ? 0.0f : y / (size - 1f);
+            var horizontal = Color.Lerp(start, end, u);
+            data[y * size + x] = Color.Lerp(horizontal, Color.White, v * 0.18f);
+        }
+
+        textureCube.SetData(face, data);
     }
 
     private static float SampleWaveHeight(float u, float v)

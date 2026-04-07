@@ -12,6 +12,7 @@ using CasaEngine.Framework.Game.Components.Physics;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.World;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Demos;
@@ -19,9 +20,12 @@ namespace CasaEngine.Demos;
 public class DemosGame : CasaEngineGame
 {
     private readonly List<Demo> _demos = new();
+    private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
+    private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
     private Demo _currentDemo;
     private int _currentDemoIndex;
     private KeyboardState _prevKeyboard;
+    private bool _automationScreenshotCaptured;
 
     // ---- Demo navigation UI ----
     private DemoInfoScreen?  _demoInfoScreen;
@@ -33,6 +37,11 @@ public class DemosGame : CasaEngineGame
         Logs.AddLogger(new DebugLogger());
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
+
+        if (!string.IsNullOrWhiteSpace(_automationScreenshotPath))
+        {
+            _demoInfoVisible = false;
+        }
 
         // Push demo UI screens whenever the engine finishes building views for a world.
         // This covers the first-frame case where GameManager.UpdateWorld rebuilds the
@@ -154,8 +163,9 @@ public class DemosGame : CasaEngineGame
         uiView.PushScreen(_demoInfoScreen);
         uiView.PushScreen(_demoHintOverlay);
 
-        _demoInfoScreen.SetVisible(_demoInfoVisible);
-        _demoHintOverlay.SetVisible(!_demoInfoVisible);
+        bool automationScreenshotEnabled = !string.IsNullOrWhiteSpace(_automationScreenshotPath);
+        _demoInfoScreen.SetVisible(!automationScreenshotEnabled && _demoInfoVisible);
+        _demoHintOverlay.SetVisible(!automationScreenshotEnabled && !_demoInfoVisible);
     }
 
     protected override void OnViewsResized(int width, int height)
@@ -166,6 +176,7 @@ public class DemosGame : CasaEngineGame
     protected override void AfterRenderPipeline(GameTime gameTime)
     {
         _currentDemo?.PostDraw(this, gameTime);
+        TryCaptureAutomationScreenshot(gameTime);
     }
 
     protected override void Update(GameTime gameTime)
@@ -190,5 +201,76 @@ public class DemosGame : CasaEngineGame
         }
 
         base.Update(gameTime);
+    }
+
+    private void TryCaptureAutomationScreenshot(GameTime gameTime)
+    {
+        if (_automationScreenshotCaptured
+            || string.IsNullOrWhiteSpace(_automationScreenshotPath)
+            || _automationScreenshotDelay is null
+            || gameTime.TotalGameTime < _automationScreenshotDelay.Value)
+        {
+            return;
+        }
+
+        _automationScreenshotCaptured = true;
+        bool succeeded = CaptureScreenshot(_automationScreenshotPath);
+        Environment.ExitCode = succeeded ? 0 : 1;
+        Exit();
+    }
+
+    private bool CaptureScreenshot(string outputPath)
+    {
+        try
+        {
+            string fullOutputPath = Path.GetFullPath(outputPath);
+            string? outputDirectory = Path.GetDirectoryName(fullOutputPath);
+            if (!string.IsNullOrWhiteSpace(outputDirectory))
+            {
+                Directory.CreateDirectory(outputDirectory);
+            }
+
+            int width = GraphicsDevice.PresentationParameters.BackBufferWidth;
+            int height = GraphicsDevice.PresentationParameters.BackBufferHeight;
+            byte[] backBuffer = new byte[width * height * 4];
+            GraphicsDevice.GetBackBufferData(backBuffer);
+
+            using var screenshot = new Texture2D(
+                GraphicsDevice,
+                width,
+                height,
+                false,
+                GraphicsDevice.PresentationParameters.BackBufferFormat);
+            screenshot.SetData(backBuffer);
+
+            using FileStream stream = File.Create(fullOutputPath);
+            screenshot.SaveAsPng(stream, width, height);
+            Logs.WriteInfo($"[DemosGame] Screenshot saved: {fullOutputPath}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteException(ex);
+            return false;
+        }
+    }
+
+    private static string? ResolveAutomationScreenshotPath()
+    {
+        var path = Environment.GetEnvironmentVariable("CASAENGINE_CAPTURE_SCREENSHOT_PATH");
+        return string.IsNullOrWhiteSpace(path) ? null : path;
+    }
+
+    private static TimeSpan? ResolveAutomationScreenshotDelay()
+    {
+        if (string.IsNullOrWhiteSpace(ResolveAutomationScreenshotPath()))
+        {
+            return null;
+        }
+
+        var delayText = Environment.GetEnvironmentVariable("CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS");
+        return int.TryParse(delayText, out int delayMs) && delayMs >= 0
+            ? TimeSpan.FromMilliseconds(delayMs)
+            : TimeSpan.FromMilliseconds(1500);
     }
 }

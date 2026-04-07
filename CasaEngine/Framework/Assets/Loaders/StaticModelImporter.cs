@@ -126,6 +126,11 @@ public class StaticModelImporter
             {
                 paths.Add(material.NormalTextureFilePath);
             }
+
+            if (!string.IsNullOrWhiteSpace(material.ReflectionTextureFilePath) && !paths.Contains(material.ReflectionTextureFilePath))
+            {
+                paths.Add(material.ReflectionTextureFilePath);
+            }
         }
 
         return paths;
@@ -180,6 +185,8 @@ public class StaticModelImporter
             {
                 ApplyLegacyEffectMetadata(importedMaterial, effectInstance, filePath);
             }
+
+            ApplyLegacyImportHints(importedMaterial, filePath);
 
             result.Add(importedMaterial);
         }
@@ -375,6 +382,37 @@ public class StaticModelImporter
         }
 
         importedMaterial.UsesReflection = UsesReflectionTechnique(importedMaterial.EffectFilePath, importedMaterial.LegacyTechniqueIndex);
+    }
+
+    // Legacy .X assets do not expose explicit cutout/signage flags, so import-time hints
+    // preserve the authored behaviour while keeping later runtime/editor paths metadata-driven.
+    private static void ApplyLegacyImportHints(StaticModelImportedMaterial importedMaterial, string modelFilePath)
+    {
+        string modelName = Path.GetFileNameWithoutExtension(modelFilePath);
+        importedMaterial.AlphaCutoutHint = ComputeAlphaCutoutHint(modelName, importedMaterial);
+        importedMaterial.BrightAmbientHint = modelName.StartsWith("Sign", StringComparison.OrdinalIgnoreCase)
+            || modelName.StartsWith("Banner", StringComparison.OrdinalIgnoreCase)
+            || modelName.StartsWith("Windmill", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool ComputeAlphaCutoutHint(string modelName, StaticModelImportedMaterial importedMaterial)
+    {
+        if (modelName.StartsWith("Alpha", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string? diffusePath = importedMaterial.DiffuseTextureFilePath;
+        if (string.IsNullOrWhiteSpace(diffusePath))
+        {
+            return false;
+        }
+
+        string textureName = Path.GetFileNameWithoutExtension(diffusePath);
+        return textureName.Contains("Palm", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("Leave", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("Ast", StringComparison.OrdinalIgnoreCase)
+            || textureName.Contains("plants", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool UsesReflectionTechnique(string? effectFilePath, int techniqueIndex)
@@ -856,6 +894,10 @@ public sealed class StaticModelImportedMaterial
     public int LegacyTechniqueIndex { get; set; } = -1;
 
     public bool UsesReflection { get; set; }
+
+    public bool AlphaCutoutHint { get; set; }
+
+    public bool BrightAmbientHint { get; set; }
 
     public Vector3 AmbientColor { get; set; } = Vector3.Zero;
 

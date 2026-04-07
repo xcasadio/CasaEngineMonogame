@@ -117,6 +117,7 @@ public sealed class MaterialDefinitionEditorRegistry
         }
 
         if (key.Contains("emissive", StringComparison.OrdinalIgnoreCase)
+            || key.Contains("ambient", StringComparison.OrdinalIgnoreCase)
             || key.Contains("emission", StringComparison.OrdinalIgnoreCase))
         {
             return "Emission";

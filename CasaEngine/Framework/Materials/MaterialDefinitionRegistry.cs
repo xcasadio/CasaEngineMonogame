@@ -65,6 +65,16 @@ public static class MaterialDefinitionRegistry
                     legacyAliases: new[] { "normal_map_asset_id", "texture_normal_asset_id" },
                     assetKind: "texture"),
                 new MaterialPropertyDefinition(
+                    key: "reflection_texture",
+                    displayName: "Reflection Cubemap",
+                    valueType: MaterialPropertyType.Texture,
+                    group: MaterialPropertyGroup.Textures,
+                    flags: MaterialPropertyFlags.AssetReference | MaterialPropertyFlags.SupportsOverrides | MaterialPropertyFlags.AffectsShaderCompilation,
+                    defaultValue: Guid.Empty,
+                    description: "Optional legacy reflection cubemap sampled by reflective static materials.",
+                    legacyAliases: new[] { "texture_reflection_asset_id" },
+                    assetKind: "dds"),
+                new MaterialPropertyDefinition(
                     key: "diffuse_color",
                     displayName: "Diffuse Color",
                     valueType: MaterialPropertyType.Color,
@@ -82,6 +92,14 @@ public static class MaterialDefinitionRegistry
                     minValue: 0.0f,
                     maxValue: 1.0f,
                     step: 0.01f),
+                new MaterialPropertyDefinition(
+                    key: "ambient_color",
+                    displayName: "Ambient Color",
+                    valueType: MaterialPropertyType.Vector3,
+                    group: MaterialPropertyGroup.Lighting,
+                    flags: MaterialPropertyFlags.SupportsOverrides,
+                    defaultValue: Vector3.Zero,
+                    description: "Per-material ambient term kept for legacy imported materials."),
                 new MaterialPropertyDefinition(
                     key: "emissive_color",
                     displayName: "Emissive Color",

@@ -2,6 +2,7 @@ using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -79,6 +80,84 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_ReflectiveLegacyModel_PersistsAmbientAndReflectionProperties()
+    {
+        string workspaceRoot = FindWorkspaceRoot();
+        string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "Sign.X");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string tempDirectory = CreateTempDirectory();
+        string destinationFilePath = Path.Combine(tempDirectory, "Sign.X");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            bool catalogChanged = EditorAssetImportService.ImportFile(sourceFilePath, destinationFilePath);
+
+            Assert.True(catalogChanged);
+
+            MaterialAsset material = Assert.Single(LoadImportedMaterials(tempDirectory, "Sign_Imported"));
+
+            Assert.True(material.TryGetPropertyValue("reflection_texture", out var reflectionTextureValue));
+            Assert.True(reflectionTextureValue.TryGetTextureId(out var reflectionTextureId));
+            Assert.NotEqual(Guid.Empty, reflectionTextureId);
+            Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
+            Assert.True(ambientValue.TryGetVector3(out var ambientColor));
+            Assert.True(ambientColor.X > 0.3f);
+            Assert.Equal(RenderQueue.Opaque, material.Queue);
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_AlphaCutoutLegacyModel_PersistsExplicitAlphaCutoutIntent()
+    {
+        string workspaceRoot = FindWorkspaceRoot();
+        string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "AlphaPalm.X");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string tempDirectory = CreateTempDirectory();
+        string destinationFilePath = Path.Combine(tempDirectory, "AlphaPalm.X");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            bool catalogChanged = EditorAssetImportService.ImportFile(sourceFilePath, destinationFilePath);
+
+            Assert.True(catalogChanged);
+
+            var materials = LoadImportedMaterials(tempDirectory, "AlphaPalm_Imported");
+            MaterialAsset[] alphaCutoutMaterials = materials.Where(candidate => candidate.Queue == RenderQueue.AlphaTest).ToArray();
+
+            Assert.NotEmpty(alphaCutoutMaterials);
+            Assert.All(alphaCutoutMaterials, material =>
+            {
+                Assert.Equal("CullNone", material.RasterizerStateName);
+                Assert.True(material.TryGetPropertyValue("alpha_cutoff", out var alphaCutoffValue));
+                Assert.True(alphaCutoffValue.TryGetFloat(out var alphaCutoff));
+                Assert.Equal(0.35f, alphaCutoff);
+            });
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     private static string CreateTempDirectory()
     {
         string directory = Path.Combine(Path.GetTempPath(), "CasaEngineMonogame", Guid.NewGuid().ToString("N"));
@@ -100,5 +179,34 @@ public class EditorAssetImportServiceTests
         }
 
         throw new DirectoryNotFoundException("Unable to locate the repository root from the test output directory.");
+    }
+
+    private static string FindWorkspaceRoot()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string? workspaceRoot = Directory.GetParent(repositoryRoot)?.FullName;
+        if (string.IsNullOrWhiteSpace(workspaceRoot))
+        {
+            throw new DirectoryNotFoundException("Unable to locate the workspace root from the repository root.");
+        }
+
+        return workspaceRoot;
+    }
+
+    private static IReadOnlyList<MaterialAsset> LoadImportedMaterials(string projectDirectory, string importedFolderName)
+    {
+        string importedMaterialsDirectory = Path.Combine(projectDirectory, importedFolderName, "Materials");
+        Assert.True(Directory.Exists(importedMaterialsDirectory));
+
+        return Directory
+            .GetFiles(importedMaterialsDirectory, "*" + Constants.FileNameExtensions.Material)
+            .Select(materialFile =>
+            {
+                var materialDocument = JObject.Parse(File.ReadAllText(materialFile));
+                var material = new MaterialAsset();
+                material.Load(materialDocument);
+                return material;
+            })
+            .ToArray();
     }
 }

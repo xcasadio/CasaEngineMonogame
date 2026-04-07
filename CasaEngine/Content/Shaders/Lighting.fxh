@@ -45,6 +45,18 @@ struct ColorPair
 };
 
 
+float3 ComputeAmbientTerm(float3 globalAmbientColor, float3 materialAmbientColor)
+{
+    return globalAmbientColor * materialAmbientColor;
+}
+
+
+float3 ComposeLitSurfaceColor(float3 albedo, float3 directDiffuse, float3 ambientTerm, float3 emissiveColor)
+{
+    return albedo * (directDiffuse + ambientTerm) + emissiveColor;
+}
+
+
 ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLights)
 {
     float3x3 lightDirections = 0;

@@ -35,9 +35,11 @@ public static class EffectiveShaderResolver
 {
     public static readonly Guid BasicEffectShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
+    public static readonly Guid ReflectiveBasicEffectShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
 
     public const string BasicEffectContentName = "Shaders\\basicEffect";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
+    public const string ReflectiveBasicEffectContentName = BasicEffectContentName;
 
     /// <summary>
     /// Resolves the runtime shader reference for <paramref name="material"/>.
@@ -55,6 +57,8 @@ public static class EffectiveShaderResolver
         return material switch
         {
             UnlitTextureMaterial => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
+            LitDiffuseMaterial lit when lit.ReflectionCube is not null || lit.ReflectionCubeAssetId != Guid.Empty
+                => new EffectiveShaderReference(ReflectiveBasicEffectShaderId, ReflectiveBasicEffectContentName),
             LitDiffuseMaterial => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
             _ => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
         };

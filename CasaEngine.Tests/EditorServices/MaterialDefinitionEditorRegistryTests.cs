@@ -12,7 +12,7 @@ public class MaterialDefinitionEditorRegistryTests
 
         var descriptors = registry.GetDescriptors("lit-diffuse");
 
-        Assert.Equal(7, descriptors.Count);
+        Assert.Equal(9, descriptors.Count);
 
         var baseColor = GetDescriptor(descriptors, "base_color_texture");
         Assert.Equal("Surface", baseColor.Category);
@@ -22,6 +22,10 @@ public class MaterialDefinitionEditorRegistryTests
         var normalTexture = GetDescriptor(descriptors, "normal_texture");
         Assert.Equal("Normals", normalTexture.Category);
         Assert.Equal("AssetPicker", normalTexture.EditorControlHint);
+
+        var reflectionTexture = GetDescriptor(descriptors, "reflection_texture");
+        Assert.Equal("PBR", reflectionTexture.Category);
+        Assert.Equal("AssetPicker", reflectionTexture.EditorControlHint);
 
         var diffuseColor = GetDescriptor(descriptors, "diffuse_color");
         Assert.Equal("Surface", diffuseColor.Category);
@@ -34,6 +38,10 @@ public class MaterialDefinitionEditorRegistryTests
         var emissiveColor = GetDescriptor(descriptors, "emissive_color");
         Assert.Equal("Emission", emissiveColor.Category);
         Assert.Equal("Vector3Editor", emissiveColor.EditorControlHint);
+
+    var ambientColor = GetDescriptor(descriptors, "ambient_color");
+    Assert.Equal("Emission", ambientColor.Category);
+    Assert.Equal("Vector3Editor", ambientColor.EditorControlHint);
 
         var specularColor = GetDescriptor(descriptors, "specular_color");
         Assert.Equal("PBR", specularColor.Category);
@@ -66,12 +74,12 @@ public class MaterialDefinitionEditorRegistryTests
             pbr =>
             {
                 Assert.Equal("PBR", pbr.Key);
-                Assert.Equal(new[] { "specular_color", "specular_power" }, GetKeys(pbr));
+                Assert.Equal(new[] { "reflection_texture", "specular_color", "specular_power" }, GetKeys(pbr));
             },
             emission =>
             {
                 Assert.Equal("Emission", emission.Key);
-                Assert.Equal(new[] { "emissive_color" }, GetKeys(emission));
+                Assert.Equal(new[] { "ambient_color", "emissive_color" }, GetKeys(emission));
             });
     }
 

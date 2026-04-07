@@ -47,6 +47,17 @@ public class MaterialDefinitionRegistryTests
         Assert.Equal(128.0f, specularPowerProperty.MaxValue);
         Assert.Equal(1.0f, specularPowerProperty.Step);
 
+        var reflectionTextureProperty = definition.GetRequiredProperty("reflection_texture");
+        Assert.Equal(MaterialPropertyType.Texture, reflectionTextureProperty.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Textures, reflectionTextureProperty.Group);
+        Assert.Equal(Guid.Empty, reflectionTextureProperty.GetDefaultValue<Guid>());
+        Assert.Equal("dds", reflectionTextureProperty.AssetKind);
+
+        var ambientColorProperty = definition.GetRequiredProperty("ambient_color");
+        Assert.Equal(MaterialPropertyType.Vector3, ambientColorProperty.ValueType);
+        Assert.Equal(MaterialPropertyGroup.Lighting, ambientColorProperty.Group);
+        Assert.Equal(Vector3.Zero, ambientColorProperty.GetDefaultValue<Vector3>());
+
         var alphaCutoffProperty = definition.GetRequiredProperty("alpha_cutoff");
         Assert.Equal(MaterialPropertyType.Float, alphaCutoffProperty.ValueType);
         Assert.Equal(MaterialPropertyGroup.Rendering, alphaCutoffProperty.Group);

@@ -122,13 +122,16 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
             _shaderManager.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, _legacyShaderWrapper);
             _shaderManager.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.BasicEffectShaderId, ShaderVariantLibrary.BuildBasicEffectAliases());
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, ShaderVariantLibrary.BuildBasicEffectAliases());
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.UnlitTextureShaderId, ShaderVariantLibrary.BuildUnlitTextureAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_legacyShaderWrapper, _shaderManager, _variantLibrary);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, _legacyShaderWrapper);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
 
         // Phase 9: hardware instancing batcher

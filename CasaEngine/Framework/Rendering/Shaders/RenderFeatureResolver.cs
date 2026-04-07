@@ -86,6 +86,11 @@ public static class RenderFeatureResolver
             features |= ShaderFeature.Emissive;
         }
 
+        if (HasReflection(material))
+        {
+            features |= ShaderFeature.Reflection;
+        }
+
         if (IsAlphaTest(material))
         {
             features |= ShaderFeature.AlphaTest;
@@ -147,6 +152,12 @@ public static class RenderFeatureResolver
     private static bool HasEmissive(MaterialBase material) => material switch
     {
         LitDiffuseMaterial lit => lit.EmissiveColor != Vector3.Zero,
+        _ => false,
+    };
+
+    private static bool HasReflection(MaterialBase material) => material switch
+    {
+        LitDiffuseMaterial lit => lit.ReflectionCube is not null || lit.ReflectionCubeAssetId != Guid.Empty,
         _ => false,
     };
 

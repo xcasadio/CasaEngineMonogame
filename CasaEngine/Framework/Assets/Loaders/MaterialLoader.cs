@@ -1,6 +1,7 @@
 using CasaEngine.Core.Log;
 using CasaEngine.Framework.Materials;
 using Newtonsoft.Json.Linq;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Assets.Loaders;
 
@@ -50,6 +51,11 @@ public class MaterialLoader : IAssetLoader
                     var tex = LoadTextureAsset(lit.NormalMapAssetId, assetContentManager);
                     lit.NormalMap = tex?.Resource;
                 }
+
+                if (lit.ReflectionCubeAssetId != Guid.Empty)
+                {
+                    lit.ReflectionCube = LoadTextureCubeAsset(lit.ReflectionCubeAssetId, assetContentManager);
+                }
             }
             else if (material is Material pbr)
             {
@@ -76,5 +82,17 @@ public class MaterialLoader : IAssetLoader
         var texture = assetContentManager.Load<Textures.Texture>(assetId);
         texture?.Load(assetContentManager);
         return texture;
+    }
+
+    private static XnaTextureCube? LoadTextureCubeAsset(Guid assetId, AssetContentManager assetContentManager)
+    {
+        try
+        {
+            return assetContentManager.Load<XnaTextureCube>(assetId);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

@@ -46,9 +46,26 @@ public class ShaderWrapper
     public void SetParameter(string name, Matrix value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Matrix[] value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Texture2D? value) => GetParameter(name)?.SetValue(value);
+    public void SetParameter(string name, TextureCube? value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, bool value) => GetParameter(name)?.SetValue(value);
 
     public void SetTextureParameter(string name, Texture2D? value, RenderStats? stats = null)
+    {
+        var parameter = GetParameter(name);
+        if (parameter is null)
+        {
+            return;
+        }
+
+        parameter.SetValue(value);
+
+        if (stats is not null)
+        {
+            stats.TextureBinds++;
+        }
+    }
+
+    public void SetTextureCubeParameter(string name, TextureCube? value, RenderStats? stats = null)
     {
         var parameter = GetParameter(name);
         if (parameter is null)

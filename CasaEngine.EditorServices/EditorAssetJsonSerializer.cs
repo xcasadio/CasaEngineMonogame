@@ -446,6 +446,12 @@ internal static class EditorAssetJsonSerializer
             ["g"] = material.EmissiveColor.Y,
             ["b"] = material.EmissiveColor.Z,
         };
+        node["ambient_color"] = new JObject
+        {
+            ["r"] = material.AmbientColor.X,
+            ["g"] = material.AmbientColor.Y,
+            ["b"] = material.AmbientColor.Z,
+        };
         node["specular_color"] = new JObject
         {
             ["r"] = material.SpecularColor.X,
@@ -453,6 +459,7 @@ internal static class EditorAssetJsonSerializer
             ["b"] = material.SpecularColor.Z,
         };
         node["specular_power"] = material.SpecularPower;
+        node["texture_reflection_asset_id"] = material.ReflectionCubeAssetId.ToString();
     }
 
     private static void SaveUnlitTextureMaterial(UnlitTextureMaterial material, JObject node)

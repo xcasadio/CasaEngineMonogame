@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using CasaEngine.Editor.Docking;
 using CasaEngine.Editor.Workspaces;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Docking.DockLayout;
@@ -11,50 +12,36 @@ namespace CasaEngine.Tests.Editor;
 public class MaterialEditorWorkspaceTests
 {
     [Fact]
-    public void Panels_ReturnsCommonAndMaterialPanelsOnly()
+    public void CreateDefaultLayout_UsesExpectedShellPanels()
     {
-        var workspace = new MaterialEditorWorkspace(CreatePanelRegistry());
+        var builder = new EditorShellLayoutBuilder(CreatePanelRegistry());
 
-        var panelIds = workspace.Panels.Select(descriptor => descriptor.Id).ToArray();
-
-        Assert.Contains(EditorPanelIds.MaterialDetails, panelIds);
-        Assert.Contains(EditorPanelIds.ContentBrowser, panelIds);
-        Assert.Contains(EditorPanelIds.Output, panelIds);
-        Assert.DoesNotContain(EditorPanelIds.Entities, panelIds);
-        Assert.DoesNotContain(EditorPanelIds.EntityDetails, panelIds);
-    }
-
-    [Fact]
-    public void CreateDefaultLayout_BuildsDocumentDetailsAndBottomPanels()
-    {
-        var workspace = new MaterialEditorWorkspace(CreatePanelRegistry());
-
-        var root = Assert.IsType<DockSplitNode>(workspace.CreateDefaultLayout());
+        var root = Assert.IsType<DockSplitNode>(builder.CreateDefaultLayout());
         Assert.Equal(Orientation.Vertical, root.Orientation);
 
         var topArea = Assert.IsType<DockSplitNode>(root.FirstChild);
         Assert.Equal(Orientation.Horizontal, topArea.Orientation);
 
-        var documentGroup = Assert.IsType<DockTabGroupNode>(topArea.FirstChild);
+        var leftGroup = Assert.IsType<DockTabGroupNode>(topArea.FirstChild);
+        Assert.Equal(new[] { EditorPanelIds.Hierarchy, EditorPanelIds.Toolbox }, leftGroup.Panels.Select(panel => panel.Id).ToArray());
+
+        var centerRightSplit = Assert.IsType<DockSplitNode>(topArea.SecondChild);
+        Assert.Equal(Orientation.Horizontal, centerRightSplit.Orientation);
+
+        var documentGroup = Assert.IsType<DockTabGroupNode>(centerRightSplit.FirstChild);
         Assert.True(documentGroup.IsDocumentArea);
         var worldViewportPanel = Assert.Single(documentGroup.Panels);
         Assert.Equal(EditorPanelIds.WorldViewport, worldViewportPanel.Id);
         Assert.False(worldViewportPanel.CanClose);
+        Assert.Equal(DockableType.Document, worldViewportPanel.DockableType);
 
-        var detailsGroup = Assert.IsType<DockTabGroupNode>(topArea.SecondChild);
-        var detailsPanel = Assert.Single(detailsGroup.Panels);
-        Assert.Equal(EditorPanelIds.MaterialDetails, detailsPanel.Id);
+        var rightGroup = Assert.IsType<DockTabGroupNode>(centerRightSplit.SecondChild);
+        var inspectorPanel = Assert.Single(rightGroup.Panels);
+        Assert.Equal(EditorPanelIds.Inspector, inspectorPanel.Id);
+        Assert.Equal(DockableType.Tool, inspectorPanel.DockableType);
 
-        var bottomArea = Assert.IsType<DockSplitNode>(root.SecondChild);
-        Assert.Equal(Orientation.Horizontal, bottomArea.Orientation);
-
-        var contentBrowserGroup = Assert.IsType<DockTabGroupNode>(bottomArea.FirstChild);
-        var contentBrowserPanel = Assert.Single(contentBrowserGroup.Panels);
-        Assert.Equal(EditorPanelIds.ContentBrowser, contentBrowserPanel.Id);
-
-        var outputGroup = Assert.IsType<DockTabGroupNode>(bottomArea.SecondChild);
-        var outputPanel = Assert.Single(outputGroup.Panels);
-        Assert.Equal(EditorPanelIds.Output, outputPanel.Id);
+        var bottomGroup = Assert.IsType<DockTabGroupNode>(root.SecondChild);
+        Assert.Equal(new[] { EditorPanelIds.ContentBrowser, EditorPanelIds.Output }, bottomGroup.Panels.Select(panel => panel.Id).ToArray());
     }
 
     private static EditorPanelRegistry CreatePanelRegistry()
@@ -65,7 +52,6 @@ public class MaterialEditorWorkspaceTests
             {
                 Id = EditorPanelIds.WorldViewport,
                 Title = "World Viewport",
-                Scope = EditorPanelScope.World,
                 Kind = EditorPanelKind.Document,
                 CanClose = false,
                 CanFloat = false,
@@ -73,9 +59,22 @@ public class MaterialEditorWorkspaceTests
             },
             new EditorPanelDescriptor
             {
-                Id = EditorPanelIds.MaterialDetails,
-                Title = "Details",
-                Scope = EditorPanelScope.Material,
+                Id = EditorPanelIds.Hierarchy,
+                Title = "Hierarchy",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = CreateUnavailableContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.Inspector,
+                Title = "Inspector",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = CreateUnavailableContent,
+            },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.Toolbox,
+                Title = "Toolbox",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = CreateUnavailableContent,
             },
@@ -83,7 +82,6 @@ public class MaterialEditorWorkspaceTests
             {
                 Id = EditorPanelIds.ContentBrowser,
                 Title = "Content Browser",
-                Scope = EditorPanelScope.Common,
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = CreateUnavailableContent,
             },
@@ -91,23 +89,6 @@ public class MaterialEditorWorkspaceTests
             {
                 Id = EditorPanelIds.Output,
                 Title = "Output / Logs",
-                Scope = EditorPanelScope.Common,
-                Kind = EditorPanelKind.Tool,
-                ContentFactory = CreateUnavailableContent,
-            },
-            new EditorPanelDescriptor
-            {
-                Id = EditorPanelIds.Entities,
-                Title = "Entities",
-                Scope = EditorPanelScope.World,
-                Kind = EditorPanelKind.Tool,
-                ContentFactory = CreateUnavailableContent,
-            },
-            new EditorPanelDescriptor
-            {
-                Id = EditorPanelIds.EntityDetails,
-                Title = "Details",
-                Scope = EditorPanelScope.World,
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = CreateUnavailableContent,
             },

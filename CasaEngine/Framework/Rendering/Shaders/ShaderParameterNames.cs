@@ -18,9 +18,11 @@ public static class ShaderParameterNames
     // --- Material ---
     public const string DiffuseColor = "DiffuseColor";
     public const string EmissiveColor = "EmissiveColor";
+    public const string MaterialAmbientColor = "MaterialAmbientColor";
     public const string SpecularColor = "SpecularColor";
     public const string SpecularPower = "SpecularPower";
     public const string BasColorTexture = "Texture";
+    public const string ReflectionCubeTexture = "ReflectionCubeTexture";
     public const string TintColor = "TintColor";
     public const string Alpha = "Alpha";
     public const string AlphaCutoff = "AlphaCutoff";

@@ -58,7 +58,7 @@ public sealed class ThumbnailCacheTests : IDisposable
     {
         var path = Path.Combine(_rootPath, fileName);
         using var bitmap = new Bitmap(8, 8);
-        using var graphics = Graphics.FromImage(bitmap);
+        using var graphics = System.Drawing.Graphics.FromImage(bitmap);
         graphics.Clear(color);
         bitmap.Save(path, ImageFormat.Png);
         return new ContentItem(path, false);

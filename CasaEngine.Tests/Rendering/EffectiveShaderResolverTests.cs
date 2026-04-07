@@ -41,4 +41,19 @@ public class EffectiveShaderResolverTests
         Assert.True(resolved.IsBuiltIn);
         Assert.Equal(EffectiveShaderResolver.UnlitTextureContentName, resolved.ContentName);
     }
+
+    [Fact]
+    public void Resolve_ReturnsReflectiveFallback_ForReflectiveLitDiffuseMaterialWithoutShaderAsset()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            ReflectionCubeAssetId = Guid.NewGuid(),
+        };
+
+        var resolved = EffectiveShaderResolver.Resolve(material);
+
+        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
+        Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
+    }
 }

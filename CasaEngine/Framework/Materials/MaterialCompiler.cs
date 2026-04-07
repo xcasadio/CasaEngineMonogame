@@ -2,6 +2,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Materials;
 
@@ -23,7 +24,7 @@ public sealed class MaterialCompiler
         var definition = materialAsset.GetRequiredDefinition();
         var effectiveValues = BuildEffectiveValues(materialAsset, definition, assetContentManager);
         var resolvedTextures = BuildResolvedTextures(definition, effectiveValues, assetContentManager);
-        var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures);
+        var runtimeMaterial = CreateRuntimeMaterial(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
 
         var compiledMaterial = new CompiledMaterial(
             definitionId: definition.Id,
@@ -107,6 +108,12 @@ public sealed class MaterialCompiler
                 continue;
             }
 
+            if (string.Equals(propertyDefinition.Key, "reflection_texture", StringComparison.OrdinalIgnoreCase))
+            {
+                textures.Add(propertyDefinition.Key, null);
+                continue;
+            }
+
             var textureAssetId = GetTextureId(effectiveValues[propertyDefinition.Key], propertyDefinition.Key);
             textures.Add(propertyDefinition.Key, ResolveTextureResource(textureAssetId, assetContentManager));
         }
@@ -134,20 +141,22 @@ public sealed class MaterialCompiler
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        AssetContentManager assetContentManager)
         => definition.Id switch
         {
-            "lit-diffuse" => CreateLitDiffuseMaterial(materialAsset, effectiveValues, resolvedTextures),
+            "lit-diffuse" => CreateLitDiffuseMaterial(materialAsset, effectiveValues, resolvedTextures, assetContentManager),
             "unlit-texture" => CreateUnlitTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
             "legacy-multi-texture" => CreateLegacyMultiTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
             _ => throw new NotSupportedException(
                 $"Material compiler does not support material definition '{definition.Id}' yet."),
         };
 
-    private static LitDiffuseMaterial CreateLitDiffuseMaterial(
+    private static MaterialBase CreateLitDiffuseMaterial(
         MaterialAsset materialAsset,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        AssetContentManager assetContentManager)
     {
         var material = new LitDiffuseMaterial();
         ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("lit-diffuse"), effectiveValues);
@@ -156,8 +165,11 @@ public sealed class MaterialCompiler
         material.BasColor = resolvedTextures["base_color_texture"];
         material.NormalMapAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
         material.NormalMap = resolvedTextures["normal_texture"];
+        material.ReflectionCubeAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
+        material.ReflectionCube = ResolveTextureCubeResource(material.ReflectionCubeAssetId, assetContentManager);
         material.DiffuseColor = GetColor(effectiveValues["diffuse_color"], "diffuse_color");
         material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
+        material.AmbientColor = GetVector3(effectiveValues["ambient_color"], "ambient_color");
         material.EmissiveColor = GetVector3(effectiveValues["emissive_color"], "emissive_color");
         material.SpecularColor = GetVector3(effectiveValues["specular_color"], "specular_color");
         material.SpecularPower = GetFloat(effectiveValues["specular_power"], "specular_power");
@@ -243,6 +255,23 @@ public sealed class MaterialCompiler
             var texture = assetContentManager.Load<Assets.Textures.Texture>(textureAssetId);
             texture.Load(assetContentManager);
             return texture.Resource;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static XnaTextureCube? ResolveTextureCubeResource(Guid textureAssetId, AssetContentManager assetContentManager)
+    {
+        if (textureAssetId == Guid.Empty)
+        {
+            return null;
+        }
+
+        try
+        {
+            return assetContentManager.Load<XnaTextureCube>(textureAssetId);
         }
         catch
         {

@@ -3,6 +3,7 @@ using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Materials;
 
@@ -19,7 +20,10 @@ public class LitDiffuseMaterial : MaterialBase
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
     public Texture2D? NormalMap { get; set; }
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
+    public Guid ReflectionCubeAssetId { get; set; } = Guid.Empty;
+    public XnaTextureCube? ReflectionCube { get; set; }
     public Color DiffuseColor { get; set; } = Color.White;
+    public Vector3 AmbientColor { get; set; } = Vector3.Zero;
     public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
     public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
@@ -28,7 +32,19 @@ public class LitDiffuseMaterial : MaterialBase
     {
         bool hasBasColor = (features & ShaderFeature.BasColorTexture) != 0;
         bool hasNormalMap = hasBasColor && (features & ShaderFeature.NormalMap) != 0;
+        bool hasReflection = (features & ShaderFeature.Reflection) != 0;
         var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
+
+        if (hasReflection)
+        {
+            shader.SelectTechnique((hasBasColor, hasNormalMap) switch
+            {
+                (true, true) => "BasicEffect_PixelLighting_Texture_NormalMap_Reflection",
+                (true, false) => "BasicEffect_PixelLighting_Texture_Reflection",
+                _ => "BasicEffect_PixelLighting_Reflection",
+            });
+            return;
+        }
 
         if (hasNormalMap)
         {
@@ -58,10 +74,12 @@ public class LitDiffuseMaterial : MaterialBase
 
         shader.SetParameter(ShaderParameterNames.DiffuseColor, DiffuseColor.ToVector4());
         shader.SetParameter(ShaderParameterNames.AlphaCutoff, Queue == RenderQueue.AlphaTest ? AlphaCutoff : 0.0f);
+        shader.SetParameter(ShaderParameterNames.MaterialAmbientColor, AmbientColor);
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
+        shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, ReflectionCube, context.Stats);
 
         if (NormalMap is not null && BasColor is not null)
         {
@@ -84,6 +102,11 @@ public class LitDiffuseMaterial : MaterialBase
             features |= ShaderFeature.Emissive;
         }
 
+        if (ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty)
+        {
+            features |= ShaderFeature.Reflection;
+        }
+
         return features;
     }
 
@@ -101,6 +124,11 @@ public class LitDiffuseMaterial : MaterialBase
             NormalMapAssetId = Guid.Parse(nm.Value<string>()!);
         }
 
+        if (element["texture_reflection_asset_id"] is { } rt)
+        {
+            ReflectionCubeAssetId = Guid.Parse(rt.Value<string>()!);
+        }
+
         if (element["diffuse_color"] is JObject dc)
         {
             DiffuseColor = new Color(
@@ -112,6 +140,14 @@ public class LitDiffuseMaterial : MaterialBase
         {
             EmissiveColor = new Vector3(
                 ec["r"]?.Value<float>() ?? 0, ec["g"]?.Value<float>() ?? 0, ec["b"]?.Value<float>() ?? 0);
+        }
+
+        if (element["ambient_color"] is JObject ac)
+        {
+            AmbientColor = new Vector3(
+                ac["r"]?.Value<float>() ?? ac["x"]?.Value<float>() ?? 0,
+                ac["g"]?.Value<float>() ?? ac["y"]?.Value<float>() ?? 0,
+                ac["b"]?.Value<float>() ?? ac["z"]?.Value<float>() ?? 0);
         }
 
         if (element["specular_color"] is JObject sc)

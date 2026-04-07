@@ -74,9 +74,11 @@ public static class EditorAssetImportService
         Directory.CreateDirectory(texturesDirectory);
 
         var importedTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var importedCubeTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         var usedTextureFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var diffuseTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
         var normalTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
+        var reflectionTextureAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
 
         foreach (var material in materials)
         {
@@ -109,9 +111,27 @@ public static class EditorAssetImportService
                     normalTextureAssetIdsByMaterialIndex[material.MaterialIndex] = textureAssetId;
                 }
             }
+
+            if (!string.IsNullOrWhiteSpace(material.ReflectionTextureFilePath))
+            {
+                Guid textureAssetId = ImportTextureCube(
+                    material.ReflectionTextureFilePath,
+                    texturesDirectory,
+                    modelBaseName,
+                    importedCubeTexturesBySourcePath,
+                    usedTextureFileNames);
+
+                if (textureAssetId != Guid.Empty)
+                {
+                    reflectionTextureAssetIdsByMaterialIndex[material.MaterialIndex] = textureAssetId;
+                }
+            }
         }
 
-        return new ImportedTextureAssets(diffuseTextureAssetIdsByMaterialIndex, normalTextureAssetIdsByMaterialIndex);
+        return new ImportedTextureAssets(
+            diffuseTextureAssetIdsByMaterialIndex,
+            normalTextureAssetIdsByMaterialIndex,
+            reflectionTextureAssetIdsByMaterialIndex);
     }
 
     private static void ApplyDiffuseTextureSlots(StaticModel model, Dictionary<int, Guid> diffuseTextureAssetIdsByMaterialIndex)
@@ -152,20 +172,21 @@ public static class EditorAssetImportService
             var material = new MaterialAsset("lit-diffuse")
             {
                 Name = materialAssetInfo.Name,
-                Queue = ShouldUseAlphaCutout(modelBaseName, importedMaterial)
+                Queue = importedMaterial.AlphaCutoutHint
                     ? RenderQueue.AlphaTest
                     : RenderQueue.Opaque,
-                RasterizerStateName = ShouldUseAlphaCutout(modelBaseName, importedMaterial)
+                RasterizerStateName = importedMaterial.AlphaCutoutHint
                     ? "CullNone"
                     : MaterialAsset.DefaultRasterizerStateName,
                 SamplerStateName = "AnisotropicWrap",
             };
             material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
-            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(ComputeImportedMaterialEmissiveColor(modelBaseName, importedMaterial)));
+            material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(ComputeImportedMaterialAmbientColor(importedMaterial)));
+            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(ComputeImportedMaterialEmissiveColor(importedMaterial)));
             material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
             material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
             material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(
-                ShouldUseAlphaCutout(modelBaseName, importedMaterial) ? 0.35f : 0.5f));
+                importedMaterial.AlphaCutoutHint ? 0.35f : 0.5f));
 
             if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
             {
@@ -175,6 +196,11 @@ public static class EditorAssetImportService
             if (importedTextureAssets.NormalTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var normalTextureAssetId))
             {
                 material.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(normalTextureAssetId));
+            }
+
+            if (importedTextureAssets.ReflectionTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var reflectionTextureAssetId))
+            {
+                material.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureAssetId));
             }
 
             var materialDocument = SerializeAsset(material, materialAssetInfo.Id, materialAssetInfo.Name);
@@ -192,44 +218,22 @@ public static class EditorAssetImportService
         }
     }
 
-    private static Vector3 ComputeImportedMaterialEmissiveColor(string modelName, StaticModelImportedMaterial importedMaterial)
+    private static Vector3 ComputeImportedMaterialAmbientColor(StaticModelImportedMaterial importedMaterial)
     {
-        Vector3 emissiveColor = importedMaterial.AmbientColor + importedMaterial.EmissiveColor;
-        if (UsesLegacyBrightAmbient(modelName))
+        Vector3 ambientColor = importedMaterial.AmbientColor;
+        if (importedMaterial.BrightAmbientHint)
         {
             const float signAmbient = 128f / 255f;
             Vector3 boostedAmbient = new(signAmbient, signAmbient, signAmbient);
-            emissiveColor = Vector3.Max(emissiveColor, boostedAmbient);
+            ambientColor = Vector3.Max(ambientColor, boostedAmbient);
         }
 
-        return Vector3.Clamp(emissiveColor, Vector3.Zero, Vector3.One);
+        return Vector3.Clamp(ambientColor, Vector3.Zero, Vector3.One);
     }
 
-    private static bool UsesLegacyBrightAmbient(string modelName)
+    private static Vector3 ComputeImportedMaterialEmissiveColor(StaticModelImportedMaterial importedMaterial)
     {
-        return modelName.StartsWith("Sign", StringComparison.OrdinalIgnoreCase)
-            || modelName.StartsWith("Banner", StringComparison.OrdinalIgnoreCase)
-            || modelName.StartsWith("Windmill", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool ShouldUseAlphaCutout(string modelName, StaticModelImportedMaterial importedMaterial)
-    {
-        if (modelName.StartsWith("Alpha", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        string? diffusePath = importedMaterial.DiffuseTextureFilePath;
-        if (string.IsNullOrWhiteSpace(diffusePath))
-        {
-            return false;
-        }
-
-        string textureName = Path.GetFileNameWithoutExtension(diffusePath);
-        return textureName.Contains("Palm", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("Leave", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("Ast", StringComparison.OrdinalIgnoreCase)
-            || textureName.Contains("plants", StringComparison.OrdinalIgnoreCase);
+        return Vector3.Clamp(importedMaterial.EmissiveColor, Vector3.Zero, Vector3.One);
     }
 
     private static Guid ImportTexture(
@@ -271,6 +275,36 @@ public static class EditorAssetImportService
 
         importedTexturesBySourcePath[sourceTexturePath] = wrapperAssetInfo.Id;
         return wrapperAssetInfo.Id;
+    }
+
+    private static Guid ImportTextureCube(
+        string sourceTexturePath,
+        string texturesDirectory,
+        string modelBaseName,
+        Dictionary<string, Guid> importedTexturesBySourcePath,
+        HashSet<string> usedTextureFileNames)
+    {
+        if (importedTexturesBySourcePath.TryGetValue(sourceTexturePath, out var existingTextureAssetId))
+        {
+            return existingTextureAssetId;
+        }
+
+        if (!File.Exists(sourceTexturePath)
+            || !TextureCubeLoader.IsTextureCubeFile(sourceTexturePath))
+        {
+            return Guid.Empty;
+        }
+
+        string copiedTextureFileName = CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
+        string copiedTextureFullPath = Path.Combine(texturesDirectory, copiedTextureFileName);
+        File.Copy(sourceTexturePath, copiedTextureFullPath, true);
+
+        string copiedTextureRelativePath = GetRelativeProjectPath(copiedTextureFullPath);
+        string assetName = $"{modelBaseName}_{Path.GetFileNameWithoutExtension(copiedTextureFileName)}";
+        var assetInfo = EnsureAssetInfo(copiedTextureRelativePath, assetName);
+
+        importedTexturesBySourcePath[sourceTexturePath] = assetInfo.Id;
+        return assetInfo.Id;
     }
 
     private static JObject CreateTextureWrapperDocument(Guid assetId, string assetName, Guid rawTextureAssetId)
@@ -386,14 +420,18 @@ public static class EditorAssetImportService
     {
         public ImportedTextureAssets(
             Dictionary<int, Guid> diffuseTextureAssetIdsByMaterialIndex,
-            Dictionary<int, Guid> normalTextureAssetIdsByMaterialIndex)
+            Dictionary<int, Guid> normalTextureAssetIdsByMaterialIndex,
+            Dictionary<int, Guid> reflectionTextureAssetIdsByMaterialIndex)
         {
             DiffuseTextureAssetIdsByMaterialIndex = diffuseTextureAssetIdsByMaterialIndex;
             NormalTextureAssetIdsByMaterialIndex = normalTextureAssetIdsByMaterialIndex;
+            ReflectionTextureAssetIdsByMaterialIndex = reflectionTextureAssetIdsByMaterialIndex;
         }
 
         public Dictionary<int, Guid> DiffuseTextureAssetIdsByMaterialIndex { get; }
 
         public Dictionary<int, Guid> NormalTextureAssetIdsByMaterialIndex { get; }
+
+        public Dictionary<int, Guid> ReflectionTextureAssetIdsByMaterialIndex { get; }
     }
 }

@@ -135,6 +135,19 @@ public class RenderFeatureResolverTests
     }
 
     [Fact]
+    public void ResolveMaterialFeatures_ReturnsReflection_ForReflectiveLitMaterial()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            ReflectionCubeAssetId = Guid.NewGuid(),
+        };
+
+        var features = RenderFeatureResolver.ResolveMaterialFeatures(material);
+
+        Assert.Equal(ShaderFeature.Reflection, features);
+    }
+
+    [Fact]
     public void ResolveMaterialFeatures_DoesNotMarkAlphaTestMaterialAsTransparent()
     {
         var material = new UnlitTextureMaterial

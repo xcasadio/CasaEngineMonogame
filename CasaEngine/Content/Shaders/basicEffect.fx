@@ -10,6 +10,7 @@
 
 DECLARE_TEXTURE(Texture, 0);
 DECLARE_TEXTURE(NormalTexture, 1);
+DECLARE_CUBEMAP(ReflectionCubeTexture, 2);
 
 
 BEGIN_CONSTANTS
@@ -33,6 +34,8 @@ BEGIN_CONSTANTS
 
     float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
     float AlphaCutoff _ps(c15) _cb(c12.w);
+    float3 AmbientColor _ps(c16) _cb(c13);
+    float3 MaterialAmbientColor _ps(c17) _cb(c14);
 
     float4x4 World _vs(c19) _cb(c15);
     float3x3 WorldInverseTranspose _vs(c23) _cb(c19);
@@ -54,6 +57,25 @@ void ApplyAlphaTest(float alpha)
     {
         clip(alpha - AlphaCutoff);
     }
+}
+
+
+float3 ComputeBaseAmbientTerm(float3 baseColor)
+{
+    return baseColor * DiffuseColor.rgb * ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
+}
+
+
+float3 ComputeDirectDiffuse(ColorPair lightResult)
+{
+    return max(lightResult.Diffuse - EmissiveColor, 0.0f);
+}
+
+
+float3 ComputeReflectionContribution(float3 eyeVector, float3 worldNormal)
+{
+    float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
+    return SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb * saturate(SpecularColor);
 }
 
 
@@ -335,7 +357,11 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
     
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
 
-    color.rgb *= lightResult.Diffuse;
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
 
     ApplyAlphaTest(color.a);
     
@@ -354,8 +380,12 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
     float3 worldNormal = normalize(pin.NormalWS);
     
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
-    
-    color.rgb *= lightResult.Diffuse;
+
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
 
     ApplyAlphaTest(color.a);
 
@@ -375,7 +405,11 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
 
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 1);
 
-    color.rgb *= lightResult.Diffuse;
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
 
     ApplyAlphaTest(color.a);
 
@@ -395,7 +429,11 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
 
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 1);
 
-    color.rgb *= lightResult.Diffuse;
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
 
     ApplyAlphaTest(color.a);
 
@@ -442,9 +480,66 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
 
-    color.rgb *= lightResult.Diffuse;
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
+
+    return color;
+}
+
+
+float4 PSBasicPixelLightingReflection(VSOutputPixelLighting pin) : SV_Target0
+{
+    float4 color = PSBasicPixelLighting(pin);
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    float3 worldNormal = normalize(pin.NormalWS);
+    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
+
+    return color;
+}
+
+
+float4 PSBasicPixelLightingTxReflection(VSOutputPixelLightingTx pin) : SV_Target0
+{
+    float4 color = PSBasicPixelLightingTx(pin);
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    float3 worldNormal = normalize(pin.NormalWS);
+    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
+
+    return color;
+}
+
+
+float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV_Target0
+{
+    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+
+    float3 normalMap = SAMPLE_TEXTURE(NormalTexture, pin.TexCoord).rgb * 2.0 - 1.0;
+
+    float3 N = normalize(pin.NormalWS);
+    float3 T = normalize(pin.TangentWS);
+    float3 B = normalize(pin.BitangentWS);
+    float3x3 TBN = float3x3(T, B, N);
+    float3 worldNormal = normalize(mul(normalMap, TBN));
+
+    float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
+
+    color.rgb = ComposeLitSurfaceColor(
+        color.rgb,
+        ComputeDirectDiffuse(lightResult),
+        ComputeBaseAmbientTerm(color.rgb),
+        EmissiveColor);
+
+    ApplyAlphaTest(color.a);
+    AddSpecular(color, lightResult.Specular);
+    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
 
     return color;
 }
@@ -479,3 +574,6 @@ TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture, VSBasicPixelLightingTx, PS
 TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTxOneLight);
 
 TECHNIQUE(BasicEffect_PixelLighting_Texture_NormalMap, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNorm);
+TECHNIQUE(BasicEffect_PixelLighting_Reflection, VSBasicPixelLighting, PSBasicPixelLightingReflection);
+TECHNIQUE(BasicEffect_PixelLighting_Texture_Reflection, VSBasicPixelLightingTx, PSBasicPixelLightingTxReflection);
+TECHNIQUE(BasicEffect_PixelLighting_Texture_NormalMap_Reflection, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNormReflection);

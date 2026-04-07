@@ -96,6 +96,7 @@ public class MaterialAssetJsonSerializerTests
     {
         var legacyBaseColorTextureId = Guid.NewGuid();
         var legacyNormalTextureId = Guid.NewGuid();
+        var legacyReflectionTextureId = Guid.NewGuid();
         var shaderAssetId = Guid.NewGuid();
         var document = new JObject
         {
@@ -113,12 +114,19 @@ public class MaterialAssetJsonSerializerTests
             ["sampler_state"] = "AnisotropicClamp",
             ["BasColor_asset_id"] = legacyBaseColorTextureId.ToString(),
             ["normal_map_asset_id"] = legacyNormalTextureId.ToString(),
+            ["texture_reflection_asset_id"] = legacyReflectionTextureId.ToString(),
             ["diffuse_color"] = new JObject
             {
                 ["r"] = 10,
                 ["g"] = 20,
                 ["b"] = 30,
                 ["a"] = 255,
+            },
+            ["ambient_color"] = new JObject
+            {
+                ["r"] = 0.2f,
+                ["g"] = 0.3f,
+                ["b"] = 0.4f,
             },
             ["emissive_color"] = new JObject
             {
@@ -147,9 +155,15 @@ public class MaterialAssetJsonSerializerTests
         Assert.True(materialAsset.TryGetPropertyValue("normal_texture", out var normalTextureValue));
         Assert.True(normalTextureValue.TryGetTextureId(out var loadedNormalTextureId));
         Assert.Equal(legacyNormalTextureId, loadedNormalTextureId);
+        Assert.True(materialAsset.TryGetPropertyValue("reflection_texture", out var reflectionTextureValue));
+        Assert.True(reflectionTextureValue.TryGetTextureId(out var loadedReflectionTextureId));
+        Assert.Equal(legacyReflectionTextureId, loadedReflectionTextureId);
         Assert.True(materialAsset.TryGetPropertyValue("diffuse_color", out var diffuseColorValue));
         Assert.True(diffuseColorValue.TryGetColor(out var diffuseColor));
         Assert.Equal(new Color(10, 20, 30, 255), diffuseColor);
+        Assert.True(materialAsset.TryGetPropertyValue("ambient_color", out var ambientColorValue));
+        Assert.True(ambientColorValue.TryGetVector3(out var ambientColor));
+        Assert.Equal(new Vector3(0.2f, 0.3f, 0.4f), ambientColor);
         Assert.True(materialAsset.TryGetPropertyValue("emissive_color", out var emissiveColorValue));
         Assert.True(emissiveColorValue.TryGetVector3(out var emissiveColor));
         Assert.Equal(new Vector3(1.0f, 2.0f, 3.0f), emissiveColor);

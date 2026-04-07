@@ -24,4 +24,6 @@ public enum ShaderFeature : uint
     Emissive      = 1 << 6,
     /// <summary>Draw call renders through a transparent queue / blend path.</summary>
     Transparent   = 1 << 7,
+    /// <summary>Material samples a reflection cubemap.</summary>
+    Reflection    = 1 << 8,
 }

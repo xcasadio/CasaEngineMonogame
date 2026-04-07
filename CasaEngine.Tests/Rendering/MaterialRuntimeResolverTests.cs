@@ -52,6 +52,7 @@ public class MaterialRuntimeResolverTests
         using var scope = new TestProjectScope();
         Guid materialAssetId = Guid.NewGuid();
         Guid baseColorTextureId = Guid.NewGuid();
+        Guid reflectionTextureId = Guid.NewGuid();
         string relativeFileName = Path.Combine("Materials", "LegacyLit.material");
 
         var document = new JObject
@@ -70,12 +71,19 @@ public class MaterialRuntimeResolverTests
             ["sampler_state"] = "AnisotropicClamp",
             ["BasColor_asset_id"] = baseColorTextureId.ToString(),
             ["normal_map_asset_id"] = Guid.Empty.ToString(),
+            ["texture_reflection_asset_id"] = reflectionTextureId.ToString(),
             ["diffuse_color"] = new JObject
             {
                 ["r"] = 12,
                 ["g"] = 34,
                 ["b"] = 56,
                 ["a"] = 255,
+            },
+            ["ambient_color"] = new JObject
+            {
+                ["r"] = 0.15f,
+                ["g"] = 0.25f,
+                ["b"] = 0.35f,
             },
             ["emissive_color"] = new JObject
             {
@@ -100,7 +108,9 @@ public class MaterialRuntimeResolverTests
         Assert.True(loaded);
         var litMaterial = Assert.IsType<LitDiffuseMaterial>(runtimeMaterial);
         Assert.Equal(baseColorTextureId, litMaterial.BasColorAssetId);
+        Assert.Equal(reflectionTextureId, litMaterial.ReflectionCubeAssetId);
         Assert.Equal(new Color(12, 34, 56, 255), litMaterial.DiffuseColor);
+        Assert.Equal(new Vector3(0.15f, 0.25f, 0.35f), litMaterial.AmbientColor);
         Assert.Equal(new Vector3(0.1f, 0.2f, 0.3f), litMaterial.EmissiveColor);
         Assert.Equal(new Vector3(0.4f, 0.5f, 0.6f), litMaterial.SpecularColor);
         Assert.Equal(8.0f, litMaterial.SpecularPower);

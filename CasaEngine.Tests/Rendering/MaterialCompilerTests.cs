@@ -146,6 +146,28 @@ public class MaterialCompilerTests
     }
 
     [Fact]
+    public void Compile_LitDiffuseMaterial_WithReflectionAndAmbient_EmitsReflectiveFeatures()
+    {
+        var reflectionTextureId = Guid.NewGuid();
+        var materialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Reflective Lit Asset",
+        };
+        materialAsset.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureId));
+        materialAsset.SetPropertyValue("ambient_color", MaterialValue.FromVector3(new Vector3(0.2f, 0.3f, 0.4f)));
+
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+        var runtimeMaterial = Assert.IsType<LitDiffuseMaterial>(new MaterialCompiler().CompileRuntimeMaterial(materialAsset, new AssetContentManager()));
+
+        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, compiledMaterial.EffectiveShader.ShaderId);
+        Assert.Equal(ShaderFeature.Reflection, compiledMaterial.Features);
+        Assert.True(compiledMaterial.TryGetTexture("reflection_texture", out var reflectionTexture));
+        Assert.Null(reflectionTexture);
+        Assert.Equal(new Vector3(0.2f, 0.3f, 0.4f), runtimeMaterial.AmbientColor);
+        Assert.Equal(reflectionTextureId, runtimeMaterial.ReflectionCubeAssetId);
+    }
+
+    [Fact]
     public void CompileRuntimeMaterial_LegacyMultiTextureMaterial_ReturnsCurrentRuntimeType()
     {
         var baseColorTextureId = Guid.NewGuid();
