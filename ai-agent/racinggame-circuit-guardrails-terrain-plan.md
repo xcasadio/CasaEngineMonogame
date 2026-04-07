@@ -121,7 +121,7 @@ Raison :
 
 ### Phase A - Analyse des rambardes
 
-- [ ] A1. Relire completement `RacingGame.Shared/Tracks/GuardRail.cs` pour relever les invariants a porter :
+- ✅ A1. Relire completement `RacingGame.Shared/Tracks/GuardRail.cs` pour relever les invariants a porter :
   - section du rail,
   - `CorrectionScale`,
   - `GuardRailHeight`,
@@ -129,116 +129,136 @@ Raison :
   - logique d'UV,
   - cadence des `GuardRailHolder`.
 
-- [ ] A2. Relire `RacingGame.Shared/Tracks/TrackColumns.cs` pour relever les regles de generation conditionnelle des colonnes :
+  Resultat : invariants identifies. Le rail legacy est un mesh procedural extrude sur une section fixe de 17 sommets, avec `CorrectionScale = 0.0019`, `GuardRailHeight = 1.35f * 1.5f * 0.425f`, `InsideRoadDistance = 0.5f`, UV longitudinaux bases sur la distance et `HolderGap = 15.0f`.
+
+- ✅ A2. Relire `RacingGame.Shared/Tracks/TrackColumns.cs` pour relever les regles de generation conditionnelle des colonnes :
   - `ColumnsDistance`,
   - `ColumnGroundHeight`,
   - `MinimumColumnHeight`,
   - orientation top/bottom,
   - dependance a `GetMapHeight`.
 
-- [ ] A3. Verifier quels assets sont deja disponibles et copiables dans le runtime CasaEngine :
+  Resultat : invariants identifies. Les colonnes sont un mesh procedural cylindrique avec `ColumnsDistance = 33.0f`, `ColumnGroundHeight = 1.0f`, `MinimumColumnHeight = 2.5f` et un habillage `RoadColumnSegment` pose au sol. Leur generation depend explicitement du terrain via `GetMapHeight`.
+
+- ✅ A3. Verifier quels assets sont deja disponibles et copiables dans le runtime CasaEngine :
   - `GuardRailHolder.X`,
   - `RoadColumnSegment.X`,
   - textures associees.
 
-- [ ] A4. Comparer l'ecart exact entre legacy et CasaEngine sur une piste de reference :
+  Resultat : assets confirms et deja copiables via `RacingGameCasaEngine.csproj`. Les modeles `.X` et textures associees existent dans le contenu legacy, notamment `GuardRailHolder.X`, `RoadColumnSegment.X`, `Leitplanke.tga`, `LeitplankeNormal.tga`, `RoadCement.tga` et `RoadCementNormal.tga`.
+
+- ✅ A4. Comparer l'ecart exact entre legacy et CasaEngine sur une piste de reference :
   - `TrackBeginner`,
   - `TrackAdvanced`,
   - `TrackExpert`.
 
-- [ ] A5. Determiner si les rails doivent etre portes tout de suite en pur visuel, ou si une partie collision doit etre ajoutee en meme temps.
+  Resultat : l'ecart structurel est confirme sur les trois pistes. Le runtime CasaEngine ne cree actuellement ni entite de rail, ni entite de colonnes, ni habillage `GuardRailHolder` ou `RoadColumnSegment`. L'absence est globale et ne depend pas d'une piste en particulier.
+
+- ✅ A5. Determiner si les rails doivent etre portes tout de suite en pur visuel, ou si une partie collision doit etre ajoutee en meme temps.
+
+  Resultat : decision prise. Le premier portage vise le visuel runtime des rails et des colonnes. La collision restera rattachee a l'etape physique du circuit.
 
 ### Phase B - Analyse du relief du sol
 
-- [ ] B1. Relever exactement les constantes et conventions du terrain legacy dans `RacingGame.Shared/Landscapes/TerrainRenderer.cs` :
+- ✅ B1. Relever exactement les constantes et conventions du terrain legacy dans `RacingGame.Shared/Landscapes/TerrainRenderer.cs` :
   - dimensions de grille,
   - echelle XY,
   - echelle Z,
   - generation des normales,
   - UV du terrain.
 
-- [ ] B2. Comparer la logique de `LegacyTerrainHeightSampler` de CasaEngine avec celle du legacy pour verifier qu'il n'y a pas de divergence de sampling.
+  Resultat : constantes relevees. Le terrain legacy est une grille `257 x 257`, `MapWidthFactor = 10`, `MapHeightFactor = 10`, `MapZScale = 300`, UV lineaires sur toute la grille et normales lissees apres une passe de moyenne locale.
 
-- [ ] B3. Verifier comment le terrain legacy est texture :
+- ✅ B2. Comparer la logique de `LegacyTerrainHeightSampler` de CasaEngine avec celle du legacy pour verifier qu'il n'y a pas de divergence de sampling.
+
+  Resultat : pas de divergence racine detectee. Le sampler CasaEngine reprend la meme logique de grille torique et d'interpolation triangulaire que le legacy pour `GetMapHeight(float x, float y)`.
+
+- ✅ B3. Verifier comment le terrain legacy est texture :
   - `Landscape`,
   - `LandscapeNormal`,
   - `LandscapeDetail`,
   - `CityGround`,
   - `CityGroundNormal`.
 
-- [ ] B4. Determiner si le premier port doit etre :
+  Resultat : set de textures confirme dans le contenu legacy. Le terrain principal utilise `Landscape` + `LandscapeNormal` + `LandscapeDetail`, et le plan de ville utilise `CityGround` + `CityGroundNormal`.
+
+- ✅ B4. Determiner si le premier port doit etre :
   - le terrain complet `257 x 257`,
   - ou un sous-ensemble borne autour de la piste.
 
-- [ ] B5. Verifier si le city plane legacy doit aussi etre reporte dans le premier lot, ou si seul le terrain principal suffit.
+  Resultat : decision prise. Le premier port vise le terrain complet `257 x 257` pour rester fidele au legacy et eviter les coutures ou les erreurs de clamp autour de la piste.
+
+- ✅ B5. Verifier si le city plane legacy doit aussi etre reporte dans le premier lot, ou si seul le terrain principal suffit.
+
+  Resultat : le terrain principal est prioritaire. Le city plane sera ajoute seulement s'il reste necessaire apres retour du vrai relief, sinon un fallback visuel simple suffira.
 
 ## Plan correctif
 
 ### Phase C - Correction des rambardes
 
-- [ ] C1. Creer un builder runtime dedie, par exemple `LegacyTrackGuardRailBuilder`, pour isoler la logique des rails de `LegacyTrackSceneFactory`.
+- ⏳ C1. Creer un builder runtime dedie, par exemple `LegacyTrackGuardRailBuilder`, pour isoler la logique des rails de `LegacyTrackSceneFactory`.
 
-- [ ] C2. Generer les rails gauche et droit a partir des points de route CasaEngine, avec les memes regles de decalage que le legacy.
+- ⏳ C2. Generer les rails gauche et droit a partir des points de route CasaEngine, avec les memes regles de decalage que le legacy.
 
-- [ ] C3. Porter la section procedurale du rail et ses UV.
+- ⏳ C3. Porter la section procedurale du rail et ses UV.
 
-- [ ] C4. Poser les objets `GuardRailHolder` au bon intervalle et avec la bonne orientation.
+- ⏳ C4. Poser les objets `GuardRailHolder` au bon intervalle et avec la bonne orientation.
 
-- [ ] C5. Porter les colonnes `RoadColumnSegment` quand la route surplombe suffisamment le terrain.
+- ⏳ C5. Porter les colonnes `RoadColumnSegment` quand la route surplombe suffisamment le terrain.
 
-- [ ] C6. Ajouter un materiau cible pour les rails si le simple import du modele `GuardRailHolder` ne suffit pas visuellement.
+- ⏳ C6. Ajouter un materiau cible pour les rails si le simple import du modele `GuardRailHolder` ne suffit pas visuellement.
 
-- [ ] C7. Inserer les entites de rails dans la scene avec un nommage stable, par exemple :
+- ⏳ C7. Inserer les entites de rails dans la scene avec un nommage stable, par exemple :
   - `Track.GuardRail.Left.<TrackName>`
   - `Track.GuardRail.Right.<TrackName>`
   - `Track.Columns.<TrackName>`
 
-- [ ] C8. Verifier que le resultat reste compatible avec les futures collisions de bord de piste.
+- ⏳ C8. Verifier que le resultat reste compatible avec les futures collisions de bord de piste.
 
 ### Phase D - Correction du terrain topologique
 
-- [ ] D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
+- ⏳ D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
 
-- [ ] D2. Lire `LandscapeHeights.data` avec les memes constantes que le legacy.
+- ⏳ D2. Lire `LandscapeHeights.data` avec les memes constantes que le legacy.
 
-- [ ] D3. Generer un vrai mesh de terrain avec :
+- ⏳ D3. Generer un vrai mesh de terrain avec :
   - vertices,
   - indices,
   - normales,
   - tangentes,
   - UV.
 
-- [ ] D4. Remplacer `CreateGroundEntity(...)` base sur `BoxPrimitive` par une entite terrain basee sur ce mesh.
+- ⏳ D4. Remplacer `CreateGroundEntity(...)` base sur `BoxPrimitive` par une entite terrain basee sur ce mesh.
 
-- [ ] D5. Reprendre un materiau proche du legacy pour le terrain principal :
+- ⏳ D5. Reprendre un materiau proche du legacy pour le terrain principal :
   - texture diffuse,
   - normal map,
   - detail si possible dans le shader cible,
   - sampler wrap.
 
-- [ ] D6. Ajouter ensuite, si necessaire, le city plane ou un fallback visuel equivalent.
+- ⏳ D6. Ajouter ensuite, si necessaire, le city plane ou un fallback visuel equivalent.
 
-- [ ] D7. Verifier que les objets clamps au terrain restent correctement poses apres remplacement du sol plat par le vrai terrain.
+- ⏳ D7. Verifier que les objets clamps au terrain restent correctement poses apres remplacement du sol plat par le vrai terrain.
 
 ## Validation demandee apres correction
 
 ### Validation visuelle
 
-- [ ] V1. Capturer une vue de depart sur les trois pistes.
-- [ ] V2. Capturer au moins une zone de virage avec rails visibles.
-- [ ] V3. Capturer au moins une zone sur elevee avec colonnes si applicable.
-- [ ] V4. Capturer une zone ou le relief du terrain est fortement visible.
+- ⏳ V1. Capturer une vue de depart sur les trois pistes.
+- ⏳ V2. Capturer au moins une zone de virage avec rails visibles.
+- ⏳ V3. Capturer au moins une zone sur elevee avec colonnes si applicable.
+- ⏳ V4. Capturer une zone ou le relief du terrain est fortement visible.
 
 ### Validation technique
 
-- [ ] V5. Verifier que le build borne `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -c Debug --no-restore` reste vert.
-- [ ] V6. Verifier qu'aucune regression de placement du decor n'apparait apres introduction du vrai terrain.
-- [ ] V7. Verifier que la route reste au-dessus du terrain partout et que les objets clamps restent poses proprement.
+- ⏳ V5. Verifier que le build borne `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -c Debug --no-restore` reste vert.
+- ⏳ V6. Verifier qu'aucune regression de placement du decor n'apparait apres introduction du vrai terrain.
+- ⏳ V7. Verifier que la route reste au-dessus du terrain partout et que les objets clamps restent poses proprement.
 
 ### Validation de parite
 
-- [ ] V8. Comparer visuellement CasaEngine au legacy sur au moins `Beginner` et `Advanced` pour les rails.
-- [ ] V9. Comparer visuellement CasaEngine au legacy sur au moins `Beginner` et `Advanced` pour le relief global du paysage.
+- ⏳ V8. Comparer visuellement CasaEngine au legacy sur au moins `Beginner` et `Advanced` pour les rails.
+- ⏳ V9. Comparer visuellement CasaEngine au legacy sur au moins `Beginner` et `Advanced` pour le relief global du paysage.
 
 ## Definition of done
 
