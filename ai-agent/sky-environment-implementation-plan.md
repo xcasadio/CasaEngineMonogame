@@ -340,7 +340,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-014 — Implementer une premiere ambient diffuse issue de l'environnement
+### ✅ ENV-014 — Implementer une premiere ambient diffuse issue de l'environnement
 Objectif:
 faire evoluer le simple `AmbientColor` vers une approximation pilotee par l'environnement global.
 

@@ -88,9 +88,12 @@ void ApplyAlphaTest(float alpha)
 }
 
 
-float3 ComputeBaseAmbientTerm(float3 baseColor)
+float3 ComputeBaseAmbientTerm(float3 baseColor, float3 worldNormal)
 {
-    return baseColor * DiffuseColor.rgb * ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
+    float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
+        ? ComputeEnvironmentDiffuseTerm(SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor, MaterialAmbientColor)
+        : ComputeAmbientTerm(AmbientColor, MaterialAmbientColor);
+    return baseColor * DiffuseColor.rgb * ambientTerm;
 }
 
 
@@ -391,7 +394,7 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
 
     ApplyAlphaTest(color.a);
@@ -415,7 +418,7 @@ float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
 
     ApplyAlphaTest(color.a);
@@ -439,7 +442,7 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
 
     ApplyAlphaTest(color.a);
@@ -463,7 +466,7 @@ float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
 
     ApplyAlphaTest(color.a);
@@ -514,7 +517,7 @@ float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
@@ -565,7 +568,7 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
     color.rgb = ComposeLitSurfaceColor(
         color.rgb,
         ComputeDirectDiffuse(lightResult),
-        ComputeBaseAmbientTerm(color.rgb),
+        ComputeBaseAmbientTerm(color.rgb, worldNormal),
         EmissiveColor);
 
     ApplyAlphaTest(color.a);

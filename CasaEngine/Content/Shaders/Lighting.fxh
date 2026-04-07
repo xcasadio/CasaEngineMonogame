@@ -70,6 +70,17 @@ float3 SampleEnvironmentReflection(float3 reflectionVector)
 
     return SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb * EnvironmentSpecularIntensity;
 }
+
+
+float3 SampleEnvironmentDiffuse(float3 worldNormal)
+{
+    if (HasEnvironmentCubeTexture <= 0.5f)
+    {
+        return 0;
+    }
+
+    return SAMPLE_CUBEMAP(EnvironmentCubeTexture, normalize(worldNormal)).rgb;
+}
 #else
 float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float3 materialAmbientColor)
 {
@@ -78,6 +89,12 @@ float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float
 
 
 float3 SampleEnvironmentReflection(float3 reflectionVector)
+{
+    return 0;
+}
+
+
+float3 SampleEnvironmentDiffuse(float3 worldNormal)
 {
     return 0;
 }
