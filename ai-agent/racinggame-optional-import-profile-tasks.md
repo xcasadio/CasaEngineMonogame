@@ -168,7 +168,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(import): consolidate profile-driven legacy interpretation`
 
-- ⏳ **T03.03 — Documenter le bootstrap et les garanties d'isolation**
+- ✅ **T03.03 — Documenter le bootstrap et les garanties d'isolation**
   Objectif :
   - Documenter comment brancher le profil RacingGame et ce qui reste volontairement hors du moteur.
   - Rendre explicite la difference entre profil neutre et profil optionnel.
