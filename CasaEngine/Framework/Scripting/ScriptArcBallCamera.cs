@@ -1,6 +1,6 @@
-using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
+
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Physics;
 
@@ -31,7 +31,7 @@ public class ScriptArcBallCamera : GameplayProxy
         _arcBallCameraComponent = Owner.GetComponent<ArcBallCameraComponent>();
     }
 
-    public override void InitializeWithWorld(World.World world)
+    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
     {
         _inputComponent = world.Game.GetGameComponent<InputComponent>();
     }
@@ -149,12 +149,12 @@ public class ScriptArcBallCamera : GameplayProxy
     {
     }
 
-    public override void OnBeginPlay(World.World world)
+    public override void OnBeginPlay(CasaEngine.Framework.Scene.World.World world)
     {
 
     }
 
-    public override void OnEndPlay(World.World world)
+    public override void OnEndPlay(CasaEngine.Framework.Scene.World.World world)
     {
 
     }

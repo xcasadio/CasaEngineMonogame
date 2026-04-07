@@ -1,5 +1,5 @@
 ﻿using Assimp;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Animations;
 using CasaEngine.Framework.Assets.Animations;
 using Microsoft.Xna.Framework.Graphics;

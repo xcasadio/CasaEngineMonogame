@@ -1,9 +1,9 @@
 ﻿using System.Diagnostics;
 using Assimp;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Log;
+
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Animations;
-using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -38,7 +38,7 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class RiggedModelLoader
 {
-    private Scene _scene;
+    private Assimp.Scene _scene;
     private AssetContentManager _assetContentManager;
     private readonly Effect _effectToUse;
 
@@ -135,7 +135,7 @@ public class RiggedModelLoader
             }
         }
 
-        Debug.Assert(File.Exists(filePathorFileName), "Could not find the file to load: " + filePathorFileName);
+        System.Diagnostics.Debug.Assert(File.Exists(filePathorFileName), "Could not find the file to load: " + filePathorFileName);
 
         //
         // load the file at path to the scene
@@ -174,7 +174,7 @@ public class RiggedModelLoader
         catch (Exception e)
         {
             Logs.WriteTrace(e.Message);
-            Debug.Assert(false, filePathorFileName + "\n\n" + "A problem loading the model occured: \n " + filePathorFileName + " \n" + e.Message);
+            System.Diagnostics.Debug.Assert(false, filePathorFileName + "\n\n" + "A problem loading the model occured: \n " + filePathorFileName + " \n" + e.Message);
             _scene = null;
         }
 
@@ -258,7 +258,7 @@ public class RiggedModelLoader
         return model;
     }
 
-    public void CreateRootNode(RiggedModel model, Scene scene)
+    public void CreateRootNode(RiggedModel model, Assimp.Scene scene)
     {
         model.RootNodeOfTree = new RiggedModel.RiggedModelNode();
         // set the rootnode and its transform
@@ -270,7 +270,7 @@ public class RiggedModelLoader
 
     /// <summary>We create model mesh instances for each mesh in scene.meshes. This is just set up it doesn't load any data.
     /// </summary>
-    public void CreateModelMeshesSetUpMeshMaterialsAndTextures(RiggedModel model, Scene scene, int meshIndex, string fullFileName)
+    public void CreateModelMeshesSetUpMeshMaterialsAndTextures(RiggedModel model, Assimp.Scene scene, int meshIndex, string fullFileName)
     {
         model.Meshes = new RiggedModel.RiggedModelMesh[scene.Meshes.Count];
 
@@ -569,7 +569,7 @@ public class RiggedModelLoader
 
     /// <summary>Get Scene Model Mesh Vertices. Gets all the mesh data into a mesh array. 
     /// </summary>
-    public void CreateVerticeIndiceData(RiggedModel model, Scene scene, int meshIndex) // RiggedModel
+    public void CreateVerticeIndiceData(RiggedModel model, Assimp.Scene scene, int meshIndex) // RiggedModel
     {
         // http://sir-kimmi.de/assimp/lib_html/structai_mesh.html#aa2807c7ba172115203ed16047ad65f9e
 
@@ -851,7 +851,7 @@ public class RiggedModelLoader
 
     /// <summary> Gets the assimp animations as the original does it into the model.
     /// </summary>
-    public void CreateOriginalAnimations(RiggedModel model, Scene scene)
+    public void CreateOriginalAnimations(RiggedModel model, Assimp.Scene scene)
     {
         // Nice now i find it after i already figured it out.
         // http://sir-kimmi.de/assimp/lib_html/_animation_overview.html
@@ -1009,7 +1009,7 @@ public class RiggedModelLoader
 
     /// <summary> Gets the index to the flat bone from its node name. 
     /// </summary>
-    public int GetFlatBoneIndexInModel(RiggedModel model, Scene scene, string nameToFind)
+    public int GetFlatBoneIndexInModel(RiggedModel model, Assimp.Scene scene, string nameToFind)
     {
         int index = -1;
         for (int i = 0; i < model.FlatListToBoneNodes.Count; i++)
@@ -1034,7 +1034,7 @@ public class RiggedModelLoader
 
     /// <summary>Returns X as the mesh index and Y as the bone number if Y is negative it is not a bone.
     /// </summary>
-    public Point SearchSceneMeshBonesForName(string name, Scene scene)
+    public Point SearchSceneMeshBonesForName(string name, Assimp.Scene scene)
     {
         Point result = new Point(-1, -1);
         bool found = false;
@@ -1060,7 +1060,7 @@ public class RiggedModelLoader
     /// <summary>
     /// Returns X as the mesh index and Y as the bone number if Y is negative it is not a bone.
     /// </summary>
-    public Matrix4x4 SearchSceneMeshBonesForNameGetOffsetMatrix(string name, Scene scene)
+    public Matrix4x4 SearchSceneMeshBonesForNameGetOffsetMatrix(string name, Assimp.Scene scene)
     {
         Matrix4x4 result = Matrix4x4.Identity;
         bool found = false;
@@ -1311,7 +1311,7 @@ public class RiggedModelLoader
 
     /// <summary>
     /// </summary>
-    public void InfoForAnimData(Scene scene)
+    public void InfoForAnimData(Assimp.Scene scene)
     {
         //int i;
         if (StartupLogInfo)
@@ -1446,7 +1446,7 @@ public class RiggedModelLoader
 
     //=============================================================================
     /// <summary> Can be removed later or disregarded this is mainly for debuging. </summary>
-    public void InfoForMaterials(RiggedModel model, Scene scene)
+    public void InfoForMaterials(RiggedModel model, Assimp.Scene scene)
     {
         for (int mloop = 0; mloop < scene.Meshes.Count; mloop++)
         {

@@ -1,5 +1,5 @@
 using CasaEngine.Framework.Assets.Loaders;
-using CasaEngine.Framework.Materials;
+
 using Microsoft.Xna.Framework;
 using Xunit;
 

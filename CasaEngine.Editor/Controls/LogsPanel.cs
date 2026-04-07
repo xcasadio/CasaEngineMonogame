@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;

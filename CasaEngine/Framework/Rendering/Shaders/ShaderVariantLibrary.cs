@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -162,7 +163,7 @@ public sealed class ShaderVariantLibrary
 
         if (result is null)
         {
-            Core.Log.Logs.WriteWarning(
+            Logs.WriteWarning(
                 $"ShaderVariantLibrary: no shader found for variant {key}.");
         }
 
@@ -245,7 +246,7 @@ public sealed class ShaderVariantLibrary
         }
 
         var requestedTechnique = BuildTechniqueName(features) ?? "<none>";
-        Core.Log.Logs.WriteWarning(
+        Logs.WriteWarning(
             $"ShaderVariantLibrary: no compatible technique found for shader '{shaderBaseId}' and canonical technique '{requestedTechnique}'.");
     }
 

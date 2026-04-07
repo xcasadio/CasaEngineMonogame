@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.GameFramework;
+using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
 

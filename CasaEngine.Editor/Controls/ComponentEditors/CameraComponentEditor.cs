@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 

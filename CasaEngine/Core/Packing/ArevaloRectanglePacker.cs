@@ -272,7 +272,7 @@ public class ArevaloRectanglePacker : RectanglePacker
             // Try to double the height of the packing area
             return selectAnchorRecursive(
                 rectangleWidth, rectangleHeight,
-                testedPackingAreaWidth, Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
+                testedPackingAreaWidth, System.Math.Min(testedPackingAreaHeight * 2, PackingAreaHeight)
             );
 
         }
@@ -282,7 +282,7 @@ public class ArevaloRectanglePacker : RectanglePacker
             // Try to double the width of the packing area
             return selectAnchorRecursive(
                 rectangleWidth, rectangleHeight,
-                Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
+                System.Math.Min(testedPackingAreaWidth * 2, PackingAreaWidth), testedPackingAreaHeight
             );
 
         }
@@ -414,4 +414,3 @@ public class ArevaloRectanglePacker : RectanglePacker
 
 }
 
-// namespace CasaEngineCommon.Packing

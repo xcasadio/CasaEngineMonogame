@@ -1,5 +1,5 @@
 using System;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
 
 namespace CasaEngine.Editor.Controls.ComponentEditors;

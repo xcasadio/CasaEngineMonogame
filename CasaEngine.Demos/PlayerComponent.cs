@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 

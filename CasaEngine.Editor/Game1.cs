@@ -1,5 +1,5 @@
-﻿using CasaEngine.Core.Log;
-using CasaEngine.Engine;
+using CasaEngine.Core.Logging;
+using CasaEngine.Engine.Environment;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.Docking;
@@ -15,12 +15,12 @@ using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Framework.Input;
-using CasaEngine.Framework.Materials;
+
 using FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Docking;
@@ -2126,7 +2126,7 @@ namespace CasaEngine.Editor
             }
         }
 
-        private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        private void OnEditorComponentSelectionChanged(CasaEngine.Framework.Scene.Entities.Components.EntityComponent? component)
         {
             Logs.WriteTrace($"[WorldSelection] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
             RefreshWorldInspectorView();
@@ -2136,7 +2136,7 @@ namespace CasaEngine.Editor
             }
         }
 
-        private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        private void OnEntityDetailsSelectedComponentChanged(CasaEngine.Framework.Scene.Entities.Components.EntityComponent? component)
         {
             Logs.WriteTrace($"[WorldSelection] Inspector selected component={DescribeComponent(component)}");
             _editorSelection.SetSelectedComponent(component);
@@ -2614,7 +2614,7 @@ namespace CasaEngine.Editor
             return true;
         }
 
-        private Entity? FindAutomationEntity(CasaEngine.Framework.World.World world)
+        private Entity? FindAutomationEntity(CasaEngine.Framework.Scene.World.World world)
         {
             var entities = EnumerateEntities(world.Entities).ToList();
             if (string.IsNullOrWhiteSpace(_automationOptions.EntityName))
@@ -2628,7 +2628,7 @@ namespace CasaEngine.Editor
                 .ElementAtOrDefault(_automationOptions.EntityIndex);
         }
 
-        private CasaEngine.Framework.Entities.Components.EntityComponent? FindAutomationComponent(Entity entity)
+        private CasaEngine.Framework.Scene.Entities.Components.EntityComponent? FindAutomationComponent(Entity entity)
         {
             if (string.IsNullOrWhiteSpace(_automationOptions.ComponentName))
             {
@@ -2866,7 +2866,7 @@ namespace CasaEngine.Editor
             }
         }
 
-        private static IEnumerable<CasaEngine.Framework.Entities.Components.EntityComponent> EnumerateComponents(Entity entity)
+        private static IEnumerable<CasaEngine.Framework.Scene.Entities.Components.EntityComponent> EnumerateComponents(Entity entity)
         {
             if (entity.RootComponent != null)
             {
@@ -2879,7 +2879,7 @@ namespace CasaEngine.Editor
             foreach (var component in entity.Components)
             {
                 yield return component;
-                if (component is CasaEngine.Framework.Entities.Components.SceneComponent sceneComponent)
+                if (component is CasaEngine.Framework.Scene.Entities.Components.SceneComponent sceneComponent)
                 {
                     foreach (var child in sceneComponent.Children.SelectMany(EnumerateSceneComponents))
                     {
@@ -2889,7 +2889,7 @@ namespace CasaEngine.Editor
             }
         }
 
-        private static IEnumerable<CasaEngine.Framework.Entities.Components.SceneComponent> EnumerateSceneComponents(CasaEngine.Framework.Entities.Components.SceneComponent component)
+        private static IEnumerable<CasaEngine.Framework.Scene.Entities.Components.SceneComponent> EnumerateSceneComponents(CasaEngine.Framework.Scene.Entities.Components.SceneComponent component)
         {
             yield return component;
             foreach (var child in component.Children)
@@ -2901,7 +2901,7 @@ namespace CasaEngine.Editor
             }
         }
 
-        private static bool ComponentMatches(CasaEngine.Framework.Entities.Components.EntityComponent component, string expectedName)
+        private static bool ComponentMatches(CasaEngine.Framework.Scene.Entities.Components.EntityComponent component, string expectedName)
         {
             string typeName = NormalizeAutomationToken(component.GetType().Name);
             if (typeName == expectedName)
@@ -2936,7 +2936,7 @@ namespace CasaEngine.Editor
                 : $"'{entity.Name}'";
         }
 
-        private static string DescribeComponent(CasaEngine.Framework.Entities.Components.EntityComponent? component)
+        private static string DescribeComponent(CasaEngine.Framework.Scene.Entities.Components.EntityComponent? component)
         {
             if (component == null)
             {

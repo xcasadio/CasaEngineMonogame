@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
-using CasaEngine.Engine;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Game;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Application;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 

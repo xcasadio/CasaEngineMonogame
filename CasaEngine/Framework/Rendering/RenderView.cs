@@ -1,5 +1,5 @@
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.UI;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -26,7 +26,7 @@ public sealed class RenderView
     // ---- Core rendering inputs ----
 
     /// <summary>World to render in this view.</summary>
-    public World.World World { get; set; }
+    public CasaEngine.Framework.Scene.World.World World { get; set; }
 
     /// <summary>Camera used to compute View/Projection matrices.</summary>
     public CameraComponent Camera { get; set; }
@@ -183,7 +183,7 @@ public sealed class RenderView
 
     // ---- Constructor ----
 
-    public RenderView(World.World world, CameraComponent camera, IRenderSurface surface)
+    public RenderView(CasaEngine.Framework.Scene.World.World world, CameraComponent camera, IRenderSurface surface)
     {
         World   = world;
         Camera  = camera;

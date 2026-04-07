@@ -1,11 +1,11 @@
 using CasaEngine.EditorServices;
-using CasaEngine.Engine;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Materials;
-using CasaEngine.Framework.Project;
-using CasaEngine.Framework.World;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+
+using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;

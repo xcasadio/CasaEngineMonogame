@@ -1,8 +1,8 @@
 ﻿using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Scripts.Screens;
 
 namespace CasaEngine.RPGDemo.Scripts;

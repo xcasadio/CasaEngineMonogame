@@ -1,0 +1,616 @@
+using CasaEngine.Core.Logging;
+using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Debug;
+using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.UI;
+using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.Scene.Spatial.Octree;
+using CasaEngine.Framework.Scene.Transform;
+using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
+
+namespace CasaEngine.Framework.Scene.World;
+
+public sealed class World : ObjectBase
+{
+    private readonly List<EntityReference> _entityReferences = [];
+    private readonly List<Entity> _entities = [];
+    private readonly List<Entity> _baseObjectsToAdd = [];
+    private readonly List<WorldUIComponent> _worldUiComponents = [];
+    private readonly HashSet<Entity> _observedEntities = [];
+
+    private readonly Octree<Entity> _octree;
+    private readonly List<Entity> _entitiesVisible = new(1000);
+
+    private readonly List<PlayerController> _playerControllers = [];
+
+    public CasaEngineGame Game { get; private set; }
+    public IPhysicsWorldContext PhysicsWorldContext { get; private set; } = null!;
+    public IList<Entity> Entities => _entities;
+    public string GameplayProxyClassName { get; set; }
+    public GameplayProxy? GameplayProxy { get; private set; }
+    public Guid GameModeAssetId { get; set; } = Guid.Empty;
+    public GameMode GameMode { get; private set; }
+    public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
+    public IWorldMessageBus MessageBus { get; }
+
+    public bool DisplaySpacePartitioning { get; set; }
+
+
+    public event EventHandler? EntitiesClear;
+    public event EventHandler? EntitiesCleared;
+    public event EventHandler<Entity> EntityAdded;
+    public event EventHandler<Entity> EntityRemoved;
+
+
+    public World()
+    {
+        _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
+        MessageBus = new WorldMessageBus();
+    }
+
+    public void Clear()
+    {
+        // Mirror BeginPlay: notify scripts before destroying anything.
+        GameplayProxy?.OnEndPlay(this);
+
+        foreach (var entity in _entities)
+            entity.GameplayProxy?.OnEndPlay(this);
+
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.Dispose();
+        }
+
+        _worldUiComponents.Clear();
+
+        ClearEntities(true);
+        DisposePhysicsWorldContext();
+    }
+
+    public Entity SpawnEntity<T>(string assetName) where T : Entity
+    {
+        var assetInfo = AssetCatalog.Get(assetName);
+        var entity = Game.AssetContentManager.Load<Entity>(assetInfo.Id).Clone();
+        AddEntity(entity);
+        return entity;
+    }
+
+    public T SpawnEntity<T>(Guid id) where T : Entity
+    {
+        var entity = Game.AssetContentManager.Load<T>(id, cache: false);
+        AddEntity(entity);
+        return (T)entity;
+    }
+
+    public void AddEntity(Entity entity)
+    {
+        System.Diagnostics.Debug.Assert(entity != null, "AddEntity() : Actor can't be null");
+        Logs.WriteTrace($"Entity waiting to be added : {entity.Name} {entity.Id}");
+        _baseObjectsToAdd.Add(entity);
+    }
+
+    public void RemoveEntity(Entity entity)
+    {
+        entity.Destroy();
+    }
+
+    public void ClearEntities(bool clearReferences = false)
+    {
+        foreach (var entity in _entities)
+        {
+            MessageBus.UnregisterEntity(entity);
+            UnsubscribeEntityTree(entity);
+            entity.Destroy();
+        }
+
+        _entities.Clear();
+        _baseObjectsToAdd.Clear();
+        _octree.Clear();
+        _observedEntities.Clear();
+        MessageBus.Reset();
+
+        if (clearReferences)
+        {
+            _entityReferences.Clear();
+        }
+
+        EntitiesClear?.Invoke(this, EventArgs.Empty);
+        EntitiesCleared?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void LoadContent(CasaEngineGame game)
+    {
+        Game = game;
+        InitializePhysicsWorldContext();
+        LoadContent(AssetCatalog.IsLoaded);
+    }
+
+    private void InitializePhysicsWorldContext()
+    {
+        DisposePhysicsWorldContext();
+        PhysicsWorldContext = Game.PhysicsEngineComponent.GetOrCreateContext(this);
+    }
+
+    private void DisposePhysicsWorldContext()
+    {
+        if (Game == null)
+        {
+            return;
+        }
+
+        Game.PhysicsEngineComponent.ReleaseContext(this);
+        PhysicsWorldContext = null!;
+    }
+
+    private void LoadContent(bool withReference)
+    {
+        if (GameModeAssetId != Guid.Empty)
+        {
+            GameMode = Game.AssetContentManager.Load<GameMode>(GameModeAssetId);
+        }
+        else // TODO remove this
+        {
+            GameMode = new GameMode();
+        }
+
+        GameMode.InitGame(this);
+        GameMode.MatchState = GameMode.EnteringMap;
+
+        if (withReference)
+        {
+            foreach (var entityReference in _entityReferences)
+            {
+                LoadFromEntityReference(entityReference);
+            }
+        }
+
+        //after everything initialized entities are added
+        InternalAddEntities();
+
+        if (Game.ExecutionPolicy.InitializePlayerControllers)
+        {
+            InitializePlayerControllers();
+        }
+
+        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        {
+            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+        }
+
+        if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
+        {
+            GameplayProxy?.Initialize(null);
+            GameplayProxy?.InitializeWithWorld(this);
+        }
+
+        //Maybe GameplayProxy.InitializeWithWorld() will add some entities
+        //TODO : check if we have to do it only once just here
+        InternalAddEntities();
+    }
+
+    private void InitializePlayerControllers()
+    {
+        if (GameMode.DefaultPawnAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        var pawn = SpawnEntity<Pawn>(GameMode.DefaultPawnAssetId);
+        var playerController = ElementFactory.Create<PlayerController>(GameMode.PlayerControllerClass);
+        playerController.Pawn = pawn;
+        playerController.Player = new LocalPlayer(); // TODO
+        _playerControllers.Add(playerController);
+
+        var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
+        if (playerStartComponent != null)
+        {
+            pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+        }
+
+        InternalAddEntities();
+    }
+
+    public CameraComponent CreateDefaultCamera()
+    {
+        var entityCamera = new Entity();
+        var camera = new CameraLookAtComponent();
+        entityCamera.RootComponent = camera;
+        camera.SetPositionAndTarget(Vector3.Forward * -10, Vector3.Zero);
+
+        entityCamera.Initialize();
+        entityCamera.InitializeWithWorld(this);
+        Logs.WriteWarning($"No camera found in the world {Name}. Create default one");
+
+        return camera;
+    }
+
+    private void LoadFromEntityReference(EntityReference entityReference)
+    {
+        entityReference.Load(Game.AssetContentManager);
+        AddEntity(entityReference.Entity);
+    }
+
+    public void BeginPlay()
+    {
+        if (!Game.ExecutionPolicy.RunBeginPlay)
+        {
+            return;
+        }
+        GameMode.StartPlay();
+
+        GameplayProxy?.OnBeginPlay(this);
+
+        foreach (var entity in _entities)
+        {
+            entity.GameplayProxy?.OnBeginPlay(this);
+        }
+    }
+
+    private PlayerStartComponent GetPlayerStart(int playerIndex)
+    {
+        PlayerStartComponent playerStartComponent = null;
+
+        foreach (var entity in _entities)
+        {
+            playerStartComponent = entity.GetComponent<PlayerStartComponent>();
+
+            if (playerStartComponent != null)
+            {
+                //TODO : check player index
+                return playerStartComponent;
+            }
+        }
+
+        return playerStartComponent;
+    }
+
+    public void Update(float elapsedTime)
+    {
+        GameMode.Tick(elapsedTime);
+
+        if (GameMode.HasMatchEnded())
+        {
+            //??
+        }
+
+        var toRemove = new List<Entity>();
+
+        InternalAddEntities();
+
+        foreach (var entity in _entities)
+        {
+            if (entity.ToBeRemoved)
+            {
+                toRemove.Add(entity);
+                _octree.RemoveItem(entity);
+            }
+            else
+            {
+                entity.Update(elapsedTime);
+
+                if (IsBoundingBoxDirty(entity))
+                {
+                    _octree.MoveItem(entity, entity.GetBoundingBox());
+                }
+            }
+        }
+
+        foreach (var entity in toRemove)
+        {
+            MessageBus.UnregisterEntity(entity);
+            UnsubscribeEntityTree(entity);
+            _entities.Remove(entity);
+            NotifyEntityRemovedRecursive(entity);
+        }
+
+        _octree.ApplyPendingMoves();
+
+        if (Game.ExecutionPolicy.UpdateGameplayScripts)
+        {
+            GameplayProxy?.Update(elapsedTime);
+        }
+    }
+
+    private bool IsBoundingBoxDirty(Entity actor)
+    {
+        if (actor.RootComponent?.IsBoundingBoxDirty ?? false)
+        {
+            return true;
+        }
+
+        foreach (var component in actor.Components)
+        {
+            if (component is SceneComponent { IsBoundingBoxDirty: true })
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void InternalAddEntities()
+    {
+        if (_baseObjectsToAdd.Count == 0)
+        {
+            return;
+        }
+
+        var entitiesToAdd = new List<Entity>(_baseObjectsToAdd);
+        _baseObjectsToAdd.Clear();
+
+        foreach (var entity in entitiesToAdd)
+        {
+            try
+            {
+                entity.Initialize();
+                entity.InitializeWithWorld(this);
+                MessageBus.RegisterEntity(entity);
+                AddInSpacePartitioning(entity);
+                _entities.Add(entity);
+                SubscribeEntityTree(entity);
+                Logs.WriteDebug($"Entity added : {entity.Name} {entity.Id}");
+                NotifyEntityAddedRecursive(entity);
+            }
+            catch (Exception e)
+            {
+                Logs.WriteException(e);
+            }
+        }
+    }
+
+    private void AddInSpacePartitioning(Entity actor)
+    {
+        _octree.AddItem(actor.GetBoundingBox(), actor);
+    }
+
+    public void Draw(in RenderFrame frame)
+    {
+        var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
+        _octree.GetContainedObjects(boundingFrustum, _entitiesVisible);
+
+        foreach (var entityBase in _entitiesVisible)
+        {
+            if (entityBase.RootComponent != null)
+            {
+                entityBase.Draw(0f);
+            }
+        }
+
+        _entitiesVisible.Clear();
+
+        if (DisplaySpacePartitioning)
+        {
+            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.Line3dRendererComponent);
+        }
+    }
+
+    public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
+    {
+        ArgumentNullException.ThrowIfNull(results);
+        _octree.GetContainedObjects(bounds, results, filter);
+    }
+
+    public void RegisterWorldUI(WorldUIComponent worldUiComponent)
+    {
+        ArgumentNullException.ThrowIfNull(worldUiComponent);
+
+        if (!_worldUiComponents.Contains(worldUiComponent))
+        {
+            _worldUiComponents.Add(worldUiComponent);
+        }
+    }
+
+    public void UnregisterWorldUI(WorldUIComponent worldUiComponent)
+    {
+        ArgumentNullException.ThrowIfNull(worldUiComponent);
+        _worldUiComponents.Remove(worldUiComponent);
+    }
+
+    public void DrawWorldUIToTextures()
+    {
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.DrawToTexture();
+        }
+    }
+
+    public void UpdateWorldUI(GameTime gameTime)
+    {
+        foreach (var worldUiComponent in _worldUiComponents)
+        {
+            worldUiComponent.Update(gameTime);
+        }
+    }
+
+    public void OnScreenResized(int width, int height)
+    {
+        foreach (var entity in Entities)
+        {
+            entity.OnScreenResized(width, height);
+        }
+    }
+
+    public override void Load(JObject element)
+    {
+        ClearEntities(true);
+        base.Load(element);
+
+        foreach (var entityReferenceNode in element["entity_references"])
+        {
+            var entityReference = new EntityReference();
+            entityReference.Load((JObject)entityReferenceNode);
+            _entityReferences.Add(entityReference);
+        }
+
+        GameplayProxyClassName = element["script_class_name"].GetString();
+
+        if (element.ContainsKey("game_mode_asset_id"))
+        {
+            GameModeAssetId = element["game_mode_asset_id"].GetGuid();
+        }
+    }
+
+    public bool IsPlayerController(Entity entity)
+    {
+        return GetPlayerController(entity) != null;
+    }
+
+    public PlayerController? GetPlayerController(Entity entity)
+    {
+        foreach (var playerController in _playerControllers)
+        {
+            if (playerController.Pawn == entity)
+            {
+                return playerController;
+            }
+        }
+
+        return null;
+    }
+
+    internal IEnumerable<ITransformableObject> GetTransformableObjects()
+    {
+        var selectables = new List<ITransformableObject>();
+
+        foreach (var entity in _entities)
+        {
+            AddSelectablesFromActor(entity, selectables);
+        }
+
+        return selectables;
+    }
+
+    private void AddSelectablesFromActor(Entity actor, List<ITransformableObject> selectables)
+    {
+        if (actor.RootComponent != null)
+        {
+            selectables.Add(actor.RootComponent);
+
+            foreach (var actorComponent in actor.Components)
+            {
+                if (actorComponent is SceneComponent sceneComponent)
+                {
+                    selectables.Add(sceneComponent);
+                }
+            }
+        }
+
+        foreach (var child in actor.Children)
+        {
+            AddSelectablesFromActor(child, selectables);
+        }
+    }
+
+    internal void AddEntityReferenceImmediate(EntityReference entityReference, Entity entity)
+    {
+        _entityReferences.Add(entityReference);
+        entity.Initialize();
+        _entities.Add(entity);
+        entity.InitializeWithWorld(this);
+        MessageBus.RegisterEntity(entity);
+        AddInSpacePartitioning(entity);
+        SubscribeEntityTree(entity);
+        NotifyEntityAddedRecursive(entity);
+    }
+
+    internal void RemoveEntityImmediate(Entity entity)
+    {
+        var entitiesToRemove = new List<EntityReference>();
+
+        foreach (var entityReference in _entityReferences)
+        {
+            if (entityReference.Entity.Id == entity.Id)
+            {
+                entitiesToRemove.Add(entityReference);
+                break;
+            }
+        }
+
+        foreach (var entityReference in entitiesToRemove)
+        {
+            _entityReferences.Remove(entityReference);
+        }
+
+        MessageBus.UnregisterEntity(entity);
+        UnsubscribeEntityTree(entity);
+        _entities.Remove(entity);
+        _octree.RemoveItem(entity);
+        entity.Destroy();
+        NotifyEntityRemovedRecursive(entity);
+    }
+
+    private void SubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Add(entity))
+        {
+            return;
+        }
+
+        entity.ChildAdded += OnEntityChildAdded;
+        entity.ChildRemoved += OnEntityChildRemoved;
+
+        foreach (var child in entity.Children)
+        {
+            SubscribeEntityTree(child);
+        }
+    }
+
+    private void UnsubscribeEntityTree(Entity entity)
+    {
+        if (!_observedEntities.Remove(entity))
+        {
+            return;
+        }
+
+        entity.ChildAdded -= OnEntityChildAdded;
+        entity.ChildRemoved -= OnEntityChildRemoved;
+
+        foreach (var child in entity.Children)
+        {
+            UnsubscribeEntityTree(child);
+        }
+    }
+
+    private void OnEntityChildAdded(object? sender, Entity child)
+    {
+        child.Initialize();
+        child.InitializeWithWorld(this);
+        SubscribeEntityTree(child);
+        NotifyEntityAddedRecursive(child);
+    }
+
+    private void OnEntityChildRemoved(object? sender, Entity child)
+    {
+        UnsubscribeEntityTree(child);
+        NotifyEntityRemovedRecursive(child);
+    }
+
+    private void NotifyEntityAddedRecursive(Entity entity)
+    {
+        EntityAdded?.Invoke(this, entity);
+
+        foreach (var child in entity.Children)
+        {
+            NotifyEntityAddedRecursive(child);
+        }
+    }
+
+    private void NotifyEntityRemovedRecursive(Entity entity)
+    {
+        EntityRemoved?.Invoke(this, entity);
+
+        foreach (var child in entity.Children)
+        {
+            NotifyEntityRemovedRecursive(child);
+        }
+    }
+}

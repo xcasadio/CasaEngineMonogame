@@ -1,6 +1,6 @@
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering.Models;
+
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;

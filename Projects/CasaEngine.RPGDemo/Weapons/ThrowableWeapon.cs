@@ -1,7 +1,7 @@
 using System;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.World;
+
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts;
 using Microsoft.Xna.Framework;

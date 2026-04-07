@@ -1,11 +1,11 @@
 using System;
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game.Components.DebugTools;
+using CasaEngine.Engine.Input.Providers;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application.Components.DebugTools;
 using CasaEngine.Framework.Rendering;
 
-namespace CasaEngine.Framework.Game.Components.Editor;
+namespace CasaEngine.Editor.Runtime;
 
 public sealed class EditorViewContext : IDisposable
 {
@@ -15,7 +15,7 @@ public sealed class EditorViewContext : IDisposable
 
     public RenderView RenderView { get; }
 
-    public World.World? World { get; set; }
+    public CasaEngine.Framework.Scene.World.World? World { get; set; }
 
     public CameraComponent? Camera { get; set; }
 

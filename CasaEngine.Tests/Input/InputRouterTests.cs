@@ -1,5 +1,5 @@
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
@@ -137,7 +137,7 @@ public class InputRouterTests
     private static RenderView CreateView(ViewManager viewManager, Rectangle screenBounds, IUIViewRuntime? uiView = null)
     {
         var surface = new StubRenderSurface(new Rectangle(0, 0, screenBounds.Width, screenBounds.Height));
-        var view = new RenderView(new CasaEngine.Framework.World.World(), new ArcBallCameraComponent(), surface)
+        var view = new RenderView(new CasaEngine.Framework.Scene.World.World(), new ArcBallCameraComponent(), surface)
         {
             Host = new StubViewHost(screenBounds),
             UIView = uiView,

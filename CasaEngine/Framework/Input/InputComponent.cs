@@ -1,7 +1,7 @@
-﻿using CasaEngine.Core.Helpers;
+﻿
 using CasaEngine.Engine.Input;
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
-using CasaEngine.Framework.Game;
+using CasaEngine.Engine.Input.Providers;
+using CasaEngine.Framework.Application;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 

@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;

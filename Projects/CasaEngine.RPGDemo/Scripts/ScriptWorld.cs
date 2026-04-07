@@ -1,12 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
-using CasaEngine.Engine;
+using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Scripts.Screens;
 using Microsoft.Xna.Framework;

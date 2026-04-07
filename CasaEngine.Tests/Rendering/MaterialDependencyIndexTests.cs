@@ -1,7 +1,7 @@
 using CasaEngine.EditorServices;
-using CasaEngine.Engine;
+using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;

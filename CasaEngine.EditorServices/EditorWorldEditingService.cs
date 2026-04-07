@@ -1,6 +1,6 @@
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Transform;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Transform;
+using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.EditorServices;
 

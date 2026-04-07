@@ -78,4 +78,3 @@ public abstract class RectanglePacker
 
 }
 
-// namespace CasaEngineCommon.Packing

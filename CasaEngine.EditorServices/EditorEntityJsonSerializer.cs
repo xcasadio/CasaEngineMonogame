@@ -1,13 +1,13 @@
 using System.Reflection;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Graphics.Shapes;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Rendering.Geometry;
+
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
-using World = CasaEngine.Framework.World.World;
+using World = CasaEngine.Framework.Scene.World.World;
 
 namespace CasaEngine.EditorServices;
 

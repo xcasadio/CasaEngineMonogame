@@ -1,17 +1,18 @@
 using System.Reflection;
 using CasaEngine.Engine.Input;
-using CasaEngine.Framework;
+using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Rendering.Models;
+using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Framework.Input;
-using CasaEngine.Framework.Materials;
+
 using Newtonsoft.Json.Linq;
-using World = CasaEngine.Framework.World.World;
+using World = CasaEngine.Framework.Scene.World.World;
 
 namespace CasaEngine.EditorServices;
 

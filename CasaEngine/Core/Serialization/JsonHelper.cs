@@ -1,8 +1,8 @@
-﻿using CasaEngine.Core.Maths;
+﻿using CasaEngine.Core.Math;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
-using Size = CasaEngine.Core.Maths.Size;
+using Size = CasaEngine.Core.Math.Size;
 
 namespace CasaEngine.Core.Serialization;
 

@@ -8,7 +8,7 @@ public class SetFrameEvent : AnimationEvent
 
     public override void Activate(Animation anim)
     {
-        Debug.Assert(anim != null, "SetFrameEvent::Activate() : Animation is nullptr");
+        System.Diagnostics.Debug.Assert(anim != null, "SetFrameEvent::Activate() : Animation is nullptr");
 
         if (anim is Animation2d pAnim2D)
         {

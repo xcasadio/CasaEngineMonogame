@@ -1,13 +1,13 @@
-using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Rendering.Models;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
-using CasaEngine.Engine;
+using CasaEngine.Engine.Environment;
 
 namespace CasaEngine.Demos.Demos;
 

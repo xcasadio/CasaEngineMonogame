@@ -1,4 +1,4 @@
-﻿using CasaEngine.Framework.World;
+﻿using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Controllers.CpuPlayerState;
 using Microsoft.Xna.Framework;
 using static CasaEngine.RPGDemo.Controllers.Character;

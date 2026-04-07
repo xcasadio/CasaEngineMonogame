@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Core.Log;
+
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GameFramework;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
 using Microsoft.Xna.Framework;

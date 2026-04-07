@@ -1,12 +1,12 @@
 using System;
-using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.GUI;
-using CasaEngine.Framework.Graphics;
+using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.UI;
+using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Input;
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;

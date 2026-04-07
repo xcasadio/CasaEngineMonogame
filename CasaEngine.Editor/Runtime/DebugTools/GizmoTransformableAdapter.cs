@@ -1,8 +1,8 @@
-using CasaEngine.Framework.Transform;
+using CasaEngine.Framework.Scene.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Game.Components.DebugTools;
+namespace CasaEngine.Framework.Application.Components.DebugTools;
 
 internal sealed class GizmoTransformableAdapter : ITransformable
 {

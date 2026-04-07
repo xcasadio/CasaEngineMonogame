@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Log;
+﻿using CasaEngine.Core.Logging;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets;

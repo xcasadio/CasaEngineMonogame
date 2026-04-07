@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework.Graphics;

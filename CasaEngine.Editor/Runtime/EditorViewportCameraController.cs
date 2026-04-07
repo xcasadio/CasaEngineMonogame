@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Scene.Entities.Components;
 using System;
 using CasaEngine.Framework.Input;
 using Microsoft.Xna.Framework;

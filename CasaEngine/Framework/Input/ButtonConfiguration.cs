@@ -1,4 +1,4 @@
-﻿using CasaEngine.Engine.Input.InputSequence;
+﻿using CasaEngine.Engine.Input.Sequences;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Input;

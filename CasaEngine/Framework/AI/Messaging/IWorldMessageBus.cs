@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Scene.Entities;
 
 namespace CasaEngine.Framework.AI.Messaging;
 

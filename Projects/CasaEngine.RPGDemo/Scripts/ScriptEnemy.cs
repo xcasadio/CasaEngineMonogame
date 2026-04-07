@@ -1,11 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.GameFramework;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Controllers;
 using CasaEngine.RPGDemo.Controllers.EnemyState;
 using CasaEngine.RPGDemo.Weapons;

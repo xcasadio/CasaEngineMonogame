@@ -1,4 +1,4 @@
-﻿using CasaEngine.Core.Log;
+﻿using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 

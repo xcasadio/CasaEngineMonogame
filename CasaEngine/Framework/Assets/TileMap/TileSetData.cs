@@ -9,7 +9,7 @@ public class TileSetData : ObjectBase
     private readonly Dictionary<int, TileData> _tileById = new();
 
     public Guid SpriteSheetAssetId { get; set; }
-    public Core.Maths.Size TileSize { get; set; }
+    public CasaEngine.Core.Math.Size TileSize { get; set; }
     public List<TileData> Tiles { get; } = new();
 
     public TileData GetTileData(int tileId)
