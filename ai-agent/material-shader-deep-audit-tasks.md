@@ -117,7 +117,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(materials): classify material and shader classes by runtime role`
 
-- 🧪 **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
+- ✅ **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
   Objectif :
   - Faire un inventaire `fichier effect -> consumers C# -> type de shader -> utilitaire ou material-facing -> risque si suppression/refactor`.
   - Distinguer clairement `basicEffect.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`simple.fx`, `spritebatch.fx`, `axisComponent.fx`).
