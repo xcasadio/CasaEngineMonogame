@@ -2,6 +2,14 @@
 
 Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres la migration authoring/runtime.
 
+## Etat final
+
+- La source de verite authoring est `MaterialAsset` + `MaterialDefinition`; le runtime ne maintient plus de chemin legacy material/shader parallele.
+- `CompiledMaterial` est la representation compilee partagee entre cache, inspection runtime et draw path.
+- Les renderers runtime CasaEngine n'instancient plus `Microsoft.Xna.Framework.Graphics.BasicEffect`; les besoins debug/outillage passent par des effects CasaEngine explicites.
+- Le pipeline forward utilise un plafond fixe de 8 directional lights avec `ActiveDirectionalLightCount`, compatible MonoGame/mgfxc et extensible vers une strategie de culling plus fine plus tard.
+- Les shaders utilitaires actifs sont maintenant separes de l'architecture material et documentes a part via l'inventaire des effects et la convention de nommage.
+
 ## Pieces du pipeline
 
 - `MaterialDefinition` / `MaterialPropertyDefinition`
@@ -12,7 +20,7 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 - `CompiledMaterial`
   - snapshot runtime compile contenant le shader effectif, les features materials, les valeurs compilees, les textures resolues et les etats GPU prets a l'emploi.
   - utile pour le cache, l'inspection et le hot reload.
-- `MaterialBase` et ses derives (`LitDiffuseMaterial`, `UnlitTextureMaterial`, `Material` legacy)
+- `MaterialBase` et ses derives (`LitDiffuseMaterial`, `UnlitTextureMaterial`)
   - objets runtime bindables par le renderer.
   - ils poussent les parametres shader dans `Bind(...)` et, si necessaire, choisissent une technique dans `SelectTechnique(...)`.
 - `MaterialInstanceData`
@@ -68,13 +76,14 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 
 - `MaterialAssetInspectorPanel` genere l'UI de proprietes depuis `MaterialDefinitionEditorRegistry`.
 - `MaterialPreviewViewport` compile directement le `MaterialAsset` courant avec `MaterialCompiler` et l'affiche sur sphere / cube / plane.
-- Dans le runtime principal, `CasaEngineGame.ReloadMaterialAsset(Guid)` fait trois choses:
-  - invalide `MaterialCache` pour l'asset modifie et ses enfants qui heritent de lui,
-  - appelle `RefreshResolvedMaterials(...)` sur les `StaticModelComponent` deja charges,
-  - invalide toutes les `RenderView` pour forcer un redraw.
+- Dans le runtime principal, `CasaEngineGame.ReloadMaterialAsset(Guid)` fait quatre choses:
+  - met a jour `MaterialDependencyIndex` puis calcule l'ensemble des assets material affectes (asset modifie + enfants qui heritent de lui),
+  - invalide `MaterialCache` pour tous les materials affectes,
+  - met a jour ou invalide `MaterialAuthoringAssetCache` pour garder une source authoring coherente pendant le refresh,
+  - appelle `RefreshResolvedMaterials(...)` sur les `StaticModelComponent` deja charges puis invalide toutes les `RenderView` pour forcer un redraw.
 - Consequence pratique:
   - la preview editeur est isolee et immediate,
-  - les vues runtime repassent par le cache et le refresh de modeles charges.
+  - les vues runtime repassent par le cache, le refresh des modeles charges et l'ensemble des materials affectes plutot que par un chemin ad hoc fragile.
 
 ## Notes de compatibilite pipeline
 
@@ -90,6 +99,9 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 - Lighting forward:
   - `LightingContext` expose un plafond fixe de 8 directional lights pour rester compatible avec MonoGame/mgfxc.
   - `ActiveDirectionalLightCount` pilote le sous-ensemble actif sans reconfigurer les shaders ni les materials.
+- Legacy retire:
+  - le runtime ne charge plus l'ancien type `Material` ni d'adaptateur de compatibilite legacy.
+  - les utilitaires runtime/debug n'utilisent plus `BasicEffect` MonoGame; ils passent par `DebugPrimitiveColor.fx`, `DebugSolidColor.fx` ou `SpriteBatch.fx` selon le besoin.
 
 ## Validation manuelle de reference
 
@@ -121,3 +133,8 @@ Nettoyage optionnel:
 ```powershell
 Remove-Item Env:CASAENGINE_START_DEMO
 ```
+
+## Documents associes
+
+- `docs/rendering/effect-file-inventory.md` pour la cartographie effect -> consumers et la separation material/debug.
+- `docs/rendering/shader-naming-convention.md` pour la convention de nommage appliquee aux shaders actifs et aux shaders archives.

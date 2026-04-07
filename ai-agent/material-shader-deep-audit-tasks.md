@@ -372,7 +372,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `test(materials): extend focused coverage for material and shader architecture`
 
-- ⏳ **T06.03 - Mettre a jour la documentation d'architecture finale**
+- ✅ **T06.03 - Mettre a jour la documentation d'architecture finale**
   Objectif :
   - Mettre a jour `docs/rendering/materials-workflow.md` ou un document d'architecture associe pour refleter la source de verite finale, le contrat de hot reload, le nouveau modele de lumieres scalable et la disparition des chemins legacy et de `BasicEffect` MonoGame.
   Validation :
