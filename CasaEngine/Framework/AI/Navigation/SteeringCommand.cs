@@ -10,6 +10,6 @@ public readonly record struct SteeringCommand(
 {
     public static SteeringCommand None(SteeringOutputMode outputMode)
     {
-        return new SteeringCommand(Vector3.Zero, Vector3.Zero, Vector3.Forward, outputMode);
+        return new SteeringCommand(Vector3.Zero, Vector3.Zero, Vector3.Right, outputMode);
     }
 }

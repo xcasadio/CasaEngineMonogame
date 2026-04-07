@@ -27,10 +27,10 @@ public sealed class SteeringAgentComponent : EntityComponent
     public SteeringCommand CurrentCommand { get; private set; }
 
     public Vector3 LastTotalForce { get; private set; }
-
+    
     public Vector3 LastDesiredVelocity { get; private set; }
 
-    public Vector3 LastDesiredFacing { get; private set; } = Vector3.Forward;
+    public Vector3 LastDesiredFacing { get; private set; } = Vector3.Right;
 
     public override void Attach(Entity actor)
     {
@@ -174,7 +174,13 @@ public sealed class SteeringAgentComponent : EntityComponent
                 continue;
             }
 
-            if (Vector3.DistanceSquared(Kinematics.Position, position) <= radiusSquared)
+            float effectiveRadius = radius;
+            if (TryGetCollisionRadius(entity, out float entityRadius))
+            {
+                effectiveRadius += entityRadius;
+            }
+
+            if (Vector3.DistanceSquared(Kinematics.Position, position) < effectiveRadius * effectiveRadius)
             {
                 _neighborCache.Add(entity);
             }
@@ -320,6 +326,8 @@ public sealed class SteeringAgentComponent : EntityComponent
 
     public SteeringCommand CalculateCommand(float elapsedTime)
     {
+        ResetBehaviorEvaluationState();
+
         Vector3 totalForce = Settings.UsePrioritizedAccumulation
             ? CalculatePrioritizedForce(elapsedTime)
             : CalculateWeightedForce(elapsedTime);
@@ -347,57 +355,86 @@ public sealed class SteeringAgentComponent : EntityComponent
         return new SteeringCommand(totalForce, desiredVelocity, desiredFacing, Settings.OutputMode);
     }
 
+    private void ResetBehaviorEvaluationState()
+    {
+        for (int index = 0; index < _behaviors.Count; index++)
+        {
+            _behaviors[index].ResetEvaluationState();
+        }
+    }
+
     private Vector3 CalculateWeightedForce(float elapsedTime)
     {
-        Vector3 totalForce = Vector3.Zero;
+        double totalForceX = 0.0;
+        double totalForceY = 0.0;
+        double totalForceZ = 0.0;
 
         for (int index = 0; index < _behaviors.Count; index++)
         {
-            totalForce += _behaviors[index].Evaluate(Kinematics, this, elapsedTime);
+            SteeringForceVector behaviorForce = _behaviors[index].EvaluateAccurate(Kinematics, this, elapsedTime);
+            totalForceX += behaviorForce.X;
+            totalForceY += behaviorForce.Y;
+            totalForceZ += behaviorForce.Z;
         }
 
-        return totalForce;
+        return new Vector3((float)totalForceX, (float)totalForceY, (float)totalForceZ);
     }
 
     private Vector3 CalculatePrioritizedForce(float elapsedTime)
     {
-        Vector3 totalForce = Vector3.Zero;
+        double totalForceX = 0.0;
+        double totalForceY = 0.0;
+        double totalForceZ = 0.0;
 
         for (int index = 0; index < _behaviors.Count; index++)
         {
-            Vector3 behaviorForce = _behaviors[index].Evaluate(Kinematics, this, elapsedTime);
-            if (!TryAccumulateForce(ref totalForce, behaviorForce, Settings.MaxForce))
+            SteeringBehaviorRuntime behavior = _behaviors[index];
+            SteeringForceVector behaviorForce = behavior.EvaluateAccurate(Kinematics, this, elapsedTime);
+            if (!TryAccumulateForce(ref totalForceX, ref totalForceY, ref totalForceZ, behaviorForce, Settings.MaxForce))
             {
                 break;
             }
         }
 
-        return totalForce;
+        return new Vector3((float)totalForceX, (float)totalForceY, (float)totalForceZ);
     }
 
-    private static bool TryAccumulateForce(ref Vector3 runningTotal, Vector3 forceToAdd, float maxForce)
+    private static bool TryAccumulateForce(ref double runningTotalX, ref double runningTotalY, ref double runningTotalZ, SteeringForceVector forceToAdd, float maxForce)
     {
-        float magnitudeSoFar = runningTotal.Length();
-        float magnitudeRemaining = maxForce - magnitudeSoFar;
-        if (magnitudeRemaining <= 0.0f)
+        double magnitudeSoFar = Math.Sqrt(runningTotalX * runningTotalX + runningTotalY * runningTotalY + runningTotalZ * runningTotalZ);
+        double magnitudeRemaining = maxForce - magnitudeSoFar;
+        if (magnitudeRemaining < 0.0 && magnitudeRemaining >= -1e-12)
+        {
+            magnitudeRemaining = double.Epsilon;
+        }
+
+        if (magnitudeRemaining <= 0.0)
         {
             return false;
         }
 
-        float magnitudeToAdd = forceToAdd.Length();
+        double forceToAddX = forceToAdd.X;
+        double forceToAddY = forceToAdd.Y;
+        double forceToAddZ = forceToAdd.Z;
+        double magnitudeToAdd = Math.Sqrt(forceToAddX * forceToAddX + forceToAddY * forceToAddY + forceToAddZ * forceToAddZ);
         if (magnitudeToAdd <= magnitudeRemaining)
         {
-            runningTotal += forceToAdd;
+            runningTotalX += forceToAddX;
+            runningTotalY += forceToAddY;
+            runningTotalZ += forceToAddZ;
             return true;
         }
 
-        if (magnitudeToAdd <= float.Epsilon)
+        if (magnitudeToAdd <= double.Epsilon)
         {
             return true;
         }
 
-        runningTotal += Vector3.Normalize(forceToAdd) * magnitudeRemaining;
-        return false;
+        double scale = magnitudeRemaining / magnitudeToAdd;
+        runningTotalX += forceToAddX * scale;
+        runningTotalY += forceToAddY * scale;
+        runningTotalZ += forceToAddZ * scale;
+        return true;
     }
 
     public override EntityComponent Clone()
