@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components;
@@ -288,6 +289,38 @@ public class StaticModelComponent : PrimitiveComponent
 
     // Draw and BoundingBox are fully delegated to the child StaticModelSubMeshComponents
     // via the SceneComponent.Draw() / GetBoundingBox() propagation chain.
+
+    public override BoundingBox GetBoundingBox()
+    {
+        bool hasBounds = false;
+        BoundingBox bounds = default;
+
+        foreach (SceneComponent child in Children)
+        {
+            ExpandBounds(child, ref hasBounds, ref bounds);
+        }
+
+        return hasBounds ? bounds : base.GetBoundingBox();
+    }
+
+    private static void ExpandBounds(SceneComponent component, ref bool hasBounds, ref BoundingBox bounds)
+    {
+        BoundingBox componentBounds = component.BoundingBox;
+        if (!hasBounds)
+        {
+            bounds = componentBounds;
+            hasBounds = true;
+        }
+        else
+        {
+            bounds.ExpandBy(componentBounds);
+        }
+
+        foreach (SceneComponent child in component.Children)
+        {
+            ExpandBounds(child, ref hasBounds, ref bounds);
+        }
+    }
 
     public override void Load(JObject element)
     {
