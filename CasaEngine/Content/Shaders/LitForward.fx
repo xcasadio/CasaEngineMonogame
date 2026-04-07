@@ -11,6 +11,7 @@
 DECLARE_TEXTURE(Texture, 0);
 DECLARE_TEXTURE(NormalTexture, 1);
 DECLARE_CUBEMAP(ReflectionCubeTexture, 2);
+DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
 
 
 BEGIN_CONSTANTS
@@ -58,9 +59,13 @@ BEGIN_CONSTANTS
     float AlphaCutoff _ps(c31) _cb(c28.w);
     float3 AmbientColor _ps(c32) _cb(c29);
     float3 MaterialAmbientColor _ps(c33) _cb(c30);
+    float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
+    float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
+    float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
+    float HasMaterialReflectionCube _ps(c36) _cb(c32.y);
 
-    float4x4 World _vs(c34) _cb(c31);
-    float3x3 WorldInverseTranspose _vs(c38) _cb(c35);
+    float4x4 World _vs(c34) _cb(c33);
+    float3x3 WorldInverseTranspose _vs(c38) _cb(c37);
 
 MATRIX_CONSTANTS
 
@@ -69,6 +74,7 @@ MATRIX_CONSTANTS
 END_CONSTANTS
 
 
+#define HAS_ENVIRONMENT_BINDINGS 1
 #include "Structures.fxh"
 #include "Lighting.fxh"
 

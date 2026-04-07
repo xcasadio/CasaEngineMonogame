@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Framework.Rendering.Shaders;
@@ -32,6 +33,7 @@ public sealed class ShaderBindCache
 
         // Bind directional lights and ambient (Phase 5)
         context.Lighting?.Bind(shader);
+        EnvironmentShaderBinder.Bind(shader, in context.Environment, context.Stats);
 
         if (context.Stats is not null)
         {

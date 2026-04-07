@@ -54,6 +54,36 @@ float3 ComputeAmbientTerm(float3 globalAmbientColor, float3 materialAmbientColor
 }
 
 
+#ifdef HAS_ENVIRONMENT_BINDINGS
+float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float3 materialAmbientColor)
+{
+    return globalEnvironmentAmbientColor * materialAmbientColor;
+}
+
+
+float3 SampleEnvironmentReflection(float3 reflectionVector)
+{
+    if (HasEnvironmentCubeTexture <= 0.5f)
+    {
+        return 0;
+    }
+
+    return SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb * EnvironmentSpecularIntensity;
+}
+#else
+float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float3 materialAmbientColor)
+{
+    return globalEnvironmentAmbientColor * materialAmbientColor;
+}
+
+
+float3 SampleEnvironmentReflection(float3 reflectionVector)
+{
+    return 0;
+}
+#endif
+
+
 float3 ComposeLitSurfaceColor(float3 albedo, float3 directDiffuse, float3 ambientTerm, float3 emissiveColor)
 {
     return albedo * (directDiffuse + ambientTerm) + emissiveColor;

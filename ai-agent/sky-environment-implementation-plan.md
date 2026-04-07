@@ -301,7 +301,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-012 — Ajouter les bindings shader pour l'environnement global
+### ✅ ENV-012 — Ajouter les bindings shader pour l'environnement global
 Objectif:
 preparer les shaders de materiaux a consommer des donnees d'environnement globales en plus des lights directes.
 

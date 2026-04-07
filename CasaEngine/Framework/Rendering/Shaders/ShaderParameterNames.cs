@@ -34,6 +34,11 @@ public static class ShaderParameterNames
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
     public const string ActiveDirectionalLightCount = "ActiveDirectionalLightCount";
+    public const string EnvironmentAmbientColor = "EnvironmentAmbientColor";
+    public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
+    public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
+    public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+    public const string HasMaterialReflectionCube = "HasMaterialReflectionCube";
     public const string DirLight0Direction = "DirLight0Direction";
     public const string DirLight0DiffuseColor = "DirLight0DiffuseColor";
     public const string DirLight0SpecularColor = "DirLight0SpecularColor";
