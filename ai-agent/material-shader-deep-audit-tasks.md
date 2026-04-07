@@ -323,7 +323,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(rendering): replace MonoGame BasicEffect usages with CasaEngine effects`
 
-- ⏳ **T05.05 - Auditer puis moderniser les shaders utilitaires CasaEngine**
+- ✅ **T05.05 - Auditer puis moderniser les shaders utilitaires CasaEngine**
   Objectif :
   - Examiner `simple.fx`, `spritebatch.fx` et `axisComponent.fx` avec leurs consommateurs reels.
   - Renommer les shaders utilitaires pour que leur role soit explicite, par exemple `DebugPrimitiveColor.fx`, `SpriteBatch.fx`, `DebugAxis.fx` si des variantes separentes restent necessaires.
