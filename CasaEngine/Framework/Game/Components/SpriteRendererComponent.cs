@@ -85,7 +85,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), NbSprites * 4, BufferUsage.None);
         _indexBuffer = new IndexBuffer(GraphicsDevice, typeof(short), 6, BufferUsage.None);
         _indexBuffer.SetData(new short[] { 0, 1, 2, 0, 2, 3 });
-        _effect = _game.Content.Load<Effect>("Shaders\\spritebatch");
+        _effect = _game.Content.Load<Effect>("Shaders\\SpriteBatch");
 
         _line3dRendererComponent = _game.GetGameComponent<Line3dRendererComponent>();
     }

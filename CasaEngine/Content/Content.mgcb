@@ -67,12 +67,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/skinEffect.fx
 
-#begin Shaders/spritebatch.fx
+#begin Shaders/SpriteBatch.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /processorParam:Defines=
-/build:Shaders/spritebatch.fx
+/build:Shaders/SpriteBatch.fx
 
 #begin Shaders/UnlitTexture.fx
 /importer:EffectImporter

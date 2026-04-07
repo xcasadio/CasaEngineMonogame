@@ -82,7 +82,7 @@ Le travail de l'agent doit couvrir trois axes :
 - `skinEffect.fx` est mieux aligne qu'avant sur les helpers partages, mais son pilotage C# reste hors du pipeline material moderne.
 - `LitForward.fx` est bien un fichier effect CasaEngine, mais plusieurs composants runtime utilisent encore la classe `BasicEffect` de MonoGame (`DebugGridComponent`, `Line3dRendererComponent`, `PrimitiveBatch`, `Primitive2D`). Ces usages doivent etre supprimes.
 - `axisComponent.fx` n'est pas reellement specifique a l'axe : il dessine simplement des primitives colorees via `WorldViewProj` + `VertexPositionColor`. Il constitue un meilleur point de depart pour un shader utilitaire partage de debug que le shader material principal `LitForward.fx`.
-- Les shaders utilitaires `simple.fx`, `spritebatch.fx` et `axisComponent.fx` restent dans un style plus ancien, avec des conventions distinctes des shaders materials. Avant toute refonte, il faut auditer leur usage reel et decider s'ils doivent etre modernises ou simplement classes comme utilitaires debug/outils hors analyse material.
+- Les shaders utilitaires actifs (`SpriteBatch.fx`, `DebugPrimitiveColor.fx`, `DebugSolidColor.fx`) suivent maintenant une convention de role explicite, tandis que les anciens shaders ambigus ont ete retires du contenu embarque.
 
 ### 5. Conclusion de l'audit actuel
 
@@ -120,7 +120,7 @@ Le travail de l'agent doit couvrir trois axes :
 - ✅ **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
   Objectif :
   - Faire un inventaire `fichier effect -> consumers C# -> type de shader -> utilitaire ou material-facing -> risque si suppression/refactor`.
-  - Distinguer clairement `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`simple.fx`, `spritebatch.fx`, `axisComponent.fx`).
+  - Distinguer clairement `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`SpriteBatch.fx`, `DebugPrimitiveColor.fx`, `DebugSolidColor.fx`).
   Validation :
   - Note d'audit versionnee.
   Commit conseille :
@@ -325,7 +325,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 - ✅ **T05.05 - Auditer puis moderniser les shaders utilitaires CasaEngine**
   Objectif :
-  - Examiner `simple.fx`, `spritebatch.fx` et `axisComponent.fx` avec leurs consommateurs reels.
+  - Examiner `SpriteBatch.fx` ainsi que les shaders legacy deja retires (`simple.fx`, `axisComponent.fx`) avec leurs consommateurs reels.
   - Renommer les shaders utilitaires pour que leur role soit explicite, par exemple `DebugPrimitiveColor.fx`, `SpriteBatch.fx`, `DebugAxis.fx` si des variantes separentes restent necessaires.
   - Les conserver uniquement comme effects CasaEngine explicites, eventuellement les moderniser, mais sans retomber sur `BasicEffect` MonoGame.
   - Les sortir explicitement du perimetre d'analyse de l'architecture materials si leur role final est purement debug/outillage.
@@ -335,7 +335,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(shaders): classify and modernize CasaEngine utility effects`
 
-- ⏳ **T05.06 - Formaliser une convention de nommage des shaders et includes**
+- ✅ **T05.06 - Formaliser une convention de nommage des shaders et includes**
   Objectif :
   - Definir une convention claire et stable pour distinguer les shaders materials, debug/outillage, 2D/blit et les includes partages.
   - Appliquer cette convention au moins aux fichiers les plus ambigus (`LitForward.fx`, `axisComponent.fx`, `simple.fx`).

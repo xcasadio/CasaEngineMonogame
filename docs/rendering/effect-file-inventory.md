@@ -9,7 +9,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 | `LitForward.fx` | material-facing | `StaticMeshRendererComponent` | main lit static-mesh effect with many technique permutations | high |
 | `UnlitTexture.fx` | material-facing | `StaticMeshRendererComponent` | unlit material effect for textured or colored draws | medium |
 | `skinEffect.fx` | material-facing | `SkinnedMeshRendererComponent` | skinned mesh effect with its own techniques and lighting bindings | high |
-| `spritebatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
+| `SpriteBatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
 | `DebugPrimitiveColor.fx` | debug utility | `Line3dRendererComponent`, `DebugGridComponent`, `DebugAxisComponent`, editor gizmo line/selection path | shared vertex-color debug primitive shader | medium |
 | `DebugSolidColor.fx` | debug utility | editor gizmo solid meshes/quads | shared solid-color debug shader | medium |
 
@@ -32,5 +32,5 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 ## Refactor guidance
 
 1. Treat `LitForward.fx`, `skinEffect.fx`, and `Lighting.fxh` as architecture-critical files.
-2. Treat `spritebatch.fx`, `DebugPrimitiveColor.fx`, and `DebugSolidColor.fx` as utility shaders that should keep clear, explicit names.
+2. Treat `SpriteBatch.fx`, `DebugPrimitiveColor.fx`, and `DebugSolidColor.fx` as utility shaders that should keep clear, explicit names.
 3. Treat any reintroduction of `axisComponent.fx` or `simple.fx` as an explicit compatibility decision rather than default shipping content.
