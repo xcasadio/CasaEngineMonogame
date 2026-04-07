@@ -284,7 +284,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-011 — Brancher le renderer de meshes skinnes sur le lighting resolu
+### ✅ ENV-011 — Brancher le renderer de meshes skinnes sur le lighting resolu
 Objectif:
 aligner le chemin skinned sur le meme modele de lighting que le renderer statique.
 
