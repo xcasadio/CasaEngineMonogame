@@ -136,7 +136,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(racinggame): move naming heuristics into optional import profile`
 
-- ⏳ **T02.05 — Ajouter une verification bornee cote RacingGame**
+- ✅ **T02.05 — Ajouter une verification bornee cote RacingGame**
   Objectif :
   - Ajouter un harness, snapshot ou script borne pour verifier que le profil RacingGame reproduit bien les interpretations attendues.
   Validation :
