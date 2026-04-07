@@ -47,7 +47,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
 
 ## Phase 1 — Ouvrir un point d'extension neutre dans CasaEngine
 
-- ⏳ **T01.01 — Definir le contrat de profil d'import material legacy**
+- ✅ **T01.01 — Definir le contrat de profil d'import material legacy**
   Objectif :
   - Introduire une interface ou un service generique permettant d'interpreter des metadonnees importees sans connaitre RacingGame.
   - Garder le contrat centré sur des intentions de surface et des hints d'import, pas sur des noms de contenu.
