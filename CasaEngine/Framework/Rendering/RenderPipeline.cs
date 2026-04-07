@@ -138,6 +138,7 @@ public sealed class RenderPipeline
             view.Surface.Apply(_graphicsDevice);
 
             var resolvedEnvironment = EnvironmentResolver.Resolve(view);
+            EnvironmentLightingResolver.Resolve(view.Lighting, in resolvedEnvironment);
             var resolvedClearColor = resolvedEnvironment.BackgroundMode == EnvironmentBackgroundMode.SolidColor
                 ? resolvedEnvironment.BackgroundColor
                 : view.ClearColor;
@@ -189,7 +190,7 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment);
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting);
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();

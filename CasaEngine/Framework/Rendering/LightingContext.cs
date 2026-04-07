@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 
@@ -16,10 +17,23 @@ public class LightingContext
 
     public DirectionalLight[] DirectionalLights { get; } = new DirectionalLight[MaxDirectionalLights];
     public int ActiveDirectionalLightCount { get; set; }
-    public Vector3 AmbientColor { get; set; } = new(0.2f, 0.2f, 0.2f);
+    public Vector3 AmbientColor { get; set; } = EnvironmentResolver.LegacyAmbientColor;
 
     internal static int ClampActiveDirectionalLightCount(int activeDirectionalLightCount)
         => Math.Clamp(activeDirectionalLightCount, 0, MaxDirectionalLights);
+
+    public void CopyFrom(LightingContext other)
+    {
+        ArgumentNullException.ThrowIfNull(other);
+
+        ActiveDirectionalLightCount = ClampActiveDirectionalLightCount(other.ActiveDirectionalLightCount);
+        AmbientColor = other.AmbientColor;
+
+        for (int i = 0; i < MaxDirectionalLights; i++)
+        {
+            DirectionalLights[i] = other.DirectionalLights[i];
+        }
+    }
 
     /// <summary>Binds all active directional lights to the given shader wrapper.</summary>
     public void Bind(ShaderWrapper shader)

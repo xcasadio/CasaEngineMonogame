@@ -41,6 +41,8 @@ public sealed class RenderView
     /// </summary>
     public WorldEnvironmentSettings? EnvironmentOverride { get; set; }
 
+    internal LightingContext Lighting { get; } = new();
+
     // ---- Clear options ----
 
     /// <summary>Clear color. Default: CornflowerBlue.</summary>

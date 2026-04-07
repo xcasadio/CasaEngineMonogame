@@ -6,7 +6,6 @@ using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using DirLight = CasaEngine.Framework.Rendering.DirectionalLight;
 
 namespace CasaEngine.Framework.Application.Components;
 
@@ -41,11 +40,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
     /// Replace at runtime to change scene lighting (Phase 5).
     /// </summary>
-    public LightingContext DefaultLighting { get; } = new()
-    {
-        ActiveDirectionalLightCount = 3,
-        AmbientColor = new Vector3(0.05f, 0.05f, 0.05f),
-    };
+    public LightingContext DefaultLighting { get; } = new();
 
     public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
@@ -102,22 +97,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularPower"].SetValue(5.0f);
 
-        // Initialise default lighting context to match the previous hardcoded values.
-        // External code can modify DefaultLighting to change scene illumination.
-        // Neutral 3-point lights: direction preserved, colours balanced to equal RGB
-        // so that a white DiffuseColor renders as white rather than warm/yellow.
-        DefaultLighting.DirectionalLights[0] = new DirLight(
-            new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
-            new Vector3(0.92f, 0.92f, 0.92f),
-            new Vector3(0.92f, 0.92f, 0.92f));
-        DefaultLighting.DirectionalLights[1] = new DirLight(
-            new Vector3(0.7198464f, 0.3420201f, 0.6040227f),
-            new Vector3(0.71f, 0.71f, 0.71f),
-            Vector3.Zero);
-        DefaultLighting.DirectionalLights[2] = new DirLight(
-            new Vector3(0.4545195f, -0.7660444f, 0.4545195f),
-            new Vector3(0.36f, 0.36f, 0.36f),
-            new Vector3(0.36f, 0.36f, 0.36f));
+        EnvironmentLightingResolver.ApplyLegacyLighting(DefaultLighting);
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
         _unlitShaderWrapper = new ShaderWrapper(unlitEffect);
@@ -166,7 +146,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         {
             Device   = graphicsDevice,
             Frame    = frame,
-            Lighting = DefaultLighting,
+            Lighting = frame.Lighting ?? DefaultLighting,
+            Environment = frame.Environment,
             Stats    = stats,
         };
 

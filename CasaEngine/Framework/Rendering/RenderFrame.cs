@@ -20,8 +20,11 @@ public readonly struct RenderFrame
     /// <summary>Effective environment data for the current view.</summary>
     public ResolvedEnvironmentSettings Environment { get; init; }
 
+    /// <summary>Effective lighting data for the current view.</summary>
+    public LightingContext? Lighting { get; init; }
+
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)
-        : this(view, projection, cameraPosition, viewportRect, default)
+        : this(view, projection, cameraPosition, viewportRect, default, null)
     {
     }
 
@@ -30,7 +33,8 @@ public readonly struct RenderFrame
         Matrix projection,
         Vector3 cameraPosition,
         Rectangle viewportRect,
-        in ResolvedEnvironmentSettings environment)
+        in ResolvedEnvironmentSettings environment,
+        LightingContext? lighting)
     {
         View = view;
         Projection = projection;
@@ -38,5 +42,6 @@ public readonly struct RenderFrame
         CameraPosition = cameraPosition;
         ViewportRect = viewportRect;
         Environment = environment;
+        Lighting = lighting;
     }
 }

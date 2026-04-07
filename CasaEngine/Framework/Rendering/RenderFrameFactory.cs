@@ -31,7 +31,27 @@ public static class RenderFrameFactory
             camera.ProjectionMatrix,
             camera.Position,
             viewportRect,
-            in environment);
+            in environment,
+            null);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="RenderFrame"/> from <paramref name="camera"/>, an explicit viewport rectangle,
+    /// and resolved per-view environment and lighting data.
+    /// </summary>
+    public static RenderFrame From(
+        CameraComponent camera,
+        Rectangle viewportRect,
+        in ResolvedEnvironmentSettings environment,
+        LightingContext lighting)
+    {
+        return new RenderFrame(
+            camera.ViewMatrix,
+            camera.ProjectionMatrix,
+            camera.Position,
+            viewportRect,
+            in environment,
+            lighting);
     }
 
     /// <summary>

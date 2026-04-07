@@ -245,9 +245,12 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-009 — Centraliser la source de lighting au niveau environnement
+### 🧪 ENV-009 — Centraliser la source de lighting au niveau environnement
 Objectif:
 faire en sorte que le lighting global ne soit plus implicitement pilote par les valeurs hardcodees des renderers.
+
+Validation restante:
+Le build `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore` est actuellement bloque par `CasaEngine.RPGDemo` (`MonoGame.Content.Builder.Task`: `No Content References Found`). Le projet moteur `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore` passe.
 
 Fichiers / classes concernes:
 - `CasaEngine/Framework/Rendering/LightingContext.cs`
