@@ -30,7 +30,7 @@ namespace CasaEngine.Demos.Demos;
 ///   Reflection sphere   : <see cref="LitDiffuseMaterial"/>    — procedural cubemap reflection path
 ///   Ambient / Emissive  : <see cref="LitDiffuseMaterial"/>    — side-by-side ambient and emissive comparison
 ///   Neutral profile refs: <see cref="LitDiffuseMaterial"/>    — metadata-only import profile samples (named opaque vs explicit reflection)
-///   Shared import view  : <see cref="LitDiffuseMaterial"/>    — shared imported-material presentation mapping used by editor/runtime
+///   Hints-only import view: <see cref="LitDiffuseMaterial"/>   — shared imported-material presentation mapping driven only by imported hints
 ///
 /// Keyboard shortcuts:
 ///   <c>L</c> — cycle directional light count  1 → 2 → 3 → 1
@@ -45,7 +45,7 @@ public class MaterialDemo : Demo
     public override string Description =>
         "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
         "alpha-test cutout, tangent-space normal map, transparent render queue, reflective cubemap path, ambient-vs-emissive reference, " +
-        "neutral legacy import-profile samples, and shared imported-material presentation mapping.  " +
+        "neutral legacy import-profile samples, and hints-only imported-material presentation mapping.  " +
         "L = cycle lights,  T = cycle sphere tints.";
 
     // -----------------------------------------------------------------------
@@ -252,7 +252,7 @@ public class MaterialDemo : Demo
         });
         var sharedImportedPresentationMat = new LitDiffuseMaterial
         {
-            Name = "SharedImportedPresentation",
+            Name = "HintsOnlyImportedPresentation",
             BasColor = alphaTestMat.BasColor,
             DiffuseColor = new Color(188, 205, 173),
             AmbientColor = sharedImportedPresentation.AmbientColor,
@@ -359,7 +359,7 @@ public class MaterialDemo : Demo
             Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-12f), MathHelper.ToRadians(-10f), 0f),
             explicitReflectionMat);
 
-        SpawnStaticModel("SharedImportedPresentation", world, gd,
+        SpawnStaticModel("HintsOnlyImportedPresentation", world, gd,
             new PlanePrimitive(1.2f, 1.2f),
             new Vector3(-2.3f, 0.8f, 2.6f),
             Quaternion.CreateFromYawPitchRoll(0f, MathHelper.PiOver2, 0f),

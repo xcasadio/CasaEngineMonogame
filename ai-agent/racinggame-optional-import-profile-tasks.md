@@ -177,7 +177,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `docs(import): document optional RacingGame legacy import profile`
 
-- ⏳ **T03.04 — Ajouter les tests et demos finaux de separation**
+- ✅ **T03.04 — Ajouter les tests et demos finaux de separation**
   Objectif :
   - Ajouter les derniers tests cibles dans `CasaEngine.Tests` pour verrouiller le contrat moteur.
   - Garder une demo ou verification bornee cote RacingGame pour la couche optionnelle.

@@ -77,6 +77,28 @@ public class StaticModelImporterTests
         Assert.True(signMaterial.UsesReflection);
     }
 
+    [Fact]
+    public void ImportWithMetadata_OptionalProfileCanPromoteBrightAmbientWithoutEngineHeuristics()
+    {
+        var importer = new StaticModelImporter();
+        string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "Sign.X");
+
+        var neutralResult = importer.ImportWithMetadata(modelPath);
+        var profileResult = importer.ImportWithMetadata(
+            modelPath,
+            new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                LegacyMaterialSurfaceIntent.OpaqueLit,
+                LegacyMaterialImportHint.BrightAmbient)));
+
+        StaticModelImportedMaterial neutralMaterial = FindMaterialByDiffuseTexture(neutralResult.Materials, "Schild.tga");
+        StaticModelImportedMaterial profileMaterial = FindMaterialByDiffuseTexture(profileResult.Materials, "Schild.tga");
+
+        Assert.False(neutralMaterial.BrightAmbientHint);
+        Assert.True(profileMaterial.BrightAmbientHint);
+        Assert.Equal(LegacyMaterialSurfaceIntent.OpaqueLit, profileMaterial.SurfaceIntent);
+        Assert.True(profileMaterial.UsesReflection);
+    }
+
     private static StaticModelImportedMaterial FindMaterialByDiffuseTexture(
         IReadOnlyList<StaticModelImportedMaterial> materials,
         string textureFileName)
