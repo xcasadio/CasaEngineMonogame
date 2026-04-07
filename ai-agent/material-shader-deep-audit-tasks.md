@@ -107,7 +107,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(materials): map current sources of truth for materials and shaders`
 
-- ⏳ **T01.02 - Auditer chaque classe materials/shaders et la qualifier**
+- ✅ **T01.02 - Auditer chaque classe materials/shaders et la qualifier**
   Objectif :
   - Passer en revue toutes les classes de `CasaEngine/Framework/Materials`, `CasaEngine/Framework/Rendering/Shaders`, `CasaEngine.Shaders` et les renderers relies.
   - Pour chaque classe, la marquer comme `active`, `migration target`, `transition`, `suspect dead code` ou `a optimiser`.
