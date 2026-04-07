@@ -205,7 +205,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-007 — Supporter un environnement cubemap comme fond visuel
+### ✅ ENV-007 — Supporter un environnement cubemap comme fond visuel
 Objectif:
 faire fonctionner le premier vrai mode de ciel moderne: cubemap / HDRI deja converti en cubemap.
 
@@ -218,6 +218,9 @@ Criteres d'acceptation:
 - un world peut afficher un fond cubemap
 - si aucun cubemap n'est assigne, le moteur garde le fallback `ClearColor`
 - le ciel suit la camera sans introduire de parallaxe parasite
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `feat(rendering): render cubemap environment background`

@@ -137,6 +137,11 @@ public sealed class RenderPipeline
             // 2. Apply surface (SetRenderTarget for RT, or Viewport-only for BB)
             view.Surface.Apply(_graphicsDevice);
 
+            var resolvedEnvironment = EnvironmentResolver.Resolve(view);
+            var resolvedClearColor = resolvedEnvironment.BackgroundMode == EnvironmentBackgroundMode.SolidColor
+                ? resolvedEnvironment.BackgroundColor
+                : view.ClearColor;
+
             // 3. Clear
             //
             // IMPORTANT: GraphicsDevice.Clear() always clears the FULL render target,
@@ -158,13 +163,13 @@ public sealed class RenderPipeline
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
                     null, DepthStencilState.None, RasterizerState.CullNone);
-                _spriteBatch.Draw(_pixel, new Rectangle(0, 0, vp.Width, vp.Height), view.ClearColor);
+                _spriteBatch.Draw(_pixel, new Rectangle(0, 0, vp.Width, vp.Height), resolvedClearColor);
                 _spriteBatch.End();
 
                 var depthClear = BuildDepthClearOptions(view);
                 if (depthClear != 0)
                 {
-                    _graphicsDevice.Clear(depthClear, view.ClearColor, 1.0f, 0);
+                    _graphicsDevice.Clear(depthClear, resolvedClearColor, 1.0f, 0);
                 }
             }
             else
@@ -177,14 +182,13 @@ public sealed class RenderPipeline
 
                 if (clearOptions != 0)
                 {
-                    _graphicsDevice.Clear(clearOptions, view.ClearColor, 1.0f, 0);
+                    _graphicsDevice.Clear(clearOptions, resolvedClearColor, 1.0f, 0);
                 }
             }
 
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var resolvedEnvironment = EnvironmentResolver.Resolve(view);
             var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment);
 
             // Reset per-view counters before renderer flushes aggregate into them.
