@@ -68,7 +68,7 @@ public class ShaderTechniqueCoverageTests
                                 features |= ShaderFeature.VertexColor;
                             }
 
-                            requestedTechniques.Add(LitDiffuseMaterial.GetTechniqueName(features, oneLight));
+                            requestedTechniques.Add(LitDiffuseMaterial.GetTechniqueName(features, oneLight, hasReflection));
                         }
                     }
                 }
