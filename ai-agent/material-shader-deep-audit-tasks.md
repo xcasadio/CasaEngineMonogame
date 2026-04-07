@@ -180,7 +180,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(materials): make material compilation and override mapping extensible`
 
-- ⏳ **T02.04 - Rendre `MaterialDefinitionRegistry` vraiment extensible**
+- ✅ **T02.04 - Rendre `MaterialDefinitionRegistry` vraiment extensible**
   Objectif :
   - Extraire les definitions built-in du mecanisme de registre.
   - Ajouter une API d'enregistrement explicite pour de nouvelles definitions et leurs services associes.

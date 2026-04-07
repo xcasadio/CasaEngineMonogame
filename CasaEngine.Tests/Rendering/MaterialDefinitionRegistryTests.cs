@@ -1,4 +1,7 @@
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -6,6 +9,12 @@ namespace CasaEngine.Tests.Rendering;
 
 public class MaterialDefinitionRegistryTests
 {
+    private sealed class RegisteredTestMaterial : MaterialBase
+    {
+        public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
+            => throw new NotSupportedException();
+    }
+
     [Fact]
     public void TryGetById_ReturnsBuiltInDefinitions()
     {
@@ -126,5 +135,57 @@ public class MaterialDefinitionRegistryTests
             displayName: "Invalid Definition",
             runtimeMaterialType: typeof(LitDiffuseMaterial),
             properties: new[] { firstProperty, conflictingProperty }));
+    }
+
+    [Fact]
+    public void Register_AddsDefinitionAndAssociatedServices_AndRemovesThemOnDispose()
+    {
+        var definition = new MaterialDefinition(
+            id: "registered-test-material",
+            displayName: "Registered Test Material",
+            runtimeMaterialType: typeof(RegisteredTestMaterial),
+            properties: new[]
+            {
+                new MaterialPropertyDefinition(
+                    key: "tint_color",
+                    displayName: "Tint",
+                    valueType: MaterialPropertyType.Color,
+                    group: MaterialPropertyGroup.Surface,
+                    defaultValue: Color.White),
+            });
+        var customShaderId = Guid.NewGuid();
+
+        var registration = MaterialDefinitionRegistry.Register(
+            definition,
+            runtimeMaterialFactory: (materialAsset, registeredDefinition, effectiveValues, resolvedTextures, assetContentManager) => new RegisteredTestMaterial
+            {
+                Id = materialAsset.Id,
+                Name = materialAsset.Name,
+                ShaderAssetId = customShaderId,
+            },
+            overrideMapper: static (propertyBlock, materialAsset, registeredDefinition, materialInstanceData, parentResolver) =>
+            {
+                propertyBlock.SetFloat(ShaderParameterNames.Alpha, 0.5f);
+            });
+
+        Assert.True(MaterialDefinitionRegistry.TryGetById(definition.Id, out var registeredById));
+        Assert.Same(definition, registeredById);
+        Assert.True(MaterialDefinitionRegistry.TryGetByRuntimeType(typeof(RegisteredTestMaterial), out var registeredByRuntimeType));
+        Assert.Same(definition, registeredByRuntimeType);
+
+        var materialAsset = new MaterialAsset(definition.Id);
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+        Assert.Equal(customShaderId, compiledMaterial.EffectiveShader.ShaderId);
+
+        var materialInstanceData = new MaterialInstanceData();
+        materialInstanceData.SetPropertyOverride("tint_color", MaterialValue.FromColor(Color.CornflowerBlue));
+        var propertyBlock = MaterialInstancePropertyBlockMapper.Create(materialAsset, materialInstanceData);
+        Assert.True(propertyBlock.TryGetFloat(ShaderParameterNames.Alpha, out var alpha));
+        Assert.Equal(0.5f, alpha);
+
+        registration.Dispose();
+
+        Assert.False(MaterialDefinitionRegistry.TryGetById(definition.Id, out _));
+        Assert.False(MaterialDefinitionRegistry.TryGetByRuntimeType(typeof(RegisteredTestMaterial), out _));
     }
 }
