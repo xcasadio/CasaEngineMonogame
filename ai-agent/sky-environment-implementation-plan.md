@@ -140,7 +140,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-004 — Resoudre l'environnement effectif d'une vue
+### ✅ ENV-004 — Resoudre l'environnement effectif d'une vue
 Objectif:
 creer un point unique qui decide quel environnement est actif pour une vue donnee et qui gere le fallback legacy.
 
@@ -153,6 +153,9 @@ Criteres d'acceptation:
 - la resolution `view override -> world environment -> fallback legacy` est centralisee
 - le fallback vers `ClearColor` et le lighting legacy reste intact
 - la logique n'est pas dupliquee dans plusieurs renderers
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `refactor(rendering): resolve effective environment per view`

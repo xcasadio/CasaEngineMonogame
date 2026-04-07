@@ -26,7 +26,7 @@ public sealed class WorldEnvironmentSettings
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; set; }
 
-    public Vector3 AmbientColor { get; set; } = new(0.2f, 0.2f, 0.2f);
+    public Vector3 AmbientColor { get; set; } = new(0.05f, 0.05f, 0.05f);
 
     public float AmbientIntensity { get; set; } = 1.0f;
 
@@ -45,7 +45,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundCubemapAssetId = Guid.Empty;
         BackgroundCubemap = null;
         SpecularEnvironmentCubemap = null;
-        AmbientColor = new Vector3(0.2f, 0.2f, 0.2f);
+        AmbientColor = new Vector3(0.05f, 0.05f, 0.05f);
         AmbientIntensity = 1.0f;
         SpecularIntensity = 1.0f;
         IsDirty = false;

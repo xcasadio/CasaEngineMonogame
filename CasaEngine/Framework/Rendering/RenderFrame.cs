@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using CasaEngine.Framework.Rendering.Environment;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -16,12 +17,26 @@ public readonly struct RenderFrame
     /// <summary>Screen-space viewport rectangle (in pixels).</summary>
     public Rectangle ViewportRect { get; init; }
 
+    /// <summary>Effective environment data for the current view.</summary>
+    public ResolvedEnvironmentSettings Environment { get; init; }
+
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)
+        : this(view, projection, cameraPosition, viewportRect, default)
+    {
+    }
+
+    public RenderFrame(
+        Matrix view,
+        Matrix projection,
+        Vector3 cameraPosition,
+        Rectangle viewportRect,
+        in ResolvedEnvironmentSettings environment)
     {
         View = view;
         Projection = projection;
         ViewProjection = view * projection;
         CameraPosition = cameraPosition;
         ViewportRect = viewportRect;
+        Environment = environment;
     }
 }

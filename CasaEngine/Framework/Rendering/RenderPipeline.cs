@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Rendering.Environment;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;
@@ -183,7 +184,8 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect);
+            var resolvedEnvironment = EnvironmentResolver.Resolve(view);
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment);
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();

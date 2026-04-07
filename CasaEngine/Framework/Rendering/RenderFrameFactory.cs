@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Rendering.Environment;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -17,6 +18,20 @@ public static class RenderFrameFactory
             camera.ProjectionMatrix,
             camera.Position,
             viewportRect);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="RenderFrame"/> from <paramref name="camera"/>, an explicit viewport rectangle,
+    /// and resolved per-view environment data.
+    /// </summary>
+    public static RenderFrame From(CameraComponent camera, Rectangle viewportRect, in ResolvedEnvironmentSettings environment)
+    {
+        return new RenderFrame(
+            camera.ViewMatrix,
+            camera.ProjectionMatrix,
+            camera.Position,
+            viewportRect,
+            in environment);
     }
 
     /// <summary>

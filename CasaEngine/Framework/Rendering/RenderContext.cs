@@ -1,3 +1,5 @@
+using CasaEngine.Framework.Rendering.Environment;
+
 namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
@@ -16,6 +18,9 @@ public struct RenderContext
 
     /// <summary>Lighting data (directional lights, ambient). Null until Phase 5.</summary>
     public LightingContext? Lighting;
+
+    /// <summary>Effective environment data resolved for the current view.</summary>
+    public ResolvedEnvironmentSettings Environment;
 
     /// <summary>Per-frame rendering statistics (draw calls, binds, etc.).</summary>
     public RenderStats? Stats;
