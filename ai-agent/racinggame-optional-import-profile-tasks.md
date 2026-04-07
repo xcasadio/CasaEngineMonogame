@@ -148,7 +148,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
 
 ## Phase 3 — Nettoyer CasaEngine et verrouiller la separation moteur / jeu
 
-- ⏳ **T03.01 — Supprimer les heuristiques RacingGame de `EditorAssetImportService`**
+- ✅ **T03.01 — Supprimer les heuristiques RacingGame de `EditorAssetImportService`**
   Objectif :
   - Retirer du moteur les checks de noms et boosts specifiques a RacingGame.
   - Les remplacer par des hints issus du profil ou par le comportement neutre par defaut.

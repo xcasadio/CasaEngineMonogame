@@ -5,6 +5,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Tests;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -165,6 +166,62 @@ public class EditorAssetImportServiceTests
     }
 
     [Fact]
+    public void ImportFile_BrightAmbientHint_ComesFromProfileInsteadOfAssetNaming()
+    {
+        string workspaceRoot = FindWorkspaceRoot();
+        string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "AlphaPalm.X");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string neutralProjectDirectory = CreateTempDirectory();
+        string hintedProjectDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EditorAssetCatalogService.Clear();
+
+            EngineEnvironment.ProjectPath = neutralProjectDirectory;
+            bool neutralCatalogChanged = EditorAssetImportService.ImportFile(
+                sourceFilePath,
+                Path.Combine(neutralProjectDirectory, "AlphaPalm.X"));
+
+            EditorAssetCatalogService.Clear();
+
+            EngineEnvironment.ProjectPath = hintedProjectDirectory;
+            bool hintedCatalogChanged = EditorAssetImportService.ImportFile(
+                sourceFilePath,
+                Path.Combine(hintedProjectDirectory, "AlphaPalm.X"),
+                new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                    LegacyMaterialSurfaceIntent.OpaqueLit,
+                    LegacyMaterialImportHint.BrightAmbient)));
+
+            Assert.True(neutralCatalogChanged);
+            Assert.True(hintedCatalogChanged);
+
+            var neutralMaterials = LoadImportedMaterials(neutralProjectDirectory, "AlphaPalm_Imported");
+            var hintedMaterials = LoadImportedMaterials(hintedProjectDirectory, "AlphaPalm_Imported");
+
+            Assert.Equal(neutralMaterials.Count, hintedMaterials.Count);
+            Assert.Contains(neutralMaterials, material => ReadAmbientColor(material).X < 128f / 255f);
+            Assert.All(hintedMaterials, material =>
+            {
+                Vector3 ambientColor = ReadAmbientColor(material);
+                Assert.InRange(ambientColor.X, 128f / 255f, 1.0f);
+                Assert.InRange(ambientColor.Y, 128f / 255f, 1.0f);
+                Assert.InRange(ambientColor.Z, 128f / 255f, 1.0f);
+                Assert.Equal(RenderQueue.Opaque, material.Queue);
+            });
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(neutralProjectDirectory, recursive: true);
+            Directory.Delete(hintedProjectDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void ImportFile_PassesOptionalLegacyImportProfileToImporter()
     {
         string workspaceRoot = FindWorkspaceRoot();
@@ -254,6 +311,13 @@ public class EditorAssetImportServiceTests
                 return material;
             })
             .ToArray();
+    }
+
+    private static Vector3 ReadAmbientColor(MaterialAsset material)
+    {
+        Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
+        Assert.True(ambientValue.TryGetVector3(out var ambientColor));
+        return ambientColor;
     }
 
     private sealed class StubLegacyImportProfile : ILegacyMaterialImportProfile
