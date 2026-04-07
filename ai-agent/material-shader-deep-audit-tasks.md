@@ -96,7 +96,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 1 - Audit de reference et carte des dependances
 
-- ⏳ **T01.01 - Cartographier les sources de verite material/shader**
+- ✅ **T01.01 - Cartographier les sources de verite material/shader**
   Objectif :
   - Dresser une matrice claire des responsabilites de `MaterialAsset`, `CompiledMaterial`, `MaterialBase`, `RenderItem`, `MaterialPropertyBlock`, `ShaderVariantLibrary`, `ShaderWrapper`, `MaterialCache` et `MaterialAuthoringAssetCache`.
   - Identifier pour chaque information critique (shader effectif, features, textures, render states, overrides, queue, invalidation hot reload) sa source de verite reelle aujourd'hui.
@@ -117,7 +117,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(materials): classify material and shader classes by runtime role`
 
-- ⏳ **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
+- 🧪 **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
   Objectif :
   - Faire un inventaire `fichier effect -> consumers C# -> type de shader -> utilitaire ou material-facing -> risque si suppression/refactor`.
   - Distinguer clairement `basicEffect.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`simple.fx`, `spritebatch.fx`, `axisComponent.fx`).
@@ -126,7 +126,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(shaders): inventory effect files and their runtime consumers`
 
-- ⏳ **T01.04 - Cartographier le hot reload materials de l'editeur de bout en bout**
+- 🧪 **T01.04 - Cartographier le hot reload materials de l'editeur de bout en bout**
   Objectif :
   - Documenter precisement le chemin `editeur -> save -> asset event -> caches -> recompilation runtime -> invalidation des vues -> rendu final`.
   - Identifier les points critiques a ne pas casser lors des refactors materials/shaders.
