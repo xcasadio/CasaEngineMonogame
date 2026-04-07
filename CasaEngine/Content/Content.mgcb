@@ -61,6 +61,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/LitForward.fx
 
+#begin Shaders/SkyCubemap.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/SkyCubemap.fx
+
 #begin Shaders/skinEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor

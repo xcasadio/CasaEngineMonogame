@@ -2,6 +2,7 @@
 
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,8 +14,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 {
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
+    private Effect? _skyEffect;
     private ShaderWrapper? _legacyShaderWrapper;
     private ShaderWrapper? _unlitShaderWrapper;
+    private SkyCubemapRenderer? _skyRenderer;
     private MaterialCache? _materialCache;
 
     // Phase 4 — per-frame caches that minimise redundant state/shader changes
@@ -90,6 +93,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect = Game.Content.Load<Effect>("Shaders\\LitForward");
         _effect.CurrentTechnique = _effect.Techniques["LitForward_PixelLighting_Texture"];
         var unlitEffect = Game.Content.Load<Effect>("Shaders\\UnlitTexture");
+        _skyEffect = Game.Content.Load<Effect>("Shaders\\SkyCubemap");
+        _skyRenderer = new SkyCubemapRenderer(_skyEffect);
+        _pipeline.SetSkyRenderer(_skyRenderer);
 
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);

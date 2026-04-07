@@ -15,6 +15,7 @@ namespace CasaEngine.Framework.Rendering;
 public sealed class ForwardRenderPipeline : IRenderPipeline3D
 {
     private readonly List<RenderPass> _passes = new();
+    private readonly SkyPass _skyPass = new();
 
     // -----------------------------------------------------------------------
     //  Constructor
@@ -22,9 +23,14 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
 
     public ForwardRenderPipeline()
     {
-        _passes.Add(new SkyPass());
+        _passes.Add(_skyPass);
         _passes.Add(new OpaquePass());
         _passes.Add(new TransparentPass());
+    }
+
+    public void SetSkyRenderer(Environment.SkyCubemapRenderer? skyRenderer)
+    {
+        _skyPass.Renderer = skyRenderer;
     }
 
     // -----------------------------------------------------------------------

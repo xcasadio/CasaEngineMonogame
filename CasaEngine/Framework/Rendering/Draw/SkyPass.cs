@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Framework.Rendering.Draw;
@@ -8,6 +9,8 @@ namespace CasaEngine.Framework.Rendering.Draw;
 /// </summary>
 public sealed class SkyPass : RenderPass
 {
+    public SkyCubemapRenderer? Renderer { get; set; }
+
     public SkyPass() : base(RenderPassType.SkyPass)
     {
     }
@@ -19,7 +22,6 @@ public sealed class SkyPass : RenderPass
         ShaderBindCache shaderCache,
         RenderShaderSelector shaderSelector)
     {
-        // Intentionally empty in ENV-005.
-        // ENV-006 and ENV-007 connect the actual cubemap sky renderer here.
+        // The draw call is wired in ENV-007.
     }
 }

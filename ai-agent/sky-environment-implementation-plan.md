@@ -184,7 +184,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-006 — Creer le renderer et le shader de sky cubemap
+### ✅ ENV-006 — Creer le renderer et le shader de sky cubemap
 Objectif:
 poser les ressources GPU minimales pour dessiner un ciel cubemap sans melanger cela avec les materials de scene.
 
@@ -196,6 +196,9 @@ Criteres d'acceptation:
 - le rendu du ciel utilise son propre shader et ses propres etats GPU
 - les etats GPU sont restaures correctement apres la pass
 - aucune dependance n'est ajoutee aux materials runtime existants
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `feat(rendering): add cubemap sky renderer`
