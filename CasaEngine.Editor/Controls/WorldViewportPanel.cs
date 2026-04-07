@@ -16,6 +16,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application.Components.DebugTools;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -119,6 +120,7 @@ public class WorldViewportPanel : IDisposable
     private World? _fallbackWorld;
     private World? _observedWorld;
     private World? _renderWorldOverride;
+    private WorldEnvironmentSettings? _environmentOverride;
     private Entity? _cameraEntity;
     private Entity? _selectedEntity;
     private ArcBallCameraComponent? _camera;
@@ -207,10 +209,11 @@ public class WorldViewportPanel : IDisposable
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
     {
-        var result = new List<string>(5)
+        var result = new List<string>(6)
         {
             $"View world: {_renderView?.World.Name ?? "<none>"}",
             $"World override: {_renderWorldOverride?.Name ?? "<none>"}",
+            $"Environment override: {_renderView?.EnvironmentOverride?.BackgroundMode.ToString() ?? "<none>"}",
             $"Texture: {DescribeBoundTexture()}",
             $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
         };
@@ -276,6 +279,22 @@ public class WorldViewportPanel : IDisposable
     }
 
     public bool HasWorldOverride => _renderWorldOverride != null;
+
+    public void SetEnvironmentOverride(WorldEnvironmentSettings? environmentSettings)
+    {
+        if (ReferenceEquals(_environmentOverride, environmentSettings))
+        {
+            return;
+        }
+
+        _environmentOverride = environmentSettings;
+
+        if (_renderView != null)
+        {
+            _renderView.EnvironmentOverride = _environmentOverride;
+            _renderView.Invalidate();
+        }
+    }
 
     public void SetWorldOverride(World? world)
     {
@@ -656,6 +675,7 @@ public class WorldViewportPanel : IDisposable
             Camera = _camera,
             Surface = _surface,
             ClearColor = Color.DimGray,
+            EnvironmentOverride = _environmentOverride,
             UpdateMode = ViewUpdateMode.RealTime,
         });
 

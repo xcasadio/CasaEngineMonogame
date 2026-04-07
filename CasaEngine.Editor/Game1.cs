@@ -15,6 +15,7 @@ using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -1638,6 +1639,7 @@ namespace CasaEngine.Editor
             }
 
             viewportPanel.SetWorldOverride(inspectorPanel.GetOrCreatePreviewWorld());
+            viewportPanel.SetEnvironmentOverride(PreviewEnvironmentFactory.CreateNeutralPreview(Color.DimGray));
             return viewportPanel;
         }
 
@@ -2752,7 +2754,17 @@ namespace CasaEngine.Editor
                 }
             }
 
-            var previewStates = inspectorPanel.GetAutomationPreviewStateSnapshot();
+            IReadOnlyList<string> previewStates = Array.Empty<string>();
+            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                && _materialViewportPanels.TryGetValue(activeDocumentPanelId, out var materialViewportPanel))
+            {
+                previewStates = materialViewportPanel.GetAutomationStateSnapshot();
+            }
+            else
+            {
+                previewStates = inspectorPanel.GetAutomationPreviewStateSnapshot();
+            }
+
             if (previewStates.Count == 0)
             {
                 return;

@@ -443,7 +443,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-019 — Integrer l'override d'environnement dans les previews et l'editeur
+### ✅ ENV-019 — Integrer l'override d'environnement dans les previews et l'editeur
 Objectif:
 utiliser la capacite de surcharge par vue pour les cas material preview, asset preview et viewport editor.
 

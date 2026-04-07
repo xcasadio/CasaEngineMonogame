@@ -9,6 +9,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering.Models;
 
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
@@ -78,6 +79,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private readonly MaterialCompiler _materialCompiler = new();
     private readonly Dictionary<PreviewPrimitiveKind, StaticModelMesh> _meshes = new();
     private readonly Dictionary<PreviewPrimitiveKind, MGButton> _shapeButtons = new();
+    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(new Color(20, 22, 28));
 
     private MGStackPanel? _root;
     private MGDockPanel? _viewportHost;
@@ -216,13 +218,15 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
     {
-        var result = new List<string>(7)
+        var result = new List<string>(9)
         {
             $"Shape: {_activeShape}",
             $"Texture: {DescribeBoundTexture()}",
             $"View mode: {_renderView?.UpdateMode.ToString() ?? (_previewWorld != null ? "ExternalWorldViewport" : "<none>")}",
             $"Status: {_statusMessage}",
             $"Preview world: {DescribePreviewWorld()}",
+            $"Environment override active: {_renderView?.EnvironmentOverride != null}",
+            $"Preview background mode: {_renderView?.EnvironmentOverride?.BackgroundMode.ToString() ?? "<world>"}",
             $"Physics isolated from main world: {DescribePhysicsIsolation()}",
             $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
         };
@@ -338,6 +342,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
             Camera = _camera,
             Surface = _surface,
             ClearColor = new Color(20, 22, 28),
+            EnvironmentOverride = _environmentOverride,
             UpdateMode = ViewUpdateMode.OnDemand,
         });
 
