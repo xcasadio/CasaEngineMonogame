@@ -28,6 +28,8 @@ public static class ShaderParameterNames
     public const string AlphaCutoff = "AlphaCutoff";
     public const string OpacityTexture = "OpacityTexture";
     public const string NormalTexture = "NormalTexture";
+    public const string ColorMultiplier = "ColorMultiplier";
+    public const string SolidColor = "SolidColor";
 
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";

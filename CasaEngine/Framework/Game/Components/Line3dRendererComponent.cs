@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -36,7 +37,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
 
     private VertexBuffer? _vertexBuffer;
-    private BasicEffect? _basicEffect;
+    private Effect? _effect;
     private readonly CasaEngineGame _game;
 
     public Line3dRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
@@ -56,7 +57,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     protected override void LoadContent()
     {
         _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), NbLines * 2, BufferUsage.None);
-        _basicEffect = new BasicEffect(GraphicsDevice);
+        _effect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
     }
 
     /// <inheritdoc/>
@@ -84,13 +85,15 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     private void Draw(Matrix world, Matrix view, Matrix projection)
     {
-        _basicEffect.World = world;
-        _basicEffect.View = view;
-        _basicEffect.Projection = projection;
-        _basicEffect.VertexColorEnabled = true;
-        _basicEffect.Alpha = 1.0f;
+        if (_effect == null)
+        {
+            return;
+        }
 
-        Draw(_basicEffect);
+        _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * view * projection);
+        _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
+
+        Draw(_effect);
     }
 
     private void Draw(Effect effect)

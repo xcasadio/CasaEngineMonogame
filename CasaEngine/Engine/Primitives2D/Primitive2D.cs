@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Engine.Primitives2D;
 
@@ -11,7 +12,7 @@ public abstract class Primitive2D : IDisposable
     private VertexDeclaration vertexDeclaration;
     private VertexBuffer vertexBuffer;
     private IndexBuffer indexBuffer;
-    private BasicEffect basicEffect;
+    private Effect? effect;
 
     /// <summary>
     /// Finalizer.
@@ -52,9 +53,9 @@ public abstract class Primitive2D : IDisposable
                 indexBuffer.Dispose();
             }
 
-            if (basicEffect != null)
+            if (effect != null)
             {
-                basicEffect.Dispose();
+                effect.Dispose();
             }
         }
     }
@@ -106,12 +107,11 @@ public abstract class Primitive2D : IDisposable
         indexBuffer = new IndexBuffer(graphicsDevice, typeof(ushort), indices.Count, BufferUsage.None);
 
         indexBuffer.SetData(indices.ToArray());
+    }
 
-        // Create a BasicEffect, which will be used to render the primitive.
-        basicEffect = new BasicEffect(graphicsDevice);
-
-        basicEffect.EnableDefaultLighting();
-        basicEffect.PreferPerPixelLighting = true;
+    protected void SetEffect(Effect primitiveEffect)
+    {
+        effect = primitiveEffect;
     }
 
     /// <summary>
@@ -143,23 +143,24 @@ public abstract class Primitive2D : IDisposable
     }
 
     /// <summary>
-    /// Draws the primitive model, using a BasicEffect shader with default
-    /// lighting. Unlike the other Draw overload where you specify a custom
-    /// effect, this method sets important renderstates to sensible values
-    /// for 3D model rendering, so you do not need to set these states before
-    /// you call it.
+    /// Draws the primitive model using the currently assigned CasaEngine effect.
+    /// Unlike the other Draw overload where you specify a custom effect,
+    /// this method applies the world-view-projection and color parameters when
+    /// the assigned effect exposes them.
     /// </summary>
     public void Draw(Matrix world, Matrix view, Matrix projection, Color color)
     {
-        // Set BasicEffect parameters.
-        basicEffect.World = world;
-        basicEffect.View = view;
-        basicEffect.Projection = projection;
-        basicEffect.DiffuseColor = color.ToVector3();
-        basicEffect.Alpha = color.A / 255.0f;
+        if (effect == null)
+        {
+            return;
+        }
+
+        effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * view * projection);
+        effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(color.ToVector4());
+        effect.Parameters[ShaderParameterNames.SolidColor]?.SetValue(color.ToVector4());
 
         // Set important renderstates.
-        //RenderState renderState = basicEffect.GraphicsDevice.RenderState;
+        //RenderState renderState = effect.GraphicsDevice.RenderState;
         //
         //renderState.AlphaTestEnable = false;
         //renderState.DepthBufferEnable = false;// true;
@@ -180,7 +181,7 @@ public abstract class Primitive2D : IDisposable
         //    renderState.DepthBufferWriteEnable = true;
         //}
 
-        Draw(basicEffect);
+        Draw(effect);
     }
 
 }

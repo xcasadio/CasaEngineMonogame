@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -8,7 +9,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
     {
         private VertexPositionColor[] LinesVertices;
         private int m_Size = 50;
-        private BasicEffect GridEffect;
+        private Effect? GridEffect;
         private CasaEngineGame? _game;
 
         public DebugGridComponent(Microsoft.Xna.Framework.Game game) : base(game)
@@ -30,9 +31,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         protected override void LoadContent()
         {
             int nbVertices = m_Size * 8 + 4;
-            GridEffect = new BasicEffect(GraphicsDevice);
-            GridEffect.VertexColorEnabled = true;
-            GridEffect.LightingEnabled = false;
+            GridEffect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
             LinesVertices = new VertexPositionColor[nbVertices];
             Color color;
             int i = 0;
@@ -89,15 +88,19 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         /// </summary>
         public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
         {
+            if (GridEffect == null)
+            {
+                return;
+            }
+
             gd.DepthStencilState = DepthStencilState.Default;
             gd.RasterizerState = RasterizerState.CullCounterClockwise;
             gd.BlendState = BlendState.Opaque;
             gd.Indices = null;
             gd.SetVertexBuffer(null);
 
-            GridEffect.World      = Matrix.Identity;
-            GridEffect.View       = frame.View;
-            GridEffect.Projection = frame.Projection;
+            GridEffect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(frame.View * frame.Projection);
+            GridEffect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
 
             foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
             {

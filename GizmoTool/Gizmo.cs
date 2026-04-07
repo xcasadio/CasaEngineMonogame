@@ -25,8 +25,8 @@ public class Gizmo : IDisposable
     public bool SelectionBoxesIsVisible { get; set; } = true;
 
     private readonly GraphicsDevice _graphics;
-    private readonly BasicEffect _lineEffect;
-    private readonly BasicEffect _meshEffect;
+    private readonly Effect _lineEffect;
+    private readonly Effect _meshEffect;
 
     private Matrix _view = Matrix.Identity;
     private Matrix _projection = Matrix.Identity;
@@ -62,7 +62,7 @@ public class Gizmo : IDisposable
 
     // -- Quads -- //
     private Quad[] _quads;
-    private readonly BasicEffect _quadEffect;
+    private readonly Effect _quadEffect;
 
     // -- Colors -- //
     private Color[] _axisColors;
@@ -182,7 +182,7 @@ public class Gizmo : IDisposable
     private Vector3 _translationScaleSnapDelta;
     private float _rotationSnapDelta;
 
-    private readonly BasicEffect _selectionBoxEffect;
+    private readonly Effect _selectionBoxEffect;
     private readonly List<VertexPositionColor> _selectionBoxVertices = new();
     private VertexPositionColor[] _selectionBoxVerticesCache = Array.Empty<VertexPositionColor>();
     private bool _selectionBoxDirty = true;
@@ -197,11 +197,16 @@ public class Gizmo : IDisposable
     /// </summary>
     public Viewport ActiveViewport { get; set; }
 
-    public Gizmo(GraphicsDevice graphics)
-        : this(graphics, Matrix.Identity) { }
+    public Gizmo(GraphicsDevice graphics, Effect lineEffect, Effect meshEffect, Effect quadEffect, Effect selectionBoxEffect)
+        : this(graphics, Matrix.Identity, lineEffect, meshEffect, quadEffect, selectionBoxEffect) { }
 
-    public Gizmo(GraphicsDevice graphics, Matrix world)
+    public Gizmo(GraphicsDevice graphics, Matrix world, Effect lineEffect, Effect meshEffect, Effect quadEffect, Effect selectionBoxEffect)
     {
+        ArgumentNullException.ThrowIfNull(lineEffect);
+        ArgumentNullException.ThrowIfNull(meshEffect);
+        ArgumentNullException.ThrowIfNull(quadEffect);
+        ArgumentNullException.ThrowIfNull(selectionBoxEffect);
+
         SceneWorld = world;
         _graphics = graphics;
         ActiveViewport = graphics.Viewport;
@@ -210,11 +215,10 @@ public class Gizmo : IDisposable
 
         _highlightColor = Color.Gold;
 
-        _selectionBoxEffect = new BasicEffect(graphics) { VertexColorEnabled = true };
-        _lineEffect = new BasicEffect(graphics) { VertexColorEnabled = true, AmbientLightColor = Vector3.One, EmissiveColor = Vector3.One };
-        _meshEffect = new BasicEffect(graphics);
-        _quadEffect = new BasicEffect(graphics) { World = Matrix.Identity, DiffuseColor = _highlightColor.ToVector3(), Alpha = 0.5f };
-        _quadEffect.EnableDefaultLighting();
+        _selectionBoxEffect = selectionBoxEffect;
+        _lineEffect = lineEffect;
+        _meshEffect = meshEffect;
+        _quadEffect = quadEffect;
 
         Initialize();
     }
@@ -1045,6 +1049,21 @@ public class Gizmo : IDisposable
         _cameraPosition = cameraPosition;
     }
 
+    private static void SetWorldViewProj(Effect effect, Matrix worldViewProj)
+    {
+        effect.Parameters["WorldViewProj"]?.SetValue(worldViewProj);
+    }
+
+    private static void SetColorMultiplier(Effect effect, Vector4 colorMultiplier)
+    {
+        effect.Parameters["ColorMultiplier"]?.SetValue(colorMultiplier);
+    }
+
+    private static void SetSolidColor(Effect effect, Vector4 solidColor)
+    {
+        effect.Parameters["SolidColor"]?.SetValue(solidColor);
+    }
+
     #region Draw
     public void Draw()
     {
@@ -1065,13 +1084,15 @@ public class Gizmo : IDisposable
         #region Draw: Axis-Lines
 
         // -- Draw Lines -- //
-        _lineEffect.World = _gizmoWorld;
-        _lineEffect.View = _view;
-        _lineEffect.Projection = _projection;
+        SetWorldViewProj(_lineEffect, _gizmoWorld * _view * _projection);
+        SetColorMultiplier(_lineEffect, Vector4.One);
 
-        _lineEffect.CurrentTechnique.Passes[0].Apply();
-        _graphics.DrawUserPrimitives(PrimitiveType.LineList, _translationLineVertices, 0,
-            _translationLineVertices.Length / 2);
+        for (var i = 0; i < _lineEffect.CurrentTechnique.Passes.Count; i++)
+        {
+            _lineEffect.CurrentTechnique.Passes[i].Apply();
+            _graphics.DrawUserPrimitives(PrimitiveType.LineList, _translationLineVertices, 0,
+                _translationLineVertices.Length / 2);
+        }
 
         #endregion
 
@@ -1089,11 +1110,8 @@ public class Gizmo : IDisposable
                         _graphics.BlendState = BlendState.AlphaBlend;
                         _graphics.RasterizerState = RasterizerState.CullNone;
 
-                        _quadEffect.World = _gizmoWorld;
-                        _quadEffect.View = _view;
-                        _quadEffect.Projection = _projection;
-
-                        _quadEffect.CurrentTechnique.Passes[0].Apply();
+                        SetWorldViewProj(_quadEffect, _gizmoWorld * _view * _projection);
+                        SetSolidColor(_quadEffect, new Vector4(_highlightColor.ToVector3(), 0.5f));
 
                         var activeQuad = new Quad();
                         switch (ActiveAxis)
@@ -1109,9 +1127,13 @@ public class Gizmo : IDisposable
                                 break;
                         }
 
-                        _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
-                            activeQuad.Vertices, 0, 4,
-                            activeQuad.Indexes, 0, 2);
+                        for (var i = 0; i < _quadEffect.CurrentTechnique.Passes.Count; i++)
+                        {
+                            _quadEffect.CurrentTechnique.Passes[i].Apply();
+                            _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
+                                activeQuad.Vertices, 0, 4,
+                                activeQuad.Indexes, 0, 2);
+                        }
 
                         _graphics.BlendState = BlendState.Opaque;
                         _graphics.RasterizerState = RasterizerState.CullCounterClockwise;
@@ -1127,16 +1149,19 @@ public class Gizmo : IDisposable
                     _graphics.BlendState = BlendState.AlphaBlend;
                     _graphics.RasterizerState = RasterizerState.CullNone;
 
-                    _quadEffect.World = _gizmoWorld;
-                    _quadEffect.View = _view;
-                    _quadEffect.Projection = _projection;
-                    _quadEffect.CurrentTechnique.Passes[0].Apply();
+                    SetWorldViewProj(_quadEffect, _gizmoWorld * _view * _projection);
+                    SetSolidColor(_quadEffect, new Vector4(_highlightColor.ToVector3(), 0.5f));
 
-                    for (var i = 0; i < _quads.Length; i++)
+                    for (var i = 0; i < _quadEffect.CurrentTechnique.Passes.Count; i++)
                     {
-                        _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
-                            _quads[i].Vertices, 0, 4,
-                            _quads[i].Indexes, 0, 2);
+                        _quadEffect.CurrentTechnique.Passes[i].Apply();
+
+                        for (var j = 0; j < _quads.Length; j++)
+                        {
+                            _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
+                                _quads[j].Vertices, 0, 4,
+                                _quads[j].Indexes, 0, 2);
+                        }
                     }
 
                     _graphics.BlendState = BlendState.Opaque;
@@ -1174,18 +1199,16 @@ public class Gizmo : IDisposable
                     break;
             }
 
-            _meshEffect.World = _modelLocalSpace[i] * _gizmoWorld;
-            _meshEffect.View = _view;
-            _meshEffect.Projection = _projection;
+            SetWorldViewProj(_meshEffect, _modelLocalSpace[i] * _gizmoWorld * _view * _projection);
+            SetSolidColor(_meshEffect, new Vector4(color, 1.0f));
 
-            _meshEffect.DiffuseColor = color;
-            _meshEffect.EmissiveColor = color;
-
-            _meshEffect.CurrentTechnique.Passes[0].Apply();
-
-            _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
-                activeModel.Vertices, 0, activeModel.Vertices.Length,
-                activeModel.Indices, 0, activeModel.Indices.Length / 3);
+            for (var j = 0; j < _meshEffect.CurrentTechnique.Passes.Count; j++)
+            {
+                _meshEffect.CurrentTechnique.Passes[j].Apply();
+                _graphics.DrawUserIndexedPrimitives(PrimitiveType.TriangleList,
+                    activeModel.Vertices, 0, activeModel.Vertices.Length,
+                    activeModel.Indices, 0, activeModel.Indices.Length / 3);
+            }
         }
 
         if (SelectionBoxesIsVisible)
@@ -1268,13 +1291,15 @@ public class Gizmo : IDisposable
             _selectionBoxDirty = false;
         }
 
-        _selectionBoxEffect.View = _view;
-        _selectionBoxEffect.Projection = _projection;
-        _selectionBoxEffect.World = Matrix.Identity;
+        SetWorldViewProj(_selectionBoxEffect, _view * _projection);
+        SetColorMultiplier(_selectionBoxEffect, Vector4.One);
 
-        _selectionBoxEffect.CurrentTechnique.Passes[0].Apply();
-        _graphics.DrawUserPrimitives(PrimitiveType.LineList, _selectionBoxVerticesCache, 0,
-            _selectionBoxVerticesCache.Length / 2);
+        for (var i = 0; i < _selectionBoxEffect.CurrentTechnique.Passes.Count; i++)
+        {
+            _selectionBoxEffect.CurrentTechnique.Passes[i].Apply();
+            _graphics.DrawUserPrimitives(PrimitiveType.LineList, _selectionBoxVerticesCache, 0,
+                _selectionBoxVerticesCache.Length / 2);
+        }
     }
     #endregion
 

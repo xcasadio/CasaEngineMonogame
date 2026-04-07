@@ -57,7 +57,15 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
                 _game?.FontSystem.AddFont(File.ReadAllBytes(arialPath));
             }
 
-            Gizmo = new Gizmo(Game.GraphicsDevice);
+            var lineEffect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
+            var solidEffect = Game.Content.Load<Effect>("Shaders\\DebugSolidColor").Clone();
+
+            Gizmo = new Gizmo(
+                Game.GraphicsDevice,
+                lineEffect,
+                solidEffect.Clone(),
+                solidEffect,
+                lineEffect.Clone());
 
             Gizmo.TranslateEvent += GizmoTranslateEvent;
             Gizmo.RotateEvent += GizmoRotateEvent;

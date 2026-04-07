@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Framework.Game.Components;
 
@@ -8,9 +9,7 @@ public class PrimitiveBatch
 {
     private const int DefaultBufferSize = 500;
 
-    // a basic effect, which contains the shaders that we will use to draw our
-    // primitives.
-    private readonly BasicEffect _basicEffect;
+    private Effect? _effect;
 
     // the device that we will issue draw calls to.
     private readonly GraphicsDevice _device;
@@ -32,6 +31,11 @@ public class PrimitiveBatch
     }
 
     public PrimitiveBatch(GraphicsDevice graphicsDevice, int bufferSize)
+        : this(graphicsDevice, null, bufferSize)
+    {
+    }
+
+    public PrimitiveBatch(GraphicsDevice graphicsDevice, Effect? effect, int bufferSize)
     {
         if (graphicsDevice == null)
         {
@@ -41,10 +45,7 @@ public class PrimitiveBatch
 
         _triangleVertices = new VertexPositionColor[bufferSize - bufferSize % 3];
         _lineVertices = new VertexPositionColor[bufferSize - bufferSize % 2];
-
-        // set up a new basic effect, and enable vertex colors.
-        _basicEffect = new BasicEffect(graphicsDevice);
-        _basicEffect.VertexColorEnabled = true;
+        _effect = effect;
     }
 
 
@@ -57,16 +58,25 @@ public class PrimitiveBatch
 
     public void SetProjection(ref Matrix projection)
     {
-        _basicEffect.Projection = projection;
+        if (_effect != null)
+        {
+            _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(projection);
+        }
+    }
+
+    public Effect? Effect
+    {
+        get => _effect;
+        set => _effect = value;
     }
 
     protected virtual void Dispose(bool disposing)
     {
         if (disposing && !_isDisposed)
         {
-            if (_basicEffect != null)
+            if (_effect != null)
             {
-                _basicEffect.Dispose();
+                _effect.Dispose();
             }
 
             _isDisposed = true;
@@ -81,11 +91,13 @@ public class PrimitiveBatch
             throw new InvalidOperationException("End must be called before Begin can be called again.");
         }
 
-        //tell our basic effect to begin.
-        _basicEffect.Projection = projection;
-        _basicEffect.View = view;
-        _basicEffect.World = world;
-        _basicEffect.CurrentTechnique.Passes[0].Apply();
+        if (_effect == null)
+        {
+            throw new InvalidOperationException("PrimitiveBatch requires a CasaEngine Effect before Begin is called.");
+        }
+
+        _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * view * projection);
+        _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
 
         // flip the error checking boolean. It's now ok to call AddVertex, Flush,
         // and End.
@@ -157,7 +169,11 @@ public class PrimitiveBatch
             var primitiveCount = _triangleVertsCount / 3;
             // submit the draw call to the graphics card
             _device.SamplerStates[0] = SamplerState.AnisotropicClamp;
-            _device.DrawUserPrimitives(PrimitiveType.TriangleList, _triangleVertices, 0, primitiveCount);
+            foreach (var pass in _effect!.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                _device.DrawUserPrimitives(PrimitiveType.TriangleList, _triangleVertices, 0, primitiveCount);
+            }
             _triangleVertsCount -= primitiveCount * 3;
         }
     }
@@ -173,7 +189,11 @@ public class PrimitiveBatch
             var primitiveCount = _lineVertsCount / 2;
             // submit the draw call to the graphics card
             _device.SamplerStates[0] = SamplerState.AnisotropicClamp;
-            _device.DrawUserPrimitives(PrimitiveType.LineList, _lineVertices, 0, primitiveCount);
+            foreach (var pass in _effect!.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                _device.DrawUserPrimitives(PrimitiveType.LineList, _lineVertices, 0, primitiveCount);
+            }
             _lineVertsCount -= primitiveCount * 2;
         }
     }

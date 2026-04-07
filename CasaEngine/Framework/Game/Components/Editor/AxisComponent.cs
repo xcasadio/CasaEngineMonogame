@@ -2,6 +2,7 @@
 
 using CasaEngine.Core.Helpers;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -28,7 +29,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
             base.LoadContent();
 
             //var font = Game.Content.Load<SpriteFont>("GizmoFont");
-            _effect = Game.Content.Load<Effect>("Shaders\\axisComponent");
+            _effect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
 
             _vertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColor.VertexDeclaration, 6, BufferUsage.None);
             _vertexBuffer.SetData(new VertexPositionColor[]
@@ -60,6 +61,11 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         /// </summary>
         public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
         {
+            if (_effect == null || _vertexBuffer == null)
+            {
+                return;
+            }
+
             int width  = frame.ViewportRect.Width;
             int height = frame.ViewportRect.Height;
             if (width <= 0 || height <= 0)
@@ -84,7 +90,8 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
                            + viewMatrix.Left    * leftFactor
                            - viewMatrix.Up      * upFactor;
             var world = MatrixExtensions.Transformation(Vector3.One, Quaternion.Identity, position);
-            _effect.Parameters["WorldViewProj"].SetValue(world * frame.View * frame.Projection);
+            _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * frame.View * frame.Projection);
+            _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
 
             for (var i = 0; i < _effect.CurrentTechnique.Passes.Count; i++)
             {
