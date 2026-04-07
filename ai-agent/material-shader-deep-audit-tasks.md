@@ -352,7 +352,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 6 - Tooling, tests et documentation finale
 
-- ⏳ **T06.01 - Corriger le parsing des diagnostics de compilation shader**
+- ✅ **T06.01 - Corriger le parsing des diagnostics de compilation shader**
   Objectif :
   - Corriger `CasaEngine.Shaders/ShaderCompiler.cs` pour parser proprement les sorties `mgfxc`.
   - Ajouter des tests unitaires sur le parsing ou factoriser la logique pour qu'elle soit testable sans lancer `mgfxc` a chaque fois.

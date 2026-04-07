@@ -25,6 +25,7 @@
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
     <ProjectReference Include="..\CasaEngine.Editor\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
+    <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
   </ItemGroup>
 
 </Project>
