@@ -6,6 +6,7 @@ using CasaEngine.Core.Log;
 using CasaEngine.Demos.Demos;
 using CasaEngine.Engine;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
 using CasaEngine.Framework.Game.Components.DebugTools;
 using CasaEngine.Framework.Game.Components.Physics;
@@ -24,6 +25,7 @@ public class DemosGame : CasaEngineGame
     private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
     private Demo _currentDemo;
     private int _currentDemoIndex;
+    private CameraComponent _pendingStartupCamera;
     private KeyboardState _prevKeyboard;
     private bool _automationScreenshotCaptured;
 
@@ -44,10 +46,9 @@ public class DemosGame : CasaEngineGame
         }
 
         // Push demo UI screens whenever the engine finishes building views for a world.
-        // This covers the first-frame case where GameManager.UpdateWorld rebuilds the
-        // views (because _isNewWorld=true from SetWorldToLoad), discarding the UI view
-        // that ChangeDemo created during LoadContentPrivate.
-        GameManager.WorldLoaded += (_, _) => RefreshDemoUI();
+        // On startup the first demo is prepared before GameManager loads the world, so
+        // its camera/UI setup must be finalized only after the world and views exist.
+        GameManager.WorldLoaded += (_, _) => OnWorldLoaded();
 
         EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
         var projectSettings = GameSettings.ProjectSettings;
@@ -122,20 +123,42 @@ public class DemosGame : CasaEngineGame
     {
         _currentDemoIndex = Math.Clamp(index, 0, _demos.Count - 1);
         var currentWorld = GameManager.CurrentWorld;
+        ArgumentNullException.ThrowIfNull(currentWorld);
+        bool worldAlreadyLoaded = currentWorld.Game != null;
+
         currentWorld.ClearEntities();
         _currentDemo?.Clean();
 
         _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
         var camera = _currentDemo.CreateCamera(this);
+
+        Window.Title = _currentDemo.Title;
+
+        if (!worldAlreadyLoaded)
+        {
+            _pendingStartupCamera = camera;
+            return;
+        }
+
+        _pendingStartupCamera = null;
         // Clear any views registered by the previous demo so that World.LoadContent
         // can register a fresh default view (it only does so when Views.Count == 0).
         GameManager.ViewManager.Clear();
         currentWorld.LoadContent(this);
         RuntimeViewBootstrapper?.BootstrapViews(this, currentWorld, GameManager.ViewManager);
         _currentDemo.InitializeCamera(camera);
+        RefreshDemoUI();
+    }
 
-        Window.Title = _currentDemo.Title;
+    private void OnWorldLoaded()
+    {
+        if (_pendingStartupCamera != null)
+        {
+            _currentDemo.InitializeCamera(_pendingStartupCamera);
+            _pendingStartupCamera = null;
+        }
+
         RefreshDemoUI();
     }
 
