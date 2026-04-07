@@ -256,6 +256,7 @@ public class RenderFeatureResolverTests
     {
         var basicEffectAliases = ShaderVariantLibrary.BuildBasicEffectAliases();
         var unlitAliases = ShaderVariantLibrary.BuildUnlitTextureAliases();
+        var skinnedAliases = ShaderVariantLibrary.BuildSkinnedEffectAliases();
 
         Assert.Equal("BasicEffect_PixelLighting", basicEffectAliases["Transparent"]);
         Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Transparent_Textured"]);
@@ -263,5 +264,7 @@ public class RenderFeatureResolverTests
         Assert.Equal("Unlit_Colored", unlitAliases["Transparent"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Transparent_Textured"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Skinned_Textured"]);
+        Assert.Equal("RiggedModelDraw", skinnedAliases["Opaque"]);
+        Assert.Equal("RiggedModelDraw", skinnedAliases["Skinned_Textured"]);
     }
 }

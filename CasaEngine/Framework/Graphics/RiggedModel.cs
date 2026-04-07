@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Helpers;
 using CasaEngine.Core.Log;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -266,7 +267,7 @@ public class RiggedModel
     /// </summary>
     public void Draw(GraphicsDevice gd, Matrix world, Matrix viewProjection)
     {
-        Effect.Parameters["Bones"].SetValue(GlobalShaderMatrixs);
+        Effect.Parameters[ShaderParameterNames.Bones]?.SetValue(GlobalShaderMatrixs);
 
         for (var index = 0; index < Meshes.Length; index++)
         {
@@ -278,11 +279,11 @@ public class RiggedModel
                 continue;
             }
 
-            Effect.Parameters["TextureA"].SetValue(texture);
+            Effect.Parameters[ShaderParameterNames.BasColorTexture]?.SetValue(texture);
             var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
-            Effect.Parameters["World"].SetValue(meshWorld);
-            Effect.Parameters["WorldInverseTranspose"]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));
-            Effect.Parameters["WorldViewProj"]?.SetValue(meshWorld * viewProjection);
+            Effect.Parameters[ShaderParameterNames.World]?.SetValue(meshWorld);
+            Effect.Parameters[ShaderParameterNames.WorldInverseTranspose]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));
+            Effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(meshWorld * viewProjection);
             Effect.CurrentTechnique.Passes[0].Apply();
             gd.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, mesh.Vertices, 0,
                 mesh.Vertices.Length, mesh.Indices, 0, mesh.Indices.Length / 3,

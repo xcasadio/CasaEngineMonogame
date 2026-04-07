@@ -83,6 +83,20 @@ public sealed class ShaderVariantLibrary
             ["Skinned_Textured"]   = "Unlit_Textured",
         };
 
+    /// <summary>Returns alias map for mapping canonical technique names to skinEffect.fx ones.</summary>
+    public static Dictionary<string, string> BuildSkinnedEffectAliases() =>
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Opaque"]               = "RiggedModelDraw",
+            ["Opaque_Textured"]      = "RiggedModelDraw",
+            ["AlphaTest"]            = "RiggedModelDraw",
+            ["AlphaTest_Textured"]   = "RiggedModelDraw",
+            ["Transparent"]          = "RiggedModelDraw",
+            ["Transparent_Textured"] = "RiggedModelDraw",
+            ["Skinned"]              = "RiggedModelDraw",
+            ["Skinned_Textured"]     = "RiggedModelDraw",
+        };
+
     // Lookup -------------------------------------------------------------
 
     /// <summary>

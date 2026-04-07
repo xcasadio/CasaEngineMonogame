@@ -36,22 +36,36 @@ public static class EffectiveShaderResolver
     public static readonly Guid BasicEffectShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
     public static readonly Guid ReflectiveBasicEffectShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
+    public static readonly Guid SkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
 
     public const string BasicEffectContentName = "Shaders\\basicEffect";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
     public const string ReflectiveBasicEffectContentName = BasicEffectContentName;
+    public const string SkinnedEffectContentName = "Shaders\\skinEffect";
 
     /// <summary>
     /// Resolves the runtime shader reference for <paramref name="material"/>.
     /// Asset-backed shader references always win. Built-in runtime materials receive stable fallbacks.
     /// </summary>
     public static EffectiveShaderReference Resolve(MaterialBase material)
+        => Resolve(material, RenderFeatureResolver.ResolveMaterialFeatures(material));
+
+    /// <summary>
+    /// Resolves the runtime shader reference for <paramref name="material"/> in the context of
+    /// draw-path features such as skinning.
+    /// </summary>
+    public static EffectiveShaderReference Resolve(MaterialBase material, ShaderFeature features)
     {
         ArgumentNullException.ThrowIfNull(material);
 
         if (material.ShaderAssetId != Guid.Empty)
         {
             return new EffectiveShaderReference(material.ShaderAssetId);
+        }
+
+        if ((features & ShaderFeature.Skinned) != 0)
+        {
+            return new EffectiveShaderReference(SkinnedEffectShaderId, SkinnedEffectContentName);
         }
 
         var capabilities = material.GetShaderCapabilities();

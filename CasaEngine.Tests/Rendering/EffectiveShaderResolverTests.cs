@@ -32,7 +32,7 @@ public class EffectiveShaderResolverTests
             ShaderAssetId = shaderAssetId,
         };
 
-        var resolved = EffectiveShaderResolver.Resolve(material);
+        var resolved = EffectiveShaderResolver.Resolve(material, ShaderFeature.Skinned | ShaderFeature.BasColorTexture);
 
         Assert.Equal(shaderAssetId, resolved.ShaderId);
         Assert.False(resolved.IsBuiltIn);
@@ -72,6 +72,18 @@ public class EffectiveShaderResolverTests
         Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
         Assert.True(resolved.IsBuiltIn);
         Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
+    }
+
+    [Fact]
+    public void Resolve_ReturnsSkinnedFallback_WhenSkinnedFeaturesArePresent()
+    {
+        var resolved = EffectiveShaderResolver.Resolve(
+            new LitDiffuseMaterial(),
+            ShaderFeature.Skinned | ShaderFeature.BasColorTexture);
+
+        Assert.Equal(EffectiveShaderResolver.SkinnedEffectShaderId, resolved.ShaderId);
+        Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.SkinnedEffectContentName, resolved.ContentName);
     }
 
     [Fact]

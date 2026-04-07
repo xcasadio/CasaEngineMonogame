@@ -11,7 +11,7 @@
 #include "Macros.fxh"
 
 
-DECLARE_TEXTURE(TextureA, 0);
+DECLARE_TEXTURE(Texture, 0);
 
 
 //_______________________________________________________________
@@ -129,7 +129,7 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
 
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
@@ -157,7 +157,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
 
     ColorPair lightResult = ComputeLights(eyeVector, N, 3);
 
-    float4 texelColor = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
+    float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);
     float4 result = (lightColor * 0.60f + texelColor * 0.40f);
     return result;
@@ -194,7 +194,7 @@ VsOutputSkinnedQuad VertexShaderDebugSkinnedDraw(VsInputSkinnedQuad input)
 
 float4 PixelShaderDebugSkinnedDraw(VsOutputSkinnedQuad input) : COLOR0
 {
-    float4 result = SAMPLE_TEXTURE(TextureA, input.TexureCoordinateA) * input.Color;
+    float4 result = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
     return result;
 }
 

@@ -50,29 +50,32 @@ public sealed class RenderShaderSelector
     }
 
     public ResolvedShader Resolve(in RenderItem item)
+        => Resolve(item.EffectiveShaderId, item.Features);
+
+    public ResolvedShader Resolve(Guid effectiveShaderId, ShaderFeature features)
     {
-        if (item.EffectiveShaderId == Guid.Empty)
+        if (effectiveShaderId == Guid.Empty)
         {
             return new ResolvedShader(_fallbackShader, techniqueSelectedBySelector: false);
         }
 
         if (_variantLibrary is not null)
         {
-            var variantShader = _variantLibrary.Get(new ShaderVariantKey(item.EffectiveShaderId, item.Features));
+            var variantShader = _variantLibrary.Get(new ShaderVariantKey(effectiveShaderId, features));
             if (variantShader is not null)
             {
                 return new ResolvedShader(variantShader, techniqueSelectedBySelector: true);
             }
         }
 
-        if (_registeredShaders.TryGetValue(item.EffectiveShaderId, out var registeredShader))
+        if (_registeredShaders.TryGetValue(effectiveShaderId, out var registeredShader))
         {
             return new ResolvedShader(registeredShader, techniqueSelectedBySelector: false);
         }
 
         if (_shaderManager is not null)
         {
-            var shader = _shaderManager.GetShader(item.EffectiveShaderId);
+            var shader = _shaderManager.GetShader(effectiveShaderId);
             if (shader is not null)
             {
                 return new ResolvedShader(shader, techniqueSelectedBySelector: false);

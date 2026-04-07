@@ -1,6 +1,8 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Materials;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -11,9 +13,25 @@ namespace CasaEngine.Framework.Game.Components;
 public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private readonly List<SkinnedMeshInfo> _meshInfos = new();
-    private Effect _effect;
-    private ShaderWrapper _shader;
-    private CasaEngineGame _game;
+    private readonly RenderStateCache _stateCache = new();
+    private readonly ShaderBindCache _shaderCache = new();
+    private readonly LitDiffuseMaterial _defaultMaterial = new()
+    {
+        // Preserve the historical skinned blend mode until rigged meshes carry authored materials.
+        BlendState = BlendState.NonPremultiplied,
+        DepthStencilState = DepthStencilState.Default,
+        RasterizerState = RasterizerState.CullCounterClockwise,
+        SamplerState = SamplerState.AnisotropicClamp,
+        DiffuseColor = Color.White,
+        EmissiveColor = Vector3.Zero,
+        SpecularColor = new Vector3(0.3f, 0.3f, 0.3f),
+        SpecularPower = 16.0f,
+    };
+    private Effect _effect = null!;
+    private ShaderWrapper _shader = null!;
+    private ShaderManager? _shaderManager;
+    private ShaderVariantLibrary? _variantLibrary;
+    private RenderShaderSelector? _shaderSelector;
 
     /// <summary>
     /// Default scene lighting for skinned meshes. Same values as StaticMeshRendererComponent.
@@ -26,7 +44,6 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
     public SkinnedMeshRendererComponent(CasaEngineGame game) : base(game)
     {
-        _game = game;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
@@ -46,6 +63,17 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _effect = Game.Content.Load<Effect>("Shaders\\skinEffect");
         _shader = new ShaderWrapper(_effect);
 
+        if (Game is CasaEngineGame casaEngineGame)
+        {
+            _shaderManager = new ShaderManager(casaEngineGame.AssetContentManager);
+            _variantLibrary = new ShaderVariantLibrary(_shaderManager);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.SkinnedEffectShaderId, _shader);
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.SkinnedEffectShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
+        }
+
+        _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.SkinnedEffectShaderId, _shader);
+
         // Provide a 1×1 white fallback texture for skinned meshes without textures.
         if (RiggedModelLoader.DefaultTexture == null)
         {
@@ -57,16 +85,16 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         // Initialise lighting to match StaticMeshRendererComponent defaults
         DefaultLighting.DirectionalLights[0] = new DirLight(
             new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
-            new Vector3(1f, 0.9607844f, 0.8078432f),
-            new Vector3(1f, 0.9607844f, 0.8078432f));
+            new Vector3(0.92f, 0.92f, 0.92f),
+            new Vector3(0.92f, 0.92f, 0.92f));
         DefaultLighting.DirectionalLights[1] = new DirLight(
             new Vector3(0.7198464f, 0.3420201f, 0.6040227f),
-            new Vector3(0.9647059f, 0.7607844f, 0.4078432f),
+            new Vector3(0.71f, 0.71f, 0.71f),
             Vector3.Zero);
         DefaultLighting.DirectionalLights[2] = new DirLight(
             new Vector3(0.4545195f, -0.7660444f, 0.4545195f),
-            new Vector3(0.3231373f, 0.3607844f, 0.3937255f),
-            new Vector3(0.3231373f, 0.3607844f, 0.3937255f));
+            new Vector3(0.36f, 0.36f, 0.36f),
+            new Vector3(0.36f, 0.36f, 0.36f));
 
         base.LoadContent();
     }
@@ -79,33 +107,98 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             return;
         }
 
-        GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+        if (_shaderSelector is null)
+        {
+            return;
+        }
+
+        _stateCache.ResetFrame();
+        _shaderCache.ResetFrame();
+
+        stats ??= new RenderStats();
+        GraphicsDevice graphicsDevice = GraphicsDevice;
         GraphicsDevice.SetVertexBuffer(null);
         GraphicsDevice.Indices = null;
 
-        _effect.CurrentTechnique = _effect.Techniques["RiggedModelDraw"];
-
-        _shader.SetParameter(ShaderParameterNames.EyePosition, frame.CameraPosition);
-
-        // Material defaults for skinned meshes
-        _shader.SetParameter(ShaderParameterNames.DiffuseColor, new Vector4(1f, 1f, 1f, 1f));
-        _shader.SetParameter(ShaderParameterNames.EmissiveColor, Vector3.Zero);
-        _shader.SetParameter(ShaderParameterNames.SpecularColor, new Vector3(0.3f, 0.3f, 0.3f));
-        _shader.SetParameter(ShaderParameterNames.SpecularPower, 16.0f);
-
-        // Use the engine's shared lighting (same 3 directional lights as static meshes)
-        DefaultLighting.Bind(_shader);
+        var context = new RenderContext
+        {
+            Device = graphicsDevice,
+            Frame = frame,
+            Lighting = DefaultLighting,
+            Stats = stats,
+        };
 
         foreach (var meshInfo in _meshInfos)
         {
-            meshInfo.SkinnedMesh.Effect = _effect;
-            meshInfo.SkinnedMesh.Draw(GraphicsDevice, meshInfo.World, frame.ViewProjection);
+            if (meshInfo.SkinnedMesh == null)
+            {
+                continue;
+            }
+
+            DrawRiggedModel(meshInfo.SkinnedMesh, meshInfo.World, in context);
         }
 
         _meshInfos.Clear();
+    }
+
+    private void DrawRiggedModel(RiggedModel riggedModel, Matrix world, in RenderContext context)
+    {
+        for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
+        {
+            var mesh = riggedModel.Meshes[meshIndex];
+            var texture = mesh.Texture;
+            if (texture == null)
+            {
+                continue;
+            }
+
+            DrawRiggedMesh(riggedModel, mesh, texture, world, in context);
+        }
+    }
+
+    private void DrawRiggedMesh(
+        RiggedModel riggedModel,
+        RiggedModel.RiggedModelMesh mesh,
+        Texture2D texture,
+        Matrix world,
+        in RenderContext context)
+    {
+        _defaultMaterial.BasColor = texture;
+
+        var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
+        var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features);
+        var resolvedShader = _shaderSelector!.Resolve(effectiveShader.ShaderId, features);
+        var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
+
+        _stateCache.Apply(context.Device, _defaultMaterial, context.Stats);
+
+        if (!resolvedShader.TechniqueSelectedBySelector)
+        {
+            _defaultMaterial.SelectTechnique(resolvedShader.Shader, in context, features);
+        }
+
+        _shaderCache.BindGlobals(resolvedShader.Shader, in context);
+        _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
+        resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, riggedModel.GlobalShaderMatrixs);
+
+        for (int passIndex = 0; passIndex < resolvedShader.Shader.PassCount; passIndex++)
+        {
+            resolvedShader.Shader.ApplyPass(passIndex);
+            context.Device.DrawUserIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                mesh.Vertices,
+                0,
+                mesh.Vertices.Length,
+                mesh.Indices,
+                0,
+                mesh.Indices.Length / 3,
+                VertexPositionTextureNormalTangentWeights.VertexDeclaration);
+        }
+
+        if (context.Stats is not null)
+        {
+            context.Stats.DrawCalls++;
+        }
     }
 
     private class SkinnedMeshInfo

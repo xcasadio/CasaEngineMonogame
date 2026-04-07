@@ -236,7 +236,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 4 - Skinned path et suppression des chemins legacy
 
-- ⏳ **T04.01 - Integrer le renderer skinned a la meme politique material/shader**
+- ✅ **T04.01 - Integrer le renderer skinned a la meme politique material/shader**
   Objectif :
   - Auditer puis reduire le contournement actuel de `SkinnedMeshRendererComponent`.
   - Reutiliser autant que possible les memes services de resolution shader/features/states que le rendu statique, ou formaliser clairement pourquoi le skinned reste une voie separee.
