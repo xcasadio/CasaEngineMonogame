@@ -45,6 +45,13 @@ public class Material : MaterialBase
         context.Lighting?.Bind(shader);
     }
 
+    public override MaterialShaderCapabilities GetShaderCapabilities()
+        => CreateShaderCapabilities(
+            MaterialShaderFamily.Lit,
+            hasBasColorTexture: TextureBaseColor?.Resource is not null || TextureBaseColorAssetId != Guid.Empty,
+            hasNormalMap: TextureNormal?.Resource is not null || TextureNormalAssetId != Guid.Empty,
+            hasReflection: TextureReflection?.Resource is not null || TextureReflectionAssetId != Guid.Empty);
+
     public void LoadTextures(AssetContentManager content)
     {
         if (TextureBaseColorAssetId  != Guid.Empty)

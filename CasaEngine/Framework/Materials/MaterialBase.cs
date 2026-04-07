@@ -70,6 +70,9 @@ public abstract class MaterialBase : ISerializable
     /// </summary>
     public abstract void Bind(ShaderWrapper shader, in RenderContext context, Matrix world);
 
+    public virtual MaterialShaderCapabilities GetShaderCapabilities()
+        => CreateShaderCapabilities(MaterialShaderFamily.Lit);
+
     /// <summary>
     /// Returns the <see cref="ShaderFeature"/> flags active for this material,
     /// optionally considering the <paramref name="mesh"/> (Phase 7).
@@ -113,6 +116,39 @@ public abstract class MaterialBase : ISerializable
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    protected MaterialShaderCapabilities CreateShaderCapabilities(
+        MaterialShaderFamily shaderFamily,
+        bool hasBasColorTexture = false,
+        bool hasNormalMap = false,
+        bool hasEmissive = false,
+        bool hasReflection = false,
+        bool isTransparent = false)
+        => new(
+            shaderFamily,
+            hasBasColorTexture,
+            hasNormalMap,
+            hasEmissive,
+            hasReflection,
+            Queue == RenderQueue.AlphaTest,
+            IsEffectivelyTransparent() || isTransparent);
+
+    protected bool IsEffectivelyTransparent()
+    {
+        if (Queue == RenderQueue.AlphaTest)
+        {
+            return false;
+        }
+
+        if (IsTransparent || Queue >= RenderQueue.Transparent)
+        {
+            return true;
+        }
+
+        return ReferenceEquals(BlendState, BlendState.AlphaBlend) ||
+               ReferenceEquals(BlendState, BlendState.NonPremultiplied) ||
+               ReferenceEquals(BlendState, BlendState.Additive);
+    }
 
     private static readonly Dictionary<string, BlendState> BlendStateMap = new(StringComparer.OrdinalIgnoreCase)
     {

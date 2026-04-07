@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Xunit;
 
@@ -6,6 +7,22 @@ namespace CasaEngine.Tests.Rendering;
 
 public class EffectiveShaderResolverTests
 {
+    private sealed class CustomCapabilityMaterial : MaterialBase
+    {
+        public CustomCapabilityMaterial(MaterialShaderCapabilities capabilities)
+        {
+            Capabilities = capabilities;
+        }
+
+        private MaterialShaderCapabilities Capabilities { get; }
+
+        public override void Bind(ShaderWrapper shader, in RenderContext context, Microsoft.Xna.Framework.Matrix world)
+            => throw new NotSupportedException();
+
+        public override MaterialShaderCapabilities GetShaderCapabilities()
+            => Capabilities;
+    }
+
     [Fact]
     public void Resolve_ReturnsExplicitShaderAsset_WhenMaterialDefinesOne()
     {
@@ -54,6 +71,32 @@ public class EffectiveShaderResolverTests
 
         Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
         Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
+    }
+
+    [Fact]
+    public void Resolve_UsesMaterialCapabilityContract_ForUnknownMaterialTypes()
+    {
+        var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(
+            MaterialShaderFamily.Unlit,
+            hasBasColorTexture: true));
+
+        var resolved = EffectiveShaderResolver.Resolve(material);
+
+        Assert.Equal(EffectiveShaderResolver.UnlitTextureShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.UnlitTextureContentName, resolved.ContentName);
+    }
+
+    [Fact]
+    public void Resolve_UsesReflectionCapability_ForUnknownLitMaterialTypes()
+    {
+        var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(
+            MaterialShaderFamily.Lit,
+            hasReflection: true));
+
+        var resolved = EffectiveShaderResolver.Resolve(material);
+
+        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
         Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
     }
 }

@@ -89,6 +89,15 @@ public class LitDiffuseMaterial : MaterialBase
         context.Lighting?.Bind(shader);
     }
 
+    public override MaterialShaderCapabilities GetShaderCapabilities()
+        => CreateShaderCapabilities(
+            MaterialShaderFamily.Lit,
+            hasBasColorTexture: BasColor is not null || BasColorAssetId != Guid.Empty,
+            hasNormalMap: NormalMap is not null || NormalMapAssetId != Guid.Empty,
+            hasEmissive: EmissiveColor != Vector3.Zero,
+            hasReflection: ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty,
+            isTransparent: DiffuseColor.A < byte.MaxValue);
+
     public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
     {
         var features = ShaderFeature.None;

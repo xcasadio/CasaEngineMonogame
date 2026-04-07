@@ -68,35 +68,35 @@ public static class RenderFeatureResolver
     {
         ArgumentNullException.ThrowIfNull(material);
 
+        var capabilities = material.GetShaderCapabilities();
         var features = ShaderFeature.None;
-        bool hasBasColorTexture = HasBasColorTexture(material);
 
-        if (hasBasColorTexture)
+        if (capabilities.HasBasColorTexture)
         {
             features |= ShaderFeature.BasColorTexture;
         }
 
-        if (hasBasColorTexture && HasNormalMap(material))
+        if (capabilities.HasBasColorTexture && capabilities.HasNormalMap)
         {
             features |= ShaderFeature.NormalMap;
         }
 
-        if (HasEmissive(material))
+        if (capabilities.HasEmissive)
         {
             features |= ShaderFeature.Emissive;
         }
 
-        if (HasReflection(material))
+        if (capabilities.HasReflection)
         {
             features |= ShaderFeature.Reflection;
         }
 
-        if (IsAlphaTest(material))
+        if (capabilities.IsAlphaTest)
         {
             features |= ShaderFeature.AlphaTest;
         }
 
-        if (IsTransparent(material))
+        if (!capabilities.IsAlphaTest && capabilities.IsTransparent)
         {
             features |= ShaderFeature.Transparent;
         }
@@ -133,64 +133,6 @@ public static class RenderFeatureResolver
 
     public static ShaderFeature AddInstancedFeature(ShaderFeature features)
         => features | ShaderFeature.Instanced;
-
-    private static bool HasBasColorTexture(MaterialBase material) => material switch
-    {
-        LitDiffuseMaterial lit => lit.BasColor is not null || lit.BasColorAssetId != Guid.Empty,
-        UnlitTextureMaterial unlit => unlit.BasColor is not null || unlit.BasColorAssetId != Guid.Empty,
-        Material rich => rich.TextureBaseColor?.Resource is not null || rich.TextureBaseColorAssetId != Guid.Empty,
-        _ => false,
-    };
-
-    private static bool HasNormalMap(MaterialBase material) => material switch
-    {
-        LitDiffuseMaterial lit => lit.NormalMap is not null || lit.NormalMapAssetId != Guid.Empty,
-        Material rich => rich.TextureNormal?.Resource is not null || rich.TextureNormalAssetId != Guid.Empty,
-        _ => false,
-    };
-
-    private static bool HasEmissive(MaterialBase material) => material switch
-    {
-        LitDiffuseMaterial lit => lit.EmissiveColor != Vector3.Zero,
-        _ => false,
-    };
-
-    private static bool HasReflection(MaterialBase material) => material switch
-    {
-        LitDiffuseMaterial lit => lit.ReflectionCube is not null || lit.ReflectionCubeAssetId != Guid.Empty,
-        _ => false,
-    };
-
-    private static bool IsAlphaTest(MaterialBase material)
-        => material.Queue == RenderQueue.AlphaTest;
-
-    private static bool IsTransparent(MaterialBase material)
-    {
-        if (material.Queue == RenderQueue.AlphaTest)
-        {
-            return false;
-        }
-
-        if (material.IsTransparent || material.Queue >= RenderQueue.Transparent)
-        {
-            return true;
-        }
-
-        if (ReferenceEquals(material.BlendState, BlendState.AlphaBlend) ||
-            ReferenceEquals(material.BlendState, BlendState.NonPremultiplied) ||
-            ReferenceEquals(material.BlendState, BlendState.Additive))
-        {
-            return true;
-        }
-
-        return material switch
-        {
-            UnlitTextureMaterial { Alpha: < 0.999f } => true,
-            UnlitTextureMaterial unlit when unlit.Tint.A < byte.MaxValue => true,
-            LitDiffuseMaterial lit when lit.DiffuseColor.A < byte.MaxValue => true,
-            _ => false,
-        };
-    }
 
     private static bool HasVertexColor(StaticModelMesh? mesh)
         => mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&

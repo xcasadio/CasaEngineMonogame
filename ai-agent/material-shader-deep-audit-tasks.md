@@ -151,7 +151,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `fix(rendering): make shader variant technique selection deterministic`
 
-- ⏳ **T02.02 - Introduire un contrat runtime stable de capacites material**
+- ✅ **T02.02 - Introduire un contrat runtime stable de capacites material**
   Objectif :
   - Introduire un contrat ou descripteur lisible par le renderer pour exposer les capacites d'un material sans re-tester partout les types concrets.
   - Faire consulter ce contrat d'abord par `RenderFeatureResolver` et `EffectiveShaderResolver`, avec fallback legacy si necessaire.

@@ -54,7 +54,20 @@ public static class EffectiveShaderResolver
             return new EffectiveShaderReference(material.ShaderAssetId);
         }
 
-        return material switch
+        var capabilities = material.GetShaderCapabilities();
+
+        return capabilities.ShaderFamily switch
+        {
+            MaterialShaderFamily.Unlit => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
+            MaterialShaderFamily.Lit when capabilities.HasReflection
+                => new EffectiveShaderReference(ReflectiveBasicEffectShaderId, ReflectiveBasicEffectContentName),
+            MaterialShaderFamily.Lit => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
+            _ => ResolveLegacyFallback(material),
+        };
+    }
+
+    private static EffectiveShaderReference ResolveLegacyFallback(MaterialBase material)
+        => material switch
         {
             UnlitTextureMaterial => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
             LitDiffuseMaterial lit when lit.ReflectionCube is not null || lit.ReflectionCubeAssetId != Guid.Empty
@@ -62,5 +75,4 @@ public static class EffectiveShaderResolver
             LitDiffuseMaterial => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
             _ => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
         };
-    }
 }

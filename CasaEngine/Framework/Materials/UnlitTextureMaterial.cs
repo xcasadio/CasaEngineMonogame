@@ -53,6 +53,12 @@ public class UnlitTextureMaterial : MaterialBase
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
     }
 
+    public override MaterialShaderCapabilities GetShaderCapabilities()
+        => CreateShaderCapabilities(
+            MaterialShaderFamily.Unlit,
+            hasBasColorTexture: BasColor is not null || BasColorAssetId != Guid.Empty,
+            isTransparent: Alpha < 0.999f || Tint.A < byte.MaxValue);
+
     public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
         => BasColor is not null
             ? ShaderFeature.BasColorTexture

@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Graphics;
 using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,6 +10,21 @@ namespace CasaEngine.Tests.Rendering;
 
 public class RenderFeatureResolverTests
 {
+    private sealed class CustomCapabilityMaterial : MaterialBase
+    {
+        public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
+            => throw new NotSupportedException();
+
+        public override MaterialShaderCapabilities GetShaderCapabilities()
+            => CreateShaderCapabilities(
+                MaterialShaderFamily.Unlit,
+                hasBasColorTexture: true,
+                hasNormalMap: true,
+                hasEmissive: true,
+                hasReflection: true,
+                isTransparent: true);
+    }
+
     [Fact]
     public void ResolveMaterialFeatures_ReturnsExpectedFlags_ForLitDiffuseMaterial()
     {
@@ -159,6 +175,25 @@ public class RenderFeatureResolverTests
         var features = RenderFeatureResolver.ResolveMaterialFeatures(material);
 
         Assert.Equal(ShaderFeature.AlphaTest, features);
+    }
+
+    [Fact]
+    public void ResolveMaterialFeatures_UsesMaterialCapabilityContract_BeforeLegacyTypeChecks()
+    {
+        var material = new CustomCapabilityMaterial
+        {
+            Queue = RenderQueue.Transparent,
+        };
+
+        var features = RenderFeatureResolver.ResolveMaterialFeatures(material);
+
+        Assert.Equal(
+            ShaderFeature.BasColorTexture |
+            ShaderFeature.NormalMap |
+            ShaderFeature.Emissive |
+            ShaderFeature.Reflection |
+            ShaderFeature.Transparent,
+            features);
     }
 
     [Theory]
