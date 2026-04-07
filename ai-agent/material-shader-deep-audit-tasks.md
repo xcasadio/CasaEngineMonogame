@@ -126,7 +126,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `docs(shaders): inventory effect files and their runtime consumers`
 
-- 🧪 **T01.04 - Cartographier le hot reload materials de l'editeur de bout en bout**
+- ✅ **T01.04 - Cartographier le hot reload materials de l'editeur de bout en bout**
   Objectif :
   - Documenter precisement le chemin `editeur -> save -> asset event -> caches -> recompilation runtime -> invalidation des vues -> rendu final`.
   - Identifier les points critiques a ne pas casser lors des refactors materials/shaders.
