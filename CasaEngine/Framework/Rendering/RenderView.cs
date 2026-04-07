@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
 
 namespace CasaEngine.Framework.Rendering;
@@ -33,6 +34,12 @@ public sealed class RenderView
 
     /// <summary>Output surface (backbuffer or RenderTarget).</summary>
     public IRenderSurface Surface { get; set; }
+
+    /// <summary>
+    /// Optional environment override applied only to this view.
+    /// Null falls back to the owning world's <see cref="Scene.World.World.EnvironmentSettings"/>.
+    /// </summary>
+    public WorldEnvironmentSettings? EnvironmentOverride { get; set; }
 
     // ---- Clear options ----
 

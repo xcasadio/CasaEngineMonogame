@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Rendering.Environment;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -16,6 +17,9 @@ public sealed record ViewDefinition
 
     /// <summary>Output surface (backbuffer region or RenderTarget).</summary>
     public required IRenderSurface Surface { get; init; }
+
+    /// <summary>Optional environment override applied only to this view.</summary>
+    public WorldEnvironmentSettings? EnvironmentOverride { get; init; }
 
     /// <summary>Clear color. Default: CornflowerBlue.</summary>
     public Color ClearColor { get; init; } = Color.CornflowerBlue;

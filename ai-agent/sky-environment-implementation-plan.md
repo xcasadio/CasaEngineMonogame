@@ -119,7 +119,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-003 — Ajouter un override optionnel d'environnement par vue
+### ✅ ENV-003 — Ajouter un override optionnel d'environnement par vue
 Objectif:
 preparer les cas preview, material inspector et viewport editor sans casser le world par defaut.
 
@@ -131,6 +131,9 @@ Criteres d'acceptation:
 - une vue peut referencer un override d'environnement
 - l'absence d'override conserve automatiquement l'environnement du world
 - aucun changement visible tant que le nouveau champ n'est pas utilise
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `feat(rendering): add per-view environment override`

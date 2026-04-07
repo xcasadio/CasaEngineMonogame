@@ -112,6 +112,7 @@ public sealed class ViewManager
         {
             Id              = id,
             Name            = def.Name,
+            EnvironmentOverride = def.EnvironmentOverride,
             ClearColor      = def.ClearColor,
             ClearColorBuffer = def.ClearColorBuffer,
             ClearDepthBuffer = def.ClearDepthBuffer,
