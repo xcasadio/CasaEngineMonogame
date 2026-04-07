@@ -41,3 +41,37 @@ public interface ILegacyMaterialImportProfile
 {
     LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context);
 }
+
+public sealed class NeutralLegacyMaterialImportProfile : ILegacyMaterialImportProfile
+{
+    public static NeutralLegacyMaterialImportProfile Instance { get; } = new();
+
+    public LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context)
+    {
+        LegacyMaterialImportHint hints = LegacyMaterialImportHint.None;
+
+        if (context.ImportedMaterial.AlphaCutoutHint)
+        {
+            hints |= LegacyMaterialImportHint.AlphaCutout;
+        }
+
+        if (context.ImportedMaterial.BrightAmbientHint)
+        {
+            hints |= LegacyMaterialImportHint.BrightAmbient;
+        }
+
+        if (context.ImportedMaterial.UsesReflection
+            || !string.IsNullOrWhiteSpace(context.ImportedMaterial.ReflectionTextureFilePath))
+        {
+            hints |= LegacyMaterialImportHint.Reflection;
+        }
+
+        var surfaceIntent = (hints & LegacyMaterialImportHint.Reflection) != 0
+            ? LegacyMaterialSurfaceIntent.ReflectiveLit
+            : (hints & LegacyMaterialImportHint.AlphaCutout) != 0
+                ? LegacyMaterialSurfaceIntent.AlphaCutoutLit
+                : LegacyMaterialSurfaceIntent.OpaqueLit;
+
+        return new LegacyMaterialImportInterpretation(surfaceIntent, hints);
+    }
+}

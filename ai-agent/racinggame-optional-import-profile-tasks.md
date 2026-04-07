@@ -66,7 +66,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `feat(import): add neutral legacy import interpretation context`
 
-- ⏳ **T01.03 — Ajouter une implementation par defaut neutre dans CasaEngine**
+- ✅ **T01.03 — Ajouter une implementation par defaut neutre dans CasaEngine**
   Objectif :
   - Fournir un comportement generique lorsque aucun profil specifique n'est branche.
   - Ne pas encoder de conventions RacingGame dans cette implementation par defaut.
