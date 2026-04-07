@@ -219,28 +219,30 @@ Raison :
 
 ### Phase D - Correction du terrain topologique
 
-- 🚧 D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
+- ✅ D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
 
-- ⏳ D2. Lire `LandscapeHeights.data` avec les memes constantes que le legacy.
+- ✅ D2. Lire `LandscapeHeights.data` avec les memes constantes que le legacy.
 
-- ⏳ D3. Generer un vrai mesh de terrain avec :
+- ✅ D3. Generer un vrai mesh de terrain avec :
   - vertices,
   - indices,
   - normales,
   - tangentes,
   - UV.
 
-- ⏳ D4. Remplacer `CreateGroundEntity(...)` base sur `BoxPrimitive` par une entite terrain basee sur ce mesh.
+- ✅ D4. Remplacer `CreateGroundEntity(...)` base sur `BoxPrimitive` par une entite terrain basee sur ce mesh.
 
-- ⏳ D5. Reprendre un materiau proche du legacy pour le terrain principal :
+- ✅ D5. Reprendre un materiau proche du legacy pour le terrain principal :
   - texture diffuse,
   - normal map,
   - detail si possible dans le shader cible,
   - sampler wrap.
 
-- ⏳ D6. Ajouter ensuite, si necessaire, le city plane ou un fallback visuel equivalent.
+- ✅ D6. Ajouter ensuite, si necessaire, le city plane ou un fallback visuel equivalent.
 
-- ⏳ D7. Verifier que les objets clamps au terrain restent correctement poses apres remplacement du sol plat par le vrai terrain.
+- 🚧 D7. Verifier que les objets clamps au terrain restent correctement poses apres remplacement du sol plat par le vrai terrain.
+
+  Resultat : phase D portee dans le runtime. `LegacyTerrainMeshBuilder` remplace le sol plat par le mesh complet derive de `LandscapeHeights.data`, avec les constantes legacy de grille, UV, normales et tangentes. Le materiau de terrain utilise maintenant les textures `Landscape` et `LandscapeNormal` avec sampling wrap. Le detail texture n'est pas encore exploite par le shader statique actuel, mais le rendu vise deja une approximation proche et topologiquement correcte. Le city plane n'a pas ete rajoute dans ce premier lot, car le vrai terrain complet sert deja de fallback visuel principal.
 
 ## Validation demandee apres correction
 
@@ -253,7 +255,7 @@ Raison :
 
 ### Validation technique
 
-- ⏳ V5. Verifier que le build borne `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -c Debug --no-restore` reste vert.
+- 🚧 V5. Verifier que le build borne `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -c Debug --no-restore` reste vert.
 - ⏳ V6. Verifier qu'aucune regression de placement du decor n'apparait apres introduction du vrai terrain.
 - ⏳ V7. Verifier que la route reste au-dessus du terrain partout et que les objets clamps restent poses proprement.
 
