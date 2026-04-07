@@ -312,7 +312,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `feat(rendering): replace fixed three-light pipeline with scalable forward lighting`
 
-- 🧪 **T05.04 - Remplacer tous les usages restants de `BasicEffect` MonoGame**
+- ✅ **T05.04 - Remplacer tous les usages restants de `BasicEffect` MonoGame**
   Objectif :
   - Migrer `DebugGridComponent`, `Line3dRendererComponent`, `PrimitiveBatch`, `Primitive2D` et toute autre zone restante vers des effects CasaEngine.
   - Evaluer si `axisComponent.fx` doit etre renomme et generalise en shader utilitaire partage de primitives colorees 3D, plutot que de reutiliser le shader material principal.
