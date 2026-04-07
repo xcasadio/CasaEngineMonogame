@@ -6,11 +6,12 @@ namespace CasaEngine.Tests.Graphics;
 public class LegacyMaterialImportProfileContractTests
 {
     [Fact]
-    public void ResolveMethods_CanExpressGenericSurfaceIntentAndCombinedHints()
+    public void Interpret_CanExpressGenericSurfaceIntentAndCombinedHints()
     {
-        ILegacyMaterialImportProfile profile = new StubProfile(
+        var interpretation = new LegacyMaterialImportInterpretation(
             LegacyMaterialSurfaceIntent.ReflectiveLit,
             LegacyMaterialImportHint.AlphaCutout | LegacyMaterialImportHint.BrightAmbient | LegacyMaterialImportHint.Reflection);
+        ILegacyMaterialImportProfile profile = new StubProfile(interpretation);
 
         var importedMaterial = new StaticModelImportedMaterial
         {
@@ -18,27 +19,24 @@ public class LegacyMaterialImportProfileContractTests
             LegacyTechniqueIndex = 8,
         };
 
-        Assert.Equal(LegacyMaterialSurfaceIntent.ReflectiveLit, profile.ResolveSurfaceIntent(importedMaterial, "AlphaPalm"));
-        Assert.Equal(
-            LegacyMaterialImportHint.AlphaCutout | LegacyMaterialImportHint.BrightAmbient | LegacyMaterialImportHint.Reflection,
-            profile.ResolveHints(importedMaterial, "AlphaPalm"));
+        var context = new LegacyMaterialImportContext(
+            SourceAssetPath: @"D:\assets\AlphaPalm.X",
+            SourceAssetName: "AlphaPalm",
+            ImportedMaterial: importedMaterial);
+
+        Assert.Equal(interpretation, profile.Interpret(context));
     }
 
     private sealed class StubProfile : ILegacyMaterialImportProfile
     {
-        private readonly LegacyMaterialSurfaceIntent _surfaceIntent;
-        private readonly LegacyMaterialImportHint _hints;
+        private readonly LegacyMaterialImportInterpretation _interpretation;
 
-        public StubProfile(LegacyMaterialSurfaceIntent surfaceIntent, LegacyMaterialImportHint hints)
+        public StubProfile(LegacyMaterialImportInterpretation interpretation)
         {
-            _surfaceIntent = surfaceIntent;
-            _hints = hints;
+            _interpretation = interpretation;
         }
 
-        public LegacyMaterialSurfaceIntent ResolveSurfaceIntent(StaticModelImportedMaterial importedMaterial, string sourceAssetName)
-            => _surfaceIntent;
-
-        public LegacyMaterialImportHint ResolveHints(StaticModelImportedMaterial importedMaterial, string sourceAssetName)
-            => _hints;
+        public LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context)
+            => _interpretation;
     }
 }

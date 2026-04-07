@@ -57,7 +57,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `feat(import): add generic legacy material import profile contract`
 
-- ⏳ **T01.02 — Definir les donnees d'entree et de sortie du profil**
+- ✅ **T01.02 — Definir les donnees d'entree et de sortie du profil**
   Objectif :
   - Introduire les structures de contexte necessaires pour passer la metadata brute et recuperer des hints neutres exploitable par le moteur.
   Validation :

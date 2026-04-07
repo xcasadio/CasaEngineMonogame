@@ -16,6 +16,22 @@ public enum LegacyMaterialSurfaceIntent
     ReflectiveLit,
 }
 
+public readonly record struct LegacyMaterialImportContext(
+    string SourceAssetPath,
+    string SourceAssetName,
+    StaticModelImportedMaterial ImportedMaterial);
+
+public readonly record struct LegacyMaterialImportInterpretation(
+    LegacyMaterialSurfaceIntent SurfaceIntent,
+    LegacyMaterialImportHint Hints)
+{
+    public bool AlphaCutout => (Hints & LegacyMaterialImportHint.AlphaCutout) != 0;
+
+    public bool BrightAmbient => (Hints & LegacyMaterialImportHint.BrightAmbient) != 0;
+
+    public bool Reflection => (Hints & LegacyMaterialImportHint.Reflection) != 0;
+}
+
 /// <summary>
 /// Interprets raw legacy material metadata into neutral surface semantics and hints.
 /// Implementations may use asset-specific conventions, but the contract itself stays
@@ -23,7 +39,5 @@ public enum LegacyMaterialSurfaceIntent
 /// </summary>
 public interface ILegacyMaterialImportProfile
 {
-    LegacyMaterialSurfaceIntent ResolveSurfaceIntent(StaticModelImportedMaterial importedMaterial, string sourceAssetName);
-
-    LegacyMaterialImportHint ResolveHints(StaticModelImportedMaterial importedMaterial, string sourceAssetName);
+    LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context);
 }
