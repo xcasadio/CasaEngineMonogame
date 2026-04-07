@@ -45,6 +45,9 @@ struct ColorPair
 };
 
 
+static const int MaxDirectionalLights = 8;
+
+
 float3 ComputeAmbientTerm(float3 globalAmbientColor, float3 materialAmbientColor)
 {
     return globalAmbientColor * materialAmbientColor;
@@ -57,35 +60,75 @@ float3 ComposeLitSurfaceColor(float3 albedo, float3 directDiffuse, float3 ambien
 }
 
 
+float3 GetDirectionalLightDirection(int index)
+{
+    if (index == 0) return DirLight0Direction;
+    if (index == 1) return DirLight1Direction;
+    if (index == 2) return DirLight2Direction;
+    if (index == 3) return DirLight3Direction;
+    if (index == 4) return DirLight4Direction;
+    if (index == 5) return DirLight5Direction;
+    if (index == 6) return DirLight6Direction;
+    if (index == 7) return DirLight7Direction;
+    return 0;
+}
+
+
+float3 GetDirectionalLightDiffuseColor(int index)
+{
+    if (index == 0) return DirLight0DiffuseColor;
+    if (index == 1) return DirLight1DiffuseColor;
+    if (index == 2) return DirLight2DiffuseColor;
+    if (index == 3) return DirLight3DiffuseColor;
+    if (index == 4) return DirLight4DiffuseColor;
+    if (index == 5) return DirLight5DiffuseColor;
+    if (index == 6) return DirLight6DiffuseColor;
+    if (index == 7) return DirLight7DiffuseColor;
+    return 0;
+}
+
+
+float3 GetDirectionalLightSpecularColor(int index)
+{
+    if (index == 0) return DirLight0SpecularColor;
+    if (index == 1) return DirLight1SpecularColor;
+    if (index == 2) return DirLight2SpecularColor;
+    if (index == 3) return DirLight3SpecularColor;
+    if (index == 4) return DirLight4SpecularColor;
+    if (index == 5) return DirLight5SpecularColor;
+    if (index == 6) return DirLight6SpecularColor;
+    if (index == 7) return DirLight7SpecularColor;
+    return 0;
+}
+
+
 ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLights)
 {
-    float3x3 lightDirections = 0;
-    float3x3 lightDiffuse = 0;
-    float3x3 lightSpecular = 0;
-    float3x3 halfVectors = 0;
-    
-    [unroll]
-    for (int i = 0; i < numLights; i++)
-    {
-        lightDirections[i] = float3x3(DirLight0Direction, DirLight1Direction, DirLight2Direction)[i];
-        lightDiffuse[i]    = float3x3(DirLight0DiffuseColor, DirLight1DiffuseColor, DirLight2DiffuseColor)[i];
-        lightSpecular[i]   = float3x3(DirLight0SpecularColor, DirLight1SpecularColor, DirLight2SpecularColor)[i];
-        
-        halfVectors[i] = normalize(eyeVector - lightDirections[i]);
-    }
-
-    float3 dotL = mul(-lightDirections, worldNormal);
-    float3 dotH = mul(halfVectors, worldNormal);
-    
-    float3 zeroL = step(0, dotL);
-
-    float3 diffuse = zeroL * dotL;
-    float3 specular = pow(max(dotH, 0) * zeroL, SpecularPower);
-
     ColorPair result;
-    
-    result.Diffuse = mul(diffuse, lightDiffuse) * DiffuseColor.rgb + EmissiveColor;
-    result.Specular = mul(specular, lightSpecular) * SpecularColor;
+    result.Diffuse = EmissiveColor;
+    result.Specular = 0;
+
+    [unroll]
+    for (int i = 0; i < MaxDirectionalLights; i++)
+    {
+        if (i >= numLights)
+        {
+            break;
+        }
+
+        float3 lightDirection = GetDirectionalLightDirection(i);
+        float3 lightDiffuse = GetDirectionalLightDiffuseColor(i);
+        float3 lightSpecular = GetDirectionalLightSpecularColor(i);
+        float3 halfVector = normalize(eyeVector - lightDirection);
+
+        float dotL = dot(-lightDirection, worldNormal);
+        float zeroL = step(0, dotL);
+        float diffuse = zeroL * dotL;
+        float specular = pow(max(dot(halfVector, worldNormal), 0) * zeroL, SpecularPower);
+
+        result.Diffuse += diffuse * lightDiffuse * DiffuseColor.rgb;
+        result.Specular += specular * lightSpecular * SpecularColor;
+    }
 
     return result;
 }

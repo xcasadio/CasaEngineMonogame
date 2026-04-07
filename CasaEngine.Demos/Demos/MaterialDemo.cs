@@ -33,7 +33,7 @@ namespace CasaEngine.Demos.Demos;
 ///   Hints-only import view: <see cref="LitDiffuseMaterial"/>   — shared imported-material presentation mapping driven only by imported hints
 ///
 /// Keyboard shortcuts:
-///   <c>L</c> — cycle directional light count  1 → 2 → 3 → 1
+///   <c>L</c> — cycle directional light count from 1 up to the forward cap
 ///   <c>T</c> — cycle per-sphere instance tints  (Blue/Green → Red/Cyan → Yellow/Magenta)
 /// </summary>
 public class MaterialDemo : Demo
@@ -72,7 +72,7 @@ public class MaterialDemo : Demo
     private int _tintIndex;
 
     // Active light count (cycled with L key)
-    private int _lightCount = 3;
+    private int _lightCount = Math.Min(4, LightingContext.MaxDirectionalLights);
 
     // -----------------------------------------------------------------------
     //  Demo.Initialize
@@ -88,7 +88,7 @@ public class MaterialDemo : Demo
         _renderer = game.GetGameComponent<StaticMeshRendererComponent>();
 
         // ------------------------------------------------------------------
-        //  Lighting setup  (three-light studio rig)
+        //  Lighting setup  (scalable studio rig)
         // ------------------------------------------------------------------
         if (_renderer is not null)
         {
@@ -113,6 +113,31 @@ public class MaterialDemo : Demo
                 new Vector3(0.1f, -0.4f, 0.9f),
                 new Vector3(0.4f, 0.35f, 0.3f),
                 new Vector3(0.2f, 0.2f, 0.2f));
+
+            lit.DirectionalLights[3] = new DirLight(
+                new Vector3(-0.15f, -1.0f, 0.2f),
+                new Vector3(0.18f, 0.2f, 0.24f),
+                Vector3.Zero);
+
+            lit.DirectionalLights[4] = new DirLight(
+                new Vector3(-0.9f, -0.15f, -0.15f),
+                new Vector3(0.1f, 0.08f, 0.05f),
+                Vector3.Zero);
+
+            lit.DirectionalLights[5] = new DirLight(
+                new Vector3(0.55f, -0.35f, -0.76f),
+                new Vector3(0.12f, 0.05f, 0.1f),
+                new Vector3(0.02f, 0.02f, 0.02f));
+
+            lit.DirectionalLights[6] = new DirLight(
+                new Vector3(-0.62f, -0.28f, 0.73f),
+                new Vector3(0.04f, 0.09f, 0.12f),
+                Vector3.Zero);
+
+            lit.DirectionalLights[7] = new DirLight(
+                new Vector3(0.0f, -1.0f, 0.0f),
+                new Vector3(0.05f, 0.05f, 0.05f),
+                new Vector3(0.02f, 0.02f, 0.02f));
         }
 
         // ------------------------------------------------------------------
@@ -390,10 +415,10 @@ public class MaterialDemo : Demo
     {
         var kb = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
 
-        // L — cycle directional light count  1 → 2 → 3 → 1
+        // L — cycle directional light count across the full forward-light cap
         if (kb.IsKeyDown(Keys.L) && !_prevKb.IsKeyDown(Keys.L) && _renderer is not null)
         {
-            _lightCount = (_lightCount % 3) + 1;
+            _lightCount = (_lightCount % LightingContext.MaxDirectionalLights) + 1;
             _renderer.DefaultLighting.ActiveDirectionalLightCount = _lightCount;
         }
 

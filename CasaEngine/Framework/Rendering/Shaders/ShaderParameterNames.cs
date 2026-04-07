@@ -33,6 +33,7 @@ public static class ShaderParameterNames
 
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
+    public const string ActiveDirectionalLightCount = "ActiveDirectionalLightCount";
     public const string DirLight0Direction = "DirLight0Direction";
     public const string DirLight0DiffuseColor = "DirLight0DiffuseColor";
     public const string DirLight0SpecularColor = "DirLight0SpecularColor";
@@ -42,6 +43,57 @@ public static class ShaderParameterNames
     public const string DirLight2Direction = "DirLight2Direction";
     public const string DirLight2DiffuseColor = "DirLight2DiffuseColor";
     public const string DirLight2SpecularColor = "DirLight2SpecularColor";
+    public const string DirLight3Direction = "DirLight3Direction";
+    public const string DirLight3DiffuseColor = "DirLight3DiffuseColor";
+    public const string DirLight3SpecularColor = "DirLight3SpecularColor";
+    public const string DirLight4Direction = "DirLight4Direction";
+    public const string DirLight4DiffuseColor = "DirLight4DiffuseColor";
+    public const string DirLight4SpecularColor = "DirLight4SpecularColor";
+    public const string DirLight5Direction = "DirLight5Direction";
+    public const string DirLight5DiffuseColor = "DirLight5DiffuseColor";
+    public const string DirLight5SpecularColor = "DirLight5SpecularColor";
+    public const string DirLight6Direction = "DirLight6Direction";
+    public const string DirLight6DiffuseColor = "DirLight6DiffuseColor";
+    public const string DirLight6SpecularColor = "DirLight6SpecularColor";
+    public const string DirLight7Direction = "DirLight7Direction";
+    public const string DirLight7DiffuseColor = "DirLight7DiffuseColor";
+    public const string DirLight7SpecularColor = "DirLight7SpecularColor";
+
+    public static readonly string[] DirectionalLightDirectionParameters =
+    {
+        DirLight0Direction,
+        DirLight1Direction,
+        DirLight2Direction,
+        DirLight3Direction,
+        DirLight4Direction,
+        DirLight5Direction,
+        DirLight6Direction,
+        DirLight7Direction,
+    };
+
+    public static readonly string[] DirectionalLightDiffuseParameters =
+    {
+        DirLight0DiffuseColor,
+        DirLight1DiffuseColor,
+        DirLight2DiffuseColor,
+        DirLight3DiffuseColor,
+        DirLight4DiffuseColor,
+        DirLight5DiffuseColor,
+        DirLight6DiffuseColor,
+        DirLight7DiffuseColor,
+    };
+
+    public static readonly string[] DirectionalLightSpecularParameters =
+    {
+        DirLight0SpecularColor,
+        DirLight1SpecularColor,
+        DirLight2SpecularColor,
+        DirLight3SpecularColor,
+        DirLight4SpecularColor,
+        DirLight5SpecularColor,
+        DirLight6SpecularColor,
+        DirLight7SpecularColor,
+    };
 
     // --- Skinning ---
     public const string Bones = "Bones";

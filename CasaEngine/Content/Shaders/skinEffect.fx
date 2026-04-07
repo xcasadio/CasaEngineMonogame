@@ -5,7 +5,7 @@
 // Techniques: RiggedModelDraw, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
 // Uses the same directional light model as LitForward.fx
-// (3 directional lights via Lighting.fxh).
+// (up to 8 directional lights via Lighting.fxh).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -38,15 +38,37 @@ BEGIN_CONSTANTS
     float3 DirLight2DiffuseColor  _vs(c11) _ps(c12) _cb(c10);
     float3 DirLight2SpecularColor _vs(c12) _ps(c13) _cb(c11);
 
-    float3 EyePosition _vs(c13) _ps(c14) _cb(c12);
-    float3 AmbientColor _cb(c13);
+    float3 DirLight3Direction  _vs(c13) _ps(c14) _cb(c12);
+    float3 DirLight3DiffuseColor  _vs(c14) _ps(c15) _cb(c13);
+    float3 DirLight3SpecularColor _vs(c15) _ps(c16) _cb(c14);
 
-    float4x4 World       _vs(c19) _cb(c15);
-    float3x3 WorldInverseTranspose _vs(c23) _cb(c19);
+    float3 DirLight4Direction  _vs(c16) _ps(c17) _cb(c15);
+    float3 DirLight4DiffuseColor  _vs(c17) _ps(c18) _cb(c16);
+    float3 DirLight4SpecularColor _vs(c18) _ps(c19) _cb(c17);
+
+    float3 DirLight5Direction  _vs(c19) _ps(c20) _cb(c18);
+    float3 DirLight5DiffuseColor  _vs(c20) _ps(c21) _cb(c19);
+    float3 DirLight5SpecularColor _vs(c21) _ps(c22) _cb(c20);
+
+    float3 DirLight6Direction  _vs(c22) _ps(c23) _cb(c21);
+    float3 DirLight6DiffuseColor  _vs(c23) _ps(c24) _cb(c22);
+    float3 DirLight6SpecularColor _vs(c24) _ps(c25) _cb(c23);
+
+    float3 DirLight7Direction  _vs(c25) _ps(c26) _cb(c24);
+    float3 DirLight7DiffuseColor  _vs(c26) _ps(c27) _cb(c25);
+    float3 DirLight7SpecularColor _vs(c27) _ps(c28) _cb(c26);
+
+    float ActiveDirectionalLightCount _ps(c29) _cb(c27.x);
+
+    float3 EyePosition _vs(c28) _ps(c30) _cb(c28);
+    float3 AmbientColor _cb(c29);
+
+    float4x4 World       _vs(c30) _cb(c30);
+    float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
 
 MATRIX_CONSTANTS
 
-    float4x4 WorldViewProj _vs(c15) _cb(c0);
+    float4x4 WorldViewProj _vs(c30) _cb(c0);
 
     // Skinning-specific parameters — MUST be inside cbuffer for MGFX compatibility.
     // Standalone (global-scope) matrix params are not handled correctly by MGFX.
@@ -134,7 +156,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, 3);
+    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
     color.rgb *= lightResult.Diffuse;
@@ -155,7 +177,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 N = normalize(input.Normal3D);
     float3 eyeVector = normalize(EyePosition - input.Position3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, N, 3);
+    ColorPair lightResult = ComputeLights(eyeVector, N, (int)ActiveDirectionalLightCount);
 
     float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);

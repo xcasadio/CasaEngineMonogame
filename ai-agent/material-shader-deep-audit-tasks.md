@@ -294,7 +294,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(rendering): complete canonical shader variant policy`
 
-- ⏳ **T05.03 - Remplacer le modele de lumieres fixe par un modele forward scalable**
+- ✅ **T05.03 - Remplacer le modele de lumieres fixe par un modele forward scalable**
   Objectif :
   - Faire disparaitre `MaxDirectionalLights = 3` et les slots nommes `DirLight0..2` comme architecture cible.
   - Introduire une representation de lumieres scalable cote `LightingContext`, effects et binding C# : nombre actif dynamique, plafond configurable plus grand, et strategie de culling forward raisonnable.

@@ -87,6 +87,9 @@ Ce document decrit le workflow cible des materials dans CasaEngineMonogame apres
 - Normal map:
   - la simple presence d'une normal map dans le material ne suffit pas.
   - le mesh doit fournir un layout tangent-compatible pour que `RenderFeatureResolver` conserve `ShaderFeature.NormalMap`.
+- Lighting forward:
+  - `LightingContext` expose un plafond fixe de 8 directional lights pour rester compatible avec MonoGame/mgfxc.
+  - `ActiveDirectionalLightCount` pilote le sous-ensemble actif sans reconfigurer les shaders ni les materials.
 
 ## Validation manuelle de reference
 
@@ -111,6 +114,7 @@ Points a verifier dans `MaterialDemo`:
 2. Le panneau `AlphaTest` a une silhouette decoupee et n'apparait pas comme un simple rectangle transparent.
 3. Le cube `Glass` passe dans la queue transparente et reste visible.
 4. Le `NormalMapBox` montre une reponse lumineuse differente du simple checker albedo.
+5. La touche `L` doit faire varier l'eclairage de 1 jusqu'au plafond forward sans artefact ni regression visuelle quand on depasse 3 lumières.
 
 Nettoyage optionnel:
 
