@@ -196,28 +196,30 @@ Raison :
 
 ### Phase C - Correction des rambardes
 
-- ⏳ C1. Creer un builder runtime dedie, par exemple `LegacyTrackGuardRailBuilder`, pour isoler la logique des rails de `LegacyTrackSceneFactory`.
+- ✅ C1. Creer un builder runtime dedie, par exemple `LegacyTrackGuardRailBuilder`, pour isoler la logique des rails de `LegacyTrackSceneFactory`.
 
-- ⏳ C2. Generer les rails gauche et droit a partir des points de route CasaEngine, avec les memes regles de decalage que le legacy.
+- ✅ C2. Generer les rails gauche et droit a partir des points de route CasaEngine, avec les memes regles de decalage que le legacy.
 
-- ⏳ C3. Porter la section procedurale du rail et ses UV.
+- ✅ C3. Porter la section procedurale du rail et ses UV.
 
-- ⏳ C4. Poser les objets `GuardRailHolder` au bon intervalle et avec la bonne orientation.
+- ✅ C4. Poser les objets `GuardRailHolder` au bon intervalle et avec la bonne orientation.
 
-- ⏳ C5. Porter les colonnes `RoadColumnSegment` quand la route surplombe suffisamment le terrain.
+- ✅ C5. Porter les colonnes `RoadColumnSegment` quand la route surplombe suffisamment le terrain.
 
-- ⏳ C6. Ajouter un materiau cible pour les rails si le simple import du modele `GuardRailHolder` ne suffit pas visuellement.
+- ✅ C6. Ajouter un materiau cible pour les rails si le simple import du modele `GuardRailHolder` ne suffit pas visuellement.
 
-- ⏳ C7. Inserer les entites de rails dans la scene avec un nommage stable, par exemple :
+- ✅ C7. Inserer les entites de rails dans la scene avec un nommage stable, par exemple :
   - `Track.GuardRail.Left.<TrackName>`
   - `Track.GuardRail.Right.<TrackName>`
   - `Track.Columns.<TrackName>`
 
-- ⏳ C8. Verifier que le resultat reste compatible avec les futures collisions de bord de piste.
+- ✅ C8. Verifier que le resultat reste compatible avec les futures collisions de bord de piste.
+
+  Resultat : phase C portee dans le runtime. `LegacyTrackGuardRailBuilder` cree maintenant les deux rails proceduraux, leurs supports `GuardRailHolder`, les colonnes procedurales sous route et les entites `RoadColumnSegment`. Le tout est branche dans `LegacyTrackSceneFactory` avec un nommage runtime stable et sans couplage a une collision de bord encore inexistante.
 
 ### Phase D - Correction du terrain topologique
 
-- ⏳ D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
+- 🚧 D1. Creer un builder runtime dedie, par exemple `LegacyTerrainMeshBuilder`, pour sortir la construction du terrain de `LegacyTrackSceneFactory`.
 
 - ⏳ D2. Lire `LandscapeHeights.data` avec les memes constantes que le legacy.
 
