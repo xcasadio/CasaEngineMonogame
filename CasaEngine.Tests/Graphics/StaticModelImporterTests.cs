@@ -68,7 +68,7 @@ public class StaticModelImporterTests
             modelPath,
             new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
                 LegacyMaterialSurfaceIntent.AlphaCutoutLit,
-                LegacyMaterialImportHint.AlphaCutout)));
+                LegacyMaterialImportHint.AlphaCutout | LegacyMaterialImportHint.Reflection)));
 
         StaticModelImportedMaterial signMaterial = FindMaterialByDiffuseTexture(result.Materials, "Schild.tga");
         Assert.Equal(LegacyMaterialSurfaceIntent.AlphaCutoutLit, signMaterial.SurfaceIntent);

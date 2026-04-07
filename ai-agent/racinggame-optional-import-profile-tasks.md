@@ -108,7 +108,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `feat(racinggame): add optional legacy material import profile`
 
-- ⏳ **T02.02 — Deplacer le mapping `LegacyTechniqueIndex` dans le profil RacingGame**
+- ✅ **T02.02 — Deplacer le mapping `LegacyTechniqueIndex` dans le profil RacingGame**
   Objectif :
   - Encoder dans le profil RacingGame le sens exact des techniques legacy du jeu.
   - Garder dans le moteur uniquement la preservation du champ brut.

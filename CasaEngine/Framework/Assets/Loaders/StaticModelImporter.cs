@@ -390,7 +390,6 @@ public class StaticModelImporter
                 ?? ResolveRelativePath(modelFilePath, reflectionTexturePath);
         }
 
-        importedMaterial.UsesReflection = UsesReflectionTechnique(importedMaterial.EffectFilePath, importedMaterial.LegacyTechniqueIndex);
     }
 
     private static void ApplyLegacyImportProfile(
@@ -442,22 +441,6 @@ public class StaticModelImporter
             || textureName.Contains("Leave", StringComparison.OrdinalIgnoreCase)
             || textureName.Contains("Ast", StringComparison.OrdinalIgnoreCase)
             || textureName.Contains("plants", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool UsesReflectionTechnique(string? effectFilePath, int techniqueIndex)
-    {
-        string effectFileName = Path.GetFileName(effectFilePath ?? string.Empty);
-        if (effectFileName.Equals("ReflectionSimpleGlass.fx", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (!effectFileName.Equals("NormalMapping.fx", StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        return techniqueIndex is 7 or 8 or 9 or 10 or 11;
     }
 
     private static bool TryReadColor(
