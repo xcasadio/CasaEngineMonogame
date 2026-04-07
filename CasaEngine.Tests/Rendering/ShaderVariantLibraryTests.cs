@@ -79,4 +79,26 @@ public class ShaderVariantLibraryTests
             in defaultContext,
             ShaderFeature.BasColorTexture));
     }
+
+    [Theory]
+    [InlineData(ShaderFeature.VertexColor, false, "LitForward_PixelLighting_VertexColor")]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.VertexColor, false, "LitForward_PixelLighting_Texture_VertexColor")]
+    [InlineData(ShaderFeature.VertexColor, true, "LitForward_PixelLighting_OneLight_VertexColor")]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.VertexColor, true, "LitForward_PixelLighting_OneLight_Texture_VertexColor")]
+    public void GetTechniqueName_PreservesVertexColorForCanonicalLitVariants(ShaderFeature features, bool oneLight, string expectedTechnique)
+    {
+        string techniqueName = LitDiffuseMaterial.GetTechniqueName(features, oneLight);
+
+        Assert.Equal(expectedTechnique, techniqueName);
+    }
+
+    [Theory]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.NormalMap | ShaderFeature.VertexColor, false, "LitForward_PixelLighting_Texture_NormalMap")]
+    [InlineData(ShaderFeature.BasColorTexture | ShaderFeature.Reflection | ShaderFeature.VertexColor, false, "LitForward_PixelLighting_Texture_Reflection")]
+    public void GetTechniqueName_KeepsMaterialSpecificVariantsAheadOfCanonicalVertexColor(ShaderFeature features, bool oneLight, string expectedTechnique)
+    {
+        string techniqueName = LitDiffuseMaterial.GetTechniqueName(features, oneLight);
+
+        Assert.Equal(expectedTechnique, techniqueName);
+    }
 }

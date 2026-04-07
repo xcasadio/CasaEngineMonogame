@@ -202,6 +202,63 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
+    public void TryLoadRuntimeMaterial_WhenParentChangesAndAffectedCachesInvalidate_RefreshesInheritedProperties()
+    {
+        using var scope = new TestProjectScope();
+        Guid parentMaterialAssetId = Guid.NewGuid();
+        Guid childMaterialAssetId = Guid.NewGuid();
+        string parentRelativeFileName = Path.Combine("Materials", "CachedParentLit.material");
+        string childRelativeFileName = Path.Combine("Materials", "CachedChildLit.material");
+
+        var parentDocument = CreateAuthoringMaterialDocument(parentMaterialAssetId, "Cached Parent Lit", 18.0f);
+        scope.WriteAsset(parentRelativeFileName, parentMaterialAssetId, "Cached Parent Lit", parentDocument);
+
+        var childMaterialAsset = new MaterialAsset("lit-diffuse")
+        {
+            Name = "Cached Child Lit",
+            ParentMaterialAssetId = parentMaterialAssetId,
+        };
+        childMaterialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.Goldenrod));
+
+        var childDocument = new JObject();
+        MaterialAssetJsonSerializer.Save(childMaterialAsset, childDocument);
+        childDocument["id"] = childMaterialAssetId.ToString();
+        childDocument["name"] = "Cached Child Lit";
+
+        scope.WriteAsset(childRelativeFileName, childMaterialAssetId, "Cached Child Lit", childDocument);
+
+        var runtimeContext = new EngineRuntimeContext(
+            new ProjectSettings(),
+            scope.ProjectPath,
+            AssetCatalog.Get,
+            AssetCatalog.GetByFileName)
+        {
+            MaterialCache = new MaterialCache(),
+            MaterialAuthoringCache = new MaterialAuthoringAssetCache(),
+        };
+
+        var assetContentManager = CreateAssetContentManager(runtimeContext);
+        Assert.True(MaterialRuntimeResolver.TryLoadRuntimeMaterial(childMaterialAssetId, assetContentManager, out var firstRuntimeMaterial));
+        Assert.Equal(18.0f, Assert.IsType<LitDiffuseMaterial>(firstRuntimeMaterial).SpecularPower);
+
+        var updatedParentDocument = CreateAuthoringMaterialDocument(parentMaterialAssetId, "Cached Parent Lit", 42.0f);
+        scope.WriteAsset(parentRelativeFileName, parentMaterialAssetId, "Cached Parent Lit", updatedParentDocument);
+
+        Assert.True(MaterialRuntimeResolver.TryLoadRuntimeMaterial(childMaterialAssetId, assetContentManager, out var cachedRuntimeMaterial));
+        Assert.Same(firstRuntimeMaterial, cachedRuntimeMaterial);
+        Assert.Equal(18.0f, Assert.IsType<LitDiffuseMaterial>(cachedRuntimeMaterial).SpecularPower);
+
+        runtimeContext.MaterialAuthoringCache!.Invalidate(parentMaterialAssetId);
+        runtimeContext.MaterialAuthoringCache.Invalidate(childMaterialAssetId);
+        runtimeContext.MaterialCache!.Invalidate(parentMaterialAssetId);
+        runtimeContext.MaterialCache.Invalidate(childMaterialAssetId);
+
+        Assert.True(MaterialRuntimeResolver.TryLoadRuntimeMaterial(childMaterialAssetId, assetContentManager, out var refreshedRuntimeMaterial));
+        Assert.NotSame(firstRuntimeMaterial, refreshedRuntimeMaterial);
+        Assert.Equal(42.0f, Assert.IsType<LitDiffuseMaterial>(refreshedRuntimeMaterial).SpecularPower);
+    }
+
+    [Fact]
     public void MaterialAuthoringCache_ReusesCachedAssetUntilInvalidated()
     {
         using var scope = new TestProjectScope();

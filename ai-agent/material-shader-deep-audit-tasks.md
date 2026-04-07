@@ -362,7 +362,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `fix(shaders): parse mgfxc diagnostics reliably`
 
-- ⏳ **T06.02 - Ajouter une couverture de tests ciblee sur l'architecture materials/shaders**
+- ✅ **T06.02 - Ajouter une couverture de tests ciblee sur l'architecture materials/shaders**
   Objectif :
   - Completer les tests sur `MaterialCompiler`, `MaterialRuntimeResolver`, `MaterialCache`, `RenderFeatureResolver`, `EffectiveShaderResolver`, la policy de variantes et le binding de lumieres scalable.
   - Ajouter des checks ou smoke tests bornes sur le hot reload editor/runtime pour les regressions les plus critiques.

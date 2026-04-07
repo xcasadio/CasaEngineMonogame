@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Materials;
+using Microsoft.Xna.Framework;
 using Xunit;
 
 namespace CasaEngine.Tests.Rendering;
@@ -46,6 +47,30 @@ public class MaterialCacheTests
         Assert.True(secondCompiledMaterial.TryGetPropertyValue("alpha", out var alphaValue));
         Assert.True(alphaValue.TryGetFloat(out var alpha));
         Assert.Equal(1.0f, alpha);
+    }
+
+    [Fact]
+    public void Invalidate_RemovesCachedRuntimeMaterialAlongsideCompiledMaterial()
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse");
+        materialAsset.SetPropertyValue("diffuse_color", MaterialValue.FromColor(Color.OrangeRed));
+        materialAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(14.0f));
+
+        var materialCache = new MaterialCache();
+        var assetContentManager = new AssetContentManager();
+
+        var runtimeMaterial = materialCache.GetOrCompileRuntimeMaterial(materialAsset, assetContentManager);
+        var compiledMaterial = materialCache.GetOrCompile(materialAsset, assetContentManager);
+
+        Assert.Same(runtimeMaterial, Assert.IsType<LitDiffuseMaterial>(runtimeMaterial));
+        Assert.True(materialCache.TryGet(materialAsset.Id, out var cachedCompiledMaterial));
+        Assert.True(materialCache.TryGetRuntimeMaterial(materialAsset.Id, out var cachedRuntimeMaterial));
+        Assert.Same(compiledMaterial, cachedCompiledMaterial);
+        Assert.Same(runtimeMaterial, cachedRuntimeMaterial);
+
+        Assert.True(materialCache.Invalidate(materialAsset.Id));
+        Assert.False(materialCache.TryGet(materialAsset.Id, out _));
+        Assert.False(materialCache.TryGetRuntimeMaterial(materialAsset.Id, out _));
     }
 
     [Fact]
