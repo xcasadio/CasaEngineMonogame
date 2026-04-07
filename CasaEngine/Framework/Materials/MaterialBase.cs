@@ -76,10 +76,14 @@ public abstract class MaterialBase : ISerializable
     /// <summary>
     /// Returns the <see cref="ShaderFeature"/> flags active for this material,
     /// optionally considering the <paramref name="mesh"/> (Phase 7).
-    /// The renderer uses these flags to select the correct compiled shader variant.
+    /// This is a compatibility wrapper over <see cref="RenderFeatureResolver"/>.
+    /// Asset-backed draw paths should prefer <see cref="CompiledMaterial.Features"/>, while
+    /// runtime-only materials can still query this helper when no compiled snapshot exists.
     /// </summary>
     public virtual ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
-        => ShaderFeature.None;
+        => mesh is null
+            ? RenderFeatureResolver.ResolveMaterialFeatures(this)
+            : RenderFeatureResolver.Resolve(this, mesh);
 
     // -------------------------------------------------------------------------
     // Serialisation

@@ -98,27 +98,6 @@ public class LitDiffuseMaterial : MaterialBase
             hasReflection: ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty,
             isTransparent: DiffuseColor.A < byte.MaxValue);
 
-    public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
-    {
-        var features = ShaderFeature.None;
-        if (BasColor is not null)
-        {
-            features |= ShaderFeature.BasColorTexture;
-        }
-
-        if (EmissiveColor != Vector3.Zero)
-        {
-            features |= ShaderFeature.Emissive;
-        }
-
-        if (ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty)
-        {
-            features |= ShaderFeature.Reflection;
-        }
-
-        return features;
-    }
-
     public override void Load(JObject element)
     {
         base.Load(element);

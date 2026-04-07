@@ -224,7 +224,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `fix(materials): keep compiled reflection data aligned with runtime material state`
 
-- ⏳ **T03.03 - Clarifier et reduire les sources de verite redondantes**
+- ✅ **T03.03 - Clarifier et reduire les sources de verite redondantes**
   Objectif :
   - Statuer sur le role de `MaterialBase.GetFeatures(...)`, `CompiledMaterial.Features`, `RenderFeatureResolver` et des property blocks.
   - Supprimer ou deprecier les APIs redondantes non consommees une fois la source de verite choisie.

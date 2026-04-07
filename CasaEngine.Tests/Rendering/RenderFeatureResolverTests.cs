@@ -196,6 +196,46 @@ public class RenderFeatureResolverTests
             features);
     }
 
+    [Fact]
+    public void GetFeatures_DelegatesToResolver_ForMaterialOnlyQueries()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            BasColorAssetId = Guid.NewGuid(),
+            NormalMapAssetId = Guid.NewGuid(),
+            ReflectionCubeAssetId = Guid.NewGuid(),
+            EmissiveColor = new Vector3(0.25f, 0.5f, 0.75f),
+            Queue = RenderQueue.AlphaTest,
+        };
+
+        var features = material.GetFeatures();
+
+        Assert.Equal(RenderFeatureResolver.ResolveMaterialFeatures(material), features);
+    }
+
+    [Fact]
+    public void GetFeatures_DelegatesToResolver_ForMeshAwareQueries()
+    {
+        var material = new LitDiffuseMaterial
+        {
+            BasColorAssetId = Guid.NewGuid(),
+            NormalMapAssetId = Guid.NewGuid(),
+        };
+        var mesh = new StaticModelMesh();
+        mesh.SetData(
+            new[]
+            {
+                new VertexPositionNormalTexture(new Vector3(-1f, 0f, 0f), Vector3.Up, Vector2.Zero),
+                new VertexPositionNormalTexture(new Vector3(1f, 0f, 0f), Vector3.Up, Vector2.UnitX),
+                new VertexPositionNormalTexture(new Vector3(0f, 0f, 1f), Vector3.Up, Vector2.UnitY),
+            },
+            new uint[] { 0, 1, 2 });
+
+        var features = material.GetFeatures(mesh);
+
+        Assert.Equal(RenderFeatureResolver.Resolve(material, mesh), features);
+    }
+
     [Theory]
     [InlineData(ShaderFeature.None, "Opaque")]
     [InlineData(ShaderFeature.BasColorTexture, "Opaque_Textured")]

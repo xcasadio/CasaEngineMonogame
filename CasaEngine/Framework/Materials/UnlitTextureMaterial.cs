@@ -59,11 +59,6 @@ public class UnlitTextureMaterial : MaterialBase
             hasBasColorTexture: BasColor is not null || BasColorAssetId != Guid.Empty,
             isTransparent: Alpha < 0.999f || Tint.A < byte.MaxValue);
 
-    public override ShaderFeature GetFeatures(Graphics.StaticModelMesh? mesh = null)
-        => BasColor is not null
-            ? ShaderFeature.BasColorTexture
-            : ShaderFeature.None;
-
     public override void Load(JObject element)
     {
         base.Load(element);
