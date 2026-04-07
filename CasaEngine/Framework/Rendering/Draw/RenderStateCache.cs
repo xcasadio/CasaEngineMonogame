@@ -21,14 +21,20 @@ public sealed class RenderStateCache
     /// using sensible defaults when the material leaves a state at <c>null</c>.
     /// Returns <c>true</c> if any state actually changed.
     /// </summary>
+    public bool Apply(GraphicsDevice device, in RenderItem item, RenderStats? stats = null)
+        => Apply(device, item.Material, item.CompiledMaterial, stats);
+
     public bool Apply(GraphicsDevice device, MaterialBase material, RenderStats? stats = null)
+        => Apply(device, material, null, stats);
+
+    private bool Apply(GraphicsDevice device, MaterialBase material, CompiledMaterial? compiledMaterial, RenderStats? stats)
     {
         bool changed = false;
 
-        var blend     = material.BlendState        ?? BlendState.Opaque;
-        var depth     = material.DepthStencilState ?? DepthStencilState.Default;
-        var raster    = material.RasterizerState   ?? RasterizerState.CullCounterClockwise;
-        var sampler   = material.SamplerState      ?? SamplerState.AnisotropicClamp;
+        var blend     = compiledMaterial?.BlendState        ?? material.BlendState        ?? BlendState.Opaque;
+        var depth     = compiledMaterial?.DepthStencilState ?? material.DepthStencilState ?? DepthStencilState.Default;
+        var raster    = compiledMaterial?.RasterizerState   ?? material.RasterizerState   ?? RasterizerState.CullCounterClockwise;
+        var sampler   = compiledMaterial?.SamplerState      ?? material.SamplerState      ?? SamplerState.AnisotropicClamp;
 
         if (!ReferenceEquals(blend, _currentBlend))
         {

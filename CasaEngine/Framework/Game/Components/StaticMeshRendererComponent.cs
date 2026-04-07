@@ -15,6 +15,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private Effect _effect;
     private ShaderWrapper? _legacyShaderWrapper;
     private ShaderWrapper? _unlitShaderWrapper;
+    private MaterialCache? _materialCache;
 
     // Phase 4 — per-frame caches that minimise redundant state/shader changes
     private readonly RenderStateCache _stateCache   = new();
@@ -119,6 +120,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         var acm = (Game as CasaEngineGame)?.AssetContentManager;
         if (acm is not null)
         {
+            _materialCache = acm.RuntimeContext?.MaterialCache;
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
             _shaderManager.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
@@ -197,23 +199,23 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         ?? meshInfo.PropertyOverrides;
 
                     float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
-                    var effectiveShader = EffectiveShaderResolver.Resolve(mat);
-                    var features = ResolveRenderFeatures(mat, mesh);
+                    var compiledMaterial = ResolveCompiledMaterial(mat);
                     var item = new RenderItem
                     {
                         Mesh                  = mesh,
                         SubMesh               = subMesh,
                         Material              = mat,
-                        EffectiveShaderId     = effectiveShader.ShaderId,
+                        CompiledMaterial      = compiledMaterial,
+                        EffectiveShaderId     = compiledMaterial?.EffectiveShader.ShaderId ?? EffectiveShaderResolver.Resolve(mat).ShaderId,
                         World                 = meshInfo.World,
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                         DistanceToCamera      = dist,
                         PropertyOverrides     = propertyOverrides,
-                        Features              = features,
+                        Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
                     };
                     item.SortKey = SortKeyGenerator.Generate(
-                        mat.Queue,
-                        effectiveShader.ShaderId.GetHashCode(),
+                        item.Queue,
+                        item.EffectiveShaderId.GetHashCode(),
                         mat.Id.GetHashCode(),
                         vb.GetHashCode(),
                         dist);
@@ -233,23 +235,23 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     ?? meshInfo.PropertyOverrides;
 
                 float dist = Vector3.Distance(meshInfo.World.Translation, frame.CameraPosition);
-                var effectiveShader = EffectiveShaderResolver.Resolve(mat);
-                var features = ResolveRenderFeatures(mat, mesh);
+                var compiledMaterial = ResolveCompiledMaterial(mat);
                 var item = new RenderItem
                 {
                     Mesh                  = mesh,
                     SubMesh               = null,
                     Material              = mat,
-                    EffectiveShaderId     = effectiveShader.ShaderId,
+                    CompiledMaterial      = compiledMaterial,
+                    EffectiveShaderId     = compiledMaterial?.EffectiveShader.ShaderId ?? EffectiveShaderResolver.Resolve(mat).ShaderId,
                     World                 = meshInfo.World,
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
                     DistanceToCamera      = dist,
                     PropertyOverrides     = propertyOverrides,
-                    Features              = features,
+                    Features              = compiledMaterial?.Features ?? ResolveRenderFeatures(mat, mesh),
                 };
                 item.SortKey = SortKeyGenerator.Generate(
-                    mat.Queue,
-                    effectiveShader.ShaderId.GetHashCode(),
+                    item.Queue,
+                    item.EffectiveShaderId.GetHashCode(),
                     mat.Id.GetHashCode(),
                     vb.GetHashCode(),
                     dist);
@@ -303,7 +305,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     stats.OpaqueItems += group.Count;
                 }
 
-                _stateCache.Apply(graphicsDevice, firstItem.Material, stats);
+                _stateCache.Apply(graphicsDevice, firstItem, stats);
                 var resolvedShader = _shaderSelector!.Resolve(in firstItem);
                 _shaderCache.BindGlobals(resolvedShader.Shader, in context);
                 _instanceBatcher.DrawInstancedGroup(group, resolvedShader.Shader, in context, resolvedShader.TechniqueSelectedBySelector);
@@ -361,6 +363,18 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Material = material,
             Mesh = mesh,
         });
+
+    private CompiledMaterial? ResolveCompiledMaterial(MaterialBase material)
+    {
+        if (_materialCache == null || material.Id == Guid.Empty)
+        {
+            return null;
+        }
+
+        return _materialCache.TryGet(material.Id, out var compiledMaterial)
+            ? compiledMaterial
+            : null;
+    }
 
     private class MeshInfo
     {

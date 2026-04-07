@@ -24,10 +24,23 @@ public struct RenderItem
     public MaterialBase Material;
 
     /// <summary>
+    /// Optional compiled material descriptor associated with <see cref="Material"/>.
+    /// When present, shader id, feature flags, queue and render states should flow from this
+    /// stable compiled snapshot instead of being recomputed ad hoc in the draw path.
+    /// </summary>
+    public CompiledMaterial? CompiledMaterial;
+
+    /// <summary>
     /// Effective runtime shader id resolved from the material. This can be a real shader asset id
     /// or a stable built-in id produced by <see cref="Shaders.EffectiveShaderResolver"/>.
     /// </summary>
-    public Guid EffectiveShaderId;
+    private Guid _effectiveShaderId;
+
+    public Guid EffectiveShaderId
+    {
+        readonly get => CompiledMaterial?.EffectiveShader.ShaderId ?? _effectiveShaderId;
+        set => _effectiveShaderId = value;
+    }
 
     /// <summary>World transform matrix.</summary>
     public Matrix World;
@@ -45,7 +58,16 @@ public struct RenderItem
     /// Active shader features for this draw call (Phase 7).
     /// Used to select the correct shader variant via <see cref="ShaderVariantLibrary"/>.
     /// </summary>
-    public ShaderFeature Features;
+    private ShaderFeature _features;
+
+    public ShaderFeature Features
+    {
+        readonly get => CompiledMaterial?.Features ?? _features;
+        set => _features = value;
+    }
+
+    public readonly RenderQueue Queue
+        => CompiledMaterial?.Queue ?? Material?.Queue ?? RenderQueue.Opaque;
 
     /// <summary>
     /// Optional per-instance parameter overrides (Phase 6).

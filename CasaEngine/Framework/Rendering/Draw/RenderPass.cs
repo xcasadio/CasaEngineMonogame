@@ -69,7 +69,7 @@ public abstract class RenderPass
         device.SetVertexBuffer(item.Mesh.VertexBuffer);
         device.Indices = item.Mesh.IndexBuffer;
 
-        stateCache.Apply(device, item.Material, stats);
+        stateCache.Apply(device, item, stats);
         if (!resolvedShader.TechniqueSelectedBySelector || !item.Material.SupportsVariantTechniqueSelection)
         {
             item.Material.SelectTechnique(shader, in context, item.Features);

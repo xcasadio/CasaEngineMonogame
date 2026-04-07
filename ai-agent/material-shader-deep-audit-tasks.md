@@ -196,7 +196,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 3 - Fermer le trou entre compilation et draw path
 
-- ⏳ **T03.01 - Faire consommer une description compilee unique par le draw path statique**
+- 🧪 **T03.01 - Faire consommer une description compilee unique par le draw path statique**
   Objectif :
   - Introduire dans `RenderItem` ou un objet associe une reference stable vers les donnees compilees utiles au draw (`shader`, `features`, `queue`, `textures`, `states`).
   - Arreter de dupliquer ces informations dans plusieurs champs derives quand elles existent deja cote compile.
