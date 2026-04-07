@@ -480,7 +480,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-021 — Documenter le systeme d'environnement et les limites de la V1
+### ✅ ENV-021 — Documenter le systeme d'environnement et les limites de la V1
 Objectif:
 laisser une doc courte pour l'equipe et pour les futurs agents avant d'ouvrir les chantiers probes et atmosphere.
 
