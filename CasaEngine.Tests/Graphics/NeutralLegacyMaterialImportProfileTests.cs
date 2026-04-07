@@ -46,4 +46,38 @@ public class NeutralLegacyMaterialImportProfileTests
         Assert.Equal(LegacyMaterialSurfaceIntent.OpaqueLit, firstInterpretation.SurfaceIntent);
         Assert.Equal(LegacyMaterialImportHint.None, firstInterpretation.Hints);
     }
+
+    [Fact]
+    public void Interpret_IgnoresAlphaStyleAssetNamesWithoutExplicitHints()
+    {
+        var profile = NeutralLegacyMaterialImportProfile.Instance;
+
+        var interpretation = profile.Interpret(new LegacyMaterialImportContext(
+            SourceAssetPath: @"D:\assets\AlphaPalm.X",
+            SourceAssetName: "AlphaPalm",
+            ImportedMaterial: new StaticModelImportedMaterial()));
+
+        Assert.Equal(LegacyMaterialSurfaceIntent.OpaqueLit, interpretation.SurfaceIntent);
+        Assert.False(interpretation.AlphaCutout);
+        Assert.False(interpretation.BrightAmbient);
+        Assert.False(interpretation.Reflection);
+    }
+
+    [Fact]
+    public void Interpret_EnablesReflectionFromExplicitReflectionMetadata()
+    {
+        var profile = NeutralLegacyMaterialImportProfile.Instance;
+
+        var interpretation = profile.Interpret(new LegacyMaterialImportContext(
+            SourceAssetPath: @"D:\assets\MirrorPlate.X",
+            SourceAssetName: "MirrorPlate",
+            ImportedMaterial: new StaticModelImportedMaterial
+            {
+                ReflectionTextureFilePath = "SkyCubeMap.dds",
+            }));
+
+        Assert.Equal(LegacyMaterialSurfaceIntent.ReflectiveLit, interpretation.SurfaceIntent);
+        Assert.True(interpretation.Reflection);
+        Assert.False(interpretation.AlphaCutout);
+    }
 }

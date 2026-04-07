@@ -86,7 +86,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(import): plug optional legacy import profile into engine pipeline`
 
-- ⏳ **T01.05 — Ajouter une demo et des tests du profil neutre**
+- ✅ **T01.05 — Ajouter une demo et des tests du profil neutre**
   Objectif :
   - Montrer dans `CasaEngine.Demos` qu'un import legacy neutre fonctionne sans logique RacingGame.
   - Couvrir les cas de fallback par tests unitaires.

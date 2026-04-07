@@ -1,5 +1,6 @@
 using System;
 using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
 using CasaEngine.Framework.Game;
@@ -28,6 +29,7 @@ namespace CasaEngine.Demos.Demos;
 ///   Normal-map box      : <see cref="LitDiffuseMaterial"/>    — tangent-ready mesh with procedural normal map
 ///   Reflection sphere   : <see cref="LitDiffuseMaterial"/>    — procedural cubemap reflection path
 ///   Ambient / Emissive  : <see cref="LitDiffuseMaterial"/>    — side-by-side ambient and emissive comparison
+///   Neutral profile refs: <see cref="LitDiffuseMaterial"/>    — metadata-only import profile samples (named opaque vs explicit reflection)
 ///
 /// Keyboard shortcuts:
 ///   <c>L</c> — cycle directional light count  1 → 2 → 3 → 1
@@ -41,7 +43,8 @@ public class MaterialDemo : Demo
 
     public override string Description =>
         "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
-        "alpha-test cutout, tangent-space normal map, transparent render queue, reflective cubemap path, ambient-vs-emissive reference.  " +
+        "alpha-test cutout, tangent-space normal map, transparent render queue, reflective cubemap path, ambient-vs-emissive reference, " +
+        "and neutral legacy import-profile samples.  " +
         "L = cycle lights,  T = cycle sphere tints.";
 
     // -----------------------------------------------------------------------
@@ -207,6 +210,38 @@ public class MaterialDemo : Demo
         emissiveOnlyAsset.SetPropertyValue("specular_power", MaterialValue.FromFloat(10f));
         var emissiveOnlyMat = (LitDiffuseMaterial)materialCompiler.CompileRuntimeMaterial(emissiveOnlyAsset, game.AssetContentManager);
 
+        var neutralImportProfile = NeutralLegacyMaterialImportProfile.Instance;
+        var namedOpaqueInterpretation = neutralImportProfile.Interpret(new LegacyMaterialImportContext(
+            SourceAssetPath: @"D:\virtual\AlphaPalm.X",
+            SourceAssetName: "AlphaPalm",
+            ImportedMaterial: new StaticModelImportedMaterial()));
+        var namedOpaqueMat = new LitDiffuseMaterial
+        {
+            Name = "NeutralProfileNamedOpaque",
+            DiffuseColor = new Color(179, 196, 182),
+            AmbientColor = new Vector3(0.08f, 0.1f, 0.08f),
+            SpecularColor = new Vector3(0.18f),
+            SpecularPower = 14f,
+            Queue = namedOpaqueInterpretation.AlphaCutout ? RenderQueue.AlphaTest : RenderQueue.Opaque,
+        };
+
+        var explicitReflectionInterpretation = neutralImportProfile.Interpret(new LegacyMaterialImportContext(
+            SourceAssetPath: @"D:\virtual\MirrorPlate.X",
+            SourceAssetName: "MirrorPlate",
+            ImportedMaterial: new StaticModelImportedMaterial
+            {
+                ReflectionTextureFilePath = "SkyCubeMap.dds",
+            }));
+        var explicitReflectionMat = new LitDiffuseMaterial
+        {
+            Name = "NeutralProfileExplicitReflection",
+            DiffuseColor = new Color(209, 216, 226),
+            AmbientColor = new Vector3(0.1f, 0.1f, 0.12f),
+            SpecularColor = new Vector3(0.9f),
+            SpecularPower = 72f,
+            ReflectionCube = explicitReflectionInterpretation.Reflection ? CreateDebugReflectionCube(gd, 16) : null,
+        };
+
         // Semi-transparent glass cube — unlit
         var glassMat = new UnlitTextureMaterial
         {
@@ -289,6 +324,18 @@ public class MaterialDemo : Demo
             new Vector3(4.2f, 0.55f, 2.6f),
             Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(18f), MathHelper.ToRadians(-10f), 0f),
             ambientOnlyMat);
+
+        SpawnStaticModel("NeutralProfileNamedOpaque", world, gd,
+            new BoxPrimitive(1.1f, 1.1f, 1.1f),
+            new Vector3(-5.9f, 0.55f, 2.6f),
+            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(12f), MathHelper.ToRadians(-10f), 0f),
+            namedOpaqueMat);
+
+        SpawnStaticModel("NeutralProfileExplicitReflection", world, gd,
+            new BoxPrimitive(1.1f, 1.1f, 1.1f),
+            new Vector3(-4.1f, 0.55f, 2.6f),
+            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-12f), MathHelper.ToRadians(-10f), 0f),
+            explicitReflectionMat);
 
         SpawnStaticModel("EmissiveReference", world, gd,
             new BoxPrimitive(1.1f, 1.1f, 1.1f),
