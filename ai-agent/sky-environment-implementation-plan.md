@@ -162,7 +162,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-005 — Ajouter une vraie SkyPass au pipeline forward
+### ✅ ENV-005 — Ajouter une vraie SkyPass au pipeline forward
 Objectif:
 introduire un emplacement officiel pour le rendu du fond 3D avant l'opaque.
 
@@ -175,6 +175,9 @@ Criteres d'acceptation:
 - le pipeline connait un `SkyPass`
 - la pass peut etre inseree ou retiree proprement
 - en l'absence de sky configure, le comportement actuel reste identique
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `feat(rendering): add sky pass to forward pipeline`

@@ -12,6 +12,8 @@ public enum RenderPassType
 {
     /// <summary>Writes to the depth buffer only (no colour output).</summary>
     DepthPrePass,
+    /// <summary>Renders the background sky or environment before scene geometry.</summary>
+    SkyPass,
     /// <summary>Renders opaque geometry front-to-back.</summary>
     OpaquePass,
     /// <summary>Renders transparent geometry back-to-front.</summary>

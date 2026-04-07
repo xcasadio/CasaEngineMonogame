@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Default forward-lighting 3-D render pipeline.
-/// Executes passes in order: Opaque → Transparent.
+/// Executes passes in order: Sky → Opaque → Transparent.
 ///
 /// To extend the pipeline (e.g. add a depth pre-pass, shadow pass or post-process pass)
 /// insert additional <see cref="RenderPass"/> instances via <see cref="InsertPass"/> /
@@ -22,6 +22,7 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
 
     public ForwardRenderPipeline()
     {
+        _passes.Add(new SkyPass());
         _passes.Add(new OpaquePass());
         _passes.Add(new TransparentPass());
     }
