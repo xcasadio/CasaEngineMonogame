@@ -267,7 +267,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-010 — Brancher le renderer de meshes statiques sur le lighting resolu
+### ✅ ENV-010 — Brancher le renderer de meshes statiques sur le lighting resolu
 Objectif:
 remplacer la dependance implicite a `DefaultLighting` par la source de lighting centralisee.
 
