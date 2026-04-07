@@ -359,7 +359,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-015 — Ajouter un systeme dirty / rebuild a la demande
+### ✅ ENV-015 — Ajouter un systeme dirty / rebuild a la demande
 Objectif:
 eviter de recalculer les donnees d'environnement a chaque frame et preparer les changements runtime ou editor.
 

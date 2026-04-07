@@ -42,6 +42,8 @@ public sealed class RenderView
     public WorldEnvironmentSettings? EnvironmentOverride { get; set; }
 
     internal LightingContext Lighting { get; } = new();
+    internal ResolvedEnvironmentCache EnvironmentCache { get; } = new();
+    internal int LightingCacheVersion { get; set; } = -1;
 
     // ---- Clear options ----
 

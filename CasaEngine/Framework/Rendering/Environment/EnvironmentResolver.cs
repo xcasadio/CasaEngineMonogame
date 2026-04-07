@@ -17,6 +17,11 @@ public static class EnvironmentResolver
     {
         ArgumentNullException.ThrowIfNull(view);
 
+        if (view.EnvironmentCache.TryGet(view, out var cachedEnvironment))
+        {
+            return cachedEnvironment;
+        }
+
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
         var environmentAsset = TryLoadEnvironmentAsset(view, source.EnvironmentAssetId);
         Guid backgroundCubemapAssetId = source.BackgroundCubemapAssetId != Guid.Empty
@@ -58,7 +63,7 @@ public static class EnvironmentResolver
             ? view.ClearColor
             : source.BackgroundColor;
 
-        return new ResolvedEnvironmentSettings
+        var resolvedEnvironment = new ResolvedEnvironmentSettings
         {
             Type = ResolveEnvironmentType(source, environmentAsset, hasEnvironmentCubemap),
             BackgroundMode = usesLegacyClearColor ? EnvironmentBackgroundMode.LegacyClearColor : source.BackgroundMode,
@@ -74,6 +79,10 @@ public static class EnvironmentResolver
             UsesLegacyClearColor = usesLegacyClearColor,
             UsesLegacyLighting = usesLegacyLighting,
         };
+
+        view.EnvironmentCache.Store(view, in resolvedEnvironment);
+        source.MarkClean();
+        return resolvedEnvironment;
     }
 
     private static EnvironmentType ResolveEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset, bool hasEnvironmentCubemap)
