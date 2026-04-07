@@ -60,8 +60,7 @@ public sealed class NeutralLegacyMaterialImportProfile : ILegacyMaterialImportPr
             hints |= LegacyMaterialImportHint.BrightAmbient;
         }
 
-        if (context.ImportedMaterial.UsesReflection
-            || !string.IsNullOrWhiteSpace(context.ImportedMaterial.ReflectionTextureFilePath))
+        if (context.ImportedMaterial.UsesReflection)
         {
             hints |= LegacyMaterialImportHint.Reflection;
         }

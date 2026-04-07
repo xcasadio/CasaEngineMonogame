@@ -231,7 +231,7 @@ public class MaterialDemo : Demo
             SourceAssetName: "MirrorPlate",
             ImportedMaterial: new StaticModelImportedMaterial
             {
-                ReflectionTextureFilePath = "SkyCubeMap.dds",
+                UsesReflection = true,
             }));
         var explicitReflectionMat = new LitDiffuseMaterial
         {

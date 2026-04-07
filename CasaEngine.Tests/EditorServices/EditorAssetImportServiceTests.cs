@@ -83,7 +83,7 @@ public class EditorAssetImportServiceTests
     }
 
     [Fact]
-    public void ImportFile_ReflectiveLegacyModel_PersistsAmbientAndReflectionProperties()
+    public void ImportFile_ReflectionCubemapResourceAlone_DoesNotPersistReflectionProperty()
     {
         string workspaceRoot = FindWorkspaceRoot();
         string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "Sign.X");
@@ -104,13 +104,48 @@ public class EditorAssetImportServiceTests
 
             MaterialAsset material = Assert.Single(LoadImportedMaterials(tempDirectory, "Sign_Imported"));
 
-            Assert.True(material.TryGetPropertyValue("reflection_texture", out var reflectionTextureValue));
-            Assert.True(reflectionTextureValue.TryGetTextureId(out var reflectionTextureId));
-            Assert.NotEqual(Guid.Empty, reflectionTextureId);
+            Assert.False(TryReadReflectionTextureId(material, out _));
             Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
             Assert.True(ambientValue.TryGetVector3(out var ambientColor));
             Assert.True(ambientColor.X > 0.3f);
             Assert.Equal(RenderQueue.Opaque, material.Queue);
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_OptionalReflectionHint_PersistsReflectionProperty()
+    {
+        string workspaceRoot = FindWorkspaceRoot();
+        string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "Sign.X");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string tempDirectory = CreateTempDirectory();
+        string destinationFilePath = Path.Combine(tempDirectory, "Sign.X");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            bool catalogChanged = EditorAssetImportService.ImportFile(
+                sourceFilePath,
+                destinationFilePath,
+                new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                    LegacyMaterialSurfaceIntent.ReflectiveLit,
+                    LegacyMaterialImportHint.Reflection)));
+
+            Assert.True(catalogChanged);
+
+            MaterialAsset material = Assert.Single(LoadImportedMaterials(tempDirectory, "Sign_Imported"));
+            Assert.True(TryReadReflectionTextureId(material, out var reflectionTextureId));
+            Assert.NotEqual(Guid.Empty, reflectionTextureId);
         }
         finally
         {
@@ -318,6 +353,14 @@ public class EditorAssetImportServiceTests
         Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
         Assert.True(ambientValue.TryGetVector3(out var ambientColor));
         return ambientColor;
+    }
+
+    private static bool TryReadReflectionTextureId(MaterialAsset material, out Guid reflectionTextureId)
+    {
+        reflectionTextureId = Guid.Empty;
+        return material.TryGetPropertyValue("reflection_texture", out var reflectionTextureValue)
+            && reflectionTextureValue.TryGetTextureId(out reflectionTextureId)
+            && reflectionTextureId != Guid.Empty;
     }
 
     private sealed class StubLegacyImportProfile : ILegacyMaterialImportProfile

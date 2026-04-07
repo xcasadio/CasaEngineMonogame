@@ -115,7 +115,8 @@ public static class EditorAssetImportService
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(material.ReflectionTextureFilePath))
+            if (material.UsesReflection
+                && !string.IsNullOrWhiteSpace(material.ReflectionTextureFilePath))
             {
                 Guid textureAssetId = ImportTextureCube(
                     material.ReflectionTextureFilePath,
@@ -199,7 +200,8 @@ public static class EditorAssetImportService
                 material.SetPropertyValue("normal_texture", MaterialValue.FromTextureId(normalTextureAssetId));
             }
 
-            if (importedTextureAssets.ReflectionTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var reflectionTextureAssetId))
+            if (importedMaterial.UsesReflection
+                && importedTextureAssets.ReflectionTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var reflectionTextureAssetId))
             {
                 material.SetPropertyValue("reflection_texture", MaterialValue.FromTextureId(reflectionTextureAssetId));
             }

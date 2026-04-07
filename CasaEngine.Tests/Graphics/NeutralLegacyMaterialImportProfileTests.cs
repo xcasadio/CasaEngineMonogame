@@ -76,8 +76,8 @@ public class NeutralLegacyMaterialImportProfileTests
                 ReflectionTextureFilePath = "SkyCubeMap.dds",
             }));
 
-        Assert.Equal(LegacyMaterialSurfaceIntent.ReflectiveLit, interpretation.SurfaceIntent);
-        Assert.True(interpretation.Reflection);
+        Assert.Equal(LegacyMaterialSurfaceIntent.OpaqueLit, interpretation.SurfaceIntent);
+        Assert.False(interpretation.Reflection);
         Assert.False(interpretation.AlphaCutout);
     }
 }

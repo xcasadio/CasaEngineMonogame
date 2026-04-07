@@ -27,7 +27,7 @@ public class StaticModelImporterTests
     }
 
     [Fact]
-    public void ImportWithMetadata_PreservesReflectionMetadata_ForSign()
+    public void ImportWithMetadata_PreservesLegacyReflectionResourceWithoutAutoEnablingReflection_ForSign()
     {
         var importer = new StaticModelImporter();
         string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "Sign.X");
@@ -42,7 +42,7 @@ public class StaticModelImporterTests
         Assert.Equal("SkyCubeMap.dds", Path.GetFileName(signMaterial.ReflectionTextureFilePath));
         Assert.Equal("NormalMapping.fx", Path.GetFileName(signMaterial.EffectFilePath));
         Assert.Equal(8, signMaterial.LegacyTechniqueIndex);
-        Assert.True(signMaterial.UsesReflection);
+        Assert.False(signMaterial.UsesReflection);
         Assert.False(signMaterial.BrightAmbientHint);
         Assert.False(signMaterial.AlphaCutoutHint);
     }
@@ -96,7 +96,7 @@ public class StaticModelImporterTests
         Assert.False(neutralMaterial.BrightAmbientHint);
         Assert.True(profileMaterial.BrightAmbientHint);
         Assert.Equal(LegacyMaterialSurfaceIntent.OpaqueLit, profileMaterial.SurfaceIntent);
-        Assert.True(profileMaterial.UsesReflection);
+        Assert.False(profileMaterial.UsesReflection);
     }
 
     private static StaticModelImportedMaterial FindMaterialByDiffuseTexture(
