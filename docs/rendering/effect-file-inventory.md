@@ -6,7 +6,7 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 
 | File | Type | Current consumers | Role | Refactor risk |
 | --- | --- | --- | --- | --- |
-| `basicEffect.fx` | material-facing | `StaticMeshRendererComponent` | main lit static-mesh effect with many technique permutations | high |
+| `LitForward.fx` | material-facing | `StaticMeshRendererComponent` | main lit static-mesh effect with many technique permutations | high |
 | `UnlitTexture.fx` | material-facing | `StaticMeshRendererComponent` | unlit material effect for textured or colored draws | medium |
 | `skinEffect.fx` | material-facing | `SkinnedMeshRendererComponent` | skinned mesh effect with its own techniques and lighting bindings | high |
 | `spritebatch.fx` | utility/2D | `SpriteRendererComponent` | sprite batching and textured quad rendering | medium |
@@ -19,13 +19,13 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 
 | File | Included by | Role | Refactor risk |
 | --- | --- | --- | --- |
-| `Macros.fxh` | `basicEffect.fx`, `UnlitTexture.fx`, `skinEffect.fx` | shared macros, texture declarations, technique helpers | high |
-| `Structures.fxh` | `basicEffect.fx` | shared vertex/pixel structs used by the lit static effect | medium |
-| `Lighting.fxh` | `basicEffect.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
+| `Macros.fxh` | `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` | shared macros, texture declarations, technique helpers | high |
+| `Structures.fxh` | `LitForward.fx` | shared vertex/pixel structs used by the lit static effect | medium |
+| `Lighting.fxh` | `LitForward.fx`, `skinEffect.fx` | shared forward-lighting helpers and directional-light evaluation | high |
 
 ## Consumer notes
 
-- `basicEffect.fx` remains the critical static-rendering shader and still carries the naming ambiguity with MonoGame `BasicEffect`.
+- `LitForward.fx` is the critical static-rendering shader and now carries a semantic name distinct from MonoGame `BasicEffect`.
 - `skinEffect.fx` is still isolated from the main material/shader policy: it is loaded directly by the skinned renderer instead of being resolved through the same path as static materials.
 - `DebugPrimitiveColor.fx` is now the shared replacement for former MonoGame `BasicEffect` usages in debug/runtime overlays.
 - `DebugSolidColor.fx` is currently used by the editor gizmo for solid meshes and translucent quads.
@@ -34,6 +34,6 @@ This inventory distinguishes material-facing shaders from debug and utility shad
 
 ## Refactor guidance
 
-1. Treat `basicEffect.fx`, `skinEffect.fx`, and `Lighting.fxh` as architecture-critical files.
+1. Treat `LitForward.fx`, `skinEffect.fx`, and `Lighting.fxh` as architecture-critical files.
 2. Treat `spritebatch.fx`, `DebugPrimitiveColor.fx`, and `DebugSolidColor.fx` as utility shaders that should keep clear, explicit names.
 3. Treat `axisComponent.fx` and `simple.fx` as cleanup candidates unless a hidden external/content consumer is reintroduced.

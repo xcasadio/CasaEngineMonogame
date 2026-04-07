@@ -38,23 +38,23 @@ public class LitDiffuseMaterial : MaterialBase
         {
             return (hasBasColor, hasNormalMap) switch
             {
-                (true, true) => "BasicEffect_PixelLighting_Texture_NormalMap_Reflection",
-                (true, false) => "BasicEffect_PixelLighting_Texture_Reflection",
-                _ => "BasicEffect_PixelLighting_Reflection",
+                (true, true) => "LitForward_PixelLighting_Texture_NormalMap_Reflection",
+                (true, false) => "LitForward_PixelLighting_Texture_Reflection",
+                _ => "LitForward_PixelLighting_Reflection",
             };
         }
 
         if (hasNormalMap)
         {
-            return "BasicEffect_PixelLighting_Texture_NormalMap";
+            return "LitForward_PixelLighting_Texture_NormalMap";
         }
 
         return (hasBasColor, oneLight) switch
         {
-            (true, true) => "BasicEffect_PixelLighting_OneLight_Texture",
-            (true, false) => "BasicEffect_PixelLighting_Texture",
-            (false, true) => "BasicEffect_PixelLighting_OneLight",
-            _ => "BasicEffect_PixelLighting",
+            (true, true) => "LitForward_PixelLighting_OneLight_Texture",
+            (true, false) => "LitForward_PixelLighting_Texture",
+            (false, true) => "LitForward_PixelLighting_OneLight",
+            _ => "LitForward_PixelLighting",
         };
     }
 

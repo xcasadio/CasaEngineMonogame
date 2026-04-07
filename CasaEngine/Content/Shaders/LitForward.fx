@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// BasicEffect.fx
+// LitForward.fx
 //
 // Microsoft XNA Community Game Platform
 // Copyright (C) Microsoft Corporation. All rights reserved.
@@ -545,35 +545,35 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
 }
 
 
-// NOTE: The order of the techniques here are
-// defined to match the indexing in BasicEffect.cs.
+// NOTE: The ordering below preserves the historical XNA BasicEffect layout
+// even though the CasaEngine shader now carries a semantic LitForward name.
 
-TECHNIQUE(BasicEffect, VSBasic, PSBasic);
-TECHNIQUE(BasicEffect_VertexColor, VSBasicVc, PSBasic);
-TECHNIQUE(BasicEffect_Texture, VSBasicTx, PSBasicTx);
-TECHNIQUE(BasicEffect_Texture_VertexColor, VSBasicTxVc, PSBasicTx);
+TECHNIQUE(LitForward, VSBasic, PSBasic);
+TECHNIQUE(LitForward_VertexColor, VSBasicVc, PSBasic);
+TECHNIQUE(LitForward_Texture, VSBasicTx, PSBasicTx);
+TECHNIQUE(LitForward_Texture_VertexColor, VSBasicTxVc, PSBasicTx);
 
-TECHNIQUE(BasicEffect_VertexLighting, VSBasicVertexLighting, PSBasicVertexLighting);
-TECHNIQUE(BasicEffect_VertexLighting_VertexColor, VSBasicVertexLightingVc, PSBasicVertexLighting);
-TECHNIQUE(BasicEffect_VertexLighting_Texture, VSBasicVertexLightingTx, PSBasicVertexLightingTx);
-TECHNIQUE(BasicEffect_VertexLighting_Texture_VertexColor, VSBasicVertexLightingTxVc, PSBasicVertexLightingTx);
+TECHNIQUE(LitForward_VertexLighting, VSBasicVertexLighting, PSBasicVertexLighting);
+TECHNIQUE(LitForward_VertexLighting_VertexColor, VSBasicVertexLightingVc, PSBasicVertexLighting);
+TECHNIQUE(LitForward_VertexLighting_Texture, VSBasicVertexLightingTx, PSBasicVertexLightingTx);
+TECHNIQUE(LitForward_VertexLighting_Texture_VertexColor, VSBasicVertexLightingTxVc, PSBasicVertexLightingTx);
 
-TECHNIQUE(BasicEffect_OneLight, VSBasicOneLight, PSBasicVertexLighting);
-TECHNIQUE(BasicEffect_OneLight_VertexColor, VSBasicOneLightVc, PSBasicVertexLighting);
-TECHNIQUE(BasicEffect_OneLight_Texture, VSBasicOneLightTx, PSBasicVertexLightingTx);
-TECHNIQUE(BasicEffect_OneLight_Texture_VertexColor, VSBasicOneLightTxVc, PSBasicVertexLightingTx);
+TECHNIQUE(LitForward_OneLight, VSBasicOneLight, PSBasicVertexLighting);
+TECHNIQUE(LitForward_OneLight_VertexColor, VSBasicOneLightVc, PSBasicVertexLighting);
+TECHNIQUE(LitForward_OneLight_Texture, VSBasicOneLightTx, PSBasicVertexLightingTx);
+TECHNIQUE(LitForward_OneLight_Texture_VertexColor, VSBasicOneLightTxVc, PSBasicVertexLightingTx);
 
-TECHNIQUE(BasicEffect_PixelLighting, VSBasicPixelLighting, PSBasicPixelLighting);
-TECHNIQUE(BasicEffect_PixelLighting_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLighting);
-TECHNIQUE(BasicEffect_PixelLighting_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTx);
-TECHNIQUE(BasicEffect_PixelLighting_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTx);
+TECHNIQUE(LitForward_PixelLighting, VSBasicPixelLighting, PSBasicPixelLighting);
+TECHNIQUE(LitForward_PixelLighting_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLighting);
+TECHNIQUE(LitForward_PixelLighting_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTx);
+TECHNIQUE(LitForward_PixelLighting_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTx);
 
-TECHNIQUE(BasicEffect_PixelLighting_OneLight, VSBasicPixelLighting, PSBasicPixelLightingOneLight);
-TECHNIQUE(BasicEffect_PixelLighting_OneLight_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLightingOneLight);
-TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTxOneLight);
-TECHNIQUE(BasicEffect_PixelLighting_OneLight_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTxOneLight);
+TECHNIQUE(LitForward_PixelLighting_OneLight, VSBasicPixelLighting, PSBasicPixelLightingOneLight);
+TECHNIQUE(LitForward_PixelLighting_OneLight_VertexColor, VSBasicPixelLightingVc, PSBasicPixelLightingOneLight);
+TECHNIQUE(LitForward_PixelLighting_OneLight_Texture, VSBasicPixelLightingTx, PSBasicPixelLightingTxOneLight);
+TECHNIQUE(LitForward_PixelLighting_OneLight_Texture_VertexColor, VSBasicPixelLightingTxVc, PSBasicPixelLightingTxOneLight);
 
-TECHNIQUE(BasicEffect_PixelLighting_Texture_NormalMap, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNorm);
-TECHNIQUE(BasicEffect_PixelLighting_Reflection, VSBasicPixelLighting, PSBasicPixelLightingReflection);
-TECHNIQUE(BasicEffect_PixelLighting_Texture_Reflection, VSBasicPixelLightingTx, PSBasicPixelLightingTxReflection);
-TECHNIQUE(BasicEffect_PixelLighting_Texture_NormalMap_Reflection, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNormReflection);
+TECHNIQUE(LitForward_PixelLighting_Texture_NormalMap, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNorm);
+TECHNIQUE(LitForward_PixelLighting_Reflection, VSBasicPixelLighting, PSBasicPixelLightingReflection);
+TECHNIQUE(LitForward_PixelLighting_Texture_Reflection, VSBasicPixelLightingTx, PSBasicPixelLightingTxReflection);
+TECHNIQUE(LitForward_PixelLighting_Texture_NormalMap_Reflection, VSBasicPixelLightingTxTan, PSBasicPixelLightingTxNormReflection);

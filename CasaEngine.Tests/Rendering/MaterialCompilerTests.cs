@@ -27,7 +27,7 @@ public class MaterialCompilerTests
         Assert.Equal("lit-diffuse", compiledMaterial.DefinitionId);
         Assert.Equal(materialAsset.Id, compiledMaterial.SourceAssetId);
         Assert.Equal("Lit Asset", compiledMaterial.Name);
-        Assert.Equal(EffectiveShaderResolver.BasicEffectShaderId, compiledMaterial.EffectiveShader.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.LitForwardShaderId, compiledMaterial.EffectiveShader.ShaderId);
         Assert.Equal(
             ShaderFeature.Emissive |
             ShaderFeature.AlphaTest,
@@ -114,9 +114,7 @@ public class MaterialCompilerTests
     [Fact]
     public void Compile_RemovedLegacyMultiTextureDefinition_Throws()
     {
-        var materialAsset = new MaterialAsset("legacy-multi-texture");
-
-        var exception = Assert.Throws<KeyNotFoundException>(() => new MaterialCompiler().Compile(materialAsset, new AssetContentManager()));
+        var exception = Assert.Throws<KeyNotFoundException>(() => new MaterialAsset("legacy-multi-texture"));
         Assert.Contains("legacy-multi-texture", exception.Message);
     }
 
@@ -150,7 +148,7 @@ public class MaterialCompilerTests
         var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
         var runtimeMaterial = Assert.IsType<LitDiffuseMaterial>(new MaterialCompiler().CompileRuntimeMaterial(materialAsset, new AssetContentManager()));
 
-        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, compiledMaterial.EffectiveShader.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardShaderId, compiledMaterial.EffectiveShader.ShaderId);
         Assert.Equal(ShaderFeature.Reflection, compiledMaterial.Features);
         Assert.True(compiledMaterial.TryGetTexture("reflection_texture", out var reflectionTexture));
         Assert.Null(reflectionTexture);

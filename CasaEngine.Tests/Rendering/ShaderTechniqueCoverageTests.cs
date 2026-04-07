@@ -28,9 +28,9 @@ public class ShaderTechniqueCoverageTests
     };
 
     [Fact]
-    public void LitDiffuseTechniqueRequests_ExistInBasicEffect()
+    public void LitDiffuseTechniqueRequests_ExistInLitForwardEffect()
     {
-        var availableTechniques = LoadTechniqueNames("basicEffect.fx");
+        var availableTechniques = LoadTechniqueNames("LitForward.fx");
         var requestedTechniques = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (bool hasBasColor in new[] { false, true })
@@ -63,7 +63,7 @@ public class ShaderTechniqueCoverageTests
             }
         }
 
-        AssertTechniquesExist(availableTechniques, requestedTechniques, "basicEffect.fx");
+        AssertTechniquesExist(availableTechniques, requestedTechniques, "LitForward.fx");
     }
 
     [Theory]
@@ -72,19 +72,19 @@ public class ShaderTechniqueCoverageTests
     public void UnlitTechniqueRequests_ExistInDeclaredEffects(bool hasBasColor)
     {
         var unlitTechniques = LoadTechniqueNames("UnlitTexture.fx");
-        var basicEffectTechniques = LoadTechniqueNames("basicEffect.fx");
+        var litForwardTechniques = LoadTechniqueNames("LitForward.fx");
 
         Assert.Contains(UnlitTextureMaterial.GetPrimaryTechniqueName(hasBasColor), unlitTechniques);
-        Assert.Contains(UnlitTextureMaterial.GetFallbackTechniqueName(hasBasColor), basicEffectTechniques);
+        Assert.Contains(UnlitTextureMaterial.GetFallbackTechniqueName(hasBasColor), litForwardTechniques);
     }
 
     [Fact]
     public void MaterialFacingAliasMaps_PointToExistingTechniques()
     {
         AssertAliasMapResolvesToExistingTechniques(
-            ShaderVariantLibrary.BuildBasicEffectAliases(),
-            LoadTechniqueNames("basicEffect.fx"),
-            "basicEffect.fx");
+            ShaderVariantLibrary.BuildLitForwardAliases(),
+            LoadTechniqueNames("LitForward.fx"),
+            "LitForward.fx");
         AssertAliasMapResolvesToExistingTechniques(
             ShaderVariantLibrary.BuildUnlitTextureAliases(),
             LoadTechniqueNames("UnlitTexture.fx"),
@@ -100,7 +100,7 @@ public class ShaderTechniqueCoverageTests
     {
         var aliasMaps = new[]
         {
-            (Name: "basicEffect.fx", Aliases: ShaderVariantLibrary.BuildBasicEffectAliases()),
+            (Name: "LitForward.fx", Aliases: ShaderVariantLibrary.BuildLitForwardAliases()),
             (Name: "UnlitTexture.fx", Aliases: ShaderVariantLibrary.BuildUnlitTextureAliases()),
             (Name: "skinEffect.fx", Aliases: ShaderVariantLibrary.BuildSkinnedEffectAliases()),
         };

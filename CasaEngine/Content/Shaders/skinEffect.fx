@@ -4,7 +4,7 @@
 //
 // Techniques: RiggedModelDraw, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
-// Uses the same directional light model as basicEffect.fx
+// Uses the same directional light model as LitForward.fx
 // (3 directional lights via Lighting.fxh).
 //_______________________________________________________________
 
@@ -15,7 +15,7 @@ DECLARE_TEXTURE(Texture, 0);
 
 
 //_______________________________________________________________
-// Constant buffer — matches basicEffect.fx parameter layout
+// Constant buffer — matches LitForward.fx parameter layout
 // so that LightingContext.Bind() works identically.
 //_______________________________________________________________
 

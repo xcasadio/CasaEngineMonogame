@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 // Structures.fxh
 //
-// Vertex/pixel shader input and output structures used by basicEffect.fx.
+// Vertex/pixel shader input and output structures used by LitForward.fx.
 //-----------------------------------------------------------------------------
 
 

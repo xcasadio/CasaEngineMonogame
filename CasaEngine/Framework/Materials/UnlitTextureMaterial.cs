@@ -28,7 +28,7 @@ public class UnlitTextureMaterial : MaterialBase
         => hasBasColor ? "Unlit_Textured" : "Unlit_Colored";
 
     internal static string GetFallbackTechniqueName(bool hasBasColor)
-        => hasBasColor ? "BasicEffect_Texture" : "BasicEffect";
+        => hasBasColor ? "LitForward_Texture" : "LitForward";
 
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {

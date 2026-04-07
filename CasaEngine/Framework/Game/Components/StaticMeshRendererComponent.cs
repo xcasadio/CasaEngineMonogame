@@ -87,8 +87,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     protected override void LoadContent()
     {
-        _effect = Game.Content.Load<Effect>("Shaders\\basicEffect");
-        _effect.CurrentTechnique = _effect.Techniques["BasicEffect_PixelLighting_Texture"];
+        _effect = Game.Content.Load<Effect>("Shaders\\LitForward");
+        _effect.CurrentTechnique = _effect.Techniques["LitForward_PixelLighting_Texture"];
         var unlitEffect = Game.Content.Load<Effect>("Shaders\\UnlitTexture");
 
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
@@ -123,17 +123,17 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             _materialCache = acm.RuntimeContext?.MaterialCache;
             _shaderManager  = new ShaderManager(acm);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
-            _shaderManager.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
-            _shaderManager.RegisterShader(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, _legacyShaderWrapper);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.LitForwardShaderId, _legacyShaderWrapper);
+            _shaderManager.RegisterShader(EffectiveShaderResolver.ReflectiveLitForwardShaderId, _legacyShaderWrapper);
             _shaderManager.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
-            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.BasicEffectShaderId, ShaderVariantLibrary.BuildBasicEffectAliases());
-            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, ShaderVariantLibrary.BuildBasicEffectAliases());
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.LitForwardShaderId, ShaderVariantLibrary.BuildLitForwardAliases());
+            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.ReflectiveLitForwardShaderId, ShaderVariantLibrary.BuildLitForwardAliases());
             _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.UnlitTextureShaderId, ShaderVariantLibrary.BuildUnlitTextureAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_legacyShaderWrapper, _shaderManager, _variantLibrary);
-        _shaderSelector.RegisterShader(EffectiveShaderResolver.BasicEffectShaderId, _legacyShaderWrapper);
-        _shaderSelector.RegisterShader(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, _legacyShaderWrapper);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.LitForwardShaderId, _legacyShaderWrapper);
+        _shaderSelector.RegisterShader(EffectiveShaderResolver.ReflectiveLitForwardShaderId, _legacyShaderWrapper);
         _shaderSelector.RegisterShader(EffectiveShaderResolver.UnlitTextureShaderId, _unlitShaderWrapper);
 
         // Phase 9: hardware instancing batcher

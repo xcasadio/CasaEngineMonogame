@@ -61,11 +61,11 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/DebugSolidColor.fx
 
-#begin Shaders/basicEffect.fx
+#begin Shaders/LitForward.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
-/build:Shaders/basicEffect.fx
+/build:Shaders/LitForward.fx
 
 #begin Shaders/simple.fx
 /importer:EffectImporter

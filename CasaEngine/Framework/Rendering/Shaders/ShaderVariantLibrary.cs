@@ -11,7 +11,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// Transparent_Textured, Skinned, Skinned_Textured.
 ///
 /// Alias maps translate these canonical names to the actual technique names defined
-/// in each .fx file (e.g. BasicEffect_PixelLighting_Texture).
+/// in each .fx file (e.g. LitForward_PixelLighting_Texture).
 /// </summary>
 public sealed class ShaderVariantLibrary
 {
@@ -55,18 +55,18 @@ public sealed class ShaderVariantLibrary
         _resolved.Clear();
     }
 
-    /// <summary>Returns alias map for mapping canonical technique names to basicEffect.fx ones.</summary>
-    public static Dictionary<string, string> BuildBasicEffectAliases() =>
+    /// <summary>Returns alias map for mapping canonical technique names to LitForward.fx ones.</summary>
+    public static Dictionary<string, string> BuildLitForwardAliases() =>
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["Opaque"]             = "BasicEffect_PixelLighting",
-            ["Opaque_Textured"]    = "BasicEffect_PixelLighting_Texture",
-            ["AlphaTest"]          = "BasicEffect_PixelLighting",
-            ["AlphaTest_Textured"] = "BasicEffect_PixelLighting_Texture",
-            ["Transparent"]        = "BasicEffect_PixelLighting",
-            ["Transparent_Textured"] = "BasicEffect_PixelLighting_Texture",
-            ["Skinned"]            = "BasicEffect_PixelLighting",
-            ["Skinned_Textured"]   = "BasicEffect_PixelLighting_Texture",
+            ["Opaque"]             = "LitForward_PixelLighting",
+            ["Opaque_Textured"]    = "LitForward_PixelLighting_Texture",
+            ["AlphaTest"]          = "LitForward_PixelLighting",
+            ["AlphaTest_Textured"] = "LitForward_PixelLighting_Texture",
+            ["Transparent"]        = "LitForward_PixelLighting",
+            ["Transparent_Textured"] = "LitForward_PixelLighting_Texture",
+            ["Skinned"]            = "LitForward_PixelLighting",
+            ["Skinned_Textured"]   = "LitForward_PixelLighting_Texture",
         };
 
     /// <summary>Returns alias map for mapping canonical technique names to UnlitTexture.fx ones.</summary>

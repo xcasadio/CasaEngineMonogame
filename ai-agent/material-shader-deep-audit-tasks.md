@@ -73,15 +73,15 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### 4. Fichiers effects et includes shader
 
-- Les effets materials principaux (`basicEffect.fx`, `UnlitTexture.fx`, `skinEffect.fx`) sont globalement coherents avec le runtime actuel, mais seule une partie de leurs permutations est formalisee dans `ShaderVariantLibrary`.
-- Il existe une confusion de nommage entre le fichier CasaEngine `basicEffect.fx` et la classe `Microsoft.Xna.Framework.Graphics.BasicEffect`. Dans le code actuel, `basicEffect.fx` est bien le shader material lit principal du moteur, tandis que les usages debug simples passent encore par la classe MonoGame `BasicEffect`.
+- Les effets materials principaux (`LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx`) sont globalement coherents avec le runtime actuel, mais seule une partie de leurs permutations est formalisee dans `ShaderVariantLibrary`.
+- Le shader material lit principal a maintenant un nom semantique (`LitForward.fx`) distinct de la classe `Microsoft.Xna.Framework.Graphics.BasicEffect`, ce qui clarifie les analyses et le code de chargement.
 - Renommer le shader material principal vers un nom semantique (`LitForward.fx`, `SurfaceLit.fx` ou equivalent) aiderait a sortir de cette ambiguite. Ce renommage ne suffit pas a lui seul pour moderniser l'architecture, mais il clarifie nettement les analyses et la maintenance.
 - `LightingContext` et `Lighting.fxh` restent structures autour de `MaxDirectionalLights = 3` et de slots nommes `DirLight0..2`. C'est trop limite pour une architecture moderne et trop loin d'un modele de light list scalable.
 - Sans deferred rendering, la cible moderne cote moteur forward est un systeme de lumieres scalable : nombre actif dynamique, plafond configurable plus grand, et a terme light culling par objet, par vue ou par cluster plutot qu'un triplet code en dur.
 - `Lighting.fxh` utilise encore une construction `float3x3(...)` temporaire pour indexer les lumieres. Cette implementation doit disparaitre au profit d'une representation de lumieres scalable et lisible.
 - `skinEffect.fx` est mieux aligne qu'avant sur les helpers partages, mais son pilotage C# reste hors du pipeline material moderne.
-- `basicEffect.fx` est deja un fichier effect CasaEngine, mais plusieurs composants runtime utilisent encore la classe `BasicEffect` de MonoGame (`DebugGridComponent`, `Line3dRendererComponent`, `PrimitiveBatch`, `Primitive2D`). Ces usages doivent etre supprimes.
-- `axisComponent.fx` n'est pas reellement specifique a l'axe : il dessine simplement des primitives colorees via `WorldViewProj` + `VertexPositionColor`. Il constitue un meilleur point de depart pour un shader utilitaire partage de debug que le shader material principal `basicEffect.fx`.
+- `LitForward.fx` est bien un fichier effect CasaEngine, mais plusieurs composants runtime utilisent encore la classe `BasicEffect` de MonoGame (`DebugGridComponent`, `Line3dRendererComponent`, `PrimitiveBatch`, `Primitive2D`). Ces usages doivent etre supprimes.
+- `axisComponent.fx` n'est pas reellement specifique a l'axe : il dessine simplement des primitives colorees via `WorldViewProj` + `VertexPositionColor`. Il constitue un meilleur point de depart pour un shader utilitaire partage de debug que le shader material principal `LitForward.fx`.
 - Les shaders utilitaires `simple.fx`, `spritebatch.fx` et `axisComponent.fx` restent dans un style plus ancien, avec des conventions distinctes des shaders materials. Avant toute refonte, il faut auditer leur usage reel et decider s'ils doivent etre modernises ou simplement classes comme utilitaires debug/outils hors analyse material.
 
 ### 5. Conclusion de l'audit actuel
@@ -120,7 +120,7 @@ Le travail de l'agent doit couvrir trois axes :
 - ✅ **T01.03 - Auditer tous les fichiers effects et leurs consommateurs**
   Objectif :
   - Faire un inventaire `fichier effect -> consumers C# -> type de shader -> utilitaire ou material-facing -> risque si suppression/refactor`.
-  - Distinguer clairement `basicEffect.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`simple.fx`, `spritebatch.fx`, `axisComponent.fx`).
+  - Distinguer clairement `LitForward.fx`, `UnlitTexture.fx`, `skinEffect.fx` des shaders utilitaires (`simple.fx`, `spritebatch.fx`, `axisComponent.fx`).
   Validation :
   - Note d'audit versionnee.
   Commit conseille :
@@ -265,7 +265,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 - ✅ **T05.01 - Verifier systematiquement les permutations des shaders materials**
   Objectif :
-  - Verifier que les techniques demandees par `LitDiffuseMaterial`, `UnlitTextureMaterial`, le resolver de variantes et les renderers existent bien dans `basicEffect.fx`, `UnlitTexture.fx` et `skinEffect.fx`.
+  - Verifier que les techniques demandees par `LitDiffuseMaterial`, `UnlitTextureMaterial`, le resolver de variantes et les renderers existent bien dans `LitForward.fx`, `UnlitTexture.fx` et `skinEffect.fx`.
   - Ajouter des tests ou une validation de chargement pour eviter les regressions silencieuses.
   Validation :
   - Build principal.
@@ -273,7 +273,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `test(shaders): validate runtime technique coverage for material-facing effects`
 
-- ⏳ **T05.01bis - Renommer le shader material principal pour supprimer l'ambiguite avec MonoGame `BasicEffect`**
+- ✅ **T05.01bis - Renommer le shader material principal pour supprimer l'ambiguite avec MonoGame `BasicEffect`**
   Objectif :
   - Renommer `basicEffect.fx` vers un nom semantique qui exprime sa vraie fonction material (`LitForward.fx`, `SurfaceLit.fx` ou equivalent).
   - Mettre a jour tous les points de chargement, ids, alias, docs et tests pour supprimer la collision de vocabulaire avec `Microsoft.Xna.Framework.Graphics.BasicEffect`.
@@ -302,7 +302,7 @@ Le travail de l'agent doit couvrir trois axes :
   Fichiers cibles :
   - `CasaEngine/Framework/Rendering/LightingContext.cs`
   - `CasaEngine/Content/Shaders/Lighting.fxh`
-  - `CasaEngine/Content/Shaders/basicEffect.fx`
+  - `CasaEngine/Content/Shaders/LitForward.fx`
   - `CasaEngine/Content/Shaders/skinEffect.fx`
   - binders C# relies
   Validation :
@@ -338,7 +338,7 @@ Le travail de l'agent doit couvrir trois axes :
 - ⏳ **T05.06 - Formaliser une convention de nommage des shaders et includes**
   Objectif :
   - Definir une convention claire et stable pour distinguer les shaders materials, debug/outillage, 2D/blit et les includes partages.
-  - Appliquer cette convention au moins aux fichiers les plus ambigus (`basicEffect.fx`, `axisComponent.fx`, `simple.fx`).
+  - Appliquer cette convention au moins aux fichiers les plus ambigus (`LitForward.fx`, `axisComponent.fx`, `simple.fx`).
   Convention cible proposee :
   - shaders materials : noms semantiques en PascalCase (`LitForward.fx`, `UnlitTexture.fx`, `SkinnedLit.fx`)
   - shaders debug/outils : prefixe `Debug` (`DebugPrimitiveColor.fx`, `DebugGrid.fx`, `DebugAxis.fx`)

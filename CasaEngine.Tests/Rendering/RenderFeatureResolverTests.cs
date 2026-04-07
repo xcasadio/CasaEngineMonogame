@@ -254,13 +254,13 @@ public class RenderFeatureResolverTests
     [Fact]
     public void BuildTechniqueAliases_IncludeTransparentAndSkinnedMappings()
     {
-        var basicEffectAliases = ShaderVariantLibrary.BuildBasicEffectAliases();
+        var litForwardAliases = ShaderVariantLibrary.BuildLitForwardAliases();
         var unlitAliases = ShaderVariantLibrary.BuildUnlitTextureAliases();
         var skinnedAliases = ShaderVariantLibrary.BuildSkinnedEffectAliases();
 
-        Assert.Equal("BasicEffect_PixelLighting", basicEffectAliases["Transparent"]);
-        Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Transparent_Textured"]);
-        Assert.Equal("BasicEffect_PixelLighting_Texture", basicEffectAliases["Skinned_Textured"]);
+        Assert.Equal("LitForward_PixelLighting", litForwardAliases["Transparent"]);
+        Assert.Equal("LitForward_PixelLighting_Texture", litForwardAliases["Transparent_Textured"]);
+        Assert.Equal("LitForward_PixelLighting_Texture", litForwardAliases["Skinned_Textured"]);
         Assert.Equal("Unlit_Colored", unlitAliases["Transparent"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Transparent_Textured"]);
         Assert.Equal("Unlit_Textured", unlitAliases["Skinned_Textured"]);

@@ -33,14 +33,14 @@ public readonly struct EffectiveShaderReference
 /// </summary>
 public static class EffectiveShaderResolver
 {
-    public static readonly Guid BasicEffectShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
+    public static readonly Guid LitForwardShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
-    public static readonly Guid ReflectiveBasicEffectShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
+    public static readonly Guid ReflectiveLitForwardShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
     public static readonly Guid SkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
 
-    public const string BasicEffectContentName = "Shaders\\basicEffect";
+    public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
-    public const string ReflectiveBasicEffectContentName = BasicEffectContentName;
+    public const string ReflectiveLitForwardContentName = LitForwardContentName;
     public const string SkinnedEffectContentName = "Shaders\\skinEffect";
 
     /// <summary>
@@ -74,8 +74,8 @@ public static class EffectiveShaderResolver
         {
             MaterialShaderFamily.Unlit => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
             MaterialShaderFamily.Lit when capabilities.HasReflection
-                => new EffectiveShaderReference(ReflectiveBasicEffectShaderId, ReflectiveBasicEffectContentName),
-            MaterialShaderFamily.Lit => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
+                => new EffectiveShaderReference(ReflectiveLitForwardShaderId, ReflectiveLitForwardContentName),
+            MaterialShaderFamily.Lit => new EffectiveShaderReference(LitForwardShaderId, LitForwardContentName),
             _ => ResolveLegacyFallback(material),
         };
     }
@@ -85,8 +85,8 @@ public static class EffectiveShaderResolver
         {
             UnlitTextureMaterial => new EffectiveShaderReference(UnlitTextureShaderId, UnlitTextureContentName),
             LitDiffuseMaterial lit when lit.ReflectionCube is not null || lit.ReflectionCubeAssetId != Guid.Empty
-                => new EffectiveShaderReference(ReflectiveBasicEffectShaderId, ReflectiveBasicEffectContentName),
-            LitDiffuseMaterial => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
-            _ => new EffectiveShaderReference(BasicEffectShaderId, BasicEffectContentName),
+                => new EffectiveShaderReference(ReflectiveLitForwardShaderId, ReflectiveLitForwardContentName),
+            LitDiffuseMaterial => new EffectiveShaderReference(LitForwardShaderId, LitForwardContentName),
+            _ => new EffectiveShaderReference(LitForwardShaderId, LitForwardContentName),
         };
 }
