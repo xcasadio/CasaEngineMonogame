@@ -9,11 +9,13 @@ using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
@@ -452,10 +454,7 @@ public sealed class EntityDetailsPanel
         {
             if (_selectedWorld != null)
             {
-                _detailsContent.TryAddChild(new MGTextBlock(_window, "World selected.")
-                {
-                    WrapText = true,
-                });
+                BuildWorldPropertyEditors();
             }
             else
             {
@@ -491,6 +490,104 @@ public sealed class EntityDetailsPanel
         RebuildPropertyEditors();
     }
 
+    private void BuildWorldPropertyEditors()
+    {
+        if (_detailsContent == null || _selectedWorld == null)
+        {
+            return;
+        }
+
+        _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(string.IsNullOrWhiteSpace(_selectedWorld.Name) ? "World" : _selectedWorld.Name)}[/b]")
+        {
+            WrapText = false,
+        });
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit world-level environment settings.")
+        {
+            WrapText = true,
+        });
+
+        var settings = _selectedWorld.EnvironmentSettings;
+        var grid = CreatePropertyGrid();
+        int rowIndex = 0;
+
+        var backgroundModeCombo = CreateStringCombo(Enum.GetNames<EnvironmentBackgroundMode>(), settings.BackgroundMode.ToString(), value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Environment Background Mode",
+                static s => s.BackgroundMode,
+                static (s, selectedMode) => s.BackgroundMode = selectedMode,
+                Enum.Parse<EnvironmentBackgroundMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Background Mode", backgroundModeCombo);
+
+        var backgroundColorEditor = new ColorEditor(_window, settings.BackgroundColor);
+        backgroundColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Background Color",
+            static s => s.BackgroundColor,
+            static (s, color) => s.BackgroundColor = color,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Background Color", backgroundColorEditor);
+
+        var environmentAssetSelector = new AssetSelector(_window)
+        {
+            AssetId = settings.EnvironmentAssetId,
+            Filter = static assetInfo => string.Equals(assetInfo.AssetType, "environment", StringComparison.OrdinalIgnoreCase),
+        };
+        environmentAssetSelector.AssetChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Asset",
+            static s => s.EnvironmentAssetId,
+            static (s, assetId) => s.EnvironmentAssetId = assetId,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Environment Asset", environmentAssetSelector);
+
+        var backgroundCubemapSelector = new AssetSelector(_window)
+        {
+            AssetId = settings.BackgroundCubemapAssetId,
+            Filter = static assetInfo => string.Equals(assetInfo.AssetType, "dds", StringComparison.OrdinalIgnoreCase),
+        };
+        backgroundCubemapSelector.AssetChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Cubemap",
+            static s => s.BackgroundCubemapAssetId,
+            static (s, assetId) => s.BackgroundCubemapAssetId = assetId,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Background Cubemap", backgroundCubemapSelector);
+
+        var ambientIntensityEditor = new NumericField(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.AmbientIntensity,
+        };
+        ambientIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Ambient Intensity",
+            static s => s.AmbientIntensity,
+            static (s, intensity) => s.AmbientIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Intensity", ambientIntensityEditor);
+
+        var specularIntensityEditor = new NumericField(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.SpecularIntensity,
+        };
+        specularIntensityEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Specular Intensity",
+            static s => s.SpecularIntensity,
+            static (s, intensity) => s.SpecularIntensity = intensity,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Specular Intensity", specularIntensityEditor);
+
+        _detailsContent.TryAddChild(grid);
+
+        var rebuildButton = new MGButton(_window, _ =>
+        {
+            settings.MarkDirty();
+            RebuildPropertyEditors();
+        });
+        rebuildButton.SetContent(new MGTextBlock(_window, "Rebuild Environment"));
+        rebuildButton.PreferredWidth = 180;
+        _detailsContent.TryAddChild(rebuildButton);
+    }
+
     private void ClearDetailsContent()
     {
         if (_detailsContent == null)
@@ -502,6 +599,104 @@ public sealed class EntityDetailsPanel
         {
             _detailsContent.TryRemoveChild(child);
         }
+    }
+
+    private void ApplyWorldEnvironmentChange<T>(
+        string description,
+        Func<WorldEnvironmentSettings, T> getter,
+        Action<WorldEnvironmentSettings, T> setter,
+        T newValue)
+    {
+        ArgumentNullException.ThrowIfNull(getter);
+        ArgumentNullException.ThrowIfNull(setter);
+
+        if (_selectedWorld == null)
+        {
+            return;
+        }
+
+        var settings = _selectedWorld.EnvironmentSettings;
+        var currentValue = getter(settings);
+        if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
+        {
+            return;
+        }
+
+        ExecuteWorldCommand(
+            description,
+            () =>
+            {
+                setter(settings, newValue);
+                settings.MarkDirty();
+                RebuildPropertyEditors();
+            },
+            () =>
+            {
+                setter(settings, currentValue);
+                settings.MarkDirty();
+                RebuildPropertyEditors();
+            });
+    }
+
+    private MGGrid CreatePropertyGrid()
+    {
+        var grid = new MGGrid(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Top,
+            ColumnSpacing = 8,
+            RowSpacing = 6,
+        };
+
+        grid.AddColumn(GridLength.CreatePixelLength(160));
+        grid.AddColumn(GridLength.CreateWeightedLength(1));
+        return grid;
+    }
+
+    private int AddPropertyRow(MGGrid grid, int rowIndex, string label, MGElement editor)
+    {
+        grid.AddRow(GridLength.Auto);
+        grid.TryAddChild(rowIndex, 0, new MGTextBlock(_window, label)
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        editor.HorizontalAlignment = HorizontalAlignment.Stretch;
+        grid.TryAddChild(rowIndex, 1, editor);
+        return rowIndex + 1;
+    }
+
+    private MGComboBox<string> CreateStringCombo(IEnumerable<string> items, string? selectedItem, Action<string> onChanged)
+    {
+        var combo = new MGComboBox<string>(_window)
+        {
+            MinWidth = 140,
+        };
+
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(item);
+            return button;
+        };
+
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        var itemList = items.ToList();
+        combo.SetItemsSource(itemList);
+        combo.SelectedItem = selectedItem ?? itemList.FirstOrDefault();
+        combo.SelectedItemChanged += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.NewValue))
+            {
+                onChanged(e.NewValue);
+            }
+        };
+        return combo;
     }
 
     private void ShowAddComponentDialog()
@@ -673,7 +868,7 @@ public sealed class EntityDetailsPanel
 
         if (_selectedEntity == null)
         {
-            _componentSummaryText.SetText(_selectedWorld != null ? "World selected" : "No entity selected");
+            _componentSummaryText.SetText(_selectedWorld != null ? "World settings" : "No entity selected");
             return;
         }
 

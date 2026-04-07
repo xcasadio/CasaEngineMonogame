@@ -396,7 +396,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-017 — Ajouter un inspecteur des parametres d'environnement du world
+### ✅ ENV-017 — Ajouter un inspecteur des parametres d'environnement du world
 Objectif:
 quand le world est selectionne, afficher et editer les parametres utiles de l'environnement V1.
 
