@@ -76,7 +76,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `feat(import): add default neutral legacy import profile`
 
-- ⏳ **T01.04 — Brancher le profil optionnel dans la voie d'import moteur**
+- ✅ **T01.04 — Brancher le profil optionnel dans la voie d'import moteur**
   Objectif :
   - Faire accepter un profil optionnel par `EditorAssetImportService` et les autres entrees de la chaine d'import concernee.
   - Garder une surcharge simple ou un bootstrap par defaut pour les appels existants.

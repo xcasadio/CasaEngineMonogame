@@ -13,7 +13,10 @@ namespace CasaEngine.EditorServices;
 
 public static class EditorAssetImportService
 {
-    public static bool ImportFile(string sourceFilePath, string destinationFilePath)
+    public static bool ImportFile(
+        string sourceFilePath,
+        string destinationFilePath,
+        ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceFilePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
@@ -26,7 +29,7 @@ public static class EditorAssetImportService
             return catalogChanged;
         }
 
-        var result = importer.ImportWithMetadata(sourceFilePath);
+        var result = importer.ImportWithMetadata(sourceFilePath, legacyMaterialImportProfile);
         var model = result.Model;
         if (model.RootNode == null && model.Meshes.Count == 0)
         {

@@ -2,6 +2,7 @@ using CasaEngine.EditorServices;
 using CasaEngine.Engine;
 using CasaEngine.Framework;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Materials;
 using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
@@ -158,6 +159,46 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_PassesOptionalLegacyImportProfileToImporter()
+    {
+        string workspaceRoot = FindWorkspaceRoot();
+        string sourceFilePath = Path.Combine(workspaceRoot, "RacingGame", "Content", "Models", "Sign.X");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string tempDirectory = CreateTempDirectory();
+        string destinationFilePath = Path.Combine(tempDirectory, "Sign.X");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            bool catalogChanged = EditorAssetImportService.ImportFile(
+                sourceFilePath,
+                destinationFilePath,
+                new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                    LegacyMaterialSurfaceIntent.AlphaCutoutLit,
+                    LegacyMaterialImportHint.AlphaCutout)));
+
+            Assert.True(catalogChanged);
+
+            MaterialAsset material = Assert.Single(LoadImportedMaterials(tempDirectory, "Sign_Imported"));
+            Assert.Equal(RenderQueue.AlphaTest, material.Queue);
+            Assert.Equal("CullNone", material.RasterizerStateName);
+            Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
+            Assert.True(ambientValue.TryGetVector3(out var ambientColor));
+            Assert.InRange(ambientColor.X, 0.30f, 0.35f);
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     private static string CreateTempDirectory()
     {
         string directory = Path.Combine(Path.GetTempPath(), "CasaEngineMonogame", Guid.NewGuid().ToString("N"));
@@ -208,5 +249,18 @@ public class EditorAssetImportServiceTests
                 return material;
             })
             .ToArray();
+    }
+
+    private sealed class StubLegacyImportProfile : ILegacyMaterialImportProfile
+    {
+        private readonly LegacyMaterialImportInterpretation _interpretation;
+
+        public StubLegacyImportProfile(LegacyMaterialImportInterpretation interpretation)
+        {
+            _interpretation = interpretation;
+        }
+
+        public LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context)
+            => _interpretation;
     }
 }

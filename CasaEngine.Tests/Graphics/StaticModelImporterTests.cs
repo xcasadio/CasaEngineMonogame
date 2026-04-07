@@ -58,6 +58,25 @@ public class StaticModelImporterTests
         Assert.Contains(texturePaths, path => string.Equals(Path.GetFileName(path), "SkyCubeMap.dds", StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public void ImportWithMetadata_AppliesOptionalLegacyImportProfileInterpretation()
+    {
+        var importer = new StaticModelImporter();
+        string modelPath = Path.Combine(FindWorkspaceRoot(), "RacingGame", "Content", "Models", "Sign.X");
+
+        var result = importer.ImportWithMetadata(
+            modelPath,
+            new StubLegacyImportProfile(new LegacyMaterialImportInterpretation(
+                LegacyMaterialSurfaceIntent.AlphaCutoutLit,
+                LegacyMaterialImportHint.AlphaCutout)));
+
+        StaticModelImportedMaterial signMaterial = FindMaterialByDiffuseTexture(result.Materials, "Schild.tga");
+        Assert.Equal(LegacyMaterialSurfaceIntent.AlphaCutoutLit, signMaterial.SurfaceIntent);
+        Assert.True(signMaterial.AlphaCutoutHint);
+        Assert.False(signMaterial.BrightAmbientHint);
+        Assert.True(signMaterial.UsesReflection);
+    }
+
     private static StaticModelImportedMaterial FindMaterialByDiffuseTexture(
         IReadOnlyList<StaticModelImportedMaterial> materials,
         string textureFileName)
@@ -107,5 +126,18 @@ public class StaticModelImporterTests
         }
 
         return workspaceRoot;
+    }
+
+    private sealed class StubLegacyImportProfile : ILegacyMaterialImportProfile
+    {
+        private readonly LegacyMaterialImportInterpretation _interpretation;
+
+        public StubLegacyImportProfile(LegacyMaterialImportInterpretation interpretation)
+        {
+            _interpretation = interpretation;
+        }
+
+        public LegacyMaterialImportInterpretation Interpret(in LegacyMaterialImportContext context)
+            => _interpretation;
     }
 }

@@ -45,7 +45,7 @@ public class StaticModelImporter
         _assimpContext.GetSupportedImportFormats().Contains(
             Path.GetExtension(fileName).ToLower());
 
-    public StaticModelImportResult ImportWithMetadata(string filePath)
+    public StaticModelImportResult ImportWithMetadata(string filePath, ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
     {
         Scene scene;
         try
@@ -69,7 +69,11 @@ public class StaticModelImporter
             Name = Path.GetFileNameWithoutExtension(filePath),
         };
 
-        var importedMaterials = BuildMaterials(scene, filePath, ParseLegacyEffectInstances(filePath));
+        var importedMaterials = BuildMaterials(
+            scene,
+            filePath,
+            ParseLegacyEffectInstances(filePath),
+            legacyMaterialImportProfile ?? NeutralLegacyMaterialImportProfile.Instance);
 
         for (int i = 0; i < scene.Meshes.Count; i++)
         {
@@ -93,9 +97,9 @@ public class StaticModelImporter
     /// <see cref="StaticModel"/>.  Call
     /// <see cref="StaticModel.Initialize"/> afterwards to upload GPU buffers.
     /// </summary>
-    public StaticModel Import(string filePath)
+    public StaticModel Import(string filePath, ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
     {
-        return ImportWithMetadata(filePath).Model;
+        return ImportWithMetadata(filePath, legacyMaterialImportProfile).Model;
     }
 
     /// <summary>
@@ -115,7 +119,11 @@ public class StaticModelImporter
             return Array.Empty<string>();
         }
 
-        foreach (var material in BuildMaterials(scene, filePath, ParseLegacyEffectInstances(filePath)))
+        foreach (var material in BuildMaterials(
+                 scene,
+                 filePath,
+                 ParseLegacyEffectInstances(filePath),
+                 NeutralLegacyMaterialImportProfile.Instance))
         {
             if (!string.IsNullOrWhiteSpace(material.DiffuseTextureFilePath) && !paths.Contains(material.DiffuseTextureFilePath))
             {
@@ -148,7 +156,8 @@ public class StaticModelImporter
     private static List<StaticModelImportedMaterial> BuildMaterials(
         Scene? scene,
         string filePath,
-        IReadOnlyDictionary<string, LegacyEffectInstance> legacyEffectsByMaterial)
+        IReadOnlyDictionary<string, LegacyEffectInstance> legacyEffectsByMaterial,
+        ILegacyMaterialImportProfile legacyMaterialImportProfile)
     {
         var result = new List<StaticModelImportedMaterial>();
         if (scene == null)
@@ -186,7 +195,7 @@ public class StaticModelImporter
                 ApplyLegacyEffectMetadata(importedMaterial, effectInstance, filePath);
             }
 
-            ApplyLegacyImportHints(importedMaterial, filePath);
+            ApplyLegacyImportProfile(importedMaterial, filePath, legacyMaterialImportProfile);
 
             result.Add(importedMaterial);
         }
@@ -382,6 +391,26 @@ public class StaticModelImporter
         }
 
         importedMaterial.UsesReflection = UsesReflectionTechnique(importedMaterial.EffectFilePath, importedMaterial.LegacyTechniqueIndex);
+    }
+
+    private static void ApplyLegacyImportProfile(
+        StaticModelImportedMaterial importedMaterial,
+        string modelFilePath,
+        ILegacyMaterialImportProfile legacyMaterialImportProfile)
+    {
+        // Keep the current importer behavior until the RacingGame profile fully owns these rules.
+        ApplyLegacyImportHints(importedMaterial, modelFilePath);
+
+        string modelName = Path.GetFileNameWithoutExtension(modelFilePath);
+        var interpretation = legacyMaterialImportProfile.Interpret(new LegacyMaterialImportContext(
+            SourceAssetPath: modelFilePath,
+            SourceAssetName: modelName,
+            ImportedMaterial: importedMaterial));
+
+        importedMaterial.SurfaceIntent = interpretation.SurfaceIntent;
+        importedMaterial.AlphaCutoutHint = interpretation.AlphaCutout;
+        importedMaterial.BrightAmbientHint = interpretation.BrightAmbient;
+        importedMaterial.UsesReflection |= interpretation.Reflection;
     }
 
     // Legacy .X assets do not expose explicit cutout/signage flags, so import-time hints
@@ -892,6 +921,8 @@ public sealed class StaticModelImportedMaterial
     public string? EffectFilePath { get; set; }
 
     public int LegacyTechniqueIndex { get; set; } = -1;
+
+    public LegacyMaterialSurfaceIntent SurfaceIntent { get; set; } = LegacyMaterialSurfaceIntent.OpaqueLit;
 
     public bool UsesReflection { get; set; }
 
