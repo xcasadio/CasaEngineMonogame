@@ -8,6 +8,17 @@ namespace CasaEngine.Framework.Materials;
 
 public sealed class MaterialCompiler
 {
+    public delegate MaterialBase RuntimeMaterialFactory(
+        MaterialAsset materialAsset,
+        MaterialDefinition definition,
+        IReadOnlyDictionary<string, MaterialValue> effectiveValues,
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        AssetContentManager assetContentManager);
+
+    private static readonly object RuntimeMaterialFactoryLock = new();
+    private static readonly Dictionary<string, RuntimeMaterialFactory> RuntimeMaterialFactories =
+        CreateRuntimeMaterialFactories();
+
     public CompiledMaterial Compile(MaterialAsset materialAsset, AssetContentManager assetContentManager)
         => CompileBoth(materialAsset, assetContentManager).CompiledMaterial;
 
@@ -44,6 +55,33 @@ public sealed class MaterialCompiler
             receiveShadows: runtimeMaterial.ReceiveShadows);
 
         return (compiledMaterial, runtimeMaterial);
+    }
+
+    public static IDisposable RegisterRuntimeMaterialFactory(string definitionId, RuntimeMaterialFactory factory)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(definitionId);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        lock (RuntimeMaterialFactoryLock)
+        {
+            RuntimeMaterialFactories.TryGetValue(definitionId, out var previousFactory);
+            RuntimeMaterialFactories[definitionId] = factory;
+
+            return new ScopedRegistration(() =>
+            {
+                lock (RuntimeMaterialFactoryLock)
+                {
+                    if (previousFactory is null)
+                    {
+                        RuntimeMaterialFactories.Remove(definitionId);
+                    }
+                    else
+                    {
+                        RuntimeMaterialFactories[definitionId] = previousFactory;
+                    }
+                }
+            });
+        }
     }
 
     private static IReadOnlyDictionary<string, MaterialValue> BuildEffectiveValues(
@@ -143,23 +181,37 @@ public sealed class MaterialCompiler
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
         IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
         AssetContentManager assetContentManager)
-        => definition.Id switch
+    {
+        RuntimeMaterialFactory factory;
+        lock (RuntimeMaterialFactoryLock)
         {
-            "lit-diffuse" => CreateLitDiffuseMaterial(materialAsset, effectiveValues, resolvedTextures, assetContentManager),
-            "unlit-texture" => CreateUnlitTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
-            "legacy-multi-texture" => CreateLegacyMultiTextureMaterial(materialAsset, effectiveValues, resolvedTextures),
-            _ => throw new NotSupportedException(
-                $"Material compiler does not support material definition '{definition.Id}' yet."),
+            if (!RuntimeMaterialFactories.TryGetValue(definition.Id, out factory!))
+            {
+                throw new NotSupportedException(
+                    $"Material compiler does not support material definition '{definition.Id}' yet.");
+            }
+        }
+
+        return factory(materialAsset, definition, effectiveValues, resolvedTextures, assetContentManager);
+    }
+
+    private static Dictionary<string, RuntimeMaterialFactory> CreateRuntimeMaterialFactories()
+        => new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["lit-diffuse"] = CreateLitDiffuseMaterial,
+            ["unlit-texture"] = CreateUnlitTextureMaterial,
+            ["legacy-multi-texture"] = CreateLegacyMultiTextureMaterial,
         };
 
     private static MaterialBase CreateLitDiffuseMaterial(
         MaterialAsset materialAsset,
+        MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
         IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
         AssetContentManager assetContentManager)
     {
         var material = new LitDiffuseMaterial();
-        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("lit-diffuse"), effectiveValues);
+        ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
 
         material.BasColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.BasColor = resolvedTextures["base_color_texture"];
@@ -179,11 +231,13 @@ public sealed class MaterialCompiler
 
     private static UnlitTextureMaterial CreateUnlitTextureMaterial(
         MaterialAsset materialAsset,
+        MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        AssetContentManager assetContentManager)
     {
         var material = new UnlitTextureMaterial();
-        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("unlit-texture"), effectiveValues);
+        ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
 
         material.BasColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.BasColor = resolvedTextures["base_color_texture"];
@@ -196,11 +250,13 @@ public sealed class MaterialCompiler
 
     private static Material CreateLegacyMultiTextureMaterial(
         MaterialAsset materialAsset,
+        MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures)
+        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        AssetContentManager assetContentManager)
     {
         var material = new Material();
-        ApplyCommonSettings(materialAsset, material, MaterialDefinitionRegistry.GetRequiredById("legacy-multi-texture"), effectiveValues);
+        ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
 
         material.TextureBaseColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
         material.TextureBaseColor = WrapTexture(resolvedTextures["base_color_texture"]);

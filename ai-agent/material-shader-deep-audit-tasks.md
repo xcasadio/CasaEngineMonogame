@@ -165,7 +165,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `feat(materials): add stable capability contract for shader resolution`
 
-- ⏳ **T02.03 - Remplacer les switches sur `definition.Id` par des services extensibles**
+- ✅ **T02.03 - Remplacer les switches sur `definition.Id` par des services extensibles**
   Objectif :
   - Rendre `MaterialCompiler` extensible par definition au lieu de centraliser un `switch` global.
   - Faire de meme pour `MaterialInstancePropertyBlockMapper` afin que les overrides par definition soient enregistrables sans modifier le coeur du moteur.

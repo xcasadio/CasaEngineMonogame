@@ -182,4 +182,24 @@ public class MaterialCompilerTests
         Assert.Equal(baseColorTextureId, legacyMaterial.TextureBaseColorAssetId);
         Assert.Equal(reflectionTextureId, legacyMaterial.TextureReflectionAssetId);
     }
+
+    [Fact]
+    public void Compile_UsesRegisteredRuntimeMaterialFactory_ForBuiltInDefinition()
+    {
+        var customShaderId = Guid.NewGuid();
+        var materialAsset = new MaterialAsset("lit-diffuse");
+
+        using var registration = MaterialCompiler.RegisterRuntimeMaterialFactory(
+            "lit-diffuse",
+            (asset, definition, effectiveValues, resolvedTextures, assetContentManager) => new LitDiffuseMaterial
+            {
+                Id = asset.Id,
+                Name = asset.Name,
+                ShaderAssetId = customShaderId,
+            });
+
+        var compiledMaterial = new MaterialCompiler().Compile(materialAsset, new AssetContentManager());
+
+        Assert.Equal(customShaderId, compiledMaterial.EffectiveShader.ShaderId);
+    }
 }

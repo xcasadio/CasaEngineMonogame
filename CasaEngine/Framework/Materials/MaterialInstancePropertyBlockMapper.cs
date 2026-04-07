@@ -13,6 +13,16 @@ namespace CasaEngine.Framework.Materials;
 /// </summary>
 public static class MaterialInstancePropertyBlockMapper
 {
+    public delegate void OverrideMapper(
+        MaterialPropertyBlock propertyBlock,
+        MaterialAsset materialAsset,
+        MaterialDefinition definition,
+        MaterialInstanceData materialInstanceData,
+        Func<Guid, MaterialAsset?>? parentResolver);
+
+    private static readonly object OverrideMapperLock = new();
+    private static readonly Dictionary<string, OverrideMapper> OverrideMappers = CreateOverrideMappers();
+
     public static MaterialPropertyBlock Create(
         MaterialAsset materialAsset,
         MaterialInstanceData materialInstanceData,
@@ -40,17 +50,52 @@ public static class MaterialInstancePropertyBlockMapper
         }
 
         var definition = materialAsset.GetRequiredDefinition();
-        switch (definition.Id)
+        OverrideMapper mapper;
+        lock (OverrideMapperLock)
         {
-            case "lit-diffuse":
-                ApplyLitDiffuseOverrides(propertyBlock, definition, materialInstanceData);
-                break;
+            if (!OverrideMappers.TryGetValue(definition.Id, out mapper!))
+            {
+                return;
+            }
+        }
 
-            case "unlit-texture":
-                ApplyUnlitTextureOverrides(propertyBlock, materialAsset, definition, materialInstanceData, parentResolver);
-                break;
+        mapper(propertyBlock, materialAsset, definition, materialInstanceData, parentResolver);
+    }
+
+    public static IDisposable RegisterOverrideMapper(string definitionId, OverrideMapper mapper)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(definitionId);
+        ArgumentNullException.ThrowIfNull(mapper);
+
+        lock (OverrideMapperLock)
+        {
+            OverrideMappers.TryGetValue(definitionId, out var previousMapper);
+            OverrideMappers[definitionId] = mapper;
+
+            return new ScopedRegistration(() =>
+            {
+                lock (OverrideMapperLock)
+                {
+                    if (previousMapper is null)
+                    {
+                        OverrideMappers.Remove(definitionId);
+                    }
+                    else
+                    {
+                        OverrideMappers[definitionId] = previousMapper;
+                    }
+                }
+            });
         }
     }
+
+    private static Dictionary<string, OverrideMapper> CreateOverrideMappers()
+        => new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["lit-diffuse"] = static (propertyBlock, materialAsset, definition, materialInstanceData, parentResolver)
+                => ApplyLitDiffuseOverrides(propertyBlock, definition, materialInstanceData),
+            ["unlit-texture"] = ApplyUnlitTextureOverrides,
+        };
 
     private static void ApplyLitDiffuseOverrides(
         MaterialPropertyBlock propertyBlock,

@@ -83,4 +83,24 @@ public class MaterialInstancePropertyBlockMapperTests
 
         Assert.True(propertyBlock.IsEmpty);
     }
+
+    [Fact]
+    public void Create_UsesRegisteredOverrideMapper_ForBuiltInDefinition()
+    {
+        var materialAsset = new MaterialAsset("lit-diffuse");
+        var materialInstanceData = new MaterialInstanceData();
+        materialInstanceData.SetPropertyOverride("diffuse_color", MaterialValue.FromColor(Color.White));
+
+        using var registration = MaterialInstancePropertyBlockMapper.RegisterOverrideMapper(
+            "lit-diffuse",
+            static (propertyBlock, materialAsset, definition, materialInstanceData, parentResolver) =>
+            {
+                propertyBlock.SetFloat(ShaderParameterNames.Alpha, 0.75f);
+            });
+
+        var propertyBlock = MaterialInstancePropertyBlockMapper.Create(materialAsset, materialInstanceData);
+
+        Assert.True(propertyBlock.TryGetFloat(ShaderParameterNames.Alpha, out var alpha));
+        Assert.Equal(0.75f, alpha);
+    }
 }
