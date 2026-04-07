@@ -462,7 +462,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-020 — Ajouter une demo ou etendre une demo existante
+### ✅ ENV-020 — Ajouter une demo ou etendre une demo existante
 Objectif:
 fournir un cas visible qui prouve la separation entre fond visuel et lighting d'environnement.
 
