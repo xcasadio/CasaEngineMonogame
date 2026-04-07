@@ -138,7 +138,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 2 - Corrections structurelles prioritaires
 
-- ⏳ **T02.01 - Ajouter un test de regression puis corriger le cache de variantes shader**
+- ✅ **T02.01 - Ajouter un test de regression puis corriger le cache de variantes shader**
   Objectif :
   - Ajouter un test qui prouve qu'un meme `ShaderWrapper` partage entre plusieurs `ShaderVariantKey` ne reutilise pas une technique stale lors d'un cache hit.
   - Corriger `ShaderVariantLibrary` pour que la technique demandee soit reappliquee de maniere deterministe, y compris sur cache hit.

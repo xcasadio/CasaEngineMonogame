@@ -91,32 +91,53 @@ public sealed class ShaderVariantLibrary
     /// Returns null when the base shader itself is unavailable.
     /// </summary>
     public ShaderWrapper? Get(ShaderVariantKey key)
+        => GetOrResolve(
+            key,
+            _resolved,
+            ResolveShader,
+            (shader, resolvedKey) => ApplyTechnique(shader, resolvedKey.ShaderBaseId, resolvedKey.Features));
+
+    internal static TShader? GetOrResolve<TShader>(
+        ShaderVariantKey key,
+        IDictionary<ShaderVariantKey, TShader?> resolved,
+        Func<ShaderVariantKey, TShader?> resolveShader,
+        Action<TShader, ShaderVariantKey> applySelection)
+        where TShader : class
     {
-        if (_resolved.TryGetValue(key, out var cached))
+        if (resolved.TryGetValue(key, out var cached))
         {
+            if (cached is not null)
+            {
+                applySelection(cached, key);
+            }
+
             return cached;
         }
 
+        var result = resolveShader(key);
+        if (result is not null)
+        {
+            applySelection(result, key);
+        }
+
+        resolved[key] = result;
+        return result;
+    }
+
+    private ShaderWrapper? ResolveShader(ShaderVariantKey key)
+    {
         ShaderWrapper? result = null;
 
         // 1. Try explicit variant asset
         if (_variantAssets.TryGetValue(key, out var variantId))
         {
             result = _shaderManager.GetShader(variantId);
-            if (result is not null)
-            {
-                ApplyTechnique(result, key.ShaderBaseId, key.Features);
-            }
         }
 
         // 2. Try base shader + technique selection
         if (result is null && key.ShaderBaseId != Guid.Empty)
         {
             result = _shaderManager.GetShader(key.ShaderBaseId);
-            if (result is not null)
-            {
-                ApplyTechnique(result, key.ShaderBaseId, key.Features);
-            }
         }
 
         if (result is null)
@@ -125,7 +146,6 @@ public sealed class ShaderVariantLibrary
                 $"ShaderVariantLibrary: no shader found for variant {key}.");
         }
 
-        _resolved[key] = result;
         return result;
     }
 
