@@ -268,8 +268,6 @@ public class MaterialRuntimeResolverTests
         Assert.True(loaded);
         Assert.Equal(27.5f, Assert.IsType<LitDiffuseMaterial>(runtimeMaterial).SpecularPower);
     }
-
-    [Fact]
     private static AssetContentManager CreateAssetContentManager(EngineRuntimeContext? runtimeContext = null)
     {
         var assetContentManager = new AssetContentManager();

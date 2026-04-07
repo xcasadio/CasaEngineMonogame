@@ -28,38 +28,41 @@ public class LitDiffuseMaterial : MaterialBase
     public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
 
-    public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
+    internal static string GetTechniqueName(ShaderFeature features, bool oneLight)
     {
         bool hasBasColor = (features & ShaderFeature.BasColorTexture) != 0;
         bool hasNormalMap = hasBasColor && (features & ShaderFeature.NormalMap) != 0;
         bool hasReflection = (features & ShaderFeature.Reflection) != 0;
-        var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
 
         if (hasReflection)
         {
-            shader.SelectTechnique((hasBasColor, hasNormalMap) switch
+            return (hasBasColor, hasNormalMap) switch
             {
                 (true, true) => "BasicEffect_PixelLighting_Texture_NormalMap_Reflection",
                 (true, false) => "BasicEffect_PixelLighting_Texture_Reflection",
                 _ => "BasicEffect_PixelLighting_Reflection",
-            });
-            return;
+            };
         }
 
         if (hasNormalMap)
         {
-            shader.SelectTechnique("BasicEffect_PixelLighting_Texture_NormalMap");
+            return "BasicEffect_PixelLighting_Texture_NormalMap";
         }
-        else
+
+        return (hasBasColor, oneLight) switch
         {
-            shader.SelectTechnique((hasBasColor, oneLight) switch
-            {
-                (true, true)   => "BasicEffect_PixelLighting_OneLight_Texture",
-                (true, false)  => "BasicEffect_PixelLighting_Texture",
-                (false, true)  => "BasicEffect_PixelLighting_OneLight",
-                (false, false) => "BasicEffect_PixelLighting",
-            });
-        }
+            (true, true) => "BasicEffect_PixelLighting_OneLight_Texture",
+            (true, false) => "BasicEffect_PixelLighting_Texture",
+            (false, true) => "BasicEffect_PixelLighting_OneLight",
+            _ => "BasicEffect_PixelLighting",
+        };
+    }
+
+    public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
+    {
+        var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
+
+        shader.SelectTechnique(GetTechniqueName(features, oneLight));
     }
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)

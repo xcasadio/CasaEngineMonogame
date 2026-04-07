@@ -263,7 +263,7 @@ Le travail de l'agent doit couvrir trois axes :
 
 ### Phase 5 - Audit et modernisation des effects
 
-- ⏳ **T05.01 - Verifier systematiquement les permutations des shaders materials**
+- ✅ **T05.01 - Verifier systematiquement les permutations des shaders materials**
   Objectif :
   - Verifier que les techniques demandees par `LitDiffuseMaterial`, `UnlitTextureMaterial`, le resolver de variantes et les renderers existent bien dans `basicEffect.fx`, `UnlitTexture.fx` et `skinEffect.fx`.
   - Ajouter des tests ou une validation de chargement pour eviter les regressions silencieuses.

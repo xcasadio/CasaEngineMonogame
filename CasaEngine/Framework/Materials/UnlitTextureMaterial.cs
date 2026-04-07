@@ -24,17 +24,24 @@ public class UnlitTextureMaterial : MaterialBase
     /// <summary>Overall opacity (0 = fully transparent, 1 = opaque).</summary>
     public float Alpha { get; set; } = 1.0f;
 
+    internal static string GetPrimaryTechniqueName(bool hasBasColor)
+        => hasBasColor ? "Unlit_Textured" : "Unlit_Colored";
+
+    internal static string GetFallbackTechniqueName(bool hasBasColor)
+        => hasBasColor ? "BasicEffect_Texture" : "BasicEffect";
+
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {
         bool hasBasColor = BasColor != null;
+        string techniqueName = GetPrimaryTechniqueName(hasBasColor);
 
-        if (shader.HasTechnique(hasBasColor ? "Unlit_Textured" : "Unlit_Colored"))
+        if (shader.HasTechnique(techniqueName))
         {
-            shader.SelectTechnique(hasBasColor ? "Unlit_Textured" : "Unlit_Colored");
+            shader.SelectTechnique(techniqueName);
             return;
         }
 
-        shader.SelectTechnique(hasBasColor ? "BasicEffect_Texture" : "BasicEffect");
+        shader.SelectTechnique(GetFallbackTechniqueName(hasBasColor));
     }
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
