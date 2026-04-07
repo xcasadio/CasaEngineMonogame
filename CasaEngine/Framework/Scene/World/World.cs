@@ -7,6 +7,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
@@ -37,6 +38,7 @@ public sealed class World : ObjectBase
     public GameMode GameMode { get; private set; }
     public int UpdateSequence { get; private set; }
     public WorldSpatialServices SpatialServices { get; }
+    public WorldEnvironmentSettings EnvironmentSettings { get; } = new();
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
 
@@ -451,6 +453,7 @@ public sealed class World : ObjectBase
     {
         ClearEntities(true);
         base.Load(element);
+        EnvironmentSettings.ResetToDefaults();
 
         foreach (var entityReferenceNode in element["entity_references"])
         {
@@ -464,6 +467,11 @@ public sealed class World : ObjectBase
         if (element.ContainsKey("game_mode_asset_id"))
         {
             GameModeAssetId = element["game_mode_asset_id"].GetGuid();
+        }
+
+        if (element["environment"] is JObject environmentNode)
+        {
+            EnvironmentSettings.Load(environmentNode);
         }
     }
 

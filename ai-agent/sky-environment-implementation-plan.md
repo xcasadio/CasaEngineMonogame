@@ -98,7 +98,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-002 — Attacher l'environnement au world
+### ✅ ENV-002 — Attacher l'environnement au world
 Objectif:
 faire du world la source de verite du systeme d'environnement global.
 
@@ -110,6 +110,9 @@ Criteres d'acceptation:
 - `World` expose une instance d'environnement globale
 - le cycle de vie est clair: creation, reset, nettoyage
 - aucun changement visible de rendu tant qu'aucun environnement explicite n'est configure
+
+Validation:
+- `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
 
 Commit conseille:
 `feat(rendering): attach environment settings to world`

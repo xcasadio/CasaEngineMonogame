@@ -1,4 +1,6 @@
+using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json.Linq;
 using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Rendering.Environment;
@@ -33,6 +35,68 @@ public sealed class WorldEnvironmentSettings
     public bool IsDirty { get; private set; }
 
     public int Version => _version;
+
+    public void ResetToDefaults()
+    {
+        Type = EnvironmentType.None;
+        BackgroundMode = EnvironmentBackgroundMode.LegacyClearColor;
+        BackgroundColor = Color.CornflowerBlue;
+        EnvironmentAssetId = Guid.Empty;
+        BackgroundCubemapAssetId = Guid.Empty;
+        BackgroundCubemap = null;
+        SpecularEnvironmentCubemap = null;
+        AmbientColor = new Vector3(0.2f, 0.2f, 0.2f);
+        AmbientIntensity = 1.0f;
+        SpecularIntensity = 1.0f;
+        IsDirty = false;
+    }
+
+    public void Load(JObject element)
+    {
+        ArgumentNullException.ThrowIfNull(element);
+
+        ResetToDefaults();
+
+        if (element.TryGetValue("type", StringComparison.OrdinalIgnoreCase, out var typeNode))
+        {
+            Type = typeNode.GetEnum<EnvironmentType>();
+        }
+
+        if (element.TryGetValue("background_mode", StringComparison.OrdinalIgnoreCase, out var backgroundModeNode))
+        {
+            BackgroundMode = backgroundModeNode.GetEnum<EnvironmentBackgroundMode>();
+        }
+
+        if (element.TryGetValue("background_color", StringComparison.OrdinalIgnoreCase, out var backgroundColorNode))
+        {
+            BackgroundColor = backgroundColorNode.GetColor();
+        }
+
+        if (element.TryGetValue("environment_asset_id", StringComparison.OrdinalIgnoreCase, out var environmentAssetIdNode))
+        {
+            EnvironmentAssetId = environmentAssetIdNode.GetGuid();
+        }
+
+        if (element.TryGetValue("background_cubemap_asset_id", StringComparison.OrdinalIgnoreCase, out var backgroundCubemapAssetIdNode))
+        {
+            BackgroundCubemapAssetId = backgroundCubemapAssetIdNode.GetGuid();
+        }
+
+        if (element.TryGetValue("ambient_color", StringComparison.OrdinalIgnoreCase, out var ambientColorNode))
+        {
+            AmbientColor = ambientColorNode.GetVector3();
+        }
+
+        if (element.TryGetValue("ambient_intensity", StringComparison.OrdinalIgnoreCase, out var ambientIntensityNode))
+        {
+            AmbientIntensity = ambientIntensityNode.GetSingle();
+        }
+
+        if (element.TryGetValue("specular_intensity", StringComparison.OrdinalIgnoreCase, out var specularIntensityNode))
+        {
+            SpecularIntensity = specularIntensityNode.GetSingle();
+        }
+    }
 
     public void MarkDirty()
     {
@@ -76,5 +140,13 @@ public sealed class WorldEnvironmentSettings
         AmbientColor = other.AmbientColor;
         AmbientIntensity = other.AmbientIntensity;
         SpecularIntensity = other.SpecularIntensity;
+        if (other.IsDirty)
+        {
+            MarkDirty();
+        }
+        else
+        {
+            MarkClean();
+        }
     }
 }
