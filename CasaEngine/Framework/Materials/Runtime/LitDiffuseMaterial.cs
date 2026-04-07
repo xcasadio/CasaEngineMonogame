@@ -26,11 +26,13 @@ public class LitDiffuseMaterial : MaterialBase
     public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
 
-    internal static string GetTechniqueName(ShaderFeature features, bool oneLight)
+    private static bool HasReflection(in RenderContext context, ShaderFeature features)
+        => (features & ShaderFeature.Reflection) != 0 || context.Environment.SpecularEnvironmentCubemap is not null;
+
+    internal static string GetTechniqueName(ShaderFeature features, bool oneLight, bool hasReflection)
     {
         bool hasBasColor = (features & ShaderFeature.BasColorTexture) != 0;
         bool hasNormalMap = hasBasColor && (features & ShaderFeature.NormalMap) != 0;
-        bool hasReflection = (features & ShaderFeature.Reflection) != 0;
         bool hasVertexColor = (features & ShaderFeature.VertexColor) != 0;
 
         if (hasReflection)
@@ -69,7 +71,7 @@ public class LitDiffuseMaterial : MaterialBase
             return true;
         }
 
-        if ((features & (ShaderFeature.NormalMap | ShaderFeature.Reflection)) != 0)
+        if ((features & ShaderFeature.NormalMap) != 0 || HasReflection(in context, features))
         {
             return true;
         }
@@ -80,8 +82,9 @@ public class LitDiffuseMaterial : MaterialBase
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {
         var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
+        var hasReflection = HasReflection(in context, features);
 
-        shader.SelectTechnique(GetTechniqueName(features, oneLight));
+        shader.SelectTechnique(GetTechniqueName(features, oneLight, hasReflection));
     }
 
     public override void Bind(ShaderWrapper shader, in RenderContext context, Matrix world)
@@ -100,6 +103,7 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
+        shader.SetParameter(ShaderParameterNames.HasMaterialReflectionCube, ReflectionCube is not null ? 1.0f : 0.0f);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
         shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, ReflectionCube, context.Stats);
 

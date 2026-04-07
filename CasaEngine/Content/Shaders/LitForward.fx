@@ -103,7 +103,10 @@ float3 ComputeDirectDiffuse(ColorPair lightResult)
 float3 ComputeReflectionContribution(float3 eyeVector, float3 worldNormal)
 {
     float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
-    return SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb * saturate(SpecularColor);
+    float3 reflectionColor = HasMaterialReflectionCube > 0.5f
+        ? SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb
+        : SampleEnvironmentReflection(reflectionVector);
+    return reflectionColor * saturate(SpecularColor);
 }
 
 

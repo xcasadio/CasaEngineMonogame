@@ -321,7 +321,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-013 — Implementer une premiere specular IBL globale
+### ✅ ENV-013 — Implementer une premiere specular IBL globale
 Objectif:
 remplacer la simple reflexion purement materiau par une source specular globale issue de l'environnement effectif.
 
