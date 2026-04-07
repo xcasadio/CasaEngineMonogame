@@ -241,7 +241,6 @@ public sealed class MaterialCompiler
         {
             ["lit-diffuse"] = CreateLitDiffuseMaterial,
             ["unlit-texture"] = CreateUnlitTextureMaterial,
-            ["legacy-multi-texture"] = CreateLegacyMultiTextureMaterial,
         };
 
     private static MaterialBase CreateLitDiffuseMaterial(
@@ -285,36 +284,6 @@ public sealed class MaterialCompiler
         material.Tint = GetColor(effectiveValues["tint_color"], "tint_color");
         material.Alpha = GetFloat(effectiveValues["alpha"], "alpha");
         material.AlphaCutoff = GetFloat(effectiveValues["alpha_cutoff"], "alpha_cutoff");
-
-        return material;
-    }
-
-    private static Material CreateLegacyMultiTextureMaterial(
-        MaterialAsset materialAsset,
-        MaterialDefinition definition,
-        IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
-        AssetContentManager assetContentManager)
-    {
-        var material = new Material();
-        ApplyCommonSettings(materialAsset, material, definition, effectiveValues);
-
-        material.TextureBaseColorAssetId = GetTextureId(effectiveValues["base_color_texture"], "base_color_texture");
-        material.TextureBaseColor = WrapTexture(resolvedTextures["base_color_texture"]);
-        material.TextureOpacityAssetId = GetTextureId(effectiveValues["opacity_texture"], "opacity_texture");
-        material.TextureOpacityColor = WrapTexture(resolvedTextures["opacity_texture"]);
-        material.TextureNormalAssetId = GetTextureId(effectiveValues["normal_texture"], "normal_texture");
-        material.TextureNormal = WrapTexture(resolvedTextures["normal_texture"]);
-        material.TextureSpecularAssetId = GetTextureId(effectiveValues["specular_texture"], "specular_texture");
-        material.TextureSpecular = WrapTexture(resolvedTextures["specular_texture"]);
-        material.TextureRoughnessAssetId = GetTextureId(effectiveValues["roughness_texture"], "roughness_texture");
-        material.TextureRoughness = WrapTexture(resolvedTextures["roughness_texture"]);
-        material.TextureTangentAssetId = GetTextureId(effectiveValues["tangent_texture"], "tangent_texture");
-        material.TextureTangent = WrapTexture(resolvedTextures["tangent_texture"]);
-        material.TextureHeightAssetId = GetTextureId(effectiveValues["height_texture"], "height_texture");
-        material.TextureHeight = WrapTexture(resolvedTextures["height_texture"]);
-        material.TextureReflectionAssetId = GetTextureId(effectiveValues["reflection_texture"], "reflection_texture");
-        material.TextureReflection = WrapTexture(resolvedTextures["reflection_texture"]);
 
         return material;
     }
@@ -375,9 +344,6 @@ public sealed class MaterialCompiler
             return null;
         }
     }
-
-    private static Assets.Textures.Texture? WrapTexture(Texture2D? textureResource)
-        => textureResource is null ? null : new Assets.Textures.Texture(textureResource);
 
     private static bool IsTextureCubeProperty(MaterialPropertyDefinition propertyDefinition)
         => string.Equals(propertyDefinition.Key, "reflection_texture", StringComparison.OrdinalIgnoreCase)

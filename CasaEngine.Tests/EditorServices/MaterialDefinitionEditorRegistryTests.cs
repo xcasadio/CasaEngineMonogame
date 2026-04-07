@@ -83,32 +83,6 @@ public class MaterialDefinitionEditorRegistryTests
             });
     }
 
-    [Fact]
-    public void GetSections_LegacyMultiTextureDefinition_RoutesLegacySlotsToSemanticSections()
-    {
-        var registry = MaterialDefinitionEditorRegistry.Default;
-
-        var sections = registry.GetSections("legacy-multi-texture");
-
-        Assert.Collection(
-            sections,
-            surface =>
-            {
-                Assert.Equal("Surface", surface.Key);
-                Assert.Equal(new[] { "base_color_texture", "opacity_texture" }, GetKeys(surface));
-            },
-            normals =>
-            {
-                Assert.Equal("Normals", normals.Key);
-                Assert.Equal(new[] { "normal_texture", "tangent_texture", "height_texture" }, GetKeys(normals));
-            },
-            pbr =>
-            {
-                Assert.Equal("PBR", pbr.Key);
-                Assert.Equal(new[] { "specular_texture", "roughness_texture", "reflection_texture" }, GetKeys(pbr));
-            });
-    }
-
     private static MaterialPropertyDescriptor GetDescriptor(
         IReadOnlyList<MaterialPropertyDescriptor> descriptors,
         string key)

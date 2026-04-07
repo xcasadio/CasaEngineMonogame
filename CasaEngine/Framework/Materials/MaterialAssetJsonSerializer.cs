@@ -52,11 +52,6 @@ public static class MaterialAssetJsonSerializer
 
         if (node["definition_id"] is null)
         {
-            if (LegacyMaterialAssetAdapter.TryLoad(materialAsset, node))
-            {
-                return;
-            }
-
             throw new InvalidOperationException("Material asset is missing 'definition_id'.");
         }
 

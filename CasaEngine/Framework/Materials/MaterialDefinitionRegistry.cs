@@ -6,7 +6,6 @@ public static class MaterialDefinitionRegistry
     private static readonly List<MaterialDefinition> Definitions = new();
     private static readonly Dictionary<string, MaterialDefinition> DefinitionsById = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<Type, MaterialDefinition> DefinitionsByRuntimeType = new();
-    private static readonly Dictionary<string, MaterialDefinition> DefinitionsByLegacyType = new(StringComparer.OrdinalIgnoreCase);
     private static IReadOnlyList<MaterialDefinition> DefinitionsSnapshot = Array.Empty<MaterialDefinition>();
 
     static MaterialDefinitionRegistry()
@@ -89,16 +88,6 @@ public static class MaterialDefinitionRegistry
         }
     }
 
-    public static bool TryGetByLegacyTypeName(string typeName, out MaterialDefinition definition)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(typeName);
-
-        lock (Sync)
-        {
-            return DefinitionsByLegacyType.TryGetValue(typeName, out definition!);
-        }
-    }
-
     public static MaterialDefinition GetRequiredById(string id)
     {
         if (TryGetById(id, out var definition))
@@ -123,26 +112,8 @@ public static class MaterialDefinitionRegistry
                 $"Duplicate runtime material type '{definition.RuntimeMaterialType.FullName}' in material definition registry.");
         }
 
-        try
-        {
-            for (int i = 0; i < definition.LegacyTypeNames.Count; i++)
-            {
-                var legacyTypeName = definition.LegacyTypeNames[i];
-                if (!DefinitionsByLegacyType.TryAdd(legacyTypeName, definition))
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate legacy material type name '{legacyTypeName}' in material definition registry.");
-                }
-            }
-
-            Definitions.Add(definition);
-            DefinitionsSnapshot = Definitions.ToArray();
-        }
-        catch
-        {
-            RemoveDefinitionLookups(definition);
-            throw;
-        }
+        Definitions.Add(definition);
+        DefinitionsSnapshot = Definitions.ToArray();
     }
 
     private static void RemoveDefinition(MaterialDefinition definition)
@@ -156,15 +127,5 @@ public static class MaterialDefinitionRegistry
     {
         DefinitionsById.Remove(definition.Id);
         DefinitionsByRuntimeType.Remove(definition.RuntimeMaterialType);
-
-        for (int i = 0; i < definition.LegacyTypeNames.Count; i++)
-        {
-            var legacyTypeName = definition.LegacyTypeNames[i];
-            if (DefinitionsByLegacyType.TryGetValue(legacyTypeName, out var registeredDefinition)
-                && ReferenceEquals(registeredDefinition, definition))
-            {
-                DefinitionsByLegacyType.Remove(legacyTypeName);
-            }
-        }
     }
 }

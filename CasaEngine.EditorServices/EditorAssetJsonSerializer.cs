@@ -49,10 +49,6 @@ internal static class EditorAssetJsonSerializer
                 SaveUnlitTextureMaterial(unlitTextureMaterial, rootObject);
                 return true;
 
-            case Material material:
-                SaveMaterial(material, rootObject);
-                return true;
-
             case MaterialAsset materialAsset:
                 SaveMaterialAsset(materialAsset, rootObject);
                 return true;
@@ -411,20 +407,6 @@ internal static class EditorAssetJsonSerializer
         node["depth_stencil_state"] = materialBase.GetDepthStateName();
         node["rasterizer_state"] = materialBase.GetRasterizerStateName();
         node["sampler_state"] = materialBase.GetSamplerStateName();
-    }
-
-    private static void SaveMaterial(Material material, JObject node)
-    {
-        SaveMaterialBase(material, node);
-        node["type"] = nameof(Material);
-        node["texture_base_color_asset_id"] = material.TextureBaseColorAssetId;
-        node["texture_opacity_asset_id"] = material.TextureOpacityAssetId;
-        node["texture_normal_asset_id"] = material.TextureNormalAssetId;
-        node["texture_specular_asset_id"] = material.TextureSpecularAssetId;
-        node["texture_roughness_asset_id"] = material.TextureRoughnessAssetId;
-        node["texture_tangent_asset_id"] = material.TextureTangentAssetId;
-        node["texture_height_asset_id"] = material.TextureHeightAssetId;
-        node["texture_reflection_asset_id"] = material.TextureReflectionAssetId;
     }
 
     private static void SaveLitDiffuseMaterial(LitDiffuseMaterial material, JObject node)

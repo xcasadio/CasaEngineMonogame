@@ -250,7 +250,7 @@ Le travail de l'agent doit couvrir trois axes :
   Commit conseille :
   - `refactor(rendering): align skinned renderer with shared material and shader policies`
 
-- ⏳ **T04.02 - Supprimer les chemins legacy materials/shaders du runtime cible**
+- ✅ **T04.02 - Supprimer les chemins legacy materials/shaders du runtime cible**
   Objectif :
   - Migrer puis supprimer `Material` multi-texture, `MaterialLoader`, `LegacyMaterialAssetAdapter`, les doubles chargeurs `.material` et tout autre chemin runtime legacy encore actif.
   - Faire converger tout le pipeline vers `MaterialAsset` -> compilation -> runtime -> draw -> hot reload sans bifurcation historique.

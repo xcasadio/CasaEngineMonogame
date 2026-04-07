@@ -9,7 +9,6 @@ internal static class BuiltInMaterialDefinitions
         {
             CreateLitDiffuseDefinition(),
             CreateUnlitTextureDefinition(),
-            CreateLegacyMultiTextureDefinition(),
         };
 
     private static MaterialDefinition CreateLitDiffuseDefinition()
@@ -154,45 +153,4 @@ internal static class BuiltInMaterialDefinitions
                     step: 0.01f),
             });
 
-    private static MaterialDefinition CreateLegacyMultiTextureDefinition()
-        => new(
-            id: "legacy-multi-texture",
-            displayName: "Legacy Multi Texture",
-            runtimeMaterialType: typeof(Material),
-            description: "Legacy runtime material exposing the multi-texture slots already present in the engine.",
-            properties: new[]
-            {
-                CreateLegacyTextureProperty("base_color_texture", "Base Color", "texture_base_color_asset_id", affectsShaderCompilation: true),
-                CreateLegacyTextureProperty("opacity_texture", "Opacity", "texture_opacity_asset_id"),
-                CreateLegacyTextureProperty("normal_texture", "Normal", "texture_normal_asset_id", affectsShaderCompilation: true),
-                CreateLegacyTextureProperty("specular_texture", "Specular", "texture_specular_asset_id"),
-                CreateLegacyTextureProperty("roughness_texture", "Roughness", "texture_roughness_asset_id"),
-                CreateLegacyTextureProperty("tangent_texture", "Tangent", "texture_tangent_asset_id"),
-                CreateLegacyTextureProperty("height_texture", "Height", "texture_height_asset_id"),
-                CreateLegacyTextureProperty("reflection_texture", "Reflection", "texture_reflection_asset_id"),
-            });
-
-    private static MaterialPropertyDefinition CreateLegacyTextureProperty(
-        string key,
-        string displayName,
-        string legacyAlias,
-        bool affectsShaderCompilation = false)
-    {
-        var flags = MaterialPropertyFlags.AssetReference | MaterialPropertyFlags.SupportsOverrides;
-        if (affectsShaderCompilation)
-        {
-            flags |= MaterialPropertyFlags.AffectsShaderCompilation;
-        }
-
-        return new MaterialPropertyDefinition(
-            key: key,
-            displayName: displayName,
-            valueType: MaterialPropertyType.Texture,
-            group: MaterialPropertyGroup.Textures,
-            flags: flags,
-            defaultValue: Guid.Empty,
-            description: $"Legacy texture slot '{displayName}'.",
-            legacyAliases: new[] { legacyAlias },
-            assetKind: "texture");
-    }
 }

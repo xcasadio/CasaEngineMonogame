@@ -47,12 +47,10 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
-    public void TryLoadRuntimeMaterial_LegacyLitFile_LoadsAndCompilesCurrentRuntimeMaterial()
+    public void TryLoadRuntimeMaterial_LegacyFileWithoutDefinitionId_ReturnsFalse()
     {
         using var scope = new TestProjectScope();
         Guid materialAssetId = Guid.NewGuid();
-        Guid baseColorTextureId = Guid.NewGuid();
-        Guid reflectionTextureId = Guid.NewGuid();
         string relativeFileName = Path.Combine("Materials", "LegacyLit.material");
 
         var document = new JObject
@@ -69,35 +67,6 @@ public class MaterialRuntimeResolverTests
             ["depth_stencil_state"] = "Default",
             ["rasterizer_state"] = "CullCounterClockwise",
             ["sampler_state"] = "AnisotropicClamp",
-            ["BasColor_asset_id"] = baseColorTextureId.ToString(),
-            ["normal_map_asset_id"] = Guid.Empty.ToString(),
-            ["texture_reflection_asset_id"] = reflectionTextureId.ToString(),
-            ["diffuse_color"] = new JObject
-            {
-                ["r"] = 12,
-                ["g"] = 34,
-                ["b"] = 56,
-                ["a"] = 255,
-            },
-            ["ambient_color"] = new JObject
-            {
-                ["r"] = 0.15f,
-                ["g"] = 0.25f,
-                ["b"] = 0.35f,
-            },
-            ["emissive_color"] = new JObject
-            {
-                ["r"] = 0.1f,
-                ["g"] = 0.2f,
-                ["b"] = 0.3f,
-            },
-            ["specular_color"] = new JObject
-            {
-                ["r"] = 0.4f,
-                ["g"] = 0.5f,
-                ["b"] = 0.6f,
-            },
-            ["specular_power"] = 8.0f,
         };
 
         scope.WriteAsset(relativeFileName, materialAssetId, "Legacy Lit", document);
@@ -105,15 +74,8 @@ public class MaterialRuntimeResolverTests
         var assetContentManager = CreateAssetContentManager();
         bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var runtimeMaterial);
 
-        Assert.True(loaded);
-        var litMaterial = Assert.IsType<LitDiffuseMaterial>(runtimeMaterial);
-        Assert.Equal(baseColorTextureId, litMaterial.BasColorAssetId);
-        Assert.Equal(reflectionTextureId, litMaterial.ReflectionCubeAssetId);
-        Assert.Equal(new Color(12, 34, 56, 255), litMaterial.DiffuseColor);
-        Assert.Equal(new Vector3(0.15f, 0.25f, 0.35f), litMaterial.AmbientColor);
-        Assert.Equal(new Vector3(0.1f, 0.2f, 0.3f), litMaterial.EmissiveColor);
-        Assert.Equal(new Vector3(0.4f, 0.5f, 0.6f), litMaterial.SpecularColor);
-        Assert.Equal(8.0f, litMaterial.SpecularPower);
+        Assert.False(loaded);
+        Assert.Null(runtimeMaterial);
     }
 
     [Fact]
@@ -308,43 +270,6 @@ public class MaterialRuntimeResolverTests
     }
 
     [Fact]
-    public void TryLoadRuntimeMaterial_LegacyMultiTextureFile_PreservesLegacyTextureSlots()
-    {
-        using var scope = new TestProjectScope();
-        Guid materialAssetId = Guid.NewGuid();
-        Guid baseColorTextureId = Guid.NewGuid();
-        Guid reflectionTextureId = Guid.NewGuid();
-        string relativeFileName = Path.Combine("Materials", "LegacyMulti.material");
-
-        var document = new JObject
-        {
-            ["id"] = materialAssetId.ToString(),
-            ["name"] = "Legacy Multi",
-            ["type"] = nameof(Material),
-            ["is_transparent"] = false,
-            ["queue"] = RenderQueue.Opaque.ToString(),
-            ["shader_asset_id"] = Guid.Empty.ToString(),
-            ["cast_shadows"] = true,
-            ["receive_shadows"] = true,
-            ["blend_state"] = "Opaque",
-            ["depth_stencil_state"] = "Default",
-            ["rasterizer_state"] = "CullCounterClockwise",
-            ["sampler_state"] = "AnisotropicClamp",
-            ["texture_base_color_asset_id"] = baseColorTextureId.ToString(),
-            ["texture_reflection_asset_id"] = reflectionTextureId.ToString(),
-        };
-
-        scope.WriteAsset(relativeFileName, materialAssetId, "Legacy Multi", document);
-
-        var assetContentManager = CreateAssetContentManager();
-        bool loaded = MaterialRuntimeResolver.TryLoadRuntimeMaterial(materialAssetId, assetContentManager, out var runtimeMaterial);
-
-        Assert.True(loaded);
-        var legacyMaterial = Assert.IsType<Material>(runtimeMaterial);
-        Assert.Equal(baseColorTextureId, legacyMaterial.TextureBaseColorAssetId);
-        Assert.Equal(reflectionTextureId, legacyMaterial.TextureReflectionAssetId);
-    }
-
     private static AssetContentManager CreateAssetContentManager(EngineRuntimeContext? runtimeContext = null)
     {
         var assetContentManager = new AssetContentManager();

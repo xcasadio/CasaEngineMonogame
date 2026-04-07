@@ -28,11 +28,11 @@ namespace SandBoxGame
         private StaticModelMesh _staticMesh;
 
         private Effect _effectColor;
-        private Material _materialColor;
+        private MaterialBase _materialColor;
 
         private Effect _effectTexture;
         private Effect _effectTexture2;
-        private Material _materialTexture;
+        private MaterialBase _materialTexture;
 
         protected override void Initialize()
         {
@@ -75,7 +75,7 @@ namespace SandBoxGame
             world.AddEntity(_boxEntity);
 
             //============ Effect ===============
-            _materialColor = new Material();
+            _materialColor = new LitDiffuseMaterial();
             //var materialDiffuse = new MaterialColor();
             //materialDiffuse.Color = Color.Green;
             //_materialColor.Diffuse = materialDiffuse;
@@ -173,7 +173,7 @@ namespace SandBoxGame
             DrawBoxWithEffect(gameTime, _effectTexture2, _materialTexture, _boxEntity.RootComponent.WorldMatrixWithScale * Matrix.CreateTranslation(-Vector3.UnitX * 4f));
         }
 
-        private void DrawBoxWithEffect(GameTime gameTime, Effect effect, Material material, Matrix world)
+        private void DrawBoxWithEffect(GameTime gameTime, Effect effect, MaterialBase material, Matrix world)
         {
             //if (material.Diffuse is MaterialTexture materialTexture)
             //{

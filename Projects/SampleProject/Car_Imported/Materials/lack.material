@@ -1,6 +1,7 @@
 {
   "id": "bed30dc0-1c34-45d2-9d46-599a2309f8d0",
   "name": "Car_lack",
+  "definition_id": "lit-diffuse",
   "is_transparent": false,
   "queue": "Opaque",
   "shader_asset_id": "00000000-0000-0000-0000-000000000000",
@@ -10,24 +11,12 @@
   "depth_stencil_state": "Default",
   "rasterizer_state": "CullCounterClockwise",
   "sampler_state": "AnisotropicClamp",
-  "type": "LitDiffuseMaterial",
-  "BasColor_asset_id": "00000000-0000-0000-0000-000000000000",
-  "normal_map_asset_id": "00000000-0000-0000-0000-000000000000",
-  "diffuse_color": {
-    "r": 255,
-    "g": 255,
-    "b": 255,
-    "a": 255
-  },
-  "emissive_color": {
-    "r": 0.0,
-    "g": 0.0,
-    "b": 0.0
-  },
-  "specular_color": {
-    "r": 1.0,
-    "g": 1.0,
-    "b": 1.0
-  },
-  "specular_power": 0.0
+  "properties": {
+    "specular_color": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    },
+    "specular_power": 0.0
+  }
 }

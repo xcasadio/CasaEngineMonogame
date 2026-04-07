@@ -23,16 +23,8 @@ public class MaterialDefinitionRegistryTests
 
         Assert.True(MaterialDefinitionRegistry.TryGetById("unlit-texture", out var unlitDefinition));
         Assert.Equal(typeof(UnlitTextureMaterial), unlitDefinition.RuntimeMaterialType);
-    }
 
-    [Theory]
-    [InlineData(nameof(LitDiffuseMaterial), "lit-diffuse")]
-    [InlineData(nameof(UnlitTextureMaterial), "unlit-texture")]
-    [InlineData(nameof(Material), "legacy-multi-texture")]
-    public void TryGetByLegacyTypeName_MapsLegacyRuntimeTypes(string legacyTypeName, string expectedDefinitionId)
-    {
-        Assert.True(MaterialDefinitionRegistry.TryGetByLegacyTypeName(legacyTypeName, out var definition));
-        Assert.Equal(expectedDefinitionId, definition.Id);
+        Assert.False(MaterialDefinitionRegistry.TryGetById("legacy-multi-texture", out _));
     }
 
     [Fact]

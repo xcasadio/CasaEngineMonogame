@@ -2823,11 +2823,6 @@ namespace CasaEngine.Editor
                     builder.Append($" alpha={unlitTextureMaterial.Alpha.ToString("0.###", CultureInfo.InvariantCulture)}");
                     builder.Append($" base_color_asset={unlitTextureMaterial.BasColorAssetId}");
                     break;
-
-                case Material legacyMaterial:
-                    builder.Append($" base_color_asset={legacyMaterial.TextureBaseColorAssetId}");
-                    builder.Append($" reflection_asset={legacyMaterial.TextureReflectionAssetId}");
-                    break;
             }
 
             return builder.ToString();
