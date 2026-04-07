@@ -40,13 +40,13 @@ public class EffectiveShaderResolverTests
     }
 
     [Fact]
-    public void Resolve_ReturnsBasicEffectFallback_ForLitDiffuseMaterialWithoutShaderAsset()
+    public void Resolve_ReturnsLitForwardFallback_ForLitDiffuseMaterialWithoutShaderAsset()
     {
         var resolved = EffectiveShaderResolver.Resolve(new LitDiffuseMaterial());
 
-        Assert.Equal(EffectiveShaderResolver.BasicEffectShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.LitForwardShaderId, resolved.ShaderId);
         Assert.True(resolved.IsBuiltIn);
-        Assert.Equal(EffectiveShaderResolver.BasicEffectContentName, resolved.ContentName);
+        Assert.Equal(EffectiveShaderResolver.LitForwardContentName, resolved.ContentName);
     }
 
     [Fact]
@@ -69,9 +69,9 @@ public class EffectiveShaderResolverTests
 
         var resolved = EffectiveShaderResolver.Resolve(material);
 
-        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardShaderId, resolved.ShaderId);
         Assert.True(resolved.IsBuiltIn);
-        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardContentName, resolved.ContentName);
     }
 
     [Fact]
@@ -108,7 +108,7 @@ public class EffectiveShaderResolverTests
 
         var resolved = EffectiveShaderResolver.Resolve(material);
 
-        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectShaderId, resolved.ShaderId);
-        Assert.Equal(EffectiveShaderResolver.ReflectiveBasicEffectContentName, resolved.ContentName);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardShaderId, resolved.ShaderId);
+        Assert.Equal(EffectiveShaderResolver.ReflectiveLitForwardContentName, resolved.ContentName);
     }
 }
