@@ -158,7 +158,7 @@ Le resultat cible doit etre un profil d'import RacingGame optionnel, branche sur
   Commit conseille :
   - `refactor(import): remove RacingGame-specific material logic from engine`
 
-- ⏳ **T03.02 — Nettoyer les chemins de compatibilite qui doublonnent l'interpretation**
+- ✅ **T03.02 — Nettoyer les chemins de compatibilite qui doublonnent l'interpretation**
   Objectif :
   - Verifier qu'il ne reste pas une seconde couche d'interpretation RacingGame cachee dans le moteur qui contredirait le profil.
   - Documenter les rares fallbacks generiques encore admis.

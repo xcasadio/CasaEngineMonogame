@@ -164,6 +164,7 @@ public static class EditorAssetImportService
 
         foreach (var importedMaterial in materials)
         {
+            LegacyImportedMaterialPresentation presentation = LegacyImportedMaterialPresentationResolver.Resolve(importedMaterial);
             string materialFileName = CreateUniqueImportedFileName(
                 SanitizeFileName(importedMaterial.DisplayName) + Constants.FileNameExtensions.Material,
                 usedMaterialFileNames);
@@ -175,21 +176,18 @@ public static class EditorAssetImportService
             var material = new MaterialAsset("lit-diffuse")
             {
                 Name = materialAssetInfo.Name,
-                Queue = importedMaterial.AlphaCutoutHint
-                    ? RenderQueue.AlphaTest
-                    : RenderQueue.Opaque,
-                RasterizerStateName = importedMaterial.AlphaCutoutHint
+                Queue = presentation.Queue,
+                RasterizerStateName = presentation.DisableBackfaceCulling
                     ? "CullNone"
                     : MaterialAsset.DefaultRasterizerStateName,
                 SamplerStateName = "AnisotropicWrap",
             };
             material.SetPropertyValue("diffuse_color", MaterialValue.FromColor(importedMaterial.DiffuseColor));
-            material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(ComputeImportedMaterialAmbientColor(importedMaterial)));
-            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(ComputeImportedMaterialEmissiveColor(importedMaterial)));
+            material.SetPropertyValue("ambient_color", MaterialValue.FromVector3(presentation.AmbientColor));
+            material.SetPropertyValue("emissive_color", MaterialValue.FromVector3(presentation.EmissiveColor));
             material.SetPropertyValue("specular_color", MaterialValue.FromVector3(importedMaterial.SpecularColor));
             material.SetPropertyValue("specular_power", MaterialValue.FromFloat(importedMaterial.SpecularPower));
-            material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(
-                importedMaterial.AlphaCutoutHint ? 0.35f : 0.5f));
+            material.SetPropertyValue("alpha_cutoff", MaterialValue.FromFloat(presentation.AlphaCutoff));
 
             if (importedTextureAssets.DiffuseTextureAssetIdsByMaterialIndex.TryGetValue(importedMaterial.MaterialIndex, out var diffuseTextureAssetId))
             {
@@ -219,24 +217,6 @@ public static class EditorAssetImportService
                 mesh.MaterialAssetId = materialAssetId;
             }
         }
-    }
-
-    private static Vector3 ComputeImportedMaterialAmbientColor(StaticModelImportedMaterial importedMaterial)
-    {
-        Vector3 ambientColor = importedMaterial.AmbientColor;
-        if (importedMaterial.BrightAmbientHint)
-        {
-            const float signAmbient = 128f / 255f;
-            Vector3 boostedAmbient = new(signAmbient, signAmbient, signAmbient);
-            ambientColor = Vector3.Max(ambientColor, boostedAmbient);
-        }
-
-        return Vector3.Clamp(ambientColor, Vector3.Zero, Vector3.One);
-    }
-
-    private static Vector3 ComputeImportedMaterialEmissiveColor(StaticModelImportedMaterial importedMaterial)
-    {
-        return Vector3.Clamp(importedMaterial.EmissiveColor, Vector3.Zero, Vector3.One);
     }
 
     private static Guid ImportTexture(
