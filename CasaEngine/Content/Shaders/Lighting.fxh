@@ -63,12 +63,34 @@ float3 ComputeEnvironmentDiffuseTerm(float3 globalEnvironmentAmbientColor, float
 
 float3 SampleEnvironmentReflection(float3 reflectionVector)
 {
-    if (HasEnvironmentCubeTexture <= 0.5f)
+    float3 globalReflection = 0;
+    if (HasEnvironmentCubeTexture > 0.5f)
     {
-        return 0;
+        globalReflection = SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb;
     }
 
-    return SAMPLE_CUBEMAP(EnvironmentCubeTexture, reflectionVector).rgb * EnvironmentSpecularIntensity;
+    float3 localReflection = 0;
+    float localWeightTotal = 0;
+
+    if (HasLocalReflectionProbeTexture > 0.5f)
+    {
+        localReflection += SAMPLE_CUBEMAP(LocalReflectionProbeCubeTexture, reflectionVector).rgb * LocalReflectionProbeWeight;
+        localWeightTotal += LocalReflectionProbeWeight;
+    }
+
+    if (HasSecondaryLocalReflectionProbeTexture > 0.5f)
+    {
+        localReflection += SAMPLE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, reflectionVector).rgb * SecondaryLocalReflectionProbeWeight;
+        localWeightTotal += SecondaryLocalReflectionProbeWeight;
+    }
+
+    if (localWeightTotal > 0.0f)
+    {
+        localReflection /= max(localWeightTotal, 0.0001f);
+        globalReflection = lerp(globalReflection, localReflection, saturate(LocalReflectionProbeInfluence));
+    }
+
+    return globalReflection * EnvironmentSpecularIntensity;
 }
 
 

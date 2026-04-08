@@ -38,6 +38,13 @@ public static class ShaderParameterNames
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
     public const string HasEnvironmentCubeTexture = "HasEnvironmentCubeTexture";
+    public const string LocalReflectionProbeCubeTexture = "LocalReflectionProbeCubeTexture";
+    public const string SecondaryLocalReflectionProbeCubeTexture = "SecondaryLocalReflectionProbeCubeTexture";
+    public const string HasLocalReflectionProbeTexture = "HasLocalReflectionProbeTexture";
+    public const string HasSecondaryLocalReflectionProbeTexture = "HasSecondaryLocalReflectionProbeTexture";
+    public const string LocalReflectionProbeWeight = "LocalReflectionProbeWeight";
+    public const string SecondaryLocalReflectionProbeWeight = "SecondaryLocalReflectionProbeWeight";
+    public const string LocalReflectionProbeInfluence = "LocalReflectionProbeInfluence";
     public const string HasMaterialReflectionCube = "HasMaterialReflectionCube";
     public const string DirLight0Direction = "DirLight0Direction";
     public const string DirLight0DiffuseColor = "DirLight0DiffuseColor";

@@ -516,7 +516,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-024 — Ajouter les reflection probes statiques et leur blending local
+### ✅ ENV-024 — Ajouter les reflection probes statiques et leur blending local
 Objectif:
 ameliorer les reflexions interieures et les cas locaux apres la mise en place de l'environnement global.
 

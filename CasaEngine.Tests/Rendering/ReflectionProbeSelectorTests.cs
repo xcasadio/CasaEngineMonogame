@@ -42,9 +42,10 @@ public class ReflectionProbeSelectorTests
 
         Span<ResolvedReflectionProbe> selectedProbes = stackalloc ResolvedReflectionProbe[ReflectionProbeSelector.MaxSelectedProbes];
 
-        int count = ReflectionProbeSelector.Select(new Vector3(7.5f, 0.0f, 0.0f), probes, selectedProbes);
+        int count = ReflectionProbeSelector.Select(new Vector3(7.5f, 0.0f, 0.0f), probes, selectedProbes, out float localInfluence);
 
         Assert.Equal(2, count);
+        Assert.True(localInfluence > 0.0f);
         Assert.True(selectedProbes[0].Weight >= selectedProbes[1].Weight);
         Assert.Equal(1.0f, selectedProbes[0].Weight + selectedProbes[1].Weight, 3);
         Assert.Equal(Guid.Parse("f1d3445f-e49c-45c2-8a07-1e3917ca6db8"), selectedProbes[0].SpecularCubemapAssetId);

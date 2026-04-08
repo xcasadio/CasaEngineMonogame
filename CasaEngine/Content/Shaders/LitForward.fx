@@ -12,6 +12,8 @@ DECLARE_TEXTURE(Texture, 0);
 DECLARE_TEXTURE(NormalTexture, 1);
 DECLARE_CUBEMAP(ReflectionCubeTexture, 2);
 DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
+DECLARE_CUBEMAP(LocalReflectionProbeCubeTexture, 4);
+DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
 
 
 BEGIN_CONSTANTS
@@ -63,6 +65,11 @@ BEGIN_CONSTANTS
     float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
     float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
     float HasMaterialReflectionCube _ps(c36) _cb(c32.y);
+    float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
+    float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
+    float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
+    float SecondaryLocalReflectionProbeWeight _ps(c37) _cb(c33.w);
+    float LocalReflectionProbeInfluence _ps(c38) _cb(c34.x);
 
     float4x4 World _vs(c34) _cb(c33);
     float3x3 WorldInverseTranspose _vs(c38) _cb(c37);

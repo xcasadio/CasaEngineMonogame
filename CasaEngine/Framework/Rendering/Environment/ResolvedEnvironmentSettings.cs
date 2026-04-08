@@ -28,6 +28,20 @@ public readonly struct ResolvedEnvironmentSettings
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; init; }
 
+    public Guid PrimaryReflectionProbeId { get; init; }
+
+    public Guid SecondaryReflectionProbeId { get; init; }
+
+    public XnaTextureCube? PrimaryReflectionProbeCubemap { get; init; }
+
+    public XnaTextureCube? SecondaryReflectionProbeCubemap { get; init; }
+
+    public float PrimaryReflectionProbeWeight { get; init; }
+
+    public float SecondaryReflectionProbeWeight { get; init; }
+
+    public float LocalReflectionProbeInfluence { get; init; }
+
     public Vector3 AmbientColor { get; init; }
 
     public float AmbientIntensity { get; init; }
@@ -41,6 +55,8 @@ public readonly struct ResolvedEnvironmentSettings
     public bool HasPanoramaSource => PanoramaAssetId != Guid.Empty;
 
     public bool HasEnvironmentCubemap => BackgroundCubemap is not null;
+
+    public bool HasLocalReflectionProbe => PrimaryReflectionProbeCubemap is not null && LocalReflectionProbeInfluence > 0.0f;
 
     public Vector3 EffectiveAmbientColor => AmbientColor * AmbientIntensity;
 

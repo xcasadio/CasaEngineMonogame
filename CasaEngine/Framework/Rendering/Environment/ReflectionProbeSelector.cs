@@ -10,8 +10,13 @@ public static class ReflectionProbeSelector
     public const int MaxSelectedProbes = 2;
 
     public static int Select(Vector3 worldPosition, IReadOnlyList<ReflectionProbe> probes, Span<ResolvedReflectionProbe> selectedProbes)
+        => Select(worldPosition, probes, selectedProbes, out _);
+
+    public static int Select(Vector3 worldPosition, IReadOnlyList<ReflectionProbe> probes, Span<ResolvedReflectionProbe> selectedProbes, out float localInfluence)
     {
         ArgumentNullException.ThrowIfNull(probes);
+
+        localInfluence = 0.0f;
 
         if (selectedProbes.Length == 0 || probes.Count == 0)
         {
@@ -19,6 +24,7 @@ public static class ReflectionProbeSelector
         }
 
         int selectedCount = 0;
+        float totalRawWeight = 0.0f;
         for (int probeIndex = 0; probeIndex < probes.Count; probeIndex++)
         {
             ReflectionProbe probe = probes[probeIndex];
@@ -27,6 +33,8 @@ public static class ReflectionProbeSelector
             {
                 continue;
             }
+
+            totalRawWeight += weight;
 
             var resolvedProbe = new ResolvedReflectionProbe
             {
@@ -42,6 +50,7 @@ public static class ReflectionProbeSelector
         }
 
         NormalizeWeights(selectedProbes, selectedCount);
+        localInfluence = Math.Clamp(totalRawWeight, 0.0f, 1.0f);
         return selectedCount;
     }
 
