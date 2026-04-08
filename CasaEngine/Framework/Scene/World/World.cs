@@ -39,6 +39,7 @@ public sealed class World : ObjectBase
     public int UpdateSequence { get; private set; }
     public WorldSpatialServices SpatialServices { get; }
     public WorldEnvironmentSettings EnvironmentSettings { get; } = new();
+    public ReflectionProbeCollection ReflectionProbes { get; } = new();
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
 

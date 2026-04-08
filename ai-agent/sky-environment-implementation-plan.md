@@ -507,7 +507,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-023 — Introduire le modele runtime des reflection probes
+### ✅ ENV-023 — Introduire le modele runtime des reflection probes
 Objectif:
 poser les types et la selection runtime des probes locales sans encore faire tout le baking.
 
