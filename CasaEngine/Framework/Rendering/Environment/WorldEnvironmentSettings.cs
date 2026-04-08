@@ -20,6 +20,8 @@ public sealed class WorldEnvironmentSettings
 
     public Guid EnvironmentAssetId { get; set; } = Guid.Empty;
 
+    public ProceduralSkySettings ProceduralSky { get; set; } = new();
+
     public Guid PanoramaAssetId { get; set; } = Guid.Empty;
 
     public int PanoramaCubemapSize { get; set; } = PanoramaEnvironmentGenerator.DefaultCubemapSize;
@@ -48,6 +50,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundMode = EnvironmentBackgroundMode.LegacyClearColor;
         BackgroundColor = Color.CornflowerBlue;
         EnvironmentAssetId = Guid.Empty;
+        ProceduralSky = new ProceduralSkySettings();
         PanoramaAssetId = Guid.Empty;
         PanoramaCubemapSize = PanoramaEnvironmentGenerator.DefaultCubemapSize;
         BackgroundCubemapAssetId = Guid.Empty;
@@ -84,6 +87,11 @@ public sealed class WorldEnvironmentSettings
         if (element.TryGetValue("environment_asset_id", StringComparison.OrdinalIgnoreCase, out var environmentAssetIdNode))
         {
             EnvironmentAssetId = environmentAssetIdNode.GetGuid();
+        }
+
+        if (element.TryGetValue("procedural_sky", StringComparison.OrdinalIgnoreCase, out var proceduralSkyNode))
+        {
+            ProceduralSky = ProceduralSkySettingsJsonSerializer.Load(proceduralSkyNode as JObject);
         }
 
         if (element.TryGetValue("panorama_asset_id", StringComparison.OrdinalIgnoreCase, out var panoramaAssetIdNode))
@@ -130,6 +138,7 @@ public sealed class WorldEnvironmentSettings
         element["background_mode"] = BackgroundMode.ToString();
         element["background_color"] = SaveColor(BackgroundColor);
         element["environment_asset_id"] = EnvironmentAssetId.ToString();
+        element["procedural_sky"] = ProceduralSkySettingsJsonSerializer.Save(ProceduralSky);
         element["panorama_asset_id"] = PanoramaAssetId.ToString();
         element["panorama_cubemap_size"] = PanoramaCubemapSize;
         element["background_cubemap_asset_id"] = BackgroundCubemapAssetId.ToString();
@@ -158,6 +167,7 @@ public sealed class WorldEnvironmentSettings
             BackgroundMode = BackgroundMode,
             BackgroundColor = BackgroundColor,
             EnvironmentAssetId = EnvironmentAssetId,
+            ProceduralSky = ProceduralSky.Clone(),
             PanoramaAssetId = PanoramaAssetId,
             PanoramaCubemapSize = PanoramaCubemapSize,
             BackgroundCubemapAssetId = BackgroundCubemapAssetId,
@@ -178,6 +188,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundMode = other.BackgroundMode;
         BackgroundColor = other.BackgroundColor;
         EnvironmentAssetId = other.EnvironmentAssetId;
+        ProceduralSky = other.ProceduralSky.Clone();
         PanoramaAssetId = other.PanoramaAssetId;
         PanoramaCubemapSize = other.PanoramaCubemapSize;
         BackgroundCubemapAssetId = other.BackgroundCubemapAssetId;

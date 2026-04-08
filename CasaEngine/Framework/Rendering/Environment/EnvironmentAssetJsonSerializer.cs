@@ -14,6 +14,7 @@ public static class EnvironmentAssetJsonSerializer
         node["id"] = environmentAsset.Id.ToString();
         node["name"] = environmentAsset.Name;
         node["type"] = environmentAsset.Type.ToString();
+        node["procedural_sky"] = ProceduralSkySettingsJsonSerializer.Save(environmentAsset.ProceduralSky);
         node["panorama_asset_id"] = environmentAsset.PanoramaAssetId.ToString();
         node["panorama_cubemap_size"] = environmentAsset.PanoramaCubemapSize;
         node["background_cubemap_asset_id"] = environmentAsset.BackgroundCubemapAssetId.ToString();
@@ -31,6 +32,7 @@ public static class EnvironmentAssetJsonSerializer
         environmentAsset.Type = node["type"] is { } typeToken
             ? typeToken.GetEnum<EnvironmentType>()
             : EnvironmentType.Cubemap;
+        environmentAsset.ProceduralSky = ProceduralSkySettingsJsonSerializer.Load(node["procedural_sky"] as JObject);
         environmentAsset.PanoramaAssetId = node["panorama_asset_id"]?.GetGuid() ?? Guid.Empty;
         environmentAsset.PanoramaCubemapSize = PanoramaEnvironmentGenerator.NormalizeCubemapSize(
             node["panorama_cubemap_size"]?.GetInt32() ?? PanoramaEnvironmentGenerator.DefaultCubemapSize);

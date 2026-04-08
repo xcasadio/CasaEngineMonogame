@@ -22,6 +22,12 @@ public static class EnvironmentResolver
 
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
         var environmentAsset = EnvironmentAssetLookup.TryLoadEnvironmentAsset(view, source.EnvironmentAssetId);
+        ProceduralSkySettings proceduralSky = ResolveProceduralSkySettings(source, environmentAsset);
+        bool usesProceduralSky = source.Type == EnvironmentType.Procedural
+            || (source.Type == EnvironmentType.None && environmentAsset?.Type == EnvironmentType.Procedural);
+        XnaTextureCube? proceduralCubemap = usesProceduralSky
+            ? ProceduralSkyEnvironmentGenerator.GetOrCreateCubemap(view, proceduralSky)
+            : null;
         Guid panoramaAssetId = source.PanoramaAssetId != Guid.Empty
             ? source.PanoramaAssetId
             : environmentAsset?.PanoramaAssetId ?? Guid.Empty;
@@ -37,8 +43,8 @@ public static class EnvironmentResolver
         Guid specularCubemapAssetId = source.SpecularEnvironmentCubemapAssetId != Guid.Empty
             ? source.SpecularEnvironmentCubemapAssetId
             : environmentAsset?.SpecularCubemapAssetId ?? Guid.Empty;
-        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? panoramaCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, backgroundCubemapAssetId);
-        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? panoramaCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, specularCubemapAssetId);
+        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? panoramaCubemap ?? proceduralCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, backgroundCubemapAssetId);
+        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? panoramaCubemap ?? proceduralCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, specularCubemapAssetId);
         if (specularEnvironmentCubemap is null)
         {
             specularEnvironmentCubemap = backgroundCubemap;
@@ -122,5 +128,20 @@ public static class EnvironmentResolver
         }
 
         return hasEnvironmentCubemap ? EnvironmentType.Cubemap : EnvironmentType.None;
+    }
+
+    private static ProceduralSkySettings ResolveProceduralSkySettings(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)
+    {
+        if (source.Type == EnvironmentType.Procedural)
+        {
+            return source.ProceduralSky.Clone();
+        }
+
+        if (environmentAsset?.Type == EnvironmentType.Procedural)
+        {
+            return environmentAsset.ProceduralSky.Clone();
+        }
+
+        return source.ProceduralSky.Clone();
     }
 }

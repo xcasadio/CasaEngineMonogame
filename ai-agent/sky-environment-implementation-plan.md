@@ -525,7 +525,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-025 — Ajouter un producteur de ciel procedural simple
+### ✅ ENV-025 — Ajouter un producteur de ciel procedural simple
 Objectif:
 fournir un mode de ciel leger pour les scenes sans HDRI.
 
