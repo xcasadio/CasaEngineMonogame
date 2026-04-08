@@ -7,6 +7,10 @@ public sealed class EnvironmentAsset : ObjectBase
 {
     public EnvironmentType Type { get; set; } = EnvironmentType.Cubemap;
 
+    public Guid PanoramaAssetId { get; set; } = Guid.Empty;
+
+    public int PanoramaCubemapSize { get; set; } = PanoramaEnvironmentGenerator.DefaultCubemapSize;
+
     public Guid BackgroundCubemapAssetId { get; set; } = Guid.Empty;
 
     public Guid SpecularCubemapAssetId { get; set; } = Guid.Empty;

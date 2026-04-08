@@ -498,7 +498,7 @@ Commit conseille:
 
 ## Taches de seconde vague apres la V1
 
-### ⏳ ENV-022 — Ajouter une entree Panorama HDR
+### ✅ ENV-022 — Ajouter une entree Panorama HDR
 Objectif:
 supporter un format source pratique pour les artistes sans forcer une cubemap authoring manuelle.
 

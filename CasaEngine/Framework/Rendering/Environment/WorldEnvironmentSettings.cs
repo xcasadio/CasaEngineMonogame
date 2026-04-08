@@ -20,6 +20,10 @@ public sealed class WorldEnvironmentSettings
 
     public Guid EnvironmentAssetId { get; set; } = Guid.Empty;
 
+    public Guid PanoramaAssetId { get; set; } = Guid.Empty;
+
+    public int PanoramaCubemapSize { get; set; } = PanoramaEnvironmentGenerator.DefaultCubemapSize;
+
     public Guid BackgroundCubemapAssetId { get; set; } = Guid.Empty;
 
     public Guid SpecularEnvironmentCubemapAssetId { get; set; } = Guid.Empty;
@@ -44,6 +48,8 @@ public sealed class WorldEnvironmentSettings
         BackgroundMode = EnvironmentBackgroundMode.LegacyClearColor;
         BackgroundColor = Color.CornflowerBlue;
         EnvironmentAssetId = Guid.Empty;
+        PanoramaAssetId = Guid.Empty;
+        PanoramaCubemapSize = PanoramaEnvironmentGenerator.DefaultCubemapSize;
         BackgroundCubemapAssetId = Guid.Empty;
         SpecularEnvironmentCubemapAssetId = Guid.Empty;
         BackgroundCubemap = null;
@@ -80,6 +86,16 @@ public sealed class WorldEnvironmentSettings
             EnvironmentAssetId = environmentAssetIdNode.GetGuid();
         }
 
+        if (element.TryGetValue("panorama_asset_id", StringComparison.OrdinalIgnoreCase, out var panoramaAssetIdNode))
+        {
+            PanoramaAssetId = panoramaAssetIdNode.GetGuid();
+        }
+
+        if (element.TryGetValue("panorama_cubemap_size", StringComparison.OrdinalIgnoreCase, out var panoramaCubemapSizeNode))
+        {
+            PanoramaCubemapSize = PanoramaEnvironmentGenerator.NormalizeCubemapSize(panoramaCubemapSizeNode.GetInt32());
+        }
+
         if (element.TryGetValue("background_cubemap_asset_id", StringComparison.OrdinalIgnoreCase, out var backgroundCubemapAssetIdNode))
         {
             BackgroundCubemapAssetId = backgroundCubemapAssetIdNode.GetGuid();
@@ -114,6 +130,8 @@ public sealed class WorldEnvironmentSettings
         element["background_mode"] = BackgroundMode.ToString();
         element["background_color"] = SaveColor(BackgroundColor);
         element["environment_asset_id"] = EnvironmentAssetId.ToString();
+        element["panorama_asset_id"] = PanoramaAssetId.ToString();
+        element["panorama_cubemap_size"] = PanoramaCubemapSize;
         element["background_cubemap_asset_id"] = BackgroundCubemapAssetId.ToString();
         element["specular_cubemap_asset_id"] = SpecularEnvironmentCubemapAssetId.ToString();
         element["ambient_color"] = SaveVector3(AmbientColor);
@@ -140,6 +158,8 @@ public sealed class WorldEnvironmentSettings
             BackgroundMode = BackgroundMode,
             BackgroundColor = BackgroundColor,
             EnvironmentAssetId = EnvironmentAssetId,
+            PanoramaAssetId = PanoramaAssetId,
+            PanoramaCubemapSize = PanoramaCubemapSize,
             BackgroundCubemapAssetId = BackgroundCubemapAssetId,
             SpecularEnvironmentCubemapAssetId = SpecularEnvironmentCubemapAssetId,
             BackgroundCubemap = BackgroundCubemap,
@@ -158,6 +178,8 @@ public sealed class WorldEnvironmentSettings
         BackgroundMode = other.BackgroundMode;
         BackgroundColor = other.BackgroundColor;
         EnvironmentAssetId = other.EnvironmentAssetId;
+        PanoramaAssetId = other.PanoramaAssetId;
+        PanoramaCubemapSize = other.PanoramaCubemapSize;
         BackgroundCubemapAssetId = other.BackgroundCubemapAssetId;
         SpecularEnvironmentCubemapAssetId = other.SpecularEnvironmentCubemapAssetId;
         BackgroundCubemap = other.BackgroundCubemap;

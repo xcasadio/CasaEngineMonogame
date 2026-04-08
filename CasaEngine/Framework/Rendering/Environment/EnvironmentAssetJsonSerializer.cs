@@ -14,6 +14,8 @@ public static class EnvironmentAssetJsonSerializer
         node["id"] = environmentAsset.Id.ToString();
         node["name"] = environmentAsset.Name;
         node["type"] = environmentAsset.Type.ToString();
+        node["panorama_asset_id"] = environmentAsset.PanoramaAssetId.ToString();
+        node["panorama_cubemap_size"] = environmentAsset.PanoramaCubemapSize;
         node["background_cubemap_asset_id"] = environmentAsset.BackgroundCubemapAssetId.ToString();
         node["specular_cubemap_asset_id"] = environmentAsset.SpecularCubemapAssetId.ToString();
         node["ambient_color"] = SaveVector3(environmentAsset.AmbientColor);
@@ -29,6 +31,9 @@ public static class EnvironmentAssetJsonSerializer
         environmentAsset.Type = node["type"] is { } typeToken
             ? typeToken.GetEnum<EnvironmentType>()
             : EnvironmentType.Cubemap;
+        environmentAsset.PanoramaAssetId = node["panorama_asset_id"]?.GetGuid() ?? Guid.Empty;
+        environmentAsset.PanoramaCubemapSize = PanoramaEnvironmentGenerator.NormalizeCubemapSize(
+            node["panorama_cubemap_size"]?.GetInt32() ?? PanoramaEnvironmentGenerator.DefaultCubemapSize);
         environmentAsset.BackgroundCubemapAssetId = node["background_cubemap_asset_id"]?.GetGuid() ?? Guid.Empty;
         environmentAsset.SpecularCubemapAssetId = node["specular_cubemap_asset_id"]?.GetGuid() ?? Guid.Empty;
         environmentAsset.AmbientColor = node["ambient_color"] is { } ambientColorToken

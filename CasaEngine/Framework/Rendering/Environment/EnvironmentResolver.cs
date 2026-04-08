@@ -24,14 +24,23 @@ public static class EnvironmentResolver
 
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
         var environmentAsset = TryLoadEnvironmentAsset(view, source.EnvironmentAssetId);
+        Guid panoramaAssetId = source.PanoramaAssetId != Guid.Empty
+            ? source.PanoramaAssetId
+            : environmentAsset?.PanoramaAssetId ?? Guid.Empty;
+        int panoramaCubemapSize = source.PanoramaAssetId != Guid.Empty
+            ? PanoramaEnvironmentGenerator.NormalizeCubemapSize(source.PanoramaCubemapSize)
+            : PanoramaEnvironmentGenerator.NormalizeCubemapSize(environmentAsset?.PanoramaCubemapSize ?? source.PanoramaCubemapSize);
+        XnaTextureCube? panoramaCubemap = panoramaAssetId != Guid.Empty
+            ? PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, panoramaAssetId, panoramaCubemapSize)
+            : null;
         Guid backgroundCubemapAssetId = source.BackgroundCubemapAssetId != Guid.Empty
             ? source.BackgroundCubemapAssetId
             : environmentAsset?.BackgroundCubemapAssetId ?? Guid.Empty;
         Guid specularCubemapAssetId = source.SpecularEnvironmentCubemapAssetId != Guid.Empty
             ? source.SpecularEnvironmentCubemapAssetId
             : environmentAsset?.SpecularCubemapAssetId ?? Guid.Empty;
-        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? TryLoadTextureCube(view, backgroundCubemapAssetId);
-        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? TryLoadTextureCube(view, specularCubemapAssetId);
+        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? panoramaCubemap ?? TryLoadTextureCube(view, backgroundCubemapAssetId);
+        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? panoramaCubemap ?? TryLoadTextureCube(view, specularCubemapAssetId);
         if (specularEnvironmentCubemap is null)
         {
             specularEnvironmentCubemap = backgroundCubemap;
@@ -43,6 +52,7 @@ public static class EnvironmentResolver
         float specularIntensity = (environmentAsset?.SpecularIntensity ?? 1.0f) * source.SpecularIntensity;
         bool hasEnvironmentCubemap = backgroundCubemap is not null;
         bool hasExplicitLighting = source.EnvironmentAssetId != Guid.Empty
+            || panoramaAssetId != Guid.Empty
             || source.SpecularEnvironmentCubemapAssetId != Guid.Empty
             || source.SpecularEnvironmentCubemap is not null
             || hasEnvironmentCubemap
@@ -65,10 +75,12 @@ public static class EnvironmentResolver
 
         var resolvedEnvironment = new ResolvedEnvironmentSettings
         {
-            Type = ResolveEnvironmentType(source, environmentAsset, hasEnvironmentCubemap),
+            Type = ResolveEnvironmentType(source, environmentAsset, panoramaAssetId != Guid.Empty, hasEnvironmentCubemap),
             BackgroundMode = usesLegacyClearColor ? EnvironmentBackgroundMode.LegacyClearColor : source.BackgroundMode,
             BackgroundColor = backgroundColor,
             EnvironmentAssetId = source.EnvironmentAssetId,
+            PanoramaAssetId = panoramaAssetId,
+            PanoramaCubemapSize = panoramaCubemapSize,
             BackgroundCubemapAssetId = backgroundCubemapAssetId,
             SpecularEnvironmentCubemapAssetId = specularCubemapAssetId,
             BackgroundCubemap = backgroundCubemap,
@@ -85,7 +97,7 @@ public static class EnvironmentResolver
         return resolvedEnvironment;
     }
 
-    private static EnvironmentType ResolveEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset, bool hasEnvironmentCubemap)
+    private static EnvironmentType ResolveEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset, bool hasPanoramaSource, bool hasEnvironmentCubemap)
     {
         if (source.Type != EnvironmentType.None)
         {
@@ -95,6 +107,11 @@ public static class EnvironmentResolver
         if (environmentAsset != null)
         {
             return environmentAsset.Type;
+        }
+
+        if (hasPanoramaSource)
+        {
+            return EnvironmentType.PanoramaHdr;
         }
 
         return hasEnvironmentCubemap ? EnvironmentType.Cubemap : EnvironmentType.None;

@@ -16,6 +16,10 @@ public readonly struct ResolvedEnvironmentSettings
 
     public Guid EnvironmentAssetId { get; init; }
 
+    public Guid PanoramaAssetId { get; init; }
+
+    public int PanoramaCubemapSize { get; init; }
+
     public Guid BackgroundCubemapAssetId { get; init; }
 
     public Guid SpecularEnvironmentCubemapAssetId { get; init; }
@@ -33,6 +37,8 @@ public readonly struct ResolvedEnvironmentSettings
     public bool UsesLegacyClearColor { get; init; }
 
     public bool UsesLegacyLighting { get; init; }
+
+    public bool HasPanoramaSource => PanoramaAssetId != Guid.Empty;
 
     public bool HasEnvironmentCubemap => BackgroundCubemap is not null;
 
