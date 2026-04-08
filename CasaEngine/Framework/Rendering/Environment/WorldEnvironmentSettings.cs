@@ -22,6 +22,8 @@ public sealed class WorldEnvironmentSettings
 
     public ProceduralSkySettings ProceduralSky { get; set; } = new();
 
+    public PhysicalAtmosphereSettings PhysicalAtmosphere { get; set; } = new();
+
     public Guid PanoramaAssetId { get; set; } = Guid.Empty;
 
     public int PanoramaCubemapSize { get; set; } = PanoramaEnvironmentGenerator.DefaultCubemapSize;
@@ -51,6 +53,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundColor = Color.CornflowerBlue;
         EnvironmentAssetId = Guid.Empty;
         ProceduralSky = new ProceduralSkySettings();
+        PhysicalAtmosphere = new PhysicalAtmosphereSettings();
         PanoramaAssetId = Guid.Empty;
         PanoramaCubemapSize = PanoramaEnvironmentGenerator.DefaultCubemapSize;
         BackgroundCubemapAssetId = Guid.Empty;
@@ -92,6 +95,11 @@ public sealed class WorldEnvironmentSettings
         if (element.TryGetValue("procedural_sky", StringComparison.OrdinalIgnoreCase, out var proceduralSkyNode))
         {
             ProceduralSky = ProceduralSkySettingsJsonSerializer.Load(proceduralSkyNode as JObject);
+        }
+
+        if (element.TryGetValue("physical_atmosphere", StringComparison.OrdinalIgnoreCase, out var physicalAtmosphereNode))
+        {
+            PhysicalAtmosphere = PhysicalAtmosphereSettingsJsonSerializer.Load(physicalAtmosphereNode as JObject);
         }
 
         if (element.TryGetValue("panorama_asset_id", StringComparison.OrdinalIgnoreCase, out var panoramaAssetIdNode))
@@ -139,6 +147,7 @@ public sealed class WorldEnvironmentSettings
         element["background_color"] = SaveColor(BackgroundColor);
         element["environment_asset_id"] = EnvironmentAssetId.ToString();
         element["procedural_sky"] = ProceduralSkySettingsJsonSerializer.Save(ProceduralSky);
+        element["physical_atmosphere"] = PhysicalAtmosphereSettingsJsonSerializer.Save(PhysicalAtmosphere);
         element["panorama_asset_id"] = PanoramaAssetId.ToString();
         element["panorama_cubemap_size"] = PanoramaCubemapSize;
         element["background_cubemap_asset_id"] = BackgroundCubemapAssetId.ToString();
@@ -168,6 +177,7 @@ public sealed class WorldEnvironmentSettings
             BackgroundColor = BackgroundColor,
             EnvironmentAssetId = EnvironmentAssetId,
             ProceduralSky = ProceduralSky.Clone(),
+            PhysicalAtmosphere = PhysicalAtmosphere.Clone(),
             PanoramaAssetId = PanoramaAssetId,
             PanoramaCubemapSize = PanoramaCubemapSize,
             BackgroundCubemapAssetId = BackgroundCubemapAssetId,
@@ -189,6 +199,7 @@ public sealed class WorldEnvironmentSettings
         BackgroundColor = other.BackgroundColor;
         EnvironmentAssetId = other.EnvironmentAssetId;
         ProceduralSky = other.ProceduralSky.Clone();
+        PhysicalAtmosphere = other.PhysicalAtmosphere.Clone();
         PanoramaAssetId = other.PanoramaAssetId;
         PanoramaCubemapSize = other.PanoramaCubemapSize;
         BackgroundCubemapAssetId = other.BackgroundCubemapAssetId;

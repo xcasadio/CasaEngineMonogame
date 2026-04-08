@@ -22,12 +22,9 @@ public static class EnvironmentResolver
 
         var source = view.EnvironmentOverride ?? view.World.EnvironmentSettings;
         var environmentAsset = EnvironmentAssetLookup.TryLoadEnvironmentAsset(view, source.EnvironmentAssetId);
+        EnvironmentType requestedEnvironmentType = ResolveRequestedEnvironmentType(source, environmentAsset);
         ProceduralSkySettings proceduralSky = ResolveProceduralSkySettings(source, environmentAsset);
-        bool usesProceduralSky = source.Type == EnvironmentType.Procedural
-            || (source.Type == EnvironmentType.None && environmentAsset?.Type == EnvironmentType.Procedural);
-        XnaTextureCube? proceduralCubemap = usesProceduralSky
-            ? ProceduralSkyEnvironmentGenerator.GetOrCreateCubemap(view, proceduralSky)
-            : null;
+        PhysicalAtmosphereSettings physicalAtmosphere = ResolvePhysicalAtmosphereSettings(source, environmentAsset);
         Guid panoramaAssetId = source.PanoramaAssetId != Guid.Empty
             ? source.PanoramaAssetId
             : environmentAsset?.PanoramaAssetId ?? Guid.Empty;
@@ -37,14 +34,28 @@ public static class EnvironmentResolver
         XnaTextureCube? panoramaCubemap = panoramaAssetId != Guid.Empty
             ? PanoramaEnvironmentGenerator.GetOrCreateCubemap(view, panoramaAssetId, panoramaCubemapSize)
             : null;
+        XnaTextureCube? proceduralCubemap = requestedEnvironmentType == EnvironmentType.Procedural
+            ? ProceduralSkyEnvironmentGenerator.GetOrCreateCubemap(view, proceduralSky)
+            : null;
+        XnaTextureCube? physicalAtmosphereCubemap = requestedEnvironmentType == EnvironmentType.PhysicalAtmosphere
+            ? PhysicalAtmosphereEnvironmentGenerator.GetOrCreateCubemap(view, physicalAtmosphere)
+            : null;
+        XnaTextureCube? generatedEnvironmentCubemap = requestedEnvironmentType switch
+        {
+            EnvironmentType.PhysicalAtmosphere => physicalAtmosphereCubemap,
+            EnvironmentType.Procedural => proceduralCubemap,
+            EnvironmentType.PanoramaHdr => panoramaCubemap,
+            _ when panoramaCubemap is not null => panoramaCubemap,
+            _ => null,
+        };
         Guid backgroundCubemapAssetId = source.BackgroundCubemapAssetId != Guid.Empty
             ? source.BackgroundCubemapAssetId
             : environmentAsset?.BackgroundCubemapAssetId ?? Guid.Empty;
         Guid specularCubemapAssetId = source.SpecularEnvironmentCubemapAssetId != Guid.Empty
             ? source.SpecularEnvironmentCubemapAssetId
             : environmentAsset?.SpecularCubemapAssetId ?? Guid.Empty;
-        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? panoramaCubemap ?? proceduralCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, backgroundCubemapAssetId);
-        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? panoramaCubemap ?? proceduralCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, specularCubemapAssetId);
+        XnaTextureCube? backgroundCubemap = source.BackgroundCubemap ?? generatedEnvironmentCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, backgroundCubemapAssetId);
+        XnaTextureCube? specularEnvironmentCubemap = source.SpecularEnvironmentCubemap ?? generatedEnvironmentCubemap ?? EnvironmentAssetLookup.TryLoadTextureCube(view, specularCubemapAssetId);
         if (specularEnvironmentCubemap is null)
         {
             specularEnvironmentCubemap = backgroundCubemap;
@@ -110,6 +121,16 @@ public static class EnvironmentResolver
         return resolvedEnvironment;
     }
 
+    private static EnvironmentType ResolveRequestedEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)
+    {
+        if (source.Type != EnvironmentType.None)
+        {
+            return source.Type;
+        }
+
+        return environmentAsset?.Type ?? EnvironmentType.None;
+    }
+
     private static EnvironmentType ResolveEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset, bool hasPanoramaSource, bool hasEnvironmentCubemap)
     {
         if (source.Type != EnvironmentType.None)
@@ -143,5 +164,20 @@ public static class EnvironmentResolver
         }
 
         return source.ProceduralSky.Clone();
+    }
+
+    private static PhysicalAtmosphereSettings ResolvePhysicalAtmosphereSettings(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)
+    {
+        if (source.Type == EnvironmentType.PhysicalAtmosphere)
+        {
+            return source.PhysicalAtmosphere.Clone();
+        }
+
+        if (environmentAsset?.Type == EnvironmentType.PhysicalAtmosphere)
+        {
+            return environmentAsset.PhysicalAtmosphere.Clone();
+        }
+
+        return source.PhysicalAtmosphere.Clone();
     }
 }

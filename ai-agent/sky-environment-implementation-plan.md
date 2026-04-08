@@ -534,7 +534,7 @@ Commit conseille:
 
 ---
 
-### ⏳ ENV-026 — Ajouter un producteur d'atmosphere physique
+### ✅ ENV-026 — Ajouter un producteur d'atmosphere physique
 Objectif:
 ouvrir la voie a un ciel physiquement plausible, au soleil, a l'horizon et a la transition sol / espace.
 
