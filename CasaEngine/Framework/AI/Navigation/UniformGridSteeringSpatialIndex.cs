@@ -9,13 +9,14 @@ namespace CasaEngine.Framework.AI.Navigation;
 
 public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
 {
-    private const float DefaultCellSize = 96.0f;
+    public const float DefaultCellSize = 96.0f;
 
     private readonly record struct ObstacleProviderRegistration(Entity Owner, ISteeringObstacleProvider Provider);
 
     private readonly record struct WallProviderRegistration(Entity Owner, ISteeringWallProvider Provider);
 
     private readonly GameWorld _world;
+    private readonly float _cellSize;
     private readonly Dictionary<long, List<SteeringNeighborSnapshot>> _neighborCells = [];
     private readonly Dictionary<long, List<SteeringObstacleSnapshot>> _obstacleCells = [];
     private readonly Dictionary<long, List<SteeringWallSnapshot>> _wallCells = [];
@@ -25,9 +26,10 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
     private bool _staticIndexDirty = true;
     private int _builtNeighborUpdateSequence = -1;
 
-    public UniformGridSteeringSpatialIndex(GameWorld world)
+    public UniformGridSteeringSpatialIndex(GameWorld world, float cellSize = DefaultCellSize)
     {
         _world = world ?? throw new ArgumentNullException(nameof(world));
+        _cellSize = cellSize > 1.0f ? cellSize : DefaultCellSize;
 
         _world.EntityAdded += OnEntityAdded;
         _world.EntityRemoved += OnEntityRemoved;
@@ -45,7 +47,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         RebuildNeighborIndex();
     }
 
-    public void QueryNeighbors(Entity owner, Vector3 origin, float radius, List<SteeringNeighborSnapshot> results, out int candidateCount, out int hitCount)
+    public void QueryNeighbors(Entity owner, Vector3 origin, float radius, List<SteeringNeighborSnapshot> results, out int candidateCount, out int hitCount, out int windowCellCount, out int nonEmptyCellCount)
     {
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(results);
@@ -58,6 +60,8 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         results.Clear();
         candidateCount = 0;
         hitCount = 0;
+        windowCellCount = 0;
+        nonEmptyCellCount = 0;
 
         float minX = origin.X - radius;
         float maxX = origin.X + radius;
@@ -67,6 +71,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         int maxCellX = ToCell(maxX);
         int minCellY = ToCell(minY);
         int maxCellY = ToCell(maxY);
+        windowCellCount = (maxCellX - minCellX + 1) * (maxCellY - minCellY + 1);
 
         for (int cellX = minCellX; cellX <= maxCellX; cellX++)
         {
@@ -76,6 +81,8 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
                 {
                     continue;
                 }
+
+                nonEmptyCellCount++;
 
                 for (int snapshotIndex = 0; snapshotIndex < cellSnapshots.Count; snapshotIndex++)
                 {
@@ -121,6 +128,8 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
     private void RebuildNeighborIndex()
     {
         _neighborCells.Clear();
+        int activeAgentCount = 0;
+        int maxCellOccupancy = 0;
 
         for (int entityIndex = 0; entityIndex < _world.Entities.Count; entityIndex++)
         {
@@ -180,7 +189,21 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             }
 
             cellSnapshots.Add(snapshot);
+            activeAgentCount++;
+            if (cellSnapshots.Count > maxCellOccupancy)
+            {
+                maxCellOccupancy = cellSnapshots.Count;
+            }
         }
+
+        double averageOccupancy = _neighborCells.Count > 0
+            ? (double)activeAgentCount / _neighborCells.Count
+            : 0.0;
+
+        SteeringPerformanceDiagnostics.RecordNeighborGridBuild(
+            _neighborCells.Count,
+            averageOccupancy,
+            maxCellOccupancy);
 
         _builtNeighborUpdateSequence = _world.UpdateSequence;
     }
@@ -371,7 +394,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         }
     }
 
-    private static void Query<T>(Dictionary<long, List<T>> cells, BoundingBox bounds, List<T> results, HashSet<Entity> deduplicationSet, Func<T, Entity> entitySelector, Action<List<T>, T> addResult)
+    private void Query<T>(Dictionary<long, List<T>> cells, BoundingBox bounds, List<T> results, HashSet<Entity> deduplicationSet, Func<T, Entity> entitySelector, Action<List<T>, T> addResult)
     {
         results.Clear();
         deduplicationSet.Clear();
@@ -404,7 +427,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         }
     }
 
-    private static void Add(Dictionary<long, List<SteeringObstacleSnapshot>> cells, BoundingBox bounds, SteeringObstacleSnapshot snapshot)
+    private void Add(Dictionary<long, List<SteeringObstacleSnapshot>> cells, BoundingBox bounds, SteeringObstacleSnapshot snapshot)
     {
         int minCellX = ToCell(bounds.Min.X);
         int maxCellX = ToCell(bounds.Max.X);
@@ -427,7 +450,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         }
     }
 
-    private static void Add(Dictionary<long, List<SteeringWallSnapshot>> cells, BoundingBox bounds, SteeringWallSnapshot snapshot)
+    private void Add(Dictionary<long, List<SteeringWallSnapshot>> cells, BoundingBox bounds, SteeringWallSnapshot snapshot)
     {
         int minCellX = ToCell(bounds.Min.X);
         int maxCellX = ToCell(bounds.Max.X);
@@ -466,9 +489,9 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         return new BoundingBox(new Vector3(minX, minY, -padding), new Vector3(maxX, maxY, padding));
     }
 
-    private static int ToCell(float coordinate)
+    private int ToCell(float coordinate)
     {
-        return (int)MathF.Floor(coordinate / DefaultCellSize);
+        return (int)MathF.Floor(coordinate / _cellSize);
     }
 
     private static long CombineCellKey(int cellX, int cellY)

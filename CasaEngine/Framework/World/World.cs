@@ -59,7 +59,8 @@ public sealed class World : ObjectBase
     public World(Func<World, WorldSpatialServices>? spatialServicesFactory)
     {
         MessageBus = new WorldMessageBus();
-        SpatialServices = (spatialServicesFactory ?? WorldSpatialServices.CreateDefault)(this);
+        Func<World, WorldSpatialServices> resolvedSpatialServicesFactory = spatialServicesFactory ?? (world => WorldSpatialServices.CreateDefault(world));
+        SpatialServices = resolvedSpatialServicesFactory(this);
     }
 
     public void Clear()

@@ -22,6 +22,11 @@ public sealed record SteeringPerformanceSnapshot(
     double NeighborQueryCount,
     double NeighborCandidateCount,
     double NeighborHitCount,
+    double NeighborQueryWindowCellCount,
+    double NeighborQueryNonEmptyCellCount,
+    double NeighborGridActiveCellCount,
+    double NeighborGridAverageOccupancy,
+    double NeighborGridMaxOccupancy,
     double BridgeUpdateMilliseconds,
     double BridgeUpdateCount,
     double VehicleScriptUpdateMilliseconds,
@@ -34,6 +39,11 @@ public sealed record SteeringPerformanceSnapshot(
 {
     public static readonly SteeringPerformanceSnapshot Empty = new(
         0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -77,6 +87,11 @@ public static class SteeringPerformanceDiagnostics
         public int NeighborQueryCount;
         public int NeighborCandidateCount;
         public int NeighborHitCount;
+        public int NeighborQueryWindowCellCount;
+        public int NeighborQueryNonEmptyCellCount;
+        public int NeighborGridActiveCellCount;
+        public double NeighborGridAverageOccupancy;
+        public int NeighborGridMaxOccupancy;
         public double BridgeUpdateMilliseconds;
         public int BridgeUpdateCount;
         public double VehicleScriptUpdateMilliseconds;
@@ -98,6 +113,11 @@ public static class SteeringPerformanceDiagnostics
             NeighborQueryCount = 0;
             NeighborCandidateCount = 0;
             NeighborHitCount = 0;
+            NeighborQueryWindowCellCount = 0;
+            NeighborQueryNonEmptyCellCount = 0;
+            NeighborGridActiveCellCount = 0;
+            NeighborGridAverageOccupancy = 0.0;
+            NeighborGridMaxOccupancy = 0;
             BridgeUpdateMilliseconds = 0.0;
             BridgeUpdateCount = 0;
             VehicleScriptUpdateMilliseconds = 0.0;
@@ -219,6 +239,11 @@ public static class SteeringPerformanceDiagnostics
     private static readonly AveragedMetric NeighborQueryCount = new();
     private static readonly AveragedMetric NeighborCandidateCount = new();
     private static readonly AveragedMetric NeighborHitCount = new();
+    private static readonly AveragedMetric NeighborQueryWindowCellCount = new();
+    private static readonly AveragedMetric NeighborQueryNonEmptyCellCount = new();
+    private static readonly AveragedMetric NeighborGridActiveCellCount = new();
+    private static readonly AveragedMetric NeighborGridAverageOccupancy = new();
+    private static readonly AveragedMetric NeighborGridMaxOccupancy = new();
     private static readonly AveragedMetric BridgeUpdateMilliseconds = new();
     private static readonly AveragedMetric BridgeUpdateCount = new();
     private static readonly AveragedMetric VehicleScriptUpdateMilliseconds = new();
@@ -282,6 +307,11 @@ public static class SteeringPerformanceDiagnostics
         NeighborQueryCount.Update(Current.NeighborQueryCount);
         NeighborCandidateCount.Update(Current.NeighborCandidateCount);
         NeighborHitCount.Update(Current.NeighborHitCount);
+        NeighborQueryWindowCellCount.Update(Current.NeighborQueryWindowCellCount);
+        NeighborQueryNonEmptyCellCount.Update(Current.NeighborQueryNonEmptyCellCount);
+        NeighborGridActiveCellCount.Update(Current.NeighborGridActiveCellCount);
+        NeighborGridAverageOccupancy.Update(Current.NeighborGridAverageOccupancy);
+        NeighborGridMaxOccupancy.Update(Current.NeighborGridMaxOccupancy);
         BridgeUpdateMilliseconds.Update(Current.BridgeUpdateMilliseconds);
         BridgeUpdateCount.Update(Current.BridgeUpdateCount);
         VehicleScriptUpdateMilliseconds.Update(Current.VehicleScriptUpdateMilliseconds);
@@ -326,6 +356,11 @@ public static class SteeringPerformanceDiagnostics
             NeighborQueryCount.Value,
             NeighborCandidateCount.Value,
             NeighborHitCount.Value,
+            NeighborQueryWindowCellCount.Value,
+            NeighborQueryNonEmptyCellCount.Value,
+            NeighborGridActiveCellCount.Value,
+            NeighborGridAverageOccupancy.Value,
+            NeighborGridMaxOccupancy.Value,
             BridgeUpdateMilliseconds.Value,
             BridgeUpdateCount.Value,
             VehicleScriptUpdateMilliseconds.Value,
@@ -413,7 +448,7 @@ public static class SteeringPerformanceDiagnostics
         behaviorMetrics.AcceptedNeighbors += Math.Max(0, acceptedNeighbors);
     }
 
-    public static void RecordNeighborQuery(double elapsedMilliseconds, int candidateCount, int hitCount)
+    public static void RecordNeighborQuery(double elapsedMilliseconds, int candidateCount, int hitCount, int windowCellCount, int nonEmptyCellCount)
     {
         if (!Enabled)
         {
@@ -424,6 +459,20 @@ public static class SteeringPerformanceDiagnostics
         Current.NeighborQueryCount++;
         Current.NeighborCandidateCount += Math.Max(0, candidateCount);
         Current.NeighborHitCount += Math.Max(0, hitCount);
+        Current.NeighborQueryWindowCellCount += Math.Max(0, windowCellCount);
+        Current.NeighborQueryNonEmptyCellCount += Math.Max(0, nonEmptyCellCount);
+    }
+
+    public static void RecordNeighborGridBuild(int activeCellCount, double averageOccupancy, int maxOccupancy)
+    {
+        if (!Enabled)
+        {
+            return;
+        }
+
+        Current.NeighborGridActiveCellCount = Math.Max(0, activeCellCount);
+        Current.NeighborGridAverageOccupancy = Math.Max(0.0, averageOccupancy);
+        Current.NeighborGridMaxOccupancy = Math.Max(0, maxOccupancy);
     }
 
     public static void RecordBridgeUpdate(double elapsedMilliseconds)
@@ -475,6 +524,11 @@ public static class SteeringPerformanceDiagnostics
         NeighborQueryCount.Reset();
         NeighborCandidateCount.Reset();
         NeighborHitCount.Reset();
+        NeighborQueryWindowCellCount.Reset();
+        NeighborQueryNonEmptyCellCount.Reset();
+        NeighborGridActiveCellCount.Reset();
+        NeighborGridAverageOccupancy.Reset();
+        NeighborGridMaxOccupancy.Reset();
         BridgeUpdateMilliseconds.Reset();
         BridgeUpdateCount.Reset();
         VehicleScriptUpdateMilliseconds.Reset();

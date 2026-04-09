@@ -16,12 +16,12 @@ public sealed class WorldSpatialServices
 
     public ISteeringSpatialIndex2D SteeringIndex { get; }
 
-    public static WorldSpatialServices CreateDefault(World world)
+    public static WorldSpatialServices CreateDefault(World world, float steeringCellSize = UniformGridSteeringSpatialIndex.DefaultCellSize)
     {
         ArgumentNullException.ThrowIfNull(world);
 
         return new WorldSpatialServices(
             new OctreeWorldSpatialIndex(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64),
-            new UniformGridSteeringSpatialIndex(world));
+            new UniformGridSteeringSpatialIndex(world, steeringCellSize));
     }
 }

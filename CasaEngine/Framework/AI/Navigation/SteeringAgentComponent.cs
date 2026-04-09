@@ -270,7 +270,7 @@ public sealed class SteeringAgentComponent : EntityComponent
 
         _neighborCache.Clear();
         _neighborSnapshotCache.Clear();
-        Owner.World.SpatialServices.SteeringIndex.QueryNeighbors(Owner, Kinematics.Position, radius, _neighborSnapshotCache, out int candidateCount, out int hitCount);
+        Owner.World.SpatialServices.SteeringIndex.QueryNeighbors(Owner, Kinematics.Position, radius, _neighborSnapshotCache, out int candidateCount, out int hitCount, out int windowCellCount, out int nonEmptyCellCount);
         for (int index = 0; index < _neighborSnapshotCache.Count; index++)
         {
             _neighborCache.Add(_neighborSnapshotCache[index].Entity);
@@ -285,7 +285,9 @@ public sealed class SteeringAgentComponent : EntityComponent
             SteeringPerformanceDiagnostics.RecordNeighborQuery(
                 SteeringPerformanceDiagnostics.GetElapsedMilliseconds(startTimestamp),
                 candidateCount,
-                hitCount);
+                hitCount,
+                windowCellCount,
+                nonEmptyCellCount);
         }
     }
 

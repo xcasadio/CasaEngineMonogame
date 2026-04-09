@@ -8,7 +8,7 @@ public interface ISteeringSpatialIndex2D
 {
     void PrepareForWorldUpdate();
 
-    void QueryNeighbors(Entity owner, Vector3 origin, float radius, List<SteeringNeighborSnapshot> results, out int candidateCount, out int hitCount);
+    void QueryNeighbors(Entity owner, Vector3 origin, float radius, List<SteeringNeighborSnapshot> results, out int candidateCount, out int hitCount, out int windowCellCount, out int nonEmptyCellCount);
 
     void QueryObstacles(BoundingBox bounds, List<SteeringObstacleSnapshot> results, HashSet<Entity> deduplicationSet);
 
