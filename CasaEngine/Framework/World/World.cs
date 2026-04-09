@@ -38,8 +38,7 @@ public sealed class World : ObjectBase
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
     public int UpdateSequence { get; private set; }
-    public IWorldSpatialIndex3D WorldSpatialIndex { get; }
-    public ISteeringSpatialIndex2D SteeringSpatialIndex { get; }
+    public WorldSpatialServices SpatialServices { get; }
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
 
@@ -52,11 +51,10 @@ public sealed class World : ObjectBase
     public event EventHandler<Entity> EntityRemoved;
 
 
-    public World()
+    public World(Func<World, WorldSpatialServices>? spatialServicesFactory = null)
     {
         MessageBus = new WorldMessageBus();
-        WorldSpatialIndex = new OctreeWorldSpatialIndex(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
-        SteeringSpatialIndex = new UniformGridSteeringSpatialIndex(this);
+        SpatialServices = (spatialServicesFactory ?? WorldSpatialServices.CreateDefault)(this);
     }
 
     public void Clear()
@@ -116,7 +114,7 @@ public sealed class World : ObjectBase
 
         _entities.Clear();
         _baseObjectsToAdd.Clear();
-        WorldSpatialIndex.Clear();
+        SpatialServices.WorldIndex.Clear();
         _observedEntities.Clear();
         MessageBus.Reset();
 
@@ -288,14 +286,14 @@ public sealed class World : ObjectBase
         var toRemove = new List<Entity>();
 
         InternalAddEntities();
-        SteeringSpatialIndex.PrepareForWorldUpdate();
+        SpatialServices.SteeringIndex.PrepareForWorldUpdate();
 
         foreach (var entity in _entities)
         {
             if (entity.ToBeRemoved)
             {
                 toRemove.Add(entity);
-                WorldSpatialIndex.Remove(entity);
+                SpatialServices.WorldIndex.Remove(entity);
             }
             else
             {
@@ -303,7 +301,7 @@ public sealed class World : ObjectBase
 
                 if (IsBoundingBoxDirty(entity))
                 {
-                    WorldSpatialIndex.Move(entity, entity.GetBoundingBox());
+                    SpatialServices.WorldIndex.Move(entity, entity.GetBoundingBox());
                 }
             }
         }
@@ -316,7 +314,7 @@ public sealed class World : ObjectBase
             NotifyEntityRemovedRecursive(entity);
         }
 
-        WorldSpatialIndex.ApplyPendingMoves();
+        SpatialServices.WorldIndex.ApplyPendingMoves();
 
         if (Game.ExecutionPolicy.UpdateGameplayScripts)
         {
@@ -374,13 +372,13 @@ public sealed class World : ObjectBase
 
     private void AddInSpacePartitioning(Entity actor)
     {
-        WorldSpatialIndex.Add(actor, actor.GetBoundingBox());
+        SpatialServices.WorldIndex.Add(actor, actor.GetBoundingBox());
     }
 
     public void Draw(in RenderFrame frame)
     {
         var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
-        WorldSpatialIndex.Query(boundingFrustum, _entitiesVisible);
+        SpatialServices.WorldIndex.Query(boundingFrustum, _entitiesVisible);
 
         foreach (var entityBase in _entitiesVisible)
         {
@@ -394,14 +392,14 @@ public sealed class World : ObjectBase
 
         if (DisplaySpacePartitioning)
         {
-            WorldSpatialIndex.DebugDraw(Game.Line3dRendererComponent);
+            SpatialServices.WorldIndex.DebugDraw(Game.Line3dRendererComponent);
         }
     }
 
     public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
     {
         ArgumentNullException.ThrowIfNull(results);
-        WorldSpatialIndex.Query(bounds, results, filter);
+        SpatialServices.WorldIndex.Query(bounds, results, filter);
     }
 
     public void RegisterWorldUI(WorldUIComponent worldUiComponent)
@@ -548,7 +546,7 @@ public sealed class World : ObjectBase
         MessageBus.UnregisterEntity(entity);
         UnsubscribeEntityTree(entity);
         _entities.Remove(entity);
-        WorldSpatialIndex.Remove(entity);
+        SpatialServices.WorldIndex.Remove(entity);
         entity.Destroy();
         NotifyEntityRemovedRecursive(entity);
     }
