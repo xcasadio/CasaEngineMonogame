@@ -92,4 +92,3 @@ public class SimpleRectanglePacker : RectanglePacker
 
 }
 
-// namespace CasaEngineCommon.Packing

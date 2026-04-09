@@ -1,7 +1,7 @@
-﻿using CasaEngine.Framework.Game;
+﻿using CasaEngine.Framework.Application;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Size = CasaEngine.Core.Maths.Size;
+using Size = CasaEngine.Core.Math.Size;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 

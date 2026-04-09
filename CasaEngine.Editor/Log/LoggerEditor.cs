@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Editor.Log;
 

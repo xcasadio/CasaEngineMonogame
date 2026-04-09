@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using GameWorld = CasaEngine.Framework.World.World;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using GameWorld = CasaEngine.Framework.Scene.World.World;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;

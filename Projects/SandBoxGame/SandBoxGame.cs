@@ -1,15 +1,15 @@
 ﻿using System.IO;
 using System.Linq;
-using CasaEngine.Core.Helpers;
-using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components.DebugTools;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+
+using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Application.Components.DebugTools;
+using CasaEngine.Framework.Rendering.Models;
+
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

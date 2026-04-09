@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using CasaEngine.Framework.Game.Components;
+using CasaEngine.Framework.Application.Components;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering;

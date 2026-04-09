@@ -3,7 +3,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.RPGDemo.Scripts;

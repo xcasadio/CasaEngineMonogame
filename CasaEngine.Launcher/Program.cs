@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using CasaEngine.Core.Log;
-using CasaEngine.Engine;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Core.Logging;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.UI;
 
 public static class Program
 {

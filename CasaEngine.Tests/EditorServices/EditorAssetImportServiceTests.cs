@@ -1,9 +1,10 @@
 using CasaEngine.EditorServices;
-using CasaEngine.Engine;
-using CasaEngine.Framework;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Tests;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;

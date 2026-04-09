@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using CasaEngine.Framework.Entities;
+using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;

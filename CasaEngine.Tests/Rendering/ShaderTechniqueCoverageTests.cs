@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Framework.Rendering.Shaders;
 using Xunit;
 

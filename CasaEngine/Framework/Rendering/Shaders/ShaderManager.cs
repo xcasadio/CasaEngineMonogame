@@ -1,3 +1,4 @@
+using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -56,7 +57,7 @@ public sealed class ShaderManager : IDisposable
         }
         catch (Exception ex)
         {
-            Core.Log.Logs.WriteException(ex);
+            Logs.WriteException(ex);
             return null;
         }
 

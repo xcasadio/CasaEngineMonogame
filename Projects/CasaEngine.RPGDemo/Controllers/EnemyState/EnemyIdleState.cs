@@ -1,5 +1,5 @@
 ﻿using System;
-using CasaEngine.Core.Helpers;
+
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
 using Microsoft.Xna.Framework;

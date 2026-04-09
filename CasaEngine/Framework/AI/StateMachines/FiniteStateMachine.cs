@@ -1,4 +1,4 @@
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Framework.AI.StateMachines;
 

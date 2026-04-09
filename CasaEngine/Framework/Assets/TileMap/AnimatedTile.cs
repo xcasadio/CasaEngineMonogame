@@ -1,5 +1,5 @@
 ﻿using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Application;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.TileMap;

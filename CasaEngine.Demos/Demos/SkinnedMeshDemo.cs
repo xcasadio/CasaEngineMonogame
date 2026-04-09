@@ -1,8 +1,8 @@
-﻿using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+﻿using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
-using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Models;
 
 namespace CasaEngine.Demos.Demos;
 

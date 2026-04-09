@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Game.Components.Physics;
+using CasaEngine.Framework.Application.Components.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation.SteeringsBehaviors;

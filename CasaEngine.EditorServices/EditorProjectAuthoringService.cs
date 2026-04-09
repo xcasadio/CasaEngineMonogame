@@ -1,9 +1,10 @@
-using CasaEngine.Engine;
-using CasaEngine.Framework;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Project;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.EditorServices;
 

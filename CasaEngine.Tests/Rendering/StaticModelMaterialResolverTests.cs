@@ -1,6 +1,6 @@
-using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Materials;
+
 using Microsoft.Xna.Framework;
 using Xunit;
 

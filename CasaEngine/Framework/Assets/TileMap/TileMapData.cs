@@ -1,7 +1,7 @@
 ﻿
 using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
-using Size = CasaEngine.Core.Maths.Size;
+using Size = CasaEngine.Core.Math.Size;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 

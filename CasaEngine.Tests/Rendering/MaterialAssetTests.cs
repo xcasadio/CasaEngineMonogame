@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Materials;
+
 using Xunit;
 
 namespace CasaEngine.Tests.Rendering;

@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Materials;
+
 using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Framework.Rendering.Draw;

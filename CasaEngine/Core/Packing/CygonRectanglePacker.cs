@@ -309,4 +309,3 @@ public class CygonRectanglePacker : RectanglePacker
 
 }
 
-// namespace CasaEngineCommon.Packing

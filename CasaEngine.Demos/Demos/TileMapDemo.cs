@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.Engine;
+using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework;
+using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

@@ -43,4 +43,3 @@ public class OutOfSpaceException : Exception
     public OutOfSpaceException(string message, Exception inner) : base(message, inner) { }
 }
 
-// namespace CasaEngineCommon.Packing

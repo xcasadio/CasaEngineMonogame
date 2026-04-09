@@ -1,5 +1,5 @@
-using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.GUI;
+
+using CasaEngine.Framework.UI;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Rendering;

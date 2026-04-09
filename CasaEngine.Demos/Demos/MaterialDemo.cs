@@ -1,12 +1,12 @@
 using System;
-using CasaEngine.Engine.Primitives3D;
+using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Assets.Loaders;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
-using CasaEngine.Framework.Game.Components;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Rendering.Models;
+
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -469,7 +469,7 @@ public class MaterialDemo : Demo
     /// </summary>
     private static void SpawnStaticModel(
         string             name,
-        Framework.World.World world,
+        CasaEngine.Framework.Scene.World.World world,
         GraphicsDevice     gd,
         GeometricPrimitive primitive,
         Vector3            position,
@@ -504,7 +504,7 @@ public class MaterialDemo : Demo
     /// </summary>
     private static void SpawnSphereWithPropertyBlock(
         string                name,
-        Framework.World.World world,
+        CasaEngine.Framework.Scene.World.World world,
         GraphicsDevice        gd,
         LitDiffuseMaterial    material,
         MaterialPropertyBlock propertyBlock,

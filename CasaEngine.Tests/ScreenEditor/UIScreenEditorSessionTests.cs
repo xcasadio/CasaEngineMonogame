@@ -1,7 +1,7 @@
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Session;
-using CasaEngine.Engine;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.UI.MGUI;
 using CasaEngine.Tests;
 using Newtonsoft.Json.Linq;
 using Xunit;

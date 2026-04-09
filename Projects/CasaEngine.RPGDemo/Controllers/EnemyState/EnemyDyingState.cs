@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.AI.StateMachines;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 
 namespace CasaEngine.RPGDemo.Controllers.EnemyState;
 

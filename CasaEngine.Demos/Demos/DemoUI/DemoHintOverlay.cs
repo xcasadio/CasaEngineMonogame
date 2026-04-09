@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using CasaEngine.Framework.GUI;
+using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MonoGame.Extended;

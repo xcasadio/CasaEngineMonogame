@@ -1,0 +1,13 @@
+global using CasaEngine.Core.Math.Extensions;
+global using CasaEngine.Core.Math.Geometry;
+global using CasaEngine.Core.Randomization;
+global using CasaEngine.Core.Text;
+global using CasaEngine.Core.Time;
+global using CasaEngine.Engine.Environment;
+global using CasaEngine.Framework.Common;
+global using CasaEngine.Framework.Configuration;
+global using CasaEngine.Framework.Materials.Authoring;
+global using CasaEngine.Framework.Materials.Compilation;
+global using CasaEngine.Framework.Materials.Definitions;
+global using CasaEngine.Framework.Materials.Runtime;
+global using CasaEngine.Framework.Materials.Serialization;

@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
-using CasaEngine.Engine;
-using CasaEngine.Framework.GUI.MGUI;
+using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;

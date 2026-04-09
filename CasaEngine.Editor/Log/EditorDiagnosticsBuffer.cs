@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Editor.Log;
 

@@ -4,17 +4,17 @@ using System.IO;
 using System.Linq;
 using CasaEngine.EditorServices;
 using CasaEngine.Engine.Input;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Game;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Transform;
+using CasaEngine.Framework.Scene.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
-namespace CasaEngine.Framework.Game.Components.DebugTools
+namespace CasaEngine.Framework.Application.Components.DebugTools
 {
     public class TransformGizmoComponent : DrawableGameComponent
     {
@@ -34,7 +34,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
 
         public bool IsActiveViewport { get; set; }
 
-        public Framework.World.World? SelectionWorld { get; set; }
+        public CasaEngine.Framework.Scene.World.World? SelectionWorld { get; set; }
 
         public TransformGizmoComponent(Microsoft.Xna.Framework.Game game) : base(game)
         {
@@ -287,7 +287,7 @@ namespace CasaEngine.Framework.Game.Components.DebugTools
         }
     }
 
-    [System.Obsolete("Use CasaEngine.Framework.Game.Components.DebugTools.TransformGizmoComponent instead.")]
+    [System.Obsolete("Use CasaEngine.Framework.Application.Components.DebugTools.TransformGizmoComponent instead.")]
     public sealed class GizmoComponent : TransformGizmoComponent
     {
         public GizmoComponent(Microsoft.Xna.Framework.Game game)

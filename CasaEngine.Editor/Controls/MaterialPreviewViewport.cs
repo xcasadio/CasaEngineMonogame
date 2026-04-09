@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
-using CasaEngine.Engine.Primitives3D;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Rendering.Models;
+
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;

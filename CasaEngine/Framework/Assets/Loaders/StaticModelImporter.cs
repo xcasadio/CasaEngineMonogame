@@ -1,7 +1,7 @@
 using Assimp;
-using CasaEngine.Core.Log;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Animations;
-using CasaEngine.Framework.Graphics;
+using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Globalization;
@@ -47,7 +47,7 @@ public class StaticModelImporter
 
     public StaticModelImportResult ImportWithMetadata(string filePath, ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
     {
-        Scene scene;
+        Assimp.Scene scene;
         try
         {
             scene = _assimpContext.ImportFile(filePath,
@@ -109,7 +109,7 @@ public class StaticModelImporter
     public IReadOnlyList<string> GetTextureFilePaths(string filePath)
     {
         var paths = new List<string>();
-        Scene scene;
+        Assimp.Scene scene;
         try
         {
             scene = ImportScene(filePath, PostProcessSteps.None);
@@ -148,13 +148,13 @@ public class StaticModelImporter
     //  Private helpers
     // -----------------------------------------------------------------------
 
-    private Scene ImportScene(string filePath, PostProcessSteps postProcessSteps)
+    private Assimp.Scene ImportScene(string filePath, PostProcessSteps postProcessSteps)
     {
         return _assimpContext.ImportFile(filePath, postProcessSteps);
     }
 
     private static List<StaticModelImportedMaterial> BuildMaterials(
-        Scene? scene,
+        Assimp.Scene? scene,
         string filePath,
         IReadOnlyDictionary<string, LegacyEffectInstance> legacyEffectsByMaterial,
         ILegacyMaterialImportProfile legacyMaterialImportProfile)

@@ -1,4 +1,4 @@
-namespace CasaEngine.Framework.Game.Components.Editor;
+namespace CasaEngine.Editor.Runtime;
 
 public enum EditorViewType
 {

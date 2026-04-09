@@ -2,7 +2,7 @@
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.World;
+using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
 

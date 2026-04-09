@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Materials;
+
 
 namespace CasaEngine.EditorServices.Materials;
 

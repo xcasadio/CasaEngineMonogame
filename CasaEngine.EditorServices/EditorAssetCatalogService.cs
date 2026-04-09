@@ -1,6 +1,7 @@
-using CasaEngine.Framework;
+using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Engine;
+using CasaEngine.Engine.Environment;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

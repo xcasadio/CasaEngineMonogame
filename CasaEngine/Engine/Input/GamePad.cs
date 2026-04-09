@@ -1,4 +1,4 @@
-using CasaEngine.Engine.Input.InputDeviceStateProviders;
+using CasaEngine.Engine.Input.Providers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 

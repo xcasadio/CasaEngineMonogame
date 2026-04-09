@@ -1,6 +1,6 @@
-using CasaEngine.Core.Helpers;
-using CasaEngine.Framework.Entities;
-using CasaEngine.Framework.Entities.Components;
+
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using System.Diagnostics;
 
@@ -110,7 +110,7 @@ public sealed class SteeringAgentComponent : EntityComponent
         CurrentCommand = SteeringCommand.None(Settings.OutputMode);
     }
 
-    public override void InitializeWithWorld(World.World world)
+    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
     {
         base.InitializeWithWorld(world);
         ResolveDependencies();

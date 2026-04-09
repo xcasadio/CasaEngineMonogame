@@ -1,5 +1,5 @@
-using CasaEngine.Framework.Graphics;
-using CasaEngine.Framework.Materials;
+using CasaEngine.Framework.Rendering.Models;
+
 using Xunit;
 
 namespace CasaEngine.Tests.Rendering;
