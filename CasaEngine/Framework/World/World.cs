@@ -51,7 +51,12 @@ public sealed class World : ObjectBase
     public event EventHandler<Entity> EntityRemoved;
 
 
-    public World(Func<World, WorldSpatialServices>? spatialServicesFactory = null)
+    public World()
+        : this(null)
+    {
+    }
+
+    public World(Func<World, WorldSpatialServices>? spatialServicesFactory)
     {
         MessageBus = new WorldMessageBus();
         SpatialServices = (spatialServicesFactory ?? WorldSpatialServices.CreateDefault)(this);
