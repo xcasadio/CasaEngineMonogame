@@ -40,6 +40,7 @@ public sealed class World : ObjectBase
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
     public int UpdateSequence { get; private set; }
+    public SteeringWorldContext SteeringContext { get; }
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
 
@@ -56,6 +57,7 @@ public sealed class World : ObjectBase
     {
         _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
         MessageBus = new WorldMessageBus();
+        SteeringContext = new SteeringWorldContext(this);
     }
 
     public void Clear()
@@ -287,7 +289,7 @@ public sealed class World : ObjectBase
         var toRemove = new List<Entity>();
 
         InternalAddEntities();
-        SteeringNeighborhoodFrameIndex.PrepareForWorldUpdate(this);
+        SteeringContext.PrepareForWorldUpdate();
 
         foreach (var entity in _entities)
         {

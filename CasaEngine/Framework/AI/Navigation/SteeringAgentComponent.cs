@@ -270,7 +270,7 @@ public sealed class SteeringAgentComponent : EntityComponent
 
         _neighborCache.Clear();
         _neighborSnapshotCache.Clear();
-        SteeringNeighborhoodFrameIndex.Query(Owner.World, Owner, Kinematics.Position, radius, _neighborSnapshotCache, out int candidateCount, out int hitCount);
+        Owner.World.SteeringContext.QueryNeighbors(Owner, Kinematics.Position, radius, _neighborSnapshotCache, out int candidateCount, out int hitCount);
         for (int index = 0; index < _neighborSnapshotCache.Count; index++)
         {
             _neighborCache.Add(_neighborSnapshotCache[index].Entity);
@@ -325,7 +325,7 @@ public sealed class SteeringAgentComponent : EntityComponent
             return Array.Empty<SteeringObstacleSnapshot>();
         }
 
-        SteeringStaticSpatialIndex.QueryObstacles(Owner.World, bounds, _obstacleQueryCache, _staticSpatialQueryDedupCache);
+        Owner.World.SteeringContext.QueryObstacles(bounds, _obstacleQueryCache, _staticSpatialQueryDedupCache);
         return _obstacleQueryCache;
     }
 
@@ -336,7 +336,7 @@ public sealed class SteeringAgentComponent : EntityComponent
             return Array.Empty<SteeringWallSnapshot>();
         }
 
-        SteeringStaticSpatialIndex.QueryWalls(Owner.World, bounds, _wallQueryCache, _staticSpatialQueryDedupCache);
+        Owner.World.SteeringContext.QueryWalls(bounds, _wallQueryCache, _staticSpatialQueryDedupCache);
         return _wallQueryCache;
     }
 
