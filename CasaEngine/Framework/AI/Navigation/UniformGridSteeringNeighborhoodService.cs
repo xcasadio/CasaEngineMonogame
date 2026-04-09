@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Entities;
 using CasaEngine.Framework.Entities.Components;
@@ -99,6 +100,9 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             return;
         }
 
+        bool capturePerformance = SteeringPerformanceDiagnostics.Enabled;
+        long buildStartTimestamp = capturePerformance ? Stopwatch.GetTimestamp() : 0L;
+
         _frame.BeginBuild(_world.UpdateSequence, _world.Entities.Count);
 
         for (int entityIndex = 0; entityIndex < _world.Entities.Count; entityIndex++)
@@ -106,7 +110,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             Entity entity = _world.Entities[entityIndex];
             SteeringAgentComponent? steeringAgent = entity.GetComponent<SteeringAgentComponent>();
             SceneComponent? sceneComponent = entity.RootComponent;
-            if (steeringAgent == null || sceneComponent == null)
+            if (steeringAgent == null || sceneComponent == null || steeringAgent.Settings.NeighborhoodParticipationMask == 0u)
             {
                 continue;
             }
@@ -155,7 +159,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             _frame.AddParticipant(
                 steeringAgent,
                 entity,
-                uint.MaxValue,
+                steeringAgent.Settings.NeighborhoodParticipationMask,
                 positionX,
                 positionY,
                 position.Z,
@@ -168,6 +172,16 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
 
         _cellGrid.Build(_frame, _cellSize);
         _builtWorldUpdateSequence = _world.UpdateSequence;
+
+        if (capturePerformance)
+        {
+            SteeringPerformanceDiagnostics.RecordNeighborhoodKernelBuild(
+                SteeringPerformanceDiagnostics.GetElapsedMilliseconds(buildStartTimestamp),
+                _frame.Count,
+                _cellGrid.ActiveCellCount,
+                _cellGrid.AverageOccupancy,
+                _cellGrid.MaxCellOccupancy);
+        }
     }
 
     private SteeringNeighborhoodAggregateResult ComputeNeighborhood(int selfIndex, in SteeringNeighborhoodAggregateQuery query, List<Vector3>? debugNeighborPositions)
@@ -176,6 +190,8 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
         {
             debugNeighborPositions.Clear();
         }
+
+        long startTimestamp = SteeringPerformanceDiagnostics.Enabled ? Stopwatch.GetTimestamp() : 0L;
 
         double selfPositionX = _frame.PositionX[selfIndex];
         double selfPositionY = _frame.PositionY[selfIndex];
@@ -267,7 +283,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             centerY /= neighborCount;
         }
 
-        return new SteeringNeighborhoodAggregateResult(
+        SteeringNeighborhoodAggregateResult result = new(
             candidateScans,
             windowCellCount,
             nonEmptyCellCount,
@@ -278,5 +294,17 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             headingY,
             centerX,
             centerY);
+
+        if (SteeringPerformanceDiagnostics.Enabled)
+        {
+            SteeringPerformanceDiagnostics.RecordNeighborhoodKernelQuery(
+                SteeringPerformanceDiagnostics.GetElapsedMilliseconds(startTimestamp),
+                result.CandidateScans,
+                result.NeighborCount,
+                result.WindowCellCount,
+                result.NonEmptyCellCount);
+        }
+
+        return result;
     }
 }

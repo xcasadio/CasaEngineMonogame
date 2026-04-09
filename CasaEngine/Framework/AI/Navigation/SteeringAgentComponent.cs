@@ -249,6 +249,16 @@ public sealed class SteeringAgentComponent : EntityComponent
         return _neighborSnapshotCache;
     }
 
+    public SteeringNeighborhoodAggregateContext GetNeighborhoodAggregate(in SteeringNeighborhoodAggregateQuery query)
+    {
+        if (Owner?.World == null || Owner == null)
+        {
+            return SteeringNeighborhoodAggregateContext.Empty;
+        }
+
+        return Owner.World.SpatialServices.NeighborhoodService.GetNeighborhoodAggregate(this, query);
+    }
+
     private void EnsureNeighborCache(float radius)
     {
         if (Owner?.World == null || Owner == null)

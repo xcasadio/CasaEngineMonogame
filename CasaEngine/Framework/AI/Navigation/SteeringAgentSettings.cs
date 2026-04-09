@@ -14,6 +14,8 @@ public sealed class SteeringAgentSettings
 
     public bool UsePrioritizedAccumulation { get; set; }
 
+    public uint NeighborhoodParticipationMask { get; set; }
+
     public SteeringAgentSettings Clone()
     {
         return new SteeringAgentSettings
@@ -24,6 +26,7 @@ public sealed class SteeringAgentSettings
             MaxTurnRate = MaxTurnRate,
             OutputMode = OutputMode,
             UsePrioritizedAccumulation = UsePrioritizedAccumulation,
+            NeighborhoodParticipationMask = NeighborhoodParticipationMask,
         };
     }
 }

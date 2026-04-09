@@ -27,6 +27,18 @@ public sealed record SteeringPerformanceSnapshot(
     double NeighborGridActiveCellCount,
     double NeighborGridAverageOccupancy,
     double NeighborGridMaxOccupancy,
+    double NeighborhoodKernelBuildMilliseconds,
+    double NeighborhoodKernelBuildCount,
+    double NeighborhoodKernelParticipantCount,
+    double NeighborhoodKernelActiveCellCount,
+    double NeighborhoodKernelAverageOccupancy,
+    double NeighborhoodKernelMaxOccupancy,
+    double NeighborhoodKernelQueryMilliseconds,
+    double NeighborhoodKernelQueryCount,
+    double NeighborhoodKernelCandidateScans,
+    double NeighborhoodKernelAcceptedNeighbors,
+    double NeighborhoodKernelQueryWindowCellCount,
+    double NeighborhoodKernelQueryNonEmptyCellCount,
     double BridgeUpdateMilliseconds,
     double BridgeUpdateCount,
     double VehicleScriptUpdateMilliseconds,
@@ -39,6 +51,18 @@ public sealed record SteeringPerformanceSnapshot(
 {
     public static readonly SteeringPerformanceSnapshot Empty = new(
         0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
         0.0,
         0.0,
         0.0,
@@ -92,6 +116,18 @@ public static class SteeringPerformanceDiagnostics
         public int NeighborGridActiveCellCount;
         public double NeighborGridAverageOccupancy;
         public int NeighborGridMaxOccupancy;
+        public double NeighborhoodKernelBuildMilliseconds;
+        public int NeighborhoodKernelBuildCount;
+        public int NeighborhoodKernelParticipantCount;
+        public int NeighborhoodKernelActiveCellCount;
+        public double NeighborhoodKernelAverageOccupancy;
+        public int NeighborhoodKernelMaxOccupancy;
+        public double NeighborhoodKernelQueryMilliseconds;
+        public int NeighborhoodKernelQueryCount;
+        public int NeighborhoodKernelCandidateScans;
+        public int NeighborhoodKernelAcceptedNeighbors;
+        public int NeighborhoodKernelQueryWindowCellCount;
+        public int NeighborhoodKernelQueryNonEmptyCellCount;
         public double BridgeUpdateMilliseconds;
         public int BridgeUpdateCount;
         public double VehicleScriptUpdateMilliseconds;
@@ -118,6 +154,18 @@ public static class SteeringPerformanceDiagnostics
             NeighborGridActiveCellCount = 0;
             NeighborGridAverageOccupancy = 0.0;
             NeighborGridMaxOccupancy = 0;
+            NeighborhoodKernelBuildMilliseconds = 0.0;
+            NeighborhoodKernelBuildCount = 0;
+            NeighborhoodKernelParticipantCount = 0;
+            NeighborhoodKernelActiveCellCount = 0;
+            NeighborhoodKernelAverageOccupancy = 0.0;
+            NeighborhoodKernelMaxOccupancy = 0;
+            NeighborhoodKernelQueryMilliseconds = 0.0;
+            NeighborhoodKernelQueryCount = 0;
+            NeighborhoodKernelCandidateScans = 0;
+            NeighborhoodKernelAcceptedNeighbors = 0;
+            NeighborhoodKernelQueryWindowCellCount = 0;
+            NeighborhoodKernelQueryNonEmptyCellCount = 0;
             BridgeUpdateMilliseconds = 0.0;
             BridgeUpdateCount = 0;
             VehicleScriptUpdateMilliseconds = 0.0;
@@ -244,6 +292,18 @@ public static class SteeringPerformanceDiagnostics
     private static readonly AveragedMetric NeighborGridActiveCellCount = new();
     private static readonly AveragedMetric NeighborGridAverageOccupancy = new();
     private static readonly AveragedMetric NeighborGridMaxOccupancy = new();
+    private static readonly AveragedMetric NeighborhoodKernelBuildMilliseconds = new();
+    private static readonly AveragedMetric NeighborhoodKernelBuildCount = new();
+    private static readonly AveragedMetric NeighborhoodKernelParticipantCount = new();
+    private static readonly AveragedMetric NeighborhoodKernelActiveCellCount = new();
+    private static readonly AveragedMetric NeighborhoodKernelAverageOccupancy = new();
+    private static readonly AveragedMetric NeighborhoodKernelMaxOccupancy = new();
+    private static readonly AveragedMetric NeighborhoodKernelQueryMilliseconds = new();
+    private static readonly AveragedMetric NeighborhoodKernelQueryCount = new();
+    private static readonly AveragedMetric NeighborhoodKernelCandidateScans = new();
+    private static readonly AveragedMetric NeighborhoodKernelAcceptedNeighbors = new();
+    private static readonly AveragedMetric NeighborhoodKernelQueryWindowCellCount = new();
+    private static readonly AveragedMetric NeighborhoodKernelQueryNonEmptyCellCount = new();
     private static readonly AveragedMetric BridgeUpdateMilliseconds = new();
     private static readonly AveragedMetric BridgeUpdateCount = new();
     private static readonly AveragedMetric VehicleScriptUpdateMilliseconds = new();
@@ -312,6 +372,18 @@ public static class SteeringPerformanceDiagnostics
         NeighborGridActiveCellCount.Update(Current.NeighborGridActiveCellCount);
         NeighborGridAverageOccupancy.Update(Current.NeighborGridAverageOccupancy);
         NeighborGridMaxOccupancy.Update(Current.NeighborGridMaxOccupancy);
+        NeighborhoodKernelBuildMilliseconds.Update(Current.NeighborhoodKernelBuildMilliseconds);
+        NeighborhoodKernelBuildCount.Update(Current.NeighborhoodKernelBuildCount);
+        NeighborhoodKernelParticipantCount.Update(Current.NeighborhoodKernelParticipantCount);
+        NeighborhoodKernelActiveCellCount.Update(Current.NeighborhoodKernelActiveCellCount);
+        NeighborhoodKernelAverageOccupancy.Update(Current.NeighborhoodKernelAverageOccupancy);
+        NeighborhoodKernelMaxOccupancy.Update(Current.NeighborhoodKernelMaxOccupancy);
+        NeighborhoodKernelQueryMilliseconds.Update(Current.NeighborhoodKernelQueryMilliseconds);
+        NeighborhoodKernelQueryCount.Update(Current.NeighborhoodKernelQueryCount);
+        NeighborhoodKernelCandidateScans.Update(Current.NeighborhoodKernelCandidateScans);
+        NeighborhoodKernelAcceptedNeighbors.Update(Current.NeighborhoodKernelAcceptedNeighbors);
+        NeighborhoodKernelQueryWindowCellCount.Update(Current.NeighborhoodKernelQueryWindowCellCount);
+        NeighborhoodKernelQueryNonEmptyCellCount.Update(Current.NeighborhoodKernelQueryNonEmptyCellCount);
         BridgeUpdateMilliseconds.Update(Current.BridgeUpdateMilliseconds);
         BridgeUpdateCount.Update(Current.BridgeUpdateCount);
         VehicleScriptUpdateMilliseconds.Update(Current.VehicleScriptUpdateMilliseconds);
@@ -361,6 +433,18 @@ public static class SteeringPerformanceDiagnostics
             NeighborGridActiveCellCount.Value,
             NeighborGridAverageOccupancy.Value,
             NeighborGridMaxOccupancy.Value,
+            NeighborhoodKernelBuildMilliseconds.Value,
+            NeighborhoodKernelBuildCount.Value,
+            NeighborhoodKernelParticipantCount.Value,
+            NeighborhoodKernelActiveCellCount.Value,
+            NeighborhoodKernelAverageOccupancy.Value,
+            NeighborhoodKernelMaxOccupancy.Value,
+            NeighborhoodKernelQueryMilliseconds.Value,
+            NeighborhoodKernelQueryCount.Value,
+            NeighborhoodKernelCandidateScans.Value,
+            NeighborhoodKernelAcceptedNeighbors.Value,
+            NeighborhoodKernelQueryWindowCellCount.Value,
+            NeighborhoodKernelQueryNonEmptyCellCount.Value,
             BridgeUpdateMilliseconds.Value,
             BridgeUpdateCount.Value,
             VehicleScriptUpdateMilliseconds.Value,
@@ -475,6 +559,36 @@ public static class SteeringPerformanceDiagnostics
         Current.NeighborGridMaxOccupancy = Math.Max(0, maxOccupancy);
     }
 
+    public static void RecordNeighborhoodKernelBuild(double elapsedMilliseconds, int participantCount, int activeCellCount, double averageOccupancy, int maxOccupancy)
+    {
+        if (!Enabled)
+        {
+            return;
+        }
+
+        Current.NeighborhoodKernelBuildMilliseconds += Math.Max(0.0, elapsedMilliseconds);
+        Current.NeighborhoodKernelBuildCount++;
+        Current.NeighborhoodKernelParticipantCount = Math.Max(0, participantCount);
+        Current.NeighborhoodKernelActiveCellCount = Math.Max(0, activeCellCount);
+        Current.NeighborhoodKernelAverageOccupancy = Math.Max(0.0, averageOccupancy);
+        Current.NeighborhoodKernelMaxOccupancy = Math.Max(0, maxOccupancy);
+    }
+
+    public static void RecordNeighborhoodKernelQuery(double elapsedMilliseconds, int candidateScans, int acceptedNeighbors, int windowCellCount, int nonEmptyCellCount)
+    {
+        if (!Enabled)
+        {
+            return;
+        }
+
+        Current.NeighborhoodKernelQueryMilliseconds += Math.Max(0.0, elapsedMilliseconds);
+        Current.NeighborhoodKernelQueryCount++;
+        Current.NeighborhoodKernelCandidateScans += Math.Max(0, candidateScans);
+        Current.NeighborhoodKernelAcceptedNeighbors += Math.Max(0, acceptedNeighbors);
+        Current.NeighborhoodKernelQueryWindowCellCount += Math.Max(0, windowCellCount);
+        Current.NeighborhoodKernelQueryNonEmptyCellCount += Math.Max(0, nonEmptyCellCount);
+    }
+
     public static void RecordBridgeUpdate(double elapsedMilliseconds)
     {
         if (!Enabled)
@@ -529,6 +643,18 @@ public static class SteeringPerformanceDiagnostics
         NeighborGridActiveCellCount.Reset();
         NeighborGridAverageOccupancy.Reset();
         NeighborGridMaxOccupancy.Reset();
+        NeighborhoodKernelBuildMilliseconds.Reset();
+        NeighborhoodKernelBuildCount.Reset();
+        NeighborhoodKernelParticipantCount.Reset();
+        NeighborhoodKernelActiveCellCount.Reset();
+        NeighborhoodKernelAverageOccupancy.Reset();
+        NeighborhoodKernelMaxOccupancy.Reset();
+        NeighborhoodKernelQueryMilliseconds.Reset();
+        NeighborhoodKernelQueryCount.Reset();
+        NeighborhoodKernelCandidateScans.Reset();
+        NeighborhoodKernelAcceptedNeighbors.Reset();
+        NeighborhoodKernelQueryWindowCellCount.Reset();
+        NeighborhoodKernelQueryNonEmptyCellCount.Reset();
         BridgeUpdateMilliseconds.Reset();
         BridgeUpdateCount.Reset();
         VehicleScriptUpdateMilliseconds.Reset();

@@ -293,6 +293,7 @@ public sealed class World : ObjectBase
 
         InternalAddEntities();
         SpatialServices.SteeringIndex.PrepareForWorldUpdate();
+        SpatialServices.NeighborhoodService.PrepareForWorldUpdate();
 
         foreach (var entity in _entities)
         {
