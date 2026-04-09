@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Core.Log;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Debugger;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Entities;
@@ -38,6 +39,7 @@ public sealed class World : ObjectBase
     public GameplayProxy? GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
+    public int UpdateSequence { get; private set; }
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
 
@@ -274,6 +276,7 @@ public sealed class World : ObjectBase
 
     public void Update(float elapsedTime)
     {
+        UpdateSequence++;
         GameMode.Tick(elapsedTime);
 
         if (GameMode.HasMatchEnded())
@@ -284,6 +287,7 @@ public sealed class World : ObjectBase
         var toRemove = new List<Entity>();
 
         InternalAddEntities();
+        SteeringNeighborhoodFrameIndex.PrepareForWorldUpdate(this);
 
         foreach (var entity in _entities)
         {

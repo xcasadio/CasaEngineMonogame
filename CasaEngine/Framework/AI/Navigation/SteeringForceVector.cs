@@ -24,15 +24,16 @@ public readonly record struct SteeringForceVector(double X, double Y, double Z)
     
     public SteeringForceVector Truncate(double maxLength)
     {
-        double lengthSquared = LengthSquared();
-        double maxLengthSquared = maxLength * maxLength;
-        if (lengthSquared <= maxLengthSquared || lengthSquared <= double.Epsilon)
+        double length = Length();
+        if (length <= maxLength || length <= double.Epsilon)
         {
             return this;
         }
-        
-        double scale = maxLength / Math.Sqrt(lengthSquared);
-        return Multiply(scale);
+
+        return new SteeringForceVector(
+            X / length * maxLength,
+            Y / length * maxLength,
+            Z / length * maxLength);
     }
 
     public Vector3 ToVector3()

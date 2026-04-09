@@ -24,20 +24,16 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
         LastNeighborPositions.Clear();
         LastNeighborCount = 0;
 
-        foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
+        foreach (SteeringNeighborSnapshot neighbor in agent.FindNeighborSnapshots(NeighborRadius))
         {
+            Entity entity = neighbor.Entity;
             if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
                 && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out _))
-            {
-                continue;
-            }
-
-            Vector3 away = kinematics.Position - otherPosition;
+            Vector3 away = kinematics.Position - neighbor.Position;
             float distance = away.Length();
             if (distance <= float.Epsilon)
             {
@@ -46,7 +42,7 @@ public sealed class SeparationSteeringBehaviorRuntime : SteeringBehaviorRuntime
 
             force += Vector3.Normalize(away) / distance;
             LastNeighborCount++;
-            LastNeighborPositions.Add(otherPosition);
+            LastNeighborPositions.Add(neighbor.Position);
         }
 
         return force;

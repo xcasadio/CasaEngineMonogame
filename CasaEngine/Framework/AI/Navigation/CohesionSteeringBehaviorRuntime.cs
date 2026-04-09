@@ -26,22 +26,18 @@ public sealed class CohesionSteeringBehaviorRuntime : SteeringBehaviorRuntime
         LastNeighborPositions.Clear();
         LastNeighborCount = 0;
 
-        foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
+        foreach (SteeringNeighborSnapshot neighbor in agent.FindNeighborSnapshots(NeighborRadius))
         {
+            Entity entity = neighbor.Entity;
             if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
                 && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out _))
-            {
-                continue;
-            }
-
-            centerOfMass += otherPosition;
+            centerOfMass += neighbor.Position;
             LastNeighborCount++;
-            LastNeighborPositions.Add(otherPosition);
+            LastNeighborPositions.Add(neighbor.Position);
         }
 
         if (LastNeighborCount == 0)

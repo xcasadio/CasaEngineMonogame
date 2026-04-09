@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -149,6 +150,8 @@ public sealed class RenderPipeline
             //
             // For RenderTarget surfaces a full Clear(Target) is safe (they are
             // independent textures, not shared with other views).
+            long clearStartTimestamp = Stopwatch.GetTimestamp();
+
             if (view.ClearColorBuffer && view.Surface.IsBackBuffer)
             {
                 var vp = view.Surface.ViewportRect;
@@ -177,17 +180,26 @@ public sealed class RenderPipeline
                 }
             }
 
+            view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
+
             // 4. Build the camera frame for this view
             var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect);
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();
 
+            long viewStartTimestamp = Stopwatch.GetTimestamp();
+
+            long beforeViewStartTimestamp = Stopwatch.GetTimestamp();
             BeforeViewRender?.Invoke(view);
+            view.RenderStats.BeforeViewCpuMilliseconds = GetElapsedMilliseconds(beforeViewStartTimestamp);
 
             // 5. Delegate to the per-view pipeline (or the shared default)
             var pipeline = view.Pipeline ?? _defaultPipeline;
+            long pipelineStartTimestamp = Stopwatch.GetTimestamp();
             pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
+            view.RenderStats.RenderedThisFrame = true;
+            view.RenderStats.TotalCpuMilliseconds += GetElapsedMilliseconds(pipelineStartTimestamp);
 
             // 6. After an RT view, restore the initial render target so the next
             //    view (BB or another RT) starts from the expected surface.
@@ -199,6 +211,8 @@ public sealed class RenderPipeline
             // 7. Optional debug overlay (drawn into the view's surface)
             if (view.ShowDebugOverlay && DebugOverlay != null)
             {
+                long overlayStartTimestamp = Stopwatch.GetTimestamp();
+
                 // Re-apply the surface so the overlay lands in the right target
                 if (view.Surface.IsBackBuffer)
                 {
@@ -211,10 +225,15 @@ public sealed class RenderPipeline
                 {
                     _graphicsDevice.SetRenderTarget(initialRenderTarget);
                 }
+
+                view.RenderStats.OverlayCpuMilliseconds += GetElapsedMilliseconds(overlayStartTimestamp);
             }
 
             // 8. Optional presenter (blit RT → backbuffer, expose texture to UI, etc.)
+            long presenterStartTimestamp = Stopwatch.GetTimestamp();
             view.Presenter?.Present(_graphicsDevice, view);
+            view.RenderStats.PresenterCpuMilliseconds += GetElapsedMilliseconds(presenterStartTimestamp);
+            view.RenderStats.TotalCpuMilliseconds = GetElapsedMilliseconds(viewStartTimestamp);
 
             // Reset OnDemand dirty flag after successful render
             if (view.UpdateMode == ViewUpdateMode.OnDemand)
@@ -304,6 +323,11 @@ public sealed class RenderPipeline
     private static bool IsViewPresented(RenderView view)
     {
         return view.Host?.IsVisible ?? view.IsVisible;
+    }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+    {
+        return (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
     }
 
 #if DEBUG

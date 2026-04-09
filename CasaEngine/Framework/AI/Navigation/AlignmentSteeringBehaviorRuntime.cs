@@ -24,22 +24,18 @@ public sealed class AlignmentSteeringBehaviorRuntime : SteeringBehaviorRuntime
         LastNeighborPositions.Clear();
         LastNeighborCount = 0;
 
-        foreach (Entity entity in agent.FindNeighborEntities(NeighborRadius))
+        foreach (SteeringNeighborSnapshot neighbor in agent.FindNeighborSnapshots(NeighborRadius))
         {
+            Entity entity = neighbor.Entity;
             if (!string.IsNullOrWhiteSpace(ExcludedEntityName)
                 && string.Equals(entity.Name, ExcludedEntityName, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if (!agent.TryGetEntityMotion(entity, out Vector3 otherPosition, out _, out Vector3 otherForward))
-            {
-                continue;
-            }
-
-            heading += otherForward;
+            heading += neighbor.Forward;
             LastNeighborCount++;
-            LastNeighborPositions.Add(otherPosition);
+            LastNeighborPositions.Add(neighbor.Position);
         }
 
         if (LastNeighborCount == 0 || heading.LengthSquared() <= float.Epsilon)

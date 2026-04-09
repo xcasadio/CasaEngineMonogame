@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -40,6 +41,14 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     private Effect? _effect;
     private readonly CasaEngineGame _game;
 
+    public int PendingLineCount => _lines.Count;
+
+    public int FrameFlushedLineCount { get; private set; }
+
+    public double FrameFlushDurationMs { get; private set; }
+
+    public int FramePeakPendingLineCount { get; private set; }
+
     public Line3dRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
     {
         if (game == null)
@@ -60,15 +69,26 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         _effect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
     }
 
+    public override void Update(GameTime gameTime)
+    {
+        FrameFlushedLineCount = 0;
+        FrameFlushDurationMs = 0.0;
+        FramePeakPendingLineCount = _lines.Count;
+        base.Update(gameTime);
+    }
+
     /// <inheritdoc/>
     public void Flush(in RenderFrame frame, RenderStats? stats = null)
     {
-        if (_lines.Count == 0)
+        int lineCount = _lines.Count;
+        if (lineCount == 0)
         {
             return;
         }
 
-        for (var index = 0; index < _lines.Count && index < NbLines; index++)
+        long startTimestamp = Stopwatch.GetTimestamp();
+
+        for (var index = 0; index < lineCount && index < NbLines; index++)
         {
             var line = _lines[index];
             _vertices[index * 2 + 0].Position = line.Start;
@@ -77,13 +97,16 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
             _vertices[index * 2 + 1].Color = line.Color;
         }
 
-        _vertexBuffer.SetData(_vertices, 0, Math.Min(_lines.Count * 2, NbLines * 2));
-        Draw(Matrix.Identity, frame.View, frame.Projection);
+        _vertexBuffer.SetData(_vertices, 0, Math.Min(lineCount * 2, NbLines * 2));
+        Draw(Matrix.Identity, frame.View, frame.Projection, stats, lineCount);
+
+        FrameFlushedLineCount += lineCount;
+        FrameFlushDurationMs += (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
 
         Clear();
     }
 
-    private void Draw(Matrix world, Matrix view, Matrix projection)
+    private void Draw(Matrix world, Matrix view, Matrix projection, RenderStats? stats, int lineCount)
     {
         if (_effect == null)
         {
@@ -93,10 +116,10 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(world * view * projection);
         _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
 
-        Draw(_effect);
+        Draw(_effect, stats, lineCount);
     }
 
-    private void Draw(Effect effect)
+    private void Draw(Effect effect, RenderStats? stats, int lineCount)
     {
         var graphicsDevice = effect.GraphicsDevice;
 
@@ -107,10 +130,19 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
         GraphicsDevice.Indices = null;
 
+        int passCount = effect.CurrentTechnique.Passes.Count;
         foreach (var effectPass in effect.CurrentTechnique.Passes)
         {
             effectPass.Apply();
             graphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, _lines.Count);
+        }
+
+        if (stats != null)
+        {
+            stats.LineCount += lineCount;
+            stats.DrawCalls += passCount;
+            stats.EffectBinds += passCount;
+            stats.StateChanges += 4;
         }
     }
 
@@ -133,6 +165,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
 
         _lines.Add(line3d);
+        FramePeakPendingLineCount = Math.Max(FramePeakPendingLineCount, _lines.Count);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

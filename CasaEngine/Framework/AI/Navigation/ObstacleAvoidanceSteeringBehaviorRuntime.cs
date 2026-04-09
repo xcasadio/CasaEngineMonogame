@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Entities;
 using Microsoft.Xna.Framework;
+using System;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
@@ -40,14 +41,18 @@ public sealed class ObstacleAvoidanceSteeringBehaviorRuntime : SteeringBehaviorR
         float closestObstacleRadius = 0.0f;
         LastAvoidanceTarget = Vector3.Zero;
 
-        foreach (Entity entity in agent.FindEntitiesByPredicate(candidate => candidate.GetType().Name.Contains("Obstacle", StringComparison.OrdinalIgnoreCase)))
-        {
-            if (!agent.TryGetEntityMotion(entity, out Vector3 obstaclePosition, out _, out _))
-            {
-                continue;
-            }
+        BoundingBox queryBounds = CreateObstacleQueryBounds(kinematics.Position, forward, side, detectionLength, ClearanceRadius + ownerRadius + 8.0f);
+        IReadOnlyList<SteeringObstacleSnapshot> candidateObstacles = agent.FindObstacleSnapshotsInBounds(queryBounds);
+        int scannedObstacles = 0;
+        int acceptedObstacles = 0;
 
-            float obstacleRadius = agent.TryGetCollisionRadius(entity, out float entityRadius) ? entityRadius : ClearanceRadius;
+        for (int index = 0; index < candidateObstacles.Count; index++)
+        {
+            SteeringObstacleSnapshot obstacle = candidateObstacles[index];
+            scannedObstacles++;
+
+            Vector3 obstaclePosition = new(obstacle.Position, 0.0f);
+            float obstacleRadius = obstacle.Radius > float.Epsilon ? obstacle.Radius : ClearanceRadius;
             Vector3 toObstacle = obstaclePosition - kinematics.Position;
             Vector2 localPosition = new(Vector3.Dot(toObstacle, forward), Vector3.Dot(toObstacle, side));
 
@@ -78,7 +83,10 @@ public sealed class ObstacleAvoidanceSteeringBehaviorRuntime : SteeringBehaviorR
             localClosestObstacle = localPosition;
             closestObstacleRadius = obstacleRadius;
             LastAvoidanceTarget = obstaclePosition;
+            acceptedObstacles++;
         }
+
+        SteeringPerformanceDiagnostics.RecordBehaviorNeighborhoodScan(Name, scannedObstacles, acceptedObstacles);
 
         if (closestIntersection == float.MaxValue)
         {
@@ -93,6 +101,16 @@ public sealed class ObstacleAvoidanceSteeringBehaviorRuntime : SteeringBehaviorR
         steeringLocal.X = (closestObstacleRadius - localClosestObstacle.X) * brakingWeight;
 
         return (forward * steeringLocal.X) + (side * steeringLocal.Y);
+    }
+
+    private static BoundingBox CreateObstacleQueryBounds(Vector3 origin, Vector3 forward, Vector3 side, float detectionLength, float clearance)
+    {
+        Vector3 center = origin + (forward * (detectionLength * 0.5f));
+        Vector3 forwardExtent = new(MathF.Abs(forward.X), MathF.Abs(forward.Y), 0.0f);
+        Vector3 sideExtent = new(MathF.Abs(side.X), MathF.Abs(side.Y), 0.0f);
+        Vector3 extent = (forwardExtent * (detectionLength * 0.5f + clearance)) + (sideExtent * clearance) + new Vector3(clearance, clearance, clearance);
+
+        return new BoundingBox(center - extent, center + extent);
     }
 
     public override SteeringBehaviorRuntime Clone()

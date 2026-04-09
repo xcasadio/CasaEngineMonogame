@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using CasaEngine.Framework.Game.Components;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -28,19 +29,36 @@ public sealed class DefaultViewPipeline : IViewRenderPipeline
         in RenderFrame                        frame,
         IReadOnlyList<IViewFlushableRenderer> renderers)
     {
+        long worldDrawStartTimestamp = Stopwatch.GetTimestamp();
+
         // 1. Enqueue world geometry into renderer queues.
         view.World.Draw(in frame);
 
+        view.RenderStats.WorldDrawCpuMilliseconds += GetElapsedMilliseconds(worldDrawStartTimestamp);
+
         // 2. Flush each renderer for this view's camera frame.
+        long rendererFlushStartTimestamp = Stopwatch.GetTimestamp();
+
         foreach (var renderer in renderers)
         {
             renderer.Flush(in frame, view.RenderStats);
         }
 
+        view.RenderStats.RendererFlushCpuMilliseconds += GetElapsedMilliseconds(rendererFlushStartTimestamp);
+
         // 3. Compose the UI phase on top of the 3D scene while the view's
         //    render target and viewport are still active.
+        long uiComposeStartTimestamp = Stopwatch.GetTimestamp();
+
         (view.UICompositionService ?? DefaultUICompositionService.Instance)
             .Compose(graphicsDevice, view, in frame);
+
+        view.RenderStats.UiComposeCpuMilliseconds += GetElapsedMilliseconds(uiComposeStartTimestamp);
+    }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+    {
+        return (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
     }
 }
 
