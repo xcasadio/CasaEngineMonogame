@@ -25,15 +25,18 @@ public readonly record struct SteeringNeighborhoodAggregateResult(
 
 public sealed class SteeringNeighborhoodAggregateContext
 {
-    public static readonly SteeringNeighborhoodAggregateContext Empty = new(default, Array.Empty<Vector3>());
+    public static readonly SteeringNeighborhoodAggregateContext Empty = new(default, Array.Empty<Vector3>(), false);
 
-    public SteeringNeighborhoodAggregateContext(SteeringNeighborhoodAggregateResult result, IReadOnlyList<Vector3> debugNeighborPositions)
+    public SteeringNeighborhoodAggregateContext(SteeringNeighborhoodAggregateResult result, IReadOnlyList<Vector3> debugNeighborPositions, bool wasComputedThisRequest)
     {
         Result = result;
         DebugNeighborPositions = debugNeighborPositions ?? Array.Empty<Vector3>();
+        WasComputedThisRequest = wasComputedThisRequest;
     }
 
     public SteeringNeighborhoodAggregateResult Result { get; }
 
     public IReadOnlyList<Vector3> DebugNeighborPositions { get; }
+
+    public bool WasComputedThisRequest { get; }
 }

@@ -63,7 +63,10 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             && ReferenceEquals(bucket.ExcludedEntity, query.ExcludedEntity)
             && bucket.CaptureDebugNeighbors == query.CaptureDebugNeighbors)
         {
-            return bucket.Context;
+            return new SteeringNeighborhoodAggregateContext(
+                bucket.Context.Result,
+                bucket.Context.DebugNeighborPositions,
+                false);
         }
 
         if (!_frame.TryGetAgentIndex(agent, out int selfIndex))
@@ -80,7 +83,8 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             result,
             debugNeighborPositions is null
                 ? Array.Empty<Vector3>()
-                : debugNeighborPositions);
+                : debugNeighborPositions,
+            true);
 
         bucket.EvaluationFrameId = agent.EvaluationFrameId;
         bucket.WorldUpdateSequence = _world.UpdateSequence;
