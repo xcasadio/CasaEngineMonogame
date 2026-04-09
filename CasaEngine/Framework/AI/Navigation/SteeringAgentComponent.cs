@@ -410,15 +410,10 @@ public sealed class SteeringAgentComponent : EntityComponent
         start = Vector2.Zero;
         end = Vector2.Zero;
 
-        Type entityType = entity.GetType();
-        var startProperty = entityType.GetProperty("Start");
-        var endProperty = entityType.GetProperty("End");
-
-        if (startProperty?.PropertyType == typeof(Vector2)
-            && endProperty?.PropertyType == typeof(Vector2))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
         {
-            start = (Vector2)startProperty.GetValue(entity)!;
-            end = (Vector2)endProperty.GetValue(entity)!;
+            start = wallProvider.SteeringWallStart;
+            end = wallProvider.SteeringWallEnd;
             return true;
         }
 
@@ -429,11 +424,9 @@ public sealed class SteeringAgentComponent : EntityComponent
     {
         normal = Vector2.Zero;
 
-        Type entityType = entity.GetType();
-        var normalProperty = entityType.GetProperty("Normal");
-        if (normalProperty?.PropertyType == typeof(Vector2))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
         {
-            normal = (Vector2)normalProperty.GetValue(entity)!;
+            normal = wallProvider.SteeringWallNormal;
             if (normal.LengthSquared() > float.Epsilon)
             {
                 normal.Normalize();
@@ -448,15 +441,19 @@ public sealed class SteeringAgentComponent : EntityComponent
     {
         thickness = 0.0f;
 
-        Type entityType = entity.GetType();
-        var thicknessProperty = entityType.GetProperty("Thickness");
-        if (thicknessProperty?.PropertyType == typeof(float))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
         {
-            thickness = (float)thicknessProperty.GetValue(entity)!;
+            thickness = wallProvider.SteeringWallThickness;
             return true;
         }
 
         return false;
+    }
+
+    private static bool TryGetWallProvider(Entity entity, out ISteeringWallProvider? wallProvider)
+    {
+        wallProvider = entity as ISteeringWallProvider ?? entity.GetComponent<ISteeringWallProvider>();
+        return wallProvider != null;
     }
 
     public void RefreshKinematics()
