@@ -20,6 +20,7 @@ public class LitDiffuseMaterial : MaterialBase
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
     public Guid ReflectionCubeAssetId { get; set; } = Guid.Empty;
     public XnaTextureCube? ReflectionCube { get; set; }
+    public bool UseSceneReflectionCube { get; set; }
     public Color DiffuseColor { get; set; } = Color.White;
     public Vector3 AmbientColor { get; set; } = Vector3.Zero;
     public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
@@ -111,7 +112,8 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
         shader.SetParameter(ShaderParameterNames.HasMaterialReflectionCube, ReflectionCube is not null ? 1.0f : 0.0f);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
-        shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, ReflectionCube, context.Stats);
+        XnaTextureCube? reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Lighting?.ReflectionCube : null);
+        shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, reflectionCube, context.Stats);
 
         if (NormalMap is not null && BasColor is not null)
         {
@@ -127,7 +129,7 @@ public class LitDiffuseMaterial : MaterialBase
             hasBasColorTexture: BasColor is not null || BasColorAssetId != Guid.Empty,
             hasNormalMap: NormalMap is not null || NormalMapAssetId != Guid.Empty,
             hasEmissive: EmissiveColor != Vector3.Zero,
-            hasReflection: ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty,
+            hasReflection: UseSceneReflectionCube || ReflectionCube is not null || ReflectionCubeAssetId != Guid.Empty,
             isTransparent: DiffuseColor.A < byte.MaxValue);
 
     public override void Load(JObject element)
@@ -147,6 +149,11 @@ public class LitDiffuseMaterial : MaterialBase
         if (element["texture_reflection_asset_id"] is { } rt)
         {
             ReflectionCubeAssetId = Guid.Parse(rt.Value<string>()!);
+        }
+
+        if (element["use_scene_reflection_cube"] is { } useSceneReflection)
+        {
+            UseSceneReflectionCube = useSceneReflection.Value<bool>();
         }
 
         if (element["diffuse_color"] is JObject dc)

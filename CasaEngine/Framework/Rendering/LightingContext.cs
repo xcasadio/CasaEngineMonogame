@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
+using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
 
 namespace CasaEngine.Framework.Rendering;
 

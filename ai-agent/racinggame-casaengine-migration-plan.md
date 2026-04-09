@@ -332,7 +332,7 @@ Afficher une première version de la piste et de son décor sans le pipeline his
 - Les matériaux du circuit utilisent encore principalement des fallbacks unis. L'affichage final du circuit avec textures, matériaux cibles et éclairage dédié est traité par l'étape suivante.
 - Validation effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course avec la piste `Beginner` et son décor.
 
-## 🟨 Étape 8 - Finaliser l'affichage du circuit
+## ✅ Étape 8 - Finaliser l'affichage du circuit
 
 **But**
 
@@ -363,7 +363,7 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - `✅ 8.3` Appliquer des matériaux cibles à la route, au sol et au décor
 - `✅ 8.4` Ajouter l'éclairage de la scène de course
 - `✅ 8.5` Vérifier qu'une piste lisible s'affiche avec textures et lumière
-- `⬜ 8.6` Implémenter le skybox ou fond de scène de la course
+- `✅ 8.6` Implémenter le skybox ou fond de scène de la course
 
 **Notes**
 
@@ -371,9 +371,9 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - `RacingGameCasaEngine` copie désormais toutes les textures legacy du projet original dans `Content/Textures`, ce qui permet au chargement runtime des `.X` et des matériaux du sol/route d'utiliser les vrais fichiers du jeu.
 - `LegacyTrackSceneFactory` sépare maintenant les entités de piste (`Track.Ground.*`, `Track.Road.*`) et de décor (`Track.Scenery.*`), applique les matériaux importés quand ils existent, et complète le reste avec des fallbacks ciblés.
 - `RacingGameCasaEngineGame` applique un setup d'éclairage dédié quand un monde de course est chargé.
+- La vue de course utilise désormais un fond de ciel dédié piloté par le runtime CasaEngine, et les matériaux réfléchissants du circuit et de la voiture consomment le même cubemap de scène au lieu de recharger directement le `SkyCubeMap.dds` legacy quand il s'agit du ciel partagé.
 - Validation automatisée effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course, le HUD et le retour menu après création des entités de piste et de décor.
 - `8.5` est validée : le rendu actuel du circuit est jugé lisible avec textures et éclairage.
-- L'étape 8 reste ouverte tant que le skybox ou le fond de scène dédié n'est pas implémenté.
 
 ## 🟨 Étape 9 - Porter la voiture joueur en Entity/Pawn CasaEngine
 

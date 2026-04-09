@@ -27,7 +27,7 @@ namespace CasaEngine.Demos.Demos;
 ///   Alpha-test panel    : <see cref="LitDiffuseMaterial"/>    — cutout texture + <see cref="RenderQueue.AlphaTest"/>
 ///   Glass cube          : <see cref="UnlitTextureMaterial"/>  — semi-transparent, <see cref="RenderQueue.Transparent"/>
 ///   Normal-map box      : <see cref="LitDiffuseMaterial"/>    — tangent-ready mesh with procedural normal map
-///   Reflection sphere   : <see cref="LitDiffuseMaterial"/>    — procedural cubemap reflection path
+///   Reflection sphere   : <see cref="LitDiffuseMaterial"/>    — shared scene-sky reflection path
 ///   Ambient / Emissive  : <see cref="LitDiffuseMaterial"/>    — side-by-side ambient and emissive comparison
 ///   Neutral profile refs: <see cref="LitDiffuseMaterial"/>    — metadata-only import profile samples (named opaque vs explicit reflection)
 ///   Hints-only import view: <see cref="LitDiffuseMaterial"/>   — shared imported-material presentation mapping driven only by imported hints
@@ -44,7 +44,7 @@ public class MaterialDemo : Demo
 
     public override string Description =>
         "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
-        "alpha-test cutout, tangent-space normal map, transparent render queue, reflective cubemap path, ambient-vs-emissive reference, " +
+        "alpha-test cutout, tangent-space normal map, transparent render queue, shared sky background plus scene reflection cube, ambient-vs-emissive reference, " +
         "neutral legacy import-profile samples, and hints-only imported-material presentation mapping.  " +
         "L = cycle lights,  T = cycle sphere tints.";
 
@@ -61,6 +61,7 @@ public class MaterialDemo : Demo
     private readonly MaterialInstanceData _sphereInstanceDataA = new();
     private readonly MaterialInstanceData _sphereInstanceDataB = new();
     private MaterialAsset? _sphereMaterialAsset;
+    private SkyBackgroundViewPipeline? _skyPipeline;
 
     // Tint pairs cycled with T key
     private static readonly (Color a, Color b)[] TintCycles =
@@ -68,6 +69,16 @@ public class MaterialDemo : Demo
         (Color.CornflowerBlue, Color.LimeGreen),
         (Color.OrangeRed,      Color.Cyan),
         (Color.Yellow,         Color.Magenta),
+    };
+    private static readonly SkySettings StudioSky = new()
+    {
+        ZenithColor = new Color(48, 80, 129),
+        HorizonColor = new Color(227, 206, 176),
+        GroundColor = new Color(96, 88, 96),
+        SunColor = new Color(255, 244, 214),
+        SunDirection = Vector3.Normalize(new Vector3(-0.5f, -0.8f, -0.3f)),
+        SunSize = 0.04f,
+        ReflectionCubeSize = 32,
     };
     private int _tintIndex;
 
@@ -145,6 +156,11 @@ public class MaterialDemo : Demo
         // ------------------------------------------------------------------
 
         var materialCompiler = new MaterialCompiler();
+        TextureCube studioReflectionCube = ProceduralSkyCubeFactory.CreateReflectionCube(gd, StudioSky, 32);
+        if (_renderer is not null)
+        {
+            _renderer.DefaultLighting.ReflectionCube = studioReflectionCube;
+        }
 
         // Ground — unlit, sandy tint
         var groundMat = new UnlitTextureMaterial
@@ -213,7 +229,7 @@ public class MaterialDemo : Demo
             AmbientColor = new Vector3(0.18f, 0.18f, 0.2f),
             SpecularColor = new Vector3(1.0f),
             SpecularPower = 96f,
-            ReflectionCube = CreateDebugReflectionCube(gd, 16),
+            UseSceneReflectionCube = true,
         };
 
         var ambientOnlyAsset = new MaterialAsset("lit-diffuse")
@@ -265,7 +281,7 @@ public class MaterialDemo : Demo
             AmbientColor = new Vector3(0.1f, 0.1f, 0.12f),
             SpecularColor = new Vector3(0.9f),
             SpecularPower = 72f,
-            ReflectionCube = explicitReflectionInterpretation.Reflection ? CreateDebugReflectionCube(gd, 16) : null,
+            UseSceneReflectionCube = explicitReflectionInterpretation.Reflection,
         };
 
         var sharedImportedPresentation = LegacyImportedMaterialPresentationResolver.Resolve(new StaticModelImportedMaterial
@@ -405,6 +421,19 @@ public class MaterialDemo : Demo
     {
         ((ArcBallCameraComponent)camera).SetCamera(
             new Vector3(0f, 6f, 15f), Vector3.Zero, Vector3.Up);
+
+        if (_game == null)
+        {
+            return;
+        }
+
+        _skyPipeline ??= new SkyBackgroundViewPipeline(StudioSky);
+        foreach (var view in _game.GameManager.ViewManager.Views)
+        {
+            view.Pipeline = _skyPipeline;
+            view.ClearColor = StudioSky.HorizonColor;
+            view.Invalidate();
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -438,8 +467,27 @@ public class MaterialDemo : Demo
 
     public override void Clean()
     {
+        if (_renderer is not null)
+        {
+            _renderer.DefaultLighting.ReflectionCube = null;
+        }
+
+        if (_game != null)
+        {
+            foreach (var view in _game.GameManager.ViewManager.Views)
+            {
+                if (ReferenceEquals(view.Pipeline, _skyPipeline))
+                {
+                    view.Pipeline = null;
+                    view.ClearColor = Color.CornflowerBlue;
+                    view.Invalidate();
+                }
+            }
+        }
+
         _game = null;
         _renderer = null;
+        _skyPipeline = null;
     }
 
     // -----------------------------------------------------------------------
@@ -617,34 +665,6 @@ public class MaterialDemo : Demo
 
         tex.SetData(data);
         return tex;
-    }
-
-    private static TextureCube CreateDebugReflectionCube(GraphicsDevice gd, int size)
-    {
-        var textureCube = new TextureCube(gd, size, false, SurfaceFormat.Color);
-        FillCubeFace(textureCube, CubeMapFace.PositiveX, size, new Color(210, 118, 82), new Color(255, 222, 180));
-        FillCubeFace(textureCube, CubeMapFace.NegativeX, size, new Color(58, 116, 196), new Color(162, 214, 255));
-        FillCubeFace(textureCube, CubeMapFace.PositiveY, size, new Color(248, 244, 210), Color.White);
-        FillCubeFace(textureCube, CubeMapFace.NegativeY, size, new Color(58, 74, 88), new Color(130, 146, 160));
-        FillCubeFace(textureCube, CubeMapFace.PositiveZ, size, new Color(78, 176, 150), new Color(210, 246, 226));
-        FillCubeFace(textureCube, CubeMapFace.NegativeZ, size, new Color(188, 90, 170), new Color(246, 204, 238));
-        return textureCube;
-    }
-
-    private static void FillCubeFace(TextureCube textureCube, CubeMapFace face, int size, Color start, Color end)
-    {
-        var data = new Color[size * size];
-
-        for (int y = 0; y < size; y++)
-        for (int x = 0; x < size; x++)
-        {
-            float u = size == 1 ? 0.0f : x / (size - 1f);
-            float v = size == 1 ? 0.0f : y / (size - 1f);
-            var horizontal = Color.Lerp(start, end, u);
-            data[y * size + x] = Color.Lerp(horizontal, Color.White, v * 0.18f);
-        }
-
-        textureCube.SetData(face, data);
     }
 
     private static float SampleWaveHeight(float u, float v)

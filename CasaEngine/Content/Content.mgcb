@@ -55,6 +55,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/DebugSolidColor.fx
 
+#begin Shaders/LegacySkyCube.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/LegacySkyCube.fx
+
 #begin Shaders/LitForward.fx
 /importer:EffectImporter
 /processor:EffectProcessor
