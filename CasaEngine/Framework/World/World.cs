@@ -12,7 +12,6 @@ using CasaEngine.Framework.GameFramework;
 using CasaEngine.Framework.GUI;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
-using CasaEngine.Framework.SpacePartitioning.Octree;
 using CasaEngine.Framework.Transform;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -27,7 +26,6 @@ public sealed class World : ObjectBase
     private readonly List<WorldUIComponent> _worldUiComponents = [];
     private readonly HashSet<Entity> _observedEntities = [];
 
-    private readonly Octree<Entity> _octree;
     private readonly List<Entity> _entitiesVisible = new(1000);
 
     private readonly List<PlayerController> _playerControllers = [];
@@ -40,6 +38,7 @@ public sealed class World : ObjectBase
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
     public int UpdateSequence { get; private set; }
+    public IWorldSpatialIndex3D WorldSpatialIndex { get; }
     public ISteeringSpatialIndex2D SteeringSpatialIndex { get; }
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
@@ -55,8 +54,8 @@ public sealed class World : ObjectBase
 
     public World()
     {
-        _octree = new Octree<Entity>(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
         MessageBus = new WorldMessageBus();
+        WorldSpatialIndex = new OctreeWorldSpatialIndex(new BoundingBox(Vector3.One * -100000, Vector3.One * 100000), 64);
         SteeringSpatialIndex = new UniformGridSteeringSpatialIndex(this);
     }
 
@@ -117,7 +116,7 @@ public sealed class World : ObjectBase
 
         _entities.Clear();
         _baseObjectsToAdd.Clear();
-        _octree.Clear();
+        WorldSpatialIndex.Clear();
         _observedEntities.Clear();
         MessageBus.Reset();
 
@@ -296,7 +295,7 @@ public sealed class World : ObjectBase
             if (entity.ToBeRemoved)
             {
                 toRemove.Add(entity);
-                _octree.RemoveItem(entity);
+                WorldSpatialIndex.Remove(entity);
             }
             else
             {
@@ -304,7 +303,7 @@ public sealed class World : ObjectBase
 
                 if (IsBoundingBoxDirty(entity))
                 {
-                    _octree.MoveItem(entity, entity.GetBoundingBox());
+                    WorldSpatialIndex.Move(entity, entity.GetBoundingBox());
                 }
             }
         }
@@ -317,7 +316,7 @@ public sealed class World : ObjectBase
             NotifyEntityRemovedRecursive(entity);
         }
 
-        _octree.ApplyPendingMoves();
+        WorldSpatialIndex.ApplyPendingMoves();
 
         if (Game.ExecutionPolicy.UpdateGameplayScripts)
         {
@@ -375,13 +374,13 @@ public sealed class World : ObjectBase
 
     private void AddInSpacePartitioning(Entity actor)
     {
-        _octree.AddItem(actor.GetBoundingBox(), actor);
+        WorldSpatialIndex.Add(actor, actor.GetBoundingBox());
     }
 
     public void Draw(in RenderFrame frame)
     {
         var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
-        _octree.GetContainedObjects(boundingFrustum, _entitiesVisible);
+        WorldSpatialIndex.Query(boundingFrustum, _entitiesVisible);
 
         foreach (var entityBase in _entitiesVisible)
         {
@@ -395,14 +394,14 @@ public sealed class World : ObjectBase
 
         if (DisplaySpacePartitioning)
         {
-            OctreeVisualizer.DisplayBoundingBoxes(_octree, Game.Line3dRendererComponent);
+            WorldSpatialIndex.DebugDraw(Game.Line3dRendererComponent);
         }
     }
 
     public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
     {
         ArgumentNullException.ThrowIfNull(results);
-        _octree.GetContainedObjects(bounds, results, filter);
+        WorldSpatialIndex.Query(bounds, results, filter);
     }
 
     public void RegisterWorldUI(WorldUIComponent worldUiComponent)
@@ -549,7 +548,7 @@ public sealed class World : ObjectBase
         MessageBus.UnregisterEntity(entity);
         UnsubscribeEntityTree(entity);
         _entities.Remove(entity);
-        _octree.RemoveItem(entity);
+        WorldSpatialIndex.Remove(entity);
         entity.Destroy();
         NotifyEntityRemovedRecursive(entity);
     }
