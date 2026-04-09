@@ -24,6 +24,11 @@ public static class ShaderParameterNames
     public const string BasColorTexture = "Texture";
     public const string ReflectionCubeTexture = "ReflectionCubeTexture";
     public const string TintColor = "TintColor";
+    public const string TintStrength = "TintStrength";
+    public const string TintMaskFromBaseAlpha = "TintMaskFromBaseAlpha";
+    public const string ReflectionAddAmount = "ReflectionAddAmount";
+    public const string ReflectionMultiplyBase = "ReflectionMultiplyBase";
+    public const string ReflectionMultiplyFactor = "ReflectionMultiplyFactor";
     public const string Alpha = "Alpha";
     public const string AlphaCutoff = "AlphaCutoff";
     public const string OpacityTexture = "OpacityTexture";

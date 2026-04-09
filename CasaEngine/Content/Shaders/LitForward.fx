@@ -356,7 +356,7 @@ float4 PSBasic(VSOutput pin) : SV_Target0
 // Pixel shader: texture.
 float4 PSBasicTx(VSOutputTx pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
     ApplyAlphaTest(color.a);
     return color;
 }
@@ -378,7 +378,7 @@ float4 PSBasicVertexLighting(VSOutput pin) : SV_Target0
 // Pixel shader: vertex lighting + texture.
 float4 PSBasicVertexLightingTx(VSOutputTx pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
 
     ApplyAlphaTest(color.a);
     
@@ -415,7 +415,7 @@ float4 PSBasicPixelLighting(VSOutputPixelLighting pin) : SV_Target0
 // Pixel shader: pixel lighting + texture.
 float4 PSBasicPixelLightingTx(VSOutputPixelLightingTx pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
     
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
@@ -463,7 +463,7 @@ float4 PSBasicPixelLightingOneLight(VSOutputPixelLighting pin) : SV_Target0
 // Pixel shader: pixel lighting + texture (one light only).
 float4 PSBasicPixelLightingTxOneLight(VSOutputPixelLightingTx pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
@@ -506,7 +506,7 @@ VSOutputPixelLightingTxTan VSBasicPixelLightingTxTan(VSInputNmTxTan vin)
 // Pixel shader: pixel lighting + texture + normal map.
 float4 PSBasicPixelLightingTxNorm(VSOutputPixelLightingTxTan pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
 
     // Sample normal map and unpack from [0,1] to [-1,1]
     float3 normalMap = SAMPLE_TEXTURE(NormalTexture, pin.TexCoord).rgb * 2.0 - 1.0;
@@ -539,7 +539,7 @@ float4 PSBasicPixelLightingReflection(VSOutputPixelLighting pin) : SV_Target0
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
+    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
 
     return color;
 }
@@ -551,7 +551,7 @@ float4 PSBasicPixelLightingTxReflection(VSOutputPixelLightingTx pin) : SV_Target
 
     float3 eyeVector = normalize(EyePosition - pin.PositionWS.xyz);
     float3 worldNormal = normalize(pin.NormalWS);
-    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
+    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
 
     return color;
 }
@@ -559,7 +559,7 @@ float4 PSBasicPixelLightingTxReflection(VSOutputPixelLightingTx pin) : SV_Target
 
 float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+    float4 color = SampleBaseTexture(pin.TexCoord) * pin.Diffuse;
 
     float3 normalMap = SAMPLE_TEXTURE(NormalTexture, pin.TexCoord).rgb * 2.0 - 1.0;
 
@@ -580,7 +580,7 @@ float4 PSBasicPixelLightingTxNormReflection(VSOutputPixelLightingTxTan pin) : SV
 
     ApplyAlphaTest(color.a);
     AddSpecular(color, lightResult.Specular);
-    color.rgb += ComputeReflectionContribution(eyeVector, worldNormal);
+    color.rgb = ApplyReflectionContribution(color.rgb, ComputeReflectionContribution(eyeVector, worldNormal));
 
     return color;
 }

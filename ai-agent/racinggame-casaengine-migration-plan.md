@@ -344,10 +344,12 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - Mapper les modèles statiques `.X` du circuit et du décor à leurs textures et slots de matériaux utiles.
 - Appliquer des matériaux cibles à la route, au sol et aux objets de décor au lieu de couleurs unies de fallback.
 - Ajouter un setup d'éclairage dédié à la scène de course.
+- Ajouter un skybox ou fond de scène dédié pour fermer visuellement la scène de course.
 
 **Validation**
 
 - Une piste complète s'affiche avec ses modèles statiques principaux, ses textures utiles et une lumière de course cohérente.
+- La scène de course dispose d'un skybox ou d'un fond de scène cohérent autour du circuit.
 - Le rendu du circuit reste autonome côté `RacingGameCasaEngine`, sans retour vers le renderer legacy.
 
 **Commit**
@@ -360,7 +362,8 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - `✅ 8.2` Mapper les modèles statiques du circuit à leurs textures
 - `✅ 8.3` Appliquer des matériaux cibles à la route, au sol et au décor
 - `✅ 8.4` Ajouter l'éclairage de la scène de course
-- `🧪 8.5` Vérifier qu'une piste lisible s'affiche avec textures et lumière
+- `✅ 8.5` Vérifier qu'une piste lisible s'affiche avec textures et lumière
+- `⬜ 8.6` Implémenter le skybox ou fond de scène de la course
 
 **Notes**
 
@@ -369,7 +372,8 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - `LegacyTrackSceneFactory` sépare maintenant les entités de piste (`Track.Ground.*`, `Track.Road.*`) et de décor (`Track.Scenery.*`), applique les matériaux importés quand ils existent, et complète le reste avec des fallbacks ciblés.
 - `RacingGameCasaEngineGame` applique un setup d'éclairage dédié quand un monde de course est chargé.
 - Validation automatisée effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course, le HUD et le retour menu après création des entités de piste et de décor.
-- Il reste à confirmer visuellement en exécution interactive que le rendu obtenu est suffisamment lisible et fidèle sur les trois pistes avant de solder l'étape en `✅`.
+- `8.5` est validée : le rendu actuel du circuit est jugé lisible avec textures et éclairage.
+- L'étape 8 reste ouverte tant que le skybox ou le fond de scène dédié n'est pas implémenté.
 
 ## 🟨 Étape 9 - Porter la voiture joueur en Entity/Pawn CasaEngine
 
@@ -402,10 +406,10 @@ Faire de la voiture un objet de jeu moderne, composé et contrôlable, après qu
 **Sous-étapes**
 
 - `✅ 9.1` Créer l'entité ou le pawn de voiture
-- `⬜ 9.2` Figer la hiérarchie ECS et les points d'ancrage de la voiture
+- `✅ 9.2` Figer la hiérarchie ECS et les points d'ancrage de la voiture
 - `✅ 9.3` Ajouter un premier visuel debug de la voiture
-- `⬜ 9.4` Remplacer le visuel debug par un vrai rendu de voiture
-- `⬜ 9.5` Brancher les matériaux et textures de la voiture
+- `✅ 9.4` Remplacer le visuel debug par un vrai rendu de voiture
+- `✅ 9.5` Brancher les matériaux et textures de la voiture
 - `✅ 9.6` Ajouter le contrôleur arcade de déplacement
 - `✅ 9.7` Brancher les inputs joueur
 - `✅ 9.8` Exposer l'état runtime utile au HUD et au `GameMode`
@@ -414,7 +418,14 @@ Faire de la voiture un objet de jeu moderne, composé et contrôlable, après qu
 
 **Notes**
 
-- À ce stade, la voiture utilise encore un rendu debug filaire. Le but de cette étape est de la convertir en vraie entité rendue et composée, puis de la raccorder à la physique du circuit.
+- `RacingCarPawn` expose maintenant une hiérarchie runtime explicite `PhysicsRoot -> VisualPivot -> Body / ChaseCamera / CockpitCamera / AudioEmitter`, avec des ancrages stables réutilisables par le rendu, la caméra et l'audio.
+- `LegacyCarVisualComponent` charge désormais `Content/Models/Car.x` au runtime, l'attache au `BodyVisual` du pawn et laisse `DebugCarVisualComponent` uniquement en fallback si le modèle legacy ne peut pas être importé.
+- `LegacyCarVisualFactory` centralise désormais la présentation de la voiture legacy: sélection de `RacerCar` / `RacerCar2` / `RacerCar3`, conservation du normal map dédié et teinte du matériau de carrosserie selon la couleur choisie en front-end.
+- Le rendu runtime de la voiture suit maintenant plus fidèlement les valeurs legacy: teinte de carrosserie pilotée par l'alpha de la texture comme dans `NormalMapping.fx`, réflexion multiplicative `0.85 + cubemap * 0.75` pour les surfaces de carrosserie/chrome, et scale recalé sur les dimensions gameplay de `CarPhysics` (`5.6m x 2.6m x 1.8m`).
+- `RaceWorldFactory` propage la sélection front-end (`SelectedCarIndex`, `SelectedCarColorIndex`) jusqu'au pawn, et `LegacyCarVisualComponent` consomme directement ces indices pour construire le vrai rendu runtime de la voiture avec sa variante visuelle complète.
+- `CarSelectionScreen` affiche maintenant la voiture choisie dans un aperçu rendu sur `RenderTarget`, réutilisant la même logique de modèle, textures et couleur que la voiture de course.
+- `DebugCarVisualComponent` et `ChaseCameraRigComponent` consomment déjà ces ancrages, ce qui stabilise le contrat ECS autour du vrai modèle de voiture.
+- Validation effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/`, `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/ -- --smoke-frontend` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/ -- --capture-track-audit`, le smoke front-end et l'audit course complétant sans échec ni warning de fallback sur le modèle de voiture.
 
 ## ⬜ Étape 10 - Construire la physique du circuit et les triggers de course
 

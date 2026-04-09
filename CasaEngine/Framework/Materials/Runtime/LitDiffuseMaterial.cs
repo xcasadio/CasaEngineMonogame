@@ -25,6 +25,12 @@ public class LitDiffuseMaterial : MaterialBase
     public Vector3 EmissiveColor { get; set; } = Vector3.Zero;
     public Vector3 SpecularColor { get; set; } = new(0.5f);
     public float SpecularPower { get; set; } = 16.0f;
+    public Vector3 TintColor { get; set; } = Vector3.One;
+    public float TintStrength { get; set; }
+    public float TintMaskFromBaseAlpha { get; set; }
+    public float ReflectionAddAmount { get; set; } = 1.0f;
+    public float ReflectionMultiplyBase { get; set; } = 1.0f;
+    public float ReflectionMultiplyFactor { get; set; }
 
     private static bool HasReflection(in RenderContext context, ShaderFeature features)
         => (features & ShaderFeature.Reflection) != 0 || context.Environment.SpecularEnvironmentCubemap is not null;

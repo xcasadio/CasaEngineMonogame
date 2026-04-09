@@ -226,20 +226,34 @@ public class Entity : ObjectBase
 
     public T? GetComponent<T>() where T : class
     {
-        if (RootComponent != null)
+        static T? FindSceneComponentRecursive(SceneComponent? sceneComponent)
         {
-            if (RootComponent is T component)
+            if (sceneComponent == null)
+            {
+                return null;
+            }
+
+            if (sceneComponent is T component)
             {
                 return component;
             }
 
-            for (int i = 0; i < RootComponent.Children.Count; i++)
+            for (int index = 0; index < sceneComponent.Children.Count; index++)
             {
-                if (RootComponent.Children[i] is T child)
+                T? childComponent = FindSceneComponentRecursive(sceneComponent.Children[index]);
+                if (childComponent != null)
                 {
-                    return child;
+                    return childComponent;
                 }
             }
+
+            return null;
+        }
+
+        T? rootComponent = FindSceneComponentRecursive(RootComponent);
+        if (rootComponent != null)
+        {
+            return rootComponent;
         }
 
         for (int i = 0; i < _components.Count; i++)
