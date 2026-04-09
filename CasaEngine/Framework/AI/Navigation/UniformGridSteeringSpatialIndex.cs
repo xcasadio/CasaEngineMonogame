@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
-public sealed class SteeringWorldContext
+public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
 {
     private const float DefaultCellSize = 96.0f;
 
@@ -25,7 +25,7 @@ public sealed class SteeringWorldContext
     private bool _staticIndexDirty = true;
     private int _builtNeighborUpdateSequence = -1;
 
-    public SteeringWorldContext(GameWorld world)
+    public UniformGridSteeringSpatialIndex(GameWorld world)
     {
         _world = world ?? throw new ArgumentNullException(nameof(world));
 
