@@ -70,6 +70,9 @@ BEGIN_CONSTANTS
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
     float SecondaryLocalReflectionProbeWeight _ps(c37) _cb(c33.w);
     float LocalReflectionProbeInfluence _ps(c38) _cb(c34.x);
+    float ReflectionAddAmount _ps(c39) _cb(c35.x);
+    float ReflectionMultiplyBase _ps(c39) _cb(c35.y);
+    float ReflectionMultiplyFactor _ps(c39) _cb(c35.z);
 
     float4x4 World _vs(c34) _cb(c33);
     float3x3 WorldInverseTranspose _vs(c38) _cb(c37);
@@ -128,7 +131,8 @@ float3 ComputeReflectionContribution(float3 eyeVector, float3 worldNormal)
 
 float3 ApplyReflectionContribution(float3 surfaceColor, float3 reflectionContribution)
 {
-    return surfaceColor + reflectionContribution;
+    return surfaceColor * (ReflectionMultiplyBase + reflectionContribution * ReflectionMultiplyFactor)
+        + reflectionContribution * ReflectionAddAmount;
 }
 
 

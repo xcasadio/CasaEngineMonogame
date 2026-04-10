@@ -110,6 +110,9 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.EmissiveColor, EmissiveColor);
         shader.SetParameter(ShaderParameterNames.SpecularColor, SpecularColor);
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
+        shader.SetParameter(ShaderParameterNames.ReflectionAddAmount, ReflectionAddAmount);
+        shader.SetParameter(ShaderParameterNames.ReflectionMultiplyBase, ReflectionMultiplyBase);
+        shader.SetParameter(ShaderParameterNames.ReflectionMultiplyFactor, ReflectionMultiplyFactor);
         shader.SetParameter(ShaderParameterNames.HasMaterialReflectionCube, ReflectionCube is not null ? 1.0f : 0.0f);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
         XnaTextureCube? reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Environment.SpecularEnvironmentCubemap : null);
