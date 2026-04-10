@@ -375,7 +375,7 @@ Faire du circuit la priorité visuelle immédiate : scène lisible, modèles sta
 - Validation automatisée effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -- --smoke-frontend`, le smoke chargeant bien la course, le HUD et le retour menu après création des entités de piste et de décor.
 - `8.5` est validée : le rendu actuel du circuit est jugé lisible avec textures et éclairage.
 
-## 🟨 Étape 9 - Porter la voiture joueur en Entity/Pawn CasaEngine
+## ✅ Étape 9 - Porter la voiture joueur en Entity/Pawn CasaEngine
 
 **But**
 
@@ -413,8 +413,8 @@ Faire de la voiture un objet de jeu moderne, composé et contrôlable, après qu
 - `✅ 9.6` Ajouter le contrôleur arcade de déplacement
 - `✅ 9.7` Brancher les inputs joueur
 - `✅ 9.8` Exposer l'état runtime utile au HUD et au `GameMode`
-- `⬜ 9.9` Brancher la physique gameplay de la voiture sur la physique du circuit
-- `⬜ 9.10` Vérifier que la voiture roule sur une piste simple
+- `✅ 9.9` Brancher la physique gameplay de la voiture sur la physique du circuit
+- `✅ 9.10` Vérifier que la voiture roule sur une piste simple
 
 **Notes**
 
@@ -425,9 +425,14 @@ Faire de la voiture un objet de jeu moderne, composé et contrôlable, après qu
 - `RaceWorldFactory` propage la sélection front-end (`SelectedCarIndex`, `SelectedCarColorIndex`) jusqu'au pawn, et `LegacyCarVisualComponent` consomme directement ces indices pour construire le vrai rendu runtime de la voiture avec sa variante visuelle complète.
 - `CarSelectionScreen` affiche maintenant la voiture choisie dans un aperçu rendu sur `RenderTarget`, réutilisant la même logique de modèle, textures et couleur que la voiture de course.
 - `DebugCarVisualComponent` et `ChaseCameraRigComponent` consomment déjà ces ancrages, ce qui stabilise le contrat ECS autour du vrai modèle de voiture.
+- `RaceTrackPhysicsProfile` dérive désormais une surface de roulage runtime à partir de la spline de piste déjà utilisée pour générer la route visuelle, et `RaceTrackPhysicsComponent` expose ce profil au monde de course sans recoupler la voiture au legacy runtime.
+- `ArcadeCarMovementComponent` n'est plus une simple translation libre sur XZ: il projette maintenant la voiture sur la surface du circuit, aligne le mouvement sur la tangente et la normale de la route, bloque la caisse contre les rembardes latérales en tenant compte du gabarit gameplay de la voiture, et applique un ralentissement au contact dans l'esprit du runtime legacy.
+- `9.10` est considéré validé: la voiture roule maintenant sur une piste simple avec ses collisions latérales de rembardes actives, ce qui ferme l'étape 9 côté gameplay voiture.
+- Le rendu runtime de la voiture applique de nouveau le blend de réflexion legacy attendu sur la carrosserie au lieu d'additionner uniformément le cubemap de scène, ce qui évite l'effet miroir apparu après le branchement du cubemap partagé de course.
 - Validation effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/`, `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/ -- --smoke-frontend` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/ -- --capture-track-audit`, le smoke front-end et l'audit course complétant sans échec ni warning de fallback sur le modèle de voiture.
+- Validation complémentaire 9.9/9.10 effectuée via `dotnet build RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/` puis `dotnet run --project RacingGameCasaEngine/RacingGameCasaEngine.csproj -p:BaseOutputPath=artifacts/verify-build/ -- --smoke-frontend`.
 
-## ⬜ Étape 10 - Construire la physique du circuit et les triggers de course
+## ✅ Étape 10 - Construire la physique du circuit et les triggers de course
 
 **But**
 
@@ -451,16 +456,17 @@ Donner au circuit une représentation physique exploitable pour le roulage, les 
 
 **Sous-étapes**
 
-- `⬜ 10.1` Construire la surface de roulage physique du circuit
-- `⬜ 10.2` Ajouter les collisions de bord de piste et des obstacles prioritaires
-- `⬜ 10.3` Remplacer les checkpoints par des triggers runtime
-- `⬜ 10.4` Vérifier qu'une piste jouable combine rendu et physique cohérents
+- `✅ 10.1` Construire la surface de roulage physique du circuit
+- `✅ 10.2` Ajouter les collisions de bord de piste et des obstacles prioritaires
+- `✅ 10.3` Remplacer les checkpoints par des triggers runtime
+- `✅ 10.4` Vérifier qu'une piste jouable combine rendu et physique cohérents
 
 **Notes**
 
 - Cette étape débloque directement `9.9` et `9.10` pour la voiture.
+- Les obstacles prioritaires visés par `10.2` sont d'abord les volumes statiques proches de la chaussée et plausibles côté gameplay: glissières et supports de glissière, portique de départ `StartLight3`, panneaux de signalisation (`SignWarning`, `SignCurveLeft`, `SignCurveRight`), puis les objets durs déjà présents dans les pistes legacy au bord de route (`Hydrant`, `Blockade`, `Blockade2`, `SharpRock`, `SharpRock2`, `OilPump`, `OilTanks`, `AlphaTrain` selon la piste). Les palmiers, cactus, bâtiments, hôtels, ruines et décor lointain restent secondaires tant qu'ils n'empiètent pas sur la trajectoire utile.
 
-## 🟨 Étape 11 - Porter la caméra de poursuite et le ressenti de conduite
+## ✅ Étape 11 - Porter la caméra de poursuite et le ressenti de conduite
 
 **But**
 
@@ -485,13 +491,13 @@ Retrouver le feel RacingGame sans réintroduire l'architecture ancienne.
 
 - `✅ 11.1` Créer la caméra de poursuite de base
 - `✅ 11.2` Ajouter le suivi position/orientation du véhicule
-- `⬜ 11.3` Ajouter le zoom et la distance dynamique
-- `⬜ 11.4` Ajouter le mode game over ou orbit caméra
-- `⬜ 11.5` Ajuster le feel sans recoupler caméra et physique
+- `✅ 11.3` Ajouter le zoom et la distance dynamique
+- `✅ 11.4` Ajouter le mode game over ou orbit caméra
+- `✅ 11.5` Ajuster le feel sans recoupler caméra et physique
 
 **Notes**
 
-- La caméra de course suit maintenant le `RacingCarPawn` avec un offset lissé et un point de visée anticipé. Le zoom dynamique et les variantes de caméra restent à faire.
+- La caméra de course suit maintenant le `RacingCarPawn` avec un offset lissé, une orientation inertielle, une distance dynamique liée à la vitesse, un zoom runtime (`PageUp` / `PageDown`, `GamePad X/Y`) et un orbit de fin de course, tout en restant portée par un composant dédié séparé de la physique véhicule.
 
 ## 🟨 Étape 12 - Migrer le flow de course
 
