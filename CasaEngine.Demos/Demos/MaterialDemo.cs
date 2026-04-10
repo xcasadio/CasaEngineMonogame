@@ -157,10 +157,8 @@ public class MaterialDemo : Demo
 
         var materialCompiler = new MaterialCompiler();
         TextureCube studioReflectionCube = ProceduralSkyCubeFactory.CreateReflectionCube(gd, StudioSky, 32);
-        if (_renderer is not null)
-        {
-            _renderer.DefaultLighting.ReflectionCube = studioReflectionCube;
-        }
+        world.EnvironmentSettings.SpecularEnvironmentCubemap = studioReflectionCube;
+        world.EnvironmentSettings.MarkDirty();
 
         // Ground — unlit, sandy tint
         var groundMat = new UnlitTextureMaterial
@@ -467,13 +465,11 @@ public class MaterialDemo : Demo
 
     public override void Clean()
     {
-        if (_renderer is not null)
-        {
-            _renderer.DefaultLighting.ReflectionCube = null;
-        }
-
         if (_game != null)
         {
+            _game.GameManager.CurrentWorld.EnvironmentSettings.SpecularEnvironmentCubemap = null;
+            _game.GameManager.CurrentWorld.EnvironmentSettings.MarkDirty();
+
             foreach (var view in _game.GameManager.ViewManager.Views)
             {
                 if (ReferenceEquals(view.Pipeline, _skyPipeline))

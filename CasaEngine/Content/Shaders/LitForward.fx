@@ -95,6 +95,12 @@ void ApplyAlphaTest(float alpha)
 }
 
 
+float4 SampleBaseTexture(float2 texCoord)
+{
+    return SAMPLE_TEXTURE(Texture, texCoord);
+}
+
+
 float3 ComputeBaseAmbientTerm(float3 baseColor, float3 worldNormal)
 {
     float3 ambientTerm = HasEnvironmentCubeTexture > 0.5f
@@ -117,6 +123,12 @@ float3 ComputeReflectionContribution(float3 eyeVector, float3 worldNormal)
         ? SAMPLE_CUBEMAP(ReflectionCubeTexture, reflectionVector).rgb
         : SampleEnvironmentReflection(reflectionVector);
     return reflectionColor * saturate(SpecularColor);
+}
+
+
+float3 ApplyReflectionContribution(float3 surfaceColor, float3 reflectionContribution)
+{
+    return surfaceColor + reflectionContribution;
 }
 
 

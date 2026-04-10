@@ -34,7 +34,7 @@ public class LitDiffuseMaterial : MaterialBase
     public float ReflectionMultiplyFactor { get; set; }
 
     private static bool HasReflection(in RenderContext context, ShaderFeature features)
-        => (features & ShaderFeature.Reflection) != 0 || context.Environment.SpecularEnvironmentCubemap is not null;
+        => (features & ShaderFeature.Reflection) != 0;
 
     internal static string GetTechniqueName(ShaderFeature features, bool oneLight, bool hasReflection)
     {
@@ -112,7 +112,7 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.SpecularPower, SpecularPower);
         shader.SetParameter(ShaderParameterNames.HasMaterialReflectionCube, ReflectionCube is not null ? 1.0f : 0.0f);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
-        XnaTextureCube? reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Lighting?.ReflectionCube : null);
+        XnaTextureCube? reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Environment.SpecularEnvironmentCubemap : null);
         shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, reflectionCube, context.Stats);
 
         if (NormalMap is not null && BasColor is not null)
