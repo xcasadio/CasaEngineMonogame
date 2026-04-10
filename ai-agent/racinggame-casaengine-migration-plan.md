@@ -499,7 +499,7 @@ Retrouver le feel RacingGame sans réintroduire l'architecture ancienne.
 
 - La caméra de course suit maintenant le `RacingCarPawn` avec un offset lissé, une orientation inertielle, une distance dynamique liée à la vitesse, un zoom runtime (`PageUp` / `PageDown`, `GamePad X/Y`) et un orbit de fin de course, tout en restant portée par un composant dédié séparé de la physique véhicule.
 
-## 🟨 Étape 12 - Migrer le flow de course
+## ✅ Étape 12 - Migrer le flow de course
 
 **But**
 
@@ -531,15 +531,15 @@ Recréer la boucle de jeu complète.
 - `✅ 12.2` Ajouter la logique de checkpoints
 - `✅ 12.3` Ajouter le comptage de tours
 - `✅ 12.4` Ajouter la logique de victoire et défaite
-- `⬜ 12.5` Ajouter pause et reprise côté logique
-- `⬜ 12.6` Raccorder les états de course au `GameScreenManager`
-- `⬜ 12.7` Vérifier la boucle complète début de course -> fin -> retour menu
+- `✅ 12.5` Ajouter pause et reprise côté logique
+- `✅ 12.6` Raccorder les états de course au `GameScreenManager`
+- `✅ 12.7` Vérifier la boucle complète début de course -> fin -> retour menu
 
 **Notes**
 
-- Le flow de course minimal gère maintenant un countdown, la progression ordonnée sur checkpoints, le comptage de tours et l'état de fin de course directement côté projet.
+- Le flow de course gère maintenant aussi la pause clavier/manette via le `ScreenManager`, tandis que la fin de course reste pilotée par le HUD runtime lui-même, avec une validation smoke qui force pause -> reprise -> fin de course -> retour menu pour vérifier la boucle complète.
 
-## 🟨 Étape 13 - Migrer le HUD et les overlays en jeu
+## ✅ Étape 13 - Migrer le HUD et les overlays en jeu
 
 **But**
 
@@ -563,15 +563,15 @@ Afficher les informations de course via MGUI, sans renderer UI legacy.
 **Sous-étapes**
 
 - `✅ 13.1` Créer un premier HUD de course de télémétrie
-- `⬜ 13.2` Afficher vitesse, tour et chrono sur un HUD orienté joueur
-- `⬜ 13.3` Afficher meilleur temps et informations de course
-- `⬜ 13.4` Ajouter l'overlay pause
-- `⬜ 13.5` Ajouter l'écran ou overlay de game over
-- `⬜ 13.6` Brancher toutes les données runtime au HUD
+- `✅ 13.2` Afficher vitesse, tour et chrono sur un HUD orienté joueur
+- `✅ 13.3` Afficher meilleur temps et informations de course
+- `✅ 13.4` Ajouter l'overlay pause
+- `✅ 13.5` Ajouter l'écran ou overlay de game over
+- `✅ 13.6` Brancher toutes les données runtime au HUD
 
 **Notes**
 
-- `RaceHudScreen` existe déjà, mais reste pour l'instant un panneau texte de télémétrie plus proche d'un HUD de debug que du HUD final.
+- `RaceHudScreen` porte maintenant le HUD joueur en reprenant la structure MGUI legacy (`laps`, `current/best`, `top 5`, tachymètre) et intègre aussi le panneau de fin de course, tandis que `PauseScreen` reste l'unique overlay modal en course.
 
 ## ⬜ Étape 14 - Porter le ghost car, les highscores et la persistance
 
