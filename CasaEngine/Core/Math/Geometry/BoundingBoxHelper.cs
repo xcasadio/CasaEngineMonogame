@@ -206,6 +206,21 @@ public static class BoundingBoxHelper
         return boundingBox.Max - boundingBox.Min;
     }
 
+    public static BoundingBox Transform(this BoundingBox boundingBox, Matrix matrix)
+    {
+        var min = new Vector3(float.MaxValue);
+        var max = new Vector3(float.MinValue);
+
+        for (uint cornerIndex = 0; cornerIndex < 8; cornerIndex++)
+        {
+            var corner = Vector3.Transform(boundingBox.Corner(cornerIndex), matrix);
+            min = Vector3.Min(min, corner);
+            max = Vector3.Max(max, corner);
+        }
+
+        return new BoundingBox(min, max);
+    }
+
     public static BoundingBox CalculateBoundingBoxFromModel(Model model)
     {
         // NOTE: we could use ModelMesh's built in BoundingSphere property 

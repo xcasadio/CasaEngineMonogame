@@ -184,10 +184,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
             max = Vector3.One * length;
         }
 
-        min = Vector3.Transform(min, WorldMatrixWithScale);
-        max = Vector3.Transform(max, WorldMatrixWithScale);
-
-        return new BoundingBox(min, max);
+        return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
     }
 
     public override void Draw(float elapsedTime)

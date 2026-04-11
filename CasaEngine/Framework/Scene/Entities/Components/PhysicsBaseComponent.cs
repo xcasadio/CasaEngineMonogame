@@ -99,9 +99,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
             if (Owner != null)
             {
-                var min = Vector3.Transform(_boundingBox.Min, WorldMatrixWithScale);
-                var max = Vector3.Transform(_boundingBox.Max, WorldMatrixWithScale);
-                _boundingBox = new BoundingBox(min, max);
+                _boundingBox = _boundingBox.Transform(WorldMatrixWithScale);
             }
 
             IsBoundingBoxDirty = false;

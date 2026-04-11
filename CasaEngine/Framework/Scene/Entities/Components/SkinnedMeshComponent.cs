@@ -65,18 +65,31 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override BoundingBox GetBoundingBox()
     {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-
         if (SkinnedMesh?.RiggedModel != null)
         {
+            bool hasBounds = false;
+            BoundingBox bounds = default;
+
             foreach (var mesh in SkinnedMesh.RiggedModel.Meshes)
             {
-                min = Vector3.Min(min, Vector3.Transform(mesh.Min, WorldMatrixWithScale));
-                max = Vector3.Max(max, Vector3.Transform(mesh.Max, WorldMatrixWithScale));
+                var meshWorld = WorldMatrixWithScale * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
+                var meshBounds = new BoundingBox(mesh.Min, mesh.Max).Transform(meshWorld);
+
+                if (!hasBounds)
+                {
+                    bounds = meshBounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.ExpandBy(meshBounds);
+                }
             }
 
-            return new BoundingBox(min, max);
+            if (hasBounds)
+            {
+                return bounds;
+            }
         }
 
         return base.GetBoundingBox();
