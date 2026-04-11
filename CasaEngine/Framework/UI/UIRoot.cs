@@ -1,7 +1,9 @@
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering;
+using MGUI.FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Shared.Rendering;
+using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.UI;
@@ -76,7 +78,26 @@ public sealed class UIRoot : IUIViewRuntime
         var host    = new ViewRenderHost(game, surface, runtimeContext?.WindowInputSource);
         Renderer    = new MainRenderer(host);
         Desktop     = new MGDesktop(Renderer);
+        Desktop.TextEngine = CreateFontStashSharpTextEngine(game);
         ScreenStack = new ScreenStack(this);
+    }
+
+    private FontStashSharpTextEngine CreateFontStashSharpTextEngine(CasaEngineGame game)
+    {
+        var textEngine = new FontStashSharpTextEngine();
+        string familyName = Renderer.FontManager.DefaultFontFamily;
+
+        if (game.DefaultFontSystemTtfData.Length > 0)
+        {
+            textEngine.AddFontSystem(familyName, CustomFontStyles.Normal, game.FontSystem, game.DefaultFontSystemTtfData);
+        }
+        else
+        {
+            textEngine.AddFontSystem(familyName, CustomFontStyles.Normal, game.FontSystem);
+        }
+
+        textEngine.MatchSpriteFontSizing(Renderer.FontManager);
+        return textEngine;
     }
 
     // ---- Frame lifecycle ----

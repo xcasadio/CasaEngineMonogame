@@ -44,6 +44,7 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     public new event EventHandler<EventArgs>? EndUpdate;
     public AssetContentManager AssetContentManager { get; } = new();
     public FontSystem FontSystem { get; private set; }
+    internal byte[] DefaultFontSystemTtfData { get; private set; } = Array.Empty<byte>();
     public SpriteBatch? SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
     public Renderer2DComponent Renderer2DComponent { get; private set; }
@@ -421,8 +422,9 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
         AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 
-        //default font
-        FontSystem.AddFont(File.ReadAllBytes(Path.Combine(Content.RootDirectory, "Fonts", "tahoma.ttf")));
+        // Keep the raw TTF bytes so MGUI can share the same FontSystem instance and sizing calibration.
+        DefaultFontSystemTtfData = File.ReadAllBytes(Path.Combine(Content.RootDirectory, "Fonts", "tahoma.ttf"));
+        FontSystem.AddFont(DefaultFontSystemTtfData);
 
         // Wire optional debug overlay into the render pipeline.
         // Toggle per-view with RenderView.ShowDebugOverlay = true.
