@@ -80,6 +80,8 @@ public class MaterialDemo : Demo
         SunSize = 0.04f,
         ReflectionCubeSize = 32,
     };
+    private const float DemoRingRadius = 6.0f;
+    private const float DemoRingStartAngle = -MathHelper.PiOver2;
     private int _tintIndex;
 
     // Active light count (cycled with L key)
@@ -321,6 +323,8 @@ public class MaterialDemo : Demo
         //  Scene objects — each gets its own Entity + StaticModelComponent
         // ------------------------------------------------------------------
 
+        const int demoObjectCount = 13;
+
         // Ground
         SpawnStaticModel("Ground", world, gd,
             new BoxPrimitive(16f, 0.3f, 16f),
@@ -331,83 +335,83 @@ public class MaterialDemo : Demo
         // Red cube
         SpawnStaticModel("RedCube", world, gd,
             new BoxPrimitive(1.5f, 1.5f, 1.5f),
-            new Vector3(-4.5f, 0.75f, 0f),
-            Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(25f)),
+            GetDemoRingPosition(0, demoObjectCount, 0.75f),
+            CreateDemoRingRotation(0, demoObjectCount, yawOffsetDegrees: 25f),
             redMat);
 
         // Textured cube
         SpawnStaticModel("TexturedCube", world, gd,
             new BoxPrimitive(1.5f, 1.5f, 1.5f),
-            new Vector3(-1.8f, 0.75f, 0f),
-            Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(-15f)),
+            GetDemoRingPosition(1, demoObjectCount, 0.75f),
+            CreateDemoRingRotation(1, demoObjectCount, yawOffsetDegrees: -15f),
             whiteMat);
 
         // Sphere A — PropertyBlock (placed via standalone StaticModelSubMeshComponent)
         SpawnSphereWithPropertyBlock("SphereA", world, gd,
             sphereMat, _propBlockA,
-            new Vector3(0.9f, 0.9f, 0f));
+            GetDemoRingPosition(2, demoObjectCount, 0.9f));
 
         // Sphere B — PropertyBlock
         SpawnSphereWithPropertyBlock("SphereB", world, gd,
             sphereMat, _propBlockB,
-            new Vector3(3.0f, 0.9f, 0f));
+            GetDemoRingPosition(3, demoObjectCount, 0.9f));
 
         // Alpha-test panel (cutout)
         SpawnStaticModel("AlphaTestPanel", world, gd,
             new PlanePrimitive(2.3f, 2.3f),
-            new Vector3(4.8f, 1.15f, -3.0f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-18f), MathHelper.PiOver2, 0f),
+            GetDemoRingPosition(4, demoObjectCount, 1.15f),
+            CreateDemoRingRotation(4, demoObjectCount, yawOffsetDegrees: -18f, pitchDegrees: 90f),
             alphaTestMat);
 
         // Glass cube (transparent)
         SpawnStaticModel("GlassCube", world, gd,
             new BoxPrimitive(1.5f, 1.5f, 1.5f),
-            new Vector3(5.2f, 0.75f, 0f),
-            Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(40f)),
+            GetDemoRingPosition(5, demoObjectCount, 0.75f),
+            CreateDemoRingRotation(5, demoObjectCount, yawOffsetDegrees: 40f),
             glassMat);
 
         // Normal-mapped box (tangent-ready mesh)
         SpawnStaticModel("NormalMapBox", world, gd,
             new BoxPrimitive(1.8f, 1.8f, 1.8f),
-            new Vector3(-1.2f, 0.9f, -3.2f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(28f), MathHelper.ToRadians(-16f), 0f),
+            GetDemoRingPosition(6, demoObjectCount, 0.9f),
+            CreateDemoRingRotation(6, demoObjectCount, yawOffsetDegrees: 28f, pitchDegrees: -16f),
             normalMapMat,
             useTangents: true);
 
         SpawnStaticModel("ReflectionSphere", world, gd,
             new SpherePrimitive(1.0f, 24),
-            new Vector3(1.8f, 1.0f, -3.4f),
+            GetDemoRingPosition(7, demoObjectCount, 1.0f),
             Quaternion.Identity,
             reflectiveMat);
 
         SpawnStaticModel("AmbientReference", world, gd,
             new BoxPrimitive(1.1f, 1.1f, 1.1f),
-            new Vector3(4.2f, 0.55f, 2.6f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(18f), MathHelper.ToRadians(-10f), 0f),
+            GetDemoRingPosition(8, demoObjectCount, 0.55f),
+            CreateDemoRingRotation(8, demoObjectCount, yawOffsetDegrees: 18f, pitchDegrees: -10f),
             ambientOnlyMat);
 
         SpawnStaticModel("NeutralProfileNamedOpaque", world, gd,
             new BoxPrimitive(1.1f, 1.1f, 1.1f),
-            new Vector3(-5.9f, 0.55f, 2.6f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(12f), MathHelper.ToRadians(-10f), 0f),
+            GetDemoRingPosition(9, demoObjectCount, 0.55f),
+            CreateDemoRingRotation(9, demoObjectCount, yawOffsetDegrees: 12f, pitchDegrees: -10f),
             namedOpaqueMat);
 
         SpawnStaticModel("NeutralProfileExplicitReflection", world, gd,
             new BoxPrimitive(1.1f, 1.1f, 1.1f),
-            new Vector3(-4.1f, 0.55f, 2.6f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-12f), MathHelper.ToRadians(-10f), 0f),
+            GetDemoRingPosition(10, demoObjectCount, 0.55f),
+            CreateDemoRingRotation(10, demoObjectCount, yawOffsetDegrees: -12f, pitchDegrees: -10f),
             explicitReflectionMat);
 
         SpawnStaticModel("HintsOnlyImportedPresentation", world, gd,
             new PlanePrimitive(1.2f, 1.2f),
-            new Vector3(-2.3f, 0.8f, 2.6f),
-            Quaternion.CreateFromYawPitchRoll(0f, MathHelper.PiOver2, 0f),
+            GetDemoRingPosition(11, demoObjectCount, 0.8f),
+            CreateDemoRingRotation(11, demoObjectCount, pitchDegrees: 90f),
             sharedImportedPresentationMat);
 
         SpawnStaticModel("EmissiveReference", world, gd,
             new BoxPrimitive(1.1f, 1.1f, 1.1f),
-            new Vector3(6.0f, 0.55f, 2.6f),
-            Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-18f), MathHelper.ToRadians(-10f), 0f),
+            GetDemoRingPosition(12, demoObjectCount, 0.55f),
+            CreateDemoRingRotation(12, demoObjectCount, yawOffsetDegrees: -18f, pitchDegrees: -10f),
             emissiveOnlyMat);
     }
 
@@ -506,6 +510,27 @@ public class MaterialDemo : Demo
         MaterialInstancePropertyBlockMapper.Apply(_propBlockA, _sphereMaterialAsset, _sphereInstanceDataA);
         MaterialInstancePropertyBlockMapper.Apply(_propBlockB, _sphereMaterialAsset, _sphereInstanceDataB);
     }
+
+    private static Vector3 GetDemoRingPosition(int index, int totalCount, float height)
+    {
+        float angle = GetDemoRingAngle(index, totalCount);
+        return new Vector3(MathF.Cos(angle) * DemoRingRadius, height, MathF.Sin(angle) * DemoRingRadius);
+    }
+
+    private static Quaternion CreateDemoRingRotation(
+        int index,
+        int totalCount,
+        float yawOffsetDegrees = 0f,
+        float pitchDegrees = 0f,
+        float rollDegrees = 0f)
+    {
+        float angle = GetDemoRingAngle(index, totalCount);
+        float yaw = -angle - MathHelper.PiOver2 + MathHelper.ToRadians(yawOffsetDegrees);
+        return Quaternion.CreateFromYawPitchRoll(yaw, MathHelper.ToRadians(pitchDegrees), MathHelper.ToRadians(rollDegrees));
+    }
+
+    private static float GetDemoRingAngle(int index, int totalCount)
+        => DemoRingStartAngle + (index * MathHelper.TwoPi / totalCount);
 
     /// <summary>
     /// Creates an entity with a single-mesh <see cref="StaticModelComponent"/>
