@@ -154,6 +154,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
             AmbientColor = new Vector3(0.1f),
             SpecularColor = new Vector3(1.0f),
             SpecularPower = 96.0f,
+            UseSceneReflectionCube = true,
         };
 
         var matteBoxMaterial = new LitDiffuseMaterial
@@ -172,6 +173,7 @@ public sealed class EnvironmentShowcaseDemo : Demo
             AmbientColor = new Vector3(0.08f),
             SpecularColor = new Vector3(0.92f),
             SpecularPower = 72.0f,
+            UseSceneReflectionCube = true,
         };
 
         SpawnStaticModel(
