@@ -6,7 +6,7 @@ using MGUI.Shared.Rendering;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
 
-public sealed class CasaRenderSurfaceAdapter : IUISurface
+public sealed class CasaRenderSurfaceAdapter : IUISurface, ICasaSurfaceTargetProvider
 {
     private readonly IRenderSurface _surface;
     private RenderTarget2D? _cachedRenderTarget;
@@ -24,12 +24,12 @@ public sealed class CasaRenderSurfaceAdapter : IUISurface
         return new Rectangle(0, 0, viewport.Width, viewport.Height);
     }
 
-    public IUIRenderTarget GetRenderTarget()
+    private CasaSurfaceTargetDescriptor GetTargetDescriptor()
     {
         RenderTarget2D? renderTarget = _surface.RenderTarget;
         if (renderTarget == null)
         {
-            return null!;
+            return CasaSurfaceTargetDescriptor.CreateBackBuffer(GetBounds());
         }
 
         if (!ReferenceEquals(_cachedRenderTarget, renderTarget))
@@ -38,6 +38,10 @@ public sealed class CasaRenderSurfaceAdapter : IUISurface
             _cachedAdapter = new CasaMonoGameRenderTarget(renderTarget);
         }
 
-        return _cachedAdapter!;
+        return CasaSurfaceTargetDescriptor.CreateRenderTarget(GetBounds(), _cachedAdapter!);
     }
+
+    CasaSurfaceTargetDescriptor ICasaSurfaceTargetProvider.GetTargetDescriptor() => GetTargetDescriptor();
+
+    public IUIRenderTarget GetRenderTarget() => GetTargetDescriptor().RenderTarget!;
 }

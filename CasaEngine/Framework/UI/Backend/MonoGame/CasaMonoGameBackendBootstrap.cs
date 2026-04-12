@@ -25,12 +25,13 @@ public static class CasaMonoGameBackendBootstrap
         THost host,
         IRawInputSource? rawInputSource = null,
         IUISurface? surface = null,
-        IUIAssetProvider? assetProvider = null)
+        IUIAssetProvider? assetProvider = null,
+        CasaMonoGameBackendOptions? options = null)
         where THost : IRenderHost
     {
         ArgumentNullException.ThrowIfNull(host);
 
-        var runtime = new CasaDesktopRuntime(host, rawInputSource, surface, assetProvider);
+        var runtime = new CasaDesktopRuntime(host, rawInputSource, surface, assetProvider, options);
         return new CasaMonoGameBackendSession<THost>(host, runtime);
     }
 }

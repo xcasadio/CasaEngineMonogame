@@ -4,7 +4,7 @@ using MGUI.Shared.Rendering;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
 
-public sealed class CasaBackBufferSurface : IUISurface
+public sealed class CasaBackBufferSurface : IUISurface, ICasaSurfaceTargetProvider
 {
     private readonly IRenderHost _host;
 
@@ -16,5 +16,10 @@ public sealed class CasaBackBufferSurface : IUISurface
 
     public Rectangle GetBounds() => _host.GetBounds();
 
-    public IUIRenderTarget GetRenderTarget() => null!;
+    private CasaSurfaceTargetDescriptor GetTargetDescriptor()
+        => CasaSurfaceTargetDescriptor.CreateBackBuffer(GetBounds());
+
+    CasaSurfaceTargetDescriptor ICasaSurfaceTargetProvider.GetTargetDescriptor() => GetTargetDescriptor();
+
+    public IUIRenderTarget GetRenderTarget() => GetTargetDescriptor().RenderTarget!;
 }

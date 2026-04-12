@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Framework.UI;
+using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
@@ -57,7 +58,7 @@ public sealed class MainHUDScreen : UIScreenBase
         if (_portrait != null)
         {
             // Link portrait sub-rect: x=41, y=0, w=60, h=64 in MainHUD.png
-            var portrait = new MGImage(_window, _portrait, new Rectangle(41, 0, 60, 64));
+            var portrait = new MGImage(_window, new CasaMonoGameImageResource(_portrait), new Rectangle(41, 0, 60, 64));
             portrait.PreferredWidth  = 52;
             portrait.PreferredHeight = 52;
             portrait.Margin = new Thickness(0, 0, 6, 0);

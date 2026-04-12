@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Rendering.Vector;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
@@ -116,6 +117,8 @@ public class WorldViewportPanel : IDisposable
     private MguiViewportViewHost? _renderViewHost;
     private DebugGridComponent? _grid;
     private DebugAxisComponent? _axis;
+    private readonly ViewportFocusVectorOverlay _vectorOverlay = new();
+    private IEditorVectorCanvas? _vectorCanvas;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
     private World? _observedWorld;
@@ -933,10 +936,23 @@ public class WorldViewportPanel : IDisposable
 
         _grid ??= CreateGridComponent();
         _axis ??= CreateAxisComponent();
+        _vectorCanvas ??= CreateVectorCanvas();
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
         overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
+        overlayPipeline.RenderVectorOverlayAction = (graphicsDevice, view, frame) =>
+        {
+            var router = _editorRuntime.InputComponent.InputRouter;
+            bool isKeyboardFocused = (router?.KeyboardFocusViewId ?? ViewId.Empty) == view.Id;
+            bool receivesInput = IsPointerInputRoutedToView(_editorRuntime.InputComponent.CurrentViewInputContext, view.Id);
+            if (_vectorCanvas == null)
+            {
+                return;
+            }
+
+            _vectorOverlay.Draw(_vectorCanvas, graphicsDevice, view, in frame, receivesInput, isKeyboardFocused);
+        };
         _renderView.Pipeline = overlayPipeline;
     }
 
@@ -952,6 +968,28 @@ public class WorldViewportPanel : IDisposable
         var axis = new DebugAxisComponent(_editorRuntime);
         axis.Initialize();
         return axis;
+    }
+
+    private IEditorVectorCanvas CreateVectorCanvas()
+    {
+        string[] candidatePaths =
+        {
+            Path.Combine(AppContext.BaseDirectory, "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
+            Path.Combine(AppContext.BaseDirectory, "Content", "Fonts", "JetBrainsMono", "ttf", "JetBrainsMono-Regular.ttf"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CasaEngine.Editor", "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
+        };
+
+        foreach (string candidatePath in candidatePaths)
+        {
+            string fullPath = Path.GetFullPath(candidatePath);
+            if (File.Exists(fullPath))
+            {
+                return new NvgSharpVectorCanvas(fullPath);
+            }
+        }
+
+        return NullEditorVectorCanvas.Instance;
     }
 
     private void SynchronizeGizmo()
@@ -984,6 +1022,8 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.Dispose();
         DisposeOverlayComponent(_grid);
         DisposeOverlayComponent(_axis);
+        _vectorCanvas?.Dispose();
+        _vectorCanvas = null;
         _grid = null;
         _axis = null;
 

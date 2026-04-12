@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework.Graphics;
-using MGUI.Shared.Helpers;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
 
@@ -37,7 +36,17 @@ internal sealed class CasaRenderTargetPool
             }
         }
 
-        return new CasaRenderTargetLease(RenderUtils.CreateRenderTarget(graphicsDevice, width, height, preserveContents), false);
+        return new CasaRenderTargetLease(
+            new RenderTarget2D(
+                graphicsDevice,
+                width,
+                height,
+                false,
+                SurfaceFormat.Color,
+                DepthFormat.Depth24,
+                0,
+                preserveContents ? RenderTargetUsage.PreserveContents : RenderTargetUsage.DiscardContents),
+            false);
     }
 
     public void Return(RenderTarget2D renderTarget)

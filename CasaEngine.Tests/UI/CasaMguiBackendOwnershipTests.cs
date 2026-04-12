@@ -12,7 +12,8 @@ public class CasaMguiBackendOwnershipTests
     {
         string projectText = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "CasaEngine.csproj"));
 
-        Assert.DoesNotContain("MGUI.MonoGame.csproj", projectText, StringComparison.Ordinal);
+        Assert.DoesNotContain("MGUI.MonoGame.Integration.csproj", projectText, StringComparison.Ordinal);
+        Assert.DoesNotContain("MGUI.MonoGame.LegacyRenderer.csproj", projectText, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -24,6 +25,51 @@ public class CasaMguiBackendOwnershipTests
         Assert.Contains("CasaMonoGameBackendBootstrap.Create", uiRootText, StringComparison.Ordinal);
         Assert.Contains("CasaMonoGameBackendBootstrap.Create", editorGameText, StringComparison.Ordinal);
         Assert.Contains("CasaGameRenderHost<Game1>", editorGameText, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MguiSharedAndCore_DoNotReference_AposShapes_Or_NvgSharp()
+    {
+        string[] sourceRoots =
+        {
+            Path.Combine(RepoRoot, "MGUI", "MGUI.Shared"),
+            Path.Combine(RepoRoot, "MGUI", "MGUI.Core"),
+        };
+
+        string[] forbiddenTokens =
+        {
+            "Apos.Shapes",
+            "NvgSharp",
+        };
+
+        List<string> violations = CollectForbiddenTokenViolations(sourceRoots, forbiddenTokens);
+        Assert.True(violations.Count == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact]
+    public void NonEditorRuntimeSourcePaths_DoNotReference_NvgSharp()
+    {
+        string[] sourceRoots =
+        {
+            Path.Combine(RepoRoot, "CasaEngine"),
+            Path.Combine(RepoRoot, "CasaEngine.Demos"),
+            Path.Combine(RepoRoot, "CasaEngine.EditorServices"),
+        };
+
+        List<string> violations = CollectForbiddenTokenViolations(sourceRoots, new[] { "NvgSharp" });
+        Assert.True(violations.Count == 0, string.Join(Environment.NewLine, violations));
+    }
+
+    [Fact]
+    public void CasaEngineCoreRuntimeSourcePaths_DoNotReference_AposShapes()
+    {
+        string[] sourceRoots =
+        {
+            Path.Combine(RepoRoot, "CasaEngine"),
+        };
+
+        List<string> violations = CollectForbiddenTokenViolations(sourceRoots, new[] { "Apos.Shapes" });
+        Assert.True(violations.Count == 0, string.Join(Environment.NewLine, violations));
     }
 
     [Fact]
@@ -90,6 +136,145 @@ public class CasaMguiBackendOwnershipTests
         {
             Assert.Contains(row, documentation, StringComparison.Ordinal);
         }
+    }
+
+    [Fact]
+    public void ExtensibilityArchitectureDocument_Lists_TargetLayers_And_ValidationMatrix()
+    {
+        string documentation = File.ReadAllText(Path.Combine(RepoRoot, "docs", "casaengine-mgui-backend-extensibility.md"));
+
+        string[] expectedFragments =
+        {
+            "## Target layering",
+            "`IShapeRenderer2D`",
+            "`IEditorVectorCanvas`",
+            "`NvgSharp` lives behind that contract in editor code only.",
+            "## Surface target model",
+            "## Validation matrix",
+            "`UIOverlayDemo`",
+            "`WorldSpaceUIDemo`",
+        };
+
+        foreach (string fragment in expectedFragments)
+        {
+            Assert.Contains(fragment, documentation, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void PackageIsolation_UsesAposInOptionalBackend_AndNvgInEditorOnly()
+    {
+        string engineProject = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "CasaEngine.csproj"));
+        string aposBackendProject = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.AposShapes", "CasaEngine.AposShapes.csproj"));
+        string editorProject = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "CasaEngine.Editor.csproj"));
+
+        Assert.DoesNotContain("Apos.Shapes", engineProject, StringComparison.Ordinal);
+        Assert.Contains("Apos.Shapes", aposBackendProject, StringComparison.Ordinal);
+        Assert.DoesNotContain("NvgSharp", engineProject, StringComparison.Ordinal);
+        Assert.Contains("NvgSharp", editorProject, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BackendOptions_ExposeAposFactoryHelper()
+    {
+        string optionsFile = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "CasaMonoGameBackendOptions.cs"));
+
+        Assert.Contains("CasaEngine.AposShapes", optionsFile, StringComparison.Ordinal);
+        Assert.Contains("CreateOptionalAposShapeRenderer", optionsFile, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CasaDrawTransaction_PublicPrimitiveEntryPoints_RouteThroughShapeRenderer()
+    {
+        string drawTransaction = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "CasaDrawTransaction.cs"));
+
+        string[] expectedFragments =
+        {
+            "=> ShapeRenderer.FillRectangle",
+            "=> ShapeRenderer.StrokeRectangle",
+            "=> ShapeRenderer.StrokeAndFillCircle",
+            "=> ShapeRenderer.StrokeLineSegment",
+            "=> ShapeRenderer.FillTriangle",
+            "=> ShapeRenderer.FillQuadrilateralLinearClamp",
+        };
+
+        foreach (string fragment in expectedFragments)
+        {
+            Assert.Contains(fragment, drawTransaction, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public void OverlayPipeline_RendersVectorPass_BeforeUiComposition()
+    {
+        string pipeline = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "Rendering", "EditorViewPipeline.cs"));
+
+        int vectorIndex = pipeline.IndexOf("RenderVectorOverlay(graphicsDevice, view, in frame);", StringComparison.Ordinal);
+        int uiIndex = pipeline.IndexOf("RenderUIOverlay(graphicsDevice, view, in frame);", StringComparison.Ordinal);
+
+        Assert.True(vectorIndex >= 0, "The vector overlay stage should be present in OverlayViewPipeline.");
+        Assert.True(uiIndex >= 0, "The UI overlay stage should be present in OverlayViewPipeline.");
+        Assert.True(vectorIndex < uiIndex, "The vector overlay stage must execute before UI composition.");
+    }
+
+    [Fact]
+    public void NvgVectorCanvas_SessionDisposal_RestoresStateAndFlushes()
+    {
+        string vectorCanvas = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine.Editor", "Rendering", "Vector", "NvgSharpVectorCanvas.cs"));
+
+        Assert.Contains("_context.RestoreState();", vectorCanvas, StringComparison.Ordinal);
+        Assert.Contains("_context.Flush();", vectorCanvas, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ClipManager_Delegates_Strategies_To_DedicatedExecutors()
+    {
+        string clipManager = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "Clipping", "CasaClipManager.cs"));
+
+        Assert.Contains("CasaScissorClipExecutor", clipManager, StringComparison.Ordinal);
+        Assert.Contains("CasaStencilClipExecutor", clipManager, StringComparison.Ordinal);
+        Assert.Contains("CasaMaskClipExecutor", clipManager, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RenderTargetService_EndsCurrentContext_BeforeSwitchingTargets()
+    {
+        string renderTargetService = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "CasaRenderTargetService.cs"));
+
+        int endContextIndex = renderTargetService.IndexOf("_owner.EndCurrentContext();", StringComparison.Ordinal);
+        int setTargetIndex = renderTargetService.IndexOf("_owner.GraphicsDevice.SetRenderTarget(renderTarget);", StringComparison.Ordinal);
+
+        Assert.True(endContextIndex >= 0, "The render target service should end the active draw context before switching targets.");
+        Assert.True(setTargetIndex >= 0, "The render target service should set the new render target explicitly.");
+        Assert.True(endContextIndex < setTargetIndex, "The active draw context must be ended before GraphicsDevice.SetRenderTarget is called.");
+    }
+
+    [Fact]
+    public void MaskClipExecutor_UsesTemporaryRenderTargetPool_And_ReturnsTargets()
+    {
+        string maskExecutor = File.ReadAllText(Path.Combine(RepoRoot, "CasaEngine", "Framework", "UI", "Backend", "MonoGame", "Clipping", "CasaMaskClipExecutor.cs"));
+
+        Assert.Contains("RenderTargetPool.Rent", maskExecutor, StringComparison.Ordinal);
+        Assert.Contains("RenderTargetPool.Return", maskExecutor, StringComparison.Ordinal);
+    }
+
+    private static List<string> CollectForbiddenTokenViolations(IEnumerable<string> sourceRoots, IEnumerable<string> forbiddenTokens)
+    {
+        List<string> violations = new();
+
+        foreach (string filePath in EnumerateSourceFiles(sourceRoots))
+        {
+            string content = File.ReadAllText(filePath);
+            foreach (string token in forbiddenTokens)
+            {
+                if (content.Contains(token, StringComparison.Ordinal))
+                {
+                    violations.Add($"{Path.GetRelativePath(RepoRoot, filePath)} -> {token}");
+                }
+            }
+        }
+
+        return violations;
     }
 
     private static IEnumerable<string> EnumerateSourceFiles(IEnumerable<string> roots)

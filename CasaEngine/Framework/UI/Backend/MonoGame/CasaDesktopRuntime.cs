@@ -15,6 +15,7 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame;
 
 public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 {
+    public CasaMonoGameBackendOptions Options { get; }
     public IRenderHost Host { get; }
     public IRawInputSource RawInputSource { get; }
     public IUISurface Surface { get; }
@@ -24,13 +25,16 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
     public GraphicsDevice GraphicsDevice => Host.GraphicsDevice;
     public SpriteBatch SpriteBatch { get; }
     public PrimitiveBatch PrimitiveBatch { get; }
-    internal CasaRenderTargetPool RenderTargetPool { get; } = new();
+    internal CasaRenderTargetPool RenderTargetPool => Services.RenderTargetPool;
+    internal CasaBackendAdapterRegistry AdapterRegistry => Services.AdapterRegistry;
 
-    public ContentManager Content { get; }
+    private CasaRuntimeBackendServices Services { get; }
 
-    public FontManager FontManager { get; }
+    public ContentManager Content => Services.Content;
+
+    public FontManager FontManager => Services.FontManager;
     public string DefaultFontFamily => FontManager.DefaultFontFamily;
-    public IUIAssetProvider AssetProvider { get; }
+    public IUIAssetProvider AssetProvider => Services.AssetProvider;
 
     private ITextMeasurementEngine _textEngine;
     public ITextMeasurementEngine TextEngine
@@ -66,24 +70,23 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 
     public readonly Texture2D ScrollMarker;
 
-    private readonly Dictionary<Color, SolidColorTexture> _solidColorTextures = new();
-    private readonly Dictionary<int, Texture2D> _circleTextures = new();
-    private const int MinimumCircleTextureRadius = 32;
-    private const int MaximumCircleTextureRadius = 1024;
-
-    public CasaDesktopRuntime(IRenderHost host, IRawInputSource? rawInputSource = null, IUISurface? surface = null, IUIAssetProvider? assetProvider = null)
+    public CasaDesktopRuntime(
+        IRenderHost host,
+        IRawInputSource? rawInputSource = null,
+        IUISurface? surface = null,
+        IUIAssetProvider? assetProvider = null,
+        CasaMonoGameBackendOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(host);
 
+        Options = options ?? CasaMonoGameBackendOptions.Default;
         Host = host;
         RawInputSource = ResolveInputSource(host, rawInputSource);
         Surface = surface ?? new CasaBackBufferSurface(host);
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         PrimitiveBatch = new PrimitiveBatch(GraphicsDevice, 1024);
-        Content = new ContentManager(host, "Content");
-        FontManager = new FontManager(Content, "Arial");
-        AssetProvider = assetProvider ?? new CasaUIAssetProvider(Content, FontManager);
-        TextEngine = new SpriteFontTextEngine(FontManager);
+        Services = new CasaRuntimeBackendServices(host, GraphicsDevice, SpriteBatch, assetProvider, Options);
+        TextEngine = Options.TextEngine ?? new SpriteFontTextEngine(FontManager);
         Input = new InputTracker();
 
         ScrollMarker = Content.Load<Texture2D>(Path.Combine("Icons", "ScrollMarker"));
@@ -142,59 +145,12 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
     }
 
     public SolidColorTexture GetOrCreateSolidColorTexture(Color color)
-    {
-        if (!_solidColorTextures.TryGetValue(color, out SolidColorTexture? result))
-        {
-            result = new SolidColorTexture(GraphicsDevice, color);
-            _solidColorTextures.Add(color, result);
-        }
-
-        return result;
-    }
+        => Services.TextureCache.GetOrCreateSolidColorTexture(color);
 
     public Texture2D GetOrCreateWhiteCircleTexture(float desiredRadius, int? minimumRadius = null, int? maximumRadius = null)
-    {
-        maximumRadius = Math.Clamp(maximumRadius ?? GeneralUtils.NextPowerOf2(desiredRadius), MinimumCircleTextureRadius, MaximumCircleTextureRadius);
-        minimumRadius = Math.Clamp(minimumRadius ?? (int)Math.Floor(desiredRadius), MinimumCircleTextureRadius, maximumRadius.Value);
+        => Services.TextureCache.GetOrCreateWhiteCircleTexture(desiredRadius, minimumRadius, maximumRadius);
 
-        IEnumerable<KeyValuePair<int, Texture2D>> matches = _circleTextures
-            .Where(entry => entry.Value != null && !entry.Value.IsDisposed && entry.Key >= minimumRadius && entry.Key <= maximumRadius)
-            .OrderBy(entry => Math.Abs(desiredRadius - entry.Key));
-
-        foreach (KeyValuePair<int, Texture2D> match in matches)
-        {
-            return match.Value;
-        }
-
-        desiredRadius = Math.Min(desiredRadius, maximumRadius.Value);
-        int actualRadius = Math.Clamp(GeneralUtils.NextPowerOf2(desiredRadius), minimumRadius.Value, maximumRadius.Value);
-        Texture2D circle = TextureUtils.CreateCircleTexture(SpriteBatch, actualRadius, Color.White, true);
-        _circleTextures[actualRadius] = circle;
-        return circle;
-    }
-
-    public void ClearDisposedCircleTextures()
-    {
-        List<int>? invalidKeys = null;
-        foreach (KeyValuePair<int, Texture2D> entry in _circleTextures)
-        {
-            if (entry.Value == null || entry.Value.IsDisposed)
-            {
-                invalidKeys ??= new List<int>();
-                invalidKeys.Add(entry.Key);
-            }
-        }
-
-        if (invalidKeys == null)
-        {
-            return;
-        }
-
-        foreach (int key in invalidKeys)
-        {
-            _circleTextures.Remove(key);
-        }
-    }
+    public void ClearDisposedCircleTextures() => Services.TextureCache.ClearDisposedCircleTextures();
 
     private static IRawInputSource ResolveInputSource(IRenderHost host, IRawInputSource? rawInputSource)
     {

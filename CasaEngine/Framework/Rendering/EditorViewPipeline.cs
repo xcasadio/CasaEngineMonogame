@@ -37,6 +37,11 @@ public class OverlayViewPipeline : IViewRenderPipeline
     public Action<GraphicsDevice, RenderView, RenderFrame>? RenderAxisAction { get; set; }
 
     /// <summary>
+    /// Called to render editor-only vector overlays using a dedicated canvas pass.
+    /// </summary>
+    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderVectorOverlayAction { get; set; }
+
+    /// <summary>
     /// Called to render the selection outline around selected entities.
     /// </summary>
     public Action<GraphicsDevice, RenderView, RenderFrame>? RenderSelectionOutlineAction { get; set; }
@@ -68,10 +73,13 @@ public class OverlayViewPipeline : IViewRenderPipeline
         // --- Pass 5: Axis orientation indicator ---
         RenderAxis(graphicsDevice, view, in frame);
 
-        // --- Pass 6: Selection outline ---
+        // --- Pass 6: Dedicated vector overlay ---
+        RenderVectorOverlay(graphicsDevice, view, in frame);
+
+        // --- Pass 7: Selection outline ---
         RenderSelectionOutline(graphicsDevice, view, in frame);
 
-        // --- Pass 7: 2D UI overlay (labels, debug info) ---
+        // --- Pass 8: 2D UI overlay (labels, debug info) ---
         RenderUIOverlay(graphicsDevice, view, in frame);
     }
 
@@ -120,6 +128,10 @@ public class OverlayViewPipeline : IViewRenderPipeline
     /// <summary>Renders the axis orientation indicator. Calls <see cref="RenderAxisAction"/> if set.</summary>
     protected virtual void RenderAxis(GraphicsDevice gd, RenderView view, in RenderFrame frame)
         => RenderAxisAction?.Invoke(gd, view, frame);
+
+    /// <summary>Renders editor-only vector overlays. Calls <see cref="RenderVectorOverlayAction"/> if set.</summary>
+    protected virtual void RenderVectorOverlay(GraphicsDevice gd, RenderView view, in RenderFrame frame)
+        => RenderVectorOverlayAction?.Invoke(gd, view, frame);
 
     /// <summary>Renders the selection outline. Calls <see cref="RenderSelectionOutlineAction"/> if set.</summary>
     protected virtual void RenderSelectionOutline(GraphicsDevice gd, RenderView view, in RenderFrame frame)

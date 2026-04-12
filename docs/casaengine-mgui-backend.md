@@ -31,4 +31,4 @@
 ## Current limits
 
 - Manual visual validation is still pending for `UIOverlayDemo`, `WorldSpaceUIDemo`, and a real editor launch path.
-- `MGUI.Core` still transitively references `MGUI.MonoGame` for compatibility shims, but CasaEngine source paths no longer instantiate the upstream concrete backend types on the nominal runtime, editor, or demo paths.
+- `MGUI.Core` still transitively references `MGUI.MonoGame.Integration` for compatibility shims, but CasaEngine source paths no longer instantiate the upstream concrete backend types on the nominal runtime, editor, or demo paths.

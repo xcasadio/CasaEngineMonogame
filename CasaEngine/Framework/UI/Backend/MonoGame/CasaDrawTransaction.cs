@@ -1,5 +1,6 @@
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using CasaEngine.Framework.UI.Backend.MonoGame.Clipping;
+using CasaEngine.Framework.UI.Backend.MonoGame.Primitives;
 using MGUI.Backend.MonoGame;
 using MGUI.Shared.Assets;
 using MGUI.Shared.Helpers;
@@ -47,8 +48,6 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
             => StrokeCircle(Center, Color, Radius, Thickness, NumSides, null);
         void IUIDrawContext.StrokeAndFillCircle(Vector2 Center, Color StrokeColor, Color FillColor, float Radius, float StrokeThickness, int NumSides)
             => StrokeAndFillCircle(Center, StrokeColor, FillColor, Radius, StrokeThickness, NumSides, null);
-        [Obsolete("Access fonts through CasaDesktopRuntime.TextEngine / ITextMeasurementEngine instead.")]
-        public FontManager FontManager => Renderer.FontManager;
         /// <summary>Delegates to <see cref="CasaDesktopRuntime.TextEngine"/>.</summary>
         public ITextMeasurementEngine TextEngine => Renderer.TextEngine;
         private ITextDrawEngine TextRenderer => Renderer.GetTextRenderer();
@@ -63,18 +62,20 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         /// (Color can be specified in the 'Color' mask parameter of SpriteBatch.Draw(...))</summary>
         public SolidColorTexture WhitePixel => Renderer.GetOrCreateSolidColorTexture(Color.White);
 
-        private DrawContext CurrentContext = DrawContext.None;
-
         private Matrix PrimitiveProjectionMatrix { get; }
+        private CasaDrawStateController DrawState { get; }
+        private CasaRenderTargetService RenderTargets { get; }
+        private IShapeRenderer2D ShapeRenderer { get; }
         private CasaClipManager ClipManager { get; }
         public Rectangle? CurrentClipBounds => CurrentSettings.UsesScissorTest ? GraphicsDevice.ScissorRectangle : null;
-        private RasterizerState CurrentRasterizerState => CasaMonoGameRenderInterop.GetRasterizerState(CurrentSettings);
-        private BlendState CurrentBlendState => CasaMonoGameRenderInterop.GetBlendState(CurrentSettings);
-        private SamplerState CurrentSamplerState => CasaMonoGameRenderInterop.GetSamplerState(CurrentSettings);
-        private DepthStencilState CurrentDepthStencilState => CasaMonoGameRenderInterop.GetDepthStencilState(CurrentSettings);
+        private RasterizerState CurrentRasterizerState => DrawState.CurrentRasterizerState;
+        private BlendState CurrentBlendState => DrawState.CurrentBlendState;
+        private SamplerState CurrentSamplerState => DrawState.CurrentSamplerState;
+        private DepthStencilState CurrentDepthStencilState => DrawState.CurrentDepthStencilState;
+        private DrawContext CurrentContext => DrawState.CurrentContext;
 
-        public DrawSettings CurrentSettings { get; private set; }
-        public DrawSettings PreviousSettings { get; private set; }
+        public DrawSettings CurrentSettings => DrawState.CurrentSettings;
+        public DrawSettings PreviousSettings => DrawState.PreviousSettings;
         public ClipDiagnosticsSnapshot ClipDiagnostics => ClipManager.GetDiagnostics();
 
         /// <param name="Settings">See also: <see cref="DrawSettings.Default"/></param>
@@ -85,10 +86,12 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         {
             this.Renderer = Renderer ?? throw new ArgumentNullException(nameof(Renderer));
             PrimitiveDrawing = new PrimitiveDrawing(PrimitiveBatch);
-            CurrentSettings = Settings ?? throw new ArgumentNullException(nameof(Settings));
-            ClipManager = new(this);
 
             PrimitiveProjectionMatrix = Matrix.CreateOrthographicOffCenter(0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0, 0, 1);
+            DrawState = new CasaDrawStateController(Renderer, Settings ?? throw new ArgumentNullException(nameof(Settings)), PrimitiveProjectionMatrix);
+            RenderTargets = new CasaRenderTargetService(this);
+            ShapeRenderer = Renderer.Options.CreateShapeRenderer?.Invoke(this) ?? new CasaLegacyShapeRenderer2D(this);
+            ClipManager = new(this);
 
             if (!DeferBegin)
             {
@@ -100,59 +103,17 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         /// Draw-related calls that are funneled through <see cref="CasaDrawTransaction"/> (such as <see cref="CasaDrawTransaction.StrokeRectangle(Vector2, RectangleF, Color, Thickness, DrawContext?)"/>) will already call the begin methods if necessary.</summary>
         public void ForceBeginDraw(DrawContext Context) => BeginDraw(Context);
         public void ForceEndDraw(DrawContext Context) => EndDraw(Context);
+        internal void EndCurrentContext() => EndDraw(CurrentContext);
+        internal void EnsureDrawContext(DrawContext context) => BeginDraw(context);
+        internal DrawContext ResolveDrawContext(DrawContext? preferredContext, DrawContext fallback)
+            => GetFirstValidDrawContext(preferredContext, CurrentContext, fallback);
+        internal PrimitiveBatch PrimitiveBatchInternal => PrimitiveBatch;
 
         private void BeginDraw(DrawContext Context)
-        {
-            if (Context == DrawContext.None)
-            {
-                EndDraw(CurrentContext);
-            }
-            else if (CurrentContext != Context)
-            {
-                if (CurrentContext != DrawContext.None)
-                {
-                    EndDraw(CurrentContext);
-                }
-
-                switch (Context)
-                {
-                    case DrawContext.Sprites:
-                        SpriteBatch.Begin(CasaMonoGameRenderInterop.GetSortMode(CurrentSettings), CurrentBlendState, CurrentSamplerState,
-                            CurrentDepthStencilState, CurrentRasterizerState, CasaMonoGameRenderInterop.GetEffect(CurrentSettings), CurrentSettings.Transform);
-                        break;
-                    case DrawContext.Primitives:
-                        ApplyPrimitiveDeviceStates();
-                        PrimitiveBatch.Begin(PrimitiveProjectionMatrix, CurrentSettings.Transform);
-                        break;
-                    default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Context}");
-                }
-
-                CurrentContext = Context;
-            }
-        }
+            => DrawState.Begin(Context);
 
         private void EndDraw(DrawContext Context)
-        {
-            if (Context != DrawContext.None && CurrentContext == Context)
-            {
-                switch (CurrentContext)
-                {
-                    case DrawContext.Sprites: SpriteBatch.End(); break;
-                    case DrawContext.Primitives: PrimitiveBatch.End(); break;
-                    default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {CurrentContext}");
-                }
-
-                CurrentContext = DrawContext.None;
-            }
-        }
-
-        private void ApplyPrimitiveDeviceStates()
-        {
-            GraphicsDevice.BlendState = CurrentBlendState;
-            GraphicsDevice.DepthStencilState = CurrentDepthStencilState;
-            GraphicsDevice.RasterizerState = CurrentRasterizerState;
-            GraphicsDevice.SamplerStates[0] = CurrentSamplerState;
-        }
+            => DrawState.End(Context);
 
         #region Draw
         #region Draw Texture
@@ -175,15 +136,15 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         }
 
         public void DrawTextureTo(IUIImageResource Texture, Rectangle? Source, Rectangle Destination, Color ColorMask)
-            => DrawTextureTo(CasaImageResourceTextureResolver.GetTexture(Texture), Source, Destination, ColorMask);
+            => DrawTextureTo(Renderer.AdapterRegistry.GetTexture(Texture), Source, Destination, ColorMask);
 
         public void DrawTextureTo(IUIImageResource Texture, Rectangle? Source, Rectangle Destination, Color ColorMask,
             Vector2 Origin, float Rotation = 0f, float Depth = 0f, UIDrawFlip Flip = UIDrawFlip.None)
-            => DrawTextureTo(CasaImageResourceTextureResolver.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, Depth, CasaMonoGameRenderInterop.ToSpriteEffects(Flip));
+            => DrawTextureTo(Renderer.AdapterRegistry.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, Depth, CasaMonoGameRenderInterop.ToSpriteEffects(Flip));
 
         public void DrawTextureTo(IUIImageResource Texture, Rectangle? Source, Rectangle Destination, Color ColorMask,
             Vector2 Origin, float Rotation = 0f, float Depth = 0f, SpriteEffects Effects = SpriteEffects.None)
-            => DrawTextureTo(CasaImageResourceTextureResolver.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, Depth, Effects);
+            => DrawTextureTo(Renderer.AdapterRegistry.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, Depth, Effects);
 
         /// <summary>Draw a texture to a given <paramref name="Destination"/> <see cref="Rectangle"/></summary>
         public void DrawTextureTo(Texture2D Texture, Rectangle? Source, Rectangle Destination, Color ColorMask,
@@ -213,11 +174,11 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
 
         public void DrawTextureAt(IUIImageResource Texture, Rectangle? Source, Vector2 Destination, Color ColorMask,
             Vector2 Origin, float Rotation = 0f, float ScaleX = 1f, float ScaleY = 1f, float Depth = 0f, UIDrawFlip Flip = UIDrawFlip.None)
-            => DrawTextureAt(CasaImageResourceTextureResolver.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, ScaleX, ScaleY, Depth, CasaMonoGameRenderInterop.ToSpriteEffects(Flip));
+            => DrawTextureAt(Renderer.AdapterRegistry.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, ScaleX, ScaleY, Depth, CasaMonoGameRenderInterop.ToSpriteEffects(Flip));
 
         public void DrawTextureAt(IUIImageResource Texture, Rectangle? Source, Vector2 Destination, Color ColorMask,
             Vector2 Origin, float Rotation = 0f, float ScaleX = 1f, float ScaleY = 1f, float Depth = 0f, SpriteEffects Effects = SpriteEffects.None)
-            => DrawTextureAt(CasaImageResourceTextureResolver.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, ScaleX, ScaleY, Depth, Effects);
+            => DrawTextureAt(Renderer.AdapterRegistry.GetTexture(Texture), Source, Destination, ColorMask, Origin, Rotation, ScaleX, ScaleY, Depth, Effects);
 
         /// <summary>Draw a texture at a given <paramref name="Destination"/> point</summary>
         public void DrawTextureAt(Texture2D Texture, Rectangle? Source, Vector2 Destination, Color ColorMask,
@@ -422,380 +383,63 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         public void StrokeAndFillRectangle(Vector2 Origin, RectangleF Destination, Color StrokeColor, Color FillColor, int StrokeThickness, DrawContext? PreferredContext = null)
             => StrokeAndFillRectangle(Origin, Destination, StrokeColor, FillColor, new Thickness(StrokeThickness), PreferredContext);
         public void StrokeAndFillRectangle(Vector2 Origin, RectangleF Destination, Color StrokeColor, Color FillColor, Thickness StrokeThickness, DrawContext? PreferredContext = null)
-        {
-            FillRectangle(Origin, Destination.GetCompressed(StrokeThickness), FillColor, PreferredContext);
-            StrokeRectangle(Origin, Destination, StrokeColor, StrokeThickness, PreferredContext);
-        }
+            => ShapeRenderer.StrokeAndFillRectangle(Origin, Destination, StrokeColor, FillColor, StrokeThickness, PreferredContext);
 
         public void StrokeRectangle(Vector2 Origin, RectangleF Destination, Color Color, Thickness Thickness, DrawContext? PreferredContext = null)
-        {
-            if (Destination.Width.IsAlmostZero() || Destination.Height.IsAlmostZero() || Thickness.IsEmpty())
-            {
-                return;
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            float LeftEdgeWidth = Math.Min(Thickness.Left, Destination.Width);
-            float TopEdgeHeight = Math.Min(Thickness.Top, Destination.Height);
-            float RightEdgeWidth = Math.Min(Thickness.Right, Destination.Width);
-            float BottomEdgeHeight = Math.Min(Thickness.Bottom, Destination.Height);
-
-            if (LeftEdgeWidth > 0.0f && !LeftEdgeWidth.IsAlmostZero())
-            {
-                RectangleF LeftEdge = new(Destination.Left, Destination.Top + TopEdgeHeight, LeftEdgeWidth, Destination.Height - TopEdgeHeight - BottomEdgeHeight);
-                FillRectangle(Origin, LeftEdge, Color, Ctx);
-            }
-
-            if (TopEdgeHeight > 0.0f && !TopEdgeHeight.IsAlmostZero())
-            {
-                RectangleF TopEdge = new(Destination.Left, Destination.Top, Destination.Width, TopEdgeHeight);
-                FillRectangle(Origin, TopEdge, Color, Ctx);
-            }
-
-            if (RightEdgeWidth > 0.0f && !RightEdgeWidth.IsAlmostZero())
-            {
-                RectangleF RightEdge = new(Destination.Right - RightEdgeWidth, Destination.Top + TopEdgeHeight, RightEdgeWidth, Destination.Height - TopEdgeHeight - BottomEdgeHeight);
-                FillRectangle(Origin, RightEdge, Color, Ctx);
-            }
-
-            if (BottomEdgeHeight > 0.0f && !BottomEdgeHeight.IsAlmostZero())
-            {
-                RectangleF BottomEdge = new(Destination.Left, Destination.Bottom - BottomEdgeHeight, Destination.Width, BottomEdgeHeight);
-                FillRectangle(Origin, BottomEdge, Color, Ctx);
-            }
-        }
+            => ShapeRenderer.StrokeRectangle(Origin, Destination, Color, Thickness, PreferredContext);
 
         public void FillRectangle(Vector2 Origin, RectangleF Destination, Color Color, DrawContext? PreferredContext = null)
-        {
-            if (Destination.Width.IsAlmostZero() || Destination.Height.IsAlmostZero() || Color.A == 0)
-            {
-                return;
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            switch (Ctx)
-            {
-                case DrawContext.Sprites:
-                    SpriteBatch.FillRectangle(Destination.GetTranslated(Origin), Color);
-                    break;
-                case DrawContext.Primitives:
-                    Vector2[] RectangleVertices = new Vector2[4]
-                    {
-                        new Vector2(0, 0),
-                        new Vector2(Destination.Width, 0),
-                        new Vector2(Destination.Width, Destination.Height),
-                        new Vector2(0, Destination.Height)
-                    };
-                    PrimitiveDrawing.DrawSolidPolygon(Destination.Position + Origin, RectangleVertices, Color, false);
-                    //PD.DrawSolidRectangle(Origin + Destination.Position, Destination.Width, Destination.Height, Color); // This defaults to DrawSolidPolygon(outline: true) which renders differently
-                    //https://github.com/craftworkgames/MonoGame.Extended/blob/a3373ac26d90c9801b71b55679f1199fa4ec22a6/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs
-                    break;
-                default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Ctx}");
-            }
-        }
+            => ShapeRenderer.FillRectangle(Origin, Destination, Color, PreferredContext);
         #endregion Rectangles
 
         #region Circle / Ellipse
-        /// <summary>The maximum number of edges to use when approximating the geometry of a circle.<para/>
-        /// This value is arbitrarily chosen to maintain reasonable performance and it's unlikely that a circle will ever be drawn with this many sides.</summary>
-        private const int CircleMaxSides = 256;
-
         /// <param name="NumSides">How many sides to use when approximating the geometry of the circle. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void StrokeAndFillCircle(Vector2 Center, Color StrokeColor, Color FillColor, float Radius, float StrokeThickness = 1.0f, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (Radius <= 0.0f || Radius.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (Radius.IsAlmostEqual(StrokeThickness))
-            {
-                FillCircle(Center, StrokeColor, Radius, NumSides, PreferredContext);
-            }
-            else
-            {
-                FillCircle(Center, FillColor, Radius, NumSides, PreferredContext);
-                StrokeCircle(Center, StrokeColor, Radius, StrokeThickness, NumSides, PreferredContext);
-            }
-        }
+            => ShapeRenderer.StrokeAndFillCircle(Center, StrokeColor, FillColor, Radius, StrokeThickness, NumSides, PreferredContext);
 
         /// <param name="NumSides">How many sides to use when approximating the geometry of the circle. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void StrokeCircle(Vector2 Center, Color Color, float Radius, float Thickness = 1.0f, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (Radius <= 0.0f || Radius.IsAlmostZero() || Thickness <= 0.0f || Thickness.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (NumSides > CircleMaxSides)
-            {
-                throw new ArgumentException($"{nameof(StrokeCircle)}.{nameof(NumSides)} cannot exceed {CircleMaxSides}.");
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            switch (Ctx)
-            {
-                case DrawContext.Sprites:
-                    SpriteBatch.DrawCircle(Center, Radius, NumSides, Color, Thickness, 0.0f);
-                    break;
-                case DrawContext.Primitives:
-                    List<Vector2> Vertices = GetCircleVertices(Center, Radius, NumSides)
-                        .Select(x => x + (Center - x).NormalizedCopy().Scale(Thickness / 2f)) // Translate the vertex towards the center by half of the thickness
-                        .ToList();
-
-                    List<(Vector2 Start, Vector2 End)> Edges = Vertices.SelectConsecutivePairs(true).ToList();
-                    for (int i = 0; i < Edges.Count; i++)
-                    {
-                        (Vector2 Start, Vector2 End) CurrentEdge = Edges[i];
-                        (Vector2 Start, Vector2 End) PreviousEdge = Edges[(i - 1 + Edges.Count) % Edges.Count];
-
-                        StrokeLineSegment(Vector2.Zero, CurrentEdge.Start, CurrentEdge.End, Color, Thickness, Ctx);
-
-                        //  Draw a small triangle to fill in the empty space on the outer portion of the circle
-                        Vector2 v0 = CurrentEdge.Start;
-                        Vector2 v1 = v0 + (CurrentEdge.End - CurrentEdge.Start).RightNormal().NormalizedCopy().Scale(Thickness / 2f);
-                        Vector2 v2 = v0 + (PreviousEdge.Start - CurrentEdge.Start).LeftNormal().NormalizedCopy().Scale(Thickness / 2f);
-                        FillTrianglePrimitive(Vector2.Zero, v0, v1, v2, Color);
-                    }
-                    break;
-                default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Ctx}");
-            }
-        }
+            => ShapeRenderer.StrokeCircle(Center, Color, Radius, Thickness, NumSides, PreferredContext);
 
         /// <param name="NumSides">How many sides to use when approximating the geometry of the circle. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void FillCircle(Vector2 Center, Color Color, float Radius, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (Radius <= 0.0f || Radius.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (NumSides > CircleMaxSides)
-            {
-                throw new ArgumentException($"{nameof(FillCircle)}.{nameof(NumSides)} cannot exceed {CircleMaxSides}.");
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            switch (Ctx)
-            {
-                case DrawContext.Sprites:
-                    Texture2D CircleTexture = Renderer.GetOrCreateWhiteCircleTexture(Radius, null, null);
-                    float Scale = Radius * 2 / CircleTexture.Width;
-                    DrawTextureAt(CircleTexture, null, Center - new Vector2(Radius), Color, Vector2.Zero, 0, Scale, Scale);
-                    break;
-                case DrawContext.Primitives:
-                    PrimitiveDrawing.DrawSolidEllipse(Center, new Vector2(Radius), NumSides, Color, false);
-                    break;
-                default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Ctx}");
-            }
-        }
+            => ShapeRenderer.FillCircle(Center, Color, Radius, NumSides, PreferredContext);
 
         //TODO: StrokeAndFillEllipse StrokeEllipse FillEllipse
 
         /// <param name="NumSides">How many sides to use when approximating the geometry of the ellipse. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void FillEllipse(Vector2 Center, float RadiusX, float RadiusY, Color Color, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (RadiusX <= 0.0f || RadiusX.IsAlmostZero() || RadiusY <= 0.0f || RadiusY.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (NumSides > CircleMaxSides)
-            {
-                throw new ArgumentException($"{nameof(FillEllipse)}.{nameof(NumSides)} cannot exceed {CircleMaxSides}.");
-            }
-
-            //  FillEllipse always uses the Primitives context because PD.DrawSolidEllipse is the most efficient path.
-            //  No equivalent filled-ellipse primitive exists in SpriteBatch.
-            BeginDraw(DrawContext.Primitives);
-            PrimitiveDrawing.DrawSolidEllipse(Center, new Vector2(RadiusX, RadiusY), NumSides, Color, false);
-        }
+            => ShapeRenderer.FillEllipse(Center, RadiusX, RadiusY, Color, NumSides, PreferredContext);
 
         /// <param name="NumSides">How many sides to use when approximating the geometry of the ellipse. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void StrokeEllipse(Vector2 Center, float RadiusX, float RadiusY, Color Color, float Thickness = 1.0f, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (RadiusX <= 0.0f || RadiusX.IsAlmostZero() || RadiusY <= 0.0f || RadiusY.IsAlmostZero() || Thickness <= 0.0f || Thickness.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (NumSides > CircleMaxSides)
-            {
-                throw new ArgumentException($"{nameof(StrokeEllipse)}.{nameof(NumSides)} cannot exceed {CircleMaxSides}.");
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            Vector2[] Vertices = GetEllipseVertices(Center, RadiusX, RadiusY, NumSides);
-            for (int i = 0; i < NumSides; i++)
-            {
-                StrokeLineSegment(Vector2.Zero, Vertices[i], Vertices[(i + 1) % NumSides], Color, Thickness, Ctx);
-            }
-        }
+            => ShapeRenderer.StrokeEllipse(Center, RadiusX, RadiusY, Color, Thickness, NumSides, PreferredContext);
 
         /// <param name="NumSides">How many sides to use when approximating the geometry of the ellipse. Recommended: 16-32. Max value = <see cref="CircleMaxSides"/></param>
         public void StrokeAndFillEllipse(Vector2 Center, float RadiusX, float RadiusY, Color StrokeColor, Color FillColor, float StrokeThickness = 1.0f, int NumSides = 32, DrawContext? PreferredContext = null)
-        {
-            if (RadiusX <= 0.0f || RadiusX.IsAlmostZero() || RadiusY <= 0.0f || RadiusY.IsAlmostZero())
-            {
-                return;
-            }
-
-            if (RadiusX.IsAlmostEqual(StrokeThickness) || RadiusY.IsAlmostEqual(StrokeThickness))
-            {
-                FillEllipse(Center, RadiusX, RadiusY, StrokeColor, NumSides, PreferredContext);
-            }
-            else
-            {
-                FillEllipse(Center, RadiusX, RadiusY, FillColor, NumSides, PreferredContext);
-                StrokeEllipse(Center, RadiusX, RadiusY, StrokeColor, StrokeThickness, NumSides, PreferredContext);
-            }
-        }
+            => ShapeRenderer.StrokeAndFillEllipse(Center, RadiusX, RadiusY, StrokeColor, FillColor, StrokeThickness, NumSides, PreferredContext);
 
         //Adapted from:
         //https://github.com/craftworkgames/MonoGame.Extended/blob/a3373ac26d90c9801b71b55679f1199fa4ec22a6/src/cs/MonoGame.Extended/Math/ShapeExtensions.cs
         //https://github.com/craftworkgames/MonoGame.Extended/blob/a3373ac26d90c9801b71b55679f1199fa4ec22a6/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs
         public static Vector2[] GetCircleVertices(Vector2 origin, double radius, int sides, double angleOffset = 0.0)
-        {
-            const double max = 2.0 * Math.PI;
-            var points = new Vector2[sides];
-            var step = max / sides;
-            var theta = 0.0 + angleOffset;
-
-            for (var i = 0; i < sides; i++)
-            {
-                points[i] = origin + new Vector2((float)(radius * Math.Cos(theta)), (float)(radius * Math.Sin(theta)));
-                theta += step;
-            }
-
-            return points;
-        }
-
-        //Adapted from:
-        //https://github.com/craftworkgames/MonoGame.Extended/blob/a3373ac26d90c9801b71b55679f1199fa4ec22a6/src/cs/MonoGame.Extended/Math/ShapeExtensions.cs
-        //https://github.com/craftworkgames/MonoGame.Extended/blob/a3373ac26d90c9801b71b55679f1199fa4ec22a6/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs
-        private static Vector2[] GetEllipseVertices(Vector2 origin, float radiusX, float radiusY, int sides)
-        {
-            var vertices = new Vector2[sides];
-
-            var t = 0.0;
-            var dt = 2.0 * Math.PI / sides;
-            for (var i = 0; i < sides; i++, t += dt)
-            {
-                var x = (float)(radiusX * Math.Cos(t));
-                var y = (float)(radiusY * Math.Sin(t));
-                vertices[i] = origin + new Vector2(x, y);
-            }
-            return vertices;
-        }
+            => CasaShapeGeometry.GetCircleVertices(origin, radius, sides, angleOffset);
         #endregion Circle / Ellipse
 
         #region Polygons
         public void StrokeAndFillPolygon(Vector2 Origin, IReadOnlyList<Vector2> Vertices, Color StrokeColor, Color FillColor, float StrokeThickness = 1.0f,
             bool CenterLinesOnVertices = true, WindingOrder? Order = null)
-        {
-            if (Vertices == null || !Vertices.Any())
-            {
-                throw new ArgumentException(null, $"{nameof(Vertices)}");
-            }
-
-            if (!CenterLinesOnVertices && StrokeColor == FillColor)
-            {
-                FillPolygon(Origin, Vertices, StrokeColor);
-            }
-            else
-            {
-                FillPolygon(Origin, Vertices, FillColor);
-                StrokePolygon(Origin, Vertices, StrokeColor, StrokeThickness, CenterLinesOnVertices, null, DrawContext.Primitives);
-            }
-        }
+            => ShapeRenderer.StrokeAndFillPolygon(Origin, Vertices, StrokeColor, FillColor, StrokeThickness, CenterLinesOnVertices, Order);
 
         /// <param name="CenterLinesOnVertices">If true, the <paramref name="Vertices"/> will represent the center of the line strokes. (I.E. the stroke will extend left of the vertex by half the <paramref name="Thickness"/>, and right of the vertex by half the <paramref name="Thickness"/>)<br/>
         /// If false, the <paramref name="Vertices"/> will represent the outer portion of the line strokes, meaning that the line stroke will extend inwards towards the center of the polygon by the <paramref name="Thickness"/> amount.</param>
         /// <param name="Order">The <see cref="WindingOrder"/> of the <paramref name="Vertices"/>.<para/>
         /// Will be dynamically computed if null. (Only used if <paramref name="CenterLinesOnVertices"/> is false)</param>
         public void StrokePolygon(Vector2 Origin, IReadOnlyList<Vector2> Vertices, Color Color, float Thickness = 1.0f, bool CenterLinesOnVertices = true, WindingOrder? Order = null, DrawContext? PreferredContext = null)
-        {
-            if (Thickness <= 0.0f || Thickness.IsAlmostZero())
-            {
-                return;
-            }
-            else if (Vertices == null || !Vertices.Any())
-            {
-                throw new ArgumentException(null, $"{nameof(Vertices)}");
-            }
-
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            if (CenterLinesOnVertices)
-            {
-                var Edges = Vertices.SelectConsecutivePairs(true);
-                foreach ((Vector2 Start, Vector2 End) in Edges)
-                {
-                    StrokeLineSegment(Origin, Start, End, Color, Thickness, Ctx);
-                }
-            }
-            else
-            {
-                Order = Order ?? Triangulator.DetermineWindingOrder(Vertices.Append(Vertices[0]).ToArray());
-
-                switch (Ctx)
-                {
-                    case DrawContext.Sprites:
-                        SpriteBatch.DrawPolygon(Origin, Triangulator.EnsureWindingOrder(Vertices.ToArray(), WindingOrder.CounterClockwise), Color, Thickness, 0.0f);
-                        break;
-                    case DrawContext.Primitives:
-                        var Edges = Vertices.SelectConsecutivePairs(true);
-                        switch (Order.Value)
-                        {
-                            //  Note: We offset the vertices towards the center by the thickness amount when drawing the triangles,
-                            //  so that the vertices represent the outer bounds of the shape and the line is drawn inwards
-                            case WindingOrder.Clockwise:
-                                foreach ((Vector2 Start, Vector2 End) in Edges)
-                                {
-                                    Vector2 Offset = (End - Start).RightNormal().NormalizedCopy().Scale(Thickness);
-                                    FillTrianglePrimitive(Origin, Start, End, End + Offset, Color);
-                                    FillTrianglePrimitive(Origin, End + Offset, Start + Offset, Start, Color);
-                                }
-                                break;
-                            case WindingOrder.CounterClockwise:
-                                foreach ((Vector2 Start, Vector2 End) in Edges)
-                                {
-                                    Vector2 Offset = (End - Start).LeftNormal().NormalizedCopy().Scale(Thickness);
-                                    FillTrianglePrimitive(Origin, Start, End, End + Offset, Color);
-                                    FillTrianglePrimitive(Origin, End + Offset, Start + Offset, Start, Color);
-                                }
-                                break;
-                            default: throw new NotImplementedException($"Unrecognized {nameof(WindingOrder)}: {Order}");
-                        }
-                        break;
-                    default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Ctx}");
-                }
-            }
-        }
+            => ShapeRenderer.StrokePolygon(Origin, Vertices, Color, Thickness, CenterLinesOnVertices, Order, PreferredContext);
 
         public void FillPolygon(Vector2 Origin, IEnumerable<Vector2> Vertices, Color Color)
-        {
-            if (Vertices == null || !Vertices.Any())
-            {
-                throw new ArgumentException(null, $"{nameof(Vertices)}");
-            }
-
-            BeginDraw(DrawContext.Primitives);
-            //Vector2[] CCWVertices = Triangulator.EnsureWindingOrder(Vertices.ToArray(), WindingOrder.CounterClockwise);
-            //PD.DrawSolidPolygon(Origin, CCWVertices, Color, false);
-            PrimitiveDrawing.DrawSolidPolygon(Origin, Vertices.ToArray(), Color, false);
-        }
+            => ShapeRenderer.FillPolygon(Origin, Vertices, Color);
         #endregion Polygons
 
         #region Points
@@ -806,89 +450,19 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         }
 
         public void StrokeAndFillPoint(Vector2 Position, Color StrokeColor, Color FillColor, float Radius = 3.0f, int StrokeThickness = 1, PointShape Shape = PointShape.Circle, DrawContext? PreferredContext = null)
-        {
-            if (Radius.IsAlmostEqual(StrokeThickness))
-            {
-                FillPoint(Position, StrokeColor, Radius, Shape, PreferredContext);
-            }
-            else
-            {
-                FillPoint(Position, FillColor, Radius, Shape, PreferredContext);
-                StrokePoint(Position, StrokeColor, Radius, StrokeThickness, Shape, PreferredContext);
-            }
-        }
+            => ShapeRenderer.StrokeAndFillPoint(Position, StrokeColor, FillColor, Radius, StrokeThickness, Shape, PreferredContext);
 
         public void StrokePoint(Vector2 Position, Color Color, float Radius = 1.0f, int Thickness = 1, PointShape Shape = PointShape.Circle, DrawContext? PreferredContext = null)
-        {
-            if (Radius <= 0.0f || Radius.IsAlmostZero() || Thickness <= 0)
-            {
-                return;
-            }
-
-            if (Radius.IsAlmostEqual(Thickness))
-            {
-                FillPoint(Position, Color, Radius, Shape, PreferredContext);
-            }
-            else
-            {
-                switch (Shape)
-                {
-                    case PointShape.Circle:
-                        StrokeCircle(Position, Color, Radius, Thickness, 32, PreferredContext);
-                        break;
-                    case PointShape.Square:
-                        StrokeRectangle(Vector2.Zero, new RectangleF(Position.X - Radius, Position.Y - Radius, Radius * 2, Radius * 2), Color, new Thickness(Thickness), PreferredContext);
-                        break;
-                    default: throw new NotImplementedException($"Unrecognized {nameof(PointShape)}: {Shape}");
-                }
-            }
-        }
+            => ShapeRenderer.StrokePoint(Position, Color, Radius, Thickness, Shape, PreferredContext);
 
         public void FillPoint(Vector2 Position, Color Color, float Radius = 1.0f, PointShape Shape = PointShape.Circle, DrawContext? PreferredContext = null)
-        {
-            if (Radius <= 0.0f || Radius.IsAlmostZero())
-            {
-                return;
-            }
-
-            switch (Shape)
-            {
-                case PointShape.Circle:
-                    FillCircle(Position, Color, Radius, 32, PreferredContext);
-                    break;
-                case PointShape.Square:
-                    FillRectangle(Vector2.Zero, new RectangleF(Position.X - Radius, Position.Y - Radius, Radius * 2, Radius * 2), Color, PreferredContext);
-                    break;
-                default: throw new NotImplementedException($"Unrecognized {nameof(PointShape)}: {Shape}");
-            }
-        }
+            => ShapeRenderer.FillPoint(Position, Color, Radius, Shape, PreferredContext);
         #endregion Points
 
         public void StrokeLineSegment(Vector2 Origin, Vector2 Start, Vector2 End, Color Color, float Thickness = 1.0f, DrawContext? PreferredContext = null)
-        {
-            if (Start.IsAlmostEqualTo(End) || Thickness <= 0.0f || Thickness.IsAlmostZero())
-            {
-                return;
-            }
+            => ShapeRenderer.StrokeLineSegment(Origin, Start, End, Color, Thickness, PreferredContext);
 
-            DrawContext Ctx = GetFirstValidDrawContext(PreferredContext, CurrentContext, DrawContext.Sprites);
-            BeginDraw(Ctx);
-
-            switch (Ctx)
-            {
-                case DrawContext.Sprites:
-                    SpriteBatch.DrawLine(Origin + Start, Origin + End, Color, Thickness, 0.0f);
-                    break;
-                case DrawContext.Primitives:
-                    Vector2 Offset = (End - Start).LeftNormal().NormalizedCopy().Scale(Thickness / 2f);
-                    FillTrianglePrimitive(Origin, Start - Offset, End + Offset, End - Offset, Color);
-                    FillTrianglePrimitive(Origin, Start + Offset, End + Offset, Start - Offset, Color);
-                    break;
-                default: throw new NotImplementedException($"Unrecognized {nameof(DrawContext)}: {Ctx}");
-            }
-        }
-
-        private void FillTrianglePrimitive(Vector2 Origin, Vector2 v0, Vector2 v1, Vector2 v2, Color Color)
+        internal void FillTrianglePrimitiveCore(Vector2 Origin, Vector2 v0, Vector2 v1, Vector2 v2, Color Color)
         {
             if (!PrimitiveBatch.IsReady() || CurrentContext != DrawContext.Primitives)
             {
@@ -896,7 +470,7 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
             }
             else if (CurrentRasterizerState.CullMode != CullMode.None)
             {
-                string ErrorMessage = $"{nameof(CasaDrawTransaction)}.{nameof(FillTrianglePrimitive)} does not account for the winding order of the vertices and may not work correctly " +
+                string ErrorMessage = $"{nameof(CasaDrawTransaction)}.{nameof(FillTrianglePrimitiveCore)} does not account for the winding order of the vertices and may not work correctly " +
                     $"if the {nameof(RasterizerState)}'s {nameof(CullMode)} is not set to '{nameof(CullMode.None)}'.";
                 throw new NotImplementedException(ErrorMessage);
             }
@@ -907,6 +481,9 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         }
 
         public void FillTriangle(Vector2 Origin, Vector2 v0, Color c0, Vector2 v1, Color c1, Vector2 v2, Color c2)
+            => ShapeRenderer.FillTriangle(Origin, v0, c0, v1, c1, v2, c2);
+
+        internal void FillTriangleCore(Vector2 Origin, Vector2 v0, Color c0, Vector2 v1, Color c1, Vector2 v2, Color c2)
         {
             if (CurrentRasterizerState.CullMode != CullMode.None)
             {
@@ -923,6 +500,9 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
 
         /// <summary>Fills the given quadrilateral using <see cref="SamplerType.LinearClamp"/> to produce gradient color interpolation.</summary>
         public void FillQuadrilateralLinearClamp(Vector2 Origin, Vector2 v0, Color c0, Vector2 v1, Color c1, Vector2 v2, Color c2, Vector2 v3, Color c3)
+            => ShapeRenderer.FillQuadrilateralLinearClamp(Origin, v0, c0, v1, c1, v2, c2, v3, c3);
+
+        internal void FillQuadrilateralLinearClampCore(Vector2 Origin, Vector2 v0, Color c0, Vector2 v1, Color c1, Vector2 v2, Color c2, Vector2 v3, Color c3)
         {
             if (CurrentRasterizerState.CullMode != CullMode.None)
             {
@@ -964,19 +544,7 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
 
         /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
         public void SetRenderTarget(RenderTarget2D New, Color? ClearColor)
-        {
-            RenderTargetBinding[] RTBs = GraphicsDevice.GetRenderTargets();
-            RenderTarget2D CurrentTarget = RTBs.Length == 0 ? null : RTBs[0].RenderTarget as RenderTarget2D;
-            if (New != CurrentTarget)
-            {
-                EndDraw(CurrentContext);
-                GraphicsDevice.SetRenderTarget(New);
-                if (ClearColor.HasValue)
-                {
-                    GraphicsDevice.Clear(ClearColor.Value);
-                }
-            }
-        }
+            => RenderTargets.SetRenderTarget(New, ClearColor);
 
         /// <summary>
         /// Drawing to a temporary render target example:<para/>
@@ -995,35 +563,21 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame
         /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
         public IDisposable SetRenderTargetTemporary(IUIRenderTarget New, Color? ClearColor)
         {
-            return SetRenderTargetTemporary(CasaImageResourceTextureResolver.GetRenderTarget(New), ClearColor);
+            return SetRenderTargetTemporary(Renderer.AdapterRegistry.GetRenderTarget(New), ClearColor);
         }
 
         /// </summary>
         /// <param name="ClearColor">Optional. If not null, the new render target will be immediately cleared with this color. Only used if the render target actually changed.</param>
         public IDisposable SetRenderTargetTemporary(RenderTarget2D New, Color? ClearColor)
-        {
-            RenderTargetBinding[] RTBs = GraphicsDevice.GetRenderTargets();
-            RenderTarget2D CurrentTarget = RTBs.Length == 0 ? null : RTBs[0].RenderTarget as RenderTarget2D;
-
-            return new TemporaryChange<RenderTarget2D, Color?>(CurrentTarget, New, null, ClearColor, SetRenderTarget);
-        }
+            => RenderTargets.SetRenderTargetTemporary(New, ClearColor);
 
         /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
         public void SetDrawSettings(DrawSettings New)
-        {
-            if (New != null && New != CurrentSettings)
-            {
-                PreviousSettings = CurrentSettings;
-                CurrentSettings = New;
-                EndDraw(CurrentContext);
-            }
-        }
+            => DrawState.SetDrawSettings(New);
 
         /// <param name="New">To change current settings, consider using '<see cref="CurrentSettings"/> with { ... }' record syntax.</param>
         public IDisposable SetDrawSettingsTemporary(DrawSettings New)
-        {
-            return new TemporaryChange<DrawSettings>(CurrentSettings, New, SetDrawSettings);
-        }
+            => DrawState.SetDrawSettingsTemporary(New);
 
         public IDisposable SetTransformTemporary(Matrix Transform)
         {
