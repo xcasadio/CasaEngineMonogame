@@ -433,8 +433,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             _renderPipeline.DebugOverlay = new DebugOverlay(SpriteBatch!, FontSystem);
         }
 
-        //DebugSystem.Initialize(this);
-
         base.Initialize();
     }
 
@@ -460,71 +458,75 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
     protected override void Update(GameTime gameTime)
     {
-#if !FINAL
-        //DebugSystem.Instance.TimeRuler.StartFrame();
-        //DebugSystem.Instance.TimeRuler.BeginMark("Update", Color.Blue);
-#endif
+        long updateStartTimestamp = Stopwatch.GetTimestamp();
 
-        if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource frameCachedWindowInputSource)
+        try
         {
-            frameCachedWindowInputSource.CaptureFrameInput();
-        }
-
-        // Fire MGUI PreviewUpdate so all ViewRenderHost instances refresh their input state.
-        PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
-
-        // Update all per-view UI runtimes BEFORE gameplay so the UI has first-chance input.
-        // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
-        // does not throw "Collection was modified" during enumeration.
-        foreach (var view in GameManager.ViewManager.Views.ToArray())
-        {
-            SyncUIViewMetrics(view);
-            view.UIView?.Update(gameTime);
-        }
-
-        var worldsWithUI = GameManager.ViewManager.Views
-            .Select(static view => view.World)
-            .Distinct()
-            .ToList();
-
-        if (GameManager.CurrentWorld != null && !worldsWithUI.Contains(GameManager.CurrentWorld))
-        {
-            worldsWithUI.Add(GameManager.CurrentWorld);
-        }
-
-        foreach (var world in worldsWithUI)
-        {
-            world.UpdateWorldUI(gameTime);
-        }
-
-        GameManager.UpdateWorld(gameTime);
-
-        if (ExecutionPolicy.UseExternalViewManagement)
-        {
-            var sortedGameComponents = new List<GameComponent>(Components.Count);
-            sortedGameComponents.AddRange(Components
-                .Where(x => x is IUpdateable { Enabled: true })
-                .Cast<GameComponent>()
-                .OrderBy(x => x.UpdateOrder));
-
-            foreach (var component in sortedGameComponents)
+            if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource frameCachedWindowInputSource)
             {
-                component.Update(gameTime);
+                frameCachedWindowInputSource.CaptureFrameInput();
+            }
+
+            // Fire MGUI PreviewUpdate so all ViewRenderHost instances refresh their input state.
+            PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+
+            // Update all per-view UI runtimes BEFORE gameplay so the UI has first-chance input.
+            // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
+            // does not throw "Collection was modified" during enumeration.
+            foreach (var view in GameManager.ViewManager.Views.ToArray())
+            {
+                SyncUIViewMetrics(view);
+                view.UIView?.Update(gameTime);
+            }
+
+            var worldsWithUI = GameManager.ViewManager.Views
+                .Select(static view => view.World)
+                .Distinct()
+                .ToList();
+
+            if (GameManager.CurrentWorld != null && !worldsWithUI.Contains(GameManager.CurrentWorld))
+            {
+                worldsWithUI.Add(GameManager.CurrentWorld);
+            }
+
+            foreach (var world in worldsWithUI)
+            {
+                world.UpdateWorldUI(gameTime);
+            }
+
+            GameManager.UpdateWorld(gameTime);
+
+            if (ExecutionPolicy.UseExternalViewManagement)
+            {
+                var sortedGameComponents = new List<GameComponent>(Components.Count);
+                sortedGameComponents.AddRange(Components
+                    .Where(x => x is IUpdateable { Enabled: true })
+                    .Cast<GameComponent>()
+                    .OrderBy(x => x.UpdateOrder));
+
+                foreach (var component in sortedGameComponents)
+                {
+                    component.Update(gameTime);
+                }
+            }
+            else
+            {
+                base.Update(gameTime);
+            }
+
+            // Fire MGUI EndUpdate to finalise frame state in all desktops.
+            EndUpdate?.Invoke(this, EventArgs.Empty);
+
+            FrameComputed?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            var debugOverlay = _renderPipeline?.DebugOverlay;
+            if (debugOverlay != null)
+            {
+                debugOverlay.RecordUpdate(GetElapsedMilliseconds(updateStartTimestamp));
             }
         }
-        else
-        {
-            base.Update(gameTime);
-        }
-
-#if !FINAL
-        //DebugSystem.Instance.TimeRuler.EndMark("Update");
-#endif
-
-        // Fire MGUI EndUpdate to finalise frame state in all desktops.
-        EndUpdate?.Invoke(this, EventArgs.Empty);
-
-        FrameComputed?.Invoke(this, EventArgs.Empty);
     }
 
     /*
@@ -536,13 +538,10 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
 
     protected override void Draw(GameTime gameTime)
     {
+        long drawStartTimestamp = Stopwatch.GetTimestamp();
+
         try
         {
-#if !FINAL
-            //DebugSystem.Instance.TimeRuler.StartFrame();
-            //DebugSystem.Instance.TimeRuler.BeginMark("Draw", Color.Blue);
-#endif
-
             if (_renderPipeline != null)
             {
                 // ---- Multi-view pipeline path ----
@@ -599,14 +598,20 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
                     }
                 }
             }
-
-#if !FINAL
-            //DebugSystem.Instance.TimeRuler.EndMark("Draw");
-#endif
         }
         catch (Exception e)
         {
             Logs.WriteException(e);
+        }
+        finally
+        {
+            var debugOverlay = _renderPipeline?.DebugOverlay;
+            if (debugOverlay != null)
+            {
+                debugOverlay.RecordDraw(
+                    GetElapsedMilliseconds(drawStartTimestamp),
+                    (float)gameTime.ElapsedGameTime.TotalSeconds);
+            }
         }
     }
 
@@ -768,6 +773,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
         }
 
         return invalidatedViewCount;
+    }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+    {
+        return (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
     }
 
     private static IEnumerable<Entity> EnumerateEntities(IEnumerable<Entity> entities)

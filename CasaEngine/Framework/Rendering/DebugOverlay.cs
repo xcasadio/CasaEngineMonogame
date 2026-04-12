@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -9,7 +10,8 @@ namespace CasaEngine.Framework.Rendering;
 ///
 /// Statistics shown:
 /// <list type="bullet">
-///   <item>Instantaneous FPS (frames per second).</item>
+///   <item>Smoothed FPS (frames per second).</item>
+///   <item>Global game Update and Draw timings with a rolling 10-second history.</item>
 ///   <item>View name and update mode.</item>
 ///   <item>View resolution and camera position.</item>
 ///   <item>Per-view render stats: draw calls, shader binds, texture binds, state changes.</item>
@@ -28,6 +30,8 @@ public sealed class DebugOverlay
     private readonly SpriteBatch   _spriteBatch;
     private readonly DynamicSpriteFont _font;
     private readonly Texture2D     _background;
+    private readonly FrameTimingHistory _updateHistory = new();
+    private readonly FrameTimingHistory _drawHistory = new();
 
     // FPS tracking
     private float _fpsAccum;
@@ -41,7 +45,31 @@ public sealed class DebugOverlay
 
         // 1×1 semi-transparent background
         _background = new Texture2D(spriteBatch.GraphicsDevice, 1, 1);
-        _background.SetData(new[] { new Color(0, 0, 0, 160) });
+        _background.SetData([new Color(0, 0, 0, 160)]);
+    }
+
+    internal void RecordUpdate(double milliseconds)
+    {
+        _updateHistory.AddSample(milliseconds);
+    }
+
+    internal void RecordDraw(double milliseconds, float deltaSeconds)
+    {
+        _drawHistory.AddSample(milliseconds);
+
+        if (deltaSeconds <= 0f)
+        {
+            return;
+        }
+
+        _fpsAccum += deltaSeconds;
+        _fpsFrames++;
+        if (_fpsAccum >= 0.5f)
+        {
+            _fps = _fpsFrames / _fpsAccum;
+            _fpsAccum = 0f;
+            _fpsFrames = 0;
+        }
     }
 
     /// <summary>
@@ -50,26 +78,22 @@ public sealed class DebugOverlay
     /// </summary>
     public void Draw(RenderView view, Rectangle viewportRect, float deltaSeconds)
     {
-        // Update FPS counter
-        _fpsAccum += deltaSeconds;
-        _fpsFrames++;
-        if (_fpsAccum >= 0.5f)
-        {
-            _fps       = _fpsFrames / _fpsAccum;
-            _fpsAccum  = 0f;
-            _fpsFrames = 0;
-        }
+        _ = deltaSeconds;
 
         // Collect stat lines
+        FrameTimingSummary updateSummary = _updateHistory.GetSummary();
+        FrameTimingSummary drawSummary = _drawHistory.GetSummary();
         var pool      = RenderTargetPool.Shared;
         var cam       = view.Camera;
         var camPos    = cam?.Position ?? Vector3.Zero;
         var stats     = view.RenderStats;
         var viewName  = string.IsNullOrEmpty(view.Name) ? "unnamed" : view.Name;
-        var lines     = new List<string>(8)
+        var lines     = new List<string>(10)
         {
             $"View: {viewName}",
             $"FPS: {_fps:F1}  Mode: {view.UpdateMode}",
+            $"Game Update: {updateSummary.LatestMilliseconds:F2} ms  avg10: {updateSummary.AverageMilliseconds:F2}  max10: {updateSummary.MaxMilliseconds:F2}",
+            $"Game Draw: {drawSummary.LatestMilliseconds:F2} ms  avg10: {drawSummary.AverageMilliseconds:F2}  max10: {drawSummary.MaxMilliseconds:F2}",
             $"Size: {viewportRect.Width}x{viewportRect.Height}  Scale: {view.ResolutionScale:P0}",
             $"Cam: {camPos.X:F1}, {camPos.Y:F1}, {camPos.Z:F1}",
             $"Draws: {stats.DrawCalls}  FX: {stats.EffectBinds}  Tex: {stats.TextureBinds}",
@@ -119,5 +143,113 @@ public sealed class DebugOverlay
     public void Dispose()
     {
         _background.Dispose();
+    }
+
+    private readonly struct FrameTimingSummary
+    {
+        public static readonly FrameTimingSummary Empty = new(0.0, 0.0, 0.0, 0);
+
+        public FrameTimingSummary(double latestMilliseconds, double averageMilliseconds, double maxMilliseconds, int sampleCount)
+        {
+            LatestMilliseconds = latestMilliseconds;
+            AverageMilliseconds = averageMilliseconds;
+            MaxMilliseconds = maxMilliseconds;
+            SampleCount = sampleCount;
+        }
+
+        public double LatestMilliseconds { get; }
+        public double AverageMilliseconds { get; }
+        public double MaxMilliseconds { get; }
+        public int SampleCount { get; }
+    }
+
+    private sealed class FrameTimingHistory
+    {
+        private const int MaxSamples = 4096;
+        private static readonly long WindowTicks = (long)(10.0 * Stopwatch.Frequency);
+
+        private readonly long[] _timestamps = new long[MaxSamples];
+        private readonly double[] _values = new double[MaxSamples];
+
+        private int _startIndex;
+        private int _count;
+        private FrameTimingSummary _summary = FrameTimingSummary.Empty;
+
+        public void AddSample(double milliseconds)
+        {
+            long timestamp = Stopwatch.GetTimestamp();
+
+            if (_count == MaxSamples)
+            {
+                _startIndex = (_startIndex + 1) % MaxSamples;
+                _count--;
+            }
+
+            int insertIndex = (_startIndex + _count) % MaxSamples;
+            _timestamps[insertIndex] = timestamp;
+            _values[insertIndex] = milliseconds;
+            _count++;
+
+            TrimExpired(timestamp);
+            RebuildSummary();
+        }
+
+        public FrameTimingSummary GetSummary()
+        {
+            if (TrimExpired(Stopwatch.GetTimestamp()))
+            {
+                RebuildSummary();
+            }
+
+            return _summary;
+        }
+
+        private bool TrimExpired(long timestamp)
+        {
+            bool trimmed = false;
+            long minTimestamp = timestamp - WindowTicks;
+
+            while (_count > 0 && _timestamps[_startIndex] < minTimestamp)
+            {
+                _startIndex = (_startIndex + 1) % MaxSamples;
+                _count--;
+                trimmed = true;
+            }
+
+            if (_count == 0)
+            {
+                _summary = FrameTimingSummary.Empty;
+            }
+
+            return trimmed;
+        }
+
+        private void RebuildSummary()
+        {
+            if (_count == 0)
+            {
+                _summary = FrameTimingSummary.Empty;
+                return;
+            }
+
+            double sum = 0.0;
+            double max = 0.0;
+            double latest = 0.0;
+
+            for (int i = 0; i < _count; i++)
+            {
+                int index = (_startIndex + i) % MaxSamples;
+                double value = _values[index];
+                sum += value;
+                if (value > max)
+                {
+                    max = value;
+                }
+
+                latest = value;
+            }
+
+            _summary = new FrameTimingSummary(latest, sum / _count, max, _count);
+        }
     }
 }
