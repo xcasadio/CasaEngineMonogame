@@ -225,7 +225,7 @@ public sealed class EntityDetailsPanel
         };
         if (EditorIcons.FilePlus != null)
         {
-            _addComponentButton.SetContent(new MGImage(_window, EditorIcons.FilePlus, Stretch: Stretch.Uniform)
+            _addComponentButton.SetContent(new MGImage(_window, EditorIcons.AsImage(EditorIcons.FilePlus)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,
@@ -396,7 +396,7 @@ public sealed class EntityDetailsPanel
         var icon = EditorIcons.Box ?? EditorIcons.Layers ?? EditorIcons.ListTree;
         if (icon != null)
         {
-            header.TryAddChild(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            header.TryAddChild(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,

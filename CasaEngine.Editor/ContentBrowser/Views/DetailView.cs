@@ -222,7 +222,7 @@ public sealed class DetailView : IContentView
             return new MGTextBlock(_window, string.Empty);
         }
 
-        return new MGImage(_window, icon, Stretch: Stretch.Uniform)
+        return new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
         {
             PreferredWidth = 16,
             PreferredHeight = 16,

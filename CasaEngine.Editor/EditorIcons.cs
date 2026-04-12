@@ -1,5 +1,8 @@
+using System.Runtime.CompilerServices;
+using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using MGUI.Shared.Assets;
 
 namespace CasaEngine.Editor;
 
@@ -10,6 +13,8 @@ namespace CasaEngine.Editor;
 /// </summary>
 public static class EditorIcons
 {
+    private static readonly ConditionalWeakTable<Texture2D, CasaMonoGameImageResource> ImageCache = new();
+
     // ── toolbar ────────────────────────────────────────────────────────────
     public static Texture2D? Save       { get; private set; }
     public static Texture2D? SaveAll    { get; private set; }
@@ -74,6 +79,9 @@ public static class EditorIcons
     public static Texture2D? MousePtr   { get; private set; }
 
     private const string Prefix = "icons/png-white/";
+
+    public static IUIImageResource? AsImage(Texture2D? texture)
+        => texture == null ? null : ImageCache.GetValue(texture, static value => new CasaMonoGameImageResource(value));
 
     /// <summary>
     /// Loads all icon textures from the MonoGame Content pipeline.

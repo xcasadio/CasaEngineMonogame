@@ -20,9 +20,11 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.UI.MGUI;
+using CasaEngine.Framework.UI.Backend.MonoGame;
 using CasaEngine.Framework.Input;
 
 using FontStashSharp;
+using MGUI.Backend.MonoGame;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Docking;
 using MGUI.Core.UI.Containers;
@@ -53,7 +55,6 @@ namespace CasaEngine.Editor
         private SpriteBatch _spriteBatch;
 
         // ── MGUI core ──────────────────────────────────────────────────────
-        private MainRenderer _mguiRenderer;
         private MGDesktop _desktop;
         private FontStashSharpTextEngine _fontStashSharpEngine;
 
@@ -127,7 +128,7 @@ namespace CasaEngine.Editor
         private readonly Dictionary<string, string> _automationEditedFileSnapshots = new(StringComparer.OrdinalIgnoreCase);
         private bool _automationEditedFilesRestored;
 
-        // ── IObservableUpdate (required by GameRenderHost<Game1>) ──────────
+        // ── IObservableUpdate (required by CasaGameRenderHost<Game1>) ──────
         public event EventHandler<TimeSpan> PreviewUpdate;
         public event EventHandler<EventArgs> EndUpdate;
 
@@ -156,12 +157,15 @@ namespace CasaEngine.Editor
 
             _spriteBatch = new SpriteBatch(GraphicsDevice);
             _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
-            _mguiRenderer = new MainRenderer(new GameRenderHost<Game1>(this), _windowInputSource);
-            _desktop = new MGDesktop(_mguiRenderer);
-            _desktop.LoadDefaultResources();
-            _fontStashSharpEngine = new FontStashSharpTextEngine();
             const string familyName = "JetBrainsMono";
             string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
+            var backend = CasaMonoGameBackendBootstrap.Create(new CasaGameRenderHost<Game1>(this), _windowInputSource);
+            if (backend.Runtime is not IMonoGameDesktopBackend monoGameBackend)
+            {
+                throw new InvalidOperationException("Editor desktop requires a MonoGame-backed MGUI runtime.");
+            }
+
+            _fontStashSharpEngine = new FontStashSharpTextEngine();
 
             byte[] arialBytes = File.ReadAllBytes(Path.Combine(ttfDir, "JetBrainsMono-Regular.ttf"));
             FontSystem arialNormal = new FontSystem();
@@ -178,8 +182,12 @@ namespace CasaEngine.Editor
 
             // Calibrate per-size advance widths to match SpriteFontTextEngine exactly.
             // Must be called after FontSizeScale is set (via AddFontSystem overload above).
-            _fontStashSharpEngine.MatchSpriteFontSizing(_desktop.FontManager);
-            _desktop.TextEngine = _fontStashSharpEngine;
+            monoGameBackend.FontManager.DefaultFontFamily = familyName;
+            _fontStashSharpEngine.MatchSpriteFontSizing(monoGameBackend.FontManager);
+            backend.Runtime.TextEngine = _fontStashSharpEngine;
+
+            _desktop = new MGDesktop(backend.Runtime);
+            _desktop.LoadDefaultResources();
 
             // ── Register editor logger ─────────────────────────────────────
             _loggerEditor = new LoggerEditor();

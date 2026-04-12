@@ -15,6 +15,7 @@ using CasaEngine.EditorServices.History;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.UI.Backend.MonoGame;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -220,7 +221,12 @@ public class ContentBrowserPanel
     {
         _window = window;
         Config = config ?? new ContentBrowserConfig();
-        _thumbnailCache = new ThumbnailCache(window.Desktop.Renderer.GraphicsDevice, Config.ThumbnailSize);
+        if (window.Desktop.Runtime is not CasaDesktopRuntime runtime)
+        {
+            throw new InvalidOperationException($"{nameof(ContentBrowserPanel)} requires the CasaEngine MGUI backend runtime.");
+        }
+
+        _thumbnailCache = new ThumbnailCache(runtime.GraphicsDevice, Config.ThumbnailSize);
         _thumbnailCache.ThumbnailReady += OnThumbnailReady;
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
@@ -452,7 +458,7 @@ public class ContentBrowserPanel
         // Search icon + box
         if (EditorIcons.Search != null)
         {
-            toolbar.TryAddChild(new MGImage(_window, EditorIcons.Search, Stretch: Stretch.Uniform)
+            toolbar.TryAddChild(new MGImage(_window, EditorIcons.AsImage(EditorIcons.Search)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16, PreferredHeight = 16,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -562,7 +568,7 @@ public class ContentBrowserPanel
 
         if (icon != null)
         {
-            btn.SetContent(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            btn.SetContent(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 18,
                 PreferredHeight = 18,
@@ -1263,7 +1269,7 @@ public class ContentBrowserPanel
         var folderIcon = GetIconForType(ContentItemType.Folder);
         if (folderIcon != null)
         {
-            header.TryAddChild(new MGImage(_window, folderIcon, Stretch: Stretch.Uniform)
+            header.TryAddChild(new MGImage(_window, EditorIcons.AsImage(folderIcon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,
@@ -2073,7 +2079,7 @@ public class ContentBrowserPanel
         {
             foreach (var previewImage in previewImages)
             {
-                previewImage.Source = new MGTextureData(texture);
+                previewImage.Source = new MGTextureData(EditorIcons.AsImage(texture)!);
             }
         }
 
@@ -2118,7 +2124,7 @@ public class ContentBrowserPanel
         var previewResult = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
         if (previewResult.Texture != null)
         {
-            var preview = new MGImage(_window, previewResult.Texture, Stretch: Stretch.Uniform)
+            var preview = new MGImage(_window, EditorIcons.AsImage(previewResult.Texture)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 200,
                 PreferredHeight = 200,

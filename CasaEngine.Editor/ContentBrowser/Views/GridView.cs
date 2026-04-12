@@ -206,7 +206,7 @@ public sealed class GridView : IContentView
         if (card.PreviewImage != null)
         {
             var previewTexture = _previewSelector(item);
-            card.PreviewImage.Source = previewTexture == null ? null : new MGTextureData(previewTexture);
+            card.PreviewImage.Source = previewTexture == null ? null : new MGTextureData(EditorIcons.AsImage(previewTexture)!);
         }
     }
 
@@ -216,7 +216,7 @@ public sealed class GridView : IContentView
         MGImage? previewImage = null;
         if (previewTexture != null)
         {
-            previewImage = new MGImage(_scrollViewer.SelfOrParentWindow, previewTexture, Stretch: Stretch.Uniform)
+            previewImage = new MGImage(_scrollViewer.SelfOrParentWindow, EditorIcons.AsImage(previewTexture)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = _previewSize,
                 PreferredHeight = _previewSize,

@@ -104,7 +104,7 @@ public class LogsPanel
         };
         if (EditorIcons.Trash != null)
         {
-            var img = new MGImage(_window, EditorIcons.Trash, Stretch: Stretch.Uniform)
+            var img = new MGImage(_window, EditorIcons.AsImage(EditorIcons.Trash)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth  = 20,
                 PreferredHeight = 20,

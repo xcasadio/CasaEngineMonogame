@@ -149,7 +149,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         };
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
 
-        _viewportImage = new MGImage(_window, new MGTextureData(_surface!.Texture!), Stretch: Stretch.Fill)
+        _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
@@ -549,7 +549,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _boundTexture = texture;
         if (_viewportImage != null)
         {
-            _viewportImage.Source = new MGTextureData(texture);
+            _viewportImage.Source = new MGTextureData(EditorIcons.AsImage(texture)!);
         }
     }
 

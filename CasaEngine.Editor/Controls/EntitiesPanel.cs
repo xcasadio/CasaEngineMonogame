@@ -216,7 +216,7 @@ public sealed class EntitiesPanel
 
         if (icon != null)
         {
-            button.SetContent(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            button.SetContent(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,
@@ -464,7 +464,7 @@ public sealed class EntitiesPanel
         var icon = EditorIcons.Layers ?? EditorIcons.ListTree ?? EditorIcons.Box;
         if (icon != null)
         {
-            header.TryAddChild(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            header.TryAddChild(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,
@@ -510,7 +510,7 @@ public sealed class EntitiesPanel
         var icon = EditorIcons.ListTree ?? EditorIcons.Box ?? EditorIcons.Layers;
         if (icon != null)
         {
-            header.TryAddChild(new MGImage(_window, icon, Stretch: Stretch.Uniform)
+            header.TryAddChild(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 16,
                 PreferredHeight = 16,

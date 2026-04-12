@@ -71,7 +71,7 @@ public class AssetSelector : MGStackPanel
         _browseButton = new MGButton(window, _ => OpenPickerWindow());
         if (EditorIcons.FolderOpen != null)
         {
-            var img = new MGImage(window, EditorIcons.FolderOpen, Stretch: Stretch.Uniform)
+            var img = new MGImage(window, EditorIcons.AsImage(EditorIcons.FolderOpen)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth  = 20,
                 PreferredHeight = 20,

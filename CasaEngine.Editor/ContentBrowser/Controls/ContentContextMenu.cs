@@ -111,7 +111,7 @@ public sealed class ContentContextMenu
         var button = menu.AddButton(text, _ => action());
         if (icon != null)
         {
-            button.Icon = new MGImage(menu, icon, Stretch: Stretch.Uniform)
+            button.Icon = new MGImage(menu, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
             {
                 PreferredWidth = 14,
                 PreferredHeight = 14,

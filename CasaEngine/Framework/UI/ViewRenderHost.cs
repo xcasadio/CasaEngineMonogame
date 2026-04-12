@@ -32,7 +32,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
         _surface = surface;
         _windowInputSource = windowInputSource ?? game.RuntimeContext.WindowInputSource ?? new MonoGameWindowInputSource(() => game.IsActive);
 
-        // Forward lifecycle events from the host game so that the MainRenderer
+        // Forward lifecycle events from the host game so the desktop runtime
         // can refresh its input cache and other per-frame state.
         _game.PreviewUpdate += (s, e) => PreviewUpdate?.Invoke(s, e);
         _game.EndUpdate     += (s, e) => EndUpdate?.Invoke(s, e);

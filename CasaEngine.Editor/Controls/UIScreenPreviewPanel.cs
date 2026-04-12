@@ -863,12 +863,11 @@ public sealed class UIScreenPreviewPanel
         var r = clip.Value;
         const int gridStep = 32;
         var gridColor = new Color(255, 255, 255, 30);
-        var pixel = da.DT.WhitePixel;
 
         for (int x = r.Left; x <= r.Right; x += gridStep)
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(x, r.Top, 1, r.Height), gridColor);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(x, r.Top, 1, r.Height), gridColor);
         for (int y = r.Top; y <= r.Bottom; y += gridStep)
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left, y, r.Width, 1), gridColor);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, y, r.Width, 1), gridColor);
     }
 
     private void DrawSelectionHighlights(ElementDrawArgs da)
@@ -880,18 +879,17 @@ public sealed class UIScreenPreviewPanel
         {
             const int t = 2;
             const int h = 8;
-            var pixel = da.DT.WhitePixel;
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Top,           r.Width, t),       color);
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Bottom - t,    r.Width, t),       color);
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,      r.Top,           t,       r.Height), color);
-            da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - t, r.Top,           t,       r.Height), color);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, r.Top, r.Width, t), color);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, r.Bottom - t, r.Width, t), color);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, r.Top, t, r.Height), color);
+            da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Right - t, r.Top, t, r.Height), color);
             if (withHandles)
             {
                 // 4 corner handles
-                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,            h, h), color);
-                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,            h, h), color);
-                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h,     h, h), color);
-                da.DT.DrawTextureTo(pixel, null, new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h,     h, h), color);
+                da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, r.Top, h, h), color);
+                da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Right - h, r.Top, h, h), color);
+                da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Left, r.Bottom - h, h, h), color);
+                da.DT.FillRectangle(Vector2.Zero, new RectangleF(r.Right - h, r.Bottom - h, h, h), color);
             }
         }
 

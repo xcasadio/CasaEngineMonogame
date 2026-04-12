@@ -1,5 +1,7 @@
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.UI.Backend.MonoGame;
+using MGUI.Backend.MonoGame;
 using MGUI.FontStashSharp;
 using MGUI.Core.UI;
 using MGUI.Shared.Rendering;
@@ -25,11 +27,8 @@ public sealed class UIRoot : IUIViewRuntime
 {
     private bool _disposed;
 
-    /// <summary>
-    /// The backing MGUI renderer. Owns the shared <c>SpriteBatch</c>, <c>FontManager</c>
-    /// and <c>InputTracker</c> for this view.
-    /// </summary>
-    public MainRenderer Renderer { get; }
+    /// <summary>The backend runtime that powers this MGUI desktop.</summary>
+    public IUIDesktopRuntime Runtime { get; }
 
     /// <summary>The MGUI desktop surface for this view.</summary>
     public MGDesktop Desktop { get; }
@@ -76,16 +75,22 @@ public sealed class UIRoot : IUIViewRuntime
     public UIRoot(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext? runtimeContext = null)
     {
         var host    = new ViewRenderHost(game, surface, runtimeContext?.WindowInputSource);
-        Renderer    = new MainRenderer(host);
-        Desktop     = new MGDesktop(Renderer);
+        var backend = CasaMonoGameBackendBootstrap.Create(host, surface: new CasaRenderSurfaceAdapter(surface));
+        Runtime     = backend.Runtime;
+        Desktop     = new MGDesktop(Runtime);
         Desktop.TextEngine = CreateFontStashSharpTextEngine(game);
         ScreenStack = new ScreenStack(this);
     }
 
     private FontStashSharpTextEngine CreateFontStashSharpTextEngine(CasaEngineGame game)
     {
+        if (Runtime is not IMonoGameDesktopBackend monoGameBackend)
+        {
+            throw new InvalidOperationException("UIRoot requires a MonoGame-backed MGUI runtime.");
+        }
+
         var textEngine = new FontStashSharpTextEngine();
-        string familyName = Renderer.FontManager.DefaultFontFamily;
+        string familyName = monoGameBackend.DefaultFontFamily;
 
         if (game.DefaultFontSystemTtfData.Length > 0)
         {
@@ -96,7 +101,7 @@ public sealed class UIRoot : IUIViewRuntime
             textEngine.AddFontSystem(familyName, CustomFontStyles.Normal, game.FontSystem);
         }
 
-        textEngine.MatchSpriteFontSizing(Renderer.FontManager);
+        textEngine.MatchSpriteFontSizing(monoGameBackend.FontManager);
         return textEngine;
     }
 
@@ -114,7 +119,7 @@ public sealed class UIRoot : IUIViewRuntime
         }
 
         // Desktop.Update() reads the current input snapshot that was refreshed
-        // when PreviewUpdate fired on the ViewRenderHost/MainRenderer.
+        // when PreviewUpdate fired on the UI host/runtime bridge.
         Desktop.Update();
         ScreenStack.Update(gameTime);
     }
