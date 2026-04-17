@@ -459,10 +459,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
     protected override void Update(GameTime gameTime)
     {
         long updateStartTimestamp = Stopwatch.GetTimestamp();
-        double viewUiUpdateMilliseconds = 0.0;
-        double worldUiUpdateMilliseconds = 0.0;
-        double worldUpdateMilliseconds = 0.0;
-        double componentUpdateMilliseconds = 0.0;
 
         try
         {
@@ -477,13 +473,11 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             // Update all per-view UI runtimes BEFORE gameplay so the UI has first-chance input.
             // Snapshot Views so that a demo change (ViewManager.Clear inside a button callback)
             // does not throw "Collection was modified" during enumeration.
-            long viewUiUpdateStartTimestamp = Stopwatch.GetTimestamp();
             foreach (var view in GameManager.ViewManager.Views.ToArray())
             {
                 SyncUIViewMetrics(view);
                 view.UIView?.Update(gameTime);
             }
-            viewUiUpdateMilliseconds = GetElapsedMilliseconds(viewUiUpdateStartTimestamp);
 
             var worldsWithUI = GameManager.ViewManager.Views
                 .Select(static view => view.World)
@@ -495,18 +489,13 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
                 worldsWithUI.Add(GameManager.CurrentWorld);
             }
 
-            long worldUiUpdateStartTimestamp = Stopwatch.GetTimestamp();
             foreach (var world in worldsWithUI)
             {
                 world.UpdateWorldUI(gameTime);
             }
-            worldUiUpdateMilliseconds = GetElapsedMilliseconds(worldUiUpdateStartTimestamp);
 
-            long worldUpdateStartTimestamp = Stopwatch.GetTimestamp();
             GameManager.UpdateWorld(gameTime);
-            worldUpdateMilliseconds = GetElapsedMilliseconds(worldUpdateStartTimestamp);
 
-            long componentUpdateStartTimestamp = Stopwatch.GetTimestamp();
             if (ExecutionPolicy.UseExternalViewManagement)
             {
                 var sortedGameComponents = new List<GameComponent>(Components.Count);
@@ -524,7 +513,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             {
                 base.Update(gameTime);
             }
-            componentUpdateMilliseconds = GetElapsedMilliseconds(componentUpdateStartTimestamp);
 
             // Fire MGUI EndUpdate to finalise frame state in all desktops.
             EndUpdate?.Invoke(this, EventArgs.Empty);
@@ -536,11 +524,6 @@ public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
             var debugOverlay = _renderPipeline?.DebugOverlay;
             if (debugOverlay != null)
             {
-                debugOverlay.RecordUpdateBreakdown(
-                    viewUiUpdateMilliseconds,
-                    worldUiUpdateMilliseconds,
-                    worldUpdateMilliseconds,
-                    componentUpdateMilliseconds);
                 debugOverlay.RecordUpdate(GetElapsedMilliseconds(updateStartTimestamp));
             }
         }
