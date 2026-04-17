@@ -103,7 +103,7 @@ Remplacer les donnees purement decoratives par une fiche technique exploitable p
 
 - 2026-04-17 : `CarPerformanceProfile` a ete introduit avec separation explicite entre parite legacy et tuning etendu. Les trois voitures sont centralisees dans une source unique, et le catalogue front-end est deja derive de cette source tout en restant compatible avec l'UI actuelle.
 
-## ⏳ Etape 2 - Rebrancher le front-end sur les vraies donnees
+## ✅ Etape 2 - Rebrancher le front-end sur les vraies donnees
 
 **But**
 
@@ -129,13 +129,13 @@ Faire de l'ecran de selection et du catalogue une projection fidele des profils 
 
 **Sous-etapes**
 
-- `⏳ 2.1` Refaire le catalogue front-end a partir des profils runtime
-- `⏳ 2.2` Supprimer les barres de stats codees en dur de `CarSelectionScreen`
-- `⏳ 2.3` Deriver textes et pourcentages affiches depuis les vraies valeurs du profil
+- `✅ 2.1` Refaire le catalogue front-end a partir des profils runtime
+- `✅ 2.2` Supprimer les barres de stats codees en dur de `CarSelectionScreen`
+- `✅ 2.3` Deriver textes et pourcentages affiches depuis les vraies valeurs du profil
 
 **Notes**
 
-- Si certaines stats affichees n'ont pas encore de signification physique exacte, l'agent doit le documenter et les calculer depuis une formule stable et explicite.
+- 2026-04-17 : `CarDefinition` est maintenant derivee des profils runtime, et `CarSelectionScreen` consomme des `SelectionStats` derives au lieu d'un tableau local code en dur. La stat `Handling` est actuellement calculee depuis une formule stable basee sur le grip simule et la vitesse de braquage arcade en attendant l'audit runtime dedie.
 
 ## ⏳ Etape 3 - Propager le profil choisi jusqu'au pawn et au runtime
 
