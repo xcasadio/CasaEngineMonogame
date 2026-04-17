@@ -137,7 +137,7 @@ Faire de l'ecran de selection et du catalogue une projection fidele des profils 
 
 - 2026-04-17 : `CarDefinition` est maintenant derivee des profils runtime, et `CarSelectionScreen` consomme des `SelectionStats` derives au lieu d'un tableau local code en dur. La stat `Handling` est actuellement calculee depuis une formule stable basee sur le grip simule et la vitesse de braquage arcade en attendant l'audit runtime dedie.
 
-## ⏳ Etape 3 - Propager le profil choisi jusqu'au pawn et au runtime
+## ✅ Etape 3 - Propager le profil choisi jusqu'au pawn et au runtime
 
 **But**
 
@@ -162,13 +162,13 @@ Faire en sorte que la voiture instanciee en course connaisse autre chose qu'un `
 
 **Sous-etapes**
 
-- `⏳ 3.1` Resoudre le profil de voiture complet a partir de la selection front-end
-- `⏳ 3.2` Propager ce profil jusqu'au `RacingCarPawn`
-- `⏳ 3.3` Exposer un contrat explicite pour que `VehicleDynamicsComponent` consomme ce profil
+- `✅ 3.1` Resoudre le profil de voiture complet a partir de la selection front-end
+- `✅ 3.2` Propager ce profil jusqu'au `RacingCarPawn`
+- `✅ 3.3` Exposer un contrat explicite pour que `VehicleDynamicsComponent` consomme ce profil
 
 **Notes**
 
-- Tant que cette etape n'est pas terminee, toute logique per-car dans les solveurs restera fragile ou dupliquee.
+- 2026-04-17 : le chargement de course resolve maintenant un `CarPerformanceProfile` explicite, le transporte jusqu'au `RacingCarPawn`, renseigne `TargetTopSpeedMph`, et l'expose deja au runtime via le contrat `RacingCarPawn.CarProfile`.
 
 ## ⏳ Etape 4 - Supprimer les constantes vehicule communes du coeur runtime
 
