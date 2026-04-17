@@ -170,7 +170,7 @@ Faire en sorte que la voiture instanciee en course connaisse autre chose qu'un `
 
 - 2026-04-17 : le chargement de course resolve maintenant un `CarPerformanceProfile` explicite, le transporte jusqu'au `RacingCarPawn`, renseigne `TargetTopSpeedMph`, et l'expose deja au runtime via le contrat `RacingCarPawn.CarProfile`.
 
-## ⏳ Etape 4 - Supprimer les constantes vehicule communes du coeur runtime
+## ✅ Etape 4 - Supprimer les constantes vehicule communes du coeur runtime
 
 **But**
 
@@ -195,16 +195,16 @@ Retirer du runtime les valeurs hardcodees qui uniformisent toutes les voitures.
 
 **Sous-etapes**
 
-- `⏳ 4.1` Sortir la masse de chassis du hardcode commun
-- `⏳ 4.2` Sortir la transmission par defaut du hardcode commun
-- `⏳ 4.3` Sortir la geometrie et les coefficients de roue du hardcode commun
-- `⏳ 4.4` Brancher la telemetrie et `TargetTopSpeedMph` sur le profil courant
+- `✅ 4.1` Sortir la masse de chassis du hardcode commun
+- `✅ 4.2` Sortir la transmission par defaut du hardcode commun
+- `✅ 4.3` Sortir la geometrie et les coefficients de roue du hardcode commun
+- `✅ 4.4` Brancher la telemetrie et `TargetTopSpeedMph` sur le profil courant
 
 **Notes**
 
-- Cette etape est le pivot du chantier : tant qu'elle n'est pas faite, les differences entre voitures resteront cosmetiques.
+- 2026-04-17 : `VehicleDynamicsComponent` et `VehicleDynamicsExecutionContext` lient maintenant masse, transmission, roues, telemetrie cible et profil actif a partir de `RacingCarPawn.CarProfile`, avec fallback explicite vers le catalogue si besoin.
 
-## ⏳ Etape 5 - Retablir la parite legacy dans le mode Arcade
+## 🧪 Etape 5 - Retablir la parite legacy dans le mode Arcade
 
 **But**
 
@@ -230,15 +230,15 @@ Retrouver au minimum les differences que le jeu original appliquait deja entre v
 
 **Sous-etapes**
 
-- `⏳ 5.1` Brancher vitesse max, masse et acceleration par voiture dans le solveur `Arcade`
-- `⏳ 5.2` Verifier la parite minimale avec le legacy sur ces trois dimensions
-- `⏳ 5.3` Stabiliser les regressions eventuelles de HUD, camera et telemetry
+- `✅ 5.1` Brancher vitesse max, masse et acceleration par voiture dans le solveur `Arcade`
+- `🧪 5.2` Verifier la parite minimale avec le legacy sur ces trois dimensions
+- `✅ 5.3` Stabiliser les regressions eventuelles de HUD, camera et telemetry
 
 **Notes**
 
-- Si une partie de l'ancienne variation de comportement provenait uniquement d'effets indirects, l'agent doit le documenter plutot que d'inventer une equivalence trompeuse.
+- 2026-04-17 : le solveur `Arcade` consomme maintenant l'acceleration, la vitesse cible, la vitesse de recul, la deceleration de ralenti et la vitesse de braquage depuis le profil voiture. La verification comparative fine est laissee en `🧪` jusqu'a l'audit borne dedie de l'etape 8.
 
-## ⏳ Etape 6 - Introduire une vraie differenciation de boite et de direction si le design le demande
+## 🧪 Etape 6 - Introduire une vraie differenciation de boite et de direction si le design le demande
 
 **But**
 
@@ -264,15 +264,15 @@ Honorer le constat utilisateur selon lequel les boites et la tenue de route devr
 
 **Sous-etapes**
 
-- `⏳ 6.1` Introduire une transmission configurable par voiture
-- `⏳ 6.2` Introduire des coefficients de direction et de grip par voiture
-- `⏳ 6.3` Ajuster le solveur `Arcade` pour consommer ces nouvelles donnees sans regression majeure
+- `✅ 6.1` Introduire une transmission configurable par voiture
+- `✅ 6.2` Introduire des coefficients de direction et de grip par voiture
+- `🧪 6.3` Ajuster le solveur `Arcade` pour consommer ces nouvelles donnees sans regression majeure
 
 **Notes**
 
-- Si le produit prefere rester strictement au legacy, cette etape peut etre scindee et reportee, mais le plan doit alors le documenter explicitement.
+- 2026-04-17 : chaque voiture possede maintenant sa propre `VehicleTransmissionDefinition` et son propre layout de roues. Les differences de braquage et de repartition des forces sont implementees, mais restent en `🧪` tant qu'elles n'ont pas ete comparees automatiquement entre voitures.
 
-## ⏳ Etape 7 - Brancher les profils voiture sur le mode Simulation
+## 🧪 Etape 7 - Brancher les profils voiture sur le mode Simulation
 
 **But**
 
@@ -298,13 +298,13 @@ Faire en sorte que le mode `Simulation` n'uniformise pas a nouveau toutes les vo
 
 **Sous-etapes**
 
-- `⏳ 7.1` Brancher masse, transmission et forces motrices par voiture dans le solveur `Simulation`
-- `⏳ 7.2` Brancher grip lateral, freinage et roues par voiture dans le solveur `Simulation`
-- `⏳ 7.3` Stabiliser les fallbacks et la robustesse hors piste ou en perte de contact
+- `✅ 7.1` Brancher masse, transmission et forces motrices par voiture dans le solveur `Simulation`
+- `✅ 7.2` Brancher grip lateral, freinage et roues par voiture dans le solveur `Simulation`
+- `🧪 7.3` Stabiliser les fallbacks et la robustesse hors piste ou en perte de contact
 
 **Notes**
 
-- Cette etape ne doit pas redoubler la configuration ; le solveur doit consommer le meme profil que le mode `Arcade`.
+- 2026-04-17 : le solveur `Simulation` consomme maintenant le meme profil que le mode `Arcade` pour la masse, la transmission, les forces motrices, le freinage, le grip, les suspensions, les roues et les fallbacks. La robustesse inter-profils reste en `🧪` jusqu'a l'audit dedie.
 
 ## ⏳ Etape 8 - Rendre la difference entre voitures observable et testable
 
