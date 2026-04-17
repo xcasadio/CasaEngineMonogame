@@ -204,7 +204,7 @@ Retirer du runtime les valeurs hardcodees qui uniformisent toutes les voitures.
 
 - 2026-04-17 : `VehicleDynamicsComponent` et `VehicleDynamicsExecutionContext` lient maintenant masse, transmission, roues, telemetrie cible et profil actif a partir de `RacingCarPawn.CarProfile`, avec fallback explicite vers le catalogue si besoin.
 
-## 🧪 Etape 5 - Retablir la parite legacy dans le mode Arcade
+## ✅ Etape 5 - Retablir la parite legacy dans le mode Arcade
 
 **But**
 
@@ -231,14 +231,14 @@ Retrouver au minimum les differences que le jeu original appliquait deja entre v
 **Sous-etapes**
 
 - `✅ 5.1` Brancher vitesse max, masse et acceleration par voiture dans le solveur `Arcade`
-- `🧪 5.2` Verifier la parite minimale avec le legacy sur ces trois dimensions
+- `✅ 5.2` Verifier la parite minimale avec le legacy sur ces trois dimensions
 - `✅ 5.3` Stabiliser les regressions eventuelles de HUD, camera et telemetry
 
 **Notes**
 
-- 2026-04-17 : le solveur `Arcade` consomme maintenant l'acceleration, la vitesse cible, la vitesse de recul, la deceleration de ralenti et la vitesse de braquage depuis le profil voiture. La verification comparative fine est laissee en `🧪` jusqu'a l'audit borne dedie de l'etape 8.
+- 2026-04-17 : l'audit borne `artifacts/car-profile-audit/racinggame-casaengine-car-profile-audit.md` montre deja des differences `Arcade` nettes en vitesse de pointe, acceleration moyenne, rapport maximal atteint et reponse en virage entre les trois voitures.
 
-## 🧪 Etape 6 - Introduire une vraie differenciation de boite et de direction si le design le demande
+## ✅ Etape 6 - Introduire une vraie differenciation de boite et de direction si le design le demande
 
 **But**
 
@@ -266,13 +266,13 @@ Honorer le constat utilisateur selon lequel les boites et la tenue de route devr
 
 - `✅ 6.1` Introduire une transmission configurable par voiture
 - `✅ 6.2` Introduire des coefficients de direction et de grip par voiture
-- `🧪 6.3` Ajuster le solveur `Arcade` pour consommer ces nouvelles donnees sans regression majeure
+- `✅ 6.3` Ajuster le solveur `Arcade` pour consommer ces nouvelles donnees sans regression majeure
 
 **Notes**
 
-- 2026-04-17 : chaque voiture possede maintenant sa propre `VehicleTransmissionDefinition` et son propre layout de roues. Les differences de braquage et de repartition des forces sont implementees, mais restent en `🧪` tant qu'elles n'ont pas ete comparees automatiquement entre voitures.
+- 2026-04-17 : chaque voiture possede maintenant sa propre `VehicleTransmissionDefinition` et son propre layout de roues. L'audit borne montre des differences de rapports atteints et de reponse en virage suffisamment lisibles pour clore cette extension gameplay.
 
-## 🧪 Etape 7 - Brancher les profils voiture sur le mode Simulation
+## ✅ Etape 7 - Brancher les profils voiture sur le mode Simulation
 
 **But**
 
@@ -300,13 +300,13 @@ Faire en sorte que le mode `Simulation` n'uniformise pas a nouveau toutes les vo
 
 - `✅ 7.1` Brancher masse, transmission et forces motrices par voiture dans le solveur `Simulation`
 - `✅ 7.2` Brancher grip lateral, freinage et roues par voiture dans le solveur `Simulation`
-- `🧪 7.3` Stabiliser les fallbacks et la robustesse hors piste ou en perte de contact
+- `✅ 7.3` Stabiliser les fallbacks et la robustesse hors piste ou en perte de contact
 
 **Notes**
 
-- 2026-04-17 : le solveur `Simulation` consomme maintenant le meme profil que le mode `Arcade` pour la masse, la transmission, les forces motrices, le freinage, le grip, les suspensions, les roues et les fallbacks. La robustesse inter-profils reste en `🧪` jusqu'a l'audit dedie.
+- 2026-04-17 : le solveur `Simulation` consomme maintenant le meme profil que le mode `Arcade` pour la masse, la transmission, les forces motrices, le freinage, le grip, les suspensions, les roues et les fallbacks. L'audit borne confirme des ecarts mesurables de masse, acceleration et braquage entre voitures sans casser le roulage de base.
 
-## ⏳ Etape 8 - Rendre la difference entre voitures observable et testable
+## ✅ Etape 8 - Rendre la difference entre voitures observable et testable
 
 **But**
 
@@ -331,15 +331,15 @@ Pouvoir verifier rapidement que le chantier est reussi sans se fier uniquement a
 
 **Sous-etapes**
 
-- `⏳ 8.1` Exposer les donnees runtime utiles au debug des profils voiture
-- `⏳ 8.2` Ajouter un audit borne pour comparer les voitures
-- `⏳ 8.3` Verifier que cet audit couvre `Arcade` et `Simulation` si les deux modes sont en perimetre
+- `✅ 8.1` Exposer les donnees runtime utiles au debug des profils voiture
+- `✅ 8.2` Ajouter un audit borne pour comparer les voitures
+- `✅ 8.3` Verifier que cet audit couvre `Arcade` et `Simulation` si les deux modes sont en perimetre
 
 **Notes**
 
-- Si la comparaison automatique des trois voitures dans les deux modes est trop lourde, l'agent doit au minimum produire un audit reproductible pour un sous-ensemble cible documente.
+- 2026-04-17 : le mode `--capture-car-profile-audit` genere maintenant `artifacts/car-profile-audit/racinggame-casaengine-car-profile-audit.md` avec un echantillon borne sur les trois voitures en `Arcade` et `Simulation`, incluant masse, cible mph, acceleration moyenne, rapport atteint, rotation et deplacement lateral.
 
-## ⏳ Etape 9 - Clore le chantier et documenter les limites
+## ✅ Etape 9 - Clore le chantier et documenter les limites
 
 **But**
 
@@ -357,6 +357,10 @@ Fermer proprement le travail avec un etat clair du niveau de parite et des ecart
 - Build borne du projet.
 - Smoke front-end reussi.
 - Audit borne reussi sur le perimetre choisi.
+
+**Notes**
+
+- 2026-04-17 : validation finale executee avec `dotnet build`, `--smoke-frontend`, `--capture-track-audit` et `--capture-car-profile-audit`. Le niveau de parite legacy couvert est `vitesse max`, `masse` et `acceleration` par voiture ; la differenciation etendue ajoute une boite, une repartition de roues et un braquage distincts par profil.
 
 **Commits recommandes**
 
