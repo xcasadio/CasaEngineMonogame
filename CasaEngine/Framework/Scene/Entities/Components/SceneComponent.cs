@@ -89,19 +89,31 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     public Vector3 LocalPosition
     {
         get => Coordinates.Position;
-        set => Coordinates.Position = value;
+        set
+        {
+            Coordinates.Position = value;
+            IsBoundingBoxDirty = true;
+        }
     }
 
     public Quaternion LocalOrientation
     {
         get => Coordinates.Orientation;
-        set => Coordinates.Orientation = value;
+        set
+        {
+            Coordinates.Orientation = value;
+            IsBoundingBoxDirty = true;
+        }
     }
 
     public Vector3 LocalScale
     {
         get => Coordinates.Scale;
-        set => Coordinates.Scale = value;
+        set
+        {
+            Coordinates.Scale = value;
+            IsBoundingBoxDirty = true;
+        }
     }
 
     public Vector3 Position

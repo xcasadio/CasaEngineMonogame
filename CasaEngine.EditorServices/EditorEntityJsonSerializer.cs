@@ -45,6 +45,11 @@ internal static class EditorEntityJsonSerializer
     public static void SaveEntity(Entity entity, JObject node)
     {
         EditorJsonSaveHelper.SaveObjectBase(entity, node);
+        node.Add("policy_source", entity.Policies.PolicySourceMode.ToString());
+        node.Add("mobility", entity.Policies.Mobility.ToString());
+        node.Add("tick_policy", entity.Policies.TickPolicy.ToString());
+        node.Add("spatial_policy", entity.Policies.SpatialPolicy.ToString());
+        node.Add("render_dynamic_policy", entity.Policies.RenderDynamicPolicy.ToString());
 
         if (entity.RootComponent != null)
         {

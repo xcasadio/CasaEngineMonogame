@@ -14,10 +14,12 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Tile Map")]
-public class TileMapComponent : SceneComponent, ICollideableComponent
+public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
     private List<CollisionObject> _collisionObjects = new();
     private List<TileMapLayer> Layers { get; } = new();
+    private bool _hasAnimatedTiles;
+    private bool _needsAutoTileRefresh;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -42,6 +44,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         base.InitializeWithWorld(world);
 
         Layers.Clear();
+        _hasAnimatedTiles = false;
+        _needsAutoTileRefresh = false;
 
         if (TileMapDataAssetId != Guid.Empty)
         {
@@ -90,6 +94,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                                     var autoTile = new AutoTile(texture.Resource, autoTileData);
                                     autoTile.SetTileInfo(tileSize, TileMapData.MapSize, tileMapLayerData, x, y);
                                     tile = autoTile;
+                                    _needsAutoTileRefresh = true;
                                     break;
                                 }
                             case TileType.Static:
@@ -144,11 +149,22 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         }
 
         IsBoundingBoxDirty = true;
+
+        if (_needsAutoTileRefresh)
+        {
+            Owner?.Policies.RequestConditionalUpdate();
+        }
     }
 
     public override TileMapComponent Clone()
     {
         return new TileMapComponent(this);
+    }
+
+    public bool ShouldUpdateWhenConditional(Entity owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        return _hasAnimatedTiles || _needsAutoTileRefresh;
     }
 
     public override void Update(float elapsedTime)
@@ -160,6 +176,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
                 tile.Update(elapsedTime);
             }
         }
+
+        _needsAutoTileRefresh = false;
 
         base.Update(elapsedTime);
     }
@@ -225,6 +243,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent
         //TODO : remove the physics and other stuff
 
         Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
+        _needsAutoTileRefresh = true;
+        Owner?.Policies.RequestConditionalUpdate();
     }
 
     public override void Load(JObject element)

@@ -19,7 +19,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Animated Sprite")]
-public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable
+public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable, IConditionalEntityUpdateSource
 {
     public event EventHandler<Guid>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
@@ -196,6 +196,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public override AnimatedSpriteComponent Clone()
     {
         return new AnimatedSpriteComponent(this);
+    }
+
+    public bool ShouldUpdateWhenConditional(Entity owner)
+    {
+        ArgumentNullException.ThrowIfNull(owner);
+        return CurrentAnimation != null && owner.World?.Game?.ExecutionPolicy.UpdateAnimatedSprites == true;
     }
 
     public override void Update(float elapsedTime)

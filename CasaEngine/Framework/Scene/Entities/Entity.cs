@@ -1,4 +1,5 @@
 
+using System.ComponentModel;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -38,6 +39,8 @@ public class Entity : ObjectBase
 
     public IEnumerable<EntityComponent> Components => _components;
 
+    public EntityPolicyState Policies { get; private set; } = new();
+
     public new string Name
     {
         get => base.Name;
@@ -66,6 +69,7 @@ public class Entity : ObjectBase
             }
 
             _rootComponent = value;
+            Policies.InvalidateConfiguredPolicySet();
 
             if (_rootComponent != null)
             {
@@ -91,6 +95,50 @@ public class Entity : ObjectBase
 
     public bool IsVisible { get; set; } = true;
 
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public EntityPolicySourceMode PolicySourceMode
+    {
+        get => Policies.PolicySourceMode;
+        set => Policies.PolicySourceMode = value;
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public Mobility Mobility
+    {
+        get => Policies.Mobility;
+        set => Policies.Mobility = value;
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public TickPolicy TickPolicy
+    {
+        get => Policies.TickPolicy;
+        set => Policies.TickPolicy = value;
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public SpatialPolicy SpatialPolicy
+    {
+        get => Policies.SpatialPolicy;
+        set => Policies.SpatialPolicy = value;
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public RenderDynamicPolicy RenderDynamicPolicy
+    {
+        get => Policies.RenderDynamicPolicy;
+        set => Policies.RenderDynamicPolicy = value;
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Browsable(false)]
+    [Obsolete("Use PolicySourceMode and TickPolicy instead of UpdatesEnabled.")]
+    public bool UpdatesEnabled
+    {
+        get => EntityPolicyResolver.ResolveRuntimePolicies(this).ShouldUpdateThisFrame;
+        set => Policies.SetLegacyUpdatesEnabledOverride(value);
+    }
+
     public bool ToBeRemoved { get; private set; }
 
     public Entity()
@@ -101,6 +149,8 @@ public class Entity : ObjectBase
     {
         World = entity.World;
         _isEnabled = entity._isEnabled;
+        IsVisible = entity.IsVisible;
+        Policies = entity.Policies.Clone();
         Parent = entity.Parent;
         RootComponent = entity.RootComponent?.Clone() as SceneComponent;
         GameplayProxyClassName = entity.GameplayProxyClassName;
@@ -203,6 +253,7 @@ public class Entity : ObjectBase
     {
         _components.Add(component);
         component.Attach(this);
+        Policies.InvalidateConfiguredPolicySet();
         ComponentAdded?.Invoke(this, component);
     }
 
@@ -210,6 +261,7 @@ public class Entity : ObjectBase
     {
         _components.Remove(component);
         component.Detach();
+        Policies.InvalidateConfiguredPolicySet();
         ComponentRemoved?.Invoke(this, component);
     }
 
@@ -309,10 +361,17 @@ public class Entity : ObjectBase
 
         for (int i = 0; i < _children.Count; i++)
         {
+            ResolvedEntityPolicies childPolicies = EntityPolicyResolver.ResolveRuntimePolicies(_children[i]);
+            if (!childPolicies.ShouldUpdateThisFrame)
+            {
+                continue;
+            }
+
             _children[i].Update(elapsedTime);
+            _children[i].Policies.ClearConditionalUpdateRequest();
         }
 
-    if (World?.Game?.ExecutionPolicy.UpdateGameplayScripts ?? false)
+        if (World?.Game?.ExecutionPolicy.UpdateGameplayScripts ?? false)
         {
             GameplayProxy?.Update(elapsedTime);
         }
@@ -360,6 +419,36 @@ public class Entity : ObjectBase
     {
         base.Load(element);
 
+        if (element.ContainsKey("policy_source"))
+        {
+            Policies.PolicySourceMode = element["policy_source"]!.GetEnum<EntityPolicySourceMode>();
+        }
+
+        if (element.ContainsKey("mobility"))
+        {
+            Policies.Mobility = element["mobility"]!.GetEnum<Mobility>();
+        }
+
+        if (element.ContainsKey("tick_policy"))
+        {
+            Policies.TickPolicy = element["tick_policy"]!.GetEnum<TickPolicy>();
+        }
+
+        if (element.ContainsKey("spatial_policy"))
+        {
+            Policies.SpatialPolicy = element["spatial_policy"]!.GetEnum<SpatialPolicy>();
+        }
+
+        if (element.ContainsKey("render_dynamic_policy"))
+        {
+            Policies.RenderDynamicPolicy = element["render_dynamic_policy"]!.GetEnum<RenderDynamicPolicy>();
+        }
+
+        if (element.ContainsKey("updates_enabled"))
+        {
+            UpdatesEnabled = element["updates_enabled"]!.GetBoolean();
+        }
+
         GameplayProxyClassName = element["script_class_name"].GetString();
 
         var node = element["root_component"];
@@ -375,6 +464,38 @@ public class Entity : ObjectBase
             AddComponent(entityComponent);
         }
     }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void ApplyExplicitPolicies(EntityPolicySet policySet)
+    {
+        Policies.ApplyExplicitPolicies(policySet);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void UseEnginePolicyDefaults()
+    {
+        Policies.UseEnginePolicyDefaults();
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public void RequestConditionalUpdate()
+    {
+        Policies.RequestConditionalUpdate();
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public EntityPolicySet GetEffectivePolicySet()
+    {
+        return Policies.GetConfiguredPolicySet(this);
+    }
+
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public ResolvedEntityPolicies GetResolvedPolicies()
+    {
+        return EntityPolicyResolver.ResolveRuntimePolicies(this);
+    }
+
+    internal IReadOnlyList<EntityComponent> AttachedComponents => _components;
 
     public event EventHandler<Entity> ChildAdded;
     public event EventHandler<Entity> ChildRemoved;

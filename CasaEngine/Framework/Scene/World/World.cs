@@ -24,6 +24,7 @@ public sealed class World : ObjectBase
     private readonly List<Entity> _baseObjectsToAdd = [];
     private readonly List<WorldUIComponent> _worldUiComponents = [];
     private readonly HashSet<Entity> _observedEntities = [];
+    private readonly HashSet<Guid> _warnedPolicyEntities = [];
 
     private readonly List<Entity> _entitiesVisible = new(1000);
 
@@ -42,6 +43,7 @@ public sealed class World : ObjectBase
     public ReflectionProbeCollection ReflectionProbes { get; } = new();
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
+    public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
 
     public bool DisplaySpacePartitioning { get; set; }
 
@@ -123,7 +125,9 @@ public sealed class World : ObjectBase
         _baseObjectsToAdd.Clear();
         SpatialServices.WorldIndex.Clear();
         _observedEntities.Clear();
+        _warnedPolicyEntities.Clear();
         MessageBus.Reset();
+        PolicyDiagnostics = EntityPolicyDiagnosticsSnapshot.Empty;
 
         if (clearReferences)
         {
@@ -291,6 +295,8 @@ public sealed class World : ObjectBase
         }
 
         var toRemove = new List<Entity>();
+    var diagnosticsBuilder = new EntityPolicyDiagnosticsBuilder(this);
+    bool invalidateOnDemandViews = false;
 
         InternalAddEntities();
         SpatialServices.SteeringIndex.PrepareForWorldUpdate();
@@ -305,9 +311,18 @@ public sealed class World : ObjectBase
             }
             else
             {
-                entity.Update(elapsedTime);
+                ResolvedEntityPolicies runtimePolicies = EntityPolicyResolver.ResolveRuntimePolicies(entity);
+                diagnosticsBuilder.Record(entity, runtimePolicies);
+                invalidateOnDemandViews |= runtimePolicies.RequiresOnDemandViewInvalidation;
 
-                if (IsBoundingBoxDirty(entity))
+                if (runtimePolicies.ShouldUpdateThisFrame)
+                {
+                    entity.Update(elapsedTime);
+                    entity.Policies.ClearConditionalUpdateRequest();
+                    diagnosticsBuilder.MarkUpdated();
+                }
+
+                if (runtimePolicies.UsesDynamicSpatialMaintenance && IsBoundingBoxDirty(entity))
                 {
                     SpatialServices.WorldIndex.Move(entity, entity.GetBoundingBox());
                 }
@@ -323,6 +338,12 @@ public sealed class World : ObjectBase
         }
 
         SpatialServices.WorldIndex.ApplyPendingMoves();
+        PolicyDiagnostics = diagnosticsBuilder.Build();
+
+        if (invalidateOnDemandViews)
+        {
+            InvalidateOnDemandViews();
+        }
 
         if (Game.ExecutionPolicy.UpdateGameplayScripts)
         {
@@ -346,6 +367,175 @@ public sealed class World : ObjectBase
         }
 
         return false;
+    }
+
+    private void InvalidateOnDemandViews()
+    {
+        var views = Game?.GameManager.ViewManager.Views;
+        if (views == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < views.Count; index++)
+        {
+            RenderView view = views[index];
+            if (!ReferenceEquals(view.World, this) || view.UpdateMode != ViewUpdateMode.OnDemand)
+            {
+                continue;
+            }
+
+            view.Invalidate();
+        }
+    }
+
+    private void LogPolicyWarning(Entity entity, string reason, EntityPolicySet policySet)
+    {
+        if (!_warnedPolicyEntities.Add(entity.Id))
+        {
+            return;
+        }
+
+        Logs.WriteWarning(
+            $"Entity '{entity.Name}' uses a suspect policy combination: {reason} "
+            + $"(source={entity.Policies.PolicySourceMode}, mobility={policySet.Mobility}, tick={policySet.TickPolicy}, spatial={policySet.SpatialPolicy}, render={policySet.RenderDynamicPolicy}).");
+    }
+
+    private struct EntityPolicyDiagnosticsBuilder
+    {
+        private readonly World _world;
+        private int _totalEntities;
+        private int _explicitPolicyEntities;
+        private int _defaultPolicyEntities;
+        private int _updatedEntities;
+        private int _mobilityStaticEntities;
+        private int _mobilityMovableEntities;
+        private int _tickNeverEntities;
+        private int _tickConditionalEntities;
+        private int _tickEveryFrameEntities;
+        private int _spatialStaticEntities;
+        private int _spatialDynamicEntities;
+        private int _renderStaticEntities;
+        private int _renderMaterialAnimatedEntities;
+        private int _renderGeometryAnimatedEntities;
+        private int _dynamicRenderEntities;
+        private int _suspectCombinationCount;
+
+        public EntityPolicyDiagnosticsBuilder(World world)
+        {
+            _world = world;
+            _totalEntities = 0;
+            _explicitPolicyEntities = 0;
+            _defaultPolicyEntities = 0;
+            _updatedEntities = 0;
+            _mobilityStaticEntities = 0;
+            _mobilityMovableEntities = 0;
+            _tickNeverEntities = 0;
+            _tickConditionalEntities = 0;
+            _tickEveryFrameEntities = 0;
+            _spatialStaticEntities = 0;
+            _spatialDynamicEntities = 0;
+            _renderStaticEntities = 0;
+            _renderMaterialAnimatedEntities = 0;
+            _renderGeometryAnimatedEntities = 0;
+            _dynamicRenderEntities = 0;
+            _suspectCombinationCount = 0;
+        }
+
+        public void Record(Entity entity, ResolvedEntityPolicies runtimePolicies)
+        {
+            _totalEntities++;
+
+            if (runtimePolicies.SourceMode == EntityPolicySourceMode.Explicit)
+            {
+                _explicitPolicyEntities++;
+            }
+            else
+            {
+                _defaultPolicyEntities++;
+            }
+
+            switch (runtimePolicies.PolicySet.Mobility)
+            {
+                case Mobility.Static:
+                    _mobilityStaticEntities++;
+                    break;
+                case Mobility.Movable:
+                    _mobilityMovableEntities++;
+                    break;
+            }
+
+            switch (runtimePolicies.PolicySet.TickPolicy)
+            {
+                case TickPolicy.Never:
+                    _tickNeverEntities++;
+                    break;
+                case TickPolicy.Conditional:
+                    _tickConditionalEntities++;
+                    break;
+                case TickPolicy.EveryFrame:
+                    _tickEveryFrameEntities++;
+                    break;
+            }
+
+            switch (runtimePolicies.PolicySet.SpatialPolicy)
+            {
+                case SpatialPolicy.StaticIndex:
+                    _spatialStaticEntities++;
+                    break;
+                case SpatialPolicy.DynamicIndex:
+                    _spatialDynamicEntities++;
+                    break;
+            }
+
+            switch (runtimePolicies.PolicySet.RenderDynamicPolicy)
+            {
+                case RenderDynamicPolicy.Static:
+                    _renderStaticEntities++;
+                    break;
+                case RenderDynamicPolicy.MaterialAnimated:
+                    _renderMaterialAnimatedEntities++;
+                    _dynamicRenderEntities++;
+                    break;
+                case RenderDynamicPolicy.GeometryAnimated:
+                    _renderGeometryAnimatedEntities++;
+                    _dynamicRenderEntities++;
+                    break;
+            }
+
+            string? suspectReason = EntityPolicyResolver.GetSuspectCombinationReason(runtimePolicies.PolicySet);
+            if (suspectReason != null)
+            {
+                _suspectCombinationCount++;
+                _world.LogPolicyWarning(entity, suspectReason, runtimePolicies.PolicySet);
+            }
+        }
+
+        public void MarkUpdated()
+        {
+            _updatedEntities++;
+        }
+
+        public EntityPolicyDiagnosticsSnapshot Build()
+        {
+            return new EntityPolicyDiagnosticsSnapshot(
+                _totalEntities,
+                _explicitPolicyEntities,
+                _defaultPolicyEntities,
+                _updatedEntities,
+                _mobilityStaticEntities,
+                _mobilityMovableEntities,
+                _tickNeverEntities,
+                _tickConditionalEntities,
+                _tickEveryFrameEntities,
+                _spatialStaticEntities,
+                _spatialDynamicEntities,
+                _renderStaticEntities,
+                _renderMaterialAnimatedEntities,
+                _renderGeometryAnimatedEntities,
+                _dynamicRenderEntities,
+                _suspectCombinationCount);
+        }
     }
 
     private void InternalAddEntities()

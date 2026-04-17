@@ -32,6 +32,10 @@ public sealed class DebugOverlay
     private readonly Texture2D     _background;
     private readonly FrameTimingHistory _updateHistory = new();
     private readonly FrameTimingHistory _drawHistory = new();
+    private readonly FrameTimingHistory _viewUiUpdateHistory = new();
+    private readonly FrameTimingHistory _worldUiUpdateHistory = new();
+    private readonly FrameTimingHistory _worldUpdateHistory = new();
+    private readonly FrameTimingHistory _componentUpdateHistory = new();
 
     // FPS tracking
     private float _fpsAccum;
@@ -51,6 +55,18 @@ public sealed class DebugOverlay
     internal void RecordUpdate(double milliseconds)
     {
         _updateHistory.AddSample(milliseconds);
+    }
+
+    internal void RecordUpdateBreakdown(
+        double viewUiMilliseconds,
+        double worldUiMilliseconds,
+        double worldMilliseconds,
+        double componentMilliseconds)
+    {
+        _viewUiUpdateHistory.AddSample(viewUiMilliseconds);
+        _worldUiUpdateHistory.AddSample(worldUiMilliseconds);
+        _worldUpdateHistory.AddSample(worldMilliseconds);
+        _componentUpdateHistory.AddSample(componentMilliseconds);
     }
 
     internal void RecordDraw(double milliseconds, float deltaSeconds)
@@ -83,21 +99,32 @@ public sealed class DebugOverlay
         // Collect stat lines
         FrameTimingSummary updateSummary = _updateHistory.GetSummary();
         FrameTimingSummary drawSummary = _drawHistory.GetSummary();
+        FrameTimingSummary viewUiUpdateSummary = _viewUiUpdateHistory.GetSummary();
+        FrameTimingSummary worldUiUpdateSummary = _worldUiUpdateHistory.GetSummary();
+        FrameTimingSummary worldUpdateSummary = _worldUpdateHistory.GetSummary();
+        FrameTimingSummary componentUpdateSummary = _componentUpdateHistory.GetSummary();
         var pool      = RenderTargetPool.Shared;
         var cam       = view.Camera;
         var camPos    = cam?.Position ?? Vector3.Zero;
         var stats     = view.RenderStats;
+        var policies  = view.World.PolicyDiagnostics;
         var viewName  = string.IsNullOrEmpty(view.Name) ? "unnamed" : view.Name;
-        var lines     = new List<string>(10)
+        var lines     = new List<string>(17)
         {
             $"View: {viewName}",
             $"FPS: {_fps:F1}  Mode: {view.UpdateMode}",
             $"Game Update: {updateSummary.LatestMilliseconds:F2} ms  avg10: {updateSummary.AverageMilliseconds:F2}  max10: {updateSummary.MaxMilliseconds:F2}",
+            $"Upd split: ViewUI {viewUiUpdateSummary.LatestMilliseconds:F2}  WorldUI {worldUiUpdateSummary.LatestMilliseconds:F2}  World {worldUpdateSummary.LatestMilliseconds:F2}  Components {componentUpdateSummary.LatestMilliseconds:F2}",
             $"Game Draw: {drawSummary.LatestMilliseconds:F2} ms  avg10: {drawSummary.AverageMilliseconds:F2}  max10: {drawSummary.MaxMilliseconds:F2}",
             $"Size: {viewportRect.Width}x{viewportRect.Height}  Scale: {view.ResolutionScale:P0}",
             $"Cam: {camPos.X:F1}, {camPos.Y:F1}, {camPos.Z:F1}",
+            $"View CPU: total {stats.TotalCpuMilliseconds:F2}  world {stats.WorldDrawCpuMilliseconds:F2}  flush {stats.RendererFlushCpuMilliseconds:F2}  ui {stats.UiComposeCpuMilliseconds:F2}",
+            $"View misc: before {stats.BeforeViewCpuMilliseconds:F2}  clear {stats.ClearCpuMilliseconds:F2}  present {stats.PresenterCpuMilliseconds:F2}  overlay {stats.OverlayCpuMilliseconds:F2}",
             $"Draws: {stats.DrawCalls}  FX: {stats.EffectBinds}  Tex: {stats.TextureBinds}",
             $"State: {stats.StateChanges}  O: {stats.OpaqueItems}  T: {stats.TransparentItems}",
+            $"Policies: total {policies.TotalEntities}  explicit {policies.ExplicitPolicyEntities}  defaults {policies.DefaultPolicyEntities}  updated {policies.UpdatedEntities}",
+            $"Tick N/C/E {policies.TickNeverEntities}/{policies.TickConditionalEntities}/{policies.TickEveryFrameEntities}  Spatial S/D {policies.SpatialStaticEntities}/{policies.SpatialDynamicEntities}",
+            $"Render S/M/G {policies.RenderStaticEntities}/{policies.RenderMaterialAnimatedEntities}/{policies.RenderGeometryAnimatedEntities}  Mobility S/M {policies.MobilityStaticEntities}/{policies.MobilityMovableEntities}  Warn {policies.SuspectCombinationCount}",
         };
 
         if (pool != null)

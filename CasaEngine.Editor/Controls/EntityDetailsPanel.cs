@@ -469,10 +469,7 @@ public sealed class EntityDetailsPanel
 
         if (_selectedComponent == null)
         {
-            _detailsContent.TryAddChild(new MGTextBlock(_window, "Select a component to edit its properties.")
-            {
-                WrapText = true,
-            });
+            BuildEntityPropertyEditors();
             return;
         }
 
@@ -588,6 +585,92 @@ public sealed class EntityDetailsPanel
         _detailsContent.TryAddChild(rebuildButton);
     }
 
+    private void BuildEntityPropertyEditors()
+    {
+        if (_detailsContent == null || _selectedEntity == null)
+        {
+            return;
+        }
+
+        _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(string.IsNullOrWhiteSpace(_selectedEntity.Name) ? "Entity" : _selectedEntity.Name)}[/b]")
+        {
+            WrapText = false,
+        });
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit entity-level policies. Engine defaults are derived from attached components until you switch the source to Explicit.")
+        {
+            WrapText = true,
+        });
+
+        var grid = CreatePropertyGrid();
+        int rowIndex = 0;
+
+        var sourceCombo = CreateStringCombo(Enum.GetNames<EntityPolicySourceMode>(), _selectedEntity.Policies.PolicySourceMode.ToString(), value =>
+        {
+            ApplyEntityPolicyChange(
+                "Change Entity Policy Source",
+            static entity => entity.Policies.PolicySourceMode,
+            static (entity, sourceMode) => entity.Policies.PolicySourceMode = sourceMode,
+                Enum.Parse<EntityPolicySourceMode>(value));
+        });
+        rowIndex = AddPropertyRow(grid, rowIndex, "Policy Source", sourceCombo);
+
+        bool explicitPolicies = _selectedEntity.Policies.PolicySourceMode == EntityPolicySourceMode.Explicit;
+
+        var mobilityCombo = CreateStringCombo(Enum.GetNames<Mobility>(), _selectedEntity.Policies.Mobility.ToString(), value =>
+        {
+            ApplyEntityPolicyChange(
+                "Change Entity Mobility",
+            static entity => entity.Policies.Mobility,
+            static (entity, mobility) => entity.Policies.Mobility = mobility,
+                Enum.Parse<Mobility>(value));
+        });
+        mobilityCombo.IsEnabled = explicitPolicies;
+        rowIndex = AddPropertyRow(grid, rowIndex, "Mobility", mobilityCombo);
+
+        var tickCombo = CreateStringCombo(Enum.GetNames<TickPolicy>(), _selectedEntity.Policies.TickPolicy.ToString(), value =>
+        {
+            ApplyEntityPolicyChange(
+                "Change Entity Tick Policy",
+            static entity => entity.Policies.TickPolicy,
+            static (entity, tickPolicy) => entity.Policies.TickPolicy = tickPolicy,
+                Enum.Parse<TickPolicy>(value));
+        });
+        tickCombo.IsEnabled = explicitPolicies;
+        rowIndex = AddPropertyRow(grid, rowIndex, "Tick Policy", tickCombo);
+
+        var spatialCombo = CreateStringCombo(Enum.GetNames<SpatialPolicy>(), _selectedEntity.Policies.SpatialPolicy.ToString(), value =>
+        {
+            ApplyEntityPolicyChange(
+                "Change Entity Spatial Policy",
+            static entity => entity.Policies.SpatialPolicy,
+            static (entity, spatialPolicy) => entity.Policies.SpatialPolicy = spatialPolicy,
+                Enum.Parse<SpatialPolicy>(value));
+        });
+        spatialCombo.IsEnabled = explicitPolicies;
+        rowIndex = AddPropertyRow(grid, rowIndex, "Spatial Policy", spatialCombo);
+
+        var renderCombo = CreateStringCombo(Enum.GetNames<RenderDynamicPolicy>(), _selectedEntity.Policies.RenderDynamicPolicy.ToString(), value =>
+        {
+            ApplyEntityPolicyChange(
+                "Change Entity Render Policy",
+            static entity => entity.Policies.RenderDynamicPolicy,
+            static (entity, renderPolicy) => entity.Policies.RenderDynamicPolicy = renderPolicy,
+                Enum.Parse<RenderDynamicPolicy>(value));
+        });
+        renderCombo.IsEnabled = explicitPolicies;
+        rowIndex = AddPropertyRow(grid, rowIndex, "Render Policy", renderCombo);
+
+        _detailsContent.TryAddChild(grid);
+
+        ResolvedEntityPolicies resolvedPolicies = EntityPolicyResolver.ResolveRuntimePolicies(_selectedEntity);
+        _detailsContent.TryAddChild(new MGTextBlock(
+            _window,
+            $"Effective runtime policy: {resolvedPolicies.PolicySet.Mobility} / {resolvedPolicies.PolicySet.TickPolicy} / {resolvedPolicies.PolicySet.SpatialPolicy} / {resolvedPolicies.PolicySet.RenderDynamicPolicy} ({resolvedPolicies.SourceMode}).")
+        {
+            WrapText = true,
+        });
+    }
+
     private void ClearDetailsContent()
     {
         if (_detailsContent == null)
@@ -634,6 +717,41 @@ public sealed class EntityDetailsPanel
             {
                 setter(settings, currentValue);
                 settings.MarkDirty();
+                RebuildPropertyEditors();
+            });
+    }
+
+    private void ApplyEntityPolicyChange<T>(
+        string description,
+        Func<Entity, T> getter,
+        Action<Entity, T> setter,
+        T newValue)
+    {
+        ArgumentNullException.ThrowIfNull(getter);
+        ArgumentNullException.ThrowIfNull(setter);
+
+        if (_selectedEntity == null)
+        {
+            return;
+        }
+
+        Entity entity = _selectedEntity;
+        T currentValue = getter(entity);
+        if (EqualityComparer<T>.Default.Equals(currentValue, newValue))
+        {
+            return;
+        }
+
+        ExecuteWorldCommand(
+            description,
+            () =>
+            {
+                setter(entity, newValue);
+                RebuildPropertyEditors();
+            },
+            () =>
+            {
+                setter(entity, currentValue);
                 RebuildPropertyEditors();
             });
     }
