@@ -433,7 +433,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add animation graph node runtime`
 
-- 🧪 **T04.02 - Implementer un blend tree lineaire**
+- ✅ **T04.02 - Implementer un blend tree lineaire**
   Objectif :
   - Supporter `Blend` entre deux ou plusieurs entrees pilote par un float.
   - Definir la stabilite numerique des poids et leur normalisation.
@@ -443,9 +443,12 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Resultat du 2026-04-17 :
   - `LinearBlendAnimationNode` implemente un blend lineaire a deux entrees avec poids clampes entre `0` et `1`.
   - Validation unitaire ajoutee sur composition d'un blend tree minimal.
-  - Reste a faire : etendre a plusieurs entrees et produire une demo locomotion idle/walk/run dediee avant passage en `✅`.
   Resultat du 2026-04-18 :
   - `LinearBlendAnimationNode` implemente maintenant aussi `IAnimationGraphRuntimeNode`, ce qui permet a `AnimationController.PlayGraph(...)` de faire avancer ses entrees runtime automatiquement.
+  - `LinearBlendAnimationNode` supporte maintenant un nombre arbitraire d'entrees ordonnees uniforme, avec clamp aux bornes, tout en preservant l'API binaire historique `source/target/weight`.
+  - `CasaEngine.Tests/Animation/AnimationGraphNodeTests.cs` couvre aussi le cas multi-entrees et le clamp hors bornes.
+  - `CasaEngine.Demos/Demos/AnimationBlendDemo.cs` expose un mode `LinearBlendTree` dedie a la locomotion idle/walk/run, selectionnable pour les validations automatisees.
+  - Validation executee : `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~AnimationGraphNodeTests --no-restore`, `dotnet build CasaEngine.Demos/CasaEngine.Demos.csproj -c Debug --no-restore`, puis run automatise avec `CASAENGINE_START_DEMO=Animation blend demo`, `CASAENGINE_ANIMATION_BLEND_MODE=LinearBlendTree` et capture `artifacts/validation/animation-blend-demo-linear-blend-tree.png`.
   Commit conseille :
   - `feat(animation): add linear blend tree nodes`
 

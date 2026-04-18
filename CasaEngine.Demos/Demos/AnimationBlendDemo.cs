@@ -18,8 +18,11 @@ namespace CasaEngine.Demos.Demos;
 
 public class AnimationBlendDemo : Demo
 {
+    private const string BlendModeEnvironmentVariable = "CASAENGINE_ANIMATION_BLEND_MODE";
+
     private enum DemoMode
     {
+        LinearBlendTree,
         BlendSpace1D,
         BlendSpace2D,
         CrossFade,
@@ -46,6 +49,7 @@ public class AnimationBlendDemo : Demo
     private CasaEngineGame _game;
     private SkinnedMeshComponent _skinnedMeshComponent;
     private RiggedModel _riggedModel;
+    private LinearBlendAnimationNode _linearBlendTree;
     private BlendSpace1DNode _blendSpace1D;
     private BlendSpace2DNode _blendSpace2D;
     private AnimationClip _upperBodyActionClip;
@@ -72,7 +76,7 @@ public class AnimationBlendDemo : Demo
 
     public override string Title => "Animation blend demo";
 
-    public override string Description => "Animation showcase for the modern runtime: 1D/2D blend spaces, baseline and advanced cross-fades, masked upper-body override layers with events, additive breathing, and root-motion observe/apply. Use Tab to cycle the showcase pages.";
+    public override string Description => "Animation showcase for the modern runtime: linear blend trees, 1D/2D blend spaces, baseline and advanced cross-fades, masked upper-body override layers with events, additive breathing, and root-motion observe/apply. Use Tab to cycle the showcase pages.";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -98,7 +102,7 @@ public class AnimationBlendDemo : Demo
         _riggedModel = riggedModel;
         _blendParameter1D = 0f;
         _blendParameter2D = Vector2.Zero;
-        _demoMode = DemoMode.BlendSpace1D;
+        _demoMode = ResolveInitialDemoMode();
         ApplyDemoMode();
     }
 
@@ -109,7 +113,7 @@ public class AnimationBlendDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        if (_game == null || _riggedModel == null || _blendSpace1D == null || _blendSpace2D == null)
+        if (_game == null || _riggedModel == null || _linearBlendTree == null || _blendSpace1D == null || _blendSpace2D == null)
         {
             return;
         }
@@ -130,6 +134,10 @@ public class AnimationBlendDemo : Demo
 
         switch (_demoMode)
         {
+            case DemoMode.LinearBlendTree:
+                UpdateLinearBlendTree(keyboardState, elapsedSeconds);
+                break;
+
             case DemoMode.BlendSpace1D:
                 UpdateOneDimensionalBlend(keyboardState, elapsedSeconds);
                 break;
@@ -180,6 +188,12 @@ public class AnimationBlendDemo : Demo
 
         switch (_demoMode)
         {
+            case DemoMode.LinearBlendTree:
+                _hudBuilder.AppendLine($"Blend: {_blendParameter1D:F2} (0=Idle, 1=Walk, 2=Run)");
+                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
+                _hudBuilder.AppendLine("[W] Walk  [Shift+W] Run  [Backspace] Reset actor");
+                break;
+
             case DemoMode.BlendSpace1D:
                 _hudBuilder.AppendLine($"Blend: {_blendParameter1D:F2} (0=Idle, 1=Walk, 2=Run)");
                 _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
@@ -245,6 +259,7 @@ public class AnimationBlendDemo : Demo
         _game = null;
         _skinnedMeshComponent = null;
         _riggedModel = null;
+        _linearBlendTree = null;
         _blendSpace1D = null;
         _blendSpace2D = null;
         _upperBodyActionClip = null;
@@ -301,6 +316,14 @@ public class AnimationBlendDemo : Demo
             throw new InvalidOperationException("The animation blend demo expects idle, walk, and run clips.");
         }
 
+        _linearBlendTree = new LinearBlendAnimationNode(
+            new IAnimationGraphNode[]
+            {
+                new AnimationClipNode(clips[0]),
+                new AnimationClipNode(clips[1]),
+                new AnimationClipNode(clips[2]),
+            });
+
         _blendSpace1D = new BlendSpace1DNode(
             new[]
             {
@@ -331,7 +354,7 @@ public class AnimationBlendDemo : Demo
 
     private void ApplyDemoMode()
     {
-        if (_skinnedMeshComponent == null || _blendSpace1D == null || _blendSpace2D == null)
+        if (_skinnedMeshComponent == null || _linearBlendTree == null || _blendSpace1D == null || _blendSpace2D == null)
         {
             return;
         }
@@ -345,6 +368,12 @@ public class AnimationBlendDemo : Demo
 
         switch (_demoMode)
         {
+            case DemoMode.LinearBlendTree:
+                _blendParameter1D = 0f;
+                _linearBlendTree.Parameter = _blendParameter1D;
+                _skinnedMeshComponent.PlayAnimationGraph(_linearBlendTree);
+                break;
+
             case DemoMode.BlendSpace1D:
                 _blendParameter1D = 0f;
                 _blendSpace1D.Parameter = _blendParameter1D;
@@ -383,17 +412,15 @@ public class AnimationBlendDemo : Demo
         SetTransientMessage($"Showcase: {GetModeLabel(_demoMode)}");
     }
 
+    private void UpdateLinearBlendTree(KeyboardState keyboardState, float elapsedSeconds)
+    {
+        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(keyboardState), elapsedSeconds * OneDimensionalBlendSpeed);
+        _linearBlendTree!.Parameter = _blendParameter1D;
+    }
+
     private void UpdateOneDimensionalBlend(KeyboardState keyboardState, float elapsedSeconds)
     {
-        var target = 0f;
-        if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
-        {
-            target = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)
-                ? 2f
-                : 1f;
-        }
-
-        _blendParameter1D = MoveTowards(_blendParameter1D, target, elapsedSeconds * OneDimensionalBlendSpeed);
+        _blendParameter1D = MoveTowards(_blendParameter1D, GetLocomotionBlendTarget(keyboardState), elapsedSeconds * OneDimensionalBlendSpeed);
         _blendSpace1D!.Parameter = _blendParameter1D;
     }
 
@@ -666,6 +693,7 @@ public class AnimationBlendDemo : Demo
     {
         return mode switch
         {
+            DemoMode.LinearBlendTree => "Linear blend tree",
             DemoMode.BlendSpace1D => "Blend space 1D",
             DemoMode.BlendSpace2D => "Blend space 2D",
             DemoMode.CrossFade => "Cross-fade playback",
@@ -674,6 +702,30 @@ public class AnimationBlendDemo : Demo
             DemoMode.AdditiveRootMotion => "Additive + root motion",
             _ => mode.ToString(),
         };
+    }
+
+    private static DemoMode ResolveInitialDemoMode()
+    {
+        var requestedMode = Environment.GetEnvironmentVariable(BlendModeEnvironmentVariable);
+        if (!string.IsNullOrWhiteSpace(requestedMode)
+            && Enum.TryParse<DemoMode>(requestedMode, ignoreCase: true, out var demoMode))
+        {
+            return demoMode;
+        }
+
+        return DemoMode.BlendSpace1D;
+    }
+
+    private static float GetLocomotionBlendTarget(KeyboardState keyboardState)
+    {
+        if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
+        {
+            return keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift)
+                ? 2f
+                : 1f;
+        }
+
+        return 0f;
     }
 
     private void TriggerAdvancedCrossFade(int animationIndex)
