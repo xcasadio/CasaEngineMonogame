@@ -23,6 +23,7 @@ public class AnimationBlendDemo : Demo
         BlendSpace1D,
         BlendSpace2D,
         CrossFade,
+        AdvancedCrossFade,
         LayeredUpperBody,
         AdditiveRootMotion,
     }
@@ -61,6 +62,8 @@ public class AnimationBlendDemo : Demo
     private float _upperBodyLayerWeight = 1f;
     private float _additiveLayerWeight = 0.45f;
     private bool _applyRootMotionToEntity;
+    private AnimationTransitionEasingMode _advancedCrossFadeEasingMode = AnimationTransitionEasingMode.EaseOutCubic;
+    private bool _advancedCrossFadePreserveRootVelocity = true;
     private RootMotionDelta _lastObservedRootMotionDelta = RootMotionDelta.Identity;
     private readonly List<Vector3> _rootMotionTrailPoints = new(64);
     private string _latestEventMessage = string.Empty;
@@ -69,7 +72,7 @@ public class AnimationBlendDemo : Demo
 
     public override string Title => "Animation blend demo";
 
-    public override string Description => "Animation showcase for the modern runtime: 1D/2D blend spaces, manual cross-fades, masked upper-body override layers with events, additive breathing, and root-motion observe/apply. Use Tab to cycle the showcase pages.";
+    public override string Description => "Animation showcase for the modern runtime: 1D/2D blend spaces, baseline and advanced cross-fades, masked upper-body override layers with events, additive breathing, and root-motion observe/apply. Use Tab to cycle the showcase pages.";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -139,6 +142,10 @@ public class AnimationBlendDemo : Demo
                 UpdateCrossFadeMode(keyboardState);
                 break;
 
+            case DemoMode.AdvancedCrossFade:
+                UpdateAdvancedCrossFadeMode(keyboardState);
+                break;
+
             case DemoMode.LayeredUpperBody:
                 UpdateLayeredUpperBodyMode(keyboardState, elapsedSeconds);
                 break;
@@ -188,6 +195,15 @@ public class AnimationBlendDemo : Demo
             case DemoMode.CrossFade:
                 _hudBuilder.AppendLine("[1] Idle  [2] Walk  [3] Run");
                 _hudBuilder.AppendLine($"Cross-fade duration: {CrossFadeDurationSeconds:F2}s");
+                _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
+                break;
+
+            case DemoMode.AdvancedCrossFade:
+                _hudBuilder.AppendLine("[1] Idle  [2] Walk  [3] Run");
+                _hudBuilder.AppendLine($"Transition easing: {GetTransitionEasingLabel(_advancedCrossFadeEasingMode)}");
+                _hudBuilder.AppendLine($"Preserve root velocity: {(_advancedCrossFadePreserveRootVelocity ? "On" : "Off")}");
+                _hudBuilder.AppendLine($"Transition active: {(_riggedModel?.AnimationController?.IsCrossFading == true ? "Yes" : "No")}");
+                _hudBuilder.AppendLine("[E] Cycle easing  [R] Toggle velocity preservation");
                 _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
                 break;
 
@@ -345,6 +361,10 @@ public class AnimationBlendDemo : Demo
                 _skinnedMeshComponent.PlayAnimation(0);
                 break;
 
+            case DemoMode.AdvancedCrossFade:
+                _skinnedMeshComponent.PlayAnimation(0);
+                break;
+
             case DemoMode.LayeredUpperBody:
                 _blendParameter1D = 1f;
                 _blendSpace1D.Parameter = _blendParameter1D;
@@ -422,6 +442,41 @@ public class AnimationBlendDemo : Demo
         else if (IsNewKeyPress(keyboardState, Keys.D3) || IsNewKeyPress(keyboardState, Keys.NumPad3))
         {
             _skinnedMeshComponent.CrossFadeToAnimation(2, CrossFadeDurationSeconds);
+        }
+    }
+
+    private void UpdateAdvancedCrossFadeMode(KeyboardState keyboardState)
+    {
+        if (_riggedModel?.AnimationController == null)
+        {
+            return;
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.E))
+        {
+            CycleAdvancedCrossFadeEasingMode();
+            SetTransientMessage($"Advanced cross-fade easing: {GetTransitionEasingLabel(_advancedCrossFadeEasingMode)}");
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.R))
+        {
+            _advancedCrossFadePreserveRootVelocity = !_advancedCrossFadePreserveRootVelocity;
+            SetTransientMessage(_advancedCrossFadePreserveRootVelocity
+                ? "Advanced cross-fade now preserves root velocity"
+                : "Advanced cross-fade now uses pose-only blending");
+        }
+
+        if (IsNewKeyPress(keyboardState, Keys.D1) || IsNewKeyPress(keyboardState, Keys.NumPad1))
+        {
+            TriggerAdvancedCrossFade(0);
+        }
+        else if (IsNewKeyPress(keyboardState, Keys.D2) || IsNewKeyPress(keyboardState, Keys.NumPad2))
+        {
+            TriggerAdvancedCrossFade(1);
+        }
+        else if (IsNewKeyPress(keyboardState, Keys.D3) || IsNewKeyPress(keyboardState, Keys.NumPad3))
+        {
+            TriggerAdvancedCrossFade(2);
         }
     }
 
@@ -614,9 +669,54 @@ public class AnimationBlendDemo : Demo
             DemoMode.BlendSpace1D => "Blend space 1D",
             DemoMode.BlendSpace2D => "Blend space 2D",
             DemoMode.CrossFade => "Cross-fade playback",
+            DemoMode.AdvancedCrossFade => "Advanced cross-fade playback",
             DemoMode.LayeredUpperBody => "Upper-body override layer",
             DemoMode.AdditiveRootMotion => "Additive + root motion",
             _ => mode.ToString(),
+        };
+    }
+
+    private void TriggerAdvancedCrossFade(int animationIndex)
+    {
+        if (_riggedModel?.AnimationController == null || _riggedModel.AnimationClips.Count == 0)
+        {
+            return;
+        }
+
+        if (animationIndex < 0 || animationIndex >= _riggedModel.AnimationClips.Count)
+        {
+            return;
+        }
+
+        var clip = _riggedModel.AnimationClips[animationIndex];
+        _riggedModel.CurrentPlayingAnimationIndex = animationIndex;
+        _riggedModel.AnimationController.CrossFade(
+            clip,
+            CrossFadeDurationSeconds,
+            new AnimationCrossFadeSettings
+            {
+                EasingMode = _advancedCrossFadeEasingMode,
+                PreserveRootTranslationVelocity = _advancedCrossFadePreserveRootVelocity,
+            },
+            loop: true);
+        _riggedModel.AnimationRunning = true;
+        SetTransientMessage($"Advanced cross-fade to {clip.Name}");
+    }
+
+    private void CycleAdvancedCrossFadeEasingMode()
+    {
+        var easingModes = Enum.GetValues<AnimationTransitionEasingMode>();
+        var nextIndex = ((int)_advancedCrossFadeEasingMode + 1) % easingModes.Length;
+        _advancedCrossFadeEasingMode = easingModes[nextIndex];
+    }
+
+    private static string GetTransitionEasingLabel(AnimationTransitionEasingMode easingMode)
+    {
+        return easingMode switch
+        {
+            AnimationTransitionEasingMode.SmoothStep => "Smooth step",
+            AnimationTransitionEasingMode.EaseOutCubic => "Ease-out cubic",
+            _ => "Linear",
         };
     }
 

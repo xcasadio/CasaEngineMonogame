@@ -736,7 +736,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 10 - Optimisations et techniques avancees
 
-- ⏳ **T10.01 - Ajouter compression de clips**
+- ✅ **T10.01 - Ajouter compression de clips**
   Objectif :
   - Reduire memoire et bande passante CPU des clips.
   - Definir une politique de precision par canal.
@@ -746,7 +746,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add clip compression pipeline`
 
-- ⏳ **T10.02 - Ajouter inertialization ou transitions avancees**
+- ✅ **T10.02 - Ajouter inertialization ou transitions avancees**
   Objectif :
   - Ameliorer la qualite des transitions rapides sans multiplier les clips de transition.
   Validation :

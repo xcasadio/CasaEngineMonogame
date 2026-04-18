@@ -7,6 +7,7 @@ public sealed class AnimationController
     private readonly AnimationClipSampler _sampler = new();
     private readonly SkeletonPoseLocal _sourcePose;
     private readonly SkeletonPoseLocal _targetPose;
+    private readonly SkeletonPoseLocal _transitionPose;
     private readonly SkeletonPoseLocal _layerPose;
     private readonly SkeletonPoseLocal _referencePose;
     private readonly List<AnimationLayer> _layers = new();
@@ -17,6 +18,7 @@ public sealed class AnimationController
     private AnimationState? _targetState;
     private float _crossFadeDurationSeconds;
     private float _crossFadeElapsedSeconds;
+    private AnimationCrossFadeSettings _crossFadeSettings = AnimationCrossFadeSettings.Default;
     private IAnimationGraphNode? _graphRoot;
     private bool _graphPlaying;
     private float _graphTimeSeconds;
@@ -28,6 +30,7 @@ public sealed class AnimationController
         OutputPose = skeleton.CreateLocalBindPose();
         _sourcePose = skeleton.CreateLocalBindPose();
         _targetPose = skeleton.CreateLocalBindPose();
+        _transitionPose = skeleton.CreateLocalBindPose();
         _layerPose = skeleton.CreateLocalBindPose();
         _referencePose = skeleton.CreateLocalBindPose();
     }
@@ -69,6 +72,7 @@ public sealed class AnimationController
         _targetState = null;
         _crossFadeDurationSeconds = 0f;
         _crossFadeElapsedSeconds = 0f;
+        _crossFadeSettings = AnimationCrossFadeSettings.Default;
         _sampler.Sample(clip, 0f, OutputPose, loop);
         ResetRootMotionTrackingFromOutputPose();
         if (RootMotionMode == RootMotionMode.Apply)
@@ -90,6 +94,7 @@ public sealed class AnimationController
         _targetState = null;
         _crossFadeDurationSeconds = 0f;
         _crossFadeElapsedSeconds = 0f;
+        _crossFadeSettings = AnimationCrossFadeSettings.Default;
         graphRoot.Evaluate(OutputPose);
         ResetRootMotionTrackingFromOutputPose();
         if (RootMotionMode == RootMotionMode.Apply)
@@ -102,7 +107,14 @@ public sealed class AnimationController
 
     public void CrossFade(AnimationClip clip, float durationSeconds, bool loop = true, float speed = 1f)
     {
+        CrossFade(clip, durationSeconds, AnimationCrossFadeSettings.Default, loop, speed);
+    }
+
+    public void CrossFade(AnimationClip clip, float durationSeconds, AnimationCrossFadeSettings? settings, bool loop = true, float speed = 1f)
+    {
         ValidateClip(clip);
+        settings ??= AnimationCrossFadeSettings.Default;
+        settings.Validate();
 
         if (_currentState == null || durationSeconds <= 0f)
         {
@@ -113,6 +125,7 @@ public sealed class AnimationController
         _targetState = new AnimationState(clip, loop, speed);
         _crossFadeDurationSeconds = durationSeconds;
         _crossFadeElapsedSeconds = 0f;
+        _crossFadeSettings = settings;
     }
 
     public void Stop()
@@ -122,6 +135,7 @@ public sealed class AnimationController
         _targetState = null;
         _crossFadeDurationSeconds = 0f;
         _crossFadeElapsedSeconds = 0f;
+        _crossFadeSettings = AnimationCrossFadeSettings.Default;
         for (var layerIndex = 0; layerIndex < _layers.Count; layerIndex++)
         {
             _layers[layerIndex].Clear();
@@ -257,9 +271,11 @@ public sealed class AnimationController
         _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, _sourcePose, _currentState.Loop);
         _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
 
-        var blendWeight = _crossFadeDurationSeconds <= 0f
+        var linearBlendWeight = _crossFadeDurationSeconds <= 0f
             ? 1f
             : Math.Clamp(_crossFadeElapsedSeconds / _crossFadeDurationSeconds, 0f, 1f);
+        PreserveRootTranslationVelocity(previousCurrentTime, elapsedSeconds, linearBlendWeight);
+        var blendWeight = AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
 
         AnimationPoseBlender.Blend(_sourcePose, _targetPose, blendWeight, OutputPose);
         ApplyLayers();
@@ -272,6 +288,7 @@ public sealed class AnimationController
             _targetState = null;
             _crossFadeDurationSeconds = 0f;
             _crossFadeElapsedSeconds = 0f;
+            _crossFadeSettings = AnimationCrossFadeSettings.Default;
         }
     }
 
@@ -302,12 +319,17 @@ public sealed class AnimationController
 
     private BoneTransform GetCurrentRootTransform()
     {
-        if (OutputPose.Count == 0 || RootJointIndex < 0 || RootJointIndex >= OutputPose.Count)
+        return GetRootTransform(OutputPose);
+    }
+
+    private BoneTransform GetRootTransform(SkeletonPoseLocal pose)
+    {
+        if (pose.Count == 0 || RootJointIndex < 0 || RootJointIndex >= pose.Count)
         {
             return BoneTransform.Identity;
         }
 
-        return OutputPose.GetTransform(RootJointIndex);
+        return pose.GetTransform(RootJointIndex);
     }
 
     private void ResetRootMotionTrackingFromOutputPose()
@@ -392,6 +414,44 @@ public sealed class AnimationController
             _sampler.Sample(layer.State.Clip, layer.State.TimeSeconds, _layerPose, layer.State.Loop);
             ApplyLayerPose(layer, _layerPose, OutputPose, _referencePose);
         }
+    }
+
+    private void PreserveRootTranslationVelocity(float previousCurrentTime, float elapsedSeconds, float linearBlendWeight)
+    {
+        if (!_crossFadeSettings.PreserveRootTranslationVelocity
+            || _currentState == null
+            || elapsedSeconds <= float.Epsilon
+            || RootJointIndex < 0
+            || RootJointIndex >= Skeleton.Count)
+        {
+            return;
+        }
+
+        _sampler.Sample(_currentState.Clip, previousCurrentTime, _transitionPose, _currentState.Loop);
+
+        var previousSourceRoot = GetRootTransform(_transitionPose);
+        var currentSourceRoot = GetRootTransform(_sourcePose);
+        var remainingTimeSeconds = Math.Max(_crossFadeDurationSeconds - _crossFadeElapsedSeconds, 0f);
+        if (remainingTimeSeconds <= 0f)
+        {
+            return;
+        }
+
+        var sourceVelocity = (currentSourceRoot.Translation - previousSourceRoot.Translation) / elapsedSeconds;
+        if (sourceVelocity.LengthSquared() <= float.Epsilon)
+        {
+            return;
+        }
+
+        var targetRoot = GetRootTransform(_targetPose);
+        var preservedTranslation = targetRoot.Translation + sourceVelocity * remainingTimeSeconds * _crossFadeSettings.RootTranslationVelocityWeight;
+        _targetPose.SetTransformDirect(
+            RootJointIndex,
+            new BoneTransform(
+                preservedTranslation,
+                targetRoot.Rotation,
+                targetRoot.Scale));
+        _targetPose.MarkDirtyFrom(RootJointIndex);
     }
 
     private static void ApplyLayerPose(AnimationLayer layer, SkeletonPoseLocal layerPose, SkeletonPoseLocal basePose, SkeletonPoseLocal referencePose)

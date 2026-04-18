@@ -54,6 +54,58 @@ public class AnimationControllerTests
     }
 
     [Fact]
+    public void CrossFade_WithEaseOutCubic_UsesNonLinearBlendWeight()
+    {
+        var skeleton = CreateSkeleton();
+        var clipA = CreateClip(skeleton, "A", Vector3.Zero, Vector3.Zero);
+        var clipB = CreateClip(skeleton, "B", new Vector3(10f, 0f, 0f), new Vector3(10f, 0f, 0f));
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(clipA);
+        controller.CrossFade(
+            clipB,
+            1f,
+            new AnimationCrossFadeSettings
+            {
+                EasingMode = AnimationTransitionEasingMode.EaseOutCubic,
+            });
+        controller.Update(0.5f);
+
+        Assert.Equal(new Vector3(8.75f, 0f, 0f), controller.OutputPose.GetTransform(0).Translation);
+    }
+
+    [Fact]
+    public void CrossFade_WithRootVelocityPreservation_PushesTransitionForward()
+    {
+        var skeleton = CreateSkeleton();
+        var movingClip = CreateClip(skeleton, "Move", Vector3.Zero, new Vector3(10f, 0f, 0f));
+        var idleClip = CreateClip(skeleton, "Idle", Vector3.Zero, Vector3.Zero);
+        var defaultController = new AnimationController(skeleton);
+        var preservedController = new AnimationController(skeleton);
+
+        defaultController.Play(movingClip);
+        preservedController.Play(movingClip);
+        defaultController.Update(0.4f);
+        preservedController.Update(0.4f);
+
+        defaultController.CrossFade(idleClip, 1f);
+        preservedController.CrossFade(
+            idleClip,
+            1f,
+            new AnimationCrossFadeSettings
+            {
+                PreserveRootTranslationVelocity = true,
+            });
+
+        defaultController.Update(0.2f);
+        preservedController.Update(0.2f);
+
+        Assert.True(
+            preservedController.OutputPose.GetTransform(0).Translation.X > defaultController.OutputPose.GetTransform(0).Translation.X,
+            "The preserved transition should keep more forward motion than the default linear cross-fade.");
+    }
+
+    [Fact]
     public void Update_ExtractsRootMotionDeltaFromOutputPose()
     {
         var skeleton = CreateSkeleton();
