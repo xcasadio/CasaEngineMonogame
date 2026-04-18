@@ -87,6 +87,19 @@ public class EffectiveShaderResolverTests
     }
 
     [Fact]
+    public void Resolve_ReturnsExplicitLinearBlendSkinnedFallback_WhenModeIsProvided()
+    {
+        var resolved = EffectiveShaderResolver.Resolve(
+            new LitDiffuseMaterial(),
+            ShaderFeature.Skinned | ShaderFeature.BasColorTexture,
+            SkinningMode.LinearBlend);
+
+        Assert.Equal(EffectiveShaderResolver.LinearBlendSkinnedEffectShaderId, resolved.ShaderId);
+        Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.LinearBlendSkinnedEffectContentName, resolved.ContentName);
+    }
+
+    [Fact]
     public void Resolve_UsesMaterialCapabilityContract_ForUnknownMaterialTypes()
     {
         var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(

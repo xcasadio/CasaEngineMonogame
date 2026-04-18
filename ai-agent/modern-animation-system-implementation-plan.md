@@ -586,13 +586,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(rendering): move skinned meshes to persistent gpu buffers`
 
-- ⏳ **T06.03 - Introduire `SkinningMode.LinearBlend` explicite**
+- ✅ **T06.03 - Introduire `SkinningMode.LinearBlend` explicite**
   Objectif :
   - Formaliser le mode LBS actuel au lieu d'un shader implicite unique.
   - Clarifier les contrats vertex et shader.
   Validation :
   - Build solution.
   - Tests si un resolver de mode est introduit.
+  Resultat du 2026-04-18 :
+  - Enum runtime ajoutee : `SkinningMode` avec `LinearBlend` comme mode explicite par defaut sur `RiggedModel`.
+  - `SkinningModeShaderResolver` formalise le mapping `SkinningMode -> shader built-in` et `SkinningMode -> vertex declaration`.
+  - `EffectiveShaderResolver` et `SkinnedMeshRendererComponent` consomment maintenant ce contrat explicite au lieu d'assumer implicitement que tout chemin skinned pointe vers `skinEffect`.
+  - `VertexPositionTextureNormalTangentWeights` documente explicitement le contrat vertex du mode `LinearBlend`.
+  - Tests ajoutes/etendus : `SkinningModeShaderResolverTests` et `EffectiveShaderResolverTests`.
+  - Validation executee : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter "SkinningModeShaderResolverTests|EffectiveShaderResolverTests"` puis `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`.
   Commit conseille :
   - `refactor(rendering): formalize linear blend skinning mode`
 

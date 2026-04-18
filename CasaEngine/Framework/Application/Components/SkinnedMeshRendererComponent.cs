@@ -60,19 +60,20 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
     protected override void LoadContent()
     {
-        _effect = Game.Content.Load<Effect>("Shaders\\skinEffect");
+        var linearBlendShader = SkinningModeShaderResolver.Resolve(SkinningMode.LinearBlend);
+        _effect = Game.Content.Load<Effect>(linearBlendShader.ContentName!);
         _shader = new ShaderWrapper(_effect);
 
         if (Game is CasaEngineGame casaEngineGame)
         {
             _shaderManager = new ShaderManager(casaEngineGame.AssetContentManager);
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
-            _shaderManager.RegisterShader(EffectiveShaderResolver.SkinnedEffectShaderId, _shader);
-            _variantLibrary.RegisterTechniqueAliases(EffectiveShaderResolver.SkinnedEffectShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
+            _shaderManager.RegisterShader(linearBlendShader.ShaderId, _shader);
+            _variantLibrary.RegisterTechniqueAliases(linearBlendShader.ShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
-        _shaderSelector.RegisterShader(EffectiveShaderResolver.SkinnedEffectShaderId, _shader);
+        _shaderSelector.RegisterShader(linearBlendShader.ShaderId, _shader);
 
         // Provide a 1×1 white fallback texture for skinned meshes without textures.
         if (RiggedModelLoader.DefaultTexture == null)
@@ -158,7 +159,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         ISkinnedMeshPoseProvider poseProvider,
         in RenderContext context)
     {
-        mesh.Initialize(context.Device);
+        mesh.Initialize(context.Device, SkinningModeShaderResolver.ResolveVertexDeclaration(riggedModel.SkinningMode));
         if (mesh.VertexBuffer == null || mesh.IndexBuffer == null)
         {
             return;
@@ -167,7 +168,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _defaultMaterial.BasColor = texture;
 
         var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
-        var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features);
+        var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features, riggedModel.SkinningMode);
         var resolvedShader = _shaderSelector!.Resolve(effectiveShader.ShaderId, features);
         var meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
 

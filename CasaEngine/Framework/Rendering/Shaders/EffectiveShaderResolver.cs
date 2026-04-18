@@ -1,5 +1,7 @@
 
 
+using CasaEngine.Framework.Rendering.Models;
+
 namespace CasaEngine.Framework.Rendering.Shaders;
 
 /// <summary>
@@ -36,12 +38,14 @@ public static class EffectiveShaderResolver
     public static readonly Guid LitForwardShaderId = Guid.Parse("563375cb-78fb-4d0b-bce6-a267cf89b88d");
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
     public static readonly Guid ReflectiveLitForwardShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
-    public static readonly Guid SkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
+    public static readonly Guid LinearBlendSkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
+    public static readonly Guid SkinnedEffectShaderId = LinearBlendSkinnedEffectShaderId;
 
     public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
     public const string ReflectiveLitForwardContentName = LitForwardContentName;
-    public const string SkinnedEffectContentName = "Shaders\\skinEffect";
+    public const string LinearBlendSkinnedEffectContentName = "Shaders\\skinEffect";
+    public const string SkinnedEffectContentName = LinearBlendSkinnedEffectContentName;
 
     /// <summary>
     /// Resolves the runtime shader reference for <paramref name="material"/>.
@@ -55,6 +59,9 @@ public static class EffectiveShaderResolver
     /// draw-path features such as skinning.
     /// </summary>
     public static EffectiveShaderReference Resolve(MaterialBase material, ShaderFeature features)
+        => Resolve(material, features, SkinningMode.LinearBlend);
+
+    public static EffectiveShaderReference Resolve(MaterialBase material, ShaderFeature features, SkinningMode skinningMode)
     {
         ArgumentNullException.ThrowIfNull(material);
 
@@ -65,7 +72,7 @@ public static class EffectiveShaderResolver
 
         if ((features & ShaderFeature.Skinned) != 0)
         {
-            return new EffectiveShaderReference(SkinnedEffectShaderId, SkinnedEffectContentName);
+            return SkinningModeShaderResolver.Resolve(skinningMode);
         }
 
         var capabilities = material.GetShaderCapabilities();

@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 namespace CasaEngine.Framework.Rendering.Models;
 
 /// <summary>
-/// basically a wide spectrum vertice structure.
+/// Vertex contract used by the linear blend skinning path (`SkinningMode.LinearBlend`).
 /// </summary>
 public struct VertexPositionTextureNormalTangentWeights : IVertexType
 {

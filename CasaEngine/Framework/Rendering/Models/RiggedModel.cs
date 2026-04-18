@@ -75,6 +75,7 @@ public class RiggedModel : IAssetable
     public SkeletonPoseModel? ModelPose { get; private set; }
     public AnimationController? AnimationController { get; private set; }
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
+    public SkinningMode SkinningMode { get; set; } = SkinningMode.LinearBlend;
     public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
     public event Action<SkeletonPoseLocal, SkeletonPoseModel>? PosePostProcessing;
 
@@ -104,7 +105,7 @@ public class RiggedModel : IAssetable
 
         for (var meshIndex = 0; meshIndex < Meshes.Length; meshIndex++)
         {
-            Meshes[meshIndex].Initialize(graphicsDevice);
+            Meshes[meshIndex].Initialize(graphicsDevice, SkinningModeShaderResolver.ResolveVertexDeclaration(SkinningMode));
         }
     }
 
@@ -808,9 +809,10 @@ public class RiggedModel : IAssetable
         /// </summary>
         public Vector3 Centroid { get; set; }
 
-        public void Initialize(GraphicsDevice graphicsDevice)
+        public void Initialize(GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration)
         {
             ArgumentNullException.ThrowIfNull(graphicsDevice);
+            ArgumentNullException.ThrowIfNull(vertexDeclaration);
 
             bool vertexBufferValid = VertexBuffer != null
                 && !VertexBuffer.IsDisposed
@@ -831,7 +833,7 @@ public class RiggedModel : IAssetable
                 return;
             }
 
-            VertexBuffer = new VertexBuffer(graphicsDevice, VertexPositionTextureNormalTangentWeights.VertexDeclaration, Vertices.Length, BufferUsage.None);
+            VertexBuffer = new VertexBuffer(graphicsDevice, vertexDeclaration, Vertices.Length, BufferUsage.None);
             VertexBuffer.SetData(Vertices);
 
             IndexBuffer = new IndexBuffer(graphicsDevice, typeof(int), Indices.Length, BufferUsage.None);
