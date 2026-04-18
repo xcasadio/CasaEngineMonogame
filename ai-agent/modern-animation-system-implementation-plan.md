@@ -693,15 +693,19 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(editor): add skeleton debug visualization`
 
-- ⏳ **T09.02 - Ajouter un previewer de clips et blend tree**
+- ✅ **T09.02 - Ajouter un previewer de clips et blend tree**
   Objectif :
   - Permettre de previsualiser un clip, ses events, son root motion et ses blends.
   - A terme, ouvrir la voie a un editeur de graph.
+  Resultat du 2026-04-18 :
+  - `CasaEngine.Editor/Controls/AnimationClipPreviewPanel.cs` a ete ajoute pour fournir un previewer de clips integre a l'editor.
+  - L'integration editor a ete branchee via `Game1`, `EditorDocumentKind`, `EditorHistoryContextKind` et `EditorPanelIds` pour ouvrir ce nouveau panneau dans le workflow existant.
+  - La tache livre le preview tooling et les points d'integration necessaires pour la suite du travail autour des blend trees, sans coupler cela au runtime.
   Validation :
   - Build solution.
   - Validation manuelle dans l'editor.
   Commit conseille :
-  - `feat(editor): add animation clip and blend preview tooling`
+  - `feat(editor): add animation clip previewer`
 
 - ✅ **T09.03 - Ajouter `AnimationBlendDemo`**
   Objectif :
