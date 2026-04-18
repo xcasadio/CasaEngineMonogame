@@ -1,7 +1,9 @@
 using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Common;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Rendering.Models;
 
@@ -23,6 +25,11 @@ public static class EditorAssetImportService
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
 
         bool catalogChanged = EnsureFileAssetRegistered(destinationFilePath);
+
+        if (TryImportSeparatedAnimationAssets(sourceFilePath, destinationFilePath))
+        {
+            return true;
+        }
 
         var importer = new StaticModelImporter();
         if (!importer.IsFileSupported(sourceFilePath))
@@ -53,6 +60,107 @@ public static class EditorAssetImportService
         Directory.CreateDirectory(Path.GetDirectoryName(staticModelFullPath)!);
         EditorAssetWriterService.SaveDocument(staticModelRelativePath, modelDocument);
         return true;
+    }
+
+    private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)
+    {
+        var riggedModelLoader = new RiggedModelLoader(null, null);
+        RiggedModel riggedModel;
+
+        try
+        {
+            riggedModel = riggedModelLoader.LoadAsset(sourceFilePath);
+        }
+        catch
+        {
+            return false;
+        }
+
+        bool hasRealBones = riggedModel.NumberOfBonesInUse > 1;
+        bool hasAnimations = riggedModel.AnimationClips.Count > 0 || riggedModel.OriginalAnimations.Count > 0;
+        if (!hasRealBones && !hasAnimations)
+        {
+            return false;
+        }
+
+        ImportSeparatedAnimationAssets(destinationFilePath, riggedModel);
+        return true;
+    }
+
+    private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel)
+    {
+        ArgumentNullException.ThrowIfNull(riggedModel);
+
+        string modelBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
+        string rawAssetRelativePath = GetRelativeProjectPath(destinationFilePath);
+        var rawAssetInfo = AssetCatalog.GetByFileName(rawAssetRelativePath)
+            ?? EnsureAssetInfo(rawAssetRelativePath, modelBaseName);
+
+        Guid skeletonAssetId = Guid.Empty;
+        string animationDirectory = Path.Combine(GetImportedAssetsDirectory(destinationFilePath), "Animation");
+        Directory.CreateDirectory(animationDirectory);
+
+        if (riggedModel.SkeletonDefinition != null)
+        {
+            string skeletonFullPath = Path.Combine(animationDirectory, modelBaseName + Constants.FileNameExtensions.Skeleton);
+            string skeletonRelativePath = GetRelativeProjectPath(skeletonFullPath);
+            string skeletonAssetName = modelBaseName + "_Skeleton";
+            var skeletonAssetInfo = EnsureAssetInfo(skeletonRelativePath, skeletonAssetName);
+            var skeletonAsset = AnimationAssetDataConverter.CreateSkeletonAsset(riggedModel.SkeletonDefinition);
+            skeletonAsset.Name = skeletonAssetInfo.Name;
+            skeletonAsset.FileName = skeletonRelativePath;
+
+            var skeletonDocument = SerializeAsset(skeletonAsset, skeletonAssetInfo.Id, skeletonAssetInfo.Name);
+            EditorAssetWriterService.SaveDocument(skeletonRelativePath, skeletonDocument);
+            skeletonAssetId = skeletonAssetInfo.Id;
+        }
+
+        var clipAssetIds = new List<Guid>(riggedModel.AnimationClips.Count);
+        var usedClipFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var clipIndex = 0; clipIndex < riggedModel.AnimationClips.Count; clipIndex++)
+        {
+            var animationClip = riggedModel.AnimationClips[clipIndex];
+            string clipBaseName = string.IsNullOrWhiteSpace(animationClip.Name)
+                ? $"{modelBaseName}_{clipIndex + 1}"
+                : $"{modelBaseName}_{SanitizeFileName(animationClip.Name)}";
+            string clipFileName = CreateUniqueImportedFileName(
+                clipBaseName + Constants.FileNameExtensions.SkeletonAnimation,
+                usedClipFileNames);
+            string clipFullPath = Path.Combine(animationDirectory, clipFileName);
+            string clipRelativePath = GetRelativeProjectPath(clipFullPath);
+            string clipAssetName = Path.GetFileNameWithoutExtension(clipFileName);
+            var clipAssetInfo = EnsureAssetInfo(clipRelativePath, clipAssetName);
+            var compressedClip = AnimationClipCompressor.Compress(animationClip, AnimationClipCompressionSettings.Default);
+            var clipAsset = AnimationAssetDataConverter.CreateAnimationClipAsset(compressedClip, skeletonAssetId);
+            clipAsset.Name = clipAssetInfo.Name;
+            clipAsset.FileName = clipRelativePath;
+
+            var clipDocument = SerializeAsset(clipAsset, clipAssetInfo.Id, clipAssetInfo.Name);
+            EditorAssetWriterService.SaveDocument(clipRelativePath, clipDocument);
+            clipAssetIds.Add(clipAssetInfo.Id);
+        }
+
+        string modelFullPath = Path.ChangeExtension(destinationFilePath, Constants.FileNameExtensions.Model);
+        string modelRelativePath = GetRelativeProjectPath(modelFullPath);
+        string modelAssetName = Path.GetFileNameWithoutExtension(modelFullPath);
+        var modelAssetInfo = EnsureAssetInfo(modelRelativePath, modelAssetName);
+        var skinnedMeshAsset = new SkinnedMeshAsset
+        {
+            Name = modelAssetInfo.Name,
+            FileName = modelRelativePath,
+            SkeletonAssetId = skeletonAssetId,
+            GeometryAssetId = rawAssetInfo.Id,
+            DefaultAnimationClipAssetId = clipAssetIds.Count > 0 ? clipAssetIds[0] : Guid.Empty,
+        };
+
+        for (var clipIndex = 0; clipIndex < clipAssetIds.Count; clipIndex++)
+        {
+            skinnedMeshAsset.AnimationClipAssetIds.Add(clipAssetIds[clipIndex]);
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(modelFullPath)!);
+        var skinnedMeshDocument = SerializeAsset(skinnedMeshAsset, modelAssetInfo.Id, modelAssetInfo.Name);
+        EditorAssetWriterService.SaveDocument(modelRelativePath, skinnedMeshDocument);
     }
 
     public static bool EnsureFileAssetRegistered(string filePath)
