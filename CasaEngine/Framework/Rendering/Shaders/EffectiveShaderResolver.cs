@@ -39,12 +39,14 @@ public static class EffectiveShaderResolver
     public static readonly Guid UnlitTextureShaderId = Guid.Parse("13dbf2e6-4b26-4204-83e4-39c8e239931c");
     public static readonly Guid ReflectiveLitForwardShaderId = Guid.Parse("2d0c7a46-6ac3-4d2a-91d8-dac5015b651d");
     public static readonly Guid LinearBlendSkinnedEffectShaderId = Guid.Parse("a07d9df3-9c17-4ae4-9285-f17a55e2ee40");
+    public static readonly Guid DualQuaternionSkinnedEffectShaderId = Guid.Parse("aa34bc72-1b22-4680-aa56-31c7d0aaf1a7");
     public static readonly Guid SkinnedEffectShaderId = LinearBlendSkinnedEffectShaderId;
 
     public const string LitForwardContentName = "Shaders\\LitForward";
     public const string UnlitTextureContentName = "Shaders\\UnlitTexture";
     public const string ReflectiveLitForwardContentName = LitForwardContentName;
     public const string LinearBlendSkinnedEffectContentName = "Shaders\\skinEffect";
+    public const string DualQuaternionSkinnedEffectContentName = LinearBlendSkinnedEffectContentName;
     public const string SkinnedEffectContentName = LinearBlendSkinnedEffectContentName;
 
     /// <summary>

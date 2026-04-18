@@ -104,6 +104,10 @@ public sealed class ShaderVariantLibrary
     public static Dictionary<string, string> BuildSkinnedEffectAliases()
         => BuildCanonicalAliasMap(_ => "RiggedModelDraw");
 
+    /// <summary>Returns alias map for mapping canonical technique names to the dual-quaternion skinning techniques.</summary>
+    public static Dictionary<string, string> BuildDualQuaternionSkinnedEffectAliases()
+        => BuildCanonicalAliasMap(_ => "RiggedModelDrawDualQuaternion");
+
     // Lookup -------------------------------------------------------------
 
     /// <summary>

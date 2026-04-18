@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -11,9 +12,10 @@ public class SkinnedMeshDemo : Demo
     private SkinnedMeshComponent? _skinnedMeshComponent;
     private float _animationSwitchTimer;
     private int _nextAnimationIndex = 1;
+    private SkinningMode _skinningMode = SkinningMode.DualQuaternion;
 
     public override string Title => "Skinned mesh demo";
-    public override string Description => "Displays an animated skinned mesh model loaded from content. Shows bone-based vertex skinning.";
+    public override string Description => "Displays an animated skinned mesh model loaded from content. Defaults to dual quaternion skinning to validate twist preservation.";
 
     public override void Initialize(CasaEngineGame game)
     {
@@ -29,6 +31,10 @@ public class SkinnedMeshDemo : Demo
 
         var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("Content\\SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
+        if (skinnedMesh.RiggedModel != null)
+        {
+            skinnedMesh.RiggedModel.SkinningMode = _skinningMode;
+        }
 
         _skinnedMeshComponent.SkinnedMesh = skinnedMesh;
         _skinnedMeshComponent.PlayAnimation(0);

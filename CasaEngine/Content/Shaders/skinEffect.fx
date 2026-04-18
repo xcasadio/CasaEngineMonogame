@@ -2,7 +2,7 @@
 // skinEffect.fx
 // Skinned (rigged) model shader with skeletal animation.
 //
-// Techniques: RiggedModelDraw, RiggedModelNormalDraw, SkinedDebugModelDraw
+// Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
 // Uses the same directional light model as LitForward.fx
 // (up to 8 directional lights via Lighting.fxh).
@@ -73,6 +73,7 @@ MATRIX_CONSTANTS
     // Skinning-specific parameters — MUST be inside cbuffer for MGFX compatibility.
     // Standalone (global-scope) matrix params are not handled correctly by MGFX.
     float4x4 Bones[128];
+    float4 BonesDualQuaternion[256];
     float boneIdToSee;
 
 END_CONSTANTS
@@ -125,6 +126,80 @@ void ApplyBoneTransforms(VsInputSkinnedQuad input, out float4 pos, out float3 no
     norm = mul(norm, (float3x3)mbones);
 }
 
+float4 QuaternionConjugate(float4 q)
+{
+    return float4(-q.xyz, q.w);
+}
+
+float4 QuaternionMultiply(float4 left, float4 right)
+{
+    return float4(
+        left.w * right.xyz + right.w * left.xyz + cross(left.xyz, right.xyz),
+        left.w * right.w - dot(left.xyz, right.xyz));
+}
+
+float3 RotateByQuaternion(float3 v, float4 q)
+{
+    float3 doubledCross = 2.0f * cross(q.xyz, v);
+    return v + q.w * doubledCross + cross(q.xyz, doubledCross);
+}
+
+float3 ExtractDualQuaternionTranslation(float4 realQuaternion, float4 dualQuaternion)
+{
+    float4 translationQuaternion = QuaternionMultiply(dualQuaternion * 2.0f, QuaternionConjugate(realQuaternion));
+    return translationQuaternion.xyz;
+}
+
+void ReadBoneDualQuaternion(uint boneIndex, out float4 realQuaternion, out float4 dualQuaternion)
+{
+    uint paletteIndex = boneIndex * 2u;
+    realQuaternion = BonesDualQuaternion[paletteIndex];
+    dualQuaternion = BonesDualQuaternion[paletteIndex + 1u];
+}
+
+void AccumulateBoneDualQuaternion(uint boneIndex, float weight, float4 referenceReal, inout float4 accumulatedReal, inout float4 accumulatedDual)
+{
+    float4 boneReal;
+    float4 boneDual;
+    ReadBoneDualQuaternion(boneIndex, boneReal, boneDual);
+
+    if (dot(boneReal, referenceReal) < 0.0f)
+    {
+        boneReal = -boneReal;
+        boneDual = -boneDual;
+    }
+
+    accumulatedReal += boneReal * weight;
+    accumulatedDual += boneDual * weight;
+}
+
+void ApplyBoneDualQuaternionTransforms(VsInputSkinnedQuad input, out float4 pos, out float3 norm)
+{
+    pos = float4(input.Position, 1.0f);
+    norm = input.Normal;
+
+    float sum = input.BlendWeights.x + input.BlendWeights.y + input.BlendWeights.z + input.BlendWeights.w;
+    float inverseSum = sum > 0.0f ? rcp(sum) : 1.0f;
+
+    float4 referenceReal;
+    float4 referenceDual;
+    ReadBoneDualQuaternion((uint)input.BlendIndices.x, referenceReal, referenceDual);
+
+    float4 accumulatedReal = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float4 accumulatedDual = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    AccumulateBoneDualQuaternion((uint)input.BlendIndices.x, input.BlendWeights.x * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((uint)input.BlendIndices.y, input.BlendWeights.y * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((uint)input.BlendIndices.z, input.BlendWeights.z * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((uint)input.BlendIndices.w, input.BlendWeights.w * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+
+    float quaternionLength = max(length(accumulatedReal), 1e-5f);
+    accumulatedReal /= quaternionLength;
+    accumulatedDual /= quaternionLength;
+
+    pos.xyz = RotateByQuaternion(pos.xyz, accumulatedReal) + ExtractDualQuaternionTranslation(accumulatedReal, accumulatedDual);
+    norm = normalize(RotateByQuaternion(norm, accumulatedReal));
+}
+
 
 //_______________________________________________________________
 // RiggedModelDraw — skinned mesh with per-pixel lighting
@@ -166,6 +241,26 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
 }
 
 TECHNIQUE(RiggedModelDraw, VertexShaderRiggedModelDraw, PixelShaderRiggedModelDraw)
+
+
+VsOutputSkinnedQuad VertexShaderRiggedModelDrawDualQuaternion(VsInputSkinnedQuad input)
+{
+    VsOutputSkinnedQuad output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneDualQuaternionTransforms(input, pos, norm);
+
+    output.Color = float4(1, 1, 1, 1);
+    output.TexureCoordinateA = input.TexureCoordinateA;
+    float4 worldPos = mul(pos, World);
+    output.Position3D = worldPos.xyz;
+    output.Normal3D = normalize(mul(norm, WorldInverseTranspose));
+    output.Position = mul(pos, WorldViewProj);
+    return output;
+}
+
+TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDraw)
 
 
 //_______________________________________________________________

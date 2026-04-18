@@ -13,6 +13,10 @@ public sealed class RiggedModelPoseProvider : ISkinnedMeshPoseProvider
 
     public Matrix[] SkinningPalette => RiggedModel.GlobalShaderMatrixs;
 
+    public Vector4[] DualQuaternionSkinningPalette => RiggedModel.DualQuaternionSkinningPalette;
+
+    public bool CanUseDualQuaternionSkinning => RiggedModel.CanUseDualQuaternionSkinning;
+
     public Matrix GetMeshNodeTransform(RiggedModel.RiggedModelMesh mesh)
     {
         return RiggedModel.GetMeshNodeTransform(mesh);

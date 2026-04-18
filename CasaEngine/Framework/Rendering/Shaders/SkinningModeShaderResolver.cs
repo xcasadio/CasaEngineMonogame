@@ -12,6 +12,9 @@ public static class SkinningModeShaderResolver
             SkinningMode.LinearBlend => new EffectiveShaderReference(
                 EffectiveShaderResolver.LinearBlendSkinnedEffectShaderId,
                 EffectiveShaderResolver.LinearBlendSkinnedEffectContentName),
+            SkinningMode.DualQuaternion => new EffectiveShaderReference(
+                EffectiveShaderResolver.DualQuaternionSkinnedEffectShaderId,
+                EffectiveShaderResolver.DualQuaternionSkinnedEffectContentName),
             _ => throw new ArgumentOutOfRangeException(nameof(skinningMode), skinningMode, null),
         };
     }
@@ -21,6 +24,7 @@ public static class SkinningModeShaderResolver
         return skinningMode switch
         {
             SkinningMode.LinearBlend => VertexPositionTextureNormalTangentWeights.VertexDeclaration,
+            SkinningMode.DualQuaternion => VertexPositionTextureNormalTangentWeights.VertexDeclaration,
             _ => throw new ArgumentOutOfRangeException(nameof(skinningMode), skinningMode, null),
         };
     }

@@ -61,6 +61,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     protected override void LoadContent()
     {
         var linearBlendShader = SkinningModeShaderResolver.Resolve(SkinningMode.LinearBlend);
+        var dualQuaternionShader = SkinningModeShaderResolver.Resolve(SkinningMode.DualQuaternion);
         _effect = Game.Content.Load<Effect>(linearBlendShader.ContentName!);
         _shader = new ShaderWrapper(_effect);
 
@@ -70,10 +71,13 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             _variantLibrary = new ShaderVariantLibrary(_shaderManager);
             _shaderManager.RegisterShader(linearBlendShader.ShaderId, _shader);
             _variantLibrary.RegisterTechniqueAliases(linearBlendShader.ShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
+            _shaderManager.RegisterShader(dualQuaternionShader.ShaderId, _shader);
+            _variantLibrary.RegisterTechniqueAliases(dualQuaternionShader.ShaderId, ShaderVariantLibrary.BuildDualQuaternionSkinnedEffectAliases());
         }
 
         _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
         _shaderSelector.RegisterShader(linearBlendShader.ShaderId, _shader);
+        _shaderSelector.RegisterShader(dualQuaternionShader.ShaderId, _shader);
 
         // Provide a 1×1 white fallback texture for skinned meshes without textures.
         if (RiggedModelLoader.DefaultTexture == null)
@@ -138,6 +142,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
     private void DrawRiggedModel(RiggedModel riggedModel, Matrix world, ISkinnedMeshPoseProvider poseProvider, in RenderContext context)
     {
+        var effectiveSkinningMode = ResolveSkinningMode(riggedModel, poseProvider);
+
         for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
         {
             var mesh = riggedModel.Meshes[meshIndex];
@@ -147,7 +153,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, in context);
+            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, effectiveSkinningMode, in context);
         }
     }
 
@@ -157,6 +163,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         Texture2D texture,
         Matrix world,
         ISkinnedMeshPoseProvider poseProvider,
+        SkinningMode skinningMode,
         in RenderContext context)
     {
         mesh.Initialize(context.Device, SkinningModeShaderResolver.ResolveVertexDeclaration(riggedModel.SkinningMode));
@@ -168,7 +175,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _defaultMaterial.BasColor = texture;
 
         var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
-        var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features, riggedModel.SkinningMode);
+    var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features, skinningMode);
         var resolvedShader = _shaderSelector!.Resolve(effectiveShader.ShaderId, features);
         var meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
 
@@ -181,7 +188,16 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
         _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
-        resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+
+        if (skinningMode == SkinningMode.DualQuaternion && resolvedShader.Shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
+        {
+            resolvedShader.Shader.SetParameter(ShaderParameterNames.BonesDualQuaternion, poseProvider.DualQuaternionSkinningPalette);
+        }
+        else
+        {
+            resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+        }
+
         context.Device.SetVertexBuffer(mesh.VertexBuffer);
         context.Device.Indices = mesh.IndexBuffer;
 
@@ -201,6 +217,18 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         {
             context.Stats.DrawCalls++;
         }
+    }
+
+    private static SkinningMode ResolveSkinningMode(RiggedModel riggedModel, ISkinnedMeshPoseProvider poseProvider)
+    {
+        if (riggedModel.SkinningMode != SkinningMode.DualQuaternion)
+        {
+            return SkinningMode.LinearBlend;
+        }
+
+        return poseProvider.CanUseDualQuaternionSkinning
+            ? SkinningMode.DualQuaternion
+            : SkinningMode.LinearBlend;
     }
 
     private class SkinnedMeshInfo

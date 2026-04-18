@@ -114,4 +114,5 @@ public static class ShaderParameterNames
 
     // --- Skinning ---
     public const string Bones = "Bones";
+    public const string BonesDualQuaternion = "BonesDualQuaternion";
 }

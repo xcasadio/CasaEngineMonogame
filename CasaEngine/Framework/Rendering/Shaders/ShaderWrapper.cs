@@ -42,6 +42,7 @@ public class ShaderWrapper
     public void SetParameter(string name, Vector2 value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Vector3 value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Vector4 value) => GetParameter(name)?.SetValue(value);
+    public void SetParameter(string name, Vector4[] value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Color value) => GetParameter(name)?.SetValue(value.ToVector4());
     public void SetParameter(string name, Matrix value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Matrix[] value) => GetParameter(name)?.SetValue(value);

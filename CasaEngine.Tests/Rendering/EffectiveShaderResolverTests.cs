@@ -100,6 +100,19 @@ public class EffectiveShaderResolverTests
     }
 
     [Fact]
+    public void Resolve_ReturnsExplicitDualQuaternionSkinnedFallback_WhenModeIsProvided()
+    {
+        var resolved = EffectiveShaderResolver.Resolve(
+            new LitDiffuseMaterial(),
+            ShaderFeature.Skinned | ShaderFeature.BasColorTexture,
+            SkinningMode.DualQuaternion);
+
+        Assert.Equal(EffectiveShaderResolver.DualQuaternionSkinnedEffectShaderId, resolved.ShaderId);
+        Assert.True(resolved.IsBuiltIn);
+        Assert.Equal(EffectiveShaderResolver.DualQuaternionSkinnedEffectContentName, resolved.ContentName);
+    }
+
+    [Fact]
     public void Resolve_UsesMaterialCapabilityContract_ForUnknownMaterialTypes()
     {
         var material = new CustomCapabilityMaterial(new MaterialShaderCapabilities(

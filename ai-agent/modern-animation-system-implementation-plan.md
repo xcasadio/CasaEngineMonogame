@@ -603,13 +603,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `refactor(rendering): formalize linear blend skinning mode`
 
-- ⏳ **T06.04 - Ajouter le dual quaternion skinning**
+- ✅ **T06.04 - Ajouter le dual quaternion skinning**
   Objectif :
   - Supporter le skinning dual quaternion pour mieux conserver les volumes sur les twists.
   - Definir la politique de fallback si scale non uniforme ou shader non compatible.
   Validation :
   - Build solution.
   - Demo visuelle sur twist avant-bras / epaules / hanches.
+  Resultat du 2026-04-18 :
+  - Type runtime ajoute : `DualQuaternion`, avec conversion rigide depuis palette matricielle et fallback explicite si une pose contient du scale.
+  - `SkinnedMeshAnimationRuntime`, `RiggedModel` et `ISkinnedMeshPoseProvider` exposent maintenant une palette dual quaternion et l'etat `CanUseDualQuaternionSkinning`.
+  - `skinEffect.fx`, `SkinningModeShaderResolver`, `EffectiveShaderResolver`, `ShaderVariantLibrary` et `SkinnedMeshRendererComponent` gerent maintenant le mode `DualQuaternion` avec repli automatique vers `LinearBlend` si le shader ou la pose ne sont pas compatibles.
+  - Demo/doc ajoutees : `SkinnedMeshDemo` demarre en dual quaternion pour la validation visuelle et `SkinnedMeshDemo.README.md` decrit les checks attendus.
+  - Tests ajoutes/etendus : `DualQuaternionTests`, `SkinningModeShaderResolverTests`, `EffectiveShaderResolverTests`.
+  - Validation executee : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter "DualQuaternionTests|SkinningModeShaderResolverTests|EffectiveShaderResolverTests"`, `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, puis `Push-Location CasaEngine.Demos; $env:CASAENGINE_START_DEMO='Skinned mesh demo'; $env:CASAENGINE_CAPTURE_SCREENSHOT_PATH='D:/development/repo/CasaEngineMonogame/artifacts/validation/skinned-mesh-dq.png'; $env:CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS='2500'; dotnet run --project CasaEngine.Demos.csproj -c Debug; Pop-Location`.
   Commit conseille :
   - `feat(rendering): add dual quaternion skinning support`
 

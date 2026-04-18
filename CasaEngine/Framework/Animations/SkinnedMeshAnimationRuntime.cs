@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 
@@ -25,6 +26,7 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider
         AnimationController.AnimationEventTriggered += OnAnimationEventTriggered;
         ModelPose = new SkeletonPoseModel(SkeletonDefinition);
         SkinningPalette = new Matrix[riggedModel.GlobalShaderMatrixs.Length];
+        DualQuaternionSkinningPalette = new Vector4[SkinningPalette.Length * 2];
 
         ResetSkinningPaletteToIdentity();
         RefreshEvaluatedPose();
@@ -43,6 +45,10 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
 
     public Matrix[] SkinningPalette { get; }
+
+    public Vector4[] DualQuaternionSkinningPalette { get; }
+
+    public bool CanUseDualQuaternionSkinning { get; private set; }
 
     public int CurrentPlayingAnimationIndex => _currentAnimationIndex;
 
@@ -228,6 +234,8 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider
 
             SkinningPalette[paletteIndex] = ModelPose.GetSkinningTransform(jointIndex);
         }
+
+        CanUseDualQuaternionSkinning = DualQuaternion.TryWriteSkinningPalette(SkinningPalette, DualQuaternionSkinningPalette);
     }
 
     private void UpdateCurrentFrame()

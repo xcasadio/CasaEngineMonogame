@@ -54,6 +54,7 @@ public class RiggedModel : IAssetable
     public int NumberOfNodesInUse = 0;
     public readonly int MaxGlobalBones = 128; // 78       
     public readonly Matrix[] GlobalShaderMatrixs; // these are the real final bone matrices they end up on the shader.
+    private readonly Vector4[] _dualQuaternionSkinningPalette;
     public readonly List<RiggedModelNode> FlatListToBoneNodes = new();
     public readonly List<RiggedModelNode> FlatListToAllNodes = new();
     public RiggedModelMesh[] Meshes;
@@ -76,6 +77,8 @@ public class RiggedModel : IAssetable
     public AnimationController? AnimationController { get; private set; }
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
     public SkinningMode SkinningMode { get; set; } = SkinningMode.LinearBlend;
+    public Vector4[] DualQuaternionSkinningPalette => _dualQuaternionSkinningPalette;
+    public bool CanUseDualQuaternionSkinning { get; private set; } = true;
     public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
     public event Action<SkeletonPoseLocal, SkeletonPoseModel>? PosePostProcessing;
 
@@ -93,10 +96,13 @@ public class RiggedModel : IAssetable
     public RiggedModel()
     {
         GlobalShaderMatrixs = new Matrix[MaxGlobalBones];
+        _dualQuaternionSkinningPalette = new Vector4[MaxGlobalBones * 2];
         for (int i = 0; i < MaxGlobalBones; i++)
         {
             GlobalShaderMatrixs[i] = Matrix.Identity;
         }
+
+        CanUseDualQuaternionSkinning = DualQuaternion.TryWriteSkinningPalette(GlobalShaderMatrixs, _dualQuaternionSkinningPalette);
     }
 
     public void Initialize(GraphicsDevice graphicsDevice)
@@ -175,6 +181,7 @@ public class RiggedModel : IAssetable
             }
 
             ApplyModernPoseToNodes(LocalPose, ModelPose);
+            RefreshDualQuaternionSkinningPalette();
             CurrentAnimationFrameTime = AnimationController.CurrentTimeSeconds;
             AnimationRunning = AnimationController.IsPlaying;
 
@@ -200,6 +207,7 @@ public class RiggedModel : IAssetable
 
         IterateUpdate(RootNodeOfTree);
         UpdateMeshTransforms();
+        RefreshDualQuaternionSkinningPalette();
     }
 
     /// <summary>
@@ -340,7 +348,28 @@ public class RiggedModel : IAssetable
     public void Draw(GraphicsDevice gd, Matrix world, Matrix viewProjection)
     {
         Initialize(gd);
-        Effect.Parameters[ShaderParameterNames.Bones]?.SetValue(GlobalShaderMatrixs);
+        RefreshDualQuaternionSkinningPalette();
+
+        var effectiveSkinningMode = SkinningMode == SkinningMode.DualQuaternion && CanUseDualQuaternionSkinning
+            ? SkinningMode.DualQuaternion
+            : SkinningMode.LinearBlend;
+
+        if (effectiveSkinningMode == SkinningMode.DualQuaternion)
+        {
+            Effect.Parameters[ShaderParameterNames.BonesDualQuaternion]?.SetValue(_dualQuaternionSkinningPalette);
+            if (Effect.Techniques["RiggedModelDrawDualQuaternion"] != null)
+            {
+                Effect.CurrentTechnique = Effect.Techniques["RiggedModelDrawDualQuaternion"];
+            }
+        }
+        else
+        {
+            Effect.Parameters[ShaderParameterNames.Bones]?.SetValue(GlobalShaderMatrixs);
+            if (Effect.Techniques["RiggedModelDraw"] != null)
+            {
+                Effect.CurrentTechnique = Effect.Techniques["RiggedModelDraw"];
+            }
+        }
 
         for (var index = 0; index < Meshes.Length; index++)
         {
@@ -367,6 +396,11 @@ public class RiggedModel : IAssetable
             gd.Indices = mesh.IndexBuffer;
             gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.NumberOfVertices, 0, mesh.NumberOfIndices / 3);
         }
+    }
+
+    public void RefreshDualQuaternionSkinningPalette()
+    {
+        CanUseDualQuaternionSkinning = DualQuaternion.TryWriteSkinningPalette(GlobalShaderMatrixs, _dualQuaternionSkinningPalette);
     }
 
     public int CurrentPlayingAnimationIndex
