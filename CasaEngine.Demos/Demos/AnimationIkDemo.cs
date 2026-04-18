@@ -27,6 +27,13 @@ public class AnimationIkDemo : Demo
     private static readonly Color TargetColor = new(255, 204, 96);
     private static readonly Color PoleColor = new(96, 196, 255);
     private static readonly Color TargetLinkColor = new(255, 136, 72);
+    private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
+        0.18f,
+        true,
+        new Color(255, 214, 96),
+        new Color(255, 110, 110),
+        new Color(110, 255, 150),
+        new Color(96, 170, 255));
 
     private CasaEngineGame _game;
     private SkinnedMeshComponent _skinnedMeshComponent;
@@ -44,6 +51,7 @@ public class AnimationIkDemo : Demo
     private float _orbitAngle;
     private bool _ikEnabled = true;
     private bool _autoOrbit = true;
+    private bool _showSkeleton = true;
     private readonly StringBuilder _hudBuilder = new(512);
 
     public override string Title => "Animation IK demo";
@@ -82,7 +90,7 @@ public class AnimationIkDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(Vector3.Backward * 16f + Vector3.Up * 10f, Vector3.Up * 5f, Vector3.Up);
+        ((ArcBallCameraComponent)camera).SetCamera(Vector3.Backward * 18f + Vector3.Up * 11f, Vector3.Up * 4.5f, Vector3.Up);
     }
 
     public override void Update(GameTime gameTime)
@@ -103,6 +111,11 @@ public class AnimationIkDemo : Demo
         if (IsNewKeyPress(keyboard, Keys.I))
         {
             _ikEnabled = !_ikEnabled;
+        }
+
+        if (IsNewKeyPress(keyboard, Keys.V))
+        {
+            _showSkeleton = !_showSkeleton;
         }
 
         if (IsNewKeyPress(keyboard, Keys.Back))
@@ -145,11 +158,11 @@ public class AnimationIkDemo : Demo
         _hudBuilder.Clear();
         _hudBuilder.AppendLine("=== Animation IK Demo ===");
         _hudBuilder.AppendLine($"Chain: {_chain.Label}");
-        _hudBuilder.AppendLine($"IK: {(_ikEnabled ? "On" : "Off")}  Weight: {_ikWeight:F2}  Orbit: {(_autoOrbit ? "On" : "Off")}");
+        _hudBuilder.AppendLine($"IK: {(_ikEnabled ? "On" : "Off")}  Weight: {_ikWeight:F2}  Orbit: {(_autoOrbit ? "On" : "Off")}  Skeleton: {(_showSkeleton ? "On" : "Off")}");
         _hudBuilder.AppendLine($"Target (model): {_targetModelPosition.X:F2}, {_targetModelPosition.Y:F2}, {_targetModelPosition.Z:F2}");
         _hudBuilder.AppendLine($"Pole (model): {_poleModelPosition.X:F2}, {_poleModelPosition.Y:F2}, {_poleModelPosition.Z:F2}");
         _hudBuilder.AppendLine();
-        _hudBuilder.AppendLine("[Space] Toggle auto orbit  [I] Toggle IK  [Backspace] Reset target  [R] Reset actor");
+        _hudBuilder.AppendLine("[Space] Toggle auto orbit  [I] Toggle IK  [V] Toggle skeleton  [Backspace] Reset target  [R] Reset actor");
         _hudBuilder.AppendLine("[Left/Right/Up/Down] Move target in-chain plane  [PageUp/PageDown] Vertical");
         _hudBuilder.AppendLine("[O]/[P] Decrease/Increase IK weight");
 
@@ -275,6 +288,11 @@ public class AnimationIkDemo : Demo
         lineRenderer.AddLine(midWorld, endWorld, ChainColor);
         lineRenderer.AddLine(endWorld, targetWorld, TargetLinkColor);
         lineRenderer.AddLine(midWorld, poleWorld, PoleColor);
+
+        if (_showSkeleton)
+        {
+            SkeletonDebugVisualizer.Draw(lineRenderer, modelPose, _skinnedMeshComponent.WorldMatrixWithScale, SkeletonDebugOptions);
+        }
 
         var gizmoSize = MathF.Max(_chainLength * CharacterScale * 0.06f, 0.08f);
         DrawCross(lineRenderer, targetWorld, gizmoSize, TargetColor);

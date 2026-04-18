@@ -678,10 +678,15 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 9 - Editor, debug et demos
 
-- ⏳ **T09.01 - Ajouter un visualiseur de skeleton et poses**
+- ✅ **T09.01 - Ajouter un visualiseur de skeleton et poses**
   Objectif :
   - Permettre le debug des bones, axes et transforms.
   - Faciliter la validation du retargeting et de l'IK.
+  Resultat du 2026-04-18 :
+  - `CasaEngine.Framework.Animations/SkeletonDebugVisualizer.cs` a ete ajoute pour dessiner la hierarchie du skeleton et les axes locaux de chaque joint via `Line3dRendererComponent`.
+  - `AnimationIkDemo` integre maintenant ce visualiseur avec un toggle runtime `[V]`, active par defaut pour la validation de pose/IK.
+  - La doc de la demo IK a ete mise a jour pour decrire le mode skeleton debug.
+  - Validation executee : `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`, puis run automatise depuis `CasaEngine.Demos` avec `CASAENGINE_START_DEMO=Animation IK demo` et capture `artifacts/validation/animation-ik-demo.png`.
   Validation :
   - Build solution.
   - Smoke test editor ou demo.

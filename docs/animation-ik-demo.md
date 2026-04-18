@@ -11,6 +11,7 @@ What it demonstrates:
 Controls:
 - `Space`: toggle automatic target orbit
 - `I`: enable or disable IK
+- `V`: toggle the skeleton/pose debug overlay
 - `Left/Right/Up/Down`: move the target when orbit is disabled
 - `PageUp/PageDown`: move the target vertically when orbit is disabled
 - `O` / `P`: decrease or increase IK weight
