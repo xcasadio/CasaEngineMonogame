@@ -4,6 +4,7 @@ using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -19,6 +20,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     private RiggedModelPoseProvider? _legacyPoseProvider;
     private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
     private RootMotionMode _rootMotionMode = RootMotionMode.Observe;
+    private SkinningModeSelection _skinningModeSelection = SkinningModeSelection.RiggedModelDefault;
 
     public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
     public SkinnedMesh? SkinnedMesh
@@ -50,6 +52,13 @@ public class SkinnedMeshComponent : PrimitiveComponent
         }
     }
 
+    [DefaultValue(SkinningModeSelection.RiggedModelDefault)]
+    public SkinningModeSelection SkinningModeSelection
+    {
+        get => _skinningModeSelection;
+        set => _skinningModeSelection = value;
+    }
+
     public SkeletonDefinition? SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
 
     public SkeletonPoseModel? CurrentModelPose => _animationRuntime?.ModelPose;
@@ -68,6 +77,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     public SkinnedMeshComponent(SkinnedMeshComponent other) : base(other)
     {
         _rootMotionMode = other._rootMotionMode;
+        _skinningModeSelection = other._skinningModeSelection;
 
         for (var constraintIndex = 0; constraintIndex < other._twoBoneIkConstraints.Count; constraintIndex++)
         {
@@ -121,7 +131,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
             WorldMatrixWithScale,
-            poseProvider);
+            poseProvider,
+            SkinningModeSelection);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -165,6 +176,26 @@ public class SkinnedMeshComponent : PrimitiveComponent
         if (element.ContainsKey("skinned_mesh_id"))
         {
             SkinnedMeshAssetId = element["skinned_mesh_id"].GetGuid();
+        }
+
+        if (element.ContainsKey("skinning_mode_selection"))
+        {
+            var skinningModeSelection = element["skinning_mode_selection"];
+            if (skinningModeSelection != null)
+            {
+                if (skinningModeSelection.Type == JTokenType.Integer)
+                {
+                    var selectionValue = skinningModeSelection.Value<int>();
+                    if (Enum.IsDefined(typeof(SkinningModeSelection), selectionValue))
+                    {
+                        SkinningModeSelection = (SkinningModeSelection)selectionValue;
+                    }
+                }
+                else if (Enum.TryParse<SkinningModeSelection>(skinningModeSelection.ToString(), true, out var parsedSelection))
+                {
+                    SkinningModeSelection = parsedSelection;
+                }
+            }
         }
     }
 

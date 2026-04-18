@@ -620,13 +620,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(rendering): add dual quaternion skinning support`
 
-- ⏳ **T06.05 - Exposer le choix LBS vs DQ**
+- ✅ **T06.05 - Exposer le choix LBS vs DQ**
   Objectif :
   - Permettre le choix par asset, material ou renderer selon la direction retenue.
   - Garder un comportement par defaut stable pour les assets existants.
   Validation :
   - Build solution.
   - Demo comparant les deux modes.
+  Resultat du 2026-04-18 :
+  - Nouveau contrat `SkinningModeSelection` + `SkinningModeSelectionResolver` pour exposer un choix explicite `RiggedModelDefault`, `LinearBlend` ou `DualQuaternion` au niveau du renderer/component, sans muter les assets existants.
+  - `SkinnedMeshComponent` transporte maintenant cette selection, la clone et la recharge depuis `skinning_mode_selection` quand elle est presente dans les donnees scene.
+  - `SkinnedMeshRendererComponent` applique cette selection par mesh, puis conserve le fallback automatique vers `LinearBlend` si le dual quaternion n'est pas utilisable pour la pose courante.
+  - `SkinnedMeshDemo` compare maintenant les deux modes cote a cote avec les memes transitions d'animation, et `SkinnedMeshDemo.README.md` documente ce scenario de verification.
+  - Test ajoute : `SkinningModeSelectionResolverTests`.
+  - Validation executee : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter "DualQuaternionTests|SkinningModeShaderResolverTests|EffectiveShaderResolverTests|SkinningModeSelectionResolverTests"`, `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, puis `Push-Location CasaEngine.Demos; $env:CASAENGINE_START_DEMO='Skinned mesh demo'; $env:CASAENGINE_CAPTURE_SCREENSHOT_PATH='D:/development/repo/CasaEngineMonogame/artifacts/validation/skinned-mesh-compare.png'; $env:CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS='2500'; dotnet run --project CasaEngine.Demos.csproj -c Debug; Pop-Location`.
   Commit conseille :
   - `feat(animation): expose configurable skinning mode selection`
 

@@ -1,4 +1,5 @@
-﻿using CasaEngine.Framework.Application;
+﻿using System.Collections.Generic;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -9,47 +10,35 @@ namespace CasaEngine.Demos.Demos;
 
 public class SkinnedMeshDemo : Demo
 {
-    private SkinnedMeshComponent? _skinnedMeshComponent;
+    private readonly List<SkinnedMeshComponent> _skinnedMeshComponents = new();
     private float _animationSwitchTimer;
     private int _nextAnimationIndex = 1;
-    private SkinningMode _skinningMode = SkinningMode.DualQuaternion;
 
     public override string Title => "Skinned mesh demo";
-    public override string Description => "Displays an animated skinned mesh model loaded from content. Defaults to dual quaternion skinning to validate twist preservation.";
+    public override string Description => "Displays two animated skinned meshes side by side. Left uses linear blend skinning, right uses dual quaternion skinning.";
 
     public override void Initialize(CasaEngineGame game)
     {
         var world = game.GameManager.CurrentWorld;
-
-        //============ Create skinned mesh ===============
-        var entity = new Entity { Name = "Skinned mesh" };
-        _skinnedMeshComponent = new SkinnedMeshComponent();
-        entity.RootComponent = _skinnedMeshComponent;
-        entity.RootComponent.LocalPosition = new Vector3(0, 0, 0);
-        entity.RootComponent.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
-        entity.RootComponent.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
+        _skinnedMeshComponents.Clear();
+        _animationSwitchTimer = 0f;
+        _nextAnimationIndex = 1;
 
         var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("Content\\SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
-        if (skinnedMesh.RiggedModel != null)
-        {
-            skinnedMesh.RiggedModel.SkinningMode = _skinningMode;
-        }
 
-        _skinnedMeshComponent.SkinnedMesh = skinnedMesh;
-        _skinnedMeshComponent.PlayAnimation(0);
-
-        world.AddEntity(entity);
+        CreateSkinnedMeshEntity(world, skinnedMesh, "Linear blend skinned mesh", new Vector3(-1.75f, 0f, 0f), SkinningModeSelection.LinearBlend);
+        CreateSkinnedMeshEntity(world, skinnedMesh, "Dual quaternion skinned mesh", new Vector3(1.75f, 0f, 0f), SkinningModeSelection.DualQuaternion);
     }
 
     public override void Update(GameTime gameTime)
     {
-        if (_skinnedMeshComponent == null)
+        if (_skinnedMeshComponents.Count == 0)
         {
             return;
         }
 
-        if (_skinnedMeshComponent.AnimationClips.Count < 2)
+        if (_skinnedMeshComponents[0].AnimationClips.Count < 2)
         {
             return;
         }
@@ -61,17 +50,47 @@ public class SkinnedMeshDemo : Demo
         }
 
         _animationSwitchTimer = 0f;
-        if (_nextAnimationIndex >= _skinnedMeshComponent.AnimationClips.Count)
+        if (_nextAnimationIndex >= _skinnedMeshComponents[0].AnimationClips.Count)
         {
             _nextAnimationIndex = 0;
         }
 
-        _skinnedMeshComponent.CrossFadeToAnimation(_nextAnimationIndex, 0.35f);
+        for (var componentIndex = 0; componentIndex < _skinnedMeshComponents.Count; componentIndex++)
+        {
+            _skinnedMeshComponents[componentIndex].CrossFadeToAnimation(_nextAnimationIndex, 0.35f);
+        }
+
         _nextAnimationIndex++;
     }
 
     public override void Clean()
     {
+        _skinnedMeshComponents.Clear();
+        _animationSwitchTimer = 0f;
+        _nextAnimationIndex = 1;
+    }
 
+    private void CreateSkinnedMeshEntity(
+        CasaEngine.Framework.Scene.World.World world,
+        SkinnedMesh skinnedMesh,
+        string entityName,
+        Vector3 localPosition,
+        SkinningModeSelection skinningModeSelection)
+    {
+        var entity = new Entity { Name = entityName };
+        var skinnedMeshComponent = new SkinnedMeshComponent
+        {
+            SkinnedMesh = skinnedMesh,
+            SkinningModeSelection = skinningModeSelection,
+        };
+
+        entity.RootComponent = skinnedMeshComponent;
+        entity.RootComponent.LocalPosition = localPosition;
+        entity.RootComponent.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
+        entity.RootComponent.LocalScale = new Vector3(0.1f, 0.1f, 0.1f);
+
+        skinnedMeshComponent.PlayAnimation(0);
+        _skinnedMeshComponents.Add(skinnedMeshComponent);
+        world.AddEntity(entity);
     }
 }

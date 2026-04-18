@@ -1,12 +1,12 @@
 # SkinnedMeshDemo
 
 Purpose:
-Validate skinned-mesh animation rendering, including dual quaternion skinning for twist-heavy poses.
+Compare skinned-mesh animation rendering between linear blend skinning and dual quaternion skinning.
 
 What to check:
-- The demo starts on the animated kid model.
-- Cross-fades continue to work while dual quaternion skinning is enabled.
-- Forearms, shoulders, and hips keep their volume better than linear blend skinning during rotations.
+- The left character stays on linear blend skinning.
+- The right character uses dual quaternion skinning.
+- Both characters play the same animation transitions so shape differences stay easy to compare.
 
 Automation:
 - Set `CASAENGINE_START_DEMO=Skinned mesh demo`.
