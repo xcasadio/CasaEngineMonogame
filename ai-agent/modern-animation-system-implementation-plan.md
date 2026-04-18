@@ -755,7 +755,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add inertialized transitions`
 
-- ⏳ **T10.03 - Evaluer motion matching**
+- ✅ **T10.03 - Evaluer motion matching**
   Objectif :
   - Encadrer le sujet comme une phase R&D, avec prerequis explicites sur base de clips et metadata.
   - Ne pas bloquer la pile production sur cette feature.
