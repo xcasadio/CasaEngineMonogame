@@ -413,7 +413,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 4 - Blend tree et blend spaces
 
-- 🧪 **T04.01 - Introduire les noeuds de graph d'animation**
+- ✅ **T04.01 - Introduire les noeuds de graph d'animation**
   Objectif :
   - Definir une interface runtime pour les noeuds : clip, blend, blend space, layer, additive, output.
   - Garder le graph evaluable sans allocations par frame.
@@ -429,6 +429,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   - Ajout de `IAnimationGraphRuntimeNode` pour les noeuds capables d'avancer leur temps runtime sans allocations par frame.
   - `AnimationController` sait maintenant piloter un root node de graph via `PlayGraph(...)` et evaluer ce graph directement dans `OutputPose`.
   - `RiggedModel` propage cet usage via `PlayAnimationGraph(...)`, avec mise a jour coherente de l'etat runtime (`AnimationRunning`, `CurrentAnimationFrameTime`, root motion).
+  - Validation executee : `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, puis `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~AnimationGraphNodeTests --no-restore`.
   Commit conseille :
   - `feat(animation): add animation graph node runtime`
 
