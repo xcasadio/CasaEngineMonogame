@@ -3,6 +3,7 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -13,9 +14,10 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class SkinnedMeshComponent : PrimitiveComponent
 {
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
-    private RiggedModel? _boundRiggedModel;
     private SkinnedMesh? _skinnedMesh;
+    private SkinnedMeshAnimationRuntime? _animationRuntime;
     private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
+    private RootMotionMode _rootMotionMode = RootMotionMode.Observe;
 
     public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
     public SkinnedMesh? SkinnedMesh
@@ -29,22 +31,29 @@ public class SkinnedMeshComponent : PrimitiveComponent
             }
 
             _skinnedMesh = value;
-            BindRiggedModelEvents();
+            EnsureAnimationRuntime();
         }
     }
 
     public RootMotionMode RootMotionMode
     {
-        get => SkinnedMesh?.RiggedModel?.AnimationController?.RootMotionMode ?? RootMotionMode.Observe;
+        get => _animationRuntime?.RootMotionMode ?? _rootMotionMode;
         set
         {
-            var controller = SkinnedMesh?.RiggedModel?.AnimationController;
-            if (controller != null)
+            _rootMotionMode = value;
+
+            if (_animationRuntime != null)
             {
-                controller.RootMotionMode = value;
+                _animationRuntime.RootMotionMode = value;
             }
         }
     }
+
+    public SkeletonDefinition? SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
+
+    public SkeletonPoseModel? CurrentModelPose => _animationRuntime?.ModelPose;
+
+    public IReadOnlyList<AnimationClip> AnimationClips => _animationRuntime?.AnimationClips ?? SkinnedMesh?.RiggedModel?.AnimationClips ?? Array.Empty<AnimationClip>();
 
     public IReadOnlyList<TwoBoneIkConstraint> TwoBoneIkConstraints => _twoBoneIkConstraints;
 
@@ -57,6 +66,13 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public SkinnedMeshComponent(SkinnedMeshComponent other) : base(other)
     {
+        _rootMotionMode = other._rootMotionMode;
+
+        for (var constraintIndex = 0; constraintIndex < other._twoBoneIkConstraints.Count; constraintIndex++)
+        {
+            _twoBoneIkConstraints.Add(other._twoBoneIkConstraints[constraintIndex]);
+        }
+
         SkinnedMesh = other.SkinnedMesh;
     }
 
@@ -70,8 +86,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
         {
             SkinnedMesh = world.Game.AssetContentManager.Load<SkinnedMesh>(SkinnedMeshAssetId);
             SkinnedMesh?.Initialize(Owner.World.Game.AssetContentManager);
-            BindRiggedModelEvents();
         }
+
+        EnsureAnimationRuntime();
     }
 
     public override SkinnedMeshComponent Clone()
@@ -81,7 +98,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public override void Update(float elapsedTime)
     {
-        SkinnedMesh?.RiggedModel?.Update(elapsedTime);
+        EnsureAnimationRuntime();
+        _animationRuntime?.Update(elapsedTime);
 
         base.Update(elapsedTime);
     }
@@ -95,7 +113,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
-            WorldMatrixWithScale);
+            WorldMatrixWithScale,
+            _animationRuntime?.SkinningPalette);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -142,42 +161,56 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public bool PlayAnimation(string animationName)
     {
-        return SkinnedMesh?.RiggedModel?.BeginAnimation(animationName) == true;
+        EnsureAnimationRuntime();
+        return _animationRuntime?.PlayAnimation(animationName) == true;
     }
 
     public void PlayAnimation(int animationIndex)
     {
-        SkinnedMesh?.RiggedModel?.BeginAnimation(animationIndex);
+        EnsureAnimationRuntime();
+        _animationRuntime?.PlayAnimation(animationIndex);
     }
 
     public void CrossFadeToAnimation(int animationIndex, float durationSeconds)
     {
-        SkinnedMesh?.RiggedModel?.CrossFadeToAnimation(animationIndex, durationSeconds);
+        EnsureAnimationRuntime();
+        _animationRuntime?.CrossFadeToAnimation(animationIndex, durationSeconds);
+    }
+
+    public void CrossFadeToAnimation(int animationIndex, float durationSeconds, AnimationCrossFadeSettings? settings)
+    {
+        EnsureAnimationRuntime();
+        _animationRuntime?.CrossFadeToAnimation(animationIndex, durationSeconds, settings);
     }
 
     public void PlayAnimationGraph(IAnimationGraphNode graphRoot)
     {
-        SkinnedMesh?.RiggedModel?.PlayAnimationGraph(graphRoot);
+        EnsureAnimationRuntime();
+        _animationRuntime?.PlayAnimationGraph(graphRoot);
     }
 
     public void StopAnimation()
     {
-        SkinnedMesh?.RiggedModel?.StopAnimation();
+        EnsureAnimationRuntime();
+        _animationRuntime?.StopAnimation();
     }
 
     public void PauseAnimation()
     {
-        SkinnedMesh?.RiggedModel?.PauseAnimation();
+        EnsureAnimationRuntime();
+        _animationRuntime?.PauseAnimation();
     }
 
     public void ResumeAnimation()
     {
-        SkinnedMesh?.RiggedModel?.ResumeAnimation();
+        EnsureAnimationRuntime();
+        _animationRuntime?.ResumeAnimation();
     }
 
     public void SeekAnimation(float timeSeconds)
     {
-        SkinnedMesh?.RiggedModel?.SeekAnimation(timeSeconds);
+        EnsureAnimationRuntime();
+        _animationRuntime?.SeekAnimation(timeSeconds);
     }
 
     public void SetAnimationLayer(
@@ -189,17 +222,20 @@ public class SkinnedMeshComponent : PrimitiveComponent
         bool loop = true,
         float speed = 1f)
     {
-        SkinnedMesh?.RiggedModel?.AnimationController?.SetLayerAnimation(layerIndex, clip, mask, weight, blendMode, loop, speed);
+        EnsureAnimationRuntime();
+        _animationRuntime?.SetAnimationLayer(layerIndex, clip, mask, weight, blendMode, loop, speed);
     }
 
     public void ClearAnimationLayer(int layerIndex)
     {
-        SkinnedMesh?.RiggedModel?.AnimationController?.ClearLayer(layerIndex);
+        EnsureAnimationRuntime();
+        _animationRuntime?.ClearAnimationLayer(layerIndex);
     }
 
     public void SetAnimationLayerWeight(int layerIndex, float weight)
     {
-        SkinnedMesh?.RiggedModel?.AnimationController?.SetLayerWeight(layerIndex, weight);
+        EnsureAnimationRuntime();
+        _animationRuntime?.SetAnimationLayerWeight(layerIndex, weight);
     }
 
     public void SetTwoBoneIkConstraint(int constraintIndex, TwoBoneIkConstraint constraint)
@@ -234,40 +270,55 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public RootMotionDelta ConsumeRootMotionDelta()
     {
-        return SkinnedMesh?.RiggedModel?.AnimationController?.ConsumeRootMotionDelta() ?? RootMotionDelta.Identity;
+        EnsureAnimationRuntime();
+        return _animationRuntime?.ConsumeRootMotionDelta() ?? RootMotionDelta.Identity;
     }
 
-    private void BindRiggedModelEvents()
+    private void EnsureAnimationRuntime()
     {
         var riggedModel = SkinnedMesh?.RiggedModel;
-        if (ReferenceEquals(_boundRiggedModel, riggedModel))
+        if (riggedModel == null || riggedModel.SkeletonDefinition == null)
+        {
+            ReleaseAnimationRuntime();
+            return;
+        }
+
+        if (_animationRuntime != null
+            && ReferenceEquals(_animationRuntime.RiggedModel, riggedModel)
+            && ReferenceEquals(_animationRuntime.SkeletonDefinition, riggedModel.SkeletonDefinition)
+            && _animationRuntime.AnimationClips.Count == riggedModel.AnimationClips.Count)
         {
             return;
         }
 
-        if (_boundRiggedModel != null)
-        {
-            _boundRiggedModel.AnimationEventTriggered -= OnRiggedModelAnimationEventTriggered;
-            _boundRiggedModel.PosePostProcessing -= OnRiggedModelPosePostProcessing;
-            _boundRiggedModel = null;
-        }
+        ReleaseAnimationRuntime();
 
-        if (riggedModel == null)
+        _animationRuntime = new SkinnedMeshAnimationRuntime(riggedModel)
         {
-            return;
-        }
-
-        _boundRiggedModel = riggedModel;
-        _boundRiggedModel.AnimationEventTriggered += OnRiggedModelAnimationEventTriggered;
-        _boundRiggedModel.PosePostProcessing += OnRiggedModelPosePostProcessing;
+            RootMotionMode = _rootMotionMode,
+        };
+        _animationRuntime.AnimationEventTriggered += OnAnimationRuntimeAnimationEventTriggered;
+        _animationRuntime.PosePostProcessing += OnAnimationRuntimePosePostProcessing;
     }
 
-    private void OnRiggedModelAnimationEventTriggered(AnimationEventKeyframe eventKeyframe)
+    private void ReleaseAnimationRuntime()
+    {
+        if (_animationRuntime == null)
+        {
+            return;
+        }
+
+        _animationRuntime.AnimationEventTriggered -= OnAnimationRuntimeAnimationEventTriggered;
+        _animationRuntime.PosePostProcessing -= OnAnimationRuntimePosePostProcessing;
+        _animationRuntime = null;
+    }
+
+    private void OnAnimationRuntimeAnimationEventTriggered(AnimationEventKeyframe eventKeyframe)
     {
         AnimationEventTriggered?.Invoke(eventKeyframe);
     }
 
-    private void OnRiggedModelPosePostProcessing(SkeletonPoseLocal localPose, SkeletonPoseModel modelPose)
+    private void OnAnimationRuntimePosePostProcessing(SkeletonPoseLocal localPose, SkeletonPoseModel modelPose)
     {
         for (var constraintIndex = 0; constraintIndex < _twoBoneIkConstraints.Count; constraintIndex++)
         {
@@ -280,5 +331,4 @@ public class SkinnedMeshComponent : PrimitiveComponent
             IkSolverTwoBone.Solve(localPose, modelPose, constraint);
         }
     }
-
 }

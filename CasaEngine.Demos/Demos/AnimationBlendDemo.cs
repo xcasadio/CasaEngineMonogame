@@ -775,7 +775,7 @@ public class AnimationBlendDemo : Demo
 
     private void TriggerAdvancedCrossFade(int animationIndex)
     {
-        if (_riggedModel?.AnimationController == null || _riggedModel.AnimationClips.Count == 0)
+        if (_skinnedMeshComponent == null || _riggedModel == null || _riggedModel.AnimationClips.Count == 0)
         {
             return;
         }
@@ -786,17 +786,14 @@ public class AnimationBlendDemo : Demo
         }
 
         var clip = _riggedModel.AnimationClips[animationIndex];
-        _riggedModel.CurrentPlayingAnimationIndex = animationIndex;
-        _riggedModel.AnimationController.CrossFade(
-            clip,
+        _skinnedMeshComponent.CrossFadeToAnimation(
+            animationIndex,
             CrossFadeDurationSeconds,
             new AnimationCrossFadeSettings
             {
                 EasingMode = _advancedCrossFadeEasingMode,
                 PreserveRootTranslationVelocity = _advancedCrossFadePreserveRootVelocity,
-            },
-            loop: true);
-        _riggedModel.AnimationRunning = true;
+            });
         SetTransientMessage($"Advanced cross-fade to {clip.Name}");
     }
 

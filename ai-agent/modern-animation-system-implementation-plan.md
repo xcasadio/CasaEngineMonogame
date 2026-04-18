@@ -525,7 +525,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add animation event tracks`
 
-- 🧪 **T05.03 - Brancher gameplay et composants scene**
+- ✅ **T05.03 - Brancher gameplay et composants scene**
   Objectif :
   - Faire vivre le controller dans un composant runtime dedie.
   - Eviter que le gameplay manipule directement les internals de pose.
@@ -538,7 +538,13 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Resultat du 2026-04-18 :
   - `SkinnedMeshComponent` expose maintenant aussi `PlayAnimationGraph`, `SetAnimationLayer`, `ClearAnimationLayer`, `SetAnimationLayerWeight` et `RootMotionMode`.
   - L'assignation directe de `SkinnedMesh` rebinde correctement les events runtime, ce qui permet a la demo de remonter les notifies sans toucher aux poses internes.
-  - Reste a faire : sortir le controller de son hebergement transitoire dans `RiggedModel` et valider sur un sample de personnage pilotable.
+  Resultat du 2026-04-18 (suite) :
+  - Nouveau type runtime : `SkinnedMeshAnimationRuntime`, instancie par `SkinnedMeshComponent`, qui heberge maintenant `AnimationController`, `SkeletonPoseModel`, la palette de skinning GPU et les hooks `PosePostProcessing` / events par instance de scene.
+  - `RiggedModel.OverrideRuntimeAnimationAssets(...)` ne cree plus de controller par defaut : le mesh conserve les donnees asset (`SkeletonDefinition`, clips), tandis que les appels legacy directs sur `RiggedModel` recreent seulement un runtime transitoire a la demande pour ne pas casser l'API existante.
+  - `SkinnedMeshRendererComponent` consomme des palettes de skinning par instance poussees par le composant, ce qui evite de faire vivre l'etat d'animation dans l'asset partage et aligne le branchement gameplay sur `SkinnedMeshComponent`.
+  - `AnimationIkDemo`, `SkinnedMeshDemo` et la branche de crossfade avance de `AnimationBlendDemo` ont ete migres vers l'API composant au lieu de manipuler `RiggedModel` directement.
+  - `CasaEngine.Tests/Animation/SkinnedMeshAnimationRuntimeTests.cs` verrouille l'absence de controller par defaut dans `RiggedModel`, l'independance de deux runtimes partageant le meme asset et la compatibilite legacy via creation paresseuse.
+  Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~AnimationControllerTests|FullyQualifiedName~AnimationGraphNodeTests|FullyQualifiedName~SkinnedMeshAnimationRuntimeTests" -v minimal`, `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`, puis smoke run automatise de `Animation IK demo` et `Skinned mesh demo` avec captures `artifacts/validation/t05-03-animation-ik-demo.png` et `artifacts/validation/t05-03-skinned-mesh-demo.png`.
   Commit conseille :
   - `feat(animation): integrate controller with scene components`
 

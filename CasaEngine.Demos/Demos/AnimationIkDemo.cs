@@ -37,7 +37,6 @@ public class AnimationIkDemo : Demo
 
     private CasaEngineGame _game;
     private SkinnedMeshComponent _skinnedMeshComponent;
-    private RiggedModel _riggedModel;
     private IkChainSelection _chain;
     private KeyboardState _previousKeyboardState;
     private Vector3 _targetModelPosition;
@@ -72,14 +71,12 @@ public class AnimationIkDemo : Demo
         skinnedMesh.Initialize(game.AssetContentManager);
         _skinnedMeshComponent.SkinnedMesh = skinnedMesh;
 
-        _riggedModel = skinnedMesh.RiggedModel;
-        if (_riggedModel.AnimationClips.Count > 0)
+        if (_skinnedMeshComponent.AnimationClips.Count > 0)
         {
-            _riggedModel.BeginAnimation(0);
-            _riggedModel.Update(0f);
+            _skinnedMeshComponent.PlayAnimation(0);
         }
 
-        var skeleton = _riggedModel.SkeletonDefinition
+        var skeleton = _skinnedMeshComponent.SkeletonDefinition
                        ?? throw new InvalidOperationException("The IK demo requires a valid skeleton definition.");
         _chain = ResolveBestChain(skeleton);
         ResetTargetFromCurrentPose();
@@ -95,7 +92,7 @@ public class AnimationIkDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        if (_game == null || _skinnedMeshComponent == null || _riggedModel?.ModelPose == null)
+        if (_game == null || _skinnedMeshComponent == null || _skinnedMeshComponent.CurrentModelPose == null)
         {
             return;
         }
@@ -271,12 +268,12 @@ public class AnimationIkDemo : Demo
 
     private void DrawDebugVisualization()
     {
-        if (_game == null || _skinnedMeshComponent == null || _riggedModel?.ModelPose == null)
+        if (_game == null || _skinnedMeshComponent == null || _skinnedMeshComponent.CurrentModelPose == null)
         {
             return;
         }
 
-        var modelPose = _riggedModel.ModelPose;
+        var modelPose = _skinnedMeshComponent.CurrentModelPose;
         var rootWorld = ToWorld(modelPose.GetTransform(_chain.RootJointIndex).Translation);
         var midWorld = ToWorld(modelPose.GetTransform(_chain.MidJointIndex).Translation);
         var endWorld = ToWorld(modelPose.GetTransform(_chain.EndJointIndex).Translation);
@@ -308,12 +305,12 @@ public class AnimationIkDemo : Demo
 
     private void ResetTargetFromCurrentPose()
     {
-        if (_riggedModel?.ModelPose == null)
+        if (_skinnedMeshComponent?.CurrentModelPose == null)
         {
             return;
         }
 
-        var modelPose = _riggedModel.ModelPose;
+        var modelPose = _skinnedMeshComponent.CurrentModelPose;
         var rootPosition = modelPose.GetTransform(_chain.RootJointIndex).Translation;
         var midPosition = modelPose.GetTransform(_chain.MidJointIndex).Translation;
         var endPosition = modelPose.GetTransform(_chain.EndJointIndex).Translation;

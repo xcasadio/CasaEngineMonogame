@@ -45,11 +45,12 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
     }
 
-    public void AddMesh(RiggedModel mesh, Matrix world)
+    public void AddMesh(RiggedModel mesh, Matrix world, Matrix[]? skinningPalette = null)
     {
         _meshInfos.Add(new SkinnedMeshInfo
         {
             SkinnedMesh = mesh,
+            SkinningPalette = skinningPalette,
             World = world,
         });
     }
@@ -120,13 +121,13 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedModel(meshInfo.SkinnedMesh, meshInfo.World, in context);
+            DrawRiggedModel(meshInfo.SkinnedMesh, meshInfo.World, meshInfo.SkinningPalette, in context);
         }
 
         _meshInfos.Clear();
     }
 
-    private void DrawRiggedModel(RiggedModel riggedModel, Matrix world, in RenderContext context)
+    private void DrawRiggedModel(RiggedModel riggedModel, Matrix world, Matrix[]? skinningPalette, in RenderContext context)
     {
         for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
         {
@@ -137,7 +138,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedMesh(riggedModel, mesh, texture, world, in context);
+            DrawRiggedMesh(riggedModel, mesh, texture, world, skinningPalette, in context);
         }
     }
 
@@ -146,6 +147,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         RiggedModel.RiggedModelMesh mesh,
         Texture2D texture,
         Matrix world,
+        Matrix[]? skinningPalette,
         in RenderContext context)
     {
         _defaultMaterial.BasColor = texture;
@@ -153,7 +155,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
         var effectiveShader = EffectiveShaderResolver.Resolve(_defaultMaterial, features);
         var resolvedShader = _shaderSelector!.Resolve(effectiveShader.ShaderId, features);
-        var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
+        var meshWorld = world * riggedModel.GetMeshNodeTransform(mesh);
 
         _stateCache.Apply(context.Device, _defaultMaterial, context.Stats);
 
@@ -164,7 +166,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
         _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
-        resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, riggedModel.GlobalShaderMatrixs);
+        resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, skinningPalette ?? riggedModel.GlobalShaderMatrixs);
 
         for (int passIndex = 0; passIndex < resolvedShader.Shader.PassCount; passIndex++)
         {
@@ -189,6 +191,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     private class SkinnedMeshInfo
     {
         public RiggedModel? SkinnedMesh;
+        public Matrix[]? SkinningPalette;
         public Matrix World { get; set; }
     }
 }

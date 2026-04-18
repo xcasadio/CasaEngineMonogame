@@ -289,7 +289,7 @@ public class RiggedModel
     // ok ... in draw we should now be able to call on this in relation to the world transform.
     private void UpdateMeshTransforms()
     {
-        if (AnimationController != null)
+        if (AnimationController != null || OriginalAnimations.Count == 0)
         {
             return;
         }
@@ -377,12 +377,17 @@ public class RiggedModel
 
     public void BeginAnimation(int animationIndex)
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         CurrentAnimationFrameTime = 0;
         CurrentPlayingAnimationIndex = animationIndex;
 
-        if (AnimationController != null && _currentAnimation < _animationClips.Count)
+        if (_currentAnimation < _animationClips.Count)
         {
-            AnimationController.Play(_animationClips[_currentAnimation], _loopAnimation);
+            AnimationController!.Play(_animationClips[_currentAnimation], _loopAnimation);
         }
 
         AnimationRunning = true;
@@ -401,12 +406,12 @@ public class RiggedModel
 
     public void PlayAnimationGraph(IAnimationGraphNode graphRoot)
     {
-        if (AnimationController == null)
+        if (!EnsureLegacyAnimationRuntime())
         {
             return;
         }
 
-        AnimationController.PlayGraph(graphRoot);
+        AnimationController!.PlayGraph(graphRoot);
         CurrentAnimationFrameTime = 0f;
         CurrentFrame = 0;
         AnimationRunning = true;
@@ -414,38 +419,63 @@ public class RiggedModel
 
     public void CrossFadeToAnimation(int animationIndex, float durationSeconds)
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         CurrentPlayingAnimationIndex = animationIndex;
 
-        if (AnimationController == null || _currentAnimation >= _animationClips.Count)
+        if (_currentAnimation >= _animationClips.Count)
         {
             BeginAnimation(animationIndex);
             return;
         }
 
-        AnimationController.CrossFade(_animationClips[_currentAnimation], durationSeconds, _loopAnimation);
+        AnimationController!.CrossFade(_animationClips[_currentAnimation], durationSeconds, _loopAnimation);
         AnimationRunning = true;
     }
 
     public void StopAnimation()
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         AnimationController?.Stop();
         AnimationRunning = false;
     }
 
     public void PauseAnimation()
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         AnimationController?.Pause();
         AnimationRunning = false;
     }
 
     public void ResumeAnimation()
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         AnimationController?.Resume();
         AnimationRunning = true;
     }
 
     public void SeekAnimation(float timeSeconds)
     {
+        if (!EnsureLegacyAnimationRuntime())
+        {
+            return;
+        }
+
         AnimationController?.Seek(timeSeconds);
         CurrentAnimationFrameTime = timeSeconds;
     }
@@ -514,10 +544,9 @@ public class RiggedModel
         }
 
         SkeletonDefinition = skeletonDefinition;
-        LocalPose = SkeletonDefinition.CreateLocalBindPose();
-        ModelPose = new SkeletonPoseModel(SkeletonDefinition);
-        AnimationController = new AnimationController(SkeletonDefinition);
-        AnimationController.AnimationEventTriggered += eventKeyframe => AnimationEventTriggered?.Invoke(eventKeyframe);
+        LocalPose = null;
+        ModelPose = null;
+        AnimationController = null;
 
         _animationClips.Clear();
         for (var clipIndex = 0; clipIndex < animationClips.Count; clipIndex++)
@@ -529,7 +558,41 @@ public class RiggedModel
         CurrentFrame = 0;
         AnimationRunning = false;
         _currentAnimation = 0;
+        ResetModernPoseToBindPose();
+    }
+
+    private bool EnsureLegacyAnimationRuntime()
+    {
+        if (AnimationController != null && LocalPose != null && ModelPose != null)
+        {
+            return true;
+        }
+
+        if (SkeletonDefinition == null)
+        {
+            return false;
+        }
+
+        LocalPose = SkeletonDefinition.CreateLocalBindPose();
+        ModelPose = new SkeletonPoseModel(SkeletonDefinition);
+        AnimationController = new AnimationController(SkeletonDefinition);
+        AnimationController.AnimationEventTriggered += eventKeyframe => AnimationEventTriggered?.Invoke(eventKeyframe);
+        ModelPose.UpdateFromLocalPose(LocalPose);
         ApplyModernPoseToNodes(LocalPose, ModelPose);
+        return true;
+    }
+
+    private void ResetModernPoseToBindPose()
+    {
+        if (SkeletonDefinition == null)
+        {
+            return;
+        }
+
+        var bindLocalPose = SkeletonDefinition.CreateLocalBindPose();
+        var bindModelPose = new SkeletonPoseModel(SkeletonDefinition);
+        bindModelPose.UpdateFromLocalPose(bindLocalPose);
+        ApplyModernPoseToNodes(bindLocalPose, bindModelPose);
     }
 
     private SkeletonDefinition BuildSkeletonDefinition()
@@ -642,7 +705,7 @@ public class RiggedModel
         // The skinned palette already produces vertices in model space.
         // Reapplying the importing node transform on top of the animated palette
         // offsets the whole rig and can move it fully out of frame.
-        if (AnimationController != null)
+        if (SkeletonDefinition != null)
         {
             return Matrix.Identity;
         }
