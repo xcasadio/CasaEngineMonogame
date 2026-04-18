@@ -569,13 +569,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `refactor(rendering): separate animation pose evaluation from skinned rendering`
 
-- ⏳ **T06.02 - Passer les meshes skinnes sur VB/IB persistants**
+- ✅ **T06.02 - Passer les meshes skinnes sur VB/IB persistants**
   Objectif :
   - Arreter l'usage principal de `DrawUserIndexedPrimitives` pour les meshes skinnes.
   - Garder les buffers GPU persistants et reutilisables.
   Validation :
   - Build solution.
   - Capture visuelle et verification stats draw calls / binds.
+  Resultat du 2026-04-18 :
+  - `RiggedModelMesh` heberge maintenant des `VertexBuffer` / `IndexBuffer` persistants pour la geometrie skinned.
+  - `RiggedModel` implemente `IAssetable` pour recreer les buffers au reset GPU et les liberer proprement a l'unload.
+  - `SkinnedMeshRendererComponent` et le chemin legacy `RiggedModel.Draw()` utilisent des draws indexes via buffers persistants au lieu de `DrawUserIndexedPrimitives`.
+  - Les draws skinnes initialisent les buffers GPU de facon paresseuse et conservent la geometrie CPU comme source de re-upload si necessaire.
+  - `DemosGame` accepte `CASAENGINE_SHOW_DEBUG_OVERLAY=1` afin de capturer les `RenderStats` dans les screenshots d'automatisation sans changer le comportement normal des demos.
+  - Validation executee : `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, `dotnet build CasaEngine.Demos/CasaEngine.Demos.csproj -c Debug --no-restore`, capture `artifacts/validation/t06-02-skinned-mesh-demo.png`, puis capture overlay `artifacts/validation/t06-02-skinned-mesh-demo-stats.png` avec `CASAENGINE_SHOW_DEBUG_OVERLAY=1` montrant `Draws: 4`, `FX: 1`, `Tex: 4`, `State: 1`.
   Commit conseille :
   - `feat(rendering): move skinned meshes to persistent gpu buffers`
 

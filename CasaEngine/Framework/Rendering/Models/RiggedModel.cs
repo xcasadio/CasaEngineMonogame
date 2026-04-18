@@ -1,6 +1,7 @@
 ﻿
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Animations;
+using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -46,7 +47,7 @@ namespace CasaEngine.Framework.Rendering.Models;
 /// After i make a content reader and writer for the model class there will be no need for the loader except to change over new models.
 /// However you don't really have to have it in xnb form at all you could use it as is but it does a lot of processing so... meh...
 /// </summary>
-public class RiggedModel
+public class RiggedModel : IAssetable
 {
     public Effect Effect;
     public int NumberOfBonesInUse = 0;
@@ -95,6 +96,30 @@ public class RiggedModel
         {
             GlobalShaderMatrixs[i] = Matrix.Identity;
         }
+    }
+
+    public void Initialize(GraphicsDevice graphicsDevice)
+    {
+        ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+        for (var meshIndex = 0; meshIndex < Meshes.Length; meshIndex++)
+        {
+            Meshes[meshIndex].Initialize(graphicsDevice);
+        }
+    }
+
+    public void Dispose()
+    {
+        for (var meshIndex = 0; meshIndex < Meshes.Length; meshIndex++)
+        {
+            Meshes[meshIndex].ReleaseGraphicsResources();
+        }
+    }
+
+    public void OnDeviceReset(GraphicsDevice device, AssetContentManager assetContentManager)
+    {
+        Dispose();
+        Initialize(device);
     }
     /*
     /// <summary>
@@ -313,6 +338,7 @@ public class RiggedModel
     /// </summary>
     public void Draw(GraphicsDevice gd, Matrix world, Matrix viewProjection)
     {
+        Initialize(gd);
         Effect.Parameters[ShaderParameterNames.Bones]?.SetValue(GlobalShaderMatrixs);
 
         for (var index = 0; index < Meshes.Length; index++)
@@ -325,15 +351,20 @@ public class RiggedModel
                 continue;
             }
 
+            if (mesh.VertexBuffer == null || mesh.IndexBuffer == null)
+            {
+                continue;
+            }
+
             Effect.Parameters[ShaderParameterNames.BasColorTexture]?.SetValue(texture);
             var meshWorld = world * GetMeshNodeTransform(mesh);
             Effect.Parameters[ShaderParameterNames.World]?.SetValue(meshWorld);
             Effect.Parameters[ShaderParameterNames.WorldInverseTranspose]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));
             Effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(meshWorld * viewProjection);
             Effect.CurrentTechnique.Passes[0].Apply();
-            gd.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, mesh.Vertices, 0,
-                mesh.Vertices.Length, mesh.Indices, 0, mesh.Indices.Length / 3,
-                VertexPositionTextureNormalTangentWeights.VertexDeclaration);
+            gd.SetVertexBuffer(mesh.VertexBuffer);
+            gd.Indices = mesh.IndexBuffer;
+            gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.NumberOfVertices, 0, mesh.NumberOfIndices / 3);
         }
     }
 
@@ -752,6 +783,8 @@ public class RiggedModel
         public Texture2D TextureReflectionMap;
         public VertexPositionTextureNormalTangentWeights[] Vertices;
         public int[] Indices;
+        public VertexBuffer? VertexBuffer { get; private set; }
+        public IndexBuffer? IndexBuffer { get; private set; }
         public bool HasVertexColors { get; set; }
         public string NameOfMesh = "";
         public int NumberOfIndices => Indices.Length;
@@ -774,6 +807,45 @@ public class RiggedModel
         /// Defines the center mass point or average of all the vertices.
         /// </summary>
         public Vector3 Centroid { get; set; }
+
+        public void Initialize(GraphicsDevice graphicsDevice)
+        {
+            ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+            bool vertexBufferValid = VertexBuffer != null
+                && !VertexBuffer.IsDisposed
+                && ReferenceEquals(VertexBuffer.GraphicsDevice, graphicsDevice);
+            bool indexBufferValid = IndexBuffer != null
+                && !IndexBuffer.IsDisposed
+                && ReferenceEquals(IndexBuffer.GraphicsDevice, graphicsDevice);
+
+            if (vertexBufferValid && indexBufferValid)
+            {
+                return;
+            }
+
+            ReleaseGraphicsResources();
+
+            if (Vertices.Length == 0 || Indices.Length == 0)
+            {
+                return;
+            }
+
+            VertexBuffer = new VertexBuffer(graphicsDevice, VertexPositionTextureNormalTangentWeights.VertexDeclaration, Vertices.Length, BufferUsage.None);
+            VertexBuffer.SetData(Vertices);
+
+            IndexBuffer = new IndexBuffer(graphicsDevice, typeof(int), Indices.Length, BufferUsage.None);
+            IndexBuffer.SetData(Indices);
+        }
+
+        public void ReleaseGraphicsResources()
+        {
+            VertexBuffer?.Dispose();
+            VertexBuffer = null;
+
+            IndexBuffer?.Dispose();
+            IndexBuffer = null;
+        }
     }
 
     /// <summary>

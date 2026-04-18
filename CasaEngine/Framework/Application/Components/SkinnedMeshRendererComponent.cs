@@ -158,6 +158,12 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         ISkinnedMeshPoseProvider poseProvider,
         in RenderContext context)
     {
+        mesh.Initialize(context.Device);
+        if (mesh.VertexBuffer == null || mesh.IndexBuffer == null)
+        {
+            return;
+        }
+
         _defaultMaterial.BasColor = texture;
 
         var features = RenderFeatureResolver.ResolveSkinned(_defaultMaterial, mesh);
@@ -175,19 +181,19 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
         _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
         resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+        context.Device.SetVertexBuffer(mesh.VertexBuffer);
+        context.Device.Indices = mesh.IndexBuffer;
 
         for (int passIndex = 0; passIndex < resolvedShader.Shader.PassCount; passIndex++)
         {
             resolvedShader.Shader.ApplyPass(passIndex);
-            context.Device.DrawUserIndexedPrimitives(
+            context.Device.DrawIndexedPrimitives(
                 PrimitiveType.TriangleList,
-                mesh.Vertices,
                 0,
-                mesh.Vertices.Length,
-                mesh.Indices,
                 0,
-                mesh.Indices.Length / 3,
-                VertexPositionTextureNormalTangentWeights.VertexDeclaration);
+                mesh.NumberOfVertices,
+                0,
+                mesh.NumberOfIndices / 3);
         }
 
         if (context.Stats is not null)

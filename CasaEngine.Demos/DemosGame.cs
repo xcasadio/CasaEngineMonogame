@@ -23,6 +23,7 @@ public class DemosGame : CasaEngineGame
     private readonly List<Demo> _demos = new();
     private readonly string? _automationScreenshotPath = ResolveAutomationScreenshotPath();
     private readonly TimeSpan? _automationScreenshotDelay = ResolveAutomationScreenshotDelay();
+    private readonly bool _automationShowDebugOverlay = ResolveAutomationShowDebugOverlay();
     private Demo _currentDemo;
     private int _currentDemoIndex;
     private CameraComponent _pendingStartupCamera;
@@ -151,6 +152,7 @@ public class DemosGame : CasaEngineGame
         currentWorld.LoadContent(this);
         RuntimeViewBootstrapper?.BootstrapViews(this, currentWorld, GameManager.ViewManager);
         _currentDemo.InitializeCamera(camera);
+        ApplyAutomationViewSettings();
         RefreshDemoUI();
     }
 
@@ -162,6 +164,7 @@ public class DemosGame : CasaEngineGame
             _pendingStartupCamera = null;
         }
 
+        ApplyAutomationViewSettings();
         RefreshDemoUI();
     }
 
@@ -192,6 +195,19 @@ public class DemosGame : CasaEngineGame
         bool automationScreenshotEnabled = !string.IsNullOrWhiteSpace(_automationScreenshotPath);
         _demoInfoScreen.SetVisible(!automationScreenshotEnabled && _demoInfoVisible);
         _demoHintOverlay.SetVisible(!automationScreenshotEnabled && !_demoInfoVisible);
+    }
+
+    private void ApplyAutomationViewSettings()
+    {
+        if (!_automationShowDebugOverlay)
+        {
+            return;
+        }
+
+        foreach (var view in GameManager.ViewManager.Views)
+        {
+            view.ShowDebugOverlay = true;
+        }
     }
 
     protected override void OnViewsResized(int width, int height)
@@ -298,5 +314,19 @@ public class DemosGame : CasaEngineGame
         return int.TryParse(delayText, out int delayMs) && delayMs >= 0
             ? TimeSpan.FromMilliseconds(delayMs)
             : TimeSpan.FromMilliseconds(1500);
+    }
+
+    private static bool ResolveAutomationShowDebugOverlay()
+    {
+        var value = Environment.GetEnvironmentVariable("CASAENGINE_SHOW_DEBUG_OVERLAY");
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return value == "1"
+            || value.Equals("yes", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("on", StringComparison.OrdinalIgnoreCase)
+            || bool.TryParse(value, out var enabled) && enabled;
     }
 }
