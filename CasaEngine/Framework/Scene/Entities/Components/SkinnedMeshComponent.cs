@@ -15,6 +15,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private RiggedModel? _boundRiggedModel;
     private SkinnedMesh? _skinnedMesh;
+    private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
 
     public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
     public SkinnedMesh? SkinnedMesh
@@ -44,6 +45,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
             }
         }
     }
+
+    public IReadOnlyList<TwoBoneIkConstraint> TwoBoneIkConstraints => _twoBoneIkConstraints;
 
     public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
 
@@ -199,6 +202,36 @@ public class SkinnedMeshComponent : PrimitiveComponent
         SkinnedMesh?.RiggedModel?.AnimationController?.SetLayerWeight(layerIndex, weight);
     }
 
+    public void SetTwoBoneIkConstraint(int constraintIndex, TwoBoneIkConstraint constraint)
+    {
+        if (constraintIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(constraintIndex));
+        }
+
+        while (_twoBoneIkConstraints.Count <= constraintIndex)
+        {
+            _twoBoneIkConstraints.Add(default);
+        }
+
+        _twoBoneIkConstraints[constraintIndex] = constraint;
+    }
+
+    public void ClearTwoBoneIkConstraint(int constraintIndex)
+    {
+        if (constraintIndex < 0 || constraintIndex >= _twoBoneIkConstraints.Count)
+        {
+            return;
+        }
+
+        _twoBoneIkConstraints[constraintIndex] = default;
+    }
+
+    public void ClearTwoBoneIkConstraints()
+    {
+        _twoBoneIkConstraints.Clear();
+    }
+
     public RootMotionDelta ConsumeRootMotionDelta()
     {
         return SkinnedMesh?.RiggedModel?.AnimationController?.ConsumeRootMotionDelta() ?? RootMotionDelta.Identity;
@@ -215,6 +248,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
         if (_boundRiggedModel != null)
         {
             _boundRiggedModel.AnimationEventTriggered -= OnRiggedModelAnimationEventTriggered;
+            _boundRiggedModel.PosePostProcessing -= OnRiggedModelPosePostProcessing;
             _boundRiggedModel = null;
         }
 
@@ -225,11 +259,26 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
         _boundRiggedModel = riggedModel;
         _boundRiggedModel.AnimationEventTriggered += OnRiggedModelAnimationEventTriggered;
+        _boundRiggedModel.PosePostProcessing += OnRiggedModelPosePostProcessing;
     }
 
     private void OnRiggedModelAnimationEventTriggered(AnimationEventKeyframe eventKeyframe)
     {
         AnimationEventTriggered?.Invoke(eventKeyframe);
+    }
+
+    private void OnRiggedModelPosePostProcessing(SkeletonPoseLocal localPose, SkeletonPoseModel modelPose)
+    {
+        for (var constraintIndex = 0; constraintIndex < _twoBoneIkConstraints.Count; constraintIndex++)
+        {
+            var constraint = _twoBoneIkConstraints[constraintIndex];
+            if (!constraint.Enabled || constraint.Weight <= 0f)
+            {
+                continue;
+            }
+
+            IkSolverTwoBone.Solve(localPose, modelPose, constraint);
+        }
     }
 
 }

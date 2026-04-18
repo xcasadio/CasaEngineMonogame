@@ -1,5 +1,6 @@
 ﻿
 using CasaEngine.Core.Logging;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -61,11 +62,20 @@ public class RiggedModel
 
     // initial assimp animations
     public readonly List<RiggedAnimation> OriginalAnimations = new();
+    private readonly List<AnimationClip> _animationClips = new();
     int _currentAnimation = 0;
     public int CurrentFrame = 0;
     public bool AnimationRunning = false;
     bool _loopAnimation = true;
     public float CurrentAnimationFrameTime = 0;
+
+    public SkeletonDefinition? SkeletonDefinition { get; private set; }
+    public SkeletonPoseLocal? LocalPose { get; private set; }
+    public SkeletonPoseModel? ModelPose { get; private set; }
+    public AnimationController? AnimationController { get; private set; }
+    public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
+    public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
+    public event Action<SkeletonPoseLocal, SkeletonPoseModel>? PosePostProcessing;
 
     /// <summary>
     /// Uses static animation frames instead of interpolated frames.
@@ -126,6 +136,37 @@ public class RiggedModel
     /// </summary>
     public void Update(float elapsedTime)
     {
+        if (AnimationController != null && LocalPose != null && ModelPose != null)
+        {
+            AnimationController.Update(elapsedTime);
+            LocalPose = AnimationController.OutputPose;
+            ModelPose.UpdateFromLocalPose(LocalPose);
+
+            if (PosePostProcessing != null)
+            {
+                PosePostProcessing(LocalPose, ModelPose);
+                ModelPose.UpdateFromLocalPose(LocalPose);
+            }
+
+            ApplyModernPoseToNodes(LocalPose, ModelPose);
+            CurrentAnimationFrameTime = AnimationController.CurrentTimeSeconds;
+            AnimationRunning = AnimationController.IsPlaying;
+
+            if (AnimationController.HasAnimationGraph)
+            {
+                CurrentFrame = 0;
+            }
+            else if (_currentAnimation >= 0 && _currentAnimation < OriginalAnimations.Count)
+            {
+                var secondsPerFrame = (float)OriginalAnimations[_currentAnimation].SecondsPerFrame;
+                CurrentFrame = secondsPerFrame > 0f
+                    ? (int)(CurrentAnimationFrameTime / secondsPerFrame)
+                    : 0;
+            }
+
+            return;
+        }
+
         if (AnimationRunning)
         {
             UpdateModelAnimations(elapsedTime);
@@ -248,6 +289,11 @@ public class RiggedModel
     // ok ... in draw we should now be able to call on this in relation to the world transform.
     private void UpdateMeshTransforms()
     {
+        if (AnimationController != null)
+        {
+            return;
+        }
+
         // try to handle when we just have mesh transforms
         for (int i = 0; i < Meshes.Length; i++)
         {
@@ -280,7 +326,7 @@ public class RiggedModel
             }
 
             Effect.Parameters[ShaderParameterNames.BasColorTexture]?.SetValue(texture);
-            var meshWorld = world * mesh.NodeRefContainingAnimatedTransform.CombinedTransformMg;
+            var meshWorld = world * GetMeshNodeTransform(mesh);
             Effect.Parameters[ShaderParameterNames.World]?.SetValue(meshWorld);
             Effect.Parameters[ShaderParameterNames.WorldInverseTranspose]?.SetValue(Matrix.Transpose(Matrix.Invert(meshWorld)));
             Effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(meshWorld * viewProjection);
@@ -297,7 +343,19 @@ public class RiggedModel
         set
         {
             var n = value;
-            if (n >= OriginalAnimations.Count)
+            var animationCount = _animationClips.Count > 0 ? _animationClips.Count : OriginalAnimations.Count;
+            if (animationCount == 0)
+            {
+                _currentAnimation = 0;
+                return;
+            }
+
+            if (n >= animationCount)
+            {
+                n = 0;
+            }
+
+            if (n < 0)
             {
                 n = 0;
             }
@@ -320,13 +378,298 @@ public class RiggedModel
     public void BeginAnimation(int animationIndex)
     {
         CurrentAnimationFrameTime = 0;
-        _currentAnimation = animationIndex;
+        CurrentPlayingAnimationIndex = animationIndex;
+
+        if (AnimationController != null && _currentAnimation < _animationClips.Count)
+        {
+            AnimationController.Play(_animationClips[_currentAnimation], _loopAnimation);
+        }
+
+        AnimationRunning = true;
+    }
+
+    public bool BeginAnimation(string animationName)
+    {
+        if (!TryGetAnimationIndex(animationName, out var animationIndex))
+        {
+            return false;
+        }
+
+        BeginAnimation(animationIndex);
+        return true;
+    }
+
+    public void PlayAnimationGraph(IAnimationGraphNode graphRoot)
+    {
+        if (AnimationController == null)
+        {
+            return;
+        }
+
+        AnimationController.PlayGraph(graphRoot);
+        CurrentAnimationFrameTime = 0f;
+        CurrentFrame = 0;
+        AnimationRunning = true;
+    }
+
+    public void CrossFadeToAnimation(int animationIndex, float durationSeconds)
+    {
+        CurrentPlayingAnimationIndex = animationIndex;
+
+        if (AnimationController == null || _currentAnimation >= _animationClips.Count)
+        {
+            BeginAnimation(animationIndex);
+            return;
+        }
+
+        AnimationController.CrossFade(_animationClips[_currentAnimation], durationSeconds, _loopAnimation);
         AnimationRunning = true;
     }
 
     public void StopAnimation()
     {
+        AnimationController?.Stop();
         AnimationRunning = false;
+    }
+
+    public void PauseAnimation()
+    {
+        AnimationController?.Pause();
+        AnimationRunning = false;
+    }
+
+    public void ResumeAnimation()
+    {
+        AnimationController?.Resume();
+        AnimationRunning = true;
+    }
+
+    public void SeekAnimation(float timeSeconds)
+    {
+        AnimationController?.Seek(timeSeconds);
+        CurrentAnimationFrameTime = timeSeconds;
+    }
+
+    public bool TryGetAnimationIndex(string animationName, out int animationIndex)
+    {
+        animationIndex = -1;
+        if (string.IsNullOrWhiteSpace(animationName))
+        {
+            return false;
+        }
+
+        for (var index = 0; index < _animationClips.Count; index++)
+        {
+            if (string.Equals(_animationClips[index].Name, animationName, StringComparison.Ordinal))
+            {
+                animationIndex = index;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void InitializeRuntimeAnimation()
+    {
+        if (RootNodeOfTree == null || FlatListToAllNodes.Count == 0)
+        {
+            return;
+        }
+
+        var skeletonDefinition = BuildSkeletonDefinition();
+        var runtimeClips = new List<AnimationClip>(OriginalAnimations.Count);
+        for (var animationIndex = 0; animationIndex < OriginalAnimations.Count; animationIndex++)
+        {
+            runtimeClips.Add(BuildAnimationClip(OriginalAnimations[animationIndex], skeletonDefinition));
+        }
+
+        OverrideRuntimeAnimationAssets(skeletonDefinition, runtimeClips);
+    }
+
+    public void OverrideRuntimeAnimationAssets(SkeletonDefinition skeletonDefinition, IReadOnlyList<AnimationClip> animationClips)
+    {
+        ArgumentNullException.ThrowIfNull(skeletonDefinition);
+        ArgumentNullException.ThrowIfNull(animationClips);
+
+        if (FlatListToAllNodes.Count != skeletonDefinition.Count)
+        {
+            throw new InvalidOperationException("The imported skeleton does not match the rigged model node count.");
+        }
+
+        for (var jointIndex = 0; jointIndex < skeletonDefinition.Count; jointIndex++)
+        {
+            if (!string.Equals(FlatListToAllNodes[jointIndex].Name, skeletonDefinition.GetJoint(jointIndex).Name, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The imported skeleton joint '{skeletonDefinition.GetJoint(jointIndex).Name}' does not match rigged model node '{FlatListToAllNodes[jointIndex].Name}' at index {jointIndex}.");
+            }
+        }
+
+        for (var clipIndex = 0; clipIndex < animationClips.Count; clipIndex++)
+        {
+            if (!ReferenceEquals(animationClips[clipIndex].Skeleton, skeletonDefinition))
+            {
+                throw new InvalidOperationException($"Animation clip '{animationClips[clipIndex].Name}' does not reference the provided skeleton instance.");
+            }
+        }
+
+        SkeletonDefinition = skeletonDefinition;
+        LocalPose = SkeletonDefinition.CreateLocalBindPose();
+        ModelPose = new SkeletonPoseModel(SkeletonDefinition);
+        AnimationController = new AnimationController(SkeletonDefinition);
+        AnimationController.AnimationEventTriggered += eventKeyframe => AnimationEventTriggered?.Invoke(eventKeyframe);
+
+        _animationClips.Clear();
+        for (var clipIndex = 0; clipIndex < animationClips.Count; clipIndex++)
+        {
+            _animationClips.Add(animationClips[clipIndex]);
+        }
+
+        CurrentAnimationFrameTime = 0f;
+        CurrentFrame = 0;
+        AnimationRunning = false;
+        _currentAnimation = 0;
+        ApplyModernPoseToNodes(LocalPose, ModelPose);
+    }
+
+    private SkeletonDefinition BuildSkeletonDefinition()
+    {
+        var joints = new SkeletonJointDefinition[FlatListToAllNodes.Count];
+        var bindModelTransforms = new Matrix[FlatListToAllNodes.Count];
+
+        for (var jointIndex = 0; jointIndex < FlatListToAllNodes.Count; jointIndex++)
+        {
+            var node = FlatListToAllNodes[jointIndex];
+            node.SkeletonJointIndex = jointIndex;
+
+            var bindLocalTransform = BoneTransform.FromMatrix(node.BindLocalTransformMg);
+            var localBindMatrix = bindLocalTransform.ToMatrix();
+            var parentJointIndex = node.Parent?.SkeletonJointIndex ?? -1;
+            bindModelTransforms[jointIndex] = parentJointIndex >= 0
+                ? localBindMatrix * bindModelTransforms[parentJointIndex]
+                : localBindMatrix;
+
+            var inverseBindMatrix = node.IsThisARealBone
+                ? node.OffsetMatrixMg
+                : Matrix.Invert(bindModelTransforms[jointIndex]);
+
+            joints[jointIndex] = new SkeletonJointDefinition(
+                node.Name,
+                parentJointIndex,
+                bindLocalTransform,
+                inverseBindMatrix,
+                node.IsThisARealBone ? node.BoneShaderFinalTransformIndex : -1);
+        }
+
+        return new SkeletonDefinition(joints);
+    }
+
+    private AnimationClip BuildAnimationClip(RiggedAnimation sourceAnimation, SkeletonDefinition skeletonDefinition)
+    {
+        var jointTracks = new List<JointAnimationTrack>(sourceAnimation.AnimatedNodes.Count);
+
+        for (var nodeIndex = 0; nodeIndex < sourceAnimation.AnimatedNodes.Count; nodeIndex++)
+        {
+            var sourceNode = sourceAnimation.AnimatedNodes[nodeIndex];
+            if (sourceNode.NodeRef == null || sourceNode.NodeRef.SkeletonJointIndex < 0)
+            {
+                continue;
+            }
+
+            var translationTrack = CreateVector3Track(sourceNode.PositionTime, sourceNode.Position);
+            var rotationTrack = CreateQuaternionTrack(sourceNode.RotationTime, sourceNode.Rotation);
+            var scaleTrack = CreateVector3Track(sourceNode.ScaleTime, sourceNode.Scale);
+
+            if (translationTrack == null && rotationTrack == null && scaleTrack == null)
+            {
+                continue;
+            }
+
+            jointTracks.Add(new JointAnimationTrack(
+                sourceNode.NodeRef.SkeletonJointIndex,
+                translationTrack,
+                rotationTrack,
+                scaleTrack));
+        }
+
+        return new AnimationClip(
+            sourceAnimation.AnimationName,
+            skeletonDefinition,
+            jointTracks,
+            (float)Math.Max(sourceAnimation.DurationInSeconds, 0d));
+    }
+
+    private static Vector3AnimationTrack? CreateVector3Track(List<double> times, List<Vector3> values)
+    {
+        if (times.Count == 0 || values.Count == 0)
+        {
+            return null;
+        }
+
+        var keyframeCount = Math.Min(times.Count, values.Count);
+        var keyframes = new AnimationKeyframe<Vector3>[keyframeCount];
+
+        for (var keyframeIndex = 0; keyframeIndex < keyframeCount; keyframeIndex++)
+        {
+            keyframes[keyframeIndex] = new AnimationKeyframe<Vector3>((float)times[keyframeIndex], values[keyframeIndex]);
+        }
+
+        return new Vector3AnimationTrack(keyframes);
+    }
+
+    private static QuaternionAnimationTrack? CreateQuaternionTrack(List<double> times, List<Quaternion> values)
+    {
+        if (times.Count == 0 || values.Count == 0)
+        {
+            return null;
+        }
+
+        var keyframeCount = Math.Min(times.Count, values.Count);
+        var keyframes = new AnimationKeyframe<Quaternion>[keyframeCount];
+
+        for (var keyframeIndex = 0; keyframeIndex < keyframeCount; keyframeIndex++)
+        {
+            keyframes[keyframeIndex] = new AnimationKeyframe<Quaternion>((float)times[keyframeIndex], values[keyframeIndex]);
+        }
+
+        return new QuaternionAnimationTrack(keyframes);
+    }
+
+    public Matrix GetMeshNodeTransform(RiggedModelMesh mesh)
+    {
+        ArgumentNullException.ThrowIfNull(mesh);
+
+        // The skinned palette already produces vertices in model space.
+        // Reapplying the importing node transform on top of the animated palette
+        // offsets the whole rig and can move it fully out of frame.
+        if (AnimationController != null)
+        {
+            return Matrix.Identity;
+        }
+
+        return mesh.NodeRefContainingAnimatedTransform?.CombinedTransformMg ?? Matrix.Identity;
+    }
+
+    private void ApplyModernPoseToNodes(SkeletonPoseLocal localPose, SkeletonPoseModel modelPose)
+    {
+        GlobalShaderMatrixs[0] = Matrix.Identity;
+
+        for (var nodeIndex = 0; nodeIndex < FlatListToAllNodes.Count; nodeIndex++)
+        {
+            var node = FlatListToAllNodes[nodeIndex];
+            if (node.SkeletonJointIndex < 0)
+            {
+                continue;
+            }
+
+            node.LocalTransformMg = localPose.GetTransformMatrix(node.SkeletonJointIndex);
+            node.CombinedTransformMg = modelPose.GetTransform(node.SkeletonJointIndex);
+
+            if (node.IsThisARealBone)
+            {
+                GlobalShaderMatrixs[node.BoneShaderFinalTransformIndex] = node.OffsetMatrixMg * node.CombinedTransformMg;
+            }
+        }
     }
 
 
@@ -377,6 +720,7 @@ public class RiggedModel
     {
         public string Name = "";
         public int BoneShaderFinalTransformIndex = -1;
+        public int SkeletonJointIndex = -1;
         public RiggedModelNode? Parent;
         public readonly List<RiggedModelNode> Children = new();
 
@@ -411,6 +755,10 @@ public class RiggedModel
         /// <summary>
         /// The simplest one to understand this is a transformation of a specific bone in relation to the previous bone.
         /// This is a world transformation that has local properties.
+        /// </summary>
+        public Matrix BindLocalTransformMg { get; set; } = Matrix.Identity;
+        /// <summary>
+        /// Mutable local transform used by the runtime animation system.
         /// </summary>
         public Matrix LocalTransformMg { get; set; } = Matrix.Identity;
         /// <summary>

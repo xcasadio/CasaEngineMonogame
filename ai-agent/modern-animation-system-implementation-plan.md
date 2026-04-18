@@ -648,10 +648,16 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add baseline clip retargeting`
 
-- ⏳ **T08.03 - Ajouter un solver IK Two Bone**
+- 🧪 **T08.03 - Ajouter un solver IK Two Bone**
   Objectif :
   - Couvrir main/bras et pied/jambe.
   - Definir une passe runtime post-animation claire.
+  Resultat du 2026-04-18 :
+  - `TwoBoneIkConstraint` et `IkSolverTwoBone` ont ete ajoutes sous `CasaEngine.Framework.Animations`.
+  - `RiggedModel` expose maintenant un hook de post-traitement de pose, et `SkinnedMeshComponent` peut enregistrer des contraintes IK two-bone appliquees apres l'evaluation animation.
+  - Des tests unitaires ont ete ajoutes dans `CasaEngine.Tests/Animation/IkSolverTwoBoneTests.cs` pour les cas atteignable, hors-portee, pole vector et chaines invalides.
+  - Validation executee : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~IkSolverTwoBoneTests --no-restore` puis `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`.
+  - La validation visuelle dediee est reportee a `T09.04` avec `AnimationIkDemo`.
   Validation :
   - Build solution.
   - Demo de reach target ou foot placement simple.
