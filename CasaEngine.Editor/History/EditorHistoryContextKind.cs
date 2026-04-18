@@ -6,5 +6,6 @@ public enum EditorHistoryContextKind
     World,
     UIScreen,
     Material,
+    AnimationClip,
     ContentBrowser,
 }

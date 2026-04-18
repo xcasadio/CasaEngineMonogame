@@ -22,6 +22,7 @@ public readonly record struct EditorHistoryContext(EditorHistoryContextKind Kind
             EditorDocumentKind.World => new EditorHistoryContext(EditorHistoryContextKind.World, document.Id),
             EditorDocumentKind.UIScreen => new EditorHistoryContext(EditorHistoryContextKind.UIScreen, document.Id),
             EditorDocumentKind.Material => new EditorHistoryContext(EditorHistoryContextKind.Material, document.Id),
+            EditorDocumentKind.AnimationClip => new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, document.Id),
             _ => Empty,
         };
     }

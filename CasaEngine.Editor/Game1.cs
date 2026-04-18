@@ -15,6 +15,7 @@ using CasaEngine.Editor.Log;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -93,8 +94,10 @@ namespace CasaEngine.Editor
         private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
         private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, AnimationClipPreviewPanel> _animationClipPreviewPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
         private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
         private readonly CasaEngine.EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
         private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
@@ -265,6 +268,11 @@ namespace CasaEngine.Editor
                 foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
                 {
                     materialInspectorPanel.Dispose();
+                }
+
+                foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
+                {
+                    animationClipPreviewPanel.Dispose();
                 }
             }
 
@@ -1046,6 +1054,9 @@ namespace CasaEngine.Editor
                     RefreshMaterialViews();
                     break;
 
+                case EditorHistoryContextKind.AnimationClip:
+                    break;
+
                 case EditorHistoryContextKind.ContentBrowser:
                     break;
             }
@@ -1148,6 +1159,10 @@ namespace CasaEngine.Editor
             else if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
             {
                 ActivateScreenDocument(panel.Id, previewPanel);
+            }
+            else if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
+            {
+                ActivateAnimationClipDocument(panel.Id, animationClipPreviewPanel);
             }
             else if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
             {
@@ -1310,6 +1325,11 @@ namespace CasaEngine.Editor
             if (_screenPreviewPanels.TryGetValue(panelId, out var previewPanel))
             {
                 return previewPanel.CreateContent;
+            }
+
+            if (_animationClipPreviewPanels.TryGetValue(panelId, out var animationClipPreviewPanel))
+            {
+                return animationClipPreviewPanel.CreateContent;
             }
 
             if (_materialInspectorPanels.TryGetValue(panelId, out _))
@@ -1479,6 +1499,15 @@ namespace CasaEngine.Editor
                 }
             }
 
+            if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
+            {
+                animationClipPreviewPanel.Dispose();
+                _animationClipPreviewPanels.Remove(panel.Id);
+                _animationClipPreviewPanelTitles.Remove(panel.Id);
+                _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panel.Id));
+                _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panel.Id));
+            }
+
             SyncActiveEditorDocumentFromDockState();
             RefreshActiveHistoryContext();
         }
@@ -1576,6 +1605,19 @@ namespace CasaEngine.Editor
                 };
             }
 
+            if (TryGetAnimationClipPreviewPanel(panelId, out var animationClipPreviewPanel))
+            {
+                return new DockPanelNode(panelId)
+                {
+                    Title = GetAnimationClipDocumentTitle(panelId),
+                    DockableType = DockableType.Document,
+                    CanClose = true,
+                    CanFloat = true,
+                    CanAutoHide = false,
+                    ContentFactory = animationClipPreviewPanel.CreateContent,
+                };
+            }
+
             if (TryGetMaterialAssetInspectorPanel(panelId, out _))
             {
                 return new DockPanelNode(panelId)
@@ -1614,6 +1656,18 @@ namespace CasaEngine.Editor
             }
 
             return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+        }
+
+        private bool TryGetAnimationClipPreviewPanel(string panelId, out AnimationClipPreviewPanel previewPanel)
+        {
+            previewPanel = null!;
+
+            if (!panelId.StartsWith(EditorPanelIds.AnimationClipAssetDocumentPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return _animationClipPreviewPanels.TryGetValue(panelId, out previewPanel);
         }
 
         private bool TryGetActiveMaterialInspectorPanel(out MaterialAssetInspectorPanel inspectorPanel)
@@ -1688,6 +1742,17 @@ namespace CasaEngine.Editor
             RefreshActiveHistoryContext();
         }
 
+        private void ActivateAnimationClipDocument(string panelId, AnimationClipPreviewPanel previewPanel)
+        {
+            _editorContext.SetActiveDocument(new EditorDocumentContext(
+                EditorDocumentKind.AnimationClip,
+                panelId,
+                _animationClipPreviewPanelTitles.TryGetValue(panelId, out var title) ? title : "Animation Clip",
+                previewPanel));
+            SyncGlobalSelectionFromActiveDocument();
+            RefreshActiveHistoryContext();
+        }
+
         private void SyncActiveEditorDocumentFromDockState()
         {
             var activeDocumentPanelId = GetActiveDocumentPanelId();
@@ -1702,6 +1767,13 @@ namespace CasaEngine.Editor
                 && TryGetMaterialAssetInspectorPanel(activeDocumentPanelId, out var materialInspectorPanel))
             {
                 ActivateMaterialDocument(activeDocumentPanelId, materialInspectorPanel);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+                && TryGetAnimationClipPreviewPanel(activeDocumentPanelId, out var animationClipPreviewPanel))
+            {
+                ActivateAnimationClipDocument(activeDocumentPanelId, animationClipPreviewPanel);
                 return;
             }
 
@@ -1757,6 +1829,11 @@ namespace CasaEngine.Editor
         private bool TryOpenEditorAsset(string fullPath)
         {
             if (TryOpenUIScreenAsset(fullPath))
+            {
+                return true;
+            }
+
+            if (TryOpenAnimationClipAsset(fullPath))
             {
                 return true;
             }
@@ -1898,6 +1975,54 @@ namespace CasaEngine.Editor
             return true;
         }
 
+        private bool TryOpenAnimationClipAsset(string fullPath)
+        {
+            if (!TryLoadAnimationClipAsset(fullPath, out var animationClipAsset))
+            {
+                return false;
+            }
+
+            EnsureDockHostInitialized();
+
+            Guid documentId = animationClipAsset.AssetId != Guid.Empty ? animationClipAsset.AssetId : animationClipAsset.Id;
+            string panelId = $"{EditorPanelIds.AnimationClipAssetDocumentPrefix}{documentId:N}";
+            if (!_animationClipPreviewPanels.TryGetValue(panelId, out var previewPanel))
+            {
+                previewPanel = new AnimationClipPreviewPanel(_mainWindow, GraphicsDevice, _editorRuntime);
+                _animationClipPreviewPanels.Add(panelId, previewPanel);
+            }
+
+            previewPanel.LoadAsset(animationClipAsset, fullPath);
+            string panelTitle = string.IsNullOrWhiteSpace(animationClipAsset.Name)
+                ? Path.GetFileNameWithoutExtension(fullPath)
+                : animationClipAsset.Name;
+            _animationClipPreviewPanelTitles[panelId] = panelTitle;
+
+            var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+            if (existingPanel == null)
+            {
+                var panelNode = CreateDocumentPanelNode(panelId);
+                var targetGroup = GetDocumentDockGroup();
+                if (panelNode == null || targetGroup == null)
+                {
+                    return false;
+                }
+
+                panelNode.Title = GetAnimationClipDocumentTitle(panelId);
+                DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+            }
+            else
+            {
+                existingPanel.Title = GetAnimationClipDocumentTitle(panelId);
+            }
+
+            ActivateAnimationClipDocument(panelId, previewPanel);
+            ActivateDockPanel(panelId);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Editor] Opened animation clip asset='{animationClipAsset.Name}', viewport='{panelId}'");
+            return true;
+        }
+
         private void OnDirtyStateChanged(object? sender, EditorDirtyStateChangedEventArgs e)
         {
             RefreshHistoryContextTitle(e.Context);
@@ -1978,6 +2103,14 @@ namespace CasaEngine.Editor
 
                     break;
 
+                case EditorHistoryContextKind.AnimationClip:
+                    if (_animationClipPreviewPanelTitles.ContainsKey(context.Id))
+                    {
+                        UpdateDockPanelTitle(context.Id, GetAnimationClipDocumentTitle(context.Id));
+                    }
+
+                    break;
+
                 case EditorHistoryContextKind.ContentBrowser:
                     UpdateDockPanelTitle(EditorPanelIds.ContentBrowser, GetContentBrowserTitle());
                     break;
@@ -2012,6 +2145,11 @@ namespace CasaEngine.Editor
             }
 
             return isDirty ? $"{title} *" : title;
+        }
+
+        private string GetAnimationClipDocumentTitle(string panelId)
+        {
+            return _animationClipPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "Animation Clip";
         }
 
         private string GetContentBrowserTitle()
@@ -2088,6 +2226,47 @@ namespace CasaEngine.Editor
                 else
                 {
                     materialAsset.AssetId = materialAsset.Id;
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryLoadAnimationClipAsset(string fullPath, out AnimationClipAsset animationClipAsset)
+        {
+            animationClipAsset = new AnimationClipAsset();
+
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                var document = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(fullPath));
+                if (document["skeleton_asset_id"] == null || document["joint_tracks"] == null)
+                {
+                    return false;
+                }
+
+                animationClipAsset.Load(document);
+                animationClipAsset.FileName = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+
+                var assetInfo = AssetCatalog.GetByFileName(animationClipAsset.FileName)
+                    ?? AssetCatalog.GetByFileName(animationClipAsset.FileName.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                if (assetInfo != null)
+                {
+                    animationClipAsset.Name = assetInfo.Name;
+                    animationClipAsset.AssetId = assetInfo.Id;
+                    animationClipAsset.FileName = assetInfo.FileName;
+                }
+                else
+                {
+                    animationClipAsset.AssetId = animationClipAsset.Id;
                 }
 
                 return true;
@@ -2350,6 +2529,11 @@ namespace CasaEngine.Editor
             foreach (var previewPanel in _screenPreviewPanels.Values)
             {
                 previewPanel.Update();
+            }
+
+            foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
+            {
+                animationClipPreviewPanel.Update(gameTime);
             }
 
             _contentBrowserPanel?.Update();
@@ -3017,6 +3201,10 @@ namespace CasaEngine.Editor
             foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
             {
                 materialInspectorPanel.RefreshPreviewAfterDraw();
+            }
+            foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
+            {
+                animationClipPreviewPanel.RefreshPreviewAfterDraw();
             }
 
             GraphicsDevice.Clear(Color.DimGray);

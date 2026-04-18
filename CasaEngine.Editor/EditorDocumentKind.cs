@@ -6,4 +6,5 @@ public enum EditorDocumentKind
     World,
     UIScreen,
     Material,
+    AnimationClip,
 }
