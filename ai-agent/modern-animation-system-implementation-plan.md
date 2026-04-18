@@ -552,13 +552,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 6 - Moderniser le skinning et le rendu
 
-- ⏳ **T06.01 - Decoupler skinning runtime et rendu legacy**
+- ✅ **T06.01 - Decoupler skinning runtime et rendu legacy**
   Objectif :
   - Faire du renderer skinned un consommateur de poses finales, pas le proprietaire de la logique animation.
   - Definir l'interface `pose finale -> palette GPU`.
   Validation :
   - Build solution.
   - Smoke test `SkinnedMeshDemo`.
+  Resultat du 2026-04-18 :
+  - Contrat explicite ajoute : `ISkinnedMeshPoseProvider` avec palette GPU et transform de noeud de mesh.
+  - `SkinnedMeshAnimationRuntime` implemente maintenant ce contrat et expose une pose finale directement consommable par le renderer.
+  - `RiggedModelPoseProvider` fournit le fallback legacy cote composant sans laisser le renderer lire directement l'etat runtime de `RiggedModel`.
+  - `SkinnedMeshRendererComponent` consomme des `ISkinnedMeshPoseProvider` et n'accede plus directement a `GlobalShaderMatrixs` ni a la logique d'evaluation de pose.
+  - `SkinnedMeshComponent` choisit explicitement le provider runtime ou legacy avant d'enqueuer le mesh pour le rendu.
+  - Validation executee : `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`, `dotnet build CasaEngine.Demos/CasaEngine.Demos.csproj -c Debug --no-restore`, puis smoke `Skinned mesh demo` avec capture `artifacts/validation/t06-01-skinned-mesh-demo.png`.
   Commit conseille :
   - `refactor(rendering): separate animation pose evaluation from skinned rendering`
 

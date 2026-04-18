@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Animations;
 
-public sealed class SkinnedMeshAnimationRuntime
+public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider
 {
     private readonly RiggedModel _riggedModel;
     private readonly List<AnimationClip> _animationClips = new();
@@ -187,6 +187,12 @@ public sealed class SkinnedMeshAnimationRuntime
         }
 
         return false;
+    }
+
+    public Matrix GetMeshNodeTransform(RiggedModel.RiggedModelMesh mesh)
+    {
+        ArgumentNullException.ThrowIfNull(mesh);
+        return Matrix.Identity;
     }
 
     private void RefreshEvaluatedPose()

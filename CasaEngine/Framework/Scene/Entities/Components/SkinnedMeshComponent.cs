@@ -16,6 +16,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private SkinnedMesh? _skinnedMesh;
     private SkinnedMeshAnimationRuntime? _animationRuntime;
+    private RiggedModelPoseProvider? _legacyPoseProvider;
     private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
     private RootMotionMode _rootMotionMode = RootMotionMode.Observe;
 
@@ -111,10 +112,16 @@ public class SkinnedMeshComponent : PrimitiveComponent
             return;
         }
 
+        var poseProvider = GetPoseProvider(SkinnedMesh.RiggedModel);
+        if (poseProvider == null)
+        {
+            return;
+        }
+
         _skinnedMeshRendererComponent.AddMesh(
             SkinnedMesh.RiggedModel,
             WorldMatrixWithScale,
-            _animationRuntime?.SkinningPalette);
+            poseProvider);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -123,10 +130,12 @@ public class SkinnedMeshComponent : PrimitiveComponent
         {
             bool hasBounds = false;
             BoundingBox bounds = default;
+            var poseProvider = GetPoseProvider(SkinnedMesh.RiggedModel);
 
             foreach (var mesh in SkinnedMesh.RiggedModel.Meshes)
             {
-                var meshWorld = WorldMatrixWithScale * SkinnedMesh.RiggedModel.GetMeshNodeTransform(mesh);
+                var meshNodeTransform = poseProvider?.GetMeshNodeTransform(mesh) ?? SkinnedMesh.RiggedModel.GetMeshNodeTransform(mesh);
+                var meshWorld = WorldMatrixWithScale * meshNodeTransform;
                 var meshBounds = new BoundingBox(mesh.Min, mesh.Max).Transform(meshWorld);
 
                 if (!hasBounds)
@@ -311,6 +320,21 @@ public class SkinnedMeshComponent : PrimitiveComponent
         _animationRuntime.AnimationEventTriggered -= OnAnimationRuntimeAnimationEventTriggered;
         _animationRuntime.PosePostProcessing -= OnAnimationRuntimePosePostProcessing;
         _animationRuntime = null;
+    }
+
+    private ISkinnedMeshPoseProvider? GetPoseProvider(RiggedModel riggedModel)
+    {
+        if (_animationRuntime != null && ReferenceEquals(_animationRuntime.RiggedModel, riggedModel))
+        {
+            return _animationRuntime;
+        }
+
+        if (_legacyPoseProvider == null || !ReferenceEquals(_legacyPoseProvider.RiggedModel, riggedModel))
+        {
+            _legacyPoseProvider = new RiggedModelPoseProvider(riggedModel);
+        }
+
+        return _legacyPoseProvider;
     }
 
     private void OnAnimationRuntimeAnimationEventTriggered(AnimationEventKeyframe eventKeyframe)
