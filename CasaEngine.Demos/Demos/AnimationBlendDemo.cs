@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Text;
 
 using CasaEngine.Framework.Assets.Animations;
@@ -19,6 +20,8 @@ namespace CasaEngine.Demos.Demos;
 public class AnimationBlendDemo : Demo
 {
     private const string BlendModeEnvironmentVariable = "CASAENGINE_ANIMATION_BLEND_MODE";
+    private const string BlendSpace2DXEnvironmentVariable = "CASAENGINE_ANIMATION_BLEND_SPACE_2D_X";
+    private const string BlendSpace2DYEnvironmentVariable = "CASAENGINE_ANIMATION_BLEND_SPACE_2D_Y";
 
     private enum DemoMode
     {
@@ -38,6 +41,7 @@ public class AnimationBlendDemo : Demo
     private const float UpperBodyActionDurationSeconds = 0.8f;
     private const float AdditiveBreathingDurationSeconds = 1.8f;
     private const float RootMotionBurstDurationSeconds = 0.75f;
+    private const float DirectionalStrafeDurationSeconds = 1.0f;
     private const int UpperBodyLayerIndex = 0;
     private const int AdditiveLayerIndex = 0;
     private const int RootMotionLayerIndex = 1;
@@ -66,6 +70,7 @@ public class AnimationBlendDemo : Demo
     private float _upperBodyLayerWeight = 1f;
     private float _additiveLayerWeight = 0.45f;
     private bool _applyRootMotionToEntity;
+    private Vector2? _configuredBlendSpace2DParameter;
     private AnimationTransitionEasingMode _advancedCrossFadeEasingMode = AnimationTransitionEasingMode.EaseOutCubic;
     private bool _advancedCrossFadePreserveRootVelocity = true;
     private RootMotionDelta _lastObservedRootMotionDelta = RootMotionDelta.Identity;
@@ -102,6 +107,7 @@ public class AnimationBlendDemo : Demo
         _riggedModel = riggedModel;
         _blendParameter1D = 0f;
         _blendParameter2D = Vector2.Zero;
+        _configuredBlendSpace2DParameter = ResolveConfiguredBlendSpace2DParameter();
         _demoMode = ResolveInitialDemoMode();
         ApplyDemoMode();
     }
@@ -203,7 +209,7 @@ public class AnimationBlendDemo : Demo
             case DemoMode.BlendSpace2D:
                 _hudBuilder.AppendLine($"Blend: X={_blendParameter2D.X:F2}  Y={_blendParameter2D.Y:F2}");
                 _hudBuilder.AppendLine("[Tab] Next page  [Shift+Tab] Previous page");
-                _hudBuilder.AppendLine("[W/A/D] Explore the locomotion triangle  [Backspace] Reset actor");
+                _hudBuilder.AppendLine("[W/A/D] Explore strafe/forward directional locomotion  [Backspace] Reset actor");
                 break;
 
             case DemoMode.CrossFade:
@@ -269,6 +275,7 @@ public class AnimationBlendDemo : Demo
         _rootMotionMask = null;
         _blendParameter1D = 0f;
         _blendParameter2D = Vector2.Zero;
+        _configuredBlendSpace2DParameter = null;
         _previousKeyboardState = new KeyboardState();
         _rootMotionTrailPoints.Clear();
         _lastObservedRootMotionDelta = RootMotionDelta.Identity;
@@ -316,6 +323,10 @@ public class AnimationBlendDemo : Demo
             throw new InvalidOperationException("The animation blend demo expects idle, walk, and run clips.");
         }
 
+        var skeleton = riggedModel.SkeletonDefinition ?? throw new InvalidOperationException("The animation blend demo expects a runtime skeleton for its directional showcase.");
+        var strafeLeftClip = CreateDirectionalStrafeClip(skeleton, -1f, "StrafeLeft");
+        var strafeRightClip = CreateDirectionalStrafeClip(skeleton, 1f, "StrafeRight");
+
         _linearBlendTree = new LinearBlendAnimationNode(
             new IAnimationGraphNode[]
             {
@@ -336,8 +347,9 @@ public class AnimationBlendDemo : Demo
             new[]
             {
                 new BlendSpace2DSample(new Vector2(0f, 0f), new AnimationClipNode(clips[0])),
-                new BlendSpace2DSample(new Vector2(-1f, 1f), new AnimationClipNode(clips[1])),
-                new BlendSpace2DSample(new Vector2(1f, 1f), new AnimationClipNode(clips[2])),
+                new BlendSpace2DSample(new Vector2(-1f, 0f), new AnimationClipNode(strafeLeftClip)),
+                new BlendSpace2DSample(new Vector2(0f, 1f), new AnimationClipNode(clips[1])),
+                new BlendSpace2DSample(new Vector2(1f, 0f), new AnimationClipNode(strafeRightClip)),
             },
             Vector2.Zero);
     }
@@ -381,7 +393,7 @@ public class AnimationBlendDemo : Demo
                 break;
 
             case DemoMode.BlendSpace2D:
-                _blendParameter2D = Vector2.Zero;
+                _blendParameter2D = _configuredBlendSpace2DParameter ?? Vector2.Zero;
                 _blendSpace2D.Parameter = _blendParameter2D;
                 _skinnedMeshComponent.PlayAnimationGraph(_blendSpace2D);
                 break;
@@ -427,24 +439,34 @@ public class AnimationBlendDemo : Demo
     private void UpdateTwoDimensionalBlend(KeyboardState keyboardState, float elapsedSeconds)
     {
         var target = Vector2.Zero;
+        var hasDirectionalInput = false;
         if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
         {
             target.X -= 1f;
+            hasDirectionalInput = true;
         }
 
         if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
         {
             target.X += 1f;
+            hasDirectionalInput = true;
         }
 
         if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
         {
             target.Y = 1f;
+            hasDirectionalInput = true;
         }
 
         if (keyboardState.IsKeyDown(Keys.S) || keyboardState.IsKeyDown(Keys.Down))
         {
             target.Y = 0f;
+            hasDirectionalInput = true;
+        }
+
+        if (!hasDirectionalInput && _configuredBlendSpace2DParameter.HasValue)
+        {
+            target = _configuredBlendSpace2DParameter.Value;
         }
 
         _blendParameter2D = MoveTowards(_blendParameter2D, target, elapsedSeconds * TwoDimensionalBlendSpeed);
@@ -716,6 +738,29 @@ public class AnimationBlendDemo : Demo
         return DemoMode.BlendSpace1D;
     }
 
+    private static Vector2? ResolveConfiguredBlendSpace2DParameter()
+    {
+        if (!TryParseConfiguredFloat(BlendSpace2DXEnvironmentVariable, out var x)
+            || !TryParseConfiguredFloat(BlendSpace2DYEnvironmentVariable, out var y))
+        {
+            return null;
+        }
+
+        return new Vector2(Math.Clamp(x, -1f, 1f), Math.Clamp(y, -1f, 1f));
+    }
+
+    private static bool TryParseConfiguredFloat(string environmentVariable, out float value)
+    {
+        var rawValue = Environment.GetEnvironmentVariable(environmentVariable);
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            value = 0f;
+            return false;
+        }
+
+        return float.TryParse(rawValue, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
     private static float GetLocomotionBlendTarget(KeyboardState keyboardState)
     {
         if (keyboardState.IsKeyDown(Keys.W) || keyboardState.IsKeyDown(Keys.Up))
@@ -914,6 +959,80 @@ public class AnimationBlendDemo : Demo
         jointTracks.Add(new JointAnimationTrack(rootJointIndex, translationTrack, rotationTrack, null));
 
         return new AnimationClip("RootMotionBurst", skeleton, jointTracks, RootMotionBurstDurationSeconds);
+    }
+
+    private static AnimationClip CreateDirectionalStrafeClip(SkeletonDefinition skeleton, float direction, string clipName)
+    {
+        var jointTracks = new List<JointAnimationTrack>();
+
+        if (TryFindJointIndex(skeleton, "Root_Pelvis", out var pelvisJointIndex))
+        {
+            var pelvisBindTransform = skeleton.GetBindLocalTransform(pelvisJointIndex);
+            var pelvisTranslationTrack = new Vector3AnimationTrack(
+                new[]
+                {
+                    new AnimationKeyframe<Vector3>(0f, pelvisBindTransform.Translation),
+                    new AnimationKeyframe<Vector3>(0.25f, pelvisBindTransform.Translation + new Vector3(direction * 0.35f, 0.08f, 0f)),
+                    new AnimationKeyframe<Vector3>(0.5f, pelvisBindTransform.Translation + new Vector3(direction * 0.05f, 0f, 0f)),
+                    new AnimationKeyframe<Vector3>(0.75f, pelvisBindTransform.Translation + new Vector3(direction * 0.2f, 0.05f, 0f)),
+                    new AnimationKeyframe<Vector3>(DirectionalStrafeDurationSeconds, pelvisBindTransform.Translation),
+                });
+            var pelvisRotationTrack = new QuaternionAnimationTrack(
+                new[]
+                {
+                    new AnimationKeyframe<Quaternion>(0f, pelvisBindTransform.Rotation),
+                    new AnimationKeyframe<Quaternion>(0.25f, Quaternion.Normalize(pelvisBindTransform.Rotation * Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 6f), 0f, MathHelper.ToRadians(-direction * 4f)))),
+                    new AnimationKeyframe<Quaternion>(0.5f, pelvisBindTransform.Rotation),
+                    new AnimationKeyframe<Quaternion>(0.75f, Quaternion.Normalize(pelvisBindTransform.Rotation * Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 4f), 0f, MathHelper.ToRadians(direction * 2f)))),
+                    new AnimationKeyframe<Quaternion>(DirectionalStrafeDurationSeconds, pelvisBindTransform.Rotation),
+                });
+            jointTracks.Add(new JointAnimationTrack(pelvisJointIndex, pelvisTranslationTrack, pelvisRotationTrack, null));
+        }
+
+        AddRotationTrack(jointTracks, skeleton, "spine3", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 6f), MathHelper.ToRadians(-2f), MathHelper.ToRadians(direction * 3f))),
+            (0.5f, Quaternion.Identity),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 4f), MathHelper.ToRadians(-1f), MathHelper.ToRadians(-direction * 2f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "L_Thigh", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 8f), MathHelper.ToRadians(14f), MathHelper.ToRadians(-direction * 18f))),
+            (0.5f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 2f), MathHelper.ToRadians(-4f), MathHelper.ToRadians(-direction * 6f))),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 10f), MathHelper.ToRadians(-6f), MathHelper.ToRadians(direction * 10f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "R_Thigh", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 6f), MathHelper.ToRadians(-6f), MathHelper.ToRadians(direction * 8f))),
+            (0.5f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 2f), 0f, MathHelper.ToRadians(direction * 4f))),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 8f), MathHelper.ToRadians(14f), MathHelper.ToRadians(-direction * 18f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "L_Calf", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(0f, MathHelper.ToRadians(-18f), MathHelper.ToRadians(direction * 5f))),
+            (0.5f, Quaternion.Identity),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(0f, MathHelper.ToRadians(-8f), MathHelper.ToRadians(-direction * 3f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "R_Calf", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(0f, MathHelper.ToRadians(-8f), MathHelper.ToRadians(-direction * 3f))),
+            (0.5f, Quaternion.Identity),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(0f, MathHelper.ToRadians(-18f), MathHelper.ToRadians(direction * 5f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "L_Foot", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 4f), MathHelper.ToRadians(5f), MathHelper.ToRadians(direction * 10f))),
+            (0.5f, Quaternion.Identity),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 3f), MathHelper.ToRadians(-3f), MathHelper.ToRadians(-direction * 6f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+        AddRotationTrack(jointTracks, skeleton, "R_Foot", DirectionalStrafeDurationSeconds,
+            (0f, Quaternion.Identity),
+            (0.25f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(-direction * 3f), MathHelper.ToRadians(-3f), MathHelper.ToRadians(-direction * 6f))),
+            (0.5f, Quaternion.Identity),
+            (0.75f, Quaternion.CreateFromYawPitchRoll(MathHelper.ToRadians(direction * 4f), MathHelper.ToRadians(5f), MathHelper.ToRadians(direction * 10f))),
+            (DirectionalStrafeDurationSeconds, Quaternion.Identity));
+
+        return new AnimationClip(clipName, skeleton, jointTracks, DirectionalStrafeDurationSeconds);
     }
 
     private static void AddRotationTrack(

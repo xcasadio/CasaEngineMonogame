@@ -211,6 +211,42 @@ public class AnimationGraphNodeTests
         Assert.Equal(new Vector3(5f, 0f, 0f), outputPose.GetTransform(0).Translation);
     }
 
+    [Fact]
+    public void BlendSpace2DNode_Evaluate_UsesDirectionalCenterSampleInsideQuad()
+    {
+        var skeleton = CreateSkeleton();
+        var idleNode = new AnimationClipNode(CreateClip(skeleton, "Idle", Vector3.Zero, Vector3.Zero), loop: false)
+        {
+            TimeSeconds = 1f,
+        };
+        var leftNode = new AnimationClipNode(CreateClip(skeleton, "Left", Vector3.Zero, new Vector3(-10f, 0f, 0f)), loop: false)
+        {
+            TimeSeconds = 1f,
+        };
+        var rightNode = new AnimationClipNode(CreateClip(skeleton, "Right", Vector3.Zero, new Vector3(10f, 0f, 0f)), loop: false)
+        {
+            TimeSeconds = 1f,
+        };
+        var forwardNode = new AnimationClipNode(CreateClip(skeleton, "Forward", Vector3.Zero, new Vector3(0f, 10f, 0f)), loop: false)
+        {
+            TimeSeconds = 1f,
+        };
+        var blendSpace = new BlendSpace2DNode(
+            new[]
+            {
+                new BlendSpace2DSample(new Vector2(0f, 0f), idleNode),
+                new BlendSpace2DSample(new Vector2(-1f, 0f), leftNode),
+                new BlendSpace2DSample(new Vector2(0f, 1f), forwardNode),
+                new BlendSpace2DSample(new Vector2(1f, 0f), rightNode),
+            },
+            new Vector2(0.25f, 0.25f));
+        var outputPose = skeleton.CreateLocalBindPose();
+
+        blendSpace.Evaluate(outputPose);
+
+        Assert.Equal(new Vector3(2.5f, 2.5f, 0f), outputPose.GetTransform(0).Translation);
+    }
+
     private static SkeletonDefinition CreateSkeleton()
     {
         return new SkeletonDefinition(

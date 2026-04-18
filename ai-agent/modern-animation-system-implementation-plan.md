@@ -468,7 +468,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add 1d blend space support`
 
-- 🧪 **T04.04 - Implementer un blend space 2D**
+- ✅ **T04.04 - Implementer un blend space 2D**
   Objectif :
   - Supporter locomotion directionnelle et strafe.
   - Definir interpolation triangulaire ou bilineaire selon l'implementation retenue.
@@ -477,12 +477,13 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   - L'implementation retenue utilise une interpolation triangulaire barycentrique a l'interieur de l'enveloppe des samples, puis un clamp vers le segment le plus proche hors de l'enveloppe.
   - `AnimationPoseBlender` sait maintenant faire un blend pondere multi-poses pour supporter les poids barycentriques sans allocations par frame.
   - `BlendSpace2DNode` implemente `IAnimationGraphRuntimeNode` et peut etre pilote directement par `AnimationController.PlayGraph(...)` ou `RiggedModel.PlayAnimationGraph(...)`.
-  - Validation unitaire ajoutee sur blend intra-triangle et clamp hors hull dans `CasaEngine.Tests/Animation/AnimationGraphNodeTests.cs`.
-  - `CasaEngine.Demos/Demos/AnimationBlendDemo.cs` fournit maintenant une demo 2D dediee et validee en run automatise, basee sur un triangle technique idle/walk/run faute de clips de strafe dedies dans le contenu demo.
-  - Reste a faire : remplacer ce triangle technique par un set directionnel avec strafe avant passage en `✅`.
+  - Validation unitaire etendue dans `CasaEngine.Tests/Animation/AnimationGraphNodeTests.cs` avec un cas directionnel a 4 samples (`idle` centre + `strafe left` + `forward` + `strafe right`) pour verrouiller le comportement barycentrique dans une enveloppe non triangulaire.
+  - `CasaEngine.Demos/Demos/AnimationBlendDemo.cs` remplace le triangle technique `idle/walk/run` par un set directionnel reel avec `idle` au centre, `walk` en avant et deux clips de strafe proceduraux dedies sur les axes lateraux.
+  - La demo 2D accepte maintenant un parametre de demarrage automatise (`CASAENGINE_ANIMATION_BLEND_SPACE_2D_X` / `CASAENGINE_ANIMATION_BLEND_SPACE_2D_Y`) pour figer une pose de validation representative sans input manuel.
   Validation :
-  - Build solution.
-  - Demo locomotion 2D.
+  - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter AnimationGraphNodeTests --no-build -v minimal`
+  - `dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj`
+  - `Push-Location .\CasaEngine.Demos; $env:CASAENGINE_START_DEMO='Animation blend demo'; $env:CASAENGINE_ANIMATION_BLEND_MODE='BlendSpace2D'; $env:CASAENGINE_ANIMATION_BLEND_SPACE_2D_X='1'; $env:CASAENGINE_ANIMATION_BLEND_SPACE_2D_Y='0'; $env:CASAENGINE_CAPTURE_SCREENSHOT_PATH='D:\development\repo\CasaEngineMonogame\artifacts\validation\animation-blend-demo-blendspace2d-directional.png'; $env:CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS='1500'; dotnet .\bin\Debug\net9.0-windows\CasaEngine.Demos.dll; Pop-Location`
   Commit conseille :
   - `feat(animation): add 2d blend space support`
 
