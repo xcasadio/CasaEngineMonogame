@@ -648,7 +648,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add baseline clip retargeting`
 
-- 🧪 **T08.03 - Ajouter un solver IK Two Bone**
+- ✅ **T08.03 - Ajouter un solver IK Two Bone**
   Objectif :
   - Couvrir main/bras et pied/jambe.
   - Definir une passe runtime post-animation claire.
@@ -657,7 +657,7 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   - `RiggedModel` expose maintenant un hook de post-traitement de pose, et `SkinnedMeshComponent` peut enregistrer des contraintes IK two-bone appliquees apres l'evaluation animation.
   - Des tests unitaires ont ete ajoutes dans `CasaEngine.Tests/Animation/IkSolverTwoBoneTests.cs` pour les cas atteignable, hors-portee, pole vector et chaines invalides.
   - Validation executee : `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~IkSolverTwoBoneTests --no-restore` puis `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore`.
-  - La validation visuelle dediee est reportee a `T09.04` avec `AnimationIkDemo`.
+  - Validation visuelle completee via `AnimationIkDemo` et capture automatisee `artifacts/validation/animation-ik-demo.png`.
   Validation :
   - Build solution.
   - Demo de reach target ou foot placement simple.
@@ -713,9 +713,14 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(demos): add animation blend demo`
 
-- ⏳ **T09.04 - Ajouter `AnimationIkDemo`**
+- ✅ **T09.04 - Ajouter `AnimationIkDemo`**
   Objectif :
   - Demonstrer IK, masks et root motion si possible.
+  Resultat du 2026-04-18 :
+  - `CasaEngine.Demos/Demos/AnimationIkDemo.cs` a ete ajoute et enregistre dans `DemosGame`.
+  - La demo charge un vrai personnage skinned (`kid_idle.model`), selectionne une chaine two-bone pertinente depuis le skeleton, expose une cible IK pilotable et un poids runtime, puis reutilise le solver de `SkinnedMeshComponent`.
+  - Une documentation courte a ete ajoutee dans `docs/animation-ik-demo.md`.
+  - Validation executee : `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`, puis run automatise depuis `CasaEngine.Demos` avec `CASAENGINE_START_DEMO=Animation IK demo` et capture `artifacts/validation/animation-ik-demo.png`.
   Validation :
   - Build solution.
   - Run de la demo.
