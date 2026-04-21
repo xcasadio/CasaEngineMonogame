@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
@@ -23,6 +24,9 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(XnaTextureCube), new TextureCubeLoader());
         assetContentManager.RegisterAssetLoader(typeof(Effect), new EffectLoader());
         assetContentManager.RegisterAssetLoader(typeof(RiggedModel), new ModelLoader());
+        assetContentManager.RegisterAssetLoader(typeof(SkeletonDefinition), new SkeletonDefinitionLoader());
+        assetContentManager.RegisterAssetLoader(typeof(AnimationClip), new AnimationClipLoader());
+        assetContentManager.RegisterAssetLoader(typeof(RetargetProfile), new RetargetProfileLoader());
         //assetContentManager.RegisterAssetLoader(typeof(Cursor), new CursorLoader());
 
         assetContentManager.RegisterAssetLoader(typeof(ObjectBase), new AssetLoader<ObjectBase>());

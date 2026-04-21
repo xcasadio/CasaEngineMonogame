@@ -691,13 +691,19 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 8 - Retargeting et contraintes runtime
 
-- ⏳ **T08.01 - Introduire un `RetargetProfile`**
+- ✅ **T08.01 - Introduire un `RetargetProfile`**
   Objectif :
   - Mapper proprement un clip source vers un squelette cible.
   - Definir conventions de reference pose, axes et echelles.
   Validation :
   - Build solution.
   - Tests sur mapping de bones.
+  Resultat du 2026-04-21 :
+  - Nouveaux types `RetargetProfile`, `RetargetJointMapping`, `RetargetAxis` et `RetargetReferencePoseMode` sous `CasaEngine.Framework.Animations` pour porter les conventions runtime de retargeting.
+  - Nouvel asset authoring `RetargetProfileAsset` avec serializer JSON, extension `.retargetProfile`, et loader runtime `RetargetProfileLoader` branche dans `AssetLoaderRegistry`.
+  - `AnimationAssetDataConverter.CreateRetargetProfile(...)` resout les noms de bones source/cible en indices runtime et valide les conventions d'axes, d'echelle et l'unicite des mappings source.
+  - Tests ajoutes : `RetargetProfileTests` pour le mapping runtime et `AnimationAssetLoaderTests.AssetLoaderRegistry_LoadsRetargetProfileAndResolvesJointMappings` pour le chargement asset -> runtime.
+  - Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~RetargetProfileTests|FullyQualifiedName~AnimationAssetLoaderTests" -v minimal`, puis `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`.
   Commit conseille :
   - `feat(animation): add retarget profile assets`
 

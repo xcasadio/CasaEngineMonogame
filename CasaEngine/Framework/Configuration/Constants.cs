@@ -18,7 +18,9 @@ public static class Constants
         public const string Screen = ".screen";
         public const string Model = ".model";
         public const string StaticModel = ".staticModel";
+        public const string Skeleton = ".skeleton";
         public const string SkeletonAnimation = ".skeletonAnim";
+        public const string RetargetProfile = ".retargetProfile";
         public const string Material = ".material";
         public const string Environment = ".environment";
         public const string Shader = ".shader";
