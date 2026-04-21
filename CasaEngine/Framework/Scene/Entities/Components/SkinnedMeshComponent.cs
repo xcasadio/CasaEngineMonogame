@@ -65,6 +65,10 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public IReadOnlyList<AnimationClip> AnimationClips => _animationRuntime?.AnimationClips ?? SkinnedMesh?.RiggedModel?.AnimationClips ?? Array.Empty<AnimationClip>();
 
+    public IReadOnlyList<MorphTarget> MorphTargets => _animationRuntime?.MorphTargets ?? SkinnedMesh?.RiggedModel?.MorphTargets ?? Array.Empty<MorphTarget>();
+
+    public IReadOnlyList<MorphClip> MorphClips => _animationRuntime?.MorphClips ?? SkinnedMesh?.RiggedModel?.MorphClips ?? Array.Empty<MorphClip>();
+
     public IReadOnlyList<TwoBoneIkConstraint> TwoBoneIkConstraints => _twoBoneIkConstraints;
 
     public event Action<AnimationEventKeyframe>? AnimationEventTriggered;

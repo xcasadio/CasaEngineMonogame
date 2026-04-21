@@ -44,6 +44,10 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider
 
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
 
+    public IReadOnlyList<MorphTarget> MorphTargets => _riggedModel.MorphTargets;
+
+    public IReadOnlyList<MorphClip> MorphClips => _riggedModel.MorphClips;
+
     public Matrix[] SkinningPalette { get; }
 
     public Vector4[] DualQuaternionSkinningPalette { get; }

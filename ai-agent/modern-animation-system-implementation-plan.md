@@ -641,13 +641,18 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
 
 ## Phase 7 - Morph targets et autres deformers
 
-- ⏳ **T07.01 - Introduire les donnees runtime de morph targets**
+- ✅ **T07.01 - Introduire les donnees runtime de morph targets**
   Objectif :
   - Faire exister des `MorphTarget` et `MorphClip` si la source en fournit.
   - Ne plus se limiter a logguer les canaux morph Assimp.
   Validation :
   - Build solution.
   - Import test sur asset avec blend shapes.
+  Resultat du 2026-04-21 :
+  - Nouveaux types runtime `MorphTarget`, `MorphClip`, `MorphChannel` et `MorphKeyframe`, stockes dans `RiggedModel` et exposes via `SkinnedMeshAnimationRuntime` / `SkinnedMeshComponent`.
+  - `RiggedModelLoader.ExtractMorphRuntimeData(...)` convertit maintenant les `MeshAnimationAttachments` et `MeshMorphAnimationChannels` Assimp en donnees runtime de morph import-first, avec filtrage des canaux UV/couleur vides.
+  - Test ajoute : `RiggedModelMorphImportTests`, base sur une scene Assimp synthetique au lieu d'un asset blend-shape externe.
+  - Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~RiggedModelMorphImportTests" -v minimal`, puis `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`.
   Commit conseille :
   - `feat(animation): add morph target runtime data`
 

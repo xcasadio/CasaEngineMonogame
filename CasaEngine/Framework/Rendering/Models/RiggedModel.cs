@@ -65,6 +65,8 @@ public class RiggedModel : IAssetable
     // initial assimp animations
     public readonly List<RiggedAnimation> OriginalAnimations = new();
     private readonly List<AnimationClip> _animationClips = new();
+    private readonly List<MorphTarget> _morphTargets = new();
+    private readonly List<MorphClip> _morphClips = new();
     int _currentAnimation = 0;
     public int CurrentFrame = 0;
     public bool AnimationRunning = false;
@@ -76,6 +78,8 @@ public class RiggedModel : IAssetable
     public SkeletonPoseModel? ModelPose { get; private set; }
     public AnimationController? AnimationController { get; private set; }
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
+    public IReadOnlyList<MorphTarget> MorphTargets => _morphTargets;
+    public IReadOnlyList<MorphClip> MorphClips => _morphClips;
     public SkinningMode SkinningMode { get; set; } = SkinningMode.LinearBlend;
     public Vector4[] DualQuaternionSkinningPalette => _dualQuaternionSkinningPalette;
     public bool CanUseDualQuaternionSkinning { get; private set; } = true;
@@ -625,6 +629,48 @@ public class RiggedModel : IAssetable
         AnimationRunning = false;
         _currentAnimation = 0;
         ResetModernPoseToBindPose();
+    }
+
+    public void OverrideRuntimeMorphAssets(IReadOnlyList<MorphTarget> morphTargets, IReadOnlyList<MorphClip> morphClips)
+    {
+        ArgumentNullException.ThrowIfNull(morphTargets);
+        ArgumentNullException.ThrowIfNull(morphClips);
+
+        var meshCount = Meshes?.Length ?? 0;
+
+        for (var targetIndex = 0; targetIndex < morphTargets.Count; targetIndex++)
+        {
+            var target = morphTargets[targetIndex] ?? throw new ArgumentException("Morph targets cannot contain null entries.", nameof(morphTargets));
+            if (target.MeshIndex >= meshCount)
+            {
+                throw new InvalidOperationException($"Morph target '{target.Name}' references mesh index {target.MeshIndex}, but the rigged model only has {meshCount} meshes.");
+            }
+        }
+
+        for (var clipIndex = 0; clipIndex < morphClips.Count; clipIndex++)
+        {
+            var clip = morphClips[clipIndex] ?? throw new ArgumentException("Morph clips cannot contain null entries.", nameof(morphClips));
+            for (var channelIndex = 0; channelIndex < clip.Channels.Count; channelIndex++)
+            {
+                var channel = clip.Channels[channelIndex];
+                if (channel.MeshIndex >= meshCount)
+                {
+                    throw new InvalidOperationException($"Morph clip '{clip.Name}' references mesh index {channel.MeshIndex}, but the rigged model only has {meshCount} meshes.");
+                }
+            }
+        }
+
+        _morphTargets.Clear();
+        for (var targetIndex = 0; targetIndex < morphTargets.Count; targetIndex++)
+        {
+            _morphTargets.Add(morphTargets[targetIndex]);
+        }
+
+        _morphClips.Clear();
+        for (var clipIndex = 0; clipIndex < morphClips.Count; clipIndex++)
+        {
+            _morphClips.Add(morphClips[clipIndex]);
+        }
     }
 
     private bool EnsureLegacyAnimationRuntime()

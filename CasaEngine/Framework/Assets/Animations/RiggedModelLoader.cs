@@ -3,6 +3,7 @@ using Assimp;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Animations;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -38,9 +39,9 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class RiggedModelLoader
 {
-    private Assimp.Scene _scene;
-    private AssetContentManager _assetContentManager;
-    private readonly Effect _effectToUse;
+    private Assimp.Scene _scene = null!;
+    private AssetContentManager? _assetContentManager;
+    private readonly Effect? _effectToUse;
 
     public static Texture2D DefaultTexture { get; set; }
 
@@ -77,7 +78,7 @@ public class RiggedModelLoader
     /// <summary>
     /// Loading content here is just for visualizing but it wont be requisite if we load all the textures in from xnb's at runtime in completed model.
     /// </summary>
-    public RiggedModelLoader(AssetContentManager content, Effect defaultEffect)
+    public RiggedModelLoader(AssetContentManager? content = null, Effect? defaultEffect = null)
     {
         _effectToUse = defaultEffect;
         _assetContentManager = content;
@@ -218,20 +219,17 @@ public class RiggedModelLoader
         Logs.WriteTrace("\n@@@CreateOriginalAnimations\n");
         CreateOriginalAnimations(model, _scene);
 
+        Logs.WriteTrace("\n@@@CreateMorphRuntimeAssets\n");
+        CreateMorphRuntimeAssets(model, _scene);
+
         // this is the last thing we will do because we need the nodes set up first.
 
         // get the vertice data from the meshes.
         Logs.WriteTrace("\n@@@CreateVerticeIndiceData");
         CreateVerticeIndiceData(model, _scene, 0);
 
-        // this calls the models function to create the interpolated animtion frames.
-        // for a full set of callable time stamped orientations per frame so indexing and dirty flags can be used when running.
-        // im going to make this optional to were you don't have to use it there is a trade off either way you have to do look ups.
-        // this way is a lot more memory but saves speed. 
-        // the other way is a lot less memory but requires a lot more cpu calculations and twice as many look ups.
-        //
-        Logs.WriteTrace("\n@@@model.CreateStaticAnimationLookUpFrames");
-        model.CreateStaticAnimationLookUpFrames(_defaultAnimatedFramesPerSecondLod, AddAdditionalLoopingTime);
+        Logs.WriteTrace("\n@@@model.InitializeRuntimeAnimation");
+        model.InitializeRuntimeAnimation();
 
         Logs.WriteTrace("\n@@@InfoFlatBones");
         InfoFlatBones(model);
@@ -264,6 +262,7 @@ public class RiggedModelLoader
         // set the rootnode and its transform
         model.RootNodeOfTree.Name = scene.RootNode.Name;
         // set the rootnode transforms
+        model.RootNodeOfTree.BindLocalTransformMg = scene.RootNode.Transform.ToMonoGameTransposed();
         model.RootNodeOfTree.LocalTransformMg = scene.RootNode.Transform.ToMonoGameTransposed();
         model.RootNodeOfTree.CombinedTransformMg = model.RootNodeOfTree.LocalTransformMg;
     }
@@ -437,6 +436,7 @@ public class RiggedModelLoader
         modelnode.IsThisARealBone = false;
         modelnode.IsANodeAlongTheBoneRoute = false;
         modelnode.OffsetMatrixMg = Matrix.Identity;
+        modelnode.BindLocalTransformMg = Matrix.Identity;
         modelnode.LocalTransformMg = Matrix.Identity;
         modelnode.CombinedTransformMg = Matrix.Identity;
         modelnode.BoneShaderFinalTransformIndex = model.FlatListToBoneNodes.Count;
@@ -460,6 +460,7 @@ public class RiggedModelLoader
         // set the nodes name.
         modelnode.Name = curAssimpNode.Name;
         // set the initial local node transform.
+        modelnode.BindLocalTransformMg = curAssimpNode.Transform.ToMonoGameTransposed();
         modelnode.LocalTransformMg = curAssimpNode.Transform.ToMonoGameTransposed();
 
         if (StartupNodeTreeConsoleInfo)
@@ -926,6 +927,234 @@ public class RiggedModelLoader
             // Place the animation into the model.
             model.OriginalAnimations.Add(modelAnim);
         }
+    }
+
+    internal static (MorphTarget[] MorphTargets, MorphClip[] MorphClips) ExtractMorphRuntimeData(Assimp.Scene scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+
+        var morphTargets = new List<MorphTarget>();
+        for (var meshIndex = 0; meshIndex < scene.Meshes.Count; meshIndex++)
+        {
+            var mesh = scene.Meshes[meshIndex];
+            var meshName = string.IsNullOrWhiteSpace(mesh.Name) ? $"Mesh{meshIndex}" : mesh.Name;
+
+            for (var attachmentIndex = 0; attachmentIndex < mesh.MeshAnimationAttachments.Count; attachmentIndex++)
+            {
+                var attachment = mesh.MeshAnimationAttachments[attachmentIndex];
+                morphTargets.Add(new MorphTarget(
+                    meshIndex,
+                    attachmentIndex,
+                    meshName,
+                    $"{meshName}.Morph{attachmentIndex}",
+                    attachment.Weight,
+                    CopyVector3Values(attachment.Vertices),
+                    CopyVector3Values(attachment.Normals),
+                    CopyVector3Values(attachment.Tangents),
+                    CopyVector3Values(attachment.BiTangents),
+                    CopyVector3Channels(attachment.TextureCoordinateChannels),
+                    CopyVector4Channels(attachment.VertexColorChannels)));
+            }
+        }
+
+        var morphClips = new List<MorphClip>();
+        for (var animationIndex = 0; animationIndex < scene.Animations.Count; animationIndex++)
+        {
+            var animation = scene.Animations[animationIndex];
+            var channels = new List<MorphChannel>(animation.MeshMorphAnimationChannelCount);
+
+            for (var channelIndex = 0; channelIndex < animation.MeshMorphAnimationChannels.Count; channelIndex++)
+            {
+                var channel = animation.MeshMorphAnimationChannels[channelIndex];
+                var keyframes = new List<MorphKeyframe>(channel.MeshMorphKeyCount);
+
+                for (var keyIndex = 0; keyIndex < channel.MeshMorphKeys.Count; keyIndex++)
+                {
+                    var key = channel.MeshMorphKeys[keyIndex];
+                    var entryCount = Math.Min(key.Values.Count, key.Weights.Count);
+                    if (entryCount == 0)
+                    {
+                        continue;
+                    }
+
+                    var attachmentIndices = new int[entryCount];
+                    var weights = new float[entryCount];
+                    for (var entryIndex = 0; entryIndex < entryCount; entryIndex++)
+                    {
+                        attachmentIndices[entryIndex] = key.Values[entryIndex];
+                        weights[entryIndex] = (float)key.Weights[entryIndex];
+                    }
+
+                    keyframes.Add(new MorphKeyframe(ConvertAnimationTimeToSeconds(animation, key.Time), attachmentIndices, weights));
+                }
+
+                if (keyframes.Count == 0)
+                {
+                    continue;
+                }
+
+                var meshIndex = ResolveMorphChannelMeshIndex(scene, channel.Name);
+                var meshName = ResolveMorphChannelMeshName(scene, meshIndex, channel.Name);
+                channels.Add(new MorphChannel(meshName, meshIndex, keyframes));
+            }
+
+            if (channels.Count == 0)
+            {
+                continue;
+            }
+
+            var clipName = string.IsNullOrWhiteSpace(animation.Name)
+                ? $"MorphClip{animationIndex}"
+                : animation.Name;
+            morphClips.Add(new MorphClip(clipName, channels, ConvertAnimationTimeToSeconds(animation, animation.DurationInTicks)));
+        }
+
+        return (morphTargets.ToArray(), morphClips.ToArray());
+    }
+
+    private static void CreateMorphRuntimeAssets(RiggedModel model, Assimp.Scene scene)
+    {
+        var (morphTargets, morphClips) = ExtractMorphRuntimeData(scene);
+        model.OverrideRuntimeMorphAssets(morphTargets, morphClips);
+    }
+
+    private static float ConvertAnimationTimeToSeconds(Assimp.Animation animation, double time)
+    {
+        return animation.TicksPerSecond > 0d
+            ? (float)(time / animation.TicksPerSecond)
+            : (float)time;
+    }
+
+    private static int ResolveMorphChannelMeshIndex(Assimp.Scene scene, string meshName)
+    {
+        if (!string.IsNullOrWhiteSpace(meshName))
+        {
+            for (var meshIndex = 0; meshIndex < scene.Meshes.Count; meshIndex++)
+            {
+                if (string.Equals(scene.Meshes[meshIndex].Name, meshName, StringComparison.Ordinal))
+                {
+                    return meshIndex;
+                }
+            }
+        }
+
+        return scene.Meshes.Count == 1 ? 0 : -1;
+    }
+
+    private static string ResolveMorphChannelMeshName(Assimp.Scene scene, int meshIndex, string meshName)
+    {
+        if (!string.IsNullOrWhiteSpace(meshName))
+        {
+            return meshName;
+        }
+
+        if (meshIndex >= 0 && meshIndex < scene.Meshes.Count)
+        {
+            return string.IsNullOrWhiteSpace(scene.Meshes[meshIndex].Name)
+                ? $"Mesh{meshIndex}"
+                : scene.Meshes[meshIndex].Name;
+        }
+
+        return "MorphMesh";
+    }
+
+    private static Vector3[] CopyVector3Values(IReadOnlyList<Vector3D> values)
+    {
+        if (values.Count == 0)
+        {
+            return Array.Empty<Vector3>();
+        }
+
+        var result = new Vector3[values.Count];
+        for (var index = 0; index < values.Count; index++)
+        {
+            var value = values[index];
+            result[index] = new Vector3(value.X, value.Y, value.Z);
+        }
+
+        return result;
+    }
+
+    private static Vector3[][] CopyVector3Channels(IReadOnlyList<List<Vector3D>> channels)
+    {
+        if (channels.Count == 0)
+        {
+            return Array.Empty<Vector3[]>();
+        }
+
+        var populatedChannels = 0;
+        for (var channelIndex = 0; channelIndex < channels.Count; channelIndex++)
+        {
+            if (channels[channelIndex].Count > 0)
+            {
+                populatedChannels++;
+            }
+        }
+
+        if (populatedChannels == 0)
+        {
+            return Array.Empty<Vector3[]>();
+        }
+
+        var result = new Vector3[populatedChannels][];
+        var outputIndex = 0;
+        for (var channelIndex = 0; channelIndex < channels.Count; channelIndex++)
+        {
+            if (channels[channelIndex].Count == 0)
+            {
+                continue;
+            }
+
+            result[outputIndex] = CopyVector3Values(channels[channelIndex]);
+            outputIndex++;
+        }
+
+        return result;
+    }
+
+    private static Vector4[][] CopyVector4Channels(IReadOnlyList<List<Color4D>> channels)
+    {
+        if (channels.Count == 0)
+        {
+            return Array.Empty<Vector4[]>();
+        }
+
+        var populatedChannels = 0;
+        for (var channelIndex = 0; channelIndex < channels.Count; channelIndex++)
+        {
+            if (channels[channelIndex].Count > 0)
+            {
+                populatedChannels++;
+            }
+        }
+
+        if (populatedChannels == 0)
+        {
+            return Array.Empty<Vector4[]>();
+        }
+
+        var result = new Vector4[populatedChannels][];
+        var outputIndex = 0;
+        for (var channelIndex = 0; channelIndex < channels.Count; channelIndex++)
+        {
+            var sourceChannel = channels[channelIndex];
+            if (sourceChannel.Count == 0)
+            {
+                continue;
+            }
+
+            var channel = new Vector4[sourceChannel.Count];
+            for (var valueIndex = 0; valueIndex < sourceChannel.Count; valueIndex++)
+            {
+                var color = sourceChannel[valueIndex];
+                channel[valueIndex] = new Vector4(color.R, color.G, color.B, color.A);
+            }
+
+            result[outputIndex] = channel;
+            outputIndex++;
+        }
+
+        return result;
     }
 
     /*
