@@ -707,13 +707,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add retarget profile assets`
 
-- ⏳ **T08.02 - Implementer un retargeting de base**
+- ✅ **T08.02 - Implementer un retargeting de base**
   Objectif :
   - Supporter au minimum le retargeting entre squelettes proches.
   - Garder la logique separee du sampling de clip brut.
   Validation :
   - Build solution.
   - Demo avec deux rigs proches si disponible.
+  Resultat du 2026-04-21 :
+  - Nouveau `RetargetProcessor` pur sous `CasaEngine.Framework.Animations` qui transforme un `AnimationClip` source en `AnimationClip` cible a partir d'un `RetargetProfile`, sans modifier le sampler brut ni `AnimationController`.
+  - Le retargeting baseline applique les deltas de translation/rotation/echelle relativement aux bind poses, convertit les translations entre conventions d'axes, et reserve la conversion de basis au joint racine pour garder un comportement stable sur des rigs proches.
+  - Les tracks non mappes restent absents du clip cible, ce qui laisse `AnimationClipSampler` retomber naturellement sur la bind pose de la cible.
+  - Tests ajoutes : `RetargetProcessorTests` couvrant la translation root avec changement d'axes et la preservation des deltas de rotation bind-relative sur un joint enfant.
+  - Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~RetargetProcessorTests|FullyQualifiedName~RetargetProfileTests" -v minimal`, puis `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`.
+  - Aucun sample de demo avec deux rigs proches n'est actuellement versionne dans `CasaEngine.Demos`; la validation s'est donc faite par tests unitaires et build solution.
   Commit conseille :
   - `feat(animation): add baseline clip retargeting`
 
