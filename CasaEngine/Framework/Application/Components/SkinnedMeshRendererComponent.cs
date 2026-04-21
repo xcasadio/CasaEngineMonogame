@@ -175,8 +175,15 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         SkinningMode skinningMode,
         in RenderContext context)
     {
-        mesh.Initialize(context.Device, SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode));
-        if (mesh.VertexBuffer == null || mesh.IndexBuffer == null)
+        var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
+        mesh.Initialize(context.Device, vertexDeclaration);
+        if (mesh.IndexBuffer == null)
+        {
+            return;
+        }
+
+        var vertexBuffer = poseProvider.GetVertexBufferOverride(mesh, context.Device, vertexDeclaration) ?? mesh.VertexBuffer;
+        if (vertexBuffer == null)
         {
             return;
         }
@@ -207,7 +214,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             resolvedShader.Shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
         }
 
-        context.Device.SetVertexBuffer(mesh.VertexBuffer);
+        context.Device.SetVertexBuffer(vertexBuffer);
         context.Device.Indices = mesh.IndexBuffer;
 
         for (int passIndex = 0; passIndex < resolvedShader.Shader.PassCount; passIndex++)

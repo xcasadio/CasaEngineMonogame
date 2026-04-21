@@ -330,7 +330,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
         if (_animationRuntime != null
             && ReferenceEquals(_animationRuntime.RiggedModel, riggedModel)
             && ReferenceEquals(_animationRuntime.SkeletonDefinition, riggedModel.SkeletonDefinition)
-            && _animationRuntime.AnimationClips.Count == riggedModel.AnimationClips.Count)
+            && _animationRuntime.AnimationClips.Count == riggedModel.AnimationClips.Count
+            && _animationRuntime.MorphClips.Count == riggedModel.MorphClips.Count)
         {
             return;
         }
@@ -354,6 +355,7 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
         _animationRuntime.AnimationEventTriggered -= OnAnimationRuntimeAnimationEventTriggered;
         _animationRuntime.PosePostProcessing -= OnAnimationRuntimePosePostProcessing;
+        _animationRuntime.Dispose();
         _animationRuntime = null;
     }
 

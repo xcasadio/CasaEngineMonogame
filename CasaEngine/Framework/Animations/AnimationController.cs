@@ -47,6 +47,8 @@ public sealed class AnimationController
 
     public AnimationState? CurrentState => _currentState;
 
+    public AnimationState? TargetState => _targetState;
+
     public IAnimationGraphNode? GraphRoot => _graphRoot;
 
     public float CurrentTimeSeconds => _currentState?.TimeSeconds ?? _graphTimeSeconds;
@@ -58,6 +60,22 @@ public sealed class AnimationController
         : _currentState?.IsPlaying == true || _targetState != null;
 
     public bool IsCrossFading => _targetState != null;
+
+    public float CrossFadeBlendWeight
+    {
+        get
+        {
+            if (_targetState == null)
+            {
+                return 1f;
+            }
+
+            var linearBlendWeight = _crossFadeDurationSeconds <= 0f
+                ? 1f
+                : Math.Clamp(_crossFadeElapsedSeconds / _crossFadeDurationSeconds, 0f, 1f);
+            return AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
+        }
+    }
 
     public IReadOnlyList<AnimationLayer> Layers => _layers;
 

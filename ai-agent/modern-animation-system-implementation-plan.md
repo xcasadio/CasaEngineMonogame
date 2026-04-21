@@ -656,13 +656,20 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add morph target runtime data`
 
-- ⏳ **T07.02 - Sampler et appliquer les morphs**
+- ✅ **T07.02 - Sampler et appliquer les morphs**
   Objectif :
   - Sampler des poids de morph et les combiner au skinning.
   - Definir l'ordre d'application LBS/DQ + morph.
   Validation :
   - Build solution.
   - Demo visage ou deformation simple.
+  Resultat du 2026-04-21 :
+  - Nouveau `MorphChannelSampler` pour echantillonner les poids de `MorphClip` avec interpolation, clamp et wrap de boucle compatibles avec le runtime d'animation existant.
+  - `SkinnedMeshAnimationRuntime` sample maintenant les morphs par nom de clip, conserve les poids par defaut, gere le blend des poids pendant les crossfades, et prepare un `DynamicVertexBuffer` par instance au lieu de muter les vertices du `RiggedModel` partage.
+  - `ISkinnedMeshPoseProvider` expose un override optionnel de `VertexBuffer`; le renderer dessine les vertices morphed puis laisse le shader appliquer LBS ou DQ, ce qui fixe explicitement l'ordre `morph -> skinning GPU`.
+  - Tests ajoutes : `MorphChannelSamplerTests` et `MorphVertexApplicatorTests` pour verrouiller le sampling des poids et l'application des deltas sur vertices.
+  - Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~MorphChannelSamplerTests|FullyQualifiedName~MorphVertexApplicatorTests|FullyQualifiedName~SkinnedMeshAnimationRuntimeTests" -v minimal`, puis `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`.
+  - Aucun sample morph dedie n'existe actuellement dans `CasaEngine.Demos`; la validation de deformation simple a ete couverte par les tests unitaires ajoutes.
   Commit conseille :
   - `feat(animation): add morph target sampling and application`
 
