@@ -673,12 +673,17 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add morph target sampling and application`
 
-- ⏳ **T07.03 - Definir la politique sur les autres deformers**
+- ✅ **T07.03 - Definir la politique sur les autres deformers**
   Objectif :
   - Decider ce qui est supporte, ignore ou converti a l'import.
   - Documenter les limites explicites.
   Validation :
   - Note versionnee.
+  Resultat du 2026-04-21 :
+  - Nouvelle note versionnee `docs/animation-deformer-support-policy.md` qui fixe la politique de support pour skinning osseux, morph targets, conversions Assimp et deformers hors scope.
+  - La note documente explicitement l'ordre `morph -> skinning GPU`, le choix d'utiliser des buffers morph par instance, et les limites actuelles sur les canaux UV/couleur, les graphs/layers morph, et les bounds.
+  - Les familles de deformers non convertibles via bones ou `MeshAnimationAttachment` Assimp sont marquees comme non supportees et ignorees a l'import.
+  - Validation executee : note versionnee ajoutee au repo.
   Commit conseille :
   - `docs(animation): document deformer support policy`
 
