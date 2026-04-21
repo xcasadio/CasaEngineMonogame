@@ -740,12 +740,19 @@ Objectif : ajouter les techniques plus couteuses ou plus specialistes.
   Commit conseille :
   - `feat(animation): add two bone ik solver`
 
-- ⏳ **T08.04 - Ajouter look-at et contraintes simples**
+ ✅ **T08.04 - Ajouter look-at et contraintes simples**
   Objectif :
   - Supporter look-at tete/torse et contraintes de base.
   - Garder une interface de passes runtime simple.
   Validation :
   - Build solution.
+  Resultat du 2026-04-21 :
+  - Nouvelles contraintes runtime `LookAtConstraint` et `BoneRotationConstraint`, avec solveurs `IkSolverLookAt` et `SimpleBoneConstraintSolver` dans `CasaEngine.Framework.Animations`.
+  - `SkinnedMeshComponent` orchestre maintenant trois familles de passes post-animation dans le meme hook: two-bone IK, look-at, puis contraintes simples de rotation locale.
+  - Le solver look-at aligne l'axe forward local vers la cible, stabilise le roll via un up world projete, puis applique la rotation en model space avec un blend de poids.
+  - Tests ajoutes : `LookAtConstraintTests` pour la direction look-at et le blend de rotation locale, en plus du rerun cible de `IkSolverTwoBoneTests` pour la zone voisine.
+  - Validation executee : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~LookAtConstraintTests|FullyQualifiedName~IkSolverTwoBoneTests" -v minimal`, puis `dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal`.
+  - Aucun sample de demo look-at / contraintes simples n'est actuellement versionne dans `CasaEngine.Demos`; la validation s'est faite par tests unitaires et build solution.
   - Demo de suivi de cible.
   Commit conseille :
   - `feat(animation): add look-at and simple bone constraints`

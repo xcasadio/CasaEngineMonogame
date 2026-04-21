@@ -19,6 +19,8 @@ public class SkinnedMeshComponent : PrimitiveComponent
     private SkinnedMeshAnimationRuntime? _animationRuntime;
     private RiggedModelPoseProvider? _legacyPoseProvider;
     private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
+    private readonly List<LookAtConstraint> _lookAtConstraints = new();
+    private readonly List<BoneRotationConstraint> _boneRotationConstraints = new();
     private RootMotionMode _rootMotionMode = RootMotionMode.Observe;
     private SkinningModeSelection _skinningModeSelection = SkinningModeSelection.RiggedModelDefault;
 
@@ -71,6 +73,10 @@ public class SkinnedMeshComponent : PrimitiveComponent
 
     public IReadOnlyList<TwoBoneIkConstraint> TwoBoneIkConstraints => _twoBoneIkConstraints;
 
+    public IReadOnlyList<LookAtConstraint> LookAtConstraints => _lookAtConstraints;
+
+    public IReadOnlyList<BoneRotationConstraint> BoneRotationConstraints => _boneRotationConstraints;
+
     public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
 
     public SkinnedMeshComponent()
@@ -86,6 +92,16 @@ public class SkinnedMeshComponent : PrimitiveComponent
         for (var constraintIndex = 0; constraintIndex < other._twoBoneIkConstraints.Count; constraintIndex++)
         {
             _twoBoneIkConstraints.Add(other._twoBoneIkConstraints[constraintIndex]);
+        }
+
+        for (var constraintIndex = 0; constraintIndex < other._lookAtConstraints.Count; constraintIndex++)
+        {
+            _lookAtConstraints.Add(other._lookAtConstraints[constraintIndex]);
+        }
+
+        for (var constraintIndex = 0; constraintIndex < other._boneRotationConstraints.Count; constraintIndex++)
+        {
+            _boneRotationConstraints.Add(other._boneRotationConstraints[constraintIndex]);
         }
 
         SkinnedMesh = other.SkinnedMesh;
@@ -312,6 +328,66 @@ public class SkinnedMeshComponent : PrimitiveComponent
         _twoBoneIkConstraints.Clear();
     }
 
+    public void SetLookAtConstraint(int constraintIndex, LookAtConstraint constraint)
+    {
+        if (constraintIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(constraintIndex));
+        }
+
+        while (_lookAtConstraints.Count <= constraintIndex)
+        {
+            _lookAtConstraints.Add(default);
+        }
+
+        _lookAtConstraints[constraintIndex] = constraint;
+    }
+
+    public void ClearLookAtConstraint(int constraintIndex)
+    {
+        if (constraintIndex < 0 || constraintIndex >= _lookAtConstraints.Count)
+        {
+            return;
+        }
+
+        _lookAtConstraints[constraintIndex] = default;
+    }
+
+    public void ClearLookAtConstraints()
+    {
+        _lookAtConstraints.Clear();
+    }
+
+    public void SetBoneRotationConstraint(int constraintIndex, BoneRotationConstraint constraint)
+    {
+        if (constraintIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(constraintIndex));
+        }
+
+        while (_boneRotationConstraints.Count <= constraintIndex)
+        {
+            _boneRotationConstraints.Add(default);
+        }
+
+        _boneRotationConstraints[constraintIndex] = constraint;
+    }
+
+    public void ClearBoneRotationConstraint(int constraintIndex)
+    {
+        if (constraintIndex < 0 || constraintIndex >= _boneRotationConstraints.Count)
+        {
+            return;
+        }
+
+        _boneRotationConstraints[constraintIndex] = default;
+    }
+
+    public void ClearBoneRotationConstraints()
+    {
+        _boneRotationConstraints.Clear();
+    }
+
     public RootMotionDelta ConsumeRootMotionDelta()
     {
         EnsureAnimationRuntime();
@@ -390,6 +466,28 @@ public class SkinnedMeshComponent : PrimitiveComponent
             }
 
             IkSolverTwoBone.Solve(localPose, modelPose, constraint);
+        }
+
+        for (var constraintIndex = 0; constraintIndex < _lookAtConstraints.Count; constraintIndex++)
+        {
+            var constraint = _lookAtConstraints[constraintIndex];
+            if (!constraint.Enabled || constraint.Weight <= 0f)
+            {
+                continue;
+            }
+
+            IkSolverLookAt.Solve(localPose, modelPose, constraint);
+        }
+
+        for (var constraintIndex = 0; constraintIndex < _boneRotationConstraints.Count; constraintIndex++)
+        {
+            var constraint = _boneRotationConstraints[constraintIndex];
+            if (!constraint.Enabled || constraint.Weight <= 0f)
+            {
+                continue;
+            }
+
+            SimpleBoneConstraintSolver.Apply(localPose, modelPose, constraint);
         }
     }
 }
