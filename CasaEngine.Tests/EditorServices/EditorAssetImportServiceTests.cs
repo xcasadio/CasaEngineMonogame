@@ -1,5 +1,6 @@
 using CasaEngine.EditorServices;
 using CasaEngine.Engine.Environment;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Common;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
@@ -288,6 +289,75 @@ public class EditorAssetImportServiceTests
             Assert.True(material.TryGetPropertyValue("ambient_color", out var ambientValue));
             Assert.True(ambientValue.TryGetVector3(out var ambientColor));
             Assert.InRange(ambientColor.X, 0.30f, 0.35f);
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_SkinnedModelAuthorsSeparatedAnimationAssets()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string sourceFilePath = Path.Combine(repositoryRoot, "Projects", "SampleProject", "Skinned", "kid_idle.FBX");
+        Assert.True(File.Exists(sourceFilePath));
+
+        string tempDirectory = CreateTempDirectory();
+        string destinationFilePath = Path.Combine(tempDirectory, "kid_idle.FBX");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            bool catalogChanged = EditorAssetImportService.ImportFile(sourceFilePath, destinationFilePath);
+
+            Assert.True(catalogChanged);
+
+            string modelPath = Path.Combine(tempDirectory, "kid_idle.model");
+            Assert.True(File.Exists(modelPath));
+
+            var modelDocument = JObject.Parse(File.ReadAllText(modelPath));
+            Guid geometryAssetId = Guid.Parse(modelDocument["geometry_asset_id"]!.Value<string>()!);
+            Guid skeletonAssetId = Guid.Parse(modelDocument["skeleton_asset_id"]!.Value<string>()!);
+            Guid defaultAnimationClipAssetId = Guid.Parse(modelDocument["default_animation_clip_asset_id"]!.Value<string>()!);
+            var animationClipIds = Assert.IsType<JArray>(modelDocument["animation_clip_asset_ids"]);
+
+            Assert.NotEqual(Guid.Empty, geometryAssetId);
+            Assert.NotEqual(Guid.Empty, skeletonAssetId);
+            Assert.NotEqual(Guid.Empty, defaultAnimationClipAssetId);
+            Assert.NotEmpty(animationClipIds);
+
+            var geometryAssetInfo = AssetCatalog.Get(geometryAssetId);
+            var skeletonAssetInfo = AssetCatalog.Get(skeletonAssetId);
+            var defaultAnimationClipAssetInfo = AssetCatalog.Get(defaultAnimationClipAssetId);
+
+            Assert.NotNull(geometryAssetInfo);
+            Assert.NotNull(skeletonAssetInfo);
+            Assert.NotNull(defaultAnimationClipAssetInfo);
+            Assert.Equal("kid_idle.FBX", geometryAssetInfo!.FileName);
+            Assert.Equal(Constants.FileNameExtensions.Skeleton, Path.GetExtension(skeletonAssetInfo!.FileName));
+            Assert.Equal(Constants.FileNameExtensions.SkeletonAnimation, Path.GetExtension(defaultAnimationClipAssetInfo!.FileName));
+
+            string skeletonPath = Path.Combine(tempDirectory, skeletonAssetInfo.FileName);
+            Assert.True(File.Exists(skeletonPath));
+
+            var skeletonDocument = JObject.Parse(File.ReadAllText(skeletonPath));
+            var joints = Assert.IsType<JArray>(skeletonDocument["joints"]);
+            Assert.NotEmpty(joints);
+
+            var assetContentManager = new AssetContentManager();
+            AssetLoaderRegistry.RegisterLoaders(assetContentManager);
+
+            var skeletonDefinition = assetContentManager.Load<SkeletonDefinition>(skeletonAssetId);
+            var animationClip = assetContentManager.Load<AnimationClip>(defaultAnimationClipAssetId);
+
+            Assert.True(skeletonDefinition.Count > 0);
+            Assert.True(ReferenceEquals(animationClip.Skeleton, skeletonDefinition));
         }
         finally
         {

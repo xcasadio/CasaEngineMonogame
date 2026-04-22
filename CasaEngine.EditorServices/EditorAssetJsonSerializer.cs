@@ -74,6 +74,18 @@ internal static class EditorAssetJsonSerializer
                 SaveStaticModel(staticModel, rootObject);
                 return true;
 
+            case SkeletonAsset skeletonAsset:
+                SaveSkeletonAsset(skeletonAsset, rootObject);
+                return true;
+
+            case AnimationClipAsset animationClipAsset:
+                SaveAnimationClipAsset(animationClipAsset, rootObject);
+                return true;
+
+            case SkinnedMeshAsset skinnedMeshAsset:
+                SaveSkinnedMeshAsset(skinnedMeshAsset, rootObject);
+                return true;
+
             case Texture texture:
                 SaveTexture(texture, rootObject);
                 return true;
@@ -338,6 +350,21 @@ internal static class EditorAssetJsonSerializer
         {
             node.Add("material_asset_id", subMesh.MaterialAssetId.ToString());
         }
+    }
+
+    private static void SaveSkeletonAsset(SkeletonAsset skeletonAsset, JObject node)
+    {
+        SkeletonAssetJsonSerializer.Save(skeletonAsset, node);
+    }
+
+    private static void SaveAnimationClipAsset(AnimationClipAsset animationClipAsset, JObject node)
+    {
+        AnimationClipAssetJsonSerializer.Save(animationClipAsset, node);
+    }
+
+    private static void SaveSkinnedMeshAsset(SkinnedMeshAsset skinnedMeshAsset, JObject node)
+    {
+        SkinnedMeshAssetJsonSerializer.Save(skinnedMeshAsset, node);
     }
 
     private static void SaveTileData(TileData tile, JObject node)

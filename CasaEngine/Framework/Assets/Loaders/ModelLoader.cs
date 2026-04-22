@@ -19,7 +19,7 @@ public class ModelLoader : IAssetLoader
     {
         try
         {
-            Effect defaultEffect = null; //assetContentManager.LoadDirectly<Effect>("Shaders\\skinEffect.mgfxc");
+            Effect? defaultEffect = null; //assetContentManager.LoadDirectly<Effect>("Shaders\\skinEffect.mgfxc");
             var riggedModelLoader = new RiggedModelLoader(assetContentManager, defaultEffect);
             return riggedModelLoader.LoadAsset(fileName, assetContentManager);
         }
