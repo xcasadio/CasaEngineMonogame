@@ -13,10 +13,10 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
-    <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.4.1" />
-    <PackageReference Include="NvgSharp.MonoGame" Version="0.6.3" />
-    <PackageReference Include="NvgSharp.Text.MonoGame" Version="0.6.3" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" />
+    <PackageReference Include="MonoGame.Content.Builder.Task" />
+    <PackageReference Include="NvgSharp.MonoGame" />
+    <PackageReference Include="NvgSharp.Text.MonoGame" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
