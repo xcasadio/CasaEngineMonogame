@@ -2,3 +2,7 @@
 	path = MGUI
 	url = https://github.com/xcasadio/MGUI.git
 	branch = develop
+[submodule "NvgSharp"]
+	path = NvgSharp
+	url = https://github.com/xcasadio/NvgSharp.git
+	branch = master

@@ -76,7 +76,7 @@ public sealed class RenderPipeline
 
         // 1×1 white pixel used to fill viewport areas with the clear color.
         _pixel = new Texture2D(graphicsDevice, 1, 1);
-        _pixel.SetData(new[] { Color.White });
+        _pixel.SetData([Color.White]);
     }
 
     /// <summary>
@@ -117,7 +117,6 @@ public sealed class RenderPipeline
 
         foreach (var view in orderedViews)
         {
-            // ---- UpdateMode check ----
             if (!ShouldRenderThisFrame(view, deltaSeconds))
             {
                 continue;
@@ -125,7 +124,6 @@ public sealed class RenderPipeline
 
             ApplyResolutionScale(view);
 
-            // ---- Capture full GPU state (restore on scope exit) ----
             using var guard = new GraphicsStateGuard(_graphicsDevice);
 
             // 1. Restore the initial target for BB views; RT views set their own.
