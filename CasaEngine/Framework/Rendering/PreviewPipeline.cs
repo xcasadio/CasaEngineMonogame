@@ -42,24 +42,3 @@ public sealed class AssetPreviewPipeline : IViewRenderPipeline
         }
     }
 }
-
-[Obsolete("Use AssetPreviewPipeline instead.")]
-public sealed class PreviewPipeline : IViewRenderPipeline
-{
-    private readonly AssetPreviewPipeline _inner = new();
-
-    public Color BackgroundColor
-    {
-        get => _inner.BackgroundColor;
-        set => _inner.BackgroundColor = value;
-    }
-
-    public void RenderView(
-        GraphicsDevice graphicsDevice,
-        RenderView view,
-        in RenderFrame frame,
-        IReadOnlyList<IViewFlushableRenderer> renderers)
-    {
-        _inner.RenderView(graphicsDevice, view, in frame, renderers);
-    }
-}

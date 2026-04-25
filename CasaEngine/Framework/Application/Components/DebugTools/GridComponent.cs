@@ -110,15 +110,3 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         }
     }
 }
-
-namespace CasaEngine.Framework.Application.Components.Editor
-{
-    [Obsolete("Use CasaEngine.Framework.Application.Components.DebugTools.DebugGridComponent instead.")]
-    public sealed class GridComponent : DebugTools.DebugGridComponent
-    {
-        public GridComponent(Game game)
-            : base(game)
-        {
-        }
-    }
-}

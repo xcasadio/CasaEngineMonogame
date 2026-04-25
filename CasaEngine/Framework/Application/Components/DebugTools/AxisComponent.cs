@@ -1,6 +1,5 @@
 ﻿#if !FINAL
 
-
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
@@ -104,18 +103,6 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         {
             _height = height;
             _width = width;
-        }
-    }
-}
-
-namespace CasaEngine.Framework.Application.Components.Editor
-{
-    [Obsolete("Use CasaEngine.Framework.Application.Components.DebugTools.DebugAxisComponent instead.")]
-    public sealed class AxisComponent : DebugTools.DebugAxisComponent
-    {
-        public AxisComponent(Game game)
-            : base(game)
-        {
         }
     }
 }

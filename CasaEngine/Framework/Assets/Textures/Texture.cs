@@ -59,12 +59,6 @@ public class Texture : ObjectBase, IAssetable
         //ScreenSize = new ScreenSize(texture2d.Width, texture2d.Height, new ScreenGui(GraphicsDevice));
     }
 
-    [Obsolete("only for UI")]
-    public Texture(string filename, AssetContentManager assetContentManager) : this(assetContentManager.GraphicsDevice)
-    {
-        FileName = filename;
-    }
-
     public void Load(AssetContentManager assetContentManager)
     {
         GraphicsDevice = assetContentManager.GraphicsDevice;

@@ -271,26 +271,27 @@ public class PathPlanner<T> where T : WeightedEdge
     {
         var ownerEntity = owner.Owner;
 
+        if (ownerEntity == null)
+        {
+            return;
+        }
+
         if (ownerEntity.World != null)
         {
             ownerEntity.World.MessageBus.SendMessage(ownerEntity.Id, ownerEntity.Id, 0.0, messageType, null);
             return;
         }
 
+        var message = new Message(ownerEntity.Id, ownerEntity.Id, messageType, 0.0, null);
+
         if (ownerEntity is IMessageable messageableOwner)
         {
-            messageableOwner.HandleMessage(new Message(ownerEntity.Id, ownerEntity.Id, messageType, 0.0, null));
+            messageableOwner.HandleMessage(message);
             return;
         }
 
         var componentEndpoint = ownerEntity.GetComponent<IMessageable>();
-        if (componentEndpoint != null)
-        {
-            componentEndpoint.HandleMessage(new Message(ownerEntity.Id, ownerEntity.Id, messageType, 0.0, null));
-            return;
-        }
-
-        MessageManagerRouter.Instance.SendMessage(ownerEntity.Id, ownerEntity.Id, 0.0, messageType, null);
+        componentEndpoint?.HandleMessage(message);
     }
 
     private List<NavigationEdge> NodesToPathEdges(List<int> nodes)

@@ -194,20 +194,6 @@ public class CasaDrawTransaction : IMonoGameDrawContext
     #endregion Draw Texture
 
     #region Draw Text
-    [Obsolete("Use DrawTextViaEngine(ResolvedFont, ...) with the active ITextEngine instead.")]
-    public void DrawSpriteFontText(SpriteFont Font, string Text, Vector2 Position, Color Color,
-        Vector2 Origin, float ScaleX = 1f, float ScaleY = 1f, float Rotation = 0f, float Depth = 0f, SpriteEffects Effects = SpriteEffects.None)
-    {
-        BeginDraw(DrawContext.Sprites);
-        if (ScaleX == ScaleY)
-        {
-            SpriteBatch.DrawString(Font, Text, Position, Color, Rotation, Origin, ScaleX, Effects, Depth);
-        }
-        else
-        {
-            SpriteBatch.DrawString(Font, Text, Position, Color, Rotation, Origin, new Vector2(ScaleX, ScaleY), Effects, Depth);
-        }
-    }
 
     /// <summary>
     /// Draws <paramref name="Text"/> using the active <see cref="ITextEngine"/>, while
