@@ -20,6 +20,10 @@ namespace CasaEngine.Framework.Assets.Loaders;
 public class StaticModelImporter
 {
     private readonly AssimpContext _assimpContext = new();
+    private const string GltfRoughnessFactorPropertyName = "$mat.gltf.pbrMetallicRoughness.roughnessFactor";
+    private const float DefaultSpecularPower = 16.0f;
+    private const float GltfGlossinessScale = 1000.0f;
+    private const float MaxSupportedSpecularPower = 128.0f;
     private static readonly Regex MaterialPrefixRegex = new(@"^Material_+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
     private static readonly Regex NumericPrefixRegex = new(@"^\d+_+", RegexOptions.Compiled);
     private static readonly Regex MaterialSuffixRegex = new(@"Sub\d+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -36,10 +40,6 @@ public class StaticModelImporter
 
         public Dictionary<string, string> Strings { get; } = new(StringComparer.OrdinalIgnoreCase);
     }
-
-    // -----------------------------------------------------------------------
-    //  Public API
-    // -----------------------------------------------------------------------
 
     public bool IsFileSupported(string fileName) =>
         _assimpContext.GetSupportedImportFormats().Contains(
@@ -144,10 +144,6 @@ public class StaticModelImporter
         return paths;
     }
 
-    // -----------------------------------------------------------------------
-    //  Private helpers
-    // -----------------------------------------------------------------------
-
     private Assimp.Scene ImportScene(string filePath, PostProcessSteps postProcessSteps)
     {
         return _assimpContext.ImportFile(filePath, postProcessSteps);
@@ -185,9 +181,7 @@ public class StaticModelImporter
                 SpecularColor = material.HasColorSpecular
                     ? new Vector3(material.ColorSpecular.R, material.ColorSpecular.G, material.ColorSpecular.B)
                     : new Vector3(0.5f),
-                SpecularPower = material.HasShininess
-                    ? material.Shininess
-                    : 16.0f,
+                SpecularPower = ResolveSpecularPower(material, filePath),
             };
 
             if (legacyEffectsByMaterial.TryGetValue(importedMaterial.Name, out LegacyEffectInstance? effectInstance))
@@ -474,6 +468,78 @@ public class StaticModelImporter
         }
 
         return values.ToArray();
+    }
+
+    private static float ResolveSpecularPower(Material material, string modelFilePath)
+    {
+        if (TryResolveGltfRoughness(material, modelFilePath, out float roughness))
+        {
+            return ConvertRoughnessToSpecularPower(roughness);
+        }
+
+        return material.HasShininess
+            ? material.Shininess
+            : DefaultSpecularPower;
+    }
+
+    private static bool TryResolveGltfRoughness(Material material, string modelFilePath, out float roughness)
+    {
+        roughness = 0.0f;
+
+        string extension = Path.GetExtension(modelFilePath);
+        if (!extension.Equals(".gltf", StringComparison.OrdinalIgnoreCase)
+            && !extension.Equals(".glb", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (TryReadFloatProperty(material, GltfRoughnessFactorPropertyName, out roughness))
+        {
+            roughness = Math.Clamp(roughness, 0.0f, 1.0f);
+            return true;
+        }
+
+        if (!material.HasShininess)
+        {
+            return false;
+        }
+
+        roughness = 1.0f - Math.Clamp(material.Shininess / GltfGlossinessScale, 0.0f, 1.0f);
+        return true;
+    }
+
+    private static bool TryReadFloatProperty(Material material, string propertyName, out float value)
+    {
+        value = 0.0f;
+        if (!material.HasProperty(propertyName))
+        {
+            return false;
+        }
+
+        MaterialProperty? property = material.GetProperty(propertyName);
+        if (property == null
+            || property.PropertyType != PropertyType.Float
+            || !property.HasRawData
+            || property.RawData == null
+            || property.RawData.Length < sizeof(float))
+        {
+            return false;
+        }
+
+        value = BitConverter.ToSingle(property.RawData, 0);
+        return true;
+    }
+
+    private static float ConvertRoughnessToSpecularPower(float roughness)
+    {
+        float clampedRoughness = Math.Clamp(roughness, 0.0f, 1.0f);
+        if (clampedRoughness <= 0.0001f)
+        {
+            return MaxSupportedSpecularPower;
+        }
+
+        float exponent = (2.0f / (clampedRoughness * clampedRoughness)) - 2.0f;
+        return Math.Clamp(exponent, 0.0f, MaxSupportedSpecularPower);
     }
 
     private static StaticModelMesh BuildMesh(Mesh assimpMesh, IReadOnlyList<StaticModelImportedMaterial> importedMaterials)

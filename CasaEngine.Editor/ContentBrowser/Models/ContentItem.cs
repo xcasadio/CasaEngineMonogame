@@ -255,6 +255,6 @@ public sealed class ContentItem : INotifyPropertyChanged
             return ContentItemType.Unknown;
         }
 
-        return ExtensionMap.TryGetValue(extension, out var type) ? type : ContentItemType.Unknown;
+        return ExtensionMap.GetValueOrDefault(extension, ContentItemType.Unknown);
     }
 }

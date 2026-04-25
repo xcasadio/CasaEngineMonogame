@@ -619,7 +619,11 @@ public sealed class FileOperationService : IDisposable
 
     private void ReportError(string message, Exception ex)
     {
+#if DEBUG
+        string fullMessage = ex == null ? message : $"{message}\n{ex}";
+#else
         string fullMessage = ex == null ? message : $"{message}\n{ex.Message}";
+#endif
         ErrorOccurred?.Invoke(fullMessage);
     }
 

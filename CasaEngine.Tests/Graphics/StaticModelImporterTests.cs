@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Assets.Loaders;
 using Microsoft.Xna.Framework;
+using System.Globalization;
 using Xunit;
 
 namespace CasaEngine.Tests.Graphics;
@@ -99,6 +100,29 @@ public class StaticModelImporterTests
         Assert.False(profileMaterial.UsesReflection);
     }
 
+    [Fact]
+    public void ImportWithMetadata_ConvertsGltfRoughnessToLitDiffuseSpecularPower()
+    {
+        var importer = new StaticModelImporter();
+        string modelPath = CreateMinimalGltfProbe(roughnessFactor: 0.25f);
+
+        try
+        {
+            var result = importer.ImportWithMetadata(modelPath);
+
+            StaticModelImportedMaterial material = Assert.Single(result.Materials);
+            Assert.InRange(material.SpecularPower, 29.9f, 30.1f);
+        }
+        finally
+        {
+            string? directory = Path.GetDirectoryName(modelPath);
+            if (!string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
     private static StaticModelImportedMaterial FindMaterialByDiffuseTexture(
         IReadOnlyList<StaticModelImportedMaterial> materials,
         string textureFileName)
@@ -107,6 +131,99 @@ public class StaticModelImporterTests
             candidate => string.Equals(Path.GetFileName(candidate.DiffuseTextureFilePath), textureFileName, StringComparison.OrdinalIgnoreCase));
 
         return Assert.Single(material is null ? Array.Empty<StaticModelImportedMaterial>() : new[] { material });
+    }
+
+    private static string CreateMinimalGltfProbe(float roughnessFactor)
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "CasaEngineTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+
+        byte[] buffer = CreateTriangleBuffer();
+        string encodedBuffer = Convert.ToBase64String(buffer);
+        string roughnessText = roughnessFactor.ToString(CultureInfo.InvariantCulture);
+        string gltfPath = Path.Combine(directory, "probe.gltf");
+
+        string json = $$"""
+        {
+          "asset": { "version": "2.0" },
+          "scene": 0,
+          "scenes": [ { "nodes": [ 0 ] } ],
+          "nodes": [ { "mesh": 0 } ],
+          "meshes": [
+            {
+              "primitives": [
+                {
+                  "attributes": { "POSITION": 0 },
+                  "indices": 1,
+                  "material": 0
+                }
+              ]
+            }
+          ],
+          "materials": [
+            {
+              "name": "Probe",
+              "pbrMetallicRoughness": {
+                "baseColorFactor": [ 1.0, 1.0, 1.0, 1.0 ],
+                "metallicFactor": 0.8,
+                "roughnessFactor": {{roughnessText}}
+              }
+            }
+          ],
+          "buffers": [
+            {
+              "uri": "data:application/octet-stream;base64,{{encodedBuffer}}",
+              "byteLength": 42
+            }
+          ],
+          "bufferViews": [
+            { "buffer": 0, "byteOffset": 0, "byteLength": 36, "target": 34962 },
+            { "buffer": 0, "byteOffset": 36, "byteLength": 6, "target": 34963 }
+          ],
+          "accessors": [
+            {
+              "bufferView": 0,
+              "byteOffset": 0,
+              "componentType": 5126,
+              "count": 3,
+              "type": "VEC3",
+              "max": [ 1.0, 1.0, 0.0 ],
+              "min": [ 0.0, 0.0, 0.0 ]
+            },
+            {
+              "bufferView": 1,
+              "byteOffset": 0,
+              "componentType": 5123,
+              "count": 3,
+              "type": "SCALAR",
+              "max": [ 2 ],
+              "min": [ 0 ]
+            }
+          ]
+        }
+        """;
+
+        File.WriteAllText(gltfPath, json);
+        return gltfPath;
+    }
+
+    private static byte[] CreateTriangleBuffer()
+    {
+        byte[] buffer = new byte[42];
+        float[] positions = [0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f];
+        ushort[] indices = [0, 1, 2];
+
+        for (int i = 0; i < positions.Length; i++)
+        {
+            Buffer.BlockCopy(BitConverter.GetBytes(positions[i]), 0, buffer, i * sizeof(float), sizeof(float));
+        }
+
+        for (int i = 0; i < indices.Length; i++)
+        {
+            Buffer.BlockCopy(BitConverter.GetBytes(indices[i]), 0, buffer, 36 + (i * sizeof(ushort)), sizeof(ushort));
+        }
+
+        return buffer;
     }
 
     private static void AssertVector3Close(Vector3 expected, Vector3 actual, float tolerance = 0.001f)

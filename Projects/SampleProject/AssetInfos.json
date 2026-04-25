@@ -5551,18 +5551,6 @@
       "asset_type": "model"
     },
     {
-      "id": "3e749ed4-af5e-4001-a911-bc5f1e6f89c8",
-      "name": "Car",
-      "file_name": "Car.x",
-      "asset_type": "x"
-    },
-    {
-      "id": "7dc07544-06da-4a49-89ec-88ff7de9710c",
-      "name": "Car",
-      "file_name": "Car.staticModel",
-      "asset_type": "staticmodel"
-    },
-    {
       "id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
       "name": "ground_ground1",
       "file_name": "Models\\ground_ground1.staticModel",
@@ -5584,42 +5572,6 @@
       "id": "afcdcca9-8833-4f9c-9b13-3972177ba7b1",
       "name": "NewLitDiffuseMaterial",
       "file_name": "NewLitDiffuseMaterial.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "3c4ecd7f-cbda-43b8-bea2-827e11319367",
-      "name": "Car_Standard_19",
-      "file_name": "Car_Imported\\Materials\\Standard_19.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "bed30dc0-1c34-45d2-9d46-599a2309f8d0",
-      "name": "Car_lack",
-      "file_name": "Car_Imported\\Materials\\lack.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "0df807f6-1bf5-48d2-9e16-887e76455257",
-      "name": "Car_gummi",
-      "file_name": "Car_Imported\\Materials\\gummi.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "905f151b-ae42-41bd-8a41-886f7ddc1c73",
-      "name": "Car_chrome",
-      "file_name": "Car_Imported\\Materials\\chrome.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "081f20b4-7792-4bba-b540-ed779aa68132",
-      "name": "Car_gummi_2",
-      "file_name": "Car_Imported\\Materials\\gummi_2.material",
-      "asset_type": "material"
-    },
-    {
-      "id": "6469d457-d8b7-4ec7-b019-d90c27ca43a8",
-      "name": "Car_chrome_2",
-      "file_name": "Car_Imported\\Materials\\chrome_2.material",
       "asset_type": "material"
     }
   ]

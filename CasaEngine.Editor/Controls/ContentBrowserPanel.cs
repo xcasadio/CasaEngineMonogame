@@ -144,31 +144,18 @@ public class ContentBrowserPanel
     private bool _clipboardMoveOperation;
     private readonly Dictionary<ContentItemType, List<ContextMenuExtension>> _contextMenuExtensions = new();
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Events
-    // ─────────────────────────────────────────────────────────────────────────
-
     /// <summary>Raised when a file is selected (single click).</summary>
     public event Action<ContentItem>? FileSelected;
-
     /// <summary>Raised when a file is opened (double-click).</summary>
     public event Action<ContentItem>? FileOpened;
-
     /// <summary>Raised when a file or folder is deleted.</summary>
     public event Action<ContentItem>? FileDeleted;
-
     /// <summary>Raised when a file or folder is renamed (item, old name).</summary>
     public event Action<ContentItem, string>? FileRenamed;
-
     /// <summary>Raised when a file or folder is moved (item, old parent).</summary>
     public event Action<ContentItem, ContentItem>? FileMoved;
-
     /// <summary>Raised when the selection set changes.</summary>
     public event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Fields
-    // ─────────────────────────────────────────────────────────────────────────
 
     private readonly MGWindow _window;
 
@@ -205,9 +192,6 @@ public class ContentBrowserPanel
 
     private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Constructor
-    // ─────────────────────────────────────────────────────────────────────────
 
     public ContentBrowserPanel(MGWindow window)
         : this(window, null)
@@ -230,24 +214,16 @@ public class ContentBrowserPanel
         _fileOperationService.ErrorOccurred += OnFileOperationError;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Public API
-    // ─────────────────────────────────────────────────────────────────────────
-
     /// <summary>
     /// Builds and returns the root MGUI element for this panel.
     /// Intended to be used as a <c>DockPanelNode.ContentFactory</c> result.
     /// </summary>
     public MGElement CreateContent()
     {
-        // ────────────────────────────────────────
-        //  Toolbar row
-        // ────────────────────────────────────────
+        // Toolbar row
         var toolbar = WrapPanelSurface(BuildToolbar(), ToolbarBackgroundColor, new Thickness(6, 4, 6, 4));
 
-        // ────────────────────────────────────────
-        //  Tree view (left pane)
-        // ────────────────────────────────────────
+        // Tree view (left pane)
         _treeView = new MGTreeView(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -264,9 +240,7 @@ public class ContentBrowserPanel
         treeScroll.SetContent(_treeView);
         var treePane = WrapPanelSurface(treeScroll, TreeBackgroundColor);
 
-        // ────────────────────────────────────────
-        //  Content views (right pane)
-        // ────────────────────────────────────────
+        // Content views (right pane)
         _gridView = new GridView(_window, Config.ThumbnailSize, GetGridItemPreviewTexture, ConfigureGridItemElement);
         _detailView = new DetailView(_window, GetIconForType, ConfigureDetailItemElement);
 
@@ -284,9 +258,7 @@ public class ContentBrowserPanel
         _contentViewHost.SetContent(_activeContentView.RootElement);
         var contentPane = WrapPanelSurface(_contentViewHost, ContentBackgroundColor);
 
-        // ────────────────────────────────────────
-        //  Grid: [tree | splitter | list]
-        // ────────────────────────────────────────
+        // Grid: [tree | splitter | list]
         var splitter = new MGGridSplitter(_window);
         var contentGrid = new MGGrid(_window)
         {
@@ -303,23 +275,18 @@ public class ContentBrowserPanel
         contentGrid.TryAddChild(0, 1, splitter);
         contentGrid.TryAddChild(0, 2, contentPane);
 
-        // ────────────────────────────────────────
-        //  Outer dock: toolbar on top, content fills
-        // ────────────────────────────────────────
+        // Outer dock: toolbar on top, content fills
         var outerPanel = new MGDockPanel(_window);
         outerPanel.TryAddChild(toolbar, Dock.Top);
         outerPanel.TryAddChild(contentGrid, Dock.Top); // last child fills
 
-        // ────────────────────────────────────────
-        //  Events
-        // ────────────────────────────────────────
         EditorAssetCatalogService.AssetAdded += OnAssetAdded;
         EditorAssetCatalogService.AssetRemoved += OnAssetRemoved;
         EditorAssetCatalogService.AssetRenamed += OnAssetRenamed;
         EditorAssetCatalogService.AssetCleared += OnAssetCleared;
         EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
 
-        // ── Initial population ───────────────────────────────────────────
+        // Initial population
         RebuildTree();
 
         return outerPanel;
@@ -579,10 +546,6 @@ public class ContentBrowserPanel
         return btn;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Breadcrumb
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void UpdateBreadcrumb()
     {
         _breadcrumbBar.TryRemoveAll();
@@ -626,10 +589,6 @@ public class ContentBrowserPanel
             _breadcrumbBar.TryAddChild(breadcrumbBtn);
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Navigation
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void GoBack()
     {
@@ -685,11 +644,7 @@ public class ContentBrowserPanel
         _btnForward.IsEnabled = _forwardHistory.Count > 0;
         _btnParent.IsEnabled = _currentFolder?.Parent != null;
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  File item template
-    // ─────────────────────────────────────────────────────────────────────────
-
+    
     private void ConfigureGridItemElement(ContentItem item, MGElement element)
     {
         ConfigureItemToolTip(item, element);
@@ -724,11 +679,7 @@ public class ContentBrowserPanel
 
     /// <summary>Returns the best icon <see cref="Texture2D"/> for the given type.</summary>
     private Texture2D? GetIconForType(ContentItemType type) => ContentItemDisplay.GetIcon(Config, type);
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Context menus
-    // ─────────────────────────────────────────────────────────────────────────
-
+    
     private void OnTreeViewRightClick(object? sender, BaseMouseReleasedEventArgs e)
     {
         var menu = _contextMenu.CreateTreeMenu(
@@ -774,11 +725,7 @@ public class ContentBrowserPanel
         var target = sender as MGElement ?? _contentViewHost;
         target.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Action handlers
-    // ─────────────────────────────────────────────────────────────────────────
-
+    
     private void OnOpenFolderRequested()
     {
         if (_currentFolder == null)
@@ -989,10 +936,6 @@ public class ContentBrowserPanel
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Search
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void OnSearchTextChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> e)
     {
         _searchFilter = e.NewValue?.Trim() ?? string.Empty;
@@ -1073,11 +1016,7 @@ public class ContentBrowserPanel
                 break;
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Asset list events
-    // ─────────────────────────────────────────────────────────────────────────
-
+    
     private void OnAssetItemDragStart(MGElement element, ContentItem item, BaseMouseDragStartEventArgs e)
     {
         var draggedItems = GetDraggedItems(item);

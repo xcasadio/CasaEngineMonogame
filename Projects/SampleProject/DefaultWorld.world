@@ -7,6 +7,11 @@
       "entity": {
         "id": "68a75d65-854e-4317-b414-36cc966254df",
         "name": "ground",
+        "policy_source": "EngineDefault",
+        "mobility": "Movable",
+        "tick_policy": "EveryFrame",
+        "spatial_policy": "DynamicIndex",
+        "render_dynamic_policy": "Static",
         "root_component": {
           "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",
@@ -202,6 +207,11 @@
       "entity": {
         "id": "68a75d65-854e-4317-b414-36cc966254df",
         "name": "ground",
+        "policy_source": "EngineDefault",
+        "mobility": "Movable",
+        "tick_policy": "EveryFrame",
+        "spatial_policy": "DynamicIndex",
+        "render_dynamic_policy": "Static",
         "root_component": {
           "id": "fc007d02-51ce-4281-bca8-1510d295f1f6",
           "name": "StaticMeshComponent",

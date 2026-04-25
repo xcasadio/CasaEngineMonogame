@@ -10,7 +10,7 @@ public class Program
         var automationOptions = CasaEngine.Editor.EditorAutomationOptions.Parse(args);
         try
         {
-            using var game = new CasaEngine.Editor.Game1(automationOptions);
+            using var game = new CasaEngine.Editor.GameEditor(automationOptions);
             game.Run();
         }
         catch (Exception ex)

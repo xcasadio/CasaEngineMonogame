@@ -43,7 +43,7 @@ using System.Text;
 
 namespace CasaEngine.Editor;
 
-public class Game1 : Game, IObservableUpdate
+public class GameEditor : Game, IObservableUpdate
 {
     private const string EditorLayoutDirectoryName = ".casaeditor";
     private const string EditorLayoutFileName = "layout.editor.json";
@@ -131,7 +131,7 @@ public class Game1 : Game, IObservableUpdate
     public event EventHandler<TimeSpan> PreviewUpdate;
     public event EventHandler<EventArgs> EndUpdate;
 
-    public Game1(EditorAutomationOptions? automationOptions = null)
+    public GameEditor(EditorAutomationOptions? automationOptions = null)
     {
         _automationOptions = automationOptions ?? new EditorAutomationOptions();
         _editorHistory.HistoryChanged += OnEditorHistoryChanged;
@@ -158,7 +158,7 @@ public class Game1 : Game, IObservableUpdate
         _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
         const string familyName = "JetBrainsMono";
         string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
-        var backend = CasaMonoGameBackendBootstrap.Create(new CasaGameRenderHost<Game1>(this), _windowInputSource);
+        var backend = CasaMonoGameBackendBootstrap.Create(new CasaGameRenderHost<GameEditor>(this), _windowInputSource);
         if (backend.Runtime is not IMonoGameDesktopBackend monoGameBackend)
         {
             throw new InvalidOperationException("Editor desktop requires a MonoGame-backed MGUI runtime.");
