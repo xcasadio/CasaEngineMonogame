@@ -5,8 +5,6 @@ using CasaEngine.Framework.Assets;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Thickness = MonoGame.Extended.Thickness;
-using MGUI.Shared.Helpers;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Editor.Controls;
 

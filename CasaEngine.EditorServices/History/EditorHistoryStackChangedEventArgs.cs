@@ -1,5 +1,3 @@
-using System;
-
 namespace CasaEngine.EditorServices.History;
 
 public sealed class EditorHistoryStackChangedEventArgs : EventArgs

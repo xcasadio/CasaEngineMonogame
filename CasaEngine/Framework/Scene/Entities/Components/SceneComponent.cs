@@ -1,4 +1,3 @@
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Math;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;

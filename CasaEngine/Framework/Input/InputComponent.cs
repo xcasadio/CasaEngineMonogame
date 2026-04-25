@@ -27,7 +27,7 @@ public class InputComponent : GameComponent
     /// </summary>
     public InputRouter? InputRouter { get; set; }
 
-    public InputComponent(Microsoft.Xna.Framework.Game game)
+    public InputComponent(Game game)
         : base(game)
     {
         if (game == null)

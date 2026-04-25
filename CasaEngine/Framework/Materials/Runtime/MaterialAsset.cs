@@ -1,5 +1,3 @@
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Materials.Runtime;

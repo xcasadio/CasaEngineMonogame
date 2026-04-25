@@ -1,7 +1,6 @@
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.UI.MGUI;
 using Newtonsoft.Json.Linq;
 

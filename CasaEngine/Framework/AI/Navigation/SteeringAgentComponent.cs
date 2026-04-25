@@ -110,7 +110,7 @@ public sealed class SteeringAgentComponent : EntityComponent
         CurrentCommand = SteeringCommand.None(Settings.OutputMode);
     }
 
-    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
+    public override void InitializeWithWorld(Scene.World.World world)
     {
         base.InitializeWithWorld(world);
         ResolveDependencies();

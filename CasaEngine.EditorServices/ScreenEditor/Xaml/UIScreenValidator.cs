@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Globalization;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Inspector;

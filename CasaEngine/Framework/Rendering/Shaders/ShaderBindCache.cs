@@ -1,6 +1,4 @@
-using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
-using CasaEngine.Framework.Rendering.Shaders;
 
 namespace CasaEngine.Framework.Rendering.Shaders;
 

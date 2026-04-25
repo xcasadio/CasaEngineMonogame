@@ -3,11 +3,9 @@ using System.IO;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;

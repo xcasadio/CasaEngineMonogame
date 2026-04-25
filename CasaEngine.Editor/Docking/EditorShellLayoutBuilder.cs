@@ -1,6 +1,5 @@
 using MGUI.Core.UI;
 using MGUI.Core.UI.Docking.DockLayout;
-using MGUI.Shared.Rendering;
 using CasaEngine.Editor.Workspaces;
 
 namespace CasaEngine.Editor.Docking;

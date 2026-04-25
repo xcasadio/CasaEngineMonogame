@@ -19,7 +19,7 @@ public class ScreenLogComponent : DrawableGameComponent
     private Renderer2DComponent _renderer2DComponent;
     private SpriteFontBase? _font;
 
-    public ScreenLogComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public ScreenLogComponent(Game game) : base(game)
     {
         if (game == null)
         {

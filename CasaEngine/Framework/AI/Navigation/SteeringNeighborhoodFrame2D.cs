@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 
 namespace CasaEngine.Framework.AI.Navigation;

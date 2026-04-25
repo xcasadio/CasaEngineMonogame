@@ -1,6 +1,4 @@
 using CasaEngine.Core.Logging;
-using CasaEngine.Framework.Assets;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering.Shaders;
 

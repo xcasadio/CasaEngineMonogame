@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using BulletSharp;
-using CasaEngine.Core.Design;
 using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;

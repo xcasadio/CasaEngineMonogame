@@ -1,10 +1,7 @@
-using CasaEngine.Core.Logging;
-using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Assets;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Rendering.Models;

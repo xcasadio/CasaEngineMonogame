@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
-using MGUI.Shared.Helpers;
 
 namespace CasaEngine.Editor.Controls;
 

@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using MGUI.Core.UI;
 
 namespace CasaEngine.Framework.UI;
 

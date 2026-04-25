@@ -21,7 +21,7 @@ public class AudioComponent : GameComponent
     // Keep track of all the 3D sounds that are currently playing.
     private readonly List<ActiveSound> _activeSounds = new();
 
-    public AudioComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public AudioComponent(Game game) : base(game)
     { }
 
     public override void Initialize()

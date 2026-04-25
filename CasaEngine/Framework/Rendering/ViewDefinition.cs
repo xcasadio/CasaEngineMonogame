@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Rendering;
 public sealed record ViewDefinition
 {
     /// <summary>World to render in this view.</summary>
-    public required CasaEngine.Framework.Scene.World.World World { get; init; }
+    public required Scene.World.World World { get; init; }
 
     /// <summary>Camera that provides View/Projection matrices.</summary>
     public required CameraComponent Camera { get; init; }

@@ -1,6 +1,5 @@
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Application;
 
@@ -15,7 +14,7 @@ public sealed class DefaultRuntimeViewBootstrapper : IRuntimeViewBootstrapper
     {
     }
 
-    public void BootstrapViews(CasaEngineGame game, CasaEngine.Framework.Scene.World.World world, ViewManager viewManager)
+    public void BootstrapViews(CasaEngineGame game, Scene.World.World world, ViewManager viewManager)
     {
         ArgumentNullException.ThrowIfNull(game);
         ArgumentNullException.ThrowIfNull(world);

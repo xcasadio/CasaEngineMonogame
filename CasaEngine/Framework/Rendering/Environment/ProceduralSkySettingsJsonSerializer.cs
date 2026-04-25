@@ -1,5 +1,4 @@
 using CasaEngine.Core.Serialization;
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Rendering.Environment;

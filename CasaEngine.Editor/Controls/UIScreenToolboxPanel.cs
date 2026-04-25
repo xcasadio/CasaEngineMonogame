@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Toolbox;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
-using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
 namespace CasaEngine.Editor.Controls;
 

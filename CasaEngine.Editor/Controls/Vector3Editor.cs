@@ -1,7 +1,6 @@
 using System;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
-using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Editor.Controls;

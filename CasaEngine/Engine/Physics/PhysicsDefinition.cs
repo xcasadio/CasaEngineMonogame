@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using CasaEngine.Core.Serialization;
+﻿using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 

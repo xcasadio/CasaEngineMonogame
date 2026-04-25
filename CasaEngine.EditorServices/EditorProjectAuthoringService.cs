@@ -1,7 +1,3 @@
-using CasaEngine.Engine.Environment;
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Configuration.Project;
 using CasaEngine.Framework.Scene.World;

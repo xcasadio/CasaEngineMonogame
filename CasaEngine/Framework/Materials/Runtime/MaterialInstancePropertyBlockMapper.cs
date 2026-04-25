@@ -1,5 +1,4 @@
 using CasaEngine.Framework.Rendering.Shaders;
-using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Materials.Runtime;
 

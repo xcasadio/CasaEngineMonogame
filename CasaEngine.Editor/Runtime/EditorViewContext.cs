@@ -15,7 +15,7 @@ public sealed class EditorViewContext : IDisposable
 
     public RenderView RenderView { get; }
 
-    public CasaEngine.Framework.Scene.World.World? World { get; set; }
+    public Framework.Scene.World.World? World { get; set; }
 
     public CameraComponent? Camera { get; set; }
 

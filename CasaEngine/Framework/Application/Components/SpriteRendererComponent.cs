@@ -44,7 +44,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly Vector3 _vertexBottomRight;
     private readonly Vector3 _vertexBottomLeft;
 
-    public SpriteRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public SpriteRendererComponent(Game game) : base(game)
     {
         if (game == null)
         {

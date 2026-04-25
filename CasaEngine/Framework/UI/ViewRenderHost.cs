@@ -1,8 +1,6 @@
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Input;
-using CasaEngine.Engine.Input.Providers;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using MGUI.Shared.Input;

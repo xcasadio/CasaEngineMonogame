@@ -1,7 +1,5 @@
 
 
-using CasaEngine.Framework.Rendering.Models;
-
 namespace CasaEngine.Framework.Rendering.Shaders;
 
 /// <summary>

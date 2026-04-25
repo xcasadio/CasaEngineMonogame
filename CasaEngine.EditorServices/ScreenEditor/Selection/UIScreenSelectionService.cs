@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Selection;

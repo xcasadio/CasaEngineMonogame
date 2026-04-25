@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace CasaEngine.Framework.Assets.Animations;
+﻿namespace CasaEngine.Framework.Assets.Animations;
 
 public class SetFrameEvent : AnimationEvent
 {

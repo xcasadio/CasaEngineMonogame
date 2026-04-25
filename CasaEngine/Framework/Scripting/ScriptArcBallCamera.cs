@@ -31,7 +31,7 @@ public class ScriptArcBallCamera : GameplayProxy
         _arcBallCameraComponent = Owner.GetComponent<ArcBallCameraComponent>();
     }
 
-    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
+    public override void InitializeWithWorld(Scene.World.World world)
     {
         _inputComponent = world.Game.GetGameComponent<InputComponent>();
     }
@@ -149,12 +149,12 @@ public class ScriptArcBallCamera : GameplayProxy
     {
     }
 
-    public override void OnBeginPlay(CasaEngine.Framework.Scene.World.World world)
+    public override void OnBeginPlay(Scene.World.World world)
     {
 
     }
 
-    public override void OnEndPlay(CasaEngine.Framework.Scene.World.World world)
+    public override void OnEndPlay(Scene.World.World world)
     {
 
     }

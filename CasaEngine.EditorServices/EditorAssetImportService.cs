@@ -1,13 +1,8 @@
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Animations;
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Rendering.Models;
-
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using System.Text;

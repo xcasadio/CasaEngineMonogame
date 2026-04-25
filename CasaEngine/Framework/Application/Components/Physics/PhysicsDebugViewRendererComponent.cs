@@ -12,7 +12,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
 
     public bool DisplayPhysics { get; set; } = true;
 
-    public PhysicsDebugViewRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public PhysicsDebugViewRendererComponent(Game game) : base(game)
     {
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.DebugPhysics;

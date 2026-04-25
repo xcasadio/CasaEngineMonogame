@@ -146,8 +146,3 @@ public class OverlayViewPipeline : IViewRenderPipeline
             .Compose(gd, view, in frame);
     }
 }
-
-[Obsolete("Use OverlayViewPipeline instead.")]
-public class EditorViewPipeline : OverlayViewPipeline
-{
-}

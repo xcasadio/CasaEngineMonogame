@@ -40,10 +40,10 @@ public sealed class CompiledMaterial
         SourceAssetId = sourceAssetId;
         Name = name;
         Features = features;
-        BlendState = blendState ?? Microsoft.Xna.Framework.Graphics.BlendState.Opaque;
-        DepthStencilState = depthStencilState ?? Microsoft.Xna.Framework.Graphics.DepthStencilState.Default;
-        RasterizerState = rasterizerState ?? Microsoft.Xna.Framework.Graphics.RasterizerState.CullCounterClockwise;
-        SamplerState = samplerState ?? Microsoft.Xna.Framework.Graphics.SamplerState.AnisotropicClamp;
+        BlendState = blendState ?? BlendState.Opaque;
+        DepthStencilState = depthStencilState ?? DepthStencilState.Default;
+        RasterizerState = rasterizerState ?? RasterizerState.CullCounterClockwise;
+        SamplerState = samplerState ?? SamplerState.AnisotropicClamp;
         IsTransparent = isTransparent;
         Queue = queue;
         CastShadows = castShadows;

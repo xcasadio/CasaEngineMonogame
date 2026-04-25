@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
-using MGUI.Shared.Helpers;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 

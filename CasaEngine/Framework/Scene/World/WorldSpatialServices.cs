@@ -1,4 +1,3 @@
-using System;
 using CasaEngine.Framework.AI.Navigation;
 using Microsoft.Xna.Framework;
 

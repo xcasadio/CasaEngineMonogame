@@ -7,7 +7,6 @@ using CasaEngine.EditorServices.ScreenEditor.Selection;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Preview;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.UI.MGUI;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -88,8 +87,8 @@ public sealed class UIScreenPreviewPanel
     /// <summary>Returns the screen-space bounds of the preview surface, or null if not yet created.
     /// Uses <see cref="MGElement.ActualLayoutBounds"/> which accounts for clipping by parent containers
     /// (including the ScrollViewer viewport) and the scroll offset.</summary>
-    public Microsoft.Xna.Framework.Rectangle? PreviewSurfaceBounds
-        => _previewSurface?.ActualLayoutBounds is { Width: > 0, Height: > 0 } b ? b : (Microsoft.Xna.Framework.Rectangle?)null;
+    public Rectangle? PreviewSurfaceBounds
+        => _previewSurface?.ActualLayoutBounds is { Width: > 0, Height: > 0 } b ? b : (Rectangle?)null;
 
     public UIScreenPreviewPanel(MGWindow window)
     {
@@ -239,7 +238,7 @@ public sealed class UIScreenPreviewPanel
     /// Uses <see cref="MGElement.ActualLayoutBounds"/> which is clipped to the visible viewport
     /// and accounts for the scroll offset — Width/Height will be 0 when fully scrolled out.
     /// </summary>
-    public Microsoft.Xna.Framework.Rectangle? GetElementBounds(DocumentNodeId nodeId)
+    public Rectangle? GetElementBounds(DocumentNodeId nodeId)
     {
         if (!_nodeMap.TryGetValue(nodeId, out var element))
             return null;
@@ -762,13 +761,13 @@ public sealed class UIScreenPreviewPanel
 
     /// <summary>Returns the <see cref="ResizeAnchor"/> whose hit-zone contains <paramref name="pos"/>,
     /// or <c>null</c> if the position is not on any corner handle.</summary>
-    private ResizeAnchor? GetResizeAnchor(Microsoft.Xna.Framework.Rectangle r, Microsoft.Xna.Framework.Point pos)
+    private ResizeAnchor? GetResizeAnchor(Rectangle r, Point pos)
     {
         int h = ResizeHandleSize;
-        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopLeft;
-        if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopRight;
-        if (new Microsoft.Xna.Framework.Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomLeft;
-        if (new Microsoft.Xna.Framework.Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomRight;
+        if (new Rectangle(r.Left,       r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopLeft;
+        if (new Rectangle(r.Right - h,  r.Top,        h, h).Contains(pos)) return ResizeAnchor.TopRight;
+        if (new Rectangle(r.Left,       r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomLeft;
+        if (new Rectangle(r.Right - h,  r.Bottom - h, h, h).Contains(pos)) return ResizeAnchor.BottomRight;
         return null;
     }
 
@@ -875,7 +874,7 @@ public sealed class UIScreenPreviewPanel
         var primaryId = _selectionService!.SelectedNodeId;
         var selection = _selectionService.MultiSelection;
 
-        void DrawBorder(Microsoft.Xna.Framework.Rectangle r, Color color, bool withHandles)
+        void DrawBorder(Rectangle r, Color color, bool withHandles)
         {
             const int t = 2;
             const int h = 8;

@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using GameWorld = CasaEngine.Framework.Scene.World.World;
 

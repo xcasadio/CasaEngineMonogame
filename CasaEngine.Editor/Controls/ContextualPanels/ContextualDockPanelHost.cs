@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CasaEngine.Editor;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;

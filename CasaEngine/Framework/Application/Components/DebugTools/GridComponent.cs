@@ -12,7 +12,7 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         private Effect? GridEffect;
         private CasaEngineGame? _game;
 
-        public DebugGridComponent(Microsoft.Xna.Framework.Game game) : base(game)
+        public DebugGridComponent(Game game) : base(game)
         {
             _game = game as CasaEngineGame;
             game.Components.Add(this);
@@ -116,7 +116,7 @@ namespace CasaEngine.Framework.Application.Components.Editor
     [Obsolete("Use CasaEngine.Framework.Application.Components.DebugTools.DebugGridComponent instead.")]
     public sealed class GridComponent : DebugTools.DebugGridComponent
     {
-        public GridComponent(Microsoft.Xna.Framework.Game game)
+        public GridComponent(Game game)
             : base(game)
         {
         }

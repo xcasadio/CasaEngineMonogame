@@ -1,5 +1,4 @@
 using CasaEngine.Core.Logging;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets;
 using Microsoft.Xna.Framework;

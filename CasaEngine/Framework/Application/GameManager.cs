@@ -13,11 +13,11 @@ namespace CasaEngine.Framework.Application;
 public class GameManager
 {
     private readonly CasaEngineGame _game;
-    private CasaEngine.Framework.Scene.World.World? _currentWorld;
+    private Scene.World.World? _currentWorld;
     private string? _worldToLoad;
     private bool _isNewWorld;
 
-    public CasaEngine.Framework.Scene.World.World? CurrentWorld
+    public Scene.World.World? CurrentWorld
     {
         get => _currentWorld;
     }
@@ -63,7 +63,7 @@ public class GameManager
             }
 
             var assetInfo = AssetCatalog.GetByFileName(_worldToLoad);
-            _currentWorld = _game.AssetContentManager.Load<CasaEngine.Framework.Scene.World.World>(assetInfo.Id, cache: false);
+            _currentWorld = _game.AssetContentManager.Load<Scene.World.World>(assetInfo.Id, cache: false);
             _worldToLoad = null;
             _isNewWorld = true;
         }
@@ -100,7 +100,7 @@ public class GameManager
         _worldToLoad = worldNameToLoad;
     }
 
-    public void SetWorldToLoad(CasaEngine.Framework.Scene.World.World world)
+    public void SetWorldToLoad(Scene.World.World world)
     {
         _currentWorld = world;
         _isNewWorld = true;

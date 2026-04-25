@@ -622,7 +622,7 @@ public class StaticModelImporter
         return $"{baseName} [{cleanedMaterialName}]";
     }
 
-    private static string BuildMaterialDisplayName(Assimp.Material material, int materialIndex, string modelFilePath)
+    private static string BuildMaterialDisplayName(Material material, int materialIndex, string modelFilePath)
     {
         string materialName = SanitizeMaterialDisplayName(material.Name);
         if (!string.IsNullOrWhiteSpace(materialName))
@@ -639,7 +639,7 @@ public class StaticModelImporter
         return $"Material {materialIndex + 1}";
     }
 
-    private static string? ResolveNormalTextureFilePath(Assimp.Material material, string modelFilePath)
+    private static string? ResolveNormalTextureFilePath(Material material, string modelFilePath)
     {
         string? normalPath = ResolveTextureFilePath(material, modelFilePath, TextureType.Normals);
         if (!string.IsNullOrWhiteSpace(normalPath))
@@ -657,7 +657,7 @@ public class StaticModelImporter
         return null;
     }
 
-    private static string? ResolveTextureFilePath(Assimp.Material material, string modelFilePath, TextureType textureType)
+    private static string? ResolveTextureFilePath(Material material, string modelFilePath, TextureType textureType)
     {
         foreach (var slot in material.GetAllMaterialTextures())
         {

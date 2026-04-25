@@ -456,7 +456,7 @@ public sealed class UIScreenInspectorPanel
     {
         return new MGTextBlock(_window, string.Empty)
         {
-            Foreground = new MGUI.Core.UI.VisualStateSetting<Microsoft.Xna.Framework.Color?>(Microsoft.Xna.Framework.Color.OrangeRed, Microsoft.Xna.Framework.Color.OrangeRed, Microsoft.Xna.Framework.Color.OrangeRed),
+            Foreground = new VisualStateSetting<Microsoft.Xna.Framework.Color?>(Microsoft.Xna.Framework.Color.OrangeRed, Microsoft.Xna.Framework.Color.OrangeRed, Microsoft.Xna.Framework.Color.OrangeRed),
             FontSize = 8,
             WrapText = true,
         };

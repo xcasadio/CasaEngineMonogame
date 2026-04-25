@@ -1,7 +1,6 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Configuration;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Loaders;

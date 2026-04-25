@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CasaEngine.EditorServices.History;
 
 namespace CasaEngine.EditorServices.ScreenEditor.Commands;

@@ -1,7 +1,4 @@
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Engine.Environment;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,7 +10,7 @@ public static class EditorAssetCatalogService
 
     public static event EventHandler<AssetInfo>? AssetAdded;
     public static event EventHandler<AssetInfo>? AssetRemoved;
-    public static event EventHandler<CasaEngine.Core.Design.EventArgs<AssetInfo, string>>? AssetRenamed;
+    public static event EventHandler<Core.Design.EventArgs<AssetInfo, string>>? AssetRenamed;
     public static event EventHandler? AssetCleared;
 
     public static void Add(AssetInfo assetInfo)
@@ -68,14 +65,14 @@ public static class EditorAssetCatalogService
             return false;
         }
 
-        AssetRenamed?.Invoke(null, new CasaEngine.Core.Design.EventArgs<AssetInfo, string>(assetInfo, oldName));
+        AssetRenamed?.Invoke(null, new Core.Design.EventArgs<AssetInfo, string>(assetInfo, oldName));
         return true;
     }
 
     public static void Rename(AssetInfo assetInfo, string newName)
     {
         var oldName = AssetCatalog.RenameInternal(assetInfo, newName);
-        AssetRenamed?.Invoke(null, new CasaEngine.Core.Design.EventArgs<AssetInfo, string>(assetInfo, oldName));
+        AssetRenamed?.Invoke(null, new Core.Design.EventArgs<AssetInfo, string>(assetInfo, oldName));
     }
 
     public static void Save()

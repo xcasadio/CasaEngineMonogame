@@ -1,8 +1,6 @@
 using System.ComponentModel;
 
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Application;
-using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Models;
 
 using Microsoft.Xna.Framework;

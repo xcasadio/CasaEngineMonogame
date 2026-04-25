@@ -1,5 +1,3 @@
-using CasaEngine.Framework.UI;
-
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

@@ -1,4 +1,3 @@
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Input;

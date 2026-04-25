@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Engine.Primitives.ThreeD;

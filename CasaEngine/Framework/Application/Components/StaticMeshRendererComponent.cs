@@ -42,7 +42,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// </summary>
     public LightingContext DefaultLighting { get; } = new();
 
-    public StaticMeshRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public StaticMeshRendererComponent(Game game) : base(game)
     {
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;

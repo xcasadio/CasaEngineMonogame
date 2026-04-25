@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace CasaEngine.Framework.Rendering.Environment;
 
 /// <summary>

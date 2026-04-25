@@ -11,8 +11,8 @@ namespace CasaEngine.Framework.Application.Components.Physics;
 public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
 {
     private readonly CasaEngineGame? _casaEngineGame;
-    private readonly Dictionary<CasaEngine.Framework.Scene.World.World, PhysicsWorldContext> _physicsWorldContexts = [];
-    private readonly List<CasaEngine.Framework.Scene.World.World> _worldsToUpdate = [];
+    private readonly Dictionary<Scene.World.World, PhysicsWorldContext> _physicsWorldContexts = [];
+    private readonly List<Scene.World.World> _worldsToUpdate = [];
     private PhysicsWorldContext? _bootstrapContext;
 
     public PhysicsEngine PhysicsEngine => ResolveCurrentContext().PhysicsEngine;
@@ -29,7 +29,7 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
         base.Initialize();
     }
 
-    public PhysicsWorldContext GetOrCreateContext(CasaEngine.Framework.Scene.World.World world)
+    public PhysicsWorldContext GetOrCreateContext(Scene.World.World world)
     {
         ArgumentNullException.ThrowIfNull(world);
 
@@ -48,7 +48,7 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
         return context;
     }
 
-    public void ReleaseContext(CasaEngine.Framework.Scene.World.World world)
+    public void ReleaseContext(Scene.World.World world)
     {
         ArgumentNullException.ThrowIfNull(world);
 
@@ -94,7 +94,7 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
         ResolveCurrentContext().Update(elapsedTime);
     }
 
-    private void AddWorldToUpdate(CasaEngine.Framework.Scene.World.World world)
+    private void AddWorldToUpdate(Scene.World.World world)
     {
         if (!_worldsToUpdate.Contains(world))
         {

@@ -4,7 +4,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using MonoGame.Extended.Triangulation;
-using MonoGame.Extended.VectorDraw;
 using WindingOrder = MonoGame.Extended.Triangulation.WindingOrder;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame.Primitives;

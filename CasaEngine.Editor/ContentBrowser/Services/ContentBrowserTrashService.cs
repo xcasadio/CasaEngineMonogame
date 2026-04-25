@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using CasaEngine.Engine.Environment;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;
 

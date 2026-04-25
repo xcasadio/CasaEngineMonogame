@@ -1,7 +1,6 @@
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 using CasaEngine.Framework.UI.Backend.MonoGame.Primitives;
 using MGUI.Shared.Assets;
-using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;

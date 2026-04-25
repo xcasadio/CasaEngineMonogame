@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace CasaEngine.EditorServices.History;
 
 /// <summary>

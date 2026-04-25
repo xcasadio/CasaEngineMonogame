@@ -26,7 +26,7 @@ public sealed class SteeringPhysicsBridgeComponent : EntityComponent
         ResolveDependencies();
     }
 
-    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
+    public override void InitializeWithWorld(Scene.World.World world)
     {
         base.InitializeWithWorld(world);
         ResolveDependencies();

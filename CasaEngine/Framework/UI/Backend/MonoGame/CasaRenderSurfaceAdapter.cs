@@ -1,6 +1,5 @@
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MGUI.Shared.Rendering;
 

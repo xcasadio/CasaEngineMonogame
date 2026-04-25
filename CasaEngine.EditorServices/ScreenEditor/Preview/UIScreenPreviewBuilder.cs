@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Xml.Linq;
-using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using MGUI.Core.UI;

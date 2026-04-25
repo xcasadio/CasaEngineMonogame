@@ -21,7 +21,7 @@ public class GameMode : ObjectBase
     public string AIControllerClass { get; set; } = nameof(AIController);
 
     public string HUDClass { get; set; }
-    public CasaEngine.Framework.Scene.World.World World { get; private set; }
+    public Scene.World.World World { get; private set; }
 
     /** Returns the current match state, this is an accessor to protect the state machine flow */
     public string MatchState
@@ -86,7 +86,7 @@ public class GameMode : ObjectBase
         MatchState = WaitingPostMatch;
     }
 
-    public void InitGame(CasaEngine.Framework.Scene.World.World world)
+    public void InitGame(Scene.World.World world)
     {
         World = world;
         // Save Options for future use

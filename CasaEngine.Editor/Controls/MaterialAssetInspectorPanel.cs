@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
@@ -1129,7 +1128,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             case MaterialPropertyType.Vector2:
                 if (TryParseFloatComponents(trimmed, 2, out var vector2Components))
                 {
-                    value = MaterialValue.FromVector2(new Microsoft.Xna.Framework.Vector2(vector2Components[0], vector2Components[1]));
+                    value = MaterialValue.FromVector2(new Vector2(vector2Components[0], vector2Components[1]));
                     return true;
                 }
 
@@ -1138,7 +1137,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             case MaterialPropertyType.Vector4:
                 if (TryParseFloatComponents(trimmed, 4, out var vector4Components))
                 {
-                    value = MaterialValue.FromVector4(new Microsoft.Xna.Framework.Vector4(
+                    value = MaterialValue.FromVector4(new Vector4(
                         vector4Components[0],
                         vector4Components[1],
                         vector4Components[2],

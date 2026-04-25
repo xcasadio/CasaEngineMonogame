@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace CasaEngine.Framework.AI.Navigation;
 
 public sealed class SteeringNeighborhoodCellGrid2D

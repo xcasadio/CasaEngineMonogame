@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using GameWorld = CasaEngine.Framework.Scene.World.World;

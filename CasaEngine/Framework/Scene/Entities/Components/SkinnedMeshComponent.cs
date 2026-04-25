@@ -3,7 +3,6 @@ using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
-using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;

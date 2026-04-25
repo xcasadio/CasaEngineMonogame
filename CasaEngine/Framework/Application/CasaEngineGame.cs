@@ -2,21 +2,13 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Application.Components;
-using CasaEngine.Framework.Rendering.Draw2D;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.UI;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Assets.Loaders;
-using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Engine.Input.Providers;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Gameplay;
-using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Input;
 
 using CasaEngine.Framework.Configuration.Project;
@@ -29,7 +21,7 @@ using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Application;
 
-public class CasaEngineGame : Microsoft.Xna.Framework.Game, IObservableUpdate
+public class CasaEngineGame : Game, IObservableUpdate
 {
     private readonly string? _projectFileName;
     private readonly GraphicsDeviceManager? _graphicsDeviceManager;

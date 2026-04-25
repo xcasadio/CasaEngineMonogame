@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.EditorServices;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;

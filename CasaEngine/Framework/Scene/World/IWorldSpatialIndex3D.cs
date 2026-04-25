@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;

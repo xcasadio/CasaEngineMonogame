@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace CasaEngine.Framework.Scene.Entities;
 
 public enum Mobility

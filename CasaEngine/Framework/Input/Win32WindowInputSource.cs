@@ -1,8 +1,6 @@
 using CasaEngine.Engine.Input.Providers;
 using MGUI.Shared.Input;
 using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
-using System.Threading;
 using System.Runtime.InteropServices;
 
 namespace CasaEngine.Framework.Input;

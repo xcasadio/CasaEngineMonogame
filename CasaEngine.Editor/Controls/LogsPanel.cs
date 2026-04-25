@@ -1,14 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;

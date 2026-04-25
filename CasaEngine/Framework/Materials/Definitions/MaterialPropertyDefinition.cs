@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace CasaEngine.Framework.Materials.Definitions;
 
 public sealed class MaterialPropertyDefinition

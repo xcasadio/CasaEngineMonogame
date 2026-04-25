@@ -1,5 +1,4 @@
 using MGUI.Shared.Helpers;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;

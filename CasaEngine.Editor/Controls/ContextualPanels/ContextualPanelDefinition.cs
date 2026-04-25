@@ -1,5 +1,4 @@
 using System;
-using CasaEngine.Editor;
 using MGUI.Core.UI;
 
 namespace CasaEngine.Editor.Controls.ContextualPanels;

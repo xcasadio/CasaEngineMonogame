@@ -71,7 +71,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
 
     public SpriteBatch SpriteBatch { get; set; }
 
-    public Renderer2DComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public Renderer2DComponent(Game game) : base(game)
     {
         if (game == null)
         {

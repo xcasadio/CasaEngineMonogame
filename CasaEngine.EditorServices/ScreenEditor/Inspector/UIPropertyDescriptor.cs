@@ -1,5 +1,3 @@
-using System;
-
 namespace CasaEngine.EditorServices.ScreenEditor.Inspector;
 
 /// <summary>Metadata describing a single editable property in the UI screen inspector.</summary>

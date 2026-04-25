@@ -1,5 +1,4 @@
 using CasaEngine.Framework.Rendering;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Framework.Input;

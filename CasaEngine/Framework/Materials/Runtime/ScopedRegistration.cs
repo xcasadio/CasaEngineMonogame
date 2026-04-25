@@ -12,7 +12,7 @@ internal sealed class ScopedRegistration : IDisposable
 
     public void Dispose()
     {
-        var disposeAction = System.Threading.Interlocked.Exchange(ref _disposeAction, null);
+        var disposeAction = Interlocked.Exchange(ref _disposeAction, null);
         disposeAction?.Invoke();
     }
 }

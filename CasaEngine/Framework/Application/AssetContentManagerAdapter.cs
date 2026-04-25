@@ -1,4 +1,3 @@
-using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Framework.Application;

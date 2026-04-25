@@ -1,5 +1,4 @@
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using Microsoft.Xna.Framework;
 
@@ -87,7 +86,7 @@ public abstract class MovingObject : EntityComponent
 
     }
 
-    public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
+    public override void InitializeWithWorld(Scene.World.World world)
     {
         base.InitializeWithWorld(world);
         _physicsWorldContext = world.PhysicsWorldContext;

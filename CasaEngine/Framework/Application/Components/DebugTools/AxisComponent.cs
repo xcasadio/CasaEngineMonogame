@@ -16,7 +16,7 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         private int _width;
         private int _height;
 
-        public DebugAxisComponent(Microsoft.Xna.Framework.Game game) : base(game)
+        public DebugAxisComponent(Game game) : base(game)
         {
             _game = game as CasaEngineGame;
             game.Components.Add(this);
@@ -113,7 +113,7 @@ namespace CasaEngine.Framework.Application.Components.Editor
     [Obsolete("Use CasaEngine.Framework.Application.Components.DebugTools.DebugAxisComponent instead.")]
     public sealed class AxisComponent : DebugTools.DebugAxisComponent
     {
-        public AxisComponent(Microsoft.Xna.Framework.Game game)
+        public AxisComponent(Game game)
             : base(game)
         {
         }

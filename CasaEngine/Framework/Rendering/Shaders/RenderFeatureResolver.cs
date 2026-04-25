@@ -1,6 +1,4 @@
 using CasaEngine.Framework.Rendering.Models;
-
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Rendering.Shaders;

@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using BulletSharp;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;

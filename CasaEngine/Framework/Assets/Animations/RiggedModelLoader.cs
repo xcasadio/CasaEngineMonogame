@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Assimp;
+﻿using Assimp;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Animations;

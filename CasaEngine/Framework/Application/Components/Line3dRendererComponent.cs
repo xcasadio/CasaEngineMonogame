@@ -49,7 +49,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
 
     public int FramePeakPendingLineCount { get; private set; }
 
-    public Line3dRendererComponent(Microsoft.Xna.Framework.Game game) : base(game)
+    public Line3dRendererComponent(Game game) : base(game)
     {
         if (game == null)
         {

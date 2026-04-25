@@ -7,5 +7,5 @@ namespace CasaEngine.Framework.Application;
 /// </summary>
 public interface IRuntimeViewBootstrapper
 {
-    void BootstrapViews(CasaEngineGame game, CasaEngine.Framework.Scene.World.World world, ViewManager viewManager);
+    void BootstrapViews(CasaEngineGame game, Scene.World.World world, ViewManager viewManager);
 }

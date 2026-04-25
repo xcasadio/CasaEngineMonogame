@@ -8,9 +8,6 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
-using CasaEngine.Engine.Environment;
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -117,7 +114,6 @@ public class WorldViewportPanel : IDisposable
     private MguiViewportViewHost? _renderViewHost;
     private DebugGridComponent? _grid;
     private DebugAxisComponent? _axis;
-    private readonly ViewportFocusVectorOverlay _vectorOverlay = new();
     private IEditorVectorCanvas? _vectorCanvas;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
@@ -719,7 +715,7 @@ public class WorldViewportPanel : IDisposable
 
         _editorRuntime.GameManager.ViewManager.SetActive(_renderView);
         _editorRuntime.InputComponent.InputRouter?.SetKeyboardFocus(_renderView.Id);
-        _viewportHost?.Focus(MGUI.Core.UI.KeyboardFocusSource.Pointer);
+        _viewportHost?.Focus(KeyboardFocusSource.Pointer);
 
         if (captureInput)
         {
@@ -941,18 +937,7 @@ public class WorldViewportPanel : IDisposable
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
         overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
-        overlayPipeline.RenderVectorOverlayAction = (graphicsDevice, view, frame) =>
-        {
-            var router = _editorRuntime.InputComponent.InputRouter;
-            bool isKeyboardFocused = (router?.KeyboardFocusViewId ?? ViewId.Empty) == view.Id;
-            bool receivesInput = IsPointerInputRoutedToView(_editorRuntime.InputComponent.CurrentViewInputContext, view.Id);
-            if (_vectorCanvas == null)
-            {
-                return;
-            }
-
-            _vectorOverlay.Draw(_vectorCanvas, graphicsDevice, view, in frame, receivesInput, isKeyboardFocused);
-        };
+        
         _renderView.Pipeline = overlayPipeline;
     }
 

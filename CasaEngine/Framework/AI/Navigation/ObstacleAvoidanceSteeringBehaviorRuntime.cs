@@ -1,6 +1,4 @@
-using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;
-using System;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
