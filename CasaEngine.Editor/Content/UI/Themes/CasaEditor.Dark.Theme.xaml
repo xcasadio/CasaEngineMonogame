@@ -9,6 +9,24 @@
                                    ContextMenuFontSize="12" />
     </ThemeDefinition.FontSettings>
 
+    <ThemeDefinition.ControlTemplates>
+      <ThemeControlTemplateDefinition ElementType="Window" TemplateName="CasaEditor.Window" />
+      <ThemeControlTemplateDefinition ElementType="ToolTip" TemplateName="CasaEditor.ToolTip" />
+      <ThemeControlTemplateDefinition ElementType="Overlay" TemplateName="CasaEditor.Overlay" />
+      <ThemeControlTemplateDefinition ElementType="ContextMenu" TemplateName="CasaEditor.ContextMenu" />
+      <ThemeControlTemplateDefinition ElementType="ContextMenuItem" TemplateName="CasaEditor.ContextMenuItem" />
+      <ThemeControlTemplateDefinition ElementType="ListBox" TemplateName="CasaEditor.ListBox" />
+      <ThemeControlTemplateDefinition ElementType="ListView" TemplateName="CasaEditor.ListView" />
+      <ThemeControlTemplateDefinition ElementType="ComboBox" TemplateName="CasaEditor.ComboBox" />
+      <ThemeControlTemplateDefinition ElementType="TreeView" TemplateName="CasaEditor.TreeView" />
+      <ThemeControlTemplateDefinition ElementType="TabControl" TemplateName="CasaEditor.TabControl" />
+      <ThemeControlTemplateDefinition ControlTypeName="MGDockTabItem" TemplateName="CasaEditor.DockTabItem" />
+      <ThemeControlTemplateDefinition ControlTypeName="MGDockAutoHideDrawer" TemplateName="CasaEditor.DockAutoHideDrawer" />
+      <ThemeControlTemplateDefinition ControlTypeName="MGDockAutoHideStrip" TemplateName="CasaEditor.DockAutoHideStrip" />
+      <ThemeControlTemplateDefinition ControlTypeName="MGDockSplitterBar" TemplateName="CasaEditor.DockSplitter" />
+      <ThemeControlTemplateDefinition ControlTypeName="MGDockDropIndicators" TemplateName="CasaEditor.DockDropIndicators" />
+    </ThemeDefinition.ControlTemplates>
+
     <ThemeDefinition.Backgrounds>
       <ThemeBackgroundDefinition ElementType="Window">
         <ThemeBackgroundDefinition.Value>
@@ -353,19 +371,31 @@
     <ThemeDefinition.ListBox>
       <ThemeListBoxSettingsDefinition MinHeight="24"
                                       TitlePadding="6,3"
-                                      TitleForeground="rgb(210,210,210)"
                                       TitleBorderBrush="rgb(63,63,63)"
                                       TitleBorderThickness="0,0,0,1"
                                       InnerBorderBrush="rgb(63,63,63)"
                                       InnerBorderThickness="1"
                                       ScrollViewerPadding="0"
                                       ItemsPanelBorderBrush="rgb(63,63,63)"
-                                      ItemsPanelBorderThickness="0" />
+                                      ItemsPanelBorderThickness="0">
+        <ThemeListBoxSettingsDefinition.TitleForeground>
+          <ThemeVisualStateColorSettingDefinition NormalValue="rgb(210,210,210)"
+                                                  SelectedValue="rgb(210,210,210)"
+                                                  FocusedValue="rgb(210,210,210)"
+                                                  DisabledValue="rgb(110,110,110)" />
+        </ThemeListBoxSettingsDefinition.TitleForeground>
+      </ThemeListBoxSettingsDefinition>
     </ThemeDefinition.ListBox>
 
     <ThemeDefinition.ListView>
-      <ThemeListViewSettingsDefinition HeaderForeground="rgb(210,210,210)"
-                                       GridLineBrush="rgb(63,63,63)" />
+      <ThemeListViewSettingsDefinition GridLineBrush="rgb(63,63,63)">
+        <ThemeListViewSettingsDefinition.HeaderForeground>
+          <ThemeVisualStateColorSettingDefinition NormalValue="rgb(210,210,210)"
+                                                  SelectedValue="rgb(210,210,210)"
+                                                  FocusedValue="rgb(210,210,210)"
+                                                  DisabledValue="rgb(110,110,110)" />
+        </ThemeListViewSettingsDefinition.HeaderForeground>
+      </ThemeListViewSettingsDefinition>
     </ThemeDefinition.ListView>
 
     <ThemeDefinition.ComboBox>

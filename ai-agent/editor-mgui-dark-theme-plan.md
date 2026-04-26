@@ -463,9 +463,9 @@ Validation :
 
 - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes ; le build embarque aussi `CasaEngine.Editor` dans la resolution des references.
 
-Commit : `pending` - `feat(editor-theme): add editor control template asset`
+Commit : `ca0449ee` - `feat(editor-theme): add editor control template asset`
 
-#### `⏳` Tache 2.2 - Mapper les templates depuis le theme
+#### `✅` Tache 2.2 - Mapper les templates depuis le theme
 
 **Objectif :** faire du theme la source de verite pour le choix de skin.
 
@@ -478,6 +478,16 @@ Commit : `pending` - `feat(editor-theme): add editor control template asset`
 **Acceptation :**
 
 - le meme controle garde son comportement et change de chrome via le theme.
+
+Execution :
+
+- ajout du bloc `ThemeDefinition.ControlTemplates` dans `CasaEditor.Dark.Theme.xaml` pour les controles standards editoriaux et les controles de docking via `ControlTypeName` ;
+- extension du test de chargement d'assets pour verifier que le theme `CasaEditor.Dark` resolve bien chaque mapping attendu apres chargement des themes et templates XAML ;
+- correction de deux declarations XAML invalides exposees par ce chargement reel (`ThemeListBoxSettingsDefinition.TitleForeground` et `ThemeListViewSettingsDefinition.HeaderForeground`) pour utiliser les objets `ThemeVisualStateColorSettingDefinition` attendus.
+
+Validation : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorThemeAsset_Maps_Editor_Control_Templates` -> succes.
+
+Commit : `pending` - `feat(editor-theme): map dark theme control templates`
 
 #### `⏳` Tache 2.3 - Verifier les templates avec l'outillage MGUI
 
