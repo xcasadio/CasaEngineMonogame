@@ -13,7 +13,7 @@ public class Box : Shape3d, IEquatable<Box>
         get
         {
             var halfSize = Size / 2f;
-            return new BoundingBox(halfSize, halfSize);
+            return new BoundingBox(-halfSize, halfSize);
         }
     }
 

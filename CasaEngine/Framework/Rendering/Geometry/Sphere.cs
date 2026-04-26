@@ -13,7 +13,7 @@ public class Sphere : Shape3d
         get
         {
             var radiusVector = new Vector3(Radius);
-            return new BoundingBox(radiusVector, radiusVector);
+            return new BoundingBox(-radiusVector, radiusVector);
         }
     }
 

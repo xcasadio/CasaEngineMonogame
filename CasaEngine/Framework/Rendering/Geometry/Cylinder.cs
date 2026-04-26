@@ -16,9 +16,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
         get
         {
             var halfSize = new Vector3(Length / 2f, Radius, Radius); // X oriented
-            return new BoundingBox(
-                new Vector3(-Length / 2f, Radius, Radius),
-                new Vector3(Length / 2f, Radius, Radius));
+            return new BoundingBox(-halfSize, halfSize);
         }
     }
 

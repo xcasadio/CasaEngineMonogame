@@ -119,8 +119,15 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public override void Update(float elapsedTime)
     {
+        base.Update(elapsedTime);
+
         if (!Owner.World.Game.ExecutionPolicy.UpdatePhysicsComponents)
         {
+            if (Owner.World.Game.ExecutionPolicy.UseExternalViewManagement && IsBoundingBoxDirty)
+            {
+                ApplyPhysicsWorldTransform();
+            }
+
             return;
         }
 
@@ -237,12 +244,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public void SyncTransformFromScene()
     {
-        if (_collisionObject == null)
+        if (_collisionObject == null && _rigidBody == null)
         {
             return;
         }
 
-        _collisionObject.WorldTransform = WorldMatrixNoScale;
+        ApplyPhysicsWorldTransform();
         IsBoundingBoxDirty = true;
     }
 
@@ -278,31 +285,35 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     private void OnPositionChanged(object? sender, EventArgs e)
     {
-        if (_collisionObject != null)
-        {
-            _collisionObject.WorldTransform = WorldMatrixNoScale;
-        }
-
-        if (_rigidBody != null)
-        {
-            _rigidBody.WorldTransform = WorldMatrixNoScale;
-        }
-
+        ApplyPhysicsWorldTransform();
         IsBoundingBoxDirty = true;
     }
 
     private void OnOrientationChanged(object? sender, EventArgs e)
     {
+        ApplyPhysicsWorldTransform();
+        IsBoundingBoxDirty = true;
+    }
+
+    private void ApplyPhysicsWorldTransform()
+    {
+        if (_collisionObject == null && _rigidBody == null)
+        {
+            return;
+        }
+
+        Matrix worldTransform = WorldMatrixNoScale;
+
         if (_collisionObject != null)
         {
-            _collisionObject.WorldTransform = WorldMatrixNoScale;
+            _collisionObject.WorldTransform = worldTransform;
+            PhysicsWorldContext?.PhysicsEngine.World.UpdateSingleAabb(_collisionObject);
         }
 
         if (_rigidBody != null)
         {
-            _rigidBody.WorldTransform = WorldMatrixNoScale;
+            _rigidBody.WorldTransform = worldTransform;
+            PhysicsWorldContext?.PhysicsEngine.World.UpdateSingleAabb(_rigidBody);
         }
-
-        IsBoundingBoxDirty = true;
     }
 }
