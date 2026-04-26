@@ -487,9 +487,9 @@ Execution :
 
 Validation : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorThemeAsset_Maps_Editor_Control_Templates` -> succes.
 
-Commit : `pending` - `feat(editor-theme): map dark theme control templates`
+Commit : `dfc319c6` - `feat(editor-theme): map dark theme control templates`
 
-#### `⏳` Tache 2.3 - Verifier les templates avec l'outillage MGUI
+#### `✅` Tache 2.3 - Verifier les templates avec l'outillage MGUI
 
 **Objectif :** eviter les regressions de parts manquantes.
 
@@ -500,6 +500,17 @@ Commit : `pending` - `feat(editor-theme): map dark theme control templates`
    - template applique ;
    - parts presentes ;
    - absence d'erreur de validation.
+
+Execution :
+
+- extension de `CasaEngine.Tests/UI/EditorControlTemplateAssetLoadingTests.cs` avec un scenario d'application reelle qui charge les assets `theme + templates`, cree un `MGDesktop` de test minimal, puis instancie `Window`, `ToolTip`, `Overlay`, `ContextMenu`, `ContextMenuItem`, `ListBox`, `ListView`, `ComboBox`, `TreeView`, `TabControl` et plusieurs controles de docking ;
+- verification directe via les API publiques `AppliedControlTemplateName`, `TryGetTemplatePart(...)` et `LastControlTemplateError`, ce qui a rendu `UIToolingService.CaptureVisualTree(...)` inutile pour cette tache ;
+- correction du fichier `CasaEditor.Dark.ControlTemplates.xaml` pour que `CasaEditor.ContextMenu` fournisse a la fois les parts de `MGWindow` et les parts de menu requises pendant la construction ;
+- correction framework dans `MGUI` pour autoriser l'instanciation XAML de `MGResizeGrip` et rendre `MGContextMenu` tolerant a l'absence de `TitleBarTextBlockElement` pendant sa phase de construction.
+
+Validation : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes (3 tests, 0 echec).
+
+Commit : `pending` - `test(editor-theme): verify live control templates`
 
 ---
 

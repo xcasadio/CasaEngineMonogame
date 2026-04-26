@@ -47,10 +47,23 @@
   </ControlTemplate>
 
   <ControlTemplate Name="CasaEditor.ContextMenu" TargetType="ContextMenu" BasedOn="ContextMenu.Default">
+    <ControlTemplate.DetachedRoots>
+      <Border Name="PART_Border" />
+      <ResizeGrip Name="PART_ResizeGrip" />
+      <DockPanel Name="PART_TitleBar">
+        <Button Name="PART_CloseButton" Dock="Right" />
+        <TextBlock Name="PART_TitleBarText" Dock="Left" />
+      </DockPanel>
+    </ControlTemplate.DetachedRoots>
     <ScrollViewer Name="PART_ScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
       <StackPanel Name="PART_ItemsPanel" Orientation="Vertical" />
     </ScrollViewer>
     <ControlTemplate.Parts>
+      <TemplatePart Name="PART_Border" />
+      <TemplatePart Name="PART_ResizeGrip" />
+      <TemplatePart Name="PART_TitleBar" />
+      <TemplatePart Name="PART_CloseButton" />
+      <TemplatePart Name="PART_TitleBarText" />
       <TemplatePart Name="PART_ScrollViewer" />
       <TemplatePart Name="PART_ItemsPanel" />
     </ControlTemplate.Parts>
