@@ -425,13 +425,13 @@ Execution :
 - aucun autre nettoyage adjacent n'est introduit dans cette tache pour garder un commit atomique.
 
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore` -> succes ; warnings C# preexistants uniquement.
-Commit : `pending` - `refactor(editor-theme): remove hardcoded editor theme defaults`
+Commit : `53cc78e1` - `refactor(editor-theme): remove hardcoded editor theme defaults`
 
 ---
 
 ### Phase 2 - Templates XAML editoriaux
 
-#### `⏳` Tache 2.1 - Creer `CasaEditor.Dark.ControlTemplates.xaml`
+#### `🚧` Tache 2.1 - Creer `CasaEditor.Dark.ControlTemplates.xaml`
 
 **Objectif :** redefinir le chrome des controles template-aware avec une structure editoriale coherente.
 
@@ -450,6 +450,14 @@ Commit : `pending` - `refactor(editor-theme): remove hardcoded editor theme defa
    - docking controls supportes
 2. Respecter strictement les `TemplatePart` requises.
 3. Garder les templates compacts pour ne pas exploser le nombre de noeuds visuels.
+
+Execution en cours :
+
+- ajout d'un support `ControlTemplateDefinition.BasedOn` dans MGUI pour reutiliser les callbacks `ApplyDefaults` du catalogue avec une structure declaree en XAML ;
+- ajout d'un test cible dans `MGUI.Tests` pour verifier qu'un template XAML herite bien du comportement de son template de base ;
+- ce prealable debloque l'externalisation de `Window`, `Overlay`, `ComboBox`, `TabControl` et `TreeView` dans un asset editeur sans rebasculer leur chrome en C#.
+
+Validation prevue : `dotnet test .\MGUI\MGUI.Tests\MGUI.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~ControlTemplateLoaderTests`
 
 #### `⏳` Tache 2.2 - Mapper les templates depuis le theme
 
