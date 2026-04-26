@@ -187,8 +187,12 @@ public class GameEditor : Game, IObservableUpdate
 
         _desktop = new MGDesktop(backend.Runtime);
         _desktop.LoadDefaultResources();
+        _desktop.Theme.DefaultTextBlockWrapText = false;
+        _desktop.Theme.DefaultTextBlockAutoWidthFromContent = true;
+        _desktop.Theme.DefaultButtonAutoWidthFromContent = true;
+        _desktop.Theme.DefaultComboBoxAutoWidthFromContent = true;
 
-        // ── Register editor logger ─────────────────────────────────────
+        // Register editor logger
         _loggerEditor = new LoggerEditor();
         Logs.AddLogger(_loggerEditor);
         Logs.AddLogger(new DebugLogger());
@@ -196,7 +200,7 @@ public class GameEditor : Game, IObservableUpdate
 
         InitializeEditorRuntime();
 
-        // ── Main window (borderless, fills the screen) ─────────────────
+        // Main window (borderless, fills the screen)
         _mainWindow = new MGWindow(_desktop, 0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
         {
             WindowStyle = WindowStyle.None,
@@ -217,7 +221,7 @@ public class GameEditor : Game, IObservableUpdate
             _mainWindow.WindowHeight = Window.ClientBounds.Height;
         };
 
-        // ── Layout shell: editor chrome is added only once a project has actually been opened.
+        // Layout shell: editor chrome is added only once a project has actually been opened.
         _rootPanel = new MGDockPanel(_mainWindow);
         _rootPanel.Name = "EditorRootPanel";
         _mainWindow.SetContent(_rootPanel);
