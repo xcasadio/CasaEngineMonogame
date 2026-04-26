@@ -374,11 +374,11 @@ Execution :
 - le theme couvre deja la palette de base, les backgrounds majeurs, les groupes `Window`, `Overlay`, `ContextMenu`, `ListBox`, `ListView`, `ComboBox`, `TreeViewTemplate`, `TabControl` et `Docking` ;
 - les defaults editoriaux `DefaultTextBlockWrapText`, `DefaultTextBlockAutoWidthFromContent`, `DefaultButtonAutoWidthFromContent` et `DefaultComboBoxAutoWidthFromContent` sont prepares dans le theme XAML pour la tache suivante.
 
-Commit : `pending` - `feat(editor-theme): add editor dark theme asset`
+Commit : `5a949477` - `feat(editor-theme): add editor dark theme asset`
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore`
 Notes : le chargement runtime n'est pas encore branche ; cette tache livre seulement l'asset et son packaging.
 
-#### `⏳` Tache 1.2 - Brancher le chargement du theme dans l'editeur
+#### `✅` Tache 1.2 - Brancher le chargement du theme dans l'editeur
 
 **Objectif :** appliquer le theme XAML au bootstrap de `CasaEngine.Editor`.
 
@@ -393,6 +393,16 @@ Notes : le chargement runtime n'est pas encore branche ; cette tache livre seule
 
 - le bootstrap ne doit pas embarquer la palette en dur ;
 - il doit seulement charger les assets et choisir le theme.
+
+Execution :
+
+- ajout d'un bootstrap cible dans `GameEditor.cs` qui charge `CasaEditor.Dark.Theme.xaml` via `XamlDocumentSource.FromFile(...)` ;
+- application du theme charge via `MGResources.DefaultTheme` ;
+- chargement conditionnel des templates editoriaux si `CasaEditor.Dark.ControlTemplates.xaml` existe deja ;
+- fallback propre sur le theme MGUI par defaut avec warning si l'asset n'est pas disponible ou si le chargement echoue.
+
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore` -> succes ; warnings C# preexistants uniquement.
+Commit : `pending` - `feat(editor-theme): load editor theme assets at startup`
 
 #### `⏳` Tache 1.3 - Nettoyer les defaults editoriaux deja poses en C#
 

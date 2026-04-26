@@ -28,6 +28,7 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
+using MGUI.Core.UI.XAML;
 using MGUI.FontStashSharp;
 using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
@@ -47,6 +48,9 @@ public class GameEditor : Game, IObservableUpdate
 {
     private const string EditorLayoutDirectoryName = ".casaeditor";
     private const string EditorLayoutFileName = "layout.editor.json";
+    private const string EditorThemeName = "CasaEditor.Dark";
+    private const string EditorThemeAssetRelativePath = @"Content\UI\Themes\CasaEditor.Dark.Theme.xaml";
+    private const string EditorControlTemplatesAssetRelativePath = @"Content\UI\Templates\CasaEditor.Dark.ControlTemplates.xaml";
 
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
@@ -197,6 +201,8 @@ public class GameEditor : Game, IObservableUpdate
         Logs.AddLogger(_loggerEditor);
         Logs.AddLogger(new DebugLogger());
         Logs.Verbosity = LogVerbosity.Trace;
+
+        TryLoadEditorThemeAssets();
 
         InitializeEditorRuntime();
 
@@ -523,6 +529,40 @@ public class GameEditor : Game, IObservableUpdate
         Window.Title = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.ProjectName)
             ? "CasaEngine Editor"
             : $"CasaEngine Editor - {GameSettings.ProjectSettings.ProjectName}";
+    }
+
+    private void TryLoadEditorThemeAssets()
+    {
+        string themeFilePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, EditorThemeAssetRelativePath));
+        if (!File.Exists(themeFilePath))
+        {
+            Logs.WriteWarning($"Editor theme asset was not found at '{themeFilePath}'. Falling back to the default MGUI theme.");
+            return;
+        }
+
+        try
+        {
+            _desktop.Resources.LoadThemesFromXaml(XamlDocumentSource.FromFile(themeFilePath));
+
+            if (_desktop.Resources.TryGetTheme(EditorThemeName, out MGTheme editorTheme))
+            {
+                _desktop.Resources.DefaultTheme = editorTheme;
+            }
+            else
+            {
+                Logs.WriteWarning($"Editor theme '{EditorThemeName}' was not registered from '{themeFilePath}'. Falling back to the default MGUI theme.");
+            }
+
+            string controlTemplatesFilePath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, EditorControlTemplatesAssetRelativePath));
+            if (File.Exists(controlTemplatesFilePath))
+            {
+                _desktop.Resources.LoadControlTemplatesFromXaml(XamlDocumentSource.FromFile(controlTemplatesFilePath));
+            }
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"Failed to load editor theme assets from '{themeFilePath}': {ex.Message}");
+        }
     }
 
     private void InitializeEditorRuntime()
