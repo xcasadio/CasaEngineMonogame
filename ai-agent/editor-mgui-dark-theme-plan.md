@@ -402,9 +402,9 @@ Execution :
 - fallback propre sur le theme MGUI par defaut avec warning si l'asset n'est pas disponible ou si le chargement echoue.
 
 Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore` -> succes ; warnings C# preexistants uniquement.
-Commit : `pending` - `feat(editor-theme): load editor theme assets at startup`
+Commit : `b3656555` - `feat(editor-theme): load editor theme assets at startup`
 
-#### `⏳` Tache 1.3 - Nettoyer les defaults editoriaux deja poses en C#
+#### `✅` Tache 1.3 - Nettoyer les defaults editoriaux deja poses en C#
 
 **Objectif :** reduire le bruit visuel dans `GameEditor.cs`.
 
@@ -417,6 +417,15 @@ Commit : `pending` - `feat(editor-theme): load editor theme assets at startup`
 **Acceptation :**
 
 - `GameEditor.cs` ne garde que le strict minimum non encore exprimable en XAML.
+
+Execution :
+
+- suppression cible des defaults `_desktop.Theme.DefaultTextBlockWrapText`, `_desktop.Theme.DefaultTextBlockAutoWidthFromContent`, `_desktop.Theme.DefaultButtonAutoWidthFromContent` et `_desktop.Theme.DefaultComboBoxAutoWidthFromContent` ;
+- ces valeurs restent definies dans `CasaEditor.Dark.Theme.xaml` pour que le theme devienne la source de verite ;
+- aucun autre nettoyage adjacent n'est introduit dans cette tache pour garder un commit atomique.
+
+Validation : `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore` -> succes ; warnings C# preexistants uniquement.
+Commit : `pending` - `refactor(editor-theme): remove hardcoded editor theme defaults`
 
 ---
 

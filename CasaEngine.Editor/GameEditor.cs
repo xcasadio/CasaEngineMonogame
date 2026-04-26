@@ -191,10 +191,6 @@ public class GameEditor : Game, IObservableUpdate
 
         _desktop = new MGDesktop(backend.Runtime);
         _desktop.LoadDefaultResources();
-        _desktop.Theme.DefaultTextBlockWrapText = false;
-        _desktop.Theme.DefaultTextBlockAutoWidthFromContent = true;
-        _desktop.Theme.DefaultButtonAutoWidthFromContent = true;
-        _desktop.Theme.DefaultComboBoxAutoWidthFromContent = true;
 
         // Register editor logger
         _loggerEditor = new LoggerEditor();
