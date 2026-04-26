@@ -825,7 +825,12 @@ Execution :
 
 - `dotnet build .\CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` -> succes ;
 - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes (3 tests) ;
-- `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` -> succes.
+- `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` -> succes ;
+- `dotnet build .\MGUI\MGUI.Core\MGUI.Core.csproj -t:Compile -nologo -v:minimal` -> succes apres compactage des paddings par defaut non exposes au theme XAML ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -v:minimal` -> echec sur des erreurs preexistantes hors du perimetre des fichiers retouches ;
+- `get_errors` reste propre sur `CasaEditor.Dark.Theme.xaml`, `ComponentEditorBase.cs`, `MGButton.cs`, `MGTextBlock.cs` et `MGControlTemplateCatalog.cs`.
+
+Commit : `3e4dc31` - `style(theme): tighten default control paddings`
 
 #### `🧪` Tache 7.2 - Validation visuelle manuelle
 
@@ -846,6 +851,7 @@ Etat :
 
 - encore a verifier manuellement dans `CasaEngine.Editor` et dans `MGUI.Samples` ;
 - les validations automatisees couvrent deja les templates et le chargement d'assets, mais pas l'appreciation visuelle finale du shell.
+- cette passe applique aussi le polish demande sur le theme sombre : bouton d'expander reduit au triangle seul, paddings verticaux compactes pour labels/boutons/textboxes/combobox, et parite `selected == hovered` pour `ListBox`/`ListView`, `TreeView`, items de `ComboBox` et `ContextMenu`.
 
 #### `🧪` Tache 7.3 - Validation perf et robustesse
 

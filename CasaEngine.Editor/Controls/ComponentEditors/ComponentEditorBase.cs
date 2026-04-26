@@ -8,6 +8,8 @@ using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Border_Brushes;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Containers.Grids;
 using Microsoft.Xna.Framework;
@@ -83,6 +85,14 @@ public abstract class ComponentEditorBase
         {
             IsExpanded = isExpanded,
         };
+
+        var expanderButtonBackground = expander.ExpanderButtonBackgroundBrush?.Copy() ?? new VisualStateFillBrush(SolidFillBrushes.Transparent);
+        expanderButtonBackground.SetAll(SolidFillBrushes.Transparent);
+        expander.ExpanderButtonBackgroundBrush = expanderButtonBackground;
+        expander.ExpanderButtonBorderBrush = MGUniformBorderBrush.Transparent;
+        expander.ExpanderButtonBorderThickness = new Thickness(0);
+        expander.ExpanderToggleButton.Padding = new Thickness(0);
+
         expander.Header = new MGTextBlock(Window, headerText)
         {
             VerticalAlignment = VerticalAlignment.Center,

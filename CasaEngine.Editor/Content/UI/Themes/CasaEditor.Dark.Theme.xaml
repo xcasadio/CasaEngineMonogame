@@ -193,10 +193,18 @@
         <ThemePropertyDefinition.VisualStateFillBrush>
           <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
                                                FocusedValue="rgba(58,121,187,85)"
-                                               SelectedValue="rgba(58,121,187,160)"
+                                                SelectedValue="rgba(58,121,187,85)"
                                                DisabledValue="Transparent" />
         </ThemePropertyDefinition.VisualStateFillBrush>
       </ThemePropertyDefinition>
+        <ThemePropertyDefinition Target="ComboBoxDropdownItemBackground">
+          <ThemePropertyDefinition.VisualStateFillBrush>
+            <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
+                                                 FocusedValue="rgba(58,121,187,85)"
+                                                 SelectedValue="rgba(58,121,187,85)"
+                                                 DisabledValue="Transparent" />
+          </ThemePropertyDefinition.VisualStateFillBrush>
+        </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="ListBoxItemAlternatingRowBackgrounds">
         <ThemePropertyDefinition.FillBrushes>
           <SolidFillBrush Color="rgb(42,42,42)" />
@@ -205,7 +213,7 @@
       </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="TreeViewSelectionBackground">
         <ThemePropertyDefinition.VisualStateFillBrush>
-          <ThemeVisualStateFillBrushDefinition NormalValue="rgba(58,121,187,160)" />
+            <ThemeVisualStateFillBrushDefinition NormalValue="rgba(58,121,187,85)" />
         </ThemePropertyDefinition.VisualStateFillBrush>
       </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="ProgressButtonForeground" FillBrush="rgb(30,30,30)" />
@@ -356,7 +364,7 @@
         <ThemeContextMenuItemSettingsDefinition.HeaderBackground>
           <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
                                                FocusedValue="rgba(58,121,187,95)"
-                                               SelectedValue="rgba(58,121,187,160)"
+                                                SelectedValue="rgba(58,121,187,95)"
                                                DisabledValue="Transparent" />
         </ThemeContextMenuItemSettingsDefinition.HeaderBackground>
         <ThemeContextMenuItemSettingsDefinition.ShortcutForeground>
@@ -370,7 +378,7 @@
 
     <ThemeDefinition.ListBox>
       <ThemeListBoxSettingsDefinition MinHeight="24"
-                                      TitlePadding="6,3"
+                                       TitlePadding="6,2"
                                       TitleBorderBrush="rgb(63,63,63)"
                                       TitleBorderThickness="0,0,0,1"
                                       InnerBorderBrush="rgb(63,63,63)"
@@ -399,7 +407,7 @@
     </ThemeDefinition.ListView>
 
     <ThemeDefinition.ComboBox>
-      <ThemeComboBoxSettingsDefinition Padding="8,3"
+      <ThemeComboBoxSettingsDefinition Padding="8,2"
                                        MinHeight="24"
                                        BorderBrush="rgb(63,63,63)"
                                        DropdownArrowMargin="0,0,6,0"
