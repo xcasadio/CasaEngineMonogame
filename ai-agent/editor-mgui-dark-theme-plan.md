@@ -431,7 +431,7 @@ Commit : `53cc78e1` - `refactor(editor-theme): remove hardcoded editor theme def
 
 ### Phase 2 - Templates XAML editoriaux
 
-#### `🚧` Tache 2.1 - Creer `CasaEditor.Dark.ControlTemplates.xaml`
+#### `✅` Tache 2.1 - Creer `CasaEditor.Dark.ControlTemplates.xaml`
 
 **Objectif :** redefinir le chrome des controles template-aware avec une structure editoriale coherente.
 
@@ -451,13 +451,19 @@ Commit : `53cc78e1` - `refactor(editor-theme): remove hardcoded editor theme def
 2. Respecter strictement les `TemplatePart` requises.
 3. Garder les templates compacts pour ne pas exploser le nombre de noeuds visuels.
 
-Execution en cours :
+Execution :
 
 - ajout d'un support `ControlTemplateDefinition.BasedOn` dans MGUI pour reutiliser les callbacks `ApplyDefaults` du catalogue avec une structure declaree en XAML ;
 - ajout d'un test cible dans `MGUI.Tests` pour verifier qu'un template XAML herite bien du comportement de son template de base ;
 - ce prealable debloque l'externalisation de `Window`, `Overlay`, `ComboBox`, `TabControl` et `TreeView` dans un asset editeur sans rebasculer leur chrome en C#.
+- creation de `CasaEngine.Editor/Content/UI/Templates/CasaEditor.Dark.ControlTemplates.xaml` avec les structures editoriales pour `Window`, `ToolTip`, `Overlay`, `ContextMenu`, `ListBox`, `ListView`, `ComboBox`, `TreeView`, `TabControl` et des variantes `BasedOn` pour les controles de docking ;
+- ajout d'un test de chargement d'asset reel dans `CasaEngine.Tests` pour verifier que le fichier se charge correctement depuis le depot.
 
-Validation prevue : `dotnet test .\MGUI\MGUI.Tests\MGUI.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~ControlTemplateLoaderTests`
+Validation :
+
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes ; le build embarque aussi `CasaEngine.Editor` dans la resolution des references.
+
+Commit : `pending` - `feat(editor-theme): add editor control template asset`
 
 #### `⏳` Tache 2.2 - Mapper les templates depuis le theme
 
