@@ -828,6 +828,9 @@ Execution :
 - `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` -> succes ;
 - `dotnet build .\MGUI\MGUI.Core\MGUI.Core.csproj -t:Compile -nologo -v:minimal` -> succes apres compactage des paddings par defaut non exposes au theme XAML ;
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -v:minimal` -> echec sur des erreurs preexistantes hors du perimetre des fichiers retouches ;
+- correctif compile additionnel : `NvgSharp/src/XNA/NvgSharp.MonoGame.csproj` exclut explicitement `artifacts\**\*.cs` pour eviter de recompiler des `AssemblyInfo` generes sous `artifacts/agent-build/...`, ce qui dupliquait les attributs d'assembly ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres ce correctif ;
+- `dotnet build .\CasaEngine.Editor.MonoGame.sln -nologo -clp:ErrorsOnly` -> succes apres ce correctif ;
 - `get_errors` reste propre sur `CasaEditor.Dark.Theme.xaml`, `ComponentEditorBase.cs`, `MGButton.cs`, `MGTextBlock.cs` et `MGControlTemplateCatalog.cs`.
 
 Commit : `3e4dc31` - `style(theme): tighten default control paddings`
