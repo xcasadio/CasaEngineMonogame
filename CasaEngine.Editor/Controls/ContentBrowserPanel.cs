@@ -10,6 +10,7 @@ using CasaEngine.Editor.ContentBrowser.Controls;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
 using CasaEngine.Editor.ContentBrowser.Views;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
@@ -46,11 +47,11 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class ContentBrowserPanel
 {
-    private static readonly Color ToolbarBackgroundColor = new(26, 30, 38);
-    private static readonly Color TreeBackgroundColor = new(22, 25, 31);
-    private static readonly Color ContentBackgroundColor = new(18, 21, 28);
-    private static readonly Color PanelBorderColor = new(62, 72, 88);
-    private static readonly Color AccentSelectionColor = new(58, 110, 182, 185);
+    private static readonly Color ToolbarBackgroundColor = EditorThemePalette.ToolbarBackground;
+    private static readonly Color TreeBackgroundColor = EditorThemePalette.TreeBackground;
+    private static readonly Color ContentBackgroundColor = EditorThemePalette.ContentBackground;
+    private static readonly Color PanelBorderColor = EditorThemePalette.PanelBorder;
+    private static readonly Color AccentSelectionColor = EditorThemePalette.AccentSelection;
 
     private sealed class ContextMenuExtension
     {
@@ -190,7 +191,7 @@ public class ContentBrowserPanel
     // Search filter
     private string _searchFilter = string.Empty;
 
-    private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
+    private static readonly MGSolidFillBrush DropHighlightBrush = new(EditorThemePalette.DropHighlight);
 
 
     public ContentBrowserPanel(MGWindow window)

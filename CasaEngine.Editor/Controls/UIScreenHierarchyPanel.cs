@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
@@ -139,7 +140,7 @@ public sealed class UIScreenHierarchyPanel
         // Q-07: Breadcrumb display
         _breadcrumbText = new MGTextBlock(_window, string.Empty)
         {
-            Opacity = 0.7f,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
             WrapText = true,
             Margin = new Thickness(4, 1, 4, 1),
             FontSize = 10,
@@ -148,7 +149,7 @@ public sealed class UIScreenHierarchyPanel
         _statusText = new MGTextBlock(_window, "No screen loaded")
         {
             Margin = new Thickness(6, 4, 6, 4),
-            Opacity = 0.75f,
+            Opacity = EditorThemePalette.SectionLabelOpacity,
         };
 
         var scrollViewer = new MGScrollViewer(_window);

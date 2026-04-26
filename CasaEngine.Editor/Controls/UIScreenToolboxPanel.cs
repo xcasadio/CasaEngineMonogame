@@ -1,6 +1,7 @@
 using System;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Toolbox;
+using CasaEngine.Editor.Styling;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;
@@ -81,7 +82,7 @@ public sealed class UIScreenToolboxPanel
             outerStack.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(category)}[/b]")
             {
                 Margin = new Thickness(2, 6, 2, 2),
-                Opacity = 0.8f,
+                Opacity = EditorThemePalette.SectionHeaderOpacity,
             });
 
             // Buttons — wrap in a WrapPanel-like horizontal stack (using StackPanel + forced wrap via MGUniformGrid)

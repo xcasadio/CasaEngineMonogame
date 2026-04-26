@@ -5,6 +5,7 @@ using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Materials;
@@ -1518,33 +1519,27 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         Color ForegroundColor)
     {
         public static PropertyDisplayState Local(MaterialValue? effectiveValue)
-            => new(
-                effectiveValue,
-                true,
-                "Override",
-                null,
-                new Color(94, 61, 20),
-                new Color(201, 145, 53),
-                new Color(255, 241, 210));
+            => Create(effectiveValue, true, "Override", null, EditorThemePalette.OverrideBadge);
 
         public static PropertyDisplayState Inherited(MaterialValue? effectiveValue, string sourceText)
-            => new(
-                effectiveValue,
-                false,
-                "Inherited",
-                sourceText,
-                new Color(33, 52, 74),
-                new Color(98, 143, 188),
-                new Color(223, 238, 255));
+            => Create(effectiveValue, false, "Inherited", sourceText, EditorThemePalette.InheritedBadge);
 
         public static PropertyDisplayState Default(MaterialValue? effectiveValue)
+            => Create(effectiveValue, false, "Default", null, EditorThemePalette.DefaultBadge);
+
+        private static PropertyDisplayState Create(
+            MaterialValue? effectiveValue,
+            bool hasLocalOverride,
+            string badgeText,
+            string? sourceText,
+            EditorBadgeColors colors)
             => new(
                 effectiveValue,
-                false,
-                "Default",
-                null,
-                new Color(42, 42, 48),
-                new Color(92, 92, 104),
-                new Color(226, 226, 230));
+                hasLocalOverride,
+                badgeText,
+                sourceText,
+                colors.BackgroundColor,
+                colors.BorderColor,
+                colors.ForegroundColor);
     }
 }

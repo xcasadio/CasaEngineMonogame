@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Inspector;
@@ -111,7 +112,7 @@ public sealed class UIScreenInspectorPanel
         _statusText = new MGTextBlock(_window, "No node selected.")
         {
             Margin = new Thickness(8, 4, 8, 4),
-            Opacity = 0.75f,
+            Opacity = EditorThemePalette.SectionLabelOpacity,
             WrapText = true,
         };
 
@@ -310,7 +311,7 @@ public sealed class UIScreenInspectorPanel
         return new MGTextBlock(_window, $"[b]{EscapeMarkup(category)}[/b]")
         {
             Margin = new Thickness(4, 6, 4, 2),
-            Opacity = 0.8f,
+            Opacity = EditorThemePalette.SectionHeaderOpacity,
         };
     }
 

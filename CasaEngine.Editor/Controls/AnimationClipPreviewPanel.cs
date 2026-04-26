@@ -3,6 +3,7 @@ using System.IO;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -77,7 +78,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private readonly MGWindow _window;
     private readonly GraphicsDevice _graphicsDevice;
     private readonly HostedEditorGameAdapter _editorRuntime;
-    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(new Color(20, 22, 28));
+    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
 
     private MGStackPanel? _root;
     private MGTextBlock? _titleText;
@@ -148,14 +149,14 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _titleText = new MGTextBlock(_window, "[b]Animation Clip Preview[/b]")
         {
             Margin = new Thickness(4, 4, 4, 0),
-            Opacity = 0.9f,
+            Opacity = EditorThemePalette.PrimaryHeaderOpacity,
             WrapText = true,
         };
 
         _sourceText = new MGTextBlock(_window, "No animation clip loaded.")
         {
             Margin = new Thickness(4, 0, 4, 0),
-            Opacity = 0.78f,
+            Opacity = EditorThemePalette.SecondaryHeadingOpacity,
             WrapText = true,
         };
 
@@ -224,7 +225,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _statusText = new MGTextBlock(_window, EscapeMarkup(_statusMessage))
         {
             Margin = new Thickness(4, 0, 4, 0),
-            Opacity = 0.72f,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
             FontSize = 10,
             WrapText = true,
         };
@@ -232,7 +233,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _metricsText = new MGTextBlock(_window, "Duration: --")
         {
             Margin = new Thickness(4, 0, 4, 0),
-            Opacity = 0.72f,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
             FontSize = 10,
             WrapText = true,
         };
@@ -257,9 +258,9 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         var viewportBorder = new MGBorder(
             _window,
             new Thickness(1),
-            new MGUniformBorderBrush(new MGSolidFillBrush(new Color(74, 74, 82))))
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
         {
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(18, 18, 22))),
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground)),
             Margin = new Thickness(4, 0, 4, 4),
             Padding = new Thickness(1),
             MinHeight = 280,
@@ -541,7 +542,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
             World = _previewWorld!,
             Camera = _camera,
             Surface = _surface,
-            ClearColor = new Color(20, 22, 28),
+            ClearColor = EditorThemePalette.PreviewClearColor,
             EnvironmentOverride = _environmentOverride,
             UpdateMode = ViewUpdateMode.OnDemand,
         });

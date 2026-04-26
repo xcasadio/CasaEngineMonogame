@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Styling;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -78,7 +79,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private readonly MaterialCompiler _materialCompiler = new();
     private readonly Dictionary<PreviewPrimitiveKind, StaticModelMesh> _meshes = new();
     private readonly Dictionary<PreviewPrimitiveKind, MGButton> _shapeButtons = new();
-    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(new Color(20, 22, 28));
+    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
 
     private MGStackPanel? _root;
     private MGDockPanel? _viewportHost;
@@ -119,7 +120,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         var header = new MGTextBlock(_window, "[b]Preview[/b]  [opacity=0.65]Neutral lighting[/opacity]")
         {
             Margin = new Thickness(4, 4, 4, 0),
-            Opacity = 0.9f,
+            Opacity = EditorThemePalette.PrimaryHeaderOpacity,
         };
 
         var shapeRow = new MGStackPanel(_window, Orientation.Horizontal)
@@ -134,7 +135,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _statusText = new MGTextBlock(_window, EscapeMarkup(_statusMessage))
         {
             Margin = new Thickness(4, 0, 4, 0),
-            Opacity = 0.72f,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
             FontSize = 10,
             WrapText = true,
         };
@@ -159,9 +160,9 @@ internal sealed class MaterialPreviewViewport : IDisposable
         var viewportBorder = new MGBorder(
             _window,
             new Thickness(1),
-            new MGUniformBorderBrush(new MGSolidFillBrush(new Color(74, 74, 82))))
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
         {
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(18, 18, 22))),
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground)),
             Margin = new Thickness(4, 0, 4, 4),
             Padding = new Thickness(1),
             MinHeight = 220,
@@ -340,7 +341,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
             World = _previewWorld!,
             Camera = _camera,
             Surface = _surface,
-            ClearColor = new Color(20, 22, 28),
+            ClearColor = EditorThemePalette.PreviewClearColor,
             EnvironmentOverride = _environmentOverride,
             UpdateMode = ViewUpdateMode.OnDemand,
         });

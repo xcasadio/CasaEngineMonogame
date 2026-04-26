@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using CasaEngine.Editor.ContentBrowser.Models;
+using CasaEngine.Editor.Styling;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -15,9 +16,9 @@ namespace CasaEngine.Editor.ContentBrowser.Controls;
 
 public sealed class InlineRenameOverlay
 {
-    private static readonly IBorderBrush DefaultBorderBrush = new MGSolidFillBrush(new Color(82, 132, 204)).AsUniformBorderBrush();
-    private static readonly IBorderBrush InvalidBorderBrush = Color.IndianRed.AsFillBrush().AsUniformBorderBrush();
-    private static readonly VisualStateFillBrush PopupBackgroundBrush = new(new MGSolidFillBrush(new Color(24, 28, 36)));
+    private static readonly IBorderBrush DefaultBorderBrush = new MGSolidFillBrush(EditorThemePalette.InlineRenameBorder).AsUniformBorderBrush();
+    private static readonly IBorderBrush InvalidBorderBrush = EditorThemePalette.InlineRenameInvalidBorder.AsFillBrush().AsUniformBorderBrush();
+    private static readonly VisualStateFillBrush PopupBackgroundBrush = new(new MGSolidFillBrush(EditorThemePalette.OverlayPopupBackground));
 
     private readonly MGWindow _parentWindow;
 

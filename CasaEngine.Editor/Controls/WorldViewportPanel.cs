@@ -5,6 +5,7 @@ using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Rendering.Vector;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Styling;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
@@ -128,7 +129,7 @@ public class WorldViewportPanel : IDisposable
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
-    private static readonly MGSolidFillBrush DropHighlightBrush = new(new Color(70, 130, 180, 96));
+    private static readonly MGSolidFillBrush DropHighlightBrush = new(EditorThemePalette.DropHighlight);
 
     internal WorldViewportPanel(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime, IWindowInputSource windowInputSource)
     {

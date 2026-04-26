@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.ContentBrowser.Models;
+using CasaEngine.Editor.Styling;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
@@ -33,8 +34,8 @@ public sealed class GridView : IContentView
         }
     }
 
-    private static readonly Color SelectedBackgroundColor = new(52, 96, 156, 180);
-    private static readonly Color HoverBackgroundColor = new(50, 50, 58, 180);
+    private static readonly Color SelectedBackgroundColor = EditorThemePalette.GridItemSelectedBackground;
+    private static readonly Color HoverBackgroundColor = EditorThemePalette.GridItemHoverBackground;
     private static readonly Color IdleBackgroundColor = Color.Transparent;
 
     private readonly MGGrid _root;
@@ -231,7 +232,7 @@ public sealed class GridView : IContentView
             CornerRadius = MGCornerRadius.Zero,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(18, 18, 22))),
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.GridItemPreviewBackground)),
         };
 
         if (previewImage != null)

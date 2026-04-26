@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Logging;
+using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.ScreenEditor;
 using CasaEngine.EditorServices.ScreenEditor.Selection;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
@@ -204,7 +205,7 @@ public sealed class UIScreenPreviewPanel
 
         _previewSurface = new MGBorder(_window)
         {
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(24, 28, 36))),
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.OverlayPopupBackground)),
             Padding = new Thickness(16),
             Margin = new Thickness(8),
             HorizontalAlignment = HorizontalAlignment.Left,

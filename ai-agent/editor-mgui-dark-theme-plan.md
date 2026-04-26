@@ -273,7 +273,7 @@ Important:
 
 ### Phase 0 - Audit et baseline
 
-#### `⏳` Tache 0.1 - Definir la reference visuelle editoriale
+#### `✅` Tache 0.1 - Definir la reference visuelle editoriale
 
 **Objectif :** fixer la direction artistique avant de coder des tokens.
 
@@ -295,7 +295,13 @@ Important:
 - noms de tokens stables ;
 - pas de discussion ouverte sur les couleurs pendant les phases suivantes.
 
-#### `⏳` Tache 0.2 - Inventorier les surcharges visuelles hard-codees dans l'editeur
+Execution :
+
+- la direction retenue pour `CasaEditor.Dark` est desormais figee autour de surfaces neutres sombres, d'un accent bleu editorial et d'une densite compacte proche d'Unity ;
+- cette reference a ete transformee en tokens stables cote theme XAML et en tokens editoriaux semantiques cote `EditorThemePalette` pour les panneaux encore code-first ;
+- la baseline validee pour la suite est: chrome sombre neutre, contrastes moderes, focus/selection bleus, previews volontairement plus neutres que le shell.
+
+#### `✅` Tache 0.2 - Inventorier les surcharges visuelles hard-codees dans l'editeur
 
 **Objectif :** savoir exactement quoi sortir du code.
 
@@ -326,7 +332,13 @@ Important:
 
 - une matrice claire `hard-coded -> theme/style/template/local`.
 
-#### `⏳` Tache 0.3 - Classer les controles MGUI par niveau de themabilite
+Execution :
+
+- l'audit a confirme que `GameEditor.cs` portait le bootstrap de theme, que les assets MGUI generiques devaient aller en XAML, et que le chrome restant cote editeur se concentrait surtout dans `ContentBrowserPanel`, `GridView`, `InlineRenameOverlay`, `WorldViewportPanel`, `UIScreen*`, `MaterialAssetInspectorPanel`, `MaterialPreviewViewport` et `AnimationClipPreviewPanel` ;
+- les panneaux `LogsPanel`, `EntitiesPanel` et `EntityDetailsPanel` n'ont pas revele de palette dupliquee significative sur la passe de nettoyage finale ;
+- la matrice cible retenue est maintenant stable: theme/template pour le chrome MGUI generique, `EditorThemePalette` pour le chrome editor-specifique, et valeurs locales conservees seulement quand elles restent purement structurelles.
+
+#### `✅` Tache 0.3 - Classer les controles MGUI par niveau de themabilite
 
 **Objectif :** eviter de lancer l'agent sur tous les controles en meme temps.
 
@@ -343,6 +355,12 @@ Important:
 **Sortie attendue :**
 
 - une roadmap ordonnee par ROI visuel.
+
+Execution :
+
+- la priorite haute a ete confirmee sur `Window`, `Overlay`, `ContextMenu`, `ToolTip`, `ListBox`, `ListView`, `TreeView`, `ComboBox`, `TabControl` et le docking ;
+- deux prealables framework ont ete identifies puis livres pour debloquer cette roadmap XAML-first: `ControlTemplateDefinition.BasedOn` et l'instanciation XAML de `MGResizeGrip` ;
+- les controles encore fortement couples au code ont ete limites a une extraction de tokens stables plutot qu'a une fausse conversion lookless.
 
 ---
 
@@ -510,13 +528,13 @@ Execution :
 
 Validation : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes (3 tests, 0 echec).
 
-Commit : `pending` - `test(editor-theme): verify live control templates`
+Commit : `46e19368` - `test(editor-theme): verify live control templates`
 
 ---
 
 ### Phase 3 - Strategie de styles partages
 
-#### `⏳` Tache 3.1 - Prendre une decision explicite sur les styles XAML globaux
+#### `✅` Tache 3.1 - Prendre une decision explicite sur les styles XAML globaux
 
 **Objectif :** ne pas rester dans un entre-deux fragile.
 
@@ -525,7 +543,13 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - si les besoins partages se limitent a quelques familles simples, rester sans loader global de styles ;
 - si plusieurs panels code-first ont besoin des memes labels, badges, captions, boutons et lignes d'inspecteur, ajouter un loader minimal de styles.
 
-#### `⏳` Tache 3.2 - Si necessaire, ajouter `LoadStylesFromXaml(...)` a MGUI
+Execution :
+
+- decision explicite prise: **ne pas** ajouter de loader global `LoadStylesFromXaml(...)` pour cette iteration ;
+- l'audit a montre que les besoins partages residuels tenaient dans un petit vocabulaire editorial semantique, pas dans un systeme de styles autonome ;
+- la solution retenue est donc `ThemeDefinition` + `ControlTemplate` XAML pour le generique, puis `EditorThemePalette` pour le chrome editor-specifique qui reste code-first.
+
+#### `✅` Tache 3.2 - Si necessaire, ajouter `LoadStylesFromXaml(...)` a MGUI
 
 **Objectif :** rendre possible un vrai XAML-first pour les styles reutilisables de l'editeur.
 
@@ -543,7 +567,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 3. Enregistrer les styles via `AddImplicitStyle(...)` et `AddStyle(...)`.
 4. Ajouter des tests de loader.
 
-#### `⏳` Tache 3.3 - Creer `CasaEditor.Dark.Styles.xaml`
+Execution :
+
+- non necessaire sur cette iteration ;
+- aucun `LoadStylesFromXaml(...)` n'a ete ajoute pour eviter d'ouvrir un axe framework de plus alors que le theme dark de l'editeur tenait deja avec les leviers existants.
+
+#### `✅` Tache 3.3 - Creer `CasaEditor.Dark.Styles.xaml`
 
 **Objectif :** centraliser les styles editoriaux reutilises.
 
@@ -564,11 +593,16 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - les styles ne reintroduisent pas une palette parallele ;
 - les styles consomment les tokens du theme et non des couleurs arbitraires.
 
+Execution :
+
+- fichier volontairement non cree ;
+- la centralisation des styles reutilises a ete couverte par `CasaEditor.Dark.Theme.xaml`, `CasaEditor.Dark.ControlTemplates.xaml` et `CasaEngine.Editor/Styling/EditorThemePalette.cs`, sans palette parallele ni document XAML supplementaire.
+
 ---
 
 ### Phase 4 - Migration des controles MGUI par priorite
 
-#### `⏳` Tache 4.1 - Docking, shell, fenetres, overlays, menus
+#### `✅` Tache 4.1 - Docking, shell, fenetres, overlays, menus
 
 **Objectif :** obtenir l'essentiel du look Unity-like le plus vite possible.
 
@@ -589,7 +623,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 
 - l'editeur a deja une silhouette recognisable de dark editor outillage.
 
-#### `⏳` Tache 4.2 - Listes, arbres, tabs et surfaces de navigation
+Execution :
+
+- le theme `CasaEditor.Dark` mappe des templates editoriaux pour `Window`, `Overlay`, `ContextMenu`, `ToolTip`, `ContextMenuItem` et les controles de docking (`MGDockTabItem`, `MGDockAutoHideDrawer`, `MGDockAutoHideStrip`, `MGDockSplitterBar`, `MGDockDropIndicators`) ;
+- l'application runtime de ces templates est verifiee par les tests `EditorControlTemplateAssetLoadingTests`, qui couvrent aussi les parts critiques et les erreurs de validation de template.
+
+#### `✅` Tache 4.2 - Listes, arbres, tabs et surfaces de navigation
 
 **Objectif :** homogeniser les controles les plus visibles dans les panneaux.
 
@@ -604,7 +643,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
    - bordures ;
    - headers.
 
-#### `⏳` Tache 4.3 - Text inputs et controles de saisie
+Execution :
+
+- `ListBox`, `ListView`, `TreeView` et `TabControl` sont maintenant couverts par les mappings du theme et leurs templates editoriaux ;
+- les surfaces de navigation restantes cote editeur ont ete alignees via `EditorThemePalette` dans `ContentBrowserPanel`, `GridView`, `UIScreenHierarchyPanel` et `UIScreenInspectorPanel`.
+
+#### `✅` Tache 4.3 - Text inputs et controles de saisie
 
 **Objectif :** rendre les zones de saisie coherentes avec le shell.
 
@@ -614,7 +658,13 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 2. Extraire vers le theme les couleurs et paddings encore fixes dans le code.
 3. Laisser la logique de caret, selection et draw en C# quand necessaire, mais alimentee par des tokens theme.
 
-#### `⏳` Tache 4.4 - Controles encore couples au code
+Execution :
+
+- `ComboBox` et `ToolTip` sont thematises via `CasaEditor.Dark` et ses templates editoriaux ;
+- `TextBox` et les aides de saisie editoriales restent code-first mais alimentes par des tokens semantiques (`InlineRenameOverlay`, `UIScreenPreviewPanel`, panneaux preview) ;
+- aucun besoin supplementaire n'a ete confirme pour `NumericUpDown` dans le scope editor dark de cette iteration.
+
+#### `✅` Tache 4.4 - Controles encore couples au code
 
 **Objectif :** traiter les controles custom-draw sans sur-ingenierie.
 
@@ -630,11 +680,17 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - le look est pilotable par theme ;
 - la logique de rendu reste performante.
 
+Execution :
+
+- les controles restant couples au code ont ete traites sans sur-ingenierie: extraction de tokens stables la ou le shell editeur en avait besoin, maintien du draw en C# ailleurs ;
+- `MGResizeGrip` a recu le petit ajout framework necessaire pour que les templates editoriaux restent pilotables en XAML ;
+- aucune nouvelle couche de theming generique n'a ete ajoutee pour les controles qui n'apportaient pas de ROI visuel clair dans l'editeur.
+
 ---
 
 ### Phase 5 - Extraction du chrome propre a CasaEngine.Editor
 
-#### `⏳` Tache 5.1 - Creer un petit vocabulaire de tokens editoriaux
+#### `✅` Tache 5.1 - Creer un petit vocabulaire de tokens editoriaux
 
 **Objectif :** eviter de remplir les panels avec des couleurs brutes.
 
@@ -656,7 +712,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - couleur de grille de preview ;
 - surbrillance de selection d'outil.
 
-#### `⏳` Tache 5.2 - Migrer les panels editoriaux les plus visibles
+Execution :
+
+- creation de `CasaEngine.Editor/Styling/EditorThemePalette.cs` avec des tokens semantiques pour les surfaces d'outillage, previews, overlays, inline rename, selection, drag and drop et badges d'etat ;
+- les valeurs sont regroupees par intention (`ToolbarBackground`, `DropHighlight`, `PreviewSurfaceBackground`, `OverrideBadge`, etc.) pour eviter le retour des `new Color(...)` dupliques dans les panels.
+
+#### `✅` Tache 5.2 - Migrer les panels editoriaux les plus visibles
 
 **Ordre recommande :**
 
@@ -678,7 +739,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - toute couleur, opacite ou padding repris dans plusieurs panels doit sortir du panel ;
 - une exception purement locale doit etre documentee.
 
-#### `⏳` Tache 5.3 - Nettoyer les aides visuelles et overlays
+Execution :
+
+- migration effective des panneaux qui portaient le chrome le plus duplique: `ContentBrowserPanel`, `GridView`, `UIScreenHierarchyPanel`, `UIScreenInspectorPanel`, `UIScreenPreviewPanel`, `UIScreenToolboxPanel`, `MaterialAssetInspectorPanel`, `MaterialPreviewViewport`, `AnimationClipPreviewPanel`, `InlineRenameOverlay` et `WorldViewportPanel` ;
+- les panneaux listant peu ou pas de palette hard-codee (`LogsPanel`, `EntitiesPanel`, `EntityDetailsPanel`) n'ont pas necessite d'extraction supplementaire sur cette iteration.
+
+#### `✅` Tache 5.3 - Nettoyer les aides visuelles et overlays
 
 **Objectif :** coherencer les surcouches editoriales.
 
@@ -688,11 +754,16 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 2. Uniformiser les zones de rename inline, messages vides, hints et erreurs.
 3. Uniformiser les surbrillances de drag and drop.
 
+Execution :
+
+- uniformisation des popups et overlays editoriaux via `OverlayPopupBackground`, `InlineRenameBorder`, `InlineRenameInvalidBorder` et `DropHighlight` ;
+- harmonisation des previews et des opacites de texte secondaires dans les panneaux de preview et les panneaux `UIScreen*`.
+
 ---
 
 ### Phase 6 - Sample et outillage de validation
 
-#### `⏳` Tache 6.1 - Ajouter un preview sample dedie au theme editor
+#### `✅` Tache 6.1 - Ajouter un preview sample dedie au theme editor
 
 **Objectif :** iterer sans relancer tout l'editeur sur chaque retouche.
 
@@ -713,7 +784,19 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - buttons et toggles ;
 - overlays editoriaux.
 
-#### `⏳` Tache 6.2 - Ajouter les tests de framework si MGUI est etendu
+Execution :
+
+- ajout d'un sample dedie `MGUI.Samples/Features/EditorDarkThemePreview.xaml` avec enregistrement dans `Compendium` ;
+- le sample charge les vrais assets `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` et `CasaEngine.Editor/Content/UI/Templates/CasaEditor.Dark.ControlTemplates.xaml`, puis previsualise `ComboBox`, `ListBox`, `ListView`, `TreeView`, `TabControl`, `ContextMenu`, `Overlay`, `ToolTip` ;
+- tant que ce preview est visible, `Desktop.Resources.DefaultTheme` bascule temporairement vers `CasaEditor.Dark`, ce qui permet aussi d'ouvrir `DockingDemo` dans la meme session pour inspecter le docking avec le meme theme.
+
+Validation : `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` -> succes.
+Commits :
+
+- sous-module `MGUI`: `2dc7993` - `feat(samples): add editor dark theme preview sample`
+- sous-module `MGUI`: `906a89a` - `feat(samples): apply editor theme during preview session`
+
+#### `✅` Tache 6.2 - Ajouter les tests de framework si MGUI est etendu
 
 **A faire selon les changements :**
 
@@ -722,18 +805,29 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 - tests de templates si de nouvelles parts sont requises ;
 - tests de non-regression de scope/theme si le refresh change.
 
+Execution :
+
+- ajout de tests framework `MGUI.Tests` pour `ControlTemplateDefinition.BasedOn` ;
+- ajout et extension des tests `CasaEngine.Tests/UI/EditorControlTemplateAssetLoadingTests.cs` pour le chargement des assets reels, les mappings de theme et l'application live des templates editoriaux.
+
 ---
 
 ### Phase 7 - Validation finale
 
-#### `⏳` Tache 7.1 - Validation compilee
+#### `✅` Tache 7.1 - Validation compilee
 
 **Minimum attendu :**
 
 1. build cible de `CasaEngine.Editor.MonoGame.sln`
 2. si MGUI est modifie, build et tests des projets touches
 
-#### `⏳` Tache 7.2 - Validation visuelle manuelle
+Execution :
+
+- `dotnet build .\CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` -> succes ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~EditorControlTemplateAssetLoadingTests` -> succes (3 tests) ;
+- `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` -> succes.
+
+#### `🧪` Tache 7.2 - Validation visuelle manuelle
 
 **Checklist :**
 
@@ -748,7 +842,12 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 9. pas de texte illisible ou d'accent trop faible
 10. pas de template part manquante
 
-#### `⏳` Tache 7.3 - Validation perf et robustesse
+Etat :
+
+- encore a verifier manuellement dans `CasaEngine.Editor` et dans `MGUI.Samples` ;
+- les validations automatisees couvrent deja les templates et le chargement d'assets, mais pas l'appreciation visuelle finale du shell.
+
+#### `🧪` Tache 7.3 - Validation perf et robustesse
 
 **A verifier :**
 
@@ -756,6 +855,11 @@ Commit : `pending` - `test(editor-theme): verify live control templates`
 2. pas de refresh de theme excessivement couteux sur le shell courant
 3. pas de layout casse par une taille themee non invalidee
 4. pas de fuite evidente de resources ou d'abonnements si un loader de styles/dynamic resources a ete touche
+
+Etat :
+
+- aucune allocation recurrente n'a ete introduite dans les hot paths touches cote editeur: la palette est statique et les changements portent surtout sur des valeurs de construction et de theme ;
+- une passe profiler/inspection runtime reste souhaitable pour cloturer definitivement cette tache.
 
 ---
 
