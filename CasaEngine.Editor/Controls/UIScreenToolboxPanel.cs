@@ -63,11 +63,6 @@ public sealed class UIScreenToolboxPanel
             return _root;
         }
 
-        var header = new MGTextBlock(_window, "[b]Toolbox[/b]")
-        {
-            Margin = new Thickness(8, 6, 8, 4),
-        };
-
         // Build categorised list into a StackPanel inside a ScrollViewer
         var outerStack = new MGStackPanel(_window, Orientation.Vertical)
         {
@@ -108,7 +103,6 @@ public sealed class UIScreenToolboxPanel
         scrollViewer.SetContent(outerStack);
 
         _root = new MGDockPanel(_window);
-        _root.TryAddChild(header, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         return _root;

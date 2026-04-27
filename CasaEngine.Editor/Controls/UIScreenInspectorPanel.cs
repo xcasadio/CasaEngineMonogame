@@ -27,7 +27,6 @@ public sealed class UIScreenInspectorPanel
 
     private MGDockPanel? _root;
     private MGStackPanel? _propertiesStack;
-    private MGTextBlock? _headerText;
     private MGTextBlock? _statusText;
     private MGTextBox? _nameEditor;
     private bool _hasDesktopFocusSubscription;
@@ -104,14 +103,9 @@ public sealed class UIScreenInspectorPanel
             return _root;
         }
 
-        _headerText = new MGTextBlock(_window, "[b]Inspector[/b]")
-        {
-            Margin = new Thickness(8, 6, 8, 4),
-        };
-
         _statusText = new MGTextBlock(_window, "No node selected.")
         {
-            Margin = new Thickness(8, 4, 8, 4),
+            Margin = new Thickness(8, 6, 8, 4),
             Opacity = EditorThemePalette.SectionLabelOpacity,
             WrapText = true,
         };
@@ -126,7 +120,6 @@ public sealed class UIScreenInspectorPanel
         scrollViewer.SetContent(_propertiesStack);
 
         _root = new MGDockPanel(_window);
-        _root.TryAddChild(_headerText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 

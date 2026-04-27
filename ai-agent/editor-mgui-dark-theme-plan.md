@@ -870,6 +870,20 @@ Etat :
 - aucune allocation recurrente n'a ete introduite dans les hot paths touches cote editeur: la palette est statique et les changements portent surtout sur des valeurs de construction et de theme ;
 - une passe profiler/inspection runtime reste souhaitable pour cloturer definitivement cette tache.
 
+#### `✅` Tache 7.4 - Correctifs post-retour visuel
+
+Points traites :
+
+- `MGUI/MGUI.Core/UI/MGTreeViewItem.cs` applique maintenant la meme brosse de selection au header de noeud, au conteneur de header et au bouton expander, avec restauration explicite de l'etat initial a la deselection ;
+- `MGUI/MGUI.Core/UI/MGTreeView.cs` expose la configuration des scrollbars internes du `TreeView`, puis `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` active la scrollbar horizontale pour l'arbre des composants et pour la zone de details afin de laisser les editeurs prendre leur largeur naturelle ;
+- `CasaEngine.Editor/Controls/UIScreenInspectorPanel.cs`, `CasaEngine.Editor/Controls/UIScreenHierarchyPanel.cs` et `CasaEngine.Editor/Controls/UIScreenToolboxPanel.cs` n'affichent plus de titre interne redondant quand le titre d'onglet docking est deja present.
+
+Validation :
+
+- `dotnet build .\MGUI\MGUI.Core\MGUI.Core.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres activation du scroll horizontal dans l'inspector ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres suppression des titres internes redondants.
+
 ---
 
 ## Points d'entree techniques probables

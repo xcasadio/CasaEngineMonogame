@@ -102,10 +102,6 @@ public sealed class UIScreenHierarchyPanel
             Spacing = 6,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        toolbar.TryAddChild(new MGTextBlock(_window, "[b]Hierarchy[/b]")
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        });
 
         var refreshBtn = new MGButton(_window, _ => ScheduleRebuildTree())
         {
