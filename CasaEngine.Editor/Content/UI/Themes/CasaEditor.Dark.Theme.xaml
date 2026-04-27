@@ -146,8 +146,8 @@
       <ThemeBackgroundDefinition ElementType="MenuBarItem">
         <ThemeBackgroundDefinition.Value>
           <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
-                                               SelectedValue="rgba(58,121,187,140)"
-                                               FocusedValue="rgba(58,121,187,140)"
+                                                 SelectedValue="rgb(58,58,58)"
+                                                 FocusedValue="rgb(58,58,58)"
                                                FocusedColor="White * 0.05"
                                                PressedModifierType="Darken"
                                                PressedModifier="0.08" />
@@ -365,8 +365,8 @@
                                               SubmenuArrowMargin="8,0,0,0">
         <ThemeContextMenuItemSettingsDefinition.HeaderBackground>
           <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
-                                               FocusedValue="rgba(58,121,187,95)"
-                                                SelectedValue="rgba(58,121,187,95)"
+                                               FocusedValue="rgb(58,58,58)"
+                                               SelectedValue="rgb(58,58,58)"
                                                DisabledValue="Transparent" />
         </ThemeContextMenuItemSettingsDefinition.HeaderBackground>
         <ThemeContextMenuItemSettingsDefinition.ShortcutForeground>
@@ -454,10 +454,10 @@
                                       AutoHideStripTextColor="rgb(180,180,180)"
                                       AutoHideStripSeparatorColor="rgb(63,63,63)"
                                       SplitterNormalBrush="rgb(63,63,63)"
-                                      SplitterHoverBrush="rgb(58,121,187)"
-                                      SplitterPressedBrush="rgb(48,108,174)"
-                                      SplitterHoverOverlayColor="rgb(77,146,214) * 0.35"
-                                      SplitterPressedOverlayColor="rgb(58,121,187) * 0.45"
+                                      SplitterHoverBrush="rgb(88,88,92)"
+                                      SplitterPressedBrush="rgb(104,104,108)"
+                                      SplitterHoverOverlayColor="White * 0.10"
+                                      SplitterPressedOverlayColor="White * 0.16"
                                       DropIndicatorInactiveColor="rgba(100,100,100,180)"
                                       DropIndicatorActiveColor="rgba(58,121,187,230)"
                                       DropIndicatorBorderColor="rgba(230,230,230,200)"

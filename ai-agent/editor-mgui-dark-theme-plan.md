@@ -920,6 +920,19 @@ Validation :
 
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres reactivation de la scrollbar horizontale de l'inspector material.
 
+#### `✅` Tache 7.8 - Hover docking/menu neutralise et icones lissees en reduction
+
+Points traites :
+
+- `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` remplace les anciens hovers bleus du `MenuBarItem`, des items de menu principal et des splitters de docking par des valeurs neutres coherentes avec le shell sombre de l'editeur ;
+- la verification cote MGUI a confirme que `MGMenuBar` et `MGDockSplitterBar` consomment bien ces valeurs du theme, donc le correctif reste centre sur la source de verite XAML au lieu d'ajouter un override imperatif ;
+- `MGUI/MGUI.Core/UI/MGImage.cs` bascule temporairement en `LinearClamp` quand une image est vraiment dessinee plus petite que sa taille source, avec une propriete `UseLinearFilteringWhenDownscaling` qui laisse un opt-out explicite aux appelants si un rendu pixel-crisp reste necessaire.
+
+Validation :
+
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (5 tests, 0 echec) apres mise a jour des valeurs du theme sombre ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres ajout du lissage lineaire conditionnel dans `MGImage`.
+
 ---
 
 ## Points d'entree techniques probables
