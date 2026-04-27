@@ -213,7 +213,7 @@
       </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="TreeViewSelectionBackground">
         <ThemePropertyDefinition.VisualStateFillBrush>
-            <ThemeVisualStateFillBrushDefinition NormalValue="rgba(58,121,187,85)" />
+            <ThemeVisualStateFillBrushDefinition NormalValue="rgb(68,68,68)" />
         </ThemePropertyDefinition.VisualStateFillBrush>
       </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="ProgressButtonForeground" FillBrush="rgb(30,30,30)" />
