@@ -136,7 +136,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             Margin = new Thickness(4),
         };
 
-        var scrollViewer = new MGScrollViewer(_window);
+        var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
         scrollViewer.SetContent(_propertiesStack);
 
         _root = new MGDockPanel(_window);

@@ -909,6 +909,17 @@ Validation :
 
 - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" -nologo -clp:ErrorsOnly` -> succes (5 tests, 0 echec), avec couverture additionnelle des defaults `CheckBox` du theme editeur et du cas de split docking sur-contraint.
 
+#### `✅` Tache 7.7 - Inspector material avec scrollbar horizontale
+
+Points traites :
+
+- `CasaEngine.Editor/Controls/MaterialAssetInspectorPanel.cs` construit maintenant explicitement son `MGScrollViewer` avec `ScrollBarVisibility.Auto` sur les axes vertical et horizontal ;
+- l'inspector material retrouve ainsi une scrollbar horizontale quand des editeurs ou lignes de proprietes depassent la largeur disponible, au lieu de forcer un clipping silencieux.
+
+Validation :
+
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres reactivation de la scrollbar horizontale de l'inspector material.
+
 ---
 
 ## Points d'entree techniques probables
