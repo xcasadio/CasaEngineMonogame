@@ -63,6 +63,7 @@ public sealed class EntityDetailsPanel
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             PreferredHeight = 220,
             MinHeight = 140,
         };
@@ -80,7 +81,7 @@ public sealed class EntityDetailsPanel
             Padding = new Thickness(6),
         };
 
-        _detailsScrollViewer = new MGScrollViewer(_window);
+        _detailsScrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
         _detailsScrollViewer.SetContent(_detailsContent);
 
         _root = new MGDockPanel(_window);
