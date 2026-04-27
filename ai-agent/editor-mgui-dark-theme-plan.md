@@ -884,6 +884,18 @@ Validation :
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres activation du scroll horizontal dans l'inspector ;
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres suppression des titres internes redondants.
 
+#### `✅` Tache 7.5 - Ajustements finaux TreeView et panneaux contextuels
+
+Points traites :
+
+- `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` aligne `TreeViewSelectionBackground` sur la teinte sombre du bouton survole, au lieu du bleu translucide precedent, pour que le noeud selectionne reprenne bien la meme famille de couleur que l'expander ;
+- `CasaEngine.Editor/Controls/ContextualPanels/ContextualDockPanelHost.cs` n'affiche plus de titre interne pour les hotes contextuels, ce qui supprime les labels redondants observes dans `Hierarchy`, `Inspector` et `Toolbox` alors que le docking affiche deja le titre de l'onglet.
+
+Validation :
+
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres alignement de la couleur de selection du `TreeView` ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres suppression du titre injecte par `ContextualDockPanelHost`.
+
 ---
 
 ## Points d'entree techniques probables

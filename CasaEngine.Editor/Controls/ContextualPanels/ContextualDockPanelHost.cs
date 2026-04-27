@@ -16,7 +16,6 @@ public sealed class ContextualDockPanelHost
     private readonly Dictionary<EditorDocumentKind, ContextualPanelDefinition> _definitions = new();
 
     private MGDockPanel? _root;
-    private MGTextBlock? _titleText;
     private MGTextBlock? _statusText;
     private MGStackPanel? _contentHost;
     private ContextualPanelDefinition? _activeDefinition;
@@ -57,14 +56,9 @@ public sealed class ContextualDockPanelHost
             return _root;
         }
 
-        _titleText = new MGTextBlock(_window, $"[b]{_defaultTitle}[/b]")
-        {
-            Margin = new Thickness(8, 6, 8, 4),
-        };
-
         _statusText = new MGTextBlock(_window, _emptyMessage)
         {
-            Margin = new Thickness(8, 4, 8, 6),
+            Margin = new Thickness(8, 6, 8, 6),
             Opacity = 0.75f,
             WrapText = true,
         };
@@ -76,7 +70,6 @@ public sealed class ContextualDockPanelHost
         };
 
         _root = new MGDockPanel(_window);
-        _root.TryAddChild(_titleText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Bottom);
         _root.TryAddChild(_contentHost, Dock.Top);
 
@@ -86,7 +79,7 @@ public sealed class ContextualDockPanelHost
 
     public void Refresh()
     {
-        if (_root == null || _titleText == null || _statusText == null || _contentHost == null)
+        if (_root == null || _statusText == null || _contentHost == null)
         {
             return;
         }
@@ -105,7 +98,6 @@ public sealed class ContextualDockPanelHost
             }
         }
 
-        _titleText.Text = $"[b]{definition?.Title ?? _defaultTitle}[/b]";
         _statusText.Text = definition == null ? _emptyMessage : string.Empty;
         definition?.Refresh?.Invoke(_context);
     }
