@@ -896,6 +896,19 @@ Validation :
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres alignement de la couleur de selection du `TreeView` ;
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres suppression du titre injecte par `ContextualDockPanelHost`.
 
+#### `✅` Tache 7.6 - CheckBox editoriaux carres et splitters dock robustes
+
+Points traites :
+
+- `MGUI/MGUI.Core/UI/UISymbolElements.cs`, `MGCheckBox.cs`, `MGTheme.cs`, `XAML/Themes.cs` et `XAML/ThemeDefinitionBuilder.cs` exposent maintenant un style d'indicateur `CheckBox` pilote par theme, ainsi qu'une taille de composant themable ;
+- `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` active ce nouveau mode avec des `CheckBox` editoriaux en carre rempli sur l'etat `checked` et une taille portee a `18` pour un rendu un peu plus lisible ;
+- `MGUI/MGUI.Core/UI/Docking/Controls/DockSplitSizing.cs` centralise le calcul des ratios et tailles de split en mode best-effort quand les tailles minimales des deux panneaux ne tiennent plus dans l'espace disponible ;
+- `MGDockSplitterBar` et `MGDockSplitContainer` reutilisent ce helper pour eviter l'exception `Math.Clamp` sur intervalle inverse et pour garder une repartition stable meme en layout sur-contraint.
+
+Validation :
+
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" -nologo -clp:ErrorsOnly` -> succes (5 tests, 0 echec), avec couverture additionnelle des defaults `CheckBox` du theme editeur et du cas de split docking sur-contraint.
+
 ---
 
 ## Points d'entree techniques probables

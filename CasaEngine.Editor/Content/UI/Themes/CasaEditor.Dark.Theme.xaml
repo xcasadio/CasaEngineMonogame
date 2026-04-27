@@ -174,7 +174,9 @@
 
     <ThemeDefinition.Properties>
       <ThemePropertyDefinition Target="DropdownArrowColor" Color="rgb(210,210,210)" />
+      <ThemePropertyDefinition Target="CheckBoxComponentSize" Integer="18" />
       <ThemePropertyDefinition Target="CheckMarkColor" Color="rgb(220,220,220)" />
+      <ThemePropertyDefinition Target="CheckBoxCheckedIndicatorStyle" String="FilledSquare" />
       <ThemePropertyDefinition Target="TreeViewSelectionForeground" Color="rgb(230,230,230)" />
       <ThemePropertyDefinition Target="TreeViewExpanderArrowColor" Color="rgb(180,180,180)" />
       <ThemePropertyDefinition Target="TreeViewBorderBrush" BorderBrush="rgb(63,63,63)" />

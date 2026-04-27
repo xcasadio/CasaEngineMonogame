@@ -91,6 +91,46 @@ public class EditorControlTemplateAssetLoadingTests
         AssertMappedTemplate(theme, typeof(MGDockAutoHideStrip), "CasaEditor.DockAutoHideStrip");
         AssertMappedTemplate(theme, typeof(MGDockSplitterBar), "CasaEditor.DockSplitter");
         AssertMappedTemplate(theme, typeof(MGDockDropIndicators), "CasaEditor.DockDropIndicators");
+
+        Assert.Equal(18, theme.CheckBoxComponentSize);
+        Assert.Equal(CheckIndicatorStyle.FilledSquare, theme.CheckBoxCheckedIndicatorStyle);
+    }
+
+    [Fact]
+    public void EditorThemeAsset_Applies_CheckBox_Defaults()
+    {
+        EditorThemeTestContext context = CreateThemeTestContext();
+
+        MGCheckBox checkBox = new(context.Window, true) { Name = "Editor CheckBox" };
+
+        Assert.Equal(18, checkBox.CheckBoxComponentSize);
+        Assert.Equal(CheckIndicatorStyle.FilledSquare, checkBox.CheckedIndicatorStyle);
+    }
+
+    [Fact]
+    public void DockSplitContainer_Overconstrained_MinSizes_Do_Not_Throw()
+    {
+        EditorThemeTestContext context = CreateThemeTestContext();
+
+        TestDockSplitContainer splitContainer = new(context.Window, Orientation.Horizontal)
+        {
+            MinFirstSize = 200,
+            MinSecondSize = 200,
+            SplitterThickness = 4,
+            FirstChild = new MGBorder(context.Window),
+            SecondChild = new MGBorder(context.Window),
+        };
+
+        splitContainer.ForceLayout(new Rectangle(0, 0, 300, 160));
+
+        Exception exception = Record.Exception(() => splitContainer.SetSplitRatio(0.9f));
+
+        Assert.Null(exception);
+        Assert.Equal(0.5f, splitContainer.SplitRatio);
+
+        splitContainer.ForceLayout(new Rectangle(0, 0, 300, 160));
+        Assert.Equal(148, splitContainer.FirstChild.LayoutBounds.Width);
+        Assert.Equal(148, splitContainer.SecondChild.LayoutBounds.Width);
     }
 
     [Fact]
@@ -257,6 +297,19 @@ public class EditorControlTemplateAssetLoadingTests
         MGDesktop Desktop,
         MGWindow Window,
         MGStackPanel Scope);
+
+    private sealed class TestDockSplitContainer : MGDockSplitContainer
+    {
+        public TestDockSplitContainer(MGWindow window, Orientation orientation)
+            : base(window, orientation)
+        {
+        }
+
+        public void ForceLayout(Rectangle bounds)
+        {
+            UpdateLayout(bounds);
+        }
+    }
 
     private sealed class EditorThemeTestRuntime : IUIDesktopRuntime
     {
