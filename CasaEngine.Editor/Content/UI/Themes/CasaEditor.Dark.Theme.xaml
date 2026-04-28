@@ -193,10 +193,10 @@
       </ThemePropertyDefinition>
       <ThemePropertyDefinition Target="ListBoxItemBackground">
         <ThemePropertyDefinition.VisualStateFillBrush>
-          <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
-                                               FocusedValue="rgba(58,121,187,85)"
-                                                SelectedValue="rgba(58,121,187,85)"
-                                               DisabledValue="Transparent" />
+            <ThemeVisualStateFillBrushDefinition NormalValue="Transparent"
+                                                 FocusedValue="rgb(68,68,68)"
+                                                 SelectedValue="rgb(68,68,68)"
+                                                 DisabledValue="Transparent" />
         </ThemePropertyDefinition.VisualStateFillBrush>
       </ThemePropertyDefinition>
         <ThemePropertyDefinition Target="ComboBoxDropdownItemBackground">
