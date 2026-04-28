@@ -948,6 +948,20 @@ Validation :
 - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (6 tests, 0 echec) avec couverture additionnelle du docking sans accent visible ;
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres alignement du `TreeView`, nettoyage du chrome docking et ajustement de l'icone `Add Component`.
 
+#### `✅` Tache 7.10 - Revue critique 7.6 a 7.8 et suppression de l'allocation en Draw de `MGImage`
+
+Points traites :
+
+- l'audit des commits `Tache 7.6` a `Tache 7.8` n'a pas revele de workaround supplementaire cote `CheckBox`, split docking ou scrollbar horizontale ;
+- la seule faiblesse structurelle detectee etait dans `MGUI/MGUI.Core/UI/MGImage.cs`, ou le lissage des icones reduites passait par `SetDrawSettingsTemporary(...)` et un `DrawSettings with { ... }` a chaque `Draw`, donc avec allocations evitables dans un hot path ;
+- `MGUI/MGUI.Shared/Rendering/IUIRenderContext.cs` expose maintenant `SetDrawSettings(...)`, deja present dans le backend MonoGame, pour permettre un changement d'etat explicite sans creer un scope temporaire par image ;
+- `MGImage` reutilise des variantes `DrawSettings` linear-clamp mises en cache par base settings et restaure ensuite les settings precedents directement, ce qui conserve le rendu lisse sans repasser par `TemporaryChange<DrawSettings>` ;
+- `MGUI/MGUI.Tests/Integration/TextSurfaceLiteTests.cs` ajoute une regression qui dessine un `MGImage` reduit et verifie que le chemin direct utilise `SetDrawSettings(...)` sans appeler `SetDrawSettingsTemporary(...)`.
+
+Validation :
+
+- `dotnet test .\MGUI\MGUI.Tests\MGUI.Tests.csproj --filter "FullyQualifiedName~TextSurfaceLiteTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (4 tests, 0 echec), avec couverture du rendu `MGImage` reduit sans scope temporaire de draw settings.
+
 ---
 
 ## Points d'entree techniques probables
