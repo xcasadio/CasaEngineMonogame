@@ -197,14 +197,19 @@ public sealed class EntityDetailsPanel
 
     private MGElement BuildToolbar()
     {
-        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        var toolbar = new MGGrid(_window)
         {
             Margin = new Thickness(4, 4, 4, 2),
-            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Center,
+            ColumnSpacing = 6,
         };
+        toolbar.AddRow(GridLength.Auto);
+        toolbar.AddColumn(GridLength.CreatePixelLength(44));
+        toolbar.AddColumn(GridLength.CreateWeightedLength(1));
+        toolbar.AddColumn(GridLength.CreatePixelLength(34));
 
-        toolbar.TryAddChild(new MGTextBlock(_window, "Entity")
+        toolbar.TryAddChild(0, 0, new MGTextBlock(_window, "Entity")
         {
             VerticalAlignment = VerticalAlignment.Center,
             PreferredWidth = 44,
@@ -241,8 +246,8 @@ public sealed class EntityDetailsPanel
             });
         }
 
-        toolbar.TryAddChild(_entityNameTextBox);
-        toolbar.TryAddChild(_addComponentButton);
+        toolbar.TryAddChild(0, 1, _entityNameTextBox);
+        toolbar.TryAddChild(0, 2, _addComponentButton);
         return toolbar;
     }
 

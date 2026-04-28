@@ -982,6 +982,18 @@ Commits :
 - `9ad16860` - `fix(editor-theme): restore add component icon`
 - `e0d65c7` (`MGUI`) - `fix(docking): sync dock tab accessory backgrounds`
 
+#### `✅` Tache 7.12 - Bouton `Add Component` de l'inspector recompacte correctement
+
+Points traites :
+
+- le symptome visuel restant dans `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` ne venait plus de l'asset `FilePlus`, mais du layout du header de l'inspector ;
+- le `MGStackPanel` horizontal du header mesurait sequentiellement un `MGTextBox` stretch avant le bouton d'ajout, ce qui pouvait comprimer la derniere cellule jusqu'a rendre l'icone invisible ;
+- `BuildToolbar()` utilise maintenant un `MGGrid` a trois colonnes (`44px | * | 34px`) pour garantir explicitement la largeur du champ nom et celle du bouton `Add Component`.
+
+Validation :
+
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres migration du header de l'inspector vers une grille.
+
 ---
 
 ## Points d'entree techniques probables
