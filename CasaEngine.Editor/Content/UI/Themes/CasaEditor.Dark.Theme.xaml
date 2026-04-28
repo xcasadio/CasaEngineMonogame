@@ -437,9 +437,9 @@
     <ThemeDefinition.Docking>
       <ThemeDockingSettingsDefinition TabNormalBackground="rgb(45,45,48)"
                                       TabHoverBackground="rgb(56,56,60)"
-                                      TabActiveBackground="rgb(37,37,38)"
-                                      TabActiveAccentColor="rgb(58,121,187)"
-                                      TabHoverAccentColor="rgb(77,146,214) * 0.70"
+                                      TabActiveBackground="rgb(58,58,58)"
+                                      TabActiveAccentColor="Transparent"
+                                      TabHoverAccentColor="Transparent"
                                       TabActiveTextColor="rgb(220,220,220)"
                                       TabInactiveTextColor="rgb(170,170,170)"
                                       TabActiveIconColor="rgb(220,220,220)"

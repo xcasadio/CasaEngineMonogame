@@ -226,8 +226,8 @@ public sealed class EntityDetailsPanel
         {
             _addComponentButton.SetContent(new MGImage(_window, EditorIcons.AsImage(EditorIcons.FilePlus)!, Stretch: Stretch.Uniform)
             {
-                PreferredWidth = 16,
-                PreferredHeight = 16,
+                PreferredWidth = 18,
+                PreferredHeight = 18,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
             });

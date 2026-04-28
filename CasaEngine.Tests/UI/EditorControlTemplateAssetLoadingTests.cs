@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
@@ -94,6 +95,9 @@ public class EditorControlTemplateAssetLoadingTests
 
         Assert.Equal(18, theme.CheckBoxComponentSize);
         Assert.Equal(CheckIndicatorStyle.FilledSquare, theme.CheckBoxCheckedIndicatorStyle);
+        Assert.Equal(new Color(58, 58, 58), Assert.IsType<MGSolidFillBrush>(theme.Docking.TabActiveBackground).Color);
+        Assert.Equal(Color.Transparent, theme.Docking.TabActiveAccentColor);
+        Assert.Equal(Color.Transparent, theme.Docking.TabHoverAccentColor);
     }
 
     [Fact]
@@ -105,6 +109,42 @@ public class EditorControlTemplateAssetLoadingTests
 
         Assert.Equal(18, checkBox.CheckBoxComponentSize);
         Assert.Equal(CheckIndicatorStyle.FilledSquare, checkBox.CheckedIndicatorStyle);
+    }
+
+    [Fact]
+    public void EditorThemeAsset_Disables_Docking_Accent_Bars()
+    {
+        EditorThemeTestContext context = CreateThemeTestContext();
+
+        DockPanelNode dockPanel = new("content")
+        {
+            Title = "Content Browser",
+            CanClose = true,
+        };
+
+        MGDockTabItem dockTabItem = new(context.Window, dockPanel)
+        {
+            Name = "Dock Tab",
+            IsActive = true,
+        };
+
+        DockTabGroupNode groupNode = new();
+        groupNode.Panels.Add(dockPanel);
+
+        MGDockTabGroup dockTabGroup = new(context.Window, groupNode)
+        {
+            Name = "Dock Group",
+            IsActiveGroup = true,
+        };
+
+        dockTabItem.UpdateLayout(new Rectangle(0, 0, 180, 30));
+        dockTabGroup.UpdateLayout(new Rectangle(0, 40, 320, 200));
+
+        Assert.True(dockTabItem.TryGetTemplatePart(MGDockTabItem.AccentPartName, out MGElement? tabAccentPart));
+        Assert.Equal(Visibility.Collapsed, tabAccentPart.Visibility);
+
+        Assert.True(dockTabGroup.TryGetTemplatePart(MGDockTabGroup.AccentPartName, out MGElement? groupAccentPart));
+        Assert.Equal(Visibility.Collapsed, groupAccentPart.Visibility);
     }
 
     [Fact]

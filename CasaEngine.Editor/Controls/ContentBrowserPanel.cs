@@ -51,7 +51,6 @@ public class ContentBrowserPanel
     private static readonly Color TreeBackgroundColor = EditorThemePalette.TreeBackground;
     private static readonly Color ContentBackgroundColor = EditorThemePalette.ContentBackground;
     private static readonly Color PanelBorderColor = EditorThemePalette.PanelBorder;
-    private static readonly Color AccentSelectionColor = EditorThemePalette.AccentSelection;
 
     private sealed class ContextMenuExtension
     {
@@ -229,8 +228,6 @@ public class ContentBrowserPanel
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(TreeBackgroundColor)),
-            SelectionBackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(AccentSelectionColor)),
         };
         _treeView.SelectionChanged += OnFolderSelectionChanged;
         _treeView.KeyboardHandler.Pressed += OnTreeViewKeyPressed;

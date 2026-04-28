@@ -933,6 +933,21 @@ Validation :
 - `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (5 tests, 0 echec) apres mise a jour des valeurs du theme sombre ;
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -clp:ErrorsOnly` -> succes apres ajout du lissage lineaire conditionnel dans `MGImage`.
 
+#### `✅` Tache 7.9 - TreeView du Content Browser aligne et docking sans barres bleues
+
+Points traites :
+
+- `CasaEngine.Editor/Controls/ContentBrowserPanel.cs` ne remplace plus en dur le `BackgroundBrush` et la `SelectionBackgroundBrush` de son `MGTreeView`, ce qui remet l'arbre des dossiers sur le meme chemin de style que le panel `Hierarchy` ;
+- `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` fait reposer l'onglet actif du docking sur un fond selectionne (`TabActiveBackground`) et des accents transparents, au lieu d'une barre bleue ;
+- `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabItem.cs` ne rend plus d'accent si la couleur calculee est transparente, ce qui supprime au passage le cas ou la ligne active semblait s'arreter avant le bouton de fermeture ;
+- `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabGroup.cs` masque desormais la barre bleue de groupe active qui apparaissait au sommet du panel ;
+- `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` agrandit l'icone du bouton `Add Component` pour qu'elle occupe mieux l'espace du bouton dans l'inspector.
+
+Validation :
+
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "FullyQualifiedName~EditorControlTemplateAssetLoadingTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (6 tests, 0 echec) avec couverture additionnelle du docking sans accent visible ;
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres alignement du `TreeView`, nettoyage du chrome docking et ajustement de l'icone `Add Component`.
+
 ---
 
 ## Points d'entree techniques probables
