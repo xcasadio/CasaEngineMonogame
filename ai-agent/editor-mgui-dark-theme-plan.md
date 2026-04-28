@@ -994,6 +994,19 @@ Validation :
 
 - `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres migration du header de l'inspector vers une grille.
 
+#### `✅` Tache 7.13 - Panel logs plus utilisable pour les lignes longues et la copie
+
+Points traites :
+
+- `CasaEngine.Editor/Controls/LogsPanel.cs` n'utilise plus un `MGScrollViewer` externe autour du `MGListBox`, et configure a la place le `ScrollViewer` interne du `ListBox` avec des scrollbars verticale et horizontale en `Auto` ;
+- chaque ligne de log ouvre maintenant un menu contextuel sur clic droit avec une action `Copy line`, branchee directement dans le template d'item du panel ;
+- la toolbar du panel ajoute un bouton `Copy all` qui copie l'ensemble des logs actuellement visibles, donc en respectant le filtre de verbosite actif ;
+- l'etat du bouton `Copy all` suit le contenu filtre pour eviter une action vide quand aucune ligne n'est affichee.
+
+Validation :
+
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres ajout du scroll horizontal et des actions de copie du panel logs.
+
 ---
 
 ## Points d'entree techniques probables

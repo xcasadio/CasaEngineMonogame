@@ -13,7 +13,7 @@ namespace CasaEngine.Editor.Controls;
 
 /// <summary>
 /// A dockable panel that shows real-time log output captured by a <see cref="LoggerEditor"/>.
-/// Features a verbosity filter combo box and a "Clear" button.
+/// Features a verbosity filter combo box, per-line copy, and actions for visible logs.
 /// </summary>
 public class LogsPanel
 {
@@ -41,8 +41,8 @@ public class LogsPanel
     private readonly LoggerEditor _logger;
 
     private MGListBox<LogEntry> _listBox = null!;
-    private MGScrollViewer _scrollViewer = null!;
     private MGComboBox<string> _filterCombo = null!;
+    private MGButton _copyAllButton = null!;
     private MGElement? _rootContent;
     private bool _isSubscribed;
 
@@ -94,6 +94,12 @@ public class LogsPanel
         _filterCombo.SelectedItem = FilterAll;
         _filterCombo.SelectedItemChanged += OnFilterChanged;
 
+        _copyAllButton = new MGButton(_window, _ => CopyVisibleLogsToClipboard())
+        {
+            Padding = new Thickness(6, 2, 6, 2),
+        };
+        _copyAllButton.SetContent(new MGTextBlock(_window, "Copy all"));
+
         var clearButton = new MGButton(_window, _ => ClearLogs())
         {
             Padding = new Thickness(6, 2, 6, 2),
@@ -120,6 +126,7 @@ public class LogsPanel
         };
         toolbar.TryAddChild(new MGTextBlock(_window, "[b]Logs[/b]") { VerticalAlignment = VerticalAlignment.Center });
         toolbar.TryAddChild(_filterCombo);
+        toolbar.TryAddChild(_copyAllButton);
         toolbar.TryAddChild(clearButton);
 
         // ── Log list ──────────────────────────────────────────────────────
@@ -129,14 +136,13 @@ public class LogsPanel
             VerticalAlignment = VerticalAlignment.Stretch,
             ItemTemplate = BuildEntryTemplate,
         };
-
-        _scrollViewer = new MGScrollViewer(_window);
-        _scrollViewer.SetContent(_listBox);
+        _listBox.ScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+        _listBox.ScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
 
         // ── Outer layout ──────────────────────────────────────────────────
         var panel = new MGDockPanel(_window);
         panel.TryAddChild(toolbar, Dock.Top);
-        panel.TryAddChild(_scrollViewer, Dock.Top); // fill
+        panel.TryAddChild(_listBox, Dock.Top); // fill
         _rootContent = panel;
 
         // ── Subscribe to new entries ──────────────────────────────────────
@@ -168,16 +174,37 @@ public class LogsPanel
 
     private MGElement BuildEntryTemplate(LogEntry entry)
     {
-        var colorTag = VerbosityColor(entry.Verbosity);
-        var ts = entry.Timestamp.ToString("HH:mm:ss");
-        var text = $"[c={colorTag}]{ts} [{entry.Verbosity,-7}] {EscapeMarkup(entry.Message)}[/c]";
-
-        return new MGTextBlock(_window, text)
+        var textBlock = new MGTextBlock(_window, FormatMarkupEntry(entry))
         {
             Padding = new Thickness(4, 1, 4, 1),
             WrapText = false,
         };
+
+        textBlock.ContextMenuRequested += (_, args) =>
+        {
+            _listBox.SelectItem(entry, true);
+            args.Menu = BuildLogEntryContextMenu(entry);
+        };
+
+        return textBlock;
     }
+
+    private MGContextMenu BuildLogEntryContextMenu(LogEntry entry)
+    {
+        var menu = new MGContextMenu(_window);
+        menu.AddButton("Copy line", _ => CopyToClipboard(FormatClipboardEntry(entry)));
+        return menu;
+    }
+
+    private string FormatMarkupEntry(LogEntry entry)
+    {
+        var colorTag = VerbosityColor(entry.Verbosity);
+        var ts = entry.Timestamp.ToString("HH:mm:ss");
+        return $"[c={colorTag}]{ts} [{entry.Verbosity,-7}] {EscapeMarkup(entry.Message)}[/c]";
+    }
+
+    private static string FormatClipboardEntry(LogEntry entry) =>
+        $"{entry.Timestamp:HH:mm:ss} [{entry.Verbosity,-7}] {entry.Message}";
 
     private static string VerbosityColor(LogVerbosity v) => v switch
     {
@@ -219,6 +246,18 @@ public class LogsPanel
     {
         _logger.Clear();
         _listBox.SetItemsSource(Array.Empty<LogEntry>());
+        UpdateToolbarState();
+    }
+
+    private void CopyVisibleLogsToClipboard()
+    {
+        var visibleEntries = GetVisibleEntries();
+        if (visibleEntries.Length == 0)
+        {
+            return;
+        }
+
+        CopyToClipboard(string.Join(Environment.NewLine, visibleEntries.Select(FormatClipboardEntry)));
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -227,25 +266,44 @@ public class LogsPanel
 
     private void RefreshList()
     {
-        var filtered = _logger.Entries
-            .Where(PassesFilter)
-            .ToList();
+        var filtered = GetVisibleEntries();
         _listBox.SetItemsSource(filtered);
+        UpdateToolbarState();
         ScrollToBottom();
     }
 
     private void AppendEntry(LogEntry entry)
     {
         // Rebuild source (light-weight since log count is typically moderate)
-        var filtered = _logger.Entries.Where(PassesFilter).ToList();
+        var filtered = GetVisibleEntries();
         _listBox.SetItemsSource(filtered);
+        UpdateToolbarState();
         ScrollToBottom();
     }
 
     private void ScrollToBottom()
     {
         // Defer one frame so layout finishes before scrolling
-        _scrollViewer.VerticalOffset = _scrollViewer.MaxVerticalOffset;
+        _listBox.ScrollViewer.QueueScrollToBottom();
+    }
+
+    private void UpdateToolbarState()
+    {
+        _copyAllButton.IsEnabled = GetVisibleEntries().Length > 0;
+    }
+
+    private LogEntry[] GetVisibleEntries() => _logger.Entries.Where(PassesFilter).ToArray();
+
+    private static void CopyToClipboard(string text)
+    {
+        try
+        {
+            System.Windows.Forms.Clipboard.SetText(text);
+        }
+        catch
+        {
+            // clipboard access can fail in some environments; silently ignore
+        }
     }
 
     private bool PassesFilter(LogEntry entry) =>
