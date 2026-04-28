@@ -148,6 +148,36 @@ public class EditorControlTemplateAssetLoadingTests
     }
 
     [Fact]
+    public void DockTabGroup_Uses_Theme_Accent_For_Active_Group()
+    {
+        EditorThemeTestContext context = CreateThemeTestContext();
+        context.Window.Theme = context.Window.GetTheme().Copy();
+        context.Window.Theme.Docking.TabActiveAccentColor = new Color(12, 34, 56, 255);
+
+        DockPanelNode dockPanel = new("content")
+        {
+            Title = "Content Browser",
+            CanClose = true,
+        };
+
+        DockTabGroupNode groupNode = new();
+        groupNode.Panels.Add(dockPanel);
+
+        MGDockTabGroup dockTabGroup = new(context.Window, groupNode)
+        {
+            Name = "Dock Group",
+            IsActiveGroup = true,
+        };
+
+        dockTabGroup.UpdateLayout(new Rectangle(0, 40, 320, 200));
+
+        Assert.True(dockTabGroup.TryGetTemplatePart(MGDockTabGroup.AccentPartName, out MGElement? groupAccentPart));
+        MGRectangle accentRectangle = Assert.IsType<MGRectangle>(groupAccentPart);
+        Assert.Equal(Visibility.Visible, accentRectangle.Visibility);
+        Assert.Equal(new Color(12, 34, 56, 255), Assert.IsType<MGSolidFillBrush>(accentRectangle.Fill).Color);
+    }
+
+    [Fact]
     public void DockSplitContainer_Overconstrained_MinSizes_Do_Not_Throw()
     {
         EditorThemeTestContext context = CreateThemeTestContext();

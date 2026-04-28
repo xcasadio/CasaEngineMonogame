@@ -940,7 +940,7 @@ Points traites :
 - `CasaEngine.Editor/Controls/ContentBrowserPanel.cs` ne remplace plus en dur le `BackgroundBrush` et la `SelectionBackgroundBrush` de son `MGTreeView`, ce qui remet l'arbre des dossiers sur le meme chemin de style que le panel `Hierarchy` ;
 - `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` fait reposer l'onglet actif du docking sur un fond selectionne (`TabActiveBackground`) et des accents transparents, au lieu d'une barre bleue ;
 - `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabItem.cs` ne rend plus d'accent si la couleur calculee est transparente, ce qui supprime au passage le cas ou la ligne active semblait s'arreter avant le bouton de fermeture ;
-- `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabGroup.cs` masque desormais la barre bleue de groupe active qui apparaissait au sommet du panel ;
+- `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabGroup.cs` aligne la barre d'accent du groupe actif sur `Docking.TabActiveAccentColor`, ce qui permet au theme editeur de la desactiver proprement sans supprimer ce comportement pour les autres themes ;
 - `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` agrandit l'icone du bouton `Add Component` pour qu'elle occupe mieux l'espace du bouton dans l'inspector.
 
 Validation :
