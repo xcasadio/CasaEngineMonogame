@@ -962,6 +962,26 @@ Validation :
 
 - `dotnet test .\MGUI\MGUI.Tests\MGUI.Tests.csproj --filter "FullyQualifiedName~TextSurfaceLiteTests" --no-restore -nologo -clp:ErrorsOnly` -> succes (4 tests, 0 echec), avec couverture du rendu `MGImage` reduit sans scope temporaire de draw settings.
 
+#### `✅` Tache 7.11 - Launcher, inspector et docking realignes sur le theme courant
+
+Points traites :
+
+- `CasaEngine.Editor/Content/UI/Themes/CasaEditor.Dark.Theme.xaml` remplace la selection bleue des `ListBox` par une selection neutre (`rgb(68,68,68)`), ce qui remet la liste des projets recents du launcher sur la meme famille visuelle que le reste du shell ;
+- `CasaEngine.Editor/Controls/EntityDetailsPanel.cs` revient sur le footprint d'icone toolbar deja valide dans l'editeur pour le bouton `Add Component`, afin d'eliminer la divergence locale qui faisait disparaitre le `file-plus` ;
+- `MGUI/MGUI.Core/UI/Docking/Controls/MGDockTabItem.cs` applique aux surfaces des boutons close/pin le meme fond effectif que l'onglet actif ou survole, au lieu de laisser ces `MGBorder` heriter du fond generique `Border` ;
+- `CasaEngine.Tests/UI/EditorControlTemplateAssetLoadingTests.cs` verrouille ces regressions en verifiant a la fois le fond de selection des `ListBox`, la propagation du fond actif aux boutons du docking et l'alignement du helper de test sur `IUIRenderContext.SetDrawSettings(...)`.
+
+Validation :
+
+- `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -t:Compile -nologo -p:WarningLevel=0` -> succes apres realignement du bouton `Add Component` ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter EditorControlTemplateAssetLoadingTests -nologo` -> succes (8 tests, 0 echec) avec couverture additionnelle du `ListBox` du launcher et des boutons internes de `MGDockTabItem`.
+
+Commits :
+
+- `7d611e17` - `fix(editor-theme): neutralize listbox selection`
+- `9ad16860` - `fix(editor-theme): restore add component icon`
+- `e0d65c7` (`MGUI`) - `fix(docking): sync dock tab accessory backgrounds`
+
 ---
 
 ## Points d'entree techniques probables

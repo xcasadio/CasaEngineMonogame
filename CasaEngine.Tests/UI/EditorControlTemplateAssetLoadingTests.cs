@@ -15,6 +15,7 @@ using MGUI.Shared.Rendering;
 using MGUI.Shared.Rendering.Clipping;
 using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
+using System.Reflection;
 using XamlDocumentSource = MGUI.Core.UI.XAML.XamlDocumentSource;
 using Xunit;
 
@@ -95,6 +96,9 @@ public class EditorControlTemplateAssetLoadingTests
 
         Assert.Equal(18, theme.CheckBoxComponentSize);
         Assert.Equal(CheckIndicatorStyle.FilledSquare, theme.CheckBoxCheckedIndicatorStyle);
+        VisualStateFillBrush listBoxItemBackground = theme.ListBoxItemBackground.GetValue(true);
+        Assert.Equal(new Color(68, 68, 68), Assert.IsType<MGSolidFillBrush>(listBoxItemBackground.FocusedValue).Color);
+        Assert.Equal(new Color(68, 68, 68), Assert.IsType<MGSolidFillBrush>(listBoxItemBackground.SelectedValue).Color);
         Assert.Equal(new Color(58, 58, 58), Assert.IsType<MGSolidFillBrush>(theme.Docking.TabActiveBackground).Color);
         Assert.Equal(Color.Transparent, theme.Docking.TabActiveAccentColor);
         Assert.Equal(Color.Transparent, theme.Docking.TabHoverAccentColor);
@@ -145,6 +149,38 @@ public class EditorControlTemplateAssetLoadingTests
 
         Assert.True(dockTabGroup.TryGetTemplatePart(MGDockTabGroup.AccentPartName, out MGElement? groupAccentPart));
         Assert.Equal(Visibility.Collapsed, groupAccentPart.Visibility);
+    }
+
+    [Fact]
+    public void DockTabItem_Active_AccessoryButtons_Use_Active_Background()
+    {
+        EditorThemeTestContext context = CreateThemeTestContext();
+
+        DockPanelNode dockPanel = new("content")
+        {
+            Title = "Content Browser",
+            CanClose = true,
+            CanAutoHide = true,
+        };
+
+        MGDockTabItem dockTabItem = new(context.Window, dockPanel)
+        {
+            Name = "Dock Tab",
+            IsActive = true,
+        };
+
+        dockTabItem.UpdateLayout(new Rectangle(0, 0, 180, 30));
+
+        MGBorder closeButton = Assert.IsType<MGBorder>(typeof(MGDockTabItem)
+            .GetField("_closeButton", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(dockTabItem));
+        MGBorder pinButton = Assert.IsType<MGBorder>(typeof(MGDockTabItem)
+            .GetField("_pinButton", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .GetValue(dockTabItem));
+
+        Color activeColor = Assert.IsType<MGSolidFillBrush>(dockTabItem.ActiveBrush).Color;
+        Assert.Equal(activeColor, Assert.IsType<MGSolidFillBrush>(closeButton.BackgroundBrush.NormalValue).Color);
+        Assert.Equal(activeColor, Assert.IsType<MGSolidFillBrush>(pinButton.BackgroundBrush.NormalValue).Color);
     }
 
     [Fact]
@@ -510,6 +546,11 @@ public class EditorControlTemplateAssetLoadingTests
 
         public void StrokeAndFillCircle(Vector2 center, Color strokeColor, Color fillColor, float radius, float strokeThickness = 1.0f, int numSides = 32)
         {
+        }
+
+        public void SetDrawSettings(DrawSettings settings)
+        {
+            CurrentSettings = settings ?? DrawSettings.Default;
         }
 
         public IDisposable SetDrawSettingsTemporary(DrawSettings settings)
