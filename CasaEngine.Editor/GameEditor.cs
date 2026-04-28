@@ -1174,7 +1174,7 @@ public class GameEditor : Game, IObservableUpdate
             new EditorPanelDescriptor
             {
                 Id = EditorPanelIds.Output,
-                Title = "Output / Logs",
+                Title = "Logs",
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateLogsContent,
             },
