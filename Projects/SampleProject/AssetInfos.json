@@ -5557,12 +5557,6 @@
       "asset_type": "staticmodel"
     },
     {
-      "id": "e12bf9ef-d742-43ec-af48-767f2b4c91e9",
-      "name": "ground_ground2",
-      "file_name": "Models\\ground_ground2.staticModel",
-      "asset_type": "staticmodel"
-    },
-    {
       "id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
       "name": "Box",
       "file_name": "Entities\\Box.staticModel",

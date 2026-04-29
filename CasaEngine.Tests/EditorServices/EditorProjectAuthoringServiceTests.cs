@@ -65,6 +65,159 @@ public class EditorProjectAuthoringServiceTests
     }
 
     [Fact]
+    public void SaveProject_WithoutOpenProject_ThrowsInvalidOperationException()
+    {
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            EditorProjectAuthoringService.ClearProject();
+
+            var exception = Assert.Throws<InvalidOperationException>(() => EditorProjectAuthoringService.SaveProject());
+
+            Assert.Equal("No editor project is currently open.", exception.Message);
+        }
+        finally
+        {
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+        }
+    }
+
+    [Fact]
+    public void SaveProject_WithWorldWithoutFileName_UsesProjectFallbackWorldFileName()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            GameSettings.ProjectSettings.FirstWorldLoaded = "FallbackWorld.world";
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "FallbackWorld",
+                FileName = string.Empty,
+            };
+
+            EditorProjectAuthoringService.SaveProject(world);
+
+            string worldFilePath = Path.Combine(tempDirectory, "FallbackWorld.world");
+            Assert.Equal("FallbackWorld.world", world.FileName);
+            Assert.True(File.Exists(worldFilePath));
+
+            var worldDocument = JObject.Parse(File.ReadAllText(worldFilePath));
+            Assert.NotNull(worldDocument["entity_references"]);
+
+            var projectDocument = JObject.Parse(File.ReadAllText(projectFilePath));
+            Assert.Equal("FallbackWorld.world", (string?)projectDocument["FirstWorldLoaded"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SaveProject_WithWorldWithoutAnyFileName_ThrowsInvalidOperationException()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            GameSettings.ProjectSettings.FirstWorldLoaded = string.Empty;
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "UnsavedWorld",
+                FileName = string.Empty,
+            };
+
+            var exception = Assert.Throws<InvalidOperationException>(() => EditorProjectAuthoringService.SaveProject(world));
+
+            Assert.Equal("The current world does not have a file name and cannot be saved.", exception.Message);
+            Assert.True(string.IsNullOrWhiteSpace(world.FileName));
+            Assert.Empty(Directory.EnumerateFiles(tempDirectory, "*.world"));
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void SaveProject_WithoutWorld_PersistsProjectOnly()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "DefaultWorld",
+                FileName = "DefaultWorld.world",
+            };
+
+            EditorProjectAuthoringService.SaveProject(world);
+
+            string worldFilePath = Path.Combine(tempDirectory, "DefaultWorld.world");
+            string originalWorldContents = File.ReadAllText(worldFilePath);
+
+            GameSettings.ProjectSettings.WindowTitle = "Updated Project Title";
+
+            EditorProjectAuthoringService.SaveProject();
+
+            Assert.Equal(originalWorldContents, File.ReadAllText(worldFilePath));
+
+            var projectDocument = JObject.Parse(File.ReadAllText(projectFilePath));
+            Assert.Equal("Updated Project Title", (string?)projectDocument["WindowTitle"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveProject_WithStaticModelOverrides_WritesSingleOverridesArray()
     {
         string tempDirectory = CreateTempDirectory();

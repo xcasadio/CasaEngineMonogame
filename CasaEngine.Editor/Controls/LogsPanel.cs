@@ -4,7 +4,9 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Shared.Input.Mouse;
 using MGUI.Shared.Helpers;
+using Microsoft.Xna.Framework;
 using Thickness = MonoGame.Extended.Thickness;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
@@ -135,9 +137,11 @@ public class LogsPanel
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             ItemTemplate = BuildEntryTemplate,
+            VirtualizationMode = ListBoxVirtualizationMode.Never,
         };
         _listBox.ScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
         _listBox.ScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        _listBox.MouseHandler.RMBReleasedInside += OnListBoxRightClick;
 
         // ── Outer layout ──────────────────────────────────────────────────
         var panel = new MGDockPanel(_window);
@@ -174,19 +178,11 @@ public class LogsPanel
 
     private MGElement BuildEntryTemplate(LogEntry entry)
     {
-        var textBlock = new MGTextBlock(_window, FormatMarkupEntry(entry))
+        return new MGTextBlock(_window, FormatMarkupEntry(entry))
         {
             Padding = new Thickness(4, 1, 4, 1),
             WrapText = false,
         };
-
-        textBlock.ContextMenuRequested += (_, args) =>
-        {
-            _listBox.SelectItem(entry, true);
-            args.Menu = BuildLogEntryContextMenu(entry);
-        };
-
-        return textBlock;
     }
 
     private MGContextMenu BuildLogEntryContextMenu(LogEntry entry)
@@ -236,6 +232,21 @@ public class LogsPanel
             ? null
             : Enum.Parse<LogVerbosity>(_filterCombo.SelectedItem);
         RefreshList();
+    }
+
+    private void OnListBoxRightClick(object? sender, BaseMouseReleasedEventArgs e)
+    {
+        if (e.IsHandled || !TryGetEntryAtPosition(e.Position, out var entry))
+        {
+            return;
+        }
+
+        _listBox.SelectItem(entry, true);
+        var menu = BuildLogEntryContextMenu(entry);
+        if (menu.TryOpenContextMenu(e.Position))
+        {
+            e.SetHandledBy(menu, false);
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -293,6 +304,23 @@ public class LogsPanel
     }
 
     private LogEntry[] GetVisibleEntries() => _logger.Entries.Where(PassesFilter).ToArray();
+
+    private bool TryGetEntryAtPosition(Point screenPosition, out LogEntry entry)
+    {
+        var unscaledPosition = _listBox.ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.UnscaledScreen, screenPosition);
+        foreach (var item in _listBox.ListBoxItems)
+        {
+            var bounds = item.ContentPresenter.ActualLayoutBounds;
+            if (!bounds.IsEmpty && bounds.ContainsInclusive(unscaledPosition))
+            {
+                entry = item.Data;
+                return true;
+            }
+        }
+
+        entry = null!;
+        return false;
+    }
 
     private static void CopyToClipboard(string text)
     {

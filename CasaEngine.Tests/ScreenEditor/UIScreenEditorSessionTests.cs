@@ -12,6 +12,16 @@ namespace CasaEngine.Tests.ScreenEditor;
 public class UIScreenEditorSessionTests
 {
     [Fact]
+    public void Save_WithoutLoadedDocument_ThrowsInvalidOperationException()
+    {
+        var session = new UIScreenEditorSession();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => session.Save());
+
+        Assert.Equal("UIScreenEditorSession has no loaded document.", exception.Message);
+    }
+
+    [Fact]
     public void OpenSaveReload_PersistsDocumentChanges()
     {
         string tempDirectory = CreateTempDirectory();
@@ -50,6 +60,56 @@ public class UIScreenEditorSessionTests
 
             Assert.NotNull(session.Document);
             Assert.Equal("UpdatedTitle", session.Document!.Root!.Properties["TitleText"].SerializedValue);
+        }
+        finally
+        {
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void OpenSaveReload_WithAssetRelativeSourceXaml_PersistsDocumentChanges()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string assetDirectory = Path.Combine(tempDirectory, "UI");
+        string assetPath = Path.Combine(assetDirectory, "MainScreen.uiscreen");
+        string xamlDirectory = Path.Combine(assetDirectory, "Views");
+        string xamlPath = Path.Combine(xamlDirectory, "MainScreen.xaml");
+        string projectRootXamlPath = Path.Combine(tempDirectory, "Views", "MainScreen.xaml");
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            Directory.CreateDirectory(xamlDirectory);
+            File.WriteAllText(xamlPath, """
+<?xml version="1.0" encoding="utf-8"?>
+<Window xmlns="clr-namespace:MGUI.Core.UI.XAML;assembly=MGUI.Core" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" TitleText="InitialTitle">
+  <TextBlock Name="Label" Text="Hello" />
+</Window>
+""");
+
+            var asset = CreateAsset("MainScreen", "UI/MainScreen.uiscreen", "Views/MainScreen.xaml");
+            WriteAsset(assetPath, asset);
+
+            var session = new UIScreenEditorSession();
+            session.Open(asset, assetPath);
+
+            Assert.Equal(Path.GetFullPath(xamlPath), session.SourceXamlFilePath);
+
+            session.Document!.Root!.SetProperty("TitleText", "UpdatedRelativeTitle");
+            session.MarkDirty();
+            session.Save();
+
+            Assert.False(session.IsDirty);
+            Assert.Contains("UpdatedRelativeTitle", File.ReadAllText(xamlPath));
+            Assert.False(File.Exists(projectRootXamlPath));
+
+            session.Reload();
+
+            Assert.NotNull(session.Document);
+            Assert.Equal("UpdatedRelativeTitle", session.Document!.Root!.Properties["TitleText"].SerializedValue);
         }
         finally
         {
