@@ -79,6 +79,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private readonly GraphicsDevice _graphicsDevice;
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
+    private readonly PreviewWorldDriver _previewWorldDriver;
 
     private MGStackPanel? _root;
     private MGTextBlock? _titleText;
@@ -98,7 +99,6 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private RenderView? _renderView;
     private MguiPreviewViewHost? _renderViewHost;
     private Texture2D? _boundTexture;
-    private World? _previewWorld;
     private Entity? _previewEntity;
     private SkinnedMeshComponent? _skinnedMeshComponent;
     private Entity? _cameraEntity;
@@ -131,6 +131,11 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _window = window;
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
+        _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
+        {
+            WorldName = "AnimationClipPreviewWorld",
+            UpdateMode = PreviewWorldUpdateMode.Continuous,
+        });
     }
 
     public string? LoadedRelativePath => _loadedRelativePath;
@@ -357,13 +362,12 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
     public void Update(GameTime gameTime)
     {
-        if (_previewWorld == null || _skinnedMeshComponent == null)
+        if (_previewWorldDriver.World == null || _skinnedMeshComponent == null)
         {
             return;
         }
 
-        float elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        _previewWorld.Update(elapsedSeconds);
+        _previewWorldDriver.Tick(gameTime);
 
         var rootMotionDelta = _skinnedMeshComponent.ConsumeRootMotionDelta();
         _lastRootMotionMagnitude = rootMotionDelta.Translation.Length();
@@ -417,12 +421,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _renderViewHost = null;
         _surface?.Dispose();
         _surface = null;
-
-        if (_previewWorld != null)
-        {
-            _previewWorld.Clear();
-            _previewWorld = null;
-        }
+        _previewWorldDriver.Dispose();
 
         _camera = null;
         _cameraEntity = null;
@@ -526,7 +525,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _camera = new CameraLookAtComponent();
         _cameraEntity.AddComponent(_camera);
         _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorld!);
+        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
@@ -539,7 +538,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         var viewId = _editorRuntime.GameManager.ViewManager.CreateView(new ViewDefinition
         {
             Name = "Animation Clip Preview",
-            World = _previewWorld!,
+            World = _previewWorldDriver.World!,
             Camera = _camera,
             Surface = _surface,
             ClearColor = EditorThemePalette.PreviewClearColor,
@@ -561,27 +560,23 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
     private void EnsurePreviewSceneCreated()
     {
-        if (_previewWorld != null)
+        if (_previewWorldDriver.World != null)
         {
             return;
         }
 
-        _previewWorld = new World
+        _previewWorldDriver.Rebuild(world =>
         {
-            Name = "AnimationClipPreviewWorld",
-        };
-        _previewWorld.LoadContent(_editorRuntime);
+            _previewEntity = new Entity
+            {
+                Name = "AnimationClipPreviewEntity",
+            };
 
-        _previewEntity = new Entity
-        {
-            Name = "AnimationClipPreviewEntity",
-        };
-
-        _skinnedMeshComponent = new SkinnedMeshComponent();
-        _skinnedMeshComponent.AnimationEventTriggered += OnAnimationEventTriggered;
-        _previewEntity.RootComponent = _skinnedMeshComponent;
-        _previewWorld.AddEntity(_previewEntity);
-        _previewWorld.Update(0f);
+            _skinnedMeshComponent = new SkinnedMeshComponent();
+            _skinnedMeshComponent.AnimationEventTriggered += OnAnimationEventTriggered;
+            _previewEntity.RootComponent = _skinnedMeshComponent;
+            world.AddEntity(_previewEntity);
+        });
         ResetPreviewTransform();
     }
 
@@ -801,7 +796,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
         ApplyPreviewPlaybackConfiguration(resetTime: true);
         ResetPreviewTransform();
-        _previewWorld?.Update(0f);
+        _previewWorldDriver.RefreshNow();
         RefreshMetricsText();
         _renderView?.Invalidate();
     }

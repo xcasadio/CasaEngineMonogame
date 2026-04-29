@@ -20,6 +20,10 @@ public class TransformComponentEditor : ComponentEditorBase
         nameof(SceneComponent.LocalOrientation),
     };
 
+    private Vector3Editor? _positionEditor;
+    private Vector3Editor? _rotationEditor;
+    private Vector3Editor? _scaleEditor;
+
     protected SceneComponent SceneComponent => (SceneComponent)Component;
 
     public TransformComponentEditor(MGWindow window, SceneComponent component, Action? refreshRequested = null)
@@ -42,44 +46,57 @@ public class TransformComponentEditor : ComponentEditorBase
         }
     }
 
+    public override bool TryRefreshFromComponent()
+    {
+        if (_positionEditor == null || _rotationEditor == null || _scaleEditor == null)
+        {
+            return false;
+        }
+
+        _positionEditor.Value = SceneComponent.Coordinates.Position;
+        _rotationEditor.Value = SceneComponent.Coordinates.Orientation.GetYawPitchRoll();
+        _scaleEditor.Value = SceneComponent.Coordinates.Scale;
+        return true;
+    }
+
     protected MGExpander CreateTransformSection()
     {
         var section = CreateSection("Transform");
         var grid = CreatePropertyGrid();
         int rowIndex = 0;
 
-        var positionEditor = new Vector3Editor(Window)
+        _positionEditor = new Vector3Editor(Window)
         {
             Value = SceneComponent.Coordinates.Position,
         };
-        positionEditor.ValueChanged += (_, value) => ApplyValueChange(
+        _positionEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Position"),
             () => SceneComponent.Coordinates.Position,
             nextValue => SceneComponent.Coordinates.Position = nextValue,
             value);
-        rowIndex = AddPropertyRow(grid, rowIndex, "Position", positionEditor);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Position", _positionEditor);
 
-        var rotationEditor = new Vector3Editor(Window)
+        _rotationEditor = new Vector3Editor(Window)
         {
             Value = SceneComponent.Coordinates.Orientation.GetYawPitchRoll(),
         };
-        rotationEditor.ValueChanged += (_, value) => ApplyValueChange(
+        _rotationEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Rotation"),
             () => SceneComponent.Coordinates.Orientation,
             nextValue => SceneComponent.Coordinates.Orientation = nextValue,
             Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z));
-        rowIndex = AddPropertyRow(grid, rowIndex, "Rotation", rotationEditor);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Rotation", _rotationEditor);
 
-        var scaleEditor = new Vector3Editor(Window)
+        _scaleEditor = new Vector3Editor(Window)
         {
             Value = SceneComponent.Coordinates.Scale,
         };
-        scaleEditor.ValueChanged += (_, value) => ApplyValueChange(
+        _scaleEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Scale"),
             () => SceneComponent.Coordinates.Scale,
             nextValue => SceneComponent.Coordinates.Scale = nextValue,
             value);
-        AddPropertyRow(grid, rowIndex, "Scale", scaleEditor);
+        AddPropertyRow(grid, rowIndex, "Scale", _scaleEditor);
 
         section.SetContent(grid);
         return section;

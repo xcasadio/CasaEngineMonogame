@@ -884,7 +884,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (_entityAssetInspectorPanel == null)
         {
-            _entityAssetInspectorPanel = new EntityDetailsPanel(_mainWindow, includeComponentTree: false);
+            _entityAssetInspectorPanel = new EntityDetailsPanel(_mainWindow);
             _entityAssetInspectorPanel.SelectedComponentChanged += OnEntityAssetInspectorSelectedComponentChanged;
         }
 
@@ -1824,6 +1824,7 @@ public class GameEditor : Game, IObservableUpdate
 
         if (_activeEntityAssetEditorPanel != null)
         {
+            _activeEntityAssetEditorPanel.SelectedEntityChanged -= OnActiveEntityAssetSelectedEntityChanged;
             _activeEntityAssetEditorPanel.SelectedComponentChanged -= OnActiveEntityAssetSelectedComponentChanged;
         }
 
@@ -1831,6 +1832,7 @@ public class GameEditor : Game, IObservableUpdate
 
         if (_activeEntityAssetEditorPanel != null)
         {
+            _activeEntityAssetEditorPanel.SelectedEntityChanged += OnActiveEntityAssetSelectedEntityChanged;
             _activeEntityAssetEditorPanel.SelectedComponentChanged += OnActiveEntityAssetSelectedComponentChanged;
         }
 
@@ -1975,7 +1977,7 @@ public class GameEditor : Game, IObservableUpdate
         if (_entityAssetInspectorPanel != null)
         {
             _entityAssetInspectorPanel.HistoryContext = _activeEntityAssetEditorPanel?.HistoryContext ?? EditorHistoryContext.Empty;
-            _entityAssetInspectorPanel.SyncSelection(_activeEntityAssetEditorPanel?.LoadedEntity, _activeEntityAssetEditorPanel?.SelectedComponent);
+            _entityAssetInspectorPanel.SyncSelection(_activeEntityAssetEditorPanel?.SelectedEntity, _activeEntityAssetEditorPanel?.SelectedComponent);
         }
     }
 
@@ -2780,7 +2782,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private EditorSelectionState CreateEntitySelectionState()
     {
-        var entityAsset = _activeEntityAssetEditorPanel?.LoadedEntity;
+        var entityAsset = _activeEntityAssetEditorPanel?.SelectedEntity ?? _activeEntityAssetEditorPanel?.LoadedEntity;
         if (entityAsset == null)
         {
             return EditorSelectionState.Empty;
@@ -2805,6 +2807,16 @@ public class GameEditor : Game, IObservableUpdate
     private void OnEntityAssetInspectorSelectedComponentChanged(EntityComponent? component)
     {
         _activeEntityAssetEditorPanel?.SetSelectedComponent(component);
+    }
+
+    private void OnActiveEntityAssetSelectedEntityChanged(Entity? entity)
+    {
+        RefreshEntityAssetViews();
+
+        if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.Entity)
+        {
+            SyncGlobalSelectionFromActiveDocument();
+        }
     }
 
     private void OnActiveEntityAssetSelectedComponentChanged(EntityComponent? component)
@@ -2874,6 +2886,11 @@ public class GameEditor : Game, IObservableUpdate
             animationClipPreviewPanel.Update(gameTime);
         }
 
+        foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+        {
+            entityAssetEditorPanel.Update(gameTime);
+        }
+
         _contentBrowserPanel?.Update();
 
         _desktop.Update();
@@ -2884,6 +2901,10 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var materialViewportPanel in _materialViewportPanels.Values)
         {
             materialViewportPanel.UpdateInput(gameTime);
+        }
+        foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+        {
+            entityAssetEditorPanel.UpdateInput(gameTime);
         }
         RunAutomation(gameTime.TotalGameTime);
 
@@ -3564,6 +3585,10 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var materialViewportPanel in _materialViewportPanels.Values)
         {
             materialViewportPanel.DrawViewport(gameTime);
+        }
+        foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+        {
+            entityAssetEditorPanel.DrawViewport(gameTime);
         }
         foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
         {

@@ -80,6 +80,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private readonly Dictionary<PreviewPrimitiveKind, StaticModelMesh> _meshes = new();
     private readonly Dictionary<PreviewPrimitiveKind, MGButton> _shapeButtons = new();
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
+    private readonly PreviewWorldDriver _previewWorldDriver;
 
     private MGStackPanel? _root;
     private MGDockPanel? _viewportHost;
@@ -89,7 +90,6 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private RenderView? _renderView;
     private MguiPreviewViewHost? _renderViewHost;
     private Texture2D? _boundTexture;
-    private World? _previewWorld;
     private StaticModelSubMeshComponent? _previewMeshComponent;
     private Entity? _cameraEntity;
     private CameraLookAtComponent? _camera;
@@ -106,6 +106,10 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _window = window;
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
+        _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
+        {
+            WorldName = "MaterialPreviewWorld",
+        });
     }
 
     public MGElement CreateContent()
@@ -194,7 +198,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
     public World? GetOrCreatePreviewWorld()
     {
         EnsurePreviewSceneCreated();
-        return _previewWorld;
+        return _previewWorldDriver.World;
     }
 
     public void SetMaterialAsset(MaterialAsset? materialAsset)
@@ -222,7 +226,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         {
             $"Shape: {_activeShape}",
             $"Texture: {DescribeBoundTexture()}",
-            $"View mode: {_renderView?.UpdateMode.ToString() ?? (_previewWorld != null ? "ExternalWorldViewport" : "<none>")}",
+            $"View mode: {_renderView?.UpdateMode.ToString() ?? (_previewWorldDriver.World != null ? "ExternalWorldViewport" : "<none>")}",
             $"Status: {_statusMessage}",
             $"Preview world: {DescribePreviewWorld()}",
             $"Environment override active: {_renderView?.EnvironmentOverride != null}",
@@ -278,12 +282,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _meshes.Clear();
         _surface?.Dispose();
         _surface = null;
-
-        if (_previewWorld != null)
-        {
-            _previewWorld.Clear();
-            _previewWorld = null;
-        }
+        _previewWorldDriver.Dispose();
 
         _previewMeshComponent = null;
         _camera = null;
@@ -325,7 +324,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _camera = new CameraLookAtComponent();
         _cameraEntity.AddComponent(_camera);
         _cameraEntity.Initialize();
-        _cameraEntity.InitializeWithWorld(_previewWorld!);
+        _cameraEntity.InitializeWithWorld(_previewWorldDriver.World!);
         ConfigureCamera();
         _camera.OnScreenResized(_rtWidth, _rtHeight);
 
@@ -338,7 +337,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         var viewId = _editorRuntime.GameManager.ViewManager.CreateView(new ViewDefinition
         {
             Name = "Material Preview",
-            World = _previewWorld!,
+            World = _previewWorldDriver.World!,
             Camera = _camera,
             Surface = _surface,
             ClearColor = EditorThemePalette.PreviewClearColor,
@@ -366,25 +365,22 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
     private void EnsurePreviewWorldCreated()
     {
-        if (_previewWorld != null)
+        if (_previewWorldDriver.World != null)
         {
             return;
         }
 
-        _previewWorld = new World
+        _previewWorldDriver.Rebuild(world =>
         {
-            Name = "MaterialPreviewWorld",
-        };
-        _previewWorld.LoadContent(_editorRuntime);
+            var previewEntity = new Entity
+            {
+                Name = "MaterialPreviewEntity",
+            };
 
-        var previewEntity = new Entity
-        {
-            Name = "MaterialPreviewEntity",
-        };
-
-        _previewMeshComponent = new StaticModelSubMeshComponent();
-        previewEntity.RootComponent = _previewMeshComponent;
-        _previewWorld.AddEntity(previewEntity);
+            _previewMeshComponent = new StaticModelSubMeshComponent();
+            previewEntity.RootComponent = _previewMeshComponent;
+            world.AddEntity(previewEntity);
+        });
     }
 
     private void SetShape(PreviewPrimitiveKind shape)
@@ -414,7 +410,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _previewMeshComponent.Orientation = GetOrientation(_activeShape);
 
         // Materialize the queued preview entity and refresh its bounds after shape changes.
-        _previewWorld?.Update(0f);
+        _previewWorldDriver.RefreshNow();
 
         ConfigureCamera();
         UpdateShapeButtons();
@@ -579,24 +575,24 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
     private string DescribePreviewWorld()
     {
-        return _previewWorld?.Name ?? "<none>";
+        return _previewWorldDriver.World?.Name ?? "<none>";
     }
 
     private string DescribePhysicsIsolation()
     {
-        if (_previewWorld == null || _editorRuntime.GameManager.CurrentWorld == null)
+        if (_previewWorldDriver.World == null || _editorRuntime.GameManager.CurrentWorld == null)
         {
             return "<n/a>";
         }
 
-        return (!ReferenceEquals(_previewWorld.PhysicsWorldContext, _editorRuntime.GameManager.CurrentWorld.PhysicsWorldContext)).ToString();
+        return (!ReferenceEquals(_previewWorldDriver.World.PhysicsWorldContext, _editorRuntime.GameManager.CurrentWorld.PhysicsWorldContext)).ToString();
     }
 
     private string DescribeLastPhysicsDebugWorld()
     {
         if (_renderView == null)
         {
-            return _previewWorld?.Name ?? "<none>";
+            return _previewWorldDriver.World?.Name ?? "<none>";
         }
 
         return _editorRuntime.PhysicsDebugViewRendererComponent.TryGetLastRenderedPhysicsWorldName(_renderView.Id, out string worldName)

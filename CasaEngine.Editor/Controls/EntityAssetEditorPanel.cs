@@ -27,12 +27,13 @@ public sealed class EntityAssetEditorPanel : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly FrameCachedWindowInputSource _windowInputSource;
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
+    private readonly PreviewWorldDriver _previewWorldDriver;
 
     private WorldViewportPanel? _viewportPanel;
     private MGElement? _viewportContent;
+    private Entity? _selectedEntity;
     private EntityComponent? _selectedComponent;
     private Entity? _entity;
-    private World? _previewWorld;
     private string? _loadedRelativePath;
     private string? _historyContextId;
 
@@ -46,9 +47,16 @@ public sealed class EntityAssetEditorPanel : IDisposable
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
         _windowInputSource = windowInputSource;
+        _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
+        {
+            WorldName = "EntityAssetPreviewWorld",
+            UpdateMode = PreviewWorldUpdateMode.Continuous,
+        });
     }
 
     public Entity? LoadedEntity => _entity;
+
+    public Entity? SelectedEntity => _selectedEntity ?? _entity;
 
     public EntityComponent? SelectedComponent => _selectedComponent;
 
@@ -59,6 +67,8 @@ public sealed class EntityAssetEditorPanel : IDisposable
         : new EditorHistoryContext(EditorHistoryContextKind.Entity, _historyContextId);
 
     public bool IsDirty => TryGetHistoryContext(out var historyContext) && EditorDirtyStateService.Current.IsDirty(historyContext);
+
+    public event Action<Entity?>? SelectedEntityChanged;
 
     public event Action<EntityComponent?>? SelectedComponentChanged;
 
@@ -95,7 +105,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
         _entity = entity;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
-        SetSelectedComponent(null);
+        SetSelection(entity, null);
         RebuildPreviewWorld();
 
         if (TryGetHistoryContext(out var historyContext))
@@ -163,19 +173,37 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
     public void SetSelectedComponent(EntityComponent? component)
     {
-        if (component != null && !ReferenceEquals(component.Owner, _entity))
+        if (component != null && !ContainsEntity(component.Owner))
         {
             component = null;
         }
 
-        if (ReferenceEquals(_selectedComponent, component))
-        {
-            return;
-        }
+        SetSelection(component?.Owner ?? SelectedEntity, component);
+    }
 
-        _selectedComponent = component;
-        SyncViewportSelection();
-        SelectedComponentChanged?.Invoke(_selectedComponent);
+    public void SetSelectedEntity(Entity? entity)
+    {
+        SetSelection(entity, _selectedComponent);
+    }
+
+    public void FocusEntity(Entity? entity)
+    {
+        _viewportPanel?.FocusEntity(entity);
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        _previewWorldDriver.Tick(gameTime);
+    }
+
+    public void UpdateInput(GameTime gameTime)
+    {
+        _viewportPanel?.UpdateInput(gameTime);
+    }
+
+    public void DrawViewport(GameTime gameTime)
+    {
+        _viewportPanel?.DrawViewport(gameTime);
     }
 
     public void Dispose()
@@ -186,8 +214,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
 
         _viewportPanel?.Dispose();
-        _previewWorld?.Clear();
-        _previewWorld = null;
+        _previewWorldDriver.Dispose();
     }
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
@@ -195,6 +222,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         var result = new List<string>(8)
         {
             $"Loaded entity: {DescribeEntity(_entity)}",
+            $"Selected entity: {DescribeEntity(SelectedEntity)}",
             $"Selected component: {DescribeComponent(_selectedComponent)}",
             $"Loaded path: {_loadedRelativePath ?? "<none>"}",
             $"History context: {(HistoryContext.IsEmpty ? "<empty>" : $"{HistoryContext.Kind}:{HistoryContext.Id}")}",
@@ -255,11 +283,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
     private void RebuildPreviewWorld()
     {
-        if (_previewWorld != null)
-        {
-            _previewWorld.Clear();
-            _previewWorld = null;
-        }
+        _previewWorldDriver.Clear();
 
         if (_entity == null)
         {
@@ -273,22 +297,15 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
     private void EnsurePreviewWorldCreated()
     {
-        if (_previewWorld != null)
+        if (_previewWorldDriver.World != null || _entity == null)
         {
             return;
         }
 
-        _previewWorld = new World
+        _previewWorldDriver.Rebuild(world =>
         {
-            Name = "EntityAssetPreviewWorld",
-        };
-        _previewWorld.LoadContent(_editorRuntime);
-
-        if (_entity != null)
-        {
-            _previewWorld.AddEntity(_entity);
-            _previewWorld.Update(0f);
-        }
+            world.AddEntity(_entity);
+        });
     }
 
     private void BindViewport(bool focusEntity)
@@ -298,7 +315,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
             return;
         }
 
-        _viewportPanel.SetWorldOverride(_entity == null ? null : _previewWorld);
+        _viewportPanel.SetWorldOverride(_entity == null ? null : _previewWorldDriver.World);
         _viewportPanel.SetEnvironmentOverride(_environmentOverride);
         _viewportPanel.GizmoHistoryContext = HistoryContext;
         SyncViewportSelection();
@@ -317,7 +334,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
         var transformable = GetSelectedTransformable();
         _viewportPanel.EnablePreviewGizmo = transformable != null;
-        _viewportPanel.SetSelectedEntity(_entity);
+        _viewportPanel.SetSelectedEntity(SelectedEntity);
         _viewportPanel.SetSelectedTransformable(transformable);
     }
 
@@ -328,28 +345,99 @@ public sealed class EntityAssetEditorPanel : IDisposable
             return sceneComponent;
         }
 
-        return _selectedComponent == null ? _entity?.RootComponent : null;
+        return _selectedComponent == null ? SelectedEntity?.RootComponent : null;
     }
 
     private void OnViewportSelectedEntityChanged(Entity? entity)
     {
-        if (_entity == null || _viewportPanel == null)
+        if (_entity == null)
         {
             return;
         }
 
         if (entity == null)
         {
-            // Entity documents always keep their single preview entity as the active root selection.
-            _viewportPanel.SetSelectedEntity(_entity);
-            SetSelectedComponent(null);
+            SetSelection(_entity, null);
             return;
         }
 
-        if (ReferenceEquals(entity, _entity))
+        if (ContainsEntity(entity))
         {
-            SetSelectedComponent(null);
+            SetSelection(entity, null);
         }
+    }
+
+    private void SetSelection(Entity? entity, EntityComponent? component)
+    {
+        Entity? normalizedEntity = NormalizeSelectedEntity(entity);
+        if (component != null && !ReferenceEquals(component.Owner, normalizedEntity))
+        {
+            component = null;
+        }
+
+        bool entityChanged = !ReferenceEquals(_selectedEntity, normalizedEntity);
+        bool componentChanged = !ReferenceEquals(_selectedComponent, component);
+        if (!entityChanged && !componentChanged)
+        {
+            return;
+        }
+
+        _selectedEntity = normalizedEntity;
+        _selectedComponent = component;
+        SyncViewportSelection();
+
+        if (entityChanged)
+        {
+            SelectedEntityChanged?.Invoke(_selectedEntity);
+        }
+
+        if (componentChanged)
+        {
+            SelectedComponentChanged?.Invoke(_selectedComponent);
+        }
+    }
+
+    private Entity? NormalizeSelectedEntity(Entity? entity)
+    {
+        if (_entity == null)
+        {
+            return null;
+        }
+
+        if (entity == null || !ContainsEntity(entity))
+        {
+            return _entity;
+        }
+
+        return entity;
+    }
+
+    private bool ContainsEntity(Entity? entity)
+    {
+        if (_entity == null || entity == null)
+        {
+            return false;
+        }
+
+        return ContainsEntity(_entity, entity);
+    }
+
+    private static bool ContainsEntity(Entity current, Entity candidate)
+    {
+        if (ReferenceEquals(current, candidate))
+        {
+            return true;
+        }
+
+        foreach (var child in current.Children)
+        {
+            if (ContainsEntity(child, candidate))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)

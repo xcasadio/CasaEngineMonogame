@@ -37,6 +37,7 @@ internal sealed class EditorViewportCameraController
 
     private MouseState _previousMouseState;
     private bool _isMiddleDragCapturing;
+    private bool _isRightDragCapturing;
 
     public float Yaw { get; private set; } = MathHelper.PiOver4;
     public float Pitch { get; private set; } = -MathHelper.Pi / 6f;
@@ -107,7 +108,13 @@ internal sealed class EditorViewportCameraController
             if (_isMiddleDragCapturing && inputContext.MouseState.MiddleButton == ButtonState.Released)
             {
                 _isMiddleDragCapturing = false;
-                releaseInput();
+                ReleaseInputIfIdle(inputContext.MouseState, releaseInput);
+            }
+
+            if (_isRightDragCapturing && inputContext.MouseState.RightButton == ButtonState.Released)
+            {
+                _isRightDragCapturing = false;
+                ReleaseInputIfIdle(inputContext.MouseState, releaseInput);
             }
 
             _previousMouseState = inputContext.MouseState;
@@ -123,6 +130,12 @@ internal sealed class EditorViewportCameraController
             _isMiddleDragCapturing = true;
         }
 
+        if (receivesInput && mouseState.RightButton == ButtonState.Pressed && _previousMouseState.RightButton == ButtonState.Released)
+        {
+            activateView(true);
+            _isRightDragCapturing = true;
+        }
+
         if (_isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Pressed)
         {
             var dx = mouseState.X - _previousMouseState.X;
@@ -133,10 +146,26 @@ internal sealed class EditorViewportCameraController
             }
         }
 
+        if (_isRightDragCapturing && mouseState.RightButton == ButtonState.Pressed)
+        {
+            var dx = mouseState.X - _previousMouseState.X;
+            var dy = mouseState.Y - _previousMouseState.Y;
+            if (dx != 0 || dy != 0)
+            {
+                ApplyLookDrag(camera, dx, dy);
+            }
+        }
+
         if (_isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Released)
         {
             _isMiddleDragCapturing = false;
-            releaseInput();
+            ReleaseInputIfIdle(mouseState, releaseInput);
+        }
+
+        if (_isRightDragCapturing && mouseState.RightButton == ButtonState.Released)
+        {
+            _isRightDragCapturing = false;
+            ReleaseInputIfIdle(mouseState, releaseInput);
         }
 
         if (receivesInput && inputContext.VerticalWheelDelta != 0)
@@ -147,7 +176,7 @@ internal sealed class EditorViewportCameraController
 
         if (receivesInput || isKeyboardFocused)
         {
-            HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds);
+            HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing);
         }
 
         _previousMouseState = mouseState;
@@ -176,6 +205,17 @@ internal sealed class EditorViewportCameraController
         ApplyTo(camera);
     }
 
+    private void ApplyLookDrag(ArcBallCameraComponent camera, int dx, int dy)
+    {
+        Yaw += dx * OrbitSensitivity;
+        Pitch = Math.Clamp(
+            Pitch - dy * OrbitSensitivity,
+            -MathHelper.PiOver2 + 0.01f,
+            MathHelper.PiOver2 - 0.01f);
+
+        ApplyTo(camera);
+    }
+
     private void ApplyScroll(int scrollDelta)
     {
         if (scrollDelta > 0)
@@ -188,7 +228,7 @@ internal sealed class EditorViewportCameraController
         }
     }
 
-    private void HandleKeyboardCameraInput(ArcBallCameraComponent camera, KeyboardState keyboardState, float elapsedSeconds)
+    private void HandleKeyboardCameraInput(ArcBallCameraComponent camera, KeyboardState keyboardState, float elapsedSeconds, bool allowClassicKeys)
     {
         if (elapsedSeconds <= 0f)
         {
@@ -224,6 +264,36 @@ internal sealed class EditorViewportCameraController
             move -= camera.Up;
         }
 
+        if (allowClassicKeys)
+        {
+            if (keyboardState.IsKeyDown(Keys.D))
+            {
+                move += camera.Right;
+            }
+            else if (keyboardState.IsKeyDown(Keys.A))
+            {
+                move -= camera.Right;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.W))
+            {
+                move += camera.Direction;
+            }
+            else if (keyboardState.IsKeyDown(Keys.S))
+            {
+                move -= camera.Direction;
+            }
+
+            if (keyboardState.IsKeyDown(Keys.E))
+            {
+                move += camera.Up;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Q))
+            {
+                move -= camera.Up;
+            }
+        }
+
         if (move == Vector3.Zero)
         {
             return;
@@ -232,6 +302,14 @@ internal sealed class EditorViewportCameraController
         move.Normalize();
         Target += move * KeyboardMoveSpeed * elapsedSeconds;
         ApplyTo(camera);
+    }
+
+    private static void ReleaseInputIfIdle(MouseState mouseState, Action releaseInput)
+    {
+        if (mouseState.MiddleButton == ButtonState.Released && mouseState.RightButton == ButtonState.Released)
+        {
+            releaseInput();
+        }
     }
 
     private Vector3 ComputeCameraDirection()

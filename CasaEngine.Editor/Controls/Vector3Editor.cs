@@ -16,6 +16,7 @@ public class Vector3Editor : MGStackPanel
     private readonly NumericField _fieldZ;
 
     private Vector3 _value;
+    private bool _suppressValueChanged;
 
     // -------------------------------------------------------------------------
     // Properties
@@ -24,18 +25,7 @@ public class Vector3Editor : MGStackPanel
     public Vector3 Value
     {
         get => _value;
-        set
-        {
-            if (_value == value)
-            {
-                return;
-            }
-
-            _value = value;
-            _fieldX.Value = value.X;
-            _fieldY.Value = value.Y;
-            _fieldZ.Value = value.Z;
-        }
+        set => SetValue(value, notify: false);
     }
 
     public float Step
@@ -89,16 +79,31 @@ public class Vector3Editor : MGStackPanel
 
         _fieldX.ValueChanged += (_, v) =>
         {
+            if (_suppressValueChanged)
+            {
+                return;
+            }
+
             _value.X = v;
             ValueChanged?.Invoke(this, _value);
         };
         _fieldY.ValueChanged += (_, v) =>
         {
+            if (_suppressValueChanged)
+            {
+                return;
+            }
+
             _value.Y = v;
             ValueChanged?.Invoke(this, _value);
         };
         _fieldZ.ValueChanged += (_, v) =>
         {
+            if (_suppressValueChanged)
+            {
+                return;
+            }
+
             _value.Z = v;
             ValueChanged?.Invoke(this, _value);
         };
@@ -106,5 +111,32 @@ public class Vector3Editor : MGStackPanel
         TryAddChild(_fieldX);
         TryAddChild(_fieldY);
         TryAddChild(_fieldZ);
+    }
+
+    private void SetValue(Vector3 value, bool notify)
+    {
+        if (_value == value)
+        {
+            return;
+        }
+
+        _value = value;
+
+        _suppressValueChanged = true;
+        try
+        {
+            _fieldX.Value = value.X;
+            _fieldY.Value = value.Y;
+            _fieldZ.Value = value.Z;
+        }
+        finally
+        {
+            _suppressValueChanged = false;
+        }
+
+        if (notify)
+        {
+            ValueChanged?.Invoke(this, _value);
+        }
     }
 }

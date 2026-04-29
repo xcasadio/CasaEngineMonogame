@@ -43,6 +43,8 @@ public sealed class EntityDetailsPanel
     private World? _selectedWorld;
     private Entity? _selectedEntity;
     private EntityComponent? _selectedComponent;
+    private SceneComponent? _observedSceneComponent;
+    private ComponentEditorBase? _activeComponentEditor;
     private bool _suppressEntityNameChanged;
     private bool _suppressComponentSelectionChanged;
     private EditorHistoryContext _historyContext = DefaultHistoryContext;
@@ -175,10 +177,11 @@ public sealed class EntityDetailsPanel
 
     private void ApplyComponentSelection(EntityComponent? component, bool rebuildPropertyEditors)
     {
-        _selectedComponent = component;
+        EntityComponent? resolvedComponent = component;
 
         if (_componentTree == null)
         {
+            SetSelectedComponentInternal(resolvedComponent);
             if (rebuildPropertyEditors)
             {
                 RebuildPropertyEditors();
@@ -190,14 +193,14 @@ public sealed class EntityDetailsPanel
         _suppressComponentSelectionChanged = true;
         try
         {
-            if (component == null)
+            if (resolvedComponent == null)
             {
                 _componentTree.ClearSelection();
             }
-            else if (!_componentToItem.TryGetValue(component, out var item))
+            else if (!_componentToItem.TryGetValue(resolvedComponent, out var item))
             {
-                Trace($"ApplyComponentSelection missing tree item for component={DescribeComponent(component)} on entity={DescribeEntity(_selectedEntity)}");
-                _selectedComponent = null;
+                Trace($"ApplyComponentSelection missing tree item for component={DescribeComponent(resolvedComponent)} on entity={DescribeEntity(_selectedEntity)}");
+                resolvedComponent = null;
                 _componentTree.ClearSelection();
             }
             else
@@ -210,6 +213,8 @@ public sealed class EntityDetailsPanel
         {
             _suppressComponentSelectionChanged = false;
         }
+
+        SetSelectedComponentInternal(resolvedComponent);
 
         if (rebuildPropertyEditors)
         {
@@ -458,7 +463,8 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        _selectedComponent = item != null && _itemToComponent.TryGetValue(item, out var component) ? component : null;
+        var component = item != null && _itemToComponent.TryGetValue(item, out var selectedComponent) ? selectedComponent : null;
+        SetSelectedComponentInternal(component);
         Trace($"Tree selection changed entity={DescribeEntity(_selectedEntity)} component={DescribeComponent(_selectedComponent)}");
         RebuildPropertyEditors();
 
@@ -478,6 +484,7 @@ public sealed class EntityDetailsPanel
 
         if (_selectedEntity == null)
         {
+            _activeComponentEditor = null;
             if (_selectedWorld != null)
             {
                 BuildWorldPropertyEditors();
@@ -495,6 +502,7 @@ public sealed class EntityDetailsPanel
 
         if (_selectedComponent == null)
         {
+            _activeComponentEditor = null;
             BuildEntityPropertyEditors();
             return;
         }
@@ -503,14 +511,66 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor, HistoryContext);
-        _detailsContent.TryAddChild(componentEditor.CreateView());
+        _activeComponentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor, HistoryContext);
+        _detailsContent.TryAddChild(_activeComponentEditor.CreateView());
     }
 
     private void RefreshSelectedComponentEditor()
     {
         RebuildComponentTree();
         RebuildPropertyEditors();
+    }
+
+    private void SetSelectedComponentInternal(EntityComponent? component)
+    {
+        if (ReferenceEquals(_selectedComponent, component))
+        {
+            return;
+        }
+
+        DetachSelectedComponentObservers();
+        _selectedComponent = component;
+        _activeComponentEditor = null;
+        AttachSelectedComponentObservers();
+    }
+
+    private void AttachSelectedComponentObservers()
+    {
+        if (_selectedComponent is not SceneComponent sceneComponent)
+        {
+            return;
+        }
+
+        _observedSceneComponent = sceneComponent;
+        sceneComponent.Coordinates.PositionChanged += OnSelectedSceneComponentTransformChanged;
+        sceneComponent.Coordinates.OrientationChanged += OnSelectedSceneComponentTransformChanged;
+        sceneComponent.Coordinates.ScaleChanged += OnSelectedSceneComponentTransformChanged;
+    }
+
+    private void DetachSelectedComponentObservers()
+    {
+        if (_observedSceneComponent == null)
+        {
+            return;
+        }
+
+        _observedSceneComponent.Coordinates.PositionChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent.Coordinates.OrientationChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent.Coordinates.ScaleChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent = null;
+    }
+
+    private void OnSelectedSceneComponentTransformChanged(object? sender, EventArgs e)
+    {
+        if (_activeComponentEditor?.TryRefreshFromComponent() == true)
+        {
+            return;
+        }
+
+        if (_selectedComponent != null)
+        {
+            RebuildPropertyEditors();
+        }
     }
 
     private void BuildWorldPropertyEditors()

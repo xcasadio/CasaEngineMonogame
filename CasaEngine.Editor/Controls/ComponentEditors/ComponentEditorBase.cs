@@ -63,6 +63,11 @@ public abstract class ComponentEditorBase
         return root;
     }
 
+    public virtual bool TryRefreshFromComponent()
+    {
+        return false;
+    }
+
     protected abstract void BuildEditor(MGStackPanel root);
 
     protected MGTextBlock CreateMessage(string text)
