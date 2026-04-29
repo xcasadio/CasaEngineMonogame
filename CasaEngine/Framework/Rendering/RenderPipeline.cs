@@ -136,7 +136,7 @@ public sealed class RenderPipeline
             view.Surface.Apply(_graphicsDevice);
 
             var resolvedEnvironment = EnvironmentResolver.Resolve(view);
-            WorldLightCollector.Collect(view.World, view.Lighting, in resolvedEnvironment);
+            WorldLightCollector.Collect(view.World, view.Lighting, in resolvedEnvironment, view.Camera.Position);
             var resolvedClearColor = resolvedEnvironment.BackgroundMode == EnvironmentBackgroundMode.SolidColor
                 ? resolvedEnvironment.BackgroundColor
                 : view.ClearColor;

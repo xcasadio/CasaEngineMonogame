@@ -1,6 +1,7 @@
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering.Environment;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -9,17 +10,22 @@ namespace CasaEngine.Framework.Rendering;
 /// </summary>
 public static class WorldLightCollector
 {
+    /// <summary>Collects lights with a neutral local-light priority origin.</summary>
     public static void Collect(Scene.World.World world, LightingContext lightingContext, in ResolvedEnvironmentSettings environment)
+        => Collect(world, lightingContext, in environment, Vector3.Zero);
+
+    /// <summary>Collects lights and ranks local lights relative to the current view position.</summary>
+    public static void Collect(Scene.World.World world, LightingContext lightingContext, in ResolvedEnvironmentSettings environment, Vector3 priorityPosition)
     {
         ArgumentNullException.ThrowIfNull(world);
         ArgumentNullException.ThrowIfNull(lightingContext);
 
-        lightingContext.ClearLights();
-        lightingContext.AmbientColor = environment.EffectiveAmbientColor;
+        lightingContext.BeginCollection(priorityPosition, environment.EffectiveAmbientColor);
 
-        foreach (var entity in world.Entities)
+        var entities = world.Entities;
+        for (int i = 0; i < entities.Count; i++)
         {
-            CollectFromEntity(entity, lightingContext);
+            CollectFromEntity(entities[i], lightingContext);
         }
     }
 
@@ -35,8 +41,10 @@ public static class WorldLightCollector
             CollectFromSceneComponent(rootComponent, lightingContext);
         }
 
-        foreach (var component in entity.Components)
+        var components = entity.ComponentList;
+        for (int i = 0; i < components.Count; i++)
         {
+            var component = components[i];
             if (component is SceneComponent sceneComponent)
             {
                 CollectFromSceneComponent(sceneComponent, lightingContext);
@@ -49,9 +57,10 @@ public static class WorldLightCollector
             }
         }
 
-        foreach (var child in entity.Children)
+        var children = entity.ChildList;
+        for (int i = 0; i < children.Count; i++)
         {
-            CollectFromEntity(child, lightingContext);
+            CollectFromEntity(children[i], lightingContext);
         }
     }
 
@@ -62,9 +71,10 @@ public static class WorldLightCollector
             lightSource.AppendLights(lightingContext);
         }
 
-        foreach (var child in sceneComponent.Children)
+        var children = sceneComponent.Children;
+        for (int i = 0; i < children.Count; i++)
         {
-            CollectFromSceneComponent(child, lightingContext);
+            CollectFromSceneComponent(children[i], lightingContext);
         }
     }
 }

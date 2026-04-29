@@ -155,18 +155,11 @@ public class LightComponent : SceneComponent, IRenderLightSource
 
     private void AppendDirectionalLight(LightingContext lightingContext)
     {
-        int index = lightingContext.ActiveDirectionalLightCount;
-        if (index >= LightingContext.MaxDirectionalLights)
-        {
-            return;
-        }
-
-        lightingContext.DirectionalLights[index] = new DirectionalLight(
+        lightingContext.AddDirectionalLight(new DirectionalLight(
             Direction,
             DiffuseColorVector,
             SpecularColorVector,
-            Intensity);
-        lightingContext.ActiveDirectionalLightCount = index + 1;
+            Intensity));
     }
 
     private void AppendPointLight(LightingContext lightingContext)
@@ -176,19 +169,12 @@ public class LightComponent : SceneComponent, IRenderLightSource
             return;
         }
 
-        int index = lightingContext.ActivePointLightCount;
-        if (index >= LightingContext.MaxPointLights)
-        {
-            return;
-        }
-
-        lightingContext.PointLights[index] = new PointLight(
+        lightingContext.AddPointLight(new PointLight(
             Position,
             DiffuseColorVector,
             SpecularColorVector,
             Range,
-            Intensity);
-        lightingContext.ActivePointLightCount = index + 1;
+            Intensity));
     }
 
     private void AppendSpotLight(LightingContext lightingContext)
@@ -198,13 +184,7 @@ public class LightComponent : SceneComponent, IRenderLightSource
             return;
         }
 
-        int index = lightingContext.ActiveSpotLightCount;
-        if (index >= LightingContext.MaxSpotLights)
-        {
-            return;
-        }
-
-        lightingContext.SpotLights[index] = new SpotLight(
+        lightingContext.AddSpotLight(new SpotLight(
             Position,
             Direction,
             DiffuseColorVector,
@@ -212,7 +192,6 @@ public class LightComponent : SceneComponent, IRenderLightSource
             Range,
             InnerConeAngleRadians,
             OuterConeAngleRadians,
-            Intensity);
-        lightingContext.ActiveSpotLightCount = index + 1;
+            Intensity));
     }
 }

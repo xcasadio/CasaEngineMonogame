@@ -39,6 +39,10 @@ public class Entity : ObjectBase
 
     public IEnumerable<EntityComponent> Components => _components;
 
+    internal IReadOnlyList<Entity> ChildList => _children;
+
+    internal IReadOnlyList<EntityComponent> ComponentList => _components;
+
     public EntityPolicyState Policies { get; private set; } = new();
 
     public new string Name

@@ -133,7 +133,6 @@ public class LitDiffuseMaterial : MaterialBase
             shader.SetTextureParameter(ShaderParameterNames.NormalTexture, NormalMap, context.Stats);
         }
 
-        context.Lighting?.Bind(shader);
     }
 
     public override MaterialShaderCapabilities GetShaderCapabilities()
