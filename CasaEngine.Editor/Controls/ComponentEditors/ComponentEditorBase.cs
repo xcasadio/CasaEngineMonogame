@@ -19,6 +19,8 @@ namespace CasaEngine.Editor.Controls.ComponentEditors;
 
 public abstract class ComponentEditorBase
 {
+    private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
+
     protected static readonly HashSet<string> DefaultUnsupportedPropertyNames = new(StringComparer.OrdinalIgnoreCase)
     {
         nameof(EntityComponent.Owner),
@@ -40,6 +42,7 @@ public abstract class ComponentEditorBase
     protected MGWindow Window { get; }
     protected EntityComponent Component { get; }
     protected Action? RefreshRequested { get; }
+    public EditorHistoryContext HistoryContext { get; set; } = DefaultHistoryContext;
 
     protected ComponentEditorBase(MGWindow window, EntityComponent component, Action? refreshRequested = null)
     {
@@ -232,7 +235,7 @@ public abstract class ComponentEditorBase
             return;
         }
 
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             BuildComponentCommandDescription(property.DisplayName),
             () =>
             {
@@ -257,7 +260,7 @@ public abstract class ComponentEditorBase
             return;
         }
 
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             description,
             () =>
             {
@@ -408,10 +411,10 @@ public abstract class ComponentEditorBase
         return includeProperty?.Invoke(property) ?? true;
     }
 
-    private static void ExecuteWorldCommand(string description, Action execute, Action undo)
+    private void ExecuteHistoryCommand(string description, Action execute, Action undo)
     {
         EditorHistoryService.Current.Execute(
-            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
             new EditorDelegateCommand(description, execute, undo));
     }
 }

@@ -79,12 +79,16 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement? _hierarchyContent;
     private EntitiesPanel _entitiesPanel;
     private MGElement _entitiesContent;
+    private EntityAssetHierarchyPanel? _entityAssetHierarchyPanel;
+    private MGElement? _entityAssetHierarchyContent;
     private MaterialHierarchyPanel? _materialHierarchyPanel;
     private MGElement? _materialHierarchyContent;
     private ContextualDockPanelHost? _inspectorPanelHost;
     private MGElement? _inspectorContent;
     private EntityDetailsPanel _entityDetailsPanel;
     private MGElement _entityDetailsContent;
+    private EntityDetailsPanel? _entityAssetInspectorPanel;
+    private MGElement? _entityAssetInspectorContent;
     private MaterialInspectorView? _materialInspectorView;
     private MGElement? _materialInspectorContent;
     private ContextualDockPanelHost? _toolboxPanelHost;
@@ -94,11 +98,14 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AnimationClipPreviewPanel> _animationClipPreviewPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _entityAssetEditorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
     private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
+    private EntityAssetEditorPanel? _activeEntityAssetEditorPanel;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
     private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
     private UIScreenHierarchyPanel? _screenHierarchyPanel;
@@ -270,6 +277,11 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
             {
                 materialInspectorPanel.Dispose();
+            }
+
+            foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+            {
+                entityAssetEditorPanel.Dispose();
             }
 
             foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
@@ -698,6 +710,15 @@ public class GameEditor : Game, IObservableUpdate
                 ContentFactory = GetOrCreateMaterialHierarchyContent,
                 Refresh = _ => RefreshMaterialViews(),
             });
+
+            _hierarchyPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Hierarchy,
+                DocumentKind = EditorDocumentKind.Entity,
+                Title = "Hierarchy",
+                ContentFactory = GetOrCreateEntityAssetHierarchyContent,
+                Refresh = _ => RefreshEntityAssetViews(),
+            });
         }
 
         _hierarchyContent ??= _hierarchyPanelHost.CreateContent();
@@ -726,6 +747,14 @@ public class GameEditor : Game, IObservableUpdate
         _materialHierarchyContent ??= _materialHierarchyPanel.CreateContent();
         _materialHierarchyPanel.SetInspectorPanel(_activeMaterialInspectorPanel);
         return _materialHierarchyContent;
+    }
+
+    private MGElement GetOrCreateEntityAssetHierarchyContent()
+    {
+        _entityAssetHierarchyPanel ??= new EntityAssetHierarchyPanel(_mainWindow);
+        _entityAssetHierarchyContent ??= _entityAssetHierarchyPanel.CreateContent();
+        _entityAssetHierarchyPanel.SetEditorPanel(_activeEntityAssetEditorPanel);
+        return _entityAssetHierarchyContent;
     }
 
     private MGElement GetOrCreateInspectorContent()
@@ -764,6 +793,15 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Inspector",
                 ContentFactory = GetOrCreateMaterialInspectorContent,
                 Refresh = _ => RefreshMaterialViews(),
+            });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.Entity,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateEntityAssetInspectorContent,
+                Refresh = _ => RefreshEntityAssetViews(),
             });
         }
 
@@ -838,6 +876,19 @@ public class GameEditor : Game, IObservableUpdate
         _materialInspectorContent ??= _materialInspectorView.CreateContent();
         _materialInspectorView.SetInspectorPanel(_activeMaterialInspectorPanel);
         return _materialInspectorContent;
+    }
+
+    private MGElement GetOrCreateEntityAssetInspectorContent()
+    {
+        if (_entityAssetInspectorPanel == null)
+        {
+            _entityAssetInspectorPanel = new EntityDetailsPanel(_mainWindow, includeComponentTree: false);
+            _entityAssetInspectorPanel.SelectedComponentChanged += OnEntityAssetInspectorSelectedComponentChanged;
+        }
+
+        _entityAssetInspectorContent ??= _entityAssetInspectorPanel.CreateContent();
+        RefreshEntityAssetViews();
+        return _entityAssetInspectorContent;
     }
 
     private MGElement GetOrCreateToolboxContent()
@@ -1090,6 +1141,11 @@ public class GameEditor : Game, IObservableUpdate
                 RefreshMaterialViews();
                 break;
 
+            case EditorHistoryContextKind.Entity:
+                RefreshEntityAssetViews();
+                RefreshHistoryContextTitle(context);
+                break;
+
             case EditorHistoryContextKind.AnimationClip:
                 break;
 
@@ -1104,6 +1160,14 @@ public class GameEditor : Game, IObservableUpdate
             && e.Context.Kind == EditorHistoryContextKind.World)
         {
             RefreshWorldSelectionViews();
+            return;
+        }
+
+        if (e.ChangeKind == EditorHistoryStackChangeKind.Executed
+            && e.Context.Kind == EditorHistoryContextKind.Entity)
+        {
+            RefreshEntityAssetViews();
+            RefreshHistoryContextTitle(e.Context);
         }
     }
 
@@ -1199,6 +1263,10 @@ public class GameEditor : Game, IObservableUpdate
         else if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
         {
             ActivateAnimationClipDocument(panel.Id, animationClipPreviewPanel);
+        }
+        else if (TryGetEntityAssetEditorPanel(panel.Id, out var entityAssetEditorPanel))
+        {
+            ActivateEntityDocument(panel.Id, entityAssetEditorPanel);
         }
         else if (TryGetMaterialAssetInspectorPanel(panel.Id, out var materialInspectorPanel))
         {
@@ -1304,25 +1372,8 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.Material
-            && _editorContext.ActiveDocument.Id is { Length: > 0 } materialPanelId
-            && TryGetMaterialAssetInspectorPanel(materialPanelId, out var materialInspectorPanel))
-        {
-            if (materialInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
-            {
-                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, materialPanelId));
-                UpdateDockPanelTitle(materialPanelId, GetMaterialDocumentTitle(materialPanelId));
-                Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
-            }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                Logs.WriteWarning(errorMessage);
-            }
-
-            return;
-        }
-
         SaveDirtyMaterialInspectors();
+        SaveDirtyEntityAssetEditors();
 
         EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
         EditorAssetCatalogService.Save();
@@ -1371,6 +1422,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_materialInspectorPanels.TryGetValue(panelId, out _))
         {
             return () => GetOrCreateMaterialViewportContent(panelId);
+        }
+
+        if (_entityAssetEditorPanels.TryGetValue(panelId, out var entityAssetEditorPanel))
+        {
+            return entityAssetEditorPanel.CreateContent;
         }
 
         return () => CreateUnavailablePanelContent(panelId);
@@ -1535,6 +1591,19 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
+        if (TryGetEntityAssetEditorPanel(panel.Id, out var entityAssetEditorPanel))
+        {
+            entityAssetEditorPanel.Dispose();
+            _entityAssetEditorPanels.Remove(panel.Id);
+            _entityAssetEditorPanelTitles.Remove(panel.Id);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panel.Id));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Entity, panel.Id));
+            if (ReferenceEquals(_activeEntityAssetEditorPanel, entityAssetEditorPanel))
+            {
+                SetActiveEntityAssetEditorPanel(null);
+            }
+        }
+
         if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
         {
             animationClipPreviewPanel.Dispose();
@@ -1654,6 +1723,19 @@ public class GameEditor : Game, IObservableUpdate
             };
         }
 
+        if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel))
+        {
+            return new DockPanelNode(panelId)
+            {
+                Title = GetEntityDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = entityAssetEditorPanel.CreateContent,
+            };
+        }
+
         if (TryGetMaterialAssetInspectorPanel(panelId, out _))
         {
             return new DockPanelNode(panelId)
@@ -1680,6 +1762,18 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return _screenPreviewPanels.TryGetValue(panelId, out previewPanel);
+    }
+
+    private bool TryGetEntityAssetEditorPanel(string panelId, out EntityAssetEditorPanel entityAssetEditorPanel)
+    {
+        entityAssetEditorPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.EntityAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _entityAssetEditorPanels.TryGetValue(panelId, out entityAssetEditorPanel);
     }
 
     private bool TryGetMaterialAssetInspectorPanel(string panelId, out MaterialAssetInspectorPanel inspectorPanel)
@@ -1716,6 +1810,29 @@ public class GameEditor : Game, IObservableUpdate
     {
         _activeMaterialInspectorPanel = inspectorPanel;
         RefreshMaterialViews();
+    }
+
+    private void SetActiveEntityAssetEditorPanel(EntityAssetEditorPanel? entityAssetEditorPanel)
+    {
+        if (ReferenceEquals(_activeEntityAssetEditorPanel, entityAssetEditorPanel))
+        {
+            RefreshEntityAssetViews();
+            return;
+        }
+
+        if (_activeEntityAssetEditorPanel != null)
+        {
+            _activeEntityAssetEditorPanel.SelectedComponentChanged -= OnActiveEntityAssetSelectedComponentChanged;
+        }
+
+        _activeEntityAssetEditorPanel = entityAssetEditorPanel;
+
+        if (_activeEntityAssetEditorPanel != null)
+        {
+            _activeEntityAssetEditorPanel.SelectedComponentChanged += OnActiveEntityAssetSelectedComponentChanged;
+        }
+
+        RefreshEntityAssetViews();
     }
 
     private MGElement GetOrCreateMaterialViewportContent(string panelId)
@@ -1778,6 +1895,18 @@ public class GameEditor : Game, IObservableUpdate
         RefreshActiveHistoryContext();
     }
 
+    private void ActivateEntityDocument(string panelId, EntityAssetEditorPanel entityAssetEditorPanel)
+    {
+        SetActiveEntityAssetEditorPanel(entityAssetEditorPanel);
+        _editorContext.SetActiveDocument(new EditorDocumentContext(
+            EditorDocumentKind.Entity,
+            panelId,
+            _entityAssetEditorPanelTitles.TryGetValue(panelId, out var title) ? title : "Entity",
+            entityAssetEditorPanel));
+        SyncGlobalSelectionFromActiveDocument();
+        RefreshActiveHistoryContext();
+    }
+
     private void ActivateAnimationClipDocument(string panelId, AnimationClipPreviewPanel previewPanel)
     {
         _editorContext.SetActiveDocument(new EditorDocumentContext(
@@ -1807,6 +1936,13 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetEntityAssetEditorPanel(activeDocumentPanelId, out var entityAssetEditorPanel))
+        {
+            ActivateEntityDocument(activeDocumentPanelId, entityAssetEditorPanel);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
             && TryGetAnimationClipPreviewPanel(activeDocumentPanelId, out var animationClipPreviewPanel))
         {
             ActivateAnimationClipDocument(activeDocumentPanelId, animationClipPreviewPanel);
@@ -1828,6 +1964,17 @@ public class GameEditor : Game, IObservableUpdate
     {
         _materialHierarchyPanel?.SetInspectorPanel(_activeMaterialInspectorPanel);
         _materialInspectorView?.SetInspectorPanel(_activeMaterialInspectorPanel);
+    }
+
+    private void RefreshEntityAssetViews()
+    {
+        _entityAssetHierarchyPanel?.SetEditorPanel(_activeEntityAssetEditorPanel);
+
+        if (_entityAssetInspectorPanel != null)
+        {
+            _entityAssetInspectorPanel.HistoryContext = _activeEntityAssetEditorPanel?.HistoryContext ?? EditorHistoryContext.Empty;
+            _entityAssetInspectorPanel.SyncSelection(_activeEntityAssetEditorPanel?.LoadedEntity, _activeEntityAssetEditorPanel?.SelectedComponent);
+        }
     }
 
     private DockTabGroupNode? GetDocumentDockGroup()
@@ -1870,6 +2017,11 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         if (TryOpenAnimationClipAsset(fullPath))
+        {
+            return true;
+        }
+
+        if (TryOpenEntityAsset(fullPath))
         {
             return true;
         }
@@ -2011,6 +2163,61 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
+    private bool TryOpenEntityAsset(string fullPath)
+    {
+        if (!EntityAssetEditorPanel.TryLoadAsset(fullPath, out var entityAsset))
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = entityAsset.AssetId != Guid.Empty ? entityAsset.AssetId : entityAsset.Id;
+        string panelId = $"{EditorPanelIds.EntityAssetDocumentPrefix}{documentId:N}";
+        bool createdPanel = false;
+        if (!_entityAssetEditorPanels.TryGetValue(panelId, out var entityAssetEditorPanel))
+        {
+            entityAssetEditorPanel = new EntityAssetEditorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+            _entityAssetEditorPanels.Add(panelId, entityAssetEditorPanel);
+            createdPanel = true;
+        }
+
+        entityAssetEditorPanel.SetHistoryContextId(panelId);
+        if (createdPanel)
+        {
+            entityAssetEditorPanel.LoadAsset(entityAsset, fullPath);
+        }
+
+        string panelTitle = string.IsNullOrWhiteSpace(entityAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : entityAsset.Name;
+        _entityAssetEditorPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var panelNode = CreateDocumentPanelNode(panelId);
+            var targetGroup = GetDocumentDockGroup();
+            if (panelNode == null || targetGroup == null)
+            {
+                return false;
+            }
+
+            panelNode.Title = GetEntityDocumentTitle(panelId);
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetEntityDocumentTitle(panelId);
+        }
+
+        ActivateEntityDocument(panelId, entityAssetEditorPanel);
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened entity asset='{entityAsset.Name}', panel='{panelId}'");
+        return true;
+    }
+
     private bool TryOpenAnimationClipAsset(string fullPath)
     {
         if (!TryLoadAnimationClipAsset(fullPath, out var animationClipAsset))
@@ -2107,6 +2314,29 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void SaveDirtyEntityAssetEditors()
+    {
+        foreach (var pair in _entityAssetEditorPanels)
+        {
+            var entityAssetEditorPanel = pair.Value;
+            if (!entityAssetEditorPanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (entityAssetEditorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Entity, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetEntityDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Entity asset saved: {entityAssetEditorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
     private void UpdateDockPanelTitleForMaterialInspector(MaterialAssetInspectorPanel inspectorPanel)
     {
         if (TryGetMaterialInspectorPanelId(inspectorPanel, out var panelId))
@@ -2135,6 +2365,14 @@ public class GameEditor : Game, IObservableUpdate
                 if (_materialInspectorPanelTitles.ContainsKey(context.Id))
                 {
                     UpdateDockPanelTitle(context.Id, GetMaterialDocumentTitle(context.Id));
+                }
+
+                break;
+
+            case EditorHistoryContextKind.Entity:
+                if (_entityAssetEditorPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetEntityDocumentTitle(context.Id));
                 }
 
                 break;
@@ -2178,6 +2416,24 @@ public class GameEditor : Game, IObservableUpdate
         if (TryGetMaterialAssetInspectorPanel(panelId, out var inspectorPanel))
         {
             isDirty |= inspectorPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private string GetEntityDocumentTitle(string panelId)
+    {
+        string title = _entityAssetEditorPanelTitles.TryGetValue(panelId, out var value) ? value : "Entity";
+        if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel)
+            && !string.IsNullOrWhiteSpace(entityAssetEditorPanel.LoadedEntity?.Name))
+        {
+            title = entityAssetEditorPanel.LoadedEntity.Name;
+        }
+
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Entity, panelId));
+        if (TryGetEntityAssetEditorPanel(panelId, out var loadedEntityPanel))
+        {
+            isDirty |= loadedEntityPanel.IsDirty;
         }
 
         return isDirty ? $"{title} *" : title;
@@ -2441,6 +2697,11 @@ public class GameEditor : Game, IObservableUpdate
             case EditorDocumentKind.Material:
                 _editorContext.SetSelection(CreateMaterialSelectionState());
                 break;
+
+            case EditorDocumentKind.Entity:
+                _editorContext.SetSelection(CreateEntitySelectionState());
+                break;
+
             default:
                 _editorContext.ClearSelection();
                 break;
@@ -2513,6 +2774,43 @@ public class GameEditor : Game, IObservableUpdate
             materialAsset,
             1,
             $"Material {materialAsset.Name} selected");
+    }
+
+    private EditorSelectionState CreateEntitySelectionState()
+    {
+        var entityAsset = _activeEntityAssetEditorPanel?.LoadedEntity;
+        if (entityAsset == null)
+        {
+            return EditorSelectionState.Empty;
+        }
+
+        if (_activeEntityAssetEditorPanel?.SelectedComponent != null)
+        {
+            return new EditorSelectionState(
+                EditorSelectionKind.EntityAssetComponent,
+                _activeEntityAssetEditorPanel.SelectedComponent,
+                1,
+                _activeEntityAssetEditorPanel.SelectedComponent.GetType().Name);
+        }
+
+        return new EditorSelectionState(
+            EditorSelectionKind.EntityAsset,
+            entityAsset,
+            1,
+            $"Entity {entityAsset.Name} selected");
+    }
+
+    private void OnEntityAssetInspectorSelectedComponentChanged(EntityComponent? component)
+    {
+        _activeEntityAssetEditorPanel?.SetSelectedComponent(component);
+    }
+
+    private void OnActiveEntityAssetSelectedComponentChanged(EntityComponent? component)
+    {
+        if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.Entity)
+        {
+            SyncGlobalSelectionFromActiveDocument();
+        }
     }
 
     protected override void LoadContent()

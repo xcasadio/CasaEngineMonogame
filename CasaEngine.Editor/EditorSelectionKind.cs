@@ -8,4 +8,6 @@ public enum EditorSelectionKind
     WorldComponent,
     UIScreenNode,
     MaterialAsset,
+    EntityAsset,
+    EntityAssetComponent,
 }

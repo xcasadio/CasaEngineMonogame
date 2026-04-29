@@ -10,6 +10,7 @@ public enum EditorAssetSaveSource
 {
     Unknown = 0,
     MaterialInspectorPanel = 1,
+    EntityAssetEditorPanel = 2,
 }
 
 public sealed class EditorAssetSavedEventArgs : EventArgs

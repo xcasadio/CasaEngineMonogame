@@ -24,9 +24,12 @@ namespace CasaEngine.Editor.Controls;
 
 public sealed class EntityDetailsPanel
 {
+    private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
+
     private static readonly Lazy<IReadOnlyDictionary<string, Type>> ComponentTypes = new(CreateComponentTypeLookup);
 
     private readonly MGWindow _window;
+    private readonly bool _includeComponentTree;
     private readonly Dictionary<MGTreeViewItem, EntityComponent> _itemToComponent = new();
     private readonly Dictionary<EntityComponent, MGTreeViewItem> _componentToItem = new();
 
@@ -42,13 +45,21 @@ public sealed class EntityDetailsPanel
     private EntityComponent? _selectedComponent;
     private bool _suppressEntityNameChanged;
     private bool _suppressComponentSelectionChanged;
+    private EditorHistoryContext _historyContext = DefaultHistoryContext;
 
-    public EntityDetailsPanel(MGWindow window)
+    public EntityDetailsPanel(MGWindow window, bool includeComponentTree = true)
     {
         _window = window;
+        _includeComponentTree = includeComponentTree;
     }
 
     public event Action<EntityComponent?>? SelectedComponentChanged;
+
+    public EditorHistoryContext HistoryContext
+    {
+        get => _historyContext;
+        set => _historyContext = value.IsEmpty ? DefaultHistoryContext : value;
+    }
 
     public MGElement CreateContent()
     {
@@ -59,21 +70,24 @@ public sealed class EntityDetailsPanel
 
         var toolbar = BuildToolbar();
 
-        _componentTree = new MGTreeView(_window)
+        if (_includeComponentTree)
         {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-            PreferredHeight = 220,
-            MinHeight = 140,
-        };
-        _componentTree.SelectionChanged += OnComponentTreeSelectionChanged;
+            _componentTree = new MGTreeView(_window)
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                PreferredHeight = 220,
+                MinHeight = 140,
+            };
+            _componentTree.SelectionChanged += OnComponentTreeSelectionChanged;
 
-        _componentSummaryText = new MGTextBlock(_window, "No entity selected")
-        {
-            Margin = new Thickness(6, 4, 6, 4),
-            VerticalAlignment = VerticalAlignment.Center,
-        };
+            _componentSummaryText = new MGTextBlock(_window, "No entity selected")
+            {
+                Margin = new Thickness(6, 4, 6, 4),
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+        }
 
         _detailsContent = new MGStackPanel(_window, Orientation.Vertical)
         {
@@ -86,8 +100,16 @@ public sealed class EntityDetailsPanel
 
         _root = new MGDockPanel(_window);
         _root.TryAddChild(toolbar, Dock.Top);
-        _root.TryAddChild(_componentSummaryText, Dock.Bottom);
-        _root.TryAddChild(_componentTree, Dock.Top);
+        if (_componentSummaryText != null)
+        {
+            _root.TryAddChild(_componentSummaryText, Dock.Bottom);
+        }
+
+        if (_componentTree != null)
+        {
+            _root.TryAddChild(_componentTree, Dock.Top);
+        }
+
         _root.TryAddChild(_detailsScrollViewer, Dock.Top);
 
         RefreshEntityHeader();
@@ -302,7 +324,7 @@ public sealed class EntityDetailsPanel
 
         var entity = _selectedEntity;
         var previousName = entity.Name;
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             "Rename Entity",
             () =>
             {
@@ -481,7 +503,7 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor);
+        var componentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor, HistoryContext);
         _detailsContent.TryAddChild(componentEditor.CreateView());
     }
 
@@ -709,7 +731,7 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             description,
             () =>
             {
@@ -746,7 +768,7 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             description,
             () =>
             {
@@ -913,7 +935,7 @@ public sealed class EntityDetailsPanel
         bool attachAsChild = selectedSceneComponent != null && component is SceneComponent;
         bool attachAsRoot = !attachAsChild && component is SceneComponent && entity.RootComponent == null;
 
-        ExecuteWorldCommand(
+        ExecuteHistoryCommand(
             "Add Component",
             () =>
             {
@@ -927,10 +949,10 @@ public sealed class EntityDetailsPanel
             });
     }
 
-    private void ExecuteWorldCommand(string description, Action execute, Action undo)
+    private void ExecuteHistoryCommand(string description, Action execute, Action undo)
     {
         EditorHistoryService.Current.Execute(
-            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
             new EditorDelegateCommand(description, execute, undo));
     }
 

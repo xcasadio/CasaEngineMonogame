@@ -1,4 +1,5 @@
 using System;
+using CasaEngine.Editor.History;
 using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
 
@@ -16,16 +17,32 @@ public static class ComponentEditorRegistry
         (typeof(EntityComponent), (window, component, _) => new GenericComponentEditor(window, component)),
     ];
 
-    public static ComponentEditorBase Create(MGWindow window, EntityComponent component, Action? refreshRequested = null)
+    public static ComponentEditorBase Create(
+        MGWindow window,
+        EntityComponent component,
+        Action? refreshRequested = null,
+        EditorHistoryContext? historyContext = null)
     {
         foreach (var registration in Registrations)
         {
             if (registration.ComponentType.IsInstanceOfType(component))
             {
-                return registration.Factory(window, component, refreshRequested);
+                var editor = registration.Factory(window, component, refreshRequested);
+                if (historyContext.HasValue)
+                {
+                    editor.HistoryContext = historyContext.Value;
+                }
+
+                return editor;
             }
         }
 
-        return new GenericComponentEditor(window, component);
+        var fallbackEditor = new GenericComponentEditor(window, component);
+        if (historyContext.HasValue)
+        {
+            fallbackEditor.HistoryContext = historyContext.Value;
+        }
+
+        return fallbackEditor;
     }
 }
