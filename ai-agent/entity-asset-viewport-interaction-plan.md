@@ -78,7 +78,7 @@
   - le viewport du document utilise `EntityAssetPreviewWorld`.
   - la sélection du world principal n'est pas modifiée.
 
-- ⏳ Étendre les tests de non-régression autour du contrat `.entity`
+- ✅ Étendre les tests de non-régression autour du contrat `.entity`
   Objectif: couvrir les points stables sans dépendre d'un test UI fragile.
   Fichiers ciblés:
   - `CasaEngine.Tests/Editor/EntityAssetDocumentTests.cs`
