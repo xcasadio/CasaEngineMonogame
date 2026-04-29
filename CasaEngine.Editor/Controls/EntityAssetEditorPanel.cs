@@ -10,6 +10,7 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.Transform;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using Microsoft.Xna.Framework;
@@ -80,6 +81,10 @@ public sealed class EntityAssetEditorPanel : IDisposable
         ArgumentException.ThrowIfNullOrWhiteSpace(historyContextId);
 
         _historyContextId = historyContextId;
+        if (_viewportPanel != null)
+        {
+            _viewportPanel.GizmoHistoryContext = HistoryContext;
+        }
     }
 
     public void LoadAsset(Entity entity, string fullPath)
@@ -168,6 +173,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
 
         _selectedComponent = component;
+        SyncViewportSelection();
         SelectedComponentChanged?.Invoke(_selectedComponent);
     }
 
@@ -271,11 +277,35 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
         _viewportPanel.SetWorldOverride(_entity == null ? null : _previewWorld);
         _viewportPanel.SetEnvironmentOverride(_environmentOverride);
-        _viewportPanel.SetSelectedEntity(_entity);
+        _viewportPanel.GizmoHistoryContext = HistoryContext;
+        SyncViewportSelection();
         if (focusEntity)
         {
             _viewportPanel.FocusEntity(_entity);
         }
+    }
+
+    private void SyncViewportSelection()
+    {
+        if (_viewportPanel == null)
+        {
+            return;
+        }
+
+        var transformable = GetSelectedTransformable();
+        _viewportPanel.EnablePreviewGizmo = transformable != null;
+        _viewportPanel.SetSelectedEntity(_entity);
+        _viewportPanel.SetSelectedTransformable(transformable);
+    }
+
+    private ITransformableObject? GetSelectedTransformable()
+    {
+        if (_selectedComponent is SceneComponent sceneComponent)
+        {
+            return sceneComponent;
+        }
+
+        return _selectedComponent == null ? _entity?.RootComponent : null;
     }
 
     private void OnViewportSelectedEntityChanged(Entity? entity)

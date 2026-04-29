@@ -17,6 +17,7 @@ using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.World;
+using CasaEngine.Framework.Scene.Transform;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
@@ -41,6 +42,14 @@ public class WorldViewportPanel : IDisposable
     public event Action<Entity?>? SelectedEntityChanged;
 
     public bool EnablePreviewSelection { get; set; }
+
+    public bool EnablePreviewGizmo { get; set; }
+
+    public EditorHistoryContext GizmoHistoryContext
+    {
+        get => _gizmoController.HistoryContext;
+        set => _gizmoController.HistoryContext = value;
+    }
 
     private sealed class ViewportHostPanel : MGDockPanel
     {
@@ -127,6 +136,7 @@ public class WorldViewportPanel : IDisposable
     private WorldEnvironmentSettings? _environmentOverride;
     private Entity? _cameraEntity;
     private Entity? _selectedEntity;
+    private ITransformableObject? _selectedTransformable;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
@@ -176,7 +186,7 @@ public class WorldViewportPanel : IDisposable
         {
             ActivateThisView(captureInput: false);
 
-            if (EnablePreviewSelection)
+            if (EnablePreviewSelection && !EnablePreviewGizmo)
             {
                 SelectPreviewEntityRoot();
             }
@@ -205,7 +215,7 @@ public class WorldViewportPanel : IDisposable
     {
         SynchronizeRenderViewWorld();
         SynchronizeCamera();
-        if (HasWorldOverride)
+        if (!ShouldSynchronizeGizmo())
         {
             _gizmoController.Deactivate();
         }
@@ -267,6 +277,10 @@ public class WorldViewportPanel : IDisposable
         {
             UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
         }
+        else if (EnablePreviewGizmo)
+        {
+            UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
+        }
     }
 
     private static bool IsPointerInputRoutedToView(ViewInputContext inputContext, ViewId viewId)
@@ -285,7 +299,20 @@ public class WorldViewportPanel : IDisposable
     public void SetSelectedEntity(Entity? entity)
     {
         _selectedEntity = entity;
-        _gizmoController.SetSelectedEntity(entity);
+        _selectedTransformable = entity?.RootComponent;
+        _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
+    }
+
+    public void SetSelectedTransformable(ITransformableObject? transformable)
+    {
+        _selectedTransformable = transformable;
+
+        if (transformable is EntityComponent { Owner: { } owner })
+        {
+            _selectedEntity = owner;
+        }
+
+        _gizmoController.SetSelectedTransformable(transformable, TryGetSelectionWorld());
     }
 
     private void SelectPreviewEntityRoot()
@@ -302,7 +329,8 @@ public class WorldViewportPanel : IDisposable
         }
 
         _selectedEntity = entity;
-        _gizmoController.SetSelectedEntity(entity);
+        _selectedTransformable = entity.RootComponent;
+        _gizmoController.SetSelectedTransformable(_selectedTransformable, _renderWorldOverride);
         SelectedEntityChanged?.Invoke(entity);
     }
 
@@ -346,10 +374,11 @@ public class WorldViewportPanel : IDisposable
             if (_selectedEntity != null)
             {
                 _selectedEntity = null;
+                _selectedTransformable = null;
                 SelectedEntityChanged?.Invoke(null);
             }
 
-            _gizmoController.SetSelectedEntity(null);
+            _gizmoController.SetSelectedTransformable(null, _renderWorldOverride);
             _cameraController.SetState(MathHelper.PiOver4, -MathHelper.Pi / 6f, 4.2f, Vector3.Zero);
         }
         else if (leavingPreview && _savedPrimaryWorldCameraState.HasValue)
@@ -763,7 +792,7 @@ public class WorldViewportPanel : IDisposable
         AttachWorld(world);
         EnsureEditorOverlays(world);
         EnsureEditorGizmo(world);
-        _gizmoController.SetSelectedEntity(_selectedEntity);
+        _gizmoController.SetSelectedTransformable(_selectedTransformable, world);
     }
 
     private void RegisterViewportInput()
@@ -861,10 +890,11 @@ public class WorldViewportPanel : IDisposable
         if (_selectedEntity?.World != desiredWorld)
         {
             _selectedEntity = null;
+            _selectedTransformable = null;
             SelectedEntityChanged?.Invoke(null);
         }
 
-        _gizmoController.SetSelectedEntity(_selectedEntity);
+        _gizmoController.SetSelectedTransformable(_selectedTransformable, desiredWorld);
     }
 
     private void AttachWorld(World world)
@@ -907,6 +937,7 @@ public class WorldViewportPanel : IDisposable
         if (ReferenceEquals(_selectedEntity, entity))
         {
             _selectedEntity = null;
+            _selectedTransformable = null;
             SelectedEntityChanged?.Invoke(null);
         }
 
@@ -919,6 +950,7 @@ public class WorldViewportPanel : IDisposable
     private void OnWorldEntitiesCleared(object? sender, EventArgs e)
     {
         _selectedEntity = null;
+        _selectedTransformable = null;
         SelectedEntityChanged?.Invoke(null);
 
         if (sender is World world)
@@ -935,6 +967,11 @@ public class WorldViewportPanel : IDisposable
 
     private void OnGizmoDeleteEntitiesRequested(IReadOnlyList<Entity> entities)
     {
+        if (HasWorldOverride)
+        {
+            return;
+        }
+
         DeleteEntities(entities);
     }
 
@@ -1054,12 +1091,24 @@ public class WorldViewportPanel : IDisposable
 
     private void SynchronizeGizmo()
     {
+        _gizmoController.AllowSelectionPicking = !HasWorldOverride;
+        _gizmoController.AllowDeleteSelection = !HasWorldOverride;
         _gizmoController.Synchronize(_camera, _surface, _renderView?.World);
     }
 
     private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused)
     {
         _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, _camera, _surface, _renderView?.World);
+    }
+
+    private bool ShouldSynchronizeGizmo()
+    {
+        return !HasWorldOverride || EnablePreviewGizmo;
+    }
+
+    private World? TryGetSelectionWorld()
+    {
+        return _renderView?.World ?? _renderWorldOverride ?? _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld;
     }
 
     public void Dispose()

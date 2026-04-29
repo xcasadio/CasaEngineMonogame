@@ -21,6 +21,7 @@ namespace CasaEngine.Editor.Runtime;
 internal sealed class EditorViewportGizmoController : IDisposable
 {
     private readonly record struct TransformSnapshot(ITransformableObject Transformable, Vector3 Position, Quaternion Orientation, Vector3 Scale);
+    private static readonly EditorHistoryContext DefaultHistoryContext = new(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport);
 
     private sealed class ManipulationSession
     {
@@ -47,7 +48,14 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _editorRuntime = editorRuntime;
     }
 
+    public bool AllowSelectionPicking { get; set; } = true;
+
+    public bool AllowDeleteSelection { get; set; } = true;
+
+    public EditorHistoryContext HistoryContext { get; set; } = DefaultHistoryContext;
+
     public event Action<Entity?>? SelectedEntityChanged;
+    public event Action<IReadOnlyList<Entity>>? DeleteEntitiesRequested;
 
     public void EnsureInitialized(RenderView? renderView, ArcBallCameraComponent? camera, RenderTargetSurface? surface, World world)
     {
@@ -61,6 +69,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
             _gizmo = new TransformGizmoComponent(_editorRuntime);
             _gizmo.Initialize();
             _gizmo.SelectionChanged += OnGizmoSelectionChanged;
+            _gizmo.DeleteSelectionEvent += OnGizmoDeleteSelectionChanged;
         }
 
         _gizmo.ActiveCamera = camera;
@@ -106,21 +115,39 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
     public void RefreshWorldSelection(World world, Entity? selectedEntity)
     {
+        SetSelectedTransformable(selectedEntity?.RootComponent, world);
+    }
+
+    public void SetSelectedEntity(Entity? entity)
+    {
+        SetSelectedTransformable(entity?.RootComponent, entity?.World ?? _gizmo?.SelectionWorld);
+    }
+
+    public void SetSelectedTransformable(ITransformableObject? transformable, World? world)
+    {
         if (_gizmo == null)
         {
             return;
         }
 
         CancelManipulation();
-        _gizmo.SelectionWorld = world;
+        if (world != null)
+        {
+            _gizmo.SelectionWorld = world;
+        }
+
         ApplySelectionUpdate(() =>
         {
-            _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
+            if (_gizmo.SelectionWorld != null)
+            {
+                _gizmo.SetSelectionPool(GetViewportSelectableObjects(_gizmo.SelectionWorld, transformable));
+            }
+
             _gizmo.ClearSelection();
 
-            if (selectedEntity?.RootComponent != null)
+            if (transformable != null)
             {
-                _gizmo.AddToSelection(selectedEntity.RootComponent);
+                _gizmo.AddToSelection(transformable);
             }
         });
 
@@ -133,27 +160,6 @@ internal sealed class EditorViewportGizmoController : IDisposable
         {
             _gizmo.IsActiveViewport = false;
         }
-    }
-
-    public void SetSelectedEntity(Entity? entity)
-    {
-        if (_gizmo == null)
-        {
-            return;
-        }
-
-        CancelManipulation();
-        ApplySelectionUpdate(() =>
-        {
-            _gizmo.ClearSelection();
-
-            if (entity?.RootComponent != null)
-            {
-                _gizmo.AddToSelection(entity.RootComponent);
-            }
-        });
-
-        RefreshPresentation();
     }
 
     public void Update(
@@ -231,7 +237,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
             _gizmo.Gizmo.NextPivotType();
         }
 
-        if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.Escape))
+        if (AllowSelectionPicking && isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.Escape))
         {
             _gizmo.Gizmo.Clear();
         }
@@ -253,9 +259,12 @@ internal sealed class EditorViewportGizmoController : IDisposable
         {
             BeginManipulationIfNeeded();
 
-            bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
-            bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-            _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
+            if (AllowSelectionPicking)
+            {
+                bool addToSelection = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
+                bool removeFromSelection = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
+                _gizmo.Gizmo.SelectEntities(new Vector2(mouseState.X, mouseState.Y), addToSelection, removeFromSelection);
+            }
         }
 
         _gizmo.Gizmo.Update(gameTime, keyboardState, mouseState);
@@ -274,6 +283,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         if (_gizmo != null)
         {
             CancelManipulation();
+            _gizmo.DeleteSelectionEvent -= OnGizmoDeleteSelectionChanged;
             _gizmo.SelectionChanged -= OnGizmoSelectionChanged;
             _gizmo.ClearSelection();
             _editorRuntime.Components.Remove(_gizmo);
@@ -295,6 +305,23 @@ internal sealed class EditorViewportGizmoController : IDisposable
             .FirstOrDefault(owner => owner != null);
 
         SelectedEntityChanged?.Invoke(selectedEntity);
+    }
+
+    private void OnGizmoDeleteSelectionChanged(object? sender, List<ITransformableObject> selection)
+    {
+        if (!AllowDeleteSelection)
+        {
+            return;
+        }
+
+        var entities = GetSelectedEntities(selection);
+        if (entities.Count == 0)
+        {
+            return;
+        }
+
+        CancelManipulation();
+        DeleteEntitiesRequested?.Invoke(entities);
     }
 
     private void ApplySelectionUpdate(Action updateSelection)
@@ -366,7 +393,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         _activeManipulation = null;
         EditorHistoryService.Current.Execute(
-            new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+            HistoryContext.IsEmpty ? DefaultHistoryContext : HistoryContext,
             command);
     }
 
@@ -455,13 +482,67 @@ internal sealed class EditorViewportGizmoController : IDisposable
         return keyboardState.IsKeyDown(key) && !_previousKeyboardState.IsKeyDown(key);
     }
 
-    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world)
+    private static List<Entity> GetSelectedEntities(IReadOnlyList<ITransformableObject> selection)
+    {
+        var entities = new List<Entity>(selection.Count);
+        var selectedEntities = new HashSet<Entity>();
+
+        for (int index = 0; index < selection.Count; index++)
+        {
+            if (selection[index] is not EntityComponent { Owner: { } owner })
+            {
+                continue;
+            }
+
+            if (selectedEntities.Add(owner))
+            {
+                entities.Add(owner);
+            }
+        }
+
+        if (entities.Count <= 1)
+        {
+            return entities;
+        }
+
+        var filteredEntities = new List<Entity>(entities.Count);
+        for (int index = 0; index < entities.Count; index++)
+        {
+            var entity = entities[index];
+            if (!HasSelectedAncestor(entity, selectedEntities))
+            {
+                filteredEntities.Add(entity);
+            }
+        }
+
+        return filteredEntities;
+    }
+
+    private static bool HasSelectedAncestor(Entity entity, HashSet<Entity> selectedEntities)
+    {
+        for (var parent = entity.Parent; parent != null; parent = parent.Parent)
+        {
+            if (selectedEntities.Contains(parent))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world, ITransformableObject? explicitSelection = null)
     {
         var selectables = new List<ITransformableObject>();
 
         foreach (var entity in world.Entities)
         {
             AddSelectableRoots(entity, selectables);
+        }
+
+        if (explicitSelection != null && !selectables.Contains(explicitSelection))
+        {
+            selectables.Add(explicitSelection);
         }
 
         return selectables;

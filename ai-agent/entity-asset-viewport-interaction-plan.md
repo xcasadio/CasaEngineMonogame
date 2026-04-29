@@ -57,7 +57,7 @@
   - ne pas réutiliser directement les hypothèses du world editor sur la sélection multi-entity.
   - garder le comportement actuel des autres documents (`World`, `Material`, `AnimationClip`).
 
-- ⏳ Réintroduire le gizmo de façon contrôlée pour les composants transformables
+- ✅ Réintroduire le gizmo de façon contrôlée pour les composants transformables
   Objectif: permettre la manipulation de la racine ou des `SceneComponent` du document `.entity` via le gizmo, avec undo/redo document-scoped.
   Fichiers ciblés:
   - `CasaEngine.Editor/Controls/EntityAssetEditorPanel.cs`
