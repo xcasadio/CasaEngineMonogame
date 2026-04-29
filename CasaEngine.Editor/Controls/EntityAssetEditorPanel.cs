@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
@@ -189,6 +190,28 @@ public sealed class EntityAssetEditorPanel : IDisposable
         _previewWorld = null;
     }
 
+    public IReadOnlyList<string> GetAutomationStateSnapshot()
+    {
+        var result = new List<string>(8)
+        {
+            $"Loaded entity: {DescribeEntity(_entity)}",
+            $"Selected component: {DescribeComponent(_selectedComponent)}",
+            $"Loaded path: {_loadedRelativePath ?? "<none>"}",
+            $"History context: {(HistoryContext.IsEmpty ? "<empty>" : $"{HistoryContext.Kind}:{HistoryContext.Id}")}",
+        };
+
+        var viewportStates = _viewportPanel?.GetAutomationStateSnapshot();
+        if (viewportStates != null)
+        {
+            for (int index = 0; index < viewportStates.Count; index++)
+            {
+                result.Add($"Viewport {viewportStates[index]}");
+            }
+        }
+
+        return result;
+    }
+
     internal static bool TryLoadAsset(string fullPath, out Entity entity)
     {
         entity = new Entity();
@@ -339,5 +362,22 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
         historyContext = new EditorHistoryContext(EditorHistoryContextKind.Entity, _historyContextId);
         return true;
+    }
+
+    private static string DescribeEntity(Entity? entity)
+    {
+        return entity == null
+            ? "<null>"
+            : $"'{entity.Name}'";
+    }
+
+    private static string DescribeComponent(EntityComponent? component)
+    {
+        if (component == null)
+        {
+            return "<null>";
+        }
+
+        return $"'{component.GetType().Name}' owner={DescribeEntity(component.Owner)}";
     }
 }

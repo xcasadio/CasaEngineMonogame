@@ -68,7 +68,7 @@
   - limiter la V1 au root component et aux `SceneComponent` explicitement sélectionnés dans `Hierarchy`.
   - encapsuler les modifications de transform dans des commandes `EditorDelegateCommand` du contexte `Entity`.
 
-- ⏳ Ajouter une automatisation smoke spécifique aux documents `.entity`
+- ✅ Ajouter une automatisation smoke spécifique aux documents `.entity`
   Objectif: prouver qu'ouvrir `Entities/Box.entity` ne pollue pas le world principal et que la sélection reste document-scoped.
   Fichiers ciblés:
   - `CasaEngine.Editor/GameEditor.cs`

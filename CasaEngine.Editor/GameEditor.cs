@@ -127,6 +127,7 @@ public class GameEditor : Game, IObservableUpdate
     private KeyboardState _previousShortcutKeyboardState;
     private bool _automationWorldLoaded;
     private bool _automationSelectionApplied;
+    private bool _automationSelectionReappliedAfterAssetOpen;
     private bool _automationDiagnosticsCaptured;
     private TimeSpan _automationSelectionAppliedAt;
     private bool _automationAssetOpenAttempted;
@@ -378,6 +379,7 @@ public class GameEditor : Game, IObservableUpdate
         _editorHistory.Deactivate();
         _automationWorldLoaded = false;
         _automationSelectionApplied = false;
+        _automationSelectionReappliedAfterAssetOpen = false;
         _automationAssetOpenAttempted = false;
         _automationAssetOpened = false;
         _automationMaterialEditAttempted = false;
@@ -2906,6 +2908,11 @@ public class GameEditor : Game, IObservableUpdate
 
         if (!_automationSelectionApplied || !IsAutomationSelectionActive())
         {
+            if (_automationAssetOpened && _automationSelectionApplied)
+            {
+                _automationSelectionReappliedAfterAssetOpen = true;
+            }
+
             if (TryApplyAutomationSelection())
             {
                 _automationSelectionApplied = true;
@@ -3232,6 +3239,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
         AppendWorldViewportDiagnostics(builder);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
+        AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendAutomationSelectionDiagnostics(builder);
         builder.AppendLine($"Entries: {entries.Count}");
         builder.AppendLine();
@@ -3303,6 +3311,29 @@ public class GameEditor : Game, IObservableUpdate
         {
             builder.AppendLine($"  - {previewStates[i]}");
         }
+    }
+
+    private void AppendEntityAssetDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    {
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetEntityAssetEditorPanel(activeDocumentPanelId, out var entityAssetEditorPanel))
+        {
+            return;
+        }
+
+        var state = entityAssetEditorPanel.GetAutomationStateSnapshot();
+        if (state.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("Entity asset document state:");
+        for (int index = 0; index < state.Count; index++)
+        {
+            builder.AppendLine($"  - {state[index]}");
+        }
+
+        builder.AppendLine($"World selection preserved after asset open: {!_automationSelectionReappliedAfterAssetOpen}");
     }
 
     private string FormatAutomationMaterialEdit()
