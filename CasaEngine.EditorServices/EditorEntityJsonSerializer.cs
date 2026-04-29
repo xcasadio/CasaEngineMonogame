@@ -196,6 +196,10 @@ internal static class EditorEntityJsonSerializer
                 SaveCylinderCollisionComponent(cylinderCollisionComponent, node);
                 return;
 
+            case LightComponent lightComponent:
+                SaveLightComponent(lightComponent, node);
+                return;
+
             case SkinnedMeshComponent skinnedMeshComponent:
                 SaveSkinnedMeshComponent(skinnedMeshComponent, node);
                 return;
@@ -322,6 +326,26 @@ internal static class EditorEntityJsonSerializer
         var physicsDefinitionNode = new JObject();
         SavePhysicsDefinition(component.PhysicsDefinition, physicsDefinitionNode);
         node.Add("physics_definition", physicsDefinitionNode);
+    }
+
+    private static void SaveLightComponent(LightComponent component, JObject node)
+    {
+        SaveSceneComponent(component, node);
+
+        node.Add("light_type", component.Type.ConvertToString());
+
+        var colorNode = new JObject();
+        component.Color.Save(colorNode);
+        node.Add("color", colorNode);
+
+        var specularColorNode = new JObject();
+        component.SpecularColor.Save(specularColorNode);
+        node.Add("specular_color", specularColorNode);
+
+        node.Add("intensity", component.Intensity);
+        node.Add("range", component.Range);
+        node.Add("inner_cone_angle_degrees", component.InnerConeAngleDegrees);
+        node.Add("outer_cone_angle_degrees", component.OuterConeAngleDegrees);
     }
 
     private static void SaveBoxCollisionComponent(BoxCollisionComponent component, JObject node)

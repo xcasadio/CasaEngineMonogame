@@ -36,9 +36,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly ForwardRenderPipeline _pipeline = new();
 
     /// <summary>
-    /// Default scene lighting used when no external <see cref="LightingContext"/> is supplied.
-    /// Values mirror the three-directional-light setup previously hardcoded in LoadContent.
-    /// Replace at runtime to change scene lighting (Phase 5).
+    /// Fallback lighting used only when a caller flushes the renderer without a populated <see cref="RenderFrame.Lighting"/>.
+    /// The default instance is intentionally empty so the runtime does not hide missing scene lights behind hardcoded values.
     /// </summary>
     public LightingContext DefaultLighting { get; } = new();
 
@@ -47,6 +46,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
+        DefaultLighting.AmbientColor = Vector3.Zero;
     }
 
     /// <summary>Enqueue a <see cref="StaticModelMesh"/> sub-mesh for rendering.</summary>
@@ -96,8 +96,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
         _effect.Parameters["SpecularPower"].SetValue(5.0f);
-
-        EnvironmentLightingResolver.ApplyLegacyLighting(DefaultLighting);
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
         _unlitShaderWrapper = new ShaderWrapper(unlitEffect);

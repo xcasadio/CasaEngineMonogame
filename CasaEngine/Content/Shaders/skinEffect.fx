@@ -4,8 +4,8 @@
 //
 // Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
-// Uses the same directional light model as LitForward.fx
-// (up to 8 directional lights via Lighting.fxh).
+// Uses the same direct-light model as LitForward.fx
+// (directional, point and spot lights via Lighting.fxh).
 //_______________________________________________________________
 
 #include "Macros.fxh"
@@ -59,6 +59,16 @@ BEGIN_CONSTANTS
     float3 DirLight7SpecularColor _vs(c27) _ps(c28) _cb(c26);
 
     float ActiveDirectionalLightCount _ps(c29) _cb(c27.x);
+    float ActivePointLightCount _ps(c29) _cb(c27.y);
+    float ActiveSpotLightCount _ps(c29) _cb(c27.z);
+
+    float4 PointLightPositionAndRange[8] _ps(c40) _cb(c36);
+    float4 PointLightDiffuseColors[8] _ps(c48) _cb(c44);
+    float4 PointLightSpecularColors[8] _ps(c56) _cb(c52);
+    float4 SpotLightPositionAndRange[8] _ps(c64) _cb(c60);
+    float4 SpotLightDirectionAndInnerConeCos[8] _ps(c72) _cb(c68);
+    float4 SpotLightDiffuseColors[8] _ps(c80) _cb(c76);
+    float4 SpotLightSpecularColorsAndOuterConeCos[8] _ps(c88) _cb(c84);
 
     float3 EyePosition _vs(c28) _ps(c30) _cb(c28);
     float3 AmbientColor _cb(c29);
@@ -231,7 +241,7 @@ float4 PixelShaderRiggedModelDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 eyeVector  = normalize(EyePosition - input.Position3D);
     float3 worldNormal = normalize(input.Normal3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount);
 
     float4 color = texelColor;
     color.rgb *= lightResult.Diffuse;
@@ -272,7 +282,7 @@ float4 PixelShaderRiggedModelNormalDraw(VsOutputSkinnedQuad input) : COLOR0
     float3 N = normalize(input.Normal3D);
     float3 eyeVector = normalize(EyePosition - input.Position3D);
 
-    ColorPair lightResult = ComputeLights(eyeVector, N, (int)ActiveDirectionalLightCount);
+    ColorPair lightResult = ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount);
 
     float4 texelColor = SAMPLE_TEXTURE(Texture, input.TexureCoordinateA) * input.Color;
     float4 lightColor = float4(lightResult.Diffuse, 1.0f);

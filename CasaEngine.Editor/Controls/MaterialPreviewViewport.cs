@@ -372,6 +372,8 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
         _previewWorldDriver.Rebuild(world =>
         {
+            PreviewWorldLightRig.AddDefaultLights(world);
+
             var previewEntity = new Entity
             {
                 Name = "MaterialPreviewEntity",

@@ -39,6 +39,8 @@ public static class ShaderParameterNames
     // --- Lighting ---
     public const string AmbientColor = "AmbientColor";
     public const string ActiveDirectionalLightCount = "ActiveDirectionalLightCount";
+    public const string ActivePointLightCount = "ActivePointLightCount";
+    public const string ActiveSpotLightCount = "ActiveSpotLightCount";
     public const string EnvironmentAmbientColor = "EnvironmentAmbientColor";
     public const string EnvironmentSpecularIntensity = "EnvironmentSpecularIntensity";
     public const string EnvironmentCubeTexture = "EnvironmentCubeTexture";
@@ -111,6 +113,13 @@ public static class ShaderParameterNames
         DirLight6SpecularColor,
         DirLight7SpecularColor,
     };
+    public const string PointLightPositionAndRange = "PointLightPositionAndRange";
+    public const string PointLightDiffuseColors = "PointLightDiffuseColors";
+    public const string PointLightSpecularColors = "PointLightSpecularColors";
+    public const string SpotLightPositionAndRange = "SpotLightPositionAndRange";
+    public const string SpotLightDirectionAndInnerConeCos = "SpotLightDirectionAndInnerConeCos";
+    public const string SpotLightDiffuseColors = "SpotLightDiffuseColors";
+    public const string SpotLightSpecularColorsAndOuterConeCos = "SpotLightSpecularColorsAndOuterConeCos";
 
     // --- Skinning ---
     public const string Bones = "Bones";

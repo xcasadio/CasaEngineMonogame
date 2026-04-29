@@ -567,6 +567,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
         _previewWorldDriver.Rebuild(world =>
         {
+            PreviewWorldLightRig.AddDefaultLights(world);
+
             _previewEntity = new Entity
             {
                 Name = "AnimationClipPreviewEntity",

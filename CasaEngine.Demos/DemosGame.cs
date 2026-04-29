@@ -135,6 +135,7 @@ public class DemosGame : CasaEngineGame
 
         _currentDemo = _demos[_currentDemoIndex];
         _currentDemo.Initialize(this);
+        _currentDemo.ConfigureSceneLighting(currentWorld);
         var camera = _currentDemo.CreateCamera(this);
 
         Window.Title = _currentDemo.Title;

@@ -4,7 +4,6 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
-using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Models;
 
 using CasaEngine.Framework.Rendering;
@@ -12,7 +11,6 @@ using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using DirLight = CasaEngine.Framework.Rendering.DirectionalLight;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -33,26 +31,28 @@ namespace CasaEngine.Demos.Demos;
 ///   Hints-only import view: <see cref="LitDiffuseMaterial"/>   — shared imported-material presentation mapping driven only by imported hints
 ///
 /// Keyboard shortcuts:
-///   <c>L</c> — cycle directional light count from 1 up to the forward cap
 ///   <c>T</c> — cycle per-sphere instance tints  (Blue/Green → Red/Cyan → Yellow/Magenta)
 /// </summary>
 public class MaterialDemo : Demo
 {
     private CasaEngineGame? _game;
 
+    public override void ConfigureSceneLighting(CasaEngine.Framework.Scene.World.World world)
+    {
+    }
+
     public override string Title => "Material system demo";
 
     public override string Description =>
         "Unlit/Lit materials, LightingContext, MaterialInstanceData bridged to per-instance MaterialPropertyBlock, " +
         "alpha-test cutout, tangent-space normal map, transparent render queue, shared sky background plus scene reflection cube, ambient-vs-emissive reference, " +
-        "neutral legacy import-profile samples, and hints-only imported-material presentation mapping.  " +
-        "L = cycle lights,  T = cycle sphere tints.";
+        "neutral legacy import-profile samples, hints-only imported-material presentation mapping, and an explicit LightComponent rig (directional + point + spot).  " +
+        "T = cycle sphere tints.";
 
     // -----------------------------------------------------------------------
     //  Runtime state
     // -----------------------------------------------------------------------
 
-    private StaticMeshRendererComponent? _renderer;
     private KeyboardState _prevKb;
 
     // Per-instance PropertyBlocks for the two demo spheres
@@ -84,9 +84,6 @@ public class MaterialDemo : Demo
     private const float DemoRingStartAngle = -MathHelper.PiOver2;
     private int _tintIndex;
 
-    // Active light count (cycled with L key)
-    private int _lightCount = Math.Min(4, LightingContext.MaxDirectionalLights);
-
     // -----------------------------------------------------------------------
     //  Demo.Initialize
     // -----------------------------------------------------------------------
@@ -97,61 +94,7 @@ public class MaterialDemo : Demo
 
         var world = game.GameManager.CurrentWorld;
         var gd    = game.GraphicsDevice;
-
-        _renderer = game.GetGameComponent<StaticMeshRendererComponent>();
-
-        // ------------------------------------------------------------------
-        //  Lighting setup  (scalable studio rig)
-        // ------------------------------------------------------------------
-        if (_renderer is not null)
-        {
-            var lit = _renderer.DefaultLighting;
-            lit.AmbientColor = new Vector3(0.08f);
-            lit.ActiveDirectionalLightCount = _lightCount;
-
-            // Key — warm sun from upper-right
-            lit.DirectionalLights[0] = new DirLight(
-                new Vector3(-0.5f, -0.8f, -0.3f),
-                new Vector3(1.0f,  0.92f, 0.75f),
-                new Vector3(1.0f,  0.92f, 0.75f));
-
-            // Fill — cool blue from the left
-            lit.DirectionalLights[1] = new DirLight(
-                new Vector3(0.8f, -0.2f, 0.5f),
-                new Vector3(0.3f, 0.4f, 0.65f),
-                Vector3.Zero);
-
-            // Rim — from behind
-            lit.DirectionalLights[2] = new DirLight(
-                new Vector3(0.1f, -0.4f, 0.9f),
-                new Vector3(0.4f, 0.35f, 0.3f),
-                new Vector3(0.2f, 0.2f, 0.2f));
-
-            lit.DirectionalLights[3] = new DirLight(
-                new Vector3(-0.15f, -1.0f, 0.2f),
-                new Vector3(0.18f, 0.2f, 0.24f),
-                Vector3.Zero);
-
-            lit.DirectionalLights[4] = new DirLight(
-                new Vector3(-0.9f, -0.15f, -0.15f),
-                new Vector3(0.1f, 0.08f, 0.05f),
-                Vector3.Zero);
-
-            lit.DirectionalLights[5] = new DirLight(
-                new Vector3(0.55f, -0.35f, -0.76f),
-                new Vector3(0.12f, 0.05f, 0.1f),
-                new Vector3(0.02f, 0.02f, 0.02f));
-
-            lit.DirectionalLights[6] = new DirLight(
-                new Vector3(-0.62f, -0.28f, 0.73f),
-                new Vector3(0.04f, 0.09f, 0.12f),
-                Vector3.Zero);
-
-            lit.DirectionalLights[7] = new DirLight(
-                new Vector3(0.0f, -1.0f, 0.0f),
-                new Vector3(0.05f, 0.05f, 0.05f),
-                new Vector3(0.02f, 0.02f, 0.02f));
-        }
+        AddDemoLights(world);
 
         // ------------------------------------------------------------------
         //  Material instances
@@ -446,13 +389,6 @@ public class MaterialDemo : Demo
     {
         var kb = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
 
-        // L — cycle directional light count across the full forward-light cap
-        if (kb.IsKeyDown(Keys.L) && !_prevKb.IsKeyDown(Keys.L) && _renderer is not null)
-        {
-            _lightCount = (_lightCount % LightingContext.MaxDirectionalLights) + 1;
-            _renderer.DefaultLighting.ActiveDirectionalLightCount = _lightCount;
-        }
-
         // T — cycle per-sphere instance tints
         if (kb.IsKeyDown(Keys.T) && !_prevKb.IsKeyDown(Keys.T))
         {
@@ -461,6 +397,7 @@ public class MaterialDemo : Demo
         }
 
         _prevKb = kb;
+
     }
 
     // -----------------------------------------------------------------------
@@ -486,7 +423,6 @@ public class MaterialDemo : Demo
         }
 
         _game = null;
-        _renderer = null;
         _skyPipeline = null;
     }
 
@@ -592,6 +528,104 @@ public class MaterialDemo : Demo
         var entity = new Entity { Name = name };
         entity.RootComponent = component;
         world.AddEntity(entity);
+    }
+
+    private static void AddDemoLights(CasaEngine.Framework.Scene.World.World world)
+    {
+        SpawnLight(
+            world,
+            "DemoDirectionalLight",
+            LightType.Directional,
+            Vector3.Zero,
+            new Vector3(-0.5f, -0.8f, -0.3f),
+            new Color(255, 244, 214),
+            Color.White,
+            1.0f,
+            0.0f,
+            0.0f,
+            0.0f);
+
+        SpawnLight(
+            world,
+            "DemoPointLight",
+            LightType.Point,
+            new Vector3(2.6f, 1.9f, 2.3f),
+            Vector3.Forward,
+            new Color(104, 140, 214),
+            new Color(104, 140, 214),
+            0.55f,
+            8.5f,
+            0.0f,
+            0.0f);
+
+        SpawnLight(
+            world,
+            "DemoSpotLight",
+            LightType.Spot,
+            new Vector3(-2.8f, 3.2f, 1.4f),
+            Vector3.Zero - new Vector3(-2.8f, 3.2f, 1.4f),
+            new Color(255, 214, 168),
+            new Color(255, 214, 168),
+            0.9f,
+            10.0f,
+            18.0f,
+            32.0f);
+    }
+
+    private static void SpawnLight(
+        CasaEngine.Framework.Scene.World.World world,
+        string name,
+        LightType type,
+        Vector3 position,
+        Vector3 forward,
+        Color color,
+        Color specularColor,
+        float intensity,
+        float range,
+        float innerConeAngleDegrees,
+        float outerConeAngleDegrees)
+    {
+        var lightComponent = new LightComponent
+        {
+            Type = type,
+            LocalPosition = position,
+            LocalOrientation = CreateOrientationFromForward(forward),
+            Color = color,
+            SpecularColor = specularColor,
+            Intensity = intensity,
+            Range = range,
+            InnerConeAngleDegrees = innerConeAngleDegrees,
+            OuterConeAngleDegrees = outerConeAngleDegrees,
+        };
+
+        var entity = new Entity { Name = name };
+        entity.RootComponent = lightComponent;
+        world.AddEntity(entity);
+    }
+
+    private static Quaternion CreateOrientationFromForward(Vector3 forward)
+    {
+        if (forward.LengthSquared() <= 0.0001f)
+        {
+            return Quaternion.Identity;
+        }
+
+        forward = Vector3.Normalize(forward);
+        float dot = Math.Clamp(Vector3.Dot(Vector3.Forward, forward), -1.0f, 1.0f);
+
+        if (dot >= 0.9999f)
+        {
+            return Quaternion.Identity;
+        }
+
+        if (dot <= -0.9999f)
+        {
+            return Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
+        }
+
+        var axis = Vector3.Normalize(Vector3.Cross(Vector3.Forward, forward));
+        float angle = MathF.Acos(dot);
+        return Quaternion.CreateFromAxisAngle(axis, angle);
     }
 
     /// <summary>Builds and uploads a <see cref="StaticModelMesh"/> from a geometric primitive.</summary>

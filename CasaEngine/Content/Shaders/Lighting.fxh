@@ -46,6 +46,8 @@ struct ColorPair
 
 
 static const int MaxDirectionalLights = 8;
+static const int MaxPointLights = 8;
+static const int MaxSpotLights = 8;
 
 
 float3 ComputeAmbientTerm(float3 globalAmbientColor, float3 materialAmbientColor)
@@ -169,9 +171,27 @@ float3 GetDirectionalLightSpecularColor(int index)
     if (index == 7) return DirLight7SpecularColor;
     return 0;
 }
+void AccumulateLight(
+    inout ColorPair result,
+    float3 eyeVector,
+    float3 worldNormal,
+    float3 surfaceToLight,
+    float attenuation,
+    float3 lightDiffuse,
+    float3 lightSpecular)
+{
+    float3 halfVector = normalize(eyeVector + surfaceToLight);
+    float dotL = dot(surfaceToLight, worldNormal);
+    float zeroL = step(0, dotL);
+    float diffuse = zeroL * dotL * attenuation;
+    float specular = pow(max(dot(halfVector, worldNormal), 0) * zeroL, SpecularPower) * attenuation;
+
+    result.Diffuse += diffuse * lightDiffuse * DiffuseColor.rgb;
+    result.Specular += specular * lightSpecular * SpecularColor;
+}
 
 
-ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLights)
+ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNormal, uniform int numDirectionalLights)
 {
     ColorPair result;
     result.Diffuse = EmissiveColor;
@@ -180,7 +200,7 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLig
     [unroll]
     for (int i = 0; i < MaxDirectionalLights; i++)
     {
-        if (i >= numLights)
+        if (i >= numDirectionalLights)
         {
             break;
         }
@@ -188,15 +208,91 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldNormal, uniform int numLig
         float3 lightDirection = GetDirectionalLightDirection(i);
         float3 lightDiffuse = GetDirectionalLightDiffuseColor(i);
         float3 lightSpecular = GetDirectionalLightSpecularColor(i);
-        float3 halfVector = normalize(eyeVector - lightDirection);
+        AccumulateLight(result, eyeVector, worldNormal, -lightDirection, 1.0f, lightDiffuse, lightSpecular);
+    }
 
-        float dotL = dot(-lightDirection, worldNormal);
-        float zeroL = step(0, dotL);
-        float diffuse = zeroL * dotL;
-        float specular = pow(max(dot(halfVector, worldNormal), 0) * zeroL, SpecularPower);
+    int numPointLights = (int)ActivePointLightCount;
+    [unroll]
+    for (int i = 0; i < MaxPointLights; i++)
+    {
+        if (i >= numPointLights)
+        {
+            break;
+        }
 
-        result.Diffuse += diffuse * lightDiffuse * DiffuseColor.rgb;
-        result.Specular += specular * lightSpecular * SpecularColor;
+        float4 lightPositionAndRange = PointLightPositionAndRange[i];
+        float3 toLight = lightPositionAndRange.xyz - worldPosition;
+        float distanceToLight = length(toLight);
+        float range = lightPositionAndRange.w;
+        if (distanceToLight <= 0.0001f || range <= 0.0f)
+        {
+            continue;
+        }
+
+        float attenuation = saturate(1.0f - distanceToLight / range);
+        attenuation *= attenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        float3 surfaceToLight = toLight / distanceToLight;
+        AccumulateLight(
+            result,
+            eyeVector,
+            worldNormal,
+            surfaceToLight,
+            attenuation,
+            PointLightDiffuseColors[i].xyz,
+            PointLightSpecularColors[i].xyz);
+    }
+
+    int numSpotLights = (int)ActiveSpotLightCount;
+    [unroll]
+    for (int i = 0; i < MaxSpotLights; i++)
+    {
+        if (i >= numSpotLights)
+        {
+            break;
+        }
+
+        float4 lightPositionAndRange = SpotLightPositionAndRange[i];
+        float3 toLight = lightPositionAndRange.xyz - worldPosition;
+        float distanceToLight = length(toLight);
+        float range = lightPositionAndRange.w;
+        if (distanceToLight <= 0.0001f || range <= 0.0f)
+        {
+            continue;
+        }
+
+        float attenuation = saturate(1.0f - distanceToLight / range);
+        attenuation *= attenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        float3 surfaceToLight = toLight / distanceToLight;
+        float4 directionAndInnerConeCos = SpotLightDirectionAndInnerConeCos[i];
+        float4 specularAndOuterConeCos = SpotLightSpecularColorsAndOuterConeCos[i];
+        float spotCos = dot(directionAndInnerConeCos.xyz, -surfaceToLight);
+        float innerConeCos = directionAndInnerConeCos.w;
+        float outerConeCos = specularAndOuterConeCos.w;
+        float coneAttenuation = saturate((spotCos - outerConeCos) / max(innerConeCos - outerConeCos, 0.0001f));
+        attenuation *= coneAttenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        AccumulateLight(
+            result,
+            eyeVector,
+            worldNormal,
+            surfaceToLight,
+            attenuation,
+            SpotLightDiffuseColors[i].xyz,
+            specularAndOuterConeCos.xyz);
     }
 
     return result;
@@ -211,7 +307,7 @@ CommonVSOutput ComputeCommonVSOutputWithLighting(float4 position, float3 normal,
     float3 eyeVector = normalize(EyePosition - pos_ws.xyz);
     float3 worldNormal = normalize(mul(normal, WorldInverseTranspose));
 
-    ColorPair lightResult = ComputeLights(eyeVector, worldNormal, numLights);
+    ColorPair lightResult = ComputeLights(eyeVector, pos_ws.xyz, worldNormal, numLights);
     
     vout.Pos_ps = mul(position, WorldViewProj);
     vout.Diffuse = float4(lightResult.Diffuse, DiffuseColor.a);

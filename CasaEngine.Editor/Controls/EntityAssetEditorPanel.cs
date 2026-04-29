@@ -304,6 +304,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
         _previewWorldDriver.Rebuild(world =>
         {
+            PreviewWorldLightRig.AddDefaultLights(world);
             world.AddEntity(_entity);
         });
     }

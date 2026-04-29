@@ -34,7 +34,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     private RenderShaderSelector? _shaderSelector;
 
     /// <summary>
-    /// Default scene lighting for skinned meshes. Same values as StaticMeshRendererComponent.
+    /// Fallback lighting for direct renderer usage when no frame lighting is supplied.
+    /// The default instance is empty to avoid implicit hardcoded scene lighting.
     /// </summary>
     public LightingContext DefaultLighting { get; } = new();
 
@@ -43,6 +44,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.MeshComponent;
         DrawOrder = (int)ComponentDrawOrder.MeshComponent;
+        DefaultLighting.AmbientColor = Vector3.Zero;
     }
 
     public void AddMesh(RiggedModel mesh, Matrix world, ISkinnedMeshPoseProvider poseProvider, SkinningModeSelection skinningModeSelection)
@@ -87,8 +89,6 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             white.SetData(new[] { Color.White });
             RiggedModelLoader.DefaultTexture = white;
         }
-
-        EnvironmentLightingResolver.ApplyLegacyLighting(DefaultLighting);
 
         base.LoadContent();
     }

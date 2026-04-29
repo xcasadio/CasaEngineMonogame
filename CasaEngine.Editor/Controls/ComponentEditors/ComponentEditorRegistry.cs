@@ -11,6 +11,7 @@ public static class ComponentEditorRegistry
     [
         (typeof(StaticModelComponent), (window, component, refreshRequested) => new StaticModelComponentEditor(window, (StaticModelComponent)component, refreshRequested)),
         (typeof(StaticModelSubMeshComponent), (window, component, _) => new StaticModelSubMeshComponentEditor(window, (StaticModelSubMeshComponent)component)),
+        (typeof(LightComponent), (window, component, refreshRequested) => new LightComponentEditor(window, (LightComponent)component, refreshRequested)),
         (typeof(CameraComponent), (window, component, _) => new CameraComponentEditor(window, (CameraComponent)component)),
         (typeof(PhysicsBaseComponent), (window, component, _) => new PhysicsComponentEditor(window, (PhysicsBaseComponent)component)),
         (typeof(SceneComponent), (window, component, _) => new TransformComponentEditor(window, (SceneComponent)component)),

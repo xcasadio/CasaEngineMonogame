@@ -1,6 +1,7 @@
 ﻿using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting;
 using Microsoft.Xna.Framework;
 
@@ -14,6 +15,11 @@ public abstract class Demo
     public virtual string Description => string.Empty;
 
     public abstract void Initialize(CasaEngineGame game);
+
+    public virtual void ConfigureSceneLighting(World world)
+    {
+        DemoSceneLightRig.AddLegacyDirectionalRig(world);
+    }
 
     public virtual CameraComponent CreateCamera(CasaEngineGame game)
     {

@@ -68,6 +68,16 @@ public class LitDiffuseMaterial : MaterialBase
         return hasVertexColor ? techniqueName + "_VertexColor" : techniqueName;
     }
 
+    private static bool CanUseOneLightTechnique(in RenderContext context)
+    {
+        return context.Lighting is
+        {
+            ActiveDirectionalLightCount: 1,
+            ActivePointLightCount: 0,
+            ActiveSpotLightCount: 0,
+        };
+    }
+
     public override bool RequiresMaterialTechniqueSelection(
         bool techniqueSelectedBySelector,
         in RenderContext context,
@@ -83,12 +93,12 @@ public class LitDiffuseMaterial : MaterialBase
             return true;
         }
 
-        return context.Lighting is { ActiveDirectionalLightCount: 1 };
+        return CanUseOneLightTechnique(in context);
     }
 
     public override void SelectTechnique(ShaderWrapper shader, in RenderContext context, ShaderFeature features)
     {
-        var oneLight = context.Lighting is { ActiveDirectionalLightCount: 1 };
+        var oneLight = CanUseOneLightTechnique(in context);
         var hasReflection = HasReflection(in context, features);
 
         shader.SelectTechnique(GetTechniqueName(features, oneLight, hasReflection));
