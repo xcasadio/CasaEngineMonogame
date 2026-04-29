@@ -36,7 +36,11 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class WorldViewportPanel : IDisposable
 {
+    private readonly record struct EntityDeletion(Entity Entity, Entity? Parent);
+
     public event Action<Entity?>? SelectedEntityChanged;
+
+    public bool EnablePreviewSelection { get; set; }
 
     private sealed class ViewportHostPanel : MGDockPanel
     {
@@ -139,6 +143,7 @@ public class WorldViewportPanel : IDisposable
         _windowInputSource = windowInputSource;
         _gizmoController = new EditorViewportGizmoController(editorRuntime);
         _gizmoController.SelectedEntityChanged += OnGizmoSelectedEntityChanged;
+        _gizmoController.DeleteEntitiesRequested += OnGizmoDeleteEntitiesRequested;
     }
 
     public MGElement CreateContent()
@@ -170,6 +175,11 @@ public class WorldViewportPanel : IDisposable
         _viewportHost.MouseHandler.LMBClickedInside += (_, e) =>
         {
             ActivateThisView(captureInput: false);
+
+            if (EnablePreviewSelection)
+            {
+                SelectPreviewEntityRoot();
+            }
         };
 
         _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
@@ -276,6 +286,24 @@ public class WorldViewportPanel : IDisposable
     {
         _selectedEntity = entity;
         _gizmoController.SetSelectedEntity(entity);
+    }
+
+    private void SelectPreviewEntityRoot()
+    {
+        if (_renderWorldOverride == null || _renderWorldOverride.Entities.Count == 0)
+        {
+            return;
+        }
+
+        var entity = _renderWorldOverride.Entities[0];
+        if (ReferenceEquals(_selectedEntity, entity))
+        {
+            return;
+        }
+
+        _selectedEntity = entity;
+        _gizmoController.SetSelectedEntity(entity);
+        SelectedEntityChanged?.Invoke(entity);
     }
 
     public bool HasWorldOverride => _renderWorldOverride != null;
@@ -616,6 +644,47 @@ public class WorldViewportPanel : IDisposable
             new EditorDelegateCommand(description, execute, undo));
     }
 
+    private void DeleteEntities(IReadOnlyList<Entity> entities)
+    {
+        var world = _renderView?.World ?? _editorRuntime.GameManager.CurrentWorld;
+        if (world == null || entities.Count == 0)
+        {
+            return;
+        }
+
+        var deletions = new List<EntityDeletion>(entities.Count);
+        for (int index = 0; index < entities.Count; index++)
+        {
+            var entity = entities[index];
+            deletions.Add(new EntityDeletion(entity, entity.Parent));
+        }
+
+        Entity? nextSelection = deletions.Count == 1 ? deletions[0].Parent : null;
+        string description = deletions.Count == 1 ? "Delete Entity" : $"Delete {deletions.Count} Entities";
+
+        ExecuteWorldCommand(
+            description,
+            () =>
+            {
+                for (int index = 0; index < deletions.Count; index++)
+                {
+                    EditorWorldEditingService.DetachEntity(world, deletions[index].Entity);
+                }
+
+                ApplySelection(nextSelection);
+            },
+            () =>
+            {
+                for (int index = 0; index < deletions.Count; index++)
+                {
+                    var deletion = deletions[index];
+                    EditorWorldEditingService.AttachEntity(world, deletion.Entity, deletion.Parent);
+                }
+
+                ApplySelection(deletions.Count == 1 ? deletions[0].Entity : null);
+            });
+    }
+
     private void ApplySelection(Entity? entity)
     {
         _selectedEntity = entity;
@@ -864,6 +933,11 @@ public class WorldViewportPanel : IDisposable
         SelectedEntityChanged?.Invoke(entity);
     }
 
+    private void OnGizmoDeleteEntitiesRequested(IReadOnlyList<Entity> entities)
+    {
+        DeleteEntities(entities);
+    }
+
     private void SynchronizeCamera()
     {
         if (_camera == null)
@@ -991,6 +1065,8 @@ public class WorldViewportPanel : IDisposable
     public void Dispose()
     {
         DetachWorld();
+        _gizmoController.DeleteEntitiesRequested -= OnGizmoDeleteEntitiesRequested;
+        _gizmoController.SelectedEntityChanged -= OnGizmoSelectedEntityChanged;
 
         if (_renderView != null)
         {

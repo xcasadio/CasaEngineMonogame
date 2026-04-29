@@ -68,6 +68,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
 
         _viewportPanel = new WorldViewportPanel(_window, _graphicsDevice, _editorRuntime, _windowInputSource);
+        _viewportPanel.EnablePreviewSelection = true;
         _viewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
         _viewportContent = _viewportPanel.CreateContent();
         BindViewport(focusEntity: true);

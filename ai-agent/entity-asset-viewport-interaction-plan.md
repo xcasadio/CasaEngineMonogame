@@ -48,7 +48,7 @@
   - ajouter un relais document-scoped `SelectedEntityChanged`/`SelectedComponentChanged` côté panel `.entity`.
   - ignorer toute propagation vers `EditorSelection.Current` quand le document actif est `Entity`.
 
-- ⏳ Ajouter un picking viewport minimal sans réactiver tout le mode world
+- ✅ Ajouter un picking viewport minimal sans réactiver tout le mode world
   Objectif: un clic dans le viewport doit au minimum sélectionner l'entity racine preview et resynchroniser `Hierarchy` + `Inspector`.
   Fichiers ciblés:
   - `CasaEngine.Editor/Controls/WorldViewportPanel.cs`
