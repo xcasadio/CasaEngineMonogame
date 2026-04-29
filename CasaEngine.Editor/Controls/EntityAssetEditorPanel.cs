@@ -68,6 +68,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
 
         _viewportPanel = new WorldViewportPanel(_window, _graphicsDevice, _editorRuntime, _windowInputSource);
+        _viewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
         _viewportContent = _viewportPanel.CreateContent();
         BindViewport(focusEntity: true);
         return _viewportContent;
@@ -171,6 +172,11 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
     public void Dispose()
     {
+        if (_viewportPanel != null)
+        {
+            _viewportPanel.SelectedEntityChanged -= OnViewportSelectedEntityChanged;
+        }
+
         _viewportPanel?.Dispose();
         _previewWorld?.Clear();
         _previewWorld = null;
@@ -268,6 +274,27 @@ public sealed class EntityAssetEditorPanel : IDisposable
         if (focusEntity)
         {
             _viewportPanel.FocusEntity(_entity);
+        }
+    }
+
+    private void OnViewportSelectedEntityChanged(Entity? entity)
+    {
+        if (_entity == null || _viewportPanel == null)
+        {
+            return;
+        }
+
+        if (entity == null)
+        {
+            // Entity documents always keep their single preview entity as the active root selection.
+            _viewportPanel.SetSelectedEntity(_entity);
+            SetSelectedComponent(null);
+            return;
+        }
+
+        if (ReferenceEquals(entity, _entity))
+        {
+            SetSelectedComponent(null);
         }
     }
 

@@ -38,7 +38,7 @@
   - `Inspector` réutilise `EntityDetailsPanel` en mode inspecteur seul.
   - l'historique, le dirty state et la sauvegarde utilisent `EditorHistoryContextKind.Entity`.
 
-- ⏳ Relayer la sélection depuis le viewport de preview vers le document `.entity`
+- ✅ Relayer la sélection depuis le viewport de preview vers le document `.entity`
   Objectif: quand le viewport sélectionne l'entity de preview, publier cette sélection dans `EntityAssetEditorPanel` au lieu de modifier la sélection du world editor.
   Fichiers ciblés:
   - `CasaEngine.Editor/Controls/EntityAssetEditorPanel.cs`

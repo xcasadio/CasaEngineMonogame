@@ -2807,6 +2807,8 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnActiveEntityAssetSelectedComponentChanged(EntityComponent? component)
     {
+        RefreshEntityAssetViews();
+
         if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.Entity)
         {
             SyncGlobalSelectionFromActiveDocument();
