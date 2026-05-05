@@ -261,7 +261,7 @@ git add MGUI/MGUI.Tests ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "mgui: test native dark theme registration"
 ```
 
-### 🚧 T06 - Basculer CasaEngine.Editor vers le theme MGUI natif
+### ✅ T06 - Basculer CasaEngine.Editor vers le theme MGUI natif
 
 But: l'editeur ne doit plus charger ses propres fichiers XAML de theme dark.
 
@@ -293,7 +293,7 @@ git add CasaEngine.Editor/GameEditor.cs ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "editor: use native mgui dark theme"
 ```
 
-### ⏳ T07 - Retirer les assets dark du projet editeur ou les deprecier proprement
+### ✅ T07 - Retirer les assets dark du projet editeur ou les deprecier proprement
 
 But: eviter deux sources de verite pour le meme theme.
 
@@ -324,7 +324,7 @@ git add CasaEngine.Editor ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "editor: remove duplicated dark theme assets"
 ```
 
-### ⏳ T08 - Remplacer le theme dark du sample MGUI par le built-in natif
+### ✅ T08 - Remplacer le theme dark du sample MGUI par le built-in natif
 
 But: le sample MGUI doit montrer `Blueprint` et `Dark` avec le vrai theme `Dark` natif.
 
@@ -369,7 +369,7 @@ git add MGUI/MGUI.Samples ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "samples: switch theme demo to native dark"
 ```
 
-### ⏳ T09 - Mettre a jour la documentation MGUI
+### ✅ T09 - Mettre a jour la documentation MGUI
 
 But: documenter que `Dark` est un theme natif supporte.
 
@@ -405,7 +405,7 @@ git add MGUI/Docs MGUI/README.md MGUI/MGUI.Samples/Features ai-agent/mgui-native
 git commit -m "docs: document native mgui dark theme"
 ```
 
-### ⏳ T10 - Validation complete build et tests
+### 🧪 T10 - Validation complete build et tests
 
 But: verifier l'ensemble apres migration.
 
@@ -453,7 +453,17 @@ git commit -m "chore: validate native dark theme migration"
 
 Si aucun fichier autre que le plan n'a change apres validation, ce commit peut ne contenir que le passage de T10 en `✅`.
 
-### ⏳ T11 - Smoke test visuel manuel
+Resultat du 2026-05-05:
+
+- `dotnet build .\MGUI\MGUI.Samples\MGUI.Samples.csproj -c Debug --no-restore` a reussi apres migration et renommage du preview natif.
+- `dotnet build .\CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` a reussi; la solution compile avec le theme built-in `Dark` et sans les anciens assets XAML editoriaux.
+- `rg "CasaEditor\.Dark|CasaEngine\.Editor\\Content\\UI|LedgerSkin|EditorDarkThemePreview" .\MGUI .\CasaEngine.Editor` ne retourne plus de match source.
+- `dotnet test .\MGUI\MGUI.Tests\MGUI.Tests.csproj -c Debug --no-restore` echoue encore sur deux tests non lies a cette migration:
+   - `MGUI.Tests.Architecture.ToolingHooksTests.UIToolingService_ExposesSnapshotAndPreviewHooks` avec `System.Reflection.AmbiguousMatchException` sur `UIToolingService.LoadPreview(...)`.
+   - `MGUI.Tests.Architecture.BackendProjectSplitTests.IntegrationProject_StripsLegacyRendererFiles` car plusieurs lignes `<Compile Remove=...>` attendues manquent dans le projet d'integration.
+- Etat de tache conserve en `🧪` car les builds cibles et la recherche de references passent, mais la suite de tests complete n'est pas entierement verte a cause de ces echecs hors scope.
+
+### 🧪 T11 - Smoke test visuel manuel
 
 But: confirmer que le theme rendu ressemble bien au theme editeur et que le sample bascule correctement.
 
@@ -488,7 +498,12 @@ git add ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "test: smoke native dark theme visuals"
 ```
 
-### ⏳ T12 - Nettoyage final et rapport de migration
+Resultat du 2026-05-05:
+
+- Non execute depuis cette session: l'agent n'a pas de validation visuelle fiable sur les fenetres desktop MonoGame lancees localement.
+- Les builds cibles passent et les references interdites ont ete supprimees, mais l'apparence finale `Blueprint` / `Dark` dans `MGUI.Samples` et le rendu exact dans `CasaEngine.Editor` restent a verifier manuellement.
+
+### ✅ T12 - Nettoyage final et rapport de migration
 
 But: finir avec un historique propre et une synthese exploitable.
 
@@ -516,6 +531,15 @@ Commit attendu:
 git add ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "chore: finalize native dark theme migration plan status"
 ```
+
+Synthese finale du 2026-05-05:
+
+- Theme natif ajoute: `MGTheme.BuiltInTheme.Dark` est supporte par `MGUI.Core` avec ses templates `Dark.*` embarques.
+- Sample mis a jour: `StyleThemeRefactor` bascule maintenant entre `Blueprint` et `Dark`, et le preview dedie est devenu `NativeDarkThemePreview` sans chargement depuis `CasaEngine.Editor`.
+- Editor bascule: `CasaEngine.Editor` applique directement le built-in `Dark` et n'embarque plus les anciens XAML `CasaEditor.Dark.*`.
+- Validations executees: build `MGUI.Samples`, build `CasaEngine.Editor.MonoGame.sln`, compile-only editor, tests dark cibles, recherche des references interdites.
+- Etat test global: la suite complete `MGUI.Tests` garde 2 echecs existants hors scope documentes dans T10.
+- Smoke manuel: non confirme visuellement depuis cette session, statut conserve en `🧪` dans T11.
 
 ## Criteres d'acceptation finaux
 
