@@ -113,7 +113,7 @@ Resultat du 2026-05-05:
 - `MGUI.Samples/Features/EditorDarkThemePreview.xaml.cs` charge encore `CasaEngine.Editor\Content\UI\Themes\CasaEditor.Dark.Theme.xaml` et `CasaEngine.Editor\Content\UI\Templates\CasaEditor.Dark.ControlTemplates.xaml`.
 - Baseline valide: `dotnet build .\MGUI\MGUI.Core\MGUI.Core.csproj -c Debug --no-restore` a reussi avec warnings XML doc uniquement.
 
-### ⏳ T02 - Ajouter le contrat public `MGTheme.BuiltInTheme.Dark`
+### ✅ T02 - Ajouter le contrat public `MGTheme.BuiltInTheme.Dark`
 
 But: rendre le theme selectionnable par API native sans casser les themes existants.
 
@@ -141,7 +141,7 @@ git add MGUI/MGUI.Core/UI/MGTheme.cs ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "mgui: expose native dark built-in theme"
 ```
 
-### ⏳ T03 - Migrer la definition du theme editeur vers `BuiltInThemes.xaml`
+### 🚧 T03 - Migrer la definition du theme editeur vers `BuiltInThemes.xaml`
 
 But: le theme dark doit etre lu depuis les resources embarquees de `MGUI.Core`.
 
