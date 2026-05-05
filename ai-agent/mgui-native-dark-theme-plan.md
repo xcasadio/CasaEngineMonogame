@@ -214,7 +214,7 @@ git add MGUI/MGUI.Core/UI/Templates/BuiltInControlTemplates.xaml MGUI/MGUI.Core/
 git commit -m "mgui: register native dark control templates"
 ```
 
-### 🚧 T05 - Ajouter les tests de theme natif
+### ✅ T05 - Ajouter les tests de theme natif
 
 But: verrouiller le contrat pour eviter une regression.
 
@@ -261,7 +261,7 @@ git add MGUI/MGUI.Tests ai-agent/mgui-native-dark-theme-plan.md
 git commit -m "mgui: test native dark theme registration"
 ```
 
-### ⏳ T06 - Basculer CasaEngine.Editor vers le theme MGUI natif
+### 🚧 T06 - Basculer CasaEngine.Editor vers le theme MGUI natif
 
 But: l'editeur ne doit plus charger ses propres fichiers XAML de theme dark.
 
