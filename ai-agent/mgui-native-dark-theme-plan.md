@@ -175,7 +175,7 @@ git add MGUI/MGUI.Core/UI/Themes/BuiltInThemes.xaml ai-agent/mgui-native-dark-th
 git commit -m "mgui: add editor dark palette as built-in dark theme"
 ```
 
-### 🚧 T04 - Migrer et enregistrer les templates dark natifs
+### ✅ T04 - Migrer et enregistrer les templates dark natifs
 
 But: les templates references par le theme `Dark` doivent etre disponibles sans chargement depuis l'editeur.
 
@@ -214,7 +214,7 @@ git add MGUI/MGUI.Core/UI/Templates/BuiltInControlTemplates.xaml MGUI/MGUI.Core/
 git commit -m "mgui: register native dark control templates"
 ```
 
-### ⏳ T05 - Ajouter les tests de theme natif
+### 🚧 T05 - Ajouter les tests de theme natif
 
 But: verrouiller le contrat pour eviter une regression.
 
