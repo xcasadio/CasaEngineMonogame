@@ -4,13 +4,11 @@ using System.IO;
 using System.Linq;
 using CasaEngine.EditorServices;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Transform;
 using GizmoTools;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Framework.Application.Components.DebugTools;
 
@@ -18,7 +16,6 @@ public class TransformGizmoComponent : DrawableGameComponent
 {
     public Gizmo Gizmo { get; private set; }
 
-    private InputComponent? _inputComponent;
     private CasaEngineGame? _game;
     private readonly Dictionary<ITransformableObject, GizmoTransformableAdapter> _selectionAdapters = [];
 
@@ -72,8 +69,6 @@ public class TransformGizmoComponent : DrawableGameComponent
         Gizmo.DeleteSelectionEvent += OnGizmoDeleteSelectionEvent;
         Gizmo.CopyTriggered += OnGizmoCopyTriggered;
 
-        _inputComponent = Game.GetGameComponent<InputComponent>();
-
         Visible = false;
     }
 
@@ -86,7 +81,7 @@ public class TransformGizmoComponent : DrawableGameComponent
             SetSelectionPool(EditorWorldEditingService.GetSelectableComponents(selectionWorld));
         }
 
-        if (Gizmo.GetSelectionPool() == null || _inputComponent == null)
+        if (Gizmo.GetSelectionPool() == null)
         {
             return;
         }
@@ -109,61 +104,7 @@ public class TransformGizmoComponent : DrawableGameComponent
         if (!IsActiveViewport)
         {
             Gizmo.RefreshPresentation();
-            return;
         }
-
-        if (_inputComponent.MouseManager.LeftButtonJustPressed)
-        {
-            Gizmo.SelectEntities(
-                new Vector2(_inputComponent.MouseManager.Position.X, _inputComponent.MouseManager.Position.Y),
-                _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftControl) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightControl),
-                _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftAlt) || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightAlt));
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D1))
-        {
-            Gizmo.ActiveMode = GizmoMode.Translate;
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D2))
-        {
-            Gizmo.ActiveMode = GizmoMode.Rotate;
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D3))
-        {
-            Gizmo.ActiveMode = GizmoMode.NonUniformScale;
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.D4))
-        {
-            Gizmo.ActiveMode = GizmoMode.UniformScale;
-        }
-
-        Gizmo.PrecisionModeEnabled = _inputComponent.KeyboardManager.IsKeyPressed(Keys.LeftShift)
-                                     || _inputComponent.KeyboardManager.IsKeyPressed(Keys.RightShift);
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.O))
-        {
-            Gizmo.ToggleActiveSpace();
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.I))
-        {
-            Gizmo.SnapEnabled = !Gizmo.SnapEnabled;
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.P))
-        {
-            Gizmo.NextPivotType();
-        }
-
-        if (_inputComponent.KeyboardManager.IsKeyJustPressed(Keys.Escape))
-        {
-            Gizmo.Clear();
-        }
-
-        Gizmo.Update(gameTime, _inputComponent.Keyboard, _inputComponent.MouseState);
 
         base.Update(gameTime);
     }

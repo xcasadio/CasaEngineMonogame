@@ -1022,23 +1022,24 @@ public sealed class EntityDetailsPanel
 
         const int width = 360;
         const int height = 420;
-        int left = (_window.Desktop.ValidScreenBounds.Width - width) / 2;
-        int top = (_window.Desktop.ValidScreenBounds.Height - height) / 2;
+        var dialog = EditorModalDialogHelper.CreateCenteredModalWindow(_window, width, height, "Add Component");
 
-        var dialog = new MGWindow(_window.Desktop, left, top, width, height)
+        var content = new MGGrid(dialog)
         {
-            TitleText = "Add Component",
-        };
-
-        var content = new MGStackPanel(dialog, Orientation.Vertical)
-        {
-            Spacing = 8,
             Padding = new Thickness(8),
+            RowSpacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
         };
+        content.AddColumn(GridLength.CreateWeightedLength(1));
+        content.AddRow(GridLength.Auto);
+        content.AddRow(GridLength.CreateWeightedLength(1));
+        content.AddRow(GridLength.Auto);
 
         var listBox = new MGListBox<string>(dialog)
         {
-            PreferredHeight = 320,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
             ItemTemplate = item => new MGTextBlock(dialog, item)
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -1079,11 +1080,10 @@ public sealed class EntityDetailsPanel
         buttons.TryAddChild(addButton);
         buttons.TryAddChild(cancelButton);
 
-        content.TryAddChild(new MGTextBlock(dialog, "Choose the type of component to add."));
-        content.TryAddChild(listBox);
-        content.TryAddChild(buttons);
+        content.TryAddChild(0, 0, new MGTextBlock(dialog, "Choose the type of component to add."));
+        content.TryAddChild(1, 0, listBox);
+        content.TryAddChild(2, 0, buttons);
         dialog.SetContent(content);
-        _window.Desktop.Windows.Add(dialog);
     }
 
     private void AddComponent(EntityComponent component)

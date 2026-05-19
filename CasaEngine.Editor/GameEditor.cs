@@ -541,7 +541,9 @@ public class GameEditor : Game, IObservableUpdate
     {
         try
         {
-            _desktop.Resources.DefaultTheme = new MGTheme(MGTheme.BuiltInTheme.Dark, _desktop.DefaultFontFamily);
+            var theme = new MGTheme(MGTheme.BuiltInTheme.Dark, _desktop.DefaultFontFamily);
+            theme.FontSettings.AdjustAllFontSizes(-1);
+            _desktop.Resources.DefaultTheme = theme;
         }
         catch (Exception ex)
         {

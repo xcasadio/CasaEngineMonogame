@@ -747,13 +747,7 @@ public sealed class EntitiesPanel
 
         const int width = 360;
         const int height = 140;
-        int left = (_window.Desktop.ValidScreenBounds.Width - width) / 2;
-        int top = (_window.Desktop.ValidScreenBounds.Height - height) / 2;
-
-        var dialog = new MGWindow(_window.Desktop, left, top, width, height)
-        {
-            TitleText = title,
-        };
+        var dialog = EditorModalDialogHelper.CreateCenteredModalWindow(_window, width, height, title);
 
         var stack = new MGStackPanel(dialog, Orientation.Vertical)
         {

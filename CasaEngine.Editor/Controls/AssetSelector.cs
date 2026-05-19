@@ -122,14 +122,9 @@ public class AssetSelector : MGStackPanel
 
         var assetList = assets.OrderBy(a => a.Name).ToList();
 
-        // Create a small picker window
         int winWidth  = 420;
         int winHeight = 500;
-        int left = (_parentWindow.Desktop.ValidScreenBounds.Width  - winWidth)  / 2;
-        int top  = (_parentWindow.Desktop.ValidScreenBounds.Height - winHeight) / 2;
-
-        var pickerWindow = new MGWindow(_parentWindow.Desktop, left, top, winWidth, winHeight);
-        pickerWindow.TitleText = "Select Asset";
+        var pickerWindow = EditorModalDialogHelper.CreateCenteredModalWindow(_parentWindow, winWidth, winHeight, "Select Asset");
 
         var content = new MGStackPanel(pickerWindow, Orientation.Vertical) { Spacing = 6, Padding = new Thickness(8) };
 
@@ -176,7 +171,5 @@ public class AssetSelector : MGStackPanel
                 listBox.SelectedValue = current;
             }
         }
-
-        _parentWindow.Desktop.Windows.Add(pickerWindow);
     }
 }

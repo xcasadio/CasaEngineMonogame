@@ -63,19 +63,9 @@ public class ColorEditor : MGStackPanel
 
     private void OpenColorPicker(MGWindow parentWindow)
     {
-        var desktop = parentWindow.Desktop;
-
-        // Determine a centered position relative to screen
-        var screenBounds = desktop.ValidScreenBounds;
         const int pickerWidth = 220;
         const int pickerHeight = 140;
-        int px = screenBounds.Left + (screenBounds.Width - pickerWidth) / 2;
-        int py = screenBounds.Top + (screenBounds.Height - pickerHeight) / 2;
-
-        var pickerWindow = new MGWindow(desktop, px, py, pickerWidth, pickerHeight)
-        {
-            TitleText = "Select Color"
-        };
+        var pickerWindow = EditorModalDialogHelper.CreateCenteredModalWindow(parentWindow, pickerWidth, pickerHeight, "Select Color");
 
         var outerStack = new MGStackPanel(pickerWindow, Orientation.Vertical)
         {
@@ -123,6 +113,5 @@ public class ColorEditor : MGStackPanel
         outerStack.TryAddChild(buttonRow);
 
         pickerWindow.SetContent(outerStack);
-        desktop.Windows.Add(pickerWindow);
     }
 }

@@ -102,6 +102,8 @@
             }
           ],
           "static_model_asset_id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
+          "cast_shadows": true,
+          "receive_shadows": true,
           "material_slot_overrides": [
             {
               "slot_name": "Mesh",
@@ -206,7 +208,7 @@
       "asset_id": "00000000-0000-0000-0000-000000000000",
       "entity": {
         "id": "ecb37c7a-8135-401e-bda2-5d276cb6b27d",
-        "name": "light",
+        "name": "light1",
         "policy_source": "EngineDefault",
         "mobility": "Movable",
         "tick_policy": "EveryFrame",
@@ -218,9 +220,9 @@
           "type": "LightComponent",
           "coordinates": {
             "position": {
-              "x": -1.8979015,
-              "y": 5.303848,
-              "z": 0.020154953
+              "x": -22.639294,
+              "y": 7.9246354,
+              "z": 0.0
             },
             "scale": {
               "x": 1.0,
@@ -249,9 +251,66 @@
             "a": 255
           },
           "intensity": 1.0,
-          "range": 10.0,
+          "range": 300.0,
           "inner_cone_angle_degrees": 20.0,
-          "outer_cone_angle_degrees": 35.0
+          "outer_cone_angle_degrees": 35.0,
+          "cast_shadows": false
+        },
+        "components": [],
+        "script_class_name": null
+      }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "9c0873f1-bb11-4920-973d-a807bcffcdc3",
+        "name": "light2",
+        "policy_source": "EngineDefault",
+        "mobility": "Movable",
+        "tick_policy": "EveryFrame",
+        "spatial_policy": "DynamicIndex",
+        "render_dynamic_policy": "Static",
+        "root_component": {
+          "id": "690a0dc2-3ecd-470f-abfd-cf6ed2652caf",
+          "name": "Object 690a0dc2-3ecd-470f-abfd-cf6ed2652caf",
+          "type": "LightComponent",
+          "coordinates": {
+            "position": {
+              "x": 18.333315,
+              "y": 7.9246354,
+              "z": 0.0
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "light_type": "Point",
+          "color": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          },
+          "specular_color": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          },
+          "intensity": 1.0,
+          "range": 300.0,
+          "inner_cone_angle_degrees": 20.0,
+          "outer_cone_angle_degrees": 35.0,
+          "cast_shadows": false
         },
         "components": [],
         "script_class_name": null
@@ -349,6 +408,13 @@
       "z": 0.05
     },
     "ambient_intensity": 1.0,
-    "specular_intensity": 1.0
+    "specular_intensity": 1.0,
+    "shadows": {
+      "enabled": false,
+      "resolution": 1024,
+      "depth_bias": 0.001,
+      "normal_bias": 0.0,
+      "max_distance": 100.0
+    }
   }
 }

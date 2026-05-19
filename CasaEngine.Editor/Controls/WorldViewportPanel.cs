@@ -255,10 +255,22 @@ public class WorldViewportPanel : IDisposable
         }
 
         var router = _editorRuntime.InputComponent.InputRouter;
-        bool isKeyboardFocused = _renderView != null && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
+        bool isBlockedByEditorModal = IsBlockedByEditorModal();
+
+        if (isBlockedByEditorModal && _renderView != null)
+        {
+            _editorRuntime.GameManager.ViewManager.ReleaseInput();
+            router?.ClearKeyboardFocus(_renderView.Id);
+        }
+
+        bool isKeyboardFocused = !isBlockedByEditorModal
+            && _renderView != null
+            && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
 
         var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
-        bool receivesInput = _renderView != null && IsPointerInputRoutedToView(inputContext, _renderView.Id);
+        bool receivesInput = !isBlockedByEditorModal
+            && _renderView != null
+            && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();
 
         if (_camera != null)
@@ -281,6 +293,12 @@ public class WorldViewportPanel : IDisposable
         {
             UpdateGizmoInput(gameTime, inputContext, receivesInput, isKeyboardFocused);
         }
+    }
+
+    private bool IsBlockedByEditorModal()
+    {
+        var ownerWindow = _viewportHost?.SelfOrParentWindow;
+        return ownerWindow != null && ownerWindow.Desktop.ActiveModalWindows.Count > 0;
     }
 
     private static bool IsPointerInputRoutedToView(ViewInputContext inputContext, ViewId viewId)
@@ -826,6 +844,13 @@ public class WorldViewportPanel : IDisposable
     {
         if (_renderView == null || _viewportHost == null)
         {
+            return;
+        }
+
+        if (_viewportHost.SelfOrParentWindow?.HasModalWindow == true)
+        {
+            _editorRuntime.GameManager.ViewManager.ReleaseInput();
+            _editorRuntime.InputComponent.InputRouter?.ClearKeyboardFocus(_renderView.Id);
             return;
         }
 
