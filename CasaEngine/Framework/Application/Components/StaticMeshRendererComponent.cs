@@ -43,6 +43,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// </summary>
     public LightingContext DefaultLighting { get; } = new();
 
+    public ForwardShadowResources ShadowResources => _shadowResources;
+
     public StaticMeshRendererComponent(Game game) : base(game)
     {
         game.Components.Add(this);

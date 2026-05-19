@@ -16,6 +16,7 @@ DECLARE_TEXTURE(Texture, 0);
 DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
 DECLARE_CUBEMAP(LocalReflectionProbeCubeTexture, 4);
 DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
+DECLARE_TEXTURE(ShadowMapTexture, 6);
 
 
 //_______________________________________________________________
@@ -85,9 +86,16 @@ BEGIN_CONSTANTS
     float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
     float SecondaryLocalReflectionProbeWeight _ps(c37) _cb(c33.w);
     float LocalReflectionProbeInfluence _ps(c38) _cb(c34.x);
+    float ActiveShadowLightCount _ps(c100) _cb(c90.x);
+    float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
+    float ShadowDepthBias _ps(c100) _cb(c90.z);
+    float ShadowNormalBias _ps(c100) _cb(c90.w);
+    float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
+    float ReceiveShadows _ps(c101) _cb(c91.z);
 
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
+    float4x4 ShadowLightViewProjection _ps(c102) _cb(c92);
 
 MATRIX_CONSTANTS
 
@@ -102,6 +110,7 @@ MATRIX_CONSTANTS
 END_CONSTANTS
 
 
+#define HAS_FORWARD_SHADOW_BINDINGS 1
 #include "Lighting.fxh"
 
 
@@ -153,6 +162,12 @@ struct VsOutputSkinnedQuad
     float2 TexureCoordinateA : TEXCOORD0;
     float3 Position3D : TEXCOORD1;
     float3 Normal3D : TEXCOORD2;
+};
+
+struct VsShadowDepthOutput
+{
+    float4 Position : SV_Position;
+    float Depth : TEXCOORD0;
 };
 
 
@@ -251,6 +266,17 @@ void ApplyBoneDualQuaternionTransforms(VsInputSkinnedQuad input, out float4 pos,
     norm = normalize(RotateByQuaternion(norm, accumulatedReal));
 }
 
+float EncodeShadowDepth(float4 clipPosition)
+{
+    float depth = clipPosition.z / clipPosition.w;
+
+#if OPENGL
+    depth = depth * 0.5f + 0.5f;
+#endif
+
+    return saturate(depth);
+}
+
 
 //_______________________________________________________________
 // RiggedModelDraw — skinned mesh with per-pixel lighting
@@ -312,6 +338,43 @@ VsOutputSkinnedQuad VertexShaderRiggedModelDrawDualQuaternion(VsInputSkinnedQuad
 }
 
 TECHNIQUE(RiggedModelDrawDualQuaternion, VertexShaderRiggedModelDrawDualQuaternion, PixelShaderRiggedModelDraw)
+
+
+VsShadowDepthOutput VertexShaderRiggedModelShadowDepth(VsInputSkinnedQuad input)
+{
+    VsShadowDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.Depth = EncodeShadowDepth(clipPosition);
+    return output;
+}
+
+VsShadowDepthOutput VertexShaderRiggedModelShadowDepthDualQuaternion(VsInputSkinnedQuad input)
+{
+    VsShadowDepthOutput output;
+
+    float4 pos;
+    float3 norm;
+    ApplyBoneDualQuaternionTransforms(input, pos, norm);
+
+    float4 clipPosition = mul(pos, WorldViewProj);
+    output.Position = clipPosition;
+    output.Depth = EncodeShadowDepth(clipPosition);
+    return output;
+}
+
+float4 PixelShaderRiggedModelShadowDepth(VsShadowDepthOutput input) : COLOR0
+{
+    return float4(input.Depth, input.Depth, input.Depth, 1.0f);
+}
+
+TECHNIQUE(RiggedModelShadowDepth, VertexShaderRiggedModelShadowDepth, PixelShaderRiggedModelShadowDepth)
+TECHNIQUE(RiggedModelShadowDepthDualQuaternion, VertexShaderRiggedModelShadowDepthDualQuaternion, PixelShaderRiggedModelShadowDepth)
 
 
 //_______________________________________________________________

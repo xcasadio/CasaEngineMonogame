@@ -320,7 +320,7 @@ Commit obligatoire :
 git commit -m "Apply forward shadows to lit materials"
 ```
 
-### 🚧 Tache 08 - Ajouter support shadows pour skinned meshes
+### ✅ Tache 08 - Ajouter support shadows pour skinned meshes
 
 But : eviter que les personnages/meshes animes ignorent le systeme de shadows.
 
@@ -355,7 +355,7 @@ Commit obligatoire :
 git commit -m "Add skinned mesh shadow support"
 ```
 
-### ⏳ Tache 09 - Ajouter demo et validation visuelle
+### 🚧 Tache 09 - Ajouter demo et validation visuelle
 
 But : prouver le comportement dans une scene simple et automatisable.
 

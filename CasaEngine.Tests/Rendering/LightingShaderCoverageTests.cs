@@ -85,6 +85,23 @@ public class LightingShaderCoverageTests
         Assert.DoesNotContain("ComputeEnvironmentDiffuseTerm", lightingIncludeSource[lightingIncludeSource.IndexOf("ComputeDirectionalShadowFactor", StringComparison.Ordinal)..]);
     }
 
+    [Fact]
+    public void SkinnedLightingShader_DeclaresShadowBindingsAndDepthTechniques()
+    {
+        string skinnedSource = LoadShaderSource("skinEffect.fx");
+
+        Assert.Contains("DECLARE_TEXTURE(ShadowMapTexture, 6)", skinnedSource);
+        Assert.Contains("ActiveShadowLightCount", skinnedSource);
+        Assert.Contains("ShadowedDirectionalLightIndex", skinnedSource);
+        Assert.Contains("ShadowLightViewProjection", skinnedSource);
+        Assert.Contains("ShadowMapTexelSize", skinnedSource);
+        Assert.Contains("ReceiveShadows", skinnedSource);
+        Assert.Contains("#define HAS_FORWARD_SHADOW_BINDINGS 1", skinnedSource);
+        Assert.Contains("RiggedModelShadowDepth", skinnedSource);
+        Assert.Contains("RiggedModelShadowDepthDualQuaternion", skinnedSource);
+        Assert.Contains("VertexShaderRiggedModelShadowDepthDualQuaternion", skinnedSource);
+    }
+
     private static string LoadShaderSource(string shaderFileName)
     {
         string shaderPath = Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", shaderFileName);

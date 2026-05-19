@@ -4,6 +4,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -32,6 +33,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     private ShaderManager? _shaderManager;
     private ShaderVariantLibrary? _variantLibrary;
     private RenderShaderSelector? _shaderSelector;
+    private StaticMeshRendererComponent? _staticMeshRendererComponent;
 
     /// <summary>
     /// Fallback lighting for direct renderer usage when no frame lighting is supplied.
@@ -84,6 +86,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             _variantLibrary.RegisterTechniqueAliases(linearBlendShader.ShaderId, ShaderVariantLibrary.BuildSkinnedEffectAliases());
             _shaderManager.RegisterShader(dualQuaternionShader.ShaderId, _shader);
             _variantLibrary.RegisterTechniqueAliases(dualQuaternionShader.ShaderId, ShaderVariantLibrary.BuildDualQuaternionSkinnedEffectAliases());
+            _staticMeshRendererComponent = casaEngineGame.MeshRendererComponent;
         }
 
         _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
@@ -128,8 +131,11 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             Frame = frame,
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
+            Shadows = _staticMeshRendererComponent?.ShadowResources,
             Stats = stats,
         };
+
+        DrawShadowCasters(in context);
 
         foreach (var meshInfo in _meshInfos)
         {
@@ -143,24 +149,84 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedModel(meshInfo.SkinnedMesh, meshInfo.World, meshInfo.PoseProvider, meshInfo.SkinningModeSelection, in context);
+            SkinningMode effectiveSkinningMode = SkinningModeSelectionResolver.ResolveEffective(
+                meshInfo.SkinningModeSelection,
+                meshInfo.SkinnedMesh.SkinningMode,
+                meshInfo.PoseProvider.CanUseDualQuaternionSkinning);
+
+            DrawRiggedModel(
+                meshInfo.SkinnedMesh,
+                meshInfo.World,
+                meshInfo.PoseProvider,
+                effectiveSkinningMode,
+                meshInfo.ReceiveShadows,
+                in context);
         }
 
         _meshInfos.Clear();
+    }
+
+    private void DrawShadowCasters(in RenderContext context)
+    {
+        if (context.Shadows is null
+            || context.Shadows.ShadowMapAtlas is null
+            || context.Shadows.VisibleLightCount <= 0)
+        {
+            return;
+        }
+
+        ShadowLight shadowLight = context.Shadows.VisibleLights[0];
+        if (shadowLight.Type != ShadowLightType.Directional)
+        {
+            return;
+        }
+
+        using var guard = new GraphicsStateGuard(context.Device);
+
+        Rectangle viewport = shadowLight.AtlasViewport;
+        context.Device.SetRenderTarget(context.Shadows.ShadowMapAtlas);
+        context.Device.Viewport = new Viewport(viewport.X, viewport.Y, viewport.Width, viewport.Height);
+        context.Device.BlendState = BlendState.Opaque;
+        context.Device.DepthStencilState = DepthStencilState.Default;
+        context.Device.RasterizerState = RasterizerState.CullCounterClockwise;
+        context.Device.SetVertexBuffer(null);
+        context.Device.Indices = null;
+
+        if (context.Stats is not null)
+        {
+            context.Stats.EffectBinds++;
+        }
+
+        foreach (var meshInfo in _meshInfos)
+        {
+            if (!meshInfo.CastShadows || meshInfo.SkinnedMesh == null || meshInfo.PoseProvider == null)
+            {
+                continue;
+            }
+
+            SkinningMode effectiveSkinningMode = SkinningModeSelectionResolver.ResolveEffective(
+                meshInfo.SkinningModeSelection,
+                meshInfo.SkinnedMesh.SkinningMode,
+                meshInfo.PoseProvider.CanUseDualQuaternionSkinning);
+
+            DrawRiggedModelShadowCasters(
+                meshInfo.SkinnedMesh,
+                meshInfo.World,
+                meshInfo.PoseProvider,
+                effectiveSkinningMode,
+                shadowLight,
+                in context);
+        }
     }
 
     private void DrawRiggedModel(
         RiggedModel riggedModel,
         Matrix world,
         ISkinnedMeshPoseProvider poseProvider,
-        SkinningModeSelection skinningModeSelection,
+        SkinningMode skinningMode,
+        bool receiveShadows,
         in RenderContext context)
     {
-        var effectiveSkinningMode = SkinningModeSelectionResolver.ResolveEffective(
-            skinningModeSelection,
-            riggedModel.SkinningMode,
-            poseProvider.CanUseDualQuaternionSkinning);
-
         for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
         {
             var mesh = riggedModel.Meshes[meshIndex];
@@ -170,7 +236,28 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
                 continue;
             }
 
-            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, effectiveSkinningMode, in context);
+            DrawRiggedMesh(riggedModel, mesh, texture, world, poseProvider, skinningMode, receiveShadows, in context);
+        }
+    }
+
+    private void DrawRiggedModelShadowCasters(
+        RiggedModel riggedModel,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningMode skinningMode,
+        ShadowLight shadowLight,
+        in RenderContext context)
+    {
+        for (int meshIndex = 0; meshIndex < riggedModel.Meshes.Length; meshIndex++)
+        {
+            DrawRiggedMeshShadowCaster(
+                riggedModel,
+                riggedModel.Meshes[meshIndex],
+                world,
+                poseProvider,
+                skinningMode,
+                shadowLight,
+                in context);
         }
     }
 
@@ -181,6 +268,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         Matrix world,
         ISkinnedMeshPoseProvider poseProvider,
         SkinningMode skinningMode,
+        bool receiveShadows,
         in RenderContext context)
     {
         var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
@@ -212,6 +300,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
         _shaderCache.BindGlobals(resolvedShader.Shader, in context);
         _defaultMaterial.Bind(resolvedShader.Shader, in context, meshWorld);
+        resolvedShader.Shader.SetParameter(ShaderParameterNames.ReceiveShadows, receiveShadows ? 1.0f : 0.0f);
 
         if (skinningMode == SkinningMode.DualQuaternion && resolvedShader.Shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
         {
@@ -228,6 +317,65 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         for (int passIndex = 0; passIndex < resolvedShader.Shader.PassCount; passIndex++)
         {
             resolvedShader.Shader.ApplyPass(passIndex);
+            context.Device.DrawIndexedPrimitives(
+                PrimitiveType.TriangleList,
+                0,
+                0,
+                mesh.NumberOfVertices,
+                0,
+                mesh.NumberOfIndices / 3);
+        }
+
+        if (context.Stats is not null)
+        {
+            context.Stats.DrawCalls++;
+        }
+    }
+
+    private void DrawRiggedMeshShadowCaster(
+        RiggedModel riggedModel,
+        RiggedModel.RiggedModelMesh mesh,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningMode skinningMode,
+        ShadowLight shadowLight,
+        in RenderContext context)
+    {
+        var vertexDeclaration = SkinningModeShaderResolver.ResolveVertexDeclaration(skinningMode);
+        mesh.Initialize(context.Device, vertexDeclaration);
+        if (mesh.IndexBuffer == null)
+        {
+            return;
+        }
+
+        var vertexBuffer = poseProvider.GetVertexBufferOverride(mesh, context.Device, vertexDeclaration) ?? mesh.VertexBuffer;
+        if (vertexBuffer == null)
+        {
+            return;
+        }
+
+        Matrix meshWorld = world * poseProvider.GetMeshNodeTransform(mesh);
+
+        _shader.SelectTechnique(skinningMode == SkinningMode.DualQuaternion
+            ? "RiggedModelShadowDepthDualQuaternion"
+            : "RiggedModelShadowDepth");
+        _shader.SetParameter(ShaderParameterNames.WorldViewProj, meshWorld * shadowLight.LightViewProjection);
+
+        if (skinningMode == SkinningMode.DualQuaternion && _shader.HasParameter(ShaderParameterNames.BonesDualQuaternion))
+        {
+            _shader.SetParameter(ShaderParameterNames.BonesDualQuaternion, poseProvider.DualQuaternionSkinningPalette);
+        }
+        else
+        {
+            _shader.SetParameter(ShaderParameterNames.Bones, poseProvider.SkinningPalette);
+        }
+
+        context.Device.SetVertexBuffer(vertexBuffer);
+        context.Device.Indices = mesh.IndexBuffer;
+
+        for (int passIndex = 0; passIndex < _shader.PassCount; passIndex++)
+        {
+            _shader.ApplyPass(passIndex);
             context.Device.DrawIndexedPrimitives(
                 PrimitiveType.TriangleList,
                 0,
