@@ -349,6 +349,12 @@ internal static class EditorEntityJsonSerializer
         node.Add("cast_shadows", component.CastShadows);
     }
 
+    private static void SavePrimitiveComponentFlags(PrimitiveComponent component, JObject node)
+    {
+        node.Add("cast_shadows", component.CastShadows);
+        node.Add("receive_shadows", component.ReceiveShadows);
+    }
+
     private static void SaveBoxCollisionComponent(BoxCollisionComponent component, JObject node)
     {
         SavePhysicsBaseComponent(component, node);
@@ -426,6 +432,7 @@ internal static class EditorEntityJsonSerializer
 
         node.Add("children_component", childrenArray);
         node.Add("static_model_asset_id", component.StaticModelAssetId.ToString());
+        SavePrimitiveComponentFlags(component, node);
 
         if (component.MaterialOverrides.Count > 0)
         {
@@ -452,6 +459,7 @@ internal static class EditorEntityJsonSerializer
     private static void SaveSkinnedMeshComponent(SkinnedMeshComponent component, JObject node)
     {
         SaveSceneComponent(component, node);
+        SavePrimitiveComponentFlags(component, node);
         node.Add("skinned_mesh_id", component.SkinnedMesh?.RiggedModelAssetId ?? Guid.Empty);
     }
 

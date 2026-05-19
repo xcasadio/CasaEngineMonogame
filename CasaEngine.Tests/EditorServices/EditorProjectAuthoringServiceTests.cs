@@ -356,6 +356,79 @@ public class EditorProjectAuthoringServiceTests
     }
 
     [Fact]
+    public void SaveProject_WithRenderComponents_PersistsShadowFlags()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "DefaultWorld",
+                FileName = "DefaultWorld.world",
+            };
+
+            AddEntityReference(world, new EntityReference
+            {
+                AssetId = Guid.Empty,
+                Entity = new Entity
+                {
+                    Name = "StaticEntity",
+                    RootComponent = new StaticModelComponent
+                    {
+                        CastShadows = false,
+                        ReceiveShadows = true,
+                    },
+                },
+            });
+
+            AddEntityReference(world, new EntityReference
+            {
+                AssetId = Guid.Empty,
+                Entity = new Entity
+                {
+                    Name = "SkinnedEntity",
+                    RootComponent = new SkinnedMeshComponent
+                    {
+                        CastShadows = true,
+                        ReceiveShadows = false,
+                    },
+                },
+            });
+
+            EditorProjectAuthoringService.SaveProject(world);
+
+            var worldDocument = JObject.Parse(File.ReadAllText(Path.Combine(tempDirectory, "DefaultWorld.world")));
+            var entityReferences = Assert.IsType<JArray>(worldDocument["entity_references"]);
+
+            JObject staticRoot = GetRootComponentNode(entityReferences, "StaticEntity");
+            Assert.False((bool?)staticRoot["cast_shadows"]);
+            Assert.True((bool?)staticRoot["receive_shadows"]);
+
+            JObject skinnedRoot = GetRootComponentNode(entityReferences, "SkinnedEntity");
+            Assert.True((bool?)skinnedRoot["cast_shadows"]);
+            Assert.False((bool?)skinnedRoot["receive_shadows"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveProject_WithWorldEnvironment_PersistsAndReloadsEnvironmentSettings()
     {
         string tempDirectory = CreateTempDirectory();
@@ -471,6 +544,24 @@ public class EditorProjectAuthoringServiceTests
         var field = typeof(World).GetField("_entityReferences", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
         var entityReferences = Assert.IsType<List<EntityReference>>(field!.GetValue(world));
         entityReferences.Add(entityReference);
+    }
+
+    private static JObject GetRootComponentNode(JArray entityReferences, string entityName)
+    {
+        for (int i = 0; i < entityReferences.Count; i++)
+        {
+            if (entityReferences[i] is not JObject entityReferenceNode
+                || entityReferenceNode["entity"] is not JObject entityNode
+                || !string.Equals((string?)entityNode["name"], entityName, StringComparison.Ordinal)
+                || entityNode["root_component"] is not JObject rootComponentNode)
+            {
+                continue;
+            }
+
+            return rootComponentNode;
+        }
+
+        throw new Xunit.Sdk.XunitException($"Unable to find entity '{entityName}' in the saved world document.");
     }
 
     private readonly record struct ProjectSettingsSnapshot(

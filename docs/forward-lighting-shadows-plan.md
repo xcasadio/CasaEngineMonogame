@@ -99,7 +99,7 @@ Commit obligatoire :
 git commit -m "Add light shadow casting authoring"
 ```
 
-### ⏳ Tache 02 - Ajouter `CastShadows` / `ReceiveShadows` aux composants rendus
+### ✅ Tache 02 - Ajouter `CastShadows` / `ReceiveShadows` aux composants rendus
 
 But : permettre a une instance rendue d'autoriser ou non casting/reception de shadows, independamment du material.
 

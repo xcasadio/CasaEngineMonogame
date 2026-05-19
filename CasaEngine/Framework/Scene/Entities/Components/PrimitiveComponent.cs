@@ -11,6 +11,10 @@ public abstract class PrimitiveComponent : SceneComponent
     //geometric representation
     //physics object
 
+    public bool CastShadows { get; set; } = true;
+
+    public bool ReceiveShadows { get; set; } = true;
+
     protected PrimitiveComponent()
     {
 
@@ -18,7 +22,8 @@ public abstract class PrimitiveComponent : SceneComponent
 
     protected PrimitiveComponent(PrimitiveComponent other) : base(other)
     {
-
+        CastShadows = other.CastShadows;
+        ReceiveShadows = other.ReceiveShadows;
     }
 
     protected override void InitializePrivate()
@@ -34,6 +39,8 @@ public abstract class PrimitiveComponent : SceneComponent
     public override void Load(JObject element)
     {
         base.Load(element);
+        CastShadows = element["cast_shadows"]?.Value<bool>() ?? true;
+        ReceiveShadows = element["receive_shadows"]?.Value<bool>() ?? true;
     }
 
 }
