@@ -201,6 +201,61 @@
           "w": 1.0
         }
       }
+    },
+    {
+      "asset_id": "00000000-0000-0000-0000-000000000000",
+      "entity": {
+        "id": "ecb37c7a-8135-401e-bda2-5d276cb6b27d",
+        "name": "light",
+        "policy_source": "EngineDefault",
+        "mobility": "Movable",
+        "tick_policy": "EveryFrame",
+        "spatial_policy": "DynamicIndex",
+        "render_dynamic_policy": "Static",
+        "root_component": {
+          "id": "4295a1a2-3079-4820-8a85-880b6fc94b02",
+          "name": "Object 4295a1a2-3079-4820-8a85-880b6fc94b02",
+          "type": "LightComponent",
+          "coordinates": {
+            "position": {
+              "x": -1.8979015,
+              "y": 5.303848,
+              "z": 0.020154953
+            },
+            "scale": {
+              "x": 1.0,
+              "y": 1.0,
+              "z": 1.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            }
+          },
+          "children_component": [],
+          "light_type": "Point",
+          "color": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          },
+          "specular_color": {
+            "r": 255,
+            "g": 255,
+            "b": 255,
+            "a": 255
+          },
+          "intensity": 1.0,
+          "range": 10.0,
+          "inner_cone_angle_degrees": 20.0,
+          "outer_cone_angle_degrees": 35.0
+        },
+        "components": [],
+        "script_class_name": null
+      }
     }
   ],
   "script_class_name": null,
