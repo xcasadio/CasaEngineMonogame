@@ -115,6 +115,7 @@ public sealed class InstanceBatcher : IDisposable
             firstItem.Material.SelectTechnique(shader, in context, firstItem.Features);
         }
         firstItem.Material.Bind(shader, in context, Microsoft.Xna.Framework.Matrix.Identity);
+        shader.SetParameter(ShaderParameterNames.ReceiveShadows, firstItem.EffectiveReceiveShadows ? 1.0f : 0.0f);
 
         int primCount = mesh.IndexBuffer!.IndexCount / 3;
 

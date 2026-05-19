@@ -283,7 +283,7 @@ Commit obligatoire :
 git commit -m "Add forward shadow depth pass"
 ```
 
-### ⏳ Tache 07 - Binder et consommer les shadows dans `LitForward.fx`
+### ✅ Tache 07 - Binder et consommer les shadows dans `LitForward.fx`
 
 But : faire recevoir les shadows aux static/material renderers.
 
@@ -320,7 +320,7 @@ Commit obligatoire :
 git commit -m "Apply forward shadows to lit materials"
 ```
 
-### ⏳ Tache 08 - Ajouter support shadows pour skinned meshes
+### 🚧 Tache 08 - Ajouter support shadows pour skinned meshes
 
 But : eviter que les personnages/meshes animes ignorent le systeme de shadows.
 

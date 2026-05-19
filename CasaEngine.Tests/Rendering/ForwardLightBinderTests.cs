@@ -53,4 +53,32 @@ public class ForwardLightBinderTests
         Assert.Equal(Vector4.Zero, snapshot.PointLightPositionAndRangeData[0]);
         Assert.Equal(Vector4.Zero, snapshot.SpotLightPositionAndRangeData[0]);
     }
+
+    [Fact]
+    public void Source_DeclaresForwardShadowBindings()
+    {
+        string source = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "CasaEngine", "Framework", "Rendering", "Shaders", "ForwardLightBinder.cs"));
+
+        Assert.Contains("ShadowMapTexture", source, StringComparison.Ordinal);
+        Assert.Contains("ActiveShadowLightCount", source, StringComparison.Ordinal);
+        Assert.Contains("ShadowedDirectionalLightIndex", source, StringComparison.Ordinal);
+        Assert.Contains("ShadowLightViewProjection", source, StringComparison.Ordinal);
+        Assert.Contains("ShadowMapTexelSize", source, StringComparison.Ordinal);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "CasaEngine.Editor.MonoGame.sln")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Unable to locate the repository root from the test output directory.");
+    }
 }

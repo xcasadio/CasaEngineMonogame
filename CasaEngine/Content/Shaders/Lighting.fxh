@@ -125,6 +125,63 @@ float3 SampleEnvironmentDiffuse(float3 worldNormal)
 #endif
 
 
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
+{
+    float visibility = 0.0f;
+
+    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
+    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
+    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
+    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+
+    return visibility * 0.25f;
+}
+
+
+float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
+{
+    if (ActiveShadowLightCount <= 0.0f || ReceiveShadows <= 0.5f)
+    {
+        return 1.0f;
+    }
+
+    float3 biasedWorldPosition = worldPosition + worldNormal * ShadowNormalBias;
+    float4 shadowClip = mul(float4(biasedWorldPosition, 1.0f), ShadowLightViewProjection);
+    if (shadowClip.w <= 0.0f)
+    {
+        return 1.0f;
+    }
+
+    float3 shadowNdc = shadowClip.xyz / shadowClip.w;
+    float2 shadowUv = float2(shadowNdc.x * 0.5f + 0.5f, -shadowNdc.y * 0.5f + 0.5f);
+    if (shadowUv.x <= 0.0f || shadowUv.x >= 1.0f || shadowUv.y <= 0.0f || shadowUv.y >= 1.0f)
+    {
+        return 1.0f;
+    }
+
+    float shadowDepth = shadowNdc.z;
+
+#if OPENGL
+    shadowDepth = shadowDepth * 0.5f + 0.5f;
+#endif
+
+    shadowDepth -= ShadowDepthBias;
+    if (shadowDepth <= 0.0f || shadowDepth >= 1.0f)
+    {
+        return 1.0f;
+    }
+
+    return SampleDirectionalShadowPcf(shadowUv, shadowDepth);
+}
+#else
+float ComputeDirectionalShadowFactor(float3 worldPosition, float3 worldNormal)
+{
+    return 1.0f;
+}
+#endif
+
+
 float3 ComposeLitSurfaceColor(float3 albedo, float3 directDiffuse, float3 ambientTerm, float3 emissiveColor)
 {
     return albedo * (directDiffuse + ambientTerm) + emissiveColor;
@@ -208,7 +265,14 @@ ColorPair ComputeLights(float3 eyeVector, float3 worldPosition, float3 worldNorm
         float3 lightDirection = GetDirectionalLightDirection(i);
         float3 lightDiffuse = GetDirectionalLightDiffuseColor(i);
         float3 lightSpecular = GetDirectionalLightSpecularColor(i);
-        AccumulateLight(result, eyeVector, worldNormal, -lightDirection, 1.0f, lightDiffuse, lightSpecular);
+#ifdef HAS_FORWARD_SHADOW_BINDINGS
+        float directionalShadowFactor = i == (int)ShadowedDirectionalLightIndex
+            ? ComputeDirectionalShadowFactor(worldPosition, worldNormal)
+            : 1.0f;
+#else
+        float directionalShadowFactor = 1.0f;
+#endif
+        AccumulateLight(result, eyeVector, worldNormal, -lightDirection, directionalShadowFactor, lightDiffuse, lightSpecular);
     }
 
     int numPointLights = (int)ActivePointLightCount;

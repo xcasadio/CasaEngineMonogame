@@ -120,6 +120,14 @@ public static class ShaderParameterNames
     public const string SpotLightDirectionAndInnerConeCos = "SpotLightDirectionAndInnerConeCos";
     public const string SpotLightDiffuseColors = "SpotLightDiffuseColors";
     public const string SpotLightSpecularColorsAndOuterConeCos = "SpotLightSpecularColorsAndOuterConeCos";
+    public const string ShadowMapTexture = "ShadowMapTexture";
+    public const string ActiveShadowLightCount = "ActiveShadowLightCount";
+    public const string ShadowedDirectionalLightIndex = "ShadowedDirectionalLightIndex";
+    public const string ShadowLightViewProjection = "ShadowLightViewProjection";
+    public const string ShadowDepthBias = "ShadowDepthBias";
+    public const string ShadowNormalBias = "ShadowNormalBias";
+    public const string ShadowMapTexelSize = "ShadowMapTexelSize";
+    public const string ReceiveShadows = "ReceiveShadows";
 
     // --- Skinning ---
     public const string Bones = "Bones";

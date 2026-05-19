@@ -14,6 +14,7 @@ DECLARE_CUBEMAP(ReflectionCubeTexture, 2);
 DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
 DECLARE_CUBEMAP(LocalReflectionProbeCubeTexture, 4);
 DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
+DECLARE_TEXTURE(ShadowMapTexture, 6);
 
 
 BEGIN_CONSTANTS
@@ -83,9 +84,16 @@ BEGIN_CONSTANTS
     float ReflectionAddAmount _ps(c39) _cb(c35.x);
     float ReflectionMultiplyBase _ps(c39) _cb(c35.y);
     float ReflectionMultiplyFactor _ps(c39) _cb(c35.z);
+    float ActiveShadowLightCount _ps(c100) _cb(c90.x);
+    float ShadowedDirectionalLightIndex _ps(c100) _cb(c90.y);
+    float ShadowDepthBias _ps(c100) _cb(c90.z);
+    float ShadowNormalBias _ps(c100) _cb(c90.w);
+    float2 ShadowMapTexelSize _ps(c101) _cb(c91.xy);
+    float ReceiveShadows _ps(c101) _cb(c91.z);
 
     float4x4 World _vs(c34) _cb(c33);
     float3x3 WorldInverseTranspose _vs(c38) _cb(c37);
+    float4x4 ShadowLightViewProjection _ps(c102) _cb(c92);
 
 MATRIX_CONSTANTS
 
@@ -95,6 +103,7 @@ END_CONSTANTS
 
 
 #define HAS_ENVIRONMENT_BINDINGS 1
+#define HAS_FORWARD_SHADOW_BINDINGS 1
 #include "Structures.fxh"
 #include "Lighting.fxh"
 

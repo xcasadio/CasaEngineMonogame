@@ -80,6 +80,7 @@ public abstract class RenderPass
         }
         shaderCache.BindGlobals(shader, in context);
         item.Material.Bind(shader, in context, item.World);
+        shader.SetParameter(ShaderParameterNames.ReceiveShadows, item.EffectiveReceiveShadows ? 1.0f : 0.0f);
         item.PropertyOverrides?.Apply(shader, context.Stats);
 
         if (item.SubMesh is { } sub)

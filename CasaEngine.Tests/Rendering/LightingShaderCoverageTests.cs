@@ -64,6 +64,27 @@ public class LightingShaderCoverageTests
         Assert.Contains("SampleEnvironmentReflection", skinnedSource);
     }
 
+    [Fact]
+    public void LitForwardShader_ConsumesDirectionalShadowBindingsWithoutShadowingAmbientOrEnvironment()
+    {
+        string litForwardSource = LoadShaderSource("LitForward.fx");
+        string lightingIncludeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.Contains("DECLARE_TEXTURE(ShadowMapTexture, 6)", litForwardSource);
+        Assert.Contains("ActiveShadowLightCount", litForwardSource);
+        Assert.Contains("ShadowLightViewProjection", litForwardSource);
+        Assert.Contains("ShadowMapTexelSize", litForwardSource);
+        Assert.Contains("ReceiveShadows", litForwardSource);
+        Assert.Contains("#define HAS_FORWARD_SHADOW_BINDINGS 1", litForwardSource);
+
+        Assert.Contains("ComputeDirectionalShadowFactor", lightingIncludeSource);
+        Assert.Contains("ShadowedDirectionalLightIndex", lightingIncludeSource);
+        Assert.Contains("ActiveShadowLightCount <= 0.0f || ReceiveShadows <= 0.5f", lightingIncludeSource);
+        Assert.Contains("directionalShadowFactor", lightingIncludeSource);
+        Assert.DoesNotContain("ComputeAmbientTerm(AmbientColor, MaterialAmbientColor) * ComputeDirectionalShadowFactor", lightingIncludeSource);
+        Assert.DoesNotContain("ComputeEnvironmentDiffuseTerm", lightingIncludeSource[lightingIncludeSource.IndexOf("ComputeDirectionalShadowFactor", StringComparison.Ordinal)..]);
+    }
+
     private static string LoadShaderSource(string shaderFileName)
     {
         string shaderPath = Path.Combine(FindRepositoryRoot(), "CasaEngine", "Content", "Shaders", shaderFileName);

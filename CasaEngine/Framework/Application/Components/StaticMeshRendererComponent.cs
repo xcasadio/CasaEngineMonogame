@@ -269,7 +269,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         if (_instanceBatcher is not null)
         {
             // Group by (VertexBuffer ptr, SortKey of first element) — same mesh + material
-            var instanceGroups = new Dictionary<(IntPtr, ulong), List<RenderItem>>();
+            var instanceGroups = new Dictionary<(IntPtr, ulong, bool), List<RenderItem>>();
 
             for (int i = 0; i < _renderItems.Count; i++)
             {
@@ -279,7 +279,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     continue;
                 }
 
-                var groupKey = (item.Mesh.VertexBuffer!.Tag as IntPtr? ?? IntPtr.Zero, item.SortKey & ~0xFFFUL);
+                var groupKey = (item.Mesh.VertexBuffer!.Tag as IntPtr? ?? IntPtr.Zero, item.SortKey & ~0xFFFUL, item.EffectiveReceiveShadows);
                 if (!instanceGroups.TryGetValue(groupKey, out var list))
                 {
                     list = new List<RenderItem>();
