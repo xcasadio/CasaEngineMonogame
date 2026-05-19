@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -24,4 +25,7 @@ public struct RenderContext
 
     /// <summary>Per-frame rendering statistics (draw calls, binds, etc.).</summary>
     public RenderStats? Stats;
+
+    /// <summary>Optional forward-shadow resources resolved for the current view.</summary>
+    public ForwardShadowResources? Shadows;
 }

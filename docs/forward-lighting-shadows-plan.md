@@ -208,7 +208,7 @@ Commit obligatoire :
 git commit -m "Extract forward light shader binder"
 ```
 
-### ⏳ Tache 05 - Ajouter le modele runtime des shadow resources
+### ✅ Tache 05 - Ajouter le modele runtime des shadow resources
 
 But : preparer les donnees shadows sans encore modifier les shaders lit.
 
