@@ -151,7 +151,9 @@ public class SkinnedMeshComponent : PrimitiveComponent
             SkinnedMesh.RiggedModel,
             WorldMatrixWithScale,
             poseProvider,
-            SkinningModeSelection);
+            SkinningModeSelection,
+            CastShadows,
+            ReceiveShadows);
     }
 
     public override BoundingBox GetBoundingBox()

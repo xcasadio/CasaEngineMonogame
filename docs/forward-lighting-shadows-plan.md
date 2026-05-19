@@ -136,7 +136,7 @@ Commit obligatoire :
 git commit -m "Add render component shadow flags"
 ```
 
-### ⏳ Tache 03 - Propager les flags shadows aux draw calls
+### ✅ Tache 03 - Propager les flags shadows aux draw calls
 
 But : faire voyager les valeurs effectives jusqu'au pipeline sans encore rendre de shadow map.
 

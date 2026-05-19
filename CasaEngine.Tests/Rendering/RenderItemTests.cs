@@ -14,6 +14,8 @@ public class RenderItemTests
         var runtimeMaterial = new LitDiffuseMaterial
         {
             Queue = RenderQueue.Opaque,
+            CastShadows = false,
+            ReceiveShadows = true,
         };
         var compiledMaterial = new CompiledMaterial(
             definitionId: "lit-diffuse",
@@ -25,12 +27,16 @@ public class RenderItemTests
             depthStencilState: DepthStencilState.DepthRead,
             rasterizerState: RasterizerState.CullNone,
             samplerState: SamplerState.PointClamp,
-            queue: RenderQueue.Transparent);
+            queue: RenderQueue.Transparent,
+            castShadows: true,
+            receiveShadows: false);
 
         var item = new RenderItem
         {
             Material = runtimeMaterial,
             CompiledMaterial = compiledMaterial,
+            ComponentCastShadows = true,
+            ComponentReceiveShadows = true,
             EffectiveShaderId = Guid.NewGuid(),
             Features = ShaderFeature.None,
         };
@@ -38,6 +44,8 @@ public class RenderItemTests
         Assert.Equal(compiledMaterial.EffectiveShader.ShaderId, item.EffectiveShaderId);
         Assert.Equal(compiledMaterial.Features, item.Features);
         Assert.Equal(RenderQueue.Transparent, item.Queue);
+        Assert.True(item.EffectiveCastShadows);
+        Assert.False(item.EffectiveReceiveShadows);
     }
 
     [Fact]
@@ -46,12 +54,16 @@ public class RenderItemTests
         var runtimeMaterial = new LitDiffuseMaterial
         {
             Queue = RenderQueue.AlphaTest,
+            CastShadows = false,
+            ReceiveShadows = true,
         };
         var effectiveShaderId = Guid.NewGuid();
 
         var item = new RenderItem
         {
             Material = runtimeMaterial,
+            ComponentCastShadows = true,
+            ComponentReceiveShadows = true,
             EffectiveShaderId = effectiveShaderId,
             Features = ShaderFeature.Emissive,
         };
@@ -59,5 +71,25 @@ public class RenderItemTests
         Assert.Equal(effectiveShaderId, item.EffectiveShaderId);
         Assert.Equal(ShaderFeature.Emissive, item.Features);
         Assert.Equal(RenderQueue.AlphaTest, item.Queue);
+        Assert.False(item.EffectiveCastShadows);
+        Assert.True(item.EffectiveReceiveShadows);
+    }
+
+    [Fact]
+    public void EffectiveShadowAccessors_RequireComponentFlags()
+    {
+        var item = new RenderItem
+        {
+            Material = new LitDiffuseMaterial
+            {
+                CastShadows = true,
+                ReceiveShadows = true,
+            },
+            ComponentCastShadows = false,
+            ComponentReceiveShadows = false,
+        };
+
+        Assert.False(item.EffectiveCastShadows);
+        Assert.False(item.EffectiveReceiveShadows);
     }
 }

@@ -58,9 +58,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         StaticModelMesh staticModelMesh,
         Matrix world,
         Matrix worldInvertTranspose,
-        MaterialPropertyBlock? propertyOverrides = null)
+        MaterialPropertyBlock? propertyOverrides = null,
+        bool castShadows = true,
+        bool receiveShadows = true)
     {
-        AddMesh(staticModelMesh, world, worldInvertTranspose, null, propertyOverrides, null);
+        AddMesh(staticModelMesh, world, worldInvertTranspose, null, propertyOverrides, null, castShadows, receiveShadows);
     }
 
     public void AddMesh(
@@ -69,7 +71,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         Matrix worldInvertTranspose,
         IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex,
         MaterialPropertyBlock? propertyOverrides = null,
-        IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex = null)
+        IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex = null,
+        bool castShadows = true,
+        bool receiveShadows = true)
     {
         _meshInfos.Add(new MeshInfo
         {
@@ -80,6 +84,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             MaterialOverridesBySlotIndex = materialOverridesBySlotIndex,
             PropertyOverrides = propertyOverrides,
             PropertyOverridesBySlotIndex = propertyOverridesBySlotIndex,
+            CastShadows = castShadows,
+            ReceiveShadows = receiveShadows,
         });
     }
 
@@ -191,6 +197,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                         SubMesh               = subMesh,
                         Material              = mat,
                         CompiledMaterial      = compiledMaterial,
+                        ComponentCastShadows  = meshInfo.CastShadows,
+                        ComponentReceiveShadows = meshInfo.ReceiveShadows,
                         EffectiveShaderId     = compiledMaterial?.EffectiveShader.ShaderId ?? EffectiveShaderResolver.Resolve(mat).ShaderId,
                         World                 = meshInfo.World,
                         WorldInverseTranspose = meshInfo.WorldInvertTranspose,
@@ -227,6 +235,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     SubMesh               = null,
                     Material              = mat,
                     CompiledMaterial      = compiledMaterial,
+                    ComponentCastShadows  = meshInfo.CastShadows,
+                    ComponentReceiveShadows = meshInfo.ReceiveShadows,
                     EffectiveShaderId     = compiledMaterial?.EffectiveShader.ShaderId ?? EffectiveShaderResolver.Resolve(mat).ShaderId,
                     World                 = meshInfo.World,
                     WorldInverseTranspose = meshInfo.WorldInvertTranspose,
@@ -371,5 +381,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         /// <summary>Optional per-instance overrides (Phase 6).</summary>
         public MaterialPropertyBlock? PropertyOverrides;
         public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex;
+        public bool CastShadows = true;
+        public bool ReceiveShadows = true;
     }
 }

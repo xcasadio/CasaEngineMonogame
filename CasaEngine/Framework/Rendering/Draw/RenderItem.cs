@@ -31,6 +31,18 @@ public struct RenderItem
     public CompiledMaterial? CompiledMaterial;
 
     /// <summary>
+    /// Component-level shadow casting flag propagated by the scene component authoring data.
+    /// The effective value also depends on the bound material.
+    /// </summary>
+    public bool ComponentCastShadows;
+
+    /// <summary>
+    /// Component-level shadow receiving flag propagated by the scene component authoring data.
+    /// The effective value also depends on the bound material.
+    /// </summary>
+    public bool ComponentReceiveShadows;
+
+    /// <summary>
     /// Effective runtime shader id resolved from the material. This can be a real shader asset id
     /// or a stable built-in id produced by <see cref="Shaders.EffectiveShaderResolver"/>.
     /// </summary>
@@ -65,6 +77,12 @@ public struct RenderItem
         readonly get => CompiledMaterial?.Features ?? _features;
         set => _features = value;
     }
+
+    public readonly bool EffectiveCastShadows
+        => ComponentCastShadows && (CompiledMaterial?.CastShadows ?? Material?.CastShadows ?? true);
+
+    public readonly bool EffectiveReceiveShadows
+        => ComponentReceiveShadows && (CompiledMaterial?.ReceiveShadows ?? Material?.ReceiveShadows ?? true);
 
     public readonly RenderQueue Queue
         => CompiledMaterial?.Queue ?? Material?.Queue ?? RenderQueue.Opaque;

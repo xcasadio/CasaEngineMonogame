@@ -47,7 +47,13 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         DefaultLighting.AmbientColor = Vector3.Zero;
     }
 
-    public void AddMesh(RiggedModel mesh, Matrix world, ISkinnedMeshPoseProvider poseProvider, SkinningModeSelection skinningModeSelection)
+    public void AddMesh(
+        RiggedModel mesh,
+        Matrix world,
+        ISkinnedMeshPoseProvider poseProvider,
+        SkinningModeSelection skinningModeSelection,
+        bool castShadows = true,
+        bool receiveShadows = true)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(poseProvider);
@@ -58,6 +64,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             PoseProvider = poseProvider,
             SkinningModeSelection = skinningModeSelection,
             World = world,
+            CastShadows = castShadows,
+            ReceiveShadows = receiveShadows,
         });
     }
 
@@ -241,5 +249,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         public ISkinnedMeshPoseProvider? PoseProvider;
         public SkinningModeSelection SkinningModeSelection { get; set; }
         public Matrix World { get; set; }
+        public bool CastShadows { get; set; } = true;
+        public bool ReceiveShadows { get; set; } = true;
     }
 }

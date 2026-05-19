@@ -86,13 +86,16 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
 
         var world = WorldMatrixWithScale;
         var invTranspose = Matrix.Transpose(Matrix.Invert(world));
+        var shadowFlagSource = GetShadowFlagSource();
         _meshRendererComponent.AddMesh(
             ModelMesh,
             world,
             invTranspose,
             materialOverridesBySlotIndex: MaterialOverridesBySlotIndex,
             propertyOverrides: PropertyOverrides,
-            propertyOverridesBySlotIndex: PropertyOverridesBySlotIndex);
+            propertyOverridesBySlotIndex: PropertyOverridesBySlotIndex,
+            castShadows: shadowFlagSource.CastShadows,
+            receiveShadows: shadowFlagSource.ReceiveShadows);
     }
 
     public override BoundingBox GetBoundingBox()
@@ -124,6 +127,27 @@ public class StaticModelSubMeshComponent : PrimitiveComponent
     public override void Load(JObject element)
     {
         base.Load(element);
+    }
+
+    private PrimitiveComponent GetShadowFlagSource()
+    {
+        if (!IsGeneratedFromModel)
+        {
+            return this;
+        }
+
+        var current = Parent;
+        while (current != null)
+        {
+            if (current is StaticModelComponent staticModelComponent)
+            {
+                return staticModelComponent;
+            }
+
+            current = current.Parent;
+        }
+
+        return this;
     }
 
 }
