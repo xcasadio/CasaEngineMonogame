@@ -39,6 +39,30 @@ public class Vector3Editor : MGStackPanel
         }
     }
 
+    public float Min
+    {
+        get => _fieldX.Min;
+        set
+        {
+            _fieldX.Min = value;
+            _fieldY.Min = value;
+            _fieldZ.Min = value;
+            SetValue(_value, notify: false);
+        }
+    }
+
+    public float Max
+    {
+        get => _fieldX.Max;
+        set
+        {
+            _fieldX.Max = value;
+            _fieldY.Max = value;
+            _fieldZ.Max = value;
+            SetValue(_value, notify: false);
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Events
     // -------------------------------------------------------------------------

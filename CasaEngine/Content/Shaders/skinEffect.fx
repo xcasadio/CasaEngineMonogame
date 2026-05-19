@@ -5,13 +5,17 @@
 // Techniques: RiggedModelDraw, RiggedModelDrawDualQuaternion, RiggedModelNormalDraw, SkinedDebugModelDraw
 //
 // Uses the same direct-light model as LitForward.fx
-// (directional, point and spot lights via Lighting.fxh).
+// (directional, point and spot lights via Lighting.fxh),
+// plus resolved environment ambient / reflection bindings.
 //_______________________________________________________________
 
 #include "Macros.fxh"
 
 
 DECLARE_TEXTURE(Texture, 0);
+DECLARE_CUBEMAP(EnvironmentCubeTexture, 3);
+DECLARE_CUBEMAP(LocalReflectionProbeCubeTexture, 4);
+DECLARE_CUBEMAP(SecondaryLocalReflectionProbeCubeTexture, 5);
 
 
 //_______________________________________________________________
@@ -19,6 +23,7 @@ DECLARE_TEXTURE(Texture, 0);
 // so that LightingContext.Bind() works identically.
 //_______________________________________________________________
 
+#define HAS_ENVIRONMENT_BINDINGS 1
 BEGIN_CONSTANTS
 
     float4 DiffuseColor _vs(c0) _ps(c1) _cb(c0);
@@ -72,6 +77,14 @@ BEGIN_CONSTANTS
 
     float3 EyePosition _vs(c28) _ps(c30) _cb(c28);
     float3 AmbientColor _cb(c29);
+    float3 EnvironmentAmbientColor _ps(c34) _cb(c31);
+    float EnvironmentSpecularIntensity _ps(c35) _cb(c31.w);
+    float HasEnvironmentCubeTexture _ps(c36) _cb(c32.x);
+    float HasLocalReflectionProbeTexture _ps(c37) _cb(c33.x);
+    float HasSecondaryLocalReflectionProbeTexture _ps(c37) _cb(c33.y);
+    float LocalReflectionProbeWeight _ps(c37) _cb(c33.z);
+    float SecondaryLocalReflectionProbeWeight _ps(c37) _cb(c33.w);
+    float LocalReflectionProbeInfluence _ps(c38) _cb(c34.x);
 
     float4x4 World       _vs(c30) _cb(c30);
     float3x3 WorldInverseTranspose _vs(c34) _cb(c34);
@@ -90,6 +103,34 @@ END_CONSTANTS
 
 
 #include "Lighting.fxh"
+
+
+float3 ComputeSkinnedAmbientContribution(float3 baseColor, float3 worldNormal)
+{
+    float3 globalAmbientColor = HasEnvironmentCubeTexture > 0.5f
+        ? SampleEnvironmentDiffuse(worldNormal) * EnvironmentAmbientColor
+        : AmbientColor;
+    return baseColor * DiffuseColor.rgb * globalAmbientColor;
+}
+
+
+float3 ComputeSkinnedDiffuseContribution(float3 baseColor, ColorPair lightResult)
+{
+    return baseColor * max(lightResult.Diffuse - EmissiveColor, 0.0f);
+}
+
+
+float3 ComputeSkinnedEmissiveContribution(float3 baseColor)
+{
+    return baseColor * EmissiveColor;
+}
+
+
+float3 ComputeSkinnedReflectionContribution(float3 eyeVector, float3 worldNormal)
+{
+    float3 reflectionVector = normalize(reflect(-eyeVector, worldNormal));
+    return SampleEnvironmentReflection(reflectionVector) * saturate(SpecularColor);
+}
 
 
 //_______________________________________________________________

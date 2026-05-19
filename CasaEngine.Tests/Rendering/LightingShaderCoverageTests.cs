@@ -28,13 +28,13 @@ public class LightingShaderCoverageTests
         string litForwardSource = LoadShaderSource("LitForward.fx");
         string skinnedSource = LoadShaderSource("skinEffect.fx");
 
-        Assert.Contains("ComputeLights(eyeVector, worldNormal, (int)ActiveDirectionalLightCount)", litForwardSource);
-        Assert.DoesNotContain("ComputeLights(eyeVector, worldNormal, 3)", litForwardSource);
+        Assert.Contains("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, (int)ActiveDirectionalLightCount)", litForwardSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, pin.PositionWS.xyz, worldNormal, 3)", litForwardSource);
 
-        Assert.Contains("ComputeLights(eyeVector, worldNormal, (int)ActiveDirectionalLightCount)", skinnedSource);
-        Assert.Contains("ComputeLights(eyeVector, N, (int)ActiveDirectionalLightCount)", skinnedSource);
-        Assert.DoesNotContain("ComputeLights(eyeVector, worldNormal, 3)", skinnedSource);
-        Assert.DoesNotContain("ComputeLights(eyeVector, N, 3)", skinnedSource);
+        Assert.Contains("ComputeLights(eyeVector, input.Position3D, worldNormal, (int)ActiveDirectionalLightCount)", skinnedSource);
+        Assert.Contains("ComputeLights(eyeVector, input.Position3D, N, (int)ActiveDirectionalLightCount)", skinnedSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, worldNormal, 3)", skinnedSource);
+        Assert.DoesNotContain("ComputeLights(eyeVector, input.Position3D, N, 3)", skinnedSource);
     }
 
     [Fact]
@@ -47,6 +47,21 @@ public class LightingShaderCoverageTests
         Assert.Contains($"DirLight{lastLightIndex}Direction", includeSource);
         Assert.Contains($"DirLight{lastLightIndex}DiffuseColor", includeSource);
         Assert.Contains($"DirLight{lastLightIndex}SpecularColor", includeSource);
+    }
+
+    [Fact]
+    public void SkinnedLightingShader_ConsumesEnvironmentAmbientAndReflectionBindings()
+    {
+        string skinnedSource = LoadShaderSource("skinEffect.fx");
+
+        Assert.Contains("#define HAS_ENVIRONMENT_BINDINGS 1", skinnedSource);
+        Assert.Contains("EnvironmentAmbientColor", skinnedSource);
+        Assert.Contains("EnvironmentSpecularIntensity", skinnedSource);
+        Assert.Contains("HasEnvironmentCubeTexture", skinnedSource);
+        Assert.Contains("ComputeSkinnedAmbientContribution", skinnedSource);
+        Assert.Contains("ComputeSkinnedReflectionContribution", skinnedSource);
+        Assert.Contains("SampleEnvironmentDiffuse", skinnedSource);
+        Assert.Contains("SampleEnvironmentReflection", skinnedSource);
     }
 
     private static string LoadShaderSource(string shaderFileName)

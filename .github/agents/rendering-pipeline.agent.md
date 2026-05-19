@@ -4,10 +4,7 @@ description: >
   Développeur rendu 3D. Materials, shader variants, skinned mesh, forward/deferred,
   render passes, perf GPU/CPU.
 tools:
-  - workspace
-  - terminal
-  - code_search
-  - git
+[vscode, execute, read, agent, edit, search, web, browser, todo]
 ---
 
 # Agent: Rendering Pipeline

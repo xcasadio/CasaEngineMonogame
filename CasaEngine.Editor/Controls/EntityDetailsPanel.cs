@@ -584,7 +584,7 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit world-level environment settings.")
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit world-level environment lighting. Ambient tint is linear RGB, intensities are non-negative multipliers, and a selected environment asset is tinted at scene level while the reflection cubemap can differ from the visible background.")
         {
             WrapText = true,
         });
@@ -629,13 +629,38 @@ public sealed class EntityDetailsPanel
             Filter = static assetInfo => string.Equals(assetInfo.AssetType, "dds", StringComparison.OrdinalIgnoreCase),
         };
         backgroundCubemapSelector.AssetChanged += (_, value) => ApplyWorldEnvironmentChange(
-            "Change Environment Cubemap",
+            "Change Environment Background Cubemap",
             static s => s.BackgroundCubemapAssetId,
             static (s, assetId) => s.BackgroundCubemapAssetId = assetId,
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Background Cubemap", backgroundCubemapSelector);
 
-        var ambientIntensityEditor = new NumericField(_window)
+        var reflectionCubemapSelector = new AssetSelector(_window)
+        {
+            AssetId = settings.SpecularEnvironmentCubemapAssetId,
+            Filter = static assetInfo => string.Equals(assetInfo.AssetType, "dds", StringComparison.OrdinalIgnoreCase),
+        };
+        reflectionCubemapSelector.AssetChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Reflection Cubemap",
+            static s => s.SpecularEnvironmentCubemapAssetId,
+            static (s, assetId) => s.SpecularEnvironmentCubemapAssetId = assetId,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Reflection Cubemap", reflectionCubemapSelector);
+
+        var ambientColorEditor = new Vector3Editor(_window, 0.05f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Min = 0.0f,
+            Value = settings.AmbientColor,
+        };
+        ambientColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Environment Ambient Tint",
+            static s => s.AmbientColor,
+            static (s, color) => s.AmbientColor = color,
+            value);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Tint", ambientColorEditor);
+
+        var ambientIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Value = settings.AmbientIntensity,
@@ -647,7 +672,7 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Ambient Intensity", ambientIntensityEditor);
 
-        var specularIntensityEditor = new NumericField(_window)
+        var specularIntensityEditor = new NumericField(_window, min: 0.0f, step: 0.05f)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Value = settings.SpecularIntensity,

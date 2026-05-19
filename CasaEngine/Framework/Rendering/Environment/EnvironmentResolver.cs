@@ -64,7 +64,7 @@ public static class EnvironmentResolver
 
         ResolvedReflectionProbeBlend reflectionProbeBlend = ReflectionProbeResolver.Resolve(view);
 
-        Vector3 ambientColor = environmentAsset?.AmbientColor ?? source.AmbientColor;
+        Vector3 ambientColor = ResolveAmbientColor(source, environmentAsset);
         float ambientIntensity = (environmentAsset?.AmbientIntensity ?? 1.0f) * source.AmbientIntensity;
         float specularIntensity = (environmentAsset?.SpecularIntensity ?? 1.0f) * source.SpecularIntensity;
         bool hasEnvironmentCubemap = backgroundCubemap is not null;
@@ -121,6 +121,24 @@ public static class EnvironmentResolver
         return resolvedEnvironment;
     }
 
+    internal static Vector3 ResolveAmbientColor(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        Vector3 sourceAmbientColor = source.AmbientColor;
+        if (environmentAsset is null)
+        {
+            return sourceAmbientColor;
+        }
+
+        if (sourceAmbientColor == LegacyAmbientColor)
+        {
+            return environmentAsset.AmbientColor;
+        }
+
+        return environmentAsset.AmbientColor * CreateWorldAmbientTint(sourceAmbientColor);
+    }
+
     private static EnvironmentType ResolveRequestedEnvironmentType(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)
     {
         if (source.Type != EnvironmentType.None)
@@ -149,6 +167,24 @@ public static class EnvironmentResolver
         }
 
         return hasEnvironmentCubemap ? EnvironmentType.Cubemap : EnvironmentType.None;
+    }
+
+    private static Vector3 CreateWorldAmbientTint(Vector3 sourceAmbientColor)
+    {
+        return new Vector3(
+            CreateWorldAmbientTint(sourceAmbientColor.X, LegacyAmbientColor.X),
+            CreateWorldAmbientTint(sourceAmbientColor.Y, LegacyAmbientColor.Y),
+            CreateWorldAmbientTint(sourceAmbientColor.Z, LegacyAmbientColor.Z));
+    }
+
+    private static float CreateWorldAmbientTint(float sourceChannel, float legacyChannel)
+    {
+        if (legacyChannel <= 0.0f)
+        {
+            return sourceChannel;
+        }
+
+        return sourceChannel / legacyChannel;
     }
 
     private static ProceduralSkySettings ResolveProceduralSkySettings(WorldEnvironmentSettings source, EnvironmentAsset? environmentAsset)

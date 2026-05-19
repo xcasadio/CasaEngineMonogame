@@ -11,6 +11,9 @@ namespace CasaEngine.Framework.Rendering.Environment;
 public sealed class WorldEnvironmentSettings
 {
     private int _version;
+    private Vector3 _ambientColor = new(0.05f, 0.05f, 0.05f);
+    private float _ambientIntensity = 1.0f;
+    private float _specularIntensity = 1.0f;
 
     public EnvironmentType Type { get; set; } = EnvironmentType.None;
 
@@ -36,11 +39,23 @@ public sealed class WorldEnvironmentSettings
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; set; }
 
-    public Vector3 AmbientColor { get; set; } = new(0.05f, 0.05f, 0.05f);
+    public Vector3 AmbientColor
+    {
+        get => _ambientColor;
+        set => _ambientColor = EnvironmentLightingSanitizer.NormalizeAmbientColor(value);
+    }
 
-    public float AmbientIntensity { get; set; } = 1.0f;
+    public float AmbientIntensity
+    {
+        get => _ambientIntensity;
+        set => _ambientIntensity = EnvironmentLightingSanitizer.NormalizeIntensity(value);
+    }
 
-    public float SpecularIntensity { get; set; } = 1.0f;
+    public float SpecularIntensity
+    {
+        get => _specularIntensity;
+        set => _specularIntensity = EnvironmentLightingSanitizer.NormalizeIntensity(value);
+    }
 
     public bool IsDirty { get; private set; }
 
