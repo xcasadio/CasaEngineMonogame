@@ -56,7 +56,8 @@ internal static class BuiltInMaterialDefinitions
                     group: MaterialPropertyGroup.Surface,
                     flags: MaterialPropertyFlags.SupportsOverrides | MaterialPropertyFlags.AffectsTransparency,
                     defaultValue: Color.White,
-                    description: "Base diffuse tint multiplied with the material lighting response."),
+                    description: "Base diffuse tint multiplied with the material lighting response.",
+                    editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
                     key: "alpha_cutoff",
                     displayName: "Alpha Cutoff",
@@ -74,7 +75,8 @@ internal static class BuiltInMaterialDefinitions
                     group: MaterialPropertyGroup.Lighting,
                     flags: MaterialPropertyFlags.SupportsOverrides,
                     defaultValue: Vector3.Zero,
-                    description: "Per-material ambient term kept for legacy imported materials."),
+                    description: "Per-material ambient term kept for legacy imported materials.",
+                    editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
                     key: "emissive_color",
                     displayName: "Emissive Color",
@@ -82,7 +84,8 @@ internal static class BuiltInMaterialDefinitions
                     group: MaterialPropertyGroup.Lighting,
                     flags: MaterialPropertyFlags.SupportsOverrides | MaterialPropertyFlags.AffectsShaderCompilation,
                     defaultValue: Vector3.Zero,
-                    description: "Self-illuminated color added on top of direct lighting."),
+                    description: "Self-illuminated color added on top of direct lighting.",
+                    editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
                     key: "specular_color",
                     displayName: "Specular Color",
@@ -90,7 +93,8 @@ internal static class BuiltInMaterialDefinitions
                     group: MaterialPropertyGroup.Lighting,
                     flags: MaterialPropertyFlags.SupportsOverrides,
                     defaultValue: new Vector3(0.5f),
-                    description: "Specular highlight tint."),
+                    description: "Specular highlight tint.",
+                    editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
                     key: "specular_power",
                     displayName: "Specular Power",
@@ -129,7 +133,8 @@ internal static class BuiltInMaterialDefinitions
                     group: MaterialPropertyGroup.Surface,
                     flags: MaterialPropertyFlags.SupportsOverrides | MaterialPropertyFlags.AffectsTransparency,
                     defaultValue: Color.White,
-                    description: "Multiplicative tint applied on top of the base texture."),
+                    description: "Multiplicative tint applied on top of the base texture.",
+                    editorControlHint: "ColorPicker"),
                 new MaterialPropertyDefinition(
                     key: "alpha",
                     displayName: "Alpha",

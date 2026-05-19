@@ -150,6 +150,11 @@ public sealed class MaterialDefinitionEditorRegistry
 
     private static string GetEditorControlHint(MaterialPropertyDefinition propertyDefinition)
     {
+        if (!string.IsNullOrWhiteSpace(propertyDefinition.EditorControlHint))
+        {
+            return propertyDefinition.EditorControlHint;
+        }
+
         if ((propertyDefinition.Flags & MaterialPropertyFlags.AssetReference) != 0
             || propertyDefinition.ValueType == MaterialPropertyType.Texture)
         {

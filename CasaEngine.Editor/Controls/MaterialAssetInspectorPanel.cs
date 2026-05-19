@@ -428,6 +428,8 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             MaterialPropertyType.Color => BuildColorEditor(propertyDefinition, value),
             MaterialPropertyType.Texture => BuildTextureEditor(propertyDefinition, value),
             MaterialPropertyType.Enum => BuildEnumEditor(propertyDefinition, value),
+            MaterialPropertyType.Vector3 when string.Equals(descriptor.EditorControlHint, "ColorPicker", StringComparison.Ordinal)
+                => BuildVector3ColorEditor(propertyDefinition, value),
             MaterialPropertyType.Vector3 => BuildVector3Editor(propertyDefinition, value),
             _ => BuildTextEditor(propertyDefinition, value),
         };
@@ -622,6 +624,16 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         var colorEditor = new ColorEditor(_window, value != null && value.TryGetColor(out var color) ? color : Color.White);
 
         return new ColorEditorBinding(colorEditor, newValue => ApplyPropertyValue(propertyDefinition, newValue));
+    }
+
+    private IPropertyEditorBinding BuildVector3ColorEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
+    {
+        var colorEditor = new Vector3ColorEditor(_window, value != null && value.TryGetVector3(out var vector3Value) ? vector3Value : Vector3.Zero)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        return new Vector3ColorEditorBinding(colorEditor, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }
 
     private IPropertyEditorBinding BuildVector3Editor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
@@ -1408,6 +1420,39 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         {
             _isUpdating = true;
             _vectorEditor.Value = value != null && value.TryGetVector3(out var vector3Value)
+                ? vector3Value
+                : Vector3.Zero;
+            _isUpdating = false;
+        }
+    }
+
+    private sealed class Vector3ColorEditorBinding : IPropertyEditorBinding
+    {
+        private readonly Vector3ColorEditor _colorEditor;
+        private readonly Action<MaterialValue?> _applyValue;
+        private bool _isUpdating;
+
+        public Vector3ColorEditorBinding(Vector3ColorEditor colorEditor, Action<MaterialValue?> applyValue)
+        {
+            _colorEditor = colorEditor;
+            _applyValue = applyValue;
+            _colorEditor.ValueChanged += (_, updatedValue) =>
+            {
+                if (_isUpdating)
+                {
+                    return;
+                }
+
+                _applyValue(MaterialValue.FromVector3(updatedValue));
+            };
+        }
+
+        public MGElement Element => _colorEditor;
+
+        public void UpdateValue(MaterialValue? value)
+        {
+            _isUpdating = true;
+            _colorEditor.Value = value != null && value.TryGetVector3(out var vector3Value)
                 ? vector3Value
                 : Vector3.Zero;
             _isUpdating = false;

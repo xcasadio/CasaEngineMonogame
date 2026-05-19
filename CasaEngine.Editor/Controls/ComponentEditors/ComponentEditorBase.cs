@@ -335,6 +335,13 @@ public abstract class ComponentEditorBase
 
         if (propertyType == typeof(Vector3))
         {
+            if (IsColorLikeProperty(property))
+            {
+                var colorEditor = new Vector3ColorEditor(Window, currentValue is Vector3 vectorColor ? vectorColor : Vector3.Zero);
+                colorEditor.ValueChanged += (_, value) => ApplyPropertyChange(target, property, value);
+                return colorEditor;
+            }
+
             var vectorEditor = new Vector3Editor(Window)
             {
                 Value = currentValue is Vector3 vector ? vector : Vector3.Zero,
@@ -386,6 +393,20 @@ public abstract class ComponentEditorBase
         }
 
         return null;
+    }
+
+    private static bool IsColorLikeProperty(PropertyDescriptor property)
+        => HasColorIndicator(property.Name) || HasColorIndicator(property.DisplayName);
+
+    private static bool HasColorIndicator(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return value.Contains("color", StringComparison.OrdinalIgnoreCase)
+            || value.Contains("tint", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool CanEditProperty(

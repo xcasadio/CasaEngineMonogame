@@ -18,7 +18,8 @@ public sealed class MaterialPropertyDefinition
         IEnumerable<MaterialPropertyOption>? options = null,
         float? minValue = null,
         float? maxValue = null,
-        float? step = null)
+        float? step = null,
+        string? editorControlHint = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
@@ -33,6 +34,7 @@ public sealed class MaterialPropertyDefinition
         MinValue = minValue;
         MaxValue = maxValue;
         Step = step;
+        EditorControlHint = string.IsNullOrWhiteSpace(editorControlHint) ? null : editorControlHint;
 
         LegacyAliases = NormalizeAliases(legacyAliases, key);
         Options = NormalizeOptions(options);
@@ -55,6 +57,7 @@ public sealed class MaterialPropertyDefinition
     public float? MinValue { get; }
     public float? MaxValue { get; }
     public float? Step { get; }
+    public string? EditorControlHint { get; }
     public IReadOnlyList<string> LegacyAliases { get; }
     public IReadOnlyList<MaterialPropertyOption> Options { get; }
 
