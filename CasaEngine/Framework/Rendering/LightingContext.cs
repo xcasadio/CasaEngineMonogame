@@ -1,5 +1,4 @@
 using CasaEngine.Framework.Rendering.Environment;
-using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Rendering;
@@ -15,16 +14,6 @@ public class LightingContext
     public const int MaxPointLights = 8;
     public const int MaxSpotLights = 8;
 
-    private static readonly Vector3 ZeroVector3 = Vector3.Zero;
-    private static readonly Vector4 ZeroVector4 = Vector4.Zero;
-
-    private readonly Vector4[] _pointLightPositionAndRangeData = new Vector4[MaxPointLights];
-    private readonly Vector4[] _pointLightDiffuseData = new Vector4[MaxPointLights];
-    private readonly Vector4[] _pointLightSpecularData = new Vector4[MaxPointLights];
-    private readonly Vector4[] _spotLightPositionAndRangeData = new Vector4[MaxSpotLights];
-    private readonly Vector4[] _spotLightDirectionAndInnerConeCosData = new Vector4[MaxSpotLights];
-    private readonly Vector4[] _spotLightDiffuseData = new Vector4[MaxSpotLights];
-    private readonly Vector4[] _spotLightSpecularAndOuterConeCosData = new Vector4[MaxSpotLights];
     private readonly float[] _pointLightScores = new float[MaxPointLights];
     private readonly float[] _spotLightScores = new float[MaxSpotLights];
     private Vector3 _priorityPosition;
@@ -153,85 +142,6 @@ public class LightingContext
             SpotLights[i] = other.SpotLights[i];
             _spotLightScores[i] = other._spotLightScores[i];
         }
-    }
-
-    /// <summary>Binds all active lights to the given shader wrapper.</summary>
-    public void Bind(ShaderWrapper shader)
-    {
-        int activeDirectionalLightCount = ClampActiveDirectionalLightCount(ActiveDirectionalLightCount);
-        int activePointLightCount = ClampActivePointLightCount(ActivePointLightCount);
-        int activeSpotLightCount = ClampActiveSpotLightCount(ActiveSpotLightCount);
-
-        shader.SetParameter(ShaderParameterNames.ActiveDirectionalLightCount, (float)activeDirectionalLightCount);
-        shader.SetParameter(ShaderParameterNames.ActivePointLightCount, (float)activePointLightCount);
-        shader.SetParameter(ShaderParameterNames.ActiveSpotLightCount, (float)activeSpotLightCount);
-
-        for (int i = 0; i < MaxDirectionalLights; i++)
-        {
-            if (i < activeDirectionalLightCount)
-            {
-                var d = DirectionalLights[i];
-                shader.SetParameter(ShaderParameterNames.DirectionalLightDirectionParameters[i], d.Direction);
-                shader.SetParameter(ShaderParameterNames.DirectionalLightDiffuseParameters[i], d.DiffuseColor * d.Intensity);
-                shader.SetParameter(ShaderParameterNames.DirectionalLightSpecularParameters[i], d.SpecularColor * d.Intensity);
-            }
-            else
-            {
-                // Zero out inactive slots so the shader does not accumulate stale light data.
-                shader.SetParameter(ShaderParameterNames.DirectionalLightDirectionParameters[i], ZeroVector3);
-                shader.SetParameter(ShaderParameterNames.DirectionalLightDiffuseParameters[i], ZeroVector3);
-                shader.SetParameter(ShaderParameterNames.DirectionalLightSpecularParameters[i], ZeroVector3);
-            }
-        }
-
-        for (int i = 0; i < MaxPointLights; i++)
-        {
-            if (i < activePointLightCount)
-            {
-                var pointLight = PointLights[i];
-                _pointLightPositionAndRangeData[i] = new Vector4(pointLight.Position, pointLight.Range);
-                _pointLightDiffuseData[i] = new Vector4(pointLight.DiffuseColor * pointLight.Intensity, 0.0f);
-                _pointLightSpecularData[i] = new Vector4(pointLight.SpecularColor * pointLight.Intensity, 0.0f);
-            }
-            else
-            {
-                _pointLightPositionAndRangeData[i] = ZeroVector4;
-                _pointLightDiffuseData[i] = ZeroVector4;
-                _pointLightSpecularData[i] = ZeroVector4;
-            }
-        }
-
-        shader.SetParameter(ShaderParameterNames.PointLightPositionAndRange, _pointLightPositionAndRangeData);
-        shader.SetParameter(ShaderParameterNames.PointLightDiffuseColors, _pointLightDiffuseData);
-        shader.SetParameter(ShaderParameterNames.PointLightSpecularColors, _pointLightSpecularData);
-
-        for (int i = 0; i < MaxSpotLights; i++)
-        {
-            if (i < activeSpotLightCount)
-            {
-                var spotLight = SpotLights[i];
-                _spotLightPositionAndRangeData[i] = new Vector4(spotLight.Position, spotLight.Range);
-                _spotLightDirectionAndInnerConeCosData[i] = new Vector4(spotLight.Direction, MathF.Cos(spotLight.InnerConeAngle));
-                _spotLightDiffuseData[i] = new Vector4(spotLight.DiffuseColor * spotLight.Intensity, 0.0f);
-                _spotLightSpecularAndOuterConeCosData[i] = new Vector4(
-                    spotLight.SpecularColor * spotLight.Intensity,
-                    MathF.Cos(spotLight.OuterConeAngle));
-            }
-            else
-            {
-                _spotLightPositionAndRangeData[i] = ZeroVector4;
-                _spotLightDirectionAndInnerConeCosData[i] = ZeroVector4;
-                _spotLightDiffuseData[i] = ZeroVector4;
-                _spotLightSpecularAndOuterConeCosData[i] = ZeroVector4;
-            }
-        }
-
-        shader.SetParameter(ShaderParameterNames.SpotLightPositionAndRange, _spotLightPositionAndRangeData);
-        shader.SetParameter(ShaderParameterNames.SpotLightDirectionAndInnerConeCos, _spotLightDirectionAndInnerConeCosData);
-        shader.SetParameter(ShaderParameterNames.SpotLightDiffuseColors, _spotLightDiffuseData);
-        shader.SetParameter(ShaderParameterNames.SpotLightSpecularColorsAndOuterConeCos, _spotLightSpecularAndOuterConeCosData);
-
-        shader.SetParameter(ShaderParameterNames.AmbientColor, AmbientColor);
     }
 
     private void InsertPointLight(in PointLight light, float score)

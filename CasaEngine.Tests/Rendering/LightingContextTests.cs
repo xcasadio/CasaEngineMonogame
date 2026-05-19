@@ -142,6 +142,27 @@ public class LightingContextTests
         Assert.Equal(0, context.ActiveSpotLightCount);
     }
 
+    [Fact]
+    public void CopyFrom_CopiesVisibleLightsAndAmbient()
+    {
+        var source = new LightingContext();
+        source.BeginCollection(new Vector3(1.0f, 2.0f, 3.0f), new Vector3(0.2f, 0.3f, 0.4f));
+        source.AddDirectionalLight(new DirectionalLight(Vector3.Normalize(new Vector3(1.0f, -2.0f, 0.5f)), Vector3.One, Vector3.One * 0.5f, intensity: 2.0f));
+        source.AddPointLight(new PointLight(new Vector3(5.0f, 0.0f, 0.0f), Vector3.One, Vector3.One * 0.25f, range: 10.0f, intensity: 3.0f));
+        source.AddSpotLight(new SpotLight(new Vector3(0.0f, 2.0f, 0.0f), Vector3.Forward, Vector3.One * 0.75f, Vector3.One, range: 15.0f, innerConeAngle: 0.2f, outerConeAngle: 0.4f, intensity: 1.5f));
+
+        var destination = new LightingContext();
+        destination.CopyFrom(source);
+
+        Assert.Equal(source.AmbientColor, destination.AmbientColor);
+        Assert.Equal(source.ActiveDirectionalLightCount, destination.ActiveDirectionalLightCount);
+        Assert.Equal(source.ActivePointLightCount, destination.ActivePointLightCount);
+        Assert.Equal(source.ActiveSpotLightCount, destination.ActiveSpotLightCount);
+        Assert.Equal(source.DirectionalLights[0].Direction, destination.DirectionalLights[0].Direction);
+        Assert.Equal(source.PointLights[0].Position, destination.PointLights[0].Position);
+        Assert.Equal(source.SpotLights[0].Position, destination.SpotLights[0].Position);
+    }
+
     private static bool ContainsPointLight(LightingContext context, Vector3 position)
     {
         for (int i = 0; i < context.ActivePointLightCount; i++)

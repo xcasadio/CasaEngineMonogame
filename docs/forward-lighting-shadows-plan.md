@@ -173,7 +173,7 @@ Commit obligatoire :
 git commit -m "Propagate shadow flags to render items"
 ```
 
-### ⏳ Tache 04 - Extraire `ForwardLightBinder`
+### ✅ Tache 04 - Extraire `ForwardLightBinder`
 
 But : sortir tout binding shader de `LightingContext` et garder le rendu identique.
 

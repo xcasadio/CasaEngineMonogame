@@ -11,6 +11,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 public sealed class ShaderBindCache
 {
     private ShaderWrapper? _lastShader;
+    private readonly ForwardLightBinder _forwardLightBinder = new();
 
     /// <summary>
     /// Sets the per-frame global parameters on <paramref name="shader"/> if it differs
@@ -29,8 +30,7 @@ public sealed class ShaderBindCache
         // Per-frame global parameters
         shader.SetParameter(ShaderParameterNames.EyePosition, context.Frame.CameraPosition);
 
-        // Bind directional lights and ambient (Phase 5)
-        context.Lighting?.Bind(shader);
+        _forwardLightBinder.Bind(shader, context.Lighting, context.Stats);
         EnvironmentShaderBinder.Bind(shader, in context.Environment, context.Stats);
 
         if (context.Stats is not null)
