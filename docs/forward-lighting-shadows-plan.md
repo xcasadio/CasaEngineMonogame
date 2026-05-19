@@ -417,7 +417,7 @@ Commit obligatoire :
 git commit -m "Add forward shadows demo coverage"
 ```
 
-### ⏳ Tache 10 - Nettoyage final et documentation
+### ✅ Tache 10 - Nettoyage final et documentation
 
 But : fermer la fonctionnalite avec une documentation claire et des tests coherents.
 
@@ -442,6 +442,19 @@ Validation obligatoire :
 dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -v minimal --filter "FullyQualifiedName~Rendering|FullyQualifiedName~LightComponent|FullyQualifiedName~Shadow"
 dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal
 ```
+
+Validation executee pour cette tache :
+
+```powershell
+dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -v minimal --filter "FullyQualifiedName~Rendering|FullyQualifiedName~LightComponent|FullyQualifiedName~Shadow"
+dotnet build .\CasaEngine.MonoGame.sln --no-restore -clp:ErrorsOnly
+```
+
+Notes de cloture :
+
+- `docs/light-component.md` documente maintenant `LightComponent.CastShadows`, les flags `CastShadows` / `ReceiveShadows` des composants rendus, et la regle effective composant && material.
+- Les limites V1 sont explicites : directional shadows forward, support static/skinned, pas d'ombre sur l'ambient ou l'environnement, point/spot shadows deferrees.
+- Toutes les taches de ce runbook sont maintenant fermees avec un commit atomique par tache.
 
 Commit obligatoire :
 
