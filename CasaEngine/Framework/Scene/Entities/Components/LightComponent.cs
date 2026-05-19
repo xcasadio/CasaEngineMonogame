@@ -27,6 +27,8 @@ public class LightComponent : SceneComponent, IRenderLightSource
 
     public Color SpecularColor { get; set; } = Color.White;
 
+    public bool CastShadows { get; set; }
+
     public float Intensity
     {
         get => _intensity;
@@ -80,6 +82,7 @@ public class LightComponent : SceneComponent, IRenderLightSource
         Type = other.Type;
         Color = other.Color;
         SpecularColor = other.SpecularColor;
+        CastShadows = other.CastShadows;
         _intensity = other._intensity;
         _range = other._range;
         _innerConeAngleDegrees = other._innerConeAngleDegrees;
@@ -132,6 +135,11 @@ public class LightComponent : SceneComponent, IRenderLightSource
             SpecularColor = specularColorNode.GetColor();
         }
 
+        if (element["cast_shadows"] is JToken castShadowsNode)
+        {
+            CastShadows = castShadowsNode.Value<bool>();
+        }
+
         if (element["intensity"] is JToken intensityNode)
         {
             Intensity = intensityNode.GetSingle();
@@ -159,7 +167,8 @@ public class LightComponent : SceneComponent, IRenderLightSource
             Direction,
             DiffuseColorVector,
             SpecularColorVector,
-            Intensity));
+            Intensity,
+            CastShadows));
     }
 
     private void AppendPointLight(LightingContext lightingContext)
@@ -174,7 +183,8 @@ public class LightComponent : SceneComponent, IRenderLightSource
             DiffuseColorVector,
             SpecularColorVector,
             Range,
-            Intensity));
+            Intensity,
+            CastShadows));
     }
 
     private void AppendSpotLight(LightingContext lightingContext)
@@ -192,6 +202,7 @@ public class LightComponent : SceneComponent, IRenderLightSource
             Range,
             InnerConeAngleRadians,
             OuterConeAngleRadians,
-            Intensity));
+            Intensity,
+            CastShadows));
     }
 }

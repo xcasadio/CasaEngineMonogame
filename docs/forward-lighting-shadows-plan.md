@@ -60,7 +60,7 @@ effectiveReceiveShadows = component.ReceiveShadows && material.ReceiveShadows
 
 ## Taches atomiques
 
-### ⏳ Tache 01 - Ajouter `CastShadows` aux lumieres
+### ✅ Tache 01 - Ajouter `CastShadows` aux lumieres
 
 But : permettre a une lumiere d'indiquer si elle doit produire une shadow map, sans encore changer le rendu.
 

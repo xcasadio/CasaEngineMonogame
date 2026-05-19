@@ -15,6 +15,7 @@ public struct SpotLight
     public float Intensity;
     public float InnerConeAngle;
     public float OuterConeAngle;
+    public bool CastShadows;
 
     public SpotLight(
         Vector3 position,
@@ -24,7 +25,8 @@ public struct SpotLight
         float range,
         float innerConeAngle,
         float outerConeAngle,
-        float intensity = 1.0f)
+        float intensity = 1.0f,
+        bool castShadows = false)
     {
         Position = position;
         Direction = Vector3.Normalize(direction);
@@ -36,5 +38,6 @@ public struct SpotLight
         float clampedOuterConeAngle = Math.Clamp(outerConeAngle, 0.0f, MathHelper.PiOver2);
         InnerConeAngle = Math.Clamp(innerConeAngle, 0.0f, clampedOuterConeAngle);
         OuterConeAngle = clampedOuterConeAngle;
+        CastShadows = castShadows;
     }
 }

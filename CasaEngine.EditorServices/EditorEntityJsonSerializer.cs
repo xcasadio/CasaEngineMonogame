@@ -346,6 +346,7 @@ internal static class EditorEntityJsonSerializer
         node.Add("range", component.Range);
         node.Add("inner_cone_angle_degrees", component.InnerConeAngleDegrees);
         node.Add("outer_cone_angle_degrees", component.OuterConeAngleDegrees);
+        node.Add("cast_shadows", component.CastShadows);
     }
 
     private static void SaveBoxCollisionComponent(BoxCollisionComponent component, JObject node)

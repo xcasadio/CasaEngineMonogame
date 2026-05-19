@@ -11,12 +11,14 @@ public struct DirectionalLight
     public Vector3 DiffuseColor;
     public Vector3 SpecularColor;
     public float Intensity;
+    public bool CastShadows;
 
-    public DirectionalLight(Vector3 direction, Vector3 diffuseColor, Vector3 specularColor, float intensity = 1.0f)
+    public DirectionalLight(Vector3 direction, Vector3 diffuseColor, Vector3 specularColor, float intensity = 1.0f, bool castShadows = false)
     {
         Direction = Vector3.Normalize(direction);
         DiffuseColor = diffuseColor;
         SpecularColor = specularColor;
         Intensity = intensity;
+        CastShadows = castShadows;
     }
 }

@@ -297,6 +297,65 @@ public class EditorProjectAuthoringServiceTests
     }
 
     [Fact]
+    public void SaveProject_WithLightComponent_PersistsCastShadowsFlag()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            ProjectSettingsHelper.Save(projectFilePath);
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            var world = new World
+            {
+                Name = "DefaultWorld",
+                FileName = "DefaultWorld.world",
+            };
+
+            var entity = new Entity
+            {
+                Name = "Sun",
+                RootComponent = new LightComponent
+                {
+                    Type = LightType.Directional,
+                    CastShadows = true,
+                    Intensity = 3.0f,
+                },
+            };
+
+            AddEntityReference(world, new EntityReference
+            {
+                AssetId = Guid.Empty,
+                Entity = entity,
+            });
+
+            EditorProjectAuthoringService.SaveProject(world);
+
+            var worldDocument = JObject.Parse(File.ReadAllText(Path.Combine(tempDirectory, "DefaultWorld.world")));
+            var entityReferences = Assert.IsType<JArray>(worldDocument["entity_references"]);
+            var entityNode = Assert.IsType<JObject>(Assert.IsType<JObject>(entityReferences[0])["entity"]);
+            var rootComponentNode = Assert.IsType<JObject>(entityNode["root_component"]);
+
+            Assert.Equal("LightComponent", (string?)rootComponentNode["type"]);
+            Assert.True((bool?)rootComponentNode["cast_shadows"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
     public void SaveProject_WithWorldEnvironment_PersistsAndReloadsEnvironmentSettings()
     {
         string tempDirectory = CreateTempDirectory();

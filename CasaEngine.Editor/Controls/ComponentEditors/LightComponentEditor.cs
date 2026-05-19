@@ -63,6 +63,17 @@ public sealed class LightComponentEditor : TransformComponentEditor
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Intensity", intensityEditor);
 
+        var castShadowsCheckBox = new MGCheckBox(Window)
+        {
+            IsChecked = LightComponent.CastShadows,
+        };
+        castShadowsCheckBox.OnCheckStateChanged += (_, e) => ApplyValueChange(
+            BuildComponentCommandDescription("Cast Shadows"),
+            () => LightComponent.CastShadows,
+            nextValue => LightComponent.CastShadows = nextValue,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(grid, rowIndex, "Cast Shadows", castShadowsCheckBox);
+
         if (LightComponent.Type != LightType.Directional)
         {
             var rangeEditor = new NumericField(Window, step: 0.5f, min: 0.0f)
