@@ -43,6 +43,8 @@ public class ShadowPipelineCoverageTests
         Assert.Contains("EffectiveCastShadows", source, StringComparison.Ordinal);
         Assert.Contains("CastShadows", source, StringComparison.Ordinal);
         Assert.Contains("ShadowLightType.Directional", source, StringComparison.Ordinal);
+        Assert.Contains("!context.Shadows.Settings.Enabled", source, StringComparison.Ordinal);
+        Assert.Contains("SurfaceFormat.Single", source, StringComparison.Ordinal);
     }
 
     [Fact]

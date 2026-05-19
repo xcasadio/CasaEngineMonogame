@@ -162,6 +162,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Stats    = stats,
         };
 
+        ApplyShadowSettings(frame.Shadows, _shadowResources.Settings);
         _shadowResources.Clear();
 
         // --- Phase 4: build a sorted RenderItem list ---
@@ -320,6 +321,19 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _pipeline.Render(context, _renderItems, _stateCache, _shaderCache, _shaderSelector!);
 
         _meshInfos.Clear();
+    }
+
+    private static void ApplyShadowSettings(ShadowSettings? source, ShadowSettings destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+
+        if (source is null)
+        {
+            destination.ResetToDefaults();
+            return;
+        }
+
+        destination.CopyFrom(source);
     }
 
     private static MaterialBase? GetMaterialOverride(IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex, int slotIndex)

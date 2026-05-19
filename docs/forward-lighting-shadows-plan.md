@@ -472,5 +472,6 @@ git commit -m "Document forward shadow lighting workflow"
 - `ShadowPass` est execute avant le rendu visible et restaure l'etat GPU.
 - `LitForward.fx` recoit les shadows.
 - `skinEffect.fx` recoit les shadows si la tache skinned est terminee.
-- Une demo ou smoke test montre au moins un objet qui projette une shadow et un objet qui ne la recoit pas.
+- Les world settings exposent aussi les reglages de shadow map directional V1 (`Enabled`, `Resolution`, `DepthBias`, `NormalBias`, `MaxDistance`) dans l'editeur et la serialisation scene.
+- Une demo ou smoke test montre au moins un objet qui projette une shadow et un objet qui ne la recoit pas; la couverture visuelle inclut maintenant une demo statique dediee en plus du cas skinned.
 - Chaque tache terminee a son propre commit.

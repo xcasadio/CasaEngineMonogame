@@ -1,4 +1,5 @@
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Rendering.Shadows;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using XnaTextureCube = Microsoft.Xna.Framework.Graphics.TextureCube;
@@ -39,6 +40,8 @@ public sealed class WorldEnvironmentSettings
 
     public XnaTextureCube? SpecularEnvironmentCubemap { get; set; }
 
+    public ShadowSettings Shadows { get; } = new();
+
     public Vector3 AmbientColor
     {
         get => _ambientColor;
@@ -78,6 +81,7 @@ public sealed class WorldEnvironmentSettings
         AmbientColor = new Vector3(0.05f, 0.05f, 0.05f);
         AmbientIntensity = 1.0f;
         SpecularIntensity = 1.0f;
+        Shadows.ResetToDefaults();
         IsDirty = false;
     }
 
@@ -151,6 +155,11 @@ public sealed class WorldEnvironmentSettings
         {
             SpecularIntensity = specularIntensityNode.GetSingle();
         }
+
+        if (element.TryGetValue("shadows", StringComparison.OrdinalIgnoreCase, out var shadowsNode))
+        {
+            Shadows.Load(shadowsNode as JObject);
+        }
     }
 
     public void Save(JObject element)
@@ -170,6 +179,10 @@ public sealed class WorldEnvironmentSettings
         element["ambient_color"] = SaveVector3(AmbientColor);
         element["ambient_intensity"] = AmbientIntensity;
         element["specular_intensity"] = SpecularIntensity;
+
+        var shadowsNode = new JObject();
+        Shadows.Save(shadowsNode);
+        element["shadows"] = shadowsNode;
     }
 
     public void MarkDirty()
@@ -185,7 +198,7 @@ public sealed class WorldEnvironmentSettings
 
     public WorldEnvironmentSettings Clone()
     {
-        return new WorldEnvironmentSettings
+        var clone = new WorldEnvironmentSettings
         {
             Type = Type,
             BackgroundMode = BackgroundMode,
@@ -203,6 +216,9 @@ public sealed class WorldEnvironmentSettings
             AmbientIntensity = AmbientIntensity,
             SpecularIntensity = SpecularIntensity,
         };
+
+        clone.Shadows.CopyFrom(Shadows);
+        return clone;
     }
 
     public void CopyFrom(WorldEnvironmentSettings other)
@@ -224,6 +240,7 @@ public sealed class WorldEnvironmentSettings
         AmbientColor = other.AmbientColor;
         AmbientIntensity = other.AmbientIntensity;
         SpecularIntensity = other.SpecularIntensity;
+        Shadows.CopyFrom(other.Shadows);
         if (other.IsDirty)
         {
             MarkDirty();

@@ -584,7 +584,7 @@ public sealed class EntityDetailsPanel
         {
             WrapText = false,
         });
-        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit world-level environment lighting. Ambient tint is linear RGB, intensities are non-negative multipliers, and a selected environment asset is tinted at scene level while the reflection cubemap can differ from the visible background.")
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "Edit world-level environment lighting and per-scene directional shadow-map settings. Ambient tint is linear RGB, intensities are non-negative multipliers, and the shadow controls drive the forward V1 shadow pass for this world.")
         {
             WrapText = true,
         });
@@ -685,6 +685,85 @@ public sealed class EntityDetailsPanel
         rowIndex = AddPropertyRow(grid, rowIndex, "Specular Intensity", specularIntensityEditor);
 
         _detailsContent.TryAddChild(grid);
+
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "[b]Directional Shadows (V1)[/b]")
+        {
+            WrapText = false,
+        });
+        _detailsContent.TryAddChild(new MGTextBlock(_window, "These controls are serialized with the world and drive the shared forward directional shadow map for static and skinned receivers.")
+        {
+            WrapText = true,
+        });
+
+        var shadowGrid = CreatePropertyGrid();
+        rowIndex = 0;
+
+        var shadowsEnabledCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = settings.Shadows.Enabled,
+        };
+        shadowsEnabledCheckBox.OnCheckStateChanged += (_, e) => ApplyWorldEnvironmentChange(
+            "Toggle World Shadow Maps",
+            static s => s.Shadows.Enabled,
+            static (s, enabled) => s.Shadows.Enabled = enabled,
+            e.NewValue ?? false);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Enabled", shadowsEnabledCheckBox);
+
+        var shadowResolutionItems = new List<string> { "256", "512", "1024", "2048", "4096" };
+        string selectedShadowResolution = settings.Shadows.Resolution.ToString();
+        if (!shadowResolutionItems.Contains(selectedShadowResolution, StringComparer.Ordinal))
+        {
+            shadowResolutionItems.Add(selectedShadowResolution);
+            shadowResolutionItems.Sort(static (left, right) => int.Parse(left).CompareTo(int.Parse(right)));
+        }
+
+        var shadowResolutionCombo = CreateStringCombo(shadowResolutionItems, selectedShadowResolution, value =>
+        {
+            ApplyWorldEnvironmentChange(
+                "Change Shadow Map Resolution",
+                static s => s.Shadows.Resolution,
+                static (s, resolution) => s.Shadows.Resolution = resolution,
+                int.Parse(value));
+        });
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Resolution", shadowResolutionCombo);
+
+        var shadowDepthBiasEditor = new NumericField(_window, min: 0.0f, step: 0.0005f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.DepthBias,
+        };
+        shadowDepthBiasEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Depth Bias",
+            static s => s.Shadows.DepthBias,
+            static (s, bias) => s.Shadows.DepthBias = bias,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Depth Bias", shadowDepthBiasEditor);
+
+        var shadowNormalBiasEditor = new NumericField(_window, min: 0.0f, step: 0.001f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.NormalBias,
+        };
+        shadowNormalBiasEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Normal Bias",
+            static s => s.Shadows.NormalBias,
+            static (s, bias) => s.Shadows.NormalBias = bias,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Normal Bias", shadowNormalBiasEditor);
+
+        var shadowMaxDistanceEditor = new NumericField(_window, min: 0.0f, step: 1.0f)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Value = settings.Shadows.MaxDistance,
+        };
+        shadowMaxDistanceEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
+            "Change Shadow Max Distance",
+            static s => s.Shadows.MaxDistance,
+            static (s, distance) => s.Shadows.MaxDistance = distance,
+            value);
+        rowIndex = AddPropertyRow(shadowGrid, rowIndex, "Max Distance", shadowMaxDistanceEditor);
+
+        _detailsContent.TryAddChild(shadowGrid);
 
         var rebuildButton = new MGButton(_window, _ =>
         {

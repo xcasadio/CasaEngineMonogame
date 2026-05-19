@@ -18,7 +18,8 @@ internal static class DemoSceneLightRig
             new Vector3(-0.5265408f, -0.5735765f, -0.6275069f),
             new Color(0.92f, 0.92f, 0.92f),
             new Color(0.92f, 0.92f, 0.92f),
-            1.0f);
+            1.0f,
+            castShadows: true);
 
         AddDirectionalLight(
             world,
@@ -43,7 +44,8 @@ internal static class DemoSceneLightRig
         Vector3 direction,
         Color diffuseColor,
         Color specularColor,
-        float intensity)
+        float intensity,
+        bool castShadows = false)
     {
         var entity = new Entity { Name = entityName };
         entity.RootComponent = new LightComponent
@@ -53,6 +55,7 @@ internal static class DemoSceneLightRig
             Color = diffuseColor,
             SpecularColor = specularColor,
             Intensity = intensity,
+            CastShadows = castShadows,
         };
 
         world.AddEntity(entity);

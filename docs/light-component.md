@@ -35,6 +35,7 @@ Cela permet de desactiver le casting ou la reception soit au niveau instance, so
 
 - Le composant est sauvegarde par `EditorEntityJsonSerializer` dans les worlds / entities.
 - Le chargement runtime passe par `LightComponent.Load(JObject)`.
+- Quand le world est selectionne dans l'editeur, le panneau `World settings` expose aussi les reglages de scene `Shadows.Enabled`, `Resolution`, `DepthBias`, `NormalBias` et `MaxDistance` pour la shadow map directional V1.
 - Le `RenderPipeline` ne depend pas directement de `LightComponent`.
 - La collecte runtime passe par `IRenderLightSource` puis `WorldLightCollector`.
 - `LightingContext` transporte uniquement les lumieres visibles; le binding GPU forward passe par `ForwardLightBinder`.
@@ -42,6 +43,7 @@ Cela permet de desactiver le casting ou la reception soit au niveau instance, so
 ## Limites V1 du workflow shadows
 
 - V1 supporte une shadow map directional dans le pipeline forward.
+- La shadow map stocke la profondeur en `SurfaceFormat.Single` pour eviter la quantification 8 bits visible sous forme de bandes d'auto-ombrage; le fallback `Color` ne doit servir qu'aux materiels qui ne supportent pas ce format.
 - Les materials lit forward et les meshes skinnes peuvent recevoir cette shadow map si leurs flags effectifs l'autorisent.
 - L'ambient global et l'environnement ne sont pas shadowes en V1; seule la lumiere directe directional est attenuee.
 - Les point shadows et spot shadows restent a faire dans une iteration suivante.
@@ -53,6 +55,23 @@ Cela permet de desactiver le casting ou la reception soit au niveau instance, so
 - Build demos: `dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj -nologo -p:WarningLevel=0`
 
 Smoke shadows visible :
+
+Validation statique dediee :
+
+```powershell
+Push-Location .\CasaEngine.Demos
+try {
+    $env:CASAENGINE_START_DEMO = 'Static shadow validation demo'
+    $env:CASAENGINE_CAPTURE_SCREENSHOT_PATH = 'artifacts/validation/static-shadow-validation-demo.png'
+    $env:CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS = '2000'
+    dotnet run --project .\CasaEngine.Demos.csproj --no-build
+}
+finally {
+    Pop-Location
+}
+```
+
+Validation skinned existante :
 
 ```powershell
 Push-Location .\CasaEngine.Demos
@@ -67,4 +86,4 @@ finally {
 }
 ```
 
-La capture automatisee produite par cette commande est stockee dans `CasaEngine.Demos/artifacts/validation/skinned-shadow-demo.png`.
+Les captures automatisees produites par ces commandes sont stockees dans `CasaEngine.Demos/artifacts/validation/static-shadow-validation-demo.png` et `CasaEngine.Demos/artifacts/validation/skinned-shadow-demo.png`.

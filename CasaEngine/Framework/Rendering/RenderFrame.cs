@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -23,8 +24,11 @@ public readonly struct RenderFrame
     /// <summary>Effective lighting data for the current view.</summary>
     public LightingContext? Lighting { get; init; }
 
+    /// <summary>Effective forward shadow-map settings for the current view.</summary>
+    public ShadowSettings? Shadows { get; init; }
+
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)
-        : this(view, projection, cameraPosition, viewportRect, default, null)
+        : this(view, projection, cameraPosition, viewportRect, default, null, null)
     {
     }
 
@@ -35,6 +39,18 @@ public readonly struct RenderFrame
         Rectangle viewportRect,
         in ResolvedEnvironmentSettings environment,
         LightingContext? lighting)
+        : this(view, projection, cameraPosition, viewportRect, in environment, lighting, null)
+    {
+    }
+
+    public RenderFrame(
+        Matrix view,
+        Matrix projection,
+        Vector3 cameraPosition,
+        Rectangle viewportRect,
+        in ResolvedEnvironmentSettings environment,
+        LightingContext? lighting,
+        ShadowSettings? shadows)
     {
         View = view;
         Projection = projection;
@@ -43,5 +59,6 @@ public readonly struct RenderFrame
         ViewportRect = viewportRect;
         Environment = environment;
         Lighting = lighting;
+        Shadows = shadows;
     }
 }

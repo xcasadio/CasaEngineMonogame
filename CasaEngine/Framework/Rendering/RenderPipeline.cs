@@ -188,7 +188,8 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting);
+            var shadowSettings = (view.EnvironmentOverride ?? view.World.EnvironmentSettings).Shadows;
+            var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings);
 
             // Reset per-view counters before renderer flushes aggregate into them.
             view.RenderStats.Reset();

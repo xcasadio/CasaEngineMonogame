@@ -12,6 +12,9 @@ namespace CasaEngine.Framework.Rendering.Draw;
 /// </summary>
 public sealed class ShadowPass : RenderPass
 {
+    private const SurfaceFormat PreferredShadowMapSurfaceFormat = SurfaceFormat.Single;
+    private const SurfaceFormat FallbackShadowMapSurfaceFormat = SurfaceFormat.Color;
+
     private RenderTarget2D? _shadowMapAtlas;
 
     public ShaderWrapper? ShadowShader { get; set; }
@@ -33,6 +36,10 @@ public sealed class ShadowPass : RenderPass
         }
 
         context.Shadows.Clear();
+        if (!context.Shadows.Settings.Enabled)
+        {
+            return;
+        }
 
         int directionalLightIndex = FindShadowCastingDirectionalLightIndex(context.Lighting);
         if (directionalLightIndex < 0)
@@ -165,9 +172,22 @@ public sealed class ShadowPass : RenderPass
 
         ReleaseShadowMapAtlas();
 
-        var renderTargetPool = RenderTargetPool.Resolve(null);
-        _shadowMapAtlas = renderTargetPool?.Acquire(resolution, resolution, SurfaceFormat.Color, DepthFormat.Depth24)
-            ?? new RenderTarget2D(device, resolution, resolution, false, SurfaceFormat.Color, DepthFormat.Depth24);
+        _shadowMapAtlas = TryAcquireShadowMapAtlas(device, resolution, PreferredShadowMapSurfaceFormat)
+            ?? TryAcquireShadowMapAtlas(device, resolution, FallbackShadowMapSurfaceFormat);
+    }
+
+    private static RenderTarget2D? TryAcquireShadowMapAtlas(GraphicsDevice device, int resolution, SurfaceFormat surfaceFormat)
+    {
+        try
+        {
+            var renderTargetPool = RenderTargetPool.Resolve(null);
+            return renderTargetPool?.Acquire(resolution, resolution, surfaceFormat, DepthFormat.Depth24)
+                ?? new RenderTarget2D(device, resolution, resolution, false, surfaceFormat, DepthFormat.Depth24);
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or NotSupportedException)
+        {
+            return null;
+        }
     }
 
     private void ReleaseShadowMapAtlas()

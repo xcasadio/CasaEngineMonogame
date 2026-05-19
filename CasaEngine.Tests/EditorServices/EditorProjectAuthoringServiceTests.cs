@@ -459,6 +459,11 @@ public class EditorProjectAuthoringServiceTests
             world.EnvironmentSettings.AmbientColor = new Vector3(0.2f, 0.3f, 0.4f);
             world.EnvironmentSettings.AmbientIntensity = 1.5f;
             world.EnvironmentSettings.SpecularIntensity = 2.5f;
+            world.EnvironmentSettings.Shadows.Enabled = true;
+            world.EnvironmentSettings.Shadows.Resolution = 2048;
+            world.EnvironmentSettings.Shadows.DepthBias = 0.0025f;
+            world.EnvironmentSettings.Shadows.NormalBias = 0.01f;
+            world.EnvironmentSettings.Shadows.MaxDistance = 42.0f;
 
             EditorProjectAuthoringService.SaveProject(world);
 
@@ -471,6 +476,12 @@ public class EditorProjectAuthoringServiceTests
             Assert.Equal("bbbbbbbb-cccc-dddd-eeee-ffffffffffff", (string?)environmentNode["specular_cubemap_asset_id"]);
             Assert.Equal(1.5f, (float?)environmentNode["ambient_intensity"]);
             Assert.Equal(2.5f, (float?)environmentNode["specular_intensity"]);
+            var shadowsNode = Assert.IsType<JObject>(environmentNode["shadows"]);
+            Assert.True((bool?)shadowsNode["enabled"]);
+            Assert.Equal(2048, (int?)shadowsNode["resolution"]);
+            Assert.Equal(0.0025f, (float?)shadowsNode["depth_bias"]);
+            Assert.Equal(0.01f, (float?)shadowsNode["normal_bias"]);
+            Assert.Equal(42.0f, (float?)shadowsNode["max_distance"]);
 
             var reloadedWorld = new World();
             reloadedWorld.Load(worldDocument);
@@ -484,6 +495,11 @@ public class EditorProjectAuthoringServiceTests
             Assert.Equal(new Vector3(0.2f, 0.3f, 0.4f), reloadedWorld.EnvironmentSettings.AmbientColor);
             Assert.Equal(1.5f, reloadedWorld.EnvironmentSettings.AmbientIntensity);
             Assert.Equal(2.5f, reloadedWorld.EnvironmentSettings.SpecularIntensity);
+            Assert.True(reloadedWorld.EnvironmentSettings.Shadows.Enabled);
+            Assert.Equal(2048, reloadedWorld.EnvironmentSettings.Shadows.Resolution);
+            Assert.Equal(0.0025f, reloadedWorld.EnvironmentSettings.Shadows.DepthBias);
+            Assert.Equal(0.01f, reloadedWorld.EnvironmentSettings.Shadows.NormalBias);
+            Assert.Equal(42.0f, reloadedWorld.EnvironmentSettings.Shadows.MaxDistance);
         }
         finally
         {

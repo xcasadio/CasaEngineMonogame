@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 
 namespace CasaEngine.Framework.Rendering;
 
@@ -44,6 +45,14 @@ public static class RenderFrameFactory
         Rectangle viewportRect,
         in ResolvedEnvironmentSettings environment,
         LightingContext lighting)
+        => From(camera, viewportRect, in environment, lighting, null);
+
+    public static RenderFrame From(
+        CameraComponent camera,
+        Rectangle viewportRect,
+        in ResolvedEnvironmentSettings environment,
+        LightingContext lighting,
+        ShadowSettings? shadows)
     {
         return new RenderFrame(
             camera.ViewMatrix,
@@ -51,7 +60,8 @@ public static class RenderFrameFactory
             camera.Position,
             viewportRect,
             in environment,
-            lighting);
+            lighting,
+            shadows);
     }
 
     /// <summary>

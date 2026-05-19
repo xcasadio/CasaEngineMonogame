@@ -17,7 +17,7 @@ namespace CasaEngine.Demos.Demos;
 /// <summary>
 /// Demonstrates the material system (Phases 0-10):
 ///
-///   Ground              : <see cref="UnlitTextureMaterial"/>  — yellow tint, no lighting
+///   Ground              : <see cref="LitDiffuseMaterial"/>    — sandy receiver for projected shadows
 ///   Red cube            : <see cref="LitDiffuseMaterial"/>    — solid red, Lambert + specular
 ///   Textured cube       : <see cref="LitDiffuseMaterial"/>    — white, procedural checkerboard albedo
 ///   Sphere A (left)     : <see cref="LitDiffuseMaterial"/>    — shared material; BLUE  tint via <see cref="MaterialInstanceData"/> -> <see cref="MaterialPropertyBlock"/>
@@ -105,12 +105,14 @@ public class MaterialDemo : Demo
         world.EnvironmentSettings.SpecularEnvironmentCubemap = studioReflectionCube;
         world.EnvironmentSettings.MarkDirty();
 
-        // Ground — unlit, sandy tint
-        var groundMat = new UnlitTextureMaterial
+        // Ground — lit sandy receiver so directional shadows remain visible in the sample.
+        var groundMat = new LitDiffuseMaterial
         {
-            Name  = "UnlitGround",
-            Tint  = new Color(210, 195, 150),
-            Alpha = 1.0f,
+            Name = "LitGround",
+            DiffuseColor = new Color(210, 195, 150),
+            AmbientColor = new Vector3(0.16f, 0.15f, 0.12f),
+            SpecularColor = new Vector3(0.08f),
+            SpecularPower = 8.0f,
         };
 
         // Red cube — lit, no texture
@@ -543,7 +545,8 @@ public class MaterialDemo : Demo
             1.0f,
             0.0f,
             0.0f,
-            0.0f);
+            0.0f,
+            castShadows: true);
 
         SpawnLight(
             world,
@@ -583,7 +586,8 @@ public class MaterialDemo : Demo
         float intensity,
         float range,
         float innerConeAngleDegrees,
-        float outerConeAngleDegrees)
+        float outerConeAngleDegrees,
+        bool castShadows = false)
     {
         var lightComponent = new LightComponent
         {
@@ -596,6 +600,7 @@ public class MaterialDemo : Demo
             Range = range,
             InnerConeAngleDegrees = innerConeAngleDegrees,
             OuterConeAngleDegrees = outerConeAngleDegrees,
+            CastShadows = castShadows,
         };
 
         var entity = new Entity { Name = name };
