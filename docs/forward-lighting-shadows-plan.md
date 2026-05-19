@@ -355,7 +355,7 @@ Commit obligatoire :
 git commit -m "Add skinned mesh shadow support"
 ```
 
-### 🚧 Tache 09 - Ajouter demo et validation visuelle
+### ✅ Tache 09 - Ajouter demo et validation visuelle
 
 But : prouver le comportement dans une scene simple et automatisable.
 
@@ -388,6 +388,28 @@ finally {
 }
 dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal
 ```
+
+Validation executee pour cette tache :
+
+```powershell
+dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj --no-restore -clp:ErrorsOnly
+Push-Location .\CasaEngine.Demos
+try {
+    $env:CASAENGINE_START_DEMO = 'Skinned mesh demo'
+    $env:CASAENGINE_CAPTURE_SCREENSHOT_PATH = 'artifacts/validation/skinned-shadow-demo.png'
+    $env:CASAENGINE_CAPTURE_SCREENSHOT_DELAY_MS = '2000'
+    dotnet run --project .\CasaEngine.Demos.csproj --no-build
+}
+finally {
+    Pop-Location
+}
+```
+
+Notes d'implementation :
+
+- La validation visuelle s'appuie sur `SkinnedMeshDemo` plutot qu'une nouvelle scene asset-heavy.
+- La demo met en place trois colonnes de personnages skinnes : reception normale, `ReceiveShadows = false`, puis `CastShadows = false` cote caster.
+- La capture automatisee valide le chemin runtime sans rebuild supplementaire et ecrit l'image dans `CasaEngine.Demos/artifacts/validation/skinned-shadow-demo.png`.
 
 Commit obligatoire :
 
