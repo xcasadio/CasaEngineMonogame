@@ -73,6 +73,12 @@
 /processorParam:DebugMode=Auto
 /build:Shaders/SkyCubemap.fx
 
+#begin Shaders/ShadowDepth.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Shaders/ShadowDepth.fx
+
 #begin Shaders/skinEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor

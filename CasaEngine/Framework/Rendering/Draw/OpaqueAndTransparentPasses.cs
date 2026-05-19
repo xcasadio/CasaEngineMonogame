@@ -28,6 +28,11 @@ public sealed class OpaquePass : RenderPass
                 continue;
             }
 
+            if ((item.Features & ShaderFeature.Instanced) != 0)
+            {
+                continue;
+            }
+
             if (item.Mesh.VertexBuffer is null || item.Mesh.IndexBuffer is null)
             {
                 continue;
@@ -65,6 +70,11 @@ public sealed class TransparentPass : RenderPass
         {
             var item = items[i];
             if (item.Material.Queue < RenderQueue.Transparent)
+            {
+                continue;
+            }
+
+            if ((item.Features & ShaderFeature.Instanced) != 0)
             {
                 continue;
             }

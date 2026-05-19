@@ -244,7 +244,7 @@ Commit obligatoire :
 git commit -m "Add forward shadow runtime resources"
 ```
 
-### ⏳ Tache 06 - Ajouter `ShadowPass` static directional depth-only
+### ✅ Tache 06 - Ajouter `ShadowPass` static directional depth-only
 
 But : rendre une premiere shadow map depth-only pour les static meshes et directional lights.
 

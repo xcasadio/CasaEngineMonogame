@@ -15,6 +15,7 @@ namespace CasaEngine.Framework.Rendering;
 public sealed class ForwardRenderPipeline : IRenderPipeline3D
 {
     private readonly List<RenderPass> _passes = new();
+    private readonly ShadowPass _shadowPass = new();
     private readonly SkyPass _skyPass = new();
 
     // -----------------------------------------------------------------------
@@ -23,9 +24,15 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
 
     public ForwardRenderPipeline()
     {
+        _passes.Add(_shadowPass);
         _passes.Add(_skyPass);
         _passes.Add(new OpaquePass());
         _passes.Add(new TransparentPass());
+    }
+
+    public void SetShadowShader(ShaderWrapper? shadowShader)
+    {
+        _shadowPass.ShadowShader = shadowShader;
     }
 
     public void SetSkyRenderer(Environment.SkyCubemapRenderer? skyRenderer)

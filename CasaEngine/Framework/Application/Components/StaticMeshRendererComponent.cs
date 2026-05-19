@@ -3,6 +3,7 @@
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Draw;
 using CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Shadows;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -34,6 +35,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     // Phase 10 — forward render pipeline
     private readonly ForwardRenderPipeline _pipeline = new();
+    private readonly ForwardShadowResources _shadowResources = new();
 
     /// <summary>
     /// Fallback lighting used only when a caller flushes the renderer without a populated <see cref="RenderFrame.Lighting"/>.
@@ -94,8 +96,10 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _effect = Game.Content.Load<Effect>("Shaders\\LitForward");
         _effect.CurrentTechnique = _effect.Techniques["LitForward_PixelLighting_Texture"];
         var unlitEffect = Game.Content.Load<Effect>("Shaders\\UnlitTexture");
+        var shadowDepthEffect = Game.Content.Load<Effect>("Shaders\\ShadowDepth");
         _skyEffect = Game.Content.Load<Effect>("Shaders\\SkyCubemap");
         _skyRenderer = new SkyCubemapRenderer(_skyEffect);
+        _pipeline.SetShadowShader(new ShaderWrapper(shadowDepthEffect));
         _pipeline.SetSkyRenderer(_skyRenderer);
 
         _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
@@ -152,8 +156,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Frame    = frame,
             Lighting = frame.Lighting ?? DefaultLighting,
             Environment = frame.Environment,
+            Shadows = _shadowResources,
             Stats    = stats,
         };
+
+        _shadowResources.Clear();
 
         // --- Phase 4: build a sorted RenderItem list ---
         _renderItems.Clear();
@@ -263,7 +270,6 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         {
             // Group by (VertexBuffer ptr, SortKey of first element) — same mesh + material
             var instanceGroups = new Dictionary<(IntPtr, ulong), List<RenderItem>>();
-            var drawnInstancedIndices = new List<int>();
 
             for (int i = 0; i < _renderItems.Count; i++)
             {
@@ -305,21 +311,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                 _shaderCache.BindGlobals(resolvedShader.Shader, in context);
                 _instanceBatcher.DrawInstancedGroup(group, resolvedShader.Shader, in context, resolvedShader.TechniqueSelectedBySelector);
                 stats.DrawCalls++;
-
-                // Mark as drawn
-                foreach (var item in group)
-                {
-                    drawnInstancedIndices.Add(_renderItems.IndexOf(item));
-                }
             }
-
-            // Remove instanced items from the regular list (largest index first to preserve indices)
-            drawnInstancedIndices.Sort(static (a, b) => b.CompareTo(a));
-            foreach (var idx in drawnInstancedIndices)
-                if (idx >= 0 && idx < _renderItems.Count)
-                {
-                    _renderItems.RemoveAt(idx);
-                }
         }
 
         // --- Phase 10: delegate sorted items to ForwardRenderPipeline ---
