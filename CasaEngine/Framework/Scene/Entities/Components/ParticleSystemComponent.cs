@@ -239,6 +239,16 @@ public class ParticleSystemComponent : SceneComponent
         RebuildRuntime(particleEffectAsset);
     }
 
+    public void ClearParticleEffectAsset()
+    {
+        ParticleEffectAssetId = Guid.Empty;
+        _particleEffectAsset = null;
+        _runtimeInstance = null;
+        _renderPackets.Clear();
+        LastEmittedCount = 0;
+        IsBoundingBoxDirty = true;
+    }
+
     public void Play()
         => _runtimeInstance?.Play();
 

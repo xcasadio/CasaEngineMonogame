@@ -1,14 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
+using CasaEngine.EditorServices.Particles;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
+using MGUI.Core.UI.DragDrop;
 using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
@@ -505,7 +512,11 @@ public sealed class EntitiesPanel
         {
             Spacing = 4,
             VerticalAlignment = VerticalAlignment.Center,
+            AllowDrop = true,
         };
+        header.DragEnter += (_, e) => OnEntityHeaderDrag(e);
+        header.DragOver += (_, e) => OnEntityHeaderDrag(e);
+        header.Drop += (_, e) => DropParticleAssetOnEntity(entity, e.Data.GetData<List<ContentItem>>());
 
         var icon = EditorIcons.ListTree ?? EditorIcons.Box ?? EditorIcons.Layers;
         if (icon != null)
@@ -524,6 +535,134 @@ public sealed class EntitiesPanel
         });
 
         return header;
+    }
+
+    private void OnEntityHeaderDrag(DragDropEventArgs e)
+    {
+        e.Data.DropEffect = TryResolveFirstParticleAsset(e.Data.GetData<List<ContentItem>>(), out _)
+            ? DragDropEffect.Copy
+            : DragDropEffect.None;
+    }
+
+    private void DropParticleAssetOnEntity(Entity entity, IReadOnlyList<ContentItem>? draggedItems)
+    {
+        if (!TryResolveFirstParticleAsset(draggedItems, out var assetInfo))
+        {
+            return;
+        }
+
+        var existingComponent = entity.GetComponent<ParticleSystemComponent>();
+        var previousSelection = _selectedEntity;
+
+        if (existingComponent != null)
+        {
+            Guid previousAssetId = existingComponent.ParticleEffectAssetId;
+            ExecuteWorldCommand(
+                "Update Particle System Component",
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, assetInfo.Id);
+                    ApplySelectionAfterMutation(entity);
+                },
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, previousAssetId);
+                    ApplySelectionAfterMutation(previousSelection);
+                });
+            return;
+        }
+
+        var component = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, Microsoft.Xna.Framework.Vector3.Zero);
+        var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
+        ExecuteWorldCommand(
+            "Add Particle System Component",
+            () =>
+            {
+                EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
+                ApplySelectionAfterMutation(entity);
+            },
+            () =>
+            {
+                EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
+                ApplySelectionAfterMutation(previousSelection);
+            });
+    }
+
+    private bool TryResolveFirstParticleAsset(IReadOnlyList<ContentItem>? draggedItems, out AssetInfo assetInfo)
+    {
+        assetInfo = null!;
+        if (_currentWorld == null || !AssetCatalog.IsLoaded || draggedItems == null || draggedItems.Count == 0)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < draggedItems.Count; index++)
+        {
+            ContentItem item = draggedItems[index];
+            if (item.IsDirectory || !string.Equals(item.Extension, Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!TryGetProjectRelativePath(item.FullPath, out var relativePath))
+            {
+                continue;
+            }
+
+            assetInfo = AssetCatalog.GetByFileName(relativePath)
+                ?? AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+            if (assetInfo == null)
+            {
+                string normalizedRelativePath = NormalizeAssetPath(relativePath);
+                foreach (var candidate in AssetCatalog.AssetInfos)
+                {
+                    if (string.Equals(NormalizeAssetPath(candidate.FileName), normalizedRelativePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        assetInfo = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (assetInfo != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryGetProjectRelativePath(string fullPath, out string relativePath)
+    {
+        relativePath = string.Empty;
+
+        string projectPath = EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+        if (string.IsNullOrWhiteSpace(projectPath))
+        {
+            return false;
+        }
+
+        string normalizedProjectPath = Path.GetFullPath(projectPath);
+        string normalizedFullPath = Path.GetFullPath(fullPath);
+        string projectRootWithSeparator = normalizedProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+
+        if (!normalizedFullPath.StartsWith(projectRootWithSeparator, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(normalizedFullPath, normalizedProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        relativePath = Path.GetRelativePath(normalizedProjectPath, normalizedFullPath);
+        return !string.IsNullOrWhiteSpace(relativePath);
+    }
+
+    private static string NormalizeAssetPath(string path)
+    {
+        return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar);
     }
 
     private bool ShouldIncludeEntity(Entity entity)

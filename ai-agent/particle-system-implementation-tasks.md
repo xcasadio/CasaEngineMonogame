@@ -507,7 +507,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): edit particle curves and gradients`
 
-- ⏳ **T06.05 — Ajouter drag and drop particule vers entite**
+- ✅ **T06.05 — Ajouter drag and drop particule vers entite**
   Objectif :
   - Permettre de deposer un asset `.particle` sur le viewport ou une entite.
   - Creer/mettre a jour un `ParticleSystemComponent` avec l'asset ID.

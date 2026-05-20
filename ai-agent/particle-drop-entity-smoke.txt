@@ -1,0 +1,31 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-05-20 15:50:41.645
+Project: .\Projects\SampleProject\SampleProject.json
+Open asset: <none>
+Create particle asset: <none>
+Drop particle asset: Particles\SparkBurst_Additive.particle
+Set particle property: <none>
+Set material property: <none>
+Entity: ground [0]
+Component: ParticleSystemComponent
+Active document panel: panel_world_viewport
+Open document panels: panel_world_viewport
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 504x498
+  - Physics debug world: EditorPreviewWorld
+  - Physics debug bodies: 0
+Selected entity: 'ground'
+Selected component: 'ParticleSystemComponent' owner='ground'
+Particle system component:
+  - Asset id: 5d8e9d4b-bf9b-43df-994d-74a275dbff3f
+  - Asset file: Particles\SparkBurst_Additive.particle
+  - Runtime loaded: True
+  - Play on start: True
+  - Simulate in editor: True
+Entries: 2
+
+2026-05-20 15:50:41.390 [Warning] [Automation] Component not found on entity='ground': 'ParticleSystemComponent'
+2026-05-20 15:50:41.494 [Info] [Automation] Dropped particle asset 'Particles\SparkBurst_Additive.particle' on entity='ground'

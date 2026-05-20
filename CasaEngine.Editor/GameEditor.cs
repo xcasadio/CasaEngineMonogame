@@ -7,6 +7,7 @@ using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
+using CasaEngine.EditorServices.Particles;
 using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
@@ -142,6 +143,9 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationParticleEditAttempted;
     private bool _automationParticleEdited;
     private TimeSpan _automationParticleEditedAt;
+    private bool _automationParticleDropAttempted;
+    private bool _automationParticleDropped;
+    private TimeSpan _automationParticleDroppedAt;
     private bool _automationMaterialEditAttempted;
     private bool _automationMaterialEdited;
     private TimeSpan _automationMaterialEditedAt;
@@ -397,6 +401,8 @@ public class GameEditor : Game, IObservableUpdate
         _automationCreatedParticleAssetRelativePath = null;
         _automationParticleEditAttempted = false;
         _automationParticleEdited = false;
+        _automationParticleDropAttempted = false;
+        _automationParticleDropped = false;
         _automationMaterialEditAttempted = false;
         _automationMaterialEdited = false;
         _automationDiagnosticsCaptured = false;
@@ -3252,6 +3258,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationParticleDrop(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.DropParticleAssetPath)
+            && !_automationParticleDropAttempted)
+        {
+            return;
+        }
+
         TryApplyAutomationMaterialEdit(totalGameTime);
         if (!string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
             && !_automationMaterialEditAttempted)
@@ -3273,6 +3286,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationParticleEdited && _automationParticleEditedAt > readyAt)
         {
             readyAt = _automationParticleEditedAt;
+        }
+
+        if (_automationParticleDropped && _automationParticleDroppedAt > readyAt)
+        {
+            readyAt = _automationParticleDroppedAt;
         }
 
         if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
@@ -3454,6 +3472,98 @@ public class GameEditor : Game, IObservableUpdate
             $"[Automation] Failed to update particle property '{_automationOptions.SetParticlePropertyKey}': {statusMessage}");
     }
 
+    private void TryApplyAutomationParticleDrop(TimeSpan totalGameTime)
+    {
+        if (_automationParticleDropAttempted || string.IsNullOrWhiteSpace(_automationOptions.DropParticleAssetPath))
+        {
+            return;
+        }
+
+        var world = _editorRuntime?.GameManager.CurrentWorld;
+        if (world == null)
+        {
+            return;
+        }
+
+        _automationParticleDropAttempted = true;
+        var entity = _editorSelection.SelectedEntity ?? FindAutomationEntity(world);
+        if (entity == null)
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to drop particle asset because no entity is selected.");
+            return;
+        }
+
+        string fullPath = ResolveAutomationAssetPath(_automationOptions.DropParticleAssetPath);
+        if (!TryResolveAutomationAssetInfo(fullPath, Constants.FileNameExtensions.Particle, out var assetInfo, out string resolveError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unable to resolve particle asset drop '{_automationOptions.DropParticleAssetPath}': {resolveError}");
+            return;
+        }
+
+        var previousEntity = _editorSelection.SelectedEntity;
+        var previousComponent = _editorSelection.SelectedComponent;
+        var existingComponent = entity.GetComponent<ParticleSystemComponent>();
+        if (existingComponent != null)
+        {
+            Guid previousAssetId = existingComponent.ParticleEffectAssetId;
+            EditorHistoryService.Current.Execute(
+                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+                new EditorDelegateCommand(
+                    "Update Particle System Component",
+                    () =>
+                    {
+                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, assetInfo.Id);
+                        SelectAutomationParticleDropTarget(entity, existingComponent);
+                    },
+                    () =>
+                    {
+                        EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, previousAssetId);
+                        RestoreAutomationSelection(previousEntity, previousComponent);
+                    }));
+        }
+        else
+        {
+            var component = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, Vector3.Zero);
+            var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
+            EditorHistoryService.Current.Execute(
+                new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport),
+                new EditorDelegateCommand(
+                    "Add Particle System Component",
+                    () =>
+                    {
+                        EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
+                        SelectAutomationParticleDropTarget(entity, component);
+                    },
+                    () =>
+                    {
+                        EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
+                        RestoreAutomationSelection(previousEntity, previousComponent);
+                    }));
+        }
+
+        _automationParticleDropped = true;
+        _automationParticleDroppedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Dropped particle asset '{assetInfo.FileName}' on entity='{entity.Name}'");
+    }
+
+    private void SelectAutomationParticleDropTarget(Entity entity, ParticleSystemComponent component)
+    {
+        _editorSelection.SetSelectedEntity(entity);
+        _editorSelection.SetSelectedComponent(component);
+    }
+
+    private void RestoreAutomationSelection(Entity? entity, EntityComponent? component)
+    {
+        _editorSelection.SetSelectedEntity(entity);
+        if (component != null)
+        {
+            _editorSelection.SetSelectedComponent(component);
+        }
+    }
+
     private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string? errorMessage)
     {
         errorMessage = null;
@@ -3616,6 +3726,73 @@ public class GameEditor : Game, IObservableUpdate
         return Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, assetPath));
     }
 
+    private static bool TryResolveAutomationAssetInfo(string fullPath, string expectedExtension, out AssetInfo assetInfo, out string errorMessage)
+    {
+        assetInfo = null!;
+        errorMessage = string.Empty;
+
+        if (!File.Exists(fullPath))
+        {
+            errorMessage = $"file does not exist at '{fullPath}'.";
+            return false;
+        }
+
+        if (!Path.GetExtension(fullPath).Equals(expectedExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            errorMessage = $"expected extension '{expectedExtension}'.";
+            return false;
+        }
+
+        string projectPath = EngineEnvironment.ResolveProjectPath(EngineEnvironment.ProjectPath);
+        if (string.IsNullOrWhiteSpace(projectPath))
+        {
+            errorMessage = "project path is not available.";
+            return false;
+        }
+
+        string normalizedProjectPath = Path.GetFullPath(projectPath);
+        string normalizedFullPath = Path.GetFullPath(fullPath);
+        string projectRootWithSeparator = normalizedProjectPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            + Path.DirectorySeparatorChar;
+        if (!normalizedFullPath.StartsWith(projectRootWithSeparator, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(normalizedFullPath, normalizedProjectPath, StringComparison.OrdinalIgnoreCase))
+        {
+            errorMessage = "asset is outside the project directory.";
+            return false;
+        }
+
+        string relativePath = Path.GetRelativePath(normalizedProjectPath, normalizedFullPath);
+        assetInfo = AssetCatalog.GetByFileName(relativePath)
+            ?? AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+        if (assetInfo == null)
+        {
+            string normalizedRelativePath = NormalizeAssetPath(relativePath);
+            foreach (var candidate in AssetCatalog.AssetInfos)
+            {
+                if (string.Equals(NormalizeAssetPath(candidate.FileName), normalizedRelativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    assetInfo = candidate;
+                    break;
+                }
+            }
+        }
+
+        if (assetInfo != null)
+        {
+            return true;
+        }
+
+        errorMessage = $"asset catalog entry not found for '{relativePath}'.";
+        return false;
+    }
+
+    private static string NormalizeAssetPath(string path)
+    {
+        return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+            .TrimStart(Path.DirectorySeparatorChar);
+    }
+
     private bool TryApplyAutomationSelection()
     {
         var world = _editorRuntime?.GameManager.CurrentWorld;
@@ -3697,6 +3874,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
         builder.AppendLine($"Create particle asset: {_automationOptions.CreateParticleAssetFolder ?? "<none>"}");
+        builder.AppendLine($"Drop particle asset: {_automationOptions.DropParticleAssetPath ?? "<none>"}");
         builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
@@ -3861,7 +4039,22 @@ public class GameEditor : Game, IObservableUpdate
             case StaticModelComponent staticModelComponent:
                 AppendStaticModelComponentDiagnostics(builder, staticModelComponent);
                 break;
+
+            case ParticleSystemComponent particleSystemComponent:
+                AppendParticleSystemComponentDiagnostics(builder, particleSystemComponent);
+                break;
         }
+    }
+
+    private static void AppendParticleSystemComponentDiagnostics(StringBuilder builder, ParticleSystemComponent component)
+    {
+        AssetInfo? assetInfo = component.ParticleEffectAssetId == Guid.Empty ? null : AssetCatalog.Get(component.ParticleEffectAssetId);
+        builder.AppendLine("Particle system component:");
+        builder.AppendLine($"  - Asset id: {component.ParticleEffectAssetId}");
+        builder.AppendLine($"  - Asset file: {assetInfo?.FileName ?? "<none>"}");
+        builder.AppendLine($"  - Runtime loaded: {component.ParticleEffectAsset != null}");
+        builder.AppendLine($"  - Play on start: {component.PlayOnStart}");
+        builder.AppendLine($"  - Simulate in editor: {component.SimulateInEditor}");
     }
 
     private static void AppendStaticModelSubMeshDiagnostics(StringBuilder builder, StaticModelSubMeshComponent component)

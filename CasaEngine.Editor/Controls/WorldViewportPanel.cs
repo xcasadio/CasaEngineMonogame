@@ -10,6 +10,7 @@ using CasaEngine.Editor.Styling;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
+using CasaEngine.EditorServices.Particles;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -544,6 +545,12 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
+        if (_selectedEntity != null && TryResolveSingleParticleAsset(draggedItems, out var selectedParticleAssetInfo))
+        {
+            DropParticleAssetOnEntity(_selectedEntity, selectedParticleAssetInfo);
+            return;
+        }
+
         var createdEntities = new List<Entity>();
 
         for (int index = 0; index < draggedItems.Count; index++)
@@ -633,7 +640,8 @@ public class WorldViewportPanel : IDisposable
     private static bool IsSupportedDropExtension(string extension)
     {
         return string.Equals(extension, Constants.FileNameExtensions.StaticModel, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(extension, Constants.FileNameExtensions.Entity, StringComparison.OrdinalIgnoreCase);
+            || string.Equals(extension, Constants.FileNameExtensions.Entity, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string NormalizeAssetPath(string path)
@@ -692,7 +700,76 @@ public class WorldViewportPanel : IDisposable
             return CreateEntityAssetEntity(assetInfo, dropIndex);
         }
 
+        if (string.Equals(item.Extension, Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
+        {
+            return CreateParticleEntity(assetInfo, dropIndex);
+        }
+
         return CreateStaticModelEntity(assetInfo, dropIndex);
+    }
+
+    private Entity CreateParticleEntity(AssetInfo assetInfo, int dropIndex)
+    {
+        Vector3 spawnPosition = GetDropSpawnPosition(dropIndex);
+        var entity = new Entity
+        {
+            Name = Path.GetFileNameWithoutExtension(assetInfo.FileName),
+        };
+
+        entity.RootComponent = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, spawnPosition);
+        return entity;
+    }
+
+    private bool TryResolveSingleParticleAsset(IReadOnlyList<ContentItem> draggedItems, out AssetInfo assetInfo)
+    {
+        assetInfo = null!;
+        if (draggedItems.Count != 1)
+        {
+            return false;
+        }
+
+        ContentItem item = draggedItems[0];
+        return string.Equals(item.Extension, Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase)
+               && TryResolveDroppableAsset(item, out assetInfo);
+    }
+
+    private void DropParticleAssetOnEntity(Entity entity, AssetInfo assetInfo)
+    {
+        var existingComponent = entity.GetComponent<ParticleSystemComponent>();
+        var previousSelection = _selectedEntity;
+
+        if (existingComponent != null)
+        {
+            Guid previousAssetId = existingComponent.ParticleEffectAssetId;
+            ExecuteWorldCommand(
+                "Update Particle System Component",
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, assetInfo.Id);
+                    ApplySelection(entity);
+                },
+                () =>
+                {
+                    EditorParticleSystemComponentService.ApplyParticleAsset(entity, existingComponent, previousAssetId);
+                    ApplySelection(previousSelection);
+                });
+            return;
+        }
+
+        var component = EditorParticleSystemComponentService.CreateParticleComponent(assetInfo.Id, Vector3.Zero);
+        var attachment = EditorParticleSystemComponentService.CreateAttachment(entity);
+        ExecuteWorldCommand(
+            "Add Particle System Component",
+            () =>
+            {
+                EditorParticleSystemComponentService.AttachComponent(entity, component, attachment);
+                ApplySelection(entity);
+            },
+            () =>
+            {
+                EditorParticleSystemComponentService.DetachComponent(entity, component, attachment);
+                ApplySelection(previousSelection);
+            });
     }
 
     private Entity CreateEntityAssetEntity(AssetInfo assetInfo, int dropIndex)
