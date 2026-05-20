@@ -539,6 +539,22 @@ public class EditorAssetImportServiceTests
                         string imagePath = Path.Combine(tempDirectory, "tiles.png");
                         File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
 
+                        string tsjPath = Path.Combine(tempDirectory, "tiles.tsj");
+                        File.WriteAllText(tsjPath,
+                                """
+                                {
+                                    "type": "tileset",
+                                    "name": "tiles",
+                                    "tilewidth": 16,
+                                    "tileheight": 16,
+                                    "tilecount": 1,
+                                    "columns": 1,
+                                    "image": "tiles.png",
+                                    "imagewidth": 16,
+                                    "imageheight": 16
+                                }
+                                """);
+
                         string tmjPath = Path.Combine(tempDirectory, "level.tmj");
                         File.WriteAllText(tmjPath,
                                 """
@@ -553,14 +569,7 @@ public class EditorAssetImportServiceTests
                                     "tilesets": [
                                         {
                                             "firstgid": 1,
-                                            "name": "tiles",
-                                            "tilewidth": 16,
-                                            "tileheight": 16,
-                                            "tilecount": 1,
-                                            "columns": 1,
-                                            "image": "tiles.png",
-                                            "imagewidth": 16,
-                                            "imageheight": 16
+                                            "source": "tiles.tsj"
                                         }
                                     ],
                                     "layers": [
