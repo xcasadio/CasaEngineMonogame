@@ -121,9 +121,9 @@
       "name": "box",
       "initial_coordinates": {
         "position": {
-          "x": 3.8999984,
-          "y": 2.0,
-          "z": 0.0
+          "x": 14.7781725,
+          "y": 0.7361393,
+          "z": -0.8312588
         },
         "scale": {
           "x": 1.0,
@@ -143,9 +143,9 @@
       "name": "Box_24",
       "initial_coordinates": {
         "position": {
-          "x": 1.7408562,
-          "y": 3.0,
-          "z": 0.0
+          "x": 0.16672182,
+          "y": 0.65848064,
+          "z": -0.13514328
         },
         "scale": {
           "x": 1.0,
@@ -187,9 +187,9 @@
       "name": "Box_26",
       "initial_coordinates": {
         "position": {
-          "x": 1.3648462,
-          "y": 4.996814,
-          "z": 0.0
+          "x": -15.963983,
+          "y": 0.74394894,
+          "z": 1.0702038
         },
         "scale": {
           "x": 1.0,
@@ -220,8 +220,8 @@
           "type": "LightComponent",
           "coordinates": {
             "position": {
-              "x": -22.639294,
-              "y": 7.9246354,
+              "x": -11.621674,
+              "y": 5.5481553,
               "z": 0.0
             },
             "scale": {
@@ -251,10 +251,10 @@
             "a": 255
           },
           "intensity": 1.0,
-          "range": 300.0,
+          "range": 30.0,
           "inner_cone_angle_degrees": 20.0,
           "outer_cone_angle_degrees": 35.0,
-          "cast_shadows": false
+          "cast_shadows": true
         },
         "components": [],
         "script_class_name": null
@@ -276,8 +276,8 @@
           "type": "LightComponent",
           "coordinates": {
             "position": {
-              "x": 18.333315,
-              "y": 7.9246354,
+              "x": 11.0477705,
+              "y": 5.196511,
               "z": 0.0
             },
             "scale": {
@@ -306,11 +306,11 @@
             "b": 255,
             "a": 255
           },
-          "intensity": 1.0,
-          "range": 300.0,
+          "intensity": 1.5,
+          "range": 2030.0,
           "inner_cone_angle_degrees": 20.0,
           "outer_cone_angle_degrees": 35.0,
-          "cast_shadows": false
+          "cast_shadows": true
         },
         "components": [],
         "script_class_name": null
@@ -403,9 +403,9 @@
     "background_cubemap_asset_id": "00000000-0000-0000-0000-000000000000",
     "specular_cubemap_asset_id": "00000000-0000-0000-0000-000000000000",
     "ambient_color": {
-      "x": 0.05,
-      "y": 0.05,
-      "z": 0.05
+      "x": 0.9875,
+      "y": 0.9628125,
+      "z": 0.9628125
     },
     "ambient_intensity": 1.0,
     "specular_intensity": 1.0,
