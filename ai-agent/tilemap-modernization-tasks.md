@@ -342,7 +342,7 @@ Tâches :
 - ✅ Fusionner les rectangles adjacents de même type.
 - ✅ Supprimer les anciens colliders lors d'un rebuild de chunk.
 - ✅ Distinguer solides `Blocked` et `NoContactResponse`.
-- ⏳ Exploiter `TileData.CollisionShape` au lieu de tout convertir en full box.
+- ✅ Exploiter les `ShapeRectangle` de `TileData.CollisionShape` au lieu de tout convertir en full box.
 - ⏳ Préparer le support one-way/slopes/custom polygon.
 - 🧪 Ajouter debug draw collision ; les rectangles fusionnés sont disponibles dans `MergedTileRectangles` pour instrumentation.
 
@@ -357,6 +357,7 @@ Vérifications :
 - ✅ Ajouter des tests unitaires `TileMapCollisionChunk` pour la fusion de rectangles adjacents.
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapCollisionChunkTests`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
+- ✅ Relancer les tests collision chunk et le build après support runtime des shapes rectangle.
 
 ## 🧪 Phase 8 - Animated tiles et auto-tiles modernes
 

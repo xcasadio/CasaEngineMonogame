@@ -9,6 +9,7 @@ using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Geometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -459,6 +460,49 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return collisionObject;
     }
 
+    private CollisionObject? CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
+    {
+        if (_physicsWorldContext == null)
+        {
+            return null;
+        }
+
+        var tileSize = TileSetData.TileSize;
+        var width = rectangle.Width;
+        var height = rectangle.Height;
+        if (width <= 0f || height <= 0f)
+        {
+            return null;
+        }
+
+        var worldMatrix = WorldMatrixNoScale;
+        worldMatrix.Translation += new Vector3(
+            tileX * tileSize.Width + rectangle.Position.X + width / 2f,
+            -tileY * tileSize.Height - rectangle.Position.Y - height / 2f,
+            0f);
+        var box = new BoxShape(width / 2f, height / 2f, 0.5f)
+        {
+            LocalScaling = LocalScale,
+            UserObject = this,
+        };
+
+        var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileX, tileY);
+
+        CollisionObject collisionObject;
+        if (collisionType == TileCollisionType.NoContactResponse)
+        {
+            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
+        }
+        else
+        {
+            collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
+                new PhysicsDefinition { Friction = 0f });
+        }
+
+        _collisionObjects.Add(collisionObject);
+        return collisionObject;
+    }
+
     private void ReplaceRuntimeTile(TileMapLayer layerRuntime, TileMapLayerData layerData, int layerIndex, int x, int y, int tileIndex)
     {
         if (layerRuntime.Tiles[tileIndex] is AutoTile oldAutoTile)
@@ -645,7 +689,18 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
                 if (TileSetData.TryGetTileData(tileId, out var tileData) && tileData?.CollisionType == collisionType)
                 {
-                    solidCells[x + y * tileBounds.Width] = true;
+                    if (tileData.CollisionShape?.Shape is ShapeRectangle rectangle)
+                    {
+                        var collisionObject = CreateCollisionObject(collisionChunk.LayerIndex, mapX, mapY, rectangle, collisionType);
+                        if (collisionObject != null)
+                        {
+                            collisionChunk.CollisionObjects.Add(collisionObject);
+                        }
+                    }
+                    else
+                    {
+                        solidCells[x + y * tileBounds.Width] = true;
+                    }
                 }
             }
         }
