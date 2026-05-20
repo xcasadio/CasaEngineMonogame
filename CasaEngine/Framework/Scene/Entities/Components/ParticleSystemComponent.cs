@@ -14,6 +14,7 @@ public class ParticleSystemComponent : SceneComponent
     private ParticleRuntimeInstance? _runtimeInstance;
     private float _simulationSpeed = 1.0f;
     private float _emissionScale = 1.0f;
+    private int _lastUpdateSequence = -1;
 
     public Guid ParticleEffectAssetId { get; set; } = Guid.Empty;
 
@@ -61,6 +62,8 @@ public class ParticleSystemComponent : SceneComponent
 
     public ParticleRuntimeInstance? RuntimeInstance => _runtimeInstance;
 
+    public int LastEmittedCount { get; private set; }
+
     public ParticleSystemComponent()
     {
     }
@@ -84,6 +87,22 @@ public class ParticleSystemComponent : SceneComponent
 
     public override ParticleSystemComponent Clone()
         => new(this);
+
+    public override void Update(float elapsedTime)
+    {
+        base.Update(elapsedTime);
+
+        if (!CanUpdateRuntime())
+        {
+            LastEmittedCount = 0;
+            return;
+        }
+
+        _runtimeInstance!.WorldMatrix = WorldMatrixWithScale;
+        LastEmittedCount = _runtimeInstance.Update(elapsedTime);
+        _lastUpdateSequence = Owner!.World.UpdateSequence;
+        IsBoundingBoxDirty = true;
+    }
 
     public override void Load(JObject element)
     {
@@ -120,6 +139,12 @@ public class ParticleSystemComponent : SceneComponent
         IsBoundingBoxDirty = true;
     }
 
+    public void SetParticleEffectAsset(ParticleEffectAsset particleEffectAsset)
+    {
+        ArgumentNullException.ThrowIfNull(particleEffectAsset);
+        RebuildRuntime(particleEffectAsset);
+    }
+
     private void LoadParticleEffectAsset()
     {
         if (ParticleEffectAssetId == Guid.Empty || Owner?.World?.Game?.AssetContentManager == null)
@@ -129,5 +154,25 @@ public class ParticleSystemComponent : SceneComponent
 
         ParticleEffectAsset particleEffectAsset = Owner.World.Game.AssetContentManager.Load<ParticleEffectAsset>(ParticleEffectAssetId);
         RebuildRuntime(particleEffectAsset);
+    }
+
+    private bool CanUpdateRuntime()
+    {
+        if (_runtimeInstance == null || Owner?.World == null || !Owner.IsEnabled)
+        {
+            return false;
+        }
+
+        if (Owner.World.UpdateSequence == _lastUpdateSequence)
+        {
+            return false;
+        }
+
+        if (Owner.World.Game?.ExecutionPolicy.IsEditorPreview == true && !SimulateInEditor)
+        {
+            return false;
+        }
+
+        return true;
     }
 }

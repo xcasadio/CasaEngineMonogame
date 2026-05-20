@@ -322,7 +322,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle system component`
 
-- ⏳ **T03.02 — Brancher update component/runtime**
+- ✅ **T03.02 — Brancher update component/runtime**
   Objectif :
   - Faire avancer l'instance runtime dans `Update` une seule fois par frame logique.
   - Respecter enabled, owner/world actifs, pause, play on start.

@@ -1,4 +1,7 @@
+using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -70,6 +73,48 @@ public class ParticleSystemComponentTests
         Assert.Throws<ArgumentOutOfRangeException>(() => component.EmissionScale = float.PositiveInfinity);
     }
 
+    [Fact]
+    public void Update_AdvancesRuntimeOncePerWorldSequence()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 1.0f));
+
+        component.Update(1.0f);
+        int emittedAfterFirstUpdate = component.LastEmittedCount;
+        float ageAfterFirstUpdate = component.RuntimeInstance!.Emitters[0].GetParticle(0).Age;
+        component.Update(1.0f);
+
+        Assert.Equal(1, emittedAfterFirstUpdate);
+        Assert.Equal(1, component.RuntimeInstance.AliveCount);
+        Assert.Equal(ageAfterFirstUpdate, component.RuntimeInstance.Emitters[0].GetParticle(0).Age);
+    }
+
+    [Fact]
+    public void Update_SkipsRuntimeWhenOwnerIsDisabled()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out Entity entity);
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 1.0f));
+        entity.IsEnabled = false;
+
+        component.Update(1.0f);
+
+        Assert.Equal(0, component.LastEmittedCount);
+        Assert.Equal(0, component.RuntimeInstance!.AliveCount);
+    }
+
+    [Fact]
+    public void Update_DoesNotEmitWhenPlayOnStartIsFalse()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.PlayOnStart = false;
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 1.0f));
+
+        component.Update(1.0f);
+
+        Assert.Equal(0, component.LastEmittedCount);
+        Assert.Equal(0, component.RuntimeInstance!.AliveCount);
+    }
+
     private static JObject CreateComponentNode(Guid assetId)
         => new()
         {
@@ -111,4 +156,41 @@ public class ParticleSystemComponentTests
             ["y"] = value.Y,
             ["z"] = value.Z,
         };
+
+    private static ParticleSystemComponent CreateAttachedComponent(out Entity entity)
+    {
+        var world = new World();
+        entity = new Entity();
+        var component = new ParticleSystemComponent();
+        entity.RootComponent = component;
+        entity.InitializeWithWorld(world);
+        return component;
+    }
+
+    private static ParticleEffectAsset CreateRuntimeAsset(float rateOverTime)
+    {
+        var asset = new ParticleEffectAsset();
+        var emitter = new ParticleEmitterDefinition
+        {
+            Duration = 10.0f,
+            MaxParticles = 8,
+        };
+
+        emitter.Emission.RateOverTime = rateOverTime;
+        emitter.Initial.Lifetime = FloatRange.Constant(10.0f);
+        emitter.Initial.Speed = FloatRange.Constant(0.0f);
+        emitter.Initial.Size = Vector2Range.Constant(Vector2.One);
+        emitter.Initial.Rotation = FloatRange.Constant(0.0f);
+        emitter.Initial.AngularVelocity = FloatRange.Constant(0.0f);
+        emitter.Initial.StartColor = ColorGradient.Constant(Color.White);
+        emitter.Simulation.Gravity = Vector3.Zero;
+        emitter.Simulation.GravityScale = 0.0f;
+        emitter.Simulation.Drag = 0.0f;
+        emitter.Simulation.SizeOverLifetime = FloatCurve.Constant(1.0f);
+        emitter.Simulation.AlphaOverLifetime = FloatCurve.Constant(1.0f);
+        emitter.Simulation.VelocityOverLifetime = FloatCurve.Constant(1.0f);
+        emitter.Simulation.ColorOverLifetime = ColorGradient.Constant(Color.White);
+        asset.Emitters.Add(emitter);
+        return asset;
+    }
 }
