@@ -136,6 +136,7 @@ public class ContentBrowserPanel
     private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<MGTextBlock>> _tooltipDimensionTexts = new(StringComparer.OrdinalIgnoreCase);
     private string _pendingOperationError = string.Empty;
+    private string _pendingOperationWarning = string.Empty;
     private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
     private string? _pendingCurrentFolderPath;
@@ -212,6 +213,7 @@ public class ContentBrowserPanel
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
+        _fileOperationService.WarningOccurred += OnFileOperationWarning;
     }
 
     /// <summary>
@@ -331,6 +333,12 @@ public class ContentBrowserPanel
         {
             FormsMessageBox.Show(_pendingOperationError, "Content Browser", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Error);
             _pendingOperationError = string.Empty;
+        }
+
+        if (!string.IsNullOrEmpty(_pendingOperationWarning))
+        {
+            FormsMessageBox.Show(_pendingOperationWarning, "Content Browser", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Warning);
+            _pendingOperationWarning = string.Empty;
         }
     }
 
@@ -881,6 +889,7 @@ public class ContentBrowserPanel
             Title = "Import files into the Content Browser",
             CheckFileExists = true,
             Multiselect = true,
+            Filter = "Supported assets (*.tmx;*.png;*.jpg;*.jpeg;*.bmp;*.fbx)|*.tmx;*.png;*.jpg;*.jpeg;*.bmp;*.fbx|Tiled maps (*.tmx)|*.tmx|All files (*.*)|*.*",
         };
 
         if (dialog.ShowDialog() != FormsDialogResult.OK || dialog.FileNames.Length == 0)
@@ -1441,6 +1450,11 @@ public class ContentBrowserPanel
     private void OnFileOperationError(string message)
     {
         _pendingOperationError = message;
+    }
+
+    private void OnFileOperationWarning(string message)
+    {
+        _pendingOperationWarning = message;
     }
 
     private void OnGlobalKeyPressed(object? sender, BaseKeyPressedEventArgs e)

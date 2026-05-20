@@ -387,7 +387,7 @@ Vérifications :
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
-## ⏳ Phase 9 - Intégration éditeur TileMap
+## 🧪 Phase 9 - Intégration éditeur TileMap
 
 Priorité : moyenne.
 
@@ -399,14 +399,20 @@ Tâches :
 - ⏳ Ajouter overlays : collision, tile ids, chunks, zones visibles.
 - ⏳ Brancher undo/redo sur l'API centrale `SetTile`.
 - ⏳ Ajouter sauvegarde propre via `EditorAssetWriterService`.
-- ⏳ Ajouter commande/import UI pour `.tmx`/Tiled JSON dans le Content Browser.
-- ⏳ Afficher les warnings d'import Tiled dans l'éditeur.
+- ✅ Ajouter commande/import UI pour `.tmx` dans le Content Browser.
+- ✅ Afficher les warnings d'import Tiled dans l'éditeur.
+- ⏳ Ajouter commande/import UI pour Tiled JSON dans le Content Browser après support import JSON.
 
 Critères d'acceptation :
 
 - L'utilisateur peut importer une map Tiled depuis le Content Browser.
 - L'utilisateur peut ouvrir/inspecter la TileMap générée.
 - Les modifications éditeur passent par undo/redo et sont sauvegardées.
+
+Vérifications :
+
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~FileOperationServiceTests`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 10 - Streaming et grosses maps
 

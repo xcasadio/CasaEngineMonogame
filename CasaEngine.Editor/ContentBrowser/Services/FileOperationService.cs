@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.Tiled;
 using CasaEngine.Framework.Assets;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;
@@ -17,6 +19,7 @@ public sealed class FileOperationService : IDisposable
     private int _hasPendingExternalChanges;
 
     public event Action<string> ErrorOccurred;
+    public event Action<string> WarningOccurred;
 
     public bool HasPendingExternalChanges => Volatile.Read(ref _hasPendingExternalChanges) == 1;
 
@@ -418,6 +421,7 @@ public sealed class FileOperationService : IDisposable
                         string destinationFile = GetUniqueDestinationPath(targetDirectory.FullPath, Path.GetFileName(externalPath), false);
                         File.Copy(externalPath, destinationFile);
                         assetCatalogChanged |= EditorAssetImportService.ImportFile(externalPath, destinationFile);
+                        ReportTiledMapImportWarnings(EditorAssetImportService.LastTiledMapImportResult);
                     }
                 }
             }
@@ -440,6 +444,28 @@ public sealed class FileOperationService : IDisposable
     public void Dispose()
     {
         DisposeWatcher();
+    }
+
+    private void ReportTiledMapImportWarnings(TiledMapImportResult importResult)
+    {
+        if (importResult == null || importResult.Warnings.Count == 0)
+        {
+            return;
+        }
+
+        var message = new StringBuilder();
+        message.AppendLine("Imported Tiled map with warnings:");
+        for (var index = 0; index < importResult.Warnings.Count; index++)
+        {
+            message.Append("- ");
+            message.Append(importResult.Warnings[index]);
+            if (index + 1 < importResult.Warnings.Count)
+            {
+                message.AppendLine();
+            }
+        }
+
+        WarningOccurred?.Invoke(message.ToString());
     }
 
     private bool TryRedoCopyLikeOperation(
