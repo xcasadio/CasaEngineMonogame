@@ -26,9 +26,10 @@ public class Vector3ColorEditor : MGColorField
         : base(window, ColorValue.FromVector3(initialValue ?? Vector3.Zero), CreateOptions(initialValue ?? Vector3.Zero))
     {
         AllowNull = false;
-        FieldWidth = 220;
+        ShowFieldTextInput = false;
+        FieldWidth = 24;
         FieldHeight = 24;
-        HorizontalAlignment = HorizontalAlignment.Stretch;
+        HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Center;
 
         base.ValueChanged += OnBaseValueChanged;

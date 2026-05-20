@@ -346,15 +346,14 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
     {
         var propertyState = ResolvePropertyState(descriptor.Definition);
 
-        var row = new MGStackPanel(_window, Orientation.Vertical)
+        var row = new MGDockPanel(_window)
         {
-            Spacing = 2,
             Margin = new Thickness(2, 2, 2, 4),
         };
 
-        var header = new MGDockPanel(_window);
-        header.TryAddChild(new MGTextBlock(_window, EscapeMarkup(descriptor.DisplayName))
+        row.TryAddChild(new MGTextBlock(_window, EscapeMarkup(descriptor.DisplayName))
         {
+            PreferredWidth = 140,
             Margin = new Thickness(2, 0, 6, 0),
             VerticalAlignment = VerticalAlignment.Center,
         }, Dock.Left);
@@ -362,6 +361,8 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
         var actions = new MGStackPanel(_window, Orientation.Horizontal)
         {
             Spacing = 4,
+            Margin = new Thickness(6, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
         };
 
         var badgeText = new MGTextBlock(_window, propertyState.BadgeText, propertyState.ForegroundColor, 10)
@@ -380,18 +381,12 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
         var resetButton = BuildResetButton(descriptor.Definition, propertyState.HasLocalOverride);
 
+        var editorBinding = BuildEditorBinding(descriptor, propertyState);
+        row.TryAddChild(editorBinding.Element, Dock.Left);
+
         actions.TryAddChild(badgeBorder);
         actions.TryAddChild(resetButton);
-        header.TryAddChild(actions, Dock.Right);
-
-        var editorRow = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 6,
-            Margin = new Thickness(14, 0, 0, 0),
-        };
-
-        var editorBinding = BuildEditorBinding(descriptor, propertyState);
-        editorRow.TryAddChild(editorBinding.Element);
+        row.TryAddChild(actions, Dock.Left);
 
         var sourceText = new MGTextBlock(_window, string.Empty)
         {
@@ -407,10 +402,6 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
             sourceText.Visibility = Visibility.Visible;
         }
 
-        editorRow.TryAddChild(sourceText);
-
-        row.TryAddChild(header);
-        row.TryAddChild(editorRow);
         return new PropertyRowBinding(descriptor, row, badgeBorder, badgeText, resetButton, sourceText, editorBinding);
     }
 
@@ -628,10 +619,7 @@ public sealed class MaterialAssetInspectorPanel : IDisposable
 
     private IPropertyEditorBinding BuildVector3ColorEditor(MaterialPropertyDefinition propertyDefinition, MaterialValue? value)
     {
-        var colorEditor = new Vector3ColorEditor(_window, value != null && value.TryGetVector3(out var vector3Value) ? vector3Value : Vector3.Zero)
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
+        var colorEditor = new Vector3ColorEditor(_window, value != null && value.TryGetVector3(out var vector3Value) ? vector3Value : Vector3.Zero);
 
         return new Vector3ColorEditorBinding(colorEditor, newValue => ApplyPropertyValue(propertyDefinition, newValue));
     }

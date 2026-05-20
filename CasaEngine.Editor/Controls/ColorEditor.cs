@@ -18,9 +18,10 @@ public class ColorEditor : MGColorField
         : base(window, ColorValue.FromXnaColor(initialColor ?? Color.White), CreateOptions(initialColor ?? Color.White))
     {
         AllowNull = false;
-        FieldWidth = 220;
+        ShowFieldTextInput = false;
+        FieldWidth = 24;
         FieldHeight = 24;
-        HorizontalAlignment = HorizontalAlignment.Stretch;
+        HorizontalAlignment = HorizontalAlignment.Left;
         VerticalAlignment = VerticalAlignment.Center;
 
         base.ValueChanged += OnBaseValueChanged;

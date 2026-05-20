@@ -647,10 +647,7 @@ public sealed class EntityDetailsPanel
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Reflection Cubemap", reflectionCubemapSelector);
 
-        var ambientColorEditor = new Vector3ColorEditor(_window, settings.AmbientColor)
-        {
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
+        var ambientColorEditor = new Vector3ColorEditor(_window, settings.AmbientColor);
         ambientColorEditor.ValueChanged += (_, value) => ApplyWorldEnvironmentChange(
             "Change Environment Ambient Tint",
             static s => s.AmbientColor,
