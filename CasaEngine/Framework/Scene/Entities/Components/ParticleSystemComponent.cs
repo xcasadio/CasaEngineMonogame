@@ -57,6 +57,10 @@ public class ParticleSystemComponent : SceneComponent
             }
 
             _emissionScale = value;
+            if (_runtimeInstance != null)
+            {
+                _runtimeInstance.EmissionScale = value;
+            }
         }
     }
 
@@ -178,6 +182,7 @@ public class ParticleSystemComponent : SceneComponent
         _runtimeInstance = new ParticleRuntimeInstance(particleEffectAsset)
         {
             SimulationSpeed = SimulationSpeed,
+            EmissionScale = EmissionScale,
             WorldMatrix = WorldMatrixWithScale,
         };
 
@@ -198,6 +203,37 @@ public class ParticleSystemComponent : SceneComponent
     {
         ArgumentNullException.ThrowIfNull(particleEffectAsset);
         RebuildRuntime(particleEffectAsset);
+    }
+
+    public void Play()
+        => _runtimeInstance?.Play();
+
+    public void Pause()
+        => _runtimeInstance?.Pause();
+
+    public void Stop(bool clearParticles = true)
+    {
+        _runtimeInstance?.Stop(clearParticles);
+        IsBoundingBoxDirty = true;
+    }
+
+    public void Restart(bool clearParticles = true)
+    {
+        _runtimeInstance?.Restart(clearParticles);
+        IsBoundingBoxDirty = true;
+    }
+
+    public int Emit(int particleCount)
+    {
+        if (_runtimeInstance == null || particleCount <= 0)
+        {
+            return 0;
+        }
+
+        _runtimeInstance.WorldMatrix = WorldMatrixWithScale;
+        int emittedCount = _runtimeInstance.Emit(particleCount);
+        IsBoundingBoxDirty = emittedCount > 0 || IsBoundingBoxDirty;
+        return emittedCount;
     }
 
     private void LoadParticleEffectAsset()

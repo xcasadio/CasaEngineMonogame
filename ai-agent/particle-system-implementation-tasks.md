@@ -344,7 +344,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): expose particle component bounds`
 
-- ⏳ **T03.04 — Ajouter API gameplay minimale**
+- ✅ **T03.04 — Ajouter API gameplay minimale**
   Objectif :
   - Exposer `Play`, `Pause`, `Stop`, `Restart`, `Emit(int count)` sur le composant.
   - Ajouter setters d'overrides V1 limites si simples (`SimulationSpeed`, `ColorTint`, `EmissionScale`).

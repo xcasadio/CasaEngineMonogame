@@ -14,6 +14,7 @@ public sealed class ParticleEmitterRuntime
     private int _aliveCount;
     private int _freeCount;
     private float _simulationSpeed = 1.0f;
+    private float _emissionScale = 1.0f;
     private float _emissionAccumulator;
     private ParticleRandom _random;
 
@@ -42,6 +43,20 @@ public sealed class ParticleEmitterRuntime
             }
 
             _simulationSpeed = value;
+        }
+    }
+
+    public float EmissionScale
+    {
+        get => _emissionScale;
+        set
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value) || value < 0.0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Emission scale must be finite and non-negative.");
+            }
+
+            _emissionScale = value;
         }
     }
 
@@ -335,12 +350,13 @@ public sealed class ParticleEmitterRuntime
     private int EmitContinuous(float previousActiveTime, float currentActiveTime)
     {
         float activeDeltaSeconds = GetActiveDeltaSeconds(previousActiveTime, currentActiveTime);
-        if (activeDeltaSeconds <= 0.0f || Definition.Emission.RateOverTime <= 0.0f)
+        float scaledRate = Definition.Emission.RateOverTime * _emissionScale;
+        if (activeDeltaSeconds <= 0.0f || scaledRate <= 0.0f)
         {
             return 0;
         }
 
-        _emissionAccumulator += activeDeltaSeconds * Definition.Emission.RateOverTime;
+        _emissionAccumulator += activeDeltaSeconds * scaledRate;
         int particlesToEmit = (int)_emissionAccumulator;
         if (particlesToEmit <= 0)
         {
@@ -399,7 +415,11 @@ public sealed class ParticleEmitterRuntime
                 continue;
             }
 
-            emittedCount += Emit(burst.SampleCount(ref _random));
+            int scaledCount = (int)(burst.SampleCount(ref _random) * _emissionScale);
+            if (scaledCount > 0)
+            {
+                emittedCount += Emit(scaledCount);
+            }
         }
 
         return emittedCount;

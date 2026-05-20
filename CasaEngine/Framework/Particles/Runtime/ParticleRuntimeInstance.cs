@@ -8,6 +8,7 @@ namespace CasaEngine.Framework.Particles.Runtime;
 public sealed class ParticleRuntimeInstance
 {
     private float _simulationSpeed = 1.0f;
+    private float _emissionScale = 1.0f;
 
     public ParticleEffectAsset Asset { get; }
 
@@ -56,6 +57,24 @@ public sealed class ParticleRuntimeInstance
             for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
             {
                 Emitters[emitterIndex].SimulationSpeed = value;
+            }
+        }
+    }
+
+    public float EmissionScale
+    {
+        get => _emissionScale;
+        set
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value) || value < 0.0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Emission scale must be finite and non-negative.");
+            }
+
+            _emissionScale = value;
+            for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+            {
+                Emitters[emitterIndex].EmissionScale = value;
             }
         }
     }
@@ -144,6 +163,19 @@ public sealed class ParticleRuntimeInstance
         {
             Emitters[emitterIndex].Restart(clearParticles);
         }
+    }
+
+    public int Emit(int particleCount)
+    {
+        int emittedCount = 0;
+        for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+        {
+            Emitters[emitterIndex].WorldMatrix = WorldMatrix;
+            emittedCount += Emitters[emitterIndex].Emit(particleCount);
+        }
+
+        UpdateBounds();
+        return emittedCount;
     }
 
     public void AdvancePlayback(float elapsedSeconds)

@@ -160,6 +160,55 @@ public class ParticleSystemComponentTests
         Assert.True(component.AlwaysVisible);
     }
 
+    [Fact]
+    public void GameplayControls_ForwardPlaybackToRuntime()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.PlayOnStart = false;
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 0.0f));
+
+        Assert.Equal(ParticlePlaybackState.Stopped, component.RuntimeInstance!.PlaybackState);
+
+        component.Play();
+        Assert.Equal(ParticlePlaybackState.Playing, component.RuntimeInstance.PlaybackState);
+
+        component.Pause();
+        Assert.Equal(ParticlePlaybackState.Paused, component.RuntimeInstance.PlaybackState);
+
+        component.Restart(clearParticles: true);
+        Assert.Equal(ParticlePlaybackState.Playing, component.RuntimeInstance.PlaybackState);
+
+        component.Stop(clearParticles: true);
+        Assert.Equal(ParticlePlaybackState.Stopped, component.RuntimeInstance.PlaybackState);
+    }
+
+    [Fact]
+    public void Emit_SpawnsParticlesAndUpdatesBounds()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.PlayOnStart = false;
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 0.0f));
+
+        int emittedCount = component.Emit(3);
+
+        Assert.Equal(3, emittedCount);
+        Assert.Equal(3, component.RuntimeInstance!.AliveCount);
+        Assert.True(component.RuntimeInstance.HasBounds);
+    }
+
+    [Fact]
+    public void EmissionScale_PropagatesToExistingRuntime()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 2.0f));
+        component.EmissionScale = 0.5f;
+
+        component.Update(1.0f);
+
+        Assert.Equal(1, component.LastEmittedCount);
+        Assert.Equal(1, component.RuntimeInstance!.AliveCount);
+    }
+
     private static JObject CreateComponentNode(Guid assetId)
         => new()
         {
