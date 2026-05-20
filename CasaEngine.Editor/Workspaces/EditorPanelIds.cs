@@ -12,4 +12,5 @@ public static class EditorPanelIds
     public const string MaterialAssetDocumentPrefix = "panel_material_asset_";
     public const string EntityAssetDocumentPrefix = "panel_entity_asset_";
     public const string AnimationClipAssetDocumentPrefix = "panel_animation_clip_";
+    public const string ParticleAssetDocumentPrefix = "panel_particle_asset_";
 }

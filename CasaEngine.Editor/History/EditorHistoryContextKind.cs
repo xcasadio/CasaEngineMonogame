@@ -8,5 +8,6 @@ public enum EditorHistoryContextKind
     Material,
     Entity,
     AnimationClip,
+    Particle,
     ContentBrowser,
 }

@@ -8,4 +8,5 @@ public enum EditorDocumentKind
     Material,
     Entity,
     AnimationClip,
+    Particle,
 }

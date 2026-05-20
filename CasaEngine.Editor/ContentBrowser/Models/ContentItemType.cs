@@ -16,4 +16,5 @@ public enum ContentItemType
     Prefab,
     Animation,
     World,
+    Particle,
 }

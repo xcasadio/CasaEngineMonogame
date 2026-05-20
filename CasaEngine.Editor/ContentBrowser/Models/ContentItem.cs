@@ -239,6 +239,8 @@ public sealed class ContentItem : INotifyPropertyChanged
         { ".scene", ContentItemType.Scene },
         // Materials
         { ".material", ContentItemType.Material },
+        // Particles
+        { ".particle", ContentItemType.Particle },
         // Prefabs / Entities
         { ".entity", ContentItemType.Prefab },
         { ".prefab", ContentItemType.Prefab },

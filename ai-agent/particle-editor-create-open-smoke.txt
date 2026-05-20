@@ -1,0 +1,22 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-05-20 14:44:30.132
+Project: .\Projects\SampleProject\SampleProject.json
+Open asset: <none>
+Create particle asset: Particles
+Set material property: <none>
+Entity: <first> [0]
+Component: <none>
+Active document panel: panel_particle_asset_dd08d0346458492db68cc9a504bb7988
+Open document panels: panel_world_viewport, panel_particle_asset_dd08d0346458492db68cc9a504bb7988
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 16x16
+  - Physics debug world: DefaultWorld
+Selected entity: 'ground'
+Selected component: <null>
+Entries: 2
+
+2026-05-20 14:44:29.524 [Info] [Editor] Opened particle asset='NewParticleEffect', panel='panel_particle_asset_dd08d0346458492db68cc9a504bb7988'
+2026-05-20 14:44:29.524 [Info] [Automation] Created and opened particle asset='Particles\NewParticleEffect.particle'

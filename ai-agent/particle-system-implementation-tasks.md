@@ -463,7 +463,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 6 — Editeur MGUI V1
 
-- ⏳ **T06.01 — Ajouter creation/ouverture d'asset `.particle`**
+- ✅ **T06.01 — Ajouter creation/ouverture d'asset `.particle`**
   Objectif :
   - Ajouter creation depuis Content Browser si le pattern existe.
   - Ouvrir un document/panel particules depuis `GameEditor`.
