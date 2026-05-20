@@ -5,6 +5,7 @@ using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Rendering.Vector;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.EditorServices;
@@ -129,6 +130,9 @@ public class WorldViewportPanel : IDisposable
     private DebugGridComponent? _grid;
     private DebugAxisComponent? _axis;
     private IEditorVectorCanvas? _vectorCanvas;
+    private readonly EditorLightOverlayCollector _lightOverlayCollector = new();
+    private EditorLightBillboardOverlayRenderer? _lightBillboardOverlayRenderer;
+    private Action<GraphicsDevice, RenderView, RenderFrame>? _externalUiOverlayAction;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
     private World? _observedWorld;
@@ -1070,12 +1074,26 @@ public class WorldViewportPanel : IDisposable
         _grid ??= CreateGridComponent();
         _axis ??= CreateAxisComponent();
         _vectorCanvas ??= CreateVectorCanvas();
+        _lightBillboardOverlayRenderer ??= new EditorLightBillboardOverlayRenderer(_graphicsDevice);
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
         overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
+        if (overlayPipeline.RenderUIOverlayAction != RenderEditorUiOverlay)
+        {
+            _externalUiOverlayAction = overlayPipeline.RenderUIOverlayAction;
+            overlayPipeline.RenderUIOverlayAction = RenderEditorUiOverlay;
+        }
         
         _renderView.Pipeline = overlayPipeline;
+    }
+
+    private void RenderEditorUiOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        _externalUiOverlayAction?.Invoke(graphicsDevice, view, frame);
+
+        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, null);
+        _lightBillboardOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
     }
 
     private DebugGridComponent CreateGridComponent()
@@ -1158,6 +1176,8 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.Dispose();
         DisposeOverlayComponent(_grid);
         DisposeOverlayComponent(_axis);
+        _lightBillboardOverlayRenderer?.Dispose();
+        _lightBillboardOverlayRenderer = null;
         _vectorCanvas?.Dispose();
         _vectorCanvas = null;
         _grid = null;

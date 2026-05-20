@@ -187,11 +187,11 @@ Commit attendu :
 
 Commit realise :
 
-- `a renseigner au commit suivant`
+- `b5da2bb4` `feat(editor): collect light overlay items`
 
 ---
 
-### ⏳ Todo - LIGHTVIS-003 - Dessiner les billboards d'icones de lumieres
+### ✅ Done - LIGHTVIS-003 - Dessiner les billboards d'icones de lumieres
 
 Objectif : afficher une icone billboard pour chaque `LightComponent` collecte.
 
@@ -232,7 +232,7 @@ Commit attendu :
 
 Commit realise :
 
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
