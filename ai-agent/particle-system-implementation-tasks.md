@@ -253,7 +253,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add pooled particle runtime buffers`
 
-- ⏳ **T02.02 — Ajouter le controle playback**
+- ✅ **T02.02 — Ajouter le controle playback**
   Objectif :
   - Implementer play/pause/stop/restart, looping, one-shot, duration, start delay, simulation speed.
   - Definir clairement `Stop(clearParticles)` et l'etat `IsAlive`.
