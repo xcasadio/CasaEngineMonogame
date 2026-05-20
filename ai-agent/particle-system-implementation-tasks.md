@@ -600,7 +600,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `docs(particles): document v1 limits and v2 migration path`
 
-- ⏳ **T08.02 — Introduire des interfaces internes sans changer l'UX V1**
+- ✅ **T08.02 — Introduire des interfaces internes sans changer l'UX V1**
   Objectif :
   - Ajouter abstractions minimales pour modules internes si elles reduisent vraiment la duplication.
   - Ne pas exposer encore une API publique de modules custom.

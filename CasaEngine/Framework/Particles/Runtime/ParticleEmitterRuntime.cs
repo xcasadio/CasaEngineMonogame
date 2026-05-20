@@ -17,6 +17,7 @@ public sealed class ParticleEmitterRuntime
     private float _emissionScale = 1.0f;
     private float _emissionAccumulator;
     private ParticleRandom _random;
+    private readonly FixedParticleEmitterRuntimeModules _modules;
 
     public ParticleEmitterDefinition Definition { get; }
 
@@ -99,6 +100,7 @@ public sealed class ParticleEmitterRuntime
         }
 
         Definition = definition;
+        _modules = new FixedParticleEmitterRuntimeModules(definition);
         _randomSeed = randomSeed == 0u ? 1u : randomSeed;
         _random = new ParticleRandom(_randomSeed);
         Looping = definition.Looping;
@@ -486,36 +488,7 @@ public sealed class ParticleEmitterRuntime
     private void InitializeParticle(int particleIndex)
     {
         ref Particle particle = ref Particles[particleIndex];
-        ParticleShapeSampler.Sample(Definition.Shape, ref _random, out Vector3 localPosition, out Vector3 direction);
-
-        float lifetime = Definition.Initial.Lifetime.Sample(ref _random);
-        float speed = Definition.Initial.Speed.Sample(ref _random);
-        Vector2 size = Definition.Initial.Size.Sample(ref _random);
-        Color startColor = Definition.Initial.StartColor.Evaluate(0.0f);
-
-        if (Definition.Simulation.SimulationSpace == ParticleSimulationSpace.World)
-        {
-            localPosition = Vector3.Transform(localPosition, WorldMatrix);
-            direction = NormalizeOrFallback(Vector3.TransformNormal(direction, WorldMatrix), direction);
-        }
-
-        particle.Age = 0.0f;
-        particle.Lifetime = MathF.Max(0.0001f, lifetime);
-        particle.Position = localPosition;
-        particle.InitialVelocity = direction * speed;
-        particle.Velocity = particle.InitialVelocity;
-        particle.StartSize = size;
-        particle.Size = size;
-        particle.Rotation = MathHelper.ToRadians(Definition.Initial.Rotation.Sample(ref _random));
-        particle.AngularVelocity = MathHelper.ToRadians(Definition.Initial.AngularVelocity.Sample(ref _random));
-        particle.StartColor = startColor;
-        particle.Color = startColor;
-        particle.Alpha = startColor.A / 255.0f;
-        ParticleFlipbookModule flipbook = Definition.Renderer.Flipbook;
-        particle.FlipbookStartFrame = flipbook != null && flipbook.RandomStartFrame
-            ? _random.NextInt(0, flipbook.EffectiveFrameCount - 1)
-            : 0;
-        particle.FlipbookFrame = ResolveFlipbookFrame(flipbook, particle.FlipbookStartFrame, particle.Age, 0.0f);
+        _modules.Initialize(WorldMatrix, ref _random, ref particle);
     }
 
     private void SimulateParticles(float elapsedSeconds)
@@ -534,30 +507,11 @@ public sealed class ParticleEmitterRuntime
     private bool SimulateParticle(int particleIndex, float elapsedSeconds)
     {
         ref Particle particle = ref Particles[particleIndex];
-        particle.Age += elapsedSeconds;
-        if (particle.Age >= particle.Lifetime)
+        if (!_modules.Update(ref particle, elapsedSeconds))
         {
             Kill(particleIndex);
             return false;
         }
-
-        float normalizedLifetime = MathHelper.Clamp(particle.Age / particle.Lifetime, 0.0f, 1.0f);
-        Vector3 acceleration = Definition.Simulation.Gravity * Definition.Simulation.GravityScale;
-        particle.Velocity += acceleration * elapsedSeconds;
-
-        float drag = Definition.Simulation.Drag;
-        if (drag > 0.0f)
-        {
-            particle.Velocity *= MathF.Max(0.0f, 1.0f - drag * elapsedSeconds);
-        }
-
-        float velocityScale = Definition.Simulation.VelocityOverLifetime.Evaluate(normalizedLifetime);
-        particle.Position += particle.Velocity * velocityScale * elapsedSeconds;
-        particle.Rotation += particle.AngularVelocity * elapsedSeconds;
-        particle.Size = particle.StartSize * Definition.Simulation.SizeOverLifetime.Evaluate(normalizedLifetime);
-        particle.Color = MultiplyColors(particle.StartColor, Definition.Simulation.ColorOverLifetime.Evaluate(normalizedLifetime));
-        particle.Alpha = (particle.Color.A / 255.0f) * Definition.Simulation.AlphaOverLifetime.Evaluate(normalizedLifetime);
-        particle.FlipbookFrame = ResolveFlipbookFrame(Definition.Renderer.Flipbook, particle.FlipbookStartFrame, particle.Age, normalizedLifetime);
         return true;
     }
 
@@ -603,26 +557,6 @@ public sealed class ParticleEmitterRuntime
     {
         int normalizedFrame = frame % frameCount;
         return normalizedFrame < 0 ? normalizedFrame + frameCount : normalizedFrame;
-    }
-
-    private static Color MultiplyColors(Color first, Color second)
-    {
-        return new Color(
-            (byte)(first.R * second.R / 255),
-            (byte)(first.G * second.G / 255),
-            (byte)(first.B * second.B / 255),
-            (byte)(first.A * second.A / 255));
-    }
-
-    private static Vector3 NormalizeOrFallback(Vector3 value, Vector3 fallback)
-    {
-        float lengthSquared = value.LengthSquared();
-        if (lengthSquared <= 0.000001f)
-        {
-            return fallback;
-        }
-
-        return value / MathF.Sqrt(lengthSquared);
     }
 
     private void ResetBounds()
