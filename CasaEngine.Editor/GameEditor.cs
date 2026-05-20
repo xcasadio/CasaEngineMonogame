@@ -411,6 +411,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnEditorAssetSaved(object? sender, EditorAssetSavedEventArgs e)
     {
+        if (e.RelativePath.EndsWith(Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
+        {
+            HandleSavedParticleAsset(e);
+            return;
+        }
+
         if (!e.RelativePath.EndsWith(".material", StringComparison.OrdinalIgnoreCase))
         {
             return;
@@ -437,6 +443,34 @@ public class GameEditor : Game, IObservableUpdate
             : _editorRuntime.ReloadMaterialAsset(materialAssetId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}' affectedMaterials={hotReloadMetrics.AffectedMaterialCount} invalidatedRuntimeMaterials={hotReloadMetrics.InvalidatedRuntimeMaterialCount} invalidatedAuthoringMaterials={hotReloadMetrics.InvalidatedAuthoringMaterialCount} refreshedStaticModelComponents={hotReloadMetrics.RefreshedStaticModelComponentCount} recalculatedOverrideSlots={hotReloadMetrics.RecalculatedOverrideSlotCount} authoringCacheHits={hotReloadMetrics.AuthoringMaterialCacheHitCount} authoringCacheMisses={hotReloadMetrics.AuthoringMaterialCacheMissCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+    }
+
+    private void HandleSavedParticleAsset(EditorAssetSavedEventArgs e)
+    {
+        ParticleEffectAsset? savedParticleAsset = TryGetSavedParticleAssetForHotReload(e);
+        RefreshSavedParticleInspectorPanels(e);
+
+        if (_editorRuntime == null)
+        {
+            return;
+        }
+
+        Guid particleAssetId = ResolveCatalogParticleAssetId(e.RelativePath);
+        if (particleAssetId == Guid.Empty)
+        {
+            particleAssetId = e.AssetId;
+        }
+
+        if (particleAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        var hotReloadMetrics = savedParticleAsset != null
+            ? _editorRuntime.ReloadParticleAsset(particleAssetId, savedParticleAsset)
+            : _editorRuntime.ReloadParticleAsset(particleAssetId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Reloaded particle asset='{e.RelativePath}' id='{particleAssetId}' refreshedParticleSystemComponents={hotReloadMetrics.RefreshedParticleSystemComponentCount} rebuiltRuntimeInstances={hotReloadMetrics.RebuiltRuntimeInstanceCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
     }
 
     private void RefreshSavedMaterialInspectorPanels(EditorAssetSavedEventArgs e)
@@ -490,6 +524,52 @@ public class GameEditor : Game, IObservableUpdate
         return null;
     }
 
+    private void RefreshSavedParticleInspectorPanels(EditorAssetSavedEventArgs e)
+    {
+        string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
+        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+        {
+            if (!IsMatchingParticleInspectorPanel(particleInspectorPanel, e.AssetId, normalizedRelativePath))
+            {
+                continue;
+            }
+
+            if (particleInspectorPanel.ReloadFromDisk()
+                && TryGetParticleInspectorPanelId(particleInspectorPanel, out var panelId))
+            {
+                var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId);
+                _editorHistory.Clear(historyContext);
+                _editorDirtyState.MarkSaved(historyContext);
+            }
+
+            UpdateDockPanelTitleForParticleInspector(particleInspectorPanel);
+        }
+    }
+
+    private ParticleEffectAsset? TryGetSavedParticleAssetForHotReload(EditorAssetSavedEventArgs e)
+    {
+        if (e.SaveSource != EditorAssetSaveSource.ParticleEffectEditorPanel)
+        {
+            return null;
+        }
+
+        string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
+        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+        {
+            if (!IsMatchingParticleInspectorPanel(particleInspectorPanel, e.AssetId, normalizedRelativePath))
+            {
+                continue;
+            }
+
+            if (particleInspectorPanel.LoadedParticleAsset != null)
+            {
+                return particleInspectorPanel.LoadedParticleAsset;
+            }
+        }
+
+        return null;
+    }
+
     private static bool IsMatchingMaterialInspectorPanel(MaterialAssetInspectorPanel materialInspectorPanel, Guid assetId, string normalizedRelativePath)
     {
         var loadedMaterialAsset = materialInspectorPanel.LoadedMaterialAsset;
@@ -511,10 +591,39 @@ public class GameEditor : Game, IObservableUpdate
             StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsMatchingParticleInspectorPanel(ParticleAssetInspectorPanel particleInspectorPanel, Guid assetId, string normalizedRelativePath)
+    {
+        var loadedParticleAsset = particleInspectorPanel.LoadedParticleAsset;
+        if (assetId != Guid.Empty
+            && loadedParticleAsset != null
+            && (loadedParticleAsset.AssetId == assetId || loadedParticleAsset.Id == assetId))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(particleInspectorPanel.LoadedRelativePath))
+        {
+            return false;
+        }
+
+        return string.Equals(
+            NormalizeRelativePath(particleInspectorPanel.LoadedRelativePath),
+            normalizedRelativePath,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
     private static string NormalizeRelativePath(string relativePath)
         => relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
     private static Guid ResolveCatalogMaterialAssetId(string relativePath)
+    {
+        string normalizedRelativePath = NormalizeRelativePath(relativePath);
+        var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
+                        ?? AssetCatalog.GetByFileName(normalizedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return assetInfo?.Id ?? Guid.Empty;
+    }
+
+    private static Guid ResolveCatalogParticleAssetId(string relativePath)
     {
         string normalizedRelativePath = NormalizeRelativePath(relativePath);
         var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
@@ -3251,16 +3360,16 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        TryApplyAutomationParticleEdit(totalGameTime);
-        if (!string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey)
-            && !_automationParticleEditAttempted)
+        TryApplyAutomationParticleDrop(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.DropParticleAssetPath)
+            && !_automationParticleDropAttempted)
         {
             return;
         }
 
-        TryApplyAutomationParticleDrop(totalGameTime);
-        if (!string.IsNullOrWhiteSpace(_automationOptions.DropParticleAssetPath)
-            && !_automationParticleDropAttempted)
+        TryApplyAutomationParticleEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey)
+            && !_automationParticleEditAttempted)
         {
             return;
         }
@@ -3674,6 +3783,46 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         string relativePath = NormalizeRelativePath(Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath));
+        if (relativePath.EndsWith(Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+            {
+                if (string.IsNullOrWhiteSpace(particleInspectorPanel.LoadedRelativePath))
+                {
+                    continue;
+                }
+
+                if (!string.Equals(NormalizeRelativePath(particleInspectorPanel.LoadedRelativePath), relativePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (particleInspectorPanel.ReloadFromDisk()
+                    && TryGetParticleInspectorPanelId(particleInspectorPanel, out var panelId))
+                {
+                    var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId);
+                    _editorHistory.Clear(historyContext);
+                    _editorDirtyState.MarkSaved(historyContext);
+                    UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
+                }
+            }
+
+            if (_editorRuntime == null)
+            {
+                return;
+            }
+
+            Guid particleAssetId = ResolveCatalogParticleAssetId(relativePath);
+            if (particleAssetId == Guid.Empty)
+            {
+                return;
+            }
+
+            _editorRuntime.ReloadParticleAsset(particleAssetId);
+            Logs.WriteInfo($"[Automation] Restored edited particle '{relativePath}' after diagnostics capture.");
+            return;
+        }
+
         if (!relativePath.EndsWith(".material", StringComparison.OrdinalIgnoreCase))
         {
             return;

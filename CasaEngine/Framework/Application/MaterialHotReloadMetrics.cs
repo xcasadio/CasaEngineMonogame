@@ -16,3 +16,9 @@ internal readonly record struct StaticModelHotReloadMetrics(
     int RecalculatedOverrideSlotCount,
     int AuthoringMaterialCacheHitCount,
     int AuthoringMaterialCacheMissCount);
+
+public readonly record struct ParticleHotReloadMetrics(
+    int RefreshedParticleSystemComponentCount,
+    int RebuiltRuntimeInstanceCount,
+    int InvalidatedViewCount,
+    double ElapsedMilliseconds);

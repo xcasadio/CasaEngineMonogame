@@ -12,6 +12,7 @@ using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Input;
 
 using CasaEngine.Framework.Configuration.Project;
+using CasaEngine.Framework.Particles.Authoring;
 using MGUI.Shared.Rendering;
 using System.Diagnostics;
 using EventArgs = System.EventArgs;
@@ -665,6 +666,35 @@ public class CasaEngineGame : Game, IObservableUpdate
     public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId)
         => ReloadMaterialAsset(materialAssetId, null);
 
+    public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId)
+        => ReloadParticleAsset(particleAssetId, null);
+
+    public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId, ParticleEffectAsset? authoringParticleAsset)
+    {
+        if (particleAssetId == Guid.Empty)
+        {
+            return default;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        ParticleEffectAsset particleAsset = ResolveParticleAssetForHotReload(particleAssetId, authoringParticleAsset);
+        CacheParticleAssetForHotReload(particleAssetId, particleAsset);
+        int refreshedComponentCount = RefreshLoadedParticleSystems(particleAssetId, particleAsset);
+        int invalidatedViewCount = InvalidateAllViews();
+        stopwatch.Stop();
+
+        var hotReloadMetrics = new ParticleHotReloadMetrics(
+            refreshedComponentCount,
+            refreshedComponentCount,
+            invalidatedViewCount,
+            stopwatch.Elapsed.TotalMilliseconds);
+
+        Logs.WriteInfo(
+            $"[ParticleHotReload] particle='{particleAssetId}' refreshedParticleSystemComponents={hotReloadMetrics.RefreshedParticleSystemComponentCount} rebuiltRuntimeInstances={hotReloadMetrics.RebuiltRuntimeInstanceCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+
+        return hotReloadMetrics;
+    }
+
     public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId, MaterialAsset? authoringMaterialAsset)
     {
         if (materialAssetId == Guid.Empty)
@@ -756,6 +786,122 @@ public class CasaEngineGame : Game, IObservableUpdate
             recalculatedOverrideSlotCount,
             authoringMaterialCacheHitCount,
             authoringMaterialCacheMissCount);
+    }
+
+    private ParticleEffectAsset ResolveParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset? authoringParticleAsset)
+    {
+        if (authoringParticleAsset != null
+            && (authoringParticleAsset.AssetId == particleAssetId || authoringParticleAsset.Id == particleAssetId))
+        {
+            return authoringParticleAsset;
+        }
+
+        return AssetContentManager.Load<ParticleEffectAsset>(particleAssetId, cache: false);
+    }
+
+    private void CacheParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset particleAsset)
+    {
+        AssetInfo? assetInfo = RuntimeContext?.ResolveAssetInfo(particleAssetId) ?? AssetCatalog.Get(particleAssetId);
+        if (assetInfo != null)
+        {
+            particleAsset.AssetId = assetInfo.Id;
+            particleAsset.Name = assetInfo.Name;
+            particleAsset.FileName = assetInfo.FileName;
+            AssetContentManager.AddAsset(assetInfo, particleAsset);
+            return;
+        }
+
+        particleAsset.AssetId = particleAssetId;
+        AssetContentManager.AddAsset(particleAssetId, particleAsset.Name, particleAsset);
+    }
+
+    private int RefreshLoadedParticleSystems(Guid particleAssetId, ParticleEffectAsset particleAsset)
+    {
+        int refreshedComponentCount = 0;
+        var visitedWorlds = new HashSet<CasaEngine.Framework.Scene.World.World>();
+
+        var currentWorld = GameManager.CurrentWorld;
+        if (currentWorld != null && visitedWorlds.Add(currentWorld))
+        {
+            refreshedComponentCount += RefreshLoadedParticleSystems(currentWorld, particleAssetId, particleAsset);
+        }
+
+        foreach (var view in GameManager.ViewManager.Views)
+        {
+            var world = view.World;
+            if (world == null || !visitedWorlds.Add(world))
+            {
+                continue;
+            }
+
+            refreshedComponentCount += RefreshLoadedParticleSystems(world, particleAssetId, particleAsset);
+        }
+
+        return refreshedComponentCount;
+    }
+
+    private static int RefreshLoadedParticleSystems(
+        CasaEngine.Framework.Scene.World.World world,
+        Guid particleAssetId,
+        ParticleEffectAsset particleAsset)
+    {
+        int refreshedComponentCount = 0;
+        foreach (var entity in EnumerateEntities(world.Entities))
+        {
+            if (entity.RootComponent != null)
+            {
+                refreshedComponentCount += RefreshParticleSystemComponentTree(entity.RootComponent, particleAssetId, particleAsset);
+            }
+
+            for (int componentIndex = 0; componentIndex < entity.ComponentList.Count; componentIndex++)
+            {
+                if (entity.ComponentList[componentIndex] is not ParticleSystemComponent particleSystemComponent)
+                {
+                    continue;
+                }
+
+                if (RefreshParticleSystemComponent(particleSystemComponent, particleAssetId, particleAsset))
+                {
+                    refreshedComponentCount++;
+                }
+            }
+        }
+
+        return refreshedComponentCount;
+    }
+
+    private static int RefreshParticleSystemComponentTree(
+        SceneComponent sceneComponent,
+        Guid particleAssetId,
+        ParticleEffectAsset particleAsset)
+    {
+        int refreshedComponentCount = 0;
+        if (sceneComponent is ParticleSystemComponent particleSystemComponent
+            && RefreshParticleSystemComponent(particleSystemComponent, particleAssetId, particleAsset))
+        {
+            refreshedComponentCount++;
+        }
+
+        for (int childIndex = 0; childIndex < sceneComponent.Children.Count; childIndex++)
+        {
+            refreshedComponentCount += RefreshParticleSystemComponentTree(sceneComponent.Children[childIndex], particleAssetId, particleAsset);
+        }
+
+        return refreshedComponentCount;
+    }
+
+    private static bool RefreshParticleSystemComponent(
+        ParticleSystemComponent particleSystemComponent,
+        Guid particleAssetId,
+        ParticleEffectAsset particleAsset)
+    {
+        if (particleSystemComponent.ParticleEffectAssetId != particleAssetId)
+        {
+            return false;
+        }
+
+        particleSystemComponent.SetParticleEffectAsset(particleAsset);
+        return true;
     }
 
     private int InvalidateAllViews()

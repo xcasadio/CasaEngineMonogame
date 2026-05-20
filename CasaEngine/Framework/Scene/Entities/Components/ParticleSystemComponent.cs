@@ -213,6 +213,9 @@ public class ParticleSystemComponent : SceneComponent
     protected void RebuildRuntime(ParticleEffectAsset particleEffectAsset)
     {
         _particleEffectAsset = particleEffectAsset;
+        _renderPackets.Clear();
+        LastEmittedCount = 0;
+        _lastUpdateSequence = -1;
         _runtimeInstance = new ParticleRuntimeInstance(particleEffectAsset)
         {
             SimulationSpeed = SimulationSpeed,

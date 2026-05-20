@@ -518,11 +518,13 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): drop particle assets onto entities`
 
-- ⏳ **T06.06 — Ajouter hot reload simple des assets particules**
+- ✅ **T06.06 — Ajouter hot reload simple des assets particules**
   Objectif :
   - Ecouter sauvegarde `.particle` et rafraichir previews/instances concernees.
   - Definir comportement V1 : restart runtime ou conserver etat si compatible.
   - Documenter la decision dans ce fichier si necessaire.
+  Decision V1 :
+  - Remplacer l'asset auteur en cache, reconstruire les `ParticleSystemComponent` concernes et redemarrer selon `PlayOnStart`; pas de conservation d'etat runtime en V1.
   Validation :
   - Build solution.
   - Smoke edition asset utilise par une scene ouverte.
