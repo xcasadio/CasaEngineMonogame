@@ -28,6 +28,33 @@ public class TileMapDataTests
     }
 
     [Fact]
+    public void Load_PreservesOptionalTileFlags()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Ground", 1, 2, 3, 4);
+        var layer = (JObject)((JArray)document["layers"]!)[0]!;
+        layer["tile_flags"] = new JArray(0, (int)TileCellFlags.FlipHorizontal, (int)TileCellFlags.FlipVertical, 0);
+
+        tileMapData.Load(document);
+
+        Assert.Equal(TileCellFlags.FlipHorizontal, tileMapData.GetTileFlags(0, 1, 0));
+        Assert.Equal(TileCellFlags.FlipVertical, tileMapData.GetTileFlags(0, 0, 1));
+    }
+
+    [Fact]
+    public void Load_RejectsLayerWithWrongTileFlagCount()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Broken", 1, 2, 3, 4);
+        var layer = (JObject)((JArray)document["layers"]!)[0]!;
+        layer["tile_flags"] = new JArray(0, 1, 0);
+
+        Assert.Throws<InvalidOperationException>(() => tileMapData.Load(document));
+    }
+
+    [Fact]
     public void GetTileIndex_RejectsCoordinatesOutsideMap()
     {
         var tileMapData = CreateLoadedTileMap();
@@ -46,6 +73,17 @@ public class TileMapDataTests
 
         Assert.Equal(42, tileMapData.GetTileId(0, 1, 1));
         Assert.Equal(42, tileMapData.Layers[0].tiles[3]);
+    }
+
+    [Fact]
+    public void SetTileFlags_UpdatesLayerCellFlags()
+    {
+        var tileMapData = CreateLoadedTileMap();
+
+        tileMapData.SetTileFlags(0, 1, 1, TileCellFlags.FlipHorizontal | TileCellFlags.FlipVertical);
+
+        Assert.Equal(TileCellFlags.FlipHorizontal | TileCellFlags.FlipVertical, tileMapData.GetTileFlags(0, 1, 1));
+        Assert.Equal(TileCellFlags.FlipHorizontal | TileCellFlags.FlipVertical, tileMapData.Layers[0].tileFlags[3]);
     }
 
     [Fact]

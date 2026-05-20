@@ -274,6 +274,17 @@ internal static class EditorAssetJsonSerializer
         node.Add("name", string.IsNullOrWhiteSpace(layer.Name) ? JValue.CreateNull() : layer.Name);
         node.Add("z_offset", layer.zOffset);
         node.Add("tiles", new JArray(layer.tiles));
+        if (layer.HasTileFlags())
+        {
+            var flagsArray = new JArray();
+            layer.EnsureTileFlagCount();
+            for (var index = 0; index < layer.tileFlags.Count; index++)
+            {
+                flagsArray.Add((int)layer.tileFlags[index]);
+            }
+
+            node.Add("tile_flags", flagsArray);
+        }
     }
 
     private static void SaveStaticModel(StaticModel staticModel, JObject node)

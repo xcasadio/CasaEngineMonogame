@@ -33,9 +33,19 @@ public class TileMapData : ObjectBase
         return GetLayer(layerIndex).tiles[GetTileIndex(x, y)];
     }
 
+    public TileCellFlags GetTileFlags(int layerIndex, int x, int y)
+    {
+        return GetLayer(layerIndex).GetTileFlags(GetTileIndex(x, y));
+    }
+
     public void SetTileId(int layerIndex, int x, int y, int tileId)
     {
         GetLayer(layerIndex).tiles[GetTileIndex(x, y)] = tileId;
+    }
+
+    public void SetTileFlags(int layerIndex, int x, int y, TileCellFlags flags)
+    {
+        GetLayer(layerIndex).SetTileFlags(GetTileIndex(x, y), flags);
     }
 
     public void Validate()

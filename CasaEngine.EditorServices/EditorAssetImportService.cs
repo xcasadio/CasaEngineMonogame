@@ -189,6 +189,7 @@ public static class EditorAssetImportService
                 Name = tiledLayer.Name,
                 zOffset = tiledLayer.ZOffset,
                 tiles = new List<int>(tiledLayer.Tiles),
+                tileFlags = new List<TileCellFlags>(tiledLayer.TileFlags),
             });
         }
 

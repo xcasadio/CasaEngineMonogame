@@ -32,11 +32,40 @@ public class StaticTile : Tile
         base.Draw(_texture, _positionInTexture, x, y, z, uvOffset, scale);
     }
 
+    public override void Draw(float x, float y, float z, Vector2 scale, TileCellFlags flags)
+    {
+        if (_texture == null)
+        {
+            return;
+        }
+
+        var uvOffset = _positionInTexture;
+        uvOffset.X = 0;
+        uvOffset.Y = 0;
+        base.Draw(_texture, _positionInTexture, x, y, z, uvOffset, scale, GetSpriteEffects(flags));
+    }
+
     public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         if (_texture != null)
         {
             base.Draw(_texture, _positionInTexture, x, y, z, uvOffset, scale);
         }
+    }
+
+    private static SpriteEffects GetSpriteEffects(TileCellFlags flags)
+    {
+        var effects = SpriteEffects.None;
+        if ((flags & TileCellFlags.FlipHorizontal) != 0)
+        {
+            effects |= SpriteEffects.FlipHorizontally;
+        }
+
+        if ((flags & TileCellFlags.FlipVertical) != 0)
+        {
+            effects |= SpriteEffects.FlipVertically;
+        }
+
+        return effects;
     }
 }

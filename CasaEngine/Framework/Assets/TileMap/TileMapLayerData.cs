@@ -10,6 +10,7 @@ public class TileMapLayerData
 
     public string? Name { get; set; }
     public List<int> tiles = new();
+    public List<TileCellFlags> tileFlags = new();
     public float zOffset;
 
     public void Load(JObject element)
@@ -18,10 +19,59 @@ public class TileMapLayerData
         zOffset = element["z_offset"].GetSingle();
 
         tiles.Clear();
+        tileFlags.Clear();
 
         foreach (var tileToken in element["tiles"]!)
         {
             tiles.Add(tileToken.Value<int>());
+        }
+
+        var tileFlagsToken = element["tile_flags"];
+        if (tileFlagsToken != null)
+        {
+            foreach (var tileFlagToken in tileFlagsToken)
+            {
+                tileFlags.Add((TileCellFlags)tileFlagToken.Value<int>());
+            }
+        }
+    }
+
+    public TileCellFlags GetTileFlags(int tileIndex)
+    {
+        return tileIndex >= 0 && tileIndex < tileFlags.Count
+            ? tileFlags[tileIndex]
+            : TileCellFlags.None;
+    }
+
+    public void SetTileFlags(int tileIndex, TileCellFlags flags)
+    {
+        EnsureTileFlagCount();
+        tileFlags[tileIndex] = flags;
+    }
+
+    public bool HasTileFlags()
+    {
+        for (var index = 0; index < tileFlags.Count; index++)
+        {
+            if (tileFlags[index] != TileCellFlags.None)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void EnsureTileFlagCount()
+    {
+        while (tileFlags.Count < tiles.Count)
+        {
+            tileFlags.Add(TileCellFlags.None);
+        }
+
+        if (tileFlags.Count > tiles.Count)
+        {
+            tileFlags.RemoveRange(tiles.Count, tileFlags.Count - tiles.Count);
         }
     }
 
@@ -47,6 +97,12 @@ public class TileMapLayerData
         {
             throw new InvalidOperationException(
                 $"TileMap layer {layerIndex} has {tiles.Count} tiles but expected {expectedTileCount} for map size {mapWidth}x{mapHeight}.");
+        }
+
+        if (tileFlags.Count != 0 && tileFlags.Count != expectedTileCount)
+        {
+            throw new InvalidOperationException(
+                $"TileMap layer {layerIndex} has {tileFlags.Count} tile flags but expected {expectedTileCount} for map size {mapWidth}x{mapHeight}.");
         }
     }
 }

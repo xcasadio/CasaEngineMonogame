@@ -5,6 +5,7 @@ using CasaEngine.Framework.Common;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.TileMap;
 
 using CasaEngine.Tests;
 using Microsoft.Xna.Framework;
@@ -442,6 +443,7 @@ public class EditorAssetImportServiceTests
             var groundLayer = Assert.IsType<JObject>(layers[0]);
             Assert.Equal("Ground", (string?)groundLayer["name"]);
             Assert.Equal(new[] { 0, -1, 1, 2, 3, -1 }, groundLayer["tiles"]!.Values<int>().ToArray());
+            Assert.Equal(new[] { 0, 0, 0, (int)TileCellFlags.FlipHorizontal, 0, 0 }, groundLayer["tile_flags"]!.Values<int>().ToArray());
 
             var decorLayer = Assert.IsType<JObject>(layers[1]);
             Assert.Equal("Decor", (string?)decorLayer["name"]);

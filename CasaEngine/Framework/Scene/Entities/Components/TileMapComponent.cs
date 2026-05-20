@@ -301,7 +301,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                         }
 
                         LastDrawnTileCount++;
-                        layer.Tiles[tileIndex].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, worldZ, scale);
+                        var flags = layer.TileMapLayerData.GetTileFlags(tileIndex);
+                        layer.Tiles[tileIndex].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, worldZ, scale, flags);
                     }
                 }
 
@@ -336,6 +337,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         layerData.tiles[tileIndex] = tileId;
+        layerData.SetTileFlags(tileIndex, TileCellFlags.None);
         ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
         MarkAffectedChunksDirty(layerIndex, x, y);
         RebuildCollisionChunkForTile(layerIndex, x, y);
@@ -785,7 +787,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     continue;
                 }
 
-                AddStaticTileQuad(vertices, indices, ref vertexCount, ref indexCount, x, y, staticTileData.Location);
+                AddStaticTileQuad(vertices, indices, ref vertexCount, ref indexCount, x, y, staticTileData.Location, layer.TileMapLayerData.GetTileFlags(rowOffset + x));
                 staticTileCount++;
             }
         }
@@ -802,7 +804,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         ref int indexCount,
         int tileX,
         int tileY,
-        Rectangle sourceRectangle)
+        Rectangle sourceRectangle,
+        TileCellFlags flags)
     {
         var textureWidth = _tileSetTexture?.Width ?? 1;
         var textureHeight = _tileSetTexture?.Height ?? 1;
@@ -815,6 +818,16 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var uvRight = sourceRectangle.Right / (float)textureWidth;
         var uvTop = sourceRectangle.Top / (float)textureHeight;
         var uvBottom = sourceRectangle.Bottom / (float)textureHeight;
+        if ((flags & TileCellFlags.FlipHorizontal) != 0)
+        {
+            (uvLeft, uvRight) = (uvRight, uvLeft);
+        }
+
+        if ((flags & TileCellFlags.FlipVertical) != 0)
+        {
+            (uvTop, uvBottom) = (uvBottom, uvTop);
+        }
+
         var baseVertex = vertexCount;
 
         vertices[vertexCount++] = new VertexPositionTexture(new Vector3(left, top, 0f), new Vector2(uvLeft, uvTop));
