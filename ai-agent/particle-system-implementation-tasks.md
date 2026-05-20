@@ -160,7 +160,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `docs(particles): audit implementation entry points`
 
-- ⏳ **T00.02 — Ajouter les constantes et squelettes de namespaces**
+- ✅ **T00.02 — Ajouter les constantes et squelettes de namespaces**
   Objectif :
   - Ajouter `Constants.FileNameExtensions.Particle = ".particle"`.
   - Creer les dossiers/namespaces sans logique lourde.
