@@ -174,7 +174,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 1 — Donnees authoring et serialisation
 
-- ⏳ **T01.01 — Ajouter les primitives de valeurs particules**
+- ✅ **T01.01 — Ajouter les primitives de valeurs particules**
   Objectif :
   - Creer `FloatRange`, `Vector2Range` et helper random deterministe sans allocation.
   - Encadrer les valeurs invalides (`min > max`, NaN, infini) par normalisation ou validation explicite.
