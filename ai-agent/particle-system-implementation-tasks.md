@@ -263,7 +263,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle playback state machine`
 
-- ⏳ **T02.03 — Implementer emission rate et bursts**
+- ✅ **T02.03 — Implementer emission rate et bursts**
   Objectif :
   - Ajouter rate over time avec accumulateur fractionnaire.
   - Ajouter bursts par temps, count min/max, seed deterministe.

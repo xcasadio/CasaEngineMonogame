@@ -1,5 +1,6 @@
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Particles.Runtime;
 
@@ -8,9 +9,12 @@ public sealed class ParticleEmitterRuntime
     private readonly int[] _aliveParticleIndices;
     private readonly int[] _freeParticleIndices;
     private readonly int[] _aliveSlotsByParticleIndex;
+    private readonly uint _randomSeed;
     private int _aliveCount;
     private int _freeCount;
     private float _simulationSpeed = 1.0f;
+    private float _emissionAccumulator;
+    private ParticleRandom _random;
 
     public ParticleEmitterDefinition Definition { get; }
 
@@ -50,7 +54,7 @@ public sealed class ParticleEmitterRuntime
 
     public bool IsAlive => PlaybackState != ParticlePlaybackState.Stopped || _aliveCount > 0;
 
-    public ParticleEmitterRuntime(ParticleEmitterDefinition definition)
+    public ParticleEmitterRuntime(ParticleEmitterDefinition definition, uint randomSeed = 1u)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.MaxParticles <= 0)
@@ -59,6 +63,8 @@ public sealed class ParticleEmitterRuntime
         }
 
         Definition = definition;
+        _randomSeed = randomSeed == 0u ? 1u : randomSeed;
+        _random = new ParticleRandom(_randomSeed);
         Looping = definition.Looping;
         Particles = new Particle[definition.MaxParticles];
         _aliveParticleIndices = new int[definition.MaxParticles];
@@ -101,6 +107,39 @@ public sealed class ParticleEmitterRuntime
         return true;
     }
 
+    public int UpdateEmission(float elapsedSeconds)
+    {
+        if (PlaybackState != ParticlePlaybackState.Playing || elapsedSeconds <= 0.0f || _simulationSpeed <= 0.0f)
+        {
+            return 0;
+        }
+
+        float previousPlaybackTime = PlaybackTime;
+        AdvancePlayback(elapsedSeconds);
+
+        float previousActiveTime = previousPlaybackTime - Definition.StartDelay;
+        float currentActiveTime = PlaybackTime - Definition.StartDelay;
+        int emittedCount = EmitContinuous(previousActiveTime, currentActiveTime);
+        emittedCount += EmitBursts(previousActiveTime, currentActiveTime);
+        return emittedCount;
+    }
+
+    public int Emit(int particleCount)
+    {
+        int emittedCount = 0;
+        for (int particleIndex = 0; particleIndex < particleCount; particleIndex++)
+        {
+            if (!TrySpawn(out _))
+            {
+                break;
+            }
+
+            emittedCount++;
+        }
+
+        return emittedCount;
+    }
+
     public void Play()
     {
         if (PlaybackState == ParticlePlaybackState.Playing)
@@ -125,6 +164,7 @@ public sealed class ParticleEmitterRuntime
         PlaybackTime = 0.0f;
         CycleTime = 0.0f;
         CycleIndex = 0;
+        ResetEmissionState();
 
         if (clearParticles)
         {
@@ -228,5 +268,107 @@ public sealed class ParticleEmitterRuntime
             _freeParticleIndices[index] = Particles.Length - 1 - index;
             _aliveSlotsByParticleIndex[index] = -1;
         }
+    }
+
+    private int EmitContinuous(float previousActiveTime, float currentActiveTime)
+    {
+        float activeDeltaSeconds = GetActiveDeltaSeconds(previousActiveTime, currentActiveTime);
+        if (activeDeltaSeconds <= 0.0f || Definition.Emission.RateOverTime <= 0.0f)
+        {
+            return 0;
+        }
+
+        _emissionAccumulator += activeDeltaSeconds * Definition.Emission.RateOverTime;
+        int particlesToEmit = (int)_emissionAccumulator;
+        if (particlesToEmit <= 0)
+        {
+            return 0;
+        }
+
+        _emissionAccumulator -= particlesToEmit;
+        return Emit(particlesToEmit);
+    }
+
+    private int EmitBursts(float previousActiveTime, float currentActiveTime)
+    {
+        if (Definition.Emission.Bursts.Count == 0 || currentActiveTime < 0.0f)
+        {
+            return 0;
+        }
+
+        if (Looping)
+        {
+            float duration = Definition.Duration;
+            if (duration <= 0.0f)
+            {
+                return 0;
+            }
+
+            int emittedCount = 0;
+            float lastActiveTime = MathF.Max(0.0f, currentActiveTime);
+            int firstCycleIndex = previousActiveTime <= 0.0f ? 0 : (int)MathF.Floor(previousActiveTime / duration);
+            int lastCycleIndex = (int)MathF.Floor(lastActiveTime / duration);
+            for (int cycleIndex = firstCycleIndex; cycleIndex <= lastCycleIndex; cycleIndex++)
+            {
+                emittedCount += EmitBurstsForCycle(previousActiveTime, lastActiveTime, cycleIndex * duration, duration);
+            }
+
+            return emittedCount;
+        }
+
+        float clampedCurrentTime = MathHelper.Clamp(currentActiveTime, 0.0f, Definition.Duration);
+        return EmitBurstsForCycle(previousActiveTime, clampedCurrentTime, 0.0f, Definition.Duration);
+    }
+
+    private int EmitBurstsForCycle(float previousActiveTime, float currentActiveTime, float cycleStartTime, float duration)
+    {
+        int emittedCount = 0;
+        for (int burstIndex = 0; burstIndex < Definition.Emission.Bursts.Count; burstIndex++)
+        {
+            ParticleBurst burst = Definition.Emission.Bursts[burstIndex];
+            if (burst.Time < 0.0f || burst.Time > duration)
+            {
+                continue;
+            }
+
+            float triggerTime = cycleStartTime + burst.Time;
+            if (!ShouldTriggerBurst(previousActiveTime, currentActiveTime, triggerTime))
+            {
+                continue;
+            }
+
+            emittedCount += Emit(burst.SampleCount(ref _random));
+        }
+
+        return emittedCount;
+    }
+
+    private float GetActiveDeltaSeconds(float previousActiveTime, float currentActiveTime)
+    {
+        float previousTime = MathF.Max(0.0f, previousActiveTime);
+        float currentTime = MathF.Max(0.0f, currentActiveTime);
+        if (!Looping)
+        {
+            previousTime = MathHelper.Clamp(previousTime, 0.0f, Definition.Duration);
+            currentTime = MathHelper.Clamp(currentTime, 0.0f, Definition.Duration);
+        }
+
+        return currentTime - previousTime;
+    }
+
+    private static bool ShouldTriggerBurst(float previousActiveTime, float currentActiveTime, float triggerTime)
+    {
+        if (triggerTime == 0.0f && previousActiveTime <= 0.0f)
+        {
+            return currentActiveTime >= 0.0f;
+        }
+
+        return triggerTime > previousActiveTime && triggerTime <= currentActiveTime;
+    }
+
+    private void ResetEmissionState()
+    {
+        _emissionAccumulator = 0.0f;
+        _random = new ParticleRandom(_randomSeed);
     }
 }

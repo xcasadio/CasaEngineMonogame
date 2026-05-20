@@ -82,7 +82,7 @@ public sealed class ParticleRuntimeInstance
         }
     }
 
-    public ParticleRuntimeInstance(ParticleEffectAsset asset)
+    public ParticleRuntimeInstance(ParticleEffectAsset asset, uint randomSeed = 1u)
     {
         ArgumentNullException.ThrowIfNull(asset);
 
@@ -90,7 +90,8 @@ public sealed class ParticleRuntimeInstance
         Emitters = new ParticleEmitterRuntime[asset.Emitters.Count];
         for (int emitterIndex = 0; emitterIndex < asset.Emitters.Count; emitterIndex++)
         {
-            Emitters[emitterIndex] = new ParticleEmitterRuntime(asset.Emitters[emitterIndex]);
+            uint emitterSeed = randomSeed + (uint)emitterIndex * 747796405u;
+            Emitters[emitterIndex] = new ParticleEmitterRuntime(asset.Emitters[emitterIndex], emitterSeed);
         }
     }
 
@@ -140,5 +141,16 @@ public sealed class ParticleRuntimeInstance
         {
             Emitters[emitterIndex].AdvancePlayback(elapsedSeconds);
         }
+    }
+
+    public int UpdateEmission(float elapsedSeconds)
+    {
+        int emittedCount = 0;
+        for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+        {
+            emittedCount += Emitters[emitterIndex].UpdateEmission(elapsedSeconds);
+        }
+
+        return emittedCount;
     }
 }

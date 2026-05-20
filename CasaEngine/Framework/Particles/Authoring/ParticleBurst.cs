@@ -35,4 +35,14 @@ public sealed class ParticleBurst
             }
         }
     }
+
+    public int SampleCount(ref ParticleRandom random)
+    {
+        if (_countMin == _countMax)
+        {
+            return _countMin;
+        }
+
+        return random.NextInt(_countMin, _countMax);
+    }
 }

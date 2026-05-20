@@ -49,4 +49,17 @@ public struct ParticleRandom
         float normalizedMax = MathF.Max(min, max);
         return normalizedMin + (normalizedMax - normalizedMin) * NextFloat01();
     }
+
+    public int NextInt(int minInclusive, int maxInclusive)
+    {
+        if (maxInclusive < minInclusive)
+        {
+            int previousMin = minInclusive;
+            minInclusive = maxInclusive;
+            maxInclusive = previousMin;
+        }
+
+        uint range = (uint)(maxInclusive - minInclusive + 1);
+        return minInclusive + (int)(NextUInt() % range);
+    }
 }
