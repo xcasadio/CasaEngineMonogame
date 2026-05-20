@@ -535,7 +535,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 7 — V1.5 production editor
 
-- ⏳ **T07.01 — Ajouter undo/redo complet de l'inspector particules**
+- ✅ **T07.01 — Ajouter undo/redo complet de l'inspector particules**
   Objectif :
   - Couvrir changements numeriques, enums, texture, ajout/suppression emitter, bursts, curves, gradients.
   - Grouper les edits drag continus en transactions si le framework le permet.

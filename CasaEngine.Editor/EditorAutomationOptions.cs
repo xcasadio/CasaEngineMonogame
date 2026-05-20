@@ -11,6 +11,7 @@ public sealed class EditorAutomationOptions
     public string? DropParticleAssetPath { get; private set; }
     public string? SetParticlePropertyKey { get; private set; }
     public string? SetParticlePropertyValue { get; private set; }
+    public bool ParticleUndoRedoSmoke { get; private set; }
     public string? SetMaterialPropertyKey { get; private set; }
     public string? SetMaterialPropertyValue { get; private set; }
     public string? EntityName { get; private set; }
@@ -78,6 +79,10 @@ public sealed class EditorAutomationOptions
                     }
 
                     index++;
+                    break;
+
+                case "--particle-undo-redo-smoke":
+                    options.ParticleUndoRedoSmoke = true;
                     break;
 
                 case "--entity-index":

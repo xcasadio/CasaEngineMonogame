@@ -143,6 +143,10 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationParticleEditAttempted;
     private bool _automationParticleEdited;
     private TimeSpan _automationParticleEditedAt;
+    private bool _automationParticleUndoRedoAttempted;
+    private bool _automationParticleUndoSucceeded;
+    private bool _automationParticleRedoSucceeded;
+    private TimeSpan _automationParticleUndoRedoAt;
     private bool _automationParticleDropAttempted;
     private bool _automationParticleDropped;
     private TimeSpan _automationParticleDroppedAt;
@@ -401,6 +405,9 @@ public class GameEditor : Game, IObservableUpdate
         _automationCreatedParticleAssetRelativePath = null;
         _automationParticleEditAttempted = false;
         _automationParticleEdited = false;
+        _automationParticleUndoRedoAttempted = false;
+        _automationParticleUndoSucceeded = false;
+        _automationParticleRedoSucceeded = false;
         _automationParticleDropAttempted = false;
         _automationParticleDropped = false;
         _automationMaterialEditAttempted = false;
@@ -3374,6 +3381,12 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationParticleUndoRedo(totalGameTime);
+        if (_automationOptions.ParticleUndoRedoSmoke && !_automationParticleUndoRedoAttempted)
+        {
+            return;
+        }
+
         TryApplyAutomationMaterialEdit(totalGameTime);
         if (!string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
             && !_automationMaterialEditAttempted)
@@ -3395,6 +3408,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationParticleEdited && _automationParticleEditedAt > readyAt)
         {
             readyAt = _automationParticleEditedAt;
+        }
+
+        if (_automationParticleUndoRedoAttempted && _automationParticleUndoRedoAt > readyAt)
+        {
+            readyAt = _automationParticleUndoRedoAt;
         }
 
         if (_automationParticleDropped && _automationParticleDroppedAt > readyAt)
@@ -3579,6 +3597,36 @@ public class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Failed to update particle property '{_automationOptions.SetParticlePropertyKey}': {statusMessage}");
+    }
+
+    private void TryApplyAutomationParticleUndoRedo(TimeSpan totalGameTime)
+    {
+        if (_automationParticleUndoRedoAttempted || !_automationOptions.ParticleUndoRedoSmoke)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey) && !_automationParticleEdited)
+        {
+            return;
+        }
+
+        if (!TryGetActiveParticleInspectorPanel(out var inspectorPanel)
+            || !TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
+        {
+            return;
+        }
+
+        _automationParticleUndoRedoAttempted = true;
+        var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId);
+        _editorHistory.SetActiveContext(historyContext);
+        _automationParticleUndoSucceeded = _editorHistory.Undo();
+        _automationParticleRedoSucceeded = _automationParticleUndoSucceeded && _editorHistory.Redo();
+        _automationParticleUndoRedoAt = totalGameTime;
+
+        EditorDiagnosticsBuffer.Append(
+            _automationParticleUndoSucceeded && _automationParticleRedoSucceeded ? LogVerbosity.Info : LogVerbosity.Warning,
+            $"[Automation] Particle undo/redo smoke undo={_automationParticleUndoSucceeded} redo={_automationParticleRedoSucceeded}");
     }
 
     private void TryApplyAutomationParticleDrop(TimeSpan totalGameTime)
@@ -4025,6 +4073,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Create particle asset: {_automationOptions.CreateParticleAssetFolder ?? "<none>"}");
         builder.AppendLine($"Drop particle asset: {_automationOptions.DropParticleAssetPath ?? "<none>"}");
         builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
+        builder.AppendLine($"Particle undo/redo smoke: {_automationOptions.ParticleUndoRedoSmoke} undo={_automationParticleUndoSucceeded} redo={_automationParticleRedoSucceeded}");
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
         builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");

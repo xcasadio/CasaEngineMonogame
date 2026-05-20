@@ -6,16 +6,19 @@ using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
+using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
@@ -35,6 +38,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
     private ParticleEffectAsset? _particleAsset;
     private string? _loadedRelativePath;
     private string? _historyContextId;
+    private string? _savedSnapshot;
     private bool _isDirty;
 
     public ParticleAssetInspectorPanel(MGWindow window)
@@ -150,6 +154,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
         _particleAsset = particleAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+        _savedSnapshot = SerializeParticleAsset(particleAsset);
         _particlePreview?.LoadAsset(particleAsset, fullPath);
         SetDirty(false);
 
@@ -203,6 +208,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         try
         {
             EditorAssetWriterService.SaveAsset(_loadedRelativePath, _particleAsset, EditorAssetSaveSource.ParticleEffectEditorPanel);
+            _savedSnapshot = SerializeParticleAsset(_particleAsset);
             SetDirty(false);
 
             if (TryGetHistoryContext(out var historyContext))
@@ -396,6 +402,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         }, "Name"))));
 
         _emitterStack.TryAddChild(BuildSectionHeader($"Emitters ({_particleAsset.Emitters.Count})"));
+        _emitterStack.TryAddChild(BuildPropertyRow("Emitters", CreateButton("Add Emitter", AddEmitter)));
         if (_particleAsset.Emitters.Count == 0)
         {
             _emitterStack.TryAddChild(BuildText("No emitters in asset."));
@@ -417,6 +424,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
         string sectionName = string.IsNullOrWhiteSpace(emitter.Name) ? $"Emitter {emitterIndex + 1}" : emitter.Name;
         _emitterStack.TryAddChild(BuildSectionHeader($"{emitterIndex + 1}. {sectionName}"));
+        _emitterStack.TryAddChild(BuildPropertyRow("Emitter", CreateButton("Remove", () => RemoveEmitter(emitterIndex))));
 
         _emitterStack.TryAddChild(BuildPropertyRow("Emitter Name", CreateTextBox(emitter.Name, value => ApplyChange(() => emitter.Name = value, "Emitter Name"))));
         _emitterStack.TryAddChild(BuildPropertyRow("Enabled", CreateCheckBox(emitter.Enabled, value => ApplyChange(() => emitter.Enabled = value, "Enabled"))));
@@ -424,6 +432,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _emitterStack.TryAddChild(BuildPropertyRow("Looping", CreateCheckBox(emitter.Looping, value => ApplyChange(() => emitter.Looping = value, "Looping"))));
         _emitterStack.TryAddChild(BuildPropertyRow("Max Particles", CreateIntField(emitter.MaxParticles, 1, 100000, value => ApplyChange(() => emitter.MaxParticles = value, "Max Particles"))));
         _emitterStack.TryAddChild(BuildPropertyRow("Rate", CreateFloatField(emitter.Emission.RateOverTime, 0.0f, 100000.0f, 1.0f, value => ApplyChange(() => emitter.Emission.RateOverTime = value, "Rate"))));
+        BuildBurstEditor(emitter, emitterIndex);
         _emitterStack.TryAddChild(BuildPropertyRow("Shape", CreateEnumCombo(emitter.Shape.ShapeType, value => ApplyChange(() => emitter.Shape.ShapeType = value, "Shape"))));
 
         _emitterStack.TryAddChild(BuildPropertyRow("Lifetime Min", CreateFloatField(emitter.Initial.Lifetime.Min, 0.001f, 3600.0f, 0.1f, value => ApplyChange(() => emitter.Initial.Lifetime = new FloatRange(value, emitter.Initial.Lifetime.Max), "Lifetime Min"))));
@@ -441,6 +450,100 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _emitterStack.TryAddChild(BuildPropertyRow("Alpha Curve", CreateCurveEditor(emitter.Simulation.AlphaOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.AlphaOverLifetime = value, "Alpha Curve", refresh))));
         _emitterStack.TryAddChild(BuildPropertyRow("Velocity Curve", CreateCurveEditor(emitter.Simulation.VelocityOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.VelocityOverLifetime = value, "Velocity Curve", refresh))));
         _emitterStack.TryAddChild(BuildPropertyRow("Color Lifetime", CreateGradientEditor(emitter.Simulation.ColorOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.ColorOverLifetime = value, "Color Lifetime", refresh))));
+    }
+
+    private void BuildBurstEditor(ParticleEmitterDefinition emitter, int emitterIndex)
+    {
+        if (_emitterStack == null)
+        {
+            return;
+        }
+
+        _emitterStack.TryAddChild(BuildPropertyRow("Bursts", CreateButton("Add Burst", () => AddBurst(emitterIndex))));
+        for (int burstIndex = 0; burstIndex < emitter.Emission.Bursts.Count; burstIndex++)
+        {
+            int capturedBurstIndex = burstIndex;
+            ParticleBurst burst = emitter.Emission.Bursts[burstIndex];
+            string label = $"Burst {burstIndex + 1}";
+            var row = new MGStackPanel(_window, Orientation.Horizontal)
+            {
+                Spacing = 4,
+            };
+
+            row.TryAddChild(CreateLabeledFloatField("T", burst.Time, 0.0f, MathF.Max(0.0f, emitter.Duration), 0.05f, value => ApplyChange(() => burst.Time = value, $"{label} Time")));
+            row.TryAddChild(CreateLabeledIntField("Min", burst.CountMin, 0, 100000, value => ApplyChange(() => burst.CountMin = value, $"{label} Min")));
+            row.TryAddChild(CreateLabeledIntField("Max", burst.CountMax, 0, 100000, value => ApplyChange(() => burst.CountMax = value, $"{label} Max")));
+            row.TryAddChild(CreateCompactButton("Remove", () => RemoveBurst(emitterIndex, capturedBurstIndex)));
+            _emitterStack.TryAddChild(BuildPropertyRow(label, row));
+        }
+    }
+
+    private void AddEmitter()
+    {
+        if (_particleAsset == null)
+        {
+            return;
+        }
+
+        int nextIndex = _particleAsset.Emitters.Count + 1;
+        ApplyChange(
+            () => _particleAsset.Emitters.Add(new ParticleEmitterDefinition { Name = $"Emitter {nextIndex}" }),
+            "Add Emitter",
+            refreshInspector: true);
+    }
+
+    private void RemoveEmitter(int emitterIndex)
+    {
+        ApplyChange(
+            () =>
+            {
+                if (_particleAsset == null || emitterIndex < 0 || emitterIndex >= _particleAsset.Emitters.Count)
+                {
+                    return;
+                }
+
+                _particleAsset.Emitters.RemoveAt(emitterIndex);
+            },
+            "Remove Emitter",
+            refreshInspector: true);
+    }
+
+    private void AddBurst(int emitterIndex)
+    {
+        ApplyChange(
+            () =>
+            {
+                if (_particleAsset == null || emitterIndex < 0 || emitterIndex >= _particleAsset.Emitters.Count)
+                {
+                    return;
+                }
+
+                _particleAsset.Emitters[emitterIndex].Emission.Bursts.Add(new ParticleBurst());
+            },
+            "Add Burst",
+            refreshInspector: true);
+    }
+
+    private void RemoveBurst(int emitterIndex, int burstIndex)
+    {
+        ApplyChange(
+            () =>
+            {
+                if (_particleAsset == null || emitterIndex < 0 || emitterIndex >= _particleAsset.Emitters.Count)
+                {
+                    return;
+                }
+
+                var bursts = _particleAsset.Emitters[emitterIndex].Emission.Bursts;
+                if (burstIndex < 0 || burstIndex >= bursts.Count)
+                {
+                    return;
+                }
+
+                bursts.RemoveAt(burstIndex);
+            },
+            "Remove Burst",
+            refreshInspector: true);
     }
 
     private MGElement BuildPropertyRow(string label, MGElement editor)
@@ -932,16 +1035,38 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
         try
         {
+            string beforeSnapshot = SerializeParticleAsset(_particleAsset);
             change();
-            SetDirty(true);
-            RefreshHeaderText();
-            RefreshSourceText();
-            RefreshStatusText();
-            _particlePreview?.RefreshParticleAsset();
-            if (refreshInspector)
+
+            string afterSnapshot = SerializeParticleAsset(_particleAsset);
+            if (string.Equals(beforeSnapshot, afterSnapshot, StringComparison.Ordinal))
             {
-                RefreshInspector();
+                return;
             }
+
+            if (TryGetHistoryContext(out var historyContext))
+            {
+                bool commandHasExecuted = false;
+                EditorHistoryService.Current.Execute(
+                    historyContext,
+                    new EditorDelegateCommand(
+                        BuildParticleCommandDescription(label),
+                        () =>
+                        {
+                            if (!commandHasExecuted)
+                            {
+                                commandHasExecuted = true;
+                                RefreshChangedParticleState(refreshInspector);
+                                return;
+                            }
+
+                            ApplySerializedParticleAssetState(afterSnapshot, refreshInspector: true);
+                        },
+                        () => ApplySerializedParticleAssetState(beforeSnapshot, refreshInspector: true)));
+                return;
+            }
+
+            RefreshChangedParticleState(refreshInspector);
         }
         catch (Exception exception)
         {
@@ -949,6 +1074,110 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             SetStatus($"Failed to update {label}: {exception.Message}");
         }
     }
+
+    private void RefreshChangedParticleState(bool refreshInspector)
+    {
+        UpdateDirtyStateFromCurrentParticle();
+        RefreshHeaderText();
+        RefreshSourceText();
+        RefreshStatusText();
+        _particlePreview?.RefreshParticleAsset();
+        if (refreshInspector)
+        {
+            RefreshInspector();
+        }
+    }
+
+    private void ApplySerializedParticleAssetState(string snapshot, bool refreshInspector)
+    {
+        if (!TryCreateParticleAssetFromSnapshot(snapshot, out var particleAsset))
+        {
+            SetStatus("Unable to apply particle history state.");
+            return;
+        }
+
+        ApplyLoadedAssetMetadata(particleAsset);
+        _particleAsset = particleAsset;
+        UpdateDirtyStateFromCurrentParticle();
+        RefreshHeaderText();
+        RefreshSourceText();
+        RefreshStatusText();
+
+        string? fullPath = GetLoadedFullPath();
+        if (_particlePreview != null && fullPath != null)
+        {
+            _particlePreview.LoadAsset(particleAsset, fullPath);
+        }
+        else
+        {
+            _particlePreview?.RefreshParticleAsset();
+        }
+
+        if (refreshInspector)
+        {
+            RefreshInspector();
+        }
+    }
+
+    private bool TryCreateParticleAssetFromSnapshot(string snapshot, out ParticleEffectAsset particleAsset)
+    {
+        particleAsset = new ParticleEffectAsset();
+        try
+        {
+            particleAsset.Load(JObject.Parse(snapshot));
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            return false;
+        }
+    }
+
+    private void ApplyLoadedAssetMetadata(ParticleEffectAsset particleAsset)
+    {
+        if (string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            particleAsset.AssetId = particleAsset.Id;
+            return;
+        }
+
+        particleAsset.FileName = _loadedRelativePath;
+        var assetInfo = AssetCatalog.GetByFileName(_loadedRelativePath)
+                        ?? AssetCatalog.GetByFileName(_loadedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        particleAsset.AssetId = assetInfo?.Id ?? particleAsset.Id;
+        if (assetInfo != null)
+        {
+            particleAsset.FileName = assetInfo.FileName;
+        }
+    }
+
+    private string? GetLoadedFullPath()
+    {
+        if (string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            return null;
+        }
+
+        return Path.Combine(EngineEnvironment.ProjectPath, _loadedRelativePath);
+    }
+
+    private void UpdateDirtyStateFromCurrentParticle()
+    {
+        if (_particleAsset == null)
+        {
+            SetDirty(false);
+            return;
+        }
+
+        SetDirty(!string.Equals(SerializeParticleAsset(_particleAsset), _savedSnapshot, StringComparison.Ordinal));
+    }
+
+    private static string BuildParticleCommandDescription(string label)
+        => label.StartsWith("Add ", StringComparison.OrdinalIgnoreCase)
+           || label.StartsWith("Remove ", StringComparison.OrdinalIgnoreCase)
+            ? label
+            : $"Set {label}";
 
     private void RefreshHeaderText()
     {
@@ -1598,4 +1827,11 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     private static string EscapeMarkup(string value)
         => value.Replace("[", "\\[").Replace("]", "\\]");
+
+    private static string SerializeParticleAsset(ParticleEffectAsset particleAsset)
+    {
+        var document = new JObject();
+        ParticleEffectAssetJsonSerializer.Save(particleAsset, document);
+        return document.ToString(Formatting.None);
+    }
 }
