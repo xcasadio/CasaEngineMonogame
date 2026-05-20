@@ -132,8 +132,10 @@ public class WorldViewportPanel : IDisposable
     private DebugAxisComponent? _axis;
     private IEditorVectorCanvas? _vectorCanvas;
     private readonly EditorLightOverlayCollector _lightOverlayCollector = new();
+    private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
     private EditorLightBillboardOverlayRenderer? _lightBillboardOverlayRenderer;
     private EditorLightWireOverlayRenderer? _lightWireOverlayRenderer;
+    private EditorParticleWireOverlayRenderer? _particleWireOverlayRenderer;
     private Action<GraphicsDevice, RenderView, RenderFrame>? _externalVectorOverlayAction;
     private Action<GraphicsDevice, RenderView, RenderFrame>? _externalUiOverlayAction;
     private Texture2D? _boundTexture;
@@ -244,6 +246,8 @@ public class WorldViewportPanel : IDisposable
             $"Environment override: {_renderView?.EnvironmentOverride?.BackgroundMode.ToString() ?? "<none>"}",
             $"Texture: {DescribeBoundTexture()}",
             $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
+            $"Particle gizmos: {_particleWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
+            $"Particle gizmo lines: {_particleWireOverlayRenderer?.LastDrawnLineCount ?? 0}",
         };
 
         int debugBodyCount = DescribeLastPhysicsDebugObjectCount();
@@ -1183,6 +1187,7 @@ public class WorldViewportPanel : IDisposable
         _vectorCanvas ??= CreateVectorCanvas();
         _lightBillboardOverlayRenderer ??= new EditorLightBillboardOverlayRenderer(_graphicsDevice);
         _lightWireOverlayRenderer ??= new EditorLightWireOverlayRenderer(_editorRuntime.Content);
+        _particleWireOverlayRenderer ??= new EditorParticleWireOverlayRenderer(_editorRuntime.Content);
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
         overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
@@ -1208,6 +1213,9 @@ public class WorldViewportPanel : IDisposable
 
         var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
         _lightWireOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
+
+        var particleItems = _particleOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
+        _particleWireOverlayRenderer?.Draw(graphicsDevice, in frame, particleItems);
     }
 
     private void RenderEditorUiOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
@@ -1302,6 +1310,8 @@ public class WorldViewportPanel : IDisposable
         _lightBillboardOverlayRenderer = null;
         _lightWireOverlayRenderer?.Dispose();
         _lightWireOverlayRenderer = null;
+        _particleWireOverlayRenderer?.Dispose();
+        _particleWireOverlayRenderer = null;
         _vectorCanvas?.Dispose();
         _vectorCanvas = null;
         _grid = null;

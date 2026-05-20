@@ -545,7 +545,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): make particle edits undoable`
 
-- ⏳ **T07.02 — Ajouter gizmos d'emission**
+- ✅ **T07.02 — Ajouter gizmos d'emission**
   Objectif :
   - Dessiner point, circle/sphere, box, cone et bounds runtime dans viewport/preview.
   - Respecter les overlays editor existants.

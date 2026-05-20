@@ -1,0 +1,27 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-05-20 22:41:28.144
+Project: .\Projects\SampleProject\SampleProject.json
+Open asset: <none>
+Create particle asset: <none>
+Drop particle asset: <none>
+Set particle property: <none>
+Particle undo/redo smoke: False undo=False redo=False
+Set material property: <none>
+Entity: ground [0]
+Component: ParticleSystemComponent
+Active document panel: panel_world_viewport
+Open document panels: panel_world_viewport
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 504x498
+  - Physics debug world: DefaultWorld
+  - Particle gizmos: 0
+  - Particle gizmo lines: 0
+  - Physics debug bodies: 4
+Selected entity: 'ground'
+Selected component: <null>
+Entries: 1
+
+2026-05-20 22:41:27.500 [Warning] [Automation] Component not found on entity='ground': 'ParticleSystemComponent'

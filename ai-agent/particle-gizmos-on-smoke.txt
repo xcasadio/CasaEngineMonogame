@@ -1,0 +1,55 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-05-20 22:41:17.244
+Project: .\Projects\SampleProject\SampleProject.json
+Open asset: Particles\SparkBurst_Additive.particle
+Create particle asset: <none>
+Drop particle asset: Particles\SparkBurst_Additive.particle
+Set particle property: <none>
+Particle undo/redo smoke: False undo=False redo=False
+Set material property: <none>
+Entity: ground [0]
+Component: ParticleSystemComponent
+Active document panel: panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f
+Open document panels: panel_world_viewport, panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 16x16
+  - Physics debug world: DefaultWorld
+  - Particle gizmos: 0
+  - Particle gizmo lines: 0
+Particle inspector state:
+  - Name: SparkBurst_Additive
+  - Path: Particles\SparkBurst_Additive.particle
+  - Dirty: False
+  - Emitters: 1
+  - Emitter[0]: Spark Burst, enabled=True, duration=0.85, looping=False, max=96, rate=0, shape=Cone, blend=Additive
+  - Emitter[0] Curves: size=keys=2 first=(0,1) last=(1,0.25), alpha=keys=2 first=(0,1) last=(1,0), velocity=keys=2 first=(0,1) last=(1,0.65)
+  - Emitter[0] Gradients: start=colors=2 alphas=2 first=(255,238,150,255) last=(255,96,26,0), color=colors=1 alphas=2 first=(255,255,255,255) last=(255,255,255,0)
+  - Preview Asset: SparkBurst_Additive
+  - Preview Path: Particles\SparkBurst_Additive.particle
+  - Preview Playback: Stopped
+  - Preview Loop: False
+  - Preview Simulation speed: 1
+  - Preview Alive particles: 0
+  - Preview Last emitted: 0
+  - Preview Draw calls: 0
+  - Preview Texture: 484x141
+  - Preview World: ParticlePreviewWorld
+  - Preview Particle gizmos: 1
+  - Preview Particle gizmo lines: 65
+Selected entity: 'ground'
+Selected component: 'ParticleSystemComponent' owner='ground'
+Particle system component:
+  - Asset id: 5d8e9d4b-bf9b-43df-994d-74a275dbff3f
+  - Asset file: Particles\SparkBurst_Additive.particle
+  - Runtime loaded: True
+  - Play on start: True
+  - Simulate in editor: True
+Entries: 4
+
+2026-05-20 22:41:16.179 [Info] [Editor] Opened particle asset='SparkBurst_Additive', panel='panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f'
+2026-05-20 22:41:16.179 [Info] [Automation] Opened asset='Particles\SparkBurst_Additive.particle'
+2026-05-20 22:41:16.196 [Warning] [Automation] Component not found on entity='ground': 'ParticleSystemComponent'
+2026-05-20 22:41:16.303 [Info] [Automation] Dropped particle asset 'Particles\SparkBurst_Additive.particle' on entity='ground'

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
@@ -69,6 +70,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
     private readonly PreviewWorldDriver _previewWorldDriver;
+    private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
 
     private MGStackPanel? _root;
     private MGTextBlock? _titleText;
@@ -90,6 +92,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private Texture2D? _boundTexture;
     private Entity? _previewEntity;
     private ParticleSystemComponent? _particleComponent;
+    private EditorParticleWireOverlayRenderer? _particleWireOverlayRenderer;
     private Entity? _cameraEntity;
     private CameraLookAtComponent? _camera;
 
@@ -318,6 +321,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
             $"Draw calls: {_lastDrawCallCount}",
             $"Texture: {DescribeBoundTexture()}",
             $"World: {_previewWorldDriver.World?.Name ?? "<none>"}",
+            $"Particle gizmos: {_particleWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
+            $"Particle gizmo lines: {_particleWireOverlayRenderer?.LastDrawnLineCount ?? 0}",
         };
 
         return result;
@@ -351,6 +356,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         _renderViewHost?.Dispose();
         _renderViewHost = null;
+        _particleWireOverlayRenderer?.Dispose();
+        _particleWireOverlayRenderer = null;
         _surface?.Dispose();
         _surface = null;
         _previewWorldDriver.Dispose();
@@ -484,10 +491,20 @@ internal sealed class ParticlePreviewViewport : IDisposable
         }
 
         _renderView = renderView;
+        _particleWireOverlayRenderer ??= new EditorParticleWireOverlayRenderer(_editorRuntime.Content);
+        var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
+        overlayPipeline.RenderVectorOverlayAction = RenderPreviewVectorOverlay;
+        renderView.Pipeline = overlayPipeline;
         _renderViewHost = new MguiPreviewViewHost(renderView.Id,
             () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
         _renderView.Host = _renderViewHost;
         _renderView.Invalidate();
+    }
+
+    private void RenderPreviewVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        var particleItems = _particleOverlayCollector.Collect(view.World, _previewEntity, _particleComponent);
+        _particleWireOverlayRenderer?.Draw(graphicsDevice, in frame, particleItems);
     }
 
     private void EnsurePreviewSceneCreated()

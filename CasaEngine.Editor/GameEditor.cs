@@ -3710,6 +3710,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         _editorSelection.SetSelectedEntity(entity);
         _editorSelection.SetSelectedComponent(component);
+        SynchronizeAutomationWorldViewportSelection();
     }
 
     private void RestoreAutomationSelection(Entity? entity, EntityComponent? component)
@@ -3719,6 +3720,8 @@ public class GameEditor : Game, IObservableUpdate
         {
             _editorSelection.SetSelectedComponent(component);
         }
+
+        SynchronizeAutomationWorldViewportSelection();
     }
 
     private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string? errorMessage)
@@ -4026,7 +4029,19 @@ public class GameEditor : Game, IObservableUpdate
                 $"[Automation] Component not found on entity='{entity.Name}': '{_automationOptions.ComponentName}'");
         }
 
+        SynchronizeAutomationWorldViewportSelection();
         return true;
+    }
+
+    private void SynchronizeAutomationWorldViewportSelection()
+    {
+        if (!_automationOptions.HasAutomation)
+        {
+            return;
+        }
+
+        _worldViewportPanel?.SetSelectedEntity(GetSelectedWorldEntity());
+        _worldViewportPanel?.SetSelectedComponent(_editorSelection.SelectedComponent);
     }
 
     private Entity? FindAutomationEntity(Framework.Scene.World.World world)
