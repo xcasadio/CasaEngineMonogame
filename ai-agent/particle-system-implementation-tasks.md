@@ -369,7 +369,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle render packets`
 
-- ⏳ **T04.02 — Ajouter `ParticleRendererComponent`**
+- ✅ **T04.02 — Ajouter `ParticleRendererComponent`**
   Objectif :
   - Implementer `DrawableGameComponent` + `IViewFlushableRenderer`.
   - Utiliser buffers reutilises pour billboards 3D CPU.
