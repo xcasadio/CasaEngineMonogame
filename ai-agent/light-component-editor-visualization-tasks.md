@@ -144,11 +144,11 @@ Commit attendu :
 
 Commit realise :
 
-- `a renseigner au commit suivant`
+- `02afbc11` `feat(editor): load light viewport icons`
 
 ---
 
-### ⏳ Todo - LIGHTVIS-002 - Collecter les LightComponent visibles pour l'overlay
+### ✅ Done - LIGHTVIS-002 - Collecter les LightComponent visibles pour l'overlay
 
 Objectif : fournir au viewport editeur une liste stable et reusable des lumieres a dessiner, sans encore dessiner les icones.
 
@@ -187,7 +187,7 @@ Commit attendu :
 
 Commit realise :
 
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
