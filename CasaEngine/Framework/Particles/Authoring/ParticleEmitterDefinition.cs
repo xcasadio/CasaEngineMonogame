@@ -265,6 +265,8 @@ public sealed class ParticleRendererModule
 
     public Guid TextureAssetId { get; set; } = Guid.Empty;
 
+    public ParticleFlipbookModule Flipbook { get; set; } = new();
+
     public ParticleBlendMode BlendMode { get; set; } = ParticleBlendMode.Alpha;
 
     public ParticleSortMode SortMode { get; set; } = ParticleSortMode.None;
@@ -285,5 +287,78 @@ public sealed class ParticleRendererModule
         {
             errors.Add($"{label} render queue must be non-negative.");
         }
+
+        if (Flipbook == null)
+        {
+            errors.Add($"{label} flipbook module is missing.");
+        }
+        else
+        {
+            Flipbook.Validate(errors, label);
+        }
+    }
+}
+
+/// <summary>
+/// Authoring data for texture-sheet particle animation.
+/// </summary>
+public sealed class ParticleFlipbookModule
+{
+    public int Columns { get; set; } = 1;
+
+    public int Rows { get; set; } = 1;
+
+    public int FrameCount { get; set; } = 1;
+
+    public bool RandomStartFrame { get; set; }
+
+    public float FramesPerSecond { get; set; }
+
+    public FloatCurve FrameOverLifetime { get; set; } = FloatCurve.Constant(0.0f);
+
+    public int EffectiveFrameCount
+    {
+        get
+        {
+            int atlasCapacity = GetAtlasCapacity();
+            return Math.Clamp(FrameCount, 1, atlasCapacity);
+        }
+    }
+
+    internal void Validate(List<string> errors, string label)
+    {
+        if (Columns <= 0)
+        {
+            errors.Add($"{label} flipbook columns must be greater than zero.");
+        }
+
+        if (Rows <= 0)
+        {
+            errors.Add($"{label} flipbook rows must be greater than zero.");
+        }
+
+        int atlasCapacity = GetAtlasCapacity();
+        if (FrameCount <= 0 || FrameCount > atlasCapacity)
+        {
+            errors.Add($"{label} flipbook frame count must be between 1 and atlas capacity.");
+        }
+
+        if (float.IsNaN(FramesPerSecond) || float.IsInfinity(FramesPerSecond) || FramesPerSecond < 0.0f)
+        {
+            errors.Add($"{label} flipbook FPS must be finite and non-negative.");
+        }
+
+        if (FrameOverLifetime == null)
+        {
+            errors.Add($"{label} flipbook frame-over-lifetime curve is missing.");
+        }
+    }
+
+    private int GetAtlasCapacity()
+    {
+        long columns = Math.Max(1, Columns);
+        long rows = Math.Max(1, Rows);
+        long capacity = columns * rows;
+        return capacity > int.MaxValue ? int.MaxValue : (int)capacity;
     }
 }

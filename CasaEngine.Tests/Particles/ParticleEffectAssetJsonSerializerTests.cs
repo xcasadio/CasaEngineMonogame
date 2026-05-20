@@ -53,6 +53,12 @@ public class ParticleEffectAssetJsonSerializerTests
         Assert.Equal(0.5f, emitter.Simulation.Drag);
         Assert.Equal(0.25f, emitter.Simulation.AlphaOverLifetime.Evaluate(0.75f));
         Assert.Equal(textureAssetId, emitter.Renderer.TextureAssetId);
+        Assert.Equal(4, emitter.Renderer.Flipbook.Columns);
+        Assert.Equal(2, emitter.Renderer.Flipbook.Rows);
+        Assert.Equal(7, emitter.Renderer.Flipbook.FrameCount);
+        Assert.True(emitter.Renderer.Flipbook.RandomStartFrame);
+        Assert.Equal(12.0f, emitter.Renderer.Flipbook.FramesPerSecond);
+        Assert.Equal(0.5f, emitter.Renderer.Flipbook.FrameOverLifetime.Evaluate(0.5f));
         Assert.Equal(ParticleBlendMode.Additive, emitter.Renderer.BlendMode);
         Assert.Equal(ParticleSortMode.Distance, emitter.Renderer.SortMode);
         Assert.True(emitter.Renderer.AlwaysVisible);
@@ -161,6 +167,12 @@ public class ParticleEffectAssetJsonSerializerTests
         emitter.Simulation.Drag = 0.5f;
         emitter.Simulation.AlphaOverLifetime = FloatCurve.FadeOut();
         emitter.Renderer.TextureAssetId = textureAssetId;
+        emitter.Renderer.Flipbook.Columns = 4;
+        emitter.Renderer.Flipbook.Rows = 2;
+        emitter.Renderer.Flipbook.FrameCount = 7;
+        emitter.Renderer.Flipbook.RandomStartFrame = true;
+        emitter.Renderer.Flipbook.FramesPerSecond = 12.0f;
+        emitter.Renderer.Flipbook.FrameOverLifetime = FloatCurve.FadeIn();
         emitter.Renderer.BlendMode = ParticleBlendMode.Additive;
         emitter.Renderer.SortMode = ParticleSortMode.Distance;
         emitter.Renderer.AlwaysVisible = true;

@@ -33,6 +33,7 @@ public static class ParticleRenderPacketExtractor
             }
 
             Vector3 cameraDelta = particle.Position - cameraPosition;
+            var flipbook = emitter.Definition.Renderer.Flipbook;
             destination.Add(new ParticleRenderPacket
             {
                 Position = particle.Position,
@@ -41,6 +42,9 @@ public static class ParticleRenderPacketExtractor
                 Color = ApplyTint(particle.Color, particle.Alpha, colorTint),
                 Alpha = particle.Alpha * (colorTint.A / 255.0f),
                 TextureAssetId = emitter.Definition.Renderer.TextureAssetId,
+                FlipbookColumns = flipbook?.Columns ?? 1,
+                FlipbookRows = flipbook?.Rows ?? 1,
+                FlipbookFrameIndex = particle.FlipbookFrame,
                 BlendMode = emitter.Definition.Renderer.BlendMode,
                 SortMode = emitter.Definition.Renderer.SortMode,
                 RenderMode = emitter.Definition.Renderer.RenderMode,

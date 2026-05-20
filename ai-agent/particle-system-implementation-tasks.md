@@ -565,7 +565,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): add particle thumbnails and presets`
 
-- ⏳ **T07.04 — Ajouter flipbook texture sheet V1.5**
+- ✅ **T07.04 — Ajouter flipbook texture sheet V1.5**
   Objectif :
   - Ajouter atlas grid, frame count, random start frame, frame over lifetime/FPS.
   - Etendre serializer, runtime et renderer sans casser les assets V1.

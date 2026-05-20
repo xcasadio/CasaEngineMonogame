@@ -17,4 +17,6 @@ public struct Particle
     public Color StartColor;
     public Color Color;
     public float Alpha;
+    public int FlipbookStartFrame;
+    public int FlipbookFrame;
 }

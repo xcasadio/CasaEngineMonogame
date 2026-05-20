@@ -135,12 +135,13 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             float rotationSin = MathF.Sin(packet.Rotation);
             Vector3 rotatedRight = (cameraRight * rotationCos + cameraUp * rotationSin) * halfWidth;
             Vector3 rotatedUp = (-cameraRight * rotationSin + cameraUp * rotationCos) * halfHeight;
+            GetFlipbookTextureCoordinates(packet, out Vector2 uvTopLeft, out Vector2 uvTopRight, out Vector2 uvBottomRight, out Vector2 uvBottomLeft);
 
             int vertexOffset = packetIndex * 4;
-            _vertices[vertexOffset + 0] = new VertexPositionColorTexture(packet.Position - rotatedRight + rotatedUp, packet.Color, new Vector2(0.0f, 0.0f));
-            _vertices[vertexOffset + 1] = new VertexPositionColorTexture(packet.Position + rotatedRight + rotatedUp, packet.Color, new Vector2(1.0f, 0.0f));
-            _vertices[vertexOffset + 2] = new VertexPositionColorTexture(packet.Position + rotatedRight - rotatedUp, packet.Color, new Vector2(1.0f, 1.0f));
-            _vertices[vertexOffset + 3] = new VertexPositionColorTexture(packet.Position - rotatedRight - rotatedUp, packet.Color, new Vector2(0.0f, 1.0f));
+            _vertices[vertexOffset + 0] = new VertexPositionColorTexture(packet.Position - rotatedRight + rotatedUp, packet.Color, uvTopLeft);
+            _vertices[vertexOffset + 1] = new VertexPositionColorTexture(packet.Position + rotatedRight + rotatedUp, packet.Color, uvTopRight);
+            _vertices[vertexOffset + 2] = new VertexPositionColorTexture(packet.Position + rotatedRight - rotatedUp, packet.Color, uvBottomRight);
+            _vertices[vertexOffset + 3] = new VertexPositionColorTexture(packet.Position - rotatedRight - rotatedUp, packet.Color, uvBottomLeft);
 
             int indexOffset = packetIndex * 6;
             _indices[indexOffset + 0] = vertexOffset + 0;
@@ -256,6 +257,33 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             && left.DepthTest == right.DepthTest
             && left.DepthWrite == right.DepthWrite
             && left.TextureAssetId == right.TextureAssetId;
+
+    internal static void GetFlipbookTextureCoordinates(
+        in ParticleRenderPacket packet,
+        out Vector2 uvTopLeft,
+        out Vector2 uvTopRight,
+        out Vector2 uvBottomRight,
+        out Vector2 uvBottomLeft)
+    {
+        int columns = Math.Max(1, packet.FlipbookColumns);
+        int rows = Math.Max(1, packet.FlipbookRows);
+        long atlasFrameCountLong = (long)columns * rows;
+        int atlasFrameCount = atlasFrameCountLong > int.MaxValue ? int.MaxValue : (int)atlasFrameCountLong;
+        int frameIndex = Math.Clamp(packet.FlipbookFrameIndex, 0, atlasFrameCount - 1);
+        int column = frameIndex % columns;
+        int row = frameIndex / columns;
+        float inverseColumns = 1.0f / columns;
+        float inverseRows = 1.0f / rows;
+        float left = column * inverseColumns;
+        float top = row * inverseRows;
+        float right = left + inverseColumns;
+        float bottom = top + inverseRows;
+
+        uvTopLeft = new Vector2(left, top);
+        uvTopRight = new Vector2(right, top);
+        uvBottomRight = new Vector2(right, bottom);
+        uvBottomLeft = new Vector2(left, bottom);
+    }
 
     private Texture2D ResolveTexture(Guid textureAssetId)
     {

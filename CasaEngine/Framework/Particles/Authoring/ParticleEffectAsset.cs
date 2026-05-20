@@ -9,7 +9,7 @@ namespace CasaEngine.Framework.Particles.Authoring;
 /// </summary>
 public sealed class ParticleEffectAsset : ObjectBase
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     public ParticleEffectAsset()
     {

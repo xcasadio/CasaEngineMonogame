@@ -482,6 +482,11 @@ public sealed class ParticleEmitterRuntime
         particle.StartColor = startColor;
         particle.Color = startColor;
         particle.Alpha = startColor.A / 255.0f;
+        ParticleFlipbookModule flipbook = Definition.Renderer.Flipbook;
+        particle.FlipbookStartFrame = flipbook != null && flipbook.RandomStartFrame
+            ? _random.NextInt(0, flipbook.EffectiveFrameCount - 1)
+            : 0;
+        particle.FlipbookFrame = ResolveFlipbookFrame(flipbook, particle.FlipbookStartFrame, particle.Age, 0.0f);
     }
 
     private void SimulateParticles(float elapsedSeconds)
@@ -523,7 +528,52 @@ public sealed class ParticleEmitterRuntime
         particle.Size = particle.StartSize * Definition.Simulation.SizeOverLifetime.Evaluate(normalizedLifetime);
         particle.Color = MultiplyColors(particle.StartColor, Definition.Simulation.ColorOverLifetime.Evaluate(normalizedLifetime));
         particle.Alpha = (particle.Color.A / 255.0f) * Definition.Simulation.AlphaOverLifetime.Evaluate(normalizedLifetime);
+        particle.FlipbookFrame = ResolveFlipbookFrame(Definition.Renderer.Flipbook, particle.FlipbookStartFrame, particle.Age, normalizedLifetime);
         return true;
+    }
+
+    internal static int ResolveFlipbookFrame(ParticleFlipbookModule flipbook, int startFrame, float ageSeconds, float normalizedLifetime)
+    {
+        if (flipbook == null)
+        {
+            return 0;
+        }
+
+        int frameCount = flipbook.EffectiveFrameCount;
+        if (frameCount <= 1)
+        {
+            return 0;
+        }
+
+        int startFrameOffset = NormalizeFrame(startFrame, frameCount);
+        if (flipbook.FramesPerSecond > 0.0f)
+        {
+            float safeAgeSeconds = float.IsNaN(ageSeconds) || float.IsInfinity(ageSeconds)
+                ? 0.0f
+                : MathF.Max(0.0f, ageSeconds);
+            int frameAdvance = (int)MathF.Floor(safeAgeSeconds * flipbook.FramesPerSecond);
+            return NormalizeFrame(startFrameOffset + frameAdvance, frameCount);
+        }
+
+        float curveValue = flipbook.FrameOverLifetime?.Evaluate(normalizedLifetime) ?? 0.0f;
+        if (float.IsNaN(curveValue) || float.IsInfinity(curveValue))
+        {
+            curveValue = 0.0f;
+        }
+
+        int curveFrame = (int)MathF.Floor(MathHelper.Clamp(curveValue, 0.0f, 1.0f) * frameCount);
+        if (curveFrame >= frameCount)
+        {
+            curveFrame = frameCount - 1;
+        }
+
+        return Math.Clamp(startFrameOffset + curveFrame, 0, frameCount - 1);
+    }
+
+    private static int NormalizeFrame(int frame, int frameCount)
+    {
+        int normalizedFrame = frame % frameCount;
+        return normalizedFrame < 0 ? normalizedFrame + frameCount : normalizedFrame;
     }
 
     private static Color MultiplyColors(Color first, Color second)

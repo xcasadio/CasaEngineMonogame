@@ -11,6 +11,9 @@ public struct ParticleRenderPacket
     public Color Color;
     public float Alpha;
     public Guid TextureAssetId;
+    public int FlipbookColumns;
+    public int FlipbookRows;
+    public int FlipbookFrameIndex;
     public ParticleBlendMode BlendMode;
     public ParticleSortMode SortMode;
     public ParticleRenderMode RenderMode;

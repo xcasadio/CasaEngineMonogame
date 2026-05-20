@@ -248,7 +248,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         {
             var emitter = _particleAsset.Emitters[emitterIndex];
             result.Add(string.Create(CultureInfo.InvariantCulture,
-                $"Emitter[{emitterIndex}]: {emitter.Name}, enabled={emitter.Enabled}, duration={emitter.Duration:0.###}, looping={emitter.Looping}, max={emitter.MaxParticles}, rate={emitter.Emission.RateOverTime:0.###}, shape={emitter.Shape.ShapeType}, blend={emitter.Renderer.BlendMode}"));
+                    $"Emitter[{emitterIndex}]: {emitter.Name}, enabled={emitter.Enabled}, duration={emitter.Duration:0.###}, looping={emitter.Looping}, max={emitter.MaxParticles}, rate={emitter.Emission.RateOverTime:0.###}, shape={emitter.Shape.ShapeType}, blend={emitter.Renderer.BlendMode}, flipbook={emitter.Renderer.Flipbook.Columns}x{emitter.Renderer.Flipbook.Rows}/{emitter.Renderer.Flipbook.FrameCount} fps={emitter.Renderer.Flipbook.FramesPerSecond:0.###}"));
             result.Add($"Emitter[{emitterIndex}] Curves: size={DescribeCurve(emitter.Simulation.SizeOverLifetime)}, alpha={DescribeCurve(emitter.Simulation.AlphaOverLifetime)}, velocity={DescribeCurve(emitter.Simulation.VelocityOverLifetime)}");
             result.Add($"Emitter[{emitterIndex}] Gradients: start={DescribeGradient(emitter.Initial.StartColor)}, color={DescribeGradient(emitter.Simulation.ColorOverLifetime)}");
         }
@@ -445,6 +445,12 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _emitterStack.TryAddChild(BuildPropertyRow("Color", CreateColorEditor(GetGradientPreviewColor(emitter.Initial.StartColor), value => ApplyChange(() => emitter.Initial.StartColor = ColorGradient.Constant(value), "Color"))));
         _emitterStack.TryAddChild(BuildPropertyRow("Texture", CreateTextureSelector(emitter)));
         _emitterStack.TryAddChild(BuildPropertyRow("Blend", CreateEnumCombo(emitter.Renderer.BlendMode, value => ApplyChange(() => emitter.Renderer.BlendMode = value, "Blend"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Flipbook Columns", CreateIntField(emitter.Renderer.Flipbook.Columns, 1, 64, value => ApplyChange(() => emitter.Renderer.Flipbook.Columns = value, "Flipbook Columns"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Flipbook Rows", CreateIntField(emitter.Renderer.Flipbook.Rows, 1, 64, value => ApplyChange(() => emitter.Renderer.Flipbook.Rows = value, "Flipbook Rows"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Flipbook Frames", CreateIntField(emitter.Renderer.Flipbook.FrameCount, 1, 4096, value => ApplyChange(() => emitter.Renderer.Flipbook.FrameCount = value, "Flipbook Frames"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Random Frame", CreateCheckBox(emitter.Renderer.Flipbook.RandomStartFrame, value => ApplyChange(() => emitter.Renderer.Flipbook.RandomStartFrame = value, "Random Frame"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Flipbook FPS", CreateFloatField(emitter.Renderer.Flipbook.FramesPerSecond, 0.0f, 240.0f, 1.0f, value => ApplyChange(() => emitter.Renderer.Flipbook.FramesPerSecond = value, "Flipbook FPS"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Flipbook Curve", CreateCurveEditor(emitter.Renderer.Flipbook.FrameOverLifetime, (value, refresh) => ApplyChange(() => emitter.Renderer.Flipbook.FrameOverLifetime = value, "Flipbook Curve", refresh))));
         _emitterStack.TryAddChild(BuildPropertyRow("Start Gradient", CreateGradientEditor(emitter.Initial.StartColor, (value, refresh) => ApplyChange(() => emitter.Initial.StartColor = value, "Start Gradient", refresh))));
         _emitterStack.TryAddChild(BuildPropertyRow("Size Curve", CreateCurveEditor(emitter.Simulation.SizeOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.SizeOverLifetime = value, "Size Curve", refresh))));
         _emitterStack.TryAddChild(BuildPropertyRow("Alpha Curve", CreateCurveEditor(emitter.Simulation.AlphaOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.AlphaOverLifetime = value, "Alpha Curve", refresh))));
@@ -1313,6 +1319,27 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
                 return TryApplyEnum<ParticleBlendMode>(rawValue, value => emitter.Renderer.BlendMode = value, "Blend", out statusMessage);
             case "texture":
                 return TryApplyGuid(rawValue, value => emitter.Renderer.TextureAssetId = value, "Texture", out statusMessage);
+            case "flipbookcolumns":
+            case "atlascolumns":
+                return TryApplyInt(rawValue, 1, value => emitter.Renderer.Flipbook.Columns = value, "Flipbook Columns", out statusMessage);
+            case "flipbookrows":
+            case "atlasrows":
+                return TryApplyInt(rawValue, 1, value => emitter.Renderer.Flipbook.Rows = value, "Flipbook Rows", out statusMessage);
+            case "flipbookframes":
+            case "flipbookframecount":
+            case "framecount":
+                return TryApplyInt(rawValue, 1, value => emitter.Renderer.Flipbook.FrameCount = value, "Flipbook Frames", out statusMessage);
+            case "randomframe":
+            case "randomstartframe":
+            case "flipbookrandomstart":
+                return TryApplyBoolean(rawValue, value => emitter.Renderer.Flipbook.RandomStartFrame = value, "Random Frame", out statusMessage);
+            case "flipbookfps":
+            case "framespersecond":
+                return TryApplyFloat(rawValue, 0.0f, value => emitter.Renderer.Flipbook.FramesPerSecond = value, "Flipbook FPS", out statusMessage);
+            case "flipbookcurve":
+            case "frameoverlifetime":
+            case "flipbookcurvepreset":
+                return TryApplyFloatCurvePreset(rawValue, value => emitter.Renderer.Flipbook.FrameOverLifetime = value, "Flipbook Curve", out statusMessage);
             case "color":
             case "startcolor":
                 return TryApplyColor(rawValue, value => emitter.Initial.StartColor = ColorGradient.Constant(value), "Color", out statusMessage);

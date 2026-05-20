@@ -252,6 +252,7 @@ public static class ParticleEffectAssetJsonSerializer
         {
             ["render_mode"] = renderer.RenderMode.ToString(),
             ["texture_asset_id"] = renderer.TextureAssetId.ToString(),
+            ["flipbook"] = SaveFlipbook(renderer.Flipbook ?? new ParticleFlipbookModule()),
             ["blend_mode"] = renderer.BlendMode.ToString(),
             ["sort_mode"] = renderer.SortMode.ToString(),
             ["depth_test"] = renderer.DepthTest,
@@ -271,6 +272,7 @@ public static class ParticleEffectAssetJsonSerializer
 
         renderer.RenderMode = node["render_mode"] is { } renderModeToken ? renderModeToken.GetEnum<ParticleRenderMode>() : renderer.RenderMode;
         renderer.TextureAssetId = node["texture_asset_id"]?.GetGuid() ?? renderer.TextureAssetId;
+        renderer.Flipbook = LoadFlipbook(node["flipbook"] as JObject, renderer.Flipbook);
         renderer.BlendMode = node["blend_mode"] is { } blendModeToken ? blendModeToken.GetEnum<ParticleBlendMode>() : renderer.BlendMode;
         renderer.SortMode = node["sort_mode"] is { } sortModeToken ? sortModeToken.GetEnum<ParticleSortMode>() : renderer.SortMode;
         renderer.DepthTest = node["depth_test"]?.GetBoolean() ?? renderer.DepthTest;
@@ -279,6 +281,36 @@ public static class ParticleEffectAssetJsonSerializer
         renderer.Layer = node["layer"]?.GetInt32() ?? renderer.Layer;
         renderer.AlwaysVisible = node["always_visible"]?.GetBoolean() ?? renderer.AlwaysVisible;
         return renderer;
+    }
+
+    private static JObject SaveFlipbook(ParticleFlipbookModule flipbook)
+        => new()
+        {
+            ["columns"] = flipbook.Columns,
+            ["rows"] = flipbook.Rows,
+            ["frame_count"] = flipbook.FrameCount,
+            ["random_start_frame"] = flipbook.RandomStartFrame,
+            ["frames_per_second"] = flipbook.FramesPerSecond,
+            ["frame_over_lifetime"] = SaveFloatCurve(flipbook.FrameOverLifetime ?? FloatCurve.Constant(0.0f)),
+        };
+
+    private static ParticleFlipbookModule LoadFlipbook(JObject? node, ParticleFlipbookModule fallback)
+    {
+        if (node == null)
+        {
+            return fallback;
+        }
+
+        var flipbook = new ParticleFlipbookModule
+        {
+            Columns = node["columns"]?.GetInt32() ?? fallback.Columns,
+            Rows = node["rows"]?.GetInt32() ?? fallback.Rows,
+            FrameCount = node["frame_count"]?.GetInt32() ?? fallback.FrameCount,
+            RandomStartFrame = node["random_start_frame"]?.GetBoolean() ?? fallback.RandomStartFrame,
+            FramesPerSecond = node["frames_per_second"]?.GetSingle() ?? fallback.FramesPerSecond,
+        };
+        flipbook.FrameOverLifetime = LoadFloatCurve(node["frame_over_lifetime"] as JObject, fallback.FrameOverLifetime);
+        return flipbook;
     }
 
     private static JObject SaveFloatRange(FloatRange range)
