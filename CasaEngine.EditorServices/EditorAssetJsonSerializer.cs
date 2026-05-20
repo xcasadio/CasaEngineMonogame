@@ -219,6 +219,7 @@ internal static class EditorAssetJsonSerializer
         tileMapData.MapSize.Save(mapSizeNode);
         node.Add("map_size", mapSizeNode);
         node.Add("tile_set_asset_id", tileMapData.TileSetDataAssetId);
+        SaveCustomProperties(tileMapData.CustomProperties, node);
 
         var layersArray = new JArray();
         foreach (var layer in tileMapData.Layers)
@@ -273,6 +274,7 @@ internal static class EditorAssetJsonSerializer
     {
         node.Add("name", string.IsNullOrWhiteSpace(layer.Name) ? JValue.CreateNull() : layer.Name);
         node.Add("z_offset", layer.zOffset);
+        SaveCustomProperties(layer.CustomProperties, node);
         node.Add("tiles", new JArray(layer.tiles));
         if (layer.HasTileFlags())
         {
@@ -383,6 +385,7 @@ internal static class EditorAssetJsonSerializer
         node.Add("id", tile.Id);
         node.Add("collision_type", tile.CollisionType.ConvertToString());
         node.Add("is_breakable", tile.IsBreakable);
+        SaveCustomProperties(tile.CustomProperties, node);
 
         if (tile.CollisionShape == null)
         {
@@ -420,6 +423,22 @@ internal static class EditorAssetJsonSerializer
                 node.Add("animation_2d_id", animatedTileData.Animation2dId);
                 break;
         }
+    }
+
+    private static void SaveCustomProperties(Dictionary<string, string> customProperties, JObject node)
+    {
+        if (customProperties.Count == 0)
+        {
+            return;
+        }
+
+        var propertiesNode = new JObject();
+        foreach (var customProperty in customProperties)
+        {
+            propertiesNode.Add(customProperty.Key, customProperty.Value);
+        }
+
+        node.Add("custom_properties", propertiesNode);
     }
 
     private static void SaveTexture(Texture texture, JObject node)

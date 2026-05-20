@@ -389,6 +389,9 @@ public class EditorAssetImportServiceTests
                 <tileset version="1.10" tiledversion="1.10.2" name="tiles" tilewidth="16" tileheight="16" tilecount="4" columns="2">
                  <image source="tiles.png" width="32" height="32"/>
                  <tile id="2">
+                  <properties>
+                   <property name="damage" type="int" value="7"/>
+                  </properties>
                   <objectgroup>
                    <object id="1" x="2" y="3" width="10" height="11"/>
                   </objectgroup>
@@ -401,8 +404,14 @@ public class EditorAssetImportServiceTests
                 """
                 <?xml version="1.0" encoding="UTF-8"?>
                 <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="3" height="2" tilewidth="16" tileheight="16" infinite="0">
+                                 <properties>
+                                    <property name="weather" value="rain"/>
+                                 </properties>
                  <tileset firstgid="1" source="tiles.tsx"/>
                  <layer id="1" name="Ground" width="3" height="2">
+                                    <properties>
+                                     <property name="walkable" type="bool" value="false"/>
+                                    </properties>
                   <data encoding="csv">
                 1,0,2,
                 2147483651,4,0
@@ -436,6 +445,8 @@ public class EditorAssetImportServiceTests
             var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
             Assert.Equal("ImportedLevel", (string?)tileMapDocument["name"]);
             Assert.NotEqual(Guid.Empty, Guid.Parse(tileMapDocument["tile_set_asset_id"]!.Value<string>()!));
+            var tileMapProperties = Assert.IsType<JObject>(tileMapDocument["custom_properties"]);
+            Assert.Equal("rain", (string?)tileMapProperties["weather"]);
 
             var layers = Assert.IsType<JArray>(tileMapDocument["layers"]);
             Assert.Equal(2, layers.Count);
@@ -444,6 +455,8 @@ public class EditorAssetImportServiceTests
             Assert.Equal("Ground", (string?)groundLayer["name"]);
             Assert.Equal(new[] { 0, -1, 1, 2, 3, -1 }, groundLayer["tiles"]!.Values<int>().ToArray());
             Assert.Equal(new[] { 0, 0, 0, (int)TileCellFlags.FlipHorizontal, 0, 0 }, groundLayer["tile_flags"]!.Values<int>().ToArray());
+            var groundLayerProperties = Assert.IsType<JObject>(groundLayer["custom_properties"]);
+            Assert.Equal("false", (string?)groundLayerProperties["walkable"]);
 
             var decorLayer = Assert.IsType<JObject>(layers[1]);
             Assert.Equal("Decor", (string?)decorLayer["name"]);
@@ -457,6 +470,8 @@ public class EditorAssetImportServiceTests
             var thirdTile = Assert.IsType<JObject>(tiles[2]);
             Assert.Equal(2, thirdTile["id"]!.Value<int>());
             Assert.Equal("Blocked", (string?)thirdTile["collision_type"]);
+            var thirdTileProperties = Assert.IsType<JObject>(thirdTile["custom_properties"]);
+            Assert.Equal("7", (string?)thirdTileProperties["damage"]);
             var thirdTileLocation = Assert.IsType<JObject>(thirdTile["location"]);
             Assert.Equal(0, thirdTileLocation["x"]!.Value<int>());
             Assert.Equal(16, thirdTileLocation["y"]!.Value<int>());

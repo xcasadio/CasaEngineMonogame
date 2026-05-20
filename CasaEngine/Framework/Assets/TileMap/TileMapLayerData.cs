@@ -11,6 +11,7 @@ public class TileMapLayerData
     public string? Name { get; set; }
     public List<int> tiles = new();
     public List<TileCellFlags> tileFlags = new();
+    public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
     public float zOffset;
 
     public void Load(JObject element)
@@ -20,6 +21,7 @@ public class TileMapLayerData
 
         tiles.Clear();
         tileFlags.Clear();
+        TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
 
         foreach (var tileToken in element["tiles"]!)
         {

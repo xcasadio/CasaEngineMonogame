@@ -43,6 +43,28 @@ public class TileMapDataTests
     }
 
     [Fact]
+    public void Load_PreservesCustomProperties()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Ground", 1, 2, 3, 4);
+        document["custom_properties"] = new JObject
+        {
+            ["weather"] = "rain",
+        };
+        var layer = (JObject)((JArray)document["layers"]!)[0]!;
+        layer["custom_properties"] = new JObject
+        {
+            ["walkable"] = "false",
+        };
+
+        tileMapData.Load(document);
+
+        Assert.Equal("rain", tileMapData.CustomProperties["weather"]);
+        Assert.Equal("false", tileMapData.Layers[0].CustomProperties["walkable"]);
+    }
+
+    [Fact]
     public void Load_RejectsLayerWithWrongTileFlagCount()
     {
         var tileSetId = Guid.NewGuid();

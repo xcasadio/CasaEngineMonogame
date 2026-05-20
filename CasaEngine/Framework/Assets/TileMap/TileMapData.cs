@@ -12,6 +12,7 @@ public class TileMapData : ObjectBase
     public Size MapSize { get; set; }
     public Guid TileSetDataAssetId { get; set; } = Guid.Empty;
     public List<TileMapLayerData> Layers { get; } = new();
+    public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
 
     public bool IsInside(int x, int y)
     {
@@ -72,6 +73,7 @@ public class TileMapData : ObjectBase
 
         MapSize = element["map_size"].GetSize();
         TileSetDataAssetId = element["tile_set_asset_id"].GetGuid();
+        LoadCustomProperties(element["custom_properties"], CustomProperties);
 
         Layers.AddRange(element.GetElements("layers", jToken =>
         {
@@ -91,5 +93,21 @@ public class TileMapData : ObjectBase
         }
 
         return Layers[layerIndex];
+    }
+
+    internal static void LoadCustomProperties(JToken? propertiesToken, Dictionary<string, string> customProperties)
+    {
+        customProperties.Clear();
+        if (propertiesToken is not JObject propertiesObject)
+        {
+            return;
+        }
+
+        foreach (var property in propertiesObject.Properties())
+        {
+            customProperties[property.Name] = property.Value.Type == JTokenType.Null
+                ? string.Empty
+                : property.Value.ToString();
+        }
     }
 }

@@ -12,6 +12,7 @@ public class TileData
     public TileCollisionType CollisionType { get; set; }
     public Collision2d? CollisionShape { get; set; }
     public bool IsBreakable { get; set; }
+    public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
 
     protected TileData(TileType type)
     {
@@ -26,6 +27,7 @@ public class TileData
         Id = element["id"].GetInt32();
         CollisionType = element["collision_type"].GetEnum<TileCollisionType>();
         IsBreakable = element["is_breakable"].GetBoolean();
+        TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
 
         var collisionNode = element["collision"];
         if (collisionNode.ToString() != "null")

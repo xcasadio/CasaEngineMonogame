@@ -166,6 +166,11 @@ public static class EditorAssetImportService
                 };
             }
 
+            if (tiledMap.Tileset.CustomPropertiesByTileId.TryGetValue(tileIndex, out var customProperties))
+            {
+                CopyCustomProperties(customProperties, tileData.CustomProperties);
+            }
+
             tileSetData.AddTile(tileData);
         }
 
@@ -181,20 +186,31 @@ public static class EditorAssetImportService
             MapSize = new Size(tiledMap.Width, tiledMap.Height),
             TileSetDataAssetId = tileSetAssetId,
         };
+        CopyCustomProperties(tiledMap.CustomProperties, tileMapData.CustomProperties);
 
         foreach (var tiledLayer in tiledMap.Layers)
         {
-            tileMapData.Layers.Add(new TileMapLayerData
+            var layerData = new TileMapLayerData
             {
                 Name = tiledLayer.Name,
                 zOffset = tiledLayer.ZOffset,
                 tiles = new List<int>(tiledLayer.Tiles),
                 tileFlags = new List<TileCellFlags>(tiledLayer.TileFlags),
-            });
+            };
+            CopyCustomProperties(tiledLayer.CustomProperties, layerData.CustomProperties);
+            tileMapData.Layers.Add(layerData);
         }
 
         tileMapData.Validate();
         return tileMapData;
+    }
+
+    private static void CopyCustomProperties(Dictionary<string, string> source, Dictionary<string, string> destination)
+    {
+        foreach (var customProperty in source)
+        {
+            destination[customProperty.Key] = customProperty.Value;
+        }
     }
 
     private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)

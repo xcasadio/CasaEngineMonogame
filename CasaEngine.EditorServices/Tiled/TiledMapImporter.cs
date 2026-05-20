@@ -76,6 +76,7 @@ public sealed class TiledMapImporter
             tileWidth,
             tileHeight,
             tilesetReference);
+        CopyCustomProperties(ReadCustomProperties(mapElement), result.CustomProperties);
         result.Warnings.AddRange(tilesetReference.Warnings);
 
         var layerIndex = 0;
@@ -92,7 +93,7 @@ public sealed class TiledMapImporter
                 ?? throw new InvalidDataException($"Tiled layer '{ReadOptionalString(layerElement, "name", string.Empty)}' has no data element.");
             var tiles = ReadLayerTiles(dataElement, mapWidth * mapHeight, tilesetReference, result.Warnings, out var tileFlags);
             var layerName = ReadOptionalString(layerElement, "name", $"Layer {layerIndex + 1}");
-            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags));
+            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags, ReadCustomProperties(layerElement)));
             layerIndex++;
         }
 
@@ -132,6 +133,7 @@ public sealed class TiledMapImporter
             tileWidth,
             tileHeight,
             tilesetReference);
+        CopyCustomProperties(ReadCustomProperties(mapObject), result.CustomProperties);
         result.Warnings.AddRange(tilesetReference.Warnings);
 
         var layers = mapObject["layers"] as JArray
@@ -159,7 +161,7 @@ public sealed class TiledMapImporter
 
             var tiles = ReadLayerTilesJson(layerObject, mapWidth * mapHeight, tilesetReference, result.Warnings, out var tileFlags);
             var layerName = ReadOptionalString(layerObject, "name", $"Layer {layerIndex + 1}");
-            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags));
+            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags, ReadCustomProperties(layerObject)));
             layerIndex++;
         }
 
@@ -229,6 +231,7 @@ public sealed class TiledMapImporter
 
         var warnings = new List<string>();
         var collisionShapes = ReadTileCollisionShapes(tilesetRoot, warnings);
+        var customPropertiesByTileId = ReadTileCustomProperties(tilesetRoot);
 
         return new TiledTilesetReference(
             firstGid,
@@ -241,6 +244,7 @@ public sealed class TiledMapImporter
             imageWidth,
             imageHeight,
             collisionShapes,
+            customPropertiesByTileId,
             warnings);
     }
 
@@ -300,6 +304,7 @@ public sealed class TiledMapImporter
 
         var warnings = new List<string>();
         var collisionShapes = ReadTileCollisionShapesJson(tilesetRoot, warnings);
+        var customPropertiesByTileId = ReadTileCustomPropertiesJson(tilesetRoot);
 
         return new TiledTilesetReference(
             firstGid,
@@ -312,7 +317,127 @@ public sealed class TiledMapImporter
             imageWidth,
             imageHeight,
             collisionShapes,
+            customPropertiesByTileId,
             warnings);
+    }
+
+    private static Dictionary<string, string> ReadCustomProperties(XElement element)
+    {
+        var customProperties = new Dictionary<string, string>(StringComparer.Ordinal);
+        var propertiesElement = element.Element("properties");
+        if (propertiesElement == null)
+        {
+            return customProperties;
+        }
+
+        foreach (var propertyElement in propertiesElement.Elements("property"))
+        {
+            var name = propertyElement.Attribute("name")?.Value;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            var value = propertyElement.Attribute("value")?.Value ?? propertyElement.Value ?? string.Empty;
+            customProperties[name] = value;
+        }
+
+        return customProperties;
+    }
+
+    private static Dictionary<string, string> ReadCustomProperties(JObject element)
+    {
+        var customProperties = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (element["properties"] is not JArray properties)
+        {
+            return customProperties;
+        }
+
+        for (var index = 0; index < properties.Count; index++)
+        {
+            if (properties[index] is not JObject propertyObject)
+            {
+                continue;
+            }
+
+            var name = ReadOptionalString(propertyObject, "name", string.Empty);
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            customProperties[name] = ReadPropertyValue(propertyObject["value"]);
+        }
+
+        return customProperties;
+    }
+
+    private static Dictionary<int, Dictionary<string, string>> ReadTileCustomProperties(XElement tilesetRoot)
+    {
+        var customPropertiesByTileId = new Dictionary<int, Dictionary<string, string>>();
+        foreach (var tileElement in tilesetRoot.Elements("tile"))
+        {
+            var customProperties = ReadCustomProperties(tileElement);
+            if (customProperties.Count > 0)
+            {
+                customPropertiesByTileId[ReadRequiredInt(tileElement, "id")] = customProperties;
+            }
+        }
+
+        return customPropertiesByTileId;
+    }
+
+    private static Dictionary<int, Dictionary<string, string>> ReadTileCustomPropertiesJson(JObject tilesetRoot)
+    {
+        var customPropertiesByTileId = new Dictionary<int, Dictionary<string, string>>();
+        if (tilesetRoot["tiles"] is not JArray tiles)
+        {
+            return customPropertiesByTileId;
+        }
+
+        for (var index = 0; index < tiles.Count; index++)
+        {
+            if (tiles[index] is not JObject tileObject)
+            {
+                continue;
+            }
+
+            var customProperties = ReadCustomProperties(tileObject);
+            if (customProperties.Count > 0)
+            {
+                customPropertiesByTileId[ReadRequiredInt(tileObject, "id", "tile")] = customProperties;
+            }
+        }
+
+        return customPropertiesByTileId;
+    }
+
+    private static string ReadPropertyValue(JToken? valueToken)
+    {
+        if (valueToken == null || valueToken.Type == JTokenType.Null)
+        {
+            return string.Empty;
+        }
+
+        if (valueToken.Type == JTokenType.String)
+        {
+            return valueToken.Value<string>() ?? string.Empty;
+        }
+
+        if (valueToken is JValue { Value: IFormattable formattable })
+        {
+            return formattable.ToString(null, CultureInfo.InvariantCulture);
+        }
+
+        return valueToken.ToString();
+    }
+
+    private static void CopyCustomProperties(Dictionary<string, string> source, Dictionary<string, string> destination)
+    {
+        foreach (var customProperty in source)
+        {
+            destination[customProperty.Key] = customProperty.Value;
+        }
     }
 
     private static Dictionary<int, TiledTileCollision> ReadTileCollisionShapes(XElement tilesetRoot, List<string> warnings)
@@ -770,6 +895,7 @@ public sealed class TiledMapImportDocument
     public TiledTilesetReference Tileset { get; }
     public List<TiledTileLayer> Layers { get; } = new();
     public List<string> Warnings { get; } = new();
+    public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
 }
 
 public sealed class TiledTilesetReference
@@ -785,6 +911,7 @@ public sealed class TiledTilesetReference
         int imageWidth,
         int imageHeight,
         Dictionary<int, TiledTileCollision> collisionByTileId,
+        Dictionary<int, Dictionary<string, string>> customPropertiesByTileId,
         List<string> warnings)
     {
         FirstGid = firstGid;
@@ -797,6 +924,7 @@ public sealed class TiledTilesetReference
         ImageWidth = imageWidth;
         ImageHeight = imageHeight;
         CollisionByTileId = collisionByTileId;
+        CustomPropertiesByTileId = customPropertiesByTileId;
         Warnings = warnings;
     }
 
@@ -810,6 +938,7 @@ public sealed class TiledTilesetReference
     public int ImageWidth { get; }
     public int ImageHeight { get; }
     public Dictionary<int, TiledTileCollision> CollisionByTileId { get; }
+    public Dictionary<int, Dictionary<string, string>> CustomPropertiesByTileId { get; }
     public List<string> Warnings { get; }
 }
 
@@ -831,18 +960,20 @@ public sealed class TiledTileCollision
 
 public sealed class TiledTileLayer
 {
-    public TiledTileLayer(string name, float zOffset, List<int> tiles, List<TileCellFlags> tileFlags)
+    public TiledTileLayer(string name, float zOffset, List<int> tiles, List<TileCellFlags> tileFlags, Dictionary<string, string> customProperties)
     {
         Name = name;
         ZOffset = zOffset;
         Tiles = tiles;
         TileFlags = tileFlags;
+        CustomProperties = customProperties;
     }
 
     public string Name { get; }
     public float ZOffset { get; }
     public List<int> Tiles { get; }
     public List<TileCellFlags> TileFlags { get; }
+    public Dictionary<string, string> CustomProperties { get; }
 }
 
 public sealed class TiledMapImportResult
