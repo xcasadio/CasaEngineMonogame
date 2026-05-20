@@ -73,8 +73,10 @@ public static class EditorIcons
     public static Texture2D? Sliders    { get; private set; }
     public static Texture2D? CircleHelp { get; private set; }
     public static Texture2D? Camera     { get; private set; }
+    public static Texture2D? Cone       { get; private set; }
     public static Texture2D? Volume     { get; private set; }
     public static Texture2D? Lightbulb  { get; private set; }
+    public static Texture2D? Sun        { get; private set; }
     public static Texture2D? Terminal   { get; private set; }
     public static Texture2D? MousePtr   { get; private set; }
 
@@ -147,8 +149,10 @@ public static class EditorIcons
         Sliders      = Try(content, Prefix + "sliders-horizontal");
         CircleHelp   = Try(content, Prefix + "circle-help");
         Camera       = Try(content, Prefix + "camera");
+        Cone         = Try(content, Prefix + "cone");
         Volume       = Try(content, Prefix + "volume-2");
         Lightbulb    = Try(content, Prefix + "lightbulb");
+        Sun          = Try(content, Prefix + "sun");
         Terminal     = Try(content, Prefix + "terminal");
         MousePtr     = Try(content, Prefix + "mouse-pointer");
     }
