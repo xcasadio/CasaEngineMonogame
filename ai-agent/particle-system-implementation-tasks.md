@@ -242,7 +242,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 2 — Runtime CPU et simulation
 
-- ⏳ **T02.01 — Ajouter les buffers runtime et le pooling**
+- ✅ **T02.01 — Ajouter les buffers runtime et le pooling**
   Objectif :
   - Creer `ParticleRuntimeInstance`, `ParticleEmitterRuntime` et `Particle`.
   - Preallouer tableaux selon `MaxParticles`.
