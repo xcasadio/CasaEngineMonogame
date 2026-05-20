@@ -194,7 +194,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add float curve evaluation`
 
-- ⏳ **T01.03 — Ajouter `ColorGradient` lineaire**
+- ✅ **T01.03 — Ajouter `ColorGradient` lineaire**
   Objectif :
   - Supporter stops couleur et alpha, evaluation par age normalise, presets white/fire/smoke/magic.
   - Garder les structures serialisables et simples pour l'editeur.
