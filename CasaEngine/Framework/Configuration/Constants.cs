@@ -15,6 +15,7 @@ public static class Constants
         public const string Sprite = ".sprite";
         public const string Animation2d = ".anim2d";
         public const string TileMap = ".tileMap";
+        public const string TileSet = ".tileset";
         public const string Screen = ".screen";
         public const string Model = ".model";
         public const string StaticModel = ".staticModel";

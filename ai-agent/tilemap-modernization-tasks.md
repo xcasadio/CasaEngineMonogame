@@ -1,0 +1,420 @@
+# Plan agent IA - Modernisation TileMap et import Tiled
+
+## Contexte
+
+Ce plan transforme l'analyse de `docs/analyse_tilemaps_casaengine.md` en feuille de route actionnable pour un agent IA.
+
+Objectif final : faire évoluer le système TileMap de CasaEngineMonogame vers un modèle plus robuste et plus moderne, tout en conservant la compatibilité avec les assets existants et en ajoutant l'import de maps créées avec l'éditeur Tiled.
+
+## Avis technique synthétique
+
+Le système actuel est une bonne base côté modèle d'asset : `TileMapData`, `TileMapLayerData`, `TileSetData`, `TileData` et les variantes de tiles sont déjà séparés du composant runtime.
+
+Le point faible n'est pas le format de données de départ, mais le runtime : la map est parcourue entièrement dans `TileMapComponent.Draw`, toutes les tiles reçoivent `Update`, les collisions sont créées tuile par tuile, `RemoveTile` ne met pas à jour l'asset ni la physique, et le constructeur de copie partage des layers runtime. Pour une petite démo, c'est acceptable ; pour un éditeur, de grosses maps ou des imports Tiled, c'est trop fragile.
+
+La bonne stratégie est progressive : fiabiliser d'abord les données et les mutations, ajouter le culling caméra, puis introduire chunking, cache de rendu et collisions fusionnées. L'import Tiled doit être traité comme un import éditeur/offline vers les assets CasaEngine, pas comme un format runtime direct.
+
+## Contraintes pour l'agent
+
+- Garder la compatibilité des fichiers `.tileMap` et `.tileset` existants.
+- Ne pas casser `TileMapDemo` ni les maps de `Projects/RPGDemo/Maps` et `CasaEngine.Demos/Content/Maps`.
+- Pas de LINQ ni d'allocations évitables dans `Update`/`Draw`.
+- Centraliser les mutations de tiles : aucune modification directe dispersée de `TileMapLayerData.tiles` ou `TileMapLayer.Tiles`.
+- Restaurer proprement les ressources physiques et GPU créées par chunks.
+- Préférer un import Tiled qui convertit en assets CasaEngine plutôt qu'une dépendance runtime forte à Tiled.
+- Toujours ajouter des tests ciblés ou, si impossible, un sample de validation minimal.
+- Chaque tâche atomique terminée doit être validée puis commitée avant de passer à la tâche suivante.
+- Chaque tâche doit commencer par son icône de statut, directement devant son libellé : `✅ Done`, `🚧 In progress`, `⏳ Todo`, `🧪 Needs testing`, `⚠️ Blocked`.
+
+## Etat observé
+
+### ✅ Done - Analyse initiale
+
+Faits confirmés dans le code :
+
+- `TileMapComponent.InitializeWithWorld` instancie un objet runtime par cellule.
+- `TileMapComponent.Draw` parcourt toutes les layers et toutes les cellules à chaque frame.
+- `TileMapComponent.Update` parcourt toutes les tiles même si seules les auto/animated tiles ont besoin d'un update.
+- Les tiles animées existent dans le modèle, mais le chargement runtime est commenté et `AnimatedTile.Draw` est incomplet.
+- Les collisions utilisent un `BoxShape` par tuile bloquante ou trigger-like.
+- `TileData.CollisionShape` existe, mais n'est pas exploité par le runtime TileMap.
+- `RemoveTile` remplace seulement la tile runtime par `EmptyTile` et laisse un TODO pour la physique.
+- Le constructeur de copie de `TileMapComponent` fait `Layers.AddRange(other.Layers)`, donc il partage des états runtime.
+- `GetBoundingBox` mélange un min à `0` et un max avec `-height`, ce qui peut produire une box invalide selon les conventions attendues.
+- `Constants.FileNameExtensions` expose `.tileMap`, mais pas `.tileset`, alors que des fichiers `.tileset` existent.
+- Il n'y a pas de support explicite `.tmx`, `.tsx` ou Tiled JSON dans les sources principales.
+
+## Architecture cible
+
+```text
+TileMapData
+    - MapSize
+    - TileSize ou référence tileset compatible
+    - Layers persistantes
+    - Références tileset
+
+TileSetData
+    - Texture(s)
+    - Tile definitions
+    - Collision definitions
+    - Animation definitions
+    - AutoTile / Wang / terrain metadata
+
+TileMapComponent
+    - Référence asset
+    - Runtime state par instance
+    - API SetTile/GetTile/RemoveTile
+    - Dirty flags visuel/collision
+
+TileMapRenderer
+    - Culling caméra
+    - Chunks visibles
+    - Buffers statiques par chunk
+    - Chemin séparé pour tiles animées/dynamiques
+
+TileMapCollisionSystem
+    - Chunks collision
+    - Fusion de rectangles
+    - Triggers, plateformes one-way, slopes/custom polygon à terme
+
+TiledImporter
+    - Lecture .tmx/.tsx et/ou JSON Tiled
+    - Conversion vers .tileMap/.tileset/.texture
+    - Copie des images source
+    - Inscription AssetCatalog
+```
+
+## 🧪 Phase 1 - Fiabiliser les assets et les mutations
+
+Priorité : très haute.
+
+Fichiers probables :
+
+- `CasaEngine/Framework/Assets/TileMap/TileMapData.cs`
+- `CasaEngine/Framework/Assets/TileMap/TileMapLayerData.cs`
+- `CasaEngine/Framework/Assets/TileMap/TileSetData.cs`
+- `CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs`
+- `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
+
+Tâches :
+
+- ✅ Ajouter une validation de `MapSize` et `layer.tiles.Count == width * height` au chargement.
+- ✅ Ajouter `IsInside(x, y)`, `GetTileIndex(x, y)`, `GetTileId(layerIndex, x, y)` et `SetTileId(layerIndex, x, y, tileId)`.
+- ✅ Définir une constante claire pour la tile vide CasaEngine (`-1`) et documenter la conversion depuis Tiled (`0` vers `-1`).
+- ✅ Faire échouer proprement les IDs inconnus : log + tile vide ou exception contrôlée selon le contexte.
+- ✅ Corriger `RemoveTile` pour passer par `SetTile`.
+- ✅ Mettre à jour à la fois l'asset data et l'état runtime lors d'une mutation.
+- ✅ Marquer les états runtime dirty : visual, collision, auto-tile neighborhood.
+- ✅ Supprimer le partage des `TileMapLayer` runtime dans le constructeur de copie.
+- ✅ Ajouter `Constants.FileNameExtensions.TileSet = ".tileset"`.
+- ✅ Sauvegarder/restaurer le nom de layer si le modèle garde `TileMapLayerData.Name`.
+
+Critères d'acceptation :
+
+- Une suppression ou modification de tile est visible au rendu, sauvegardable, et ne laisse pas de collider orphelin.
+- Deux composants clonés ne partagent pas la même liste runtime de tiles.
+- Une map invalide produit un message explicite, pas une exception cryptique d'index ou de dictionnaire.
+- Les assets existants `.tileMap`/`.tileset` continuent à se charger.
+
+Vérifications :
+
+- ✅ Ajouter des tests unitaires de validation `TileMapData` si le projet de tests peut référencer ces types sans GraphicsDevice.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
+- 🧪 Lancer ou vérifier `TileMapDemo` si possible.
+
+## ⏳ Phase 2 - Réduire le coût runtime immédiat
+
+Priorité : très haute.
+
+Fichiers probables :
+
+- `CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs`
+- `CasaEngine/Framework/Assets/TileMap/TileMapLayer.cs`
+- classes caméra/renderer 2D utiles pour obtenir le rectangle visible
+
+Tâches :
+
+- ⏳ Corriger `GetBoundingBox` avec min/max explicites malgré l'axe Y négatif.
+- ⏳ Éviter `Layers.Min`/`Layers.Max` dans `GetBoundingBox` si cette méthode peut être appelée fréquemment.
+- ⏳ Remplacer l'update global de toutes les tiles par des listes spécialisées : auto-tiles dirty et animated tiles.
+- ⏳ Calculer le rectangle visible caméra en coordonnées monde 2D.
+- ⏳ Convertir ce rectangle en plage de tiles visibles.
+- ⏳ Dessiner uniquement `minTileX..maxTileX` et `minTileY..maxTileY`.
+- ⏳ Ignorer les empty tiles avant tout appel `Draw`.
+- ⏳ Ajouter une marge de sécurité optionnelle pour éviter le pop-in aux bords.
+
+Critères d'acceptation :
+
+- Le coût de `Draw` dépend de la zone visible, pas de la taille totale de la map.
+- Le rendu reste correct avec zoom caméra, caméra partiellement hors map, position de map non nulle et scale non uniforme.
+- Les auto-tiles ne recalculent pas toute la map après chaque frame.
+
+Vérifications :
+
+- 🧪 Tester avec la map démo existante.
+- 🧪 Ajouter une map de test plus grande ou générée temporairement pour observer que seule la zone visible est parcourue.
+- 🧪 Mesurer au moins le nombre de tiles visitées avant/après en debug.
+
+## ⏳ Phase 3 - Import Tiled v1 : conversion editor/offline
+
+Priorité : haute.
+
+But : importer une map Tiled simple et produire des assets CasaEngine natifs.
+
+Portée v1 recommandée :
+
+- Maps Tiled orthogonales finies.
+- Format `.tmx` + `.tsx` et/ou export JSON Tiled.
+- Tile layers classiques.
+- Un tileset image par map pour la première livraison, ou erreur claire si plusieurs tilesets sont détectés.
+- GIDs Tiled sans flips pour la première validation, ou stockage minimal des flags si le modèle est étendu dans la même phase.
+- Copie/import de l'image du tileset vers le dossier projet.
+- Génération de `.texture`, `.tileset` et `.tileMap` CasaEngine.
+
+Fichiers probables :
+
+- `CasaEngine.EditorServices/EditorAssetImportService.cs`
+- nouveau `CasaEngine.EditorServices/Tiled/TiledMapImporter.cs`
+- nouveau `CasaEngine.EditorServices/Tiled/TiledMapImportResult.cs`
+- `CasaEngine/Framework/Configuration/Constants.cs`
+- `CasaEngine.EditorServices/EditorAssetJsonSerializer.cs`
+- éventuellement `Directory.Packages.props` si une dépendance dédiée est retenue
+
+Décision de dépendance :
+
+- Option recommandée : parser minimal avec `System.Xml.Linq` pour `.tmx/.tsx` et `Newtonsoft.Json.Linq` pour JSON Tiled, car Newtonsoft est déjà présent.
+- Option acceptable : ajouter une dépendance Tiled dédiée seulement si elle réduit vraiment le risque et reste dans `EditorServices` ou dans le pipeline d'import, pas dans le runtime TileMap.
+- Ne pas utiliser le format Tiled comme modèle runtime principal.
+
+Tâches :
+
+- ⏳ Ajouter la détection `.tmx`, `.tsx`, `.json` Tiled dans l'import éditeur.
+- ⏳ Créer un importeur qui lit les champs Tiled essentiels : `orientation`, `width`, `height`, `tilewidth`, `tileheight`, `layers`, `tilesets`.
+- ⏳ Rejeter explicitement les orientations non supportées en v1 : isometric, staggered, hexagonal.
+- ⏳ Convertir `gid == 0` en tile vide CasaEngine `-1`.
+- ⏳ Masquer les flags Tiled avant de résoudre l'ID de tile : horizontal, vertical, diagonal/anti-diagonal selon le format Tiled.
+- ⏳ Mapper `firstgid + local tile id` vers des IDs CasaEngine stables.
+- ⏳ Générer `TileSetData` depuis les rectangles de l'image tileset.
+- ⏳ Créer/importer le wrapper `.texture` de l'image tileset en réutilisant ou extrayant la logique existante d'import texture.
+- ⏳ Générer `TileMapData` avec une layer CasaEngine par tile layer Tiled.
+- ⏳ Conserver le nom des layers Tiled dans `TileMapLayerData.Name`.
+- ⏳ Convertir l'ordre des layers et `zOffset` de façon déterministe.
+- ⏳ Inscrire les nouveaux assets dans `EditorAssetCatalogService`.
+- ⏳ Sauvegarder le catalogue après import.
+- ⏳ Retourner un résultat d'import affichable dans l'éditeur : assets créés, warnings, limitations.
+
+Critères d'acceptation :
+
+- Un fichier `.tmx` orthogonal simple importé depuis Tiled crée au minimum un `.tileMap`, un `.tileset` et un `.texture` utilisables par CasaEngine.
+- La map importée s'ouvre dans le runtime ou dans `TileMapDemo` après adaptation minimale de l'asset chargé.
+- Les tiles vides, noms de layers, taille de map et UV de tileset sont corrects.
+- Les flips Tiled ne polluent pas les IDs de tile, même si le rendu des flips est repoussé.
+- Les erreurs d'import expliquent précisément la fonctionnalité Tiled non supportée.
+
+Vérifications :
+
+- 🧪 Ajouter un petit fixture Tiled de test dans un dossier de tests ou de samples, avec une image très petite.
+- 🧪 Tester import `.tmx` avec tileset externe `.tsx`.
+- 🧪 Tester map avec cellules vides.
+- 🧪 Tester map avec plusieurs layers.
+- 🧪 Tester comportement sur une map isométrique : l'import doit refuser clairement.
+
+## ⏳ Phase 4 - Import Tiled v2 : fidélité des données
+
+Priorité : moyenne à haute.
+
+But : couvrir les usages Tiled courants au-delà d'une map simple.
+
+Tâches :
+
+- ⏳ Supporter plusieurs tilesets dans une même map.
+- ⏳ Décider entre deux modèles : étendre `TileMapData` avec plusieurs références tileset, ou générer un atlas/tileset CasaEngine combiné à l'import.
+- ⏳ Supporter les flip flags Tiled dans le modèle runtime : horizontal, vertical, diagonal, rotation dérivée.
+- ⏳ Ajouter une structure de cellule si nécessaire : `TileCell { int TileId; TileFlags Flags; }`, en gardant la compatibilité avec `List<int>`.
+- ⏳ Importer les animations Tiled (`tile.animation`) vers `AnimatedTileData` ou vers des métadonnées convertibles.
+- ⏳ Importer les collisions Tiled depuis `objectgroup` des tiles vers `TileData.CollisionShape`.
+- ⏳ Importer les object layers Tiled comme données editor : triggers, spawn points, regions, zones de collision.
+- ⏳ Importer les custom properties Tiled de map, layer, tile et object dans un dictionnaire typé ou une extension metadata.
+- ⏳ Supporter tilesets embedded dans `.tmx`, pas seulement `.tsx` externe.
+- ⏳ Supporter les chemins relatifs Windows/Unix et les chemins contenant des espaces.
+
+Critères d'acceptation :
+
+- Une map Tiled avec deux tilesets importe sans perte majeure.
+- Les collisions dessinées dans Tiled deviennent visibles dans l'overlay/debug collision CasaEngine.
+- Les animations Tiled simples se retrouvent comme animated tiles CasaEngine.
+- Les propriétés personnalisées importantes restent disponibles pour gameplay/editor.
+
+## ⏳ Phase 5 - Chunking visuel
+
+Priorité : haute après culling.
+
+Fichiers probables :
+
+- nouveau `CasaEngine/Framework/Assets/TileMap/TileMapChunk.cs` ou namespace runtime plus approprié
+- nouveau `TileMapRenderer` si l'architecture est séparée du composant
+- `TileMapComponent.cs`
+
+Structure cible indicative :
+
+```csharp
+public sealed class TileMapChunk
+{
+    public Point ChunkIndex;
+    public Rectangle TileBounds;
+    public BoundingBox WorldBounds;
+    public bool DirtyVisual;
+    public bool DirtyCollision;
+    public bool ContainsAnimatedTiles;
+}
+```
+
+Tâches :
+
+- ⏳ Choisir une taille de chunk par défaut : 16x16 ou 32x32 tiles.
+- ⏳ Créer les chunks au chargement ou au premier besoin.
+- ⏳ Associer chaque tile à un chunk sans allocation par frame.
+- ⏳ Ajouter `MarkChunkDirty(layerIndex, x, y)`.
+- ⏳ Dessiner seulement les chunks visibles.
+- ⏳ Ajouter un overlay debug chunks/visible chunks.
+- ⏳ Garder le fallback cellule par cellule pendant la transition si nécessaire.
+
+Critères d'acceptation :
+
+- Modifier une tile ne reconstruit que son chunk et les voisins nécessaires pour auto-tiles.
+- Une grande map ne parcourt pas les chunks hors caméra.
+- Le debug overlay permet de vérifier les bounds de chunks.
+
+## ⏳ Phase 6 - Buffers statiques par chunk
+
+Priorité : haute.
+
+Tâches :
+
+- ⏳ Générer les quads statiques du chunk dans des tableaux réutilisés.
+- ⏳ Créer ou mettre à jour `VertexBuffer`/`IndexBuffer` par chunk et par texture/material si nécessaire.
+- ⏳ Séparer tiles statiques et tiles animées.
+- ⏳ Grouper par texture/tileset pour réduire les draw calls.
+- ⏳ Rebuilder uniquement les chunks dirty.
+- ⏳ Libérer correctement les buffers GPU.
+- ⏳ Gérer device reset/reload content.
+
+Critères d'acceptation :
+
+- Une layer statique visible se rend par chunks, pas par appel `DrawSprite` par tile.
+- Les ressources GPU sont libérées quand la TileMap ou le monde est déchargé.
+- Le nombre de draw calls est mesurable en debug.
+
+## ⏳ Phase 7 - Collisions par chunks
+
+Priorité : haute.
+
+Tâches :
+
+- ⏳ Créer un modèle `TileMapCollisionChunk`.
+- ⏳ Extraire les tiles solides par chunk.
+- ⏳ Fusionner les rectangles adjacents de même type.
+- ⏳ Supprimer les anciens colliders lors d'un rebuild de chunk.
+- ⏳ Distinguer solides, triggers et `NoContactResponse`.
+- ⏳ Exploiter `TileData.CollisionShape` au lieu de tout convertir en full box.
+- ⏳ Préparer le support one-way/slopes/custom polygon.
+- ⏳ Ajouter debug draw collision.
+
+Critères d'acceptation :
+
+- Une zone solide continue génère beaucoup moins de colliders que le nombre de tiles.
+- `RemoveTile` ou `SetTile` reconstruit seulement la collision du chunk concerné.
+- Les colliders orphelins ne restent pas dans le monde physique.
+
+## ⏳ Phase 8 - Animated tiles et auto-tiles modernes
+
+Priorité : moyenne.
+
+Tâches animated tiles :
+
+- ⏳ Finaliser le chargement de `AnimatedTileData` dans `TileMapComponent`.
+- ⏳ Créer une liste runtime `_animatedTiles` ou équivalent.
+- ⏳ Mettre à jour uniquement les tiles animées.
+- ⏳ Mettre à jour UV/frame sans reconstruire toute la map si possible.
+- ⏳ Supporter loop, vitesse, ping-pong et temps global/local.
+
+Tâches auto-tiles :
+
+- ⏳ Remplacer le recalcul global par un recalcul des cellules modifiées et de leurs voisins.
+- ⏳ Clarifier les règles supportées : 4-bit, 8-bit, Wang tiles ou règle CasaEngine existante.
+- ⏳ Importer à terme les Wang sets/Terrain sets Tiled si la donnée est compatible.
+- ⏳ Ajouter un debug mask de voisinage.
+
+Critères d'acceptation :
+
+- Une map avec quelques tiles animées ne déclenche pas `Update` sur toutes les cellules.
+- Peindre/effacer une auto-tile met à jour la cellule et ses voisins visibles sans recalcul global.
+
+## ⏳ Phase 9 - Intégration éditeur TileMap
+
+Priorité : moyenne.
+
+Tâches :
+
+- ⏳ Ajouter ou finaliser la vue TileMap editor côté MGUI/editor actuel.
+- ⏳ Ajouter palette de tileset.
+- ⏳ Ajouter outils paint, erase, fill, pipette, sélection rectangle et brush multi-tile.
+- ⏳ Ajouter overlays : collision, tile ids, chunks, zones visibles.
+- ⏳ Brancher undo/redo sur l'API centrale `SetTile`.
+- ⏳ Ajouter sauvegarde propre via `EditorAssetWriterService`.
+- ⏳ Ajouter commande/import UI pour `.tmx`/Tiled JSON dans le Content Browser.
+- ⏳ Afficher les warnings d'import Tiled dans l'éditeur.
+
+Critères d'acceptation :
+
+- L'utilisateur peut importer une map Tiled depuis le Content Browser.
+- L'utilisateur peut ouvrir/inspecter la TileMap générée.
+- Les modifications éditeur passent par undo/redo et sont sauvegardées.
+
+## ⏳ Phase 10 - Streaming et grosses maps
+
+Priorité : long terme.
+
+Tâches :
+
+- ⏳ Supporter les maps Tiled infinies si nécessaire.
+- ⏳ Charger/décharger des chunks autour de la caméra.
+- ⏳ Précharger une marge configurable.
+- ⏳ Gérer worlds composés de plusieurs TileMaps.
+- ⏳ Éviter les assets monolithiques pour les très grandes maps.
+- ⏳ Ajouter dépendances assets par chunk.
+
+Critères d'acceptation :
+
+- Une grande map ne doit pas être entièrement présente en mémoire visuelle/physique si seules quelques zones sont actives.
+- Les chunks chargés/déchargés restent cohérents avec la sauvegarde éditeur.
+
+## Ordre recommandé de livraison
+
+1. Phase 1 : fiabilisation data/mutation.
+2. Phase 2 : culling caméra et réduction update.
+3. Phase 3 : import Tiled v1 orthogonal simple.
+4. Phase 5 : chunking visuel.
+5. Phase 6 : buffers statiques par chunk.
+6. Phase 7 : collisions fusionnées.
+7. Phase 4 : fidélité Tiled avancée.
+8. Phase 8 : animated/auto-tiles modernes.
+9. Phase 9 : éditeur complet.
+10. Phase 10 : streaming.
+
+## Risques et décisions à prendre
+
+- Multi-tileset Tiled : étendre `TileMapData` ou générer un tileset combiné à l'import.
+- Flip flags Tiled : ajouter un modèle `TileCell` compatible ou refuser temporairement avec warning.
+- Collisions Tiled : convertir en `Collision2d` existant ou créer un format TileMap collision dédié.
+- Dépendance Tiled : parser minimal interne ou package spécialisé limité à l'import editor.
+- Renderer TileMap : rester dans `SpriteRendererComponent` temporairement ou introduire vite un `TileMapRenderer` séparé.
+
+## Definition of Done globale
+
+- Les assets existants se chargent toujours.
+- Une map Tiled orthogonale simple s'importe et se rend dans CasaEngine.
+- Le rendu TileMap ne parcourt plus toute la map visible ou non visible.
+- Les mutations de tiles sont centralisées, sauvegardables et synchronisées avec physique/rendu.
+- Les collisions de grandes zones sont fusionnées ou au moins préparées par chunks.
+- Les tests ou samples documentent les cas couverts et les limitations restantes.

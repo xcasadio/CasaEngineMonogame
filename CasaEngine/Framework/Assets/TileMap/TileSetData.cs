@@ -17,6 +17,16 @@ public class TileSetData : ObjectBase
         return _tileById[tileId];
     }
 
+    public bool IsKnownTileId(int tileId)
+    {
+        return _tileById.ContainsKey(tileId);
+    }
+
+    public bool TryGetTileData(int tileId, out TileData? tileData)
+    {
+        return _tileById.TryGetValue(tileId, out tileData);
+    }
+
     public override void Load(JObject element)
     {
         base.Load(element);

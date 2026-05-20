@@ -271,6 +271,7 @@ internal static class EditorAssetJsonSerializer
 
     private static void SaveTileMapLayerData(TileMapLayerData layer, JObject node)
     {
+        node.Add("name", string.IsNullOrWhiteSpace(layer.Name) ? JValue.CreateNull() : layer.Name);
         node.Add("z_offset", layer.zOffset);
         node.Add("tiles", new JArray(layer.tiles));
     }

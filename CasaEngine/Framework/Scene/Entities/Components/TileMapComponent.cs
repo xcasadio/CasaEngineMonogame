@@ -3,9 +3,11 @@ using BulletSharp;
 
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 
@@ -18,6 +20,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private List<TileMapLayer> Layers { get; } = new();
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
+    private IPhysicsWorldContext? _physicsWorldContext;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -32,8 +35,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public TileMapComponent(TileMapComponent other) : base(other)
     {
-        Layers.AddRange(other.Layers);
         TileMapData = other.TileMapData;
+        TileSetData = other.TileSetData;
         TileMapDataAssetId = other.TileMapDataAssetId;
     }
 
@@ -42,8 +45,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         base.InitializeWithWorld(world);
 
         Layers.Clear();
+        _collisionObjects.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
+        _physicsWorldContext = Owner.World.PhysicsWorldContext;
 
         if (TileMapDataAssetId != Guid.Empty)
         {
@@ -55,8 +60,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return;
         }
 
+        TileMapData.Validate();
+
         TileSetData = Owner.World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
-        var tileSize = TileSetData.TileSize;
 
         var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
         texture.Load(Owner.World.Game.AssetContentManager);
@@ -73,75 +79,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             {
                 for (var x = 0; x < mapWidth; x++)
                 {
-                    var tileId = tileMapLayerData.tiles[x + y * mapWidth];
-                    Tile? tile;
-
-                    if (tileId == -1)
-                    {
-                        tile = new EmptyTile();
-                    }
-                    else
-                    {
-                        var tileData = TileSetData.GetTileData(tileId);
-
-                        switch (tileData.Type)
-                        {
-                            case TileType.Auto:
-                                {
-                                    AutoTileData autoTileData = tileData as AutoTileData;
-                                    var autoTile = new AutoTile(texture.Resource, autoTileData);
-                                    autoTile.SetTileInfo(tileSize, TileMapData.MapSize, tileMapLayerData, x, y);
-                                    tile = autoTile;
-                                    _needsAutoTileRefresh = true;
-                                    break;
-                                }
-                            case TileType.Static:
-                                {
-                                    tile = new StaticTile(texture.Resource, tileData as StaticTileData);
-                                    break;
-                                }
-                            //case TileType.Animated:
-                            //    {
-                            //        var animatedTileParams = tileData as AnimatedTileData;
-                            //        var animation = assetContentManager.GetAsset<Animation2dData>(animatedTileParams.Animation2dId);
-                            //        return new AnimatedTile(new Animation2d(animation), animatedTileParams);
-                            //    }
-                            default:
-                                throw new ArgumentException($"tile type not supported {tileData.Type}");
-                        }
-
-                        switch (tileData.CollisionType)
-                        {
-                            case TileCollisionType.NoContactResponse:
-                            case TileCollisionType.Blocked:
-                                var physicsWorldContext = Owner.World.PhysicsWorldContext;
-                                var worldMatrix = WorldMatrixNoScale;
-                                worldMatrix.Translation += new Vector3(
-                                    x * tileSize.Width + tileSize.Width / 2f,
-                                    -y * tileSize.Height - tileSize.Height / 2f,
-                                    0f);
-                                var box = new BoxShape(tileSize.Width / 2f, tileSize.Height / 2f, 0.5f);
-                                box.LocalScaling = LocalScale;
-                                box.UserObject = this;
-                                var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
-                                if (tileData.CollisionType == TileCollisionType.NoContactResponse)
-                                {
-                                    var collisionObject = physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
-                                    _collisionObjects.Add(collisionObject);
-                                }
-                                else
-                                {
-                                    var rigidBody = physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
-                                        new PhysicsDefinition { Friction = 0f });
-                                    _collisionObjects.Add(rigidBody);
-                                }
-
-                                break;
-                        }
-                    }
-
-                    tile.Initialize(Owner.World.Game);
-                    tileMapLayer.Tiles.Add(tile);
+                    tileMapLayer.Tiles.Add(CreateRuntimeTile(texture.Resource, tileMapLayerData, layerIndex, x, y));
+                    tileMapLayer.CollisionObjects.Add(CreateCollisionObject(layerIndex, x, y));
                 }
             }
         }
@@ -182,25 +121,45 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public override BoundingBox GetBoundingBox()
     {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-
         if (TileMapData != null)
         {
-            min = Vector3.Min(min, new Vector3(0, 0, TileMapData.Layers.Min(x => x.zOffset)));
-            max = Vector3.Max(max, new Vector3(
+            var p0 = Vector3.Zero;
+            var p1 = new Vector3(
                 TileMapData.MapSize.Width * TileSetData.TileSize.Width,
                 -TileMapData.MapSize.Height * TileSetData.TileSize.Height,
-                TileMapData.Layers.Max(x => x.zOffset)));
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            min = Vector3.One * -length;
-            max = Vector3.One * length;
+                0f);
+
+            var minZ = TileMapData.Layers.Count > 0 ? TileMapData.Layers[0].zOffset : 0f;
+            var maxZ = minZ;
+
+            for (var layerIndex = 1; layerIndex < TileMapData.Layers.Count; layerIndex++)
+            {
+                var zOffset = TileMapData.Layers[layerIndex].zOffset;
+                if (zOffset < minZ)
+                {
+                    minZ = zOffset;
+                }
+
+                if (zOffset > maxZ)
+                {
+                    maxZ = zOffset;
+                }
+            }
+
+            var min = new Vector3(
+                Math.Min(p0.X, p1.X),
+                Math.Min(p0.Y, p1.Y),
+                minZ);
+            var max = new Vector3(
+                Math.Max(p0.X, p1.X),
+                Math.Max(p0.Y, p1.Y),
+                maxZ);
+
+            return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
         }
 
-        return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
+        const float length = 0.5f;
+        return new BoundingBox(Vector3.One * -length, Vector3.One * length).Transform(WorldMatrixWithScale);
     }
 
     public override void Draw(float elapsedTime)
@@ -236,12 +195,34 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public void RemoveTile(int layer, int x, int y)
     {
-        var tile = Layers[layer].Tiles[x + y * TileMapData.MapSize.Width];
+        SetTile(layer, x, y, TileMapData.EmptyTileId);
+    }
 
-        //TODO : remove the physics and other stuff
+    public int GetTileId(int layerIndex, int x, int y)
+    {
+        EnsureTileMapLoaded();
+        return TileMapData.GetTileId(layerIndex, x, y);
+    }
 
-        Layers[layer].Tiles[x + y * TileMapData.MapSize.Width] = new EmptyTile();
+    public void SetTile(int layerIndex, int x, int y, int tileId)
+    {
+        EnsureTileMapLoaded();
+        EnsureValidTileId(tileId);
+
+        var tileIndex = TileMapData.GetTileIndex(x, y);
+        var layerData = TileMapData.Layers[layerIndex];
+        var layerRuntime = Layers[layerIndex];
+
+        if (layerData.tiles[tileIndex] == tileId)
+        {
+            return;
+        }
+
+        layerData.tiles[tileIndex] = tileId;
+        ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
+
         _needsAutoTileRefresh = true;
+        IsBoundingBoxDirty = true;
         Owner?.Policies.RequestConditionalUpdate();
     }
 
@@ -249,6 +230,161 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         base.Load(element);
         TileMapDataAssetId = element["tile_map_data_asset_id"].GetGuid();
+    }
+
+    private void EnsureTileMapLoaded()
+    {
+        if (TileMapData == null)
+        {
+            throw new InvalidOperationException("TileMapData must be loaded before accessing tile data.");
+        }
+
+        if (TileSetData == null)
+        {
+            throw new InvalidOperationException("TileSetData must be loaded before accessing tile data.");
+        }
+    }
+
+    private void EnsureValidTileId(int tileId)
+    {
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            return;
+        }
+
+        if (!TileSetData.IsKnownTileId(tileId))
+        {
+            throw new ArgumentException($"Unknown tile id '{tileId}'.", nameof(tileId));
+        }
+    }
+
+    private Tile CreateRuntimeTile(Texture2D texture, TileMapLayerData tileMapLayerData, int layerIndex, int x, int y)
+    {
+        var tileId = tileMapLayerData.tiles[TileMapData.GetTileIndex(x, y)];
+        Tile tile;
+
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            tile = new EmptyTile();
+        }
+        else if (TileSetData.TryGetTileData(tileId, out var tileData) && tileData != null)
+        {
+            switch (tileData.Type)
+            {
+                case TileType.Auto:
+                    var autoTileData = tileData as AutoTileData ?? throw new InvalidOperationException($"Tile {tileId} is not a valid auto tile.");
+                    var autoTile = new AutoTile(texture, autoTileData);
+                    autoTile.SetTileInfo(TileSetData.TileSize, TileMapData.MapSize, tileMapLayerData, x, y);
+                    tile = autoTile;
+                    _needsAutoTileRefresh = true;
+                    break;
+
+                case TileType.Static:
+                    tile = new StaticTile(texture, tileData as StaticTileData);
+                    break;
+
+                default:
+                    throw new ArgumentException($"tile type not supported {tileData.Type}");
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown tile id '{tileId}' in layer {layerIndex} at ({x}, {y}).");
+        }
+
+        tile.Initialize(Owner.World.Game);
+        return tile;
+    }
+
+    private CollisionObject? CreateCollisionObject(int layerIndex, int x, int y)
+    {
+        var tileId = TileMapData.GetTileId(layerIndex, x, y);
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            return null;
+        }
+
+        if (!TileSetData.TryGetTileData(tileId, out var tileData) || tileData == null)
+        {
+            return null;
+        }
+
+        if (tileData.CollisionType != TileCollisionType.NoContactResponse && tileData.CollisionType != TileCollisionType.Blocked)
+        {
+            return null;
+        }
+
+        if (_physicsWorldContext == null)
+        {
+            return null;
+        }
+
+        var tileSize = TileSetData.TileSize;
+        var worldMatrix = WorldMatrixNoScale;
+        worldMatrix.Translation += new Vector3(
+            x * tileSize.Width + tileSize.Width / 2f,
+            -y * tileSize.Height - tileSize.Height / 2f,
+            0f);
+        var box = new BoxShape(tileSize.Width / 2f, tileSize.Height / 2f, 0.5f)
+        {
+            LocalScaling = LocalScale,
+            UserObject = this,
+        };
+
+        var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
+
+        CollisionObject collisionObject;
+        if (tileData.CollisionType == TileCollisionType.NoContactResponse)
+        {
+            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
+        }
+        else
+        {
+            collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
+                new PhysicsDefinition { Friction = 0f });
+        }
+
+        _collisionObjects.Add(collisionObject);
+        return collisionObject;
+    }
+
+    private void ReplaceRuntimeTile(TileMapLayer layerRuntime, TileMapLayerData layerData, int layerIndex, int x, int y, int tileIndex)
+    {
+        RemoveCollisionObject(layerRuntime.CollisionObjects[tileIndex]);
+        layerRuntime.CollisionObjects[tileIndex] = null;
+
+        var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
+        texture.Load(Owner.World.Game.AssetContentManager);
+
+        layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(texture.Resource, layerData, layerIndex, x, y);
+        layerRuntime.CollisionObjects[tileIndex] = CreateCollisionObject(layerIndex, x, y);
+    }
+
+    private void RemoveCollisionObject(CollisionObject? collisionObject)
+    {
+        if (collisionObject == null)
+        {
+            return;
+        }
+
+        if (_physicsWorldContext == null)
+        {
+            return;
+        }
+
+        _physicsWorldContext.ClearCollisionDataFrom(this);
+
+        if (collisionObject is RigidBody rigidBody)
+        {
+            _physicsWorldContext.RemoveRigidBody(rigidBody);
+        }
+        else
+        {
+            _physicsWorldContext.RemoveCollisionObject(collisionObject);
+        }
+
+        _collisionObjects.Remove(collisionObject);
+        collisionObject.Dispose();
     }
 
 }
