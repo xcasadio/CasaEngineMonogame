@@ -311,7 +311,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 3 — Component scene et integration moteur
 
-- ⏳ **T03.01 — Creer `ParticleSystemComponent`**
+- ✅ **T03.01 — Creer `ParticleSystemComponent`**
   Objectif :
   - Ajouter composant scene avec `ParticleEffectAssetId`, `PlayOnStart`, `Looping`, `SimulateInEditor`, overrides V1 simples.
   - Charger l'asset via `AssetContentManager` dans `InitializeWithWorld`.

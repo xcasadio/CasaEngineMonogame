@@ -212,6 +212,10 @@ internal static class EditorEntityJsonSerializer
                 SavePhysicsBaseComponent(physicsBaseComponent, node);
                 return;
 
+            case ParticleSystemComponent particleSystemComponent:
+                SaveParticleSystemComponent(particleSystemComponent, node);
+                return;
+
             case StaticModelComponent staticModelComponent:
                 SaveStaticModelComponent(staticModelComponent, node);
                 return;
@@ -317,6 +321,21 @@ internal static class EditorEntityJsonSerializer
     {
         SaveSceneComponent(component, node);
         node.Add("tile_map_data_asset_id", component.TileMapDataAssetId);
+    }
+
+    private static void SaveParticleSystemComponent(ParticleSystemComponent component, JObject node)
+    {
+        SaveSceneComponent(component, node);
+        node.Add("particle_effect_asset_id", component.ParticleEffectAssetId.ToString());
+        node.Add("play_on_start", component.PlayOnStart);
+        node.Add("looping", component.Looping);
+        node.Add("simulate_in_editor", component.SimulateInEditor);
+        node.Add("simulation_speed", component.SimulationSpeed);
+        node.Add("emission_scale", component.EmissionScale);
+
+        var colorTintNode = new JObject();
+        component.ColorTint.Save(colorTintNode);
+        node.Add("color_tint", colorTintNode);
     }
 
     private static void SavePhysicsBaseComponent(PhysicsBaseComponent component, JObject node)
