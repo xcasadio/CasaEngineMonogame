@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
@@ -8,6 +9,16 @@ namespace CasaEngine.Framework.Application.Components;
 public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private const int InitialPacketCapacity = 1024;
+    private static readonly BlendState MultiplyBlendState = new()
+    {
+        ColorSourceBlend = Blend.DestinationColor,
+        ColorDestinationBlend = Blend.Zero,
+        AlphaSourceBlend = Blend.DestinationAlpha,
+        AlphaDestinationBlend = Blend.Zero,
+        ColorBlendFunction = BlendFunction.Add,
+        AlphaBlendFunction = BlendFunction.Add,
+    };
+
     private readonly List<ParticleRenderPacket> _packets = new(InitialPacketCapacity);
     private VertexPositionColor[] _vertices = new VertexPositionColor[InitialPacketCapacity * 4];
     private int[] _indices = new int[InitialPacketCapacity * 6];
@@ -65,6 +76,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
 
         EnsureCapacity(_packets.Count);
+        ParticleRenderPacketSorter.Sort(_packets);
         BuildBillboardBuffers(in frame);
         DrawPackets(in frame);
         FrameFlushedParticleCount += _packets.Count;
@@ -132,26 +144,41 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
         try
         {
-            graphicsDevice.BlendState = BlendState.AlphaBlend;
-            graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
 
             _effect.World = Matrix.Identity;
             _effect.View = frame.View;
             _effect.Projection = frame.Projection;
 
-            int primitiveCount = _packets.Count * 2;
-            foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
+            int segmentStartPacketIndex = 0;
+            while (segmentStartPacketIndex < _packets.Count)
             {
-                pass.Apply();
-                graphicsDevice.DrawUserIndexedPrimitives(
-                    PrimitiveType.TriangleList,
-                    _vertices,
-                    0,
-                    _packets.Count * 4,
-                    _indices,
-                    0,
-                    primitiveCount);
+                ParticleRenderPacket segmentPacket = _packets[segmentStartPacketIndex];
+                int segmentEndPacketIndex = segmentStartPacketIndex + 1;
+                while (segmentEndPacketIndex < _packets.Count && HasSameRenderState(segmentPacket, _packets[segmentEndPacketIndex]))
+                {
+                    segmentEndPacketIndex++;
+                }
+
+                graphicsDevice.BlendState = GetBlendState(segmentPacket.BlendMode);
+                graphicsDevice.DepthStencilState = GetDepthStencilState(segmentPacket.DepthTest, segmentPacket.DepthWrite);
+
+                int primitiveCount = (segmentEndPacketIndex - segmentStartPacketIndex) * 2;
+                int startIndex = segmentStartPacketIndex * 6;
+                foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    graphicsDevice.DrawUserIndexedPrimitives(
+                        PrimitiveType.TriangleList,
+                        _vertices,
+                        0,
+                        _packets.Count * 4,
+                        _indices,
+                        startIndex,
+                        primitiveCount);
+                }
+
+                segmentStartPacketIndex = segmentEndPacketIndex;
             }
         }
         finally
@@ -161,6 +188,29 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             graphicsDevice.RasterizerState = previousRasterizerState;
             graphicsDevice.Indices = previousIndexBuffer;
         }
+    }
+
+    private static bool HasSameRenderState(in ParticleRenderPacket left, in ParticleRenderPacket right)
+        => left.BlendMode == right.BlendMode
+            && left.DepthTest == right.DepthTest
+            && left.DepthWrite == right.DepthWrite;
+
+    private static BlendState GetBlendState(ParticleBlendMode blendMode)
+        => blendMode switch
+        {
+            ParticleBlendMode.Additive => BlendState.Additive,
+            ParticleBlendMode.Multiply => MultiplyBlendState,
+            _ => BlendState.AlphaBlend,
+        };
+
+    private static DepthStencilState GetDepthStencilState(bool depthTest, bool depthWrite)
+    {
+        if (!depthTest)
+        {
+            return DepthStencilState.None;
+        }
+
+        return depthWrite ? DepthStencilState.Default : DepthStencilState.DepthRead;
     }
 
     protected override void Dispose(bool disposing)

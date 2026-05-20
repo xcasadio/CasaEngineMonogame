@@ -390,7 +390,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): flush particles per render view`
 
-- ⏳ **T04.04 — Ajouter blend/depth/sort V1**
+- ✅ **T04.04 — Ajouter blend/depth/sort V1**
   Objectif :
   - Supporter alpha blend et additive.
   - Supporter depth test configurable et depth write off par defaut.
