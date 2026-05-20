@@ -496,7 +496,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): preview particle effects in editor`
 
-- ⏳ **T06.04 — Ajouter edition basique curves/gradients**
+- ✅ **T06.04 — Ajouter edition basique curves/gradients**
   Objectif :
   - Fournir UI MGUI simple pour points de courbe/gradient.
   - Supporter presets et reset.

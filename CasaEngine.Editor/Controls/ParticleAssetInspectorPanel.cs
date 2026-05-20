@@ -243,6 +243,8 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             var emitter = _particleAsset.Emitters[emitterIndex];
             result.Add(string.Create(CultureInfo.InvariantCulture,
                 $"Emitter[{emitterIndex}]: {emitter.Name}, enabled={emitter.Enabled}, duration={emitter.Duration:0.###}, looping={emitter.Looping}, max={emitter.MaxParticles}, rate={emitter.Emission.RateOverTime:0.###}, shape={emitter.Shape.ShapeType}, blend={emitter.Renderer.BlendMode}"));
+            result.Add($"Emitter[{emitterIndex}] Curves: size={DescribeCurve(emitter.Simulation.SizeOverLifetime)}, alpha={DescribeCurve(emitter.Simulation.AlphaOverLifetime)}, velocity={DescribeCurve(emitter.Simulation.VelocityOverLifetime)}");
+            result.Add($"Emitter[{emitterIndex}] Gradients: start={DescribeGradient(emitter.Initial.StartColor)}, color={DescribeGradient(emitter.Simulation.ColorOverLifetime)}");
         }
 
         var previewStates = _particlePreview?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
@@ -434,6 +436,11 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _emitterStack.TryAddChild(BuildPropertyRow("Color", CreateColorEditor(GetGradientPreviewColor(emitter.Initial.StartColor), value => ApplyChange(() => emitter.Initial.StartColor = ColorGradient.Constant(value), "Color"))));
         _emitterStack.TryAddChild(BuildPropertyRow("Texture", CreateTextureSelector(emitter)));
         _emitterStack.TryAddChild(BuildPropertyRow("Blend", CreateEnumCombo(emitter.Renderer.BlendMode, value => ApplyChange(() => emitter.Renderer.BlendMode = value, "Blend"))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Start Gradient", CreateGradientEditor(emitter.Initial.StartColor, (value, refresh) => ApplyChange(() => emitter.Initial.StartColor = value, "Start Gradient", refresh))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Size Curve", CreateCurveEditor(emitter.Simulation.SizeOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.SizeOverLifetime = value, "Size Curve", refresh))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Alpha Curve", CreateCurveEditor(emitter.Simulation.AlphaOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.AlphaOverLifetime = value, "Alpha Curve", refresh))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Velocity Curve", CreateCurveEditor(emitter.Simulation.VelocityOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.VelocityOverLifetime = value, "Velocity Curve", refresh))));
+        _emitterStack.TryAddChild(BuildPropertyRow("Color Lifetime", CreateGradientEditor(emitter.Simulation.ColorOverLifetime, (value, refresh) => ApplyChange(() => emitter.Simulation.ColorOverLifetime = value, "Color Lifetime", refresh))));
     }
 
     private MGElement BuildPropertyRow(string label, MGElement editor)
@@ -630,11 +637,267 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         return combo;
     }
 
+    private MGElement CreateCurveEditor(FloatCurve curve, Action<FloatCurve, bool> onChanged)
+    {
+        FloatCurve currentCurve = CloneCurve(curve);
+        var stack = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 4,
+        };
+
+        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        toolbar.TryAddChild(CreateCompactButton("Add Key", () =>
+        {
+            currentCurve = AddCurveKey(currentCurve);
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Constant", () =>
+        {
+            currentCurve = FloatCurve.Constant(1.0f);
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Fade In", () =>
+        {
+            currentCurve = FloatCurve.FadeIn();
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Fade Out", () =>
+        {
+            currentCurve = FloatCurve.FadeOut();
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Bell", () =>
+        {
+            currentCurve = FloatCurve.Bell();
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Pulse", () =>
+        {
+            currentCurve = FloatCurve.Pulse();
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Reset", () =>
+        {
+            currentCurve = FloatCurve.Constant(1.0f);
+            onChanged(currentCurve, true);
+        }));
+        stack.TryAddChild(toolbar);
+
+        for (int keyIndex = 0; keyIndex < curve.Keys.Count; keyIndex++)
+        {
+            int capturedIndex = keyIndex;
+            FloatCurveKey key = curve.Keys[keyIndex];
+            var row = new MGStackPanel(_window, Orientation.Horizontal)
+            {
+                Spacing = 4,
+            };
+            row.TryAddChild(new MGTextBlock(_window, $"#{keyIndex + 1}")
+            {
+                PreferredWidth = 28,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            row.TryAddChild(CreateLabeledFloatField("T", key.Time, 0.0f, 1.0f, 0.05f, value =>
+            {
+                FloatCurveKey currentKey = GetCurveKeyOrFallback(currentCurve, capturedIndex, key);
+                currentCurve = ReplaceCurveKey(currentCurve, capturedIndex, value, currentKey.Value);
+                onChanged(currentCurve, true);
+            }));
+            row.TryAddChild(CreateLabeledFloatField("V", key.Value, -100000.0f, 100000.0f, 0.05f, value =>
+            {
+                FloatCurveKey currentKey = GetCurveKeyOrFallback(currentCurve, capturedIndex, key);
+                currentCurve = ReplaceCurveKey(currentCurve, capturedIndex, currentKey.Time, value);
+                onChanged(currentCurve, false);
+            }));
+            row.TryAddChild(CreateCompactButton("Remove", () =>
+            {
+                currentCurve = RemoveCurveKey(currentCurve, capturedIndex);
+                onChanged(currentCurve, true);
+            }));
+            stack.TryAddChild(row);
+        }
+
+        return stack;
+    }
+
+    private MGElement CreateGradientEditor(ColorGradient gradient, Action<ColorGradient, bool> onChanged)
+    {
+        ColorGradient currentGradient = CloneGradient(gradient);
+        var stack = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 4,
+        };
+
+        var presetRow = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        presetRow.TryAddChild(CreateCompactButton("White", () =>
+        {
+            currentGradient = ColorGradient.White;
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Fire", () =>
+        {
+            currentGradient = ColorGradient.Fire();
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Smoke", () =>
+        {
+            currentGradient = ColorGradient.Smoke();
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Magic", () =>
+        {
+            currentGradient = ColorGradient.MagicBlue();
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Reset", () =>
+        {
+            currentGradient = ColorGradient.White;
+            onChanged(currentGradient, true);
+        }));
+        stack.TryAddChild(presetRow);
+
+        var colorToolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        colorToolbar.TryAddChild(new MGTextBlock(_window, "Color Keys")
+        {
+            PreferredWidth = 84,
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = 0.8f,
+        });
+        colorToolbar.TryAddChild(CreateCompactButton("Add Color", () =>
+        {
+            currentGradient = AddGradientColorKey(currentGradient);
+            onChanged(currentGradient, true);
+        }));
+        stack.TryAddChild(colorToolbar);
+
+        for (int keyIndex = 0; keyIndex < gradient.ColorKeys.Count; keyIndex++)
+        {
+            int capturedIndex = keyIndex;
+            ColorGradientKey key = gradient.ColorKeys[keyIndex];
+            var row = new MGStackPanel(_window, Orientation.Horizontal)
+            {
+                Spacing = 4,
+            };
+            row.TryAddChild(new MGTextBlock(_window, $"#{keyIndex + 1}")
+            {
+                PreferredWidth = 28,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            row.TryAddChild(CreateLabeledFloatField("T", key.Time, 0.0f, 1.0f, 0.05f, value =>
+            {
+                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
+                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, value, currentKey.Color);
+                onChanged(currentGradient, true);
+            }));
+            row.TryAddChild(CreateLabeledIntField("R", key.Color.R, 0, 255, value =>
+            {
+                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
+                Color color = new((byte)value, currentKey.Color.G, currentKey.Color.B, currentKey.Color.A);
+                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
+                onChanged(currentGradient, false);
+            }));
+            row.TryAddChild(CreateLabeledIntField("G", key.Color.G, 0, 255, value =>
+            {
+                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
+                Color color = new(currentKey.Color.R, (byte)value, currentKey.Color.B, currentKey.Color.A);
+                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
+                onChanged(currentGradient, false);
+            }));
+            row.TryAddChild(CreateLabeledIntField("B", key.Color.B, 0, 255, value =>
+            {
+                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
+                Color color = new(currentKey.Color.R, currentKey.Color.G, (byte)value, currentKey.Color.A);
+                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
+                onChanged(currentGradient, false);
+            }));
+            row.TryAddChild(CreateCompactButton("Remove", () =>
+            {
+                currentGradient = RemoveGradientColorKey(currentGradient, capturedIndex);
+                onChanged(currentGradient, true);
+            }));
+            stack.TryAddChild(row);
+        }
+
+        var alphaToolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        alphaToolbar.TryAddChild(new MGTextBlock(_window, "Alpha Keys")
+        {
+            PreferredWidth = 84,
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = 0.8f,
+        });
+        alphaToolbar.TryAddChild(CreateCompactButton("Add Alpha", () =>
+        {
+            currentGradient = AddGradientAlphaKey(currentGradient);
+            onChanged(currentGradient, true);
+        }));
+        stack.TryAddChild(alphaToolbar);
+
+        for (int keyIndex = 0; keyIndex < gradient.AlphaKeys.Count; keyIndex++)
+        {
+            int capturedIndex = keyIndex;
+            AlphaGradientKey key = gradient.AlphaKeys[keyIndex];
+            var row = new MGStackPanel(_window, Orientation.Horizontal)
+            {
+                Spacing = 4,
+            };
+            row.TryAddChild(new MGTextBlock(_window, $"#{keyIndex + 1}")
+            {
+                PreferredWidth = 28,
+                VerticalAlignment = VerticalAlignment.Center,
+            });
+            row.TryAddChild(CreateLabeledFloatField("T", key.Time, 0.0f, 1.0f, 0.05f, value =>
+            {
+                AlphaGradientKey currentKey = GetAlphaKeyOrFallback(currentGradient, capturedIndex, key);
+                currentGradient = ReplaceGradientAlphaKey(currentGradient, capturedIndex, value, currentKey.Alpha);
+                onChanged(currentGradient, true);
+            }));
+            row.TryAddChild(CreateLabeledFloatField("A", key.Alpha, 0.0f, 1.0f, 0.05f, value =>
+            {
+                AlphaGradientKey currentKey = GetAlphaKeyOrFallback(currentGradient, capturedIndex, key);
+                currentGradient = ReplaceGradientAlphaKey(currentGradient, capturedIndex, currentKey.Time, value);
+                onChanged(currentGradient, false);
+            }));
+            row.TryAddChild(CreateCompactButton("Remove", () =>
+            {
+                currentGradient = RemoveGradientAlphaKey(currentGradient, capturedIndex);
+                onChanged(currentGradient, true);
+            }));
+            stack.TryAddChild(row);
+        }
+
+        return stack;
+    }
+
     private MGButton CreateButton(string label, Action onClick)
     {
         var button = new MGButton(_window, _ => onClick())
         {
             PreferredWidth = 84,
+        };
+        button.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        return button;
+    }
+
+    private MGButton CreateCompactButton(string label, Action onClick)
+    {
+        var button = new MGButton(_window, _ => onClick())
+        {
+            PreferredWidth = 72,
         };
         button.SetContent(new MGTextBlock(_window, label)
         {
@@ -660,7 +923,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             WrapText = true,
         };
 
-    private void ApplyChange(Action change, string label)
+    private void ApplyChange(Action change, string label, bool refreshInspector = false)
     {
         if (_particleAsset == null)
         {
@@ -675,6 +938,10 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             RefreshSourceText();
             RefreshStatusText();
             _particlePreview?.RefreshParticleAsset();
+            if (refreshInspector)
+            {
+                RefreshInspector();
+            }
         }
         catch (Exception exception)
         {
@@ -800,6 +1067,27 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             case "color":
             case "startcolor":
                 return TryApplyColor(rawValue, value => emitter.Initial.StartColor = ColorGradient.Constant(value), "Color", out statusMessage);
+            case "startgradient":
+            case "startcolorgradient":
+            case "startcolorpreset":
+                return TryApplyGradientPreset(rawValue, value => emitter.Initial.StartColor = value, "Start Gradient", out statusMessage);
+            case "sizecurve":
+            case "sizeoverlifetime":
+            case "sizecurvepreset":
+                return TryApplyFloatCurvePreset(rawValue, value => emitter.Simulation.SizeOverLifetime = value, "Size Curve", out statusMessage);
+            case "alphacurve":
+            case "alphaoverlifetime":
+            case "alphacurvepreset":
+                return TryApplyFloatCurvePreset(rawValue, value => emitter.Simulation.AlphaOverLifetime = value, "Alpha Curve", out statusMessage);
+            case "velocitycurve":
+            case "velocityoverlifetime":
+            case "velocitycurvepreset":
+                return TryApplyFloatCurvePreset(rawValue, value => emitter.Simulation.VelocityOverLifetime = value, "Velocity Curve", out statusMessage);
+            case "colorlifetime":
+            case "coloroverlifetime":
+            case "colorgradient":
+            case "colorgradientpreset":
+                return TryApplyGradientPreset(rawValue, value => emitter.Simulation.ColorOverLifetime = value, "Color Lifetime", out statusMessage);
             default:
                 statusMessage = $"Unknown particle property '{propertyKey}'.";
                 return false;
@@ -883,6 +1171,43 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     private bool TryApplyColor(string rawValue, Action<Color> setter, string label, out string statusMessage)
     {
+        if (!TryParseColor(rawValue, out Color color, out statusMessage))
+        {
+            return false;
+        }
+
+        ApplyChange(() => setter(color), label);
+        statusMessage = string.Empty;
+        return true;
+    }
+
+    private bool TryApplyFloatCurvePreset(string rawValue, Action<FloatCurve> setter, string label, out string statusMessage)
+    {
+        if (!TryCreateFloatCurve(rawValue, out FloatCurve curve, out statusMessage))
+        {
+            return false;
+        }
+
+        ApplyChange(() => setter(curve), label, refreshInspector: true);
+        statusMessage = string.Empty;
+        return true;
+    }
+
+    private bool TryApplyGradientPreset(string rawValue, Action<ColorGradient> setter, string label, out string statusMessage)
+    {
+        if (!TryCreateGradient(rawValue, out ColorGradient gradient, out statusMessage))
+        {
+            return false;
+        }
+
+        ApplyChange(() => setter(gradient), label, refreshInspector: true);
+        statusMessage = string.Empty;
+        return true;
+    }
+
+    private static bool TryParseColor(string rawValue, out Color color, out string statusMessage)
+    {
+        color = Color.White;
         string[] components = rawValue.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (components.Length != 3 && components.Length != 4)
         {
@@ -905,9 +1230,109 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         byte green = values[1];
         byte blue = values[2];
         byte alpha = values[3];
-        ApplyChange(() => setter(new Color(red, green, blue, alpha)), label);
+        color = new Color(red, green, blue, alpha);
         statusMessage = string.Empty;
         return true;
+    }
+
+    private static bool TryCreateFloatCurve(string rawValue, out FloatCurve curve, out string statusMessage)
+    {
+        curve = FloatCurve.Constant(1.0f);
+        statusMessage = string.Empty;
+
+        string trimmedValue = rawValue.Trim();
+        if (trimmedValue.StartsWith("constant", StringComparison.OrdinalIgnoreCase))
+        {
+            float constantValue = 1.0f;
+            int separatorIndex = trimmedValue.IndexOfAny(new[] { ':', '=' });
+            if (separatorIndex >= 0)
+            {
+                string valueText = trimmedValue[(separatorIndex + 1)..].Trim();
+                if (!float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out constantValue)
+                    || float.IsNaN(constantValue)
+                    || float.IsInfinity(constantValue))
+                {
+                    statusMessage = $"Unable to parse curve constant value '{valueText}'.";
+                    return false;
+                }
+            }
+
+            curve = FloatCurve.Constant(constantValue);
+            return true;
+        }
+
+        switch (NormalizePropertyKey(trimmedValue))
+        {
+            case "reset":
+            case "one":
+                curve = FloatCurve.Constant(1.0f);
+                return true;
+            case "zero":
+                curve = FloatCurve.Constant(0.0f);
+                return true;
+            case "fadein":
+                curve = FloatCurve.FadeIn();
+                return true;
+            case "fadeout":
+                curve = FloatCurve.FadeOut();
+                return true;
+            case "bell":
+                curve = FloatCurve.Bell();
+                return true;
+            case "pulse":
+                curve = FloatCurve.Pulse();
+                return true;
+            default:
+                statusMessage = $"Unknown curve preset '{rawValue}'.";
+                return false;
+        }
+    }
+
+    private static bool TryCreateGradient(string rawValue, out ColorGradient gradient, out string statusMessage)
+    {
+        gradient = ColorGradient.White;
+        statusMessage = string.Empty;
+
+        string trimmedValue = rawValue.Trim();
+        if (trimmedValue.StartsWith("constant", StringComparison.OrdinalIgnoreCase))
+        {
+            int separatorIndex = trimmedValue.IndexOfAny(new[] { ':', '=' });
+            if (separatorIndex < 0)
+            {
+                gradient = ColorGradient.White;
+                return true;
+            }
+
+            string colorText = trimmedValue[(separatorIndex + 1)..].Trim();
+            if (!TryParseColor(colorText, out Color color, out statusMessage))
+            {
+                return false;
+            }
+
+            gradient = ColorGradient.Constant(color);
+            return true;
+        }
+
+        switch (NormalizePropertyKey(trimmedValue))
+        {
+            case "reset":
+            case "white":
+                gradient = ColorGradient.White;
+                return true;
+            case "fire":
+                gradient = ColorGradient.Fire();
+                return true;
+            case "smoke":
+                gradient = ColorGradient.Smoke();
+                return true;
+            case "magic":
+            case "magicblue":
+                gradient = ColorGradient.MagicBlue();
+                return true;
+            default:
+                statusMessage = $"Unknown gradient preset '{rawValue}'.";
+                return false;
+        }
     }
 
     private bool TryResolveAutomationPropertyTarget(string propertyKey, out int emitterIndex, out string normalizedProperty, out string statusMessage)
@@ -961,6 +1386,184 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     private static Color GetGradientPreviewColor(ColorGradient gradient)
         => gradient.Evaluate(0.0f);
+
+    private static string DescribeCurve(FloatCurve curve)
+    {
+        if (curve.Keys.Count == 0)
+        {
+            return "keys=0";
+        }
+
+        FloatCurveKey firstKey = curve.Keys[0];
+        FloatCurveKey lastKey = curve.Keys[curve.Keys.Count - 1];
+        return string.Create(CultureInfo.InvariantCulture,
+            $"keys={curve.Keys.Count} first=({firstKey.Time:0.###},{firstKey.Value:0.###}) last=({lastKey.Time:0.###},{lastKey.Value:0.###})");
+    }
+
+    private static string DescribeGradient(ColorGradient gradient)
+    {
+        Color firstColor = gradient.Evaluate(0.0f);
+        Color lastColor = gradient.Evaluate(1.0f);
+        return string.Create(CultureInfo.InvariantCulture,
+            $"colors={gradient.ColorKeys.Count} alphas={gradient.AlphaKeys.Count} first=({firstColor.R},{firstColor.G},{firstColor.B},{firstColor.A}) last=({lastColor.R},{lastColor.G},{lastColor.B},{lastColor.A})");
+    }
+
+    private static FloatCurve CloneCurve(FloatCurve curve)
+    {
+        var clone = new FloatCurve();
+        for (int keyIndex = 0; keyIndex < curve.Keys.Count; keyIndex++)
+        {
+            clone.AddKey(curve.Keys[keyIndex]);
+        }
+
+        return clone;
+    }
+
+    private static FloatCurve AddCurveKey(FloatCurve curve)
+    {
+        var result = CloneCurve(curve);
+        result.AddKey(1.0f, curve.Keys.Count == 0 ? 1.0f : curve.Keys[curve.Keys.Count - 1].Value);
+        return result;
+    }
+
+    private static FloatCurve ReplaceCurveKey(FloatCurve curve, int keyIndex, float time, float value)
+    {
+        var result = new FloatCurve();
+        for (int index = 0; index < curve.Keys.Count; index++)
+        {
+            FloatCurveKey key = curve.Keys[index];
+            result.AddKey(index == keyIndex ? new FloatCurveKey(time, value) : key);
+        }
+
+        return result;
+    }
+
+    private static FloatCurve RemoveCurveKey(FloatCurve curve, int keyIndex)
+    {
+        var result = new FloatCurve();
+        for (int index = 0; index < curve.Keys.Count; index++)
+        {
+            if (index != keyIndex)
+            {
+                result.AddKey(curve.Keys[index]);
+            }
+        }
+
+        return result;
+    }
+
+    private static FloatCurveKey GetCurveKeyOrFallback(FloatCurve curve, int keyIndex, FloatCurveKey fallback)
+        => keyIndex >= 0 && keyIndex < curve.Keys.Count ? curve.Keys[keyIndex] : fallback;
+
+    private static ColorGradient CloneGradient(ColorGradient gradient)
+    {
+        var clone = new ColorGradient();
+        for (int keyIndex = 0; keyIndex < gradient.ColorKeys.Count; keyIndex++)
+        {
+            clone.AddColorKey(gradient.ColorKeys[keyIndex]);
+        }
+
+        for (int keyIndex = 0; keyIndex < gradient.AlphaKeys.Count; keyIndex++)
+        {
+            clone.AddAlphaKey(gradient.AlphaKeys[keyIndex]);
+        }
+
+        return clone;
+    }
+
+    private static ColorGradient AddGradientColorKey(ColorGradient gradient)
+    {
+        var result = CloneGradient(gradient);
+        Color color = gradient.ColorKeys.Count == 0 ? Color.White : gradient.ColorKeys[gradient.ColorKeys.Count - 1].Color;
+        result.AddColorKey(1.0f, color);
+        return result;
+    }
+
+    private static ColorGradient AddGradientAlphaKey(ColorGradient gradient)
+    {
+        var result = CloneGradient(gradient);
+        float alpha = gradient.AlphaKeys.Count == 0 ? 1.0f : gradient.AlphaKeys[gradient.AlphaKeys.Count - 1].Alpha;
+        result.AddAlphaKey(1.0f, alpha);
+        return result;
+    }
+
+    private static ColorGradient ReplaceGradientColorKey(ColorGradient gradient, int keyIndex, float time, Color color)
+    {
+        var result = new ColorGradient();
+        for (int index = 0; index < gradient.ColorKeys.Count; index++)
+        {
+            ColorGradientKey key = gradient.ColorKeys[index];
+            result.AddColorKey(index == keyIndex ? new ColorGradientKey(time, color) : key);
+        }
+
+        for (int index = 0; index < gradient.AlphaKeys.Count; index++)
+        {
+            result.AddAlphaKey(gradient.AlphaKeys[index]);
+        }
+
+        return result;
+    }
+
+    private static ColorGradient ReplaceGradientAlphaKey(ColorGradient gradient, int keyIndex, float time, float alpha)
+    {
+        var result = new ColorGradient();
+        for (int index = 0; index < gradient.ColorKeys.Count; index++)
+        {
+            result.AddColorKey(gradient.ColorKeys[index]);
+        }
+
+        for (int index = 0; index < gradient.AlphaKeys.Count; index++)
+        {
+            AlphaGradientKey key = gradient.AlphaKeys[index];
+            result.AddAlphaKey(index == keyIndex ? new AlphaGradientKey(time, alpha) : key);
+        }
+
+        return result;
+    }
+
+    private static ColorGradient RemoveGradientColorKey(ColorGradient gradient, int keyIndex)
+    {
+        var result = new ColorGradient();
+        for (int index = 0; index < gradient.ColorKeys.Count; index++)
+        {
+            if (index != keyIndex)
+            {
+                result.AddColorKey(gradient.ColorKeys[index]);
+            }
+        }
+
+        for (int index = 0; index < gradient.AlphaKeys.Count; index++)
+        {
+            result.AddAlphaKey(gradient.AlphaKeys[index]);
+        }
+
+        return result;
+    }
+
+    private static ColorGradient RemoveGradientAlphaKey(ColorGradient gradient, int keyIndex)
+    {
+        var result = new ColorGradient();
+        for (int index = 0; index < gradient.ColorKeys.Count; index++)
+        {
+            result.AddColorKey(gradient.ColorKeys[index]);
+        }
+
+        for (int index = 0; index < gradient.AlphaKeys.Count; index++)
+        {
+            if (index != keyIndex)
+            {
+                result.AddAlphaKey(gradient.AlphaKeys[index]);
+            }
+        }
+
+        return result;
+    }
+
+    private static ColorGradientKey GetColorKeyOrFallback(ColorGradient gradient, int keyIndex, ColorGradientKey fallback)
+        => keyIndex >= 0 && keyIndex < gradient.ColorKeys.Count ? gradient.ColorKeys[keyIndex] : fallback;
+
+    private static AlphaGradientKey GetAlphaKeyOrFallback(ColorGradient gradient, int keyIndex, AlphaGradientKey fallback)
+        => keyIndex >= 0 && keyIndex < gradient.AlphaKeys.Count ? gradient.AlphaKeys[keyIndex] : fallback;
 
     private static bool IsTextureAsset(AssetInfo assetInfo)
     {
