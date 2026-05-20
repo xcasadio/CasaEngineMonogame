@@ -359,7 +359,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 4 — Renderer particules V1
 
-- ⏳ **T04.01 — Creer packets de rendu particules**
+- ✅ **T04.01 — Creer packets de rendu particules**
   Objectif :
   - Definir les donnees extraites du runtime pour le rendu : position, size, rotation, color, alpha, texture/material, sort data.
   - Separer extraction render data et execution GPU.
