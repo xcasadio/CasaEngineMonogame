@@ -1,3 +1,4 @@
+using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using Microsoft.Xna.Framework;
@@ -54,6 +55,16 @@ public sealed class ParticleEmitterRuntime
 
     public bool IsAlive => PlaybackState != ParticlePlaybackState.Stopped || _aliveCount > 0;
 
+    public bool AlwaysVisible => Definition.Renderer.AlwaysVisible;
+
+    public Matrix WorldMatrix { get; set; } = Matrix.Identity;
+
+    public bool HasBounds { get; private set; }
+
+    public BoundingBox LocalBounds { get; private set; }
+
+    public BoundingBox WorldBounds { get; private set; }
+
     public ParticleEmitterRuntime(ParticleEmitterDefinition definition, uint randomSeed = 1u)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -72,6 +83,7 @@ public sealed class ParticleEmitterRuntime
         _aliveSlotsByParticleIndex = new int[definition.MaxParticles];
 
         ResetFreeList();
+        ResetBounds();
     }
 
     public ref Particle GetParticle(int index)
@@ -272,6 +284,39 @@ public sealed class ParticleEmitterRuntime
         }
 
         ResetFreeList();
+        ResetBounds();
+    }
+
+    public void UpdateBounds(Matrix worldMatrix)
+    {
+        WorldMatrix = worldMatrix;
+        if (_aliveCount == 0)
+        {
+            ResetBounds();
+            return;
+        }
+
+        BoundingBox bounds = BoundingBoxHelper.Create();
+        for (int aliveIndex = 0; aliveIndex < _aliveCount; aliveIndex++)
+        {
+            Particle particle = Particles[_aliveParticleIndices[aliveIndex]];
+            float radius = MathF.Max(particle.Size.X, particle.Size.Y) * 0.5f;
+            Vector3 extent = new(radius, radius, radius);
+            bounds.ExpandBy(particle.Position - extent);
+            bounds.ExpandBy(particle.Position + extent);
+        }
+
+        HasBounds = bounds.Valid();
+        if (!HasBounds)
+        {
+            ResetBounds();
+            return;
+        }
+
+        LocalBounds = bounds;
+        WorldBounds = Definition.Simulation.SimulationSpace == ParticleSimulationSpace.Local
+            ? bounds.Transform(worldMatrix)
+            : bounds;
     }
 
     private void ResetFreeList()
@@ -399,6 +444,12 @@ public sealed class ParticleEmitterRuntime
         Vector2 size = Definition.Initial.Size.Sample(ref _random);
         Color startColor = Definition.Initial.StartColor.Evaluate(0.0f);
 
+        if (Definition.Simulation.SimulationSpace == ParticleSimulationSpace.World)
+        {
+            localPosition = Vector3.Transform(localPosition, WorldMatrix);
+            direction = NormalizeOrFallback(Vector3.TransformNormal(direction, WorldMatrix), direction);
+        }
+
         particle.Age = 0.0f;
         particle.Lifetime = MathF.Max(0.0001f, lifetime);
         particle.Position = localPosition;
@@ -462,5 +513,23 @@ public sealed class ParticleEmitterRuntime
             (byte)(first.G * second.G / 255),
             (byte)(first.B * second.B / 255),
             (byte)(first.A * second.A / 255));
+    }
+
+    private static Vector3 NormalizeOrFallback(Vector3 value, Vector3 fallback)
+    {
+        float lengthSquared = value.LengthSquared();
+        if (lengthSquared <= 0.000001f)
+        {
+            return fallback;
+        }
+
+        return value / MathF.Sqrt(lengthSquared);
+    }
+
+    private void ResetBounds()
+    {
+        HasBounds = false;
+        LocalBounds = default;
+        WorldBounds = default;
     }
 }

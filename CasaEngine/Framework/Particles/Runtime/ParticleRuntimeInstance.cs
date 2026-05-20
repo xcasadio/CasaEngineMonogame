@@ -1,5 +1,7 @@
+using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Particles.Runtime;
 
@@ -10,6 +12,12 @@ public sealed class ParticleRuntimeInstance
     public ParticleEffectAsset Asset { get; }
 
     public ParticleEmitterRuntime[] Emitters { get; }
+
+    public Matrix WorldMatrix { get; set; } = Matrix.Identity;
+
+    public bool HasBounds { get; private set; }
+
+    public BoundingBox Bounds { get; private set; }
 
     public ParticlePlaybackState PlaybackState
     {
@@ -101,6 +109,9 @@ public sealed class ParticleRuntimeInstance
         {
             Emitters[emitterIndex].Clear();
         }
+
+        HasBounds = false;
+        Bounds = default;
     }
 
     public void Play()
@@ -148,6 +159,7 @@ public sealed class ParticleRuntimeInstance
         int emittedCount = 0;
         for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
         {
+            Emitters[emitterIndex].WorldMatrix = WorldMatrix;
             emittedCount += Emitters[emitterIndex].UpdateEmission(elapsedSeconds);
         }
 
@@ -159,9 +171,32 @@ public sealed class ParticleRuntimeInstance
         int emittedCount = 0;
         for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
         {
+            Emitters[emitterIndex].WorldMatrix = WorldMatrix;
             emittedCount += Emitters[emitterIndex].Update(elapsedSeconds);
         }
 
+        UpdateBounds();
         return emittedCount;
+    }
+
+    public void UpdateBounds()
+    {
+        BoundingBox bounds = BoundingBoxHelper.Create();
+        HasBounds = false;
+
+        for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+        {
+            ParticleEmitterRuntime emitter = Emitters[emitterIndex];
+            emitter.UpdateBounds(WorldMatrix);
+            if (!emitter.HasBounds)
+            {
+                continue;
+            }
+
+            bounds.ExpandBy(emitter.WorldBounds);
+            HasBounds = true;
+        }
+
+        Bounds = HasBounds ? bounds : default;
     }
 }

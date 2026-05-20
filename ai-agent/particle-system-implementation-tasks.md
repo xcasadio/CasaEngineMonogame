@@ -296,7 +296,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): simulate particle lifetime motion and color`
 
-- ⏳ **T02.06 — Ajouter local/world space et bounds runtime**
+- ✅ **T02.06 — Ajouter local/world space et bounds runtime**
   Objectif :
   - Supporter simulation locale et monde sans double-transform.
   - Calculer bounds par emitter et effet.
