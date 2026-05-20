@@ -325,26 +325,32 @@ Vérifications :
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapChunkTests`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
-## ⏳ Phase 7 - Collisions par chunks
+## 🧪 Phase 7 - Collisions par chunks
 
 Priorité : haute.
 
 Tâches :
 
-- ⏳ Créer un modèle `TileMapCollisionChunk`.
-- ⏳ Extraire les tiles solides par chunk.
-- ⏳ Fusionner les rectangles adjacents de même type.
-- ⏳ Supprimer les anciens colliders lors d'un rebuild de chunk.
-- ⏳ Distinguer solides, triggers et `NoContactResponse`.
+- ✅ Créer un modèle `TileMapCollisionChunk`.
+- ✅ Extraire les tiles solides par chunk.
+- ✅ Fusionner les rectangles adjacents de même type.
+- ✅ Supprimer les anciens colliders lors d'un rebuild de chunk.
+- ✅ Distinguer solides `Blocked` et `NoContactResponse`.
 - ⏳ Exploiter `TileData.CollisionShape` au lieu de tout convertir en full box.
 - ⏳ Préparer le support one-way/slopes/custom polygon.
-- ⏳ Ajouter debug draw collision.
+- 🧪 Ajouter debug draw collision ; les rectangles fusionnés sont disponibles dans `MergedTileRectangles` pour instrumentation.
 
 Critères d'acceptation :
 
 - Une zone solide continue génère beaucoup moins de colliders que le nombre de tiles.
 - `RemoveTile` ou `SetTile` reconstruit seulement la collision du chunk concerné.
 - Les colliders orphelins ne restent pas dans le monde physique.
+
+Vérifications :
+
+- ✅ Ajouter des tests unitaires `TileMapCollisionChunk` pour la fusion de rectangles adjacents.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapCollisionChunkTests`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 8 - Animated tiles et auto-tiles modernes
 

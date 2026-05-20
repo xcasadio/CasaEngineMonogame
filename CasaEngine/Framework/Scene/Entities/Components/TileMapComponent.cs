@@ -71,6 +71,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         base.InitializeWithWorld(world);
 
         DisposeChunkGraphicsResources();
+        RemoveAllCollisionObjects();
         Layers.Clear();
         _autoTiles.Clear();
         _collisionObjects.Clear();
@@ -111,11 +112,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 for (var x = 0; x < mapWidth; x++)
                 {
                     tileMapLayer.Tiles.Add(CreateRuntimeTile(texture.Resource, tileMapLayerData, layerIndex, x, y));
-                    tileMapLayer.CollisionObjects.Add(CreateCollisionObject(layerIndex, x, y));
+                    tileMapLayer.CollisionObjects.Add(null);
                 }
             }
 
             BuildChunks(tileMapLayer, layerIndex);
+            RebuildLayerCollisionChunks(layerIndex);
         }
 
         IsBoundingBoxDirty = true;
@@ -328,6 +330,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         layerData.tiles[tileIndex] = tileId;
         ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
         MarkAffectedChunksDirty(layerIndex, x, y);
+        RebuildCollisionChunkForTile(layerIndex, x, y);
 
         _needsAutoTileRefresh = true;
         IsBoundingBoxDirty = true;
@@ -343,6 +346,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public override void Detach()
     {
         DisposeChunkGraphicsResources();
+        RemoveAllCollisionObjects();
         base.Detach();
     }
 
@@ -411,45 +415,31 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return tile;
     }
 
-    private CollisionObject? CreateCollisionObject(int layerIndex, int x, int y)
+    private CollisionObject? CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
     {
-        var tileId = TileMapData.GetTileId(layerIndex, x, y);
-        if (tileId == TileMapData.EmptyTileId)
-        {
-            return null;
-        }
-
-        if (!TileSetData.TryGetTileData(tileId, out var tileData) || tileData == null)
-        {
-            return null;
-        }
-
-        if (tileData.CollisionType != TileCollisionType.NoContactResponse && tileData.CollisionType != TileCollisionType.Blocked)
-        {
-            return null;
-        }
-
         if (_physicsWorldContext == null)
         {
             return null;
         }
 
         var tileSize = TileSetData.TileSize;
+        var width = tileBounds.Width * tileSize.Width;
+        var height = tileBounds.Height * tileSize.Height;
         var worldMatrix = WorldMatrixNoScale;
         worldMatrix.Translation += new Vector3(
-            x * tileSize.Width + tileSize.Width / 2f,
-            -y * tileSize.Height - tileSize.Height / 2f,
+            tileBounds.X * tileSize.Width + width / 2f,
+            -tileBounds.Y * tileSize.Height - height / 2f,
             0f);
-        var box = new BoxShape(tileSize.Width / 2f, tileSize.Height / 2f, 0.5f)
+        var box = new BoxShape(width / 2f, height / 2f, 0.5f)
         {
             LocalScaling = LocalScale,
             UserObject = this,
         };
 
-        var tileCollisionManager = new TileCollisionManager(this, layerIndex, x, y);
+        var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileBounds.X, tileBounds.Y);
 
         CollisionObject collisionObject;
-        if (tileData.CollisionType == TileCollisionType.NoContactResponse)
+        if (collisionType == TileCollisionType.NoContactResponse)
         {
             collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
         }
@@ -477,12 +467,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         texture.Load(Owner.World.Game.AssetContentManager);
 
         layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(texture.Resource, layerData, layerIndex, x, y);
-        layerRuntime.CollisionObjects[tileIndex] = CreateCollisionObject(layerIndex, x, y);
     }
 
     private void BuildChunks(TileMapLayer layer, int layerIndex)
     {
         layer.Chunks.Clear();
+        layer.CollisionChunks.Clear();
 
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;
@@ -499,7 +489,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             {
                 var tileX = chunkX * chunkSize;
                 var tileWidth = Math.Min(chunkSize, mapWidth - tileX);
-                layer.Chunks.Add(new TileMapChunk(layerIndex, new Point(chunkX, chunkY), new Rectangle(tileX, tileY, tileWidth, tileHeight)));
+                var tileBounds = new Rectangle(tileX, tileY, tileWidth, tileHeight);
+                var chunkIndex = new Point(chunkX, chunkY);
+                layer.Chunks.Add(new TileMapChunk(layerIndex, chunkIndex, tileBounds));
+                layer.CollisionChunks.Add(new TileMapCollisionChunk(layerIndex, chunkIndex, tileBounds));
             }
         }
     }
@@ -534,6 +527,92 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         if (chunkIndex >= 0 && chunkIndex < layer.Chunks.Count)
         {
             layer.Chunks[chunkIndex].MarkDirty();
+        }
+    }
+
+    private void RebuildLayerCollisionChunks(int layerIndex)
+    {
+        var layer = Layers[layerIndex];
+        for (var chunkIndex = 0; chunkIndex < layer.CollisionChunks.Count; chunkIndex++)
+        {
+            RebuildCollisionChunk(layer, layer.CollisionChunks[chunkIndex]);
+        }
+    }
+
+    private void RebuildCollisionChunkForTile(int layerIndex, int x, int y)
+    {
+        if (!TileMapData.IsInside(x, y))
+        {
+            return;
+        }
+
+        var layer = Layers[layerIndex];
+        if (layer.CollisionChunks.Count == 0)
+        {
+            return;
+        }
+
+        var chunkX = x / ChunkTileSize;
+        var chunkY = y / ChunkTileSize;
+        var chunkIndex = chunkX + chunkY * layer.ChunkColumns;
+        if (chunkIndex >= 0 && chunkIndex < layer.CollisionChunks.Count)
+        {
+            layer.CollisionChunks[chunkIndex].MarkDirty();
+            RebuildCollisionChunk(layer, layer.CollisionChunks[chunkIndex]);
+        }
+    }
+
+    private void RebuildCollisionChunk(TileMapLayer layer, TileMapCollisionChunk collisionChunk)
+    {
+        RemoveCollisionObjects(collisionChunk.CollisionObjects);
+        collisionChunk.CollisionObjects.Clear();
+
+        if (_physicsWorldContext == null)
+        {
+            collisionChunk.MarkClean();
+            return;
+        }
+
+        RebuildCollisionChunkForType(layer, collisionChunk, TileCollisionType.Blocked);
+        RebuildCollisionChunkForType(layer, collisionChunk, TileCollisionType.NoContactResponse);
+        collisionChunk.MarkClean();
+    }
+
+    private void RebuildCollisionChunkForType(TileMapLayer layer, TileMapCollisionChunk collisionChunk, TileCollisionType collisionType)
+    {
+        var tileBounds = collisionChunk.TileBounds;
+        var cellCount = tileBounds.Width * tileBounds.Height;
+        var solidCells = collisionChunk.EnsureSolidCapacity(cellCount);
+
+        for (var y = 0; y < tileBounds.Height; y++)
+        {
+            var mapY = tileBounds.Y + y;
+            var rowOffset = mapY * TileMapData.MapSize.Width;
+
+            for (var x = 0; x < tileBounds.Width; x++)
+            {
+                var mapX = tileBounds.X + x;
+                var tileId = layer.TileMapLayerData.tiles[rowOffset + mapX];
+                if (tileId == TileMapData.EmptyTileId)
+                {
+                    continue;
+                }
+
+                if (TileSetData.TryGetTileData(tileId, out var tileData) && tileData?.CollisionType == collisionType)
+                {
+                    solidCells[x + y * tileBounds.Width] = true;
+                }
+            }
+        }
+
+        var rectangles = collisionChunk.BuildMergedTileRectangles(tileBounds.Width, tileBounds.Height, tileBounds.X, tileBounds.Y, solidCells);
+        for (var rectangleIndex = 0; rectangleIndex < rectangles.Count; rectangleIndex++)
+        {
+            var collisionObject = CreateCollisionObject(collisionChunk.LayerIndex, rectangles[rectangleIndex], collisionType);
+            if (collisionObject != null)
+            {
+                collisionChunk.CollisionObjects.Add(collisionObject);
+            }
         }
     }
 
@@ -782,6 +861,24 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         minY = Math.Min(minY, worldPoint.Y);
         maxY = Math.Max(maxY, worldPoint.Y);
         return true;
+    }
+
+    private void RemoveCollisionObjects(List<CollisionObject> collisionObjects)
+    {
+        for (var index = 0; index < collisionObjects.Count; index++)
+        {
+            RemoveCollisionObject(collisionObjects[index]);
+        }
+    }
+
+    private void RemoveAllCollisionObjects()
+    {
+        for (var index = _collisionObjects.Count - 1; index >= 0; index--)
+        {
+            RemoveCollisionObject(_collisionObjects[index]);
+        }
+
+        _collisionObjects.Clear();
     }
 
     private void RemoveCollisionObject(CollisionObject? collisionObject)
