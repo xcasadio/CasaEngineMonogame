@@ -525,6 +525,81 @@ public class EditorAssetImportServiceTests
         }
     }
 
+        [Fact]
+        public void ImportFile_TiledJsonAuthorsTileMapTilesetAndTextureAssets()
+        {
+                string tempDirectory = CreateTempDirectory();
+                string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+                try
+                {
+                        EngineEnvironment.ProjectPath = tempDirectory;
+                        EditorAssetCatalogService.Clear();
+
+                        string imagePath = Path.Combine(tempDirectory, "tiles.png");
+                        File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+                        string tmjPath = Path.Combine(tempDirectory, "level.tmj");
+                        File.WriteAllText(tmjPath,
+                                """
+                                {
+                                    "type": "map",
+                                    "orientation": "orthogonal",
+                                    "infinite": false,
+                                    "width": 2,
+                                    "height": 1,
+                                    "tilewidth": 16,
+                                    "tileheight": 16,
+                                    "tilesets": [
+                                        {
+                                            "firstgid": 1,
+                                            "name": "tiles",
+                                            "tilewidth": 16,
+                                            "tileheight": 16,
+                                            "tilecount": 1,
+                                            "columns": 1,
+                                            "image": "tiles.png",
+                                            "imagewidth": 16,
+                                            "imageheight": 16
+                                        }
+                                    ],
+                                    "layers": [
+                                        {
+                                            "type": "tilelayer",
+                                            "name": "Ground",
+                                            "width": 2,
+                                            "height": 1,
+                                            "data": [1, 0]
+                                        }
+                                    ]
+                                }
+                                """);
+
+                        bool imported = EditorAssetImportService.ImportFile(tmjPath, Path.Combine(tempDirectory, "JsonLevel.tmj"));
+
+                        Assert.True(imported);
+                        string tileMapPath = Path.Combine(tempDirectory, "JsonLevel.tileMap");
+                        string tileSetPath = Path.Combine(tempDirectory, "JsonLevel_Imported", "JsonLevel.tileset");
+                        string texturePath = Path.Combine(tempDirectory, "JsonLevel_Imported", "Textures", "tiles.texture");
+
+                        Assert.True(File.Exists(tileMapPath));
+                        Assert.True(File.Exists(tileSetPath));
+                        Assert.True(File.Exists(texturePath));
+
+                        var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
+                        var layers = Assert.IsType<JArray>(tileMapDocument["layers"]);
+                        var groundLayer = Assert.IsType<JObject>(layers[0]);
+                        Assert.Equal("Ground", (string?)groundLayer["name"]);
+                        Assert.Equal(new[] { 0, -1 }, groundLayer["tiles"]!.Values<int>().ToArray());
+                }
+                finally
+                {
+                        EditorAssetCatalogService.Clear();
+                        EngineEnvironment.ProjectPath = previousProjectPath;
+                        Directory.Delete(tempDirectory, recursive: true);
+                }
+        }
+
     [Fact]
     public void ImportFile_TiledTmxRejectsUnsupportedOrientation()
     {

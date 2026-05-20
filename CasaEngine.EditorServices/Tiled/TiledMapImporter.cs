@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Xml.Linq;
 using CasaEngine.Framework.Assets.TileMap;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.EditorServices.Tiled;
 
@@ -20,7 +21,9 @@ public sealed class TiledMapImporter
 
     public static bool IsMapFileSupported(string sourceFilePath)
     {
-        return string.Equals(Path.GetExtension(sourceFilePath), ".tmx", StringComparison.OrdinalIgnoreCase);
+        var extension = Path.GetExtension(sourceFilePath);
+        return string.Equals(extension, ".tmx", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(extension, ".tmj", StringComparison.OrdinalIgnoreCase);
     }
 
     public TiledMapImportDocument Import(string sourceFilePath)
@@ -30,6 +33,11 @@ public sealed class TiledMapImporter
         if (!IsMapFileSupported(sourceFilePath))
         {
             throw new NotSupportedException($"Tiled file '{sourceFilePath}' is not supported by this importer.");
+        }
+
+        if (string.Equals(Path.GetExtension(sourceFilePath), ".tmj", StringComparison.OrdinalIgnoreCase))
+        {
+            return ImportTmj(sourceFilePath);
         }
 
         return ImportTmx(sourceFilePath);
@@ -84,6 +92,73 @@ public sealed class TiledMapImporter
                 ?? throw new InvalidDataException($"Tiled layer '{ReadOptionalString(layerElement, "name", string.Empty)}' has no data element.");
             var tiles = ReadLayerTiles(dataElement, mapWidth * mapHeight, tilesetReference, result.Warnings);
             var layerName = ReadOptionalString(layerElement, "name", $"Layer {layerIndex + 1}");
+            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles));
+            layerIndex++;
+        }
+
+        if (result.Layers.Count == 0)
+        {
+            result.Warnings.Add("The Tiled map does not contain tile layers.");
+        }
+
+        return result;
+    }
+
+    private static TiledMapImportDocument ImportTmj(string sourceFilePath)
+    {
+        var mapObject = JObject.Parse(File.ReadAllText(sourceFilePath));
+
+        var orientation = ReadRequiredString(mapObject, "orientation", "map");
+        if (!string.Equals(orientation, "orthogonal", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new NotSupportedException($"Tiled orientation '{orientation}' is not supported. Only orthogonal finite maps are supported.");
+        }
+
+        if (ReadOptionalBool(mapObject, "infinite"))
+        {
+            throw new NotSupportedException("Infinite Tiled maps are not supported.");
+        }
+
+        var mapWidth = ReadRequiredInt(mapObject, "width", "map");
+        var mapHeight = ReadRequiredInt(mapObject, "height", "map");
+        var tileWidth = ReadRequiredInt(mapObject, "tilewidth", "map");
+        var tileHeight = ReadRequiredInt(mapObject, "tileheight", "map");
+
+        var tilesetReference = ReadSingleTilesetJson(sourceFilePath, mapObject, tileWidth, tileHeight);
+        var result = new TiledMapImportDocument(
+            sourceFilePath,
+            mapWidth,
+            mapHeight,
+            tileWidth,
+            tileHeight,
+            tilesetReference);
+        result.Warnings.AddRange(tilesetReference.Warnings);
+
+        var layers = mapObject["layers"] as JArray
+            ?? throw new InvalidDataException("Tiled JSON map requires a 'layers' array.");
+        var layerIndex = 0;
+        for (var index = 0; index < layers.Count; index++)
+        {
+            if (layers[index] is not JObject layerObject)
+            {
+                continue;
+            }
+
+            var layerType = ReadOptionalString(layerObject, "type", string.Empty);
+            if (!string.Equals(layerType, "tilelayer", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var layerWidth = ReadOptionalInt(layerObject, "width", mapWidth);
+            var layerHeight = ReadOptionalInt(layerObject, "height", mapHeight);
+            if (layerWidth != mapWidth || layerHeight != mapHeight)
+            {
+                throw new NotSupportedException($"Tiled layer '{ReadOptionalString(layerObject, "name", string.Empty)}' size {layerWidth}x{layerHeight} does not match map size {mapWidth}x{mapHeight}.");
+            }
+
+            var tiles = ReadLayerTilesJson(layerObject, mapWidth * mapHeight, tilesetReference, result.Warnings);
+            var layerName = ReadOptionalString(layerObject, "name", $"Layer {layerIndex + 1}");
             result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles));
             layerIndex++;
         }
@@ -169,6 +244,77 @@ public sealed class TiledMapImporter
             warnings);
     }
 
+    private static TiledTilesetReference ReadSingleTilesetJson(string mapFilePath, JObject mapObject, int mapTileWidth, int mapTileHeight)
+    {
+        var tilesetArray = mapObject["tilesets"] as JArray
+            ?? throw new InvalidDataException("Tiled JSON map requires a 'tilesets' array.");
+        if (tilesetArray.Count != 1)
+        {
+            throw new NotSupportedException($"Tiled import v1 supports exactly one tileset per map, but found {tilesetArray.Count}.");
+        }
+
+        if (tilesetArray[0] is not JObject tilesetObject)
+        {
+            throw new InvalidDataException("Tiled JSON tileset entry must be an object.");
+        }
+
+        var firstGid = ReadOptionalInt(tilesetObject, "firstgid", 1);
+        var source = ReadOptionalString(tilesetObject, "source", string.Empty);
+        var tilesetFilePath = mapFilePath;
+        var tilesetRoot = tilesetObject;
+
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            tilesetFilePath = ResolvePath(mapFilePath, source);
+            tilesetRoot = JObject.Parse(File.ReadAllText(tilesetFilePath));
+        }
+
+        var tileWidth = ReadRequiredInt(tilesetRoot, "tilewidth", "tileset");
+        var tileHeight = ReadRequiredInt(tilesetRoot, "tileheight", "tileset");
+        if (tileWidth != mapTileWidth || tileHeight != mapTileHeight)
+        {
+            throw new NotSupportedException($"Tileset tile size {tileWidth}x{tileHeight} does not match map tile size {mapTileWidth}x{mapTileHeight}.");
+        }
+
+        var imageSource = ReadRequiredString(tilesetRoot, "image", "tileset");
+        var imageFilePath = ResolvePath(tilesetFilePath, imageSource);
+        var imageWidth = ReadOptionalInt(tilesetRoot, "imagewidth", 0);
+        var imageHeight = ReadOptionalInt(tilesetRoot, "imageheight", 0);
+        var columns = ReadOptionalInt(tilesetRoot, "columns", 0);
+        var tileCount = ReadOptionalInt(tilesetRoot, "tilecount", 0);
+
+        if (columns <= 0 && imageWidth > 0)
+        {
+            columns = imageWidth / tileWidth;
+        }
+
+        if (tileCount <= 0 && imageWidth > 0 && imageHeight > 0)
+        {
+            tileCount = (imageWidth / tileWidth) * (imageHeight / tileHeight);
+        }
+
+        if (columns <= 0 || tileCount <= 0)
+        {
+            throw new InvalidDataException("Tiled tileset must define columns/tilecount or image width/height.");
+        }
+
+        var warnings = new List<string>();
+        var collisionShapes = ReadTileCollisionShapesJson(tilesetRoot, warnings);
+
+        return new TiledTilesetReference(
+            firstGid,
+            ReadOptionalString(tilesetRoot, "name", Path.GetFileNameWithoutExtension(imageFilePath)),
+            imageFilePath,
+            tileWidth,
+            tileHeight,
+            columns,
+            tileCount,
+            imageWidth,
+            imageHeight,
+            collisionShapes,
+            warnings);
+    }
+
     private static Dictionary<int, TiledTileCollision> ReadTileCollisionShapes(XElement tilesetRoot, List<string> warnings)
     {
         var collisions = new Dictionary<int, TiledTileCollision>();
@@ -188,6 +334,68 @@ public sealed class TiledMapImporter
                 if (objectElement.Element("polygon") != null
                     || objectElement.Element("polyline") != null
                     || objectElement.Element("ellipse") != null)
+                {
+                    warnings.Add($"Tile {tileId} has a non-rectangle collision object; only rectangle collisions are imported for now.");
+                    continue;
+                }
+
+                var width = ReadOptionalFloat(objectElement, "width", 0f);
+                var height = ReadOptionalFloat(objectElement, "height", 0f);
+                if (width <= 0f || height <= 0f)
+                {
+                    continue;
+                }
+
+                if (acceptedCollision)
+                {
+                    warnings.Add($"Tile {tileId} has multiple collision objects; only the first rectangle is imported for now.");
+                    continue;
+                }
+
+                collisions[tileId] = new TiledTileCollision(
+                    ReadOptionalFloat(objectElement, "x", 0f),
+                    ReadOptionalFloat(objectElement, "y", 0f),
+                    width,
+                    height);
+                acceptedCollision = true;
+            }
+        }
+
+        return collisions;
+    }
+
+    private static Dictionary<int, TiledTileCollision> ReadTileCollisionShapesJson(JObject tilesetRoot, List<string> warnings)
+    {
+        var collisions = new Dictionary<int, TiledTileCollision>();
+        if (tilesetRoot["tiles"] is not JArray tiles)
+        {
+            return collisions;
+        }
+
+        for (var tileIndex = 0; tileIndex < tiles.Count; tileIndex++)
+        {
+            if (tiles[tileIndex] is not JObject tileObject || tileObject["objectgroup"] is not JObject objectGroup)
+            {
+                continue;
+            }
+
+            var tileId = ReadRequiredInt(tileObject, "id", "tile");
+            if (objectGroup["objects"] is not JArray objects)
+            {
+                continue;
+            }
+
+            var acceptedCollision = false;
+            for (var objectIndex = 0; objectIndex < objects.Count; objectIndex++)
+            {
+                if (objects[objectIndex] is not JObject objectElement)
+                {
+                    continue;
+                }
+
+                if (objectElement["polygon"] != null
+                    || objectElement["polyline"] != null
+                    || ReadOptionalBool(objectElement, "ellipse"))
                 {
                     warnings.Add($"Tile {tileId} has a non-rectangle collision object; only rectangle collisions are imported for now.");
                     continue;
@@ -252,6 +460,42 @@ public sealed class TiledMapImporter
         else
         {
             throw new NotSupportedException($"Tiled layer encoding '{encoding}' is not supported. Use CSV or XML tile data.");
+        }
+
+        if (tiles.Count != expectedTileCount)
+        {
+            throw new InvalidDataException($"Tiled layer has {tiles.Count} cells but expected {expectedTileCount}.");
+        }
+
+        return tiles;
+    }
+
+    private static List<int> ReadLayerTilesJson(
+        JObject layerObject,
+        int expectedTileCount,
+        TiledTilesetReference tilesetReference,
+        List<string> warnings)
+    {
+        var compression = ReadOptionalString(layerObject, "compression", string.Empty);
+        if (!string.IsNullOrWhiteSpace(compression))
+        {
+            throw new NotSupportedException($"Compressed Tiled layer data '{compression}' is not supported.");
+        }
+
+        var data = layerObject["data"] as JArray
+            ?? throw new NotSupportedException("Tiled JSON layer data must be an array of gids.");
+        var tiles = new List<int>(expectedTileCount);
+        var flipWarningAdded = false;
+
+        for (var index = 0; index < data.Count; index++)
+        {
+            var gidValue = data[index]!.Value<long>();
+            if (gidValue < 0 || gidValue > uint.MaxValue)
+            {
+                throw new InvalidDataException($"Invalid Tiled gid '{gidValue}'.");
+            }
+
+            tiles.Add(ConvertGid((uint)gidValue, tilesetReference, warnings, ref flipWarningAdded));
         }
 
         if (tiles.Count != expectedTileCount)
@@ -366,6 +610,100 @@ public sealed class TiledMapImporter
     private static bool ReadOptionalBool(XElement element, string attributeName)
     {
         var value = element.Attribute(attributeName)?.Value;
+        return string.Equals(value, "1", StringComparison.Ordinal)
+            || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ReadRequiredString(JObject element, string propertyName, string elementName)
+    {
+        var value = element[propertyName]?.Value<string>();
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidDataException($"Tiled {elementName} requires property '{propertyName}'.");
+        }
+
+        return value;
+    }
+
+    private static string ReadOptionalString(JObject element, string propertyName, string defaultValue)
+    {
+        var value = element[propertyName]?.Value<string>();
+        return string.IsNullOrWhiteSpace(value) ? defaultValue : value;
+    }
+
+    private static int ReadRequiredInt(JObject element, string propertyName, string elementName)
+    {
+        if (element[propertyName] == null)
+        {
+            throw new InvalidDataException($"Tiled {elementName} requires property '{propertyName}'.");
+        }
+
+        return ReadOptionalInt(element, propertyName, 0);
+    }
+
+    private static int ReadOptionalInt(JObject element, string propertyName, int defaultValue)
+    {
+        var token = element[propertyName];
+        if (token == null || token.Type == JTokenType.Null)
+        {
+            return defaultValue;
+        }
+
+        if (token.Type == JTokenType.Integer)
+        {
+            return token.Value<int>();
+        }
+
+        var value = token.Value<string>();
+        if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+        {
+            throw new InvalidDataException($"Tiled property '{propertyName}' has invalid integer value '{value}'.");
+        }
+
+        return result;
+    }
+
+    private static float ReadOptionalFloat(JObject element, string propertyName, float defaultValue)
+    {
+        var token = element[propertyName];
+        if (token == null || token.Type == JTokenType.Null)
+        {
+            return defaultValue;
+        }
+
+        if (token.Type == JTokenType.Float || token.Type == JTokenType.Integer)
+        {
+            return token.Value<float>();
+        }
+
+        var value = token.Value<string>();
+        if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+        {
+            throw new InvalidDataException($"Tiled property '{propertyName}' has invalid float value '{value}'.");
+        }
+
+        return result;
+    }
+
+    private static bool ReadOptionalBool(JObject element, string propertyName)
+    {
+        var token = element[propertyName];
+        if (token == null || token.Type == JTokenType.Null)
+        {
+            return false;
+        }
+
+        if (token.Type == JTokenType.Boolean)
+        {
+            return token.Value<bool>();
+        }
+
+        if (token.Type == JTokenType.Integer)
+        {
+            return token.Value<int>() != 0;
+        }
+
+        var value = token.Value<string>();
         return string.Equals(value, "1", StringComparison.Ordinal)
             || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
     }

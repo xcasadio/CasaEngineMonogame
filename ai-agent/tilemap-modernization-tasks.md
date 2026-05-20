@@ -245,6 +245,7 @@ Tâches :
 - ⏳ Importer les custom properties Tiled de map, layer, tile et object dans un dictionnaire typé ou une extension metadata.
 - ✅ Supporter tilesets embedded dans `.tmx`, pas seulement `.tsx` externe.
 - ✅ Supporter les chemins relatifs Windows/Unix et les chemins contenant des espaces.
+- ✅ Supporter les maps Tiled JSON `.tmj` avec tileset image embedded ou `.tsj` externe.
 
 Critères d'acceptation :
 
@@ -256,7 +257,9 @@ Critères d'acceptation :
 Vérifications :
 
 - ✅ Étendre les tests Tiled pour collisions rectangles de tiles, tilesets embedded et chemins avec espaces.
+- ✅ Étendre les tests Tiled pour l'import JSON `.tmj`.
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~TiledTmx`.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter "FullyQualifiedName~TiledTmx|FullyQualifiedName~TiledJson"`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## 🧪 Phase 5 - Chunking visuel
@@ -400,9 +403,8 @@ Tâches :
 - ⏳ Ajouter overlays : collision, tile ids, chunks, zones visibles.
 - ⏳ Brancher undo/redo sur l'API centrale `SetTile`.
 - ⏳ Ajouter sauvegarde propre via `EditorAssetWriterService`.
-- ✅ Ajouter commande/import UI pour `.tmx` dans le Content Browser.
+- ✅ Ajouter commande/import UI pour `.tmx`/`.tmj` dans le Content Browser.
 - ✅ Afficher les warnings d'import Tiled dans l'éditeur.
-- ⏳ Ajouter commande/import UI pour Tiled JSON dans le Content Browser après support import JSON.
 
 Critères d'acceptation :
 

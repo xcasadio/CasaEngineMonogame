@@ -889,7 +889,7 @@ public class ContentBrowserPanel
             Title = "Import files into the Content Browser",
             CheckFileExists = true,
             Multiselect = true,
-            Filter = "Supported assets (*.tmx;*.png;*.jpg;*.jpeg;*.bmp;*.fbx)|*.tmx;*.png;*.jpg;*.jpeg;*.bmp;*.fbx|Tiled maps (*.tmx)|*.tmx|All files (*.*)|*.*",
+            Filter = "Supported assets (*.tmx;*.tmj;*.png;*.jpg;*.jpeg;*.bmp;*.fbx)|*.tmx;*.tmj;*.png;*.jpg;*.jpeg;*.bmp;*.fbx|Tiled maps (*.tmx;*.tmj)|*.tmx;*.tmj|All files (*.*)|*.*",
         };
 
         if (dialog.ShowDialog() != FormsDialogResult.OK || dialog.FileNames.Length == 0)
