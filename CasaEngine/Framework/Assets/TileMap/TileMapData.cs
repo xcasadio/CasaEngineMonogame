@@ -10,7 +10,7 @@ public class TileMapData : ObjectBase
     public const int EmptyTileId = TileMapLayerData.EmptyTileId;
 
     public Size MapSize { get; set; }
-    public Guid TileSetDataAssetId { get; private set; } = Guid.Empty;
+    public Guid TileSetDataAssetId { get; set; } = Guid.Empty;
     public List<TileMapLayerData> Layers { get; } = new();
 
     public bool IsInside(int x, int y)

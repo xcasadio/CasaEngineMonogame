@@ -367,6 +367,138 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_TiledTmxAuthorsTileMapTilesetAndTextureAssets()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string imagePath = Path.Combine(tempDirectory, "tiles.png");
+            File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+            string tsxPath = Path.Combine(tempDirectory, "tiles.tsx");
+            File.WriteAllText(tsxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <tileset version="1.10" tiledversion="1.10.2" name="tiles" tilewidth="16" tileheight="16" tilecount="4" columns="2">
+                 <image source="tiles.png" width="32" height="32"/>
+                </tileset>
+                """);
+
+            string tmxPath = Path.Combine(tempDirectory, "level.tmx");
+            File.WriteAllText(tmxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="3" height="2" tilewidth="16" tileheight="16" infinite="0">
+                 <tileset firstgid="1" source="tiles.tsx"/>
+                 <layer id="1" name="Ground" width="3" height="2">
+                  <data encoding="csv">
+                1,0,2,
+                2147483651,4,0
+                  </data>
+                 </layer>
+                 <layer id="2" name="Decor" width="3" height="2">
+                  <data encoding="csv">
+                0,0,0,
+                0,0,1
+                  </data>
+                 </layer>
+                </map>
+                """);
+
+            bool imported = EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "ImportedLevel.tmx"));
+
+            Assert.True(imported);
+            Assert.NotNull(EditorAssetImportService.LastTiledMapImportResult);
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult!.Warnings, warning => warning.Contains("flip", StringComparison.OrdinalIgnoreCase));
+
+            string tileMapPath = Path.Combine(tempDirectory, "ImportedLevel.tileMap");
+            string tileSetPath = Path.Combine(tempDirectory, "ImportedLevel_Imported", "ImportedLevel.tileset");
+            string texturePath = Path.Combine(tempDirectory, "ImportedLevel_Imported", "Textures", "tiles.texture");
+            string assetCatalogPath = Path.Combine(tempDirectory, "AssetInfos.json");
+
+            Assert.True(File.Exists(tileMapPath));
+            Assert.True(File.Exists(tileSetPath));
+            Assert.True(File.Exists(texturePath));
+            Assert.True(File.Exists(assetCatalogPath));
+
+            var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
+            Assert.Equal("ImportedLevel", (string?)tileMapDocument["name"]);
+            Assert.NotEqual(Guid.Empty, Guid.Parse(tileMapDocument["tile_set_asset_id"]!.Value<string>()!));
+
+            var layers = Assert.IsType<JArray>(tileMapDocument["layers"]);
+            Assert.Equal(2, layers.Count);
+
+            var groundLayer = Assert.IsType<JObject>(layers[0]);
+            Assert.Equal("Ground", (string?)groundLayer["name"]);
+            Assert.Equal(new[] { 0, -1, 1, 2, 3, -1 }, groundLayer["tiles"]!.Values<int>().ToArray());
+
+            var decorLayer = Assert.IsType<JObject>(layers[1]);
+            Assert.Equal("Decor", (string?)decorLayer["name"]);
+            Assert.Equal(0.1f, decorLayer["z_offset"]!.Value<float>());
+            Assert.Equal(new[] { -1, -1, -1, -1, -1, 0 }, decorLayer["tiles"]!.Values<int>().ToArray());
+
+            var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
+            var tiles = Assert.IsType<JArray>(tileSetDocument["tiles"]);
+            Assert.Equal(4, tiles.Count);
+
+            var thirdTile = Assert.IsType<JObject>(tiles[2]);
+            Assert.Equal(2, thirdTile["id"]!.Value<int>());
+            var thirdTileLocation = Assert.IsType<JObject>(thirdTile["location"]);
+            Assert.Equal(0, thirdTileLocation["x"]!.Value<int>());
+            Assert.Equal(16, thirdTileLocation["y"]!.Value<int>());
+            Assert.Equal(16, thirdTileLocation["w"]!.Value<int>());
+            Assert.Equal(16, thirdTileLocation["h"]!.Value<int>());
+
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("ImportedLevel.tileMap", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("ImportedLevel.tileset", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("tiles.texture", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_TiledTmxRejectsUnsupportedOrientation()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string tmxPath = Path.Combine(tempDirectory, "isometric.tmx");
+            File.WriteAllText(tmxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <map version="1.10" tiledversion="1.10.2" orientation="isometric" width="1" height="1" tilewidth="16" tileheight="16" infinite="0">
+                </map>
+                """);
+
+            var exception = Assert.Throws<NotSupportedException>(() =>
+                EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "isometric.tmx")));
+
+            Assert.Contains("orientation", exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     private static string CreateTempDirectory()
     {
         string directory = Path.Combine(Path.GetTempPath(), "CasaEngineMonogame", Guid.NewGuid().ToString("N"));

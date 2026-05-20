@@ -2,15 +2,21 @@ using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Rendering.Models;
+using CasaEngine.EditorServices.Tiled;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using Size = CasaEngine.Core.Math.Size;
 
 namespace CasaEngine.EditorServices;
 
 public static class EditorAssetImportService
 {
+    public static TiledMapImportResult? LastTiledMapImportResult { get; private set; }
+
     public static bool ImportFile(
         string sourceFilePath,
         string destinationFilePath,
@@ -20,6 +26,13 @@ public static class EditorAssetImportService
         ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
 
         bool catalogChanged = EnsureFileAssetRegistered(destinationFilePath);
+        LastTiledMapImportResult = null;
+
+        if (TiledMapImporter.IsMapFileSupported(sourceFilePath))
+        {
+            LastTiledMapImportResult = ImportTiledMap(sourceFilePath, destinationFilePath);
+            return true;
+        }
 
         if (TryImportSeparatedAnimationAssets(sourceFilePath, destinationFilePath))
         {
@@ -55,6 +68,118 @@ public static class EditorAssetImportService
         Directory.CreateDirectory(Path.GetDirectoryName(staticModelFullPath)!);
         EditorAssetWriterService.SaveDocument(staticModelRelativePath, modelDocument);
         return true;
+    }
+
+    public static TiledMapImportResult ImportTiledMap(string sourceFilePath, string destinationFilePath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceFilePath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(destinationFilePath);
+
+        EnsureFileAssetRegistered(destinationFilePath);
+
+        var tiledMap = new TiledMapImporter().Import(sourceFilePath);
+        var mapBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
+        var importedAssetsDirectory = GetImportedAssetsDirectory(destinationFilePath);
+        var texturesDirectory = Path.Combine(importedAssetsDirectory, "Textures");
+        Directory.CreateDirectory(texturesDirectory);
+
+        var importedTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        var usedTextureFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var textureAssetId = ImportTexture(
+            tiledMap.Tileset.ImageFilePath,
+            texturesDirectory,
+            mapBaseName,
+            importedTexturesBySourcePath,
+            usedTextureFileNames);
+
+        if (textureAssetId == Guid.Empty)
+        {
+            throw new FileNotFoundException("Unable to import Tiled tileset image.", tiledMap.Tileset.ImageFilePath);
+        }
+
+        var tileSetFullPath = Path.Combine(importedAssetsDirectory, mapBaseName + Constants.FileNameExtensions.TileSet);
+        var tileSetRelativePath = GetRelativeProjectPath(tileSetFullPath);
+        var tileSetAssetInfo = EnsureAssetInfo(tileSetRelativePath, mapBaseName + "_TileSet");
+        var tileSetData = CreateTileSetData(tiledMap, tileSetAssetInfo, textureAssetId);
+        var tileSetDocument = SerializeAsset(tileSetData, tileSetAssetInfo.Id, tileSetAssetInfo.Name);
+        EditorAssetWriterService.SaveDocument(tileSetRelativePath, tileSetDocument);
+
+        var tileMapFullPath = Path.ChangeExtension(destinationFilePath, Constants.FileNameExtensions.TileMap);
+        var tileMapRelativePath = GetRelativeProjectPath(tileMapFullPath);
+        var tileMapAssetInfo = EnsureAssetInfo(tileMapRelativePath, mapBaseName);
+        var tileMapData = CreateTileMapData(tiledMap, tileMapAssetInfo, tileSetAssetInfo.Id);
+        var tileMapDocument = SerializeAsset(tileMapData, tileMapAssetInfo.Id, tileMapAssetInfo.Name);
+        EditorAssetWriterService.SaveDocument(tileMapRelativePath, tileMapDocument);
+
+        EditorAssetCatalogService.Save();
+
+        var createdAssetFileNames = new List<string>
+        {
+            tileMapRelativePath,
+            tileSetRelativePath,
+        };
+
+        var textureAssetInfo = AssetCatalog.Get(textureAssetId);
+        if (textureAssetInfo != null)
+        {
+            createdAssetFileNames.Add(textureAssetInfo.FileName);
+        }
+
+        return new TiledMapImportResult(createdAssetFileNames, tiledMap.Warnings);
+    }
+
+    private static TileSetData CreateTileSetData(TiledMapImportDocument tiledMap, AssetInfo tileSetAssetInfo, Guid textureAssetId)
+    {
+        var tileSetData = new TileSetData
+        {
+            Name = tileSetAssetInfo.Name,
+            FileName = tileSetAssetInfo.FileName,
+            SpriteSheetAssetId = textureAssetId,
+            TileSize = new Size(tiledMap.TileWidth, tiledMap.TileHeight),
+        };
+
+        for (var tileIndex = 0; tileIndex < tiledMap.Tileset.TileCount; tileIndex++)
+        {
+            var column = tileIndex % tiledMap.Tileset.Columns;
+            var row = tileIndex / tiledMap.Tileset.Columns;
+            tileSetData.AddTile(new StaticTileData
+            {
+                Id = tileIndex,
+                CollisionType = TileCollisionType.None,
+                IsBreakable = false,
+                Location = new Rectangle(
+                    column * tiledMap.TileWidth,
+                    row * tiledMap.TileHeight,
+                    tiledMap.TileWidth,
+                    tiledMap.TileHeight),
+            });
+        }
+
+        return tileSetData;
+    }
+
+    private static TileMapData CreateTileMapData(TiledMapImportDocument tiledMap, AssetInfo tileMapAssetInfo, Guid tileSetAssetId)
+    {
+        var tileMapData = new TileMapData
+        {
+            Name = tileMapAssetInfo.Name,
+            FileName = tileMapAssetInfo.FileName,
+            MapSize = new Size(tiledMap.Width, tiledMap.Height),
+            TileSetDataAssetId = tileSetAssetId,
+        };
+
+        foreach (var tiledLayer in tiledMap.Layers)
+        {
+            tileMapData.Layers.Add(new TileMapLayerData
+            {
+                Name = tiledLayer.Name,
+                zOffset = tiledLayer.ZOffset,
+                tiles = new List<int>(tiledLayer.Tiles),
+            });
+        }
+
+        tileMapData.Validate();
+        return tileMapData;
     }
 
     private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)

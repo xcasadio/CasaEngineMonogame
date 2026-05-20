@@ -58,8 +58,10 @@ public class TileSetData : ObjectBase
         }
     }
 
-    private void AddTile(TileData tileData)
+    public void AddTile(TileData tileData)
     {
+        ArgumentNullException.ThrowIfNull(tileData);
+
         Tiles.Add(tileData);
         _tileById.Add(tileData.Id, tileData);
     }

@@ -159,7 +159,7 @@ Vérifications :
 - 🧪 Ajouter une map de test plus grande ou générée temporairement pour observer que seule la zone visible est parcourue.
 - ✅ Mesurer au moins le nombre de tiles visitées avant/après en debug via `LastVisitedTileCount`.
 
-## ⏳ Phase 3 - Import Tiled v1 : conversion editor/offline
+## 🧪 Phase 3 - Import Tiled v1 : conversion editor/offline
 
 Priorité : haute.
 
@@ -192,20 +192,22 @@ Décision de dépendance :
 
 Tâches :
 
-- ⏳ Ajouter la détection `.tmx`, `.tsx`, `.json` Tiled dans l'import éditeur.
-- ⏳ Créer un importeur qui lit les champs Tiled essentiels : `orientation`, `width`, `height`, `tilewidth`, `tileheight`, `layers`, `tilesets`.
-- ⏳ Rejeter explicitement les orientations non supportées en v1 : isometric, staggered, hexagonal.
-- ⏳ Convertir `gid == 0` en tile vide CasaEngine `-1`.
-- ⏳ Masquer les flags Tiled avant de résoudre l'ID de tile : horizontal, vertical, diagonal/anti-diagonal selon le format Tiled.
-- ⏳ Mapper `firstgid + local tile id` vers des IDs CasaEngine stables.
-- ⏳ Générer `TileSetData` depuis les rectangles de l'image tileset.
-- ⏳ Créer/importer le wrapper `.texture` de l'image tileset en réutilisant ou extrayant la logique existante d'import texture.
-- ⏳ Générer `TileMapData` avec une layer CasaEngine par tile layer Tiled.
-- ⏳ Conserver le nom des layers Tiled dans `TileMapLayerData.Name`.
-- ⏳ Convertir l'ordre des layers et `zOffset` de façon déterministe.
-- ⏳ Inscrire les nouveaux assets dans `EditorAssetCatalogService`.
-- ⏳ Sauvegarder le catalogue après import.
-- ⏳ Retourner un résultat d'import affichable dans l'éditeur : assets créés, warnings, limitations.
+- ✅ Ajouter la détection `.tmx` dans l'import éditeur.
+- ✅ Résoudre les tilesets externes `.tsx` référencés par une map `.tmx`.
+- ⏳ Ajouter l'import direct `.tsx` et la détection `.json` Tiled si nécessaire.
+- ✅ Créer un importeur qui lit les champs Tiled essentiels : `orientation`, `width`, `height`, `tilewidth`, `tileheight`, `layers`, `tilesets`.
+- ✅ Rejeter explicitement les orientations non supportées en v1 : isometric, staggered, hexagonal.
+- ✅ Convertir `gid == 0` en tile vide CasaEngine `-1`.
+- ✅ Masquer les flags Tiled avant de résoudre l'ID de tile : horizontal, vertical, diagonal/anti-diagonal selon le format Tiled.
+- ✅ Mapper `firstgid + local tile id` vers des IDs CasaEngine stables.
+- ✅ Générer `TileSetData` depuis les rectangles de l'image tileset.
+- ✅ Créer/importer le wrapper `.texture` de l'image tileset en réutilisant la logique existante d'import texture.
+- ✅ Générer `TileMapData` avec une layer CasaEngine par tile layer Tiled.
+- ✅ Conserver le nom des layers Tiled dans `TileMapLayerData.Name`.
+- ✅ Convertir l'ordre des layers et `zOffset` de façon déterministe.
+- ✅ Inscrire les nouveaux assets dans `EditorAssetCatalogService`.
+- ✅ Sauvegarder le catalogue après import.
+- ✅ Retourner un résultat d'import affichable dans l'éditeur : assets créés, warnings, limitations.
 
 Critères d'acceptation :
 
@@ -217,11 +219,13 @@ Critères d'acceptation :
 
 Vérifications :
 
-- 🧪 Ajouter un petit fixture Tiled de test dans un dossier de tests ou de samples, avec une image très petite.
-- 🧪 Tester import `.tmx` avec tileset externe `.tsx`.
-- 🧪 Tester map avec cellules vides.
-- 🧪 Tester map avec plusieurs layers.
-- 🧪 Tester comportement sur une map isométrique : l'import doit refuser clairement.
+- ✅ Ajouter un petit fixture Tiled généré par test, avec une image très petite.
+- ✅ Tester import `.tmx` avec tileset externe `.tsx`.
+- ✅ Tester map avec cellules vides.
+- ✅ Tester map avec plusieurs layers.
+- ✅ Tester comportement sur une map isométrique : l'import doit refuser clairement.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~TiledTmx`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 4 - Import Tiled v2 : fidélité des données
 
