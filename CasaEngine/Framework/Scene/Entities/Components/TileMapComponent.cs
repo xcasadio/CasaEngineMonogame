@@ -21,6 +21,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 {
     private List<CollisionObject> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
+    private readonly List<AutoTile> _dirtyAutoTiles = new();
+    private readonly HashSet<AutoTile> _dirtyAutoTileSet = new();
     private List<TileMapLayer> Layers { get; } = new();
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
@@ -74,6 +76,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         RemoveAllCollisionObjects();
         Layers.Clear();
         _autoTiles.Clear();
+        _dirtyAutoTiles.Clear();
+        _dirtyAutoTileSet.Clear();
         _collisionObjects.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
@@ -136,17 +140,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public bool ShouldUpdateWhenConditional(Entity owner)
     {
         ArgumentNullException.ThrowIfNull(owner);
-        return _hasAnimatedTiles || _needsAutoTileRefresh;
+        return _hasAnimatedTiles || _dirtyAutoTiles.Count > 0;
     }
 
     public override void Update(float elapsedTime)
     {
-        if (_needsAutoTileRefresh)
+        if (_dirtyAutoTiles.Count > 0)
         {
-            for (var index = 0; index < _autoTiles.Count; index++)
+            for (var index = 0; index < _dirtyAutoTiles.Count; index++)
             {
-                _autoTiles[index].Update(elapsedTime);
+                _dirtyAutoTiles[index].Update(elapsedTime);
             }
+
+            _dirtyAutoTiles.Clear();
+            _dirtyAutoTileSet.Clear();
         }
 
         _needsAutoTileRefresh = false;
@@ -331,10 +338,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
         MarkAffectedChunksDirty(layerIndex, x, y);
         RebuildCollisionChunkForTile(layerIndex, x, y);
+        MarkAffectedAutoTilesDirty(layerIndex, x, y);
 
-        _needsAutoTileRefresh = true;
         IsBoundingBoxDirty = true;
-        Owner?.Policies.RequestConditionalUpdate();
     }
 
     public override void Load(JObject element)
@@ -395,7 +401,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     autoTile.SetTileInfo(TileSetData.TileSize, TileMapData.MapSize, tileMapLayerData, x, y);
                     tile = autoTile;
                     _autoTiles.Add(autoTile);
-                    _needsAutoTileRefresh = true;
+                    QueueAutoTileRefresh(autoTile);
                     break;
 
                 case TileType.Static:
@@ -458,6 +464,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         if (layerRuntime.Tiles[tileIndex] is AutoTile oldAutoTile)
         {
             _autoTiles.Remove(oldAutoTile);
+            if (_dirtyAutoTileSet.Remove(oldAutoTile))
+            {
+                _dirtyAutoTiles.Remove(oldAutoTile);
+            }
         }
 
         RemoveCollisionObject(layerRuntime.CollisionObjects[tileIndex]);
@@ -506,6 +516,41 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 MarkChunkDirty(layerIndex, x + offsetX, y + offsetY);
             }
         }
+    }
+
+    private void MarkAffectedAutoTilesDirty(int layerIndex, int x, int y)
+    {
+        var layer = Layers[layerIndex];
+
+        for (var offsetY = -1; offsetY <= 1; offsetY++)
+        {
+            for (var offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                var tileX = x + offsetX;
+                var tileY = y + offsetY;
+                if (!TileMapData.IsInside(tileX, tileY))
+                {
+                    continue;
+                }
+
+                var tileIndex = TileMapData.GetTileIndex(tileX, tileY);
+                if (layer.Tiles[tileIndex] is AutoTile autoTile)
+                {
+                    QueueAutoTileRefresh(autoTile);
+                }
+            }
+        }
+    }
+
+    private void QueueAutoTileRefresh(AutoTile autoTile)
+    {
+        if (_dirtyAutoTileSet.Add(autoTile))
+        {
+            _dirtyAutoTiles.Add(autoTile);
+        }
+
+        _needsAutoTileRefresh = true;
+        Owner?.Policies.RequestConditionalUpdate();
     }
 
     private void MarkChunkDirty(int layerIndex, int x, int y)

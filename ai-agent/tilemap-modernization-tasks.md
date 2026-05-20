@@ -358,21 +358,21 @@ Vérifications :
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapCollisionChunkTests`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
-## ⏳ Phase 8 - Animated tiles et auto-tiles modernes
+## 🧪 Phase 8 - Animated tiles et auto-tiles modernes
 
 Priorité : moyenne.
 
 Tâches animated tiles :
 
-- ⏳ Finaliser le chargement de `AnimatedTileData` dans `TileMapComponent`.
-- ⏳ Créer une liste runtime `_animatedTiles` ou équivalent.
-- ⏳ Mettre à jour uniquement les tiles animées.
+- ⚠️ Finaliser le chargement de `AnimatedTileData` dans `TileMapComponent` : bloqué par `AnimatedTile.Draw` encore incomplet.
+- ⚠️ Créer une liste runtime `_animatedTiles` ou équivalent après finalisation du rendu animated tile.
+- ⚠️ Mettre à jour uniquement les tiles animées après finalisation du rendu animated tile.
 - ⏳ Mettre à jour UV/frame sans reconstruire toute la map si possible.
 - ⏳ Supporter loop, vitesse, ping-pong et temps global/local.
 
 Tâches auto-tiles :
 
-- ⏳ Remplacer le recalcul global par un recalcul des cellules modifiées et de leurs voisins.
+- ✅ Remplacer le recalcul global par un recalcul des cellules modifiées et de leurs voisins via file dirty.
 - ⏳ Clarifier les règles supportées : 4-bit, 8-bit, Wang tiles ou règle CasaEngine existante.
 - ⏳ Importer à terme les Wang sets/Terrain sets Tiled si la donnée est compatible.
 - ⏳ Ajouter un debug mask de voisinage.
@@ -381,6 +381,11 @@ Critères d'acceptation :
 
 - Une map avec quelques tiles animées ne déclenche pas `Update` sur toutes les cellules.
 - Peindre/effacer une auto-tile met à jour la cellule et ses voisins visibles sans recalcul global.
+
+Vérifications :
+
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 9 - Intégration éditeur TileMap
 
