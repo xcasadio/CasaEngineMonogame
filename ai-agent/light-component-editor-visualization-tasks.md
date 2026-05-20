@@ -321,11 +321,13 @@ Commit attendu :
 
 Commit realise :
 
-- `a renseigner au commit suivant`
+- `269841b0` `feat(editor): route light overlay selection state`
 
 ---
 
-### ⏳ Todo - LIGHTVIS-006 - Ajouter tests et garde-fous de regression
+### 🧪 Needs testing - LIGHTVIS-006 - Ajouter tests et garde-fous de regression
+
+Note validation : les tests automatises et le build editeur sont OK. Le smoke test visuel dans l'editeur reste a executer manuellement.
 
 Objectif : verrouiller les points fragiles sans dependre d'un rendu GPU complet dans les tests unitaires.
 
@@ -361,7 +363,7 @@ Commit attendu :
 
 Commit realise :
 
-- `-`
+- `a renseigner apres commit final`
 
 ## Smoke test manuel final
 
@@ -378,4 +380,6 @@ A realiser apres `LIGHTVIS-006` :
 
 Resultat smoke test :
 
-- `-`
+- Tests automatises : `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter FullyQualifiedName~LightOverlay` OK, 5 tests passes.
+- Build editeur : `dotnet build .\CasaEngine.Editor.MonoGame.sln -nologo -p:WarningLevel=0` OK.
+- Smoke visuel editeur : non execute dans cette session non interactive ; a valider manuellement avec les 3 types de lumieres.
