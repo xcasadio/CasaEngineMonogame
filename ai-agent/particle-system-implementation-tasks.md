@@ -590,7 +590,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 8 — Preparation V2 modulaire
 
-- ⏳ **T08.01 — Documenter les limites V1 et migrations V2**
+- ✅ **T08.01 — Documenter les limites V1 et migrations V2**
   Objectif :
   - Mettre a jour docs avec ce qui est supporte, ce qui ne l'est pas, et la trajectoire module stack.
   - Decrire comment migrer les modules fixes V1 vers Spawn/Initialize/Update/Render.
