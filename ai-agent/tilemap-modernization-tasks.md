@@ -253,7 +253,7 @@ Critères d'acceptation :
 - Les animations Tiled simples se retrouvent comme animated tiles CasaEngine.
 - Les propriétés personnalisées importantes restent disponibles pour gameplay/editor.
 
-## ⏳ Phase 5 - Chunking visuel
+## 🧪 Phase 5 - Chunking visuel
 
 Priorité : haute après culling.
 
@@ -279,19 +279,25 @@ public sealed class TileMapChunk
 
 Tâches :
 
-- ⏳ Choisir une taille de chunk par défaut : 16x16 ou 32x32 tiles.
-- ⏳ Créer les chunks au chargement ou au premier besoin.
-- ⏳ Associer chaque tile à un chunk sans allocation par frame.
-- ⏳ Ajouter `MarkChunkDirty(layerIndex, x, y)`.
-- ⏳ Dessiner seulement les chunks visibles.
-- ⏳ Ajouter un overlay debug chunks/visible chunks.
-- ⏳ Garder le fallback cellule par cellule pendant la transition si nécessaire.
+- ✅ Choisir une taille de chunk par défaut : 16x16 tiles.
+- ✅ Créer les chunks au chargement.
+- ✅ Associer chaque tile à un chunk sans allocation par frame.
+- ✅ Ajouter `MarkChunkDirty(layerIndex, x, y)` et marquer les voisins utiles aux auto-tiles.
+- ✅ Dessiner seulement les chunks visibles, puis les cellules visibles dans ces chunks.
+- 🧪 Ajouter un overlay debug chunks/visible chunks ; compteur `LastVisitedChunkCount` disponible pour validation.
+- ✅ Garder le fallback cellule par cellule à l'intérieur des chunks pendant la transition vers buffers.
 
 Critères d'acceptation :
 
 - Modifier une tile ne reconstruit que son chunk et les voisins nécessaires pour auto-tiles.
 - Une grande map ne parcourt pas les chunks hors caméra.
 - Le debug overlay permet de vérifier les bounds de chunks.
+
+Vérifications :
+
+- ✅ Ajouter des tests unitaires `TileMapChunk` pour intersections, bounds monde et dirty flags.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapChunkTests`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 6 - Buffers statiques par chunk
 

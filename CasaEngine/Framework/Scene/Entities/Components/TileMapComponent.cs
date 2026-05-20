@@ -20,6 +20,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private List<CollisionObject> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
     private List<TileMapLayer> Layers { get; } = new();
+    private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
     private IPhysicsWorldContext? _physicsWorldContext;
@@ -31,6 +32,21 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public HashSet<Collision> Collisions { get; } = new();
     public int LastVisitedTileCount { get; private set; }
     public int LastDrawnTileCount { get; private set; }
+    public int LastVisitedChunkCount { get; private set; }
+
+    public int ChunkTileSize
+    {
+        get => _chunkTileSize;
+        set
+        {
+            if (value <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Chunk tile size must be positive.");
+            }
+
+            _chunkTileSize = value;
+        }
+    }
 
     public TileMapComponent()
     {
@@ -88,6 +104,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     tileMapLayer.CollisionObjects.Add(CreateCollisionObject(layerIndex, x, y));
                 }
             }
+
+            BuildChunks(tileMapLayer, layerIndex);
         }
 
         IsBoundingBoxDirty = true;
@@ -171,6 +189,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         LastVisitedTileCount = 0;
         LastDrawnTileCount = 0;
+        LastVisitedChunkCount = 0;
 
         if (TileMapData == null)
         {
@@ -211,27 +230,48 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             maxTileY = visibleMaxTileY;
         }
 
-        foreach (var layer in Layers)
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
         {
+            var layer = Layers[layerIndex];
             var layerZ = layer.TileMapLayerData.zOffset;
+            var worldZ = translation.Z + layerZ;
 
-            for (var y = minTileY; y <= maxTileY; y++)
+            for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
             {
-                var rowOffset = y * mapWidth;
-
-                for (var x = minTileX; x <= maxTileX; x++)
+                var chunk = layer.Chunks[chunkIndex];
+                if (!chunk.IntersectsTileRange(minTileX, maxTileX, minTileY, maxTileY))
                 {
-                    var tileIndex = rowOffset + x;
-                    LastVisitedTileCount++;
-
-                    if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
-                    {
-                        continue;
-                    }
-
-                    LastDrawnTileCount++;
-                    layer.Tiles[tileIndex].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, translation.Z + layerZ, scale);
+                    continue;
                 }
+
+                LastVisitedChunkCount++;
+                chunk.UpdateWorldBounds(mapPosX, mapPosY, tileWidth, tileHeight, worldZ, worldZ);
+
+                var chunkMinTileX = Math.Max(minTileX, chunk.TileBounds.Left);
+                var chunkMaxTileX = Math.Min(maxTileX, chunk.TileBounds.Right - 1);
+                var chunkMinTileY = Math.Max(minTileY, chunk.TileBounds.Top);
+                var chunkMaxTileY = Math.Min(maxTileY, chunk.TileBounds.Bottom - 1);
+
+                for (var y = chunkMinTileY; y <= chunkMaxTileY; y++)
+                {
+                    var rowOffset = y * mapWidth;
+
+                    for (var x = chunkMinTileX; x <= chunkMaxTileX; x++)
+                    {
+                        var tileIndex = rowOffset + x;
+                        LastVisitedTileCount++;
+
+                        if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                        {
+                            continue;
+                        }
+
+                        LastDrawnTileCount++;
+                        layer.Tiles[tileIndex].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, worldZ, scale);
+                    }
+                }
+
+                chunk.MarkVisualClean();
             }
         }
     }
@@ -263,6 +303,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         layerData.tiles[tileIndex] = tileId;
         ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
+        MarkAffectedChunksDirty(layerIndex, x, y);
 
         _needsAutoTileRefresh = true;
         IsBoundingBoxDirty = true;
@@ -407,6 +448,63 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(texture.Resource, layerData, layerIndex, x, y);
         layerRuntime.CollisionObjects[tileIndex] = CreateCollisionObject(layerIndex, x, y);
+    }
+
+    private void BuildChunks(TileMapLayer layer, int layerIndex)
+    {
+        layer.Chunks.Clear();
+
+        var mapWidth = TileMapData.MapSize.Width;
+        var mapHeight = TileMapData.MapSize.Height;
+        var chunkSize = ChunkTileSize;
+        layer.ChunkColumns = (mapWidth + chunkSize - 1) / chunkSize;
+        layer.ChunkRows = (mapHeight + chunkSize - 1) / chunkSize;
+
+        for (var chunkY = 0; chunkY < layer.ChunkRows; chunkY++)
+        {
+            var tileY = chunkY * chunkSize;
+            var tileHeight = Math.Min(chunkSize, mapHeight - tileY);
+
+            for (var chunkX = 0; chunkX < layer.ChunkColumns; chunkX++)
+            {
+                var tileX = chunkX * chunkSize;
+                var tileWidth = Math.Min(chunkSize, mapWidth - tileX);
+                layer.Chunks.Add(new TileMapChunk(layerIndex, new Point(chunkX, chunkY), new Rectangle(tileX, tileY, tileWidth, tileHeight)));
+            }
+        }
+    }
+
+    private void MarkAffectedChunksDirty(int layerIndex, int x, int y)
+    {
+        for (var offsetY = -1; offsetY <= 1; offsetY++)
+        {
+            for (var offsetX = -1; offsetX <= 1; offsetX++)
+            {
+                MarkChunkDirty(layerIndex, x + offsetX, y + offsetY);
+            }
+        }
+    }
+
+    private void MarkChunkDirty(int layerIndex, int x, int y)
+    {
+        if (!TileMapData.IsInside(x, y))
+        {
+            return;
+        }
+
+        var layer = Layers[layerIndex];
+        if (layer.Chunks.Count == 0)
+        {
+            return;
+        }
+
+        var chunkX = x / ChunkTileSize;
+        var chunkY = y / ChunkTileSize;
+        var chunkIndex = chunkX + chunkY * layer.ChunkColumns;
+        if (chunkIndex >= 0 && chunkIndex < layer.Chunks.Count)
+        {
+            layer.Chunks[chunkIndex].MarkDirty();
+        }
     }
 
     private bool TryGetVisibleTileRange(
