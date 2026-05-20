@@ -6,6 +6,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
+using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -17,6 +18,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
     private List<CollisionObject> _collisionObjects = new();
+    private readonly List<AutoTile> _autoTiles = new();
     private List<TileMapLayer> Layers { get; } = new();
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
@@ -27,6 +29,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public TileSetData TileSetData { get; set; }
     public PhysicsType PhysicsType { get; }
     public HashSet<Collision> Collisions { get; } = new();
+    public int LastVisitedTileCount { get; private set; }
+    public int LastDrawnTileCount { get; private set; }
 
     public TileMapComponent()
     {
@@ -45,6 +49,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         base.InitializeWithWorld(world);
 
         Layers.Clear();
+        _autoTiles.Clear();
         _collisionObjects.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
@@ -106,11 +111,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public override void Update(float elapsedTime)
     {
-        foreach (var layer in Layers)
+        if (_needsAutoTileRefresh)
         {
-            foreach (var tile in layer.Tiles)
+            for (var index = 0; index < _autoTiles.Count; index++)
             {
-                tile.Update(elapsedTime);
+                _autoTiles[index].Update(elapsedTime);
             }
         }
 
@@ -164,6 +169,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public override void Draw(float elapsedTime)
     {
+        LastVisitedTileCount = 0;
+        LastDrawnTileCount = 0;
+
         if (TileMapData == null)
         {
             return;
@@ -174,20 +182,55 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         var mapWidth = TileMapData.MapSize.Width;
         var mapHeight = TileMapData.MapSize.Height;
+
+        if (mapWidth <= 0 || mapHeight <= 0)
+        {
+            return;
+        }
+
         var tileWidth = TileSetData.TileSize.Width * scale.X;
         var tileHeight = TileSetData.TileSize.Height * scale.Y;
         var mapPosX = translation.X;
         var mapPosY = translation.Y;
+        var minTileX = 0;
+        var maxTileX = mapWidth - 1;
+        var minTileY = 0;
+        var maxTileY = mapHeight - 1;
+
+        if (TryGetVisibleTileRange(tileWidth, tileHeight, mapPosX, mapPosY, mapWidth, mapHeight,
+                out var visibleMinTileX, out var visibleMaxTileX, out var visibleMinTileY, out var visibleMaxTileY))
+        {
+            if (visibleMinTileX > visibleMaxTileX || visibleMinTileY > visibleMaxTileY)
+            {
+                return;
+            }
+
+            minTileX = visibleMinTileX;
+            maxTileX = visibleMaxTileX;
+            minTileY = visibleMinTileY;
+            maxTileY = visibleMaxTileY;
+        }
 
         foreach (var layer in Layers)
         {
             var layerZ = layer.TileMapLayerData.zOffset;
 
-            for (var y = 0; y < mapHeight; y++)
+            for (var y = minTileY; y <= maxTileY; y++)
             {
-                for (var x = 0; x < mapWidth; x++)
+                var rowOffset = y * mapWidth;
+
+                for (var x = minTileX; x <= maxTileX; x++)
                 {
-                    layer.Tiles[x + y * mapWidth].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, translation.Z + layerZ, scale);
+                    var tileIndex = rowOffset + x;
+                    LastVisitedTileCount++;
+
+                    if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                    {
+                        continue;
+                    }
+
+                    LastDrawnTileCount++;
+                    layer.Tiles[tileIndex].Draw(mapPosX + tileWidth * x, mapPosY - tileHeight * y, translation.Z + layerZ, scale);
                 }
             }
         }
@@ -276,6 +319,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     var autoTile = new AutoTile(texture, autoTileData);
                     autoTile.SetTileInfo(TileSetData.TileSize, TileMapData.MapSize, tileMapLayerData, x, y);
                     tile = autoTile;
+                    _autoTiles.Add(autoTile);
                     _needsAutoTileRefresh = true;
                     break;
 
@@ -350,6 +394,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     private void ReplaceRuntimeTile(TileMapLayer layerRuntime, TileMapLayerData layerData, int layerIndex, int x, int y, int tileIndex)
     {
+        if (layerRuntime.Tiles[tileIndex] is AutoTile oldAutoTile)
+        {
+            _autoTiles.Remove(oldAutoTile);
+        }
+
         RemoveCollisionObject(layerRuntime.CollisionObjects[tileIndex]);
         layerRuntime.CollisionObjects[tileIndex] = null;
 
@@ -358,6 +407,122 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(texture.Resource, layerData, layerIndex, x, y);
         layerRuntime.CollisionObjects[tileIndex] = CreateCollisionObject(layerIndex, x, y);
+    }
+
+    private bool TryGetVisibleTileRange(
+        float tileWidth,
+        float tileHeight,
+        float mapPosX,
+        float mapPosY,
+        int mapWidth,
+        int mapHeight,
+        out int minTileX,
+        out int maxTileX,
+        out int minTileY,
+        out int maxTileY)
+    {
+        minTileX = 0;
+        maxTileX = mapWidth - 1;
+        minTileY = 0;
+        maxTileY = mapHeight - 1;
+
+        if (tileWidth <= 0f || tileHeight <= 0f)
+        {
+            return false;
+        }
+
+        var currentRenderFrame = Owner.World.CurrentRenderFrame;
+        if (!currentRenderFrame.HasValue)
+        {
+            return false;
+        }
+
+        if (!TryGetWorldViewBounds(currentRenderFrame.Value, Position.Z, out var viewMinX, out var viewMaxX, out var viewMinY, out var viewMaxY))
+        {
+            return false;
+        }
+
+        var rawMinTileX = (int)Math.Floor((viewMinX - mapPosX) / tileWidth) - 1;
+        var rawMaxTileX = (int)Math.Floor((viewMaxX - mapPosX) / tileWidth) + 1;
+        var rawMinTileY = (int)Math.Floor((mapPosY - viewMaxY) / tileHeight) - 1;
+        var rawMaxTileY = (int)Math.Floor((mapPosY - viewMinY) / tileHeight) + 1;
+
+        if (rawMaxTileX < 0 || rawMaxTileY < 0 || rawMinTileX >= mapWidth || rawMinTileY >= mapHeight)
+        {
+            minTileX = 0;
+            maxTileX = -1;
+            minTileY = 0;
+            maxTileY = -1;
+            return true;
+        }
+
+        minTileX = Math.Clamp(rawMinTileX, 0, mapWidth - 1);
+        maxTileX = Math.Clamp(rawMaxTileX, 0, mapWidth - 1);
+        minTileY = Math.Clamp(rawMinTileY, 0, mapHeight - 1);
+        maxTileY = Math.Clamp(rawMaxTileY, 0, mapHeight - 1);
+        return true;
+    }
+
+    private static bool TryGetWorldViewBounds(
+        in RenderFrame frame,
+        float planeZ,
+        out float minX,
+        out float maxX,
+        out float minY,
+        out float maxY)
+    {
+        var viewportRect = frame.ViewportRect;
+        minX = float.MaxValue;
+        maxX = float.MinValue;
+        minY = float.MaxValue;
+        maxY = float.MinValue;
+
+        if (viewportRect.Width <= 0 || viewportRect.Height <= 0)
+        {
+            return false;
+        }
+
+        var viewport = new Viewport(viewportRect.X, viewportRect.Y, viewportRect.Width, viewportRect.Height)
+        {
+            MinDepth = 0f,
+            MaxDepth = 1f,
+        };
+
+        return IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Left, viewportRect.Top, planeZ, ref minX, ref maxX, ref minY, ref maxY)
+            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Right, viewportRect.Top, planeZ, ref minX, ref maxX, ref minY, ref maxY)
+            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Left, viewportRect.Bottom, planeZ, ref minX, ref maxX, ref minY, ref maxY)
+            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Right, viewportRect.Bottom, planeZ, ref minX, ref maxX, ref minY, ref maxY);
+    }
+
+    private static bool IncludeViewportCorner(
+        Viewport viewport,
+        Matrix view,
+        Matrix projection,
+        float screenX,
+        float screenY,
+        float planeZ,
+        ref float minX,
+        ref float maxX,
+        ref float minY,
+        ref float maxY)
+    {
+        var nearPoint = viewport.Unproject(new Vector3(screenX, screenY, 0f), projection, view, Matrix.Identity);
+        var farPoint = viewport.Unproject(new Vector3(screenX, screenY, 1f), projection, view, Matrix.Identity);
+        var direction = farPoint - nearPoint;
+
+        if (Math.Abs(direction.Z) < 0.0001f)
+        {
+            return false;
+        }
+
+        var distance = (planeZ - nearPoint.Z) / direction.Z;
+        var worldPoint = nearPoint + direction * distance;
+
+        minX = Math.Min(minX, worldPoint.X);
+        maxX = Math.Max(maxX, worldPoint.X);
+        minY = Math.Min(minY, worldPoint.Y);
+        maxY = Math.Max(maxY, worldPoint.Y);
+        return true;
     }
 
     private void RemoveCollisionObject(CollisionObject? collisionObject)

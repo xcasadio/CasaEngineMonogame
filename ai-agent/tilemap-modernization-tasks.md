@@ -122,7 +122,7 @@ Vérifications :
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 - 🧪 Lancer ou vérifier `TileMapDemo` si possible.
 
-## ⏳ Phase 2 - Réduire le coût runtime immédiat
+## 🧪 Phase 2 - Réduire le coût runtime immédiat
 
 Priorité : très haute.
 
@@ -134,14 +134,16 @@ Fichiers probables :
 
 Tâches :
 
-- ⏳ Corriger `GetBoundingBox` avec min/max explicites malgré l'axe Y négatif.
-- ⏳ Éviter `Layers.Min`/`Layers.Max` dans `GetBoundingBox` si cette méthode peut être appelée fréquemment.
-- ⏳ Remplacer l'update global de toutes les tiles par des listes spécialisées : auto-tiles dirty et animated tiles.
-- ⏳ Calculer le rectangle visible caméra en coordonnées monde 2D.
-- ⏳ Convertir ce rectangle en plage de tiles visibles.
-- ⏳ Dessiner uniquement `minTileX..maxTileX` et `minTileY..maxTileY`.
-- ⏳ Ignorer les empty tiles avant tout appel `Draw`.
-- ⏳ Ajouter une marge de sécurité optionnelle pour éviter le pop-in aux bords.
+- ✅ Corriger `GetBoundingBox` avec min/max explicites malgré l'axe Y négatif.
+- ✅ Éviter `Layers.Min`/`Layers.Max` dans `GetBoundingBox` si cette méthode peut être appelée fréquemment.
+- ✅ Remplacer l'update global de toutes les tiles par une liste spécialisée d'auto-tiles dirty.
+- ⚠️ Ajouter une liste spécialisée d'animated tiles quand le runtime `AnimatedTile` sera finalisé.
+- ✅ Calculer le rectangle visible caméra en coordonnées monde 2D depuis le `RenderFrame` courant.
+- ✅ Convertir ce rectangle en plage de tiles visibles.
+- ✅ Dessiner uniquement `minTileX..maxTileX` et `minTileY..maxTileY`.
+- ✅ Ignorer les empty tiles avant tout appel `Draw`.
+- ✅ Ajouter une marge de sécurité optionnelle pour éviter le pop-in aux bords.
+- ✅ Exposer des compteurs debug `LastVisitedTileCount` et `LastDrawnTileCount` pour mesurer le parcours effectif.
 
 Critères d'acceptation :
 
@@ -151,9 +153,11 @@ Critères d'acceptation :
 
 Vérifications :
 
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
+- ✅ Relancer les tests unitaires TileMapData existants.
 - 🧪 Tester avec la map démo existante.
 - 🧪 Ajouter une map de test plus grande ou générée temporairement pour observer que seule la zone visible est parcourue.
-- 🧪 Mesurer au moins le nombre de tiles visitées avant/après en debug.
+- ✅ Mesurer au moins le nombre de tiles visitées avant/après en debug via `LastVisitedTileCount`.
 
 ## ⏳ Phase 3 - Import Tiled v1 : conversion editor/offline
 

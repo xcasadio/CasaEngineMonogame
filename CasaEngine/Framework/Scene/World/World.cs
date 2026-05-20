@@ -44,6 +44,7 @@ public sealed class World : ObjectBase
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
     public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
+    public RenderFrame? CurrentRenderFrame { get; private set; }
 
     public bool DisplaySpacePartitioning { get; set; }
 
@@ -575,22 +576,30 @@ public sealed class World : ObjectBase
 
     public void Draw(in RenderFrame frame)
     {
-        var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
-        SpatialServices.WorldIndex.Query(boundingFrustum, _entitiesVisible);
+        CurrentRenderFrame = frame;
 
-        foreach (var entityBase in _entitiesVisible)
+        try
         {
-            if (entityBase.RootComponent != null)
+            var boundingFrustum = new BoundingFrustum(frame.ViewProjection);
+            SpatialServices.WorldIndex.Query(boundingFrustum, _entitiesVisible);
+
+            foreach (var entityBase in _entitiesVisible)
             {
-                entityBase.Draw(0f);
+                if (entityBase.RootComponent != null)
+                {
+                    entityBase.Draw(0f);
+                }
+            }
+
+            if (DisplaySpacePartitioning)
+            {
+                SpatialServices.WorldIndex.DebugDraw(Game.Line3dRendererComponent);
             }
         }
-
-        _entitiesVisible.Clear();
-
-        if (DisplaySpacePartitioning)
+        finally
         {
-            SpatialServices.WorldIndex.DebugDraw(Game.Line3dRendererComponent);
+            _entitiesVisible.Clear();
+            CurrentRenderFrame = null;
         }
     }
 
