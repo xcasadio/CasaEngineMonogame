@@ -1,4 +1,6 @@
 using CasaEngine.Framework.Common;
+using CasaEngine.Framework.Particles.Serialization;
+using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Particles.Authoring;
 
@@ -17,6 +19,12 @@ public sealed class ParticleEffectAsset : ObjectBase
     public int Version { get; set; } = CurrentVersion;
 
     public List<ParticleEmitterDefinition> Emitters { get; } = new();
+
+    public override void Load(JObject element)
+    {
+        base.Load(element);
+        ParticleEffectAssetJsonSerializer.Load(this, element);
+    }
 
     public IReadOnlyList<string> Validate()
     {

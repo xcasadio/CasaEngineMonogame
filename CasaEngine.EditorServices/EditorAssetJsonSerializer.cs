@@ -4,6 +4,8 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Particles.Serialization;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI.MGUI;
@@ -50,6 +52,10 @@ internal static class EditorAssetJsonSerializer
 
             case MaterialAsset materialAsset:
                 SaveMaterialAsset(materialAsset, rootObject);
+                return true;
+
+            case ParticleEffectAsset particleEffectAsset:
+                SaveParticleEffectAsset(particleEffectAsset, rootObject);
                 return true;
 
             case SpriteData spriteData:
@@ -281,6 +287,11 @@ internal static class EditorAssetJsonSerializer
     private static void SaveMaterialAsset(MaterialAsset materialAsset, JObject node)
     {
         MaterialAssetJsonSerializer.Save(materialAsset, node);
+    }
+
+    private static void SaveParticleEffectAsset(ParticleEffectAsset particleEffectAsset, JObject node)
+    {
+        ParticleEffectAssetJsonSerializer.Save(particleEffectAsset, node);
     }
 
     private static void SaveTileMapLayerData(TileMapLayerData layer, JObject node)

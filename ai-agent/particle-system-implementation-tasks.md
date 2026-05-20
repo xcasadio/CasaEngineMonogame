@@ -215,7 +215,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle effect authoring asset`
 
-- ⏳ **T01.05 — Ajouter serialisation JSON `.particle`**
+- ✅ **T01.05 — Ajouter serialisation JSON `.particle`**
   Objectif :
   - Creer serializer/load pour `ParticleEffectAsset`.
   - Ajouter version/schema version et migration V1 no-op.

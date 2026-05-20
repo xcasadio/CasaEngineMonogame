@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Rendering.Environment;
@@ -43,5 +44,6 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
         assetContentManager.RegisterAssetLoader(typeof(EnvironmentAsset), new EnvironmentAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
+        assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
     }
 }
