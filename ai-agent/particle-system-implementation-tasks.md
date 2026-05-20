@@ -184,7 +184,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add deterministic particle value ranges`
 
-- ⏳ **T01.02 — Ajouter `FloatCurve` lineaire**
+- ✅ **T01.02 — Ajouter `FloatCurve` lineaire**
   Objectif :
   - Supporter points temps/valeur, clamp temps 0..1, evaluation lineaire, presets constant/fade/bell/pulse.
   - Eviter toute allocation pendant `Evaluate`.
