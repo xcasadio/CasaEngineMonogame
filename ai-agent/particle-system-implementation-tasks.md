@@ -204,7 +204,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add color gradient evaluation`
 
-- ⏳ **T01.04 — Creer `ParticleEffectAsset` et definitions d'emetteurs**
+- ✅ **T01.04 — Creer `ParticleEffectAsset` et definitions d'emetteurs**
   Objectif :
   - Ajouter asset authoring, emitters et modules V1 : emission, shape, initial, simulation, renderer.
   - Stocker seulement des donnees authoring : IDs d'assets, noms de states, nombres, enums, curves, gradients.
