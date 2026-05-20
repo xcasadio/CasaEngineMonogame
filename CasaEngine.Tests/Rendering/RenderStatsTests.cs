@@ -12,12 +12,14 @@ public class RenderStatsTests
         {
             ParticleCount = 12,
             TransparentItems = 12,
+            ParticleRenderCpuMilliseconds = 1.25,
         };
 
         stats.Reset();
 
         Assert.Equal(0, stats.ParticleCount);
         Assert.Equal(0, stats.TransparentItems);
+        Assert.Equal(0.0, stats.ParticleRenderCpuMilliseconds);
     }
 
     [Fact]
@@ -31,5 +33,6 @@ public class RenderStatsTests
         string text = stats.ToString();
 
         Assert.Contains("Particles:7", text);
+        Assert.Contains("ParticleRender:", text);
     }
 }

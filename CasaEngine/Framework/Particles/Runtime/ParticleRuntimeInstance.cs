@@ -2,6 +2,7 @@ using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using Microsoft.Xna.Framework;
+using System.Diagnostics;
 
 namespace CasaEngine.Framework.Particles.Runtime;
 
@@ -19,6 +20,8 @@ public sealed class ParticleRuntimeInstance
     public bool HasBounds { get; private set; }
 
     public BoundingBox Bounds { get; private set; }
+
+    public ParticleRuntimeMetrics Metrics { get; private set; } = ParticleRuntimeMetrics.Empty;
 
     public ParticlePlaybackState PlaybackState
     {
@@ -120,6 +123,8 @@ public sealed class ParticleRuntimeInstance
             uint emitterSeed = randomSeed + (uint)emitterIndex * 747796405u;
             Emitters[emitterIndex] = new ParticleEmitterRuntime(asset.Emitters[emitterIndex], emitterSeed);
         }
+
+        RefreshMetrics(0.0);
     }
 
     public void Clear()
@@ -131,6 +136,7 @@ public sealed class ParticleRuntimeInstance
 
         HasBounds = false;
         Bounds = default;
+        RefreshMetrics(0.0);
     }
 
     public void Play()
@@ -155,6 +161,8 @@ public sealed class ParticleRuntimeInstance
         {
             Emitters[emitterIndex].Stop(clearParticles);
         }
+
+        RefreshMetrics(0.0);
     }
 
     public void Restart(bool clearParticles = true)
@@ -175,6 +183,7 @@ public sealed class ParticleRuntimeInstance
         }
 
         UpdateBounds();
+        RefreshMetrics(0.0);
         return emittedCount;
     }
 
@@ -188,6 +197,7 @@ public sealed class ParticleRuntimeInstance
 
     public int UpdateEmission(float elapsedSeconds)
     {
+        long startTimestamp = Stopwatch.GetTimestamp();
         int emittedCount = 0;
         for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
         {
@@ -195,11 +205,13 @@ public sealed class ParticleRuntimeInstance
             emittedCount += Emitters[emitterIndex].UpdateEmission(elapsedSeconds);
         }
 
+        RefreshMetrics(GetElapsedMilliseconds(startTimestamp));
         return emittedCount;
     }
 
     public int Update(float elapsedSeconds)
     {
+        long startTimestamp = Stopwatch.GetTimestamp();
         int emittedCount = 0;
         for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
         {
@@ -208,6 +220,7 @@ public sealed class ParticleRuntimeInstance
         }
 
         UpdateBounds();
+        RefreshMetrics(GetElapsedMilliseconds(startTimestamp));
         return emittedCount;
     }
 
@@ -231,4 +244,38 @@ public sealed class ParticleRuntimeInstance
 
         Bounds = HasBounds ? bounds : default;
     }
+
+    private void RefreshMetrics(double simulationCpuMilliseconds)
+    {
+        int capacity = 0;
+        int aliveCount = 0;
+        int lastEmittedCount = 0;
+        int lastKilledCount = 0;
+        int maxAliveCountReached = 0;
+        bool maxReached = false;
+
+        for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+        {
+            ParticleEmitterRuntime emitter = Emitters[emitterIndex];
+            capacity += emitter.Capacity;
+            aliveCount += emitter.AliveCount;
+            lastEmittedCount += emitter.LastEmittedCount;
+            lastKilledCount += emitter.LastKilledCount;
+            maxAliveCountReached += emitter.MaxAliveCountReached;
+            maxReached |= emitter.MaxReached;
+        }
+
+        Metrics = new ParticleRuntimeMetrics(
+            capacity,
+            aliveCount,
+            capacity - aliveCount,
+            lastEmittedCount,
+            lastKilledCount,
+            maxAliveCountReached,
+            maxReached,
+            simulationCpuMilliseconds);
+    }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+        => (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
 }

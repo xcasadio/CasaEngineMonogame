@@ -7,6 +7,7 @@ using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Particles.Runtime;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
@@ -103,7 +104,14 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private float _simulationSpeed = 1.0f;
     private string _statusMessage = "Open a .particle asset from the Content Browser.";
     private int _lastAliveCount;
+    private int _lastDeadCount;
     private int _lastEmittedCount;
+    private int _lastKilledCount;
+    private int _lastMaxAliveCountReached;
+    private bool _lastMaxReached;
+    private double _lastSimulationCpuMilliseconds;
+    private double _lastExtractionCpuMilliseconds;
+    private double _lastRenderCpuMilliseconds;
     private int _lastDrawCallCount;
     private int _rtWidth = 360;
     private int _rtHeight = 260;
@@ -294,8 +302,15 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         _previewWorldDriver.Tick(gameTime);
         var runtimeInstance = _particleComponent.RuntimeInstance;
-        _lastAliveCount = runtimeInstance?.AliveCount ?? 0;
-        _lastEmittedCount = _particleComponent.LastEmittedCount;
+        var metrics = runtimeInstance?.Metrics ?? ParticleRuntimeMetrics.Empty;
+        _lastAliveCount = metrics.AliveCount;
+        _lastDeadCount = metrics.DeadCount;
+        _lastEmittedCount = metrics.LastEmittedCount;
+        _lastKilledCount = metrics.LastKilledCount;
+        _lastMaxAliveCountReached = metrics.MaxAliveCountReached;
+        _lastMaxReached = metrics.MaxReached;
+        _lastSimulationCpuMilliseconds = metrics.SimulationCpuMilliseconds;
+        _lastExtractionCpuMilliseconds = _particleComponent.LastExtractionCpuMilliseconds;
         RefreshMetricsText();
         _renderView?.Invalidate();
     }
@@ -303,6 +318,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
     public void RefreshPreviewAfterDraw()
     {
         _lastDrawCallCount = _editorRuntime.ParticleRendererComponent?.FrameDrawCallCount ?? 0;
+        _lastRenderCpuMilliseconds = _editorRuntime.ParticleRendererComponent?.FrameFlushCpuMilliseconds ?? 0.0;
         RefreshMetricsText();
         RefreshTextureBinding();
     }
@@ -317,7 +333,14 @@ internal sealed class ParticlePreviewViewport : IDisposable
             $"Loop: {_isLooping}",
             $"Simulation speed: {_simulationSpeed:0.###}",
             $"Alive particles: {_lastAliveCount}",
+            $"Dead particles: {_lastDeadCount}",
             $"Last emitted: {_lastEmittedCount}",
+            $"Last killed: {_lastKilledCount}",
+            $"Max alive reached: {_lastMaxAliveCountReached}",
+            $"Max reached: {_lastMaxReached}",
+            $"Simulation CPU ms: {_lastSimulationCpuMilliseconds:0.###}",
+            $"Extraction CPU ms: {_lastExtractionCpuMilliseconds:0.###}",
+            $"Render CPU ms: {_lastRenderCpuMilliseconds:0.###}",
             $"Draw calls: {_lastDrawCallCount}",
             $"Texture: {DescribeBoundTexture()}",
             $"World: {_previewWorldDriver.World?.Name ?? "<none>"}",
@@ -600,7 +623,14 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _isPlaying = false;
         _particleComponent?.Stop(clearParticles: true);
         _lastAliveCount = 0;
+        _lastDeadCount = _particleComponent?.RuntimeInstance?.Metrics.DeadCount ?? 0;
         _lastEmittedCount = 0;
+        _lastKilledCount = 0;
+        _lastMaxAliveCountReached = 0;
+        _lastMaxReached = false;
+        _lastSimulationCpuMilliseconds = 0.0;
+        _lastExtractionCpuMilliseconds = 0.0;
+        _lastRenderCpuMilliseconds = 0.0;
         SetStatusMessage("Preview stopped.");
         UpdatePlaybackButtons();
         RefreshMetricsText();
@@ -691,7 +721,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
             return;
         }
 
-        _metricsText.Text = $"Alive: {_lastAliveCount}  Emitted: {_lastEmittedCount}  Draw Calls: {_lastDrawCallCount}  State: {DescribePlaybackState()}  Speed: {_simulationSpeed:0.##}x";
+        _metricsText.Text = $"Alive: {_lastAliveCount}  Dead: {_lastDeadCount}  Emit/Kill: {_lastEmittedCount}/{_lastKilledCount}  Max: {_lastMaxAliveCountReached}{(_lastMaxReached ? "!" : string.Empty)}  CPU S/E/R: {_lastSimulationCpuMilliseconds:0.##}/{_lastExtractionCpuMilliseconds:0.##}/{_lastRenderCpuMilliseconds:0.##} ms  Draws: {_lastDrawCallCount}  State: {DescribePlaybackState()}  Speed: {_simulationSpeed:0.##}x";
     }
 
     private void SynchronizeControlsFromState()

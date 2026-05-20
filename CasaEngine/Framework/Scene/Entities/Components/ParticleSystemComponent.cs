@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Application;
@@ -74,6 +75,10 @@ public class ParticleSystemComponent : SceneComponent
     public ParticleRuntimeInstance? RuntimeInstance => _runtimeInstance;
 
     public int LastEmittedCount { get; private set; }
+
+    public int LastExtractedPacketCount { get; private set; }
+
+    public double LastExtractionCpuMilliseconds { get; private set; }
 
     public bool AlwaysVisible
     {
@@ -179,6 +184,8 @@ public class ParticleSystemComponent : SceneComponent
 
         if (_runtimeInstance == null || Owner?.World?.CurrentRenderFrame is not { } frame)
         {
+            LastExtractedPacketCount = 0;
+            LastExtractionCpuMilliseconds = 0.0;
             return;
         }
 
@@ -189,11 +196,15 @@ public class ParticleSystemComponent : SceneComponent
 
         if (_particleRendererComponent == null)
         {
+            LastExtractedPacketCount = 0;
+            LastExtractionCpuMilliseconds = 0.0;
             return;
         }
 
         _runtimeInstance.WorldMatrix = WorldMatrixWithScale;
-        ParticleRenderPacketExtractor.Extract(_runtimeInstance, frame.CameraPosition, ColorTint, _renderPackets);
+        long extractionStartTimestamp = Stopwatch.GetTimestamp();
+        LastExtractedPacketCount = ParticleRenderPacketExtractor.Extract(_runtimeInstance, frame.CameraPosition, ColorTint, _renderPackets);
+        LastExtractionCpuMilliseconds = GetElapsedMilliseconds(extractionStartTimestamp);
         _particleRendererComponent.Submit(_renderPackets);
     }
 
@@ -215,6 +226,8 @@ public class ParticleSystemComponent : SceneComponent
         _particleEffectAsset = particleEffectAsset;
         _renderPackets.Clear();
         LastEmittedCount = 0;
+        LastExtractedPacketCount = 0;
+        LastExtractionCpuMilliseconds = 0.0;
         _lastUpdateSequence = -1;
         _runtimeInstance = new ParticleRuntimeInstance(particleEffectAsset)
         {
@@ -249,6 +262,8 @@ public class ParticleSystemComponent : SceneComponent
         _runtimeInstance = null;
         _renderPackets.Clear();
         LastEmittedCount = 0;
+        LastExtractedPacketCount = 0;
+        LastExtractionCpuMilliseconds = 0.0;
         IsBoundingBoxDirty = true;
     }
 
@@ -339,4 +354,7 @@ public class ParticleSystemComponent : SceneComponent
             _ => 0.0f,
         };
     }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+        => (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
 }

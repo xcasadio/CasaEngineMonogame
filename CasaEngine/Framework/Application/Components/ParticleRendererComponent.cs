@@ -3,6 +3,7 @@ using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics;
 using TextureAsset = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Application.Components;
@@ -39,6 +40,8 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
     public int FrameStateChangeCount { get; private set; }
 
+    public double FrameFlushCpuMilliseconds { get; private set; }
+
     public ParticleRendererComponent(Game game) : base(game)
     {
         ArgumentNullException.ThrowIfNull(game);
@@ -66,6 +69,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         FrameDrawCallCount = 0;
         FrameTextureBindCount = 0;
         FrameStateChangeCount = 0;
+        FrameFlushCpuMilliseconds = 0.0;
         base.Update(gameTime);
     }
 
@@ -91,6 +95,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             return;
         }
 
+        long flushStartTimestamp = Stopwatch.GetTimestamp();
         EnsureCapacity(_packets.Count);
         ParticleRenderPacketSorter.Sort(_packets);
         BuildBillboardBuffers(in frame);
@@ -101,6 +106,13 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         {
             stats.ParticleCount += particleCount;
             stats.TransparentItems += particleCount;
+        }
+
+        double flushCpuMilliseconds = GetElapsedMilliseconds(flushStartTimestamp);
+        FrameFlushCpuMilliseconds += flushCpuMilliseconds;
+        if (stats != null)
+        {
+            stats.ParticleRenderCpuMilliseconds += flushCpuMilliseconds;
         }
 
         _packets.Clear();
@@ -345,6 +357,9 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
         return depthWrite ? DepthStencilState.Default : DepthStencilState.DepthRead;
     }
+
+    private static double GetElapsedMilliseconds(long startTimestamp)
+        => (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
 
     protected override void Dispose(bool disposing)
     {

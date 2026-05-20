@@ -576,7 +576,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add flipbook texture sheet animation`
 
-- ⏳ **T07.05 — Ajouter profiling detaille particules**
+- ✅ **T07.05 — Ajouter profiling detaille particules**
   Objectif :
   - Mesurer simulation CPU, extraction/render CPU, live/dead/emitted/killed counts, max reached.
   - Afficher dans preview et debug overlay si pertinent.

@@ -26,6 +26,16 @@ public sealed class ParticleEmitterRuntime
 
     public int AliveCount => _aliveCount;
 
+    public int DeadCount => Capacity - _aliveCount;
+
+    public int LastEmittedCount { get; private set; }
+
+    public int LastKilledCount { get; private set; }
+
+    public int MaxAliveCountReached { get; private set; }
+
+    public bool MaxReached => _aliveCount >= Capacity;
+
     public ReadOnlySpan<int> AliveParticleIndices => _aliveParticleIndices.AsSpan(0, _aliveCount);
 
     public ParticlePlaybackState PlaybackState { get; private set; } = ParticlePlaybackState.Stopped;
@@ -124,6 +134,11 @@ public sealed class ParticleEmitterRuntime
 
         int aliveSlot = _aliveCount;
         _aliveCount++;
+        if (_aliveCount > MaxAliveCountReached)
+        {
+            MaxAliveCountReached = _aliveCount;
+        }
+
         _aliveParticleIndices[aliveSlot] = particleIndex;
         _aliveSlotsByParticleIndex[particleIndex] = aliveSlot;
 
@@ -136,6 +151,7 @@ public sealed class ParticleEmitterRuntime
 
     public int UpdateEmission(float elapsedSeconds)
     {
+        LastEmittedCount = 0;
         if (PlaybackState != ParticlePlaybackState.Playing || elapsedSeconds <= 0.0f || _simulationSpeed <= 0.0f)
         {
             return 0;
@@ -148,10 +164,17 @@ public sealed class ParticleEmitterRuntime
         float currentActiveTime = PlaybackTime - Definition.StartDelay;
         int emittedCount = EmitContinuous(previousActiveTime, currentActiveTime);
         emittedCount += EmitBursts(previousActiveTime, currentActiveTime);
+        LastEmittedCount = emittedCount;
         return emittedCount;
     }
 
     public int Emit(int particleCount)
+    {
+        LastEmittedCount = EmitParticles(particleCount);
+        return LastEmittedCount;
+    }
+
+    private int EmitParticles(int particleCount)
     {
         int emittedCount = 0;
         for (int particleIndex = 0; particleIndex < particleCount; particleIndex++)
@@ -170,8 +193,10 @@ public sealed class ParticleEmitterRuntime
 
     public int Update(float elapsedSeconds)
     {
+        LastKilledCount = 0;
         if (elapsedSeconds <= 0.0f || _simulationSpeed <= 0.0f)
         {
+            LastEmittedCount = 0;
             return 0;
         }
 
@@ -283,6 +308,7 @@ public sealed class ParticleEmitterRuntime
         _aliveParticleIndices[lastAliveSlot] = 0;
         _aliveSlotsByParticleIndex[particleIndex] = -1;
         _aliveCount--;
+        LastKilledCount++;
 
         Particles[particleIndex] = default;
         _freeParticleIndices[_freeCount] = particleIndex;
@@ -300,6 +326,9 @@ public sealed class ParticleEmitterRuntime
 
         ResetFreeList();
         ResetBounds();
+        LastEmittedCount = 0;
+        LastKilledCount = 0;
+        MaxAliveCountReached = 0;
     }
 
     public void UpdateBounds(Matrix worldMatrix)
@@ -364,7 +393,7 @@ public sealed class ParticleEmitterRuntime
         }
 
         _emissionAccumulator -= particlesToEmit;
-        return Emit(particlesToEmit);
+        return EmitParticles(particlesToEmit);
     }
 
     private int EmitBursts(float previousActiveTime, float currentActiveTime)
@@ -418,7 +447,7 @@ public sealed class ParticleEmitterRuntime
             int scaledCount = (int)(burst.SampleCount(ref _random) * _emissionScale);
             if (scaledCount > 0)
             {
-                emittedCount += Emit(scaledCount);
+                emittedCount += EmitParticles(scaledCount);
             }
         }
 

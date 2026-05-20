@@ -20,6 +20,7 @@ public class RenderStats
     public double ClearCpuMilliseconds { get; set; }
     public double WorldDrawCpuMilliseconds { get; set; }
     public double RendererFlushCpuMilliseconds { get; set; }
+    public double ParticleRenderCpuMilliseconds { get; set; }
     public double UiComposeCpuMilliseconds { get; set; }
     public double PresenterCpuMilliseconds { get; set; }
     public double OverlayCpuMilliseconds { get; set; }
@@ -40,11 +41,12 @@ public class RenderStats
         ClearCpuMilliseconds = 0.0;
         WorldDrawCpuMilliseconds = 0.0;
         RendererFlushCpuMilliseconds = 0.0;
+        ParticleRenderCpuMilliseconds = 0.0;
         UiComposeCpuMilliseconds = 0.0;
         PresenterCpuMilliseconds = 0.0;
         OverlayCpuMilliseconds = 0.0;
     }
 
     public override string ToString() =>
-        $"Draws:{DrawCalls} FX:{EffectBinds} Tex:{TextureBinds} States:{StateChanges} Opaque:{OpaqueItems} Trans:{TransparentItems} Particles:{ParticleCount}";
+        $"Draws:{DrawCalls} FX:{EffectBinds} Tex:{TextureBinds} States:{StateChanges} Opaque:{OpaqueItems} Trans:{TransparentItems} Particles:{ParticleCount} ParticleRender:{ParticleRenderCpuMilliseconds:F2}ms";
 }

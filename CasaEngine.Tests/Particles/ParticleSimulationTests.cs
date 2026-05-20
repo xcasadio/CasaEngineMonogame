@@ -105,6 +105,53 @@ public class ParticleSimulationTests
     }
 
     [Fact]
+    public void RuntimeMetrics_TracksEmittedKilledDeadAndMaxAliveCounts()
+    {
+        ParticleEmitterDefinition definition = CreateDefinition();
+        definition.MaxParticles = 4;
+        definition.Initial.Lifetime = FloatRange.Constant(0.5f);
+        var asset = new ParticleEffectAsset();
+        asset.Emitters.Add(definition);
+        var runtime = new ParticleRuntimeInstance(asset);
+
+        runtime.Emit(2);
+
+        Assert.Equal(4, runtime.Metrics.Capacity);
+        Assert.Equal(2, runtime.Metrics.AliveCount);
+        Assert.Equal(2, runtime.Metrics.DeadCount);
+        Assert.Equal(2, runtime.Metrics.LastEmittedCount);
+        Assert.Equal(0, runtime.Metrics.LastKilledCount);
+        Assert.Equal(2, runtime.Metrics.MaxAliveCountReached);
+        Assert.False(runtime.Metrics.MaxReached);
+
+        runtime.Update(0.5f);
+
+        Assert.Equal(0, runtime.Metrics.AliveCount);
+        Assert.Equal(4, runtime.Metrics.DeadCount);
+        Assert.Equal(0, runtime.Metrics.LastEmittedCount);
+        Assert.Equal(2, runtime.Metrics.LastKilledCount);
+        Assert.Equal(2, runtime.Metrics.MaxAliveCountReached);
+        Assert.True(runtime.Metrics.SimulationCpuMilliseconds >= 0.0);
+    }
+
+    [Fact]
+    public void RuntimeMetrics_ReportsMaxReachedWhenEmitterIsAtCapacity()
+    {
+        ParticleEmitterDefinition definition = CreateDefinition();
+        definition.MaxParticles = 2;
+        var asset = new ParticleEffectAsset();
+        asset.Emitters.Add(definition);
+        var runtime = new ParticleRuntimeInstance(asset);
+
+        runtime.Emit(3);
+
+        Assert.Equal(2, runtime.Metrics.AliveCount);
+        Assert.Equal(0, runtime.Metrics.DeadCount);
+        Assert.Equal(2, runtime.Metrics.LastEmittedCount);
+        Assert.True(runtime.Metrics.MaxReached);
+    }
+
+    [Fact]
     public void Update_DoesNotSimulateWhilePaused()
     {
         ParticleEmitterDefinition definition = CreateDefinition();
