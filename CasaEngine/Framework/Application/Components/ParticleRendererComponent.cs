@@ -33,6 +33,12 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
     public int FrameFlushedParticleCount { get; private set; }
 
+    public int FrameDrawCallCount { get; private set; }
+
+    public int FrameTextureBindCount { get; private set; }
+
+    public int FrameStateChangeCount { get; private set; }
+
     public ParticleRendererComponent(Game game) : base(game)
     {
         ArgumentNullException.ThrowIfNull(game);
@@ -57,6 +63,9 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     public override void Update(GameTime gameTime)
     {
         FrameFlushedParticleCount = 0;
+        FrameDrawCallCount = 0;
+        FrameTextureBindCount = 0;
+        FrameStateChangeCount = 0;
         base.Update(gameTime);
     }
 
@@ -85,8 +94,15 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         EnsureCapacity(_packets.Count);
         ParticleRenderPacketSorter.Sort(_packets);
         BuildBillboardBuffers(in frame);
-        DrawPackets(in frame);
-        FrameFlushedParticleCount += _packets.Count;
+        int particleCount = _packets.Count;
+        DrawPackets(in frame, stats);
+        FrameFlushedParticleCount += particleCount;
+        if (stats != null)
+        {
+            stats.ParticleCount += particleCount;
+            stats.TransparentItems += particleCount;
+        }
+
         _packets.Clear();
     }
 
@@ -136,7 +152,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
     }
 
-    private void DrawPackets(in RenderFrame frame)
+    private void DrawPackets(in RenderFrame frame, RenderStats? stats)
     {
         if (_effect == null)
         {
@@ -154,6 +170,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         {
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
             graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
+            AddStateChanges(stats, 2);
 
             _effect.World = Matrix.Identity;
             _effect.View = frame.View;
@@ -172,9 +189,12 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
                 graphicsDevice.BlendState = GetBlendState(segmentPacket.BlendMode);
                 graphicsDevice.DepthStencilState = GetDepthStencilState(segmentPacket.DepthTest, segmentPacket.DepthWrite);
                 _effect.Texture = ResolveTexture(segmentPacket.TextureAssetId);
+                AddStateChanges(stats, 2);
+                AddTextureBind(stats);
 
                 int primitiveCount = (segmentEndPacketIndex - segmentStartPacketIndex) * 2;
                 int startIndex = segmentStartPacketIndex * 6;
+                int passCount = _effect.CurrentTechnique.Passes.Count;
                 foreach (EffectPass pass in _effect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
@@ -188,6 +208,8 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
                         primitiveCount);
                 }
 
+                    AddDrawCalls(stats, passCount);
+
                 segmentStartPacketIndex = segmentEndPacketIndex;
             }
         }
@@ -198,6 +220,34 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             graphicsDevice.RasterizerState = previousRasterizerState;
             graphicsDevice.SamplerStates[0] = previousSamplerState;
             graphicsDevice.Indices = previousIndexBuffer;
+        }
+    }
+
+    private void AddDrawCalls(RenderStats? stats, int count)
+    {
+        FrameDrawCallCount += count;
+        if (stats != null)
+        {
+            stats.DrawCalls += count;
+            stats.EffectBinds += count;
+        }
+    }
+
+    private void AddTextureBind(RenderStats? stats)
+    {
+        FrameTextureBindCount++;
+        if (stats != null)
+        {
+            stats.TextureBinds++;
+        }
+    }
+
+    private void AddStateChanges(RenderStats? stats, int count)
+    {
+        FrameStateChangeCount += count;
+        if (stats != null)
+        {
+            stats.StateChanges += count;
         }
     }
 

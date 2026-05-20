@@ -99,6 +99,7 @@ public sealed class DebugOverlay
             $"Cam: {camPos.X:F1}, {camPos.Y:F1}, {camPos.Z:F1}",
             $"Draws: {stats.DrawCalls}  FX: {stats.EffectBinds}  Tex: {stats.TextureBinds}",
             $"State: {stats.StateChanges}  O: {stats.OpaqueItems}  T: {stats.TransparentItems}",
+            $"Particles: {stats.ParticleCount}  Lines: {stats.LineCount}",
             $"Policies: total {policies.TotalEntities}  explicit {policies.ExplicitPolicyEntities}  defaults {policies.DefaultPolicyEntities}  updated {policies.UpdatedEntities}",
             $"Tick N/C/E {policies.TickNeverEntities}/{policies.TickConditionalEntities}/{policies.TickEveryFrameEntities}  Spatial S/D {policies.SpatialStaticEntities}/{policies.SpatialDynamicEntities}",
             $"Render S/M/G {policies.RenderStaticEntities}/{policies.RenderMaterialAnimatedEntities}/{policies.RenderGeometryAnimatedEntities}  Mobility S/M {policies.MobilityStaticEntities}/{policies.MobilityMovableEntities}  Warn {policies.SuspectCombinationCount}",

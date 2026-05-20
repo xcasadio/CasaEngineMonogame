@@ -412,7 +412,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): resolve particle renderer textures`
 
-- ⏳ **T04.06 — Alimenter `RenderStats` et debug stats**
+- ✅ **T04.06 — Alimenter `RenderStats` et debug stats**
   Objectif :
   - Compter draw calls, texture binds, transparent items et nombre de particules rendues si un champ dedie est ajoute.
   - Afficher ou exposer les stats sans casser l'overlay existant.
