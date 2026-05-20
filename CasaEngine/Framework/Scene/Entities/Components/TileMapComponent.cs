@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using BulletSharp;
 
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Application.Components;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
@@ -24,6 +26,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
     private IPhysicsWorldContext? _physicsWorldContext;
+    private SpriteRendererComponent? _spriteRendererComponent;
+    private Texture2D? _tileSetTexture;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -33,6 +37,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public int LastVisitedTileCount { get; private set; }
     public int LastDrawnTileCount { get; private set; }
     public int LastVisitedChunkCount { get; private set; }
+    public int LastStaticBatchCount { get; private set; }
+    public int LastStaticBatchTileCount { get; private set; }
 
     public int ChunkTileSize
     {
@@ -64,12 +70,15 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         base.InitializeWithWorld(world);
 
+        DisposeChunkGraphicsResources();
         Layers.Clear();
         _autoTiles.Clear();
         _collisionObjects.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
         _physicsWorldContext = Owner.World.PhysicsWorldContext;
+        _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
+        _tileSetTexture = null;
 
         if (TileMapDataAssetId != Guid.Empty)
         {
@@ -87,6 +96,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
         texture.Load(Owner.World.Game.AssetContentManager);
+        _tileSetTexture = texture.Resource;
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -190,6 +200,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         LastVisitedTileCount = 0;
         LastDrawnTileCount = 0;
         LastVisitedChunkCount = 0;
+        LastStaticBatchCount = 0;
+        LastStaticBatchTileCount = 0;
 
         if (TileMapData == null)
         {
@@ -247,6 +259,13 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 LastVisitedChunkCount++;
                 chunk.UpdateWorldBounds(mapPosX, mapPosY, tileWidth, tileHeight, worldZ, worldZ);
 
+                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, translation, scale, worldZ);
+                if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
+                {
+                    chunk.MarkVisualClean();
+                    continue;
+                }
+
                 var chunkMinTileX = Math.Max(minTileX, chunk.TileBounds.Left);
                 var chunkMaxTileX = Math.Min(maxTileX, chunk.TileBounds.Right - 1);
                 var chunkMinTileY = Math.Max(minTileY, chunk.TileBounds.Top);
@@ -262,6 +281,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                         LastVisitedTileCount++;
 
                         if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                        {
+                            continue;
+                        }
+
+                        if (staticBatchDrawn && IsStaticTileId(layer.TileMapLayerData.tiles[tileIndex]))
                         {
                             continue;
                         }
@@ -314,6 +338,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         base.Load(element);
         TileMapDataAssetId = element["tile_map_data_asset_id"].GetGuid();
+    }
+
+    public override void Detach()
+    {
+        DisposeChunkGraphicsResources();
+        base.Detach();
     }
 
     private void EnsureTileMapLoaded()
@@ -504,6 +534,137 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         if (chunkIndex >= 0 && chunkIndex < layer.Chunks.Count)
         {
             layer.Chunks[chunkIndex].MarkDirty();
+        }
+    }
+
+    private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, Vector3 translation, Vector2 scale, float worldZ)
+    {
+        var currentFrame = Owner.World.CurrentRenderFrame;
+        if (!currentFrame.HasValue || _spriteRendererComponent == null || _tileSetTexture == null)
+        {
+            return false;
+        }
+
+        var graphicsDevice = Owner.World.Game.GraphicsDevice;
+        if (chunk.DirtyVisual)
+        {
+            RebuildStaticChunkBuffer(layer, chunk, graphicsDevice);
+        }
+
+        if (!chunk.HasStaticGeometry)
+        {
+            return false;
+        }
+
+        if (!chunk.HasGraphicsResourcesFor(graphicsDevice))
+        {
+            RebuildStaticChunkBuffer(layer, chunk, graphicsDevice);
+        }
+
+        if (chunk.VertexBuffer == null || chunk.IndexBuffer == null)
+        {
+            return false;
+        }
+
+        var world = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
+        if (!_spriteRendererComponent.DrawStaticBatch(_tileSetTexture, chunk.VertexBuffer, chunk.IndexBuffer, chunk.PrimitiveCount, in world, currentFrame.Value))
+        {
+            return false;
+        }
+
+        LastStaticBatchCount++;
+        LastStaticBatchTileCount += chunk.StaticTileCount;
+        LastDrawnTileCount += chunk.StaticTileCount;
+        return true;
+    }
+
+    private void RebuildStaticChunkBuffer(TileMapLayer layer, TileMapChunk chunk, GraphicsDevice graphicsDevice)
+    {
+        var maxTileCount = chunk.TileBounds.Width * chunk.TileBounds.Height;
+        var vertices = chunk.EnsureVertexCapacity(maxTileCount * 4);
+        var indices = chunk.EnsureIndexCapacity(maxTileCount * 6);
+        var vertexCount = 0;
+        var indexCount = 0;
+        var staticTileCount = 0;
+        var containsDynamicTiles = false;
+
+        for (var y = chunk.TileBounds.Top; y < chunk.TileBounds.Bottom; y++)
+        {
+            var rowOffset = y * TileMapData.MapSize.Width;
+
+            for (var x = chunk.TileBounds.Left; x < chunk.TileBounds.Right; x++)
+            {
+                var tileId = layer.TileMapLayerData.tiles[rowOffset + x];
+                if (tileId == TileMapData.EmptyTileId)
+                {
+                    continue;
+                }
+
+                if (!TileSetData.TryGetTileData(tileId, out var tileData) || tileData is not StaticTileData staticTileData)
+                {
+                    containsDynamicTiles = true;
+                    continue;
+                }
+
+                AddStaticTileQuad(vertices, indices, ref vertexCount, ref indexCount, x, y, staticTileData.Location);
+                staticTileCount++;
+            }
+        }
+
+        chunk.SetStaticGeometryCounts(vertexCount, indexCount, staticTileCount, containsDynamicTiles);
+        chunk.UploadStaticGeometry(graphicsDevice);
+        chunk.MarkVisualClean();
+    }
+
+    private void AddStaticTileQuad(
+        VertexPositionTexture[] vertices,
+        short[] indices,
+        ref int vertexCount,
+        ref int indexCount,
+        int tileX,
+        int tileY,
+        Rectangle sourceRectangle)
+    {
+        var textureWidth = _tileSetTexture?.Width ?? 1;
+        var textureHeight = _tileSetTexture?.Height ?? 1;
+        var left = tileX * TileSetData.TileSize.Width;
+        var right = left + TileSetData.TileSize.Width;
+        var top = -tileY * TileSetData.TileSize.Height;
+        var bottom = top - TileSetData.TileSize.Height;
+
+        var uvLeft = sourceRectangle.Left / (float)textureWidth;
+        var uvRight = sourceRectangle.Right / (float)textureWidth;
+        var uvTop = sourceRectangle.Top / (float)textureHeight;
+        var uvBottom = sourceRectangle.Bottom / (float)textureHeight;
+        var baseVertex = vertexCount;
+
+        vertices[vertexCount++] = new VertexPositionTexture(new Vector3(left, top, 0f), new Vector2(uvLeft, uvTop));
+        vertices[vertexCount++] = new VertexPositionTexture(new Vector3(right, top, 0f), new Vector2(uvRight, uvTop));
+        vertices[vertexCount++] = new VertexPositionTexture(new Vector3(right, bottom, 0f), new Vector2(uvRight, uvBottom));
+        vertices[vertexCount++] = new VertexPositionTexture(new Vector3(left, bottom, 0f), new Vector2(uvLeft, uvBottom));
+
+        indices[indexCount++] = (short)baseVertex;
+        indices[indexCount++] = (short)(baseVertex + 1);
+        indices[indexCount++] = (short)(baseVertex + 2);
+        indices[indexCount++] = (short)baseVertex;
+        indices[indexCount++] = (short)(baseVertex + 2);
+        indices[indexCount++] = (short)(baseVertex + 3);
+    }
+
+    private bool IsStaticTileId(int tileId)
+    {
+        return TileSetData.TryGetTileData(tileId, out var tileData) && tileData is StaticTileData;
+    }
+
+    private void DisposeChunkGraphicsResources()
+    {
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
+        {
+            var layer = Layers[layerIndex];
+            for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
+            {
+                layer.Chunks[chunkIndex].DisposeGraphicsResources();
+            }
         }
     }
 

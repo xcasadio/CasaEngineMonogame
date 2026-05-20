@@ -299,25 +299,31 @@ Vérifications :
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapChunkTests`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
-## ⏳ Phase 6 - Buffers statiques par chunk
+## 🧪 Phase 6 - Buffers statiques par chunk
 
 Priorité : haute.
 
 Tâches :
 
-- ⏳ Générer les quads statiques du chunk dans des tableaux réutilisés.
-- ⏳ Créer ou mettre à jour `VertexBuffer`/`IndexBuffer` par chunk et par texture/material si nécessaire.
-- ⏳ Séparer tiles statiques et tiles animées.
-- ⏳ Grouper par texture/tileset pour réduire les draw calls.
-- ⏳ Rebuilder uniquement les chunks dirty.
-- ⏳ Libérer correctement les buffers GPU.
-- ⏳ Gérer device reset/reload content.
+- ✅ Générer les quads statiques du chunk dans des tableaux réutilisés.
+- ✅ Créer ou mettre à jour `VertexBuffer`/`IndexBuffer` par chunk pour le tileset courant.
+- ✅ Séparer tiles statiques et tiles dynamiques : auto/animated restent sur le chemin tile runtime.
+- ✅ Grouper par texture/tileset pour réduire les draw calls dans la portée mono-tileset actuelle.
+- ✅ Rebuilder uniquement les chunks dirty ou les buffers manquants après changement de device.
+- ✅ Libérer les buffers GPU lors du detach/réinitialisation du composant.
+- 🧪 Gérer device reset/reload content : les buffers sont recréés si le `GraphicsDevice` ne correspond plus, validation runtime à faire.
 
 Critères d'acceptation :
 
 - Une layer statique visible se rend par chunks, pas par appel `DrawSprite` par tile.
 - Les ressources GPU sont libérées quand la TileMap ou le monde est déchargé.
 - Le nombre de draw calls est mesurable en debug.
+
+Vérifications :
+
+- ✅ Étendre les tests `TileMapChunk` pour le bookkeeping des buffers statiques réutilisables.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapChunkTests`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## ⏳ Phase 7 - Collisions par chunks
 

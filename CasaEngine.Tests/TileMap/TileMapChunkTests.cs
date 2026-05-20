@@ -47,4 +47,25 @@ public class TileMapChunkTests
         Assert.True(chunk.DirtyVisual);
         Assert.False(chunk.DirtyCollision);
     }
+
+    [Fact]
+    public void StaticGeometryCounts_TrackReusableChunkBuffers()
+    {
+        var chunk = new TileMapChunk(0, Point.Zero, new Rectangle(0, 0, 16, 16));
+
+        var vertices = chunk.EnsureVertexCapacity(4);
+        var indices = chunk.EnsureIndexCapacity(6);
+
+        Assert.Same(vertices, chunk.EnsureVertexCapacity(4));
+        Assert.Same(indices, chunk.EnsureIndexCapacity(6));
+
+        chunk.SetStaticGeometryCounts(4, 6, 1, containsDynamicTiles: true);
+
+        Assert.Equal(4, chunk.VertexCount);
+        Assert.Equal(6, chunk.IndexCount);
+        Assert.Equal(2, chunk.PrimitiveCount);
+        Assert.Equal(1, chunk.StaticTileCount);
+        Assert.True(chunk.HasStaticGeometry);
+        Assert.True(chunk.ContainsDynamicTiles);
+    }
 }

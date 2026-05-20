@@ -1,9 +1,13 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Assets.TileMap;
 
 public sealed class TileMapChunk
 {
+    private VertexPositionTexture[] _vertices = Array.Empty<VertexPositionTexture>();
+    private short[] _indices = Array.Empty<short>();
+
     public TileMapChunk(int layerIndex, Point chunkIndex, Rectangle tileBounds)
     {
         if (tileBounds.Width <= 0 || tileBounds.Height <= 0)
@@ -22,9 +26,87 @@ public sealed class TileMapChunk
     public Point ChunkIndex { get; }
     public Rectangle TileBounds { get; }
     public BoundingBox WorldBounds { get; private set; }
+    public VertexBuffer? VertexBuffer { get; private set; }
+    public IndexBuffer? IndexBuffer { get; private set; }
+    public int VertexCount { get; private set; }
+    public int IndexCount { get; private set; }
+    public int PrimitiveCount => IndexCount / 3;
+    public int StaticTileCount { get; private set; }
+    public bool HasStaticGeometry => PrimitiveCount > 0;
     public bool DirtyVisual { get; private set; }
     public bool DirtyCollision { get; private set; }
     public bool ContainsAnimatedTiles { get; set; }
+    public bool ContainsDynamicTiles { get; private set; }
+
+    public VertexPositionTexture[] EnsureVertexCapacity(int vertexCount)
+    {
+        if (_vertices.Length < vertexCount)
+        {
+            _vertices = new VertexPositionTexture[vertexCount];
+        }
+
+        return _vertices;
+    }
+
+    public short[] EnsureIndexCapacity(int indexCount)
+    {
+        if (_indices.Length < indexCount)
+        {
+            _indices = new short[indexCount];
+        }
+
+        return _indices;
+    }
+
+    public void SetStaticGeometryCounts(int vertexCount, int indexCount, int staticTileCount, bool containsDynamicTiles)
+    {
+        VertexCount = vertexCount;
+        IndexCount = indexCount;
+        StaticTileCount = staticTileCount;
+        ContainsDynamicTiles = containsDynamicTiles;
+    }
+
+    public void UploadStaticGeometry(GraphicsDevice graphicsDevice)
+    {
+        ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+        if (VertexCount == 0 || IndexCount == 0)
+        {
+            DisposeGraphicsResources();
+            return;
+        }
+
+        if (VertexBuffer == null
+            || VertexBuffer.IsDisposed
+            || !ReferenceEquals(VertexBuffer.GraphicsDevice, graphicsDevice)
+            || VertexBuffer.VertexCount < VertexCount)
+        {
+            VertexBuffer?.Dispose();
+            VertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionTexture), VertexCount, BufferUsage.WriteOnly);
+        }
+
+        if (IndexBuffer == null
+            || IndexBuffer.IsDisposed
+            || !ReferenceEquals(IndexBuffer.GraphicsDevice, graphicsDevice)
+            || IndexBuffer.IndexCount < IndexCount)
+        {
+            IndexBuffer?.Dispose();
+            IndexBuffer = new IndexBuffer(graphicsDevice, typeof(short), IndexCount, BufferUsage.WriteOnly);
+        }
+
+        VertexBuffer.SetData(_vertices, 0, VertexCount);
+        IndexBuffer.SetData(_indices, 0, IndexCount);
+    }
+
+    public bool HasGraphicsResourcesFor(GraphicsDevice graphicsDevice)
+    {
+        return VertexBuffer != null
+            && IndexBuffer != null
+            && !VertexBuffer.IsDisposed
+            && !IndexBuffer.IsDisposed
+            && ReferenceEquals(VertexBuffer.GraphicsDevice, graphicsDevice)
+            && ReferenceEquals(IndexBuffer.GraphicsDevice, graphicsDevice);
+    }
 
     public bool IntersectsTileRange(int minTileX, int maxTileX, int minTileY, int maxTileY)
     {
@@ -65,5 +147,13 @@ public sealed class TileMapChunk
     public void MarkCollisionClean()
     {
         DirtyCollision = false;
+    }
+
+    public void DisposeGraphicsResources()
+    {
+        VertexBuffer?.Dispose();
+        IndexBuffer?.Dispose();
+        VertexBuffer = null;
+        IndexBuffer = null;
     }
 }

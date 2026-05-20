@@ -178,6 +178,65 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
     }
 
+    public bool DrawStaticBatch(
+        Texture2D texture,
+        VertexBuffer vertexBuffer,
+        IndexBuffer indexBuffer,
+        int primitiveCount,
+        in Matrix world,
+        in RenderFrame frame)
+    {
+        if (_effect == null
+            || texture == null
+            || vertexBuffer == null
+            || indexBuffer == null
+            || primitiveCount <= 0)
+        {
+            return false;
+        }
+
+        var graphicsDevice = _effect.GraphicsDevice;
+        var previousDepthStencilState = graphicsDevice.DepthStencilState;
+        var previousRasterizerState = graphicsDevice.RasterizerState;
+        var previousBlendState = graphicsDevice.BlendState;
+        var previousSamplerState = graphicsDevice.SamplerStates[0];
+        var previousScissorRectangle = graphicsDevice.ScissorRectangle;
+        var previousIndexBuffer = graphicsDevice.Indices;
+
+        try
+        {
+            graphicsDevice.DepthStencilState = _depthStencilState;
+            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+            graphicsDevice.BlendState = _blendState;
+            graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
+            graphicsDevice.SetVertexBuffer(vertexBuffer);
+            graphicsDevice.Indices = indexBuffer;
+
+            _effect.Parameters["ViewProj"].SetValue(frame.ViewProjection);
+            _effect.Parameters["Texture"].SetValue(texture);
+            _effect.Parameters["Color"].SetValue(Color.White.ToVector4());
+            _effect.Parameters["World"].SetValue(world);
+
+            for (var passIndex = 0; passIndex < _effect.CurrentTechnique.Passes.Count; passIndex++)
+            {
+                _effect.CurrentTechnique.Passes[passIndex].Apply();
+                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
+            }
+        }
+        finally
+        {
+            graphicsDevice.SetVertexBuffer(null);
+            graphicsDevice.Indices = previousIndexBuffer;
+            graphicsDevice.DepthStencilState = previousDepthStencilState;
+            graphicsDevice.RasterizerState = previousRasterizerState;
+            graphicsDevice.BlendState = previousBlendState;
+            graphicsDevice.SamplerStates[0] = previousSamplerState;
+            graphicsDevice.ScissorRectangle = previousScissorRectangle;
+        }
+
+        return true;
+    }
+
     private void DrawDebug(Vector3 position, Vector2 scale, Vector2 origin, Texture2D texture2d, Rectangle sourceInTexture)
     {
         if (IsDrawSpriteOriginEnabled)
