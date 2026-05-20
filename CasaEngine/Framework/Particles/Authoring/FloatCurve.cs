@@ -182,6 +182,24 @@ public sealed class FloatCurve
         return curve;
     }
 
+    public static FloatCurve EaseOut()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, 1.0f);
+        curve.AddKey(0.35f, 0.65f);
+        curve.AddKey(1.0f, 0.0f);
+        return curve;
+    }
+
+    public static FloatCurve Pop()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, 0.45f);
+        curve.AddKey(0.25f, 1.25f);
+        curve.AddKey(1.0f, 0.65f);
+        return curve;
+    }
+
     private static float Clamp01(float value)
     {
         if (float.IsNaN(value) || float.IsInfinity(value))

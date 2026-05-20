@@ -782,6 +782,16 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             currentCurve = FloatCurve.Pulse();
             onChanged(currentCurve, true);
         }));
+        toolbar.TryAddChild(CreateCompactButton("Ease Out", () =>
+        {
+            currentCurve = FloatCurve.EaseOut();
+            onChanged(currentCurve, true);
+        }));
+        toolbar.TryAddChild(CreateCompactButton("Pop", () =>
+        {
+            currentCurve = FloatCurve.Pop();
+            onChanged(currentCurve, true);
+        }));
         toolbar.TryAddChild(CreateCompactButton("Reset", () =>
         {
             currentCurve = FloatCurve.Constant(1.0f);
@@ -855,6 +865,16 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         presetRow.TryAddChild(CreateCompactButton("Magic", () =>
         {
             currentGradient = ColorGradient.MagicBlue();
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Spark", () =>
+        {
+            currentGradient = ColorGradient.Spark();
+            onChanged(currentGradient, true);
+        }));
+        presetRow.TryAddChild(CreateCompactButton("Ember", () =>
+        {
+            currentGradient = ColorGradient.Ember();
             onChanged(currentGradient, true);
         }));
         presetRow.TryAddChild(CreateCompactButton("Reset", () =>
@@ -1511,6 +1531,12 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             case "pulse":
                 curve = FloatCurve.Pulse();
                 return true;
+            case "easeout":
+                curve = FloatCurve.EaseOut();
+                return true;
+            case "pop":
+                curve = FloatCurve.Pop();
+                return true;
             default:
                 statusMessage = $"Unknown curve preset '{rawValue}'.";
                 return false;
@@ -1557,6 +1583,12 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             case "magic":
             case "magicblue":
                 gradient = ColorGradient.MagicBlue();
+                return true;
+            case "spark":
+                gradient = ColorGradient.Spark();
+                return true;
+            case "ember":
+                gradient = ColorGradient.Ember();
                 return true;
             default:
                 statusMessage = $"Unknown gradient preset '{rawValue}'.";

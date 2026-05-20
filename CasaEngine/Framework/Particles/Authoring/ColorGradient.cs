@@ -209,6 +209,27 @@ public sealed class ColorGradient
         return gradient;
     }
 
+    public static ColorGradient Spark()
+    {
+        var gradient = new ColorGradient();
+        gradient.AddColorKey(0.0f, new Color(255, 238, 150));
+        gradient.AddColorKey(1.0f, new Color(255, 96, 26));
+        gradient.AddAlphaKey(0.0f, 1.0f);
+        gradient.AddAlphaKey(1.0f, 0.0f);
+        return gradient;
+    }
+
+    public static ColorGradient Ember()
+    {
+        var gradient = new ColorGradient();
+        gradient.AddColorKey(0.0f, new Color(255, 170, 74));
+        gradient.AddColorKey(0.55f, new Color(182, 42, 24));
+        gradient.AddColorKey(1.0f, new Color(45, 19, 14));
+        gradient.AddAlphaKey(0.0f, 0.8f);
+        gradient.AddAlphaKey(1.0f, 0.0f);
+        return gradient;
+    }
+
     private Color EvaluateColor(float normalizedTime)
     {
         if (_colorKeys.Count == 0)

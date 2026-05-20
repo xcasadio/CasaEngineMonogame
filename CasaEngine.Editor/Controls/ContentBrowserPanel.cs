@@ -298,6 +298,42 @@ public class ContentBrowserPanel
         RebuildTree();
     }
 
+    public IReadOnlyList<string> GetAutomationStateSnapshot()
+    {
+        var result = new List<string>(8)
+        {
+            $"Root: {_rootItem?.FullPath ?? "<none>"}",
+            $"Current folder: {_currentFolder?.FullPath ?? "<none>"}",
+            $"View mode: {(_activeContentView == _detailView ? "Details" : "Grid")}",
+            $"Thumbnail cache entries: {_thumbnailCache.EntryCount}",
+        };
+
+        int currentFolderItemCount = _currentFolder?.Children.Count ?? 0;
+        int particleThumbnailCount = 0;
+        int loadedParticleThumbnailCount = 0;
+        if (_currentFolder != null)
+        {
+            foreach (var item in _currentFolder.Children)
+            {
+                if (item.Type != ContentItemType.Particle)
+                {
+                    continue;
+                }
+
+                particleThumbnailCount++;
+                var thumbnail = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
+                if (thumbnail.IsLoaded && thumbnail.Texture != null)
+                {
+                    loadedParticleThumbnailCount++;
+                }
+            }
+        }
+
+        result.Add($"Current folder items: {currentFolderItemCount}");
+        result.Add($"Particle thumbnails: {loadedParticleThumbnailCount}/{particleThumbnailCount} loaded");
+        return result;
+    }
+
     public void RegisterContextMenuExtension(ContentItemType type, string label, Action<ContentItem> action)
     {
         if (string.IsNullOrWhiteSpace(label))

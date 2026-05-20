@@ -555,7 +555,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): draw particle emission gizmos`
 
-- ⏳ **T07.03 — Ajouter thumbnails et presets**
+- ✅ **T07.03 — Ajouter thumbnails et presets**
   Objectif :
   - Generer thumbnail offscreen ou placeholder stable pour assets `.particle`.
   - Ajouter presets d'effets et presets de courbes/gradients.

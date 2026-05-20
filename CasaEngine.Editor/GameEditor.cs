@@ -17,6 +17,7 @@ using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Configuration;
+using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
@@ -49,6 +50,14 @@ namespace CasaEngine.Editor;
 
 public class GameEditor : Game, IObservableUpdate
 {
+    private enum ParticleEffectPresetKind
+    {
+        Default,
+        FireLoop,
+        SmokePuff,
+        SparkBurst,
+    }
+
     private const string EditorLayoutDirectoryName = ".casaeditor";
     private const string EditorLayoutFileName = "layout.editor.json";
 
@@ -640,6 +649,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void PresentLoadedProject()
     {
+        ApplyAutomationProjectDirectory();
         EnsureShellChromeInitialized();
         EnsureDockHostInitialized();
 
@@ -703,10 +713,7 @@ public class GameEditor : Game, IObservableUpdate
         _editorRuntimeContext = GameSettings.CreateRuntimeContext();
         if (_automationOptions.HasAutomation)
         {
-            string automationProjectDirectory = Path.GetDirectoryName(_automationOptions.ProjectPath!)
-                                                ?? Environment.CurrentDirectory;
-            _editorRuntimeContext.ProjectPath = automationProjectDirectory;
-            EngineEnvironment.ProjectPath = automationProjectDirectory;
+            ApplyAutomationProjectDirectory();
         }
 
         _editorRuntimeContext.WindowInputSource = _windowInputSource;
@@ -722,6 +729,19 @@ public class GameEditor : Game, IObservableUpdate
 
         _editorRuntime.InitializeHost();
         _editorRuntime.LoadContentHost();
+    }
+
+    private void ApplyAutomationProjectDirectory()
+    {
+        if (!_automationOptions.HasAutomation || string.IsNullOrWhiteSpace(_automationOptions.ProjectPath))
+        {
+            return;
+        }
+
+        string projectFilePath = Path.GetFullPath(_automationOptions.ProjectPath);
+        string projectDirectory = Path.GetDirectoryName(projectFilePath) ?? Environment.CurrentDirectory;
+        _editorRuntimeContext.ProjectPath = projectDirectory;
+        EngineEnvironment.ProjectPath = projectDirectory;
     }
 
     private void SynchronizeEditorRuntimeContext()
@@ -774,6 +794,9 @@ public class GameEditor : Game, IObservableUpdate
             _contentBrowserPanel = new ContentBrowserPanel(_mainWindow);
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
+            _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Fire Loop", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.FireLoop));
+            _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Smoke Puff", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SmokePuff));
+            _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Spark Burst", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.SparkBurst));
         }
 
         _contentBrowserContent ??= _contentBrowserPanel.CreateContent();
@@ -2201,6 +2224,9 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     private void CreateParticleAssetInFolder(ContentItem folderItem)
+        => CreateParticleAssetInFolder(folderItem, ParticleEffectPresetKind.Default);
+
+    private void CreateParticleAssetInFolder(ContentItem folderItem, ParticleEffectPresetKind presetKind)
     {
         if (folderItem == null || !folderItem.IsDirectory)
         {
@@ -2213,7 +2239,7 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        if (TryCreateParticleAssetInFolder(folderItem.FullPath, out var fullPath, out var relativePath, out var errorMessage))
+        if (TryCreateParticleAssetInFolder(folderItem.FullPath, presetKind, out var fullPath, out var relativePath, out var errorMessage))
         {
             _contentBrowserPanel?.Refresh();
             TryOpenEditorAsset(fullPath);
@@ -2228,6 +2254,14 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     private static bool TryCreateParticleAssetInFolder(string folderPath, out string fullPath, out string relativePath, out string? errorMessage)
+        => TryCreateParticleAssetInFolder(folderPath, ParticleEffectPresetKind.Default, out fullPath, out relativePath, out errorMessage);
+
+    private static bool TryCreateParticleAssetInFolder(
+        string folderPath,
+        ParticleEffectPresetKind presetKind,
+        out string fullPath,
+        out string relativePath,
+        out string? errorMessage)
     {
         fullPath = string.Empty;
         relativePath = string.Empty;
@@ -2241,17 +2275,33 @@ public class GameEditor : Game, IObservableUpdate
 
         try
         {
-            fullPath = CreateUniqueParticleAssetPath(folderPath);
+            fullPath = CreateUniqueParticleAssetPath(folderPath, presetKind);
             relativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
             string assetName = Path.GetFileNameWithoutExtension(fullPath);
-            var particleAsset = CreateDefaultParticleEffectAsset(assetName, relativePath);
+            var particleAsset = CreateParticleEffectAsset(assetName, relativePath, presetKind);
 
-            EditorAssetWriterService.SaveAsset(relativePath, particleAsset, EditorAssetSaveSource.ParticleEffectEditorPanel);
+            bool addedToCatalog = false;
             if (AssetCatalog.GetByFileName(relativePath) == null
                 && AssetCatalog.GetByFileName(relativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)) == null)
             {
                 EditorAssetCatalogService.Add(particleAsset);
                 EditorAssetCatalogService.Save();
+                addedToCatalog = true;
+            }
+
+            try
+            {
+                EditorAssetWriterService.SaveAsset(relativePath, particleAsset, EditorAssetSaveSource.ParticleEffectEditorPanel);
+            }
+            catch
+            {
+                if (addedToCatalog)
+                {
+                    EditorAssetCatalogService.Remove(particleAsset.Id);
+                    EditorAssetCatalogService.Save();
+                }
+
+                throw;
             }
 
             return true;
@@ -2265,8 +2315,11 @@ public class GameEditor : Game, IObservableUpdate
     }
 
     private static string CreateUniqueParticleAssetPath(string folderPath)
+        => CreateUniqueParticleAssetPath(folderPath, ParticleEffectPresetKind.Default);
+
+    private static string CreateUniqueParticleAssetPath(string folderPath, ParticleEffectPresetKind presetKind)
     {
-        const string baseName = "NewParticleEffect";
+        string baseName = GetParticlePresetBaseName(presetKind);
 
         string candidate = Path.Combine(folderPath, baseName + Constants.FileNameExtensions.Particle);
         int suffix = 2;
@@ -2279,7 +2332,7 @@ public class GameEditor : Game, IObservableUpdate
         return candidate;
     }
 
-    private static ParticleEffectAsset CreateDefaultParticleEffectAsset(string assetName, string relativePath)
+    private static ParticleEffectAsset CreateParticleEffectAsset(string assetName, string relativePath, ParticleEffectPresetKind presetKind)
     {
         var particleAsset = new ParticleEffectAsset
         {
@@ -2287,15 +2340,245 @@ public class GameEditor : Game, IObservableUpdate
             FileName = relativePath,
         };
 
-        particleAsset.Emitters.Add(new ParticleEmitterDefinition
+        particleAsset.Emitters.Add(CreateParticleEmitterPreset(presetKind));
+        return particleAsset;
+    }
+
+    private static ParticleEmitterDefinition CreateParticleEmitterPreset(ParticleEffectPresetKind presetKind)
+    {
+        return presetKind switch
+        {
+            ParticleEffectPresetKind.FireLoop => CreateFireLoopEmitterPreset(),
+            ParticleEffectPresetKind.SmokePuff => CreateSmokePuffEmitterPreset(),
+            ParticleEffectPresetKind.SparkBurst => CreateSparkBurstEmitterPreset(),
+            _ => CreateDefaultEmitterPreset(),
+        };
+    }
+
+    private static ParticleEmitterDefinition CreateDefaultEmitterPreset()
+    {
+        return new ParticleEmitterDefinition
         {
             Name = "Emitter",
             Duration = 5.0f,
             Looping = true,
             MaxParticles = 256,
-        });
+            Emission = new ParticleEmissionModule
+            {
+                RateOverTime = 12.0f,
+            },
+            Shape = new ParticleShapeModule
+            {
+                ShapeType = ParticleShapeType.Circle,
+                Radius = 0.25f,
+            },
+            Initial = new ParticleInitialModule
+            {
+                Lifetime = new FloatRange(0.8f, 1.2f),
+                Speed = new FloatRange(0.5f, 1.2f),
+                Size = new Vector2Range(new Vector2(0.12f, 0.12f), new Vector2(0.24f, 0.24f)),
+                StartColor = ColorGradient.MagicBlue(),
+            },
+            Simulation = new ParticleSimulationModule
+            {
+                SimulationSpace = ParticleSimulationSpace.World,
+                Gravity = Vector3.Up,
+                GravityScale = 0.15f,
+                Drag = 0.1f,
+                AlphaOverLifetime = FloatCurve.FadeOut(),
+            },
+        };
+    }
 
-        return particleAsset;
+    private static ParticleEmitterDefinition CreateFireLoopEmitterPreset()
+    {
+        return new ParticleEmitterDefinition
+        {
+            Name = "Fire Loop",
+            Duration = 1.2f,
+            Looping = true,
+            MaxParticles = 128,
+            Emission = new ParticleEmissionModule
+            {
+                RateOverTime = 24.0f,
+            },
+            Shape = new ParticleShapeModule
+            {
+                ShapeType = ParticleShapeType.Circle,
+                Radius = 0.28f,
+                AngleDegrees = 18.0f,
+            },
+            Initial = new ParticleInitialModule
+            {
+                Lifetime = new FloatRange(0.55f, 0.95f),
+                Speed = new FloatRange(0.8f, 1.65f),
+                Rotation = new FloatRange(-0.4f, 0.4f),
+                AngularVelocity = new FloatRange(-1.2f, 1.2f),
+                Size = new Vector2Range(new Vector2(0.14f, 0.2f), new Vector2(0.28f, 0.42f)),
+                StartColor = ColorGradient.Fire(),
+            },
+            Simulation = new ParticleSimulationModule
+            {
+                SimulationSpace = ParticleSimulationSpace.World,
+                Gravity = new Vector3(0.0f, 1.6f, 0.0f),
+                GravityScale = 0.45f,
+                Drag = 0.2f,
+                SizeOverLifetime = FloatCurve.Pop(),
+                AlphaOverLifetime = FloatCurve.EaseOut(),
+                VelocityOverLifetime = FloatCurve.FadeOut(),
+            },
+            Renderer = new ParticleRendererModule
+            {
+                BlendMode = ParticleBlendMode.Additive,
+                SortMode = ParticleSortMode.Distance,
+                RenderQueue = 3050,
+            },
+        };
+    }
+
+    private static ParticleEmitterDefinition CreateSmokePuffEmitterPreset()
+    {
+        var emitter = new ParticleEmitterDefinition
+        {
+            Name = "Smoke Puff",
+            Duration = 1.25f,
+            Looping = false,
+            MaxParticles = 64,
+            Emission = new ParticleEmissionModule(),
+            Shape = new ParticleShapeModule
+            {
+                ShapeType = ParticleShapeType.Circle,
+                Radius = 0.35f,
+                AngleDegrees = 15.0f,
+            },
+            Initial = new ParticleInitialModule
+            {
+                Lifetime = new FloatRange(0.75f, 1.25f),
+                Speed = new FloatRange(0.35f, 0.8f),
+                Rotation = new FloatRange(-0.25f, 0.25f),
+                AngularVelocity = new FloatRange(-0.4f, 0.4f),
+                Size = new Vector2Range(new Vector2(0.15f, 0.15f), new Vector2(0.35f, 0.35f)),
+                StartColor = ColorGradient.Smoke(),
+            },
+            Simulation = new ParticleSimulationModule
+            {
+                SimulationSpace = ParticleSimulationSpace.World,
+                Gravity = new Vector3(0.0f, -0.15f, 0.0f),
+                GravityScale = 0.2f,
+                Drag = 0.15f,
+                SizeOverLifetime = FloatCurve.EaseOut(),
+                AlphaOverLifetime = FloatCurve.FadeOut(),
+                VelocityOverLifetime = FloatCurve.FadeOut(),
+            },
+            Renderer = new ParticleRendererModule
+            {
+                BlendMode = ParticleBlendMode.Alpha,
+                SortMode = ParticleSortMode.Distance,
+                RenderQueue = 3000,
+            },
+        };
+        emitter.Emission.Bursts.Add(new ParticleBurst
+        {
+            Time = 0.0f,
+            CountMin = 12,
+            CountMax = 18,
+        });
+        return emitter;
+    }
+
+    private static ParticleEmitterDefinition CreateSparkBurstEmitterPreset()
+    {
+        var emitter = new ParticleEmitterDefinition
+        {
+            Name = "Spark Burst",
+            Duration = 0.85f,
+            Looping = false,
+            MaxParticles = 96,
+            Emission = new ParticleEmissionModule(),
+            Shape = new ParticleShapeModule
+            {
+                ShapeType = ParticleShapeType.Cone,
+                Radius = 0.08f,
+                AngleDegrees = 34.0f,
+                EmitFromShell = true,
+            },
+            Initial = new ParticleInitialModule
+            {
+                Lifetime = new FloatRange(0.25f, 0.65f),
+                Speed = new FloatRange(2.0f, 4.5f),
+                Rotation = new FloatRange(-3.14f, 3.14f),
+                AngularVelocity = new FloatRange(-2.0f, 2.0f),
+                Size = new Vector2Range(new Vector2(0.035f, 0.035f), new Vector2(0.08f, 0.08f)),
+                StartColor = ColorGradient.Spark(),
+            },
+            Simulation = new ParticleSimulationModule
+            {
+                SimulationSpace = ParticleSimulationSpace.World,
+                Gravity = new Vector3(0.0f, -9.8f, 0.0f),
+                GravityScale = 0.18f,
+                Drag = 0.08f,
+                SizeOverLifetime = FloatCurve.FadeOut(),
+                AlphaOverLifetime = FloatCurve.FadeOut(),
+                VelocityOverLifetime = FloatCurve.EaseOut(),
+            },
+            Renderer = new ParticleRendererModule
+            {
+                BlendMode = ParticleBlendMode.Additive,
+                SortMode = ParticleSortMode.Distance,
+                RenderQueue = 3100,
+                Layer = 1,
+            },
+        };
+        emitter.Emission.Bursts.Add(new ParticleBurst
+        {
+            Time = 0.0f,
+            CountMin = 28,
+            CountMax = 40,
+        });
+        return emitter;
+    }
+
+    private static string GetParticlePresetBaseName(ParticleEffectPresetKind presetKind)
+    {
+        return presetKind switch
+        {
+            ParticleEffectPresetKind.FireLoop => "FireLoop",
+            ParticleEffectPresetKind.SmokePuff => "SmokePuff",
+            ParticleEffectPresetKind.SparkBurst => "SparkBurst",
+            _ => "NewParticleEffect",
+        };
+    }
+
+    private static bool TryParseParticlePreset(string? rawPreset, out ParticleEffectPresetKind presetKind)
+    {
+        presetKind = ParticleEffectPresetKind.Default;
+        if (string.IsNullOrWhiteSpace(rawPreset))
+        {
+            return true;
+        }
+
+        string normalizedPreset = NormalizeAutomationToken(rawPreset);
+        switch (normalizedPreset)
+        {
+            case "default":
+            case "newparticleeffect":
+                presetKind = ParticleEffectPresetKind.Default;
+                return true;
+            case "fire":
+            case "fireloop":
+                presetKind = ParticleEffectPresetKind.FireLoop;
+                return true;
+            case "smoke":
+            case "smokepuff":
+                presetKind = ParticleEffectPresetKind.SmokePuff;
+                return true;
+            case "spark":
+            case "sparkburst":
+                presetKind = ParticleEffectPresetKind.SparkBurst;
+                return true;
+            default:
+                return false;
+        }
     }
 
     private bool TryOpenEditorAsset(string fullPath)
@@ -3485,8 +3768,16 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _automationParticleCreateAttempted = true;
+        if (!TryParseParticlePreset(_automationOptions.CreateParticlePresetName, out var presetKind))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unknown particle preset '{_automationOptions.CreateParticlePresetName}'.");
+            return;
+        }
+
+        ApplyAutomationProjectDirectory();
         string folderPath = ResolveAutomationAssetPath(_automationOptions.CreateParticleAssetFolder);
-        if (!TryCreateParticleAssetInFolder(folderPath, out var fullPath, out var relativePath, out var errorMessage))
+        if (!TryCreateParticleAssetInFolder(folderPath, presetKind, out var fullPath, out var relativePath, out var errorMessage))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Unable to create particle asset in '{_automationOptions.CreateParticleAssetFolder}': {errorMessage}");
@@ -3496,6 +3787,7 @@ public class GameEditor : Game, IObservableUpdate
         _automationParticleAssetCreated = true;
         _automationCreatedParticleAssetFullPath = fullPath;
         _automationCreatedParticleAssetRelativePath = relativePath;
+        _ = GetOrCreateContentBrowserContent();
         _contentBrowserPanel?.Refresh();
 
         if (TryOpenEditorAsset(fullPath))
@@ -3503,7 +3795,7 @@ public class GameEditor : Game, IObservableUpdate
             _automationAssetOpened = true;
             _automationAssetOpenedAt = totalGameTime;
             EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
-                $"[Automation] Created and opened particle asset='{relativePath}'");
+                $"[Automation] Created and opened particle asset='{relativePath}' preset='{presetKind}'");
             return;
         }
 
@@ -4086,6 +4378,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
         builder.AppendLine($"Create particle asset: {_automationOptions.CreateParticleAssetFolder ?? "<none>"}");
+        builder.AppendLine($"Create particle preset: {_automationOptions.CreateParticlePresetName ?? "<none>"}");
         builder.AppendLine($"Drop particle asset: {_automationOptions.DropParticleAssetPath ?? "<none>"}");
         builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
         builder.AppendLine($"Particle undo/redo smoke: {_automationOptions.ParticleUndoRedoSmoke} undo={_automationParticleUndoSucceeded} redo={_automationParticleRedoSucceeded}");
@@ -4097,6 +4390,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
         builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
         AppendWorldViewportDiagnostics(builder);
+        AppendContentBrowserDiagnostics(builder);
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
@@ -4130,6 +4424,27 @@ public class GameEditor : Game, IObservableUpdate
         for (int i = 0; i < viewportStates.Count; i++)
         {
             builder.AppendLine($"  - {viewportStates[i]}");
+        }
+    }
+
+    private void AppendContentBrowserDiagnostics(StringBuilder builder)
+    {
+        _ = GetOrCreateContentBrowserContent();
+        if (_contentBrowserPanel == null)
+        {
+            return;
+        }
+
+        var states = _contentBrowserPanel.GetAutomationStateSnapshot();
+        if (states.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("Content browser state:");
+        for (int index = 0; index < states.Count; index++)
+        {
+            builder.AppendLine($"  - {states[index]}");
         }
     }
 

@@ -8,6 +8,7 @@ public sealed class EditorAutomationOptions
     public string? ProjectPath { get; private set; }
     public string? OpenAssetPath { get; private set; }
     public string? CreateParticleAssetFolder { get; private set; }
+    public string? CreateParticlePresetName { get; private set; }
     public string? DropParticleAssetPath { get; private set; }
     public string? SetParticlePropertyKey { get; private set; }
     public string? SetParticlePropertyValue { get; private set; }
@@ -51,6 +52,11 @@ public sealed class EditorAutomationOptions
 
                 case "--create-particle-asset":
                     options.CreateParticleAssetFolder = next;
+                    index++;
+                    break;
+
+                case "--create-particle-preset":
+                    options.CreateParticlePresetName = next;
                     index++;
                     break;
 
