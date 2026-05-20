@@ -3,12 +3,14 @@ using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using TextureAsset = CasaEngine.Framework.Assets.Textures.Texture;
 
 namespace CasaEngine.Framework.Application.Components;
 
 public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlushableRenderer
 {
     private const int InitialPacketCapacity = 1024;
+    private const int FallbackTextureSize = 2;
     private static readonly BlendState MultiplyBlendState = new()
     {
         ColorSourceBlend = Blend.DestinationColor,
@@ -20,9 +22,12 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     };
 
     private readonly List<ParticleRenderPacket> _packets = new(InitialPacketCapacity);
-    private VertexPositionColor[] _vertices = new VertexPositionColor[InitialPacketCapacity * 4];
+    private readonly Dictionary<Guid, Texture2D?> _textureCache = new();
+    private readonly CasaEngineGame? _casaEngineGame;
+    private VertexPositionColorTexture[] _vertices = new VertexPositionColorTexture[InitialPacketCapacity * 4];
     private int[] _indices = new int[InitialPacketCapacity * 6];
     private BasicEffect? _effect;
+    private Texture2D? _fallbackTexture;
 
     public int PendingPacketCount => _packets.Count;
 
@@ -32,6 +37,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     {
         ArgumentNullException.ThrowIfNull(game);
 
+        _casaEngineGame = game as CasaEngineGame;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.ParticleComponent;
         DrawOrder = (int)ComponentDrawOrder.ParticleComponent;
@@ -42,9 +48,10 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         _effect = new BasicEffect(GraphicsDevice)
         {
             VertexColorEnabled = true,
-            TextureEnabled = false,
+            TextureEnabled = true,
             LightingEnabled = false,
         };
+        _fallbackTexture = CreateFallbackTexture(GraphicsDevice);
     }
 
     public override void Update(GameTime gameTime)
@@ -88,7 +95,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         int vertexCount = packetCount * 4;
         if (_vertices.Length < vertexCount)
         {
-            _vertices = new VertexPositionColor[vertexCount];
+            _vertices = new VertexPositionColorTexture[vertexCount];
         }
 
         int indexCount = packetCount * 6;
@@ -114,10 +121,10 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             Vector3 rotatedUp = (-cameraRight * rotationSin + cameraUp * rotationCos) * halfHeight;
 
             int vertexOffset = packetIndex * 4;
-            _vertices[vertexOffset + 0] = new VertexPositionColor(packet.Position - rotatedRight + rotatedUp, packet.Color);
-            _vertices[vertexOffset + 1] = new VertexPositionColor(packet.Position + rotatedRight + rotatedUp, packet.Color);
-            _vertices[vertexOffset + 2] = new VertexPositionColor(packet.Position + rotatedRight - rotatedUp, packet.Color);
-            _vertices[vertexOffset + 3] = new VertexPositionColor(packet.Position - rotatedRight - rotatedUp, packet.Color);
+            _vertices[vertexOffset + 0] = new VertexPositionColorTexture(packet.Position - rotatedRight + rotatedUp, packet.Color, new Vector2(0.0f, 0.0f));
+            _vertices[vertexOffset + 1] = new VertexPositionColorTexture(packet.Position + rotatedRight + rotatedUp, packet.Color, new Vector2(1.0f, 0.0f));
+            _vertices[vertexOffset + 2] = new VertexPositionColorTexture(packet.Position + rotatedRight - rotatedUp, packet.Color, new Vector2(1.0f, 1.0f));
+            _vertices[vertexOffset + 3] = new VertexPositionColorTexture(packet.Position - rotatedRight - rotatedUp, packet.Color, new Vector2(0.0f, 1.0f));
 
             int indexOffset = packetIndex * 6;
             _indices[indexOffset + 0] = vertexOffset + 0;
@@ -140,11 +147,13 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         BlendState previousBlendState = graphicsDevice.BlendState;
         DepthStencilState previousDepthStencilState = graphicsDevice.DepthStencilState;
         RasterizerState previousRasterizerState = graphicsDevice.RasterizerState;
+        SamplerState previousSamplerState = graphicsDevice.SamplerStates[0];
         IndexBuffer? previousIndexBuffer = graphicsDevice.Indices;
 
         try
         {
             graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            graphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
 
             _effect.World = Matrix.Identity;
             _effect.View = frame.View;
@@ -162,6 +171,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
 
                 graphicsDevice.BlendState = GetBlendState(segmentPacket.BlendMode);
                 graphicsDevice.DepthStencilState = GetDepthStencilState(segmentPacket.DepthTest, segmentPacket.DepthWrite);
+                _effect.Texture = ResolveTexture(segmentPacket.TextureAssetId);
 
                 int primitiveCount = (segmentEndPacketIndex - segmentStartPacketIndex) * 2;
                 int startIndex = segmentStartPacketIndex * 6;
@@ -186,6 +196,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             graphicsDevice.BlendState = previousBlendState;
             graphicsDevice.DepthStencilState = previousDepthStencilState;
             graphicsDevice.RasterizerState = previousRasterizerState;
+            graphicsDevice.SamplerStates[0] = previousSamplerState;
             graphicsDevice.Indices = previousIndexBuffer;
         }
     }
@@ -193,7 +204,51 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     private static bool HasSameRenderState(in ParticleRenderPacket left, in ParticleRenderPacket right)
         => left.BlendMode == right.BlendMode
             && left.DepthTest == right.DepthTest
-            && left.DepthWrite == right.DepthWrite;
+            && left.DepthWrite == right.DepthWrite
+            && left.TextureAssetId == right.TextureAssetId;
+
+    private Texture2D ResolveTexture(Guid textureAssetId)
+    {
+        if (textureAssetId == Guid.Empty || _casaEngineGame == null)
+        {
+            return _fallbackTexture!;
+        }
+
+        if (!_textureCache.TryGetValue(textureAssetId, out Texture2D? texture))
+        {
+            texture = TryLoadTexture(textureAssetId);
+            _textureCache[textureAssetId] = texture;
+        }
+
+        return texture ?? _fallbackTexture!;
+    }
+
+    private Texture2D? TryLoadTexture(Guid textureAssetId)
+    {
+        try
+        {
+            TextureAsset textureAsset = _casaEngineGame!.AssetContentManager.Load<TextureAsset>(textureAssetId);
+            textureAsset.Load(_casaEngineGame.AssetContentManager);
+            return textureAsset.Resource;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static Texture2D CreateFallbackTexture(GraphicsDevice graphicsDevice)
+    {
+        var texture = new Texture2D(graphicsDevice, FallbackTextureSize, FallbackTextureSize, false, SurfaceFormat.Color);
+        texture.SetData(new[]
+        {
+            Color.Magenta,
+            Color.White,
+            Color.White,
+            Color.Magenta,
+        });
+        return texture;
+    }
 
     private static BlendState GetBlendState(ParticleBlendMode blendMode)
         => blendMode switch
@@ -218,6 +273,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         if (disposing)
         {
             _effect?.Dispose();
+            _fallbackTexture?.Dispose();
             lock (this)
             {
                 Game.RemoveGameComponent<ParticleRendererComponent>();

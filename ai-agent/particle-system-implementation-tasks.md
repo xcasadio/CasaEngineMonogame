@@ -401,7 +401,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle blend depth and sorting`
 
-- ⏳ **T04.05 — Brancher textures et fallbacks de material**
+- ✅ **T04.05 — Brancher textures et fallbacks de material**
   Objectif :
   - Resoudre texture par `Guid` via `AssetContentManager`.
   - Fournir texture fallback visible si asset manquant.
