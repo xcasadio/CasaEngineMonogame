@@ -423,6 +423,13 @@ public class EditorAssetImportServiceTests
                 0,0,1
                   </data>
                  </layer>
+                                 <objectgroup id="3" name="Objects">
+                                    <object id="1" name="PlayerStart" type="spawn" x="16" y="32" width="4" height="5">
+                                     <properties>
+                                        <property name="team" value="blue"/>
+                                     </properties>
+                                    </object>
+                                 </objectgroup>
                 </map>
                 """);
 
@@ -462,6 +469,21 @@ public class EditorAssetImportServiceTests
             Assert.Equal("Decor", (string?)decorLayer["name"]);
             Assert.Equal(0.1f, decorLayer["z_offset"]!.Value<float>());
             Assert.Equal(new[] { -1, -1, -1, -1, -1, 0 }, decorLayer["tiles"]!.Values<int>().ToArray());
+
+            var objectLayers = Assert.IsType<JArray>(tileMapDocument["object_layers"]);
+            var objectLayer = Assert.IsType<JObject>(objectLayers[0]);
+            Assert.Equal("Objects", (string?)objectLayer["name"]);
+            var objects = Assert.IsType<JArray>(objectLayer["objects"]);
+            var playerStart = Assert.IsType<JObject>(objects[0]);
+            Assert.Equal(1, playerStart["id"]!.Value<int>());
+            Assert.Equal("PlayerStart", (string?)playerStart["name"]);
+            Assert.Equal("spawn", (string?)playerStart["type"]);
+            Assert.Equal(16f, playerStart["x"]!.Value<float>());
+            Assert.Equal(32f, playerStart["y"]!.Value<float>());
+            Assert.Equal(4f, playerStart["width"]!.Value<float>());
+            Assert.Equal(5f, playerStart["height"]!.Value<float>());
+            var playerStartProperties = Assert.IsType<JObject>(playerStart["custom_properties"]);
+            Assert.Equal("blue", (string?)playerStartProperties["team"]);
 
             var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
             var tiles = Assert.IsType<JArray>(tileSetDocument["tiles"]);

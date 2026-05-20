@@ -230,6 +230,19 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("layers", layersArray);
+
+        if (tileMapData.ObjectLayers.Count > 0)
+        {
+            var objectLayersArray = new JArray();
+            foreach (var objectLayer in tileMapData.ObjectLayers)
+            {
+                var objectLayerNode = new JObject();
+                SaveTileMapObjectLayerData(objectLayer, objectLayerNode);
+                objectLayersArray.Add(objectLayerNode);
+            }
+
+            node.Add("object_layers", objectLayersArray);
+        }
     }
 
     private static void SaveTileSetData(TileSetData tileSetData, JObject node)
@@ -287,6 +300,35 @@ internal static class EditorAssetJsonSerializer
 
             node.Add("tile_flags", flagsArray);
         }
+    }
+
+    private static void SaveTileMapObjectLayerData(TileMapObjectLayerData layer, JObject node)
+    {
+        node.Add("name", string.IsNullOrWhiteSpace(layer.Name) ? JValue.CreateNull() : layer.Name);
+        node.Add("z_offset", layer.zOffset);
+        SaveCustomProperties(layer.CustomProperties, node);
+
+        var objectsArray = new JArray();
+        foreach (var objectData in layer.Objects)
+        {
+            var objectNode = new JObject();
+            SaveTileMapObjectData(objectData, objectNode);
+            objectsArray.Add(objectNode);
+        }
+
+        node.Add("objects", objectsArray);
+    }
+
+    private static void SaveTileMapObjectData(TileMapObjectData objectData, JObject node)
+    {
+        node.Add("id", objectData.Id);
+        node.Add("name", string.IsNullOrWhiteSpace(objectData.Name) ? JValue.CreateNull() : objectData.Name);
+        node.Add("type", string.IsNullOrWhiteSpace(objectData.Type) ? JValue.CreateNull() : objectData.Type);
+        node.Add("x", objectData.X);
+        node.Add("y", objectData.Y);
+        node.Add("width", objectData.Width);
+        node.Add("height", objectData.Height);
+        SaveCustomProperties(objectData.CustomProperties, node);
     }
 
     private static void SaveStaticModel(StaticModel staticModel, JObject node)

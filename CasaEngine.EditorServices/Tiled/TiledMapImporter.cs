@@ -97,6 +97,13 @@ public sealed class TiledMapImporter
             layerIndex++;
         }
 
+        var objectLayerIndex = 0;
+        foreach (var objectGroupElement in mapElement.Elements("objectgroup"))
+        {
+            result.ObjectLayers.Add(ReadObjectLayer(objectGroupElement, objectLayerIndex * 0.1f));
+            objectLayerIndex++;
+        }
+
         if (result.Layers.Count == 0)
         {
             result.Warnings.Add("The Tiled map does not contain tile layers.");
@@ -163,6 +170,22 @@ public sealed class TiledMapImporter
             var layerName = ReadOptionalString(layerObject, "name", $"Layer {layerIndex + 1}");
             result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags, ReadCustomProperties(layerObject)));
             layerIndex++;
+        }
+
+        var objectLayerIndex = 0;
+        for (var index = 0; index < layers.Count; index++)
+        {
+            if (layers[index] is not JObject layerObject)
+            {
+                continue;
+            }
+
+            var layerType = ReadOptionalString(layerObject, "type", string.Empty);
+            if (string.Equals(layerType, "objectgroup", StringComparison.OrdinalIgnoreCase))
+            {
+                result.ObjectLayers.Add(ReadObjectLayerJson(layerObject, objectLayerIndex * 0.1f));
+                objectLayerIndex++;
+            }
         }
 
         if (result.Layers.Count == 0)
@@ -410,6 +433,54 @@ public sealed class TiledMapImporter
         }
 
         return customPropertiesByTileId;
+    }
+
+    private static TiledObjectLayer ReadObjectLayer(XElement objectGroupElement, float zOffset)
+    {
+        var objectLayer = new TiledObjectLayer(ReadOptionalString(objectGroupElement, "name", "Objects"), zOffset, ReadCustomProperties(objectGroupElement));
+        foreach (var objectElement in objectGroupElement.Elements("object"))
+        {
+            objectLayer.Objects.Add(new TiledObject(
+                ReadOptionalInt(objectElement, "id", 0),
+                ReadOptionalString(objectElement, "name", string.Empty),
+                ReadOptionalString(objectElement, "type", string.Empty),
+                ReadOptionalFloat(objectElement, "x", 0f),
+                ReadOptionalFloat(objectElement, "y", 0f),
+                ReadOptionalFloat(objectElement, "width", 0f),
+                ReadOptionalFloat(objectElement, "height", 0f),
+                ReadCustomProperties(objectElement)));
+        }
+
+        return objectLayer;
+    }
+
+    private static TiledObjectLayer ReadObjectLayerJson(JObject layerObject, float zOffset)
+    {
+        var objectLayer = new TiledObjectLayer(ReadOptionalString(layerObject, "name", "Objects"), zOffset, ReadCustomProperties(layerObject));
+        if (layerObject["objects"] is not JArray objects)
+        {
+            return objectLayer;
+        }
+
+        for (var index = 0; index < objects.Count; index++)
+        {
+            if (objects[index] is not JObject objectObject)
+            {
+                continue;
+            }
+
+            objectLayer.Objects.Add(new TiledObject(
+                ReadOptionalInt(objectObject, "id", 0),
+                ReadOptionalString(objectObject, "name", string.Empty),
+                ReadOptionalString(objectObject, "type", string.Empty),
+                ReadOptionalFloat(objectObject, "x", 0f),
+                ReadOptionalFloat(objectObject, "y", 0f),
+                ReadOptionalFloat(objectObject, "width", 0f),
+                ReadOptionalFloat(objectObject, "height", 0f),
+                ReadCustomProperties(objectObject)));
+        }
+
+        return objectLayer;
     }
 
     private static string ReadPropertyValue(JToken? valueToken)
@@ -894,8 +965,56 @@ public sealed class TiledMapImportDocument
     public int TileHeight { get; }
     public TiledTilesetReference Tileset { get; }
     public List<TiledTileLayer> Layers { get; } = new();
+    public List<TiledObjectLayer> ObjectLayers { get; } = new();
     public List<string> Warnings { get; } = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
+}
+
+public sealed class TiledObjectLayer
+{
+    public TiledObjectLayer(string name, float zOffset, Dictionary<string, string> customProperties)
+    {
+        Name = name;
+        ZOffset = zOffset;
+        CustomProperties = customProperties;
+    }
+
+    public string Name { get; }
+    public float ZOffset { get; }
+    public List<TiledObject> Objects { get; } = new();
+    public Dictionary<string, string> CustomProperties { get; }
+}
+
+public sealed class TiledObject
+{
+    public TiledObject(
+        int id,
+        string name,
+        string type,
+        float x,
+        float y,
+        float width,
+        float height,
+        Dictionary<string, string> customProperties)
+    {
+        Id = id;
+        Name = name;
+        Type = type;
+        X = x;
+        Y = y;
+        Width = width;
+        Height = height;
+        CustomProperties = customProperties;
+    }
+
+    public int Id { get; }
+    public string Name { get; }
+    public string Type { get; }
+    public float X { get; }
+    public float Y { get; }
+    public float Width { get; }
+    public float Height { get; }
+    public Dictionary<string, string> CustomProperties { get; }
 }
 
 public sealed class TiledTilesetReference

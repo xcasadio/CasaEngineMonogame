@@ -242,9 +242,9 @@ Tâches :
 - ✅ Ajouter une API centrale `GetTileFlags`/`SetTileFlags`/`SetTile(..., flags)` qui marque seulement le rendu dirty quand seule l'orientation change.
 - ⏳ Importer les animations Tiled (`tile.animation`) vers `AnimatedTileData` ou vers des métadonnées convertibles.
 - ✅ Importer les collisions rectangles Tiled depuis `objectgroup` des tiles vers `TileData.CollisionShape`.
-- ⏳ Importer les object layers Tiled comme données editor : triggers, spawn points, regions, zones de collision.
+- ✅ Importer les object layers Tiled comme données editor : objets rectangulaires, type/name, coordonnées, propriétés.
 - ✅ Importer les custom properties Tiled de map, layer et tile dans `custom_properties` metadata string.
-- ⏳ Importer les custom properties Tiled d'object layers après ajout d'un modèle object-layer dédié.
+- ✅ Importer les custom properties Tiled d'object layers via le modèle `TileMapObjectLayerData`.
 - ✅ Supporter tilesets embedded dans `.tmx`, pas seulement `.tsx` externe.
 - ✅ Supporter les chemins relatifs Windows/Unix et les chemins contenant des espaces.
 - ✅ Supporter les maps Tiled JSON `.tmj` avec tileset image embedded ou `.tsj` externe.
@@ -263,6 +263,7 @@ Vérifications :
 - ✅ Étendre les tests TileMap/Tiled pour les flip flags importés.
 - ✅ Relancer les tests TileMap et le build après ajout de l'API de mutation des flags.
 - ✅ Étendre les tests TileMap/Tiled pour les custom properties map/layer/tile.
+- ✅ Étendre les tests TileMap/Tiled pour les object layers et leurs propriétés.
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~TiledTmx`.
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter "FullyQualifiedName~TiledTmx|FullyQualifiedName~TiledJson"`.
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter "FullyQualifiedName~CasaEngine.Tests.TileMap.TileMapDataTests|FullyQualifiedName~TiledTmx|FullyQualifiedName~TiledJson"`.

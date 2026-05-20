@@ -65,6 +65,50 @@ public class TileMapDataTests
     }
 
     [Fact]
+    public void Load_PreservesObjectLayers()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Ground", 1, 2, 3, 4);
+        document["object_layers"] = new JArray
+        {
+            new JObject
+            {
+                ["name"] = "Objects",
+                ["z_offset"] = 0f,
+                ["objects"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["id"] = 1,
+                        ["name"] = "PlayerStart",
+                        ["type"] = "spawn",
+                        ["x"] = 16f,
+                        ["y"] = 32f,
+                        ["width"] = 4f,
+                        ["height"] = 5f,
+                        ["custom_properties"] = new JObject
+                        {
+                            ["team"] = "blue",
+                        },
+                    },
+                },
+            },
+        };
+
+        tileMapData.Load(document);
+
+        var objectLayer = Assert.Single(tileMapData.ObjectLayers);
+        Assert.Equal("Objects", objectLayer.Name);
+        var objectData = Assert.Single(objectLayer.Objects);
+        Assert.Equal("PlayerStart", objectData.Name);
+        Assert.Equal("spawn", objectData.Type);
+        Assert.Equal(16f, objectData.X);
+        Assert.Equal(32f, objectData.Y);
+        Assert.Equal("blue", objectData.CustomProperties["team"]);
+    }
+
+    [Fact]
     public void Load_RejectsLayerWithWrongTileFlagCount()
     {
         var tileSetId = Guid.NewGuid();

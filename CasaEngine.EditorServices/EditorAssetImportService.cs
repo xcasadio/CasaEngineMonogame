@@ -201,6 +201,35 @@ public static class EditorAssetImportService
             tileMapData.Layers.Add(layerData);
         }
 
+        foreach (var tiledObjectLayer in tiledMap.ObjectLayers)
+        {
+            var objectLayerData = new TileMapObjectLayerData
+            {
+                Name = tiledObjectLayer.Name,
+                zOffset = tiledObjectLayer.ZOffset,
+            };
+            CopyCustomProperties(tiledObjectLayer.CustomProperties, objectLayerData.CustomProperties);
+
+            for (var objectIndex = 0; objectIndex < tiledObjectLayer.Objects.Count; objectIndex++)
+            {
+                var tiledObject = tiledObjectLayer.Objects[objectIndex];
+                var objectData = new TileMapObjectData
+                {
+                    Id = tiledObject.Id,
+                    Name = string.IsNullOrWhiteSpace(tiledObject.Name) ? null : tiledObject.Name,
+                    Type = string.IsNullOrWhiteSpace(tiledObject.Type) ? null : tiledObject.Type,
+                    X = tiledObject.X,
+                    Y = tiledObject.Y,
+                    Width = tiledObject.Width,
+                    Height = tiledObject.Height,
+                };
+                CopyCustomProperties(tiledObject.CustomProperties, objectData.CustomProperties);
+                objectLayerData.Objects.Add(objectData);
+            }
+
+            tileMapData.ObjectLayers.Add(objectLayerData);
+        }
+
         tileMapData.Validate();
         return tileMapData;
     }

@@ -12,6 +12,7 @@ public class TileMapData : ObjectBase
     public Size MapSize { get; set; }
     public Guid TileSetDataAssetId { get; set; } = Guid.Empty;
     public List<TileMapLayerData> Layers { get; } = new();
+    public List<TileMapObjectLayerData> ObjectLayers { get; } = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
 
     public bool IsInside(int x, int y)
@@ -81,6 +82,16 @@ public class TileMapData : ObjectBase
             tileMapLayerData.Load((JObject)jToken);
             return tileMapLayerData;
         }));
+
+        if (element["object_layers"] != null)
+        {
+            ObjectLayers.AddRange(element.GetElements("object_layers", jToken =>
+            {
+                var objectLayerData = new TileMapObjectLayerData();
+                objectLayerData.Load((JObject)jToken);
+                return objectLayerData;
+            }));
+        }
 
         Validate();
     }
