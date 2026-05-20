@@ -2349,7 +2349,7 @@ public class GameEditor : Game, IObservableUpdate
         bool createdPanel = false;
         if (!_particleInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
-            inspectorPanel = new ParticleAssetInspectorPanel(_mainWindow);
+            inspectorPanel = new ParticleAssetInspectorPanel(_mainWindow, _editorRuntime, GraphicsDevice);
             inspectorPanel.DirtyStateChanged += OnParticleInspectorDirtyStateChanged;
             _particleInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
@@ -3198,6 +3198,10 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var materialViewportPanel in _materialViewportPanels.Values)
         {
             materialViewportPanel.UpdateInput(gameTime);
+        }
+        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+        {
+            particleInspectorPanel.Update(gameTime);
         }
         foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
         {
@@ -4068,6 +4072,10 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
         {
             materialInspectorPanel.RefreshPreviewAfterDraw();
+        }
+        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+        {
+            particleInspectorPanel.RefreshPreviewAfterDraw();
         }
         foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
         {

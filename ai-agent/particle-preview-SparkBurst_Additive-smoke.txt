@@ -1,0 +1,39 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-05-20 15:13:47.515
+Project: .\Projects\SampleProject\SampleProject.json
+Open asset: .\Particles\SparkBurst_Additive.particle
+Create particle asset: <none>
+Set particle property: <none>
+Set material property: <none>
+Entity: <first> [0]
+Component: <none>
+Active document panel: panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f
+Open document panels: panel_world_viewport, panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 16x16
+  - Physics debug world: DefaultWorld
+Particle inspector state:
+  - Name: SparkBurst_Additive
+  - Path: Particles\SparkBurst_Additive.particle
+  - Dirty: False
+  - Emitters: 1
+  - Emitter[0]: Spark Burst, enabled=True, duration=0.85, looping=False, max=96, rate=0, shape=Cone, blend=Additive
+  - Preview Asset: SparkBurst_Additive
+  - Preview Path: Particles\SparkBurst_Additive.particle
+  - Preview Playback: Playing
+  - Preview Loop: False
+  - Preview Simulation speed: 1
+  - Preview Alive particles: 18
+  - Preview Last emitted: 0
+  - Preview Draw calls: 1
+  - Preview Texture: 484x141
+  - Preview World: ParticlePreviewWorld
+Selected entity: 'ground'
+Selected component: <null>
+Entries: 2
+
+2026-05-20 15:13:47.033 [Info] [Editor] Opened particle asset='SparkBurst_Additive', panel='panel_particle_asset_5d8e9d4bbf9b43df994d74a275dbff3f'
+2026-05-20 15:13:47.034 [Info] [Automation] Opened asset='.\Particles\SparkBurst_Additive.particle'

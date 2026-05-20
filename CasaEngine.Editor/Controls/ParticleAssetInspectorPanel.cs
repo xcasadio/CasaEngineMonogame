@@ -4,14 +4,17 @@ using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using Newtonsoft.Json.Linq;
 
@@ -20,8 +23,10 @@ namespace CasaEngine.Editor.Controls;
 public sealed class ParticleAssetInspectorPanel : IDisposable
 {
     private readonly MGWindow _window;
+    private readonly ParticlePreviewViewport? _particlePreview;
 
     private MGDockPanel? _root;
+    private MGElement? _previewContent;
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
@@ -35,6 +40,12 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
     public ParticleAssetInspectorPanel(MGWindow window)
     {
         _window = window;
+    }
+
+    internal ParticleAssetInspectorPanel(MGWindow window, HostedEditorGameAdapter editorRuntime, GraphicsDevice graphicsDevice)
+    {
+        _window = window;
+        _particlePreview = new ParticlePreviewViewport(window, graphicsDevice, editorRuntime);
     }
 
     public ParticleEffectAsset? LoadedParticleAsset => _particleAsset;
@@ -94,10 +105,36 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _root.TryAddChild(_sourceText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(toolbar, Dock.Top);
+        if (_particlePreview != null)
+        {
+            _root.TryAddChild(CreatePreviewContent(), Dock.Top);
+        }
+
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
         return _root;
+    }
+
+    public MGElement CreatePreviewContent()
+    {
+        if (_particlePreview != null)
+        {
+            return _particlePreview.CreateContent();
+        }
+
+        if (_previewContent != null)
+        {
+            return _previewContent;
+        }
+
+        _previewContent = new MGTextBlock(_window, "Particle preview unavailable.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _previewContent;
     }
 
     public void SetHistoryContextId(string historyContextId)
@@ -113,6 +150,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
         _particleAsset = particleAsset;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+        _particlePreview?.LoadAsset(particleAsset, fullPath);
         SetDirty(false);
 
         if (TryGetHistoryContext(out var historyContext))
@@ -207,7 +245,28 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
                 $"Emitter[{emitterIndex}]: {emitter.Name}, enabled={emitter.Enabled}, duration={emitter.Duration:0.###}, looping={emitter.Looping}, max={emitter.MaxParticles}, rate={emitter.Emission.RateOverTime:0.###}, shape={emitter.Shape.ShapeType}, blend={emitter.Renderer.BlendMode}"));
         }
 
+        var previewStates = _particlePreview?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
+        for (int stateIndex = 0; stateIndex < previewStates.Count; stateIndex++)
+        {
+            result.Add($"Preview {previewStates[stateIndex]}");
+        }
+
         return result;
+    }
+
+    public World? GetOrCreatePreviewWorld()
+    {
+        return _particlePreview?.GetOrCreatePreviewWorld();
+    }
+
+    public void Update(GameTime gameTime)
+    {
+        _particlePreview?.Update(gameTime);
+    }
+
+    public void RefreshPreviewAfterDraw()
+    {
+        _particlePreview?.RefreshPreviewAfterDraw();
     }
 
     public bool TryApplyAutomationPropertyOverrideAndSave(string propertyKey, string rawValue, out string statusMessage)
@@ -245,6 +304,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     public void Dispose()
     {
+        _particlePreview?.Dispose();
     }
 
     public static bool TryLoadAsset(string fullPath, out ParticleEffectAsset particleAsset)
@@ -614,6 +674,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             RefreshHeaderText();
             RefreshSourceText();
             RefreshStatusText();
+            _particlePreview?.RefreshParticleAsset();
         }
         catch (Exception exception)
         {

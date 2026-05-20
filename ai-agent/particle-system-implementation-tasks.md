@@ -485,7 +485,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): add particle asset inspector panel`
 
-- ⏳ **T06.03 — Ajouter preview viewport particules**
+- ✅ **T06.03 — Ajouter preview viewport particules**
   Objectif :
   - Creer preview isolee inspiree du material preview/world viewport.
   - Toolbar : play, pause, stop, restart, loop, sim speed, reset camera.
