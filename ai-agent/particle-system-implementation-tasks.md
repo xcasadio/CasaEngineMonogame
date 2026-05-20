@@ -448,7 +448,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(demos): add particle system demo`
 
-- ⏳ **T05.03 — Ajouter tests de stabilite runtime**
+- ✅ **T05.03 — Ajouter tests de stabilite runtime**
   Objectif :
   - Couvrir 100 explosions one-shot successives.
   - Couvrir effet looping long en temps simule.
