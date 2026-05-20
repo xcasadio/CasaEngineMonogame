@@ -5479,6 +5479,18 @@
       "asset_type": "particle"
     },
     {
+      "id": "5d8e9d4b-bf9b-43df-994d-74a275dbff3f",
+      "name": "SparkBurst_Additive",
+      "file_name": "Particles\\SparkBurst_Additive.particle",
+      "asset_type": "particle"
+    },
+    {
+      "id": "ddf1d19a-70e9-4f2b-873e-357146e7a96d",
+      "name": "FireLoop_Minimal",
+      "file_name": "Particles\\FireLoop_Minimal.particle",
+      "asset_type": "particle"
+    },
+    {
       "id": "31f79cad-7d18-46a4-ba4c-af2d43d87f99",
       "name": "ryu",
       "file_name": "Spritesheets\\ryu.png",

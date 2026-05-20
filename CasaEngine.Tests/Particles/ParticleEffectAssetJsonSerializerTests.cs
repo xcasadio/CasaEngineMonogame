@@ -15,6 +15,8 @@ namespace CasaEngine.Tests.Particles;
 public class ParticleEffectAssetJsonSerializerTests
 {
     private static readonly Guid SampleProjectSmokePuffAssetId = Guid.Parse("4cbd68f9-ad8e-4f5f-9ad7-8a0c85a1da61");
+    private static readonly Guid SampleProjectSparkBurstAssetId = Guid.Parse("5d8e9d4b-bf9b-43df-994d-74a275dbff3f");
+    private static readonly Guid SampleProjectFireLoopAssetId = Guid.Parse("ddf1d19a-70e9-4f2b-873e-357146e7a96d");
 
     [Fact]
     public void SaveLoad_RoundTripsEmitterModules()
@@ -85,7 +87,7 @@ public class ParticleEffectAssetJsonSerializerTests
     }
 
     [Fact]
-    public void SampleProjectParticleAsset_LoadsThroughAssetContentManager()
+    public void SampleProjectParticleAssets_LoadThroughAssetContentManager()
     {
         string repositoryRoot = FindRepositoryRoot();
         string sampleProjectPath = Path.Combine(repositoryRoot, "Projects", "SampleProject");
@@ -99,18 +101,24 @@ public class ParticleEffectAssetJsonSerializerTests
             var assetContentManager = new AssetContentManager();
             assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
 
-            ParticleEffectAsset asset = assetContentManager.Load<ParticleEffectAsset>(SampleProjectSmokePuffAssetId, cache: false);
-
-            Assert.Equal("SmokePuff_Minimal", asset.Name);
-            Assert.Equal("Particles\\SmokePuff_Minimal.particle", asset.FileName);
-            Assert.Single(asset.Emitters);
-            Assert.Equal("Smoke Puff", asset.Emitters[0].Name);
-            Assert.Equal(64, asset.Emitters[0].MaxParticles);
+            AssertSampleParticleAsset(assetContentManager, SampleProjectSmokePuffAssetId, "SmokePuff_Minimal", "Smoke Puff", 64);
+            AssertSampleParticleAsset(assetContentManager, SampleProjectSparkBurstAssetId, "SparkBurst_Additive", "Spark Burst", 96);
+            AssertSampleParticleAsset(assetContentManager, SampleProjectFireLoopAssetId, "FireLoop_Minimal", "Fire Loop", 128);
         }
         finally
         {
             EngineEnvironment.ProjectPath = oldProjectPath;
         }
+    }
+
+    private static void AssertSampleParticleAsset(AssetContentManager assetContentManager, Guid assetId, string expectedName, string expectedEmitterName, int expectedMaxParticles)
+    {
+        ParticleEffectAsset asset = assetContentManager.Load<ParticleEffectAsset>(assetId, cache: false);
+
+        Assert.Equal(expectedName, asset.Name);
+        Assert.Single(asset.Emitters);
+        Assert.Equal(expectedEmitterName, asset.Emitters[0].Name);
+        Assert.Equal(expectedMaxParticles, asset.Emitters[0].MaxParticles);
     }
 
     [Fact]

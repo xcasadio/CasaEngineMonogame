@@ -426,7 +426,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 ## Phase 5 — Demo et validation V1 runtime
 
-- ⏳ **T05.01 — Creer assets d'effets V1 de demonstration**
+- ✅ **T05.01 — Creer assets d'effets V1 de demonstration**
   Objectif :
   - Ajouter au moins trois effets simples : smoke puff, spark burst, fire loop ou equivalents.
   - Utiliser textures existantes ou assets minimaux clairement catalogues.

@@ -1,0 +1,178 @@
+{
+  "id": "5d8e9d4b-bf9b-43df-994d-74a275dbff3f",
+  "name": "SparkBurst_Additive",
+  "type": "ParticleEffectAsset",
+  "version": 1,
+  "schema_version": 1,
+  "emitters": [
+    {
+      "name": "Spark Burst",
+      "enabled": true,
+      "duration": 0.85,
+      "looping": false,
+      "start_delay": 0.0,
+      "max_particles": 96,
+      "emission": {
+        "rate_over_time": 0.0,
+        "bursts": [
+          {
+            "time": 0.0,
+            "count_min": 28,
+            "count_max": 40
+          }
+        ]
+      },
+      "shape": {
+        "shape_type": "Cone",
+        "size": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        },
+        "radius": 0.08,
+        "angle_degrees": 34.0,
+        "emit_from_shell": true
+      },
+      "initial": {
+        "lifetime": {
+          "min": 0.25,
+          "max": 0.65
+        },
+        "speed": {
+          "min": 2.0,
+          "max": 4.5
+        },
+        "rotation": {
+          "min": -3.14,
+          "max": 3.14
+        },
+        "angular_velocity": {
+          "min": -2.0,
+          "max": 2.0
+        },
+        "size": {
+          "min": {
+            "x": 0.035,
+            "y": 0.035
+          },
+          "max": {
+            "x": 0.08,
+            "y": 0.08
+          }
+        },
+        "start_color": {
+          "color_keys": [
+            {
+              "time": 0.0,
+              "color": {
+                "r": 255,
+                "g": 238,
+                "b": 150,
+                "a": 255
+              }
+            },
+            {
+              "time": 1.0,
+              "color": {
+                "r": 255,
+                "g": 96,
+                "b": 26,
+                "a": 255
+              }
+            }
+          ],
+          "alpha_keys": [
+            {
+              "time": 0.0,
+              "alpha": 1.0
+            },
+            {
+              "time": 1.0,
+              "alpha": 0.0
+            }
+          ]
+        }
+      },
+      "simulation": {
+        "simulation_space": "World",
+        "gravity": {
+          "x": 0.0,
+          "y": -9.8,
+          "z": 0.0
+        },
+        "gravity_scale": 0.18,
+        "drag": 0.08,
+        "size_over_lifetime": {
+          "keys": [
+            {
+              "time": 0.0,
+              "value": 1.0
+            },
+            {
+              "time": 1.0,
+              "value": 0.25
+            }
+          ]
+        },
+        "alpha_over_lifetime": {
+          "keys": [
+            {
+              "time": 0.0,
+              "value": 1.0
+            },
+            {
+              "time": 1.0,
+              "value": 0.0
+            }
+          ]
+        },
+        "velocity_over_lifetime": {
+          "keys": [
+            {
+              "time": 0.0,
+              "value": 1.0
+            },
+            {
+              "time": 1.0,
+              "value": 0.65
+            }
+          ]
+        },
+        "color_over_lifetime": {
+          "color_keys": [
+            {
+              "time": 0.0,
+              "color": {
+                "r": 255,
+                "g": 255,
+                "b": 255,
+                "a": 255
+              }
+            }
+          ],
+          "alpha_keys": [
+            {
+              "time": 0.0,
+              "alpha": 1.0
+            },
+            {
+              "time": 1.0,
+              "alpha": 0.0
+            }
+          ]
+        }
+      },
+      "renderer": {
+        "render_mode": "Billboard",
+        "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+        "blend_mode": "Additive",
+        "sort_mode": "Distance",
+        "depth_test": true,
+        "depth_write": false,
+        "render_queue": 3100,
+        "layer": 1,
+        "always_visible": false
+      }
+    }
+  ]
+}
