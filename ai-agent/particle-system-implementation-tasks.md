@@ -333,7 +333,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): update particle component runtime`
 
-- ⏳ **T03.03 — Integrer bounds avec les entites visibles**
+- ✅ **T03.03 — Integrer bounds avec les entites visibles**
   Objectif :
   - Exposer des bounds coherents pour le culling world/editor.
   - Verifier interaction avec `IBoundingBoxable`, `PrimitiveComponent` et spatial index.

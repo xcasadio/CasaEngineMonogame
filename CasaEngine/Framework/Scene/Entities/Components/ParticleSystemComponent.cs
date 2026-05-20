@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Runtime;
 using Microsoft.Xna.Framework;
@@ -64,6 +66,38 @@ public class ParticleSystemComponent : SceneComponent
 
     public int LastEmittedCount { get; private set; }
 
+    public bool AlwaysVisible
+    {
+        get
+        {
+            if (_runtimeInstance != null)
+            {
+                for (int emitterIndex = 0; emitterIndex < _runtimeInstance.Emitters.Length; emitterIndex++)
+                {
+                    if (_runtimeInstance.Emitters[emitterIndex].AlwaysVisible)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            if (_particleEffectAsset == null)
+            {
+                return false;
+            }
+
+            for (int emitterIndex = 0; emitterIndex < _particleEffectAsset.Emitters.Count; emitterIndex++)
+            {
+                if (_particleEffectAsset.Emitters[emitterIndex].Renderer.AlwaysVisible)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     public ParticleSystemComponent()
     {
     }
@@ -87,6 +121,27 @@ public class ParticleSystemComponent : SceneComponent
 
     public override ParticleSystemComponent Clone()
         => new(this);
+
+    public override BoundingBox GetBoundingBox()
+    {
+        if (_runtimeInstance != null)
+        {
+            _runtimeInstance.WorldMatrix = WorldMatrixWithScale;
+            _runtimeInstance.UpdateBounds();
+            if (_runtimeInstance.HasBounds)
+            {
+                return _runtimeInstance.Bounds;
+            }
+        }
+
+        if (_particleEffectAsset == null)
+        {
+            return base.GetBoundingBox();
+        }
+
+        BoundingBox authoringBounds = CalculateAuthoringFallbackBounds(_particleEffectAsset);
+        return authoringBounds.Valid() ? authoringBounds.Transform(WorldMatrixWithScale) : base.GetBoundingBox();
+    }
 
     public override void Update(float elapsedTime)
     {
@@ -174,5 +229,31 @@ public class ParticleSystemComponent : SceneComponent
         }
 
         return true;
+    }
+
+    private static BoundingBox CalculateAuthoringFallbackBounds(ParticleEffectAsset particleEffectAsset)
+    {
+        BoundingBox bounds = BoundingBoxHelper.Create();
+        for (int emitterIndex = 0; emitterIndex < particleEffectAsset.Emitters.Count; emitterIndex++)
+        {
+            ParticleEmitterDefinition emitter = particleEffectAsset.Emitters[emitterIndex];
+            float shapeRadius = CalculateShapeRadius(emitter.Shape);
+            float particleRadius = MathF.Max(emitter.Initial.Size.Max.X, emitter.Initial.Size.Max.Y) * 0.5f;
+            float radius = MathF.Max(0.5f, shapeRadius + particleRadius);
+            bounds.ExpandBy(new Vector3(-radius, -radius, -radius));
+            bounds.ExpandBy(new Vector3(radius, radius, radius));
+        }
+
+        return bounds;
+    }
+
+    private static float CalculateShapeRadius(ParticleShapeModule shape)
+    {
+        return shape.ShapeType switch
+        {
+            ParticleShapeType.Circle or ParticleShapeType.Sphere or ParticleShapeType.Cone => MathF.Max(0.0f, shape.Radius),
+            ParticleShapeType.Box => MathF.Max(shape.Size.X, MathF.Max(shape.Size.Y, shape.Size.Z)) * 0.5f,
+            _ => 0.0f,
+        };
     }
 }

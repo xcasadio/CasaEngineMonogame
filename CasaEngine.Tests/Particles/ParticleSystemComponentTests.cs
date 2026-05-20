@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -113,6 +114,50 @@ public class ParticleSystemComponentTests
 
         Assert.Equal(0, component.LastEmittedCount);
         Assert.Equal(0, component.RuntimeInstance!.AliveCount);
+    }
+
+    [Fact]
+    public void GetBoundingBox_UsesRuntimeBoundsWhenParticlesAreAlive()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.LocalPosition = new Vector3(5.0f, 0.0f, 0.0f);
+        component.SetParticleEffectAsset(CreateRuntimeAsset(rateOverTime: 1.0f));
+
+        component.Update(1.0f);
+        BoundingBox bounds = component.GetBoundingBox();
+
+        Assert.Equal(new Vector3(4.5f, -0.5f, -0.5f), bounds.Min);
+        Assert.Equal(new Vector3(5.5f, 0.5f, 0.5f), bounds.Max);
+    }
+
+    [Fact]
+    public void GetBoundingBox_UsesAuthoringFallbackWithoutLiveParticles()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        component.LocalPosition = new Vector3(2.0f, 0.0f, 0.0f);
+        component.PlayOnStart = false;
+        ParticleEffectAsset asset = CreateRuntimeAsset(rateOverTime: 0.0f);
+        asset.Emitters[0].Shape.ShapeType = ParticleShapeType.Sphere;
+        asset.Emitters[0].Shape.Radius = 3.0f;
+        asset.Emitters[0].Initial.Size = Vector2Range.Constant(new Vector2(2.0f, 2.0f));
+        component.SetParticleEffectAsset(asset);
+
+        BoundingBox bounds = component.GetBoundingBox();
+
+        Assert.Equal(new Vector3(-2.0f, -4.0f, -4.0f), bounds.Min);
+        Assert.Equal(new Vector3(6.0f, 4.0f, 4.0f), bounds.Max);
+    }
+
+    [Fact]
+    public void AlwaysVisible_ReflectsParticleRendererFlags()
+    {
+        ParticleSystemComponent component = CreateAttachedComponent(out _);
+        ParticleEffectAsset asset = CreateRuntimeAsset(rateOverTime: 0.0f);
+        asset.Emitters[0].Renderer.AlwaysVisible = true;
+
+        component.SetParticleEffectAsset(asset);
+
+        Assert.True(component.AlwaysVisible);
     }
 
     private static JObject CreateComponentNode(Guid assetId)
