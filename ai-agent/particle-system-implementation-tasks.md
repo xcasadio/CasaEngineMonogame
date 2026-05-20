@@ -437,7 +437,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add sample particle effects`
 
-- ⏳ **T05.02 — Ajouter une demo `ParticleSystemDemo`**
+- ✅ **T05.02 — Ajouter une demo `ParticleSystemDemo`**
   Objectif :
   - Creer une scene/demo qui joue un effet looping et des bursts successifs.
   - Ajouter controles minimaux si les demos existantes ont un pattern equivalent.
