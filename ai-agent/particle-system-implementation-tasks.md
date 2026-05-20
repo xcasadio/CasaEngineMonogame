@@ -380,7 +380,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add particle billboard renderer`
 
-- ⏳ **T04.03 — Brancher le renderer dans le pipeline multi-view**
+- ✅ **T04.03 — Brancher le renderer dans le pipeline multi-view**
   Objectif :
   - Enregistrer le renderer dans le jeu et la liste des `IViewFlushableRenderer` au bon ordre, apres geometrie opaque et avant overlays/UI.
   - S'assurer qu'une meme frame multi-camera n'avance pas la simulation plusieurs fois.

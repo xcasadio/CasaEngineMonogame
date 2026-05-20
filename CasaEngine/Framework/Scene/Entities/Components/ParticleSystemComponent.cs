@@ -1,8 +1,11 @@
 using System.ComponentModel;
 using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Particles.Rendering;
 using CasaEngine.Framework.Particles.Runtime;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -14,6 +17,8 @@ public class ParticleSystemComponent : SceneComponent
 {
     private ParticleEffectAsset? _particleEffectAsset;
     private ParticleRuntimeInstance? _runtimeInstance;
+    private ParticleRendererComponent? _particleRendererComponent;
+    private readonly List<ParticleRenderPacket> _renderPackets = new(64);
     private float _simulationSpeed = 1.0f;
     private float _emissionScale = 1.0f;
     private int _lastUpdateSequence = -1;
@@ -120,6 +125,11 @@ public class ParticleSystemComponent : SceneComponent
     public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
     {
         base.InitializeWithWorld(world);
+        if (world.Game != null)
+        {
+            _particleRendererComponent = world.Game.GetGameComponent<ParticleRendererComponent>();
+        }
+
         LoadParticleEffectAsset();
     }
 
@@ -161,6 +171,30 @@ public class ParticleSystemComponent : SceneComponent
         LastEmittedCount = _runtimeInstance.Update(elapsedTime);
         _lastUpdateSequence = Owner!.World.UpdateSequence;
         IsBoundingBoxDirty = true;
+    }
+
+    public override void Draw(float elapsedTime)
+    {
+        base.Draw(elapsedTime);
+
+        if (_runtimeInstance == null || Owner?.World?.CurrentRenderFrame is not { } frame)
+        {
+            return;
+        }
+
+        if (_particleRendererComponent == null && Owner.World.Game != null)
+        {
+            _particleRendererComponent = Owner.World.Game.GetGameComponent<ParticleRendererComponent>();
+        }
+
+        if (_particleRendererComponent == null)
+        {
+            return;
+        }
+
+        _runtimeInstance.WorldMatrix = WorldMatrixWithScale;
+        ParticleRenderPacketExtractor.Extract(_runtimeInstance, frame.CameraPosition, ColorTint, _renderPackets);
+        _particleRendererComponent.Submit(_renderPackets);
     }
 
     public override void Load(JObject element)

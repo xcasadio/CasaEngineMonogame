@@ -41,6 +41,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public InputComponent InputComponent { get; private set; }
     public Renderer2DComponent Renderer2DComponent { get; private set; }
     public SpriteRendererComponent SpriteRendererComponent { get; private set; }
+    public ParticleRendererComponent ParticleRendererComponent { get; private set; }
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
@@ -339,6 +340,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         SpriteBatch = new SpriteBatch(GraphicsDevice);
         Renderer2DComponent = new Renderer2DComponent(this) { SpriteBatch = SpriteBatch };
         SpriteRendererComponent = new SpriteRendererComponent(this);
+        ParticleRendererComponent = new ParticleRendererComponent(this);
         InputComponent = new InputComponent(this);
         MeshRendererComponent = new StaticMeshRendererComponent(this);
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(this);
@@ -354,6 +356,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             MeshRendererComponent,
             SkinnedMeshRendererComponent,
             SpriteRendererComponent,
+            ParticleRendererComponent,
             Line3dRendererComponent,
             Renderer2DComponent,
         }, SpriteBatch!);
