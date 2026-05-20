@@ -8,7 +8,9 @@ public struct Particle
     public float Age;
     public float Lifetime;
     public Vector3 Position;
+    public Vector3 InitialVelocity;
     public Vector3 Velocity;
+    public Vector2 StartSize;
     public Vector2 Size;
     public float Rotation;
     public float AngularVelocity;

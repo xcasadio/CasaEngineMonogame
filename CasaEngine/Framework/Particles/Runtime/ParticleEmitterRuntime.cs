@@ -134,7 +134,24 @@ public sealed class ParticleEmitterRuntime
                 break;
             }
 
+            InitializeParticle(_aliveParticleIndices[_aliveCount - 1]);
             emittedCount++;
+        }
+
+        return emittedCount;
+    }
+
+    public int Update(float elapsedSeconds)
+    {
+        if (elapsedSeconds <= 0.0f || _simulationSpeed <= 0.0f)
+        {
+            return 0;
+        }
+
+        int emittedCount = UpdateEmission(elapsedSeconds);
+        if (PlaybackState != ParticlePlaybackState.Paused && _aliveCount > 0)
+        {
+            SimulateParticles(elapsedSeconds * _simulationSpeed);
         }
 
         return emittedCount;
@@ -370,5 +387,80 @@ public sealed class ParticleEmitterRuntime
     {
         _emissionAccumulator = 0.0f;
         _random = new ParticleRandom(_randomSeed);
+    }
+
+    private void InitializeParticle(int particleIndex)
+    {
+        ref Particle particle = ref Particles[particleIndex];
+        ParticleShapeSampler.Sample(Definition.Shape, ref _random, out Vector3 localPosition, out Vector3 direction);
+
+        float lifetime = Definition.Initial.Lifetime.Sample(ref _random);
+        float speed = Definition.Initial.Speed.Sample(ref _random);
+        Vector2 size = Definition.Initial.Size.Sample(ref _random);
+        Color startColor = Definition.Initial.StartColor.Evaluate(0.0f);
+
+        particle.Age = 0.0f;
+        particle.Lifetime = MathF.Max(0.0001f, lifetime);
+        particle.Position = localPosition;
+        particle.InitialVelocity = direction * speed;
+        particle.Velocity = particle.InitialVelocity;
+        particle.StartSize = size;
+        particle.Size = size;
+        particle.Rotation = MathHelper.ToRadians(Definition.Initial.Rotation.Sample(ref _random));
+        particle.AngularVelocity = MathHelper.ToRadians(Definition.Initial.AngularVelocity.Sample(ref _random));
+        particle.StartColor = startColor;
+        particle.Color = startColor;
+        particle.Alpha = startColor.A / 255.0f;
+    }
+
+    private void SimulateParticles(float elapsedSeconds)
+    {
+        int aliveIndex = 0;
+        while (aliveIndex < _aliveCount)
+        {
+            int particleIndex = _aliveParticleIndices[aliveIndex];
+            if (SimulateParticle(particleIndex, elapsedSeconds))
+            {
+                aliveIndex++;
+            }
+        }
+    }
+
+    private bool SimulateParticle(int particleIndex, float elapsedSeconds)
+    {
+        ref Particle particle = ref Particles[particleIndex];
+        particle.Age += elapsedSeconds;
+        if (particle.Age >= particle.Lifetime)
+        {
+            Kill(particleIndex);
+            return false;
+        }
+
+        float normalizedLifetime = MathHelper.Clamp(particle.Age / particle.Lifetime, 0.0f, 1.0f);
+        Vector3 acceleration = Definition.Simulation.Gravity * Definition.Simulation.GravityScale;
+        particle.Velocity += acceleration * elapsedSeconds;
+
+        float drag = Definition.Simulation.Drag;
+        if (drag > 0.0f)
+        {
+            particle.Velocity *= MathF.Max(0.0f, 1.0f - drag * elapsedSeconds);
+        }
+
+        float velocityScale = Definition.Simulation.VelocityOverLifetime.Evaluate(normalizedLifetime);
+        particle.Position += particle.Velocity * velocityScale * elapsedSeconds;
+        particle.Rotation += particle.AngularVelocity * elapsedSeconds;
+        particle.Size = particle.StartSize * Definition.Simulation.SizeOverLifetime.Evaluate(normalizedLifetime);
+        particle.Color = MultiplyColors(particle.StartColor, Definition.Simulation.ColorOverLifetime.Evaluate(normalizedLifetime));
+        particle.Alpha = (particle.Color.A / 255.0f) * Definition.Simulation.AlphaOverLifetime.Evaluate(normalizedLifetime);
+        return true;
+    }
+
+    private static Color MultiplyColors(Color first, Color second)
+    {
+        return new Color(
+            (byte)(first.R * second.R / 255),
+            (byte)(first.G * second.G / 255),
+            (byte)(first.B * second.B / 255),
+            (byte)(first.A * second.A / 255));
     }
 }

@@ -153,4 +153,15 @@ public sealed class ParticleRuntimeInstance
 
         return emittedCount;
     }
+
+    public int Update(float elapsedSeconds)
+    {
+        int emittedCount = 0;
+        for (int emitterIndex = 0; emitterIndex < Emitters.Length; emitterIndex++)
+        {
+            emittedCount += Emitters[emitterIndex].Update(elapsedSeconds);
+        }
+
+        return emittedCount;
+    }
 }

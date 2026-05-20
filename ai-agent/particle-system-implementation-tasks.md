@@ -285,7 +285,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): add v1 emitter shape samplers`
 
-- ⏳ **T02.05 — Implementer initialisation et simulation des particules**
+- ✅ **T02.05 — Implementer initialisation et simulation des particules**
   Objectif :
   - Initialiser lifetime, speed, size, rotation, angular velocity, color, alpha.
   - Simuler velocity/acceleration, gravity scale, drag, rotation.
