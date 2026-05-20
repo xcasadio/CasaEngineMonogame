@@ -227,7 +227,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): serialize particle effect assets`
 
-- ⏳ **T01.06 — Ajouter un asset particule minimal de test**
+- ✅ **T01.06 — Ajouter un asset particule minimal de test**
   Objectif :
   - Ajouter un fichier `.particle` minimal dans un projet/sample adapte.
   - L'enregistrer dans le catalogue d'assets si necessaire.

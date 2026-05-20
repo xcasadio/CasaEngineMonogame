@@ -5473,6 +5473,12 @@
       "asset_type": "texture"
     },
     {
+      "id": "4cbd68f9-ad8e-4f5f-9ad7-8a0c85a1da61",
+      "name": "SmokePuff_Minimal",
+      "file_name": "Particles\\SmokePuff_Minimal.particle",
+      "asset_type": "particle"
+    },
+    {
       "id": "31f79cad-7d18-46a4-ba4c-af2d43d87f99",
       "name": "ryu",
       "file_name": "Spritesheets\\ryu.png",

@@ -1,3 +1,4 @@
+using CasaEngine.Engine.Environment;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Configuration;
@@ -13,6 +14,8 @@ namespace CasaEngine.Tests.Particles;
 
 public class ParticleEffectAssetJsonSerializerTests
 {
+    private static readonly Guid SampleProjectSmokePuffAssetId = Guid.Parse("4cbd68f9-ad8e-4f5f-9ad7-8a0c85a1da61");
+
     [Fact]
     public void SaveLoad_RoundTripsEmitterModules()
     {
@@ -82,6 +85,35 @@ public class ParticleEffectAssetJsonSerializerTests
     }
 
     [Fact]
+    public void SampleProjectParticleAsset_LoadsThroughAssetContentManager()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string sampleProjectPath = Path.Combine(repositoryRoot, "Projects", "SampleProject");
+        string? oldProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            AssetCatalog.Load(Path.Combine(sampleProjectPath, "AssetInfos.json"));
+            EngineEnvironment.ProjectPath = sampleProjectPath;
+
+            var assetContentManager = new AssetContentManager();
+            assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
+
+            ParticleEffectAsset asset = assetContentManager.Load<ParticleEffectAsset>(SampleProjectSmokePuffAssetId, cache: false);
+
+            Assert.Equal("SmokePuff_Minimal", asset.Name);
+            Assert.Equal("Particles\\SmokePuff_Minimal.particle", asset.FileName);
+            Assert.Single(asset.Emitters);
+            Assert.Equal("Smoke Puff", asset.Emitters[0].Name);
+            Assert.Equal(64, asset.Emitters[0].MaxParticles);
+        }
+        finally
+        {
+            EngineEnvironment.ProjectPath = oldProjectPath;
+        }
+    }
+
+    [Fact]
     public void CanMigrate_RejectsFutureVersions()
     {
         Assert.True(ParticleEffectAssetJsonSerializer.CanMigrate(ParticleEffectAsset.CurrentVersion));
@@ -127,5 +159,21 @@ public class ParticleEffectAssetJsonSerializerTests
 
         asset.Emitters.Add(emitter);
         return asset;
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "CasaEngine.MonoGame.sln")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate CasaEngineMonogame repository root.");
     }
 }
