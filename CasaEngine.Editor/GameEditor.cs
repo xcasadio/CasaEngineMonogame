@@ -2619,7 +2619,7 @@ public class GameEditor : Game, IObservableUpdate
     private void OnEditorComponentSelectionChanged(EntityComponent? component)
     {
         Logs.WriteTrace($"[WorldSelection] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
-        RefreshWorldInspectorView();
+        RefreshWorldSelectionViews();
         if (_editorContext.ActiveDocument?.Kind == EditorDocumentKind.World)
         {
             SyncGlobalSelectionFromActiveDocument();
@@ -2650,7 +2650,9 @@ public class GameEditor : Game, IObservableUpdate
 
         if (!_automationOptions.HasAutomation)
         {
-            _worldViewportPanel?.SetSelectedEntity(GetSelectedWorldEntity());
+            var selectedEntity = GetSelectedWorldEntity();
+            _worldViewportPanel?.SetSelectedEntity(selectedEntity);
+            _worldViewportPanel?.SetSelectedComponent(_editorSelection.SelectedComponent);
         }
     }
 

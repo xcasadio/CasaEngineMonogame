@@ -142,6 +142,7 @@ public class WorldViewportPanel : IDisposable
     private WorldEnvironmentSettings? _environmentOverride;
     private Entity? _cameraEntity;
     private Entity? _selectedEntity;
+    private EntityComponent? _selectedComponent;
     private ITransformableObject? _selectedTransformable;
     private ArcBallCameraComponent? _camera;
     private readonly EditorViewportCameraController _cameraController = new();
@@ -323,7 +324,27 @@ public class WorldViewportPanel : IDisposable
     public void SetSelectedEntity(Entity? entity)
     {
         _selectedEntity = entity;
+        _selectedComponent = null;
         _selectedTransformable = entity?.RootComponent;
+        _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
+    }
+
+    public void SetSelectedComponent(EntityComponent? component)
+    {
+        _selectedComponent = component;
+
+        if (component == null)
+        {
+            _selectedTransformable = _selectedEntity?.RootComponent;
+            _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
+            return;
+        }
+
+        _selectedEntity = component.Owner;
+        _selectedTransformable = component is SceneComponent sceneComponent
+            ? sceneComponent
+            : component.Owner?.RootComponent;
+
         _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
     }
 
@@ -353,6 +374,7 @@ public class WorldViewportPanel : IDisposable
         }
 
         _selectedEntity = entity;
+        _selectedComponent = null;
         _selectedTransformable = entity.RootComponent;
         _gizmoController.SetSelectedTransformable(_selectedTransformable, _renderWorldOverride);
         SelectedEntityChanged?.Invoke(entity);
@@ -398,6 +420,7 @@ public class WorldViewportPanel : IDisposable
             if (_selectedEntity != null)
             {
                 _selectedEntity = null;
+                _selectedComponent = null;
                 _selectedTransformable = null;
                 SelectedEntityChanged?.Invoke(null);
             }
@@ -921,6 +944,7 @@ public class WorldViewportPanel : IDisposable
         if (_selectedEntity?.World != desiredWorld)
         {
             _selectedEntity = null;
+            _selectedComponent = null;
             _selectedTransformable = null;
             SelectedEntityChanged?.Invoke(null);
         }
@@ -968,6 +992,7 @@ public class WorldViewportPanel : IDisposable
         if (ReferenceEquals(_selectedEntity, entity))
         {
             _selectedEntity = null;
+            _selectedComponent = null;
             _selectedTransformable = null;
             SelectedEntityChanged?.Invoke(null);
         }
@@ -981,6 +1006,7 @@ public class WorldViewportPanel : IDisposable
     private void OnWorldEntitiesCleared(object? sender, EventArgs e)
     {
         _selectedEntity = null;
+        _selectedComponent = null;
         _selectedTransformable = null;
         SelectedEntityChanged?.Invoke(null);
 
@@ -993,6 +1019,8 @@ public class WorldViewportPanel : IDisposable
     private void OnGizmoSelectedEntityChanged(Entity? entity)
     {
         _selectedEntity = entity;
+        _selectedComponent = null;
+        _selectedTransformable = entity?.RootComponent;
         SelectedEntityChanged?.Invoke(entity);
     }
 
@@ -1101,7 +1129,7 @@ public class WorldViewportPanel : IDisposable
     {
         _externalVectorOverlayAction?.Invoke(graphicsDevice, view, frame);
 
-        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, null);
+        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
         _lightWireOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
     }
 
@@ -1109,7 +1137,7 @@ public class WorldViewportPanel : IDisposable
     {
         _externalUiOverlayAction?.Invoke(graphicsDevice, view, frame);
 
-        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, null);
+        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
         _lightBillboardOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
     }
 

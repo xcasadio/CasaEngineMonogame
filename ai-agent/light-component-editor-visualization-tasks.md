@@ -279,11 +279,11 @@ Commit attendu :
 
 Commit realise :
 
-- `a renseigner au commit suivant`
+- `6e2a3ca3` `feat(editor): draw selected light wire overlays`
 
 ---
 
-### ⏳ Todo - LIGHTVIS-005 - Router la selection composant vers l'overlay du viewport
+### ✅ Done - LIGHTVIS-005 - Router la selection composant vers l'overlay du viewport
 
 Objectif : garantir que le viewport distingue selection d'entite et selection directe du `LightComponent`.
 
@@ -321,7 +321,7 @@ Commit attendu :
 
 Commit realise :
 
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 
