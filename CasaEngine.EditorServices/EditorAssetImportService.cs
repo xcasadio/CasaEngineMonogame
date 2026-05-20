@@ -2,8 +2,10 @@ using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Rendering.Models;
+using CasaEngine.Framework.Rendering.Geometry;
 using CasaEngine.EditorServices.Tiled;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -142,7 +144,7 @@ public static class EditorAssetImportService
         {
             var column = tileIndex % tiledMap.Tileset.Columns;
             var row = tileIndex / tiledMap.Tileset.Columns;
-            tileSetData.AddTile(new StaticTileData
+            var tileData = new StaticTileData
             {
                 Id = tileIndex,
                 CollisionType = TileCollisionType.None,
@@ -152,7 +154,19 @@ public static class EditorAssetImportService
                     row * tiledMap.TileHeight,
                     tiledMap.TileWidth,
                     tiledMap.TileHeight),
-            });
+            };
+
+            if (tiledMap.Tileset.CollisionByTileId.TryGetValue(tileIndex, out var collision))
+            {
+                tileData.CollisionType = TileCollisionType.Blocked;
+                tileData.CollisionShape = new Collision2d
+                {
+                    CollisionHitType = CollisionHitType.Defense,
+                    Shape = new ShapeRectangle(collision.X, collision.Y, collision.Width, collision.Height),
+                };
+            }
+
+            tileSetData.AddTile(tileData);
         }
 
         return tileSetData;

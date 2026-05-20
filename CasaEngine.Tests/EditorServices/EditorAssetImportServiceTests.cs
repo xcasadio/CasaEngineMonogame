@@ -387,6 +387,11 @@ public class EditorAssetImportServiceTests
                 <?xml version="1.0" encoding="UTF-8"?>
                 <tileset version="1.10" tiledversion="1.10.2" name="tiles" tilewidth="16" tileheight="16" tilecount="4" columns="2">
                  <image source="tiles.png" width="32" height="32"/>
+                 <tile id="2">
+                  <objectgroup>
+                   <object id="1" x="2" y="3" width="10" height="11"/>
+                  </objectgroup>
+                 </tile>
                 </tileset>
                 """);
 
@@ -449,15 +454,68 @@ public class EditorAssetImportServiceTests
 
             var thirdTile = Assert.IsType<JObject>(tiles[2]);
             Assert.Equal(2, thirdTile["id"]!.Value<int>());
+            Assert.Equal("Blocked", (string?)thirdTile["collision_type"]);
             var thirdTileLocation = Assert.IsType<JObject>(thirdTile["location"]);
             Assert.Equal(0, thirdTileLocation["x"]!.Value<int>());
             Assert.Equal(16, thirdTileLocation["y"]!.Value<int>());
             Assert.Equal(16, thirdTileLocation["w"]!.Value<int>());
             Assert.Equal(16, thirdTileLocation["h"]!.Value<int>());
 
+            var collision = Assert.IsType<JObject>(thirdTile["collision"]);
+            Assert.Equal("Defense", (string?)collision["collision_type"]);
+            Assert.Equal("Rectangle", (string?)collision["shape_type"]);
+            Assert.Equal(10f, collision["w"]!.Value<float>());
+            Assert.Equal(11f, collision["h"]!.Value<float>());
+            var collisionLocation = Assert.IsType<JObject>(collision["location"]);
+            Assert.Equal(2f, collisionLocation["x"]!.Value<float>());
+            Assert.Equal(3f, collisionLocation["y"]!.Value<float>());
+
             Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("ImportedLevel.tileMap", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("ImportedLevel.tileset", StringComparison.OrdinalIgnoreCase));
             Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("tiles.texture", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void ImportFile_TiledTmxSupportsEmbeddedTilesetsAndPathsWithSpaces()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string imagePath = Path.Combine(tempDirectory, "tiles with space.png");
+            File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+            string tmxPath = Path.Combine(tempDirectory, "embedded tileset.tmx");
+            File.WriteAllText(tmxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" width="1" height="1" tilewidth="16" tileheight="16" infinite="0">
+                 <tileset firstgid="1" name="embedded" tilewidth="16" tileheight="16" tilecount="1" columns="1">
+                  <image source="tiles with space.png" width="16" height="16"/>
+                 </tileset>
+                 <layer id="1" name="Ground" width="1" height="1">
+                  <data encoding="csv">1</data>
+                 </layer>
+                </map>
+                """);
+
+            bool imported = EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "EmbeddedLevel.tmx"));
+
+            Assert.True(imported);
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel.tileMap")));
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel_Imported", "EmbeddedLevel.tileset")));
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel_Imported", "Textures", "tiles with space.texture")));
         }
         finally
         {

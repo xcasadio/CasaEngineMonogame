@@ -68,6 +68,7 @@ public sealed class TiledMapImporter
             tileWidth,
             tileHeight,
             tilesetReference);
+        result.Warnings.AddRange(tilesetReference.Warnings);
 
         var layerIndex = 0;
         foreach (var layerElement in mapElement.Elements("layer"))
@@ -151,6 +152,9 @@ public sealed class TiledMapImporter
             throw new InvalidDataException("Tiled tileset must define columns/tilecount or image width/height.");
         }
 
+        var warnings = new List<string>();
+        var collisionShapes = ReadTileCollisionShapes(tilesetRoot, warnings);
+
         return new TiledTilesetReference(
             firstGid,
             ReadOptionalString(tilesetRoot, "name", Path.GetFileNameWithoutExtension(imageFilePath)),
@@ -160,7 +164,58 @@ public sealed class TiledMapImporter
             columns,
             tileCount,
             imageWidth,
-            imageHeight);
+            imageHeight,
+            collisionShapes,
+            warnings);
+    }
+
+    private static Dictionary<int, TiledTileCollision> ReadTileCollisionShapes(XElement tilesetRoot, List<string> warnings)
+    {
+        var collisions = new Dictionary<int, TiledTileCollision>();
+
+        foreach (var tileElement in tilesetRoot.Elements("tile"))
+        {
+            var tileId = ReadRequiredInt(tileElement, "id");
+            var objectGroup = tileElement.Element("objectgroup");
+            if (objectGroup == null)
+            {
+                continue;
+            }
+
+            var acceptedCollision = false;
+            foreach (var objectElement in objectGroup.Elements("object"))
+            {
+                if (objectElement.Element("polygon") != null
+                    || objectElement.Element("polyline") != null
+                    || objectElement.Element("ellipse") != null)
+                {
+                    warnings.Add($"Tile {tileId} has a non-rectangle collision object; only rectangle collisions are imported for now.");
+                    continue;
+                }
+
+                var width = ReadOptionalFloat(objectElement, "width", 0f);
+                var height = ReadOptionalFloat(objectElement, "height", 0f);
+                if (width <= 0f || height <= 0f)
+                {
+                    continue;
+                }
+
+                if (acceptedCollision)
+                {
+                    warnings.Add($"Tile {tileId} has multiple collision objects; only the first rectangle is imported for now.");
+                    continue;
+                }
+
+                collisions[tileId] = new TiledTileCollision(
+                    ReadOptionalFloat(objectElement, "x", 0f),
+                    ReadOptionalFloat(objectElement, "y", 0f),
+                    width,
+                    height);
+                acceptedCollision = true;
+            }
+        }
+
+        return collisions;
     }
 
     private static List<int> ReadLayerTiles(
@@ -292,6 +347,22 @@ public sealed class TiledMapImporter
         return result;
     }
 
+    private static float ReadOptionalFloat(XElement element, string attributeName, float defaultValue)
+    {
+        var value = element.Attribute(attributeName)?.Value;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return defaultValue;
+        }
+
+        if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var result))
+        {
+            throw new InvalidDataException($"Tiled attribute '{attributeName}' has invalid float value '{value}'.");
+        }
+
+        return result;
+    }
+
     private static bool ReadOptionalBool(XElement element, string attributeName)
     {
         var value = element.Attribute(attributeName)?.Value;
@@ -339,7 +410,9 @@ public sealed class TiledTilesetReference
         int columns,
         int tileCount,
         int imageWidth,
-        int imageHeight)
+        int imageHeight,
+        Dictionary<int, TiledTileCollision> collisionByTileId,
+        List<string> warnings)
     {
         FirstGid = firstGid;
         Name = name;
@@ -350,6 +423,8 @@ public sealed class TiledTilesetReference
         TileCount = tileCount;
         ImageWidth = imageWidth;
         ImageHeight = imageHeight;
+        CollisionByTileId = collisionByTileId;
+        Warnings = warnings;
     }
 
     public int FirstGid { get; }
@@ -361,6 +436,24 @@ public sealed class TiledTilesetReference
     public int TileCount { get; }
     public int ImageWidth { get; }
     public int ImageHeight { get; }
+    public Dictionary<int, TiledTileCollision> CollisionByTileId { get; }
+    public List<string> Warnings { get; }
+}
+
+public sealed class TiledTileCollision
+{
+    public TiledTileCollision(float x, float y, float width, float height)
+    {
+        X = x;
+        Y = y;
+        Width = width;
+        Height = height;
+    }
+
+    public float X { get; }
+    public float Y { get; }
+    public float Width { get; }
+    public float Height { get; }
 }
 
 public sealed class TiledTileLayer

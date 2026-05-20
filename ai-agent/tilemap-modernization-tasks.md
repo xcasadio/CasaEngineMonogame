@@ -227,7 +227,7 @@ Vérifications :
 - ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~TiledTmx`.
 - ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
-## ⏳ Phase 4 - Import Tiled v2 : fidélité des données
+## 🧪 Phase 4 - Import Tiled v2 : fidélité des données
 
 Priorité : moyenne à haute.
 
@@ -235,16 +235,16 @@ But : couvrir les usages Tiled courants au-delà d'une map simple.
 
 Tâches :
 
-- ⏳ Supporter plusieurs tilesets dans une même map.
-- ⏳ Décider entre deux modèles : étendre `TileMapData` avec plusieurs références tileset, ou générer un atlas/tileset CasaEngine combiné à l'import.
-- ⏳ Supporter les flip flags Tiled dans le modèle runtime : horizontal, vertical, diagonal, rotation dérivée.
-- ⏳ Ajouter une structure de cellule si nécessaire : `TileCell { int TileId; TileFlags Flags; }`, en gardant la compatibilité avec `List<int>`.
+- ⚠️ Supporter plusieurs tilesets dans une même map : bloqué par le modèle runtime mono-tileset/mono-texture actuel.
+- ⚠️ Décider entre deux modèles : étendre `TileMapData` avec plusieurs références tileset, ou générer un atlas/tileset CasaEngine combiné à l'import.
+- ⚠️ Supporter les flip flags Tiled dans le modèle runtime : les flags sont masqués avec warning, le rendu flip reste à modéliser.
+- ⚠️ Ajouter une structure de cellule si nécessaire : `TileCell { int TileId; TileFlags Flags; }`, en gardant la compatibilité avec `List<int>`.
 - ⏳ Importer les animations Tiled (`tile.animation`) vers `AnimatedTileData` ou vers des métadonnées convertibles.
-- ⏳ Importer les collisions Tiled depuis `objectgroup` des tiles vers `TileData.CollisionShape`.
+- ✅ Importer les collisions rectangles Tiled depuis `objectgroup` des tiles vers `TileData.CollisionShape`.
 - ⏳ Importer les object layers Tiled comme données editor : triggers, spawn points, regions, zones de collision.
 - ⏳ Importer les custom properties Tiled de map, layer, tile et object dans un dictionnaire typé ou une extension metadata.
-- ⏳ Supporter tilesets embedded dans `.tmx`, pas seulement `.tsx` externe.
-- ⏳ Supporter les chemins relatifs Windows/Unix et les chemins contenant des espaces.
+- ✅ Supporter tilesets embedded dans `.tmx`, pas seulement `.tsx` externe.
+- ✅ Supporter les chemins relatifs Windows/Unix et les chemins contenant des espaces.
 
 Critères d'acceptation :
 
@@ -252,6 +252,12 @@ Critères d'acceptation :
 - Les collisions dessinées dans Tiled deviennent visibles dans l'overlay/debug collision CasaEngine.
 - Les animations Tiled simples se retrouvent comme animated tiles CasaEngine.
 - Les propriétés personnalisées importantes restent disponibles pour gameplay/editor.
+
+Vérifications :
+
+- ✅ Étendre les tests Tiled pour collisions rectangles de tiles, tilesets embedded et chemins avec espaces.
+- ✅ Lancer `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter FullyQualifiedName~TiledTmx`.
+- ✅ Lancer `dotnet build CasaEngine.MonoGame.sln`.
 
 ## 🧪 Phase 5 - Chunking visuel
 
