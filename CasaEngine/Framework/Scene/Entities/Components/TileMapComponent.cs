@@ -322,7 +322,18 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return TileMapData.GetTileId(layerIndex, x, y);
     }
 
+    public TileCellFlags GetTileFlags(int layerIndex, int x, int y)
+    {
+        EnsureTileMapLoaded();
+        return TileMapData.GetTileFlags(layerIndex, x, y);
+    }
+
     public void SetTile(int layerIndex, int x, int y, int tileId)
+    {
+        SetTile(layerIndex, x, y, tileId, TileCellFlags.None);
+    }
+
+    public void SetTile(int layerIndex, int x, int y, int tileId, TileCellFlags flags)
     {
         EnsureTileMapLoaded();
         EnsureValidTileId(tileId);
@@ -330,20 +341,35 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var tileIndex = TileMapData.GetTileIndex(x, y);
         var layerData = TileMapData.Layers[layerIndex];
         var layerRuntime = Layers[layerIndex];
+        var tileChanged = layerData.tiles[tileIndex] != tileId;
+        var flagsChanged = layerData.GetTileFlags(tileIndex) != flags;
 
-        if (layerData.tiles[tileIndex] == tileId)
+        if (!tileChanged && !flagsChanged)
         {
             return;
         }
 
         layerData.tiles[tileIndex] = tileId;
-        layerData.SetTileFlags(tileIndex, TileCellFlags.None);
-        ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
+        layerData.SetTileFlags(tileIndex, flags);
+
+        if (tileChanged)
+        {
+            ReplaceRuntimeTile(layerRuntime, layerData, layerIndex, x, y, tileIndex);
+            RebuildCollisionChunkForTile(layerIndex, x, y);
+            MarkAffectedAutoTilesDirty(layerIndex, x, y);
+        }
+
         MarkAffectedChunksDirty(layerIndex, x, y);
-        RebuildCollisionChunkForTile(layerIndex, x, y);
-        MarkAffectedAutoTilesDirty(layerIndex, x, y);
 
         IsBoundingBoxDirty = true;
+    }
+
+    public void SetTileFlags(int layerIndex, int x, int y, TileCellFlags flags)
+    {
+        EnsureTileMapLoaded();
+
+        var tileId = TileMapData.GetTileId(layerIndex, x, y);
+        SetTile(layerIndex, x, y, tileId, flags);
     }
 
     public override void Load(JObject element)
