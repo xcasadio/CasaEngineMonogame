@@ -232,11 +232,11 @@ Commit attendu :
 
 Commit realise :
 
-- `a renseigner au commit suivant`
+- `849d2ded` `feat(editor): render light component billboards`
 
 ---
 
-### ⏳ Todo - LIGHTVIS-004 - Dessiner les helpers filaires des lumieres selectionnees
+### ✅ Done - LIGHTVIS-004 - Dessiner les helpers filaires des lumieres selectionnees
 
 Objectif : afficher les volumes et directions des lumieres quand l'entite ou le `LightComponent` est selectionne.
 
@@ -279,7 +279,7 @@ Commit attendu :
 
 Commit realise :
 
-- `-`
+- `a renseigner au commit suivant`
 
 ---
 

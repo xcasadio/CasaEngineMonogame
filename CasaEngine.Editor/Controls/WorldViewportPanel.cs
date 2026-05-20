@@ -132,6 +132,8 @@ public class WorldViewportPanel : IDisposable
     private IEditorVectorCanvas? _vectorCanvas;
     private readonly EditorLightOverlayCollector _lightOverlayCollector = new();
     private EditorLightBillboardOverlayRenderer? _lightBillboardOverlayRenderer;
+    private EditorLightWireOverlayRenderer? _lightWireOverlayRenderer;
+    private Action<GraphicsDevice, RenderView, RenderFrame>? _externalVectorOverlayAction;
     private Action<GraphicsDevice, RenderView, RenderFrame>? _externalUiOverlayAction;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
@@ -1075,10 +1077,17 @@ public class WorldViewportPanel : IDisposable
         _axis ??= CreateAxisComponent();
         _vectorCanvas ??= CreateVectorCanvas();
         _lightBillboardOverlayRenderer ??= new EditorLightBillboardOverlayRenderer(_graphicsDevice);
+        _lightWireOverlayRenderer ??= new EditorLightWireOverlayRenderer(_editorRuntime.Content);
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
         overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
+        if (overlayPipeline.RenderVectorOverlayAction != RenderEditorVectorOverlay)
+        {
+            _externalVectorOverlayAction = overlayPipeline.RenderVectorOverlayAction;
+            overlayPipeline.RenderVectorOverlayAction = RenderEditorVectorOverlay;
+        }
+
         if (overlayPipeline.RenderUIOverlayAction != RenderEditorUiOverlay)
         {
             _externalUiOverlayAction = overlayPipeline.RenderUIOverlayAction;
@@ -1086,6 +1095,14 @@ public class WorldViewportPanel : IDisposable
         }
         
         _renderView.Pipeline = overlayPipeline;
+    }
+
+    private void RenderEditorVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        _externalVectorOverlayAction?.Invoke(graphicsDevice, view, frame);
+
+        var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, null);
+        _lightWireOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
     }
 
     private void RenderEditorUiOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
@@ -1178,6 +1195,8 @@ public class WorldViewportPanel : IDisposable
         DisposeOverlayComponent(_axis);
         _lightBillboardOverlayRenderer?.Dispose();
         _lightBillboardOverlayRenderer = null;
+        _lightWireOverlayRenderer?.Dispose();
+        _lightWireOverlayRenderer = null;
         _vectorCanvas?.Dispose();
         _vectorCanvas = null;
         _grid = null;
