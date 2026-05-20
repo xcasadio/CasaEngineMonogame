@@ -274,7 +274,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(particles): implement rate and burst emission`
 
-- ⏳ **T02.04 — Implementer les formes d'emission V1**
+- ✅ **T02.04 — Implementer les formes d'emission V1**
   Objectif :
   - Ajouter point, circle/disc, box, sphere et cone.
   - Supporter emission volume/surface quand c'est pertinent.
