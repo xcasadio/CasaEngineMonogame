@@ -139,6 +139,9 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationParticleAssetCreated;
     private string? _automationCreatedParticleAssetFullPath;
     private string? _automationCreatedParticleAssetRelativePath;
+    private bool _automationParticleEditAttempted;
+    private bool _automationParticleEdited;
+    private TimeSpan _automationParticleEditedAt;
     private bool _automationMaterialEditAttempted;
     private bool _automationMaterialEdited;
     private TimeSpan _automationMaterialEditedAt;
@@ -392,6 +395,8 @@ public class GameEditor : Game, IObservableUpdate
         _automationParticleAssetCreated = false;
         _automationCreatedParticleAssetFullPath = null;
         _automationCreatedParticleAssetRelativePath = null;
+        _automationParticleEditAttempted = false;
+        _automationParticleEdited = false;
         _automationMaterialEditAttempted = false;
         _automationMaterialEdited = false;
         _automationDiagnosticsCaptured = false;
@@ -1843,6 +1848,12 @@ public class GameEditor : Game, IObservableUpdate
         return inspectorPanel != null;
     }
 
+    private bool TryGetActiveParticleInspectorPanel(out ParticleAssetInspectorPanel inspectorPanel)
+    {
+        inspectorPanel = _activeParticleInspectorPanel!;
+        return inspectorPanel != null;
+    }
+
     private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel? inspectorPanel)
     {
         _activeMaterialInspectorPanel = inspectorPanel;
@@ -3230,6 +3241,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        TryApplyAutomationParticleEdit(totalGameTime);
+        if (!string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey)
+            && !_automationParticleEditAttempted)
+        {
+            return;
+        }
+
         TryApplyAutomationMaterialEdit(totalGameTime);
         if (!string.IsNullOrWhiteSpace(_automationOptions.SetMaterialPropertyKey)
             && !_automationMaterialEditAttempted)
@@ -3246,6 +3264,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
         {
             readyAt = _automationMaterialEditedAt;
+        }
+
+        if (_automationParticleEdited && _automationParticleEditedAt > readyAt)
+        {
+            readyAt = _automationParticleEditedAt;
         }
 
         if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
@@ -3383,6 +3406,50 @@ public class GameEditor : Game, IObservableUpdate
             $"[Automation] Failed to update material property '{_automationOptions.SetMaterialPropertyKey}': {statusMessage}");
     }
 
+    private void TryApplyAutomationParticleEdit(TimeSpan totalGameTime)
+    {
+        if (_automationParticleEditAttempted
+            || string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyValue))
+        {
+            return;
+        }
+
+        if (!TryGetActiveParticleInspectorPanel(out var inspectorPanel))
+        {
+            return;
+        }
+
+        _automationParticleEditAttempted = true;
+        if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string? snapshotError))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Refused to update particle property '{_automationOptions.SetParticlePropertyKey}': {snapshotError}");
+            return;
+        }
+
+        if (inspectorPanel.TryApplyAutomationPropertyOverrideAndSave(
+                _automationOptions.SetParticlePropertyKey,
+                _automationOptions.SetParticlePropertyValue,
+                out string statusMessage))
+        {
+            if (TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, panelId));
+                UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
+            }
+
+            _automationParticleEdited = true;
+            _automationParticleEditedAt = totalGameTime;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Updated particle property '{_automationOptions.SetParticlePropertyKey}'='{_automationOptions.SetParticlePropertyValue}'");
+            return;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+            $"[Automation] Failed to update particle property '{_automationOptions.SetParticlePropertyKey}': {statusMessage}");
+    }
+
     private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string? errorMessage)
     {
         errorMessage = null;
@@ -3390,6 +3457,33 @@ public class GameEditor : Game, IObservableUpdate
         if (inspectorPanel.LoadedMaterialAsset == null || string.IsNullOrWhiteSpace(inspectorPanel.LoadedRelativePath))
         {
             errorMessage = "no loaded material file is associated with the active inspector.";
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, inspectorPanel.LoadedRelativePath);
+        if (_automationEditedFileSnapshots.ContainsKey(fullPath))
+        {
+            return true;
+        }
+
+        if (!File.Exists(fullPath))
+        {
+            errorMessage = $"unable to snapshot '{fullPath}' because the file does not exist.";
+            return false;
+        }
+
+        _automationEditedFileSnapshots.Add(fullPath, File.ReadAllText(fullPath));
+        _automationEditedFilesRestored = false;
+        return true;
+    }
+
+    private bool TrySnapshotAutomationEditableFile(ParticleAssetInspectorPanel inspectorPanel, out string? errorMessage)
+    {
+        errorMessage = null;
+
+        if (inspectorPanel.LoadedParticleAsset == null || string.IsNullOrWhiteSpace(inspectorPanel.LoadedRelativePath))
+        {
+            errorMessage = "no loaded particle file is associated with the active inspector.";
             return false;
         }
 
@@ -3599,6 +3693,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
         builder.AppendLine($"Create particle asset: {_automationOptions.CreateParticleAssetFolder ?? "<none>"}");
+        builder.AppendLine($"Set particle property: {FormatAutomationParticleEdit()}");
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
         builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
@@ -3607,6 +3702,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
         builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
         AppendWorldViewportDiagnostics(builder);
+        AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendAutomationSelectionDiagnostics(builder);
@@ -3682,6 +3778,26 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void AppendParticleInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    {
+        if (!TryGetActiveParticleInspectorPanel(out var inspectorPanel))
+        {
+            return;
+        }
+
+        var state = inspectorPanel.GetAutomationStateSnapshot();
+        if (state.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("Particle inspector state:");
+        for (int index = 0; index < state.Count; index++)
+        {
+            builder.AppendLine($"  - {state[index]}");
+        }
+    }
+
     private void AppendEntityAssetDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
     {
         if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
@@ -3714,6 +3830,17 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return $"{_automationOptions.SetMaterialPropertyKey}={_automationOptions.SetMaterialPropertyValue}";
+    }
+
+    private string FormatAutomationParticleEdit()
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyKey)
+            || string.IsNullOrWhiteSpace(_automationOptions.SetParticlePropertyValue))
+        {
+            return "<none>";
+        }
+
+        return $"{_automationOptions.SetParticlePropertyKey}={_automationOptions.SetParticlePropertyValue}";
     }
 
     private void AppendAutomationSelectionDiagnostics(StringBuilder builder)

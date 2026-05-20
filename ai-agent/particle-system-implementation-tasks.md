@@ -474,7 +474,7 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
   Commit conseille :
   - `feat(editor): open particle assets from content browser`
 
-- ⏳ **T06.02 — Creer `ParticleAssetInspectorPanel` basique**
+- ✅ **T06.02 — Creer `ParticleAssetInspectorPanel` basique**
   Objectif :
   - Afficher nom asset, source, statut dirty.
   - Afficher liste d'emitters et proprietes principales : duration, looping, max particles, rate, shape, lifetime, speed, size, color, texture, blend.

@@ -8,6 +8,8 @@ public sealed class EditorAutomationOptions
     public string? ProjectPath { get; private set; }
     public string? OpenAssetPath { get; private set; }
     public string? CreateParticleAssetFolder { get; private set; }
+    public string? SetParticlePropertyKey { get; private set; }
+    public string? SetParticlePropertyValue { get; private set; }
     public string? SetMaterialPropertyKey { get; private set; }
     public string? SetMaterialPropertyValue { get; private set; }
     public string? EntityName { get; private set; }
@@ -47,6 +49,17 @@ public sealed class EditorAutomationOptions
 
                 case "--create-particle-asset":
                     options.CreateParticleAssetFolder = next;
+                    index++;
+                    break;
+
+                case "--set-particle-property":
+                    int particleSeparatorIndex = next.IndexOf('=');
+                    if (particleSeparatorIndex > 0 && particleSeparatorIndex < next.Length - 1)
+                    {
+                        options.SetParticlePropertyKey = next[..particleSeparatorIndex];
+                        options.SetParticlePropertyValue = next[(particleSeparatorIndex + 1)..];
+                    }
+
                     index++;
                     break;
 
