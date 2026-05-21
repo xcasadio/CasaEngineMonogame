@@ -636,33 +636,9 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     private MGElement CreateColorEditor(Color value, Action<Color> onChanged)
     {
-        Color currentValue = value;
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 4,
-        };
-
-        row.TryAddChild(CreateLabeledIntField("R", value.R, 0, 255, nextValue =>
-        {
-            currentValue = new Color((byte)nextValue, currentValue.G, currentValue.B, currentValue.A);
-            onChanged(currentValue);
-        }));
-        row.TryAddChild(CreateLabeledIntField("G", value.G, 0, 255, nextValue =>
-        {
-            currentValue = new Color(currentValue.R, (byte)nextValue, currentValue.B, currentValue.A);
-            onChanged(currentValue);
-        }));
-        row.TryAddChild(CreateLabeledIntField("B", value.B, 0, 255, nextValue =>
-        {
-            currentValue = new Color(currentValue.R, currentValue.G, (byte)nextValue, currentValue.A);
-            onChanged(currentValue);
-        }));
-        row.TryAddChild(CreateLabeledIntField("A", value.A, 0, 255, nextValue =>
-        {
-            currentValue = new Color(currentValue.R, currentValue.G, currentValue.B, (byte)nextValue);
-            onChanged(currentValue);
-        }));
-        return row;
+        var colorEditor = new ColorEditor(_window, value);
+        colorEditor.ValueChanged += (_, updatedValue) => onChanged(updatedValue);
+        return colorEditor;
     }
 
     private MGElement CreateLabeledFloatField(string label, float value, float min, float max, float step, Action<float> onChanged)
@@ -926,27 +902,15 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
                 currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, value, currentKey.Color);
                 onChanged(currentGradient, true);
             }));
-            row.TryAddChild(CreateLabeledIntField("R", key.Color.R, 0, 255, value =>
+            ColorEditor colorEditor = new(_window, key.Color);
+            colorEditor.ValueChanged += (_, updatedValue) =>
             {
                 ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
-                Color color = new((byte)value, currentKey.Color.G, currentKey.Color.B, currentKey.Color.A);
+                Color color = new(updatedValue.R, updatedValue.G, updatedValue.B, currentKey.Color.A);
                 currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
                 onChanged(currentGradient, false);
-            }));
-            row.TryAddChild(CreateLabeledIntField("G", key.Color.G, 0, 255, value =>
-            {
-                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
-                Color color = new(currentKey.Color.R, (byte)value, currentKey.Color.B, currentKey.Color.A);
-                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
-                onChanged(currentGradient, false);
-            }));
-            row.TryAddChild(CreateLabeledIntField("B", key.Color.B, 0, 255, value =>
-            {
-                ColorGradientKey currentKey = GetColorKeyOrFallback(currentGradient, capturedIndex, key);
-                Color color = new(currentKey.Color.R, currentKey.Color.G, (byte)value, currentKey.Color.A);
-                currentGradient = ReplaceGradientColorKey(currentGradient, capturedIndex, currentKey.Time, color);
-                onChanged(currentGradient, false);
-            }));
+            };
+            row.TryAddChild(colorEditor);
             row.TryAddChild(CreateCompactButton("Remove", () =>
             {
                 currentGradient = RemoveGradientColorKey(currentGradient, capturedIndex);
