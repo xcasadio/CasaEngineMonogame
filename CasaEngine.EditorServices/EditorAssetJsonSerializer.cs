@@ -225,6 +225,10 @@ internal static class EditorAssetJsonSerializer
         tileMapData.MapSize.Save(mapSizeNode);
         node.Add("map_size", mapSizeNode);
         node.Add("tile_set_asset_id", tileMapData.TileSetDataAssetId);
+        if (tileMapData.TileSetDataAssetIds.Count > 1)
+        {
+            node.Add("tile_set_asset_ids", new JArray(tileMapData.TileSetDataAssetIds));
+        }
         SaveCustomProperties(tileMapData.CustomProperties, node);
 
         var layersArray = new JArray();
@@ -300,6 +304,18 @@ internal static class EditorAssetJsonSerializer
         node.Add("z_offset", layer.zOffset);
         SaveCustomProperties(layer.CustomProperties, node);
         node.Add("tiles", new JArray(layer.tiles));
+        if (layer.HasNonDefaultTileSources())
+        {
+            var tileSourcesArray = new JArray();
+            layer.EnsureTileSourceCount();
+            for (var index = 0; index < layer.tileSources.Count; index++)
+            {
+                tileSourcesArray.Add(layer.tileSources[index]);
+            }
+
+            node.Add("tile_sources", tileSourcesArray);
+        }
+
         if (layer.HasTileFlags())
         {
             var flagsArray = new JArray();

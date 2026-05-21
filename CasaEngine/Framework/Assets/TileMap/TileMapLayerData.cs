@@ -7,9 +7,11 @@ namespace CasaEngine.Framework.Assets.TileMap;
 public class TileMapLayerData
 {
     public const int EmptyTileId = -1;
+    public const int DefaultTileSourceIndex = 0;
 
     public string? Name { get; set; }
     public List<int> tiles = new();
+    public List<int> tileSources = new();
     public List<TileCellFlags> tileFlags = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
     public float zOffset;
@@ -20,12 +22,22 @@ public class TileMapLayerData
         zOffset = element["z_offset"].GetSingle();
 
         tiles.Clear();
+        tileSources.Clear();
         tileFlags.Clear();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
 
         foreach (var tileToken in element["tiles"]!)
         {
             tiles.Add(tileToken.Value<int>());
+        }
+
+        var tileSourcesToken = element["tile_sources"];
+        if (tileSourcesToken != null)
+        {
+            foreach (var tileSourceToken in tileSourcesToken)
+            {
+                tileSources.Add(tileSourceToken.Value<int>());
+            }
         }
 
         var tileFlagsToken = element["tile_flags"];
@@ -45,10 +57,23 @@ public class TileMapLayerData
             : TileCellFlags.None;
     }
 
+    public int GetTileSourceIndex(int tileIndex)
+    {
+        return tileIndex >= 0 && tileIndex < tileSources.Count
+            ? tileSources[tileIndex]
+            : DefaultTileSourceIndex;
+    }
+
     public void SetTileFlags(int tileIndex, TileCellFlags flags)
     {
         EnsureTileFlagCount();
         tileFlags[tileIndex] = flags;
+    }
+
+    public void SetTileSourceIndex(int tileIndex, int tileSourceIndex)
+    {
+        EnsureTileSourceCount();
+        tileSources[tileIndex] = tileSourceIndex;
     }
 
     public bool HasTileFlags()
@@ -62,6 +87,32 @@ public class TileMapLayerData
         }
 
         return false;
+    }
+
+    public bool HasNonDefaultTileSources()
+    {
+        for (var index = 0; index < tileSources.Count; index++)
+        {
+            if (tileSources[index] != DefaultTileSourceIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void EnsureTileSourceCount()
+    {
+        while (tileSources.Count < tiles.Count)
+        {
+            tileSources.Add(DefaultTileSourceIndex);
+        }
+
+        if (tileSources.Count > tiles.Count)
+        {
+            tileSources.RemoveRange(tiles.Count, tileSources.Count - tiles.Count);
+        }
     }
 
     public void EnsureTileFlagCount()
@@ -105,6 +156,12 @@ public class TileMapLayerData
         {
             throw new InvalidOperationException(
                 $"TileMap layer {layerIndex} has {tileFlags.Count} tile flags but expected {expectedTileCount} for map size {mapWidth}x{mapHeight}.");
+        }
+
+        if (tileSources.Count != 0 && tileSources.Count != expectedTileCount)
+        {
+            throw new InvalidOperationException(
+                $"TileMap layer {layerIndex} has {tileSources.Count} tile sources but expected {expectedTileCount} for map size {mapWidth}x{mapHeight}.");
         }
     }
 }

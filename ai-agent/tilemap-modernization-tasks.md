@@ -236,7 +236,17 @@ But : couvrir les usages Tiled courants au-delà d'une map simple.
 Tâches :
 
 - ⚠️ Supporter plusieurs tilesets dans une même map : bloqué par le modèle runtime mono-tileset/mono-texture actuel.
-- ⚠️ Décider entre deux modèles : étendre `TileMapData` avec plusieurs références tileset, ou générer un atlas/tileset CasaEngine combiné à l'import.
+- ✅ Décision prise : étendre `TileMapData` avec plusieurs références tileset et une source par cellule ; ne pas aplatir en atlas à l'import.
+- ⏳ Ajouter `TileMapData.TileSetDataAssetIds` en conservant `TileSetDataAssetId` comme compat legacy/shortcut mono-tileset.
+- ⏳ Ajouter un stockage par cellule pour la source tileset, compatible avec les maps existantes sans `tile_sources`.
+- ⏳ Ajouter des helpers centraux `GetTileReference`/`SetTileReference` et validation des indices de source.
+- ⏳ Étendre la sérialisation `.tileMap` pour écrire/lire plusieurs tilesets et `tile_sources` seulement si nécessaire.
+- ⏳ Étendre l'import Tiled pour accepter plusieurs `<tileset>`/`tilesets[]`, créer plusieurs `.tileset` CasaEngine et mapper chaque GID vers `{tilesetSourceIndex, tileIdLocal}`.
+- ⏳ Étendre `TiledMapImportResult` pour retourner l'ensemble des assets `.tileset` créés.
+- ⏳ Charger plusieurs `TileSetData`/textures dans `TileMapComponent` et résoudre la tile runtime à partir de la source par cellule.
+- ⏳ Adapter le rendu chunké statique pour grouper la géométrie par texture/tileset au lieu d'un seul batch global de layer.
+- ⏳ Adapter collisions et mutations (`SetTile`, `RemoveTile`, flags) pour préserver la source tileset par cellule.
+- ⏳ Ajouter des tests de compatibilité : map legacy mono-tileset inchangée, import Tiled multi-tileset, sérialisation multi-tileset, rendu runtime minimal.
 - 🧪 Supporter les flip flags Tiled dans le modèle runtime : `TileCellFlags` optionnels sont importés, horizontal/vertical sont rendus pour les tiles statiques, diagonal reste limité.
 - ✅ Ajouter une structure de flags compatible : `TileMapLayerData.tileFlags` optionnel conserve la compatibilité avec `List<int>`.
 - ✅ Ajouter une API centrale `GetTileFlags`/`SetTileFlags`/`SetTile(..., flags)` qui marque seulement le rendu dirty quand seule l'orientation change.
@@ -255,6 +265,7 @@ Critères d'acceptation :
 - Les collisions dessinées dans Tiled deviennent visibles dans l'overlay/debug collision CasaEngine.
 - Les animations Tiled simples se retrouvent comme animated tiles CasaEngine.
 - Les propriétés personnalisées importantes restent disponibles pour gameplay/editor.
+- Une map Tiled avec plusieurs tilesets génère plusieurs assets `.tileset` CasaEngine et une `TileMapData` qui référence explicitement la bonne source pour chaque cellule.
 
 Vérifications :
 
@@ -462,6 +473,18 @@ Critères d'acceptation :
 - Collisions Tiled : convertir en `Collision2d` existant ou créer un format TileMap collision dédié.
 - Dépendance Tiled : parser minimal interne ou package spécialisé limité à l'import editor.
 - Renderer TileMap : rester dans `SpriteRendererComponent` temporairement ou introduire vite un `TileMapRenderer` séparé.
+
+## ⚠️ Non terminé en attente de choix d'architecture
+
+Les points ci-dessous ne sont pas de simples tâches restantes. Ils demandent un cadrage d'architecture explicite avant de continuer, sinon on risque de figer un mauvais modèle de données ou un mauvais pipeline runtime/editor.
+
+- ✅ Vrai support multi-tileset Tiled : décision prise pour un runtime `TileMapData` multi-tileset/multi-texture avec source explicite par cellule.
+- ⚠️ Flip diagonal/rotations Tiled complets : choisir si le moteur stocke des flags par cellule avec rendu orienté au runtime, ou si l'import normalise les orientations en frames/UV transformées.
+- ⚠️ Animated tiles runtime : choisir entre un rendu par tiles runtime dédiées, une animation UV dans les buffers de chunks, ou un renderer `TileMapRenderer` séparé qui gère les tiles dynamiques.
+- ⚠️ Collisions avancées one-way/slopes/polygones : choisir un modèle de collision TileMap stable, soit aligné sur `Collision2d`, soit via un format dédié orienté physique/runtime.
+- ⚠️ Auto-tiles/Wang/Terrain sets : choisir la règle canonique supportée par CasaEngine avant d'importer ou d'éditer ces données dans l'éditeur.
+- ⚠️ Éditeur TileMap complet : choisir le document model editor, la granularité undo/redo, et si l'édition s'appuie directement sur `TileMapData` ou sur un modèle intermédiaire orienté outil.
+- ⚠️ Streaming et grosses maps : choisir si les TileMaps restent des assets monolithiques, ou passent à un modèle chunké avec chargement/déchargement et dépendances d'assets par chunk.
 
 ## Definition of Done globale
 

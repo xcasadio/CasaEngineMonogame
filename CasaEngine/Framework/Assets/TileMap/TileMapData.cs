@@ -10,7 +10,20 @@ public class TileMapData : ObjectBase
     public const int EmptyTileId = TileMapLayerData.EmptyTileId;
 
     public Size MapSize { get; set; }
-    public Guid TileSetDataAssetId { get; set; } = Guid.Empty;
+    public Guid TileSetDataAssetId
+    {
+        get => TileSetDataAssetIds.Count > 0 ? TileSetDataAssetIds[0] : Guid.Empty;
+        set
+        {
+            TileSetDataAssetIds.Clear();
+            if (value != Guid.Empty)
+            {
+                TileSetDataAssetIds.Add(value);
+            }
+        }
+    }
+
+    public List<Guid> TileSetDataAssetIds { get; } = new();
     public List<TileMapLayerData> Layers { get; } = new();
     public List<TileMapObjectLayerData> ObjectLayers { get; } = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
@@ -35,6 +48,18 @@ public class TileMapData : ObjectBase
         return GetLayer(layerIndex).tiles[GetTileIndex(x, y)];
     }
 
+    public int GetTileSourceIndex(int layerIndex, int x, int y)
+    {
+        return GetLayer(layerIndex).GetTileSourceIndex(GetTileIndex(x, y));
+    }
+
+    public TileMapTileReference GetTileReference(int layerIndex, int x, int y)
+    {
+        var tileIndex = GetTileIndex(x, y);
+        var layer = GetLayer(layerIndex);
+        return new TileMapTileReference(layer.GetTileSourceIndex(tileIndex), layer.tiles[tileIndex]);
+    }
+
     public TileCellFlags GetTileFlags(int layerIndex, int x, int y)
     {
         return GetLayer(layerIndex).GetTileFlags(GetTileIndex(x, y));
@@ -43,6 +68,19 @@ public class TileMapData : ObjectBase
     public void SetTileId(int layerIndex, int x, int y, int tileId)
     {
         GetLayer(layerIndex).tiles[GetTileIndex(x, y)] = tileId;
+    }
+
+    public void SetTileSourceIndex(int layerIndex, int x, int y, int tileSourceIndex)
+    {
+        GetLayer(layerIndex).SetTileSourceIndex(GetTileIndex(x, y), tileSourceIndex);
+    }
+
+    public void SetTileReference(int layerIndex, int x, int y, TileMapTileReference tileReference)
+    {
+        var tileIndex = GetTileIndex(x, y);
+        var layer = GetLayer(layerIndex);
+        layer.tiles[tileIndex] = tileReference.TileId;
+        layer.SetTileSourceIndex(tileIndex, tileReference.TileSetIndex);
     }
 
     public void SetTileFlags(int layerIndex, int x, int y, TileCellFlags flags)
@@ -57,14 +95,38 @@ public class TileMapData : ObjectBase
             throw new InvalidOperationException($"TileMap size must be positive but was {MapSize.Width}x{MapSize.Height}.");
         }
 
-        if (TileSetDataAssetId == Guid.Empty)
+        if (TileSetDataAssetIds.Count == 0)
         {
-            throw new InvalidOperationException("TileMapData requires a valid TileSetDataAssetId.");
+            throw new InvalidOperationException("TileMapData requires at least one valid TileSetData asset reference.");
+        }
+
+        for (var tileSetIndex = 0; tileSetIndex < TileSetDataAssetIds.Count; tileSetIndex++)
+        {
+            if (TileSetDataAssetIds[tileSetIndex] == Guid.Empty)
+            {
+                throw new InvalidOperationException($"TileMapData tileset reference {tileSetIndex} is invalid.");
+            }
         }
 
         for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
         {
-            Layers[layerIndex].ValidateTileCount(MapSize.Width, MapSize.Height, layerIndex);
+            var layer = Layers[layerIndex];
+            layer.ValidateTileCount(MapSize.Width, MapSize.Height, layerIndex);
+
+            if (layer.tileSources.Count == 0)
+            {
+                continue;
+            }
+
+            for (var tileIndex = 0; tileIndex < layer.tiles.Count; tileIndex++)
+            {
+                var tileSourceIndex = layer.tileSources[tileIndex];
+                if (tileSourceIndex < 0 || tileSourceIndex >= TileSetDataAssetIds.Count)
+                {
+                    throw new InvalidOperationException(
+                        $"TileMap layer {layerIndex} references tileset source {tileSourceIndex} at tile index {tileIndex}, but only {TileSetDataAssetIds.Count} tilesets are available.");
+                }
+            }
         }
     }
 
@@ -72,8 +134,24 @@ public class TileMapData : ObjectBase
     {
         base.Load(element);
 
+        TileSetDataAssetIds.Clear();
+        Layers.Clear();
+        ObjectLayers.Clear();
         MapSize = element["map_size"].GetSize();
-        TileSetDataAssetId = element["tile_set_asset_id"].GetGuid();
+
+        var tileSetAssetIdsToken = element["tile_set_asset_ids"];
+        if (tileSetAssetIdsToken != null)
+        {
+            foreach (var tileSetAssetIdToken in tileSetAssetIdsToken)
+            {
+                TileSetDataAssetIds.Add(tileSetAssetIdToken.GetGuid());
+            }
+        }
+        else
+        {
+            TileSetDataAssetId = element["tile_set_asset_id"].GetGuid();
+        }
+
         LoadCustomProperties(element["custom_properties"], CustomProperties);
 
         Layers.AddRange(element.GetElements("layers", jToken =>

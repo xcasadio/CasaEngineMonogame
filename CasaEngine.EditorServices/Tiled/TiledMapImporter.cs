@@ -68,16 +68,16 @@ public sealed class TiledMapImporter
         var tileWidth = ReadRequiredInt(mapElement, "tilewidth");
         var tileHeight = ReadRequiredInt(mapElement, "tileheight");
 
-        var tilesetReference = ReadSingleTileset(sourceFilePath, mapElement, tileWidth, tileHeight);
+        var tilesetReferences = ReadTilesets(sourceFilePath, mapElement, tileWidth, tileHeight);
         var result = new TiledMapImportDocument(
             sourceFilePath,
             mapWidth,
             mapHeight,
             tileWidth,
             tileHeight,
-            tilesetReference);
+            tilesetReferences);
         CopyCustomProperties(ReadCustomProperties(mapElement), result.CustomProperties);
-        result.Warnings.AddRange(tilesetReference.Warnings);
+        AddTilesetWarnings(tilesetReferences, result.Warnings);
 
         var layerIndex = 0;
         foreach (var layerElement in mapElement.Elements("layer"))
@@ -91,9 +91,9 @@ public sealed class TiledMapImporter
 
             var dataElement = layerElement.Element("data")
                 ?? throw new InvalidDataException($"Tiled layer '{ReadOptionalString(layerElement, "name", string.Empty)}' has no data element.");
-            var tiles = ReadLayerTiles(dataElement, mapWidth * mapHeight, tilesetReference, result.Warnings, out var tileFlags);
+            var tiles = ReadLayerTiles(dataElement, mapWidth * mapHeight, tilesetReferences, result.Warnings, out var tileSources, out var tileFlags);
             var layerName = ReadOptionalString(layerElement, "name", $"Layer {layerIndex + 1}");
-            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags, ReadCustomProperties(layerElement)));
+            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileSources, tileFlags, ReadCustomProperties(layerElement)));
             layerIndex++;
         }
 
@@ -132,16 +132,16 @@ public sealed class TiledMapImporter
         var tileWidth = ReadRequiredInt(mapObject, "tilewidth", "map");
         var tileHeight = ReadRequiredInt(mapObject, "tileheight", "map");
 
-        var tilesetReference = ReadSingleTilesetJson(sourceFilePath, mapObject, tileWidth, tileHeight);
+        var tilesetReferences = ReadTilesetsJson(sourceFilePath, mapObject, tileWidth, tileHeight);
         var result = new TiledMapImportDocument(
             sourceFilePath,
             mapWidth,
             mapHeight,
             tileWidth,
             tileHeight,
-            tilesetReference);
+            tilesetReferences);
         CopyCustomProperties(ReadCustomProperties(mapObject), result.CustomProperties);
-        result.Warnings.AddRange(tilesetReference.Warnings);
+        AddTilesetWarnings(tilesetReferences, result.Warnings);
 
         var layers = mapObject["layers"] as JArray
             ?? throw new InvalidDataException("Tiled JSON map requires a 'layers' array.");
@@ -166,9 +166,9 @@ public sealed class TiledMapImporter
                 throw new NotSupportedException($"Tiled layer '{ReadOptionalString(layerObject, "name", string.Empty)}' size {layerWidth}x{layerHeight} does not match map size {mapWidth}x{mapHeight}.");
             }
 
-            var tiles = ReadLayerTilesJson(layerObject, mapWidth * mapHeight, tilesetReference, result.Warnings, out var tileFlags);
+            var tiles = ReadLayerTilesJson(layerObject, mapWidth * mapHeight, tilesetReferences, result.Warnings, out var tileSources, out var tileFlags);
             var layerName = ReadOptionalString(layerObject, "name", $"Layer {layerIndex + 1}");
-            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileFlags, ReadCustomProperties(layerObject)));
+            result.Layers.Add(new TiledTileLayer(layerName, layerIndex * 0.1f, tiles, tileSources, tileFlags, ReadCustomProperties(layerObject)));
             layerIndex++;
         }
 
@@ -196,15 +196,33 @@ public sealed class TiledMapImporter
         return result;
     }
 
-    private static TiledTilesetReference ReadSingleTileset(string mapFilePath, XElement mapElement, int mapTileWidth, int mapTileHeight)
+    private static void AddTilesetWarnings(IReadOnlyList<TiledTilesetReference> tilesetReferences, List<string> warnings)
+    {
+        for (var index = 0; index < tilesetReferences.Count; index++)
+        {
+            warnings.AddRange(tilesetReferences[index].Warnings);
+        }
+    }
+
+    private static List<TiledTilesetReference> ReadTilesets(string mapFilePath, XElement mapElement, int mapTileWidth, int mapTileHeight)
     {
         var tilesetElements = mapElement.Elements("tileset").ToList();
-        if (tilesetElements.Count != 1)
+        if (tilesetElements.Count == 0)
         {
-            throw new NotSupportedException($"Tiled import v1 supports exactly one tileset per map, but found {tilesetElements.Count}.");
+            throw new NotSupportedException("Tiled map must define at least one tileset.");
         }
 
-        var tilesetElement = tilesetElements[0];
+        var tilesets = new List<TiledTilesetReference>(tilesetElements.Count);
+        for (var index = 0; index < tilesetElements.Count; index++)
+        {
+            tilesets.Add(ReadTilesetReference(mapFilePath, tilesetElements[index], mapTileWidth, mapTileHeight));
+        }
+
+        return tilesets;
+    }
+
+    private static TiledTilesetReference ReadTilesetReference(string mapFilePath, XElement tilesetElement, int mapTileWidth, int mapTileHeight)
+    {
         var firstGid = ReadOptionalInt(tilesetElement, "firstgid", 1);
         var sourceAttribute = tilesetElement.Attribute("source")?.Value;
         var tilesetFilePath = mapFilePath;
@@ -271,16 +289,32 @@ public sealed class TiledMapImporter
             warnings);
     }
 
-    private static TiledTilesetReference ReadSingleTilesetJson(string mapFilePath, JObject mapObject, int mapTileWidth, int mapTileHeight)
+    private static List<TiledTilesetReference> ReadTilesetsJson(string mapFilePath, JObject mapObject, int mapTileWidth, int mapTileHeight)
     {
         var tilesetArray = mapObject["tilesets"] as JArray
             ?? throw new InvalidDataException("Tiled JSON map requires a 'tilesets' array.");
-        if (tilesetArray.Count != 1)
+        if (tilesetArray.Count == 0)
         {
-            throw new NotSupportedException($"Tiled import v1 supports exactly one tileset per map, but found {tilesetArray.Count}.");
+            throw new NotSupportedException("Tiled JSON map must define at least one tileset.");
         }
 
-        if (tilesetArray[0] is not JObject tilesetObject)
+        var tilesets = new List<TiledTilesetReference>(tilesetArray.Count);
+        for (var index = 0; index < tilesetArray.Count; index++)
+        {
+            if (tilesetArray[index] is not JObject tilesetObject)
+            {
+                throw new InvalidDataException("Tiled JSON tileset entry must be an object.");
+            }
+
+            tilesets.Add(ReadTilesetReferenceJson(mapFilePath, tilesetObject, mapTileWidth, mapTileHeight));
+        }
+
+        return tilesets;
+    }
+
+    private static TiledTilesetReference ReadTilesetReferenceJson(string mapFilePath, JObject tilesetObject, int mapTileWidth, int mapTileHeight)
+    {
+        if (tilesetObject == null)
         {
             throw new InvalidDataException("Tiled JSON tileset entry must be an object.");
         }
@@ -625,8 +659,9 @@ public sealed class TiledMapImporter
     private static List<int> ReadLayerTiles(
         XElement dataElement,
         int expectedTileCount,
-        TiledTilesetReference tilesetReference,
+        IReadOnlyList<TiledTilesetReference> tilesetReferences,
         List<string> warnings,
+        out List<int> tileSources,
         out List<TileCellFlags> tileFlags)
     {
         var compression = dataElement.Attribute("compression")?.Value;
@@ -637,6 +672,7 @@ public sealed class TiledMapImporter
 
         var encoding = dataElement.Attribute("encoding")?.Value;
         var tiles = new List<int>(expectedTileCount);
+        tileSources = new List<int>(expectedTileCount);
         tileFlags = new List<TileCellFlags>(expectedTileCount);
         var flipWarningAdded = false;
 
@@ -645,7 +681,9 @@ public sealed class TiledMapImporter
             var values = (dataElement.Value ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             foreach (var value in values)
             {
-                tiles.Add(ConvertGid(ParseGid(value), tilesetReference, warnings, ref flipWarningAdded, out var flags));
+                var tileReference = ConvertGid(ParseGid(value), tilesetReferences, warnings, ref flipWarningAdded, out var flags);
+                tiles.Add(tileReference.TileId);
+                tileSources.Add(tileReference.TileSetIndex);
                 tileFlags.Add(flags);
             }
         }
@@ -653,7 +691,9 @@ public sealed class TiledMapImporter
         {
             foreach (var tileElement in dataElement.Elements("tile"))
             {
-                tiles.Add(ConvertGid(ParseGid(ReadRequiredString(tileElement, "gid")), tilesetReference, warnings, ref flipWarningAdded, out var flags));
+                var tileReference = ConvertGid(ParseGid(ReadRequiredString(tileElement, "gid")), tilesetReferences, warnings, ref flipWarningAdded, out var flags);
+                tiles.Add(tileReference.TileId);
+                tileSources.Add(tileReference.TileSetIndex);
                 tileFlags.Add(flags);
             }
         }
@@ -673,8 +713,9 @@ public sealed class TiledMapImporter
     private static List<int> ReadLayerTilesJson(
         JObject layerObject,
         int expectedTileCount,
-        TiledTilesetReference tilesetReference,
+        IReadOnlyList<TiledTilesetReference> tilesetReferences,
         List<string> warnings,
+        out List<int> tileSources,
         out List<TileCellFlags> tileFlags)
     {
         var compression = ReadOptionalString(layerObject, "compression", string.Empty);
@@ -686,6 +727,7 @@ public sealed class TiledMapImporter
         var data = layerObject["data"] as JArray
             ?? throw new NotSupportedException("Tiled JSON layer data must be an array of gids.");
         var tiles = new List<int>(expectedTileCount);
+        tileSources = new List<int>(expectedTileCount);
         tileFlags = new List<TileCellFlags>(expectedTileCount);
         var flipWarningAdded = false;
 
@@ -697,7 +739,9 @@ public sealed class TiledMapImporter
                 throw new InvalidDataException($"Invalid Tiled gid '{gidValue}'.");
             }
 
-            tiles.Add(ConvertGid((uint)gidValue, tilesetReference, warnings, ref flipWarningAdded, out var flags));
+            var tileReference = ConvertGid((uint)gidValue, tilesetReferences, warnings, ref flipWarningAdded, out var flags);
+            tiles.Add(tileReference.TileId);
+            tileSources.Add(tileReference.TileSetIndex);
             tileFlags.Add(flags);
         }
 
@@ -709,14 +753,14 @@ public sealed class TiledMapImporter
         return tiles;
     }
 
-    private static int ConvertGid(uint rawGid, TiledTilesetReference tilesetReference, List<string> warnings, ref bool flipWarningAdded, out TileCellFlags flags)
+    private static TileMapTileReference ConvertGid(uint rawGid, IReadOnlyList<TiledTilesetReference> tilesetReferences, List<string> warnings, ref bool flipWarningAdded, out TileCellFlags flags)
     {
         var cleanedGid = rawGid & TileIdMask;
         flags = GetTileCellFlags(rawGid);
         if (cleanedGid == 0)
         {
             flags = TileCellFlags.None;
-            return TileMapData.EmptyTileId;
+            return TileMapTileReference.Empty;
         }
 
         if (cleanedGid != rawGid && !flipWarningAdded)
@@ -725,14 +769,18 @@ public sealed class TiledMapImporter
             flipWarningAdded = true;
         }
 
-        var firstGid = (uint)tilesetReference.FirstGid;
-        var maxExclusiveGid = firstGid + (uint)tilesetReference.TileCount;
-        if (cleanedGid < firstGid || cleanedGid >= maxExclusiveGid)
+        for (var tilesetIndex = 0; tilesetIndex < tilesetReferences.Count; tilesetIndex++)
         {
-            throw new InvalidDataException($"Tiled gid {cleanedGid} is outside the imported tileset range {firstGid}..{maxExclusiveGid - 1}.");
+            var tilesetReference = tilesetReferences[tilesetIndex];
+            var firstGid = (uint)tilesetReference.FirstGid;
+            var maxExclusiveGid = firstGid + (uint)tilesetReference.TileCount;
+            if (cleanedGid >= firstGid && cleanedGid < maxExclusiveGid)
+            {
+                return new TileMapTileReference(tilesetIndex, (int)(cleanedGid - firstGid));
+            }
         }
 
-        return (int)(cleanedGid - firstGid);
+        throw new InvalidDataException($"Tiled gid {cleanedGid} does not match any imported tileset range.");
     }
 
     private static TileCellFlags GetTileCellFlags(uint rawGid)
@@ -948,14 +996,19 @@ public sealed class TiledMapImportDocument
         int height,
         int tileWidth,
         int tileHeight,
-        TiledTilesetReference tileset)
+        IReadOnlyList<TiledTilesetReference> tilesets)
     {
+        if (tilesets.Count == 0)
+        {
+            throw new ArgumentException("Tiled map import document requires at least one tileset.", nameof(tilesets));
+        }
+
         SourceFilePath = sourceFilePath;
         Width = width;
         Height = height;
         TileWidth = tileWidth;
         TileHeight = tileHeight;
-        Tileset = tileset;
+        Tilesets = new List<TiledTilesetReference>(tilesets);
     }
 
     public string SourceFilePath { get; }
@@ -963,7 +1016,8 @@ public sealed class TiledMapImportDocument
     public int Height { get; }
     public int TileWidth { get; }
     public int TileHeight { get; }
-    public TiledTilesetReference Tileset { get; }
+    public List<TiledTilesetReference> Tilesets { get; }
+    public TiledTilesetReference Tileset => Tilesets[0];
     public List<TiledTileLayer> Layers { get; } = new();
     public List<TiledObjectLayer> ObjectLayers { get; } = new();
     public List<string> Warnings { get; } = new();
@@ -1079,11 +1133,12 @@ public sealed class TiledTileCollision
 
 public sealed class TiledTileLayer
 {
-    public TiledTileLayer(string name, float zOffset, List<int> tiles, List<TileCellFlags> tileFlags, Dictionary<string, string> customProperties)
+    public TiledTileLayer(string name, float zOffset, List<int> tiles, List<int> tileSourceIndices, List<TileCellFlags> tileFlags, Dictionary<string, string> customProperties)
     {
         Name = name;
         ZOffset = zOffset;
         Tiles = tiles;
+        TileSourceIndices = tileSourceIndices;
         TileFlags = tileFlags;
         CustomProperties = customProperties;
     }
@@ -1091,6 +1146,7 @@ public sealed class TiledTileLayer
     public string Name { get; }
     public float ZOffset { get; }
     public List<int> Tiles { get; }
+    public List<int> TileSourceIndices { get; }
     public List<TileCellFlags> TileFlags { get; }
     public Dictionary<string, string> CustomProperties { get; }
 }

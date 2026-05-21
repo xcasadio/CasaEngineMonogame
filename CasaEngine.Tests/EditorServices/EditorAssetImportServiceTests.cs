@@ -564,6 +564,85 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_TiledTmxSupportsMultipleTilesets()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string groundImagePath = Path.Combine(tempDirectory, "ground.png");
+            string decorImagePath = Path.Combine(tempDirectory, "decor.png");
+            File.WriteAllBytes(groundImagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+            File.WriteAllBytes(decorImagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+            string groundTsxPath = Path.Combine(tempDirectory, "ground.tsx");
+            File.WriteAllText(groundTsxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <tileset version="1.10" tiledversion="1.10.2" name="ground" tilewidth="16" tileheight="16" tilecount="2" columns="2">
+                 <image source="ground.png" width="32" height="16"/>
+                </tileset>
+                """);
+
+            string decorTsxPath = Path.Combine(tempDirectory, "decor.tsx");
+            File.WriteAllText(decorTsxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <tileset version="1.10" tiledversion="1.10.2" name="decor" tilewidth="16" tileheight="16" tilecount="2" columns="2">
+                 <image source="decor.png" width="32" height="16"/>
+                </tileset>
+                """);
+
+            string tmxPath = Path.Combine(tempDirectory, "multi.tmx");
+            File.WriteAllText(tmxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="4" height="1" tilewidth="16" tileheight="16" infinite="0">
+                 <tileset firstgid="1" source="ground.tsx"/>
+                 <tileset firstgid="3" source="decor.tsx"/>
+                 <layer id="1" name="Mixed" width="4" height="1">
+                  <data encoding="csv">1,3,4,0</data>
+                 </layer>
+                </map>
+                """);
+
+            bool imported = EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "MultiLevel.tmx"));
+
+            Assert.True(imported);
+            string tileMapPath = Path.Combine(tempDirectory, "MultiLevel.tileMap");
+            string groundTileSetPath = Path.Combine(tempDirectory, "MultiLevel_Imported", "ground.tileset");
+            string decorTileSetPath = Path.Combine(tempDirectory, "MultiLevel_Imported", "decor.tileset");
+
+            Assert.True(File.Exists(tileMapPath));
+            Assert.True(File.Exists(groundTileSetPath));
+            Assert.True(File.Exists(decorTileSetPath));
+
+            var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
+            var tileSetIds = Assert.IsType<JArray>(tileMapDocument["tile_set_asset_ids"]);
+            Assert.Equal(2, tileSetIds.Count);
+            Assert.Equal((string?)tileSetIds[0], (string?)tileMapDocument["tile_set_asset_id"]);
+
+            var layers = Assert.IsType<JArray>(tileMapDocument["layers"]);
+            var mixedLayer = Assert.IsType<JObject>(layers[0]);
+            Assert.Equal(new[] { 0, 0, 1, -1 }, mixedLayer["tiles"]!.Values<int>().ToArray());
+            Assert.Equal(new[] { 0, 1, 1, 0 }, mixedLayer["tile_sources"]!.Values<int>().ToArray());
+
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult!.CreatedAssetFileNames, fileName => fileName.EndsWith("ground.tileset", StringComparison.OrdinalIgnoreCase));
+            Assert.Contains(EditorAssetImportService.LastTiledMapImportResult.CreatedAssetFileNames, fileName => fileName.EndsWith("decor.tileset", StringComparison.OrdinalIgnoreCase));
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
         [Fact]
         public void ImportFile_TiledJsonAuthorsTileMapTilesetAndTextureAssets()
         {
