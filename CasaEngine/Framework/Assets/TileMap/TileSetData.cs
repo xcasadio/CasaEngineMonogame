@@ -27,6 +27,26 @@ public class TileSetData : ObjectBase
         return _tileById.TryGetValue(tileId, out tileData);
     }
 
+    public bool TryGetTileSourceRectangle(int tileId, out Rectangle sourceRectangle)
+    {
+        if (_tileById.TryGetValue(tileId, out var tileData))
+        {
+            switch (tileData)
+            {
+                case StaticTileData staticTileData:
+                    sourceRectangle = staticTileData.Location;
+                    return true;
+
+                case AnimatedTileData animatedTileData:
+                    sourceRectangle = animatedTileData.Location;
+                    return true;
+            }
+        }
+
+        sourceRectangle = Rectangle.Empty;
+        return false;
+    }
+
     public override void Load(JObject element)
     {
         base.Load(element);

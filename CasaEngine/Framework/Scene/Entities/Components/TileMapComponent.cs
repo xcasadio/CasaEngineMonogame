@@ -22,6 +22,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 {
     private List<CollisionObject> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
+    private readonly List<AnimatedTile> _animatedTiles = new();
     private readonly List<AutoTile> _dirtyAutoTiles = new();
     private readonly HashSet<AutoTile> _dirtyAutoTileSet = new();
     private readonly List<TileSetData> _tileSets = new();
@@ -79,6 +80,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         RemoveAllCollisionObjects();
         Layers.Clear();
         _autoTiles.Clear();
+        _animatedTiles.Clear();
         _dirtyAutoTiles.Clear();
         _dirtyAutoTileSet.Clear();
         _collisionObjects.Clear();
@@ -101,7 +103,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         TileMapData.Validate();
-    LoadTileSets();
+        LoadTileSets();
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -124,6 +126,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             RebuildLayerCollisionChunks(layerIndex);
         }
 
+        _hasAnimatedTiles = _animatedTiles.Count > 0;
+
         IsBoundingBoxDirty = true;
 
         if (_needsAutoTileRefresh)
@@ -145,6 +149,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public override void Update(float elapsedTime)
     {
+        if (_animatedTiles.Count > 0)
+        {
+            for (var index = 0; index < _animatedTiles.Count; index++)
+            {
+                _animatedTiles[index].Update(elapsedTime);
+            }
+        }
+
         if (_dirtyAutoTiles.Count > 0)
         {
             for (var index = 0; index < _dirtyAutoTiles.Count; index++)
@@ -534,6 +546,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     tile = new StaticTile(texture, tileData as StaticTileData);
                     break;
 
+                case TileType.Animated:
+                    var animatedTileData = tileData as AnimatedTileData ?? throw new InvalidOperationException($"Tile {tileId} is not a valid animated tile.");
+                    var animatedTile = new AnimatedTile(texture, tileSetData, animatedTileData);
+                    tile = animatedTile;
+                    _animatedTiles.Add(animatedTile);
+                    _hasAnimatedTiles = true;
+                    break;
+
                 default:
                     throw new ArgumentException($"tile type not supported {tileData.Type}");
             }
@@ -639,11 +659,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 _dirtyAutoTiles.Remove(oldAutoTile);
             }
         }
+        else if (layerRuntime.Tiles[tileIndex] is AnimatedTile oldAnimatedTile)
+        {
+            _animatedTiles.Remove(oldAnimatedTile);
+            _hasAnimatedTiles = _animatedTiles.Count > 0;
+        }
 
         RemoveCollisionObject(layerRuntime.CollisionObjects[tileIndex]);
         layerRuntime.CollisionObjects[tileIndex] = null;
 
         layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(layerData, layerIndex, x, y);
+        _hasAnimatedTiles = _animatedTiles.Count > 0;
     }
 
     private void BuildChunks(TileMapLayer layer, int layerIndex)

@@ -391,12 +391,12 @@ Tâches animated tiles :
 - ✅ Remplacer l'ancien pointeur `animation_2d_id` seul par une donnée runtime locale `AnimatedTileFrameData` : `tile_id`, `duration_ms`, et compat legacy `animation_2d_id` optionnelle.
 - ✅ Étendre le chargement/sauvegarde `.tileset` pour sérialiser `animation_frames` sur `AnimatedTileData`.
 - ✅ Étendre l'import Tiled TMX/TMJ pour lire `tile.animation` / `animation.frames[]` et convertir la tile concernée en `AnimatedTileData` avec frames locales du même tileset.
-- ⏳ Finaliser `AnimatedTile.Draw` pour dessiner la frame courante depuis la texture du tileset, en respectant les flags horizontal/vertical déjà supportés.
-- ⏳ Créer une liste runtime `_animatedTiles` ou équivalent dans `TileMapComponent`, alimentée au chargement et lors de `SetTileReference`.
-- ⏳ Mettre à jour uniquement les tiles animées dans `Update`, et demander une conditional update seulement quand il existe des animated tiles ou des auto-tiles dirty.
-- ⏳ Garder les animated tiles hors des buffers statiques : le chunk statique reste valide, `ContainsDynamicTiles` force le sous-passage dynamique uniquement pour les cellules animées/auto.
-- ⏳ Marquer le chunk visuel dirty uniquement quand une mutation transforme une cellule statique en dynamique ou inversement ; le changement de frame ne doit pas reconstruire toute la map.
-- ⏳ Ajouter des tests de data/import/runtime : sérialisation frames, import Tiled animation TMX/TMJ, compteur runtime `_animatedTiles`/`ShouldUpdateWhenConditional`.
+- ✅ Finaliser `AnimatedTile.Draw` pour dessiner la frame courante depuis la texture du tileset, en respectant les flags horizontal/vertical déjà supportés.
+- ✅ Créer une liste runtime `_animatedTiles` ou équivalent dans `TileMapComponent`, alimentée au chargement et lors de `SetTileReference`.
+- ✅ Mettre à jour uniquement les tiles animées dans `Update`, et demander une conditional update seulement quand il existe des animated tiles ou des auto-tiles dirty.
+- ✅ Garder les animated tiles hors des buffers statiques : le chunk statique reste valide, `ContainsDynamicTiles` force le sous-passage dynamique uniquement pour les cellules animées/auto.
+- ✅ Marquer le chunk visuel dirty uniquement quand une mutation transforme une cellule statique en dynamique ou inversement ; le changement de frame ne doit pas reconstruire toute la map.
+- 🧪 Ajouter des tests de data/import/runtime : sérialisation frames, import Tiled animation TMX/TMJ et avancement runtime couverts ; validation visuelle/compteur intégré à faire via sample ou test harness graphique.
 - ⚠️ Reporter ping-pong et temps global/local avancé après le loop Tiled simple ; Tiled encode déjà une boucle par défaut avec durées par frame.
 
 Tâches auto-tiles :
