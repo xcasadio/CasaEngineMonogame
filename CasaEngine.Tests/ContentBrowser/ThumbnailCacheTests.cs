@@ -54,6 +54,45 @@ public sealed class ThumbnailCacheTests : IDisposable
         Assert.Equal(0, cache.EntryCount);
     }
 
+    [Fact]
+    public void GetOrRequest_QueuesParticleThumbnailRender_WhenRendererIsProvided()
+    {
+        using var renderer = new FakeParticleThumbnailRenderer();
+        using var cache = new ThumbnailCache(null, 64, maxEntries: 2, particleThumbnailRenderer: renderer);
+        string path = CreateParticleFile("spark.particle");
+        var item = new ContentItem(path, false);
+
+        ThumbnailCacheResult result = cache.GetOrRequest(item, null);
+
+        Assert.False(result.IsLoaded);
+        Assert.Single(renderer.EnqueuedRequests);
+        Assert.Equal(path, renderer.EnqueuedRequests[0].Path);
+        Assert.Equal(1L, renderer.EnqueuedRequests[0].RequestId);
+        Assert.Equal(1, cache.EntryCount);
+    }
+
+    private sealed class FakeParticleThumbnailRenderer : IParticleThumbnailRenderer
+    {
+        public List<(string Path, long RequestId)> EnqueuedRequests { get; } = new();
+
+        public void Enqueue(string path, long requestId)
+            => EnqueuedRequests.Add((path, requestId));
+
+        public void Update()
+        {
+        }
+
+        public bool TryDequeueCompleted(out ParticleThumbnailRenderResult result)
+        {
+            result = default;
+            return false;
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
     private ContentItem CreateTextureItem(string fileName, Color color)
     {
         var path = Path.Combine(_rootPath, fileName);
@@ -62,6 +101,100 @@ public sealed class ThumbnailCacheTests : IDisposable
         graphics.Clear(color);
         bitmap.Save(path, ImageFormat.Png);
         return new ContentItem(path, false);
+    }
+
+    private string CreateParticleFile(string fileName)
+    {
+        var path = Path.Combine(_rootPath, fileName);
+        File.WriteAllText(path, """
+        {
+            "id": "11111111-1111-1111-1111-111111111111",
+            "name": "TestParticle",
+            "emitters": [
+                {
+                    "name": "Emitter",
+                    "enabled": true,
+                    "duration": 1.0,
+                    "looping": true,
+                    "start_delay": 0.0,
+                    "max_particles": 16,
+                    "emission": {
+                        "rate_over_time": 12.0,
+                        "bursts": []
+                    },
+                    "shape": {
+                        "shape_type": "Sphere"
+                    },
+                    "initial": {
+                        "lifetime": {
+                            "min": 0.5,
+                            "max": 1.0
+                        },
+                        "speed": {
+                            "min": 0.1,
+                            "max": 0.3
+                        },
+                        "size": {
+                            "min": { "x": 0.1, "y": 0.1 },
+                            "max": { "x": 0.2, "y": 0.2 }
+                        },
+                        "start_color": {
+                            "color_keys": [
+                                {
+                                    "time": 0.0,
+                                    "color": {
+                                        "r": 32,
+                                        "g": 160,
+                                        "b": 255,
+                                        "a": 255
+                                    }
+                                }
+                            ],
+                            "alpha_keys": [
+                                {
+                                    "time": 0.0,
+                                    "alpha": 1.0
+                                }
+                            ]
+                        }
+                    },
+                    "simulation": {
+                        "color_over_lifetime": {
+                            "color_keys": [
+                                {
+                                    "time": 0.0,
+                                    "color": {
+                                        "r": 255,
+                                        "g": 255,
+                                        "b": 255,
+                                        "a": 255
+                                    }
+                                }
+                            ],
+                            "alpha_keys": [
+                                {
+                                    "time": 0.0,
+                                    "alpha": 1.0
+                                }
+                            ]
+                        }
+                    },
+                    "renderer": {
+                        "render_mode": "Billboard",
+                        "texture_asset_id": "00000000-0000-0000-0000-000000000000",
+                        "blend_mode": "Alpha",
+                        "sort_mode": "Distance",
+                        "depth_test": true,
+                        "depth_write": false,
+                        "render_queue": 3000,
+                        "layer": 0,
+                        "always_visible": false
+                    }
+                }
+            ]
+        }
+        """);
+        return path;
     }
 
     public void Dispose()

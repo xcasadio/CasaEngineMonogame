@@ -164,7 +164,7 @@
       },
       "renderer": {
         "render_mode": "Billboard",
-        "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+        "texture_asset_id": "2af8c1e7-8d4e-4a87-b146-8b84d888fff2",
         "blend_mode": "Additive",
         "sort_mode": "Distance",
         "depth_test": true,

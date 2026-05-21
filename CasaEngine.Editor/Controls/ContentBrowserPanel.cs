@@ -9,6 +9,7 @@ using CasaEngine.Editor.ContentBrowser;
 using CasaEngine.Editor.ContentBrowser.Controls;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.ContentBrowser.Services;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.ContentBrowser.Views;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
@@ -195,11 +196,21 @@ public class ContentBrowserPanel
 
 
     public ContentBrowserPanel(MGWindow window)
-        : this(window, null)
+        : this(window, null, null)
     {
     }
 
     public ContentBrowserPanel(MGWindow window, ContentBrowserConfig? config)
+        : this(window, config, null)
+    {
+    }
+
+    internal ContentBrowserPanel(MGWindow window, HostedEditorGameAdapter editorRuntime)
+        : this(window, null, editorRuntime)
+    {
+    }
+
+    internal ContentBrowserPanel(MGWindow window, ContentBrowserConfig? config, HostedEditorGameAdapter? editorRuntime)
     {
         _window = window;
         Config = config ?? new ContentBrowserConfig();
@@ -208,7 +219,13 @@ public class ContentBrowserPanel
             throw new InvalidOperationException($"{nameof(ContentBrowserPanel)} requires the CasaEngine MGUI backend runtime.");
         }
 
-        _thumbnailCache = new ThumbnailCache(runtime.GraphicsDevice, Config.ThumbnailSize);
+        _thumbnailCache = new ThumbnailCache(
+            runtime.GraphicsDevice,
+            Config.ThumbnailSize,
+            500,
+            particleThumbnailRenderer: editorRuntime != null
+                ? new ParticleSceneThumbnailRenderer(runtime.GraphicsDevice, Config.ThumbnailSize, editorRuntime)
+                : null);
         _thumbnailCache.ThumbnailReady += OnThumbnailReady;
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);

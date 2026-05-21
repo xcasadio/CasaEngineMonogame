@@ -557,7 +557,8 @@ Objectif de ce fichier : transformer la specification fonctionnelle en plan d'ex
 
 - ✅ **T07.03 — Ajouter thumbnails et presets**
   Objectif :
-  - Generer thumbnail offscreen ou placeholder stable pour assets `.particle`.
+  - Generer le thumbnail `.particle` a partir d'un vrai rendu offscreen de la scene preview runtime.
+  - Autoriser seulement un placeholder temporaire pendant le chargement ; ne jamais remplacer l'image finale par une icone synthétique dediee a l'asset.
   - Ajouter presets d'effets et presets de courbes/gradients.
   Validation :
   - Build solution.

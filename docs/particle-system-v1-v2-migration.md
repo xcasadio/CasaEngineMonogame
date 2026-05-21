@@ -54,7 +54,7 @@ Editeur:
 - preview avec lecture, pause, stop, restart, loop et speed
 - courbes et gradients editables avec presets
 - creation de presets d'effets fire, smoke et spark
-- thumbnails Content Browser stables pour `.particle`
+- thumbnails Content Browser stables pour `.particle`, generes par un vrai rendu de scene preview et non par une icone inventee
 - drag/drop sur entites pour creer ou configurer un `ParticleSystemComponent`
 - hot reload d'assets particules
 - undo/redo des edits inspector

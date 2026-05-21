@@ -60,26 +60,8 @@
               "time": 0.0,
               "color": {
                 "r": 255,
-                "g": 242,
-                "b": 156,
-                "a": 255
-              }
-            },
-            {
-              "time": 0.6,
-              "color": {
-                "r": 255,
-                "g": 114,
-                "b": 36,
-                "a": 255
-              }
-            },
-            {
-              "time": 1.0,
-              "color": {
-                "r": 110,
-                "g": 34,
-                "b": 20,
+                "g": 236,
+                "b": 162,
                 "a": 255
               }
             }
@@ -159,6 +141,33 @@
                 "b": 255,
                 "a": 255
               }
+            },
+            {
+              "time": 0.38,
+              "color": {
+                "r": 255,
+                "g": 165,
+                "b": 96,
+                "a": 255
+              }
+            },
+            {
+              "time": 0.72,
+              "color": {
+                "r": 214,
+                "g": 94,
+                "b": 32,
+                "a": 255
+              }
+            },
+            {
+              "time": 1.0,
+              "color": {
+                "r": 96,
+                "g": 32,
+                "b": 18,
+                "a": 255
+              }
             }
           ],
           "alpha_keys": [
@@ -175,7 +184,7 @@
       },
       "renderer": {
         "render_mode": "Billboard",
-        "texture_asset_id": "31fcb4de-292f-4d40-ba17-89c8f57d9131",
+        "texture_asset_id": "2af8c1e7-8d4e-4a87-b146-8b84d888fff2",
         "blend_mode": "Additive",
         "sort_mode": "Distance",
         "depth_test": true,

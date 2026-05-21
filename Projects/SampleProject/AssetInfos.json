@@ -5473,6 +5473,18 @@
       "asset_type": "texture"
     },
     {
+      "id": "4668ca19-9ff1-4d91-9b4c-64522888d3f1",
+      "name": "soft_particle",
+      "file_name": "Textures\\soft_particle.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "2af8c1e7-8d4e-4a87-b146-8b84d888fff2",
+      "name": "soft_particle",
+      "file_name": "Textures\\soft_particle.texture",
+      "asset_type": "texture"
+    },
+    {
       "id": "4cbd68f9-ad8e-4f5f-9ad7-8a0c85a1da61",
       "name": "SmokePuff_Minimal",
       "file_name": "Particles\\SmokePuff_Minimal.particle",

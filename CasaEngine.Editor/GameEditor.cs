@@ -791,7 +791,7 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (_contentBrowserPanel == null)
         {
-            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow);
+            _contentBrowserPanel = new ContentBrowserPanel(_mainWindow, _editorRuntime);
             _contentBrowserPanel.FileOpened += OnContentBrowserFileOpened;
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Effect", CreateParticleAssetInFolder);
             _contentBrowserPanel.RegisterContextMenuExtension(ContentItemType.Folder, "Create Particle Preset - Fire Loop", item => CreateParticleAssetInFolder(item, ParticleEffectPresetKind.FireLoop));
