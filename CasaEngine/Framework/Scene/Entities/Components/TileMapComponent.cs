@@ -24,6 +24,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private readonly List<AutoTile> _autoTiles = new();
     private readonly List<AutoTile> _dirtyAutoTiles = new();
     private readonly HashSet<AutoTile> _dirtyAutoTileSet = new();
+    private readonly List<TileSetData> _tileSets = new();
+    private readonly List<Texture2D> _tileSetTextures = new();
     private List<TileMapLayer> Layers { get; } = new();
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
@@ -80,6 +82,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _dirtyAutoTiles.Clear();
         _dirtyAutoTileSet.Clear();
         _collisionObjects.Clear();
+        _tileSets.Clear();
+        _tileSetTextures.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
         _physicsWorldContext = Owner.World.PhysicsWorldContext;
@@ -97,12 +101,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         TileMapData.Validate();
-
-        TileSetData = Owner.World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetId);
-
-        var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
-        texture.Load(Owner.World.Game.AssetContentManager);
-        _tileSetTexture = texture.Resource;
+    LoadTileSets();
 
         for (var layerIndex = 0; layerIndex < TileMapData.Layers.Count; layerIndex++)
         {
@@ -116,7 +115,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             {
                 for (var x = 0; x < mapWidth; x++)
                 {
-                    tileMapLayer.Tiles.Add(CreateRuntimeTile(texture.Resource, tileMapLayerData, layerIndex, x, y));
+                    tileMapLayer.Tiles.Add(CreateRuntimeTile(tileMapLayerData, layerIndex, x, y));
                     tileMapLayer.CollisionObjects.Add(null);
                 }
             }
@@ -295,7 +294,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                             continue;
                         }
 
-                        if (staticBatchDrawn && IsStaticTileId(layer.TileMapLayerData.tiles[tileIndex]))
+                        if (staticBatchDrawn && IsStaticTile(layer.TileMapLayerData, tileIndex))
                         {
                             continue;
                         }
@@ -313,13 +312,19 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public void RemoveTile(int layer, int x, int y)
     {
-        SetTile(layer, x, y, TileMapData.EmptyTileId);
+        SetTileReference(layer, x, y, TileMapTileReference.Empty);
     }
 
     public int GetTileId(int layerIndex, int x, int y)
     {
         EnsureTileMapLoaded();
         return TileMapData.GetTileId(layerIndex, x, y);
+    }
+
+    public TileMapTileReference GetTileReference(int layerIndex, int x, int y)
+    {
+        EnsureTileMapLoaded();
+        return TileMapData.GetTileReference(layerIndex, x, y);
     }
 
     public TileCellFlags GetTileFlags(int layerIndex, int x, int y)
@@ -336,12 +341,37 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public void SetTile(int layerIndex, int x, int y, int tileId, TileCellFlags flags)
     {
         EnsureTileMapLoaded();
-        EnsureValidTileId(tileId);
+
+        var tileIndex = TileMapData.GetTileIndex(x, y);
+        var layerData = TileMapData.Layers[layerIndex];
+        var tileSourceIndex = tileId == TileMapData.EmptyTileId
+            ? TileMapLayerData.DefaultTileSourceIndex
+            : layerData.GetTileSourceIndex(tileIndex);
+
+        SetTileReference(layerIndex, x, y, new TileMapTileReference(tileSourceIndex, tileId), flags);
+    }
+
+    public void SetTileReference(int layerIndex, int x, int y, TileMapTileReference tileReference)
+    {
+        SetTileReference(layerIndex, x, y, tileReference, TileCellFlags.None);
+    }
+
+    public void SetTileReference(int layerIndex, int x, int y, TileMapTileReference tileReference, TileCellFlags flags)
+    {
+        EnsureTileMapLoaded();
+        if (tileReference.IsEmpty)
+        {
+            tileReference = TileMapTileReference.Empty;
+        }
+
+        EnsureValidTileReference(tileReference);
 
         var tileIndex = TileMapData.GetTileIndex(x, y);
         var layerData = TileMapData.Layers[layerIndex];
         var layerRuntime = Layers[layerIndex];
-        var tileChanged = layerData.tiles[tileIndex] != tileId;
+        var previousTileReference = new TileMapTileReference(layerData.GetTileSourceIndex(tileIndex), layerData.tiles[tileIndex]);
+        var tileChanged = previousTileReference.TileId != tileReference.TileId
+            || previousTileReference.TileSetIndex != tileReference.TileSetIndex;
         var flagsChanged = layerData.GetTileFlags(tileIndex) != flags;
 
         if (!tileChanged && !flagsChanged)
@@ -349,7 +379,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return;
         }
 
-        layerData.tiles[tileIndex] = tileId;
+        layerData.tiles[tileIndex] = tileReference.TileId;
+        if (tileReference.TileSetIndex != TileMapLayerData.DefaultTileSourceIndex || layerData.tileSources.Count > 0)
+        {
+            layerData.SetTileSourceIndex(tileIndex, tileReference.TileSetIndex);
+        }
+
         layerData.SetTileFlags(tileIndex, flags);
 
         if (tileChanged)
@@ -368,8 +403,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     {
         EnsureTileMapLoaded();
 
-        var tileId = TileMapData.GetTileId(layerIndex, x, y);
-        SetTile(layerIndex, x, y, tileId, flags);
+        var tileReference = TileMapData.GetTileReference(layerIndex, x, y);
+        SetTileReference(layerIndex, x, y, tileReference, flags);
     }
 
     public override void Load(JObject element)
@@ -392,42 +427,104 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             throw new InvalidOperationException("TileMapData must be loaded before accessing tile data.");
         }
 
-        if (TileSetData == null)
+        if (TileSetData == null || _tileSets.Count == 0 || _tileSetTextures.Count == 0)
         {
             throw new InvalidOperationException("TileSetData must be loaded before accessing tile data.");
         }
     }
 
-    private void EnsureValidTileId(int tileId)
+    private void EnsureValidTileReference(TileMapTileReference tileReference)
     {
-        if (tileId == TileMapData.EmptyTileId)
+        if (tileReference.IsEmpty)
         {
             return;
         }
 
-        if (!TileSetData.IsKnownTileId(tileId))
+        if (tileReference.TileSetIndex < 0 || tileReference.TileSetIndex >= _tileSets.Count)
         {
-            throw new ArgumentException($"Unknown tile id '{tileId}'.", nameof(tileId));
+            throw new ArgumentException($"Unknown tileset source index '{tileReference.TileSetIndex}'.", nameof(tileReference));
+        }
+
+        if (!_tileSets[tileReference.TileSetIndex].IsKnownTileId(tileReference.TileId))
+        {
+            throw new ArgumentException($"Unknown tile id '{tileReference.TileId}' for tileset source '{tileReference.TileSetIndex}'.", nameof(tileReference));
         }
     }
 
-    private Tile CreateRuntimeTile(Texture2D texture, TileMapLayerData tileMapLayerData, int layerIndex, int x, int y)
+    private void LoadTileSets()
     {
-        var tileId = tileMapLayerData.tiles[TileMapData.GetTileIndex(x, y)];
+        _tileSets.Clear();
+        _tileSetTextures.Clear();
+        _tileSetTexture = null;
+
+        for (var tileSetIndex = 0; tileSetIndex < TileMapData.TileSetDataAssetIds.Count; tileSetIndex++)
+        {
+            var tileSetData = Owner.World.Game.AssetContentManager.Load<TileSetData>(TileMapData.TileSetDataAssetIds[tileSetIndex]);
+            if (tileSetIndex == 0)
+            {
+                TileSetData = tileSetData;
+            }
+            else if (tileSetData.TileSize.Width != TileSetData.TileSize.Width || tileSetData.TileSize.Height != TileSetData.TileSize.Height)
+            {
+                throw new NotSupportedException("TileMap runtime requires every tileset used by a map to have the same tile size.");
+            }
+
+            var texture = Owner.World.Game.AssetContentManager.Load<Texture>(tileSetData.SpriteSheetAssetId);
+            texture.Load(Owner.World.Game.AssetContentManager);
+
+            _tileSets.Add(tileSetData);
+            _tileSetTextures.Add(texture.Resource);
+        }
+
+        if (_tileSets.Count == 0)
+        {
+            throw new InvalidOperationException("TileMapData must reference at least one TileSetData asset.");
+        }
+
+        _tileSetTexture = _tileSetTextures[0];
+    }
+
+    private bool TryGetTileData(TileMapLayerData layerData, int tileIndex, out TileData? tileData)
+    {
+        var tileId = layerData.tiles[tileIndex];
+        if (tileId == TileMapData.EmptyTileId)
+        {
+            tileData = null;
+            return false;
+        }
+
+        return TryGetTileData(layerData.GetTileSourceIndex(tileIndex), tileId, out tileData);
+    }
+
+    private bool TryGetTileData(int tileSourceIndex, int tileId, out TileData? tileData)
+    {
+        tileData = null;
+        return tileSourceIndex >= 0
+            && tileSourceIndex < _tileSets.Count
+            && _tileSets[tileSourceIndex].TryGetTileData(tileId, out tileData);
+    }
+
+    private Tile CreateRuntimeTile(TileMapLayerData tileMapLayerData, int layerIndex, int x, int y)
+    {
+        var tileIndex = TileMapData.GetTileIndex(x, y);
+        var tileId = tileMapLayerData.tiles[tileIndex];
         Tile tile;
 
         if (tileId == TileMapData.EmptyTileId)
         {
             tile = new EmptyTile();
         }
-        else if (TileSetData.TryGetTileData(tileId, out var tileData) && tileData != null)
+        else if (TryGetTileData(tileMapLayerData, tileIndex, out var tileData) && tileData != null)
         {
+            var tileSourceIndex = tileMapLayerData.GetTileSourceIndex(tileIndex);
+            var tileSetData = _tileSets[tileSourceIndex];
+            var texture = _tileSetTextures[tileSourceIndex];
             switch (tileData.Type)
             {
                 case TileType.Auto:
                     var autoTileData = tileData as AutoTileData ?? throw new InvalidOperationException($"Tile {tileId} is not a valid auto tile.");
                     var autoTile = new AutoTile(texture, autoTileData);
-                    autoTile.SetTileInfo(TileSetData.TileSize, TileMapData.MapSize, tileMapLayerData, x, y);
+                    autoTile.SetTileInfo(tileSetData.TileSize, TileMapData.MapSize, tileMapLayerData, tileSourceIndex, x, y);
                     tile = autoTile;
                     _autoTiles.Add(autoTile);
                     QueueAutoTileRefresh(autoTile);
@@ -443,7 +540,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
         else
         {
-            throw new InvalidOperationException($"Unknown tile id '{tileId}' in layer {layerIndex} at ({x}, {y}).");
+            var tileSourceIndex = tileMapLayerData.GetTileSourceIndex(tileIndex);
+            throw new InvalidOperationException($"Unknown tile id '{tileId}' for tileset source '{tileSourceIndex}' in layer {layerIndex} at ({x}, {y}).");
         }
 
         tile.Initialize(Owner.World.Game);
@@ -545,10 +643,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         RemoveCollisionObject(layerRuntime.CollisionObjects[tileIndex]);
         layerRuntime.CollisionObjects[tileIndex] = null;
 
-        var texture = Owner.World.Game.AssetContentManager.Load<Texture>(TileSetData.SpriteSheetAssetId);
-        texture.Load(Owner.World.Game.AssetContentManager);
-
-        layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(texture.Resource, layerData, layerIndex, x, y);
+        layerRuntime.Tiles[tileIndex] = CreateRuntimeTile(layerData, layerIndex, x, y);
     }
 
     private void BuildChunks(TileMapLayer layer, int layerIndex)
@@ -715,7 +810,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     continue;
                 }
 
-                if (TileSetData.TryGetTileData(tileId, out var tileData) && tileData?.CollisionType == collisionType)
+                if (TryGetTileData(layer.TileMapLayerData, rowOffset + mapX, out var tileData) && tileData?.CollisionType == collisionType)
                 {
                     if (tileData.CollisionShape?.Shape is ShapeRectangle rectangle)
                     {
@@ -747,7 +842,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, Vector3 translation, Vector2 scale, float worldZ)
     {
         var currentFrame = Owner.World.CurrentRenderFrame;
-        if (!currentFrame.HasValue || _spriteRendererComponent == null || _tileSetTexture == null)
+        if (!currentFrame.HasValue || _spriteRendererComponent == null || _tileSetTextures.Count == 0)
         {
             return false;
         }
@@ -768,30 +863,64 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             RebuildStaticChunkBuffer(layer, chunk, graphicsDevice);
         }
 
-        if (chunk.VertexBuffer == null || chunk.IndexBuffer == null)
+        for (var batchIndex = 0; batchIndex < chunk.StaticBatches.Count; batchIndex++)
         {
-            return false;
+            var staticBatch = chunk.StaticBatches[batchIndex];
+            if (!staticBatch.HasGeometry)
+            {
+                continue;
+            }
+
+            if (staticBatch.TileSetIndex < 0
+                || staticBatch.TileSetIndex >= _tileSetTextures.Count
+                || staticBatch.VertexBuffer == null
+                || staticBatch.IndexBuffer == null)
+            {
+                return false;
+            }
         }
 
         var world = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
-        if (!_spriteRendererComponent.DrawStaticBatch(_tileSetTexture, chunk.VertexBuffer, chunk.IndexBuffer, chunk.PrimitiveCount, in world, currentFrame.Value))
+        var drawnBatchCount = 0;
+        var drawnTileCount = 0;
+        for (var batchIndex = 0; batchIndex < chunk.StaticBatches.Count; batchIndex++)
         {
-            return false;
+            var staticBatch = chunk.StaticBatches[batchIndex];
+            if (!staticBatch.HasGeometry)
+            {
+                continue;
+            }
+
+            if (!_spriteRendererComponent.DrawStaticBatch(
+                    _tileSetTextures[staticBatch.TileSetIndex],
+                    staticBatch.VertexBuffer!,
+                    staticBatch.IndexBuffer!,
+                    staticBatch.PrimitiveCount,
+                    in world,
+                    currentFrame.Value))
+            {
+                return false;
+            }
+
+            drawnBatchCount++;
+            drawnTileCount += staticBatch.StaticTileCount;
         }
 
-        LastStaticBatchCount++;
-        LastStaticBatchTileCount += chunk.StaticTileCount;
-        LastDrawnTileCount += chunk.StaticTileCount;
-        return true;
+        LastStaticBatchCount += drawnBatchCount;
+        LastStaticBatchTileCount += drawnTileCount;
+        LastDrawnTileCount += drawnTileCount;
+        return drawnBatchCount > 0;
     }
 
     private void RebuildStaticChunkBuffer(TileMapLayer layer, TileMapChunk chunk, GraphicsDevice graphicsDevice)
     {
-        var maxTileCount = chunk.TileBounds.Width * chunk.TileBounds.Height;
-        var vertices = chunk.EnsureVertexCapacity(maxTileCount * 4);
-        var indices = chunk.EnsureIndexCapacity(maxTileCount * 6);
-        var vertexCount = 0;
-        var indexCount = 0;
+        for (var tileSetIndex = 0; tileSetIndex < _tileSets.Count; tileSetIndex++)
+        {
+            chunk.GetOrCreateStaticBatch(tileSetIndex).Reset(tileSetIndex);
+        }
+
+        chunk.TrimStaticBatchCount(_tileSets.Count);
+
         var staticTileCount = 0;
         var containsDynamicTiles = false;
 
@@ -807,38 +936,50 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                     continue;
                 }
 
-                if (!TileSetData.TryGetTileData(tileId, out var tileData) || tileData is not StaticTileData staticTileData)
+                var tileSourceIndex = layer.TileMapLayerData.GetTileSourceIndex(rowOffset + x);
+                if (!TryGetTileData(tileSourceIndex, tileId, out var tileData) || tileData is not StaticTileData staticTileData)
                 {
                     containsDynamicTiles = true;
                     continue;
                 }
 
-                AddStaticTileQuad(vertices, indices, ref vertexCount, ref indexCount, x, y, staticTileData.Location, layer.TileMapLayerData.GetTileFlags(rowOffset + x));
+                AddStaticTileQuad(
+                    chunk.GetOrCreateStaticBatch(tileSourceIndex),
+                    _tileSets[tileSourceIndex].TileSize,
+                    _tileSetTextures[tileSourceIndex],
+                    x,
+                    y,
+                    staticTileData.Location,
+                    layer.TileMapLayerData.GetTileFlags(rowOffset + x));
                 staticTileCount++;
             }
         }
 
-        chunk.SetStaticGeometryCounts(vertexCount, indexCount, staticTileCount, containsDynamicTiles);
+        chunk.SetStaticGeometryCounts(staticTileCount, containsDynamicTiles);
         chunk.UploadStaticGeometry(graphicsDevice);
         chunk.MarkVisualClean();
     }
 
-    private void AddStaticTileQuad(
-        VertexPositionTexture[] vertices,
-        short[] indices,
-        ref int vertexCount,
-        ref int indexCount,
+    private static void AddStaticTileQuad(
+        TileMapStaticChunkBatch staticBatch,
+        CasaEngine.Core.Math.Size tileSize,
+        Texture2D texture,
         int tileX,
         int tileY,
         Rectangle sourceRectangle,
         TileCellFlags flags)
     {
-        var textureWidth = _tileSetTexture?.Width ?? 1;
-        var textureHeight = _tileSetTexture?.Height ?? 1;
-        var left = tileX * TileSetData.TileSize.Width;
-        var right = left + TileSetData.TileSize.Width;
-        var top = -tileY * TileSetData.TileSize.Height;
-        var bottom = top - TileSetData.TileSize.Height;
+        var nextStaticTileCount = staticBatch.StaticTileCount + 1;
+        var vertices = staticBatch.EnsureVertexCapacity(nextStaticTileCount * 4);
+        var indices = staticBatch.EnsureIndexCapacity(nextStaticTileCount * 6);
+        var vertexCount = staticBatch.VertexCount;
+        var indexCount = staticBatch.IndexCount;
+        var textureWidth = texture.Width;
+        var textureHeight = texture.Height;
+        var left = tileX * tileSize.Width;
+        var right = left + tileSize.Width;
+        var top = -tileY * tileSize.Height;
+        var bottom = top - tileSize.Height;
 
         var uvLeft = sourceRectangle.Left / (float)textureWidth;
         var uvRight = sourceRectangle.Right / (float)textureWidth;
@@ -867,11 +1008,13 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         indices[indexCount++] = (short)baseVertex;
         indices[indexCount++] = (short)(baseVertex + 2);
         indices[indexCount++] = (short)(baseVertex + 3);
+
+        staticBatch.SetStaticGeometryCounts(vertexCount, indexCount, nextStaticTileCount);
     }
 
-    private bool IsStaticTileId(int tileId)
+    private bool IsStaticTile(TileMapLayerData layerData, int tileIndex)
     {
-        return TileSetData.TryGetTileData(tileId, out var tileData) && tileData is StaticTileData;
+        return TryGetTileData(layerData, tileIndex, out var tileData) && tileData is StaticTileData;
     }
 
     private void DisposeChunkGraphicsResources()

@@ -30,6 +30,7 @@ public class AutoTile : Tile
     private Size _mapSize;
     private AutoTileDrawingInfo[] _drawingInfos = new AutoTileDrawingInfo[4];
     private int _x, _y;
+    private int _tileSourceIndex;
     private readonly Texture2D _texture2d;
     private AutoTileData _autoTileData;
 
@@ -80,8 +81,9 @@ public class AutoTile : Tile
             return 0;
         }
 
-        var tileId = layer.tiles[x + y * mapSize.Width];
-        if (tileId == _autoTileData.Id)
+        var tileIndex = x + y * mapSize.Width;
+        var tileId = layer.tiles[tileIndex];
+        if (tileId == _autoTileData.Id && layer.GetTileSourceIndex(tileIndex) == _tileSourceIndex)
         {
             return (uint)1 << offset;
         }
@@ -126,11 +128,12 @@ public class AutoTile : Tile
         }
     }
 
-    public void SetTileInfo(Size tileSize, Size mapSize, TileMapLayerData layer, int x, int y)
+    public void SetTileInfo(Size tileSize, Size mapSize, TileMapLayerData layer, int tileSourceIndex, int x, int y)
     {
         _tileSize = tileSize;
         _mapSize = mapSize;
         _tileMapLayerData = layer;
+        _tileSourceIndex = tileSourceIndex;
         _x = x;
         _y = y;
     }

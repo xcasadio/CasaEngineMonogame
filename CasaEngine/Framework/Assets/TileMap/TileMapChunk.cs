@@ -5,8 +5,7 @@ namespace CasaEngine.Framework.Assets.TileMap;
 
 public sealed class TileMapChunk
 {
-    private VertexPositionTexture[] _vertices = Array.Empty<VertexPositionTexture>();
-    private short[] _indices = Array.Empty<short>();
+    private readonly List<TileMapStaticChunkBatch> _staticBatches = new();
 
     public TileMapChunk(int layerIndex, Point chunkIndex, Rectangle tileBounds)
     {
@@ -26,17 +25,150 @@ public sealed class TileMapChunk
     public Point ChunkIndex { get; }
     public Rectangle TileBounds { get; }
     public BoundingBox WorldBounds { get; private set; }
+    public IReadOnlyList<TileMapStaticChunkBatch> StaticBatches => _staticBatches;
+    public int StaticBatchCount => _staticBatches.Count;
+    public int StaticTileCount { get; private set; }
+    public bool HasStaticGeometry
+    {
+        get
+        {
+            for (var index = 0; index < _staticBatches.Count; index++)
+            {
+                if (_staticBatches[index].HasGeometry)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public bool DirtyVisual { get; private set; }
+    public bool DirtyCollision { get; private set; }
+    public bool ContainsAnimatedTiles { get; set; }
+    public bool ContainsDynamicTiles { get; private set; }
+
+    public TileMapStaticChunkBatch GetOrCreateStaticBatch(int batchIndex)
+    {
+        while (_staticBatches.Count <= batchIndex)
+        {
+            _staticBatches.Add(new TileMapStaticChunkBatch());
+        }
+
+        return _staticBatches[batchIndex];
+    }
+
+    public void TrimStaticBatchCount(int batchCount)
+    {
+        for (var index = _staticBatches.Count - 1; index >= batchCount; index--)
+        {
+            _staticBatches[index].DisposeGraphicsResources();
+            _staticBatches.RemoveAt(index);
+        }
+    }
+
+    public void SetStaticGeometryCounts(int staticTileCount, bool containsDynamicTiles)
+    {
+        StaticTileCount = staticTileCount;
+        ContainsDynamicTiles = containsDynamicTiles;
+    }
+
+    public void UploadStaticGeometry(GraphicsDevice graphicsDevice)
+    {
+        ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+        for (var index = 0; index < _staticBatches.Count; index++)
+        {
+            _staticBatches[index].UploadStaticGeometry(graphicsDevice);
+        }
+    }
+
+    public bool HasGraphicsResourcesFor(GraphicsDevice graphicsDevice)
+    {
+        for (var index = 0; index < _staticBatches.Count; index++)
+        {
+            var staticBatch = _staticBatches[index];
+            if (staticBatch.HasGeometry && !staticBatch.HasGraphicsResourcesFor(graphicsDevice))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool IntersectsTileRange(int minTileX, int maxTileX, int minTileY, int maxTileY)
+    {
+        if (minTileX > maxTileX || minTileY > maxTileY)
+        {
+            return false;
+        }
+
+        return TileBounds.Left <= maxTileX
+            && TileBounds.Right - 1 >= minTileX
+            && TileBounds.Top <= maxTileY
+            && TileBounds.Bottom - 1 >= minTileY;
+    }
+
+    public void UpdateWorldBounds(float mapPosX, float mapPosY, float tileWidth, float tileHeight, float minZ, float maxZ)
+    {
+        var left = mapPosX + tileWidth * TileBounds.Left;
+        var right = mapPosX + tileWidth * TileBounds.Right;
+        var top = mapPosY - tileHeight * TileBounds.Top;
+        var bottom = mapPosY - tileHeight * TileBounds.Bottom;
+
+        WorldBounds = new BoundingBox(
+            new Vector3(Math.Min(left, right), Math.Min(top, bottom), Math.Min(minZ, maxZ)),
+            new Vector3(Math.Max(left, right), Math.Max(top, bottom), Math.Max(minZ, maxZ)));
+    }
+
+    public void MarkDirty(bool visual = true, bool collision = true)
+    {
+        DirtyVisual |= visual;
+        DirtyCollision |= collision;
+    }
+
+    public void MarkVisualClean()
+    {
+        DirtyVisual = false;
+    }
+
+    public void MarkCollisionClean()
+    {
+        DirtyCollision = false;
+    }
+
+    public void DisposeGraphicsResources()
+    {
+        for (var index = 0; index < _staticBatches.Count; index++)
+        {
+            _staticBatches[index].DisposeGraphicsResources();
+        }
+    }
+}
+
+public sealed class TileMapStaticChunkBatch
+{
+    private VertexPositionTexture[] _vertices = Array.Empty<VertexPositionTexture>();
+    private short[] _indices = Array.Empty<short>();
+
+    public int TileSetIndex { get; private set; }
     public VertexBuffer? VertexBuffer { get; private set; }
     public IndexBuffer? IndexBuffer { get; private set; }
     public int VertexCount { get; private set; }
     public int IndexCount { get; private set; }
     public int PrimitiveCount => IndexCount / 3;
     public int StaticTileCount { get; private set; }
-    public bool HasStaticGeometry => PrimitiveCount > 0;
-    public bool DirtyVisual { get; private set; }
-    public bool DirtyCollision { get; private set; }
-    public bool ContainsAnimatedTiles { get; set; }
-    public bool ContainsDynamicTiles { get; private set; }
+    public bool HasGeometry => PrimitiveCount > 0;
+
+    public void Reset(int tileSetIndex)
+    {
+        TileSetIndex = tileSetIndex;
+        VertexCount = 0;
+        IndexCount = 0;
+        StaticTileCount = 0;
+    }
 
     public VertexPositionTexture[] EnsureVertexCapacity(int vertexCount)
     {
@@ -58,12 +190,11 @@ public sealed class TileMapChunk
         return _indices;
     }
 
-    public void SetStaticGeometryCounts(int vertexCount, int indexCount, int staticTileCount, bool containsDynamicTiles)
+    public void SetStaticGeometryCounts(int vertexCount, int indexCount, int staticTileCount)
     {
         VertexCount = vertexCount;
         IndexCount = indexCount;
         StaticTileCount = staticTileCount;
-        ContainsDynamicTiles = containsDynamicTiles;
     }
 
     public void UploadStaticGeometry(GraphicsDevice graphicsDevice)
@@ -106,47 +237,6 @@ public sealed class TileMapChunk
             && !IndexBuffer.IsDisposed
             && ReferenceEquals(VertexBuffer.GraphicsDevice, graphicsDevice)
             && ReferenceEquals(IndexBuffer.GraphicsDevice, graphicsDevice);
-    }
-
-    public bool IntersectsTileRange(int minTileX, int maxTileX, int minTileY, int maxTileY)
-    {
-        if (minTileX > maxTileX || minTileY > maxTileY)
-        {
-            return false;
-        }
-
-        return TileBounds.Left <= maxTileX
-            && TileBounds.Right - 1 >= minTileX
-            && TileBounds.Top <= maxTileY
-            && TileBounds.Bottom - 1 >= minTileY;
-    }
-
-    public void UpdateWorldBounds(float mapPosX, float mapPosY, float tileWidth, float tileHeight, float minZ, float maxZ)
-    {
-        var left = mapPosX + tileWidth * TileBounds.Left;
-        var right = mapPosX + tileWidth * TileBounds.Right;
-        var top = mapPosY - tileHeight * TileBounds.Top;
-        var bottom = mapPosY - tileHeight * TileBounds.Bottom;
-
-        WorldBounds = new BoundingBox(
-            new Vector3(Math.Min(left, right), Math.Min(top, bottom), Math.Min(minZ, maxZ)),
-            new Vector3(Math.Max(left, right), Math.Max(top, bottom), Math.Max(minZ, maxZ)));
-    }
-
-    public void MarkDirty(bool visual = true, bool collision = true)
-    {
-        DirtyVisual |= visual;
-        DirtyCollision |= collision;
-    }
-
-    public void MarkVisualClean()
-    {
-        DirtyVisual = false;
-    }
-
-    public void MarkCollisionClean()
-    {
-        DirtyCollision = false;
     }
 
     public void DisposeGraphicsResources()

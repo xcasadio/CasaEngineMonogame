@@ -235,18 +235,18 @@ But : couvrir les usages Tiled courants au-delà d'une map simple.
 
 Tâches :
 
-- ⚠️ Supporter plusieurs tilesets dans une même map : bloqué par le modèle runtime mono-tileset/mono-texture actuel.
+- ✅ Supporter plusieurs tilesets dans une même map avec un modèle runtime multi-tileset/multi-texture.
 - ✅ Décision prise : étendre `TileMapData` avec plusieurs références tileset et une source par cellule ; ne pas aplatir en atlas à l'import.
-- ⏳ Ajouter `TileMapData.TileSetDataAssetIds` en conservant `TileSetDataAssetId` comme compat legacy/shortcut mono-tileset.
-- ⏳ Ajouter un stockage par cellule pour la source tileset, compatible avec les maps existantes sans `tile_sources`.
-- ⏳ Ajouter des helpers centraux `GetTileReference`/`SetTileReference` et validation des indices de source.
-- ⏳ Étendre la sérialisation `.tileMap` pour écrire/lire plusieurs tilesets et `tile_sources` seulement si nécessaire.
-- ⏳ Étendre l'import Tiled pour accepter plusieurs `<tileset>`/`tilesets[]`, créer plusieurs `.tileset` CasaEngine et mapper chaque GID vers `{tilesetSourceIndex, tileIdLocal}`.
-- ⏳ Étendre `TiledMapImportResult` pour retourner l'ensemble des assets `.tileset` créés.
-- ⏳ Charger plusieurs `TileSetData`/textures dans `TileMapComponent` et résoudre la tile runtime à partir de la source par cellule.
-- ⏳ Adapter le rendu chunké statique pour grouper la géométrie par texture/tileset au lieu d'un seul batch global de layer.
-- ⏳ Adapter collisions et mutations (`SetTile`, `RemoveTile`, flags) pour préserver la source tileset par cellule.
-- ⏳ Ajouter des tests de compatibilité : map legacy mono-tileset inchangée, import Tiled multi-tileset, sérialisation multi-tileset, rendu runtime minimal.
+- ✅ Ajouter `TileMapData.TileSetDataAssetIds` en conservant `TileSetDataAssetId` comme compat legacy/shortcut mono-tileset.
+- ✅ Ajouter un stockage par cellule pour la source tileset, compatible avec les maps existantes sans `tile_sources`.
+- ✅ Ajouter des helpers centraux `GetTileReference`/`SetTileReference` et validation des indices de source.
+- ✅ Étendre la sérialisation `.tileMap` pour écrire/lire plusieurs tilesets et `tile_sources` seulement si nécessaire.
+- ✅ Étendre l'import Tiled pour accepter plusieurs `<tileset>`/`tilesets[]`, créer plusieurs `.tileset` CasaEngine et mapper chaque GID vers `{tilesetSourceIndex, tileIdLocal}`.
+- ✅ Étendre `TiledMapImportResult` pour retourner l'ensemble des assets `.tileset` créés.
+- ✅ Charger plusieurs `TileSetData`/textures dans `TileMapComponent` et résoudre la tile runtime à partir de la source par cellule.
+- ✅ Adapter le rendu chunké statique pour grouper la géométrie par texture/tileset au lieu d'un seul batch global de layer.
+- ✅ Adapter collisions et mutations (`SetTile`, `RemoveTile`, flags) pour préserver la source tileset par cellule.
+- 🧪 Ajouter des tests de compatibilité : map legacy mono-tileset inchangée, import Tiled multi-tileset et sérialisation multi-tileset couverts ; validation visuelle runtime minimale encore à faire.
 - 🧪 Supporter les flip flags Tiled dans le modèle runtime : `TileCellFlags` optionnels sont importés, horizontal/vertical sont rendus pour les tiles statiques, diagonal reste limité.
 - ✅ Ajouter une structure de flags compatible : `TileMapLayerData.tileFlags` optionnel conserve la compatibilité avec `List<int>`.
 - ✅ Ajouter une API centrale `GetTileFlags`/`SetTileFlags`/`SetTile(..., flags)` qui marque seulement le rendu dirty quand seule l'orientation change.
