@@ -384,13 +384,20 @@ Vérifications :
 
 Priorité : moyenne.
 
+Décision animated tiles : option 3 retenue, renderer hybride. Les tiles statiques restent dans les buffers de chunks groupés par tileset/texture ; les tiles animées sont exclues de ces buffers et rendues dans le passage dynamique existant, avec une liste runtime dédiée mise à jour seulement quand nécessaire.
+
 Tâches animated tiles :
 
-- ⚠️ Finaliser le chargement de `AnimatedTileData` dans `TileMapComponent` : bloqué par `AnimatedTile.Draw` encore incomplet.
-- ⚠️ Créer une liste runtime `_animatedTiles` ou équivalent après finalisation du rendu animated tile.
-- ⚠️ Mettre à jour uniquement les tiles animées après finalisation du rendu animated tile.
-- ⏳ Mettre à jour UV/frame sans reconstruire toute la map si possible.
-- ⏳ Supporter loop, vitesse, ping-pong et temps global/local.
+- ⏳ Remplacer l'ancien pointeur `animation_2d_id` seul par une donnée runtime locale `AnimatedTileFrameData` : `tile_id`, `duration_ms`, et compat legacy `animation_2d_id` optionnelle.
+- ⏳ Étendre le chargement/sauvegarde `.tileset` pour sérialiser `animation_frames` sur `AnimatedTileData`.
+- ⏳ Étendre l'import Tiled TMX/TMJ pour lire `tile.animation` / `animation.frames[]` et convertir la tile concernée en `AnimatedTileData` avec frames locales du même tileset.
+- ⏳ Finaliser `AnimatedTile.Draw` pour dessiner la frame courante depuis la texture du tileset, en respectant les flags horizontal/vertical déjà supportés.
+- ⏳ Créer une liste runtime `_animatedTiles` ou équivalent dans `TileMapComponent`, alimentée au chargement et lors de `SetTileReference`.
+- ⏳ Mettre à jour uniquement les tiles animées dans `Update`, et demander une conditional update seulement quand il existe des animated tiles ou des auto-tiles dirty.
+- ⏳ Garder les animated tiles hors des buffers statiques : le chunk statique reste valide, `ContainsDynamicTiles` force le sous-passage dynamique uniquement pour les cellules animées/auto.
+- ⏳ Marquer le chunk visuel dirty uniquement quand une mutation transforme une cellule statique en dynamique ou inversement ; le changement de frame ne doit pas reconstruire toute la map.
+- ⏳ Ajouter des tests de data/import/runtime : sérialisation frames, import Tiled animation TMX/TMJ, compteur runtime `_animatedTiles`/`ShouldUpdateWhenConditional`.
+- ⚠️ Reporter ping-pong et temps global/local avancé après le loop Tiled simple ; Tiled encode déjà une boucle par défaut avec durées par frame.
 
 Tâches auto-tiles :
 
@@ -402,6 +409,8 @@ Tâches auto-tiles :
 Critères d'acceptation :
 
 - Une map avec quelques tiles animées ne déclenche pas `Update` sur toutes les cellules.
+- Les chunks statiques continuent à batcher les cellules statiques même si le même chunk contient des animated tiles.
+- Les animations Tiled simples deviennent des `AnimatedTileData` CasaEngine et rendent leur frame courante dans le passage dynamique.
 - Peindre/effacer une auto-tile met à jour la cellule et ses voisins visibles sans recalcul global.
 
 Vérifications :
@@ -480,7 +489,7 @@ Les points ci-dessous ne sont pas de simples tâches restantes. Ils demandent un
 
 - ✅ Vrai support multi-tileset Tiled : décision prise pour un runtime `TileMapData` multi-tileset/multi-texture avec source explicite par cellule.
 - ⚠️ Flip diagonal/rotations Tiled complets : choisir si le moteur stocke des flags par cellule avec rendu orienté au runtime, ou si l'import normalise les orientations en frames/UV transformées.
-- ⚠️ Animated tiles runtime : choisir entre un rendu par tiles runtime dédiées, une animation UV dans les buffers de chunks, ou un renderer `TileMapRenderer` séparé qui gère les tiles dynamiques.
+- ✅ Animated tiles runtime : décision prise pour l'option 3, renderer hybride avec chunks statiques inchangés et sous-passage dynamique pour animated tiles.
 - ⚠️ Collisions avancées one-way/slopes/polygones : choisir un modèle de collision TileMap stable, soit aligné sur `Collision2d`, soit via un format dédié orienté physique/runtime.
 - ⚠️ Auto-tiles/Wang/Terrain sets : choisir la règle canonique supportée par CasaEngine avant d'importer ou d'éditer ces données dans l'éditeur.
 - ⚠️ Éditeur TileMap complet : choisir le document model editor, la granularité undo/redo, et si l'édition s'appuie directement sur `TileMapData` ou sur un modèle intermédiaire orienté outil.
