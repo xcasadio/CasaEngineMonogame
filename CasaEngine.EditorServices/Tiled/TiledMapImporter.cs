@@ -273,6 +273,7 @@ public sealed class TiledMapImporter
         var warnings = new List<string>();
         var collisionShapes = ReadTileCollisionShapes(tilesetRoot, warnings);
         var customPropertiesByTileId = ReadTileCustomProperties(tilesetRoot);
+        var animationsByTileId = ReadTileAnimations(tilesetRoot, warnings);
 
         return new TiledTilesetReference(
             firstGid,
@@ -286,6 +287,7 @@ public sealed class TiledMapImporter
             imageHeight,
             collisionShapes,
             customPropertiesByTileId,
+            animationsByTileId,
             warnings);
     }
 
@@ -362,6 +364,7 @@ public sealed class TiledMapImporter
         var warnings = new List<string>();
         var collisionShapes = ReadTileCollisionShapesJson(tilesetRoot, warnings);
         var customPropertiesByTileId = ReadTileCustomPropertiesJson(tilesetRoot);
+        var animationsByTileId = ReadTileAnimationsJson(tilesetRoot, warnings);
 
         return new TiledTilesetReference(
             firstGid,
@@ -375,6 +378,7 @@ public sealed class TiledMapImporter
             imageHeight,
             collisionShapes,
             customPropertiesByTileId,
+            animationsByTileId,
             warnings);
     }
 
@@ -467,6 +471,102 @@ public sealed class TiledMapImporter
         }
 
         return customPropertiesByTileId;
+    }
+
+    private static Dictionary<int, List<TiledTileAnimationFrame>> ReadTileAnimations(XElement tilesetRoot, List<string> warnings)
+    {
+        var animationsByTileId = new Dictionary<int, List<TiledTileAnimationFrame>>();
+        foreach (var tileElement in tilesetRoot.Elements("tile"))
+        {
+            var animationElement = tileElement.Element("animation");
+            if (animationElement == null)
+            {
+                continue;
+            }
+
+            var tileId = ReadRequiredInt(tileElement, "id");
+            var frames = new List<TiledTileAnimationFrame>();
+            foreach (var frameElement in animationElement.Elements("frame"))
+            {
+                var frameTileId = ReadRequiredInt(frameElement, "tileid");
+                var durationMilliseconds = ReadOptionalInt(frameElement, "duration", 0);
+                if (durationMilliseconds <= 0)
+                {
+                    warnings.Add($"Tile {tileId} has an animation frame with invalid duration; the frame was ignored.");
+                    continue;
+                }
+
+                frames.Add(new TiledTileAnimationFrame(frameTileId, durationMilliseconds));
+            }
+
+            if (frames.Count > 0)
+            {
+                animationsByTileId[tileId] = frames;
+            }
+        }
+
+        return animationsByTileId;
+    }
+
+    private static Dictionary<int, List<TiledTileAnimationFrame>> ReadTileAnimationsJson(JObject tilesetRoot, List<string> warnings)
+    {
+        var animationsByTileId = new Dictionary<int, List<TiledTileAnimationFrame>>();
+        if (tilesetRoot["tiles"] is not JArray tiles)
+        {
+            return animationsByTileId;
+        }
+
+        for (var tileIndex = 0; tileIndex < tiles.Count; tileIndex++)
+        {
+            if (tiles[tileIndex] is not JObject tileObject)
+            {
+                continue;
+            }
+
+            var animationToken = tileObject["animation"];
+            if (animationToken == null)
+            {
+                continue;
+            }
+
+            JArray? frameArray = animationToken as JArray;
+            if (frameArray == null && animationToken is JObject animationObject)
+            {
+                frameArray = animationObject["frames"] as JArray;
+            }
+
+            if (frameArray == null)
+            {
+                continue;
+            }
+
+            var tileId = ReadRequiredInt(tileObject, "id", "tile");
+            var frames = new List<TiledTileAnimationFrame>();
+            for (var frameIndex = 0; frameIndex < frameArray.Count; frameIndex++)
+            {
+                if (frameArray[frameIndex] is not JObject frameObject)
+                {
+                    continue;
+                }
+
+                var frameTileId = ReadRequiredInt(frameObject, "tileid", "animation frame");
+                var durationMilliseconds = ReadOptionalInt(frameObject, "duration", 0);
+                if (durationMilliseconds <= 0)
+                {
+                    warnings.Add($"Tile {tileId} has an animation frame with invalid duration; the frame was ignored.");
+                    continue;
+                }
+
+                frames.Add(new TiledTileAnimationFrame(frameTileId, durationMilliseconds));
+            }
+
+            if (frames.Count > 0)
+            {
+                animationsByTileId[tileId] = frames;
+            }
+        }
+
+        return animationsByTileId;
     }
 
     private static TiledObjectLayer ReadObjectLayer(XElement objectGroupElement, float zOffset)
@@ -1085,6 +1185,7 @@ public sealed class TiledTilesetReference
         int imageHeight,
         Dictionary<int, TiledTileCollision> collisionByTileId,
         Dictionary<int, Dictionary<string, string>> customPropertiesByTileId,
+        Dictionary<int, List<TiledTileAnimationFrame>> animationsByTileId,
         List<string> warnings)
     {
         FirstGid = firstGid;
@@ -1098,6 +1199,7 @@ public sealed class TiledTilesetReference
         ImageHeight = imageHeight;
         CollisionByTileId = collisionByTileId;
         CustomPropertiesByTileId = customPropertiesByTileId;
+        AnimationsByTileId = animationsByTileId;
         Warnings = warnings;
     }
 
@@ -1112,7 +1214,20 @@ public sealed class TiledTilesetReference
     public int ImageHeight { get; }
     public Dictionary<int, TiledTileCollision> CollisionByTileId { get; }
     public Dictionary<int, Dictionary<string, string>> CustomPropertiesByTileId { get; }
+    public Dictionary<int, List<TiledTileAnimationFrame>> AnimationsByTileId { get; }
     public List<string> Warnings { get; }
+}
+
+public sealed class TiledTileAnimationFrame
+{
+    public TiledTileAnimationFrame(int tileId, int durationMilliseconds)
+    {
+        TileId = tileId;
+        DurationMilliseconds = durationMilliseconds;
+    }
+
+    public int TileId { get; }
+    public int DurationMilliseconds { get; }
 }
 
 public sealed class TiledTileCollision

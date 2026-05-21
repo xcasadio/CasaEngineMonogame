@@ -489,6 +489,10 @@ internal static class EditorAssetJsonSerializer
                 break;
 
             case AnimatedTileData animatedTileData:
+                var animatedLocationNode = new JObject();
+                animatedTileData.Location.Save(animatedLocationNode);
+                node.Add("location", animatedLocationNode);
+
                 if (!string.IsNullOrWhiteSpace(animatedTileData.Animation2dId))
                 {
                     node.Add("animation_2d_id", animatedTileData.Animation2dId);

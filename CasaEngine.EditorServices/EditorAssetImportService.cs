@@ -154,17 +154,46 @@ public static class EditorAssetImportService
         {
             var column = tileIndex % tiledTileset.Columns;
             var row = tileIndex / tiledTileset.Columns;
-            var tileData = new StaticTileData
+            TileData tileData;
+            if (tiledTileset.AnimationsByTileId.TryGetValue(tileIndex, out var animationFrames))
             {
-                Id = tileIndex,
-                CollisionType = TileCollisionType.None,
-                IsBreakable = false,
-                Location = new Rectangle(
+                var animatedTileData = new AnimatedTileData();
+                for (var frameIndex = 0; frameIndex < animationFrames.Count; frameIndex++)
+                {
+                    var animationFrame = animationFrames[frameIndex];
+                    animatedTileData.Frames.Add(new AnimatedTileFrameData
+                    {
+                        TileId = animationFrame.TileId,
+                        DurationMilliseconds = animationFrame.DurationMilliseconds,
+                    });
+                }
+
+                tileData = animatedTileData;
+            }
+            else
+            {
+                tileData = new StaticTileData
+                {
+                    Location = new Rectangle(
+                        column * tiledTileset.TileWidth,
+                        row * tiledTileset.TileHeight,
+                        tiledTileset.TileWidth,
+                        tiledTileset.TileHeight),
+                };
+            }
+
+            tileData.Id = tileIndex;
+            tileData.CollisionType = TileCollisionType.None;
+            tileData.IsBreakable = false;
+
+            if (tileData is AnimatedTileData animatedTileDataWithLocation)
+            {
+                animatedTileDataWithLocation.Location = new Rectangle(
                     column * tiledTileset.TileWidth,
                     row * tiledTileset.TileHeight,
                     tiledTileset.TileWidth,
-                    tiledTileset.TileHeight),
-            };
+                    tiledTileset.TileHeight);
+            }
 
             if (tiledTileset.CollisionByTileId.TryGetValue(tileIndex, out var collision))
             {

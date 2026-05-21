@@ -7,6 +7,7 @@ namespace CasaEngine.Framework.Assets.TileMap;
 public class AnimatedTileData : TileData
 {
     public string? Animation2dId;
+    public Rectangle Location { get; set; }
     public List<AnimatedTileFrameData> Frames { get; } = new();
 
     public AnimatedTileData() : base(TileType.Animated)
@@ -16,6 +17,11 @@ public class AnimatedTileData : TileData
     {
         base.Load(jObject);
         Animation2dId = jObject["animation_2d_id"]?.GetString();
+        if (jObject["location"] != null)
+        {
+            Location = jObject["location"].GetRectangle();
+        }
+
         Frames.Clear();
 
         if (jObject["animation_frames"] is not JArray framesArray)

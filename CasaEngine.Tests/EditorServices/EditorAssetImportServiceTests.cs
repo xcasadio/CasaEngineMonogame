@@ -643,6 +643,81 @@ public class EditorAssetImportServiceTests
         }
     }
 
+    [Fact]
+    public void ImportFile_TiledTmxImportsTileAnimations()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+        try
+        {
+            EngineEnvironment.ProjectPath = tempDirectory;
+            EditorAssetCatalogService.Clear();
+
+            string imagePath = Path.Combine(tempDirectory, "animated.png");
+            File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+            string tsxPath = Path.Combine(tempDirectory, "animated.tsx");
+            File.WriteAllText(tsxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <tileset version="1.10" tiledversion="1.10.2" name="animated" tilewidth="16" tileheight="16" tilecount="2" columns="2">
+                 <image source="animated.png" width="32" height="16"/>
+                 <tile id="0">
+                  <animation>
+                   <frame tileid="0" duration="120"/>
+                   <frame tileid="1" duration="80"/>
+                  </animation>
+                 </tile>
+                </tileset>
+                """);
+
+            string tmxPath = Path.Combine(tempDirectory, "animated.tmx");
+            File.WriteAllText(tmxPath,
+                """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="1" height="1" tilewidth="16" tileheight="16" infinite="0">
+                 <tileset firstgid="1" source="animated.tsx"/>
+                 <layer id="1" name="Ground" width="1" height="1">
+                  <data encoding="csv">1</data>
+                 </layer>
+                </map>
+                """);
+
+            bool imported = EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "AnimatedLevel.tmx"));
+
+            Assert.True(imported);
+            string tileSetPath = Path.Combine(tempDirectory, "AnimatedLevel_Imported", "AnimatedLevel.tileset");
+            Assert.True(File.Exists(tileSetPath));
+
+            var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
+            var tiles = Assert.IsType<JArray>(tileSetDocument["tiles"]);
+            var animatedTile = Assert.IsType<JObject>(tiles[0]);
+            Assert.Equal("Animated", (string?)animatedTile["type"]);
+
+            var location = Assert.IsType<JObject>(animatedTile["location"]);
+            Assert.Equal(0, location["x"]!.Value<int>());
+            Assert.Equal(0, location["y"]!.Value<int>());
+            Assert.Equal(16, location["w"]!.Value<int>());
+            Assert.Equal(16, location["h"]!.Value<int>());
+
+            var frames = Assert.IsType<JArray>(animatedTile["animation_frames"]);
+            Assert.Equal(2, frames.Count);
+            var firstFrame = Assert.IsType<JObject>(frames[0]);
+            Assert.Equal(0, firstFrame["tile_id"]!.Value<int>());
+            Assert.Equal(120, firstFrame["duration_ms"]!.Value<int>());
+            var secondFrame = Assert.IsType<JObject>(frames[1]);
+            Assert.Equal(1, secondFrame["tile_id"]!.Value<int>());
+            Assert.Equal(80, secondFrame["duration_ms"]!.Value<int>());
+        }
+        finally
+        {
+            EditorAssetCatalogService.Clear();
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
         [Fact]
         public void ImportFile_TiledJsonAuthorsTileMapTilesetAndTextureAssets()
         {
@@ -718,6 +793,91 @@ public class EditorAssetImportServiceTests
                         var groundLayer = Assert.IsType<JObject>(layers[0]);
                         Assert.Equal("Ground", (string?)groundLayer["name"]);
                         Assert.Equal(new[] { 0, -1 }, groundLayer["tiles"]!.Values<int>().ToArray());
+                }
+                finally
+                {
+                        EditorAssetCatalogService.Clear();
+                        EngineEnvironment.ProjectPath = previousProjectPath;
+                        Directory.Delete(tempDirectory, recursive: true);
+                }
+        }
+
+        [Fact]
+        public void ImportFile_TiledJsonImportsTileAnimations()
+        {
+                string tempDirectory = CreateTempDirectory();
+                string? previousProjectPath = EngineEnvironment.ProjectPath;
+
+                try
+                {
+                        EngineEnvironment.ProjectPath = tempDirectory;
+                        EditorAssetCatalogService.Clear();
+
+                        string imagePath = Path.Combine(tempDirectory, "animated.png");
+                        File.WriteAllBytes(imagePath, new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 });
+
+                        string tsjPath = Path.Combine(tempDirectory, "animated.tsj");
+                        File.WriteAllText(tsjPath,
+                                """
+                                {
+                                    "type": "tileset",
+                                    "name": "animated",
+                                    "tilewidth": 16,
+                                    "tileheight": 16,
+                                    "tilecount": 2,
+                                    "columns": 2,
+                                    "image": "animated.png",
+                                    "imagewidth": 32,
+                                    "imageheight": 16,
+                                    "tiles": [
+                                        {
+                                            "id": 0,
+                                            "animation": [
+                                                { "tileid": 0, "duration": 120 },
+                                                { "tileid": 1, "duration": 80 }
+                                            ]
+                                        }
+                                    ]
+                                }
+                                """);
+
+                        string tmjPath = Path.Combine(tempDirectory, "animated.tmj");
+                        File.WriteAllText(tmjPath,
+                                """
+                                {
+                                    "type": "map",
+                                    "orientation": "orthogonal",
+                                    "infinite": false,
+                                    "width": 1,
+                                    "height": 1,
+                                    "tilewidth": 16,
+                                    "tileheight": 16,
+                                    "tilesets": [
+                                        { "firstgid": 1, "source": "animated.tsj" }
+                                    ],
+                                    "layers": [
+                                        {
+                                            "type": "tilelayer",
+                                            "name": "Ground",
+                                            "width": 1,
+                                            "height": 1,
+                                            "data": [1]
+                                        }
+                                    ]
+                                }
+                                """);
+
+                        bool imported = EditorAssetImportService.ImportFile(tmjPath, Path.Combine(tempDirectory, "AnimatedJsonLevel.tmj"));
+
+                        Assert.True(imported);
+                        string tileSetPath = Path.Combine(tempDirectory, "AnimatedJsonLevel_Imported", "AnimatedJsonLevel.tileset");
+                        var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
+                        var tiles = Assert.IsType<JArray>(tileSetDocument["tiles"]);
+                        var animatedTile = Assert.IsType<JObject>(tiles[0]);
+                        Assert.Equal("Animated", (string?)animatedTile["type"]);
+                        var frames = Assert.IsType<JArray>(animatedTile["animation_frames"]);
+                        Assert.Equal(new[] { 0, 1 }, frames.Select(frame => frame!["tile_id"]!.Value<int>()).ToArray());
+                        Assert.Equal(new[] { 120, 80 }, frames.Select(frame => frame!["duration_ms"]!.Value<int>()).ToArray());
                 }
                 finally
                 {
