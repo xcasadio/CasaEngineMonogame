@@ -194,6 +194,9 @@ public sealed class UIScreenPreviewPanel
             Margin = new Thickness(4, 0, 4, 0),
             Opacity = 0.7f,
             FontSize = 10,
+            WrapText = false,
+            MinWidth = 120,
+            HasStableTextFootprint = true,
         };
         toolbar.TryAddChild(_coordinateText);
 
@@ -361,11 +364,11 @@ public sealed class UIScreenPreviewPanel
         if (surface.HasValue && surface.Value.Contains(pos))
         {
             var relative = pos - new Point(surface.Value.X, surface.Value.Y);
-            _coordinateText.Text = $"x:{relative.X}  y:{relative.Y}";
+            _coordinateText.SetText($"x:{relative.X}  y:{relative.Y}", MGTextInvalidationMode.ReflowLocal);
         }
         else
         {
-            _coordinateText.Text = string.Empty;
+            _coordinateText.SetText(string.Empty, MGTextInvalidationMode.ReflowLocal);
         }
     }
 

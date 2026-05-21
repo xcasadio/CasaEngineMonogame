@@ -120,6 +120,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private float _blendWeight = 0.5f;
     private float _lastRootMotionMagnitude;
     private string _lastEventName = string.Empty;
+    private string _lastMetricsText = string.Empty;
     private string _statusMessage = "Open a .skeletonAnim asset from the Content Browser.";
     private int _rtWidth = 320;
     private int _rtHeight = 280;
@@ -241,6 +242,8 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
             Opacity = EditorThemePalette.SecondaryTextOpacity,
             FontSize = 10,
             WrapText = true,
+            MinLines = 1,
+            HasStableTextFootprint = true,
         };
 
         _viewportHost = new MGDockPanel(_window)
@@ -855,8 +858,15 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         var controller = _skinnedMeshComponent?.SkinnedMesh?.RiggedModel?.AnimationController;
         float currentTime = controller?.CurrentTimeSeconds ?? 0f;
         string lastEvent = string.IsNullOrWhiteSpace(_lastEventName) ? "<none>" : _lastEventName;
-        _metricsText.Text =
+        string metricsText =
             $"Duration: {duration:F2}s  Time: {currentTime:F2}s  Root Motion Δ: {_lastRootMotionMagnitude:F3}  Last Event: {EscapeMarkup(lastEvent)}";
+        if (string.Equals(metricsText, _lastMetricsText, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _lastMetricsText = metricsText;
+        _metricsText.SetText(metricsText, MGTextInvalidationMode.ReflowLocal);
     }
 
     private void SynchronizeControlsFromState()
