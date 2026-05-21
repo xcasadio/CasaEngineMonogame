@@ -388,8 +388,8 @@ Décision animated tiles : option 3 retenue, renderer hybride. Les tiles statiqu
 
 Tâches animated tiles :
 
-- ⏳ Remplacer l'ancien pointeur `animation_2d_id` seul par une donnée runtime locale `AnimatedTileFrameData` : `tile_id`, `duration_ms`, et compat legacy `animation_2d_id` optionnelle.
-- ⏳ Étendre le chargement/sauvegarde `.tileset` pour sérialiser `animation_frames` sur `AnimatedTileData`.
+- ✅ Remplacer l'ancien pointeur `animation_2d_id` seul par une donnée runtime locale `AnimatedTileFrameData` : `tile_id`, `duration_ms`, et compat legacy `animation_2d_id` optionnelle.
+- ✅ Étendre le chargement/sauvegarde `.tileset` pour sérialiser `animation_frames` sur `AnimatedTileData`.
 - ⏳ Étendre l'import Tiled TMX/TMJ pour lire `tile.animation` / `animation.frames[]` et convertir la tile concernée en `AnimatedTileData` avec frames locales du même tileset.
 - ⏳ Finaliser `AnimatedTile.Draw` pour dessiner la frame courante depuis la texture du tileset, en respectant les flags horizontal/vertical déjà supportés.
 - ⏳ Créer une liste runtime `_animatedTiles` ou équivalent dans `TileMapComponent`, alimentée au chargement et lors de `SetTileReference`.

@@ -489,7 +489,27 @@ internal static class EditorAssetJsonSerializer
                 break;
 
             case AnimatedTileData animatedTileData:
-                node.Add("animation_2d_id", animatedTileData.Animation2dId);
+                if (!string.IsNullOrWhiteSpace(animatedTileData.Animation2dId))
+                {
+                    node.Add("animation_2d_id", animatedTileData.Animation2dId);
+                }
+
+                if (animatedTileData.Frames.Count > 0)
+                {
+                    var framesArray = new JArray();
+                    for (var frameIndex = 0; frameIndex < animatedTileData.Frames.Count; frameIndex++)
+                    {
+                        var frame = animatedTileData.Frames[frameIndex];
+                        framesArray.Add(new JObject
+                        {
+                            ["tile_id"] = frame.TileId,
+                            ["duration_ms"] = frame.DurationMilliseconds,
+                        });
+                    }
+
+                    node.Add("animation_frames", framesArray);
+                }
+
                 break;
         }
     }
