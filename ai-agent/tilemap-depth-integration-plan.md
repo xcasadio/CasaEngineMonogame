@@ -54,7 +54,7 @@ Regles d'execution pour l'agent IA :
   - Eviter les closures nouvelles dans les chemins `Draw`.
   - Commit attendu : `Use optional 2D depth keys for sprites`.
 
-- ⏳ Brancher les components sprite sur la profondeur entity
+- ✅ Brancher les components sprite sur la profondeur entity
   - Faire consommer `DepthSortable2DComponent` par `StaticSpriteComponent`.
   - Faire consommer `DepthSortable2DComponent` par `AnimatedSpriteComponent`.
   - Garantir un fallback identique au comportement actuel si le composant est absent.

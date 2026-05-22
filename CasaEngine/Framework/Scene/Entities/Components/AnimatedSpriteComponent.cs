@@ -29,6 +29,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private AssetContentManager _assetContentManager;
     private IPhysicsWorldContext? _physicsWorldContext;
     private SpriteRendererComponent _spriteRenderer;
+    private DepthSortable2DComponent? _depthSortable2DComponent;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
@@ -146,6 +147,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         base.InitializeWithWorld(world);
 
         _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
+    _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _assetContentManager = Owner.World.Game.AssetContentManager;
         _physicsWorldContext = Owner.World.PhysicsWorldContext;
 
@@ -233,12 +235,16 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
             //TODO : create list with all spriteData
             var sprite = Sprite.Create(spriteData, _assetContentManager);
-            _spriteRenderer.DrawSprite(sprite,
-                new Vector2(Position.X, Position.Y),
-                0.0f,
-                new Vector2(Scale.X, Scale.Y),
-                Color.White,
-                Position.Z);
+            var position = new Vector2(Position.X, Position.Y);
+            var scale = new Vector2(Scale.X, Scale.Y);
+            if (_depthSortable2DComponent != null)
+            {
+                var sortKey = _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame);
+                _spriteRenderer.DrawSprite(sprite, position, 0.0f, scale, Color.White, Position.Z, sortKey);
+                return;
+            }
+
+            _spriteRenderer.DrawSprite(sprite, position, 0.0f, scale, Color.White, Position.Z);
         }
     }
 

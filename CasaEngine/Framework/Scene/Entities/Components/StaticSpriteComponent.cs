@@ -20,6 +20,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private Sprite? _sprite;
     private SpriteData? _spriteData;
     private SpriteRendererComponent? _spriteRendererComponent;
+    private DepthSortable2DComponent? _depthSortable2DComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
     private IPhysicsWorldContext? _physicsWorldContext;
 
@@ -57,6 +58,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         base.InitializeWithWorld(world);
 
         _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
+    _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _physicsWorldContext = Owner.World.PhysicsWorldContext;
 
         if (SpriteAssetId != Guid.Empty && _spriteData == null)
@@ -118,12 +120,16 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
             return;
         }
 
-        _spriteRendererComponent.DrawSprite(_sprite,
-            new Vector2(Position.X, Position.Y),
-            0.0f,
-            new Vector2(Scale.X, Scale.Y),
-            Color.White,
-            Position.Z);
+        var position = new Vector2(Position.X, Position.Y);
+        var scale = new Vector2(Scale.X, Scale.Y);
+        if (_depthSortable2DComponent != null)
+        {
+            var sortKey = _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame);
+            _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color.White, Position.Z, sortKey);
+            return;
+        }
+
+        _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color.White, Position.Z);
     }
 
     public override void OnEnabledValueChange()
