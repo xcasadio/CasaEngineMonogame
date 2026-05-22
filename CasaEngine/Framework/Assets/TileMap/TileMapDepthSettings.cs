@@ -61,6 +61,16 @@ public readonly struct TileMapDepthSettings
 
     public bool UsesDynamicSort => SortMode != DepthSortMode2D.None;
 
+    public bool ShouldRenderTiles => Role is not TileMapDepthRole.CollisionOnly and not TileMapDepthRole.ObjectSource;
+
+    public bool KeepsStaticChunking => Role is TileMapDepthRole.Background
+        or TileMapDepthRole.Ground
+        or TileMapDepthRole.GroundDetails
+        or TileMapDepthRole.Foreground
+        or TileMapDepthRole.Debug;
+
+    public bool EmitsSortableObjects => SpawnAsEntity || Role is TileMapDepthRole.YSortedSource or TileMapDepthRole.ObjectSource;
+
     public static TileMapDepthSettings CreateDefault(TileMapDepthRole role)
     {
         var renderPass = GetDefaultRenderPass(role);

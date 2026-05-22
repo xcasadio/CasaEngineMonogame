@@ -182,6 +182,19 @@ public class TileMapDataTests
         Assert.Equal(TileMapDepthRole.Ground, tileMapData.Layers[0].Depth.Role);
         Assert.Equal(RenderPass2D.Ground, tileMapData.Layers[0].Depth.RenderPass);
         Assert.Equal(DepthSortMode2D.None, tileMapData.Layers[0].Depth.SortMode);
+        Assert.True(tileMapData.Layers[0].Depth.ShouldRenderTiles);
+        Assert.True(tileMapData.Layers[0].Depth.KeepsStaticChunking);
+        Assert.False(tileMapData.Layers[0].Depth.EmitsSortableObjects);
+    }
+
+    [Fact]
+    public void DepthRoleHelpers_IdentifyObjectSourceLayers()
+    {
+        var objectSource = TileMapDepthSettings.CreateDefault(TileMapDepthRole.ObjectSource);
+
+        Assert.False(objectSource.ShouldRenderTiles);
+        Assert.False(objectSource.KeepsStaticChunking);
+        Assert.True(objectSource.EmitsSortableObjects);
     }
 
     [Fact]

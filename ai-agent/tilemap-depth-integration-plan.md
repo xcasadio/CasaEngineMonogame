@@ -60,7 +60,7 @@ Regles d'execution pour l'agent IA :
   - Garantir un fallback identique au comportement actuel si le composant est absent.
   - Commit attendu : `Route sprite components through 2D depth`.
 
-- ⏳ Preparar l'integration TileMap avec les roles de profondeur
+- ✅ Preparar l'integration TileMap avec les roles de profondeur
   - Exposer les metadata de profondeur des layers TileMap depuis `TileMapLayerData`.
   - Documenter ou coder le mapping par defaut des layers existants vers les passes fixes.
   - Conserver le rendu chunk statique pour les layers fixes.

@@ -266,6 +266,11 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
         {
             var layer = Layers[layerIndex];
+            if (!layer.TileMapLayerData.Depth.ShouldRenderTiles)
+            {
+                continue;
+            }
+
             var layerZ = layer.TileMapLayerData.zOffset;
             var worldZ = translation.Z + layerZ;
 
