@@ -19,13 +19,13 @@ Regles d'execution pour l'agent IA :
 
 ## Taches
 
-- 🚧 Creer le plan agent detaille
+- ✅ Creer le plan agent detaille
   - Creer ce fichier de plan.
   - Reprendre les contraintes du document `docs/tilemaps-gestion-profondeur.md`.
   - Inclure explicitement la mise a jour de `RPGDemo`.
   - Commit attendu : `Add tilemap depth integration agent plan`.
 
-- ⏳ Ajouter les fondations de tri 2D
+- ✅ Ajouter les fondations de tri 2D
   - Ajouter une representation comparable de la cle de tri 2D.
   - Ajouter les enums minimales pour render pass et mode de tri.
   - Ajouter des helpers sans allocation par frame.
