@@ -26,7 +26,7 @@ Validation :
 - le markdown n'a pas de diagnostic ;
 - un commit documente la creation du plan.
 
-### ⏳ Todo - P1. Exposer les requetes physiques necessaires
+### ✅ Done - P1. Exposer les requetes physiques necessaires
 
 Objectif : rendre utilisables les sweeps de formes convexes depuis la couche physique CasaEngine.
 

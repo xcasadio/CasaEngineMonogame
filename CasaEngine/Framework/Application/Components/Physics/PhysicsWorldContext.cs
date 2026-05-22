@@ -145,6 +145,21 @@ public sealed class PhysicsWorldContext : IPhysicsWorldContext, IDisposable
         PhysicsEngine.ClearCollisionDataOf(component);
     }
 
+    public HitResult ShapeSweep(ConvexShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    {
+        return PhysicsEngine.ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+    }
+
+    public bool ShapeSweep(ConvexShape shape, Matrix from, Matrix to, out HitResult result, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    {
+        return PhysicsEngine.ShapeSweep(shape, from, to, out result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+    }
+
+    public void ShapeSweepPenetrating(ConvexShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    {
+        PhysicsEngine.ShapeSweepPenetrating(shape, from, to, resultsOutput, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+    }
+
     public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)
     {
         return PhysicsEngine.WorldRayCast(ref start, ref end, dir);
