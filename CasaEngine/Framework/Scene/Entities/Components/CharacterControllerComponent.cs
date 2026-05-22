@@ -18,8 +18,17 @@ public class CharacterControllerComponent : EntityComponent
     private CharacterControllerSettings _settings = new();
     private Vector2 _moveIntent;
     private bool _jumpRequested;
+    private float _jumpBufferRemainingSeconds;
+    private float _coyoteTimeRemainingSeconds;
+    private bool _dashRequested;
+    private Vector2 _dashRequestedDirection;
+    private Vector2 _dashDirection;
+    private float _dashRemainingSeconds;
+    private float _dashCooldownRemainingSeconds;
     private CharacterControllerGroundInfo _groundInfo = CharacterControllerGroundInfo.None;
     private HitResult _lastCollisionHit;
+    private HitResult _stepSupportHit;
+    private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
     private CapsuleShape? _sweepShape;
@@ -35,8 +44,17 @@ public class CharacterControllerComponent : EntityComponent
         _settings = other._settings.Clone();
         _moveIntent = other._moveIntent;
         _jumpRequested = other._jumpRequested;
+        _jumpBufferRemainingSeconds = other._jumpBufferRemainingSeconds;
+        _coyoteTimeRemainingSeconds = other._coyoteTimeRemainingSeconds;
+        _dashRequested = other._dashRequested;
+        _dashRequestedDirection = other._dashRequestedDirection;
+        _dashDirection = other._dashDirection;
+        _dashRemainingSeconds = other._dashRemainingSeconds;
+        _dashCooldownRemainingSeconds = other._dashCooldownRemainingSeconds;
         _groundInfo = other._groundInfo;
         _lastCollisionHit = other._lastCollisionHit;
+        _stepSupportHit = other._stepSupportHit;
+        _hasStepSupportHit = other._hasStepSupportHit;
         _lastRequestedDisplacement = other._lastRequestedDisplacement;
         _lastActualDisplacement = other._lastActualDisplacement;
         ControlMode = other.ControlMode;
@@ -61,11 +79,23 @@ public class CharacterControllerComponent : EntityComponent
 
     public Vector3 Velocity { get; private set; }
 
+    public float JumpBufferRemainingSeconds => _jumpBufferRemainingSeconds;
+
+    public float CoyoteTimeRemainingSeconds => _coyoteTimeRemainingSeconds;
+
+    public bool IsDashing => _dashRemainingSeconds > 0f;
+
+    public float DashRemainingSeconds => _dashRemainingSeconds;
+
+    public float DashCooldownRemainingSeconds => _dashCooldownRemainingSeconds;
+
     public bool IsGrounded => _groundInfo.IsGrounded;
 
     public Vector3 GroundNormal => _groundInfo.Normal;
 
     public PhysicsBaseComponent? GroundCollider => _groundInfo.Collider;
+
+    public Vector3 GroundVelocity => _groundInfo.Collider?.Velocity ?? Vector3.Zero;
 
     public float GroundSlopeAngle => _groundInfo.SlopeAngle;
 
@@ -85,6 +115,7 @@ public class CharacterControllerComponent : EntityComponent
         IsGrounded,
         GroundNormal,
         GroundCollider,
+        GroundVelocity,
         GroundSlopeAngle,
         LastCollisionHit,
         LastRequestedDisplacement,
@@ -136,15 +167,34 @@ public class CharacterControllerComponent : EntityComponent
         }
 
         _settings.Validate();
+        UpdateTimedState(elapsedTime);
+        TryStartDash();
 
         var velocity = Velocity;
-        ApplyHorizontalVelocity(ref velocity, elapsedTime);
+        var inheritedGroundDisplacement = GetGroundDisplacement(elapsedTime);
+        if (IsDashing)
+        {
+            ApplyDashVelocity(ref velocity, elapsedTime);
+        }
+        else
+        {
+            ApplyHorizontalVelocity(ref velocity, elapsedTime);
+        }
+
         ApplyVerticalVelocity(ref velocity, elapsedTime);
 
+        var actualGroundDisplacement = Vector3.Zero;
+        if (inheritedGroundDisplacement.LengthSquared() > MinMoveDistanceSquared)
+        {
+            actualGroundDisplacement = MoveWithCollisions(rootComponent, inheritedGroundDisplacement);
+        }
+
         var requestedDisplacement = velocity * elapsedTime;
-        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement);
-    _lastRequestedDisplacement = requestedDisplacement;
-    _lastActualDisplacement = actualDisplacement;
+        var actualDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared
+            ? MoveWithCollisions(rootComponent, requestedDisplacement)
+            : Vector3.Zero;
+        _lastRequestedDisplacement = inheritedGroundDisplacement + requestedDisplacement;
+        _lastActualDisplacement = actualGroundDisplacement + actualDisplacement;
 
         if (elapsedTime > 0f)
         {
@@ -154,6 +204,17 @@ public class CharacterControllerComponent : EntityComponent
         UpdateGround(rootComponent, ref velocity);
 
         Velocity = velocity;
+    UpdatePostMovementTimers(elapsedTime);
+    }
+
+    private Vector3 GetGroundDisplacement(float elapsedTime)
+    {
+        if (elapsedTime <= 0f || !IsGrounded || _jumpRequested)
+        {
+            return Vector3.Zero;
+        }
+
+        return GroundVelocity * elapsedTime;
     }
 
     public void ValidateDependencies()
@@ -211,15 +272,164 @@ public class CharacterControllerComponent : EntityComponent
         }
 
         _jumpRequested = true;
+        _jumpBufferRemainingSeconds = Math.Max(0f, _settings.JumpBufferSeconds);
+    }
+
+    public bool RequestDash(Vector2 direction)
+    {
+        if (ControlMode == CharacterControlMode.Disabled
+            || _settings.DashSpeed <= 0f
+            || _settings.DashDurationSeconds <= 0f
+            || IsDashing
+            || _dashCooldownRemainingSeconds > 0f)
+        {
+            return false;
+        }
+
+        if (direction.LengthSquared() <= 0f)
+        {
+            direction = _moveIntent;
+        }
+
+        if (direction.LengthSquared() <= 0f)
+        {
+            direction = new Vector2(Velocity.X, -Velocity.Z);
+        }
+
+        if (direction.LengthSquared() <= 0f)
+        {
+            return false;
+        }
+
+        if (direction.LengthSquared() > 1f)
+        {
+            direction.Normalize();
+        }
+
+        _dashRequested = true;
+        _dashRequestedDirection = direction;
+        return true;
     }
 
     public void Stop()
     {
         _moveIntent = Vector2.Zero;
         _jumpRequested = false;
+        _jumpBufferRemainingSeconds = 0f;
+        _coyoteTimeRemainingSeconds = 0f;
+        _dashRequested = false;
+        _dashRequestedDirection = Vector2.Zero;
+        _dashDirection = Vector2.Zero;
+        _dashRemainingSeconds = 0f;
+        _dashCooldownRemainingSeconds = 0f;
         Velocity = Vector3.Zero;
         _lastRequestedDisplacement = Vector3.Zero;
         _lastActualDisplacement = Vector3.Zero;
+    }
+
+    public Vector3 Move(Vector3 requestedDisplacement)
+    {
+        if (ControlMode == CharacterControlMode.Disabled || requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared)
+        {
+            _lastRequestedDisplacement = requestedDisplacement;
+            _lastActualDisplacement = Vector3.Zero;
+            return Vector3.Zero;
+        }
+
+        var rootComponent = Owner?.RootComponent;
+        if (rootComponent == null)
+        {
+            _lastRequestedDisplacement = requestedDisplacement;
+            _lastActualDisplacement = Vector3.Zero;
+            return Vector3.Zero;
+        }
+
+        _settings.Validate();
+        var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement);
+        _lastRequestedDisplacement = requestedDisplacement;
+        _lastActualDisplacement = actualDisplacement;
+        return actualDisplacement;
+    }
+
+    public CharacterControllerInputSnapshot CaptureInputSnapshot()
+    {
+        return new CharacterControllerInputSnapshot(
+            _moveIntent,
+            _jumpRequested,
+            _dashRequested,
+            _dashRequestedDirection);
+    }
+
+    public void ApplyInputSnapshot(CharacterControllerInputSnapshot inputSnapshot)
+    {
+        SetMoveIntent(inputSnapshot.MoveIntent);
+
+        if (inputSnapshot.JumpRequested)
+        {
+            RequestJump();
+        }
+
+        if (inputSnapshot.DashRequested)
+        {
+            RequestDash(inputSnapshot.DashDirection);
+        }
+    }
+
+    public CharacterControllerStateSnapshot CaptureStateSnapshot()
+    {
+        var rootComponent = Owner?.RootComponent;
+
+        return new CharacterControllerStateSnapshot(
+            rootComponent?.Position ?? Vector3.Zero,
+            rootComponent?.Orientation ?? Quaternion.Identity,
+            ControlMode,
+            MovementState,
+            Velocity,
+            _moveIntent,
+            _jumpRequested,
+            _jumpBufferRemainingSeconds,
+            _coyoteTimeRemainingSeconds,
+            _dashRequested,
+            _dashRequestedDirection,
+            _dashDirection,
+            _dashRemainingSeconds,
+            _dashCooldownRemainingSeconds,
+            IsGrounded,
+            GroundNormal,
+            GroundSlopeAngle,
+            _lastRequestedDisplacement,
+            _lastActualDisplacement);
+    }
+
+    public void RestoreStateSnapshot(CharacterControllerStateSnapshot stateSnapshot)
+    {
+        var rootComponent = Owner?.RootComponent;
+        if (rootComponent != null)
+        {
+            rootComponent.Position = stateSnapshot.Position;
+            rootComponent.Orientation = stateSnapshot.Orientation;
+        }
+
+        ControlMode = stateSnapshot.ControlMode;
+        MovementState = stateSnapshot.MovementState;
+        Velocity = stateSnapshot.Velocity;
+        _moveIntent = NormalizeDirection(stateSnapshot.MoveIntent);
+        _jumpRequested = stateSnapshot.JumpRequested;
+        _jumpBufferRemainingSeconds = Math.Max(0f, stateSnapshot.JumpBufferRemainingSeconds);
+        _coyoteTimeRemainingSeconds = Math.Max(0f, stateSnapshot.CoyoteTimeRemainingSeconds);
+        _dashRequested = stateSnapshot.DashRequested;
+        _dashRequestedDirection = NormalizeDirection(stateSnapshot.DashRequestedDirection);
+        _dashDirection = NormalizeDirection(stateSnapshot.DashDirection);
+        _dashRemainingSeconds = Math.Max(0f, stateSnapshot.DashRemainingSeconds);
+        _dashCooldownRemainingSeconds = Math.Max(0f, stateSnapshot.DashCooldownRemainingSeconds);
+        _groundInfo = stateSnapshot.IsGrounded
+            ? new CharacterControllerGroundInfo(true, NormalizeGroundNormal(stateSnapshot.GroundNormal), null, Math.Max(0f, stateSnapshot.GroundSlopeAngle))
+            : CharacterControllerGroundInfo.None;
+        _lastCollisionHit = default;
+        _hasStepSupportHit = false;
+        _stepSupportHit = default;
+        _lastRequestedDisplacement = stateSnapshot.LastRequestedDisplacement;
+        _lastActualDisplacement = stateSnapshot.LastActualDisplacement;
     }
 
     public void Teleport(Vector3 position)
@@ -266,6 +476,7 @@ public class CharacterControllerComponent : EntityComponent
     {
         var result = _jumpRequested;
         _jumpRequested = false;
+        _jumpBufferRemainingSeconds = 0f;
         return result;
     }
 
@@ -287,6 +498,8 @@ public class CharacterControllerComponent : EntityComponent
     protected void MarkJumpStarted()
     {
         _jumpRequested = false;
+        _jumpBufferRemainingSeconds = 0f;
+        _coyoteTimeRemainingSeconds = 0f;
         MovementState = CharacterMovementState.Jumping;
         JumpStarted?.Invoke(this, EventArgs.Empty);
     }
@@ -320,18 +533,29 @@ public class CharacterControllerComponent : EntityComponent
         velocity.Z = horizontalVelocity.Z;
     }
 
+    private void ApplyDashVelocity(ref Vector3 velocity, float elapsedTime)
+    {
+        var dashTime = Math.Min(elapsedTime, _dashRemainingSeconds);
+        var dashScale = elapsedTime > 0f ? dashTime / elapsedTime : 0f;
+        var dashVelocity = new Vector3(_dashDirection.X, 0f, -_dashDirection.Y) * _settings.DashSpeed * dashScale;
+
+        velocity.X = dashVelocity.X;
+        velocity.Z = dashVelocity.Z;
+        _dashRemainingSeconds = Math.Max(0f, _dashRemainingSeconds - elapsedTime);
+        if (_dashRemainingSeconds <= 0f)
+        {
+            _dashDirection = Vector2.Zero;
+            _dashCooldownRemainingSeconds = _settings.DashCooldownSeconds;
+        }
+    }
+
     private void ApplyVerticalVelocity(ref Vector3 velocity, float elapsedTime)
     {
-        if (_jumpRequested)
+        if (HasBufferedJump() && CanStartJump())
         {
-            if (IsGrounded)
-            {
-                velocity.Y = _settings.JumpSpeed;
-                SetGroundInfo(CharacterControllerGroundInfo.None);
-                MarkJumpStarted();
-            }
-
-            _jumpRequested = false;
+            velocity.Y = _settings.JumpSpeed;
+            SetGroundInfo(CharacterControllerGroundInfo.None);
+            MarkJumpStarted();
         }
 
         if (IsGrounded)
@@ -353,9 +577,94 @@ public class CharacterControllerComponent : EntityComponent
         }
     }
 
+    private void UpdateTimedState(float elapsedTime)
+    {
+        if (_dashCooldownRemainingSeconds > 0f)
+        {
+            _dashCooldownRemainingSeconds = Math.Max(0f, _dashCooldownRemainingSeconds - elapsedTime);
+        }
+
+        if (IsGrounded)
+        {
+            _coyoteTimeRemainingSeconds = _settings.CoyoteTimeSeconds;
+        }
+    }
+
+    private void UpdatePostMovementTimers(float elapsedTime)
+    {
+        if (!IsGrounded && _coyoteTimeRemainingSeconds > 0f)
+        {
+            _coyoteTimeRemainingSeconds = Math.Max(0f, _coyoteTimeRemainingSeconds - elapsedTime);
+        }
+
+        if (!_jumpRequested)
+        {
+            return;
+        }
+
+        if (_settings.JumpBufferSeconds <= 0f)
+        {
+            _jumpRequested = false;
+            _jumpBufferRemainingSeconds = 0f;
+            return;
+        }
+
+        _jumpBufferRemainingSeconds = Math.Max(0f, _jumpBufferRemainingSeconds - elapsedTime);
+        if (_jumpBufferRemainingSeconds <= 0f)
+        {
+            _jumpRequested = false;
+        }
+    }
+
+    private void TryStartDash()
+    {
+        if (!_dashRequested || IsDashing || _dashCooldownRemainingSeconds > 0f)
+        {
+            return;
+        }
+
+        _dashRequested = false;
+        _dashDirection = _dashRequestedDirection;
+        _dashRequestedDirection = Vector2.Zero;
+        _dashRemainingSeconds = _settings.DashDurationSeconds;
+    }
+
+    private bool HasBufferedJump()
+    {
+        return _jumpRequested && (_settings.JumpBufferSeconds <= 0f || _jumpBufferRemainingSeconds > 0f);
+    }
+
+    private bool CanStartJump()
+    {
+        return IsGrounded || _coyoteTimeRemainingSeconds > 0f;
+    }
+
+    private static Vector2 NormalizeDirection(Vector2 direction)
+    {
+        if (direction.LengthSquared() > 1f)
+        {
+            direction.Normalize();
+        }
+
+        return direction;
+    }
+
+    private static Vector3 NormalizeGroundNormal(Vector3 normal)
+    {
+        if (normal.LengthSquared() <= 0f)
+        {
+            return Vector3.Up;
+        }
+
+        normal.Normalize();
+        return normal;
+    }
+
     private Vector3 MoveWithCollisions(SceneComponent rootComponent, Vector3 requestedDisplacement)
     {
         _lastCollisionHit = default;
+        _hasStepSupportHit = false;
+        _stepSupportHit = default;
 
         if (requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared
             || !TryResolveCollisionDependencies(out var physicsWorldContext, out var capsuleCollisionComponent))
@@ -385,6 +694,15 @@ public class CharacterControllerComponent : EntityComponent
 
             _lastCollisionHit = hitResult;
 
+            if (TryStepMove(physicsWorldContext, capsuleCollisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, out var steppedPosition, out var stepSupportHit))
+            {
+                currentPosition = steppedPosition;
+                _hasStepSupportHit = true;
+                _stepSupportHit = stepSupportHit;
+                _lastCollisionHit = stepSupportHit;
+                break;
+            }
+
             var displacementLength = remainingDisplacement.Length();
             if (displacementLength <= 0f)
             {
@@ -404,8 +722,74 @@ public class CharacterControllerComponent : EntityComponent
         return currentPosition - startPosition;
     }
 
+    private bool TryStepMove(
+        IPhysicsWorldContext physicsWorldContext,
+        CapsuleCollisionComponent capsuleCollisionComponent,
+        ConvexShape sweepShape,
+        Vector3 currentPosition,
+        Vector3 remainingDisplacement,
+        HitResult blockingHit,
+        out Vector3 steppedPosition,
+        out HitResult stepSupportHit)
+    {
+        steppedPosition = currentPosition;
+        stepSupportHit = default;
+
+        if (_settings.StepHeight <= 0f || !IsGrounded)
+        {
+            return false;
+        }
+
+        var horizontalDisplacement = new Vector3(remainingDisplacement.X, 0f, remainingDisplacement.Z);
+        if (horizontalDisplacement.LengthSquared() <= MinMoveDistanceSquared)
+        {
+            return false;
+        }
+
+        if (TryGetWalkableGround(blockingHit.Normal, out _))
+        {
+            return false;
+        }
+
+        var raisedPosition = currentPosition + Vector3.Up * _settings.StepHeight;
+        if (Sweep(physicsWorldContext, sweepShape, currentPosition, raisedPosition, capsuleCollisionComponent, out _))
+        {
+            return false;
+        }
+
+        var forwardPosition = raisedPosition + horizontalDisplacement;
+        if (Sweep(physicsWorldContext, sweepShape, raisedPosition, forwardPosition, capsuleCollisionComponent, out _))
+        {
+            return false;
+        }
+
+        var stepDownDistance = _settings.StepHeight + Math.Max(_settings.GroundSnapDistance, _settings.SkinWidth);
+        var downTarget = forwardPosition - Vector3.Up * stepDownDistance;
+        if (!Sweep(physicsWorldContext, sweepShape, forwardPosition, downTarget, capsuleCollisionComponent, out stepSupportHit)
+            || !TryGetWalkableGround(stepSupportHit.Normal, out _))
+        {
+            stepSupportHit = default;
+            return false;
+        }
+
+        var supportDistance = Math.Max(0f, stepSupportHit.HitFraction * stepDownDistance - _settings.SkinWidth);
+        steppedPosition = forwardPosition - Vector3.Up * supportDistance;
+        return true;
+    }
+
     private void UpdateGround(SceneComponent rootComponent, ref Vector3 velocity)
     {
+        if (_hasStepSupportHit && TryGetWalkableGround(_stepSupportHit.Normal, out var stepSlopeAngle))
+        {
+            _hasStepSupportHit = false;
+            _lastCollisionHit = _stepSupportHit;
+            velocity.Y = 0f;
+            SetGroundInfo(new CharacterControllerGroundInfo(true, _stepSupportHit.Normal, _stepSupportHit.Collider, stepSlopeAngle));
+            return;
+        }
+
+        _hasStepSupportHit = false;
+
         if (velocity.Y > 0f)
         {
             SetGroundInfo(CharacterControllerGroundInfo.None);

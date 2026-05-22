@@ -8,6 +8,20 @@
 - Ne pas inventer d'API : chaque dependance doit etre constatee dans le code ou creee par une tache explicite.
 - Statuts autorises : ✅ Done, 🚧 In progress, ⏳ Todo, 🧪 Needs testing, ⚠️ Blocked.
 
+## Decisions d'architecture
+
+### ✅ Done - A1. Positionner `MoveTo` hors du noyau Character Controller
+
+Decision : `MoveTo` est une commande de haut niveau et ne doit pas etre ajoutee directement a l'API noyau de `CharacterControllerComponent`.
+
+Details :
+
+- le noyau `CharacterControllerComponent` reste responsable de la locomotion et de la collision : `SetMoveIntent`, `RequestJump`, `Stop`, `Teleport`, vitesse, sol, pente, slide ;
+- `MoveTo(destination, ...)` appartient a une couche au-dessus : IA, navigation, script ou cutscene ;
+- cette couche convertit une destination ou un waypoint en intention compatible avec le controller, notamment via `SetMoveIntent(Vector2)` ;
+- si une API plus directe devient necessaire, preferer une commande bas niveau d'intention ou de vitesse souhaitee plutot qu'un `MoveTo` portant destination, arret, echec, timeout et callbacks ;
+- toute tache future mentionnant `MoveTo` doit preciser le driver qui le porte et ne pas l'ajouter au controller sans decision explicite.
+
 ## Prerequis / points bloquants
 
 ### ✅ Done - P0. Creer le plan de travail agent
@@ -130,64 +144,165 @@ Validation :
 
 ## V2 - enrichissement gameplay
 
-### ⏳ Todo - V2.1. Step offset
+### ✅ Done - V2.1. Step offset
 
 Objectif : permettre de monter de petites marches sans saut.
 
 Livrables : sweep up, forward, down ; validation de sol final ; tests de marche et obstacle trop haut.
 
-### ⏳ Todo - V2.2. Plateformes mobiles simples
+Validation :
+
+- tests `CharacterController` OK ;
+- build `CasaEngine.Tests` OK via `dotnet test --filter CharacterController`.
+
+### ✅ Done - V2.2. Plateformes mobiles simples
 
 Objectif : heriter une translation simple du sol courant.
 
 Livrables : vitesse de sol, changement de sol, saut depuis plateforme ; tests de translation horizontale/verticale.
 
-### ⏳ Todo - V2.3. Bridge animation
+Validation :
+
+- tests `CharacterController` OK ;
+- build `CasaEngine.Tests` OK via `dotnet test --filter CharacterController`.
+
+### ✅ Done - V2.3. Bridge animation
 
 Objectif : exposer les etats V1 vers `SkinnedMeshComponent` / `AnimationController` sans API Animator inventee.
 
 Livrables : adaptateur optionnel, donnees de locomotion, tests de mapping pur.
 
-### ⏳ Todo - V2.4. Bridge cutscene minimal
+Validation :
+
+- tests de mapping locomotion OK ;
+- tests `CharacterController` OK ;
+- build `CasaEngine.Tests` OK via `dotnet test --filter CharacterController`.
+
+### ✅ Done - V2.4. Bridge cutscene minimal
 
 Objectif : permettre aux cutscenes de prendre et rendre l'autorite.
 
-Livrables : helper script/cutscene, commande move-to si le solveur V1 est stable, tests de mode de controle.
+Livrables : helper script/cutscene, commande `MoveTo` portee par la couche cutscene/script si le solveur V1 est stable, conversion en intention controller, tests de mode de controle.
 
-### ⏳ Todo - V2.5. Options gameplay usuelles
+Implementation :
+
+- `CharacterControllerMoveToDriverComponent` : driver haut niveau, prend le `CharacterControlMode.Cutscene`, convertit destination XZ en `SetMoveIntent(Vector2)`, restaure le mode precedent a l'arrivee, au timeout ou a l'annulation ;
+- `MoveToCutsceneActionData` + serialization/validation/runtime coroutine : action cutscene `MoveTo` ciblee par nom d'entite, sans ajouter `MoveTo` au coeur du controller ;
+- affichage read-only editor du detail `MoveTo`.
+
+Validation :
+
+- tests driver authority/timeout OK ;
+- tests serialization/validation `MoveTo` OK ;
+- test runtime `CutsceneDirector` -> `MoveTo` -> restore mode OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "Cutscene|CharacterController"` OK : 49 tests, 0 echec.
+
+### ✅ Done - V2.5. Options gameplay usuelles
 
 Objectif : ajouter uniquement les options demandant peu de dependances externes.
 
 Livrables : coyote time, jump buffer, dash simple, crouch si la capsule peut changer de taille proprement.
 
+Implementation :
+
+- `CoyoteTimeSeconds` et `JumpBufferSeconds` dans `CharacterControllerSettings` ;
+- buffer de saut conserve une demande jusqu'a l'atterrissage ou expiration ;
+- coyote time autorise un saut juste apres la perte du sol ;
+- `RequestDash(Vector2)` applique un dash horizontal simple avec duree/cooldown (`DashSpeed`, `DashDurationSeconds`, `DashCooldownSeconds`) ;
+- crouch non implemente dans cette tranche : `CapsuleCollisionComponent` expose une capsule mutable mais pas d'API publique sure pour resize + recreation physique + validation headroom.
+
+Validation :
+
+- tests settings load/validation OK ;
+- tests coyote time, jump buffer, dash/cooldown OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "CharacterController"` OK : 39 tests, 0 echec.
+
 ## V3 - systemes avances
 
-### ⏳ Todo - V3.1. Root motion avec collision
+### ✅ Done - V3.1. Root motion avec collision
 
 Objectif : consommer `SkinnedMeshComponent.ConsumeRootMotionDelta()` via le solveur du controller.
 
 Livrables : mode root motion, validation collision, tests de delta applique/consume.
 
-### ⏳ Todo - V3.2. Navigation et IA
+Implementation :
+
+- `IRootMotionDeltaSource` expose `RootMotionMode` et `ConsumeRootMotionDelta()` ;
+- `SkinnedMeshComponent` implemente cette source ;
+- `CharacterControllerRootMotionBridgeComponent` consomme la root motion, force `RootMotionMode.Apply` par defaut, applique la translation via `CharacterControllerComponent.Move(Vector3)` et peut appliquer la rotation ;
+- `CharacterControllerComponent.Move(Vector3)` reutilise le solveur collision/slide du controller pour les deplacements externes.
+
+Validation :
+
+- test consommation root motion + application par controller OK ;
+- test rotation optionnelle OK ;
+- test `Move(Vector3)` collisionne avec sweep/slide OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "CharacterController"` OK : 42 tests, 0 echec.
+
+### ✅ Done - V3.2. Navigation et IA
 
 Objectif : connecter un agent de navigation au controller par intentions.
 
-Livrables : adaptateur navigation, suivi de cible, tests de commande sans input joueur.
+Livrables : adaptateur navigation, commande `MoveTo` portee par l'agent/driver de navigation, suivi de cible ou waypoint, conversion en `SetMoveIntent`, tests de commande sans input joueur.
 
-### ⏳ Todo - V3.3. Locomotion avancee
+Implementation :
+
+- `CharacterControllerSteeringBridgeComponent` convertit `SteeringAgentComponent.CurrentCommand.DesiredVelocity` en `CharacterControllerComponent.SetMoveIntent(Vector2)` ;
+- `CharacterControllerNavigationDriverComponent` porte `MoveTo`, `SetPath(IReadOnlyList<Vector3>)` et `FollowTarget(Entity)` en `CharacterControlMode.AI` ;
+- les waypoints sont consommes tels quels : pas de nouveau solveur A* ni duplication de `PathPlanner`/`AStarSearch` ;
+- mapping explicite steering XY -> controller XZ dans le bridge, configurable via `SteeringUsesXYPlane`.
+
+Validation :
+
+- test SteeringAgent -> intent controller OK ;
+- tests `MoveTo`, chemin multi-waypoints et follow target OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "CharacterController|Navigation"` OK : 46 tests, 0 echec.
+
+### ⚠️ Blocked - V3.3. Locomotion avancee
 
 Objectif : ajouter les mouvements specifiques projet.
 
 Livrables : wall jump, wall slide, ledge grab, ladder, swimming/flying selon besoins valides.
 
-### ⏳ Todo - V3.4. Prediction/replay deterministe
+Blocage : aucun composant, asset, tag, volume ou regle gameplay existant ne definit encore wall jump, wall slide, ledge grab, ladder, swimming ou flying. Ne pas inventer ces mouvements dans le controller tant que les besoins projet et les donnees d'environnement ne sont pas valides.
+
+Validation :
+
+- recherche code/doc effectuee ;
+- tache a rouvrir quand les mouvements attendus et leurs donnees d'environnement sont specifies.
+
+### ✅ Done - V3.4. Prediction/replay deterministe
 
 Objectif : rendre le controller compatible avec reseau ou replay.
 
 Livrables : input snapshots, etat serialisable, correction, tests deterministes.
 
-### ⏳ Todo - V3.5. Ragdoll transition
+Implementation :
+
+- `CharacterControllerInputSnapshot` capture `MoveIntent`, jump et dash, avec round-trip JSON ;
+- `CharacterControllerStateSnapshot` capture position/orientation root, mode de controle, etat moteur, vitesse, timers jump/dash, sol et derniers deplacements, avec round-trip JSON ;
+- `CharacterControllerComponent.CaptureInputSnapshot()` / `ApplyInputSnapshot(...)` pour rejouer les commandes ;
+- `CharacterControllerComponent.CaptureStateSnapshot()` / `RestoreStateSnapshot(...)` pour correction/prediction sans declencher de commandes haut niveau.
+
+Validation :
+
+- tests snapshot input/state, correction et replay deterministe OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "CharacterController"` OK : 50 tests, 0 echec.
+
+### ✅ Done - V3.5. Ragdoll transition
 
 Objectif : basculer proprement entre controller cinematique et corps physiques.
 
 Livrables : transfert transform/vitesse, desactivation controller, restauration controle.
+
+Implementation :
+
+- `CharacterControllerRagdollBridgeComponent` enregistre les corps physiques ragdoll (`PhysicsBaseComponent`) sans creer de systeme de squelette invente ;
+- `EnterRagdoll()` sauvegarde l'etat du controller, transfere la vitesse aux corps enregistres, active leur simulation et passe le controller en `CharacterControlMode.Disabled` ;
+- `ExitRagdoll()` restaure le controller, peut recopier position/orientation depuis le corps de reference, et peut optionnellement restaurer la vitesse depuis ce corps ;
+- le bridge reste generique : il suppose que les corps ragdoll sont fournis par une couche animation/physics future.
+
+Validation :
+
+- tests entree ragdoll, sortie/restauration, vitesse de reference et anti-duplication des corps OK ;
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj --filter "CharacterController"` OK : 54 tests, 0 echec.

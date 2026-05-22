@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Cutscenes.Serialization;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -36,6 +37,34 @@ public sealed class CutsceneAssetJsonSerializerTests
     }
 
     [Fact]
+    public void SaveLoad_RoundTripsMoveToAction()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "MoveHero",
+            RootAction = new MoveToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(1f, 2f, 3f),
+                StoppingDistance = 0.25f,
+                TimeoutSeconds = 5f,
+            }
+        };
+        var node = new JObject();
+
+        CutsceneAssetJsonSerializer.Save(asset, node);
+
+        var loaded = new CutsceneAsset();
+        loaded.Load(node);
+
+        MoveToCutsceneActionData moveTo = Assert.IsType<MoveToCutsceneActionData>(loaded.RootAction);
+        Assert.Equal("Hero", moveTo.EntityName);
+        Assert.Equal(new Vector3(1f, 2f, 3f), moveTo.Destination);
+        Assert.Equal(0.25f, moveTo.StoppingDistance);
+        Assert.Equal(5f, moveTo.TimeoutSeconds);
+    }
+
+    [Fact]
     public void Validate_ReportsV1ErrorsAndWarnings()
     {
         var asset = new CutsceneAsset
@@ -58,6 +87,27 @@ public sealed class CutsceneAssetJsonSerializerTests
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("Wait.seconds"));
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Warning && message.Message.Contains("Parallel"));
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveActorTo"));
+    }
+
+    [Fact]
+    public void Validate_ReportsMoveToErrors()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "InvalidMoveTo",
+            RootAction = new MoveToCutsceneActionData
+            {
+                StoppingDistance = -1f,
+                TimeoutSeconds = -1f,
+            }
+        };
+
+        CutsceneValidationResult result = asset.Validate();
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.entity"));
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.stopping_distance"));
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.timeout_seconds"));
     }
 
     [Fact]

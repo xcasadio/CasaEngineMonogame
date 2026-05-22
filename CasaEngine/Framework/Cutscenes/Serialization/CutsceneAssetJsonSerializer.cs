@@ -1,4 +1,5 @@
 using CasaEngine.Core.Serialization;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Cutscenes.Serialization;
@@ -55,6 +56,13 @@ public static class CutsceneAssetJsonSerializer
                 node["seconds"] = waitAction.Seconds;
                 break;
 
+            case MoveToCutsceneActionData moveToAction:
+                node["entity"] = moveToAction.EntityName;
+                node["destination"] = SaveVector3(moveToAction.Destination);
+                node["stopping_distance"] = moveToAction.StoppingDistance;
+                node["timeout_seconds"] = moveToAction.TimeoutSeconds;
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 node["actions"] = SaveActions(sequenceAction.Actions);
                 break;
@@ -86,6 +94,13 @@ public static class CutsceneAssetJsonSerializer
             CutsceneActionTypes.Wait => new WaitCutsceneActionData
             {
                 Seconds = node["seconds"]?.GetSingle() ?? 0f
+            },
+            CutsceneActionTypes.MoveTo => new MoveToCutsceneActionData
+            {
+                EntityName = node["entity"]?.GetString() ?? string.Empty,
+                Destination = node["destination"] is { } destinationNode ? destinationNode.GetVector3() : Vector3.Zero,
+                StoppingDistance = node["stopping_distance"]?.GetSingle() ?? 0.1f,
+                TimeoutSeconds = node["timeout_seconds"]?.GetSingle() ?? 0f,
             },
             CutsceneActionTypes.Sequence => LoadSequence(node),
             CutsceneActionTypes.Parallel => LoadParallel(node),
@@ -121,5 +136,15 @@ public static class CutsceneAssetJsonSerializer
                 actions.Add(LoadAction(actionNode));
             }
         }
+    }
+
+    private static JObject SaveVector3(Vector3 value)
+    {
+        return new JObject
+        {
+            ["x"] = value.X,
+            ["y"] = value.Y,
+            ["z"] = value.Z,
+        };
     }
 }

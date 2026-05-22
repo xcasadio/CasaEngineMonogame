@@ -1,4 +1,6 @@
 using System.Collections;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting.Coroutines;
 
@@ -23,6 +25,22 @@ internal static class CutsceneActionCoroutineFactory
                 if (waitAction.Seconds > 0f)
                 {
                     yield return new WaitForSeconds(waitAction.Seconds);
+                }
+
+                break;
+
+            case MoveToCutsceneActionData moveToAction:
+                CharacterControllerMoveToDriverComponent moveToDriver = ResolveMoveToDriver(moveToAction, world);
+                moveToDriver.MoveTo(moveToAction.Destination, moveToAction.StoppingDistance, moveToAction.TimeoutSeconds);
+
+                while (moveToDriver.IsMoving)
+                {
+                    yield return null;
+                }
+
+                if (moveToDriver.HasTimedOut)
+                {
+                    throw new TimeoutException($"MoveTo action timed out for entity '{moveToAction.EntityName}'.");
                 }
 
                 break;
@@ -61,5 +79,40 @@ internal static class CutsceneActionCoroutineFactory
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
         }
+    }
+
+    private static CharacterControllerMoveToDriverComponent ResolveMoveToDriver(MoveToCutsceneActionData action, World world)
+    {
+        Entity entity = FindEntityByName(world, action.EntityName)
+            ?? throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' was not found.");
+
+        if (entity.GetComponent<CharacterControllerComponent>() == null)
+        {
+            throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.");
+        }
+
+        CharacterControllerMoveToDriverComponent driver = entity.GetComponent<CharacterControllerMoveToDriverComponent>();
+        if (driver != null)
+        {
+            return driver;
+        }
+
+        driver = new CharacterControllerMoveToDriverComponent();
+        entity.AddComponent(driver);
+        return driver;
+    }
+
+    private static Entity FindEntityByName(World world, string entityName)
+    {
+        for (int index = 0; index < world.Entities.Count; index++)
+        {
+            Entity entity = world.Entities[index];
+            if (string.Equals(entity.Name, entityName, StringComparison.Ordinal))
+            {
+                return entity;
+            }
+        }
+
+        return null;
     }
 }

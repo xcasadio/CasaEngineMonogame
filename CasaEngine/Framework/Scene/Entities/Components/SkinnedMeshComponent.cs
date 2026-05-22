@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Skinned Mesh")]
-public class SkinnedMeshComponent : PrimitiveComponent
+public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 {
     private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
     private SkinnedMesh? _skinnedMesh;

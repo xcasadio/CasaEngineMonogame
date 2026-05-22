@@ -35,6 +35,24 @@ public static class CutsceneValidator
 
                 break;
 
+            case MoveToCutsceneActionData moveToAction:
+                if (string.IsNullOrWhiteSpace(moveToAction.EntityName))
+                {
+                    result.AddError(path, "MoveTo.entity is required.");
+                }
+
+                if (moveToAction.StoppingDistance < 0f)
+                {
+                    result.AddError(path, "MoveTo.stopping_distance must be greater than or equal to zero.");
+                }
+
+                if (moveToAction.TimeoutSeconds < 0f)
+                {
+                    result.AddError(path, "MoveTo.timeout_seconds must be greater than or equal to zero.");
+                }
+
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 ValidateActionList(sequenceAction.Actions, path, "Sequence", result);
                 break;

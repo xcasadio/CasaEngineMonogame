@@ -21,8 +21,14 @@ public sealed class CharacterControllerSettings
         Deceleration = other.Deceleration;
         Gravity = other.Gravity;
         JumpSpeed = other.JumpSpeed;
+        CoyoteTimeSeconds = other.CoyoteTimeSeconds;
+        JumpBufferSeconds = other.JumpBufferSeconds;
+        DashSpeed = other.DashSpeed;
+        DashDurationSeconds = other.DashDurationSeconds;
+        DashCooldownSeconds = other.DashCooldownSeconds;
         MaxSlopeAngle = other.MaxSlopeAngle;
         GroundSnapDistance = other.GroundSnapDistance;
+        StepHeight = other.StepHeight;
         CollisionGroup = other.CollisionGroup;
         CollisionMask = other.CollisionMask;
         HitTriggers = other.HitTriggers;
@@ -44,9 +50,21 @@ public sealed class CharacterControllerSettings
 
     public float JumpSpeed { get; set; } = 5f;
 
+    public float CoyoteTimeSeconds { get; set; }
+
+    public float JumpBufferSeconds { get; set; }
+
+    public float DashSpeed { get; set; }
+
+    public float DashDurationSeconds { get; set; }
+
+    public float DashCooldownSeconds { get; set; }
+
     public float MaxSlopeAngle { get; set; } = 45f;
 
     public float GroundSnapDistance { get; set; } = 0.15f;
+
+    public float StepHeight { get; set; }
 
     public CollisionFilterGroups CollisionGroup { get; set; } = CollisionFilterGroups.DefaultFilter;
 
@@ -71,8 +89,14 @@ public sealed class CharacterControllerSettings
         Deceleration = ReadSingle(element, "deceleration", Deceleration);
         Gravity = ReadSingle(element, "gravity", Gravity);
         JumpSpeed = ReadSingle(element, "jump_speed", JumpSpeed);
+        CoyoteTimeSeconds = ReadSingle(element, "coyote_time_seconds", CoyoteTimeSeconds);
+        JumpBufferSeconds = ReadSingle(element, "jump_buffer_seconds", JumpBufferSeconds);
+        DashSpeed = ReadSingle(element, "dash_speed", DashSpeed);
+        DashDurationSeconds = ReadSingle(element, "dash_duration_seconds", DashDurationSeconds);
+        DashCooldownSeconds = ReadSingle(element, "dash_cooldown_seconds", DashCooldownSeconds);
         MaxSlopeAngle = ReadSingle(element, "max_slope_angle", MaxSlopeAngle);
         GroundSnapDistance = ReadSingle(element, "ground_snap_distance", GroundSnapDistance);
+        StepHeight = ReadSingle(element, "step_height", StepHeight);
         CollisionGroup = ReadEnum(element, "collision_group", CollisionGroup);
         CollisionMask = ReadEnum(element, "collision_mask", CollisionMask);
         HitTriggers = ReadBoolean(element, "hit_triggers", HitTriggers);
@@ -112,6 +136,16 @@ public sealed class CharacterControllerSettings
             throw new InvalidOperationException("Character controller gravity and jump speed cannot be negative.");
         }
 
+        if (CoyoteTimeSeconds < 0f || JumpBufferSeconds < 0f)
+        {
+            throw new InvalidOperationException("Character controller jump assist timings cannot be negative.");
+        }
+
+        if (DashSpeed < 0f || DashDurationSeconds < 0f || DashCooldownSeconds < 0f)
+        {
+            throw new InvalidOperationException("Character controller dash settings cannot be negative.");
+        }
+
         if (MaxSlopeAngle < 0f || MaxSlopeAngle >= 90f)
         {
             throw new InvalidOperationException("Character controller max slope angle must be in [0, 90).");
@@ -120,6 +154,11 @@ public sealed class CharacterControllerSettings
         if (GroundSnapDistance < 0f)
         {
             throw new InvalidOperationException("Character controller ground snap distance cannot be negative.");
+        }
+
+        if (StepHeight < 0f)
+        {
+            throw new InvalidOperationException("Character controller step height cannot be negative.");
         }
     }
 

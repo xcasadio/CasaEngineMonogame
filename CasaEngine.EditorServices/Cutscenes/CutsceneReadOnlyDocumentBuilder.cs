@@ -30,6 +30,13 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("seconds", waitAction.Seconds.ToString("0.###", CultureInfo.InvariantCulture));
                 break;
 
+            case MoveToCutsceneActionData moveToAction:
+                node.AddProperty("entity", moveToAction.EntityName);
+                node.AddProperty("destination", FormatVector3(moveToAction.Destination));
+                node.AddProperty("stopping_distance", moveToAction.StoppingDistance.ToString("0.###", CultureInfo.InvariantCulture));
+                node.AddProperty("timeout_seconds", moveToAction.TimeoutSeconds.ToString("0.###", CultureInfo.InvariantCulture));
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 node.AddProperty("children", sequenceAction.Actions.Count.ToString(CultureInfo.InvariantCulture));
                 AddChildren(node, sequenceAction.Actions, path);
@@ -58,6 +65,11 @@ public static class CutsceneReadOnlyDocumentBuilder
         {
             node.AddChild(BuildAction(actions[index], $"{path}.actions[{index}]"));
         }
+    }
+
+    private static string FormatVector3(Microsoft.Xna.Framework.Vector3 value)
+    {
+        return string.Create(CultureInfo.InvariantCulture, $"{value.X:0.###}, {value.Y:0.###}, {value.Z:0.###}");
     }
 
     private static IReadOnlyList<CutsceneValidationMessage> CopyValidationMessages(IReadOnlyList<CutsceneValidationMessage> messages)

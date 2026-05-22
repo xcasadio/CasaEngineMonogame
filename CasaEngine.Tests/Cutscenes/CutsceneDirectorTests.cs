@@ -1,6 +1,9 @@
 using CasaEngine.Framework.Cutscenes;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting.Coroutines;
+using Microsoft.Xna.Framework;
 using Xunit;
 
 namespace CasaEngine.Tests.Cutscenes;
@@ -78,6 +81,48 @@ public sealed class CutsceneDirectorTests
     }
 
     [Fact]
+    public void Play_MoveToActionTakesAndRestoresCharacterControl()
+    {
+        var world = new World();
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        world.Entities.Add(entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "MoveHero",
+            RootAction = new MoveToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(1f, 0f, 0f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        world.CoroutineManager.Update(Context(1));
+
+        CharacterControllerMoveToDriverComponent driver = entity.GetRequiredComponent<CharacterControllerMoveToDriverComponent>();
+        Assert.True(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.Cutscene, controller.ControlMode);
+
+        for (int frameIndex = 2; frameIndex <= 10; frameIndex++)
+        {
+            driver.Update(0.1f);
+            controller.Update(0.1f);
+            world.CoroutineManager.Update(Context(frameIndex));
+
+            if (!world.CutsceneDirector.IsPlaying)
+            {
+                break;
+            }
+        }
+
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
+        Assert.True(driver.HasReachedDestination);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+    }
+
+    [Fact]
     public void WorldClearStopsCutsceneDirector()
     {
         var world = new World();
@@ -141,5 +186,35 @@ public sealed class CutsceneDirectorTests
                 }
             }
         };
+    }
+
+    private static Entity CreateControlledEntity(out CharacterControllerComponent controller)
+    {
+        var entity = new Entity
+        {
+            Name = "Hero",
+            RootComponent = new TestSceneComponent(),
+        };
+
+        controller = new CharacterControllerComponent
+        {
+            Settings = new CharacterControllerSettings
+            {
+                MaxHorizontalSpeed = 10f,
+                Acceleration = 100f,
+                Deceleration = 100f,
+                Gravity = 0f,
+            }
+        };
+        entity.AddComponent(controller);
+        return entity;
+    }
+
+    private sealed class TestSceneComponent : SceneComponent
+    {
+        public override EntityComponent Clone()
+        {
+            return new TestSceneComponent();
+        }
     }
 }

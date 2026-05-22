@@ -28,6 +28,12 @@ public class CharacterControllerSettingsTests
             ["radius"] = 0.4f,
             ["height"] = 2.0f,
             ["max_horizontal_speed"] = 7.0f,
+            ["step_height"] = 0.25f,
+            ["coyote_time_seconds"] = 0.12f,
+            ["jump_buffer_seconds"] = 0.15f,
+            ["dash_speed"] = 12f,
+            ["dash_duration_seconds"] = 0.2f,
+            ["dash_cooldown_seconds"] = 0.4f,
             ["collision_mask"] = nameof(CollisionFilterGroups.StaticFilter),
             ["hit_triggers"] = true,
         };
@@ -37,6 +43,12 @@ public class CharacterControllerSettingsTests
         Assert.Equal(0.4f, settings.Radius);
         Assert.Equal(2.0f, settings.Height);
         Assert.Equal(7.0f, settings.MaxHorizontalSpeed);
+        Assert.Equal(0.25f, settings.StepHeight);
+        Assert.Equal(0.12f, settings.CoyoteTimeSeconds);
+        Assert.Equal(0.15f, settings.JumpBufferSeconds);
+        Assert.Equal(12f, settings.DashSpeed);
+        Assert.Equal(0.2f, settings.DashDurationSeconds);
+        Assert.Equal(0.4f, settings.DashCooldownSeconds);
         Assert.Equal(30f, settings.Acceleration);
         Assert.Equal(CollisionFilterGroups.StaticFilter, settings.CollisionMask);
         Assert.True(settings.HitTriggers);
@@ -63,6 +75,27 @@ public class CharacterControllerSettingsTests
         };
 
         Assert.Throws<InvalidOperationException>(settings.Validate);
+    }
+
+    [Fact]
+    public void Validate_RejectsNegativeStepHeight()
+    {
+        var settings = new CharacterControllerSettings
+        {
+            StepHeight = -0.01f,
+        };
+
+        Assert.Throws<InvalidOperationException>(settings.Validate);
+    }
+
+    [Fact]
+    public void Validate_RejectsNegativeGameplayOptionValues()
+    {
+        Assert.Throws<InvalidOperationException>(() => new CharacterControllerSettings { CoyoteTimeSeconds = -0.01f }.Validate());
+        Assert.Throws<InvalidOperationException>(() => new CharacterControllerSettings { JumpBufferSeconds = -0.01f }.Validate());
+        Assert.Throws<InvalidOperationException>(() => new CharacterControllerSettings { DashSpeed = -0.01f }.Validate());
+        Assert.Throws<InvalidOperationException>(() => new CharacterControllerSettings { DashDurationSeconds = -0.01f }.Validate());
+        Assert.Throws<InvalidOperationException>(() => new CharacterControllerSettings { DashCooldownSeconds = -0.01f }.Validate());
     }
 
     [Fact]

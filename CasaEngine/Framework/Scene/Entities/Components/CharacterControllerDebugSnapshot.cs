@@ -13,6 +13,7 @@ public readonly struct CharacterControllerDebugSnapshot
         bool isGrounded,
         Vector3 groundNormal,
         PhysicsBaseComponent? groundCollider,
+        Vector3 groundVelocity,
         float groundSlopeAngle,
         HitResult lastCollisionHit,
         Vector3 lastRequestedDisplacement,
@@ -25,6 +26,7 @@ public readonly struct CharacterControllerDebugSnapshot
         IsGrounded = isGrounded;
         GroundNormal = groundNormal;
         GroundCollider = groundCollider;
+        GroundVelocity = groundVelocity;
         GroundSlopeAngle = groundSlopeAngle;
         LastCollisionHit = lastCollisionHit;
         LastRequestedDisplacement = lastRequestedDisplacement;
@@ -44,6 +46,8 @@ public readonly struct CharacterControllerDebugSnapshot
     public Vector3 GroundNormal { get; }
 
     public PhysicsBaseComponent? GroundCollider { get; }
+
+    public Vector3 GroundVelocity { get; }
 
     public float GroundSlopeAngle { get; }
 
