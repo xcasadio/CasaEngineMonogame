@@ -45,6 +45,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Thickness = MonoGame.Extended.Thickness;
 
 namespace CasaEngine.Editor;
 
@@ -92,6 +93,7 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement? _entityAssetHierarchyContent;
     private MaterialHierarchyPanel? _materialHierarchyPanel;
     private MGElement? _materialHierarchyContent;
+    private MGElement? _particleHierarchyContent;
     private ContextualDockPanelHost? _inspectorPanelHost;
     private MGElement? _inspectorContent;
     private EntityDetailsPanel _entityDetailsPanel;
@@ -100,8 +102,15 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement? _entityAssetInspectorContent;
     private MaterialInspectorView? _materialInspectorView;
     private MGElement? _materialInspectorContent;
+    private MGStackPanel? _particleInspectorView;
     private ContextualDockPanelHost? _toolboxPanelHost;
     private MGElement? _toolboxContent;
+    private MGElement? _particleToolboxContent;
+    private TileMapHierarchyPanel? _tileMapHierarchyPanel;
+    private MGElement? _tileMapHierarchyContent;
+    private TileMapInspectorPanel? _tileMapInspectorPanel;
+    private MGElement? _tileMapInspectorContent;
+    private MGElement? _tileMapToolboxContent;
     private ContentBrowserPanel _contentBrowserPanel;
     private MGElement _contentBrowserContent;
     private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
@@ -110,14 +119,17 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AnimationClipPreviewPanel> _animationClipPreviewPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, TileMapEditorPanel> _tileMapEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _particleInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _entityAssetEditorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _tileMapEditorPanelTitles = new(StringComparer.Ordinal);
     private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
     private ParticleAssetInspectorPanel? _activeParticleInspectorPanel;
     private EntityAssetEditorPanel? _activeEntityAssetEditorPanel;
+    private TileMapEditorPanel? _activeTileMapEditorPanel;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
     private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
     private UIScreenHierarchyPanel? _screenHierarchyPanel;
@@ -314,6 +326,11 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
             {
                 animationClipPreviewPanel.Dispose();
+            }
+
+            foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
+            {
+                tileMapEditorPanel.Dispose();
             }
         }
 
@@ -862,6 +879,24 @@ public class GameEditor : Game, IObservableUpdate
                 ContentFactory = GetOrCreateEntityAssetHierarchyContent,
                 Refresh = _ => RefreshEntityAssetViews(),
             });
+
+            _hierarchyPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Hierarchy,
+                DocumentKind = EditorDocumentKind.Particle,
+                Title = "Hierarchy",
+                ContentFactory = GetOrCreateParticleHierarchyContent,
+                Refresh = _ => RefreshParticleViews(),
+            });
+
+            _hierarchyPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Hierarchy,
+                DocumentKind = EditorDocumentKind.TileMap,
+                Title = "Hierarchy",
+                ContentFactory = GetOrCreateTileMapHierarchyContent,
+                Refresh = _ => RefreshTileMapViews(),
+            });
         }
 
         _hierarchyContent ??= _hierarchyPanelHost.CreateContent();
@@ -898,6 +933,25 @@ public class GameEditor : Game, IObservableUpdate
         _entityAssetHierarchyContent ??= _entityAssetHierarchyPanel.CreateContent();
         _entityAssetHierarchyPanel.SetEditorPanel(_activeEntityAssetEditorPanel);
         return _entityAssetHierarchyContent;
+    }
+
+    private MGElement GetOrCreateParticleHierarchyContent()
+    {
+        _particleHierarchyContent ??= new MGTextBlock(_mainWindow, "Particle assets do not expose a hierarchy tree. Use Inspector to edit the active particle system.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _particleHierarchyContent;
+    }
+
+    private MGElement GetOrCreateTileMapHierarchyContent()
+    {
+        _tileMapHierarchyPanel ??= new TileMapHierarchyPanel(_mainWindow);
+        _tileMapHierarchyContent ??= _tileMapHierarchyPanel.CreateContent();
+        _tileMapHierarchyPanel.SetEditorPanel(_activeTileMapEditorPanel);
+        return _tileMapHierarchyContent;
     }
 
     private MGElement GetOrCreateInspectorContent()
@@ -945,6 +999,24 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Inspector",
                 ContentFactory = GetOrCreateEntityAssetInspectorContent,
                 Refresh = _ => RefreshEntityAssetViews(),
+            });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.Particle,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateParticleInspectorContent,
+                Refresh = _ => RefreshParticleViews(),
+            });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.TileMap,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateTileMapInspectorContent,
+                Refresh = _ => RefreshTileMapViews(),
             });
         }
 
@@ -1034,6 +1106,26 @@ public class GameEditor : Game, IObservableUpdate
         return _entityAssetInspectorContent;
     }
 
+    private MGElement GetOrCreateParticleInspectorContent()
+    {
+        _particleInspectorView ??= new MGStackPanel(_mainWindow, Orientation.Vertical)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        RefreshParticleViews();
+        return _particleInspectorView;
+    }
+
+    private MGElement GetOrCreateTileMapInspectorContent()
+    {
+        _tileMapInspectorPanel ??= new TileMapInspectorPanel(_mainWindow);
+        _tileMapInspectorContent ??= _tileMapInspectorPanel.CreateContent();
+        _tileMapInspectorPanel.SetEditorPanel(_activeTileMapEditorPanel);
+        return _tileMapInspectorContent;
+    }
+
     private MGElement GetOrCreateToolboxContent()
     {
         if (_toolboxPanelHost == null)
@@ -1052,6 +1144,24 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Toolbox",
                 ContentFactory = GetOrCreateScreenToolboxContent,
                 Refresh = _ => RefreshScreenViews(),
+            });
+
+            _toolboxPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Toolbox,
+                DocumentKind = EditorDocumentKind.Particle,
+                Title = "Toolbox",
+                ContentFactory = GetOrCreateParticleToolboxContent,
+                Refresh = _ => RefreshParticleViews(),
+            });
+
+            _toolboxPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Toolbox,
+                DocumentKind = EditorDocumentKind.TileMap,
+                Title = "Toolbox",
+                ContentFactory = GetOrCreateTileMapToolboxContent,
+                Refresh = _ => RefreshTileMapViews(),
             });
         }
 
@@ -1072,6 +1182,27 @@ public class GameEditor : Game, IObservableUpdate
         _screenToolboxContent ??= _screenToolboxPanel.CreateContent();
         RefreshScreenViews();
         return _screenToolboxContent;
+    }
+
+    private MGElement GetOrCreateParticleToolboxContent()
+    {
+        _particleToolboxContent ??= new MGTextBlock(_mainWindow, "Particle assets do not use toolbox controls. Use the preview mouse wheel to zoom and Inspector to manage playback.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _particleToolboxContent;
+    }
+
+    private MGElement GetOrCreateTileMapToolboxContent()
+    {
+        _tileMapToolboxContent ??= new MGStackPanel(_mainWindow, Orientation.Vertical)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        return _tileMapToolboxContent;
     }
 
     private UICommandStack GetOrCreateScreenCommandStack(string panelId)
@@ -1419,6 +1550,10 @@ public class GameEditor : Game, IObservableUpdate
         {
             ActivateMaterialDocument(panel.Id, materialInspectorPanel);
         }
+        else if (TryGetTileMapEditorPanel(panel.Id, out var tileMapEditorPanel))
+        {
+            ActivateTileMapDocument(panel.Id, tileMapEditorPanel);
+        }
 
         RefreshActiveHistoryContext(panel.Id);
     }
@@ -1575,6 +1710,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_entityAssetEditorPanels.TryGetValue(panelId, out var entityAssetEditorPanel))
         {
             return entityAssetEditorPanel.CreateContent;
+        }
+
+        if (_tileMapEditorPanels.TryGetValue(panelId, out var tileMapEditorPanel))
+        {
+            return tileMapEditorPanel.CreateContent;
         }
 
         return () => CreateUnavailablePanelContent(panelId);
@@ -1775,6 +1915,20 @@ public class GameEditor : Game, IObservableUpdate
             _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, panel.Id));
         }
 
+        if (TryGetTileMapEditorPanel(panel.Id, out var tileMapEditorPanel))
+        {
+            tileMapEditorPanel.Dispose();
+            _tileMapEditorPanels.Remove(panel.Id);
+            _tileMapEditorPanelTitles.Remove(panel.Id);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panel.Id));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.TileMap, panel.Id));
+            if (ReferenceEquals(_activeTileMapEditorPanel, tileMapEditorPanel))
+            {
+                _activeTileMapEditorPanel = null;
+                RefreshTileMapViews();
+            }
+        }
+
         SyncActiveEditorDocumentFromDockState();
         RefreshActiveHistoryContext();
     }
@@ -1885,6 +2039,19 @@ public class GameEditor : Game, IObservableUpdate
             };
         }
 
+        if (TryGetTileMapEditorPanel(panelId, out var tileMapEditorPanel))
+        {
+            return new DockPanelNode(panelId)
+            {
+                Title = GetTileMapDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = tileMapEditorPanel.CreateContent,
+            };
+        }
+
         if (TryGetEntityAssetEditorPanel(panelId, out var entityAssetEditorPanel))
         {
             return new DockPanelNode(panelId)
@@ -1907,7 +2074,7 @@ public class GameEditor : Game, IObservableUpdate
                 CanClose = true,
                 CanFloat = true,
                 CanAutoHide = false,
-                ContentFactory = particleInspectorPanel.CreateContent,
+                ContentFactory = particleInspectorPanel.CreateDocumentContent,
             };
         }
 
@@ -1985,6 +2152,18 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return _animationClipPreviewPanels.TryGetValue(panelId, out previewPanel);
+    }
+
+    private bool TryGetTileMapEditorPanel(string panelId, out TileMapEditorPanel tileMapEditorPanel)
+    {
+        tileMapEditorPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.TileMapAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _tileMapEditorPanels.TryGetValue(panelId, out tileMapEditorPanel);
     }
 
     private bool TryGetActiveMaterialInspectorPanel(out MaterialAssetInspectorPanel inspectorPanel)
@@ -2112,6 +2291,7 @@ public class GameEditor : Game, IObservableUpdate
             inspectorPanel));
         SyncGlobalSelectionFromActiveDocument();
         RefreshActiveHistoryContext();
+        RefreshParticleViews();
     }
 
     private void ActivateAnimationClipDocument(string panelId, AnimationClipPreviewPanel previewPanel)
@@ -2123,6 +2303,19 @@ public class GameEditor : Game, IObservableUpdate
             previewPanel));
         SyncGlobalSelectionFromActiveDocument();
         RefreshActiveHistoryContext();
+    }
+
+    private void ActivateTileMapDocument(string panelId, TileMapEditorPanel tileMapEditorPanel)
+    {
+        _activeTileMapEditorPanel = tileMapEditorPanel;
+        _editorContext.SetActiveDocument(new EditorDocumentContext(
+            EditorDocumentKind.TileMap,
+            panelId,
+            _tileMapEditorPanelTitles.TryGetValue(panelId, out var title) ? title : "TileMap",
+            tileMapEditorPanel));
+        SyncGlobalSelectionFromActiveDocument();
+        RefreshActiveHistoryContext();
+        RefreshTileMapViews();
     }
 
     private void SyncActiveEditorDocumentFromDockState()
@@ -2163,6 +2356,13 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetTileMapEditorPanel(activeDocumentPanelId, out var tileMapEditorPanel))
+        {
+            ActivateTileMapDocument(activeDocumentPanelId, tileMapEditorPanel);
+            return;
+        }
+
         ActivateWorldDocument();
     }
 
@@ -2189,6 +2389,34 @@ public class GameEditor : Game, IObservableUpdate
             _entityAssetInspectorPanel.HistoryContext = _activeEntityAssetEditorPanel?.HistoryContext ?? EditorHistoryContext.Empty;
             _entityAssetInspectorPanel.SyncSelection(_activeEntityAssetEditorPanel?.SelectedEntity, _activeEntityAssetEditorPanel?.SelectedComponent);
         }
+    }
+
+    private void RefreshParticleViews()
+    {
+        if (_particleInspectorView == null)
+        {
+            return;
+        }
+
+        _particleInspectorView.TryRemoveAll();
+        if (_activeParticleInspectorPanel == null)
+        {
+            _particleInspectorView.TryAddChild(new MGTextBlock(_mainWindow, "No particle system selected.")
+            {
+                Margin = new Thickness(8, 6, 8, 4),
+                Opacity = 0.75f,
+                WrapText = true,
+            });
+            return;
+        }
+
+        _particleInspectorView.TryAddChild(_activeParticleInspectorPanel.CreateContent());
+    }
+
+    private void RefreshTileMapViews()
+    {
+        _tileMapHierarchyPanel?.SetEditorPanel(_activeTileMapEditorPanel);
+        _tileMapInspectorPanel?.SetEditorPanel(_activeTileMapEditorPanel);
     }
 
     private DockTabGroupNode? GetDocumentDockGroup()
@@ -2603,6 +2831,11 @@ public class GameEditor : Game, IObservableUpdate
             return true;
         }
 
+        if (TryOpenTileMapAsset(fullPath))
+        {
+            return true;
+        }
+
         return TryOpenMaterialAsset(fullPath);
     }
 
@@ -2851,6 +3084,69 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
+    private bool TryOpenTileMapAsset(string fullPath)
+    {
+        if (!TileMapEditorPanel.TryLoadAsset(fullPath, out var tileMapAsset))
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = tileMapAsset.AssetId != Guid.Empty ? tileMapAsset.AssetId : tileMapAsset.Id;
+        string panelId = $"{EditorPanelIds.TileMapAssetDocumentPrefix}{documentId:N}";
+        if (!_tileMapEditorPanels.TryGetValue(panelId, out var tileMapEditorPanel))
+        {
+            tileMapEditorPanel = new TileMapEditorPanel(_mainWindow, GraphicsDevice, _editorRuntime);
+            _tileMapEditorPanels.Add(panelId, tileMapEditorPanel);
+        }
+
+        try
+        {
+            tileMapEditorPanel.LoadAsset(tileMapAsset, fullPath);
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteWarning($"Failed to open TileMap asset '{fullPath}': {exception.Message}");
+            if (_dockHost!.LayoutModel.FindPanelById(panelId) == null)
+            {
+                tileMapEditorPanel.Dispose();
+                _tileMapEditorPanels.Remove(panelId);
+            }
+
+            return false;
+        }
+
+        string panelTitle = string.IsNullOrWhiteSpace(tileMapAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : tileMapAsset.Name;
+        _tileMapEditorPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var panelNode = CreateDocumentPanelNode(panelId);
+            var targetGroup = GetDocumentDockGroup();
+            if (panelNode == null || targetGroup == null)
+            {
+                return false;
+            }
+
+            panelNode.Title = GetTileMapDocumentTitle(panelId);
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetTileMapDocumentTitle(panelId);
+        }
+
+        ActivateTileMapDocument(panelId, tileMapEditorPanel);
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened TileMap asset='{tileMapAsset.Name}', panel='{panelId}'");
+        return true;
+    }
+
     private bool TryOpenAnimationClipAsset(string fullPath)
     {
         if (!TryLoadAnimationClipAsset(fullPath, out var animationClipAsset))
@@ -3077,6 +3373,14 @@ public class GameEditor : Game, IObservableUpdate
 
                 break;
 
+            case EditorHistoryContextKind.TileMap:
+                if (_tileMapEditorPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetTileMapDocumentTitle(context.Id));
+                }
+
+                break;
+
             case EditorHistoryContextKind.ContentBrowser:
                 UpdateDockPanelTitle(EditorPanelIds.ContentBrowser, GetContentBrowserTitle());
                 break;
@@ -3146,6 +3450,11 @@ public class GameEditor : Game, IObservableUpdate
     private string GetAnimationClipDocumentTitle(string panelId)
     {
         return _animationClipPreviewPanelTitles.TryGetValue(panelId, out var value) ? value : "Animation Clip";
+    }
+
+    private string GetTileMapDocumentTitle(string panelId)
+    {
+        return _tileMapEditorPanelTitles.TryGetValue(panelId, out var value) ? value : "TileMap";
     }
 
     private string GetContentBrowserTitle()
@@ -3586,6 +3895,11 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
         {
             animationClipPreviewPanel.Update(gameTime);
+        }
+
+        foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
+        {
+            tileMapEditorPanel.Update(gameTime);
         }
 
         foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
@@ -4394,6 +4708,7 @@ public class GameEditor : Game, IObservableUpdate
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
+        AppendTileMapDiagnostics(builder, activeDocumentPanelId);
         AppendAutomationSelectionDiagnostics(builder);
         builder.AppendLine($"Entries: {entries.Count}");
         builder.AppendLine();
@@ -4529,6 +4844,27 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         builder.AppendLine($"World selection preserved after asset open: {!_automationSelectionReappliedAfterAssetOpen}");
+    }
+
+    private void AppendTileMapDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    {
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetTileMapEditorPanel(activeDocumentPanelId, out var tileMapEditorPanel))
+        {
+            return;
+        }
+
+        var state = tileMapEditorPanel.GetAutomationStateSnapshot();
+        if (state.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("TileMap document state:");
+        for (int index = 0; index < state.Count; index++)
+        {
+            builder.AppendLine($"  - {state[index]}");
+        }
     }
 
     private string FormatAutomationMaterialEdit()
@@ -4801,6 +5137,10 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
         {
             animationClipPreviewPanel.RefreshPreviewAfterDraw();
+        }
+        foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
+        {
+            tileMapEditorPanel.DrawViewport(gameTime);
         }
 
         GraphicsDevice.Clear(Color.DimGray);

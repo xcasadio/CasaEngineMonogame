@@ -10,4 +10,5 @@ public enum EditorSelectionKind
     MaterialAsset,
     EntityAsset,
     EntityAssetComponent,
+    TileMapLayer,
 }

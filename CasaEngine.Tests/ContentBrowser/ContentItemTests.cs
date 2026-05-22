@@ -18,6 +18,16 @@ public class ContentItemTests
     }
 
     [Fact]
+    public void Constructor_DeducesTileMapTypeFromExtension()
+    {
+        var item = new ContentItem("D:/Project/maps/world.tileMap", false);
+
+        Assert.Equal("world.tileMap", item.Name);
+        Assert.Equal(".tileMap", item.Extension);
+        Assert.Equal(ContentItemType.TileMap, item.Type);
+    }
+
+    [Fact]
     public void UpdatePath_RefreshesDerivedPropertiesAndRaisesNotifications()
     {
         var item = new ContentItem("D:/Project/texture.png", false);

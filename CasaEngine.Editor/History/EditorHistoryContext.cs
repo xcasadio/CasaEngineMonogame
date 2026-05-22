@@ -25,6 +25,7 @@ public readonly record struct EditorHistoryContext(EditorHistoryContextKind Kind
             EditorDocumentKind.Entity => new EditorHistoryContext(EditorHistoryContextKind.Entity, document.Id),
             EditorDocumentKind.AnimationClip => new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, document.Id),
             EditorDocumentKind.Particle => new EditorHistoryContext(EditorHistoryContextKind.Particle, document.Id),
+            EditorDocumentKind.TileMap => new EditorHistoryContext(EditorHistoryContextKind.TileMap, document.Id),
             _ => Empty,
         };
     }

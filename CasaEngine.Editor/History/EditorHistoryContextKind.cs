@@ -9,5 +9,6 @@ public enum EditorHistoryContextKind
     Entity,
     AnimationClip,
     Particle,
+    TileMap,
     ContentBrowser,
 }

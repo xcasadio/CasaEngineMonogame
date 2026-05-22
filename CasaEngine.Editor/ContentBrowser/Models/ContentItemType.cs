@@ -17,4 +17,5 @@ public enum ContentItemType
     Animation,
     World,
     Particle,
+    TileMap,
 }
