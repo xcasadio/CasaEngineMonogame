@@ -62,7 +62,7 @@ Validation :
 
 ## V1 - controleur cinematique 3D minimal
 
-### ⏳ Todo - V1.1. Ajouter le composant et son contrat public
+### ✅ Done - V1.1. Ajouter le composant et son contrat public
 
 Objectif : ajouter `CharacterControllerComponent : EntityComponent` sans solveur complet.
 
