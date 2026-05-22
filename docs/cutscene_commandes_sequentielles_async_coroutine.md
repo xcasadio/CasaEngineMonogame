@@ -56,226 +56,216 @@ Les exemples de déplacement, animation, dialogue, caméra, input, quêtes et au
 
 ---
 
-## Problème à résoudre
+## État implémenté au 2026-05-22
 
-Dans un jeu, une cinématique ne doit jamais bloquer la boucle principale.
+La V1 décrite ci-dessus est maintenant implémentée dans CasaEngine.
 
-Il ne faut pas faire :
+Runtime :
 
-```csharp
-player.MoveTo(npc.Position);
-Thread.Sleep(2000);
-dialogue.Open("intro");
-```
+- `CasaEngine.Framework.Cutscenes.CutsceneAsset` hérite de `ObjectBase` et expose `Version` et `RootAction` ;
+- les actions V1 sont typées : `WaitCutsceneActionData`, `SequenceCutsceneActionData`, `ParallelCutsceneActionData` ;
+- `UnknownCutsceneActionData` conserve les types non reconnus afin que la validation puisse les signaler proprement ;
+- `CutsceneValidator` valide `RootAction`, `Wait.seconds >= 0`, les actions inconnues, et signale les `Sequence`/`Parallel` vides en warning ;
+- `CutsceneAssetJsonSerializer` charge/sauve l’arbre d’actions typées avec discriminateur `type` ;
+- `Constants.FileNameExtensions.Cutscene` ajoute l’extension `.cutscene` ;
+- `CutsceneAssetLoader` charge les assets `.cutscene` via `AssetContentManager` ;
+- `AssetLoaderRegistry` enregistre le loader pour `CutsceneAsset` ;
+- `World` possède `CutsceneDirector` et l’arrête dans `World.Clear()` ;
+- `CutsceneDirector.Play(CutsceneAsset)` démarre une coroutine via `World.CoroutineManager` ;
+- `CutsceneDirector.Stop()` arrête les coroutines possédées par le director ;
+- `CutsceneDebugSnapshot` expose l’état runtime, l’asset courant, le handle actif, les messages de validation et les coroutines actives liées à la cutscene.
 
-Parce que `Thread.Sleep` bloque tout :
+Éditeur :
 
-```text
-plus de rendu
-plus d’input
-plus d’animation
-plus d’audio
-plus de simulation
-```
+- `CutsceneReadOnlyDocumentBuilder` construit un modèle lecture seule à partir d’un `CutsceneAsset` et d’un snapshot runtime optionnel ;
+- `CutsceneAssetInspectorPanel` affiche l’asset `.cutscene`, son arbre d’actions, ses paramètres, ses erreurs/warnings de validation et l’état runtime disponible ;
+- `GameEditor` ouvre les fichiers `.cutscene` comme documents d’éditeur lecture seule ;
+- aucune édition, sauvegarde, timeline, preview avancée ou commande gameplay n’a été ajoutée.
 
-Un moteur de jeu fonctionne frame par frame :
-
-```text
-Update frame 1
-Update frame 2
-Update frame 3
-Update frame 4
-...
-```
-
-Une séquence scriptée doit donc pouvoir exprimer :
+Validation exécutée :
 
 ```text
-déplace le joueur vers le PNJ
-attends qu’il arrive
-ouvre un dialogue
-attends que le dialogue soit fermé
-rend le contrôle au joueur
+dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~Cutscenes
+Résultat : 11 tests verts
+
+dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore
+Résultat : 0 warning, 0 erreur
 ```
 
-mais sans arrêter le moteur.
+Conséquence importante : une cutscene V1 peut déjà être chargée, validée, jouée, arrêtée et inspectée. En revanche, elle ne peut pas encore déplacer un acteur, piloter une caméra, jouer un dialogue, bloquer l’input ou modifier un flag gameplay.
 
 ---
 
-## Principe général
+## Bindings d’entités (futur)
 
-Une cutscene est une suite de commandes.
+La V1 implémentée n’a aucun binding d’entité. Elle ne référence ni acteur, ni caméra, ni dialogue, ni animation.
 
-Chaque commande peut durer :
-
-- une seule frame ;
-- plusieurs frames ;
-- un temps défini ;
-- jusqu’à la fin d’une animation ;
-- jusqu’à la fermeture d’un dialogue ;
-- jusqu’à ce qu’un personnage atteigne une position ;
-- jusqu’à ce qu’une condition soit vraie.
-
-Exemples de commandes :
+Pour une version future avec commandes gameplay, il faudra éviter de sérialiser des références directes vers des instances runtime. Les données devront utiliser des identifiants logiques, par exemple :
 
 ```text
-DisablePlayerControlCommand
-MoveActorToCommand
-PlayAnimationCommand
-ShowDialogueCommand
-WaitSecondsCommand
-CameraFocusCommand
-FadeOutCommand
-PlaySoundCommand
-SetQuestFlagCommand
-EnablePlayerControlCommand
+Player
+VillageChief
+MainCamera
+Door_A
 ```
 
-Chaque commande est mise à jour par le moteur à chaque frame.
+À l’exécution, un resolver futur pourra traduire ces identifiants vers les objets réels du monde chargé. Cette partie reste hors scope V1 tant qu’aucun système cible CasaEngine n’est choisi pour le déplacement, l’animation, le dialogue, la caméra ou l’input.
 
 ---
 
-## Structure minimale d’une commande
+## Éditeur V1 implémenté
 
-Une commande de cutscene peut être représentée par une interface simple :
+L’éditeur affiche maintenant les cutscenes en lecture seule.
 
-```csharp
-public interface ICutsceneCommand
+Ce qui est affiché :
+
+```text
+nom de l’asset
+chemin source
+état éditable = False
+état runtime du CutsceneDirector
+nombre de coroutines actives
+arbre d’actions
+paramètres V1
+warnings/erreurs de validation
+coroutines actives liées à la cutscene si un World est disponible
+```
+
+Exemple d’arbre affichable pour la V1 :
+
+```text
+Cutscene: IntroWait
+
+- Sequence  root_action
+    children: 2
+    - Wait  root_action.actions[0]
+        seconds: 0.5
+    - Parallel  root_action.actions[1]
+        children: 2
+        - Wait  root_action.actions[1].actions[0]
+            seconds: 1
+        - Wait  root_action.actions[1].actions[1]
+            seconds: 0.25
+```
+
+Validation V1 affichée :
+
+```text
+RootAction obligatoire
+Wait.seconds >= 0
+Sequence vide = warning
+Parallel vide = warning
+action inconnue = erreur
+```
+
+Ce qui reste explicitement absent :
+
+```text
+ajout d’action
+suppression d’action
+réordonnancement
+édition des paramètres
+drag and drop
+timeline
+preview avancée
+sauvegarde depuis l’UI
+validation de bindings entity/dialogue/animation/camera/quest
+```
+
+---
+
+## Sample de cutscene : faisabilité
+
+Il est possible de créer un sample minimal immédiatement, mais il faut être clair sur ce qu’il peut démontrer.
+
+Avec la V1 actuelle, un sample peut démontrer :
+
+```text
+chargement d’un asset .cutscene via AssetContentManager
+validation de l’asset
+Play via World.CutsceneDirector
+attente non bloquante via World.CoroutineManager
+Sequence et Parallel
+Stop
+GetDebugSnapshot
+affichage de l’état runtime et des coroutines actives
+```
+
+Ce sample ne peut pas encore démontrer une vraie cinématique gameplay visible, car aucune commande V1 ne modifie le monde. Un asset V1 composé uniquement de `Wait`, `Sequence` et `Parallel` produit un comportement temporel et débogable, pas un déplacement de personnage ou une caméra scriptée.
+
+### Sample minimal possible sans nouvelle feature runtime
+
+Un exemple simpliste peut être ajouté dans `CasaEngine.Demos` sans changer le runtime cutscene :
+
+1. ajouter un fichier `Content/Cutscenes/IntroWait.cutscene` ;
+2. ajouter l’entrée correspondante dans `Content/AssetInfos.json`, avec `asset_type = "cutscene"` ou une extension `.cutscene` suffisante pour l’inférence ;
+3. ajouter une classe `CutsceneDemo : Demo` ;
+4. dans `Initialize`, charger l’asset avec `game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id)` ;
+5. appeler `game.GameManager.CurrentWorld.CutsceneDirector.Play(asset)` ;
+6. afficher dans une petite UI ou un overlay l’état de `GetDebugSnapshot()` : `Playing`, `Completed`, `Stopped`, messages de validation, coroutines actives ;
+7. ajouter au besoin une touche de restart et une touche de `Stop()` ;
+8. enregistrer la démo dans `DemosGame`.
+
+Exemple d’asset pour ce sample :
+
+```json
 {
-    void Start(CutsceneContext context);
-    void Update(CutsceneContext context, float deltaTime);
-    bool IsFinished { get; }
-    void Cancel(CutsceneContext context);
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "IntroWait",
+    "type": "CutsceneAsset",
+    "version": 1,
+    "schema_version": 1,
+    "root_action": {
+        "type": "Sequence",
+        "actions": [
+            {
+                "type": "Wait",
+                "seconds": 0.5
+            },
+            {
+                "type": "Parallel",
+                "actions": [
+                    {
+                        "type": "Wait",
+                        "seconds": 1.0
+                    },
+                    {
+                        "type": "Wait",
+                        "seconds": 0.25
+                    }
+                ]
+            },
+            {
+                "type": "Wait",
+                "seconds": 0.5
+            }
+        ]
+    }
 }
 ```
 
-### `Start`
+### Ce qu’il faut pour un sample cinématique simpliste
 
-Appelé une seule fois au début de la commande.
+Si le sample attendu doit montrer une vraie action visible en jeu, la V1 ne suffit pas. Il faudra d’abord choisir et implémenter au moins une commande gameplay réelle, par exemple :
 
-Exemples :
-
-- lancer une animation ;
-- ouvrir un dialogue ;
-- initialiser un timer ;
-- démarrer un déplacement ;
-- sauvegarder une position de départ.
-
-### `Update`
-
-Appelé à chaque frame tant que la commande n’est pas terminée.
-
-Exemples :
-
-- avancer un personnage vers une cible ;
-- interpoler une caméra ;
-- mettre à jour un fade ;
-- attendre un timer ;
-- vérifier si une condition est vraie.
-
-### `IsFinished`
-
-Indique si la commande est terminée.
-
-Quand `IsFinished == true`, le système passe à la commande suivante.
-
-### `Cancel`
-
-Permet d’arrêter proprement la commande.
-
-Utile pour :
-
-- skip de cutscene ;
-- changement de scène ;
-- interruption forcée ;
-- fermeture d’un dialogue ;
-- restauration de l’état joueur.
-
----
-
-## CutsceneSequence simple
-
-Une séquence peut être une file de commandes exécutées une par une.
-
-```csharp
-public sealed class CutsceneSequence
-{
-    private readonly Queue<ICutsceneCommand> _commands = new();
-    private ICutsceneCommand? _currentCommand;
-
-    public bool IsFinished => _currentCommand == null && _commands.Count == 0;
-
-    public void Add(ICutsceneCommand command)
-    {
-        _commands.Enqueue(command);
-    }
-
-    public void Start(CutsceneContext context)
-    {
-        _currentCommand = null;
-    }
-
-    public void Update(CutsceneContext context, float deltaTime)
-    {
-        if (_currentCommand == null)
-        {
-            if (_commands.Count == 0)
-                return;
-
-            _currentCommand = _commands.Dequeue();
-            _currentCommand.Start(context);
-        }
-
-        _currentCommand.Update(context, deltaTime);
-
-        if (_currentCommand.IsFinished)
-        {
-            _currentCommand = null;
-        }
-    }
-
-    public void Cancel(CutsceneContext context)
-    {
-        _currentCommand?.Cancel(context);
-        _currentCommand = null;
-        _commands.Clear();
-    }
-}
+```text
+commande de déplacement d’entité ou de Transform
+commande de caméra simple
+commande d’affichage de texte/subtitle
+binding logique vers une entité ou une caméra du World
+politique Stop/Cancel pour restaurer l’état modifié
+validation des paramètres de cette commande
+affichage éditeur lecture seule de ses paramètres et erreurs
+tests runtime de la commande
 ```
 
-Exemple d’utilisation :
-
-```csharp
-var sequence = new CutsceneSequence();
-
-sequence.Add(new DisablePlayerControlCommand());
-sequence.Add(new MoveActorToCommand(player, npc.Position));
-sequence.Add(new PlayAnimationCommand(player, "IdleRight"));
-sequence.Add(new ShowDialogueCommand("npc_intro_001"));
-sequence.Add(new EnablePlayerControlCommand());
-```
-
-Dans la boucle du moteur :
-
-```csharp
-cutsceneSequence.Update(context, deltaTime);
-```
+La voie la plus petite pour un sample visible serait probablement une commande future très limitée, par exemple `SetEntityEnabled`, `SetTransformPosition` ou `ShowSubtitle`, mais ce serait déjà une extension V2 et non la V1 implémentée.
 
 ---
 
 ## CutsceneDirector
 
-Le `CutsceneDirector` est le point d’entrée principal.
-
 Dans CasaEngine V1, il doit être une façade attachée au `World`.
-
-Il ne possède pas de boucle `Update` séparée. Le `World` reste responsable de l’avancement temporel via son `CoroutineManager`.
-
-```text
-World
-    ├── CutsceneDirector
-    └── CoroutineManager.Update(...)
-```
 
 API V1 attendue :
 
@@ -1430,7 +1420,7 @@ Cela permet :
 
 ---
 
-## Modèle sérialisable simple
+## Modèle sérialisable implémenté
 
 Une cutscene V1 doit être représentée par un asset CasaEngine.
 
@@ -1447,14 +1437,17 @@ loader = CutsceneAssetLoader
 Le modèle doit être typé.
 
 ```csharp
-public sealed class CutsceneAsset
+public sealed class CutsceneAsset : ObjectBase
 {
-        public CutsceneActionData RootAction { get; set; }
+        public const int CurrentVersion = 1;
+
+        public int Version { get; set; }
+        public CutsceneActionData? RootAction { get; set; }
 }
 
 public abstract class CutsceneActionData
 {
-        public string Type { get; }
+        public abstract string Type { get; }
 }
 
 public sealed class WaitCutsceneActionData : CutsceneActionData
@@ -1473,11 +1466,15 @@ public sealed class ParallelCutsceneActionData : CutsceneActionData
 }
 ```
 
-Exemple conceptuel de contenu interne :
+Exemple de contenu `.cutscene` V1 :
 
 ```json
 {
-  "name": "VillageChiefIntro",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "name": "IntroWait",
+    "type": "CutsceneAsset",
+    "version": 1,
+    "schema_version": 1,
     "root_action": {
         "type": "Sequence",
         "actions": [
@@ -1503,285 +1500,29 @@ Exemple conceptuel de contenu interne :
 }
 ```
 
+L’entrée `AssetInfo` correspondante peut définir `asset_type = "cutscene"`. Si `asset_type` est absent, `AssetInfo.InferAssetType` peut l’inférer depuis l’extension `.cutscene`.
+
 À éviter en V1 :
 
 ```csharp
 Dictionary<string, string> Parameters
 ```
 
-Si `ObjectBase` ou la sérialisation CasaEngine ne permet pas proprement ce modèle typé, l’agent doit s’arrêter et documenter le blocage au lieu d’inventer un format parallèle.
+Le modèle typé a été validé avec `ObjectBase` et le serializer dédié. Il ne faut pas introduire un second format parallèle pour la V1.
 
 ---
 
-## Bindings d’entités
+## Bindings d’entités (futur)
 
-Il faut éviter de sérialiser des références directes vers des instances runtime.
+La V1 implémentée n’a aucun binding d’entité. Les identifiants logiques et resolvers décrits dans les exemples de gameplay sont des pistes futures, pas des tâches V1.
 
-À la place, on utilise des identifiants logiques.
-
-```text
-Player
-VillageChief
-MainCamera
-Door_A
-La V1 est volontairement stricte.
-
-### Inclus V1
-
-À l’exécution, le moteur résout ces identifiants.
-CutsceneAsset
-CutsceneDirector
-Wait
-Sequence
-        // Exemple :
-Stop
-Debug
-Validation
-Sérialisation asset CasaEngine
-Affichage éditeur lecture seule
-        // "VillageChief" -> entité avec id ou tag correspondant
-        // "Door_A" -> porte de la scène
-### Hors scope V1
-}
-```
-
-Avantages :
-
-- la cutscene peut être rejouée dans une scène chargée ;
-- les données sont sérialisables ;
-- le fichier ne dépend pas d’une instance mémoire ;
-- on peut afficher les actions dans l’éditeur.
-
-
-```csharp
-public sealed class CutsceneCommandFactory
-{
-    private readonly CutsceneBindingResolver _resolver;
-            case "DisablePlayerControl":
-                return new DisablePlayerControlCommand();
-
-            case "EnablePlayerControl":
-                return new EnablePlayerControlCommand();
-
-
-                var actor = _resolver.ResolveEntity(actorId);
-                var target = _resolver.ResolvePosition(targetId);
-
-                var actorId = action.Parameters["actor"];
-                var animation = action.Parameters["animation"];
-
-            case "ShowDialogue":
-            {
-                var dialogueId = action.Parameters["dialogueId"];
-                return new ShowDialogueCommand(dialogueId);
-            }
-
-            default:
-                throw new InvalidOperationException($"Unknown cutscene action type: {action.Type}");
-        }
-DisablePlayerControl
-EnablePlayerControl
-Timeline
-Édition MGUI avancée
-    }
-
-Ces commandes seront ajoutées plus tard uniquement après identification du système CasaEngine cible.
-}
-```
+Avant toute implémentation future, il faudra choisir les types CasaEngine réels à cibler pour les entités, la caméra, l’animation, le dialogue et l’input. Aucune commande ne doit introduire un service fictif pour contourner cette étape.
 
 ---
 
-### Étape 1 : décisions et ancrage repo
+## Sérialisation depuis script C# (piste future)
 
-La V1 peut rester strictement séquentielle.
-confirmer World.CoroutineManager comme scheduler unique
-confirmer l’emplacement de CutsceneDirector dans World
-confirmer le modèle d’asset CasaEngine utilisable
-confirmer le point d’enregistrement CutsceneAssetLoader
-```json
-{
-### Étape 2 : modèle runtime V1
-  "actions": [
-    {
-CutsceneAsset
-CutsceneActionData typé
-WaitCutsceneActionData
-SequenceCutsceneActionData
-ParallelCutsceneActionData
-validation V1
-    },
-    {
-### Étape 3 : exécution coroutine
-      "parameters": {
-        "target": "VillageChief",
-conversion des actions V1 en IEnumerator
-Wait utilise WaitForSeconds CasaEngine
-Sequence exécute les actions dans l’ordre
-Parallel démarre plusieurs coroutines et attend leurs handles
-Stop arrête le handle actif
-}
-```
-### Étape 4 : CutsceneDirector dans World
-Comportement :
-
-World.CutsceneDirector
-Play(CutsceneAsset)
-Stop()
-IsPlaying
-GetDebugSnapshot()
-aucun Update séparé
-```
-
-### Étape 5 : sérialisation asset CasaEngine
-
-```csharp
-extension .cutscene
-asset_type cutscene
-CutsceneAssetLoader
-enregistrement dans AssetLoaderRegistry
-chargement via AssetContentManager
-```
-
-### Étape 6 : tests et debug
-
-## Éditeur V1 : affichage uniquement
-tests validation
-tests chargement asset
-tests Sequence
-tests Parallel
-tests Stop
-snapshot runtime lié aux coroutines actives
-```text
-afficher les actions du script
-afficher les paramètres
-afficher l’ordre d’exécution
-afficher les groupes parallèles
-affichage de l’arbre d’actions
-afficher l’état de sérialisation
-affichage des erreurs de validation V1
-affichage de l’état runtime
-affichage des coroutines actives liées à la cutscene
-pas d’édition
-pas de drag and drop
-pas de timeline
-pas de sauvegarde depuis l’UI
-```
-
-### Conditions d’arrêt pour l’agent
-
-```text
-impossible de trouver où enregistrer CutsceneAssetLoader
-ObjectBase ou la sérialisation existante bloque le modèle typé proposé
-World ne peut pas recevoir CutsceneDirector proprement
-les tests nécessitent un Game complet non disponible
-une commande gameplay est demandée sans système cible identifié
-il faut changer l’ordre de World.Update
-la sérialisation existante impose un format différent
-```
-
-Validation V1 minimale :
-
-```text
-RootAction obligatoire
-type d’action connu
-Wait.seconds >= 0
-Sequence vide = warning
-Parallel vide = warning
-action inconnue = erreur
-pas de validation entity/dialogue/animation/camera/quest en V1
-
-```text
-d’ajouter une action
-de supprimer une action
-de réordonner les actions
-d’éditer une timeline
-d’éditer les paramètres
-de prévisualiser finement la scène
-```
-
----
-
-## Vue éditeur recommandée
-
-L’éditeur peut afficher une liste hiérarchique.
-
-Exemple :
-
-```text
-Cutscene: VillageChiefIntro
-
-01. DisablePlayerControl
-02. Parallel
-    ├── MoveActorTo
-    │     actor: Player
-    │     target: VillageChief.LeftSide
-    │     speed: 80
-    └── CameraFocus
-          target: VillageChief
-          duration: 0.5
-03. PlayAnimation
-      actor: Player
-      animation: IdleRight
-04. PlayAnimation
-      actor: VillageChief
-      animation: Talk
-05. ShowDialogue
-      dialogueId: village_chief_intro
-06. SetQuestFlag
-      flag: TalkedToVillageChief
-      value: true
-07. EnablePlayerControl
-```
-
-Chaque action peut afficher :
-
-```text
-index
-type
-description courte
-paramètres
-validité
-durée estimée si connue
-binding résolu ou non
-```
-
----
-
-## Validation éditeur
-
-Même sans édition, l’éditeur doit aider à détecter les problèmes.
-
-Validation possible :
-
-```text
-action inconnue
-paramètre manquant
-paramètre invalide
-entity binding introuvable
-dialogueId introuvable
-animation introuvable
-quest flag inconnu
-camera binding introuvable
-groupe Parallel vide
-commande non skippable
-```
-
-Exemple d’affichage :
-
-```text
-03. PlayAnimation
-      actor: VillageChief
-      animation: Talk
-      status: OK
-
-04. ShowDialogue
-      dialogueId: village_chief_intro
-      status: Missing dialogue asset
-```
-
----
-
-## Sérialisation depuis script C#
+Cette section décrit une idée future. Elle n’est pas implémentée dans la V1 et ne correspond pas au modèle actuel `CutsceneAsset.RootAction`.
 
 Si la cutscene est écrite en C#, il peut être utile de produire aussi une description affichable.
 
