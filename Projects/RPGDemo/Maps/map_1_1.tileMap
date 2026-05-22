@@ -9,6 +9,14 @@
   "layers": [
     {
       "z_offset": 0.0,
+      "custom_properties": {
+        "depth.role": "Ground",
+        "depth.renderPass": "Ground",
+        "depth.sortingLayer": "Ground",
+        "depth.orderInLayer": 0,
+        "depth.elevation": 0,
+        "depth.sortMode": "None"
+      },
       "tiles": [
         2929,
         2929,
@@ -344,6 +352,14 @@
     },
     {
       "z_offset": 0.1,
+      "custom_properties": {
+        "depth.role": "GroundDetails",
+        "depth.renderPass": "GroundDetails",
+        "depth.sortingLayer": "GroundDetails",
+        "depth.orderInLayer": 10,
+        "depth.elevation": 0,
+        "depth.sortMode": "None"
+      },
       "tiles": [
         -1,
         -1,
@@ -679,6 +695,14 @@
     },
     {
       "z_offset": 0.2,
+      "custom_properties": {
+        "depth.role": "GroundDetails",
+        "depth.renderPass": "GroundDetails",
+        "depth.sortingLayer": "GroundDetails",
+        "depth.orderInLayer": 20,
+        "depth.elevation": 0,
+        "depth.sortMode": "None"
+      },
       "tiles": [
         2986,
         2987,
@@ -1014,6 +1038,14 @@
     },
     {
       "z_offset": 0.8,
+      "custom_properties": {
+        "depth.role": "Foreground",
+        "depth.renderPass": "Foreground",
+        "depth.sortingLayer": "Foreground",
+        "depth.orderInLayer": 0,
+        "depth.elevation": 0,
+        "depth.sortMode": "None"
+      },
       "tiles": [
         -1,
         -1,

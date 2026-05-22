@@ -67,7 +67,7 @@ Regles d'execution pour l'agent IA :
   - Ajouter des tests ou une validation de non-regression TileMap.
   - Commit attendu : `Prepare tilemap depth roles for rendering`.
 
-- ⏳ Mettre a jour RPGDemo
+- ✅ Mettre a jour RPGDemo
   - Ajouter les proprietes `depth.*` utiles dans les assets RPGDemo ou dans le script de setup.
   - Ajouter au joueur une configuration de profondeur 2D exploitable par le nouveau systeme.
   - Ajouter au moins un exemple documente ou visible de layer/objet compatible avec la profondeur 2D.

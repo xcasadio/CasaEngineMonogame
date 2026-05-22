@@ -129,7 +129,24 @@
       "63c537e7-6954-4a74-9bd8-7e609f41c0ac"
     ]
   },
-  "components": [],
+  "components": [
+    {
+      "id": "59f67adb-51ff-4da1-8ed5-7df5090fb86c",
+      "name": "DepthSortable2DComponent",
+      "type": "DepthSortable2DComponent",
+      "render_pass": "YSortedWorld",
+      "sorting_layer": 300,
+      "order_in_layer": 0,
+      "elevation": 0,
+      "sort_anchor": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "local_sort_offset": 0,
+      "sort_mode": "TopDownYUp",
+      "stable_id": 1000
+    }
+  ],
   "script_class_name": "ScriptPlayer",
   "flow_graph": {
     "type": "sequence",
