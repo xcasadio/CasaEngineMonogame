@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Runtime.Overlays;
@@ -110,27 +109,6 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private int _lastKilledCount;
     private int _lastMaxAliveCountReached;
     private bool _lastMaxReached;
-    private int _lastPeakEmitterIndex = -1;
-    private int _lastRenderedParticleCount;
-    private double _lastSimulationCpuMilliseconds;
-    private double _lastPreviewTickCpuMilliseconds;
-    private double _lastEmissionCpuMilliseconds;
-    private double _lastParticleUpdateCpuMilliseconds;
-    private double _lastBoundsCpuMilliseconds;
-    private double _lastPeakEmitterCpuMilliseconds;
-    private double _lastExtractionCpuMilliseconds;
-    private double _lastRenderCpuMilliseconds;
-    private double _lastViewTotalCpuMilliseconds;
-    private double _lastViewWorldDrawCpuMilliseconds;
-    private double _lastViewRendererFlushCpuMilliseconds;
-    private double _lastViewOverlayCpuMilliseconds;
-    private int _lastDrawCallCount;
-    private int _lastRenderSegmentCount;
-    private int _lastTextureBindCount;
-    private int _lastStateChangeCount;
-    private double _lastRenderSortCpuMilliseconds;
-    private double _lastRenderBuildCpuMilliseconds;
-    private double _lastRenderDrawCpuMilliseconds;
     private int _rtWidth = 360;
     private int _rtHeight = 260;
     private string _lastMetricsText = string.Empty;
@@ -330,9 +308,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
             return;
         }
 
-        long tickStartTimestamp = Stopwatch.GetTimestamp();
         _previewWorldDriver.Tick(gameTime);
-        _lastPreviewTickCpuMilliseconds = GetElapsedMilliseconds(tickStartTimestamp);
         var runtimeInstance = _particleComponent.RuntimeInstance;
         var metrics = runtimeInstance?.Metrics ?? ParticleRuntimeMetrics.Empty;
         _lastAliveCount = metrics.AliveCount;
@@ -341,36 +317,12 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _lastKilledCount = metrics.LastKilledCount;
         _lastMaxAliveCountReached = metrics.MaxAliveCountReached;
         _lastMaxReached = metrics.MaxReached;
-        _lastPeakEmitterIndex = metrics.PeakEmitterIndex;
-        _lastPeakEmitterCpuMilliseconds = metrics.PeakEmitterCpuMilliseconds;
-        _lastEmissionCpuMilliseconds = metrics.EmissionCpuMilliseconds;
-        _lastParticleUpdateCpuMilliseconds = metrics.ParticleUpdateCpuMilliseconds;
-        _lastBoundsCpuMilliseconds = metrics.BoundsCpuMilliseconds;
-        _lastSimulationCpuMilliseconds = metrics.SimulationCpuMilliseconds;
-        _lastExtractionCpuMilliseconds = _particleComponent.LastExtractionCpuMilliseconds;
         RefreshMetricsText();
         _renderView?.Invalidate();
     }
 
     public void RefreshPreviewAfterDraw()
     {
-        var particleRenderer = _editorRuntime.ParticleRendererComponent;
-        _lastRenderedParticleCount = particleRenderer?.FrameFlushedParticleCount ?? 0;
-        _lastDrawCallCount = particleRenderer?.FrameDrawCallCount ?? 0;
-        _lastTextureBindCount = particleRenderer?.FrameTextureBindCount ?? 0;
-        _lastStateChangeCount = particleRenderer?.FrameStateChangeCount ?? 0;
-        _lastRenderSegmentCount = particleRenderer?.FrameSegmentCount ?? 0;
-        _lastRenderCpuMilliseconds = particleRenderer?.FrameFlushCpuMilliseconds ?? 0.0;
-        _lastRenderSortCpuMilliseconds = particleRenderer?.FrameSortCpuMilliseconds ?? 0.0;
-        _lastRenderBuildCpuMilliseconds = particleRenderer?.FrameBufferBuildCpuMilliseconds ?? 0.0;
-        _lastRenderDrawCpuMilliseconds = particleRenderer?.FrameDrawCpuMilliseconds ?? 0.0;
-
-        var renderStats = _renderView?.RenderStats;
-        _lastViewTotalCpuMilliseconds = renderStats?.TotalCpuMilliseconds ?? 0.0;
-        _lastViewWorldDrawCpuMilliseconds = renderStats?.WorldDrawCpuMilliseconds ?? 0.0;
-        _lastViewRendererFlushCpuMilliseconds = renderStats?.RendererFlushCpuMilliseconds ?? 0.0;
-        _lastViewOverlayCpuMilliseconds = renderStats?.OverlayCpuMilliseconds ?? 0.0;
-        RefreshMetricsText();
         RefreshTextureBinding();
     }
 
@@ -389,30 +341,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
             $"Last killed: {_lastKilledCount}",
             $"Max alive reached: {_lastMaxAliveCountReached}",
             $"Max reached: {_lastMaxReached}",
-            $"Preview tick CPU ms: {_lastPreviewTickCpuMilliseconds:0.###}",
-            $"Simulation CPU ms: {_lastSimulationCpuMilliseconds:0.###}",
-            $"Emission CPU ms: {_lastEmissionCpuMilliseconds:0.###}",
-            $"Particle update CPU ms: {_lastParticleUpdateCpuMilliseconds:0.###}",
-            $"Bounds CPU ms: {_lastBoundsCpuMilliseconds:0.###}",
-            $"Peak emitter: {DescribePeakEmitter()}",
-            $"Extraction CPU ms: {_lastExtractionCpuMilliseconds:0.###}",
-            $"Render CPU ms: {_lastRenderCpuMilliseconds:0.###}",
-            $"Render sort CPU ms: {_lastRenderSortCpuMilliseconds:0.###}",
-            $"Render build CPU ms: {_lastRenderBuildCpuMilliseconds:0.###}",
-            $"Render draw CPU ms: {_lastRenderDrawCpuMilliseconds:0.###}",
-            $"View total CPU ms: {_lastViewTotalCpuMilliseconds:0.###}",
-            $"View world draw CPU ms: {_lastViewWorldDrawCpuMilliseconds:0.###}",
-            $"View flush CPU ms: {_lastViewRendererFlushCpuMilliseconds:0.###}",
-            $"View overlay CPU ms: {_lastViewOverlayCpuMilliseconds:0.###}",
-            $"Rendered particles: {_lastRenderedParticleCount}",
-            $"Render segments: {_lastRenderSegmentCount}",
-            $"Draw calls: {_lastDrawCallCount}",
-            $"Texture binds: {_lastTextureBindCount}",
-            $"State changes: {_lastStateChangeCount}",
-            $"Texture: {DescribeBoundTexture()}",
             $"World: {_previewWorldDriver.World?.Name ?? "<none>"}",
-            $"Particle gizmos: {_particleWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
-            $"Particle gizmo lines: {_particleWireOverlayRenderer?.LastDrawnLineCount ?? 0}",
         };
 
         return result;
@@ -642,7 +571,12 @@ internal sealed class ParticlePreviewViewport : IDisposable
         if (_particleAsset == null)
         {
             _particleComponent.Stop(clearParticles: true);
-            ResetProfilingMetrics();
+            _lastAliveCount = 0;
+            _lastDeadCount = 0;
+            _lastEmittedCount = 0;
+            _lastKilledCount = 0;
+            _lastMaxAliveCountReached = 0;
+            _lastMaxReached = false;
             SetStatusMessage("No particle asset loaded.");
             RefreshMetricsText();
             return;
@@ -697,7 +631,6 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _lastKilledCount = 0;
         _lastMaxAliveCountReached = 0;
         _lastMaxReached = false;
-        ResetProfilingMetrics();
         SetStatusMessage("Preview stopped.");
         UpdatePlaybackButtons();
         RefreshMetricsText();
@@ -783,39 +716,6 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _lastMetricsText = metricsText;
         _metricsText.SetText(metricsText, MGTextInvalidationMode.ReflowLocal);
     }
-
-    private void ResetProfilingMetrics()
-    {
-        _lastPreviewTickCpuMilliseconds = 0.0;
-        _lastSimulationCpuMilliseconds = 0.0;
-        _lastEmissionCpuMilliseconds = 0.0;
-        _lastParticleUpdateCpuMilliseconds = 0.0;
-        _lastBoundsCpuMilliseconds = 0.0;
-        _lastPeakEmitterIndex = -1;
-        _lastPeakEmitterCpuMilliseconds = 0.0;
-        _lastExtractionCpuMilliseconds = 0.0;
-        _lastRenderCpuMilliseconds = 0.0;
-        _lastViewTotalCpuMilliseconds = 0.0;
-        _lastViewWorldDrawCpuMilliseconds = 0.0;
-        _lastViewRendererFlushCpuMilliseconds = 0.0;
-        _lastViewOverlayCpuMilliseconds = 0.0;
-        _lastRenderedParticleCount = 0;
-        _lastDrawCallCount = 0;
-        _lastTextureBindCount = 0;
-        _lastStateChangeCount = 0;
-        _lastRenderSegmentCount = 0;
-        _lastRenderSortCpuMilliseconds = 0.0;
-        _lastRenderBuildCpuMilliseconds = 0.0;
-        _lastRenderDrawCpuMilliseconds = 0.0;
-    }
-
-    private string DescribePeakEmitter()
-        => _lastPeakEmitterIndex >= 0
-            ? $"E{_lastPeakEmitterIndex} {_lastPeakEmitterCpuMilliseconds:0.##} ms"
-            : "<none>";
-
-    private static double GetElapsedMilliseconds(long startTimestamp)
-        => (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
 
     private void SynchronizeControlsFromState()
     {
@@ -925,13 +825,6 @@ internal sealed class ParticlePreviewViewport : IDisposable
     {
         ParticlePlaybackState playbackState = _particleComponent?.RuntimeInstance?.PlaybackState ?? ParticlePlaybackState.Stopped;
         return playbackState.ToString();
-    }
-
-    private string DescribeBoundTexture()
-    {
-        return _boundTexture == null
-            ? "<none>"
-            : $"{_boundTexture.Width}x{_boundTexture.Height}";
     }
 
     private void SetStatusMessage(string message)
