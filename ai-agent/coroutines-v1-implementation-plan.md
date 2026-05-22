@@ -60,7 +60,7 @@ Validation :
 - Tests unitaires `FrameTime`.
 - Build du projet `CasaEngine` si necessaire.
 
-### 🚧 Tache 3 — Noyau CoroutineManager
+### ✅ Tache 3 — Noyau CoroutineManager
 
 Objectif : creer le scheduler sans integration monde.
 
@@ -77,7 +77,7 @@ Validation :
 
 - Tests unitaires fin naturelle, handle obsolete, stop, `yield return null`.
 
-### ⏳ Tache 4 — Instructions V1 et coroutines imbriquees
+### 🚧 Tache 4 — Instructions V1 et coroutines imbriquees
 
 Objectif : couvrir les instructions V1 de la specification.
 
