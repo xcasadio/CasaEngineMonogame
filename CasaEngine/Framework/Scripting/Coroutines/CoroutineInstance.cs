@@ -19,6 +19,10 @@ internal sealed class CoroutineInstance : IDisposable
 
     public object? CurrentYield { get; set; }
 
+    public ICoroutineInstruction? CurrentInstruction { get; set; }
+
+    public CoroutineHandle WaitingHandle { get; set; } = CoroutineHandle.Invalid;
+
     public long ResumeFrameIndex { get; set; } = -1;
 
     public bool IsStopped { get; set; }
@@ -37,6 +41,8 @@ internal sealed class CoroutineInstance : IDisposable
         }
 
         CurrentYield = null;
+        CurrentInstruction = null;
+        WaitingHandle = CoroutineHandle.Invalid;
     }
 
     public static void DisposeEnumerator(IEnumerator enumerator)

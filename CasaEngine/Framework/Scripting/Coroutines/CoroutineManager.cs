@@ -21,6 +21,8 @@ public sealed class CoroutineManager : ICoroutineManager
 
     public int ManagerId { get; }
 
+    public bool ThrowCoroutineExceptionsInDebug { get; set; }
+
     public CoroutineHandle StartCoroutine(IEnumerator routine)
     {
         return StartCoroutine(routine, null);
@@ -103,6 +105,12 @@ public sealed class CoroutineManager : ICoroutineManager
                 instance.Fault = exception;
                 instance.IsStopped = true;
                 Logs.WriteException(new Exception(CreateExceptionMessage(instance), exception));
+
+                if (ThrowCoroutineExceptionsInDebug)
+                {
+                    RemoveCompletedAndStoppedCoroutines();
+                    throw;
+                }
             }
         }
 
@@ -132,6 +140,28 @@ public sealed class CoroutineManager : ICoroutineManager
 
     private void UpdateCoroutine(CoroutineInstance coroutine, CoroutineUpdateContext context)
     {
+        if (coroutine.CurrentInstruction != null)
+        {
+            if (!coroutine.CurrentInstruction.IsCompleted(context))
+            {
+                return;
+            }
+
+            coroutine.CurrentInstruction = null;
+            coroutine.CurrentYield = null;
+        }
+
+        if (coroutine.WaitingHandle.IsValid)
+        {
+            if (IsRunning(coroutine.WaitingHandle))
+            {
+                return;
+            }
+
+            coroutine.WaitingHandle = CoroutineHandle.Invalid;
+            coroutine.CurrentYield = null;
+        }
+
         if (coroutine.ResumeFrameIndex >= 0)
         {
             if (context.FrameIndex < coroutine.ResumeFrameIndex)
@@ -161,11 +191,75 @@ public sealed class CoroutineManager : ICoroutineManager
                 return;
             }
 
+            if (yielded is IEnumerator nestedEnumerator)
+            {
+                coroutine.Stack.Push(nestedEnumerator);
+                continue;
+            }
+
+            if (yielded is ICoroutineInstruction instruction)
+            {
+                coroutine.CurrentInstruction = instruction;
+                return;
+            }
+
+            if (yielded is CoroutineHandle handle)
+            {
+                if (TryBeginHandleWait(coroutine, handle))
+                {
+                    return;
+                }
+
+                continue;
+            }
+
             throw new InvalidOperationException($"Unsupported coroutine yield type: {yielded.GetType().FullName}");
         }
 
         coroutine.CurrentYield = null;
         coroutine.IsCompleted = true;
+    }
+
+    private bool TryBeginHandleWait(CoroutineInstance coroutine, CoroutineHandle handle)
+    {
+        if (!handle.IsValid)
+        {
+            HandleInvalidYieldedHandle(coroutine, handle, "invalid handle");
+            return false;
+        }
+
+        if (handle == coroutine.Handle)
+        {
+            throw new InvalidOperationException("A coroutine cannot wait for its own handle.");
+        }
+
+        if (handle.ManagerId != ManagerId)
+        {
+            HandleInvalidYieldedHandle(coroutine, handle, "handle belongs to another CoroutineManager");
+            return false;
+        }
+
+        if (!IsRunning(handle))
+        {
+            return false;
+        }
+
+        coroutine.WaitingHandle = handle;
+        return true;
+    }
+
+    private void HandleInvalidYieldedHandle(CoroutineInstance coroutine, CoroutineHandle handle, string reason)
+    {
+        string message = $"Coroutine yielded an unsupported CoroutineHandle ({reason}): "
+            + $"{handle.ManagerId}/{handle.Slot}/{handle.Generation}.";
+
+        if (ThrowCoroutineExceptionsInDebug)
+        {
+            throw new InvalidOperationException(message);
+        }
+
+        Logs.WriteWarning(message);
+        coroutine.CurrentYield = null;
     }
 
     private void RemoveCompletedAndStoppedCoroutines()
