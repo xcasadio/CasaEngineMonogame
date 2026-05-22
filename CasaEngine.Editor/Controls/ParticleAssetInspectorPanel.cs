@@ -29,7 +29,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
     private readonly ParticlePreviewViewport? _particlePreview;
 
     private MGDockPanel? _root;
-    private MGElement? _previewContent;
+    private MGElement? _documentContent;
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
@@ -109,36 +109,31 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _root.TryAddChild(_sourceText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
         _root.TryAddChild(toolbar, Dock.Top);
-        if (_particlePreview != null)
-        {
-            _root.TryAddChild(CreatePreviewContent(), Dock.Top);
-        }
-
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
         return _root;
     }
 
-    public MGElement CreatePreviewContent()
+    public MGElement CreateDocumentContent()
     {
         if (_particlePreview != null)
         {
-            return _particlePreview.CreateContent();
+            return _particlePreview.CreateViewportContent();
         }
 
-        if (_previewContent != null)
+        if (_documentContent != null)
         {
-            return _previewContent;
+            return _documentContent;
         }
 
-        _previewContent = new MGTextBlock(_window, "Particle preview unavailable.")
+        _documentContent = new MGTextBlock(_window, "Particle preview unavailable.")
         {
             Margin = new Thickness(8, 6, 8, 4),
             Opacity = 0.75f,
             WrapText = true,
         };
-        return _previewContent;
+        return _documentContent;
     }
 
     public void SetHistoryContextId(string historyContextId)

@@ -449,9 +449,12 @@ public sealed class EntitiesPanel
             Header = BuildWorldHeader(_currentWorld),
         };
 
-        foreach (var entity in _currentWorld.Entities.Where(ShouldIncludeEntity).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var entity in _currentWorld.Entities)
         {
-            _worldRootItem.AddItem(BuildTreeItem(entity));
+            if (ShouldIncludeEntity(entity))
+            {
+                _worldRootItem.AddItem(BuildTreeItem(entity));
+            }
         }
 
         _treeView.AddItem(_worldRootItem);
@@ -498,9 +501,12 @@ public sealed class EntitiesPanel
         _itemToEntity[item] = entity;
         _entityToItem[entity] = item;
 
-        foreach (var child in entity.Children.Where(ShouldIncludeEntity).OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var child in entity.Children)
         {
-            item.AddItem(BuildTreeItem(child));
+            if (ShouldIncludeEntity(child))
+            {
+                item.AddItem(BuildTreeItem(child));
+            }
         }
 
         return item;

@@ -19,6 +19,7 @@ using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
+using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
@@ -74,9 +75,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
 
-    private MGStackPanel? _root;
-    private MGTextBlock? _titleText;
-    private MGTextBlock? _sourceText;
+    private MGDockPanel? _root;
+    private MGStackPanel? _controlsRoot;
     private MGTextBlock? _statusText;
     private MGTextBlock? _metricsText;
     private MGDockPanel? _viewportHost;
@@ -134,8 +134,12 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private int _rtWidth = 360;
     private int _rtHeight = 260;
     private string _lastMetricsText = string.Empty;
+    private float _zoomDistanceMultiplier = 1.0f;
     private bool _disposed;
     private bool _suspendControlCallbacks;
+
+    private const float MinZoomDistanceMultiplier = 0.35f;
+    private const float MaxZoomDistanceMultiplier = 4.0f;
 
     public ParticlePreviewViewport(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime)
     {
@@ -150,6 +154,9 @@ internal sealed class ParticlePreviewViewport : IDisposable
     }
 
     public MGElement CreateContent()
+        => CreateViewportContent();
+
+    public MGElement CreateViewportContent()
     {
         if (_root != null)
         {
@@ -158,30 +165,35 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         EnsureRenderViewCreated();
 
-        _titleText = new MGTextBlock(_window, "[b]Particle Preview[/b]")
+        _metricsText = new MGTextBlock(_window, "Alive: 0  Emitted: 0  Draw Calls: 0")
         {
-            Margin = new Thickness(4, 4, 4, 0),
-            Opacity = EditorThemePalette.PrimaryHeaderOpacity,
+            Margin = new Thickness(4, 0, 4, 0),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            FontSize = 10,
+            WrapText = true,
+            MinLines = 2,
+            HasStableTextFootprint = true,
+        };
+
+        _statusText = new MGTextBlock(_window, EscapeMarkup(_statusMessage))
+        {
+            Margin = new Thickness(4, 0, 4, 0),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            FontSize = 10,
             WrapText = true,
         };
 
-        _sourceText = new MGTextBlock(_window, "No particle asset loaded.")
-        {
-            Margin = new Thickness(4, 0, 4, 0),
-            Opacity = EditorThemePalette.SecondaryHeadingOpacity,
-            WrapText = true,
-        };
+        _playButton = CreateButton("Play", PlayPreview);
+        _pauseButton = CreateButton("Pause", PausePreview);
+        _stopButton = CreateButton("Stop", StopPreview);
+        _restartButton = CreateButton("Restart", RestartPreview);
+        var resetCameraButton = CreateButton("Reset Camera", ResetCamera);
 
         var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
         {
             Spacing = 4,
             Margin = new Thickness(4, 0, 4, 0),
         };
-        _playButton = CreateButton("Play", PlayPreview);
-        _pauseButton = CreateButton("Pause", PausePreview);
-        _stopButton = CreateButton("Stop", StopPreview);
-        _restartButton = CreateButton("Restart", RestartPreview);
-        var resetCameraButton = CreateButton("Reset Camera", ResetCamera);
         toolbar.TryAddChild(_playButton);
         toolbar.TryAddChild(_pauseButton);
         toolbar.TryAddChild(_stopButton);
@@ -211,7 +223,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
             RefreshMetricsText();
         });
 
-        _statusText = new MGTextBlock(_window, EscapeMarkup(_statusMessage))
+        var zoomHintText = new MGTextBlock(_window, "Use mouse wheel in the preview to zoom in and out.")
         {
             Margin = new Thickness(4, 0, 4, 0),
             Opacity = EditorThemePalette.SecondaryTextOpacity,
@@ -219,24 +231,28 @@ internal sealed class ParticlePreviewViewport : IDisposable
             WrapText = true,
         };
 
-        _metricsText = new MGTextBlock(_window, "Alive: 0  Emitted: 0  Draw Calls: 0")
+        _controlsRoot = new MGStackPanel(_window, Orientation.Vertical)
         {
-            Margin = new Thickness(4, 0, 4, 0),
-            Opacity = EditorThemePalette.SecondaryTextOpacity,
-            FontSize = 10,
-            WrapText = true,
-            MinLines = 4,
-            HasStableTextFootprint = true,
+            Spacing = 4,
+            Margin = new Thickness(4, 0, 4, 6),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Bottom,
         };
+        _controlsRoot.TryAddChild(_metricsText);
+        _controlsRoot.TryAddChild(_statusText);
+        _controlsRoot.TryAddChild(toolbar);
+        _controlsRoot.TryAddChild(optionsRow);
+        _controlsRoot.TryAddChild(speedRow);
+        _controlsRoot.TryAddChild(zoomHintText);
 
         _viewportHost = new MGDockPanel(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             MinHeight = 260,
-            PreferredHeight = 260,
         };
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
+        _viewportHost.MouseHandler.Scrolled += OnViewportScrolled;
 
         _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
         {
@@ -255,7 +271,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
             Margin = new Thickness(4, 0, 4, 4),
             Padding = new Thickness(1),
             MinHeight = 260,
-            PreferredHeight = 260,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
         };
         viewportBorder.SetContent(_viewportHost);
 
@@ -264,21 +281,13 @@ internal sealed class ParticlePreviewViewport : IDisposable
             _editorRuntime.GameManager.ViewManager.HookViewHost(_renderView);
         }
 
-        _root = new MGStackPanel(_window, Orientation.Vertical)
+        _root = new MGDockPanel(_window)
         {
-            Spacing = 4,
-            Margin = new Thickness(4, 0, 4, 6),
+            Margin = new Thickness(0, 4, 0, 0),
         };
-        _root.TryAddChild(_titleText);
-        _root.TryAddChild(_sourceText);
-        _root.TryAddChild(toolbar);
-        _root.TryAddChild(optionsRow);
-        _root.TryAddChild(speedRow);
-        _root.TryAddChild(_statusText);
-        _root.TryAddChild(_metricsText);
-        _root.TryAddChild(viewportBorder);
+        _root.TryAddChild(_controlsRoot, Dock.Bottom);
+        _root.TryAddChild(viewportBorder, Dock.Top);
 
-        RefreshHeaderText();
         SynchronizeControlsFromState();
         RefreshMetricsText();
         RefreshTextureBinding();
@@ -302,8 +311,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _isLooping = HasLoopingEmitter(particleAsset);
         _simulationSpeed = 1.0f;
         EnsurePreviewSceneCreated();
+        ResetPreviewTransform();
         ApplyRuntimeConfiguration(restart: true);
-        RefreshHeaderText();
         SynchronizeControlsFromState();
         RefreshMetricsText();
         _renderView?.Invalidate();
@@ -421,6 +430,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
         if (_viewportHost != null)
         {
             _viewportHost.OnLayoutBoundsChanged -= OnViewportBoundsChanged;
+            _viewportHost.MouseHandler.Scrolled -= OnViewportScrolled;
         }
 
         if (_renderView != null)
@@ -711,6 +721,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
     private void ResetPreviewTransform()
     {
+        _zoomDistanceMultiplier = 1.0f;
         if (_particleComponent != null)
         {
             _particleComponent.LocalPosition = Vector3.Zero;
@@ -730,7 +741,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
 
         float radius = CalculatePreviewRadius();
         Vector3 target = new(0.0f, radius * 0.25f, 0.0f);
-        Vector3 position = new(0.0f, radius * 0.45f, Math.Max(3.0f, radius * 3.0f));
+        float distanceScale = MathHelper.Clamp(_zoomDistanceMultiplier, MinZoomDistanceMultiplier, MaxZoomDistanceMultiplier);
+        Vector3 position = new(0.0f, radius * 0.45f * distanceScale, Math.Max(3.0f, radius * 3.0f * distanceScale));
         _camera.SetPositionAndTarget(position, target);
     }
 
@@ -753,24 +765,6 @@ internal sealed class ParticlePreviewViewport : IDisposable
         return MathHelper.Clamp(radius, 1.5f, 12.0f);
     }
 
-    private void RefreshHeaderText()
-    {
-        if (_titleText != null)
-        {
-            string title = _particleAsset?.Name;
-            _titleText.Text = string.IsNullOrWhiteSpace(title)
-                ? "[b]Particle Preview[/b]"
-                : $"[b]Particle Preview[/b]  [opacity=0.7]{EscapeMarkup(title)}[/opacity]";
-        }
-
-        if (_sourceText != null)
-        {
-            _sourceText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
-                ? "No particle asset loaded."
-                : EscapeMarkup(_loadedRelativePath);
-        }
-    }
-
     private void RefreshMetricsText()
     {
         if (_metricsText == null)
@@ -779,10 +773,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
         }
 
         string metricsText =
-            $"Alive: {_lastAliveCount}  Dead: {_lastDeadCount}  Emit/Kill: {_lastEmittedCount}/{_lastKilledCount}  Max: {_lastMaxAliveCountReached}{(_lastMaxReached ? "!" : string.Empty)}  Peak: {DescribePeakEmitter()}  State: {DescribePlaybackState()}  Speed: {_simulationSpeed:0.##}x\n" +
-            $"CPU Tick/Run/Emit/Sim/Bnd/X: {_lastPreviewTickCpuMilliseconds:0.##}/{_lastSimulationCpuMilliseconds:0.##}/{_lastEmissionCpuMilliseconds:0.##}/{_lastParticleUpdateCpuMilliseconds:0.##}/{_lastBoundsCpuMilliseconds:0.##}/{_lastExtractionCpuMilliseconds:0.##} ms\n" +
-            $"View CPU Tot/World/Flush/Overlay: {_lastViewTotalCpuMilliseconds:0.##}/{_lastViewWorldDrawCpuMilliseconds:0.##}/{_lastViewRendererFlushCpuMilliseconds:0.##}/{_lastViewOverlayCpuMilliseconds:0.##} ms\n" +
-            $"Render Part/Seg/Draw/Tex/State: {_lastRenderedParticleCount}/{_lastRenderSegmentCount}/{_lastDrawCallCount}/{_lastTextureBindCount}/{_lastStateChangeCount}  CPU Sort/Build/Draw/Flush: {_lastRenderSortCpuMilliseconds:0.##}/{_lastRenderBuildCpuMilliseconds:0.##}/{_lastRenderDrawCpuMilliseconds:0.##}/{_lastRenderCpuMilliseconds:0.##} ms";
+            $"Alive: {_lastAliveCount}  Dead: {_lastDeadCount}  Emit/Kill: {_lastEmittedCount}/{_lastKilledCount}  Max: {_lastMaxAliveCountReached}{(_lastMaxReached ? "!" : string.Empty)}\n" +
+            $"State: {DescribePlaybackState()}  Speed: {_simulationSpeed:0.##}x";
         if (string.Equals(metricsText, _lastMetricsText, StringComparison.Ordinal))
         {
             return;
@@ -888,6 +880,30 @@ internal sealed class ParticlePreviewViewport : IDisposable
         _camera?.OnScreenResized(width, height);
         _renderView?.Invalidate();
         RefreshTextureBinding();
+    }
+
+    private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    {
+        if (_particleAsset == null || e.ScrollWheelDelta == 0 || _viewportHost == null || _viewportHost.Parent == null)
+        {
+            return;
+        }
+
+        Rectangle bounds = !_viewportHost.ActualLayoutBounds.IsEmpty ? _viewportHost.ActualLayoutBounds : _viewportHost.LayoutBounds;
+        if (!bounds.Contains(e.Position))
+        {
+            return;
+        }
+
+        float wheelSteps = e.ScrollWheelDelta / 120.0f;
+        float zoomScale = MathF.Pow(0.9f, wheelSteps);
+        _zoomDistanceMultiplier = MathHelper.Clamp(
+            _zoomDistanceMultiplier * zoomScale,
+            MinZoomDistanceMultiplier,
+            MaxZoomDistanceMultiplier);
+        ConfigureCamera();
+        _renderView?.Invalidate();
+        e.SetHandledBy(_viewportHost ?? sender as IMouseHandlerHost);
     }
 
     private void RefreshTextureBinding()
