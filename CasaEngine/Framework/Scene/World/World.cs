@@ -6,6 +6,7 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
@@ -45,6 +46,7 @@ public sealed class World : ObjectBase
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
     public CoroutineManager CoroutineManager { get; } = new();
+    public CutsceneDirector CutsceneDirector { get; }
     public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
     public RenderFrame? CurrentRenderFrame { get; private set; }
 
@@ -65,6 +67,7 @@ public sealed class World : ObjectBase
     public World(Func<World, WorldSpatialServices>? spatialServicesFactory)
     {
         MessageBus = new WorldMessageBus();
+        CutsceneDirector = new CutsceneDirector(this);
         Func<World, WorldSpatialServices> resolvedSpatialServicesFactory = spatialServicesFactory ?? (world => WorldSpatialServices.CreateDefault(world));
         SpatialServices = resolvedSpatialServicesFactory(this);
     }
@@ -77,6 +80,7 @@ public sealed class World : ObjectBase
         foreach (var entity in _entities)
             entity.GameplayProxy?.OnEndPlay(this);
 
+        CutsceneDirector.Stop();
         CoroutineManager.StopAllCoroutines();
 
         foreach (var worldUiComponent in _worldUiComponents)

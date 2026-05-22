@@ -26,6 +26,7 @@ public static class Constants
         public const string Environment = ".environment";
         public const string Shader = ".shader";
         public const string Particle = ".particle";
+        public const string Cutscene = ".cutscene";
 
         //project
         public const string Project = ".json";
