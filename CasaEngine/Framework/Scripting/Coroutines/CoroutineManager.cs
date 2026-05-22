@@ -30,11 +30,19 @@ public sealed class CoroutineManager : ICoroutineManager
 
     public CoroutineHandle StartCoroutine(IEnumerator routine, object? owner)
     {
+        return StartCoroutine(routine, owner, null);
+    }
+
+    public CoroutineHandle StartCoroutine(IEnumerator routine, object? owner, string? name)
+    {
         ArgumentNullException.ThrowIfNull(routine);
 
         int slot = AllocateSlot();
         var handle = new CoroutineHandle(ManagerId, slot, NextGeneration());
-        _slots[slot] = new CoroutineInstance(handle, routine, owner);
+        _slots[slot] = new CoroutineInstance(handle, routine, owner)
+        {
+            Name = name
+        };
         _pendingStartSlots.Enqueue(slot);
         return handle;
     }
@@ -81,6 +89,43 @@ public sealed class CoroutineManager : ICoroutineManager
         return TryGetInstance(handle, out CoroutineInstance? instance)
             && !instance.IsStopped
             && !instance.IsCompleted;
+    }
+
+    public void SetCoroutineName(CoroutineHandle handle, string? name)
+    {
+        if (TryGetInstance(handle, out CoroutineInstance? instance))
+        {
+            instance.Name = name;
+        }
+    }
+
+    public IReadOnlyList<CoroutineDebugInfo> GetActiveCoroutines()
+    {
+        var debugInfos = new List<CoroutineDebugInfo>();
+
+        for (int index = 0; index < _slots.Count; index++)
+        {
+            CoroutineInstance? instance = _slots[index];
+            if (instance == null || instance.IsStopped || instance.IsCompleted)
+            {
+                continue;
+            }
+
+            string state = GetDebugState(instance);
+            debugInfos.Add(new CoroutineDebugInfo
+            {
+                Id = instance.Handle.Slot,
+                Handle = instance.Handle,
+                Name = instance.Name,
+                OwnerName = GetOwnerName(instance.Owner),
+                CurrentInstruction = GetCurrentInstructionName(instance),
+                IsPaused = state == CoroutineDebugStates.Waiting,
+                RemainingTime = GetRemainingTime(instance.CurrentInstruction),
+                State = state
+            });
+        }
+
+        return debugInfos;
     }
 
     public void Update(CoroutineUpdateContext context)
@@ -333,5 +378,79 @@ public sealed class CoroutineManager : ICoroutineManager
         string name = string.IsNullOrWhiteSpace(instance.Name) ? "<unnamed>" : instance.Name;
         string owner = instance.Owner?.ToString() ?? "<none>";
         return $"Coroutine '{name}' failed. Owner: {owner}. Handle: {instance.Handle.ManagerId}/{instance.Handle.Slot}/{instance.Handle.Generation}.";
+    }
+
+    private static string? GetOwnerName(object? owner)
+    {
+        return owner switch
+        {
+            null => null,
+            ObjectBase objectBase => objectBase.Name,
+            _ => owner.ToString()
+        };
+    }
+
+    private static string? GetCurrentInstructionName(CoroutineInstance instance)
+    {
+        if (instance.CurrentInstruction != null)
+        {
+            return instance.CurrentInstruction.GetType().Name;
+        }
+
+        if (instance.WaitingHandle.IsValid)
+        {
+            return nameof(CoroutineHandle);
+        }
+
+        if (instance.ResumeFrameIndex >= 0)
+        {
+            return "NextFrame";
+        }
+
+        return instance.CurrentYield?.GetType().Name;
+    }
+
+    private static float? GetRemainingTime(ICoroutineInstruction? instruction)
+    {
+        return instruction switch
+        {
+            WaitForSeconds waitForSeconds => MathF.Max(0f, waitForSeconds.RemainingTime),
+            WaitForSecondsRealtime waitForSecondsRealtime => MathF.Max(0f, waitForSecondsRealtime.RemainingTime),
+            _ => null
+        };
+    }
+
+    private static string GetDebugState(CoroutineInstance instance)
+    {
+        if (instance.Fault != null)
+        {
+            return CoroutineDebugStates.Faulted;
+        }
+
+        if (instance.IsStopped)
+        {
+            return CoroutineDebugStates.Stopped;
+        }
+
+        if (instance.IsCompleted)
+        {
+            return CoroutineDebugStates.Completed;
+        }
+
+        if (instance.CurrentInstruction != null || instance.WaitingHandle.IsValid || instance.ResumeFrameIndex >= 0)
+        {
+            return CoroutineDebugStates.Waiting;
+        }
+
+        return CoroutineDebugStates.Running;
+    }
+
+    private static class CoroutineDebugStates
+    {
+        public const string Completed = "Completed";
+        public const string Faulted = "Faulted";
+        public const string Running = "Running";
+        public const string Stopped = "Stopped";
+        public const string Waiting = "Waiting";
     }
 }

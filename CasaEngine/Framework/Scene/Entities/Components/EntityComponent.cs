@@ -1,5 +1,7 @@
+using System.Collections;
 using System.ComponentModel;
 using System.Reflection;
+using CasaEngine.Framework.Scripting.Coroutines;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
@@ -49,6 +51,37 @@ public abstract class EntityComponent : ObjectBase
     {
         Owner?.World?.CoroutineManager.StopAllCoroutines(this);
         Owner = null;
+    }
+
+    protected CoroutineHandle StartCoroutine(IEnumerator routine)
+    {
+        return GetCoroutineManager().StartCoroutine(routine, this);
+    }
+
+    protected CoroutineHandle StartCoroutine(IEnumerator routine, string? name)
+    {
+        return GetCoroutineManager().StartCoroutine(routine, this, name);
+    }
+
+    protected void StopCoroutine(CoroutineHandle handle)
+    {
+        Owner?.World?.CoroutineManager.StopCoroutine(handle);
+    }
+
+    protected void StopAllCoroutines()
+    {
+        Owner?.World?.CoroutineManager.StopAllCoroutines(this);
+    }
+
+    private CoroutineManager GetCoroutineManager()
+    {
+        var coroutineManager = Owner?.World?.CoroutineManager;
+        if (coroutineManager == null)
+        {
+            throw new InvalidOperationException($"Component '{Name}' is not attached to an Entity in a World.");
+        }
+
+        return coroutineManager;
     }
 
     public virtual void Update(float elapsedTime)

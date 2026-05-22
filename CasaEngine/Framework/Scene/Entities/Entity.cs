@@ -1,9 +1,10 @@
-
+using System.Collections;
 using System.ComponentModel;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.Scripting.Coroutines;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using CasaEngine.Core.Logging;
@@ -355,6 +356,26 @@ public class Entity : ObjectBase
         Logs.WriteTrace($"Entity destroyed : {Name} {Id}");
     }
 
+    public CoroutineHandle StartCoroutine(IEnumerator routine)
+    {
+        return GetCoroutineManager().StartCoroutine(routine, this);
+    }
+
+    public CoroutineHandle StartCoroutine(IEnumerator routine, string? name)
+    {
+        return GetCoroutineManager().StartCoroutine(routine, this, name);
+    }
+
+    public void StopCoroutine(CoroutineHandle handle)
+    {
+        World?.CoroutineManager.StopCoroutine(handle);
+    }
+
+    public void StopAllCoroutines()
+    {
+        World?.CoroutineManager.StopAllCoroutines(this);
+    }
+
     internal void StopAllOwnedCoroutines()
     {
         var coroutineManager = World?.CoroutineManager;
@@ -381,7 +402,18 @@ public class Entity : ObjectBase
         }
     }
 
-    private static void StopComponentCoroutines(EntityComponent component, Scripting.Coroutines.CoroutineManager coroutineManager)
+    private CoroutineManager GetCoroutineManager()
+    {
+        var coroutineManager = World?.CoroutineManager;
+        if (coroutineManager == null)
+        {
+            throw new InvalidOperationException($"Entity '{Name}' is not attached to a World.");
+        }
+
+        return coroutineManager;
+    }
+
+    private static void StopComponentCoroutines(EntityComponent component, CoroutineManager coroutineManager)
     {
         coroutineManager.StopAllCoroutines(component);
 

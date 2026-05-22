@@ -114,7 +114,7 @@ Validation :
 
 - Tests unitaires/integration ownership entity/component/world.
 
-### ⏳ Tache 6 — Helpers composants et debug API
+### ✅ Tache 6 — Helpers composants et debug API
 
 Objectif : exposer l'API pratique et les donnees de debug V1.
 
