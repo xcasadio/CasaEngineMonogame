@@ -132,7 +132,7 @@ Validation :
 
 - Tests debug info, noms, owner name, exception stoppee, strict mode.
 
-### ⏳ Tache 7 — Validation finale solution
+### ✅ Tache 7 — Validation finale solution
 
 Objectif : verifier que le repo reste compilable avec les changements.
 
