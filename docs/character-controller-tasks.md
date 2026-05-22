@@ -43,7 +43,7 @@ Validation :
 - tests `CasaEngine.Tests` de la zone physics ;
 - build solution.
 
-### ⏳ Todo - P2. Ajouter les types de contrat Character Controller
+### ✅ Done - P2. Ajouter les types de contrat Character Controller
 
 Objectif : definir les types stables avant le solveur.
 
