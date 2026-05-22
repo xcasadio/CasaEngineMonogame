@@ -9,5 +9,6 @@ public enum EditorDocumentKind
     Entity,
     AnimationClip,
     Particle,
+    Cutscene,
     TileMap,
 }

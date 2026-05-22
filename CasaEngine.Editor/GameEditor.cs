@@ -117,17 +117,20 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, CutsceneAssetInspectorPanel> _cutsceneInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, EntityAssetEditorPanel> _entityAssetEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, AnimationClipPreviewPanel> _animationClipPreviewPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, TileMapEditorPanel> _tileMapEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _particleInspectorPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _cutsceneInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _entityAssetEditorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _tileMapEditorPanelTitles = new(StringComparer.Ordinal);
     private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
     private ParticleAssetInspectorPanel? _activeParticleInspectorPanel;
+    private CutsceneAssetInspectorPanel? _activeCutsceneInspectorPanel;
     private EntityAssetEditorPanel? _activeEntityAssetEditorPanel;
     private TileMapEditorPanel? _activeTileMapEditorPanel;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
@@ -1707,6 +1710,11 @@ public class GameEditor : Game, IObservableUpdate
             return () => GetOrCreateMaterialViewportContent(panelId);
         }
 
+        if (_cutsceneInspectorPanels.TryGetValue(panelId, out var cutsceneInspectorPanel))
+        {
+            return cutsceneInspectorPanel.CreateContent;
+        }
+
         if (_entityAssetEditorPanels.TryGetValue(panelId, out var entityAssetEditorPanel))
         {
             return entityAssetEditorPanel.CreateContent;
@@ -1906,6 +1914,16 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
+        if (TryGetCutsceneAssetInspectorPanel(panel.Id, out var cutsceneInspectorPanel))
+        {
+            _cutsceneInspectorPanels.Remove(panel.Id);
+            _cutsceneInspectorPanelTitles.Remove(panel.Id);
+            if (ReferenceEquals(_activeCutsceneInspectorPanel, cutsceneInspectorPanel))
+            {
+                _activeCutsceneInspectorPanel = null;
+            }
+        }
+
         if (TryGetAnimationClipPreviewPanel(panel.Id, out var animationClipPreviewPanel))
         {
             animationClipPreviewPanel.Dispose();
@@ -2078,6 +2096,19 @@ public class GameEditor : Game, IObservableUpdate
             };
         }
 
+        if (TryGetCutsceneAssetInspectorPanel(panelId, out var cutsceneInspectorPanel))
+        {
+            return new DockPanelNode(panelId)
+            {
+                Title = GetCutsceneDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = cutsceneInspectorPanel.CreateContent,
+            };
+        }
+
         if (TryGetMaterialAssetInspectorPanel(panelId, out _))
         {
             return new DockPanelNode(panelId)
@@ -2140,6 +2171,18 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return _particleInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+    }
+
+    private bool TryGetCutsceneAssetInspectorPanel(string panelId, out CutsceneAssetInspectorPanel inspectorPanel)
+    {
+        inspectorPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.CutsceneAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _cutsceneInspectorPanels.TryGetValue(panelId, out inspectorPanel);
     }
 
     private bool TryGetAnimationClipPreviewPanel(string panelId, out AnimationClipPreviewPanel previewPanel)
@@ -2294,6 +2337,25 @@ public class GameEditor : Game, IObservableUpdate
         RefreshParticleViews();
     }
 
+    private void ActivateCutsceneDocument(string panelId, CutsceneAssetInspectorPanel inspectorPanel)
+    {
+        _activeCutsceneInspectorPanel = inspectorPanel;
+        RefreshCutsceneRuntimeSnapshot(inspectorPanel);
+        _editorContext.SetActiveDocument(new EditorDocumentContext(
+            EditorDocumentKind.Cutscene,
+            panelId,
+            _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Cutscene",
+            inspectorPanel));
+        SyncGlobalSelectionFromActiveDocument();
+        RefreshActiveHistoryContext();
+    }
+
+    private void RefreshCutsceneRuntimeSnapshot(CutsceneAssetInspectorPanel inspectorPanel)
+    {
+        var world = _editorRuntime?.GameManager.CurrentWorld;
+        inspectorPanel.RefreshRuntimeSnapshot(world?.CutsceneDirector.GetDebugSnapshot());
+    }
+
     private void ActivateAnimationClipDocument(string panelId, AnimationClipPreviewPanel previewPanel)
     {
         _editorContext.SetActiveDocument(new EditorDocumentContext(
@@ -2346,6 +2408,13 @@ public class GameEditor : Game, IObservableUpdate
             && TryGetParticleAssetInspectorPanel(activeDocumentPanelId, out var particleInspectorPanel))
         {
             ActivateParticleDocument(activeDocumentPanelId, particleInspectorPanel);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutsceneInspectorPanel))
+        {
+            ActivateCutsceneDocument(activeDocumentPanelId, cutsceneInspectorPanel);
             return;
         }
 
@@ -2831,6 +2900,11 @@ public class GameEditor : Game, IObservableUpdate
             return true;
         }
 
+        if (TryOpenCutsceneAsset(fullPath))
+        {
+            return true;
+        }
+
         if (TryOpenTileMapAsset(fullPath))
         {
             return true;
@@ -3026,6 +3100,60 @@ public class GameEditor : Game, IObservableUpdate
         ActivateDockPanel(panelId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened particle asset='{particleAsset.Name}', panel='{panelId}'");
+        return true;
+    }
+
+    private bool TryOpenCutsceneAsset(string fullPath)
+    {
+        if (!CutsceneAssetInspectorPanel.TryLoadAsset(fullPath, out var cutsceneAsset))
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = cutsceneAsset.AssetId != Guid.Empty ? cutsceneAsset.AssetId : cutsceneAsset.Id;
+        string panelId = $"{EditorPanelIds.CutsceneAssetDocumentPrefix}{documentId:N}";
+        bool createdPanel = false;
+        if (!_cutsceneInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
+        {
+            inspectorPanel = new CutsceneAssetInspectorPanel(_mainWindow);
+            _cutsceneInspectorPanels.Add(panelId, inspectorPanel);
+            createdPanel = true;
+        }
+
+        if (createdPanel)
+        {
+            inspectorPanel.LoadAsset(cutsceneAsset, fullPath);
+        }
+
+        var panelTitle = string.IsNullOrWhiteSpace(cutsceneAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : cutsceneAsset.Name;
+        _cutsceneInspectorPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var panelNode = CreateDocumentPanelNode(panelId);
+            var targetGroup = GetDocumentDockGroup();
+            if (panelNode == null || targetGroup == null)
+            {
+                return false;
+            }
+
+            panelNode.Title = GetCutsceneDocumentTitle(panelId);
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetCutsceneDocumentTitle(panelId);
+        }
+
+        ActivateCutsceneDocument(panelId, inspectorPanel);
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened cutscene asset='{cutsceneAsset.Name}', panel='{panelId}'");
         return true;
     }
 
@@ -3428,6 +3556,9 @@ public class GameEditor : Game, IObservableUpdate
 
         return isDirty ? $"{title} *" : title;
     }
+
+    private string GetCutsceneDocumentTitle(string panelId)
+        => _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Cutscene";
 
     private string GetEntityDocumentTitle(string panelId)
     {
