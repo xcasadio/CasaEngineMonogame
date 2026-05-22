@@ -11,6 +11,7 @@ using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.Scripting.Coroutines;
 using CasaEngine.Framework.Scene.Transform;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -43,6 +44,7 @@ public sealed class World : ObjectBase
     public ReflectionProbeCollection ReflectionProbes { get; } = new();
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
+    public CoroutineManager CoroutineManager { get; } = new();
     public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
     public RenderFrame? CurrentRenderFrame { get; private set; }
 
@@ -74,6 +76,8 @@ public sealed class World : ObjectBase
 
         foreach (var entity in _entities)
             entity.GameplayProxy?.OnEndPlay(this);
+
+        CoroutineManager.StopAllCoroutines();
 
         foreach (var worldUiComponent in _worldUiComponents)
         {
@@ -287,7 +291,15 @@ public sealed class World : ObjectBase
 
     public void Update(float elapsedTime)
     {
+        Update(FrameTime.FromElapsedTime(elapsedTime, UpdateSequence + 1L));
+    }
+
+    public void Update(FrameTime frameTime)
+    {
         UpdateSequence++;
+        CoroutineManager.Update(new CoroutineUpdateContext(frameTime));
+
+        float elapsedTime = frameTime.DeltaTime;
         GameMode.Tick(elapsedTime);
 
         if (GameMode.HasMatchEnded())
@@ -332,6 +344,7 @@ public sealed class World : ObjectBase
 
         foreach (var entity in toRemove)
         {
+            entity.StopAllOwnedCoroutines();
             MessageBus.UnregisterEntity(entity);
             UnsubscribeEntityTree(entity);
             _entities.Remove(entity);

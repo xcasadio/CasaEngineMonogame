@@ -47,6 +47,7 @@ public abstract class EntityComponent : ObjectBase
 
     public virtual void Detach()
     {
+        Owner?.World?.CoroutineManager.StopAllCoroutines(this);
         Owner = null;
     }
 

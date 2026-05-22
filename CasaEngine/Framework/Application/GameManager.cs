@@ -16,6 +16,9 @@ public class GameManager
     private Scene.World.World? _currentWorld;
     private string? _worldToLoad;
     private bool _isNewWorld;
+    private float _scaledTotalTime;
+    private float _timeScale = 1f;
+    private long _frameIndex;
 
     public Scene.World.World? CurrentWorld
     {
@@ -26,6 +29,20 @@ public class GameManager
     public ViewManager ViewManager { get; } = new();
 
     public GameScreenManager ScreenManager { get; }
+
+    public float TimeScale
+    {
+        get => _timeScale;
+        set
+        {
+            if (value < 0f)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "TimeScale cannot be negative.");
+            }
+
+            _timeScale = value;
+        }
+    }
 
     public GameManager(CasaEngineGame game)
     {
@@ -91,8 +108,12 @@ public class GameManager
             WorldLoaded?.Invoke(this, EventArgs.Empty);
         }
 
-        var elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
-        CurrentWorld?.Update(elapsedTime);
+        float unscaledElapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        _scaledTotalTime += unscaledElapsedTime * TimeScale;
+        _frameIndex++;
+
+        FrameTime frameTime = GameTimeHelper.CreateFrameTime(gameTime, TimeScale, _scaledTotalTime, _frameIndex);
+        CurrentWorld?.Update(frameTime);
     }
 
     public void SetWorldToLoad(string worldNameToLoad)

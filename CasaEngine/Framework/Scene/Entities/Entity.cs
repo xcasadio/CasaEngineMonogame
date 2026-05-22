@@ -348,10 +348,50 @@ public class Entity : ObjectBase
 
     public void Destroy()
     {
+        StopAllOwnedCoroutines();
         ToBeRemoved = true;
         IsEnabled = false;
         IsVisible = false;
         Logs.WriteTrace($"Entity destroyed : {Name} {Id}");
+    }
+
+    internal void StopAllOwnedCoroutines()
+    {
+        var coroutineManager = World?.CoroutineManager;
+        if (coroutineManager == null)
+        {
+            return;
+        }
+
+        coroutineManager.StopAllCoroutines(this);
+
+        if (_rootComponent != null)
+        {
+            StopComponentCoroutines(_rootComponent, coroutineManager);
+        }
+
+        for (int i = 0; i < _components.Count; i++)
+        {
+            StopComponentCoroutines(_components[i], coroutineManager);
+        }
+
+        for (int i = 0; i < _children.Count; i++)
+        {
+            _children[i].StopAllOwnedCoroutines();
+        }
+    }
+
+    private static void StopComponentCoroutines(EntityComponent component, Scripting.Coroutines.CoroutineManager coroutineManager)
+    {
+        coroutineManager.StopAllCoroutines(component);
+
+        if (component is SceneComponent sceneComponent)
+        {
+            for (int i = 0; i < sceneComponent.Children.Count; i++)
+            {
+                StopComponentCoroutines(sceneComponent.Children[i], coroutineManager);
+            }
+        }
     }
 
     public void Update(float elapsedTime)

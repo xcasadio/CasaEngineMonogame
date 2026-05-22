@@ -96,7 +96,7 @@ Validation :
 
 - Tests unitaires timing scaled/unscaled, frames, conditions, IEnumerator imbrique, CoroutineHandle imbrique, handle invalide, self-wait.
 
-### 🚧 Tache 5 — Integration World et ownership
+### ✅ Tache 5 — Integration World et ownership
 
 Objectif : attacher les coroutines V1 au `World` et au cycle de vie gameplay.
 
