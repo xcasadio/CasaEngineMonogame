@@ -30,7 +30,7 @@ Points d'adaptation non bloquants au code existant :
 
 ## Taches
 
-### 🚧 Tache 1 — Plan agent et analyse
+### ✅ Tache 1 — Plan agent et analyse
 
 Objectif : formaliser l'analyse critique et le plan executable.
 
@@ -44,7 +44,7 @@ Validation :
 
 - Verification git des fichiers inclus dans le commit.
 
-### ⏳ Tache 2 — FrameTime runtime compatible
+### ✅ Tache 2 — FrameTime runtime compatible
 
 Objectif : introduire le temps frame complet sans casser les APIs existantes.
 
@@ -60,7 +60,7 @@ Validation :
 - Tests unitaires `FrameTime`.
 - Build du projet `CasaEngine` si necessaire.
 
-### ⏳ Tache 3 — Noyau CoroutineManager
+### 🚧 Tache 3 — Noyau CoroutineManager
 
 Objectif : creer le scheduler sans integration monde.
 
