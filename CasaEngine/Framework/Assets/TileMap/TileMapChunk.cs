@@ -174,7 +174,7 @@ public sealed class TileMapStaticChunkBatch
     {
         if (_vertices.Length < vertexCount)
         {
-            _vertices = new VertexPositionTexture[vertexCount];
+            Array.Resize(ref _vertices, vertexCount);
         }
 
         return _vertices;
@@ -184,7 +184,7 @@ public sealed class TileMapStaticChunkBatch
     {
         if (_indices.Length < indexCount)
         {
-            _indices = new short[indexCount];
+            Array.Resize(ref _indices, indexCount);
         }
 
         return _indices;
