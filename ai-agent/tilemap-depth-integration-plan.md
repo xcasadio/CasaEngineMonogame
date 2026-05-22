@@ -47,7 +47,7 @@ Regles d'execution pour l'agent IA :
   - Ajouter des tests de calcul de SortAnchor et de cle de tri si possible.
   - Commit attendu : `Add entity 2D depth component`.
 
-- ⏳ Connecter les sprites a la cle de profondeur optionnelle
+- ✅ Connecter les sprites a la cle de profondeur optionnelle
   - Etendre `SpriteRendererComponent` pour accepter une cle de tri optionnelle en plus du `z` historique.
   - Conserver les overloads existants pour compatibilite.
   - Trier les sprites par cle moderne quand elle est fournie, sinon conserver le comportement historique base sur `z`.

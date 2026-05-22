@@ -3,6 +3,7 @@
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.Geometry;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Depth;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -20,6 +21,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public Texture2D Texture;
         public Matrix WorldMatrix;
         public Rectangle ScissorRectangle;
+        public RenderSortKey2D SortKey;
+        public bool HasSortKey;
     }
 
     private const int NbSprites = 10000;
@@ -43,6 +46,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly Vector3 _vertexTopRight;
     private readonly Vector3 _vertexBottomRight;
     private readonly Vector3 _vertexBottomLeft;
+    private static readonly Comparison<SpriteDisplayData> SpriteDisplayDataComparison = CompareSpriteDisplayData;
 
     public SpriteRendererComponent(Game game) : base(game)
     {
@@ -275,18 +279,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     {
         var nbVertices = 4;
 
-        _spriteDatas.Sort((x, y) =>
-        {
-            var xZ = x.WorldMatrix.Translation.Z;
-            var yZ = y.WorldMatrix.Translation.Z;
-
-            if (xZ == yZ)
-            {
-                return 0;
-            }
-
-            return xZ > yZ ? -1 : 1;
-        });
+        _spriteDatas.Sort(SpriteDisplayDataComparison);
 
         for (var i = 0; i < _spriteDatas.Count; i++)
         {
@@ -306,6 +299,24 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         _vertexBuffer.SetData(_vertices, 0, Math.Min(_spriteDatas.Count * 4, NbSprites * 4));
     }
 
+    private static int CompareSpriteDisplayData(SpriteDisplayData x, SpriteDisplayData y)
+    {
+        if (x.HasSortKey || y.HasSortKey)
+        {
+            return x.SortKey.CompareTo(y.SortKey);
+        }
+
+        var xZ = x.WorldMatrix.Translation.Z;
+        var yZ = y.WorldMatrix.Translation.Z;
+
+        if (xZ == yZ)
+        {
+            return 0;
+        }
+
+        return xZ > yZ ? -1 : 1;
+    }
+
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects = SpriteEffects.None)
@@ -314,9 +325,29 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, SpriteEffects effects = SpriteEffects.None)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, effects, GraphicsDevice.ScissorRectangle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
         DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+
+        if (IsDrawCollisionsEnabled)
+        {
+            foreach (var collision2d in sprite.SpriteData.CollisionShapes)
+            {
+                DrawCollision(collision2d, pos, zOrder, sprite.SpriteData.Origin, scale);
+            }
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, true, true, sortKey);
 
         if (IsDrawCollisionsEnabled)
         {
@@ -387,6 +418,13 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug)
     {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, scissorRectangle, drawDebug, false, RenderSortKey2D.Default);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey)
+    {
         if (texture2d == null)
         {
             throw new ArgumentNullException(nameof(texture2d));
@@ -423,6 +461,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
                 position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y,
                 z));
         spriteDisplayData.ScissorRectangle = scissorRectangle;
+            spriteDisplayData.SortKey = sortKey;
+            spriteDisplayData.HasSortKey = hasSortKey;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)
