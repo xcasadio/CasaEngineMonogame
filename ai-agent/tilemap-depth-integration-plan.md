@@ -39,7 +39,7 @@ Regles d'execution pour l'agent IA :
   - Ajouter des tests de parsing des roles, anchors, elevations et valeurs par defaut.
   - Commit attendu : `Add tilemap depth metadata parsing`.
 
-- ⏳ Ajouter un composant de profondeur pour entities
+- ✅ Ajouter un composant de profondeur pour entities
   - Ajouter un composant de type `DepthSortable2DComponent` ou equivalent.
   - Exposer `RenderPass`, `SortingLayer`, `OrderInLayer`, `Elevation`, `SortAnchorLocal`, `LocalSortOffset` et `StableId`.
   - Calculer un `RenderSortKey2D` depuis la position monde et le `RenderFrame` quand disponible.
