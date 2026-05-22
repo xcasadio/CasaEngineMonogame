@@ -95,7 +95,7 @@ Validation :
 - tests de vitesse, stop, saut et disabled ;
 - build solution.
 
-### ⏳ Todo - V1.3. Ajouter sweep, slide, sol, pente et snap
+### ✅ Done - V1.3. Ajouter sweep, slide, sol, pente et snap
 
 Objectif : resoudre le mouvement principal avec la physique.
 

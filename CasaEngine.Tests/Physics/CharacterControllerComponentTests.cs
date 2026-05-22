@@ -1,5 +1,8 @@
 using System.Reflection;
+using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -189,11 +192,108 @@ public class CharacterControllerComponentTests
         Assert.Equal(CharacterMovementState.Disabled, component.MovementState);
     }
 
+    [Fact]
+    public void Update_SnapsToWalkableGround()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+
+        Assert.True(component.IsGrounded);
+        Assert.Equal(CharacterMovementState.Grounded, component.MovementState);
+        Assert.Equal(Vector3.Up, component.GroundNormal);
+        Assert.True(entity.RootComponent.Position.Y < 1.2f);
+    }
+
+    [Fact]
+    public void Update_SlidesAgainstWall_AndStoresLastHit()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            HorizontalHit = CreateHit(Vector3.Left, 0.1f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 10f;
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(1f);
+
+        Assert.True(component.LastCollisionHit.Succeeded);
+        Assert.True(entity.RootComponent!.Position.X < 1.1f);
+    }
+
+    [Fact]
+    public void Update_AcceptsSlope_WhenAngleIsBelowLimit()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Normalize(new Vector3(0f, 0.8660254f, 0.5f)), 0.25f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxSlopeAngle = 45f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+
+        Assert.True(component.IsGrounded);
+        Assert.Equal(CharacterMovementState.Grounded, component.MovementState);
+    }
+
+    [Fact]
+    public void Update_RejectsSlope_WhenAngleIsAboveLimit()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Normalize(new Vector3(0f, 0.5f, 0.8660254f)), 0.25f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        entity.RootComponent!.Position = new Vector3(0f, 1.2f, 0f);
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxSlopeAngle = 45f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+
+        Assert.False(component.IsGrounded);
+        Assert.Equal(CharacterMovementState.Falling, component.MovementState);
+    }
+
     private static Entity CreateEntityWithRoot()
     {
         return new Entity
         {
             RootComponent = new TestSceneComponent(),
+        };
+    }
+
+    private static Entity CreateControllerEntity(IPhysicsWorldContext physicsWorldContext, out TestCharacterControllerComponent component)
+    {
+        var entity = CreateEntityWithRoot();
+        SetWorld(entity, CreateWorld(physicsWorldContext));
+        entity.AddComponent(new CapsuleCollisionComponent());
+        component = new TestCharacterControllerComponent();
+        entity.AddComponent(component);
+        return entity;
+    }
+
+    private static HitResult CreateHit(Vector3 normal, float hitFraction)
+    {
+        return new HitResult
+        {
+            Succeeded = true,
+            Normal = normal,
+            HitFraction = hitFraction,
         };
     }
 
@@ -231,6 +331,108 @@ public class CharacterControllerComponentTests
         public void SetVelocityForTest(Vector3 velocity)
         {
             SetVelocity(velocity);
+        }
+    }
+
+    private sealed class FakePhysicsWorldContext : IPhysicsWorldContext
+    {
+        public HitResult HorizontalHit;
+        public HitResult GroundHit;
+
+        public PhysicsEngine PhysicsEngine => throw new NotSupportedException();
+
+        public void Update(float elapsedTime)
+        {
+        }
+
+        public CollisionObject AddGhostObject(CollisionShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public RigidBody AddStaticObject(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        {
+            throw new NotSupportedException();
+        }
+
+        public RigidBody AddRigidBody(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        {
+            throw new NotSupportedException();
+        }
+
+        public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void AddCollisionObject(CollisionObject collisionObject)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveCollisionObject(CollisionObject collisionObject)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void AddRigidBody(RigidBody rigidBody)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RemoveRigidBody(RigidBody rigidBody)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void ClearCollisionDataFrom(ICollideableComponent component)
+        {
+            throw new NotSupportedException();
+        }
+
+        public HitResult ShapeSweep(ConvexShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            ShapeSweep(shape, from, to, out var result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+            return result;
+        }
+
+        public bool ShapeSweep(ConvexShape shape, Matrix from, Matrix to, out HitResult result, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            var delta = to.Translation - from.Translation;
+            if ((Math.Abs(delta.X) > 0.0001f || Math.Abs(delta.Z) > 0.0001f) && HorizontalHit.Succeeded)
+            {
+                result = HorizontalHit;
+                return true;
+            }
+
+            if (delta.Y < -0.0001f && GroundHit.Succeeded)
+            {
+                result = GroundHit;
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+        public void ShapeSweepPenetrating(ConvexShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal)
+        {
+            throw new NotSupportedException();
         }
     }
 }
