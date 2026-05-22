@@ -14,6 +14,7 @@ public class TileMapLayerData
     public List<int> tileSources = new();
     public List<TileCellFlags> tileFlags = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
+    public TileMapDepthSettings Depth { get; private set; } = TileMapDepthSettings.CreateDefault(TileMapDepthRole.Ground);
     public float zOffset;
 
     public void Load(JObject element)
@@ -25,6 +26,7 @@ public class TileMapLayerData
         tileSources.Clear();
         tileFlags.Clear();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
+        Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.Ground);
 
         foreach (var tileToken in element["tiles"]!)
         {

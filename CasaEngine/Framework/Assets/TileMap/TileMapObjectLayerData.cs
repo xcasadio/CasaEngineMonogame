@@ -9,12 +9,14 @@ public sealed class TileMapObjectLayerData
     public float zOffset;
     public List<TileMapObjectData> Objects { get; } = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
+    public TileMapDepthSettings Depth { get; private set; } = TileMapDepthSettings.CreateDefault(TileMapDepthRole.ObjectSource);
 
     public void Load(JObject element)
     {
         Name = element.ContainsKey("name") ? element["name"]?.GetString() : null;
         zOffset = element["z_offset"].GetSingle();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
+        Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.ObjectSource);
         Objects.Clear();
 
         foreach (var objectToken in element.GetElements("objects", token => token))
@@ -36,6 +38,7 @@ public sealed class TileMapObjectData
     public float Width { get; set; }
     public float Height { get; set; }
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
+    public TileMapDepthSettings Depth { get; private set; } = TileMapDepthSettings.CreateDefault(TileMapDepthRole.ObjectSource);
 
     public void Load(JObject element)
     {
@@ -47,5 +50,6 @@ public sealed class TileMapObjectData
         Width = element["width"].GetSingle();
         Height = element["height"].GetSingle();
         TileMapData.LoadCustomProperties(element["custom_properties"], CustomProperties);
+        Depth = TileMapDepthSettings.FromCustomProperties(CustomProperties, TileMapDepthRole.ObjectSource);
     }
 }

@@ -1,5 +1,7 @@
 using CasaEngine.Core.Math;
 using CasaEngine.Framework.Assets.TileMap;
+using CasaEngine.Framework.Rendering.Depth;
+using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -85,6 +87,38 @@ public class TileMapDataTests
     }
 
     [Fact]
+    public void Load_ParsesLayerDepthProperties()
+    {
+        var tileSetId = Guid.NewGuid();
+        var tileMapData = new TileMapData();
+        var document = CreateTileMapJson(tileSetId, "Props", 1, 2, 3, 4);
+        var layer = (JObject)((JArray)document["layers"]!)[0]!;
+        layer["custom_properties"] = new JObject
+        {
+            ["depth.role"] = "YSortedSource",
+            ["depth.renderPass"] = "YSortedWorld",
+            ["depth.sortingLayer"] = "Props",
+            ["depth.orderInLayer"] = "12",
+            ["depth.elevation"] = "2",
+            ["depth.sortAnchor"] = "16,48",
+            ["depth.localSortOffset"] = "-3",
+            ["depth.sortMode"] = "TopDownYUp",
+        };
+
+        tileMapData.Load(document);
+
+        var depth = tileMapData.Layers[0].Depth;
+        Assert.Equal(TileMapDepthRole.YSortedSource, depth.Role);
+        Assert.Equal(RenderPass2D.YSortedWorld, depth.RenderPass);
+        Assert.Equal(TileMapDepthSettings.GetStableSortingLayerId("Props"), depth.SortingLayer);
+        Assert.Equal(12, depth.OrderInLayer);
+        Assert.Equal(2, depth.Elevation);
+        Assert.Equal(new Vector2(16f, 48f), depth.SortAnchor);
+        Assert.Equal(-3, depth.LocalSortOffset);
+        Assert.Equal(DepthSortMode2D.TopDownYUp, depth.SortMode);
+    }
+
+    [Fact]
     public void Load_PreservesObjectLayers()
     {
         var tileSetId = Guid.NewGuid();
@@ -110,8 +144,16 @@ public class TileMapDataTests
                         ["custom_properties"] = new JObject
                         {
                             ["team"] = "blue",
+                            ["depth.sortAnchorX"] = "2",
+                            ["depth.sortAnchorY"] = "5",
+                            ["depth.spawnAsEntity"] = "true",
                         },
                     },
+                },
+                ["custom_properties"] = new JObject
+                {
+                    ["depth.role"] = "ObjectSource",
+                    ["depth.sortingLayer"] = "25",
                 },
             },
         };
@@ -126,6 +168,20 @@ public class TileMapDataTests
         Assert.Equal(16f, objectData.X);
         Assert.Equal(32f, objectData.Y);
         Assert.Equal("blue", objectData.CustomProperties["team"]);
+        Assert.Equal(TileMapDepthRole.ObjectSource, objectLayer.Depth.Role);
+        Assert.Equal(25, objectLayer.Depth.SortingLayer);
+        Assert.Equal(new Vector2(2f, 5f), objectData.Depth.SortAnchor);
+        Assert.True(objectData.Depth.SpawnAsEntity);
+    }
+
+    [Fact]
+    public void Load_UsesCompatibleDepthDefaults()
+    {
+        var tileMapData = CreateLoadedTileMap();
+
+        Assert.Equal(TileMapDepthRole.Ground, tileMapData.Layers[0].Depth.Role);
+        Assert.Equal(RenderPass2D.Ground, tileMapData.Layers[0].Depth.RenderPass);
+        Assert.Equal(DepthSortMode2D.None, tileMapData.Layers[0].Depth.SortMode);
     }
 
     [Fact]

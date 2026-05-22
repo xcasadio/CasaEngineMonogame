@@ -32,7 +32,7 @@ Regles d'execution pour l'agent IA :
   - Ajouter des tests unitaires sur l'ordre lexicographique et le tie-breaker stable.
   - Commit attendu : `Add 2D depth sort key foundation`.
 
-- ⏳ Ajouter la metadata de profondeur TileMap
+- ✅ Ajouter la metadata de profondeur TileMap
   - Ajouter un modele de metadata `depth.*` pour les layers et object layers TileMap.
   - Lire les custom properties existantes sans casser `z_offset`.
   - Fournir des valeurs par defaut compatibles avec les assets actuels.
