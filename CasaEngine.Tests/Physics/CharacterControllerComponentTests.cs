@@ -90,6 +90,105 @@ public class CharacterControllerComponentTests
         Assert.Equal(Vector3.Zero, component.Velocity);
     }
 
+    [Fact]
+    public void Update_AcceleratesHorizontalVelocity_AndMovesRoot()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 10f;
+        entity.AddComponent(component);
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(0.5f);
+
+        Assert.Equal(5f, component.Velocity.X, precision: 5);
+        Assert.Equal(2.5f, entity.RootComponent!.Position.X, precision: 5);
+    }
+
+    [Fact]
+    public void Update_ClampsHorizontalVelocity_ToMaxSpeed()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 5f;
+        component.Settings.Acceleration = 50f;
+        entity.AddComponent(component);
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(1f);
+
+        Assert.Equal(5f, component.Velocity.X, precision: 5);
+    }
+
+    [Fact]
+    public void Update_DeceleratesHorizontalVelocity_WhenIntentStops()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        component.Settings.Deceleration = 10f;
+        component.SetVelocityForTest(new Vector3(5f, 0f, 0f));
+        entity.AddComponent(component);
+
+        component.Update(0.25f);
+
+        Assert.Equal(2.5f, component.Velocity.X, precision: 5);
+    }
+
+    [Fact]
+    public void Update_AppliesGravity_WhenAirborne()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 10f;
+        entity.AddComponent(component);
+
+        component.Update(0.5f);
+
+        Assert.Equal(-5f, component.Velocity.Y, precision: 5);
+        Assert.Equal(CharacterMovementState.Falling, component.MovementState);
+    }
+
+    [Fact]
+    public void RequestJump_FromGround_StartsJumpAndClearsGround()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        var jumpStartedCount = 0;
+        component.Settings.Gravity = 0f;
+        component.Settings.JumpSpeed = 6f;
+        component.SetGroundedForTest();
+        component.JumpStarted += (_, _) => jumpStartedCount++;
+        entity.AddComponent(component);
+
+        component.RequestJump();
+        component.Update(0.1f);
+
+        Assert.Equal(1, jumpStartedCount);
+        Assert.False(component.IsGrounded);
+        Assert.Equal(CharacterMovementState.Jumping, component.MovementState);
+        Assert.Equal(6f, component.Velocity.Y, precision: 5);
+    }
+
+    [Fact]
+    public void Update_DisabledControlMode_DoesNotMoveRoot()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 10f;
+        entity.AddComponent(component);
+        component.SetControlMode(CharacterControlMode.Disabled);
+
+        component.Update(1f);
+
+        Assert.Equal(Vector3.Zero, entity.RootComponent!.Position);
+        Assert.Equal(Vector3.Zero, component.Velocity);
+        Assert.Equal(CharacterMovementState.Disabled, component.MovementState);
+    }
+
     private static Entity CreateEntityWithRoot()
     {
         return new Entity
@@ -119,6 +218,19 @@ public class CharacterControllerComponentTests
         public override EntityComponent Clone()
         {
             return new TestSceneComponent();
+        }
+    }
+
+    private sealed class TestCharacterControllerComponent : CharacterControllerComponent
+    {
+        public void SetGroundedForTest()
+        {
+            SetGroundInfo(new CharacterControllerGroundInfo(true, Vector3.Up, null, 0f));
+        }
+
+        public void SetVelocityForTest(Vector3 velocity)
+        {
+            SetVelocity(velocity);
         }
     }
 }

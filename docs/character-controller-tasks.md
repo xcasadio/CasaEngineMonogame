@@ -78,13 +78,13 @@ Validation :
 - tests du contrat public et de la validation ;
 - build solution.
 
-### ⏳ Todo - V1.2. Implementer le moteur de locomotion sans collision
+### ✅ Done - V1.2. Implementer le moteur de locomotion sans collision
 
 Objectif : calculer intention, acceleration, deceleration, gravite et saut sans encore resoudre les obstacles.
 
 Livrables :
 
-- vitesse horizontale clampée par `MaxHorizontalSpeed` ;
+- vitesse horizontale clampee par `MaxHorizontalSpeed` ;
 - gravite appliquee quand le personnage n'est pas grounded ;
 - saut via `RequestJump()` ;
 - transitions `Grounded`, `Jumping`, `Falling`, `Disabled` ;

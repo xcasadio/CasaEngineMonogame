@@ -69,6 +69,37 @@ public class CharacterControllerComponent : EntityComponent
         return new CharacterControllerComponent(this);
     }
 
+    public override void Update(float elapsedTime)
+    {
+        base.Update(elapsedTime);
+
+        if (elapsedTime <= 0f)
+        {
+            return;
+        }
+
+        if (ControlMode == CharacterControlMode.Disabled)
+        {
+            MovementState = CharacterMovementState.Disabled;
+            return;
+        }
+
+        var rootComponent = Owner?.RootComponent;
+        if (rootComponent == null)
+        {
+            return;
+        }
+
+        _settings.Validate();
+
+        var velocity = Velocity;
+        ApplyHorizontalVelocity(ref velocity, elapsedTime);
+        ApplyVerticalVelocity(ref velocity, elapsedTime);
+
+        Velocity = velocity;
+        rootComponent.Position += Velocity * elapsedTime;
+    }
+
     public void ValidateDependencies()
     {
         var owner = Owner;
@@ -217,6 +248,76 @@ public class CharacterControllerComponent : EntityComponent
             MovementState = CharacterMovementState.Grounded;
             Landed?.Invoke(this, groundInfo);
         }
+    }
+
+    private void ApplyHorizontalVelocity(ref Vector3 velocity, float elapsedTime)
+    {
+        var horizontalVelocity = new Vector3(velocity.X, 0f, velocity.Z);
+        var desiredHorizontalVelocity = GetDesiredHorizontalVelocity();
+        var horizontalAcceleration = _moveIntent == Vector2.Zero ? _settings.Deceleration : _settings.Acceleration;
+
+        horizontalVelocity = MoveTowards(horizontalVelocity, desiredHorizontalVelocity, horizontalAcceleration * elapsedTime);
+
+        velocity.X = horizontalVelocity.X;
+        velocity.Z = horizontalVelocity.Z;
+    }
+
+    private void ApplyVerticalVelocity(ref Vector3 velocity, float elapsedTime)
+    {
+        if (_jumpRequested)
+        {
+            if (IsGrounded)
+            {
+                velocity.Y = _settings.JumpSpeed;
+                SetGroundInfo(CharacterControllerGroundInfo.None);
+                MarkJumpStarted();
+            }
+
+            _jumpRequested = false;
+        }
+
+        if (IsGrounded)
+        {
+            if (velocity.Y < 0f)
+            {
+                velocity.Y = 0f;
+            }
+
+            MovementState = CharacterMovementState.Grounded;
+            return;
+        }
+
+        velocity.Y -= _settings.Gravity * elapsedTime;
+
+        if (MovementState != CharacterMovementState.Jumping || velocity.Y <= 0f)
+        {
+            MovementState = CharacterMovementState.Falling;
+        }
+    }
+
+    private Vector3 GetDesiredHorizontalVelocity()
+    {
+        return new Vector3(_moveIntent.X, 0f, -_moveIntent.Y) * _settings.MaxHorizontalSpeed;
+    }
+
+    private static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDelta)
+    {
+        var difference = target - current;
+        var distanceSquared = difference.LengthSquared();
+
+        if (distanceSquared == 0f || maxDelta <= 0f)
+        {
+            return current;
+        }
+
+        var maxDeltaSquared = maxDelta * maxDelta;
+        if (distanceSquared <= maxDeltaSquared)
+        {
+            return target;
+        }
+
+        difference.Normalize();
+        return current + difference * maxDelta;
     }
 
     private SceneComponent ResolveRootComponent()
