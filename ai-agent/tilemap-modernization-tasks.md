@@ -422,6 +422,21 @@ Vérifications :
 
 Priorité : moyenne.
 
+Sous-phase visualiseur TileMap lecture/inspection :
+
+- 🚧 Ajouter l'ouverture double-clic des fichiers `.tileMap` depuis le Content Browser vers un document MGUI dédié.
+- ⏳ Ajouter la reconnaissance `.tileMap` dans le Content Browser avec un type/label/icône adapté.
+- ⏳ Créer un document `TileMapEditorPanel` ou équivalent, centré sur la visualisation et non encore sur l'édition de tiles.
+- ⏳ Dans le panel Hierarchy contextuel, afficher les différentes couches de la TileMap avec une checkbox de visibilité par couche.
+- ⏳ Dans le panel Toolbox contextuel, n'afficher aucun outil pour ce premier visualiseur.
+- ⏳ Dans le panel Inspector contextuel, afficher les paramètres de la couche sélectionnée : nom, index, visibilité, `zOffset`, taille de map, nombre de tiles non vides, tileset/source si disponible.
+- ⏳ Dans la partie TileMapEditor, afficher la TileMap avec une caméra 2D déplaçable à la souris et zoomable.
+- ⏳ Ajouter une barre de contrôle en haut du TileMapEditor avec un bouton `100%` pour réinitialiser le zoom et une checkbox pour afficher/masquer les collisions.
+- ⏳ Afficher l'overlay collisions dans le TileMapEditor quand la checkbox est cochée, au minimum pour les rectangles/full-tile connus par `TileData.CollisionType` et `CollisionShape`.
+- ⏳ Préserver le rendu multi-tileset, les flags de flip et les animated tiles dans le visualiseur quand ils sont disponibles.
+- ⏳ Ajouter une validation smoke testable : double-clic ou ouverture automatisée d'un `.tileMap` doit créer un onglet document et synchroniser Hierarchy/Inspector.
+- ⏳ Committer chaque tranche atomique validée avant de passer à la suivante.
+
 Tâches :
 
 - ⏳ Ajouter ou finaliser la vue TileMap editor côté MGUI/editor actuel.
