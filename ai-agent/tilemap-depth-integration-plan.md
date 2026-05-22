@@ -74,7 +74,7 @@ Regles d'execution pour l'agent IA :
   - Verifier que `CasaEngine.RPGDemo` via `CasaEngine.Launcher` continue de charger la map.
   - Commit attendu : `Update RPGDemo for 2D depth integration`.
 
-- ⏳ Validation finale
+- ✅ Validation finale
   - Lancer les tests pertinents.
   - Lancer un build de `CasaEngine.Launcher`.
   - Verifier `git status --short`.
