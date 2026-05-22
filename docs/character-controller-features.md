@@ -229,6 +229,24 @@ Contraintes moteur : pas de LINQ, pas de closures et pas d'allocations evitables
 
 Ces sujets peuvent etre ajoutes en V2/V3 une fois les requetes physiques et le solveur de base valides.
 
+## Etat V1 implemente
+
+La V1 ajoute maintenant les pieces suivantes dans le code :
+
+- `PhysicsEngine.ShapeSweep` et `ShapeSweepPenetrating`, exposes aussi via `IPhysicsWorldContext`, `PhysicsWorldContext` et `PhysicsEngineComponent` ;
+- `CharacterControllerSettings`, `CharacterControlMode`, `CharacterMovementState`, `CharacterControllerGroundInfo` et `CharacterControllerDebugSnapshot` ;
+- `CharacterControllerComponent : EntityComponent` avec validation de `Owner`, `RootComponent`, `CapsuleCollisionComponent` et `World.PhysicsWorldContext` ;
+- commandes publiques `SetMoveIntent`, `RequestJump`, `Stop`, `Teleport` et `SetControlMode` ;
+- locomotion V1 : acceleration, deceleration, gravite, saut, sweep capsule, slide, detection sol, limite de pente et snap au sol ;
+- donnees inspectables : `Velocity`, `IsGrounded`, `GroundNormal`, `GroundCollider`, `GroundSlopeAngle`, `LastCollisionHit`, `LastRequestedDisplacement`, `LastActualDisplacement` et `DebugSnapshot`.
+
+Limites connues de cette V1 :
+
+- pas de depenetration initiale dediee au controller ; l'API multi-hit existe, mais la recuperation d'un depart deja en collision reste a traiter ;
+- pas de step offset, plateformes mobiles, crouch, coyote time, jump buffer, root motion avec collision, bridge animation ou bridge cutscene ;
+- pas de rendu debug specifique au character controller ; les donnees sont exposees pour l'inspecteur, les tests ou un futur overlay ;
+- les tests du solveur controller utilisent un `IPhysicsWorldContext` controle pour verifier les cas sol, mur et pente ; les tests Bullet natifs couvrent separement les sweeps convexes publics.
+
 ## Animation
 
 La V1 ne doit pas appeler une API d'Animator inexistante.
@@ -279,7 +297,7 @@ Une cutscene peut ensuite prendre l'autorite, envoyer des intentions ou teleport
 - Le controller ne depend pas d'une API d'Animator non existante.
 - Les noms de types nouveaux sont clairement ajoutes dans l'implementation, pas supposes presents.
 - La V1 compile sans casser `Pawn`, `Controller`, `PlayerController`, `PhysicsBaseComponent` ou `SkinnedMeshComponent`.
-- Les tests couvrent au moins sol, mur, pente, saut et penetration initiale.
+- Les tests couvrent au moins sol, mur, pente et saut. La penetration initiale reste une limite V1 documentee tant qu'une depenetration dediee n'est pas ajoutee.
 - La resolution de mouvement respecte les regles de performance du repo : pas de LINQ, pas de closures, pas d'allocations evitables dans l'update.
 
 ## Resume

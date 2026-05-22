@@ -20,6 +20,8 @@ public class CharacterControllerComponent : EntityComponent
     private bool _jumpRequested;
     private CharacterControllerGroundInfo _groundInfo = CharacterControllerGroundInfo.None;
     private HitResult _lastCollisionHit;
+    private Vector3 _lastRequestedDisplacement;
+    private Vector3 _lastActualDisplacement;
     private CapsuleShape? _sweepShape;
     private float _sweepShapeRadius;
     private float _sweepShapeCylinderHeight;
@@ -35,6 +37,8 @@ public class CharacterControllerComponent : EntityComponent
         _jumpRequested = other._jumpRequested;
         _groundInfo = other._groundInfo;
         _lastCollisionHit = other._lastCollisionHit;
+        _lastRequestedDisplacement = other._lastRequestedDisplacement;
+        _lastActualDisplacement = other._lastActualDisplacement;
         ControlMode = other.ControlMode;
         MovementState = other.MovementState;
         Velocity = other.Velocity;
@@ -63,9 +67,28 @@ public class CharacterControllerComponent : EntityComponent
 
     public PhysicsBaseComponent? GroundCollider => _groundInfo.Collider;
 
+    public float GroundSlopeAngle => _groundInfo.SlopeAngle;
+
     public HitResult LastCollisionHit => _lastCollisionHit;
 
+    public Vector3 LastRequestedDisplacement => _lastRequestedDisplacement;
+
+    public Vector3 LastActualDisplacement => _lastActualDisplacement;
+
     public Vector2 MoveIntent => _moveIntent;
+
+    public CharacterControllerDebugSnapshot DebugSnapshot => new(
+        ControlMode,
+        MovementState,
+        Velocity,
+        MoveIntent,
+        IsGrounded,
+        GroundNormal,
+        GroundCollider,
+        GroundSlopeAngle,
+        LastCollisionHit,
+        LastRequestedDisplacement,
+        LastActualDisplacement);
 
     public event EventHandler? JumpStarted;
 
@@ -91,18 +114,24 @@ public class CharacterControllerComponent : EntityComponent
 
         if (elapsedTime <= 0f)
         {
+            _lastRequestedDisplacement = Vector3.Zero;
+            _lastActualDisplacement = Vector3.Zero;
             return;
         }
 
         if (ControlMode == CharacterControlMode.Disabled)
         {
             MovementState = CharacterMovementState.Disabled;
+            _lastRequestedDisplacement = Vector3.Zero;
+            _lastActualDisplacement = Vector3.Zero;
             return;
         }
 
         var rootComponent = Owner?.RootComponent;
         if (rootComponent == null)
         {
+            _lastRequestedDisplacement = Vector3.Zero;
+            _lastActualDisplacement = Vector3.Zero;
             return;
         }
 
@@ -114,6 +143,8 @@ public class CharacterControllerComponent : EntityComponent
 
         var requestedDisplacement = velocity * elapsedTime;
         var actualDisplacement = MoveWithCollisions(rootComponent, requestedDisplacement);
+    _lastRequestedDisplacement = requestedDisplacement;
+    _lastActualDisplacement = actualDisplacement;
 
         if (elapsedTime > 0f)
         {
@@ -187,6 +218,8 @@ public class CharacterControllerComponent : EntityComponent
         _moveIntent = Vector2.Zero;
         _jumpRequested = false;
         Velocity = Vector3.Zero;
+        _lastRequestedDisplacement = Vector3.Zero;
+        _lastActualDisplacement = Vector3.Zero;
     }
 
     public void Teleport(Vector3 position)

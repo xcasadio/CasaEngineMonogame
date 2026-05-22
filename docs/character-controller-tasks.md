@@ -113,7 +113,7 @@ Validation :
 - tests sol plat, mur, pente autorisee, pente refusee, saut, depart en penetration si l'API le permet ;
 - build solution.
 
-### ⏳ Todo - V1.4. Ajouter donnees de debug et documentation V1
+### ✅ Done - V1.4. Ajouter donnees de debug et documentation V1
 
 Objectif : rendre le comportement inspectable sans ajouter un rendu debug complet non verifie.
 

@@ -269,6 +269,29 @@ public class CharacterControllerComponentTests
         Assert.Equal(CharacterMovementState.Falling, component.MovementState);
     }
 
+    [Fact]
+    public void DebugSnapshot_ReflectsCurrentStateAndLastDisplacements()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 10f;
+        component.Settings.Acceleration = 10f;
+        entity.AddComponent(component);
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        component.Update(0.5f);
+        var snapshot = component.DebugSnapshot;
+
+        Assert.Equal(component.ControlMode, snapshot.ControlMode);
+        Assert.Equal(component.MovementState, snapshot.MovementState);
+        Assert.Equal(component.Velocity, snapshot.Velocity);
+        Assert.Equal(component.MoveIntent, snapshot.MoveIntent);
+        Assert.Equal(component.IsGrounded, snapshot.IsGrounded);
+        Assert.Equal(2.5f, snapshot.LastRequestedDisplacement.X, precision: 5);
+        Assert.Equal(2.5f, snapshot.LastActualDisplacement.X, precision: 5);
+    }
+
     private static Entity CreateEntityWithRoot()
     {
         return new Entity
