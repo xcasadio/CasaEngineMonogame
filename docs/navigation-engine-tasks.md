@@ -47,7 +47,7 @@ Validation :
 - tests ciblés de compilation ou tests unitaires associés
 - Commit : `Add navigation V1 primitives`
 
-### 🚧 T2 - Construire `NavigationGrid2D` depuis TileMap
+### ✅ T2 - Construire `NavigationGrid2D` depuis TileMap
 
 Objectif : générer une grille de navigation depuis `TileMapData` et une couche `navigation.role=grid`.
 
@@ -64,7 +64,7 @@ Validation :
 - `NavigationGrid2D_UsesTileNavigationPropertiesBeforeCollisionFallback`
 - Commit : `Build navigation grid from tile maps`
 
-### ⏳ T3 - Implémenter `GridPathfinder2D`
+### 🚧 T3 - Implémenter `GridPathfinder2D`
 
 Objectif : ajouter un pathfinder A* dédié grille, sans utiliser `PathPlanner<T>`.
 
