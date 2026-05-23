@@ -30,7 +30,7 @@ Validation :
 - `get_errors docs/navigation-engine-tasks.md`
 - Commit : `Add navigation engine V1 task plan`
 
-### 🚧 T1 - Ajouter les primitives Navigation V1
+### ✅ T1 - Ajouter les primitives Navigation V1
 
 Objectif : ajouter les types purs nécessaires au noyau TileMap V1.
 
@@ -47,7 +47,7 @@ Validation :
 - tests ciblés de compilation ou tests unitaires associés
 - Commit : `Add navigation V1 primitives`
 
-### ⏳ T2 - Construire `NavigationGrid2D` depuis TileMap
+### 🚧 T2 - Construire `NavigationGrid2D` depuis TileMap
 
 Objectif : générer une grille de navigation depuis `TileMapData` et une couche `navigation.role=grid`.
 
