@@ -9,4 +9,15 @@ public sealed class NavigationAgentSettings
     public float MaxSpeed { get; set; } = 3f;
 
     public NavigationLayerMask LayerMask { get; set; } = NavigationLayerMask.All;
+
+    public NavigationAgentSettings Clone()
+    {
+        return new NavigationAgentSettings
+        {
+            Radius = Radius,
+            Height = Height,
+            MaxSpeed = MaxSpeed,
+            LayerMask = LayerMask,
+        };
+    }
 }

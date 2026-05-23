@@ -75,6 +75,33 @@ public sealed class CharacterControllerNavigationBridgeTests
     }
 
     [Fact]
+    public void NavigationDriverIntegration_ConvertsPathToMoveIntent()
+    {
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        entity.RootComponent!.Position = new Vector3(0.5f, 0f, 0.5f);
+        var driver = new CharacterControllerNavigationDriverComponent();
+        var navigationAgent = new NavigationAgentComponent
+        {
+            NavigationMap = CreateGroundGrid(3, 1),
+            Query = new NavigationQuery { LayerMask = NavigationLayerMask.Ground },
+            StoppingDistance = 0.05f,
+        };
+        entity.AddComponent(driver);
+        entity.AddComponent(navigationAgent);
+
+        navigationAgent.MoveTo(new Vector3(2.5f, 0f, 0.5f));
+        bool pathRequested = navigationAgent.RequestPath();
+        driver.Update(0.1f);
+        driver.Update(0.1f);
+
+        Assert.True(pathRequested);
+        Assert.True(navigationAgent.HasPath);
+        Assert.Equal(CharacterControlMode.AI, controller.ControlMode);
+        Assert.Equal(new Vector2(1f, 0f), controller.MoveIntent);
+        Assert.Equal(controller.MoveIntent, driver.LastMoveIntent);
+    }
+
+    [Fact]
     public void NavigationDriver_FollowTargetUpdatesIntentTowardTargetPosition()
     {
         CreateControlledEntity(out CharacterControllerComponent controller, out CharacterControllerNavigationDriverComponent driver);
@@ -119,6 +146,20 @@ public sealed class CharacterControllerNavigationBridgeTests
         {
             RootComponent = new TestSceneComponent(),
         };
+    }
+
+    private static NavigationGrid2D CreateGroundGrid(int width, int height)
+    {
+        var grid = new NavigationGrid2D(width, height, 1f);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                grid.SetCell(x, y, new NavigationGridCell(true, 1f, NavigationLayerMask.Ground));
+            }
+        }
+
+        return grid;
     }
 
     private static void AdvanceNavigation(CharacterControllerComponent controller, CharacterControllerNavigationDriverComponent driver, int frameCount)

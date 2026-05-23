@@ -14,4 +14,15 @@ public sealed class NavigationQuery
     {
         return cell.CanEnter(LayerMask);
     }
+
+    public NavigationQuery Clone()
+    {
+        return new NavigationQuery
+        {
+            AgentSettings = AgentSettings.Clone(),
+            LayerMask = LayerMask,
+            AllowDiagonalMovement = AllowDiagonalMovement,
+            PreventDiagonalCornerCutting = PreventDiagonalCornerCutting,
+        };
+    }
 }

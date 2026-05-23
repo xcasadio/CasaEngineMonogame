@@ -82,7 +82,7 @@ Validation :
 - `GridPathfinder2D_ReturnsFalseWhenGoalIsUnreachable`
 - Commit : `Add grid pathfinder for navigation V1`
 
-### 🚧 T4 - Intégrer la grille avec le driver CharacterController
+### ✅ T4 - Intégrer la grille avec le driver CharacterController
 
 Objectif : fournir un composant/système V1 qui calcule un chemin et l'envoie à `CharacterControllerNavigationDriverComponent.SetPath(...)`.
 
@@ -99,7 +99,7 @@ Validation :
 - tests `CharacterController|Navigation`
 - Commit : `Integrate navigation paths with character controller driver`
 
-### ⏳ T5 - Ajouter le debug draw Navigation V1
+### 🚧 T5 - Ajouter le debug draw Navigation V1
 
 Objectif : ajouter un adaptateur debug navigation léger basé sur les renderers existants.
 
