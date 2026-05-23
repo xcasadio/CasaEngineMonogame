@@ -232,7 +232,7 @@ le snapshot debug cutscene ne décrit pas l’état du driver gameplay actif
 
 ### Pré-requis minimaux avant une V2 robuste
 
-1. définir le contrat de déplacement V2 : garder `MoveTo` pour le direct et ajouter `NavigateTo`/`FollowEntity`, ou étendre `MoveTo` avec un mode explicite ;
+1. implémenter `NavigateToCutsceneActionData` comme première action V2 navigation, en gardant `MoveTo` pour le déplacement direct sans pathfinding ;
 2. appliquer la même politique de `Stop`/annulation aux futurs drivers gameplay V2 ; `CharacterControllerMoveToDriverComponent` est maintenant annulé puis retiré quand la cutscene est stoppée ;
 3. définir comment une cutscene récupère la bonne carte de navigation ; actuellement `NavigationAgentComponent.NavigationMap` est injecté manuellement ;
 4. stabiliser les bindings d’entités avec une stratégie plus robuste que `Entity.Name` exact ;
@@ -240,6 +240,58 @@ le snapshot debug cutscene ne décrit pas l’état du driver gameplay actif
 6. décider la politique de blocage et de repath pendant une cutscene ;
 7. étendre `CutsceneDebugSnapshot` et l’éditeur lecture seule pour exposer destination, waypoint courant, état du driver et raison d’arrêt ;
 8. ajouter un sample de validation V2 basé soit sur `MoveTo` direct, soit sur une vraie navigation avec `NavigationGrid2D` branchée au monde.
+
+### Contrat V2 retenu pour la première tranche navigation
+
+La première action navigation doit être `NavigateTo`, pas `FollowEntity`. Ce choix limite volontairement le scope : une destination fixe permet de réutiliser `NavigationAgentComponent.MoveTo(destination)` sans introduire tout de suite cible mobile, repath périodique ou politique d'obstacle dynamique.
+
+Format de données prévu :
+
+```json
+{
+    "type": "NavigateTo",
+    "entity": "Hero",
+    "destination": {
+        "x": 8.0,
+        "y": 0.0,
+        "z": 3.0
+    },
+    "stopping_distance": 0.1,
+    "timeout_seconds": 8.0
+}
+```
+
+Règles d'exécution prévues :
+
+```text
+entity : nom exact de l'entité à piloter, même mécanisme que MoveTo pour cette tranche
+destination : position monde utilisée par NavigationAgentComponent.MoveTo
+stopping_distance : distance d'arrivée transmise à l'agent/driver navigation
+timeout_seconds : limite cutscene ; 0 signifie pas de timeout explicite
+```
+
+Préconditions runtime :
+
+```text
+l'entité ciblée existe
+l'entité possède NavigationAgentComponent
+NavigationAgentComponent.NavigationMap est renseigné par la scène ou la démo
+l'agent possède ou résout un CharacterControllerNavigationDriverComponent
+le CharacterControllerNavigationDriverComponent possède un CharacterControllerComponent sur la même entité
+```
+
+Raisons d'échec à surfacer :
+
+```text
+entité introuvable
+NavigationAgentComponent absent
+NavigationMap absente
+path introuvable
+timeout cutscene
+annulation via CutsceneDirector.Stop()
+```
+
+`FollowEntity` reste une action future séparée. Elle devra définir explicitement quand recalculer le chemin, quoi faire si la cible disparaît, et comment distinguer arrêt volontaire, cible atteinte et cible devenue inaccessible.
 
 ### Ce qui peut rester hors de la première V2
 

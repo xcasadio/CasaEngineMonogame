@@ -306,22 +306,41 @@ Validation :
 - ✅ smoke automatisé avec `CASAENGINE_START_DEMO="Cutscene MoveTo demo"` et capture `artifacts/cutscene-moveto-demo-smoke.png` ;
 - 🧪 validation visuelle utilisateur obligatoire : lancement, déplacement visible, arrêt manuel, restauration du contrôle, relance sans état sale.
 
-### ⏳ Tâche 12 — Contrat d'action V2 navigation
+### ✅ Tâche 12 — Contrat d'action V2 navigation
 
 Objectif : figer le contrat de la première action navigation avant tout branchement sur `NavigationAgentComponent`.
 
 Actions :
 
-- choisir explicitement entre `NavigateToCutsceneActionData`, `FollowEntityCutsceneActionData` ou une alternative minimale équivalente ;
-- garder `MoveTo` direct inchangé pour préserver la compatibilité et la tranche de validation déjà acquise ;
-- définir les champs minimums : acteur ciblé, cible ou destination, stopping distance, timeout, et raison d'échec observable ;
-- documenter ce contrat dans `docs/cutscene_commandes_sequentielles_async_coroutine.md` et dans ce plan avant l'implémentation runtime.
+- ✅ choisir `NavigateToCutsceneActionData` comme première action V2 navigation ;
+- ✅ garder `MoveTo` direct inchangé pour préserver la compatibilité et la tranche de validation déjà acquise ;
+- ✅ définir les champs minimums : acteur ciblé, destination, stopping distance, timeout, et raison d'échec observable ;
+- ✅ documenter ce contrat dans `docs/cutscene_commandes_sequentielles_async_coroutine.md` et dans ce plan avant l'implémentation runtime.
 
 Validation :
 
-- format de données typé documenté ;
-- sérialisation/validation prévues sans ambiguïté ;
-- aucun branchement runtime navigation tant que ce contrat n'est pas relu.
+- ✅ format de données typé documenté ;
+- ✅ sérialisation/validation prévues sans ambiguïté ;
+- ✅ aucun branchement runtime navigation dans cette tâche ;
+- `FollowEntityCutsceneActionData` reste hors de la première tranche navigation parce qu'il implique cible mobile, repath et politique d'arrêt plus large.
+
+Contrat retenu :
+
+```text
+NavigateTo
+  entity: string obligatoire, résolu comme MoveTo par Entity.Name exact
+  destination: Vector3 obligatoire
+  stopping_distance: float >= 0, défaut 0.1
+  timeout_seconds: float >= 0, 0 = pas de timeout cutscene
+```
+
+Règles runtime prévues :
+
+- l'entité ciblée doit posséder un `NavigationAgentComponent` ;
+- le `NavigationAgentComponent.NavigationMap` doit être renseigné par la scène ou la démo ;
+- `NavigateTo` appelle `NavigationAgentComponent.MoveTo(destination)` puis attend `ReachedDestination` ;
+- `NavigateTo` échoue explicitement si aucun chemin n'est trouvé ou si le timeout expire ;
+- `CutsceneDirector.Stop()` devra appeler `NavigationAgentComponent.Cancel()` pour les agents activés par la cutscene.
 
 ### ⏳ Tâche 13 — Bridge runtime cutscene -> navigation
 
