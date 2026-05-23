@@ -307,7 +307,7 @@
             "a": 255
           },
           "intensity": 1.5,
-          "range": 2030.0,
+          "range": 30.0,
           "inner_cone_angle_degrees": 20.0,
           "outer_cone_angle_degrees": 35.0,
           "cast_shadows": true
