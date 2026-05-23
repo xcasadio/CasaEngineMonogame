@@ -42,6 +42,39 @@ public class EntityPolicyResolverTests
     }
 
     [Fact]
+    public void GetEffectivePolicySet_StaticModelWithCharacterControllerDefaultsToDynamicEveryFrame()
+    {
+        var entity = new Entity
+        {
+            RootComponent = new StaticModelComponent(),
+        };
+        entity.AddComponent(new CharacterControllerComponent());
+
+        EntityPolicySet policySet = entity.GetEffectivePolicySet();
+
+        Assert.Equal(Mobility.Movable, policySet.Mobility);
+        Assert.Equal(TickPolicy.EveryFrame, policySet.TickPolicy);
+        Assert.Equal(SpatialPolicy.DynamicIndex, policySet.SpatialPolicy);
+        Assert.Equal(RenderDynamicPolicy.GeometryAnimated, policySet.RenderDynamicPolicy);
+    }
+
+    [Fact]
+    public void GetResolvedPolicies_CharacterControllerRequiresOnDemandViewInvalidation()
+    {
+        var entity = new Entity
+        {
+            RootComponent = new StaticModelComponent(),
+        };
+        entity.AddComponent(new CharacterControllerComponent());
+
+        ResolvedEntityPolicies resolvedPolicies = entity.GetResolvedPolicies();
+
+        Assert.True(resolvedPolicies.ShouldUpdateThisFrame);
+        Assert.True(resolvedPolicies.RequiresOnDemandViewInvalidation);
+        Assert.Equal(RenderDynamicPolicy.GeometryAnimated, resolvedPolicies.PolicySet.RenderDynamicPolicy);
+    }
+
+    [Fact]
     public void GetResolvedPolicies_LegacyUpdatesEnabledShimOverridesTickDecision()
     {
         var entity = new Entity

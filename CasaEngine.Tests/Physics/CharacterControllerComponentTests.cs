@@ -111,6 +111,26 @@ public class CharacterControllerComponentTests
     }
 
     [Fact]
+    public void Update_AccumulatesVelocityAcrossSmallRuntimeDeltas()
+    {
+        var entity = CreateEntityWithRoot();
+        var component = new TestCharacterControllerComponent();
+        component.Settings.Gravity = 0f;
+        component.Settings.MaxHorizontalSpeed = 3.5f;
+        component.Settings.Acceleration = 18f;
+        entity.AddComponent(component);
+        component.SetMoveIntent(new Vector2(1f, 0f));
+
+        for (int frameIndex = 0; frameIndex < 120; frameIndex++)
+        {
+            component.Update(1f / 160f);
+        }
+
+        Assert.True(component.Velocity.X > 0.5f, $"Expected horizontal velocity to accumulate across small runtime deltas, but velocity stayed at {component.Velocity.X:F4}.");
+        Assert.True(entity.RootComponent!.Position.X > 0.1f, $"Expected the root to start moving across small runtime deltas, but X stayed at {entity.RootComponent.Position.X:F4}.");
+    }
+
+    [Fact]
     public void Update_ClampsHorizontalVelocity_ToMaxSpeed()
     {
         var entity = CreateEntityWithRoot();

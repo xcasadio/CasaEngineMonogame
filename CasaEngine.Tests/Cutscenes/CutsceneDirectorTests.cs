@@ -155,6 +155,146 @@ public sealed class CutsceneDirectorTests
     }
 
     [Fact]
+    public void Play_MoveToActionAdvancesPositionInRuntimeUpdateOrder()
+    {
+        var world = new World();
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        world.Entities.Add(entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "MoveHeroRuntimeOrder",
+            RootAction = new MoveToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(3f, 0f, 0f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+
+        float startX = entity.RootComponent!.Position.X;
+        float firstFrameX = startX;
+        float furthestX = startX;
+
+        for (int frameIndex = 1; frameIndex <= 20; frameIndex++)
+        {
+            world.CoroutineManager.Update(Context(frameIndex));
+            entity.Update(0.1f);
+
+            if (frameIndex == 1)
+            {
+                firstFrameX = entity.RootComponent.Position.X;
+            }
+
+            furthestX = Math.Max(furthestX, entity.RootComponent.Position.X);
+
+            if (!world.CutsceneDirector.IsPlaying)
+            {
+                break;
+            }
+        }
+
+        Assert.True(firstFrameX > startX, $"Expected entity to start moving during the same runtime frame, but first-frame X stayed at {firstFrameX:F3}.");
+        Assert.True(furthestX > startX + 0.5f, $"Expected entity to move forward in runtime order, but X stayed at {furthestX:F3}.");
+        Assert.InRange(entity.RootComponent.Position.X, 2.95f, 3.05f);
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+    }
+
+    [Fact]
+    public void Play_MoveToActionCanReplayAfterCompletion()
+    {
+        var world = new World();
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        world.Entities.Add(entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "ReplayMoveHero",
+            RootAction = new MoveToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2f, 0f, 0f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        PlayUntilStopped(world, entity, asset, maxFrameCount: 20);
+        Assert.InRange(entity.RootComponent!.Position.X, 1.95f, 2.05f);
+
+        entity.RootComponent.Position = Vector3.Zero;
+        controller.SetControlMode(CharacterControlMode.Player);
+        controller.Stop();
+
+        PlayUntilStopped(world, entity, asset, maxFrameCount: 20);
+
+        Assert.InRange(entity.RootComponent.Position.X, 1.95f, 2.05f);
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+    }
+
+    [Fact]
+    public void Play_MoveToActionCanRestartWhilePreviousMoveIsStillActive()
+    {
+        var world = new World();
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        world.Entities.Add(entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "RestartActiveMoveHero",
+            RootAction = new SequenceCutsceneActionData
+            {
+                Actions =
+                {
+                    new WaitCutsceneActionData { Seconds = 0.15f },
+                    new MoveToCutsceneActionData
+                    {
+                        EntityName = "Hero",
+                        Destination = new Vector3(5f, 0f, 0f),
+                        StoppingDistance = 0.05f,
+                    }
+                }
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+
+        for (int frameIndex = 1; frameIndex <= 8; frameIndex++)
+        {
+            world.CoroutineManager.Update(Context(frameIndex));
+            entity.Update(0.1f);
+        }
+
+        Assert.True(entity.RootComponent!.Position.X > 0.5f, $"Expected the first playthrough to be in motion before restart, but X was {entity.RootComponent.Position.X:F3}.");
+
+        world.CutsceneDirector.Stop();
+        entity.RootComponent.Position = Vector3.Zero;
+        controller.SetControlMode(CharacterControlMode.Player);
+        controller.Stop();
+        world.CutsceneDirector.Play(asset);
+
+        float furthestReplayX = entity.RootComponent.Position.X;
+        for (int frameIndex = 9; frameIndex <= 30; frameIndex++)
+        {
+            world.CoroutineManager.Update(Context(frameIndex));
+            entity.Update(0.1f);
+            furthestReplayX = Math.Max(furthestReplayX, entity.RootComponent.Position.X);
+
+            if (!world.CutsceneDirector.IsPlaying)
+            {
+                break;
+            }
+        }
+
+        Assert.True(furthestReplayX > 1f, $"Expected restarted MoveTo to advance after an active restart, but replay X stayed at {furthestReplayX:F3}.");
+        Assert.InRange(entity.RootComponent.Position.X, 4.95f, 5.05f);
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+    }
+
+    [Fact]
     public void WorldClearStopsCutsceneDirector()
     {
         var world = new World();
@@ -186,6 +326,24 @@ public sealed class CutsceneDirectorTests
     private static CoroutineUpdateContext Context(long frameIndex)
     {
         return new CoroutineUpdateContext(0.1f, 0.1f, 1f, frameIndex);
+    }
+
+    private static void PlayUntilStopped(World world, Entity entity, CutsceneAsset asset, int maxFrameCount)
+    {
+        world.CutsceneDirector.Play(asset);
+
+        for (int frameIndex = 1; frameIndex <= maxFrameCount; frameIndex++)
+        {
+            world.CoroutineManager.Update(Context(frameIndex));
+            entity.Update(0.1f);
+
+            if (!world.CutsceneDirector.IsPlaying)
+            {
+                return;
+            }
+        }
+
+        Assert.False(world.CutsceneDirector.IsPlaying, $"Expected cutscene '{asset.Name}' to complete within {maxFrameCount} frames.");
     }
 
     private static CutsceneAsset CreateSequenceAsset()

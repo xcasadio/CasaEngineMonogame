@@ -10,6 +10,8 @@ public sealed class CharacterControllerAnimationBridgeComponent : EntityComponen
 
     public CharacterControllerLocomotionAnimationData LocomotionData { get; private set; } = CharacterControllerLocomotionAnimationData.Empty;
 
+    public override int UpdateOrder => (int)EntityComponentUpdateOrder.AfterDefault;
+
     public CharacterControllerComponent? Controller => _controller;
 
     public override void Attach(Entity actor)

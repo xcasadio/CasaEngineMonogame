@@ -21,6 +21,8 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
 
     public Vector2 LastMoveIntent { get; private set; }
 
+    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
+
     public override void Attach(Entity actor)
     {
         base.Attach(actor);

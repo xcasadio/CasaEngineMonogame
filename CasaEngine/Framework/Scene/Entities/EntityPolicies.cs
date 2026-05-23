@@ -61,6 +61,12 @@ public readonly record struct EntityPolicySet(
         TickPolicy.EveryFrame,
         SpatialPolicy.DynamicIndex,
         RenderDynamicPolicy.GeometryAnimated);
+
+    public static EntityPolicySet DynamicTransformAnimated => new(
+        Mobility.Movable,
+        TickPolicy.EveryFrame,
+        SpatialPolicy.DynamicIndex,
+        RenderDynamicPolicy.GeometryAnimated);
 }
 
 public readonly record struct ResolvedEntityPolicies(

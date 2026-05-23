@@ -16,18 +16,22 @@ public sealed class CutsceneMoveToDemo : Demo
 {
     private static readonly Vector3 StartPosition = new(-5f, 0.5f, 0f);
     private static readonly Vector3 Destination = new(5f, 0.5f, 0f);
+    private static readonly TimeSpan? AutomationRestartTime = ResolveAutomationRestartTime();
+    private CasaEngineGame? _game;
     private Entity? _hero;
     private CharacterControllerComponent? _controller;
     private CutsceneAsset? _cutsceneAsset;
     private KeyboardState _previousKeyboard;
     private bool _autoPlayPending;
+    private bool _automationRestartTriggered;
 
     public override string Title => "Cutscene MoveTo demo";
 
-    public override string Description => "Validates the cutscene asset pipeline with a direct MoveTo action driving a CharacterController.";
+    public override string Description => "Validates the cutscene asset pipeline with a direct MoveTo action driving a CharacterController. [Space]/[R] restart from start, [S] stops the current playback.";
 
     public override void Initialize(CasaEngineGame game)
     {
+        _game = game;
         var world = game.GameManager.CurrentWorld;
         var graphicsDevice = game.GraphicsDevice;
 
@@ -62,14 +66,11 @@ public sealed class CutsceneMoveToDemo : Demo
 
     public override void Update(GameTime gameTime)
     {
-        var keyboard = Keyboard.GetState();
+        var keyboard = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
         var world = _hero?.World;
 
-        if (_autoPlayPending && world != null)
-        {
-            _autoPlayPending = false;
-            PlayFromStart(world);
-        }
+        TryAutoPlay();
+        TryAutomationRestart(gameTime, world);
 
         if (world != null && IsPressed(keyboard, Keys.Space))
         {
@@ -83,7 +84,7 @@ public sealed class CutsceneMoveToDemo : Demo
 
         if (world != null && IsPressed(keyboard, Keys.R))
         {
-            ResetHero(world);
+            PlayFromStart(world);
         }
 
         _previousKeyboard = keyboard;
@@ -91,11 +92,13 @@ public sealed class CutsceneMoveToDemo : Demo
 
     public override void Clean()
     {
+        _game = null;
         _hero?.World?.CutsceneDirector.Stop();
         _hero = null;
         _controller = null;
         _cutsceneAsset = null;
         _autoPlayPending = false;
+        _automationRestartTriggered = false;
     }
 
     private void PlayFromStart(CasaEngine.Framework.Scene.World.World world)
@@ -106,11 +109,11 @@ public sealed class CutsceneMoveToDemo : Demo
         }
 
         world.CutsceneDirector.Stop();
-        ResetHero(world);
+        ResetHeroToStart(world);
         world.CutsceneDirector.Play(_cutsceneAsset);
     }
 
-    private void ResetHero(CasaEngine.Framework.Scene.World.World world)
+    private void ResetHeroToStart(CasaEngine.Framework.Scene.World.World world)
     {
         world.CutsceneDirector.Stop();
 
@@ -129,12 +132,53 @@ public sealed class CutsceneMoveToDemo : Demo
         return keyboard.IsKeyDown(key) && !_previousKeyboard.IsKeyDown(key);
     }
 
+    private void TryAutoPlay()
+    {
+        if (!_autoPlayPending)
+        {
+            return;
+        }
+
+        var world = _hero?.World;
+        if (world == null)
+        {
+            return;
+        }
+
+        _autoPlayPending = false;
+        PlayFromStart(world);
+    }
+
+    private void TryAutomationRestart(GameTime gameTime, CasaEngine.Framework.Scene.World.World? world)
+    {
+        if (_automationRestartTriggered
+            || AutomationRestartTime is null
+            || world == null
+            || gameTime.TotalGameTime < AutomationRestartTime.Value)
+        {
+            return;
+        }
+
+        _automationRestartTriggered = true;
+        PlayFromStart(world);
+    }
+
+    private static TimeSpan? ResolveAutomationRestartTime()
+    {
+        var rawValue = Environment.GetEnvironmentVariable("CASAENGINE_CUTSCENE_RESTART_AT_MS");
+        return int.TryParse(rawValue, out int restartDelayMs) && restartDelayMs >= 0
+            ? TimeSpan.FromMilliseconds(restartDelayMs)
+            : null;
+    }
+
     private static Entity CreateHero(GraphicsDevice graphicsDevice)
     {
         var entity = new Entity { Name = "CutsceneHero" };
+        var root = new DemoRootComponent();
         var mesh = CreateMeshComponent(graphicsDevice, new BoxPrimitive(0.8f, 1f, 0.8f), new Color(190, 86, 74));
-        mesh.Position = StartPosition;
-        entity.RootComponent = mesh;
+        root.Position = StartPosition;
+        root.AddChildComponent(mesh);
+        entity.RootComponent = root;
         entity.AddComponent(new CharacterControllerComponent
         {
             Settings = new CharacterControllerSettings
@@ -177,5 +221,13 @@ public sealed class CutsceneMoveToDemo : Demo
         component.StaticModel.Meshes[0].Initialize(graphicsDevice);
         component.StaticModel.Meshes[0].Material = new LitDiffuseMaterial { DiffuseColor = color };
         return component;
+    }
+
+    private sealed class DemoRootComponent : SceneComponent
+    {
+        public override EntityComponent Clone()
+        {
+            return new DemoRootComponent();
+        }
     }
 }

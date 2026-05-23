@@ -6,12 +6,21 @@ using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
+public enum EntityComponentUpdateOrder
+{
+    BeforeDefault = -100,
+    Default = 0,
+    AfterDefault = 100,
+}
+
 //Entity Components (class EntityComponent) are most useful for abstract behaviors such as movement, 
 //inventory or attribute management, and other non-physical concepts.
 //Entity Components do not have a transform, meaning they do not have any physical location or rotation in the world.
 public abstract class EntityComponent : ObjectBase
 {
     public Entity? Owner { get; private set; }
+
+    public virtual int UpdateOrder => (int)EntityComponentUpdateOrder.Default;
 
     protected EntityComponent()
     {

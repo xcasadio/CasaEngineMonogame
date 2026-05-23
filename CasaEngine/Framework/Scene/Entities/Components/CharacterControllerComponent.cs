@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Character controller")]
-public class CharacterControllerComponent : EntityComponent
+public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaultsProvider
 {
     private const int MaxSweepIterations = 3;
     private const float MinMoveDistanceSquared = 0.000001f;
@@ -121,6 +121,11 @@ public class CharacterControllerComponent : EntityComponent
         LastRequestedDisplacement,
         LastActualDisplacement);
 
+    public void ApplyEntityPolicyDefaults(Entity owner, ref EntityPolicyDefaultsBuilder defaults)
+    {
+        defaults.Apply(EntityPolicySet.DynamicTransformAnimated);
+    }
+
     public event EventHandler? JumpStarted;
 
     public event EventHandler<CharacterControllerGroundInfo>? Landed;
@@ -190,13 +195,14 @@ public class CharacterControllerComponent : EntityComponent
         }
 
         var requestedDisplacement = velocity * elapsedTime;
-        var actualDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared
+        bool appliedRequestedDisplacement = requestedDisplacement.LengthSquared() > MinMoveDistanceSquared;
+        var actualDisplacement = appliedRequestedDisplacement
             ? MoveWithCollisions(rootComponent, requestedDisplacement)
             : Vector3.Zero;
         _lastRequestedDisplacement = inheritedGroundDisplacement + requestedDisplacement;
         _lastActualDisplacement = actualGroundDisplacement + actualDisplacement;
 
-        if (elapsedTime > 0f)
+        if (elapsedTime > 0f && appliedRequestedDisplacement)
         {
             velocity = actualDisplacement / elapsedTime;
         }
@@ -204,7 +210,7 @@ public class CharacterControllerComponent : EntityComponent
         UpdateGround(rootComponent, ref velocity);
 
         Velocity = velocity;
-    UpdatePostMovementTimers(elapsedTime);
+        UpdatePostMovementTimers(elapsedTime);
     }
 
     private Vector3 GetGroundDisplacement(float elapsedTime)

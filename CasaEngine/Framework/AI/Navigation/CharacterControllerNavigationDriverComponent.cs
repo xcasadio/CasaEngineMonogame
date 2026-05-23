@@ -32,6 +32,8 @@ public sealed class CharacterControllerNavigationDriverComponent : EntityCompone
 
     public Vector2 LastMoveIntent { get; private set; }
 
+    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
+
     public CharacterControllerComponent Controller => _controller;
 
     public Entity TargetEntity => _targetEntity;

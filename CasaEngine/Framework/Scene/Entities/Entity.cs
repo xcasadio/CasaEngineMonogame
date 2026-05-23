@@ -29,6 +29,7 @@ public class Entity : ObjectBase
 {
     private bool _isEnabled = true;
     private readonly List<EntityComponent> _components = [];
+    private readonly List<EntityComponent> _componentsForUpdate = [];
     private readonly List<Entity> _children = [];
     private SceneComponent? _rootComponent;
     public CasaEngine.Framework.Scene.World.World World { get; private set; }
@@ -256,8 +257,22 @@ public class Entity : ObjectBase
 
     public void AddComponent(EntityComponent component)
     {
+        ArgumentNullException.ThrowIfNull(component);
+
         _components.Add(component);
+        InsertComponentForUpdate(component);
         component.Attach(this);
+
+        if (IsInitialized)
+        {
+            component.Initialize();
+
+            if (World != null)
+            {
+                component.InitializeWithWorld(World);
+            }
+        }
+
         Policies.InvalidateConfiguredPolicySet();
         ComponentAdded?.Invoke(this, component);
     }
@@ -265,6 +280,7 @@ public class Entity : ObjectBase
     public void RemoveComponent(EntityComponent component)
     {
         _components.Remove(component);
+        _componentsForUpdate.Remove(component);
         component.Detach();
         Policies.InvalidateConfiguredPolicySet();
         ComponentRemoved?.Invoke(this, component);
@@ -430,9 +446,9 @@ public class Entity : ObjectBase
     {
         RootComponent?.Update(elapsedTime);
 
-        for (int i = 0; i < _components.Count; i++)
+        for (int i = 0; i < _componentsForUpdate.Count; i++)
         {
-            _components[i].Update(elapsedTime);
+            _componentsForUpdate[i].Update(elapsedTime);
         }
 
         for (int i = 0; i < _children.Count; i++)
@@ -451,6 +467,19 @@ public class Entity : ObjectBase
         {
             GameplayProxy?.Update(elapsedTime);
         }
+    }
+
+    private void InsertComponentForUpdate(EntityComponent component)
+    {
+        int componentOrder = component.UpdateOrder;
+        int insertIndex = _componentsForUpdate.Count;
+
+        while (insertIndex > 0 && _componentsForUpdate[insertIndex - 1].UpdateOrder > componentOrder)
+        {
+            insertIndex--;
+        }
+
+        _componentsForUpdate.Insert(insertIndex, component);
     }
 
     public void Draw(float elapsedTime)
