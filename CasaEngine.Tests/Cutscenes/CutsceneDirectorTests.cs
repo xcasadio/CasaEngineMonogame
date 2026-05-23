@@ -63,6 +63,38 @@ public sealed class CutsceneDirectorTests
     }
 
     [Fact]
+    public void Stop_RemovesTrackedMoveToDriverAndRestoresControlMode()
+    {
+        var world = new World();
+        Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
+        world.Entities.Add(entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "MoveHero",
+            RootAction = new MoveToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(10f, 0f, 0f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        world.CoroutineManager.Update(Context(1));
+
+        CharacterControllerMoveToDriverComponent driver = entity.GetRequiredComponent<CharacterControllerMoveToDriverComponent>();
+        Assert.True(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.Cutscene, controller.ControlMode);
+
+        world.CutsceneDirector.Stop();
+
+        Assert.Null(entity.GetComponent<CharacterControllerMoveToDriverComponent>());
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+        Assert.False(driver.IsMoving);
+        Assert.Equal(CutsceneRuntimeState.Stopped, world.CutsceneDirector.GetDebugSnapshot().State);
+    }
+
+    [Fact]
     public void Play_InvalidAssetDoesNotStartCoroutine()
     {
         var world = new World();

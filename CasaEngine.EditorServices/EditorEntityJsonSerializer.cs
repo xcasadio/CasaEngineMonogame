@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.ComponentModel;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Scene.Entities;
@@ -51,7 +52,7 @@ internal static class EditorEntityJsonSerializer
         node.Add("spatial_policy", entity.Policies.SpatialPolicy.ToString());
         node.Add("render_dynamic_policy", entity.Policies.RenderDynamicPolicy.ToString());
 
-        if (entity.RootComponent != null)
+        if (entity.RootComponent != null && ShouldSaveComponent(entity.RootComponent))
         {
             var rootComponentNode = new JObject();
             SaveComponent(entity.RootComponent, rootComponentNode);
@@ -65,6 +66,11 @@ internal static class EditorEntityJsonSerializer
         var componentsArray = new JArray();
         foreach (var component in entity.Components)
         {
+            if (!ShouldSaveComponent(component))
+            {
+                continue;
+            }
+
             var componentNode = new JObject();
             SaveComponent(component, componentNode);
             componentsArray.Add(componentNode);
@@ -255,6 +261,11 @@ internal static class EditorEntityJsonSerializer
         var childrenArray = new JArray();
         foreach (var child in component.Children)
         {
+            if (!ShouldSaveComponent(child))
+            {
+                continue;
+            }
+
             var childNode = new JObject();
             SaveComponent(child, childNode);
             childrenArray.Add(childNode);
@@ -374,6 +385,11 @@ internal static class EditorEntityJsonSerializer
         node.Add("receive_shadows", component.ReceiveShadows);
     }
 
+    private static bool ShouldSaveComponent(EntityComponent component)
+    {
+        return component.GetType().GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
+    }
+
     private static void SaveBoxCollisionComponent(BoxCollisionComponent component, JObject node)
     {
         SavePhysicsBaseComponent(component, node);
@@ -440,6 +456,11 @@ internal static class EditorEntityJsonSerializer
         foreach (var child in component.Children)
         {
             if (child is StaticModelSubMeshComponent { IsGeneratedFromModel: true })
+            {
+                continue;
+            }
+
+            if (!ShouldSaveComponent(child))
             {
                 continue;
             }

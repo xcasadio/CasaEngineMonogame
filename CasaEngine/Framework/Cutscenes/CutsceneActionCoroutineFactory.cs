@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Cutscenes;
 
 internal static class CutsceneActionCoroutineFactory
 {
-    public static IEnumerator Create(CutsceneActionData action, World world, object owner)
+    public static IEnumerator Create(CutsceneActionData action, World world, CutsceneDirector owner)
     {
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(world);
@@ -17,7 +17,7 @@ internal static class CutsceneActionCoroutineFactory
         return ExecuteAction(action, world, owner);
     }
 
-    private static IEnumerator ExecuteAction(CutsceneActionData action, World world, object owner)
+    private static IEnumerator ExecuteAction(CutsceneActionData action, World world, CutsceneDirector owner)
     {
         switch (action)
         {
@@ -30,7 +30,7 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case MoveToCutsceneActionData moveToAction:
-                CharacterControllerMoveToDriverComponent moveToDriver = ResolveMoveToDriver(moveToAction, world);
+                CharacterControllerMoveToDriverComponent moveToDriver = ResolveMoveToDriver(moveToAction, world, owner);
                 moveToDriver.MoveTo(moveToAction.Destination, moveToAction.StoppingDistance, moveToAction.TimeoutSeconds);
 
                 while (moveToDriver.IsMoving)
@@ -81,7 +81,7 @@ internal static class CutsceneActionCoroutineFactory
         }
     }
 
-    private static CharacterControllerMoveToDriverComponent ResolveMoveToDriver(MoveToCutsceneActionData action, World world)
+    private static CharacterControllerMoveToDriverComponent ResolveMoveToDriver(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
     {
         Entity entity = FindEntityByName(world, action.EntityName)
             ?? throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' was not found.");
@@ -94,11 +94,13 @@ internal static class CutsceneActionCoroutineFactory
         CharacterControllerMoveToDriverComponent driver = entity.GetComponent<CharacterControllerMoveToDriverComponent>();
         if (driver != null)
         {
+            owner.TrackMoveToDriver(driver);
             return driver;
         }
 
         driver = new CharacterControllerMoveToDriverComponent();
         entity.AddComponent(driver);
+        owner.TrackMoveToDriver(driver);
         return driver;
     }
 

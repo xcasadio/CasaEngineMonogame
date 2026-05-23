@@ -1222,7 +1222,8 @@ public sealed class EntityDetailsPanel
             .SelectMany(GetLoadableTypes)
             .Where(type => type is { IsClass: true, IsAbstract: false, IsGenericType: false }
                 && type.IsSubclassOf(componentType)
-                && type.GetConstructor(Type.EmptyTypes) != null)
+                && type.GetConstructor(Type.EmptyTypes) != null
+                && IsAddableComponentType(type))
             .Select(type => new
             {
                 Type = type,
@@ -1242,6 +1243,11 @@ public sealed class EntityDetailsPanel
         {
             return e.Types.Where(type => type != null)!;
         }
+    }
+
+    private static bool IsAddableComponentType(Type type)
+    {
+        return type.GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
     }
 
     private static string GetDisplayName(EntityComponent component)

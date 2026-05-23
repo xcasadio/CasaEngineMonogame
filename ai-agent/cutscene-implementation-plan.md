@@ -1,8 +1,10 @@
-# Plan agent IA — Cutscene V1 CasaEngine
+# Plan agent IA — Cutscene CasaEngine
 
 ## Analyse critique
 
-Statut : les décisions V1 sont suffisantes pour construire un plan agent exécutable, à condition de ne pas élargir le scope.
+Statut : la V1 n'est plus seulement un plan. Le repo contient déjà un runtime cutscene fonctionnel avec `Wait`, `Sequence`, `Parallel`, un premier `MoveTo` direct au-dessus du `CharacterController`, un `CutsceneDirector` branché à `World`, des tests runtime et une vue éditeur lecture seule.
+
+Conséquence : ce fichier doit désormais servir à la fois d'historique V1 livré et de feuille de route V2 incrémentale, avec des étapes assez petites pour être validées visuellement entre deux tranches de code.
 
 Décisions validées :
 
@@ -27,6 +29,13 @@ Surfaces repo déjà identifiées :
 - Les extensions d'assets sont dans `CasaEngine/Framework/Configuration/Constants.cs`.
 - `AssetInfo.AssetType` est inféré par extension dans `CasaEngine/Framework/Assets/AssetInfo.cs`.
 
+Surfaces V2 déjà présentes dans le repo :
+
+- `MoveToCutsceneActionData` et `CharacterControllerMoveToDriverComponent` existent déjà.
+- `CutsceneDirector.Stop()` annule et retire désormais les drivers `MoveTo` runtime encore actifs.
+- `NavigationGrid2D`, `GridPathfinder2D`, `NavigationAgentComponent`, `CharacterControllerNavigationDriverComponent` et `CharacterControllerSteeringBridgeComponent` existent déjà côté runtime.
+- l'éditeur sait déjà afficher un asset `.cutscene` en lecture seule.
+
 Points à confirmer avant code substantiel :
 
 - le meilleur namespace/runtime folder pour les types cutscene ;
@@ -45,6 +54,8 @@ Points à confirmer avant code substantiel :
 - Exécuter au minimum les tests ciblés après chaque tranche de code quand c'est possible.
 - Exécuter un build local de solution avant de terminer, ou documenter clairement le blocage externe.
 - Ne pas committer sans demande explicite dans la session ; si des commits sont demandés, faire un commit atomique par sous-tâche.
+- Les démos de validation visuelle doivent être validées par l'utilisateur ; l'agent peut les implémenter, les lancer et préparer le protocole de vérification, mais pas déclarer la validation visuelle à sa place.
+- Pour la V2, avancer par petites tranches : runtime ciblé, tests ciblés, démo minimale, validation visuelle utilisateur, puis seulement la tranche suivante.
 
 ## Légende des statuts
 
@@ -82,6 +93,18 @@ L'agent doit s'arrêter et documenter le blocage si :
 - édition MGUI avancée
 - preview avancée
 - sauvegarde depuis l'UI
+
+## Cadence de validation V2
+
+Le but de la V2 n'est pas de brancher toute la navigation en une seule passe. L'ordre d'exécution attendu est le suivant :
+
+1. consolider le direct `MoveTo` comme tranche de référence ;
+2. ajouter une démo minimale visible et demander une validation visuelle utilisateur ;
+3. seulement ensuite figer le contrat d'action `NavigateTo` ou `FollowEntity` ;
+4. implémenter le bridge cutscene -> navigation en gardant la même discipline de test ciblé puis démo ciblée ;
+5. ajouter une seconde validation visuelle utilisateur avant d'élargir le scope.
+
+Une tâche de démo ne peut donc pas être considérée comme complètement fermée tant que l'utilisateur n'a pas validé le comportement en jeu.
 
 ## Tâches
 
@@ -243,8 +266,146 @@ Actions :
 
 Validation :
 
-- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~Cutscenes` : vert, 11 tests.
-- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` : vert, 0 warning, 0 erreur.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~Cutscenes` : vert, 15 tests.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` : vert ; warnings existants hors scope dans le repo.
+
+### ✅ Tâche 10 — Hygiène runtime V2.0 pour `MoveTo` direct
+
+Objectif : traiter le driver `MoveTo` comme un helper runtime système et non comme un composant d'authoring.
+
+Actions :
+
+- masquer `CharacterControllerMoveToDriverComponent` côté authoring avec `[Browsable(false)]` ;
+- exclure ce composant du menu `Add Component` de l'éditeur ;
+- exclure ce composant de la sérialisation d'authoring ;
+- faire suivre `CutsceneDirector.Stop()` vers les drivers `MoveTo` actifs, les annuler puis les retirer de leurs entités ;
+- conserver `World.Clear()` comme point d'arrêt global qui passe par `CutsceneDirector.Stop()`.
+
+Validation :
+
+- tests cutscene ciblés verts avec couverture du `Stop()` sur `MoveTo` ;
+- build solution éditeur vert ;
+- aucune exposition authoring résiduelle du driver runtime.
+
+### ⏳ Tâche 11 — CutsceneDemo minimal `MoveTo` direct
+
+Objectif : ajouter une première démo visible permettant de valider tout le flux `asset -> world -> controller -> stop` avant d'ouvrir la tranche navigation.
+
+Actions :
+
+- créer un `CutsceneDemo` minimal centré sur une entité nommée de façon stable et dotée d'un `CharacterControllerComponent` ;
+- brancher un asset `.cutscene` simple avec une action `MoveTo` directe ;
+- prévoir une commande simple pour lancer la cutscene, l'arrêter et la relancer ;
+- afficher un minimum d'état utile à l'écran ou dans un log lisible pour faciliter la vérification ;
+- documenter le protocole de validation visuelle attendu.
+
+Validation :
+
+- test ou build ciblé du projet de démo ;
+- vérification locale que la démo démarre ;
+- 🧪 validation visuelle utilisateur obligatoire : lancement, déplacement visible, arrêt manuel, restauration du contrôle, relance sans état sale.
+
+### ⏳ Tâche 12 — Contrat d'action V2 navigation
+
+Objectif : figer le contrat de la première action navigation avant tout branchement sur `NavigationAgentComponent`.
+
+Actions :
+
+- choisir explicitement entre `NavigateToCutsceneActionData`, `FollowEntityCutsceneActionData` ou une alternative minimale équivalente ;
+- garder `MoveTo` direct inchangé pour préserver la compatibilité et la tranche de validation déjà acquise ;
+- définir les champs minimums : acteur ciblé, cible ou destination, stopping distance, timeout, et raison d'échec observable ;
+- documenter ce contrat dans `docs/cutscene_commandes_sequentielles_async_coroutine.md` et dans ce plan avant l'implémentation runtime.
+
+Validation :
+
+- format de données typé documenté ;
+- sérialisation/validation prévues sans ambiguïté ;
+- aucun branchement runtime navigation tant que ce contrat n'est pas relu.
+
+### ⏳ Tâche 13 — Bridge runtime cutscene -> navigation
+
+Objectif : exécuter la première action navigation cutscene via les composants runtime déjà présents, sans élargir prématurément le scope.
+
+Actions :
+
+- étendre le modèle d'actions, la validation et la sérialisation JSON ;
+- résoudre l'entité cible puis son `NavigationAgentComponent` ;
+- déléguer le déplacement calculé à l'agent/navigation driver existant ;
+- échouer explicitement si l'agent, la carte ou la cible requise sont absents ;
+- ne pas ajouter de repath dynamique, de navmesh 3D ou d'obstacles avancés dans cette tranche.
+
+Validation :
+
+- tests unitaires ciblés sur l'action navigation réussie et les erreurs attendues ;
+- build ciblé vert ;
+- aucune régression sur `MoveTo` direct.
+
+### ⏳ Tâche 14 — Propagation `Stop`/`Cancel` vers les drivers navigation actifs
+
+Objectif : appliquer à la navigation la même discipline que pour `MoveTo` direct.
+
+Actions :
+
+- suivre les drivers/agents navigation activés par la cutscene ;
+- propager `CutsceneDirector.Stop()` et `World.Clear()` vers ces drivers ;
+- annuler proprement la navigation active, restaurer le mode de contrôle et nettoyer les helpers runtime temporaires ;
+- couvrir aussi le cas d'annulation en cours de déplacement calculé.
+
+Validation :
+
+- tests ciblés `Stop`, `Cancel` et `World.Clear()` sur navigation ;
+- aucune fuite de driver runtime sur l'entité après arrêt ;
+- compatibilité conservée avec la tranche `MoveTo` directe.
+
+### ⏳ Tâche 15 — Debug runtime et éditeur lecture seule V2
+
+Objectif : rendre observable l'état de la navigation cutscene sans éditeur complet.
+
+Actions :
+
+- étendre `CutsceneDebugSnapshot` avec l'action active, la destination, l'état du driver et la raison d'arrêt ;
+- exposer ces informations dans le document lecture seule et le panneau d'inspection ;
+- garder l'UI en lecture seule ;
+- ne pas ajouter de timeline ni d'édition interactive dans cette tranche.
+
+Validation :
+
+- tests du builder lecture seule et du snapshot runtime ;
+- affichage cohérent des nouveaux états sans régression sur l'existant.
+
+### ⏳ Tâche 16 — CutsceneDemo navigation minimale
+
+Objectif : valider visuellement la première intégration navigation avant toute extension plus ambitieuse.
+
+Actions :
+
+- enrichir ou dupliquer la démo minimale pour brancher une carte de navigation réelle ;
+- ajouter un asset `.cutscene` qui utilise la nouvelle action V2 ;
+- prévoir au moins un cas simple de destination atteignable et un cas d'arrêt manuel ;
+- documenter la procédure de validation visuelle attendue pour l'utilisateur.
+
+Validation :
+
+- build ou lancement ciblé de la démo ;
+- tests runtime navigation verts ;
+- 🧪 validation visuelle utilisateur obligatoire : navigation visible, arrêt correct, retour de contrôle, relecture de la démo sans état résiduel.
+
+### ⏳ Tâche 17 — Validation finale V2 incrémentale
+
+Objectif : terminer la tranche V2 minimale sans perdre la discipline de validation par petites étapes.
+
+Actions :
+
+- relancer les tests `Cutscene`, `CharacterController` et `Navigation` ciblés ;
+- relancer au moins un build de solution ;
+- mettre à jour ce plan avec les statuts finaux et les résultats constatés ;
+- consigner explicitement les validations visuelles encore en attente côté utilisateur.
+
+Validation :
+
+- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter 'Cutscene|CharacterController|Navigation'` vert ;
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` vert ou blocage documenté ;
+- les tâches de démo restent `🧪 Needs testing` tant que l'utilisateur n'a pas donné son feu vert.
 
 ## Format `.cutscene` V1 attendu
 

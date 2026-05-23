@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
+[Browsable(false)]
 [DisplayName("Character controller move-to driver")]
 public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
 {

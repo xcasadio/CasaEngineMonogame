@@ -56,29 +56,33 @@ Les exemples de déplacement, animation, dialogue, caméra, input, quêtes et au
 
 ---
 
-## État implémenté au 2026-05-22
+## État implémenté au 2026-05-23
 
-La V1 décrite ci-dessus est maintenant implémentée dans CasaEngine.
+La frontière V1/V2 a déjà bougé dans le code : CasaEngine ne se limite plus à `Wait`, `Sequence` et `Parallel`. Un premier mouvement gameplay `MoveTo` est maintenant implémenté au-dessus du `CharacterController`.
 
 Runtime :
 
 - `CasaEngine.Framework.Cutscenes.CutsceneAsset` hérite de `ObjectBase` et expose `Version` et `RootAction` ;
-- les actions V1 sont typées : `WaitCutsceneActionData`, `SequenceCutsceneActionData`, `ParallelCutsceneActionData` ;
+- les actions typées actuellement supportées sont `WaitCutsceneActionData`, `MoveToCutsceneActionData`, `SequenceCutsceneActionData` et `ParallelCutsceneActionData` ;
+- `MoveToCutsceneActionData` porte `entity`, `destination`, `stopping_distance` et `timeout_seconds` ;
 - `UnknownCutsceneActionData` conserve les types non reconnus afin que la validation puisse les signaler proprement ;
-- `CutsceneValidator` valide `RootAction`, `Wait.seconds >= 0`, les actions inconnues, et signale les `Sequence`/`Parallel` vides en warning ;
-- `CutsceneAssetJsonSerializer` charge/sauve l’arbre d’actions typées avec discriminateur `type` ;
+- `CutsceneValidator` valide `RootAction`, `Wait.seconds >= 0`, `MoveTo.entity`, `MoveTo.stopping_distance`, `MoveTo.timeout_seconds`, les actions inconnues, et signale les `Sequence`/`Parallel` vides en warning ;
+- `CutsceneAssetJsonSerializer` charge/sauve l’arbre d’actions typées avec discriminateur `type`, y compris les paramètres de `MoveTo` ;
 - `Constants.FileNameExtensions.Cutscene` ajoute l’extension `.cutscene` ;
 - `CutsceneAssetLoader` charge les assets `.cutscene` via `AssetContentManager` ;
 - `AssetLoaderRegistry` enregistre le loader pour `CutsceneAsset` ;
 - `World` possède `CutsceneDirector` et l’arrête dans `World.Clear()` ;
 - `CutsceneDirector.Play(CutsceneAsset)` démarre une coroutine via `World.CoroutineManager` ;
-- `CutsceneDirector.Stop()` arrête les coroutines possédées par le director ;
+- `CutsceneActionCoroutineFactory` exécute `MoveTo` en résolvant l’entité cible par nom, en ajoutant au besoin un `CharacterControllerMoveToDriverComponent`, puis en attendant la fin du déplacement ou le timeout ;
+- `CharacterControllerMoveToDriverComponent` prend `CharacterControlMode.Cutscene`, convertit une destination monde XZ en `SetMoveIntent(Vector2)`, et restaure le mode précédent à l’arrivée, à l’annulation ou au timeout ;
+- en parallèle du runtime cutscene, le repo contient déjà une base navigation réutilisable pour la V2 : `NavigationGrid2D`, `GridPathfinder2D`, `NavigationPath`, `NavigationQuery`, `NavigationAgentComponent`, `CharacterControllerNavigationDriverComponent` et `CharacterControllerSteeringBridgeComponent` ;
+- `CutsceneDirector.Stop()` arrête les coroutines possédées par le director, annule les `CharacterControllerMoveToDriverComponent` encore actifs et retire ces composants runtime de leurs entités ;
 - `CutsceneDebugSnapshot` expose l’état runtime, l’asset courant, le handle actif, les messages de validation et les coroutines actives liées à la cutscene.
 
 Éditeur :
 
 - `CutsceneReadOnlyDocumentBuilder` construit un modèle lecture seule à partir d’un `CutsceneAsset` et d’un snapshot runtime optionnel ;
-- `CutsceneAssetInspectorPanel` affiche l’asset `.cutscene`, son arbre d’actions, ses paramètres, ses erreurs/warnings de validation et l’état runtime disponible ;
+- `CutsceneAssetInspectorPanel` affiche l’asset `.cutscene`, son arbre d’actions, ses paramètres `Wait` et `MoveTo`, ses erreurs/warnings de validation et l’état runtime disponible ;
 - `GameEditor` ouvre les fichiers `.cutscene` comme documents d’éditeur lecture seule ;
 - aucune édition, sauvegarde, timeline, preview avancée ou commande gameplay n’a été ajoutée.
 
@@ -86,21 +90,40 @@ Validation exécutée :
 
 ```text
 dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --no-restore --filter FullyQualifiedName~Cutscenes
-Résultat : 11 tests verts
+Résultat : 15 tests verts
 
 dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore
-Résultat : 0 warning, 0 erreur
+Résultat : build OK ; warnings existants hors scope sur le repo
 ```
 
-Conséquence importante : une cutscene V1 peut déjà être chargée, validée, jouée, arrêtée et inspectée. En revanche, elle ne peut pas encore déplacer un acteur, piloter une caméra, jouer un dialogue, bloquer l’input ou modifier un flag gameplay.
+Conséquence importante : une cutscene peut déjà être chargée, validée, jouée, arrêtée et inspectée, et elle peut maintenant déplacer visiblement un acteur si l’entité ciblée possède un `CharacterControllerComponent`. En revanche, le runtime cutscene n’utilise pas encore la navigation calculée (`NavigationAgentComponent` / `GridPathfinder2D`) et ne couvre ni caméra, ni dialogue, ni input, ni flags gameplay.
 
 ---
 
-## Bindings d’entités (futur)
+## Bindings d’entités actuels et limites V2
 
-La V1 implémentée n’a aucun binding d’entité. Elle ne référence ni acteur, ni caméra, ni dialogue, ni animation.
+L’état actuel n’est plus "aucun binding". `MoveTo` résout déjà une entité cible par son `Entity.Name` exact dans `World.Entities`.
 
-Pour une version future avec commandes gameplay, il faudra éviter de sérialiser des références directes vers des instances runtime. Les données devront utiliser des identifiants logiques, par exemple :
+Ce qui existe déjà :
+
+```text
+binding par nom exact pour MoveTo
+erreur runtime si l’entité est introuvable
+erreur runtime si l’entité n’a pas de CharacterControllerComponent
+validation syntaxique des champs de MoveTo dans l’asset
+```
+
+Ce qui reste insuffisant pour une V2 robuste :
+
+```text
+pas d’identifiant stable d’entité ou de binding d’asset
+pas de gestion des doublons de noms
+recherche linéaire simple dans World.Entities
+pas de binding vers camera/dialogue/input/navigation map
+pas de validation éditeur liée à une scène ou à un World réel
+```
+
+Pour une version future plus robuste, il faudra éviter de sérialiser des références directes vers des instances runtime. Les données devront utiliser des identifiants logiques, par exemple :
 
 ```text
 Player
@@ -113,7 +136,7 @@ Door_A
 
 ---
 
-## Éditeur V1 implémenté
+## Éditeur lecture seule implémenté
 
 L’éditeur affiche maintenant les cutscenes en lecture seule.
 
@@ -126,26 +149,21 @@ chemin source
 état runtime du CutsceneDirector
 nombre de coroutines actives
 arbre d’actions
-paramètres V1
+paramètres runtime actuellement supportés
 warnings/erreurs de validation
 coroutines actives liées à la cutscene si un World est disponible
 ```
 
-Exemple d’arbre affichable pour la V1 :
+Exemple d’arbre affichable avec `MoveTo` :
 
 ```text
-Cutscene: IntroWait
+Cutscene: HeroMove
 
-- Sequence  root_action
-    children: 2
-    - Wait  root_action.actions[0]
-        seconds: 0.5
-    - Parallel  root_action.actions[1]
-        children: 2
-        - Wait  root_action.actions[1].actions[0]
-            seconds: 1
-        - Wait  root_action.actions[1].actions[1]
-            seconds: 0.25
+- MoveTo  root_action
+    entity: Hero
+    destination: 1, 0, 0
+    stopping_distance: 0.05
+    timeout_seconds: 3
 ```
 
 Validation V1 affichée :
@@ -153,6 +171,9 @@ Validation V1 affichée :
 ```text
 RootAction obligatoire
 Wait.seconds >= 0
+MoveTo.entity requis
+MoveTo.stopping_distance >= 0
+MoveTo.timeout_seconds >= 0
 Sequence vide = warning
 Parallel vide = warning
 action inconnue = erreur
@@ -174,92 +195,138 @@ validation de bindings entity/dialogue/animation/camera/quest
 
 ---
 
+## Analyse des prérequis V2 avec CharacterController et Navigation
+
+La V2 n’est plus bloquée sur l’existence d’un premier déplacement gameplay. Le dépôt possède déjà un socle fonctionnel, mais la cutscene n’en consomme encore qu’une partie.
+
+### Déjà implémenté et réutilisable
+
+Validation ciblée de cette tranche :
+
+```text
+dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter 'Cutscene|CharacterController|Navigation'
+Résultat constaté : 79 tests verts, 0 échec
+```
+
+```text
+action cutscene MoveTo sérialisée, validée et affichée en lecture seule
+driver CharacterControllerMoveToDriverComponent dédié à l’autorité Cutscene
+restauration du mode de contrôle précédent sur arrivée, timeout ou annulation du driver
+destruction du CharacterControllerMoveToDriverComponent quand la cutscene est stoppée ou annulée
+driver navigation CharacterControllerNavigationDriverComponent pour MoveTo, SetPath et FollowTarget
+NavigationGrid2D, GridPathfinder2D, NavigationPath et NavigationQuery
+NavigationAgentComponent pour calculer un chemin et l’envoyer au driver navigation
+CharacterControllerSteeringBridgeComponent pour brancher SteeringAgentComponent sur SetMoveIntent(Vector2)
+tests dédiés pour MoveTo cutscene, driver de contrôle, grille de navigation et bridge navigation/controller
+```
+
+### Ce que la cutscene V2 n’utilise pas encore
+
+```text
+le runtime cutscene ne parle pas encore a NavigationAgentComponent
+MoveTo est un déplacement direct vers une destination monde, pas un déplacement calculé avec pathfinding
+aucun FollowTarget cutscene n’existe encore
+aucune politique de repath n’existe pour obstacle dynamique ou cible qui bouge
+le snapshot debug cutscene ne décrit pas l’état du driver gameplay actif
+```
+
+### Pré-requis minimaux avant une V2 robuste
+
+1. définir le contrat de déplacement V2 : garder `MoveTo` pour le direct et ajouter `NavigateTo`/`FollowEntity`, ou étendre `MoveTo` avec un mode explicite ;
+2. appliquer la même politique de `Stop`/annulation aux futurs drivers gameplay V2 ; `CharacterControllerMoveToDriverComponent` est maintenant annulé puis retiré quand la cutscene est stoppée ;
+3. définir comment une cutscene récupère la bonne carte de navigation ; actuellement `NavigationAgentComponent.NavigationMap` est injecté manuellement ;
+4. stabiliser les bindings d’entités avec une stratégie plus robuste que `Entity.Name` exact ;
+5. étendre la validation V2 : entité absente, controller absent, carte de navigation absente, destination inaccessible, timeout et raison d’échec clairement surfacés ;
+6. décider la politique de blocage et de repath pendant une cutscene ;
+7. étendre `CutsceneDebugSnapshot` et l’éditeur lecture seule pour exposer destination, waypoint courant, état du driver et raison d’arrêt ;
+8. ajouter un sample de validation V2 basé soit sur `MoveTo` direct, soit sur une vraie navigation avec `NavigationGrid2D` branchée au monde.
+
+### Ce qui peut rester hors de la première V2
+
+```text
+obstacles dynamiques complexes
+path smoothing avance
+off-mesh links
+navmesh 3D
+camera, dialogue, audio et quetes
+```
+
+---
+
 ## Sample de cutscene : faisabilité
 
-Il est possible de créer un sample minimal immédiatement, mais il faut être clair sur ce qu’il peut démontrer.
+Il est possible de créer un sample visible immédiatement, mais il faut être clair sur ce qu’il démontre.
 
-Avec la V1 actuelle, un sample peut démontrer :
+Avec l’état actuel, un sample peut démontrer :
 
 ```text
 chargement d’un asset .cutscene via AssetContentManager
 validation de l’asset
 Play via World.CutsceneDirector
 attente non bloquante via World.CoroutineManager
+MoveTo via CharacterControllerMoveToDriverComponent
+prise et restitution de CharacterControlMode.Cutscene
 Sequence et Parallel
 Stop
 GetDebugSnapshot
 affichage de l’état runtime et des coroutines actives
 ```
 
-Ce sample ne peut pas encore démontrer une vraie cinématique gameplay visible, car aucune commande V1 ne modifie le monde. Un asset V1 composé uniquement de `Wait`, `Sequence` et `Parallel` produit un comportement temporel et débogable, pas un déplacement de personnage ou une caméra scriptée.
+Ce sample peut déjà démontrer un déplacement visible simple si une entité de la scène possède un `CharacterControllerComponent`. En revanche, il ne démontre pas encore une navigation calculée complète, ni une caméra scriptée, ni un dialogue, ni un verrouillage d’input.
 
 ### Sample minimal possible sans nouvelle feature runtime
 
 Un exemple simpliste peut être ajouté dans `CasaEngine.Demos` sans changer le runtime cutscene :
 
-1. ajouter un fichier `Content/Cutscenes/IntroWait.cutscene` ;
+1. ajouter un fichier `Content/Cutscenes/HeroMove.cutscene` ;
 2. ajouter l’entrée correspondante dans `Content/AssetInfos.json`, avec `asset_type = "cutscene"` ou une extension `.cutscene` suffisante pour l’inférence ;
 3. ajouter une classe `CutsceneDemo : Demo` ;
 4. dans `Initialize`, charger l’asset avec `game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id)` ;
-5. appeler `game.GameManager.CurrentWorld.CutsceneDirector.Play(asset)` ;
-6. afficher dans une petite UI ou un overlay l’état de `GetDebugSnapshot()` : `Playing`, `Completed`, `Stopped`, messages de validation, coroutines actives ;
-7. ajouter au besoin une touche de restart et une touche de `Stop()` ;
-8. enregistrer la démo dans `DemosGame`.
+5. créer ou charger une entité `Hero` avec `CharacterControllerComponent` ;
+6. appeler `game.GameManager.CurrentWorld.CutsceneDirector.Play(asset)` ;
+7. afficher dans une petite UI ou un overlay l’état de `GetDebugSnapshot()` : `Playing`, `Completed`, `Stopped`, messages de validation, coroutines actives ;
+8. afficher la position du héros ou son mode de contrôle pour vérifier la prise/rendu d’autorité ;
+9. ajouter au besoin une touche de restart et une touche de `Stop()` ;
+10. enregistrer la démo dans `DemosGame`.
 
 Exemple d’asset pour ce sample :
 
 ```json
 {
     "id": "00000000-0000-0000-0000-000000000000",
-    "name": "IntroWait",
+    "name": "HeroMove",
     "type": "CutsceneAsset",
     "version": 1,
     "schema_version": 1,
     "root_action": {
-        "type": "Sequence",
-        "actions": [
-            {
-                "type": "Wait",
-                "seconds": 0.5
-            },
-            {
-                "type": "Parallel",
-                "actions": [
-                    {
-                        "type": "Wait",
-                        "seconds": 1.0
-                    },
-                    {
-                        "type": "Wait",
-                        "seconds": 0.25
-                    }
-                ]
-            },
-            {
-                "type": "Wait",
-                "seconds": 0.5
-            }
-        ]
+        "type": "MoveTo",
+        "entity": "Hero",
+        "destination": {
+            "x": 2.0,
+            "y": 0.0,
+            "z": 0.0
+        },
+        "stopping_distance": 0.05,
+        "timeout_seconds": 3.0
     }
 }
 ```
 
 ### Ce qu’il faut pour un sample cinématique simpliste
 
-Si le sample attendu doit montrer une vraie action visible en jeu, la V1 ne suffit pas. Il faudra d’abord choisir et implémenter au moins une commande gameplay réelle, par exemple :
+Si le sample attendu doit montrer une vraie navigation calculée ou une séquence cinématique plus riche, l’état actuel ne suffit pas encore. Il faudra d’abord choisir et implémenter au moins les briques V2 suivantes :
 
 ```text
-commande de déplacement d’entité ou de Transform
-commande de caméra simple
-commande d’affichage de texte/subtitle
-binding logique vers une entité ou une caméra du World
-politique Stop/Cancel pour restaurer l’état modifié
-validation des paramètres de cette commande
-affichage éditeur lecture seule de ses paramètres et erreurs
-tests runtime de la commande
+action cutscene navigation explicite ou extension de MoveTo
+binding logique stable vers l’entité cible
+accès à NavigationGrid2D/NavigationAgentComponent depuis le World ou l’entité
+politique Stop/Cancel/Repath pour les drivers de navigation
+validation d’accessibilité ou d’échec de chemin
+snapshot debug et lecture seule éditeur pour l’état navigation
+tests runtime du chemin calculé et des cas bloqués
 ```
 
-La voie la plus petite pour un sample visible serait probablement une commande future très limitée, par exemple `SetEntityEnabled`, `SetTransformPosition` ou `ShowSubtitle`, mais ce serait déjà une extension V2 et non la V1 implémentée.
+La voie la plus petite pour une V2 navigation exploitable n’est donc plus d’ajouter un faux déplacement direct, mais de brancher proprement la cutscene sur la navigation déjà existante sans casser l’autorité du `CharacterController`.
 
 ---
 
