@@ -1,6 +1,8 @@
+using CasaEngine.Core.Time;
 using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -115,10 +117,90 @@ public sealed class CharacterControllerNavigationBridgeTests
         Assert.Equal(new Vector2(0f, -1f), controller.MoveIntent);
     }
 
+    [Fact]
+    public void WorldSystem_NavigationDriverMovesRegardlessOfComponentInsertionOrder()
+    {
+        var world = new World();
+        var entity = CreateEntityWithRoot();
+        var driver = new CharacterControllerNavigationDriverComponent();
+        var controller = CreateController();
+        entity.AddComponent(driver);
+        entity.AddComponent(controller);
+        AddEntityToWorld(world, entity);
+
+        driver.MoveTo(new Vector3(1f, 0f, 0f), stoppingDistance: 0.05f);
+        AdvanceWorld(world, frameCount: 8);
+
+        Assert.False(driver.IsMoving);
+        Assert.True(driver.HasReachedDestination);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+        Assert.InRange(entity.RootComponent!.Position.X, 0.95f, 1.05f);
+    }
+
+    [Fact]
+    public void WorldSystem_NavigationAgentFeedsDriverBeforeControllerRegardlessOfInsertionOrder()
+    {
+        var world = new World();
+        var entity = CreateEntityWithRoot();
+        entity.RootComponent!.Position = new Vector3(0.5f, 0f, 0.5f);
+        var navigationAgent = new NavigationAgentComponent
+        {
+            NavigationMap = CreateGroundGrid(3, 1),
+            Query = new NavigationQuery { LayerMask = NavigationLayerMask.Ground },
+            StoppingDistance = 0.05f,
+        };
+        var driver = new CharacterControllerNavigationDriverComponent();
+        var controller = CreateController();
+        entity.AddComponent(navigationAgent);
+        entity.AddComponent(driver);
+        entity.AddComponent(controller);
+        AddEntityToWorld(world, entity);
+
+        navigationAgent.MoveTo(new Vector3(2.5f, 0f, 0.5f));
+        AdvanceWorld(world, frameCount: 1);
+
+        Assert.True(navigationAgent.HasPath);
+        Assert.True(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.AI, controller.ControlMode);
+        Assert.Equal(new Vector2(1f, 0f), driver.LastMoveIntent);
+        Assert.True(entity.RootComponent.Position.X > 0.5f);
+    }
+
+    [Fact]
+    public void WorldSystem_SteeringBridgeReadsCurrentAgentCommandRegardlessOfInsertionOrder()
+    {
+        var world = new World();
+        var entity = CreateEntityWithRoot();
+        var bridge = new CharacterControllerSteeringBridgeComponent();
+        var agent = new SteeringAgentComponent();
+        agent.Settings.MaxForce = 10f;
+        agent.Settings.MaxSpeed = 10f;
+        agent.Settings.OutputMode = SteeringOutputMode.DesiredVelocity;
+        agent.RegisterBehavior(new ConstantSteeringBehavior(new Vector3(0.5f, 0.25f, 0f)));
+        var controller = CreateController();
+        entity.AddComponent(bridge);
+        entity.AddComponent(agent);
+        entity.AddComponent(controller);
+        AddEntityToWorld(world, entity);
+
+        AdvanceWorld(world, frameCount: 1);
+
+        Assert.Equal(CharacterControlMode.AI, controller.ControlMode);
+        Assert.Equal(new Vector2(0.5f, -0.25f), bridge.LastMoveIntent);
+        Assert.True(entity.RootComponent!.Position.X > 0f);
+    }
+
     private static Entity CreateControlledEntity(out CharacterControllerComponent controller)
     {
         var entity = CreateEntityWithRoot();
-        controller = new CharacterControllerComponent
+        controller = CreateController();
+        entity.AddComponent(controller);
+        return entity;
+    }
+
+    private static CharacterControllerComponent CreateController()
+    {
+        return new CharacterControllerComponent
         {
             Settings = new CharacterControllerSettings
             {
@@ -128,8 +210,6 @@ public sealed class CharacterControllerNavigationBridgeTests
                 Gravity = 0f,
             }
         };
-        entity.AddComponent(controller);
-        return entity;
     }
 
     private static Entity CreateControlledEntity(out CharacterControllerComponent controller, out CharacterControllerNavigationDriverComponent driver)
@@ -172,6 +252,20 @@ public sealed class CharacterControllerNavigationBridgeTests
             {
                 return;
             }
+        }
+    }
+
+    private static void AddEntityToWorld(World world, Entity entity)
+    {
+        world.AddEntity(entity);
+        world.Update(FrameTime.FromElapsedTime(0f));
+    }
+
+    private static void AdvanceWorld(World world, int frameCount)
+    {
+        for (int frameIndex = 1; frameIndex <= frameCount; frameIndex++)
+        {
+            world.Update(FrameTime.FromElapsedTime(0.1f, frameIndex));
         }
     }
 

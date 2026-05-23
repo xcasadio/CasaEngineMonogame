@@ -1,4 +1,5 @@
 using System.Collections;
+using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
@@ -30,15 +31,14 @@ internal static class CutsceneActionCoroutineFactory
                 break;
 
             case MoveToCutsceneActionData moveToAction:
-                CharacterControllerMoveToDriverComponent moveToDriver = ResolveMoveToDriver(moveToAction, world, owner);
-                moveToDriver.MoveTo(moveToAction.Destination, moveToAction.StoppingDistance, moveToAction.TimeoutSeconds);
+                ICharacterMotionHandle moveToHandle = StartMoveTo(moveToAction, world, owner);
 
-                while (moveToDriver.IsMoving)
+                while (moveToHandle.IsActive)
                 {
                     yield return null;
                 }
 
-                if (moveToDriver.HasTimedOut)
+                if (moveToHandle.HasTimedOut)
                 {
                     throw new TimeoutException($"MoveTo action timed out for entity '{moveToAction.EntityName}'.");
                 }
@@ -81,7 +81,7 @@ internal static class CutsceneActionCoroutineFactory
         }
     }
 
-    private static CharacterControllerMoveToDriverComponent ResolveMoveToDriver(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
+    private static ICharacterMotionHandle StartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
     {
         Entity entity = FindEntityByName(world, action.EntityName)
             ?? throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' was not found.");
@@ -91,17 +91,16 @@ internal static class CutsceneActionCoroutineFactory
             throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.");
         }
 
-        CharacterControllerMoveToDriverComponent driver = entity.GetComponent<CharacterControllerMoveToDriverComponent>();
-        if (driver != null)
-        {
-            owner.TrackMoveToDriver(driver);
-            return driver;
-        }
-
-        driver = new CharacterControllerMoveToDriverComponent();
-        entity.AddComponent(driver);
-        owner.TrackMoveToDriver(driver);
-        return driver;
+        return world.CharacterMotion.MoveTo(
+            entity,
+            action.Destination,
+            new CharacterMoveToOptions
+            {
+                StoppingDistance = action.StoppingDistance,
+                TimeoutSeconds = action.TimeoutSeconds,
+                ControlMode = CharacterControlMode.Cutscene,
+            },
+            owner);
     }
 
     private static Entity FindEntityByName(World world, string entityName)

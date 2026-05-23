@@ -60,7 +60,7 @@ public readonly struct SteeringNeighborSnapshot
     public float CollisionRadius { get; }
 }
 
-public sealed class SteeringAgentComponent : EntityComponent
+public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private readonly List<SteeringBehaviorRuntime> _behaviors = [];
     private readonly List<Entity> _neighborCache = [];

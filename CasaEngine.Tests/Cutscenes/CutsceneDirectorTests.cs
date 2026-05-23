@@ -1,3 +1,4 @@
+using CasaEngine.Core.Time;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -63,11 +64,11 @@ public sealed class CutsceneDirectorTests
     }
 
     [Fact]
-    public void Stop_RemovesTrackedMoveToDriverAndRestoresControlMode()
+    public void Stop_CancelsCharacterMotionMoveToAndRestoresControlMode()
     {
         var world = new World();
         Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
-        world.Entities.Add(entity);
+        AddEntityToWorld(world, entity);
         var asset = new CutsceneAsset
         {
             Name = "MoveHero",
@@ -80,17 +81,15 @@ public sealed class CutsceneDirectorTests
         };
 
         world.CutsceneDirector.Play(asset);
-        world.CoroutineManager.Update(Context(1));
+        AdvanceWorld(world, 1);
 
-        CharacterControllerMoveToDriverComponent driver = entity.GetRequiredComponent<CharacterControllerMoveToDriverComponent>();
-        Assert.True(driver.IsMoving);
+        Assert.Null(entity.GetComponent<CharacterControllerMoveToDriverComponent>());
         Assert.Equal(CharacterControlMode.Cutscene, controller.ControlMode);
 
         world.CutsceneDirector.Stop();
 
         Assert.Null(entity.GetComponent<CharacterControllerMoveToDriverComponent>());
         Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
-        Assert.False(driver.IsMoving);
         Assert.Equal(CutsceneRuntimeState.Stopped, world.CutsceneDirector.GetDebugSnapshot().State);
     }
 
@@ -117,7 +116,7 @@ public sealed class CutsceneDirectorTests
     {
         var world = new World();
         Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
-        world.Entities.Add(entity);
+        AddEntityToWorld(world, entity);
         var asset = new CutsceneAsset
         {
             Name = "MoveHero",
@@ -130,17 +129,14 @@ public sealed class CutsceneDirectorTests
         };
 
         world.CutsceneDirector.Play(asset);
-        world.CoroutineManager.Update(Context(1));
+        AdvanceWorld(world, 1);
 
-        CharacterControllerMoveToDriverComponent driver = entity.GetRequiredComponent<CharacterControllerMoveToDriverComponent>();
-        Assert.True(driver.IsMoving);
+        Assert.Null(entity.GetComponent<CharacterControllerMoveToDriverComponent>());
         Assert.Equal(CharacterControlMode.Cutscene, controller.ControlMode);
 
         for (int frameIndex = 2; frameIndex <= 10; frameIndex++)
         {
-            driver.Update(0.1f);
-            controller.Update(0.1f);
-            world.CoroutineManager.Update(Context(frameIndex));
+            AdvanceWorld(world, frameIndex);
 
             if (!world.CutsceneDirector.IsPlaying)
             {
@@ -150,7 +146,6 @@ public sealed class CutsceneDirectorTests
 
         Assert.False(world.CutsceneDirector.IsPlaying);
         Assert.Equal(CutsceneRuntimeState.Completed, world.CutsceneDirector.GetDebugSnapshot().State);
-        Assert.True(driver.HasReachedDestination);
         Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
     }
 
@@ -159,7 +154,7 @@ public sealed class CutsceneDirectorTests
     {
         var world = new World();
         Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
-        world.Entities.Add(entity);
+        AddEntityToWorld(world, entity);
         var asset = new CutsceneAsset
         {
             Name = "MoveHeroRuntimeOrder",
@@ -179,8 +174,7 @@ public sealed class CutsceneDirectorTests
 
         for (int frameIndex = 1; frameIndex <= 20; frameIndex++)
         {
-            world.CoroutineManager.Update(Context(frameIndex));
-            entity.Update(0.1f);
+            AdvanceWorld(world, frameIndex);
 
             if (frameIndex == 1)
             {
@@ -207,7 +201,7 @@ public sealed class CutsceneDirectorTests
     {
         var world = new World();
         Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
-        world.Entities.Add(entity);
+        AddEntityToWorld(world, entity);
         var asset = new CutsceneAsset
         {
             Name = "ReplayMoveHero",
@@ -239,7 +233,7 @@ public sealed class CutsceneDirectorTests
     {
         var world = new World();
         Entity entity = CreateControlledEntity(out CharacterControllerComponent controller);
-        world.Entities.Add(entity);
+        AddEntityToWorld(world, entity);
         var asset = new CutsceneAsset
         {
             Name = "RestartActiveMoveHero",
@@ -262,8 +256,7 @@ public sealed class CutsceneDirectorTests
 
         for (int frameIndex = 1; frameIndex <= 8; frameIndex++)
         {
-            world.CoroutineManager.Update(Context(frameIndex));
-            entity.Update(0.1f);
+            AdvanceWorld(world, frameIndex);
         }
 
         Assert.True(entity.RootComponent!.Position.X > 0.5f, $"Expected the first playthrough to be in motion before restart, but X was {entity.RootComponent.Position.X:F3}.");
@@ -277,8 +270,7 @@ public sealed class CutsceneDirectorTests
         float furthestReplayX = entity.RootComponent.Position.X;
         for (int frameIndex = 9; frameIndex <= 30; frameIndex++)
         {
-            world.CoroutineManager.Update(Context(frameIndex));
-            entity.Update(0.1f);
+            AdvanceWorld(world, frameIndex);
             furthestReplayX = Math.Max(furthestReplayX, entity.RootComponent.Position.X);
 
             if (!world.CutsceneDirector.IsPlaying)
@@ -328,14 +320,24 @@ public sealed class CutsceneDirectorTests
         return new CoroutineUpdateContext(0.1f, 0.1f, 1f, frameIndex);
     }
 
+    private static void AddEntityToWorld(World world, Entity entity)
+    {
+        world.AddEntity(entity);
+        world.Update(FrameTime.FromElapsedTime(0f));
+    }
+
+    private static void AdvanceWorld(World world, long frameIndex)
+    {
+        world.Update(FrameTime.FromElapsedTime(0.1f, frameIndex));
+    }
+
     private static void PlayUntilStopped(World world, Entity entity, CutsceneAsset asset, int maxFrameCount)
     {
         world.CutsceneDirector.Play(asset);
 
         for (int frameIndex = 1; frameIndex <= maxFrameCount; frameIndex++)
         {
-            world.CoroutineManager.Update(Context(frameIndex));
-            entity.Update(0.1f);
+            AdvanceWorld(world, frameIndex);
 
             if (!world.CutsceneDirector.IsPlaying)
             {

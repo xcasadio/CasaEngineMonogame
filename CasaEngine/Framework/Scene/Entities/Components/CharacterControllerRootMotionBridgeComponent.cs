@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Character controller root motion bridge")]
-public sealed class CharacterControllerRootMotionBridgeComponent : EntityComponent
+public sealed class CharacterControllerRootMotionBridgeComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private CharacterControllerComponent _controller;
     private IRootMotionDeltaSource _rootMotionSource;
@@ -22,8 +22,6 @@ public sealed class CharacterControllerRootMotionBridgeComponent : EntityCompone
     public RootMotionDelta LastConsumedRootMotionDelta { get; private set; } = RootMotionDelta.Identity;
 
     public Vector3 LastAppliedDisplacement { get; private set; }
-
-    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
 
     public override void Attach(Entity actor)
     {

@@ -1,10 +1,11 @@
 using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
-public sealed class CharacterControllerNavigationDriverComponent : EntityComponent
+public sealed class CharacterControllerNavigationDriverComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private const float CompletionEpsilon = 0.0001f;
     private readonly List<Vector3> _waypoints = [];
@@ -31,8 +32,6 @@ public sealed class CharacterControllerNavigationDriverComponent : EntityCompone
     public IReadOnlyList<Vector3> Waypoints => _waypoints;
 
     public Vector2 LastMoveIntent { get; private set; }
-
-    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
 
     public CharacterControllerComponent Controller => _controller;
 
@@ -93,39 +92,55 @@ public sealed class CharacterControllerNavigationDriverComponent : EntityCompone
     {
         base.Update(elapsedTime);
 
+        if (TryBuildMotionCommand(elapsedTime, out CharacterMotionCommand command))
+        {
+            command.Apply();
+        }
+    }
+
+    public bool TryBuildMotionCommand(float elapsedTime, out CharacterMotionCommand command)
+    {
+        command = default;
+
         if (!IsMoving)
         {
-            return;
+            return false;
         }
 
         ResolveController();
         if (_controller?.Owner?.RootComponent == null)
         {
             Complete(reachedDestination: false);
-            return;
+            return false;
         }
 
-        if (!TryGetCurrentTarget(out Vector3 targetPosition))
+        Vector2 intent;
+        while (true)
         {
-            Complete(reachedDestination: false);
-            return;
-        }
+            if (!TryGetCurrentTarget(out Vector3 targetPosition))
+            {
+                Complete(reachedDestination: false);
+                return false;
+            }
 
-        Vector3 position = _controller.Owner.RootComponent.Position;
-        Vector3 toTarget = targetPosition - position;
-        Vector2 intent = new(toTarget.X, -toTarget.Z);
-        float stoppingDistance = Math.Max(StoppingDistance, CompletionEpsilon);
+            Vector3 position = _controller.Owner.RootComponent.Position;
+            Vector3 toTarget = targetPosition - position;
+            intent = new Vector2(toTarget.X, -toTarget.Z);
+            float stoppingDistance = Math.Max(StoppingDistance, CompletionEpsilon);
 
-        if (intent.LengthSquared() <= stoppingDistance * stoppingDistance)
-        {
+            if (intent.LengthSquared() > stoppingDistance * stoppingDistance)
+            {
+                break;
+            }
+
             if (!_hasTargetEntity && CurrentWaypointIndex < _waypoints.Count - 1)
             {
                 CurrentWaypointIndex++;
-                return;
+                continue;
             }
 
             Complete(reachedDestination: true);
-            return;
+            return false;
         }
 
         if (intent.LengthSquared() > 1f)
@@ -134,7 +149,13 @@ public sealed class CharacterControllerNavigationDriverComponent : EntityCompone
         }
 
         LastMoveIntent = intent;
-        _controller.SetMoveIntent(intent);
+        command = new CharacterMotionCommand(
+            _controller,
+            intent,
+            ControlMode,
+            CharacterMotionAuthority.Navigation,
+            AutoSetControlMode);
+        return true;
     }
 
     public override EntityComponent Clone()

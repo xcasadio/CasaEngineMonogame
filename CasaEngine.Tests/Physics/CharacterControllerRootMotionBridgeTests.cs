@@ -1,6 +1,8 @@
+using CasaEngine.Core.Time;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -37,6 +39,36 @@ public sealed class CharacterControllerRootMotionBridgeTests
         Assert.Equal(rotation.Y, entity.RootComponent.Orientation.Y, precision: 5);
         Assert.Equal(rotation.Z, entity.RootComponent.Orientation.Z, precision: 5);
         Assert.Equal(rotation.W, entity.RootComponent.Orientation.W, precision: 5);
+    }
+
+    [Fact]
+    public void WorldSystem_ConsumesRootMotionRegardlessOfComponentInsertionOrder()
+    {
+        var world = new World();
+        var entity = new Entity
+        {
+            RootComponent = new TestSceneComponent(),
+        };
+        var bridge = new CharacterControllerRootMotionBridgeComponent();
+        var source = new FakeRootMotionSourceComponent();
+        var controller = new CharacterControllerComponent
+        {
+            Settings = new CharacterControllerSettings
+            {
+                Gravity = 0f,
+            }
+        };
+        entity.AddComponent(bridge);
+        entity.AddComponent(source);
+        entity.AddComponent(controller);
+        AddEntityToWorld(world, entity);
+        source.NextDelta = new RootMotionDelta(new Vector3(1.5f, 0f, 0f), Quaternion.Identity);
+
+        world.Update(FrameTime.FromElapsedTime(0.1f, 1));
+
+        Assert.Equal(1, source.ConsumeCount);
+        Assert.Equal(new Vector3(1.5f, 0f, 0f), bridge.LastAppliedDisplacement);
+        Assert.Equal(1.5f, entity.RootComponent!.Position.X, precision: 5);
     }
 
     private static Entity CreateEntity(
@@ -96,5 +128,11 @@ public sealed class CharacterControllerRootMotionBridgeTests
         {
             return new TestSceneComponent();
         }
+    }
+
+    private static void AddEntityToWorld(World world, Entity entity)
+    {
+        world.AddEntity(entity);
+        world.Update(FrameTime.FromElapsedTime(0f));
     }
 }

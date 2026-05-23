@@ -260,7 +260,7 @@ public class Entity : ObjectBase
         ArgumentNullException.ThrowIfNull(component);
 
         _components.Add(component);
-        InsertComponentForUpdate(component);
+        _componentsForUpdate.Add(component);
         component.Attach(this);
 
         if (IsInitialized)
@@ -448,7 +448,13 @@ public class Entity : ObjectBase
 
         for (int i = 0; i < _componentsForUpdate.Count; i++)
         {
-            _componentsForUpdate[i].Update(elapsedTime);
+            EntityComponent component = _componentsForUpdate[i];
+            if (World != null && component is IWorldSystemDrivenComponent)
+            {
+                continue;
+            }
+
+            component.Update(elapsedTime);
         }
 
         for (int i = 0; i < _children.Count; i++)
@@ -467,19 +473,6 @@ public class Entity : ObjectBase
         {
             GameplayProxy?.Update(elapsedTime);
         }
-    }
-
-    private void InsertComponentForUpdate(EntityComponent component)
-    {
-        int componentOrder = component.UpdateOrder;
-        int insertIndex = _componentsForUpdate.Count;
-
-        while (insertIndex > 0 && _componentsForUpdate[insertIndex - 1].UpdateOrder > componentOrder)
-        {
-            insertIndex--;
-        }
-
-        _componentsForUpdate.Insert(insertIndex, component);
     }
 
     public void Draw(float elapsedTime)

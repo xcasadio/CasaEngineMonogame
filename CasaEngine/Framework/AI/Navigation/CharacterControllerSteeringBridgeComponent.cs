@@ -1,10 +1,11 @@
 using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
-public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
+public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private SteeringAgentComponent _agentComponent;
     private CharacterControllerComponent _controller;
@@ -20,8 +21,6 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
     public float MinimumCommandSpeed { get; set; } = 0.001f;
 
     public Vector2 LastMoveIntent { get; private set; }
-
-    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
 
     public override void Attach(Entity actor)
     {
@@ -39,23 +38,38 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
     {
         base.Update(elapsedTime);
 
+        if (TryBuildMotionCommand(elapsedTime, out CharacterMotionCommand command))
+        {
+            command.Apply();
+        }
+    }
+
+    public bool TryBuildMotionCommand(float elapsedTime, out CharacterMotionCommand command)
+    {
+        command = default;
+
         ResolveDependencies();
         if (_agentComponent == null || _controller == null)
         {
             LastMoveIntent = Vector2.Zero;
-            return;
+            return false;
         }
 
-        if (AutoSetControlMode && _controller.ControlMode != ControlMode)
-        {
-            _controller.SetControlMode(ControlMode);
-        }
-
-        ApplyCommand(_agentComponent.CurrentCommand);
+        return TryBuildCommand(_agentComponent.CurrentCommand, out command);
     }
 
     public void ApplyCommand(SteeringCommand command)
     {
+        if (TryBuildCommand(command, out CharacterMotionCommand motionCommand))
+        {
+            motionCommand.Apply();
+        }
+    }
+
+    public bool TryBuildCommand(SteeringCommand command, out CharacterMotionCommand motionCommand)
+    {
+        motionCommand = default;
+
         if (_controller == null)
         {
             ResolveDependencies();
@@ -64,7 +78,7 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
         if (_controller == null)
         {
             LastMoveIntent = Vector2.Zero;
-            return;
+            return false;
         }
 
         Vector3 desiredVelocity = command.DesiredVelocity;
@@ -77,10 +91,16 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
             LastMoveIntent = Vector2.Zero;
             if (StopWhenIdle)
             {
-                _controller.SetMoveIntent(Vector2.Zero);
+                motionCommand = new CharacterMotionCommand(
+                    _controller,
+                    Vector2.Zero,
+                    ControlMode,
+                    CharacterMotionAuthority.Steering,
+                    AutoSetControlMode);
+                return true;
             }
 
-            return;
+            return false;
         }
 
         if (intent.LengthSquared() > 1f)
@@ -89,7 +109,13 @@ public sealed class CharacterControllerSteeringBridgeComponent : EntityComponent
         }
 
         LastMoveIntent = intent;
-        _controller.SetMoveIntent(intent);
+        motionCommand = new CharacterMotionCommand(
+            _controller,
+            intent,
+            ControlMode,
+            CharacterMotionAuthority.Steering,
+            AutoSetControlMode);
+        return true;
     }
 
     public override EntityComponent Clone()

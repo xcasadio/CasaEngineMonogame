@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
-public sealed class NavigationAgentComponent : EntityComponent
+public sealed class NavigationAgentComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private CharacterControllerNavigationDriverComponent? _driver;
     private bool _needsPath;

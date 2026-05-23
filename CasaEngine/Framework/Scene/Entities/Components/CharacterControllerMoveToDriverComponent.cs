@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities;
 using Microsoft.Xna.Framework;
 
@@ -6,13 +7,14 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [Browsable(false)]
 [DisplayName("Character controller move-to driver")]
-public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
+public sealed class CharacterControllerMoveToDriverComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private const float CompletionEpsilon = 0.0001f;
     private CharacterControllerComponent _controller;
     private CharacterControlMode _previousControlMode;
     private bool _hasPreviousControlMode;
     private float _elapsedSeconds;
+    private CharacterControlMode _controlMode = CharacterControlMode.Cutscene;
 
     public Vector3 Destination { get; private set; }
 
@@ -27,8 +29,6 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
     public bool HasTimedOut { get; private set; }
 
     public CharacterControllerComponent Controller => _controller;
-
-    public override int UpdateOrder => (int)EntityComponentUpdateOrder.BeforeDefault;
 
     public override void Attach(Entity actor)
     {
@@ -78,6 +78,7 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
         IsMoving = true;
         _previousControlMode = _controller.ControlMode;
         _hasPreviousControlMode = true;
+        _controlMode = controlMode;
         _controller.SetControlMode(controlMode);
     }
 
@@ -90,16 +91,26 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
     {
         base.Update(elapsedTime);
 
+        if (TryBuildMotionCommand(elapsedTime, out CharacterMotionCommand command))
+        {
+            command.Apply();
+        }
+    }
+
+    public bool TryBuildMotionCommand(float elapsedTime, out CharacterMotionCommand command)
+    {
+        command = default;
+
         if (!IsMoving)
         {
-            return;
+            return false;
         }
 
         ResolveController();
         if (_controller?.Owner?.RootComponent == null)
         {
             Complete(reachedDestination: false, timedOut: false);
-            return;
+            return false;
         }
 
         if (TimeoutSeconds > 0f)
@@ -108,7 +119,7 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
             if (_elapsedSeconds >= TimeoutSeconds)
             {
                 Complete(reachedDestination: false, timedOut: true);
-                return;
+                return false;
             }
         }
 
@@ -120,7 +131,7 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
         if (planarDelta.LengthSquared() <= stoppingDistance * stoppingDistance)
         {
             Complete(reachedDestination: true, timedOut: false);
-            return;
+            return false;
         }
 
         if (planarDelta.LengthSquared() > 1f)
@@ -128,7 +139,12 @@ public sealed class CharacterControllerMoveToDriverComponent : EntityComponent
             planarDelta.Normalize();
         }
 
-        _controller.SetMoveIntent(planarDelta);
+        command = new CharacterMotionCommand(
+            _controller,
+            planarDelta,
+            _controlMode,
+            CharacterMotionAuthority.Cutscene);
+        return true;
     }
 
     public override CharacterControllerMoveToDriverComponent Clone()

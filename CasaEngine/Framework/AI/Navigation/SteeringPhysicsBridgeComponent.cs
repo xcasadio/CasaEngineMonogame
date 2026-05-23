@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation;
 
-public sealed class SteeringPhysicsBridgeComponent : EntityComponent
+public sealed class SteeringPhysicsBridgeComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private const float ForceEpsilon = 0.0001f;
     private SteeringAgentComponent? _agentComponent;

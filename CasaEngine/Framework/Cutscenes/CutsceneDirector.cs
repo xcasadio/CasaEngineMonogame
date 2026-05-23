@@ -1,6 +1,4 @@
 using System.Collections;
-using CasaEngine.Framework.Scene.Entities;
-using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scripting.Coroutines;
 
@@ -9,7 +7,6 @@ namespace CasaEngine.Framework.Cutscenes;
 public sealed class CutsceneDirector
 {
     private readonly World _world;
-    private readonly List<CharacterControllerMoveToDriverComponent> _activeMoveToDrivers = new();
     private CutsceneAsset? _currentAsset;
     private CutsceneValidationResult _lastValidation = new();
     private CoroutineHandle _activeHandle = CoroutineHandle.Invalid;
@@ -46,30 +43,15 @@ public sealed class CutsceneDirector
 
     public void Stop()
     {
-        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && _activeMoveToDrivers.Count == 0)
+        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && !_world.CharacterMotion.HasRequestsFor(this))
         {
             return;
         }
 
         _world.CoroutineManager.StopAllCoroutines(this);
-        CleanupRuntimeDrivers();
+        _world.CharacterMotion.CancelOwner(this);
         _activeHandle = CoroutineHandle.Invalid;
         _state = CutsceneRuntimeState.Stopped;
-    }
-
-    internal void TrackMoveToDriver(CharacterControllerMoveToDriverComponent driver)
-    {
-        ArgumentNullException.ThrowIfNull(driver);
-
-        for (int index = 0; index < _activeMoveToDrivers.Count; index++)
-        {
-            if (ReferenceEquals(_activeMoveToDrivers[index], driver))
-            {
-                return;
-            }
-        }
-
-        _activeMoveToDrivers.Add(driver);
     }
 
     public CutsceneDebugSnapshot GetDebugSnapshot()
@@ -93,31 +75,8 @@ public sealed class CutsceneDirector
     {
         yield return CutsceneActionCoroutineFactory.Create(asset.RootAction!, _world, this);
 
-        _activeMoveToDrivers.Clear();
         _activeHandle = CoroutineHandle.Invalid;
         _state = CutsceneRuntimeState.Completed;
-    }
-
-    private void CleanupRuntimeDrivers()
-    {
-        for (int index = _activeMoveToDrivers.Count - 1; index >= 0; index--)
-        {
-            CharacterControllerMoveToDriverComponent driver = _activeMoveToDrivers[index];
-            Entity? owner = driver.Owner;
-            if (owner == null)
-            {
-                continue;
-            }
-
-            if (driver.IsMoving)
-            {
-                driver.Cancel();
-            }
-
-            owner.RemoveComponent(driver);
-        }
-
-        _activeMoveToDrivers.Clear();
     }
 
     private IReadOnlyList<CutsceneValidationMessage> CopyValidationMessages()

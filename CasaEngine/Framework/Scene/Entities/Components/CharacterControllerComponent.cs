@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 [DisplayName("Character controller")]
-public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaultsProvider
+public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaultsProvider, IWorldSystemDrivenComponent
 {
     private const int MaxSweepIterations = 3;
     private const float MinMoveDistanceSquared = 0.000001f;

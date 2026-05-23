@@ -1,6 +1,8 @@
+using CasaEngine.Core.Time;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -80,6 +82,37 @@ public class CharacterControllerAnimationBridgeTests
         Assert.Equal(Vector3.Right, bridge.LocomotionData.MoveDirection);
     }
 
+    [Fact]
+    public void WorldSystem_PublishesAnimationDataAfterControllerRegardlessOfComponentInsertionOrder()
+    {
+        var world = new World();
+        var entity = new Entity
+        {
+            RootComponent = new TestSceneComponent(),
+        };
+        var bridge = new CharacterControllerAnimationBridgeComponent();
+        var controller = new CharacterControllerComponent
+        {
+            Settings = new CharacterControllerSettings
+            {
+                MaxHorizontalSpeed = 10f,
+                Acceleration = 100f,
+                Deceleration = 100f,
+                Gravity = 0f,
+            }
+        };
+        entity.AddComponent(bridge);
+        entity.AddComponent(controller);
+        controller.SetMoveIntent(new Vector2(1f, 0f));
+        AddEntityToWorld(world, entity);
+
+        world.Update(FrameTime.FromElapsedTime(0.1f, 1));
+
+        Assert.Same(controller, bridge.Controller);
+        Assert.True(bridge.LocomotionData.IsMoving);
+        Assert.Equal(Vector3.Right, bridge.LocomotionData.MoveDirection);
+    }
+
     private static CharacterControllerDebugSnapshot CreateSnapshot(
         CharacterMovementState movementState,
         Vector3 velocity,
@@ -100,5 +133,19 @@ public class CharacterControllerAnimationBridgeTests
             default(HitResult),
             Vector3.Zero,
             Vector3.Zero);
+    }
+
+    private static void AddEntityToWorld(World world, Entity entity)
+    {
+        world.AddEntity(entity);
+        world.Update(FrameTime.FromElapsedTime(0f));
+    }
+
+    private sealed class TestSceneComponent : SceneComponent
+    {
+        public override EntityComponent Clone()
+        {
+            return new TestSceneComponent();
+        }
     }
 }
