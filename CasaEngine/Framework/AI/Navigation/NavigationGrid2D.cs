@@ -148,6 +148,11 @@ public sealed class NavigationGrid2D
         return GetWorldPosition(x, y);
     }
 
+    public bool TryFindPath(Vector3 start, Vector3 end, NavigationQuery query, out NavigationPath? path)
+    {
+        return GridPathfinder2D.Shared.TryFindPath(this, start, end, query, out path);
+    }
+
     private static int FindNavigationLayerIndex(TileMapData tileMapData)
     {
         for (int layerIndex = 0; layerIndex < tileMapData.Layers.Count; layerIndex++)

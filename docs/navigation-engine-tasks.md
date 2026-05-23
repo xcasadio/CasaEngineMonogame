@@ -64,7 +64,7 @@ Validation :
 - `NavigationGrid2D_UsesTileNavigationPropertiesBeforeCollisionFallback`
 - Commit : `Build navigation grid from tile maps`
 
-### 🚧 T3 - Implémenter `GridPathfinder2D`
+### ✅ T3 - Implémenter `GridPathfinder2D`
 
 Objectif : ajouter un pathfinder A* dédié grille, sans utiliser `PathPlanner<T>`.
 
@@ -82,7 +82,7 @@ Validation :
 - `GridPathfinder2D_ReturnsFalseWhenGoalIsUnreachable`
 - Commit : `Add grid pathfinder for navigation V1`
 
-### ⏳ T4 - Intégrer la grille avec le driver CharacterController
+### 🚧 T4 - Intégrer la grille avec le driver CharacterController
 
 Objectif : fournir un composant/système V1 qui calcule un chemin et l'envoie à `CharacterControllerNavigationDriverComponent.SetPath(...)`.
 
