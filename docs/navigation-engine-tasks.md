@@ -99,7 +99,7 @@ Validation :
 - tests `CharacterController|Navigation`
 - Commit : `Integrate navigation paths with character controller driver`
 
-### 🚧 T5 - Ajouter le debug draw Navigation V1
+### ✅ T5 - Ajouter le debug draw Navigation V1
 
 Objectif : ajouter un adaptateur debug navigation léger basé sur les renderers existants.
 
@@ -116,7 +116,7 @@ Validation :
 - build ciblé si tests graphiques non automatisables ;
 - Commit : `Add navigation debug draw helpers`
 
-### ⏳ T6 - Validation finale Navigation V1
+### 🚧 T6 - Validation finale Navigation V1
 
 Objectif : valider l'ensemble des tâches Navigation V1 et laisser le dépôt dans un état buildable.
 

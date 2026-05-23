@@ -80,7 +80,8 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     /// <inheritdoc/>
     public void Flush(in RenderFrame frame, RenderStats? stats = null)
     {
-        int lineCount = _lines.Count;
+        int pendingLineCount = _lines.Count;
+        int lineCount = Math.Min(pendingLineCount, NbLines);
         if (lineCount == 0)
         {
             return;
@@ -88,7 +89,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         long startTimestamp = Stopwatch.GetTimestamp();
 
-        for (var index = 0; index < lineCount && index < NbLines; index++)
+        for (var index = 0; index < lineCount; index++)
         {
             var line = _lines[index];
             _vertices[index * 2 + 0].Position = line.Start;
@@ -97,7 +98,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
             _vertices[index * 2 + 1].Color = line.Color;
         }
 
-        _vertexBuffer.SetData(_vertices, 0, Math.Min(lineCount * 2, NbLines * 2));
+        _vertexBuffer.SetData(_vertices, 0, lineCount * 2);
         Draw(Matrix.Identity, frame.View, frame.Projection, stats, lineCount);
 
         FrameFlushedLineCount += lineCount;
@@ -122,27 +123,40 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     private void Draw(Effect effect, RenderStats? stats, int lineCount)
     {
         var graphicsDevice = effect.GraphicsDevice;
+        DepthStencilState previousDepthStencilState = graphicsDevice.DepthStencilState;
+        RasterizerState previousRasterizerState = graphicsDevice.RasterizerState;
+        BlendState previousBlendState = graphicsDevice.BlendState;
+        IndexBuffer? previousIndexBuffer = graphicsDevice.Indices;
 
-        //graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.DepthStencilState = DepthStencilState.Default;
-        graphicsDevice.RasterizerState = RasterizerState.CullNone;
-        graphicsDevice.BlendState = BlendState.Opaque;
-        graphicsDevice.SetVertexBuffer(_vertexBuffer);
-        GraphicsDevice.Indices = null;
-
-        int passCount = effect.CurrentTechnique.Passes.Count;
-        foreach (var effectPass in effect.CurrentTechnique.Passes)
+        try
         {
-            effectPass.Apply();
-            graphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, _lines.Count);
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            graphicsDevice.RasterizerState = RasterizerState.CullNone;
+            graphicsDevice.BlendState = BlendState.Opaque;
+            graphicsDevice.SetVertexBuffer(_vertexBuffer);
+            graphicsDevice.Indices = null;
+
+            foreach (var effectPass in effect.CurrentTechnique.Passes)
+            {
+                effectPass.Apply();
+                graphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, lineCount);
+            }
+        }
+        finally
+        {
+            graphicsDevice.Indices = previousIndexBuffer;
+            graphicsDevice.BlendState = previousBlendState;
+            graphicsDevice.RasterizerState = previousRasterizerState;
+            graphicsDevice.DepthStencilState = previousDepthStencilState;
         }
 
         if (stats != null)
         {
+            int passCount = effect.CurrentTechnique.Passes.Count;
             stats.LineCount += lineCount;
             stats.DrawCalls += passCount;
             stats.EffectBinds += passCount;
-            stats.StateChanges += 4;
+            stats.StateChanges += 8;
         }
     }
 
