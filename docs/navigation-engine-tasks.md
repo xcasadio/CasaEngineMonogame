@@ -116,7 +116,7 @@ Validation :
 - build ciblé si tests graphiques non automatisables ;
 - Commit : `Add navigation debug draw helpers`
 
-### 🚧 T6 - Validation finale Navigation V1
+### ✅ T6 - Validation finale Navigation V1
 
 Objectif : valider l'ensemble des tâches Navigation V1 et laisser le dépôt dans un état buildable.
 
@@ -126,3 +126,8 @@ Validation :
 - `dotnet build .\CasaEngine.MonoGame.sln`
 - mettre tous les statuts restants à jour
 - Commit : `Finalize navigation engine V1 tasks`
+
+Résultat :
+
+- ✅ Tests ciblés : 95 tests, 0 échec.
+- ✅ Build solution : succès, avec warnings existants hors Navigation V1.
