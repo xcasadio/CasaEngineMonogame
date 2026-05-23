@@ -1131,6 +1131,10 @@
     {
       "id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b",
       "file_name": "SkinnedMesh\\kid_idle.model"
+    },
+    {
+      "id": "7093fe82-182d-4e9a-b725-e54508ca1bb8",
+      "file_name": "Content\\Cutscenes\\move_to_direct.cutscene"
     }
   ]
 }

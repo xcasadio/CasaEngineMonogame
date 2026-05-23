@@ -287,22 +287,23 @@ Validation :
 - build solution éditeur vert ;
 - aucune exposition authoring résiduelle du driver runtime.
 
-### ⏳ Tâche 11 — CutsceneDemo minimal `MoveTo` direct
+### 🧪 Tâche 11 — CutsceneDemo minimal `MoveTo` direct
 
 Objectif : ajouter une première démo visible permettant de valider tout le flux `asset -> world -> controller -> stop` avant d'ouvrir la tranche navigation.
 
 Actions :
 
-- créer un `CutsceneDemo` minimal centré sur une entité nommée de façon stable et dotée d'un `CharacterControllerComponent` ;
-- brancher un asset `.cutscene` simple avec une action `MoveTo` directe ;
-- prévoir une commande simple pour lancer la cutscene, l'arrêter et la relancer ;
-- afficher un minimum d'état utile à l'écran ou dans un log lisible pour faciliter la vérification ;
-- documenter le protocole de validation visuelle attendu.
+- ✅ créer un `CutsceneMoveToDemo` minimal centré sur une entité `CutsceneHero` dotée d'un `CharacterControllerComponent` ;
+- ✅ brancher l'asset `Content/Cutscenes/move_to_direct.cutscene` avec une action `MoveTo` directe ;
+- ✅ prévoir les commandes `Space` pour relancer, `S` pour stopper, `R` pour reset ;
+- ✅ ajouter des marqueurs visuels depart/destination et une capture smoke automation ;
+- ✅ documenter le protocole de validation visuelle attendu dans `CasaEngine.Demos/Demos/CutsceneMoveToDemo.md`.
 
 Validation :
 
-- test ou build ciblé du projet de démo ;
-- vérification locale que la démo démarre ;
+- ✅ `jq empty .\CasaEngine.Demos\Content\AssetInfos.json` et `jq empty .\CasaEngine.Demos\Content\Cutscenes\move_to_direct.cutscene` ;
+- ✅ `dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj -c Debug --no-restore -v:minimal` ;
+- ✅ smoke automatisé avec `CASAENGINE_START_DEMO="Cutscene MoveTo demo"` et capture `artifacts/cutscene-moveto-demo-smoke.png` ;
 - 🧪 validation visuelle utilisateur obligatoire : lancement, déplacement visible, arrêt manuel, restauration du contrôle, relance sans état sale.
 
 ### ⏳ Tâche 12 — Contrat d'action V2 navigation

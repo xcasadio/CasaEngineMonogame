@@ -1,0 +1,27 @@
+{
+  "id": "7093fe82-182d-4e9a-b725-e54508ca1bb8",
+  "name": "Cutscene MoveTo Direct Demo",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 0.15
+      },
+      {
+        "type": "MoveTo",
+        "entity": "CutsceneHero",
+        "destination": {
+          "x": 5.0,
+          "y": 0.5,
+          "z": 0.0
+        },
+        "stopping_distance": 0.12,
+        "timeout_seconds": 6.0
+      }
+    ]
+  }
+}
