@@ -96,7 +96,7 @@ Notes:
 
 ### T06 - Documentation and final validation
 
-Status: Todo
+Status: Done
 
 - Update this task file statuses.
 - Record final architecture notes if any compatibility compromises remain.
@@ -105,6 +105,11 @@ Status: Todo
 Validation:
 
 - `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
+
+Notes:
+
+- `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore` succeeds.
+- Full solution build currently fails outside this refactor in `SandBoxGame` and `CasaEngine.Demos` because `CasaEngine.Framework.Application.Components.DebugTools` is missing.
 
 ## Notes for follow-up agents
 
