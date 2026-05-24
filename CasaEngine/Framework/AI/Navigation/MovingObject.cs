@@ -17,7 +17,7 @@ public abstract class MovingObject : EntityComponent
     protected internal float maxForce;
     protected internal float maxTurnRate;
     protected internal object meshObject;
-    private IPhysicsWorldContext _physicsWorldContext;
+    private IPhysicsWorld _physicsWorldContext;
 
     public Vector3 Position
     {
@@ -89,7 +89,7 @@ public abstract class MovingObject : EntityComponent
     public override void InitializeWithWorld(Scene.World.World world)
     {
         base.InitializeWithWorld(world);
-        _physicsWorldContext = world.PhysicsWorldContext;
+        _physicsWorldContext = world.PhysicsWorld;
     }
 
     public virtual bool CanMoveBetween(Vector3 start, Vector3 end)

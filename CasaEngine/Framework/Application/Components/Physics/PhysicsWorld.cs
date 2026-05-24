@@ -7,29 +7,29 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
 
-public sealed class PhysicsWorldContext : IPhysicsWorldContext, IDisposable
+public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
 {
     private readonly bool _useExternalViewManagement;
 
-    public PhysicsEngine PhysicsEngine { get; }
+    public BulletPhysicsEngine BulletPhysicsEngine { get; }
 
-    public PhysicsWorldContext(bool useExternalViewManagement)
+    public PhysicsWorld(bool useExternalViewManagement)
     {
         _useExternalViewManagement = useExternalViewManagement;
-        PhysicsEngine = new PhysicsEngine(GameSettings.PhysicsEngineSettings);
+        BulletPhysicsEngine = new BulletPhysicsEngine(GameSettings.PhysicsEngineSettings);
     }
 
     public void Update(float elapsedTime)
     {
-        PhysicsEngine.Update(elapsedTime);
-        PhysicsEngine.UpdateContacts();
-        PhysicsEngine.SendEvents();
+        BulletPhysicsEngine.Update(elapsedTime);
+        BulletPhysicsEngine.UpdateContacts();
+        BulletPhysicsEngine.SendEvents();
     }
 
     public CollisionObject AddGhostObject(CollisionShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
     {
         var collisionObject = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
-        PhysicsEngine.World.AddCollisionObject(collisionObject);
+        BulletPhysicsEngine.World.AddCollisionObject(collisionObject);
         return collisionObject;
     }
 
@@ -104,7 +104,7 @@ public sealed class PhysicsWorldContext : IPhysicsWorldContext, IDisposable
             body.SetCustomDebugColor(physicsDefinition.DebugColor.Value.ToVector3());
         }
 
-        PhysicsEngine.World.AddRigidBody(body);
+        BulletPhysicsEngine.World.AddRigidBody(body);
 
         if (physicsDefinition.ApplyGravity is false)
         {
@@ -116,62 +116,62 @@ public sealed class PhysicsWorldContext : IPhysicsWorldContext, IDisposable
 
     public void AddCollisionObject(CollisionObject collisionObject)
     {
-        if (!PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
+        if (!BulletPhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
         {
-            PhysicsEngine.World.AddCollisionObject(collisionObject);
+            BulletPhysicsEngine.World.AddCollisionObject(collisionObject);
         }
     }
 
     public void RemoveCollisionObject(CollisionObject collisionObject)
     {
-        if (PhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
+        if (BulletPhysicsEngine.World.CollisionObjectArray.Contains(collisionObject))
         {
-            PhysicsEngine.World.RemoveCollisionObject(collisionObject);
+            BulletPhysicsEngine.World.RemoveCollisionObject(collisionObject);
         }
     }
 
     public void AddRigidBody(RigidBody rigidBody)
     {
-        PhysicsEngine.World.AddRigidBody(rigidBody);
+        BulletPhysicsEngine.World.AddRigidBody(rigidBody);
     }
 
     public void RemoveRigidBody(RigidBody rigidBody)
     {
-        PhysicsEngine.World.RemoveRigidBody(rigidBody);
+        BulletPhysicsEngine.World.RemoveRigidBody(rigidBody);
     }
 
     public void ClearCollisionDataFrom(ICollideableComponent component)
     {
-        PhysicsEngine.ClearCollisionDataOf(component);
+        BulletPhysicsEngine.ClearCollisionDataOf(component);
     }
 
     public HitResult ShapeSweep(ConvexShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
-        return PhysicsEngine.ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        return BulletPhysicsEngine.ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
     }
 
     public bool ShapeSweep(ConvexShape shape, Matrix from, Matrix to, out HitResult result, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
-        return PhysicsEngine.ShapeSweep(shape, from, to, out result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        return BulletPhysicsEngine.ShapeSweep(shape, from, to, out result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
     }
 
     public void ShapeSweepPenetrating(ConvexShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
-        PhysicsEngine.ShapeSweepPenetrating(shape, from, to, resultsOutput, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        BulletPhysicsEngine.ShapeSweepPenetrating(shape, from, to, resultsOutput, filterGroup, filterFlags, hitTriggers, ignoredComponent);
     }
 
     public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)
     {
-        return PhysicsEngine.WorldRayCast(ref start, ref end, dir);
+        return BulletPhysicsEngine.WorldRayCast(ref start, ref end, dir);
     }
 
     public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal)
     {
-        return PhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers, out contactPoint, out contactNormal);
+        return BulletPhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers, out contactPoint, out contactNormal);
     }
 
     public void Dispose()
     {
-        PhysicsEngine.Dispose();
+        BulletPhysicsEngine.Dispose();
     }
 }

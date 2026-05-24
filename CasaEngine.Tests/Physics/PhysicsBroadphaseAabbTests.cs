@@ -11,7 +11,7 @@ public class PhysicsBroadphaseAabbTests
     [Fact]
     public void UpdateSingleAabb_RefreshesMovedRigidBodyBroadphaseBounds()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: true);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
         using var collisionShape = new BoxShape(0.5f, 0.5f, 0.5f);
 
         Matrix worldMatrix = Matrix.Identity;
@@ -36,7 +36,7 @@ public class PhysicsBroadphaseAabbTests
         Assert.InRange(rigidBody.BroadphaseHandle.AabbMin.X, -0.6f, -0.4f);
         Assert.InRange(rigidBody.BroadphaseHandle.AabbMax.X, 0.4f, 0.6f);
 
-        physicsWorldContext.PhysicsEngine.World.UpdateSingleAabb(rigidBody);
+        physicsWorldContext.BulletPhysicsEngine.World.UpdateSingleAabb(rigidBody);
 
         Assert.InRange(rigidBody.BroadphaseHandle.AabbMin.X, 9.4f, 9.6f);
         Assert.InRange(rigidBody.BroadphaseHandle.AabbMax.X, 10.4f, 10.6f);

@@ -27,7 +27,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private readonly List<Guid> _animationAssetIds = new();
 
     private AssetContentManager _assetContentManager;
-    private IPhysicsWorldContext? _physicsWorldContext;
+    private IPhysicsWorld? _physicsWorldContext;
     private SpriteRendererComponent _spriteRenderer;
     private DepthSortable2DComponent? _depthSortable2DComponent;
 
@@ -149,7 +149,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
     _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _assetContentManager = Owner.World.Game.AssetContentManager;
-        _physicsWorldContext = Owner.World.PhysicsWorldContext;
+        _physicsWorldContext = Owner.World.PhysicsWorld;
 
         Animations.Clear();
 

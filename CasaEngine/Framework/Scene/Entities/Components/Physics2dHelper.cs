@@ -1,4 +1,4 @@
-﻿using BulletSharp;
+using BulletSharp;
 
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public static class Physics2dHelper
 {
     public static CollisionObject? CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
-        IPhysicsWorldContext physicsWorldContext, ICollideableComponent collideableComponent, Color color)
+        IPhysicsWorld physicsWorldContext, ICollideableComponent collideableComponent, Color color)
     {
         switch (collisionShape.Shape.Type)
         {

@@ -46,7 +46,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public Line3dRendererComponent Line3dRendererComponent { get; private set; }
     public StaticMeshRendererComponent MeshRendererComponent { get; private set; }
     public SkinnedMeshRendererComponent SkinnedMeshRendererComponent { get; private set; }
-    public PhysicsEngineComponent PhysicsEngineComponent { get; private set; }
+    public PhysicsSystemComponent PhysicsSystemComponent { get; private set; }
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
@@ -345,7 +345,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         InputComponent = new InputComponent(this);
         MeshRendererComponent = new StaticMeshRendererComponent(this);
         SkinnedMeshRendererComponent = new SkinnedMeshRendererComponent(this);
-        PhysicsEngineComponent = new PhysicsEngineComponent(this);
+        PhysicsSystemComponent = new PhysicsSystemComponent(this);
         PhysicsDebugViewRendererComponent = new PhysicsDebugViewRendererComponent(this);
         FontSystem = new FontSystem();
 

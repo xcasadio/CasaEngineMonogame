@@ -1,4 +1,4 @@
-﻿using BulletSharp;
+using BulletSharp;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 
@@ -33,7 +33,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
             return;
         }
 
-        var dynamicsWorld = view.World.PhysicsWorldContext.PhysicsEngine.World;
+        var dynamicsWorld = view.World.PhysicsWorld.BulletPhysicsEngine.World;
         if (dynamicsWorld == null)
         {
             return;

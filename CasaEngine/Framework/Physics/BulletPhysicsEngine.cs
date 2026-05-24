@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Physics;
 
-public class PhysicsEngine
+public class BulletPhysicsEngine
 {
     const CollisionFilterGroups DefaultGroup = CollisionFilterGroups.DefaultFilter;
 
@@ -118,7 +118,7 @@ public class PhysicsEngine
     /// </summary>
     public float FixedTimeStep { get; set; }
 
-    public PhysicsEngine(PhysicsEngineSettings configuration)
+    public BulletPhysicsEngine(PhysicsEngineSettings configuration)
     {
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;

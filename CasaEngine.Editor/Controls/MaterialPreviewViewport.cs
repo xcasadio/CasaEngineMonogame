@@ -588,7 +588,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
             return "<n/a>";
         }
 
-        return (!ReferenceEquals(_previewWorldDriver.World.PhysicsWorldContext, _editorRuntime.GameManager.CurrentWorld.PhysicsWorldContext)).ToString();
+        return (!ReferenceEquals(_previewWorldDriver.World.PhysicsWorld, _editorRuntime.GameManager.CurrentWorld.PhysicsWorld)).ToString();
     }
 
     private string DescribeLastPhysicsDebugWorld()

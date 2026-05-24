@@ -23,7 +23,7 @@ Target architecture:
 
 ### T01 - Rename ownership layers
 
-Status: Todo
+Status: Done
 
 - Rename `PhysicsEngineComponent` to `PhysicsSystemComponent`.
 - Rename `PhysicsWorldContext` to `PhysicsWorld`.

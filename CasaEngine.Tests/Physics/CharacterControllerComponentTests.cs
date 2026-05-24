@@ -44,7 +44,7 @@ public class CharacterControllerComponentTests
     [Fact]
     public void ValidateDependencies_Succeeds_WhenRequiredDependenciesExist()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: false);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: false);
         var entity = CreateEntityWithRoot();
         SetWorld(entity, CreateWorld(physicsWorldContext));
         entity.AddComponent(new CapsuleCollisionComponent());
@@ -659,7 +659,7 @@ public class CharacterControllerComponentTests
         };
     }
 
-    private static Entity CreateControllerEntity(IPhysicsWorldContext physicsWorldContext, out TestCharacterControllerComponent component)
+    private static Entity CreateControllerEntity(IPhysicsWorld physicsWorldContext, out TestCharacterControllerComponent component)
     {
         var entity = CreateEntityWithRoot();
         SetWorld(entity, CreateWorld(physicsWorldContext));
@@ -680,11 +680,11 @@ public class CharacterControllerComponentTests
         };
     }
 
-    private static World CreateWorld(IPhysicsWorldContext physicsWorldContext)
+    private static World CreateWorld(IPhysicsWorld physicsWorldContext)
     {
         var world = new World();
         typeof(World)
-            .GetProperty(nameof(World.PhysicsWorldContext), BindingFlags.Instance | BindingFlags.Public)!
+            .GetProperty(nameof(World.PhysicsWorld), BindingFlags.Instance | BindingFlags.Public)!
             .SetValue(world, physicsWorldContext);
         return world;
     }
@@ -733,13 +733,13 @@ public class CharacterControllerComponentTests
         }
     }
 
-    private sealed class FakePhysicsWorldContext : IPhysicsWorldContext
+    private sealed class FakePhysicsWorldContext : IPhysicsWorld
     {
         public HitResult HorizontalHit;
         public HitResult GroundHit;
         public Func<Matrix, Matrix, HitResult?>? ShapeSweepHandler;
 
-        public PhysicsEngine PhysicsEngine => throw new NotSupportedException();
+        public BulletPhysicsEngine BulletPhysicsEngine => throw new NotSupportedException();
 
         public void Update(float elapsedTime)
         {

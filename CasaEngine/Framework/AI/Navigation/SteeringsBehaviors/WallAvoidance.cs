@@ -11,9 +11,9 @@ public class WallAvoidance : SteeringBehavior
 
     public override Vector3 Calculate()
     {
-        PhysicsEngineComponent physicsEngineComponent = null; //TODO
+        PhysicsSystemComponent physicsEngineComponent = null; //TODO
 
-        if (physicsEngineComponent.PhysicsEngine == null)
+        if (physicsEngineComponent.BulletPhysicsEngine == null)
         {
             throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
         }
@@ -37,7 +37,7 @@ public class WallAvoidance : SteeringBehavior
             owner.Position = position;
 
             //If there was a collision see the collision distance
-            if (physicsEngineComponent.PhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
+            if (physicsEngineComponent.BulletPhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
             {
                 var intersectionDist = (contactPoint - owner.Position).Length();
 

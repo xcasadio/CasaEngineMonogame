@@ -246,7 +246,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             throw new InvalidOperationException("Character controller requires an owner world.");
         }
 
-        if (owner.World.PhysicsWorldContext == null)
+        if (owner.World.PhysicsWorld == null)
         {
             throw new InvalidOperationException("Character controller requires a physics world context.");
         }
@@ -729,7 +729,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     }
 
     private bool TryStepMove(
-        IPhysicsWorldContext physicsWorldContext,
+        IPhysicsWorld physicsWorldContext,
         CapsuleCollisionComponent capsuleCollisionComponent,
         ConvexShape sweepShape,
         Vector3 currentPosition,
@@ -838,13 +838,13 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         SetGroundInfo(new CharacterControllerGroundInfo(true, hitResult.Normal, hitResult.Collider, slopeAngle));
     }
 
-    private bool TryResolveCollisionDependencies(out IPhysicsWorldContext? physicsWorldContext, out CapsuleCollisionComponent? capsuleCollisionComponent)
+    private bool TryResolveCollisionDependencies(out IPhysicsWorld? physicsWorldContext, out CapsuleCollisionComponent? capsuleCollisionComponent)
     {
         physicsWorldContext = null;
         capsuleCollisionComponent = null;
 
         var owner = Owner;
-        if (owner?.World?.PhysicsWorldContext == null)
+        if (owner?.World?.PhysicsWorld == null)
         {
             return false;
         }
@@ -855,7 +855,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             return false;
         }
 
-        physicsWorldContext = owner.World.PhysicsWorldContext;
+        physicsWorldContext = owner.World.PhysicsWorld;
         return true;
     }
 
@@ -876,7 +876,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     }
 
     private bool Sweep(
-        IPhysicsWorldContext physicsWorldContext,
+        IPhysicsWorld physicsWorldContext,
         ConvexShape sweepShape,
         Vector3 startPosition,
         Vector3 targetPosition,

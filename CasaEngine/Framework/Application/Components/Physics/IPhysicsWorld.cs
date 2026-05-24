@@ -7,9 +7,9 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
 
-public interface IPhysicsWorldContext
+public interface IPhysicsWorld
 {
-    PhysicsEngine PhysicsEngine { get; }
+    BulletPhysicsEngine BulletPhysicsEngine { get; }
 
     void Update(float elapsedTime);
 

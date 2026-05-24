@@ -34,7 +34,7 @@ public sealed class World : ObjectBase
     private readonly List<PlayerController> _playerControllers = [];
 
     public CasaEngineGame Game { get; private set; }
-    public IPhysicsWorldContext PhysicsWorldContext { get; private set; } = null!;
+    public IPhysicsWorld PhysicsWorld { get; private set; } = null!;
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy? GameplayProxy { get; private set; }
@@ -162,7 +162,7 @@ public sealed class World : ObjectBase
     private void InitializePhysicsWorldContext()
     {
         DisposePhysicsWorldContext();
-        PhysicsWorldContext = Game.PhysicsEngineComponent.GetOrCreateContext(this);
+        PhysicsWorld = Game.PhysicsSystemComponent.GetOrCreateContext(this);
     }
 
     private void DisposePhysicsWorldContext()
@@ -172,8 +172,8 @@ public sealed class World : ObjectBase
             return;
         }
 
-        Game.PhysicsEngineComponent.ReleaseContext(this);
-        PhysicsWorldContext = null!;
+        Game.PhysicsSystemComponent.ReleaseContext(this);
+        PhysicsWorld = null!;
     }
 
     private void LoadContent(bool withReference)

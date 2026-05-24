@@ -14,7 +14,7 @@ public class PhysicsShapeSweepTests
     [Fact]
     public void ShapeSweep_ReturnsClosestHit_WhenConvexShapeReachesStaticBody()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: true);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
         using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
         Matrix obstacleTransform = Matrix.Identity;
         using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
@@ -39,7 +39,7 @@ public class PhysicsShapeSweepTests
     [Fact]
     public void ShapeSweep_ReturnsNoHit_WhenPathMissesStaticBody()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: true);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
         using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
         Matrix obstacleTransform = Matrix.Identity;
         using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
@@ -62,7 +62,7 @@ public class PhysicsShapeSweepTests
     [Fact]
     public void ShapeSweep_RespectsTriggerFiltering()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: true);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
         using var triggerShape = new BoxShape(0.5f, 0.5f, 0.5f);
         var triggerComponent = new TestCollideableComponent(PhysicsType.Kinetic);
         Matrix triggerTransform = Matrix.Identity;
@@ -84,7 +84,7 @@ public class PhysicsShapeSweepTests
     [Fact]
     public void ShapeSweep_IgnoresRequestedComponent()
     {
-        using var physicsWorldContext = new PhysicsWorldContext(useExternalViewManagement: true);
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
         using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
         var ignoredComponent = new TestCollideableComponent(PhysicsType.Static);
         Matrix obstacleTransform = Matrix.Identity;

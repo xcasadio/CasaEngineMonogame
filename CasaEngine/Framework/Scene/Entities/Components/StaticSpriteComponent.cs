@@ -22,7 +22,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private SpriteRendererComponent? _spriteRendererComponent;
     private DepthSortable2DComponent? _depthSortable2DComponent;
     private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
-    private IPhysicsWorldContext? _physicsWorldContext;
+    private IPhysicsWorld? _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }
 
@@ -59,7 +59,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
         _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
     _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
-        _physicsWorldContext = Owner.World.PhysicsWorldContext;
+        _physicsWorldContext = Owner.World.PhysicsWorld;
 
         if (SpriteAssetId != Guid.Empty && _spriteData == null)
         {

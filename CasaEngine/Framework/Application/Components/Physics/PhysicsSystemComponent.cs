@@ -8,23 +8,23 @@ using Vector3 = Microsoft.Xna.Framework.Vector3;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
 
-public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
+public class PhysicsSystemComponent : GameComponent, IPhysicsWorld
 {
     private readonly CasaEngineGame? _casaEngineGame;
-    private readonly Dictionary<Scene.World.World, PhysicsWorldContext> _physicsWorldContexts = [];
+    private readonly Dictionary<Scene.World.World, PhysicsWorld> _physicsWorldContexts = [];
     private readonly List<Scene.World.World> _worldsToUpdate = [];
-    private PhysicsWorldContext? _bootstrapContext;
+    private PhysicsWorld? _bootstrapContext;
 
-    public PhysicsEngine PhysicsEngine => ResolveCurrentContext().PhysicsEngine;
+    public BulletPhysicsEngine BulletPhysicsEngine => ResolveCurrentContext().BulletPhysicsEngine;
 
-    public PhysicsEngineComponent(CasaEngineGame game) : base(game)
+    public PhysicsSystemComponent(CasaEngineGame game) : base(game)
     {
         _casaEngineGame = Game as CasaEngineGame;
         game.Components.Add(this);
         UpdateOrder = (int)ComponentUpdateOrder.Physics;
     }
 
-    public PhysicsWorldContext GetOrCreateContext(Scene.World.World world)
+    public PhysicsWorld GetOrCreateContext(Scene.World.World world)
     {
         ArgumentNullException.ThrowIfNull(world);
 
@@ -33,10 +33,10 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
             return context;
         }
 
-        context = new PhysicsWorldContext(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
-        if (_bootstrapContext?.PhysicsEngine.World?.DebugDrawer != null)
+        context = new PhysicsWorld(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
+        if (_bootstrapContext?.BulletPhysicsEngine.World?.DebugDrawer != null)
         {
-            context.PhysicsEngine.World.DebugDrawer = _bootstrapContext.PhysicsEngine.World.DebugDrawer;
+            context.BulletPhysicsEngine.World.DebugDrawer = _bootstrapContext.BulletPhysicsEngine.World.DebugDrawer;
         }
 
         _physicsWorldContexts.Add(world, context);
@@ -97,7 +97,7 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
         }
     }
 
-    private PhysicsWorldContext ResolveCurrentContext()
+    private PhysicsWorld ResolveCurrentContext()
     {
         var currentWorld = _casaEngineGame?.GameManager.CurrentWorld;
         if (currentWorld != null)
@@ -105,7 +105,7 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
             return GetOrCreateContext(currentWorld);
         }
 
-        _bootstrapContext ??= new PhysicsWorldContext(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
+        _bootstrapContext ??= new PhysicsWorld(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
         return _bootstrapContext;
     }
 

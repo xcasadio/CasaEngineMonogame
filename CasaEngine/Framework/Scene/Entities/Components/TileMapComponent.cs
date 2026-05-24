@@ -31,7 +31,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
-    private IPhysicsWorldContext? _physicsWorldContext;
+    private IPhysicsWorld? _physicsWorldContext;
     private SpriteRendererComponent? _spriteRendererComponent;
     private Texture2D? _tileSetTexture;
 
@@ -88,7 +88,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _tileSetTextures.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
-        _physicsWorldContext = Owner.World.PhysicsWorldContext;
+        _physicsWorldContext = Owner.World.PhysicsWorld;
         _spriteRendererComponent = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
         _tileSetTexture = null;
 
