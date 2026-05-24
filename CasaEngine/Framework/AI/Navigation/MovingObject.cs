@@ -96,4 +96,9 @@ public abstract class MovingObject : EntityComponent
     {
         return _physicsWorldContext.WorldRayCast(ref start, ref end, look);
     }
+
+    public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feeler, out Vector3 contactPoint, out Vector3 contactNormal)
+    {
+        return _physicsWorldContext.NearBodyWorldRayCast(ref position, ref feeler, out contactPoint, out contactNormal);
+    }
 }

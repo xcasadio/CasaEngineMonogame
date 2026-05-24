@@ -1,4 +1,3 @@
-using CasaEngine.Framework.Application.Components.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.AI.Navigation.SteeringsBehaviors;
@@ -11,13 +10,6 @@ public class WallAvoidance : SteeringBehavior
 
     public override Vector3 Calculate()
     {
-        PhysicsSystemComponent physicsEngineComponent = null; //TODO
-
-        if (physicsEngineComponent.BulletPhysicsEngine == null)
-        {
-            throw new NullReferenceException("MovingObject.CanMoveBetween() : PhysicEngine.Physic not defined");
-        }
-
         var feelers = new Vector3[3];
         var scale = 2.0f + owner.Speed * 0.5f;
         var force = Vector3.Zero;
@@ -37,7 +29,7 @@ public class WallAvoidance : SteeringBehavior
             owner.Position = position;
 
             //If there was a collision see the collision distance
-            if (physicsEngineComponent.BulletPhysicsEngine.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
+            if (owner.NearBodyWorldRayCast(ref position, ref feelers[i], out var contactPoint, out var contactNormal))
             {
                 var intersectionDist = (contactPoint - owner.Position).Length();
 

@@ -37,7 +37,7 @@ Validation:
 
 ### T02 - Remove world API from system component
 
-Status: Todo
+Status: Done
 
 - Stop implementing `IPhysicsWorldContext` on `PhysicsSystemComponent`.
 - Remove implicit current-world delegation and bootstrap physics context.
