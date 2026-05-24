@@ -50,7 +50,7 @@ Validation:
 
 ### T03 - Introduce engine-owned physics contracts
 
-Status: Todo
+Status: Done
 
 - Add backend-neutral physics types under `CasaEngine.Engine.Physics`:
   - `PhysicsCollisionFilterGroups`
