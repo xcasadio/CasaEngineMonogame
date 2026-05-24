@@ -125,7 +125,7 @@ Validation:
 
 ### T08 - Validate physics debug draw isolation
 
-Status: Todo
+Status: Done
 
 - Verify no `using BulletSharp` / `BulletSharp.` leaks were added outside the Bullet backend source.
 - Record validation results and any known blockers in this task file.
@@ -134,6 +134,11 @@ Validation:
 
 - `rg "using BulletSharp|BulletSharp\." CasaEngine CasaEngine.Tests/Physics --glob "*.cs" --glob "!CasaEngine/Framework/Physics/BulletPhysicsEngine.cs"`
 - `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore`
+
+Notes:
+
+- No BulletSharp source leaks were found outside `BulletPhysicsEngine.cs`.
+- `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore` succeeds with existing warnings.
 
 ## Notes for follow-up agents
 
