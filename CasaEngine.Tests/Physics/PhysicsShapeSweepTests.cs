@@ -1,4 +1,3 @@
-using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -15,20 +14,20 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_ReturnsClosestHit_WhenConvexShapeReachesStaticBody()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
+        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
         Matrix obstacleTransform = Matrix.Identity;
-        using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
+        using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             new object(),
             CreateStaticPhysicsDefinition());
-        using var sweepShape = new SphereShape(0.25f);
+        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: CollisionFilterGroups.AllFilter);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
 
         Assert.True(hit);
         Assert.True(result.Succeeded);
@@ -40,20 +39,20 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_ReturnsNoHit_WhenPathMissesStaticBody()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
+        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
         Matrix obstacleTransform = Matrix.Identity;
-        using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
+        using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             new object(),
             CreateStaticPhysicsDefinition());
-        using var sweepShape = new SphereShape(0.25f);
+        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
 
         Matrix from = Matrix.CreateTranslation(-3f, 3f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 3f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: CollisionFilterGroups.AllFilter);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
 
         Assert.False(hit);
         Assert.False(result.Succeeded);
@@ -63,11 +62,11 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_RespectsTriggerFiltering()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var triggerShape = new BoxShape(0.5f, 0.5f, 0.5f);
+        using var triggerShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
         var triggerComponent = new TestCollideableComponent(PhysicsType.Kinetic);
         Matrix triggerTransform = Matrix.Identity;
-        physicsWorldContext.AddGhostObject(triggerShape, ref triggerTransform, triggerComponent);
-        using var sweepShape = new SphereShape(0.25f);
+        using var triggerBody = physicsWorldContext.AddGhostObject(triggerShape, ref triggerTransform, triggerComponent);
+        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
@@ -85,21 +84,21 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_IgnoresRequestedComponent()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = new BoxShape(0.5f, 0.5f, 0.5f);
+        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
         var ignoredComponent = new TestCollideableComponent(PhysicsType.Static);
         Matrix obstacleTransform = Matrix.Identity;
-        using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
+        using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             ignoredComponent,
             CreateStaticPhysicsDefinition());
-        using var sweepShape = new SphereShape(0.25f);
+        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: CollisionFilterGroups.AllFilter, ignoredComponent: ignoredComponent);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter, ignoredComponent: ignoredComponent);
 
         Assert.False(hit);
         Assert.False(result.Succeeded);

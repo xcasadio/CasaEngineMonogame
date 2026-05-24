@@ -1,5 +1,4 @@
 using System.Reflection;
-using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -739,53 +738,53 @@ public class CharacterControllerComponentTests
         public HitResult GroundHit;
         public Func<Matrix, Matrix, HitResult?>? ShapeSweepHandler;
 
-        public BulletPhysicsEngine BulletPhysicsEngine => throw new NotSupportedException();
+        public int CollisionObjectCount => 0;
 
         public void Update(float elapsedTime)
         {
         }
 
-        public CollisionObject AddGhostObject(CollisionShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+        public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PairCachingGhostObject CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, CollisionShape collisionShape, Color? color = null)
+        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public RigidBody AddStaticObject(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        public PhysicsBody AddStaticObject(PhysicsShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
         {
             throw new NotSupportedException();
         }
 
-        public RigidBody AddRigidBody(CollisionShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        public PhysicsBody AddRigidBody(PhysicsShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
         {
             throw new NotSupportedException();
         }
 
-        public RigidBody AddRigidBody(CollisionShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
+        public PhysicsBody AddRigidBody(PhysicsShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
         {
             throw new NotSupportedException();
         }
 
-        public void AddCollisionObject(CollisionObject collisionObject)
+        public void AddCollisionObject(PhysicsBody collisionObject)
         {
             throw new NotSupportedException();
         }
 
-        public void RemoveCollisionObject(CollisionObject collisionObject)
+        public void RemoveCollisionObject(PhysicsBody collisionObject)
         {
             throw new NotSupportedException();
         }
 
-        public void AddRigidBody(RigidBody rigidBody)
+        public void AddRigidBody(PhysicsBody rigidBody)
         {
             throw new NotSupportedException();
         }
 
-        public void RemoveRigidBody(RigidBody rigidBody)
+        public void RemoveRigidBody(PhysicsBody rigidBody)
         {
             throw new NotSupportedException();
         }
@@ -795,13 +794,13 @@ public class CharacterControllerComponentTests
             throw new NotSupportedException();
         }
 
-        public HitResult ShapeSweep(ConvexShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             ShapeSweep(shape, from, to, out var result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
             return result;
         }
 
-        public bool ShapeSweep(ConvexShape shape, Matrix from, Matrix to, out HitResult result, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             if (ShapeSweepHandler != null)
             {
@@ -833,7 +832,7 @@ public class CharacterControllerComponentTests
             return false;
         }
 
-        public void ShapeSweepPenetrating(ConvexShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterFlags = CollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             throw new NotSupportedException();
         }
@@ -844,6 +843,16 @@ public class CharacterControllerComponentTests
         }
 
         public bool NearBodyWorldRayCast(ref Vector3 position, ref Vector3 feelers, out Vector3 contactPoint, out Vector3 contactNormal)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void RefreshBodyAabb(PhysicsBody body)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void DrawDebugWorld(IPhysicsDebugDrawer debugDrawer)
         {
             throw new NotSupportedException();
         }

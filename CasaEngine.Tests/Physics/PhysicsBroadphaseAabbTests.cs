@@ -1,6 +1,6 @@
-using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Xunit;
 
@@ -12,7 +12,7 @@ public class PhysicsBroadphaseAabbTests
     public void UpdateSingleAabb_RefreshesMovedRigidBodyBroadphaseBounds()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var collisionShape = new BoxShape(0.5f, 0.5f, 0.5f);
+        using var collisionShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
 
         Matrix worldMatrix = Matrix.Identity;
         var physicsDefinition = new PhysicsDefinition
@@ -21,24 +21,24 @@ public class PhysicsBroadphaseAabbTests
             PhysicsType = PhysicsType.Static,
         };
 
-        using RigidBody rigidBody = physicsWorldContext.AddStaticObject(
+        using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             collisionShape,
             Vector3.One,
             ref worldMatrix,
             new object(),
             physicsDefinition);
 
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMin.X, -0.6f, -0.4f);
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMax.X, 0.4f, 0.6f);
-
         rigidBody.WorldTransform = Matrix.CreateTranslation(10f, 0f, 0f);
+        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+        Matrix from = Matrix.CreateTranslation(8f, 0f, 0f);
+        Matrix to = Matrix.CreateTranslation(12f, 0f, 0f);
 
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMin.X, -0.6f, -0.4f);
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMax.X, 0.4f, 0.6f);
+        bool hitBeforeRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out _, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
+        physicsWorldContext.RefreshBodyAabb(rigidBody);
+        bool hitAfterRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
 
-        physicsWorldContext.BulletPhysicsEngine.World.UpdateSingleAabb(rigidBody);
-
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMin.X, 9.4f, 9.6f);
-        Assert.InRange(rigidBody.BroadphaseHandle.AabbMax.X, 10.4f, 10.6f);
+        Assert.False(hitBeforeRefresh);
+        Assert.True(hitAfterRefresh);
+        Assert.True(result.Succeeded);
     }
 }

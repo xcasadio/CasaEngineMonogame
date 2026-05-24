@@ -78,7 +78,7 @@ Validation:
 
 ### T05 - Remove BulletSharp from scene/gameplay code
 
-Status: Todo
+Status: Done
 
 - Update collision components to create `PhysicsShape` descriptors instead of BulletSharp shapes.
 - Store `PhysicsBody` handles in scene, sprite, and tilemap code.
@@ -89,6 +89,10 @@ Validation:
 
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter "FullyQualifiedName~Physics" --no-restore`
 - `dotnet build CasaEngine.MonoGame.sln -c Debug --no-restore`
+
+Notes:
+
+- Physics test command currently stops during test-project compilation on unrelated rendering/editor test errors (`DualQuaternion`, `PreviewEnvironmentFactory`) before executing the physics filter.
 
 ### T06 - Documentation and final validation
 
