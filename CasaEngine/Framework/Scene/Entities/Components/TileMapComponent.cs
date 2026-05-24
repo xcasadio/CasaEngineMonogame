@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using BulletSharp;
 
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
@@ -20,7 +19,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
-    private List<CollisionObject> _collisionObjects = new();
+    private List<PhysicsBody> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
     private readonly List<AnimatedTile> _animatedTiles = new();
     private readonly List<AutoTile> _dirtyAutoTiles = new();
@@ -573,7 +572,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return tile;
     }
 
-    private CollisionObject? CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
+    private PhysicsBody? CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
         {
@@ -588,15 +587,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             tileBounds.X * tileSize.Width + width / 2f,
             -tileBounds.Y * tileSize.Height - height / 2f,
             0f);
-        var box = new BoxShape(width / 2f, height / 2f, 0.5f)
-        {
-            LocalScaling = LocalScale,
-            UserObject = this,
-        };
+        var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
+        box.LocalScaling = LocalScale;
 
         var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileBounds.X, tileBounds.Y);
 
-        CollisionObject collisionObject;
+        PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
             collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
@@ -611,7 +607,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return collisionObject;
     }
 
-    private CollisionObject? CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
+    private PhysicsBody? CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
         {
@@ -631,15 +627,12 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             tileX * tileSize.Width + rectangle.Position.X + width / 2f,
             -tileY * tileSize.Height - rectangle.Position.Y - height / 2f,
             0f);
-        var box = new BoxShape(width / 2f, height / 2f, 0.5f)
-        {
-            LocalScaling = LocalScale,
-            UserObject = this,
-        };
+        var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
+        box.LocalScaling = LocalScale;
 
         var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileX, tileY);
 
-        CollisionObject collisionObject;
+        PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
             collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
@@ -1176,7 +1169,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return true;
     }
 
-    private void RemoveCollisionObjects(List<CollisionObject> collisionObjects)
+    private void RemoveCollisionObjects(List<PhysicsBody> collisionObjects)
     {
         for (var index = 0; index < collisionObjects.Count; index++)
         {
@@ -1194,7 +1187,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _collisionObjects.Clear();
     }
 
-    private void RemoveCollisionObject(CollisionObject? collisionObject)
+    private void RemoveCollisionObject(PhysicsBody? collisionObject)
     {
         if (collisionObject == null)
         {
@@ -1208,9 +1201,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         _physicsWorldContext.ClearCollisionDataFrom(this);
 
-        if (collisionObject is RigidBody rigidBody)
+        if (collisionObject.IsRigidBody)
         {
-            _physicsWorldContext.RemoveRigidBody(rigidBody);
+            _physicsWorldContext.RemoveRigidBody(collisionObject);
         }
         else
         {

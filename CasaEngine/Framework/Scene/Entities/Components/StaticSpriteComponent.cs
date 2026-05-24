@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using BulletSharp;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
@@ -21,7 +20,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private SpriteData? _spriteData;
     private SpriteRendererComponent? _spriteRendererComponent;
     private DepthSortable2DComponent? _depthSortable2DComponent;
-    private readonly List<(Shape2d, CollisionObject)> _collisionObjects = new();
+    private readonly List<(Shape2d, PhysicsBody)> _collisionObjects = new();
     private IPhysicsWorld? _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }

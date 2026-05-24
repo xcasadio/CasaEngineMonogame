@@ -1,4 +1,4 @@
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
@@ -66,9 +66,9 @@ public sealed class CharacterControllerSettings
 
     public float StepHeight { get; set; }
 
-    public CollisionFilterGroups CollisionGroup { get; set; } = CollisionFilterGroups.DefaultFilter;
+    public PhysicsCollisionFilterGroups CollisionGroup { get; set; } = PhysicsCollisionFilterGroups.DefaultFilter;
 
-    public CollisionFilterGroups CollisionMask { get; set; } = CollisionFilterGroups.AllFilter;
+    public PhysicsCollisionFilterGroups CollisionMask { get; set; } = PhysicsCollisionFilterGroups.AllFilter;
 
     public bool HitTriggers { get; set; }
 

@@ -65,7 +65,7 @@ Validation:
 
 ### T04 - Hide BulletSharp from physics world interface
 
-Status: Todo
+Status: Done
 
 - Remove `BulletPhysicsEngine` from `IPhysicsWorldContext`.
 - Replace `CollisionObject`, `RigidBody`, `CollisionShape`, `ConvexShape`, and `CollisionFilterGroups` in `IPhysicsWorldContext` with engine-owned types.

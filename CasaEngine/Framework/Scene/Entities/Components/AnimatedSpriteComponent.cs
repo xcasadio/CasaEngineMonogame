@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using BulletSharp;
 using CasaEngine.Core.Logging;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
@@ -23,7 +22,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public event EventHandler<Guid>? FrameChanged;
     public event EventHandler<Animation2d>? AnimationFinished;
 
-    private readonly Dictionary<Guid, List<(Shape2d, CollisionObject)>> _collisionObjectByFrameId = new();
+    private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
     private readonly List<Guid> _animationAssetIds = new();
 
     private AssetContentManager _assetContentManager;
@@ -173,7 +172,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
                 if (!_collisionObjectByFrameId.ContainsKey(frame.SpriteId))
                 {
-                    _collisionObjectByFrameId.Add(frame.SpriteId, new List<(Shape2d, CollisionObject)>(1));
+                    _collisionObjectByFrameId.Add(frame.SpriteId, new List<(Shape2d, PhysicsBody)>(1));
                 }
 
                 foreach (var collisionShape in spriteData.CollisionShapes)

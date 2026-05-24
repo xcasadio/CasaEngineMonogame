@@ -1,6 +1,6 @@
 using System.ComponentModel;
-using BulletSharp;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
@@ -31,7 +31,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
-    private CapsuleShape? _sweepShape;
+    private PhysicsShape? _sweepShape;
     private float _sweepShapeRadius;
     private float _sweepShapeCylinderHeight;
 
@@ -731,7 +731,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool TryStepMove(
         IPhysicsWorld physicsWorldContext,
         CapsuleCollisionComponent capsuleCollisionComponent,
-        ConvexShape sweepShape,
+        PhysicsShape sweepShape,
         Vector3 currentPosition,
         Vector3 remainingDisplacement,
         HitResult blockingHit,
@@ -859,7 +859,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return true;
     }
 
-    private CapsuleShape GetSweepShape()
+    private PhysicsShape GetSweepShape()
     {
         var radius = Math.Max(MinSweepShapeSize, _settings.Radius - _settings.SkinWidth);
         var cylinderHeight = Math.Max(MinSweepShapeSize, _settings.Height - _settings.Radius * 2f);
@@ -867,7 +867,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         if (_sweepShape == null || radius != _sweepShapeRadius || cylinderHeight != _sweepShapeCylinderHeight)
         {
             _sweepShape?.Dispose();
-            _sweepShape = new CapsuleShape(radius, cylinderHeight);
+            _sweepShape = PhysicsShape.CreateCapsule(radius, cylinderHeight);
             _sweepShapeRadius = radius;
             _sweepShapeCylinderHeight = cylinderHeight;
         }
@@ -877,7 +877,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     private bool Sweep(
         IPhysicsWorld physicsWorldContext,
-        ConvexShape sweepShape,
+        PhysicsShape sweepShape,
         Vector3 startPosition,
         Vector3 targetPosition,
         CapsuleCollisionComponent capsuleCollisionComponent,

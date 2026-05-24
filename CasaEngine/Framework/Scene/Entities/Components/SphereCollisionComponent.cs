@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering.Geometry;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -25,9 +25,9 @@ public class SphereCollisionComponent : PhysicsBaseComponent
         return new SphereCollisionComponent(this);
     }
 
-    protected override CollisionShape ConvertToCollisionShape()
+    protected override PhysicsShape ConvertToCollisionShape()
     {
-        return new SphereShape(Sphere.Radius);
+        return PhysicsShape.CreateSphere(Sphere.Radius);
     }
 
     protected override BoundingBox ComputeBoundingBox()

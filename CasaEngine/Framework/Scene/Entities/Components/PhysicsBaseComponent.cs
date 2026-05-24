@@ -1,4 +1,3 @@
-using BulletSharp;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -18,10 +17,10 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
-    protected RigidBody? _rigidBody;
+    protected PhysicsBody? _rigidBody;
 
     //static object
-    protected CollisionObject? _collisionObject;
+    protected PhysicsBody? _collisionObject;
 
     public HashSet<Collision> Collisions { get; } = new();
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
@@ -137,7 +136,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
-        CollisionObject? collisionObject = _collisionObject ?? _rigidBody;
+        PhysicsBody? collisionObject = _collisionObject ?? _rigidBody;
 
         if (collisionObject != null && Parent != null)
         {
@@ -185,7 +184,6 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
         var collisionShape = ConvertToCollisionShape();
         collisionShape.LocalScaling = LocalScale;
-        collisionShape.UserObject = this;
 
         switch (PhysicsType)
         {
@@ -201,7 +199,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         }
     }
 
-    protected abstract CollisionShape ConvertToCollisionShape();
+    protected abstract PhysicsShape ConvertToCollisionShape();
 
     private void DestroyPhysicsObject()
     {
@@ -213,12 +211,14 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         if (_collisionObject != null)
         {
             PhysicsWorld.RemoveCollisionObject(_collisionObject);
+            _collisionObject.Dispose();
             _collisionObject = null;
         }
 
         if (_rigidBody != null)
         {
             PhysicsWorld.RemoveRigidBody(_rigidBody);
+            _rigidBody.Dispose();
             _rigidBody = null;
         }
 
@@ -307,13 +307,13 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         if (_collisionObject != null)
         {
             _collisionObject.WorldTransform = worldTransform;
-            PhysicsWorld?.BulletPhysicsEngine.World.UpdateSingleAabb(_collisionObject);
+            PhysicsWorld?.RefreshBodyAabb(_collisionObject);
         }
 
         if (_rigidBody != null)
         {
             _rigidBody.WorldTransform = worldTransform;
-            PhysicsWorld?.BulletPhysicsEngine.World.UpdateSingleAabb(_rigidBody);
+            PhysicsWorld?.RefreshBodyAabb(_rigidBody);
         }
     }
 }

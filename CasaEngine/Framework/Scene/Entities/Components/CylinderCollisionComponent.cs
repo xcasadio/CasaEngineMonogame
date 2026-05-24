@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering.Geometry;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -25,10 +25,10 @@ public class CylinderCollisionComponent : PhysicsBaseComponent
         return new CylinderCollisionComponent(this);
     }
 
-    protected override CollisionShape ConvertToCollisionShape()
+    protected override PhysicsShape ConvertToCollisionShape()
     {
         var cylinder = Cylinder;
-        return new CylinderShape(cylinder.Radius);
+        return PhysicsShape.CreateCylinder(cylinder.Radius);
     }
 
     protected override BoundingBox ComputeBoundingBox()

@@ -1,5 +1,4 @@
-using BulletSharp;
-
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Rendering.Geometry;
@@ -9,7 +8,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 
 public static class Physics2dHelper
 {
-    public static CollisionObject? CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
+    public static PhysicsBody? CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
         IPhysicsWorld physicsWorldContext, ICollideableComponent collideableComponent, Color color)
     {
         switch (collisionShape.Shape.Type)
@@ -20,9 +19,8 @@ public static class Physics2dHelper
             //    break;
             case Shape2dType.Rectangle:
                 var rectangle = collisionShape.Shape as ShapeRectangle;
-                var box = new BoxShape(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
+                var box = PhysicsShape.CreateBox(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
                 box.LocalScaling = localScale;
-                box.UserObject = collideableComponent;
                 return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, color);
             //case Shape2dType.Circle:
             //    break;
@@ -36,7 +34,7 @@ public static class Physics2dHelper
     }
 
     public static void UpdateBodyTransformation(Vector3 position, Quaternion rotation, Vector3 scale,
-        CollisionObject collisionObject, Shape2d shape2d, Point origin, Rectangle spriteBounds)
+        PhysicsBody collisionObject, Shape2d shape2d, Point origin, Rectangle spriteBounds)
     {
         var rect = shape2d as ShapeRectangle;
         var translation = new Vector3(

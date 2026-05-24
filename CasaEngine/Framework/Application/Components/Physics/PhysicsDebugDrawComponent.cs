@@ -1,40 +1,40 @@
-﻿using BulletSharp;
+﻿using CasaEngine.Engine.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
 
-public class PhysicsDebugDrawComponent : DebugDraw
+public class PhysicsDebugDrawComponent : IPhysicsDebugDrawer
 {
     private readonly Line3dRendererComponent _line3dRendererComponent;
 
-    public override DebugDrawModes DebugMode { get; set; }
+    public PhysicsDebugDrawModes DebugMode { get; set; }
 
     public PhysicsDebugDrawComponent(Line3dRendererComponent line3dRendererComponent)
     {
         _line3dRendererComponent = line3dRendererComponent;
     }
 
-    public override void Draw3dText(ref Vector3 location, string textString)
+    public void Draw3dText(ref Vector3 location, string textString)
     {
         throw new NotImplementedException();
     }
 
-    public override void DrawContactPoint(ref Vector3 pointOnB, ref Vector3 normalOnB, float distance, int lifeTime, Color color)
+    public void DrawContactPoint(ref Vector3 pointOnB, ref Vector3 normalOnB, float distance, int lifeTime, Color color)
     {
         _line3dRendererComponent.AddLine(pointOnB, pointOnB + normalOnB, color);
     }
 
-    public override void DrawLine(ref Vector3 from, ref Vector3 to, Color color)
+    public void DrawLine(ref Vector3 from, ref Vector3 to, Color color)
     {
         _line3dRendererComponent.AddLine(from, to, color);
     }
 
-    public void DrawDebugWorld(DynamicsWorld world)
+    public void DrawDebugWorld(IPhysicsWorld physicsWorld)
     {
-        world.DebugDrawWorld();
+        physicsWorld.DrawDebugWorld(this);
     }
 
-    public override void ReportErrorWarning(string warningString)
+    public void ReportErrorWarning(string warningString)
     {
         throw new NotImplementedException();
     }

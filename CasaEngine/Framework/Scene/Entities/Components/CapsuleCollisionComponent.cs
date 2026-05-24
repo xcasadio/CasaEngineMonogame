@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering.Geometry;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -25,10 +25,10 @@ public class CapsuleCollisionComponent : PhysicsBaseComponent
         return new CapsuleCollisionComponent(this);
     }
 
-    protected override CollisionShape ConvertToCollisionShape()
+    protected override PhysicsShape ConvertToCollisionShape()
     {
         var capsule = Capsule;
-        return new CapsuleShape(capsule.Radius, capsule.Length);
+        return PhysicsShape.CreateCapsule(capsule.Radius, capsule.Length);
     }
 
     protected override BoundingBox ComputeBoundingBox()

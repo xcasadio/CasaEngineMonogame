@@ -1,4 +1,4 @@
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Assets.TileMap;
@@ -21,7 +21,7 @@ public sealed class TileMapCollisionChunk
     public Point ChunkIndex { get; }
     public Rectangle TileBounds { get; }
     public bool Dirty { get; private set; }
-    public List<CollisionObject> CollisionObjects { get; } = new();
+    public List<PhysicsBody> CollisionObjects { get; } = new();
     public IReadOnlyList<Rectangle> MergedTileRectangles => _mergedTileRectangles;
 
     public bool[] EnsureSolidCapacity(int cellCount)

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel;
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering.Geometry;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -25,9 +25,9 @@ public class BoxCollisionComponent : PhysicsBaseComponent
         return new BoxCollisionComponent(this);
     }
 
-    protected override CollisionShape ConvertToCollisionShape()
+    protected override PhysicsShape ConvertToCollisionShape()
     {
-        return new BoxShape(Box.Size.X / 2.0f, Box.Size.Y / 2.0f, Box.Size.Z / 2.0f);
+        return PhysicsShape.CreateBox(Box.Size.X / 2.0f, Box.Size.Y / 2.0f, Box.Size.Z / 2.0f);
     }
 
     protected override BoundingBox ComputeBoundingBox()

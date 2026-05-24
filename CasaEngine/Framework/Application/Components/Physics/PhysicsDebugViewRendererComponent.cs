@@ -1,4 +1,4 @@
-using BulletSharp;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;
 
@@ -23,7 +23,7 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
     {
         base.LoadContent();
         var line3dRendererComponent = Game.GetGameComponent<Line3dRendererComponent>();
-        _physicsDebugRenderer = new PhysicsDebugDrawComponent(line3dRendererComponent) { DebugMode = DebugDrawModes.MaxDebugDrawMode };
+        _physicsDebugRenderer = new PhysicsDebugDrawComponent(line3dRendererComponent) { DebugMode = PhysicsDebugDrawModes.MaxDebugDrawMode };
     }
 
     public void RenderForView(RenderView view)
@@ -33,20 +33,10 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
             return;
         }
 
-        var dynamicsWorld = view.World.PhysicsWorld.BulletPhysicsEngine.World;
-        if (dynamicsWorld == null)
-        {
-            return;
-        }
-
-        if (!ReferenceEquals(dynamicsWorld.DebugDrawer, _physicsDebugRenderer))
-        {
-            dynamicsWorld.DebugDrawer = _physicsDebugRenderer;
-        }
-
-        _physicsDebugRenderer.DrawDebugWorld(dynamicsWorld);
+        var physicsWorld = view.World.PhysicsWorld;
+        _physicsDebugRenderer.DrawDebugWorld(physicsWorld);
         _lastPhysicsWorldNamesByViewId[view.Id] = view.World.Name;
-        _lastPhysicsObjectCountsByViewId[view.Id] = dynamicsWorld.CollisionObjectArray.Count;
+        _lastPhysicsObjectCountsByViewId[view.Id] = physicsWorld.CollisionObjectCount;
     }
 
     public bool TryGetLastRenderedPhysicsWorldName(ViewId viewId, out string worldName)

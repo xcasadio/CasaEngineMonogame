@@ -1,5 +1,6 @@
 ﻿using BulletSharp;
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 
@@ -9,9 +10,10 @@ public class BulletPhysicsEngine
 {
     const CollisionFilterGroups DefaultGroup = CollisionFilterGroups.DefaultFilter;
 
-    public DiscreteDynamicsWorld? World { get; }
+    private DiscreteDynamicsWorld? World { get; }
 
     private readonly CollisionWorld _collisionWorld;
+    private BulletPhysicsDebugDrawAdapter? _debugDrawAdapter;
 
     private readonly CollisionDispatcher _dispatcher;
     private readonly CollisionConfiguration _collisionConfiguration;
@@ -62,6 +64,8 @@ public class BulletPhysicsEngine
     /// Every pair of components currently colliding with each other
     /// </summary>
     public ICollection<Collision> CurrentCollisions => _collisions.Keys;
+
+    public int CollisionObjectCount => _collisionWorld.CollisionObjectArray.Count;
 
     /// <summary>
     /// Should static - static collisions of StaticColliderComponent yield
@@ -182,6 +186,200 @@ public class BulletPhysicsEngine
                 _dispatchInfo.UseContinuous = false;
             }
         }
+    }
+
+    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    {
+        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
+        AddCollisionObject(physicsBody);
+        return physicsBody;
+    }
+
+    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, Color? color = null)
+    {
+        var nativeShape = CreateCollisionShape(collisionShape, collisionShape.LocalScaling);
+        var ghostObject = new PairCachingGhostObject
+        {
+            CollisionShape = nativeShape,
+            UserObject = collideableComponent,
+            WorldTransform = worldMatrix
+        };
+        ghostObject.CollisionFlags |= CollisionFlags.NoContactResponse;
+
+        if (color.HasValue)
+        {
+            ghostObject.SetCustomDebugColor(color.Value.ToVector3());
+        }
+
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, ghostObject, nativeShape));
+    }
+
+    public PhysicsBody AddRigidBody(PhysicsShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, bool useExternalViewManagement)
+    {
+        var nativeShape = CreateCollisionShape(collisionShape, collisionShape.LocalScaling);
+        using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, null, nativeShape);
+        rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
+        rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
+        rbInfo.AdditionalDamping = physicsDefinition.AdditionalDamping;
+        rbInfo.AdditionalDampingFactor = physicsDefinition.AdditionalDampingFactor;
+        rbInfo.AdditionalLinearDampingThresholdSqr = physicsDefinition.AdditionalLinearDampingThresholdSqr;
+        rbInfo.AngularDamping = physicsDefinition.AngularDamping;
+        rbInfo.AngularSleepingThreshold = physicsDefinition.AngularSleepingThreshold;
+        rbInfo.Friction = physicsDefinition.Friction;
+        rbInfo.LinearDamping = physicsDefinition.LinearDamping;
+        rbInfo.LinearSleepingThreshold = physicsDefinition.LinearSleepingThreshold;
+        rbInfo.Restitution = physicsDefinition.Restitution;
+        rbInfo.RollingFriction = physicsDefinition.RollingFriction;
+
+        bool isDynamic = physicsDefinition.Mass != 0.0f;
+        if (isDynamic)
+        {
+            rbInfo.LocalInertia = nativeShape.CalculateLocalInertia(physicsDefinition.Mass);
+            rbInfo.MotionState = new DefaultMotionState(worldMatrix);
+        }
+
+        var body = new RigidBody(rbInfo)
+        {
+            Gravity = physicsDefinition.ApplyGravity is true ? GameSettings.PhysicsEngineSettings.Gravity : Vector3.Zero,
+            UserObject = userObject,
+            WorldTransform = worldMatrix,
+            LinearFactor = physicsDefinition.LinearFactor,
+            AngularFactor = physicsDefinition.AngularFactor
+        };
+
+        if (!isDynamic && !useExternalViewManagement)
+        {
+            body.CollisionFlags |= CollisionFlags.StaticObject;
+        }
+
+        if (physicsDefinition.DebugColor.HasValue)
+        {
+            body.SetCustomDebugColor(physicsDefinition.DebugColor.Value.ToVector3());
+        }
+
+        World?.AddRigidBody(body);
+
+        if (physicsDefinition.ApplyGravity is false)
+        {
+            body.Gravity = Vector3.Zero;
+        }
+
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, body, nativeShape));
+    }
+
+    public void AddCollisionObject(PhysicsBody physicsBody)
+    {
+        var collisionObject = GetCollisionObject(physicsBody);
+        if (!_collisionWorld.CollisionObjectArray.Contains(collisionObject))
+        {
+            _collisionWorld.AddCollisionObject(collisionObject);
+        }
+    }
+
+    public void RemoveCollisionObject(PhysicsBody physicsBody)
+    {
+        var collisionObject = GetCollisionObject(physicsBody);
+        if (_collisionWorld.CollisionObjectArray.Contains(collisionObject))
+        {
+            _collisionWorld.RemoveCollisionObject(collisionObject);
+        }
+    }
+
+    public void AddRigidBody(PhysicsBody physicsBody)
+    {
+        if (GetCollisionObject(physicsBody) is RigidBody rigidBody)
+        {
+            World?.AddRigidBody(rigidBody);
+        }
+    }
+
+    public void RemoveRigidBody(PhysicsBody physicsBody)
+    {
+        if (GetCollisionObject(physicsBody) is RigidBody rigidBody)
+        {
+            World?.RemoveRigidBody(rigidBody);
+        }
+    }
+
+    public void RefreshBodyAabb(PhysicsBody physicsBody)
+    {
+        GetBodyBackend(physicsBody).RefreshAabb();
+    }
+
+    public void DrawDebugWorld(IPhysicsDebugDrawer debugDrawer)
+    {
+        if (World == null)
+        {
+            return;
+        }
+
+        _debugDrawAdapter ??= new BulletPhysicsDebugDrawAdapter();
+        _debugDrawAdapter.DebugDrawer = debugDrawer;
+
+        if (!ReferenceEquals(World.DebugDrawer, _debugDrawAdapter))
+        {
+            World.DebugDrawer = _debugDrawAdapter;
+        }
+
+        World.DebugDrawWorld();
+    }
+
+    private static CollisionFilterGroups ToBulletFilter(PhysicsCollisionFilterGroups filterGroups)
+    {
+        return (CollisionFilterGroups)(int)filterGroups;
+    }
+
+    private static CollisionShape CreateCollisionShape(PhysicsShape shape, Vector3 localScaling)
+    {
+        ArgumentNullException.ThrowIfNull(shape);
+
+        CollisionShape collisionShape = shape.Type switch
+        {
+            PhysicsShapeType.Box => new BoxShape(shape.HalfExtents.X, shape.HalfExtents.Y, shape.HalfExtents.Z),
+            PhysicsShapeType.Sphere => new SphereShape(shape.Radius),
+            PhysicsShapeType.Capsule => new CapsuleShape(shape.Radius, shape.Height),
+            PhysicsShapeType.Cylinder => new CylinderShape(shape.Radius),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape))
+        };
+
+        collisionShape.LocalScaling = localScaling;
+        return collisionShape;
+    }
+
+    private static CollisionShape GetOrCreateSweepShape(PhysicsShape shape)
+    {
+        ArgumentNullException.ThrowIfNull(shape);
+
+        if (shape.Backend is BulletPhysicsShapeBackend backend)
+        {
+            return backend.Shape;
+        }
+
+        if (shape.Backend != null)
+        {
+            throw new InvalidOperationException("Physics shape belongs to another physics backend.");
+        }
+
+        var nativeShape = CreateCollisionShape(shape, shape.LocalScaling);
+        shape.Backend = new BulletPhysicsShapeBackend(nativeShape);
+        return nativeShape;
+    }
+
+    private static BulletPhysicsBodyBackend GetBodyBackend(PhysicsBody physicsBody)
+    {
+        ArgumentNullException.ThrowIfNull(physicsBody);
+
+        if (physicsBody.Backend is not BulletPhysicsBodyBackend backend)
+        {
+            throw new InvalidOperationException("Physics body belongs to another physics backend.");
+        }
+
+        return backend;
+    }
+
+    private static CollisionObject GetCollisionObject(PhysicsBody physicsBody)
+    {
+        return GetBodyBackend(physicsBody).CollisionObject;
     }
 
     internal void UpdateContacts()
@@ -832,16 +1030,22 @@ public class BulletPhysicsEngine
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
     /// <returns>The result of this test</returns>
-    public HitResult ShapeSweep(ConvexShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
 
-        var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, filterGroup, filterFlags, ignoredComponent);
-        _collisionWorld.ConvexSweepTest(shape, from, to, callback);
+        var nativeShape = GetOrCreateSweepShape(shape);
+        if (nativeShape is not ConvexShape convexShape)
+        {
+            throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
+        }
+
+        var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, ToBulletFilter(filterGroup), ToBulletFilter(filterFlags), ignoredComponent);
+        _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
         return callback.Result;
     }
 
-    public bool ShapeSweep(ConvexShape shape, Matrix from, Matrix to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
         result = ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
         return result.Succeeded;
@@ -858,13 +1062,19 @@ public class BulletPhysicsEngine
     /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-    public void ShapeSweepPenetrating(ConvexShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
         ArgumentNullException.ThrowIfNull(resultsOutput);
 
-        var callback = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, filterGroup, filterFlags, ignoredComponent);
-        _collisionWorld.ConvexSweepTest(shape, from, to, callback);
+        var nativeShape = GetOrCreateSweepShape(shape);
+        if (nativeShape is not ConvexShape convexShape)
+        {
+            throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
+        }
+
+        var callback = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, ToBulletFilter(filterGroup), ToBulletFilter(filterFlags), ignoredComponent);
+        _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
     }
 
     public void ClearForces()
@@ -1201,6 +1411,119 @@ public class BulletPhysicsEngine
             }
 
             return base.NeedsCollision(proxy0);
+        }
+    }
+
+    private sealed class BulletPhysicsShapeBackend : IPhysicsShapeBackend
+    {
+        public BulletPhysicsShapeBackend(CollisionShape shape)
+        {
+            Shape = shape;
+        }
+
+        public CollisionShape Shape { get; }
+
+        public void Dispose()
+        {
+            Shape.Dispose();
+        }
+    }
+
+    private sealed class BulletPhysicsBodyBackend : IPhysicsBodyBackend
+    {
+        private readonly BulletPhysicsEngine _engine;
+        private readonly CollisionShape _shape;
+        private bool _disposed;
+
+        public BulletPhysicsBodyBackend(BulletPhysicsEngine engine, CollisionObject collisionObject, CollisionShape shape)
+        {
+            _engine = engine;
+            CollisionObject = collisionObject;
+            _shape = shape;
+        }
+
+        public CollisionObject CollisionObject { get; }
+
+        public bool IsRigidBody => CollisionObject is RigidBody;
+
+        public Matrix WorldTransform
+        {
+            get => CollisionObject.WorldTransform;
+            set => CollisionObject.WorldTransform = value;
+        }
+
+        public Vector3 LinearVelocity
+        {
+            get => CollisionObject is RigidBody rigidBody ? rigidBody.LinearVelocity : Vector3.Zero;
+            set
+            {
+                if (CollisionObject is RigidBody rigidBody)
+                {
+                    rigidBody.LinearVelocity = value;
+                }
+            }
+        }
+
+        public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
+        {
+            if (CollisionObject is RigidBody rigidBody)
+            {
+                rigidBody.ApplyImpulse(impulse, relativePosition);
+            }
+        }
+
+        public void RefreshAabb()
+        {
+            _engine._collisionWorld.UpdateSingleAabb(CollisionObject);
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            CollisionObject.Dispose();
+            _shape.Dispose();
+            _disposed = true;
+        }
+    }
+
+    private sealed class BulletPhysicsDebugDrawAdapter : DebugDraw
+    {
+        public IPhysicsDebugDrawer? DebugDrawer { get; set; }
+
+        public override DebugDrawModes DebugMode
+        {
+            get => DebugDrawer == null ? DebugDrawModes.NoDebug : (DebugDrawModes)DebugDrawer.DebugMode;
+            set
+            {
+                if (DebugDrawer != null)
+                {
+                    DebugDrawer.DebugMode = (PhysicsDebugDrawModes)value;
+                }
+            }
+        }
+
+        public override void Draw3dText(ref Vector3 location, string textString)
+        {
+            DebugDrawer?.Draw3dText(ref location, textString);
+        }
+
+        public override void DrawContactPoint(ref Vector3 pointOnB, ref Vector3 normalOnB, float distance, int lifeTime, Color color)
+        {
+            DebugDrawer?.DrawContactPoint(ref pointOnB, ref normalOnB, distance, lifeTime, color);
+        }
+
+        public override void DrawLine(ref Vector3 from, ref Vector3 to, Color color)
+        {
+            DebugDrawer?.DrawLine(ref from, ref to, color);
+        }
+
+        public override void ReportErrorWarning(string warningString)
+        {
+            DebugDrawer?.ReportErrorWarning(warningString);
         }
     }
 
