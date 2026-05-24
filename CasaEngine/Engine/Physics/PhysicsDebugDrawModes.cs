@@ -19,5 +19,6 @@ public enum PhysicsDebugDrawModes
     DrawConstraintLimits = 4096,
     FastWireframe = 8192,
     DrawNormals = 16384,
-    MaxDebugDrawMode = -1
+    DrawFrames = 32768,
+    MaxDebugDrawMode = DrawWireframe | DrawFrames
 }

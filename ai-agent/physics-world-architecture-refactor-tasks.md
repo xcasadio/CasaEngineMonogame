@@ -113,7 +113,7 @@ Notes:
 
 ### T07 - Restore physics debug draw mode parity
 
-Status: Todo
+Status: Done
 
 - Match engine-owned `PhysicsDebugDrawModes` values to the BulletSharp debug modes consumed by the backend adapter.
 - Restore the old default debug mode semantics: oriented wireframe collider rendering with Bullet activation-state colors, not broadphase AABB rendering.
