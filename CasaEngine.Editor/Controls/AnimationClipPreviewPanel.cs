@@ -3,6 +3,7 @@ using System.IO;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Rendering.Environment;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
@@ -12,7 +13,6 @@ using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Scene.World;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;

@@ -6,7 +6,6 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.TileMap;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Rendering.Geometry;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;

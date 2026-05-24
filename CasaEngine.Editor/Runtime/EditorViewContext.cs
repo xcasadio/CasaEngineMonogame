@@ -25,9 +25,9 @@ public sealed class EditorViewContext : IDisposable
 
     public TransformGizmoComponent? Gizmo { get; set; }
 
-    public DebugGridComponent? Grid { get; set; }
+    public GridComponent? Grid { get; set; }
 
-    public DebugAxisComponent? Axis { get; set; }
+    public AxisComponent? Axis { get; set; }
 
     public IKeyboardStateProvider? KeyboardProvider { get; set; }
 

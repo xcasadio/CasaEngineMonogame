@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Rendering;
+namespace CasaEngine.Core.Math;
 
 public readonly struct DualQuaternion
 {

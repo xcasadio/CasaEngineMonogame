@@ -6,7 +6,6 @@ using System.IO;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Cutscenes;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;

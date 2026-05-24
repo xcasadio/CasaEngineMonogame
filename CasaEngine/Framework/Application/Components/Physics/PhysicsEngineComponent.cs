@@ -24,11 +24,6 @@ public class PhysicsEngineComponent : GameComponent, IPhysicsWorldContext
         UpdateOrder = (int)ComponentUpdateOrder.Physics;
     }
 
-    public override void Initialize()
-    {
-        base.Initialize();
-    }
-
     public PhysicsWorldContext GetOrCreateContext(Scene.World.World world)
     {
         ArgumentNullException.ThrowIfNull(world);

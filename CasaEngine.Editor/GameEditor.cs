@@ -16,10 +16,8 @@ using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
-using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -45,6 +43,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CasaEngine.Editor.Runtime.Rendering.Environment;
 using Thickness = MonoGame.Extended.Thickness;
 
 namespace CasaEngine.Editor;

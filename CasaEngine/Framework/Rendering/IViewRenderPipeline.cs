@@ -10,7 +10,6 @@ namespace CasaEngine.Framework.Rendering;
 /// <list type="bullet">
 ///   <item><b>DefaultViewPipeline</b> — standard game view (clear → world draw → flush → UI composition).</item>
 ///   <item><b>OverlayViewPipeline</b> — adds gizmos, grid, selection outline overlays, then UI composition.</item>
-///   <item><b>AssetPreviewPipeline</b> — simplified rendering for inspector asset previews.</item>
 /// </list>
 ///
 /// The surface has already been applied (SetRenderTarget + Viewport) and cleared by

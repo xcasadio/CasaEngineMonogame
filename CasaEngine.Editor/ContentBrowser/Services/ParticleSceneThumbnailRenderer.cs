@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Rendering.Environment;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Rendering;

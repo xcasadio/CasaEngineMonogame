@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using CasaEngine.Core.Math.Geometry;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;

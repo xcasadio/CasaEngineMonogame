@@ -5,14 +5,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Application.Components.DebugTools
 {
-    public class DebugGridComponent : DrawableGameComponent
+    public class GridComponent : DrawableGameComponent
     {
-        private VertexPositionColor[] LinesVertices;
-        private int m_Size = 50;
-        private Effect? GridEffect;
-        private CasaEngineGame? _game;
+        private VertexPositionColor[] _linesVertices;
+        private const int Size = 50;
+        private Effect _gridEffect;
+        private CasaEngineGame _game;
 
-        public DebugGridComponent(Game game) : base(game)
+        public GridComponent(Game game) : base(game)
         {
             _game = game as CasaEngineGame;
             game.Components.Add(this);
@@ -30,14 +30,14 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
 
         protected override void LoadContent()
         {
-            int nbVertices = m_Size * 8 + 4;
-            GridEffect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
-            LinesVertices = new VertexPositionColor[nbVertices];
-            Color color;
+            int nbVertices = Size * 8 + 4;
+            _gridEffect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
+            _linesVertices = new VertexPositionColor[nbVertices];
             int i = 0;
 
-            for (int x = m_Size; x > 0; x--)
+            for (int x = Size; x > 0; x--)
             {
+                Color color;
                 if (x % 10 == 0)
                 {
                     color = Color.DarkBlue;
@@ -51,23 +51,23 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
                     color = Color.DimGray;
                 }
 
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, m_Size), color);
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, -m_Size), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, Size), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(x, 0.0f, -Size), color);
 
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(-x, 0.0f, m_Size), color);
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(-x, 0.0f, -m_Size), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(-x, 0.0f, Size), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(-x, 0.0f, -Size), color);
 
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(m_Size, 0.0f, x), color);
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(-m_Size, 0.0f, x), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(Size, 0.0f, x), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(-Size, 0.0f, x), color);
 
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(m_Size, 0.0f, -x), color);
-                LinesVertices[i++] = new VertexPositionColor(new Vector3(-m_Size, 0.0f, -x), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(Size, 0.0f, -x), color);
+                _linesVertices[i++] = new VertexPositionColor(new Vector3(-Size, 0.0f, -x), color);
             }
 
-            LinesVertices[i++] = new VertexPositionColor(new Vector3(-m_Size, 0.0f, 0), Color.DarkBlue);
-            LinesVertices[i++] = new VertexPositionColor(new Vector3(m_Size, 0.0f, 0), Color.DarkBlue);
-            LinesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, m_Size), Color.DarkBlue);
-            LinesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, -m_Size), Color.DarkBlue);
+            _linesVertices[i++] = new VertexPositionColor(new Vector3(-Size, 0.0f, 0), Color.DarkBlue);
+            _linesVertices[i++] = new VertexPositionColor(new Vector3(Size, 0.0f, 0), Color.DarkBlue);
+            _linesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, Size), Color.DarkBlue);
+            _linesVertices[i++] = new VertexPositionColor(new Vector3(0, 0.0f, -Size), Color.DarkBlue);
 
             // Drawing is handled by OverlayViewPipeline.RenderGrid per-view.
             Visible = false;
@@ -88,7 +88,7 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         /// </summary>
         public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
         {
-            if (GridEffect == null)
+            if (_gridEffect == null)
             {
                 return;
             }
@@ -99,13 +99,13 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
             gd.Indices = null;
             gd.SetVertexBuffer(null);
 
-            GridEffect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(frame.View * frame.Projection);
-            GridEffect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
+            _gridEffect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(frame.View * frame.Projection);
+            _gridEffect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
 
-            foreach (EffectPass pass in GridEffect.CurrentTechnique.Passes)
+            foreach (EffectPass pass in _gridEffect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                gd.DrawUserPrimitives(PrimitiveType.LineList, LinesVertices, 0, LinesVertices.Length / 2);
+                gd.DrawUserPrimitives(PrimitiveType.LineList, _linesVertices, 0, _linesVertices.Length / 2);
             }
         }
     }

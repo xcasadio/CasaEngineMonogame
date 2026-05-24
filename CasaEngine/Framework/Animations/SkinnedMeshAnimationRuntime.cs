@@ -1,3 +1,4 @@
+using CasaEngine.Core.Math;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;

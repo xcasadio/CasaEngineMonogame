@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Rendering.Environment;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;

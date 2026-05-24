@@ -1,5 +1,6 @@
 ﻿
 using CasaEngine.Core.Logging;
+using CasaEngine.Core.Math;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Rendering.Shaders;

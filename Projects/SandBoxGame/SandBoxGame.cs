@@ -36,8 +36,6 @@ namespace SandBoxGame
 
         protected override void Initialize()
         {
-            new DebugGridComponent(this);
-            new DebugAxisComponent(this);
             base.Initialize();
 
             //IsMouseVisible = true;

@@ -1,21 +1,19 @@
-﻿#if !FINAL
-
-using CasaEngine.Framework.Rendering;
+﻿using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace CasaEngine.Framework.Application.Components.DebugTools
 {
-    public class DebugAxisComponent : DrawableGameComponent, IGameComponentResizable
+    public class AxisComponent : DrawableGameComponent, IGameComponentResizable
     {
-        private CasaEngineGame? _game;
-        private VertexBuffer? _vertexBuffer;
-        private Effect? _effect;
+        private readonly CasaEngineGame _game;
+        private VertexBuffer _vertexBuffer;
+        private Effect _effect;
         private int _width;
         private int _height;
 
-        public DebugAxisComponent(Game game) : base(game)
+        public AxisComponent(Game game) : base(game)
         {
             _game = game as CasaEngineGame;
             game.Components.Add(this);
@@ -27,7 +25,6 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         {
             base.LoadContent();
 
-            //var font = Game.Content.Load<SpriteFont>("GizmoFont");
             _effect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
 
             _vertexBuffer = new VertexBuffer(GraphicsDevice, VertexPositionColor.VertexDeclaration, 6, BufferUsage.None);
@@ -45,20 +42,13 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
             Visible = false;
         }
 
-        public override void Draw(GameTime gameTime)
-        {
-            // Visible = false — this override is never called from DrawWithEditor.
-            // Drawing is done by DrawForView() called from OverlayViewPipeline.
-            base.Draw(gameTime);
-        }
-
         /// <summary>
         /// Draws the axis orientation indicator for a specific view.
         /// Uses <paramref name="frame"/>.ViewportRect for the pixel dimensions so the
         /// indicator is always scaled correctly regardless of the viewport size.
         /// Called by <see cref="OverlayViewPipeline"/> with the view's render target active.
         /// </summary>
-        public void DrawForView(GraphicsDevice gd, in RenderFrame frame)
+        public void DrawForView(GraphicsDevice graphicsDevice, in RenderFrame frame)
         {
             if (_effect == null || _vertexBuffer == null)
             {
@@ -72,11 +62,11 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
                 return;
             }
 
-            gd.DepthStencilState = DepthStencilState.None;
-            gd.RasterizerState   = RasterizerState.CullNone;
-            gd.BlendState        = BlendState.Opaque;
-            gd.SetVertexBuffer(_vertexBuffer);
-            gd.Indices = null;
+            graphicsDevice.DepthStencilState = DepthStencilState.None;
+            graphicsDevice.RasterizerState   = RasterizerState.CullNone;
+            graphicsDevice.BlendState        = BlendState.Opaque;
+            graphicsDevice.SetVertexBuffer(_vertexBuffer);
+            graphicsDevice.Indices = null;
 
             //TODO : compute with screen height/width and aspect ratio
             var forwardFactor = (float)width  / 800f * 20f;
@@ -95,7 +85,7 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
             for (var i = 0; i < _effect.CurrentTechnique.Passes.Count; i++)
             {
                 _effect.CurrentTechnique.Passes[i].Apply();
-                gd.DrawPrimitives(PrimitiveType.LineList, 0, 3);
+                graphicsDevice.DrawPrimitives(PrimitiveType.LineList, 0, 3);
             }
         }
 
@@ -106,5 +96,3 @@ namespace CasaEngine.Framework.Application.Components.DebugTools
         }
     }
 }
-
-#endif

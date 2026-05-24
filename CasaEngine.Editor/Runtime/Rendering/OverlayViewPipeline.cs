@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using CasaEngine.Framework.Application.Components;
 using Microsoft.Xna.Framework.Graphics;
 

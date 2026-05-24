@@ -8,7 +8,6 @@ using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Particles.Serialization;

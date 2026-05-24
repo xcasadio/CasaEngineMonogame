@@ -9,7 +9,6 @@ using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.EditorServices.Particles;
 using CasaEngine.Framework.Assets;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Scene.World;

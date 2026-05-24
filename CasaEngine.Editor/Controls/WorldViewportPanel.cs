@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.History;
-using CasaEngine.Editor.Rendering.Vector;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
@@ -128,9 +127,8 @@ public class WorldViewportPanel : IDisposable
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
     private MguiViewportViewHost? _renderViewHost;
-    private DebugGridComponent? _grid;
-    private DebugAxisComponent? _axis;
-    private IEditorVectorCanvas? _vectorCanvas;
+    private GridComponent? _grid;
+    private AxisComponent? _axis;
     private readonly EditorLightOverlayCollector _lightOverlayCollector = new();
     private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
     private EditorLightBillboardOverlayRenderer? _lightBillboardOverlayRenderer;
@@ -1184,7 +1182,6 @@ public class WorldViewportPanel : IDisposable
 
         _grid ??= CreateGridComponent();
         _axis ??= CreateAxisComponent();
-        _vectorCanvas ??= CreateVectorCanvas();
         _lightBillboardOverlayRenderer ??= new EditorLightBillboardOverlayRenderer(_graphicsDevice);
         _lightWireOverlayRenderer ??= new EditorLightWireOverlayRenderer(_editorRuntime.Content);
         _particleWireOverlayRenderer ??= new EditorParticleWireOverlayRenderer(_editorRuntime.Content);
@@ -1226,40 +1223,18 @@ public class WorldViewportPanel : IDisposable
         _lightBillboardOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
     }
 
-    private DebugGridComponent CreateGridComponent()
+    private GridComponent CreateGridComponent()
     {
-        var grid = new DebugGridComponent(_editorRuntime);
+        var grid = new GridComponent(_editorRuntime);
         grid.Initialize();
         return grid;
     }
 
-    private DebugAxisComponent CreateAxisComponent()
+    private AxisComponent CreateAxisComponent()
     {
-        var axis = new DebugAxisComponent(_editorRuntime);
+        var axis = new AxisComponent(_editorRuntime);
         axis.Initialize();
         return axis;
-    }
-
-    private IEditorVectorCanvas CreateVectorCanvas()
-    {
-        string[] candidatePaths =
-        {
-            Path.Combine(AppContext.BaseDirectory, "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
-            Path.Combine(AppContext.BaseDirectory, "Content", "Fonts", "JetBrainsMono", "ttf", "JetBrainsMono-Regular.ttf"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CasaEngine.Editor", "Content", "fonts", "JetBrainsMono", "JetBrainsMono-Regular.ttf"),
-        };
-
-        foreach (string candidatePath in candidatePaths)
-        {
-            string fullPath = Path.GetFullPath(candidatePath);
-            if (File.Exists(fullPath))
-            {
-                return new NvgSharpVectorCanvas(fullPath);
-            }
-        }
-
-        return NullEditorVectorCanvas.Instance;
     }
 
     private void SynchronizeGizmo()
@@ -1312,8 +1287,6 @@ public class WorldViewportPanel : IDisposable
         _lightWireOverlayRenderer = null;
         _particleWireOverlayRenderer?.Dispose();
         _particleWireOverlayRenderer = null;
-        _vectorCanvas?.Dispose();
-        _vectorCanvas = null;
         _grid = null;
         _axis = null;
 

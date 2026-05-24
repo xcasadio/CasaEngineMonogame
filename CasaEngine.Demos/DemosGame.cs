@@ -57,8 +57,6 @@ public class DemosGame : CasaEngineGame
         projectSettings.WindowTitle = "CasaEngine demos";
         projectSettings.AllowUserResizing = true;
 
-        new DebugAxisComponent(this);
-
         base.Initialize();
     }
 
@@ -77,13 +75,13 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new MaterialDemo());
         _demos.Add(new ParticleSystemDemo());
         _demos.Add(new EnvironmentShowcaseDemo());
-        //_demos.Add(new TileMapDemo()); // 2
+        //_demos.Add(new TileMapDemo());
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new StaticShadowValidationDemo());
         _demos.Add(new AnimationBlendDemo());
         _demos.Add(new AnimationIkDemo());
         _demos.Add(new SceneManagementDemo());
-        _demos.Add(new SplitScreenDemo()); // 5
+        _demos.Add(new SplitScreenDemo());
         _demos.Add(new RenderToTextureDemo());
         _demos.Add(new WorldSpaceUIDemo());
         _demos.Add(new ViewManagerSandbox());

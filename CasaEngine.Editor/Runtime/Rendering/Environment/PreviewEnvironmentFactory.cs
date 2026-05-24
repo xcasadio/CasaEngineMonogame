@@ -1,4 +1,7 @@
-namespace CasaEngine.Framework.Rendering.Environment;
+using CasaEngine.Framework.Rendering.Environment;
+using Microsoft.Xna.Framework;
+
+namespace CasaEngine.Editor.Runtime.Rendering.Environment;
 
 public static class PreviewEnvironmentFactory
 {
