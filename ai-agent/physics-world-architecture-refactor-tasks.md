@@ -111,6 +111,30 @@ Notes:
 - `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore` succeeds.
 - Full solution build currently fails outside this refactor in `SandBoxGame` and `CasaEngine.Demos` because `CasaEngine.Framework.Application.Components.DebugTools` is missing.
 
+### T07 - Restore physics debug draw mode parity
+
+Status: Todo
+
+- Match engine-owned `PhysicsDebugDrawModes` values to the BulletSharp debug modes consumed by the backend adapter.
+- Restore the old default debug mode semantics: oriented wireframe collider rendering with Bullet activation-state colors, not broadphase AABB rendering.
+- Keep BulletSharp enum usage private to `BulletPhysicsEngine`; public/debug renderer code must stay on `PhysicsDebugDrawModes`.
+
+Validation:
+
+- `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore`
+
+### T08 - Validate physics debug draw isolation
+
+Status: Todo
+
+- Verify no `using BulletSharp` / `BulletSharp.` leaks were added outside the Bullet backend source.
+- Record validation results and any known blockers in this task file.
+
+Validation:
+
+- `rg "using BulletSharp|BulletSharp\." CasaEngine CasaEngine.Tests/Physics --glob "*.cs" --glob "!CasaEngine/Framework/Physics/BulletPhysicsEngine.cs"`
+- `dotnet build CasaEngine/CasaEngine.csproj -c Debug --no-restore`
+
 ## Notes for follow-up agents
 
 - Do not reintroduce BulletSharp in `CasaEngine.Framework.Scene`, `CasaEngine.Framework.Assets`, or public physics contracts.
