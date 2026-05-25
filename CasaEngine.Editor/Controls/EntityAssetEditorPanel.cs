@@ -196,9 +196,9 @@ public sealed class EntityAssetEditorPanel : IDisposable
         _previewWorldDriver.Tick(gameTime);
     }
 
-    public void UpdateInput(GameTime gameTime)
+    public void UpdateInput(GameTime gameTime, bool editorShellCapturesKeyboard = false)
     {
-        _viewportPanel?.UpdateInput(gameTime);
+        _viewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard);
     }
 
     public void DrawViewport(GameTime gameTime)

@@ -267,7 +267,7 @@ public class WorldViewportPanel : IDisposable
         return result;
     }
 
-    public void UpdateInput(GameTime gameTime)
+    public void UpdateInput(GameTime gameTime, bool editorShellCapturesKeyboard = false)
     {
         if (_viewportHost == null)
         {
@@ -283,12 +283,14 @@ public class WorldViewportPanel : IDisposable
             router?.ClearKeyboardFocus(_renderView.Id);
         }
 
-        bool isKeyboardFocused = !isBlockedByEditorModal
+        bool isKeyboardFocused = !editorShellCapturesKeyboard
+            && !isBlockedByEditorModal
             && _renderView != null
             && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
 
         var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
-        bool receivesInput = !isBlockedByEditorModal
+        bool receivesInput = !editorShellCapturesKeyboard
+            && !isBlockedByEditorModal
             && _renderView != null
             && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();

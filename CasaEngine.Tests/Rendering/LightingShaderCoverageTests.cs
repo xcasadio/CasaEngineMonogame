@@ -76,14 +76,18 @@ public class LightingShaderCoverageTests
     }
 
     [Fact]
-    public void LightingInclude_UsesExplicitLocalLightAccessors()
+    public void LightingInclude_UsesExplicitLocalLightSlotAccumulation()
     {
         string includeSource = LoadShaderSource("Lighting.fxh");
 
-        Assert.Contains("GetPointLightPositionAndRange(pointIndex)", includeSource);
-        Assert.Contains("GetPointLightDiffuseColor(pointIndex).xyz", includeSource);
-        Assert.Contains("GetSpotLightPositionAndRange(spotIndex)", includeSource);
-        Assert.Contains("GetSpotLightDirectionAndInnerConeCos(spotIndex)", includeSource);
+        Assert.Contains("AccumulatePointLightSlots", includeSource);
+        Assert.Contains("AccumulateSpotLightSlots", includeSource);
+        Assert.Contains("PointLight1PositionAndRange, PointLight1DiffuseColor, PointLight1SpecularColor", includeSource);
+        Assert.Contains("SpotLight1PositionAndRange, SpotLight1DirectionAndInnerConeCos, SpotLight1DiffuseColor, SpotLight1SpecularColorAndOuterConeCos", includeSource);
+        Assert.DoesNotContain("GetPointLightPositionAndRange(", includeSource);
+        Assert.DoesNotContain("GetSpotLightPositionAndRange(", includeSource);
+        Assert.DoesNotContain("pointIndex", includeSource);
+        Assert.DoesNotContain("spotIndex", includeSource);
     }
 
     [Fact]

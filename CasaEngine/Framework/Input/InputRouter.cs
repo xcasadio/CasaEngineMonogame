@@ -120,6 +120,11 @@ public sealed class InputRouter
         }
     }
 
+    public void ClearKeyboardFocus()
+    {
+        KeyboardFocusViewId = ViewId.Empty;
+    }
+
     public bool TryDispatch(out ViewId viewId, out KeyboardState keyboardState, out MouseState mouseState)
     {
         if (TryDispatchContext(out var context))

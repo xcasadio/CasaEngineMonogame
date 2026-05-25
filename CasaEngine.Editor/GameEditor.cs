@@ -3992,38 +3992,42 @@ public class GameEditor : Game, IObservableUpdate
         PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
 
         // ── Keyboard shortcuts ────────────────────────────────────────
-        var kb = Keyboard.GetState();
-        bool ctrl = kb.IsKeyDown(Keys.LeftControl)
-                    || kb.IsKeyDown(Keys.RightControl);
-        bool shift = kb.IsKeyDown(Keys.LeftShift)
-                     || kb.IsKeyDown(Keys.RightShift);
-        if (ctrl && shift && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
+        var kb = _windowInputSource.GetKeyboardState();
+        bool editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
+        if (!editorShellCapturesKeyboard)
         {
-            ExecuteRedo();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
-        {
-            ExecuteUndo();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Y))
-        {
-            ExecuteRedo();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.D))
-        {
-            ExecuteDuplicate();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.C))
-        {
-            ExecuteCopy();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.X))
-        {
-            ExecuteCut();
-        }
-        else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.V))
-        {
-            ExecutePaste();
+            bool ctrl = kb.IsKeyDown(Keys.LeftControl)
+                        || kb.IsKeyDown(Keys.RightControl);
+            bool shift = kb.IsKeyDown(Keys.LeftShift)
+                         || kb.IsKeyDown(Keys.RightShift);
+            if (ctrl && shift && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
+            {
+                ExecuteRedo();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
+            {
+                ExecuteUndo();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Y))
+            {
+                ExecuteRedo();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.D))
+            {
+                ExecuteDuplicate();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.C))
+            {
+                ExecuteCopy();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.X))
+            {
+                ExecuteCut();
+            }
+            else if (ctrl && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.V))
+            {
+                ExecutePaste();
+            }
         }
 
         _previousShortcutKeyboardState = kb;
@@ -4051,14 +4055,20 @@ public class GameEditor : Game, IObservableUpdate
         _contentBrowserPanel?.Update();
 
         _desktop.Update();
+        editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
+        if (editorShellCapturesKeyboard)
+        {
+            _editorRuntime?.InputComponent.InputRouter?.ClearKeyboardFocus();
+        }
+
         ProcessPendingProjectLauncherAction();
         _editorRuntime?.UpdateHost(gameTime);
         _entitiesPanel?.Update();
         _entityDetailsPanel?.Update();
-        _worldViewportPanel?.UpdateInput(gameTime);
+        _worldViewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard);
         foreach (var materialViewportPanel in _materialViewportPanels.Values)
         {
-            materialViewportPanel.UpdateInput(gameTime);
+            materialViewportPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
         }
         foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
         {
@@ -4066,7 +4076,7 @@ public class GameEditor : Game, IObservableUpdate
         }
         foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
         {
-            entityAssetEditorPanel.UpdateInput(gameTime);
+            entityAssetEditorPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
         }
         RunAutomation(gameTime.TotalGameTime);
 
@@ -4074,6 +4084,9 @@ public class GameEditor : Game, IObservableUpdate
 
         EndUpdate?.Invoke(this, EventArgs.Empty);
     }
+
+    private bool IsEditorShellCapturingKeyboard()
+        => _desktop?.ShouldCaptureGameplayInput() == true;
 
     private void OnAutomationWorldLoaded(object? sender, EventArgs e)
     {
