@@ -120,6 +120,39 @@ public static class ShaderParameterNames
     public const string SpotLightDirectionAndInnerConeCos = "SpotLightDirectionAndInnerConeCos";
     public const string SpotLightDiffuseColors = "SpotLightDiffuseColors";
     public const string SpotLightSpecularColorsAndOuterConeCos = "SpotLightSpecularColorsAndOuterConeCos";
+
+    public static readonly string[] PointLightPositionAndRangeParameters =
+        CreateIndexedParameterNames("PointLight", "PositionAndRange", LightingContext.MaxPointLights);
+
+    public static readonly string[] PointLightDiffuseParameters =
+        CreateIndexedParameterNames("PointLight", "DiffuseColor", LightingContext.MaxPointLights);
+
+    public static readonly string[] PointLightSpecularParameters =
+        CreateIndexedParameterNames("PointLight", "SpecularColor", LightingContext.MaxPointLights);
+
+    public static readonly string[] SpotLightPositionAndRangeParameters =
+        CreateIndexedParameterNames("SpotLight", "PositionAndRange", LightingContext.MaxSpotLights);
+
+    public static readonly string[] SpotLightDirectionAndInnerConeCosParameters =
+        CreateIndexedParameterNames("SpotLight", "DirectionAndInnerConeCos", LightingContext.MaxSpotLights);
+
+    public static readonly string[] SpotLightDiffuseParameters =
+        CreateIndexedParameterNames("SpotLight", "DiffuseColor", LightingContext.MaxSpotLights);
+
+    public static readonly string[] SpotLightSpecularAndOuterConeCosParameters =
+        CreateIndexedParameterNames("SpotLight", "SpecularColorAndOuterConeCos", LightingContext.MaxSpotLights);
+
+    private static string[] CreateIndexedParameterNames(string prefix, string suffix, int count)
+    {
+        var names = new string[count];
+        for (int index = 0; index < count; index++)
+        {
+            names[index] = $"{prefix}{index}{suffix}";
+        }
+
+        return names;
+    }
+
     public const string ShadowMapTexture = "ShadowMapTexture";
     public const string ActiveShadowLightCount = "ActiveShadowLightCount";
     public const string ShadowedDirectionalLightIndex = "ShadowedDirectionalLightIndex";

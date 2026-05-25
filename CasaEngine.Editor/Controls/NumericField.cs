@@ -118,18 +118,20 @@ public class NumericField : MGStackPanel
     private void SetValue(float raw, bool notify)
     {
         float clamped = Math.Clamp(raw, Min, Max);
-        if (_value == clamped && !notify)
+        string text = clamped.ToString("G7", CultureInfo.InvariantCulture);
+        if (_value == clamped && string.Equals(_textBox.Text, text, StringComparison.Ordinal))
         {
             return;
         }
 
+        float previousValue = _value;
         _value = clamped;
 
         _suppressTextChanged = true;
-        _textBox.SetText(_value.ToString("G7", CultureInfo.InvariantCulture));
+        _textBox.SetText(text);
         _suppressTextChanged = false;
 
-        if (notify)
+        if (notify && previousValue != _value)
         {
             ValueChanged?.Invoke(this, _value);
         }

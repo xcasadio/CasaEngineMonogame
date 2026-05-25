@@ -501,39 +501,42 @@ public sealed class EntityDetailsPanel
 
         Trace($"RebuildPropertyEditors entity={DescribeEntity(_selectedEntity)} component={DescribeComponent(_selectedComponent)}");
 
-        ClearDetailsContent();
-
-        if (_selectedEntity == null)
+        using (_detailsContent.SuspendContentLayout())
         {
-            _activeComponentEditor = null;
-            if (_selectedWorld != null)
+            ClearDetailsContent();
+
+            if (_selectedEntity == null)
             {
-                BuildWorldPropertyEditors();
-            }
-            else
-            {
-                _detailsContent.TryAddChild(new MGTextBlock(_window, "Select an entity or the world to inspect its properties.")
+                _activeComponentEditor = null;
+                if (_selectedWorld != null)
                 {
-                    WrapText = true,
-                });
+                    BuildWorldPropertyEditors();
+                }
+                else
+                {
+                    _detailsContent.TryAddChild(new MGTextBlock(_window, "Select an entity or the world to inspect its properties.")
+                    {
+                        WrapText = true,
+                    });
+                }
+
+                return;
             }
 
-            return;
-        }
+            if (_selectedComponent == null)
+            {
+                _activeComponentEditor = null;
+                BuildEntityPropertyEditors();
+                return;
+            }
 
-        if (_selectedComponent == null)
-        {
-            _activeComponentEditor = null;
-            BuildEntityPropertyEditors();
-            return;
+            _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(GetComponentLabel(_selectedComponent))}[/b]")
+            {
+                WrapText = false,
+            });
+            _activeComponentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor, HistoryContext);
+            _detailsContent.TryAddChild(_activeComponentEditor.CreateView());
         }
-
-        _detailsContent.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(GetComponentLabel(_selectedComponent))}[/b]")
-        {
-            WrapText = false,
-        });
-        _activeComponentEditor = ComponentEditorRegistry.Create(_window, _selectedComponent, RefreshSelectedComponentEditor, HistoryContext);
-        _detailsContent.TryAddChild(_activeComponentEditor.CreateView());
     }
 
     private void RefreshSelectedComponentEditor()
@@ -876,10 +879,7 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        foreach (var child in _detailsContent.Children.ToList())
-        {
-            _detailsContent.TryRemoveChild(child);
-        }
+        _detailsContent.TryRemoveAll();
     }
 
     private void ApplyWorldEnvironmentChange<T>(

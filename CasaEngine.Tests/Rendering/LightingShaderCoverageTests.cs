@@ -49,6 +49,43 @@ public class LightingShaderCoverageTests
         Assert.Contains($"DirLight{lastLightIndex}SpecularColor", includeSource);
     }
 
+    [Theory]
+    [InlineData("LitForward.fx")]
+    [InlineData("skinEffect.fx")]
+    public void MaterialFacingLightingShaders_DeclareExpandedLocalLightSlots(string shaderFileName)
+    {
+        string source = LoadShaderSource(shaderFileName);
+
+        for (int index = 0; index < LightingContext.MaxPointLights; index++)
+        {
+            Assert.Contains($"PointLight{index}PositionAndRange", source);
+            Assert.Contains($"PointLight{index}DiffuseColor", source);
+            Assert.Contains($"PointLight{index}SpecularColor", source);
+        }
+
+        for (int index = 0; index < LightingContext.MaxSpotLights; index++)
+        {
+            Assert.Contains($"SpotLight{index}PositionAndRange", source);
+            Assert.Contains($"SpotLight{index}DirectionAndInnerConeCos", source);
+            Assert.Contains($"SpotLight{index}DiffuseColor", source);
+            Assert.Contains($"SpotLight{index}SpecularColorAndOuterConeCos", source);
+        }
+
+        Assert.DoesNotContain("PointLightPositionAndRange[", source);
+        Assert.DoesNotContain("SpotLightPositionAndRange[", source);
+    }
+
+    [Fact]
+    public void LightingInclude_UsesExplicitLocalLightAccessors()
+    {
+        string includeSource = LoadShaderSource("Lighting.fxh");
+
+        Assert.Contains("GetPointLightPositionAndRange(pointIndex)", includeSource);
+        Assert.Contains("GetPointLightDiffuseColor(pointIndex).xyz", includeSource);
+        Assert.Contains("GetSpotLightPositionAndRange(spotIndex)", includeSource);
+        Assert.Contains("GetSpotLightDirectionAndInnerConeCos(spotIndex)", includeSource);
+    }
+
     [Fact]
     public void SkinnedLightingShader_ConsumesEnvironmentAmbientAndReflectionBindings()
     {

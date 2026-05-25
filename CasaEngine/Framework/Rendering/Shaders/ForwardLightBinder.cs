@@ -74,10 +74,26 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.PointLightDiffuseColors, _pointLightDiffuseData);
         shader.SetParameter(ShaderParameterNames.PointLightSpecularColors, _pointLightSpecularData);
 
+        for (int index = 0; index < LightingContext.MaxPointLights; index++)
+        {
+            shader.SetParameter(ShaderParameterNames.PointLightPositionAndRangeParameters[index], _pointLightPositionAndRangeData[index]);
+            shader.SetParameter(ShaderParameterNames.PointLightDiffuseParameters[index], _pointLightDiffuseData[index]);
+            shader.SetParameter(ShaderParameterNames.PointLightSpecularParameters[index], _pointLightSpecularData[index]);
+        }
+
         shader.SetParameter(ShaderParameterNames.SpotLightPositionAndRange, _spotLightPositionAndRangeData);
         shader.SetParameter(ShaderParameterNames.SpotLightDirectionAndInnerConeCos, _spotLightDirectionAndInnerConeCosData);
         shader.SetParameter(ShaderParameterNames.SpotLightDiffuseColors, _spotLightDiffuseData);
         shader.SetParameter(ShaderParameterNames.SpotLightSpecularColorsAndOuterConeCos, _spotLightSpecularAndOuterConeCosData);
+
+        for (int index = 0; index < LightingContext.MaxSpotLights; index++)
+        {
+            shader.SetParameter(ShaderParameterNames.SpotLightPositionAndRangeParameters[index], _spotLightPositionAndRangeData[index]);
+            shader.SetParameter(ShaderParameterNames.SpotLightDirectionAndInnerConeCosParameters[index], _spotLightDirectionAndInnerConeCosData[index]);
+            shader.SetParameter(ShaderParameterNames.SpotLightDiffuseParameters[index], _spotLightDiffuseData[index]);
+            shader.SetParameter(ShaderParameterNames.SpotLightSpecularAndOuterConeCosParameters[index], _spotLightSpecularAndOuterConeCosData[index]);
+        }
+
         shader.SetParameter(ShaderParameterNames.AmbientColor, ambientColor);
     }
 
