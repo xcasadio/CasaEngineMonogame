@@ -15,7 +15,6 @@
     <PackageVersion Include="MonoGame.Extended" Version="3.8.0" />
     <PackageVersion Include="MonoGame.Extended.Content.Pipeline" Version="3.8.0" />
     <PackageVersion Include="MonoGame.Framework.DesktopGL" Version="3.8.4.1" />
-    <PackageVersion Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageVersion Include="Portable.Xaml" Version="0.26.0" />
     <PackageVersion Include="Prism.Core" Version="8.1.97" />

@@ -207,7 +207,9 @@ public class GameEditor : Game, IObservableUpdate
         EditorIcons.Load(Content);
 
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _windowInputSource = new FrameCachedWindowInputSource(new Win32WindowInputSource(() => Window.Handle));
+        _windowInputSource = new FrameCachedWindowInputSource(new MonoGameWindowInputSource(
+            () => IsActive,
+            () => Window));
         const string familyName = "JetBrainsMono";
         string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
         var backend = CasaMonoGameBackendBootstrap.Create(new CasaGameRenderHost<GameEditor>(this), _windowInputSource);
@@ -248,7 +250,10 @@ public class GameEditor : Game, IObservableUpdate
 
         ApplyEditorTheme();
 
-        InitializeEditorRuntime();
+        if (_automationOptions.HasAutomation)
+        {
+            EnsureEditorRuntimeInitialized();
+        }
 
         // Main window (borderless, fills the screen)
         _mainWindow = new MGWindow(_desktop, 0, 0, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight)
@@ -669,6 +674,7 @@ public class GameEditor : Game, IObservableUpdate
     private void PresentLoadedProject()
     {
         ApplyAutomationProjectDirectory();
+        EnsureEditorRuntimeInitialized();
         EnsureShellChromeInitialized();
         EnsureDockHostInitialized();
 
@@ -721,8 +727,13 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void InitializeEditorRuntime()
+    private void EnsureEditorRuntimeInitialized()
     {
+        if (_editorRuntime != null)
+        {
+            return;
+        }
+
         var graphicsDeviceService = Services.GetService(typeof(IGraphicsDeviceService)) as IGraphicsDeviceService;
         if (graphicsDeviceService == null)
         {

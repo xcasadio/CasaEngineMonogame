@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>$(WindowsTargetFramework)</TargetFramework>
     <PlatformTarget>x64</PlatformTarget>
     <RollForward>Major</RollForward>
     <PublishReadyToRun>false</PublishReadyToRun>
@@ -14,7 +14,7 @@
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" />
     <PackageReference Include="MonoGame.Content.Builder.Task" />
   </ItemGroup>
   <ItemGroup>

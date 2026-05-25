@@ -1,5 +1,10 @@
 <Project>
   <PropertyGroup>
+    <DotNetVersion>9.0</DotNetVersion>
+
+    <BaseTargetFramework>net$(DotNetVersion)</BaseTargetFramework>
+    <WindowsTargetFramework>net$(DotNetVersion)-windows</WindowsTargetFramework>
+
     <DefaultItemExcludes>$(DefaultItemExcludes);artifacts/**;artifacts\**</DefaultItemExcludes>
   </PropertyGroup>
 </Project>

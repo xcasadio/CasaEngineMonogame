@@ -1,3 +1,11 @@
+#if OPENGL
+#define DEBUG_VS_SHADERMODEL vs_3_0
+#define DEBUG_PS_SHADERMODEL ps_3_0
+#else
+#define DEBUG_VS_SHADERMODEL vs_4_0
+#define DEBUG_PS_SHADERMODEL ps_4_0
+#endif
+
 float4x4 ViewProj;
 float4x4 World;
 float4 Color;
@@ -44,7 +52,7 @@ technique Simple
 {
     pass
     {
-        VertexShader = compile vs_4_0 VS();
-        PixelShader = compile ps_4_0 PS();
+        VertexShader = compile DEBUG_VS_SHADERMODEL VS();
+        PixelShader = compile DEBUG_PS_SHADERMODEL PS();
     }
 }

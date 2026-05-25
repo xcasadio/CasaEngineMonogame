@@ -24,6 +24,8 @@ Author: Schneider, José Ignacio (jischneider@hotmail.com)
 
 */
 
+using System.Threading;
+
 namespace CasaEngine.Core.Threading;
 
 public class MultiThreadingTask<T>

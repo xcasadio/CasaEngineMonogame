@@ -25,6 +25,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MGUI.MonoGame.Integration",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MGUI.Rendering.Abstractions", "MGUI\MGUI.Rendering.Abstractions\MGUI.Rendering.Abstractions.csproj", "{8D8A2069-C5B6-4750-88EE-4AD5DA2B6840}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{A4EAD193-F266-4F2B-B958-F91025F68393}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		.gitmodules = .gitmodules
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

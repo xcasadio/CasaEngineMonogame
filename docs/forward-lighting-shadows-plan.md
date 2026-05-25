@@ -272,7 +272,7 @@ Etapes detaillees :
 Validation obligatoire :
 
 ```powershell
-dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\net9.0-windows\Content" /workingDir:"CasaEngine\Content"
+dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\$(CasaEngineWindowsTargetFramework)\Content" /workingDir:"CasaEngine\Content"
 dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -v minimal --filter "FullyQualifiedName~ShadowPass|FullyQualifiedName~ForwardRenderPipeline"
 dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal
 ```
@@ -309,7 +309,7 @@ Etapes detaillees :
 Validation obligatoire :
 
 ```powershell
-dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\net9.0-windows\Content" /workingDir:"CasaEngine\Content"
+dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\$(CasaEngineWindowsTargetFramework)\Content" /workingDir:"CasaEngine\Content"
 dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -v minimal --filter "FullyQualifiedName~LightingShaderCoverageTests|FullyQualifiedName~ForwardLightBinder"
 dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal
 ```
@@ -344,7 +344,7 @@ Etapes detaillees :
 Validation obligatoire :
 
 ```powershell
-dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\net9.0-windows\Content" /workingDir:"CasaEngine\Content"
+dotnet mgcb /@:"CasaEngine\Content\Content.mgcb" /platform:Windows /outputDir:"CasaEngine\Content\bin\Windows\Content" /intermediateDir:"CasaEngine\Content\obj\Windows\$(CasaEngineWindowsTargetFramework)\Content" /workingDir:"CasaEngine\Content"
 dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -v minimal --filter "FullyQualifiedName~LightingShaderCoverageTests|FullyQualifiedName~Skinned"
 dotnet build .\CasaEngine.MonoGame.sln --no-restore -v minimal
 ```

@@ -1,4 +1,5 @@
-﻿namespace CasaEngine.Core.Logging;
+﻿
+namespace CasaEngine.Core.Logging;
 
 public class FileLogger : ILogger
 {

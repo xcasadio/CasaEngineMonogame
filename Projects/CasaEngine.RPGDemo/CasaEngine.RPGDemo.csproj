@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<TargetFramework>net9.0-windows</TargetFramework>
+		<TargetFramework>$(WindowsTargetFramework)</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
@@ -10,7 +10,7 @@
 	<ItemGroup>
 		<PackageReference Include="FontStashSharp.MonoGame" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" />
-		<PackageReference Include="MonoGame.Framework.WindowsDX" />
+		<PackageReference Include="MonoGame.Framework.DesktopGL" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\CasaEngine\CasaEngine.csproj" />

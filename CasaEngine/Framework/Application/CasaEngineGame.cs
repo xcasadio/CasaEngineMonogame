@@ -177,7 +177,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             }
         }
 
-        if (_graphicsDeviceManager == null)
+        if (_graphicsDeviceManager == null || ExecutionPolicy.UseExternalViewManagement)
         {
             return false;
         }
@@ -328,7 +328,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             ProjectSettingsHelper.Load(_projectFileName, RuntimeContext);
         }
 
-        if (_graphicsDeviceManager != null)
+        if (_graphicsDeviceManager != null && !ExecutionPolicy.UseExternalViewManagement)
         {
             _graphicsDeviceManager.PreferredBackBufferWidth = RuntimeContext.ProjectSettings.DebugWidth;
             _graphicsDeviceManager.PreferredBackBufferHeight = RuntimeContext.ProjectSettings.DebugHeight;
@@ -378,7 +378,9 @@ public class CasaEngineGame : Game, IObservableUpdate
         // Create the per-view input router and make it available on InputComponent.
         InputComponent.InputRouter = new InputRouter(GameManager.ViewManager);
 
-        RuntimeContext.WindowInputSource ??= new MonoGameWindowInputSource(() => IsActive);
+        RuntimeContext.WindowInputSource ??= new MonoGameWindowInputSource(
+            () => IsActive,
+            () => Window);
         if (RuntimeContext.WindowInputSource is not FrameCachedWindowInputSource)
         {
             RuntimeContext.WindowInputSource = new FrameCachedWindowInputSource(RuntimeContext.WindowInputSource);
@@ -411,10 +413,13 @@ public class CasaEngineGame : Game, IObservableUpdate
         AssetContentManager.Initialize(GraphicsDevice);
 
         Content.RootDirectory = ContentPath;
-        Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
-        Window.AllowUserResizing = RuntimeContext.ProjectSettings.AllowUserResizing;
-        IsFixedTimeStep = RuntimeContext.ProjectSettings.IsFixedTimeStep;
-        IsMouseVisible = RuntimeContext.ProjectSettings.IsMouseVisible;
+        if (!ExecutionPolicy.UseExternalViewManagement)
+        {
+            Window.Title = RuntimeContext.ProjectSettings.WindowTitle;
+            Window.AllowUserResizing = RuntimeContext.ProjectSettings.AllowUserResizing;
+            IsFixedTimeStep = RuntimeContext.ProjectSettings.IsFixedTimeStep;
+            IsMouseVisible = RuntimeContext.ProjectSettings.IsMouseVisible;
+        }
 
         AssetLoaderRegistry.RegisterLoaders(AssetContentManager);
 

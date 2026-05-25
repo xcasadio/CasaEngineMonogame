@@ -216,14 +216,14 @@ float3 ExtractDualQuaternionTranslation(float4 realQuaternion, float4 dualQuater
     return translationQuaternion.xyz;
 }
 
-void ReadBoneDualQuaternion(uint boneIndex, out float4 realQuaternion, out float4 dualQuaternion)
+void ReadBoneDualQuaternion(int boneIndex, out float4 realQuaternion, out float4 dualQuaternion)
 {
-    uint paletteIndex = boneIndex * 2u;
+    int paletteIndex = boneIndex * 2;
     realQuaternion = BonesDualQuaternion[paletteIndex];
-    dualQuaternion = BonesDualQuaternion[paletteIndex + 1u];
+    dualQuaternion = BonesDualQuaternion[paletteIndex + 1];
 }
 
-void AccumulateBoneDualQuaternion(uint boneIndex, float weight, float4 referenceReal, inout float4 accumulatedReal, inout float4 accumulatedDual)
+void AccumulateBoneDualQuaternion(int boneIndex, float weight, float4 referenceReal, inout float4 accumulatedReal, inout float4 accumulatedDual)
 {
     float4 boneReal;
     float4 boneDual;
@@ -249,14 +249,14 @@ void ApplyBoneDualQuaternionTransforms(VsInputSkinnedQuad input, out float4 pos,
 
     float4 referenceReal;
     float4 referenceDual;
-    ReadBoneDualQuaternion((uint)input.BlendIndices.x, referenceReal, referenceDual);
+    ReadBoneDualQuaternion((int)input.BlendIndices.x, referenceReal, referenceDual);
 
     float4 accumulatedReal = float4(0.0f, 0.0f, 0.0f, 0.0f);
     float4 accumulatedDual = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    AccumulateBoneDualQuaternion((uint)input.BlendIndices.x, input.BlendWeights.x * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
-    AccumulateBoneDualQuaternion((uint)input.BlendIndices.y, input.BlendWeights.y * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
-    AccumulateBoneDualQuaternion((uint)input.BlendIndices.z, input.BlendWeights.z * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
-    AccumulateBoneDualQuaternion((uint)input.BlendIndices.w, input.BlendWeights.w * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((int)input.BlendIndices.x, input.BlendWeights.x * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((int)input.BlendIndices.y, input.BlendWeights.y * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((int)input.BlendIndices.z, input.BlendWeights.z * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
+    AccumulateBoneDualQuaternion((int)input.BlendIndices.w, input.BlendWeights.w * inverseSum, referenceReal, accumulatedReal, accumulatedDual);
 
     float quaternionLength = max(length(accumulatedReal), 1e-5f);
     accumulatedReal /= quaternionLength;

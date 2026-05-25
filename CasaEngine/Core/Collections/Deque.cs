@@ -26,15 +26,10 @@
  * THE SOFTWARE.
  */
 
-
-
 /*
  * Leslie Sanford
  * Email: jabberdabber@hotmail.com
  */
-
-
-using System.Collections;
 
 namespace CasaEngine.Core.Collections;
 
@@ -50,9 +45,7 @@ namespace CasaEngine.Core.Collections;
 /// </summary>
 public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
 {
-
-    // Represents a node in the deque.
-    [Serializable()]
+    [Serializable]
     private class Node
     {
         private T _value;
@@ -81,9 +74,7 @@ public class Deque<T> : ICollection, IEnumerable<T>, ICloneable
         }
     }
 
-
-
-    [Serializable()]
+    [Serializable]
     private class Enumerator : IEnumerator<T>
     {
         private Deque<T> _owner;

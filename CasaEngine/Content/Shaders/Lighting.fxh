@@ -130,10 +130,10 @@ float SampleDirectionalShadowPcf(float2 shadowUv, float shadowDepth)
 {
     float visibility = 0.0f;
 
-    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
-    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
-    visibility += step(shadowDepth, ShadowMapTexture.SampleLevel(ShadowMapTextureSampler, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
+    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, -0.5f), 0.0f).r);
+    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, -0.5f), 0.0f).r);
+    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(-0.5f, 0.5f), 0.0f).r);
+    visibility += step(shadowDepth, SAMPLE_TEXTURE_LEVEL(ShadowMapTexture, shadowUv + ShadowMapTexelSize * float2(0.5f, 0.5f), 0.0f).r);
 
     return visibility * 0.25f;
 }
@@ -245,6 +245,114 @@ void AccumulateLight(
 
     result.Diffuse += diffuse * lightDiffuse * DiffuseColor.rgb;
     result.Specular += specular * lightSpecular * SpecularColor;
+}
+
+
+ColorPair ComputeLightsNoShadows(float3 eyeVector, float3 worldPosition, float3 worldNormal, uniform int numDirectionalLights)
+{
+    ColorPair result;
+    result.Diffuse = EmissiveColor;
+    result.Specular = 0;
+
+    [unroll]
+    for (int directionalIndex = 0; directionalIndex < MaxDirectionalLights; directionalIndex++)
+    {
+        if (directionalIndex >= numDirectionalLights)
+        {
+            break;
+        }
+
+        float3 lightDirection = GetDirectionalLightDirection(directionalIndex);
+        float3 lightDiffuse = GetDirectionalLightDiffuseColor(directionalIndex);
+        float3 lightSpecular = GetDirectionalLightSpecularColor(directionalIndex);
+        AccumulateLight(result, eyeVector, worldNormal, -lightDirection, 1.0f, lightDiffuse, lightSpecular);
+    }
+
+    int numPointLights = (int)ActivePointLightCount;
+    [unroll]
+    for (int pointIndex = 0; pointIndex < MaxPointLights; pointIndex++)
+    {
+        if (pointIndex >= numPointLights)
+        {
+            break;
+        }
+
+        float4 lightPositionAndRange = PointLightPositionAndRange[pointIndex];
+        float3 toLight = lightPositionAndRange.xyz - worldPosition;
+        float distanceToLight = length(toLight);
+        float range = lightPositionAndRange.w;
+        if (distanceToLight <= 0.0001f || range <= 0.0f)
+        {
+            continue;
+        }
+
+        float attenuation = saturate(1.0f - distanceToLight / range);
+        attenuation *= attenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        float3 surfaceToLight = toLight / distanceToLight;
+        AccumulateLight(
+            result,
+            eyeVector,
+            worldNormal,
+            surfaceToLight,
+            attenuation,
+            PointLightDiffuseColors[pointIndex].xyz,
+            PointLightSpecularColors[pointIndex].xyz);
+    }
+
+    int numSpotLights = (int)ActiveSpotLightCount;
+    [unroll]
+    for (int spotIndex = 0; spotIndex < MaxSpotLights; spotIndex++)
+    {
+        if (spotIndex >= numSpotLights)
+        {
+            break;
+        }
+
+        float4 lightPositionAndRange = SpotLightPositionAndRange[spotIndex];
+        float3 toLight = lightPositionAndRange.xyz - worldPosition;
+        float distanceToLight = length(toLight);
+        float range = lightPositionAndRange.w;
+        if (distanceToLight <= 0.0001f || range <= 0.0f)
+        {
+            continue;
+        }
+
+        float attenuation = saturate(1.0f - distanceToLight / range);
+        attenuation *= attenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        float3 surfaceToLight = toLight / distanceToLight;
+        float4 directionAndInnerConeCos = SpotLightDirectionAndInnerConeCos[spotIndex];
+        float4 specularAndOuterConeCos = SpotLightSpecularColorsAndOuterConeCos[spotIndex];
+        float spotCos = dot(directionAndInnerConeCos.xyz, -surfaceToLight);
+        float innerConeCos = directionAndInnerConeCos.w;
+        float outerConeCos = specularAndOuterConeCos.w;
+        float coneAttenuation = saturate((spotCos - outerConeCos) / max(innerConeCos - outerConeCos, 0.0001f));
+        attenuation *= coneAttenuation;
+        if (attenuation <= 0.0f)
+        {
+            continue;
+        }
+
+        AccumulateLight(
+            result,
+            eyeVector,
+            worldNormal,
+            surfaceToLight,
+            attenuation,
+            SpotLightDiffuseColors[spotIndex].xyz,
+            specularAndOuterConeCos.xyz);
+    }
+
+    return result;
 }
 
 
@@ -371,7 +479,7 @@ CommonVSOutput ComputeCommonVSOutputWithLighting(float4 position, float3 normal,
     float3 eyeVector = normalize(EyePosition - pos_ws.xyz);
     float3 worldNormal = normalize(mul(normal, WorldInverseTranspose));
 
-    ColorPair lightResult = ComputeLights(eyeVector, pos_ws.xyz, worldNormal, numLights);
+    ColorPair lightResult = ComputeLightsNoShadows(eyeVector, pos_ws.xyz, worldNormal, numLights);
     
     vout.Pos_ps = mul(position, WorldViewProj);
     vout.Diffuse = float4(lightResult.Diffuse, DiffuseColor.a);
