@@ -1,11 +1,8 @@
-﻿using CasaEngine.Engine.Environment;
-using CasaEngine.Engine.Primitives.ThreeD;
+﻿using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Models;
-
-using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;

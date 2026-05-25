@@ -7,7 +7,6 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Models;
 
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

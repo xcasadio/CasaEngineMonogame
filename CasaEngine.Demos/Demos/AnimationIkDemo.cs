@@ -7,7 +7,6 @@ using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

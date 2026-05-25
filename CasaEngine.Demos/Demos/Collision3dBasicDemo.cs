@@ -1,5 +1,4 @@
-﻿using CasaEngine.Engine.Environment;
-using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;

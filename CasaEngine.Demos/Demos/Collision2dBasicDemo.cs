@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;

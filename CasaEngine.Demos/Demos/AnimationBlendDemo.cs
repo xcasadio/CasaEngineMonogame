@@ -7,7 +7,6 @@ using System.Text;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
-using FontStashSharp;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;

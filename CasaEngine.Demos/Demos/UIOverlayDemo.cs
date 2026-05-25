@@ -1,4 +1,3 @@
-using System.Linq;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;

@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Physics;
-using CasaEngine.Framework.Common;
-using CasaEngine.Framework.Configuration;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Assets.Sprites;

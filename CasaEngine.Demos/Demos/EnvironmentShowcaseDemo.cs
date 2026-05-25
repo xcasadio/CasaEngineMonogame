@@ -1,7 +1,6 @@
 using System;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
-using CasaEngine.Framework.Materials.Runtime;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Scene.Entities;

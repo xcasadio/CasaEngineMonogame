@@ -7,7 +7,6 @@ using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.IO;
-using CasaEngine.Engine.Environment;
 
 namespace CasaEngine.Demos.Demos;
 
