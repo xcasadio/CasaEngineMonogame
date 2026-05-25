@@ -62,7 +62,7 @@ internal static class CutsceneActionCoroutineFactory
                 var handles = new List<CoroutineHandle>(parallelAction.Actions.Count);
                 for (int index = 0; index < parallelAction.Actions.Count; index++)
                 {
-                    CoroutineHandle handle = world.CoroutineManager.StartCoroutine(
+                    CoroutineHandle handle = world.RuntimeSystems.CoroutineManager.StartCoroutine(
                         ExecuteAction(parallelAction.Actions[index], world, owner),
                         owner,
                         $"Cutscene.Parallel[{index}]");
@@ -91,7 +91,7 @@ internal static class CutsceneActionCoroutineFactory
             throw new InvalidOperationException($"MoveTo action target entity '{action.EntityName}' has no CharacterControllerComponent.");
         }
 
-        return world.CharacterMotion.MoveTo(
+        return world.RuntimeSystems.CharacterMotion.MoveTo(
             entity,
             action.Destination,
             new CharacterMoveToOptions

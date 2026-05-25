@@ -79,7 +79,7 @@ public sealed class CutsceneMoveToDemo : Demo
 
         if (world != null && IsPressed(keyboard, Keys.S))
         {
-            world.CutsceneDirector.Stop();
+            world.RuntimeSystems.CutsceneDirector.Stop();
         }
 
         if (world != null && IsPressed(keyboard, Keys.R))
@@ -93,7 +93,7 @@ public sealed class CutsceneMoveToDemo : Demo
     public override void Clean()
     {
         _game = null;
-        _hero?.World?.CutsceneDirector.Stop();
+        _hero?.World?.RuntimeSystems.CutsceneDirector.Stop();
         _hero = null;
         _controller = null;
         _cutsceneAsset = null;
@@ -108,14 +108,14 @@ public sealed class CutsceneMoveToDemo : Demo
             return;
         }
 
-        world.CutsceneDirector.Stop();
+        world.RuntimeSystems.CutsceneDirector.Stop();
         ResetHeroToStart(world);
-        world.CutsceneDirector.Play(_cutsceneAsset);
+        world.RuntimeSystems.CutsceneDirector.Play(_cutsceneAsset);
     }
 
     private void ResetHeroToStart(CasaEngine.Framework.Scene.World.World world)
     {
-        world.CutsceneDirector.Stop();
+        world.RuntimeSystems.CutsceneDirector.Stop();
 
         if (_hero?.RootComponent == null || _controller == null)
         {

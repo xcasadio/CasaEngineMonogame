@@ -2352,7 +2352,7 @@ public class GameEditor : Game, IObservableUpdate
     private void RefreshCutsceneRuntimeSnapshot(CutsceneAssetInspectorPanel inspectorPanel)
     {
         var world = _editorRuntime?.GameManager.CurrentWorld;
-        inspectorPanel.RefreshRuntimeSnapshot(world?.CutsceneDirector.GetDebugSnapshot());
+        inspectorPanel.RefreshRuntimeSnapshot(world?.RuntimeSystems.CutsceneDirector.GetDebugSnapshot());
     }
 
     private void ActivateAnimationClipDocument(string panelId, AnimationClipPreviewPanel previewPanel)
@@ -2372,7 +2372,7 @@ public class GameEditor : Game, IObservableUpdate
         _editorContext.SetActiveDocument(new EditorDocumentContext(
             EditorDocumentKind.TileMap,
             panelId,
-            _tileMapEditorPanelTitles.TryGetValue(panelId, out var title) ? title : "TileMap",
+            _tileMapEditorPanelTitles.GetValueOrDefault(panelId, "TileMap"),
             tileMapEditorPanel));
         SyncGlobalSelectionFromActiveDocument();
         RefreshActiveHistoryContext();

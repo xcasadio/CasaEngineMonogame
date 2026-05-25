@@ -17,7 +17,7 @@ public sealed class CutsceneDirector
         _world = world ?? throw new ArgumentNullException(nameof(world));
     }
 
-    public bool IsPlaying => _activeHandle.IsValid && _world.CoroutineManager.IsRunning(_activeHandle);
+    public bool IsPlaying => _activeHandle.IsValid && _world.RuntimeSystems.CoroutineManager.IsRunning(_activeHandle);
 
     public void Play(CutsceneAsset asset)
     {
@@ -38,18 +38,18 @@ public sealed class CutsceneDirector
         }
 
         _state = CutsceneRuntimeState.Playing;
-        _activeHandle = _world.CoroutineManager.StartCoroutine(RunAsset(asset), this, $"Cutscene:{asset.Name}");
+        _activeHandle = _world.RuntimeSystems.CoroutineManager.StartCoroutine(RunAsset(asset), this, $"Cutscene:{asset.Name}");
     }
 
     public void Stop()
     {
-        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && !_world.CharacterMotion.HasRequestsFor(this))
+        if (!_activeHandle.IsValid && _state != CutsceneRuntimeState.Playing && !_world.RuntimeSystems.CharacterMotion.HasRequestsFor(this))
         {
             return;
         }
 
-        _world.CoroutineManager.StopAllCoroutines(this);
-        _world.CharacterMotion.CancelOwner(this);
+        _world.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
+        _world.RuntimeSystems.CharacterMotion.CancelOwner(this);
         _activeHandle = CoroutineHandle.Invalid;
         _state = CutsceneRuntimeState.Stopped;
     }
@@ -97,7 +97,7 @@ public sealed class CutsceneDirector
 
     private IReadOnlyList<CoroutineDebugInfo> GetActiveCutsceneCoroutines()
     {
-        IReadOnlyList<CoroutineDebugInfo> activeCoroutines = _world.CoroutineManager.GetActiveCoroutines();
+        IReadOnlyList<CoroutineDebugInfo> activeCoroutines = _world.RuntimeSystems.CoroutineManager.GetActiveCoroutines();
         var cutsceneCoroutines = new List<CoroutineDebugInfo>();
         string ownerName = ToString();
 

@@ -5,7 +5,6 @@ using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
-using CasaEngine.Framework.Application.Components.DebugTools;
 using CasaEngine.Framework.Rendering.Models;
 
 using CasaEngine.Framework.Scripting;
@@ -15,10 +14,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Texture = CasaEngine.Framework.Assets.Textures.Texture;
 using Vector3 = Microsoft.Xna.Framework.Vector3;
-
-#if EDITOR
-using CasaEngine.Shaders;
-#endif
 
 namespace SandBoxGame
 {

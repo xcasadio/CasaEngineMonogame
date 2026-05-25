@@ -384,17 +384,17 @@ public class Entity : ObjectBase
 
     public void StopCoroutine(CoroutineHandle handle)
     {
-        World?.CoroutineManager.StopCoroutine(handle);
+        World?.RuntimeSystems.CoroutineManager.StopCoroutine(handle);
     }
 
     public void StopAllCoroutines()
     {
-        World?.CoroutineManager.StopAllCoroutines(this);
+        World?.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
     }
 
     internal void StopAllOwnedCoroutines()
     {
-        var coroutineManager = World?.CoroutineManager;
+        var coroutineManager = World?.RuntimeSystems.CoroutineManager;
         if (coroutineManager == null)
         {
             return;
@@ -420,7 +420,7 @@ public class Entity : ObjectBase
 
     private CoroutineManager GetCoroutineManager()
     {
-        var coroutineManager = World?.CoroutineManager;
+        var coroutineManager = World?.RuntimeSystems.CoroutineManager;
         if (coroutineManager == null)
         {
             throw new InvalidOperationException($"Entity '{Name}' is not attached to a World.");

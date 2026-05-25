@@ -53,7 +53,7 @@ public abstract class EntityComponent : ObjectBase
 
     public virtual void Detach()
     {
-        Owner?.World?.CoroutineManager.StopAllCoroutines(this);
+        Owner?.World?.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
         Owner = null;
     }
 
@@ -69,17 +69,17 @@ public abstract class EntityComponent : ObjectBase
 
     protected void StopCoroutine(CoroutineHandle handle)
     {
-        Owner?.World?.CoroutineManager.StopCoroutine(handle);
+        Owner?.World?.RuntimeSystems.CoroutineManager.StopCoroutine(handle);
     }
 
     protected void StopAllCoroutines()
     {
-        Owner?.World?.CoroutineManager.StopAllCoroutines(this);
+        Owner?.World?.RuntimeSystems.CoroutineManager.StopAllCoroutines(this);
     }
 
     private CoroutineManager GetCoroutineManager()
     {
-        var coroutineManager = Owner?.World?.CoroutineManager;
+        var coroutineManager = Owner?.World?.RuntimeSystems.CoroutineManager;
         if (coroutineManager == null)
         {
             throw new InvalidOperationException($"Component '{Name}' is not attached to an Entity in a World.");

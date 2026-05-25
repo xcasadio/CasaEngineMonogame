@@ -46,10 +46,7 @@ public sealed class World : ObjectBase
     public ReflectionProbeCollection ReflectionProbes { get; } = new();
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
-    public CoroutineManager CoroutineManager { get; } = new();
     public WorldRuntimeSystems RuntimeSystems { get; }
-    public ICharacterMotionService CharacterMotion => RuntimeSystems.CharacterMotion;
-    public CutsceneDirector CutsceneDirector { get; }
     public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
     public RenderFrame? CurrentRenderFrame { get; private set; }
 
@@ -70,7 +67,6 @@ public sealed class World : ObjectBase
     public World(Func<World, WorldSpatialServices>? spatialServicesFactory)
     {
         MessageBus = new WorldMessageBus();
-        CutsceneDirector = new CutsceneDirector(this);
         Func<World, WorldSpatialServices> resolvedSpatialServicesFactory = spatialServicesFactory ?? (world => WorldSpatialServices.CreateDefault(world));
         SpatialServices = resolvedSpatialServicesFactory(this);
         RuntimeSystems = new WorldRuntimeSystems(this);
@@ -84,9 +80,7 @@ public sealed class World : ObjectBase
         foreach (var entity in _entities)
             entity.GameplayProxy?.OnEndPlay(this);
 
-        CutsceneDirector.Stop();
         RuntimeSystems.Clear();
-        CoroutineManager.StopAllCoroutines();
 
         foreach (var worldUiComponent in _worldUiComponents)
         {
@@ -306,7 +300,6 @@ public sealed class World : ObjectBase
     public void Update(FrameTime frameTime)
     {
         UpdateSequence++;
-        CoroutineManager.Update(new CoroutineUpdateContext(frameTime));
 
         float elapsedTime = frameTime.DeltaTime;
         GameMode?.Tick(elapsedTime);
@@ -317,8 +310,8 @@ public sealed class World : ObjectBase
         }
 
         var toRemove = new List<Entity>();
-    var diagnosticsBuilder = new EntityPolicyDiagnosticsBuilder(this);
-    bool invalidateOnDemandViews = false;
+        var diagnosticsBuilder = new EntityPolicyDiagnosticsBuilder(this);
+        bool invalidateOnDemandViews = false;
 
         InternalAddEntities();
         SpatialServices.SteeringIndex.PrepareForWorldUpdate();
