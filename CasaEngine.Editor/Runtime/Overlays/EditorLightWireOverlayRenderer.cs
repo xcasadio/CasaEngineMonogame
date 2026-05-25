@@ -35,28 +35,36 @@ public sealed class EditorLightWireOverlayRenderer : IDisposable
         }
     }
 
+    public int LastDrawnItemCount { get; private set; }
+
+    public int LastDrawnLineCount { get; private set; }
+
     public void Draw(GraphicsDevice graphicsDevice, in RenderFrame frame, IReadOnlyList<EditorLightOverlayItem> lights)
     {
         ArgumentNullException.ThrowIfNull(graphicsDevice);
         ArgumentNullException.ThrowIfNull(lights);
 
         _vertexCount = 0;
+        LastDrawnItemCount = 0;
+        LastDrawnLineCount = 0;
 
         for (int index = 0; index < lights.Count; index++)
         {
             var light = lights[index];
-            if (!light.IsSelected)
-            {
-                continue;
-            }
-
+            int beforeVertexCount = _vertexCount;
             AddLightHelper(in light);
+            if (_vertexCount > beforeVertexCount)
+            {
+                LastDrawnItemCount++;
+            }
         }
 
         if (_vertexCount == 0)
         {
             return;
         }
+
+        LastDrawnLineCount = _vertexCount / 2;
 
         using var guard = new GraphicsStateGuard(graphicsDevice);
 
@@ -83,7 +91,7 @@ public sealed class EditorLightWireOverlayRenderer : IDisposable
 
     private void AddLightHelper(in EditorLightOverlayItem light)
     {
-        Color color = GetOverlayColor(light.Color);
+        Color color = GetOverlayColor(light.Color, light.IsSelected);
 
         switch (light.Type)
         {
@@ -217,13 +225,13 @@ public sealed class EditorLightWireOverlayRenderer : IDisposable
         return value;
     }
 
-    private static Color GetOverlayColor(Color source)
+    private static Color GetOverlayColor(Color source, bool isSelected)
     {
         const byte minimum = 96;
         return new Color(
             Math.Max(source.R, minimum),
             Math.Max(source.G, minimum),
             Math.Max(source.B, minimum),
-            (byte)230);
+            isSelected ? (byte)230 : (byte)120);
     }
 }

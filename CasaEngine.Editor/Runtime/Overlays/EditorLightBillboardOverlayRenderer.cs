@@ -32,10 +32,14 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
         };
     }
 
+    public int LastDrawnItemCount { get; private set; }
+
     public void Draw(GraphicsDevice graphicsDevice, in RenderFrame frame, IReadOnlyList<EditorLightOverlayItem> lights)
     {
         ArgumentNullException.ThrowIfNull(graphicsDevice);
         ArgumentNullException.ThrowIfNull(lights);
+
+        LastDrawnItemCount = 0;
 
         if (lights.Count == 0)
         {
@@ -54,7 +58,10 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
 
         for (int index = 0; index < lights.Count; index++)
         {
-            DrawLightIcon(viewport, in frame, lights[index]);
+            if (DrawLightIcon(viewport, in frame, lights[index]))
+            {
+                LastDrawnItemCount++;
+            }
         }
 
         _spriteBatch.End();
@@ -65,24 +72,24 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
         _spriteBatch.Dispose();
     }
 
-    private void DrawLightIcon(Viewport viewport, in RenderFrame frame, in EditorLightOverlayItem light)
+    private bool DrawLightIcon(Viewport viewport, in RenderFrame frame, in EditorLightOverlayItem light)
     {
         Texture2D? texture = GetIconTexture(light.Type);
         if (texture == null)
         {
-            return;
+            return false;
         }
 
         Vector3 projected = viewport.Project(light.Position, frame.Projection, frame.View, Matrix.Identity);
         if (projected.Z < 0.0f || projected.Z > 1.0f)
         {
-            return;
+            return false;
         }
 
         if (projected.X < viewport.X || projected.X > viewport.X + viewport.Width
             || projected.Y < viewport.Y || projected.Y > viewport.Y + viewport.Height)
         {
-            return;
+            return false;
         }
 
         const int halfSize = IconSizePixels / 2;
@@ -93,6 +100,7 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
             IconSizePixels);
 
         _spriteBatch.Draw(texture, destination, Color.White);
+        return true;
     }
 
     private static Texture2D? GetIconTexture(LightType lightType)

@@ -4054,6 +4054,7 @@ public class GameEditor : Game, IObservableUpdate
         ProcessPendingProjectLauncherAction();
         _editorRuntime?.UpdateHost(gameTime);
         _entitiesPanel?.Update();
+        _entityDetailsPanel?.Update();
         _worldViewportPanel?.UpdateInput(gameTime);
         foreach (var materialViewportPanel in _materialViewportPanels.Values)
         {

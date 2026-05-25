@@ -136,6 +136,9 @@ public class WorldViewportPanel : IDisposable
     private EditorParticleWireOverlayRenderer? _particleWireOverlayRenderer;
     private Action<GraphicsDevice, RenderView, RenderFrame>? _externalVectorOverlayAction;
     private Action<GraphicsDevice, RenderView, RenderFrame>? _externalUiOverlayAction;
+    private int _lastActiveDirectionalLightCount;
+    private int _lastActivePointLightCount;
+    private int _lastActiveSpotLightCount;
     private Texture2D? _boundTexture;
     private World? _fallbackWorld;
     private World? _observedWorld;
@@ -244,6 +247,13 @@ public class WorldViewportPanel : IDisposable
             $"Environment override: {_renderView?.EnvironmentOverride?.BackgroundMode.ToString() ?? "<none>"}",
             $"Texture: {DescribeBoundTexture()}",
             $"Physics debug world: {DescribeLastPhysicsDebugWorld()}",
+            $"Forward directional lights: {_lastActiveDirectionalLightCount}",
+            $"Forward point lights: {_lastActivePointLightCount}",
+            $"Forward spot lights: {_lastActiveSpotLightCount}",
+            $"Light gizmos: {_lightOverlayCollector.Items.Count}",
+            $"Light billboard gizmos: {_lightBillboardOverlayRenderer?.LastDrawnItemCount ?? 0}",
+            $"Light wire gizmos: {_lightWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
+            $"Light gizmo lines: {_lightWireOverlayRenderer?.LastDrawnLineCount ?? 0}",
             $"Particle gizmos: {_particleWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
             $"Particle gizmo lines: {_particleWireOverlayRenderer?.LastDrawnLineCount ?? 0}",
         };
@@ -1207,6 +1217,7 @@ public class WorldViewportPanel : IDisposable
     private void RenderEditorVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
     {
         _externalVectorOverlayAction?.Invoke(graphicsDevice, view, frame);
+        CaptureLightingDiagnostics(in frame);
 
         var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
         _lightWireOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
@@ -1218,9 +1229,26 @@ public class WorldViewportPanel : IDisposable
     private void RenderEditorUiOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
     {
         _externalUiOverlayAction?.Invoke(graphicsDevice, view, frame);
+        CaptureLightingDiagnostics(in frame);
 
         var lightItems = _lightOverlayCollector.Collect(view.World, _selectedEntity, _selectedComponent);
         _lightBillboardOverlayRenderer?.Draw(graphicsDevice, in frame, lightItems);
+    }
+
+    private void CaptureLightingDiagnostics(in RenderFrame frame)
+    {
+        var lighting = frame.Lighting;
+        if (lighting == null)
+        {
+            _lastActiveDirectionalLightCount = 0;
+            _lastActivePointLightCount = 0;
+            _lastActiveSpotLightCount = 0;
+            return;
+        }
+
+        _lastActiveDirectionalLightCount = lighting.ActiveDirectionalLightCount;
+        _lastActivePointLightCount = lighting.ActivePointLightCount;
+        _lastActiveSpotLightCount = lighting.ActiveSpotLightCount;
     }
 
     private GridComponent CreateGridComponent()

@@ -47,6 +47,7 @@ public sealed class EntityDetailsPanel
     private ComponentEditorBase? _activeComponentEditor;
     private bool _suppressEntityNameChanged;
     private bool _suppressComponentSelectionChanged;
+    private bool _selectedComponentRefreshPending;
     private EditorHistoryContext _historyContext = DefaultHistoryContext;
 
     public EntityDetailsPanel(MGWindow window, bool includeComponentTree = true)
@@ -173,6 +174,26 @@ public sealed class EntityDetailsPanel
     public void SyncSelection(Entity? entity, EntityComponent? component)
     {
         SyncSelection(entity?.World, entity, component);
+    }
+
+    public void Update()
+    {
+        if (!_selectedComponentRefreshPending)
+        {
+            return;
+        }
+
+        _selectedComponentRefreshPending = false;
+
+        if (_activeComponentEditor?.TryRefreshFromComponent() == true)
+        {
+            return;
+        }
+
+        if (_selectedComponent != null)
+        {
+            RebuildPropertyEditors();
+        }
     }
 
     private void ApplyComponentSelection(EntityComponent? component, bool rebuildPropertyEditors)
@@ -562,15 +583,7 @@ public sealed class EntityDetailsPanel
 
     private void OnSelectedSceneComponentTransformChanged(object? sender, EventArgs e)
     {
-        if (_activeComponentEditor?.TryRefreshFromComponent() == true)
-        {
-            return;
-        }
-
-        if (_selectedComponent != null)
-        {
-            RebuildPropertyEditors();
-        }
+        _selectedComponentRefreshPending = true;
     }
 
     private void BuildWorldPropertyEditors()
