@@ -128,9 +128,11 @@ public sealed class CollectionBehaviorTests
     [Fact]
     public void Pool_Release_MovesLastActiveElementIntoReleasedSlot()
     {
+#pragma warning disable CS0618
         var pool = new Pool<PooledItem>(2);
         Pool<PooledItem>.Accessor first = pool.Fetch();
         Pool<PooledItem>.Accessor second = pool.Fetch();
+#pragma warning restore CS0618
         pool[first].Value = 1;
         pool[second].Value = 2;
 
@@ -144,8 +146,10 @@ public sealed class CollectionBehaviorTests
     [Fact]
     public void Pool_Fetch_ReusesReleasedAccessorWithoutGenerationGuard()
     {
+#pragma warning disable CS0618
         var pool = new Pool<PooledItem>(2);
         Pool<PooledItem>.Accessor first = pool.Fetch();
+#pragma warning restore CS0618
         _ = pool.Fetch();
 
         pool.Release(first);

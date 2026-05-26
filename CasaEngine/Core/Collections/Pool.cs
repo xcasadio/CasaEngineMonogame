@@ -27,6 +27,7 @@ Author: Schneider, José Ignacio (jis@cs.uns.edu.ar)
 
 namespace CasaEngine.Core.Collections;
 
+[Obsolete("Use DensePool<T> for dense active storage with generational handles. Pool<T>.Accessor can become stale after Release.")]
 public class Pool<T> where T : new()
 {
     public class Accessor
