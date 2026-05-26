@@ -1,5 +1,3 @@
-using CasaEngine.Core.Collections;
-
 namespace CasaEngine.Framework.AI.Messaging;
 
 public sealed class MessageManagerHandler : IMessageManager
@@ -7,7 +5,7 @@ public sealed class MessageManagerHandler : IMessageManager
 
     private static readonly MessageManagerHandler Manager = new();
 
-    internal UniquePriorityQueue<Message> MessageQueue;
+    private ScheduledMessageQueue _messageQueue;
 
     internal Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>> RegisteredEntities;
 
@@ -17,7 +15,7 @@ public sealed class MessageManagerHandler : IMessageManager
 
     private MessageManagerHandler()
     {
-        MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(1000));
+        _messageQueue = new ScheduledMessageQueue(1000);
         RegisteredEntities = new Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>>();
     }
 
@@ -28,13 +26,13 @@ public sealed class MessageManagerHandler : IMessageManager
 
     public void ResetManager(double precision)
     {
-        MessageQueue = new UniquePriorityQueue<Message>(new MessageComparer(precision));
+        _messageQueue = new ScheduledMessageQueue(precision);
         RegisteredEntities = new Dictionary<int, Dictionary<Guid, MessageHandlerDelegate>>();
     }
 
     public void RegisterForMessage(int type, Guid entityId, MessageHandlerDelegate handler)
     {
-        //If the table for this type of message didn´t exist we set it up and register ourselves
+        //If the table for this type of message didnï¿½t exist we set it up and register ourselves
         if (RegisteredEntities[type] == null)
         {
             RegisteredEntities[type] = new Dictionary<Guid, MessageHandlerDelegate>();
@@ -82,7 +80,7 @@ public sealed class MessageManagerHandler : IMessageManager
         else
         {
             message.DispatchTime = DateTime.Now.Ticks + delayTime;
-            MessageQueue.Enqueue(message);
+            _messageQueue.Enqueue(message);
         }
     }
 
@@ -90,9 +88,9 @@ public sealed class MessageManagerHandler : IMessageManager
     {
         double currentTime = DateTime.Now.Ticks;
 
-        while (MessageQueue.Count != 0 && MessageQueue.Peek().DispatchTime < currentTime)
+        while (_messageQueue.Count != 0 && _messageQueue.Peek().DispatchTime < currentTime)
         {
-            var message = MessageQueue.Dequeue();
+            var message = _messageQueue.Dequeue();
 
             if (RegisteredEntities[message.Type] == null)
             {

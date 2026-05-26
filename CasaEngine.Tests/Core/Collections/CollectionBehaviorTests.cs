@@ -87,6 +87,41 @@ public sealed class CollectionBehaviorTests
     }
 
     [Fact]
+    public void ScheduledMessageQueue_Enqueue_SkipsMessagesEqualWithinComparerPrecision()
+    {
+        object extraInfo = new();
+        Guid senderId = Guid.NewGuid();
+        Guid receiverId = Guid.NewGuid();
+        var queue = new ScheduledMessageQueue(1000.0);
+
+        bool firstEnqueued = queue.Enqueue(new Message(senderId, receiverId, 7, 10000.0, extraInfo));
+        bool repeatedEnqueued = queue.Enqueue(new Message(senderId, receiverId, 7, 10500.0, extraInfo));
+
+        Assert.True(firstEnqueued);
+        Assert.False(repeatedEnqueued);
+        Assert.Equal(1, queue.Count);
+    }
+
+    [Fact]
+    public void ScheduledMessageQueue_Dequeue_ReturnsMessagesByDispatchTimeThenInsertionOrder()
+    {
+        Guid senderId = Guid.NewGuid();
+        Guid receiverId = Guid.NewGuid();
+        var queue = new ScheduledMessageQueue(0.0);
+        Message firstSameTimeMessage = new(senderId, receiverId, 1, 10000.0, new object());
+        Message secondSameTimeMessage = new(senderId, receiverId, 2, 10000.0, new object());
+        Message earlyMessage = new(senderId, receiverId, 3, 5000.0, new object());
+
+        queue.Enqueue(firstSameTimeMessage);
+        queue.Enqueue(secondSameTimeMessage);
+        queue.Enqueue(earlyMessage);
+
+        Assert.Same(earlyMessage, queue.Dequeue());
+        Assert.Same(firstSameTimeMessage, queue.Dequeue());
+        Assert.Same(secondSameTimeMessage, queue.Dequeue());
+    }
+
+    [Fact]
     public void Pool_Release_MovesLastActiveElementIntoReleasedSlot()
     {
         var pool = new Pool<PooledItem>(2);
