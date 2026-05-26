@@ -120,11 +120,6 @@ public struct RectangleF
         return Contains(vector2D.X, vector2D.Y);
     }
 
-    //public bool Contains(Int2 int2)
-    //{
-    //    return Contains(int2.X, int2.Y);
-    //}
-
     public bool Contains(Point point)
     {
         return Contains(point.X, point.Y);

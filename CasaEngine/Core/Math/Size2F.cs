@@ -54,7 +54,7 @@ public struct Size2F : IEquatable<Size2F>
 
     public override string ToString()
     {
-        return string.Format("({0},{1})", Width, Height);
+        return $"({Width},{Height})";
     }
 
     public void Deconstruct(out float width, out float height)

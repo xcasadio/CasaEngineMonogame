@@ -79,9 +79,9 @@ public class Coordinates
 
     public Coordinates()
     {
-        Scale = Vector3.One;
-        Orientation = Quaternion.Identity;
-        Position = Vector3.Zero;
+        _scale = Vector3.One;
+        _orientation = Quaternion.Identity;
+        _position = Vector3.Zero;
         SetDirtyMatrix();
     }
 
@@ -92,9 +92,9 @@ public class Coordinates
 
     public void CopyFrom(Coordinates other)
     {
-        _scale = other._scale;
-        _orientation = other._orientation;
-        _position = other._position;
+        Scale = other._scale;
+        Orientation = other._orientation;
+        Position = other._position;
         SetDirtyMatrix();
     }
 

@@ -241,7 +241,7 @@ public static class LineHelper
 
         for (int i = 0; i < vertices.Count; i++)
         {
-            var nextVertex = vertices[i + 1 > vertices.Count ? 0 : i + 1];
+            var nextVertex = vertices[(i + 1) % vertices.Count];
             if (LineIntersect(vertices[i], nextVertex, point1, point2, true, true, out Vector2 point))
             {
                 intersectionPoints.Add(point);

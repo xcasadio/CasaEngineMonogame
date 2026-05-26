@@ -2,12 +2,12 @@
 
 namespace CasaEngine.Core.Math.Geometry;
 
-public static class BoundingSphereExtension
+public static class BoundingSphereExtensions
 {
     public static BoundingSphere Create()
     {
         var boundingSphere = new BoundingSphere();
-        boundingSphere.Init();
+        boundingSphere.Initialize();
         return boundingSphere;
     }
 
@@ -16,7 +16,7 @@ public static class BoundingSphereExtension
         return boundingSphere.Radius >= 0.0f;
     }
 
-    public static void Init(this ref BoundingSphere boundingSphere)
+    public static void Initialize(this ref BoundingSphere boundingSphere)
     {
         boundingSphere.Center.X = 0.0f;
         boundingSphere.Center.Y = 0.0f;
