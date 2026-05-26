@@ -11,7 +11,6 @@ namespace CasaEngine.Core.Collections;
 #pragma warning disable CS0618
 [Obsolete("Use System.Collections.Generic.PriorityQueue<TElement, TPriority> for regular priority queues. Use IndexedPriorityQueue<T> only when priorities must be mutable.")]
 public class PriorityQueue<T> : IPriorityQueue<T>
-#pragma warning restore CS0618
 {
     /// <summary>
     /// The elements in the heap
@@ -373,3 +372,4 @@ public class PriorityQueue<T> : IPriorityQueue<T>
         throw new NotImplementedException();
     }
 }
+#pragma warning restore CS0618

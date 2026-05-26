@@ -13,7 +13,6 @@ namespace CasaEngine.Core.Collections;
 #pragma warning disable CS0618
 [Obsolete("Use System.Collections.Generic.PriorityQueue<TElement, TPriority> plus an explicit deduplication policy when uniqueness is required.")]
 public class UniquePriorityQueue<T> : PriorityQueue<T>
-#pragma warning restore CS0618
 {
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the unique priority queue
@@ -58,3 +57,4 @@ public class UniquePriorityQueue<T> : PriorityQueue<T>
         return base.Enqueue(element);
     }
 }
+#pragma warning restore CS0618
