@@ -2,10 +2,6 @@ using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Text;
 
-/// <summary>
-/// Formatting helpers for numeric and MonoGame math types.
-/// Moved from Engine/Animations/Extensions.cs during architecture cleanup.
-/// </summary>
 public static class NumericFormatExtensions
 {
     private const string FormatSpec = "+0.000;-0.000";

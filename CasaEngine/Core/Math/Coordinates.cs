@@ -2,6 +2,9 @@
 
 namespace CasaEngine.Core.Math;
 
+/// <summary>
+/// Todo rename in LocalTransform
+/// </summary>
 public class Coordinates
 {
     private Vector3 _position;
