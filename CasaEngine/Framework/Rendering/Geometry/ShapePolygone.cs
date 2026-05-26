@@ -41,7 +41,7 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
     {
 
     }
-    public bool Equals(ShapePolygone? other)
+    public bool Equals(ShapePolygone other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -56,7 +56,7 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         return _isABox == other._isABox && _points.Equals(other._points);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {
@@ -96,8 +96,8 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
         }
     }
 
-    public event EventHandler? OnPointAdded;
-    public event EventHandler? OnPointDeleted;
+    public event EventHandler OnPointAdded;
+    public event EventHandler OnPointDeleted;
 
     public ShapePolygone(Vector2 p1, Vector2 p2, Vector2 p3)
         : base(Shape2dType.Polygone)

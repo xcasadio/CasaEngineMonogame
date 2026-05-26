@@ -17,7 +17,7 @@ public class ScreenLogComponent : DrawableGameComponent
 
     private readonly List<LogText> _logText = new();
     private Renderer2DComponent _renderer2DComponent;
-    private SpriteFontBase? _font;
+    private SpriteFontBase _font;
 
     public ScreenLogComponent(Game game) : base(game)
     {

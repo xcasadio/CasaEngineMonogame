@@ -116,7 +116,7 @@ public class Coordinates
         }
     }
 
-    public event EventHandler? PositionChanged;
-    public event EventHandler? OrientationChanged;
-    public event EventHandler? ScaleChanged;
+    public event EventHandler PositionChanged;
+    public event EventHandler OrientationChanged;
+    public event EventHandler ScaleChanged;
 }

@@ -6,7 +6,7 @@ public class Animation
     protected readonly HashSet<AnimationEvent> ActivatedEvents = new();
     private bool _isInitialized;
 
-    public event EventHandler? AnimationFinished;
+    public event EventHandler AnimationFinished;
 
     public AnimationData AnimationData { get; }
 

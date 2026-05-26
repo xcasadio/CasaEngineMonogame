@@ -114,7 +114,7 @@ public sealed class ParticleEmissionModule
 
         for (int burstIndex = 0; burstIndex < Bursts.Count; burstIndex++)
         {
-            ParticleBurst? burst = Bursts[burstIndex];
+            ParticleBurst burst = Bursts[burstIndex];
             if (burst == null)
             {
                 errors.Add($"{label} burst {burstIndex} is null.");

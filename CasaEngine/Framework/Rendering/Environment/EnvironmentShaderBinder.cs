@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Rendering.Environment;
 
 public static class EnvironmentShaderBinder
 {
-    public static void Bind(ShaderWrapper shader, in ResolvedEnvironmentSettings environment, RenderStats? stats = null)
+    public static void Bind(ShaderWrapper shader, in ResolvedEnvironmentSettings environment, RenderStats stats = null)
     {
         ArgumentNullException.ThrowIfNull(shader);
 

@@ -6,16 +6,16 @@ namespace CasaEngine.Framework.AI.Navigation;
 
 public sealed class NavigationAgentComponent : EntityComponent, IWorldSystemDrivenComponent
 {
-    private CharacterControllerNavigationDriverComponent? _driver;
+    private CharacterControllerNavigationDriverComponent _driver;
     private bool _needsPath;
 
-    public NavigationGrid2D? NavigationMap { get; set; }
+    public NavigationGrid2D NavigationMap { get; set; }
 
     public NavigationQuery Query { get; set; } = new();
 
     public Vector3 Destination { get; private set; }
 
-    public NavigationPath? CurrentPath { get; private set; }
+    public NavigationPath CurrentPath { get; private set; }
 
     public float StoppingDistance { get; set; } = 0.1f;
 
@@ -74,7 +74,7 @@ public sealed class NavigationAgentComponent : EntityComponent, IWorldSystemDriv
             return false;
         }
 
-        if (!NavigationMap.TryFindPath(Owner.RootComponent.Position, Destination, Query, out NavigationPath? path) || path == null)
+        if (!NavigationMap.TryFindPath(Owner.RootComponent.Position, Destination, Query, out NavigationPath path) || path == null)
         {
             HasPath = false;
             CurrentPath = null;

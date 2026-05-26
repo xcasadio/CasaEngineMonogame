@@ -23,32 +23,32 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Sub Mesh")]
 public class StaticModelSubMeshComponent : PrimitiveComponent
 {
-    private StaticMeshRendererComponent? _meshRendererComponent;
+    private StaticMeshRendererComponent _meshRendererComponent;
 
     /// <summary>
     /// The sub-mesh to render. Assigned at runtime by the parent
     /// <see cref="StaticModelComponent"/>; never serialized.
     /// </summary>
-    public StaticModelMesh? ModelMesh { get; set; }
+    public StaticModelMesh ModelMesh { get; set; }
 
     /// <summary>
     /// Optional per-instance shader parameter overrides applied after the mesh
     /// material's <c>Bind()</c> call. Use this to tint an individual entity
     /// differently without duplicating the entire <see cref="MaterialBase"/> asset.
     /// </summary>
-    public MaterialPropertyBlock? PropertyOverrides { get; set; }
+    public MaterialPropertyBlock PropertyOverrides { get; set; }
 
     /// <summary>
     /// Runtime-only per-slot material overrides inherited from the parent
     /// <see cref="StaticModelComponent"/> instance.
     /// </summary>
-    public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex { get; set; }
+    public IReadOnlyDictionary<int, MaterialBase> MaterialOverridesBySlotIndex { get; set; }
 
     /// <summary>
     /// Runtime-only per-slot shader parameter overrides inherited from the parent
     /// <see cref="StaticModelComponent"/> instance.
     /// </summary>
-    public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex { get; set; }
+    public IReadOnlyDictionary<int, MaterialPropertyBlock> PropertyOverridesBySlotIndex { get; set; }
 
     /// <summary>
     /// <c>true</c> when this component was auto-generated from a <see cref="StaticModelComponent"/>.

@@ -56,7 +56,7 @@ public static class StaticModelMaterialResolver
         return CreateMissingMaterial(GetSlotDisplayName(subMesh.SlotName, mesh.Name));
     }
 
-    public static LitDiffuseMaterial CreateTextureFallbackMaterial(string slotName, Guid textureAssetId, Texture2D? basColor, SamplerState? samplerState = null)
+    public static LitDiffuseMaterial CreateTextureFallbackMaterial(string slotName, Guid textureAssetId, Texture2D basColor, SamplerState samplerState = null)
     {
         return new LitDiffuseMaterial
         {

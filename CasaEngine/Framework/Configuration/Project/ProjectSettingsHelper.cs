@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Configuration.Project;
 
 public static class ProjectSettingsHelper
 {
-    public static void Load(string fileName, EngineRuntimeContext? runtimeContext = null)
+    public static void Load(string fileName, EngineRuntimeContext runtimeContext = null)
     {
         var context = runtimeContext ?? GameSettings.CreateRuntimeContext();
         var projectSettings = context.ProjectSettings;
@@ -48,10 +48,10 @@ public static class ProjectSettingsHelper
         AssetCatalog.Load(assetInfoFileName);
     }
 
-    public static void Save(string fileName, ProjectSettings? projectSettings = null)
+    public static void Save(string fileName, ProjectSettings projectSettings = null)
     {
         var settings = projectSettings ?? GameSettings.ProjectSettings;
-        string? directoryName = Path.GetDirectoryName(fileName);
+        string directoryName = Path.GetDirectoryName(fileName);
         if (!string.IsNullOrWhiteSpace(directoryName))
         {
             Directory.CreateDirectory(directoryName);

@@ -52,7 +52,7 @@ public static class RenderFrameFactory
         Rectangle viewportRect,
         in ResolvedEnvironmentSettings environment,
         LightingContext lighting,
-        ShadowSettings? shadows)
+        ShadowSettings shadows)
     {
         return new RenderFrame(
             camera.ViewMatrix,

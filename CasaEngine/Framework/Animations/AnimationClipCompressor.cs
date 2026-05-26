@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Animations;
 
 public static class AnimationClipCompressor
 {
-    public static AnimationClip Compress(AnimationClip clip, AnimationClipCompressionSettings? settings = null)
+    public static AnimationClip Compress(AnimationClip clip, AnimationClipCompressionSettings settings = null)
     {
         ArgumentNullException.ThrowIfNull(clip);
 
@@ -36,7 +36,7 @@ public static class AnimationClipCompressor
         return new AnimationClip(clip.Name, clip.Skeleton, compressedTracks, clip.DurationSeconds, clip.EventTrack);
     }
 
-    private static Vector3AnimationTrack? CompressVector3Track(Vector3AnimationTrack? track, Vector3 bindValue, float tolerance)
+    private static Vector3AnimationTrack CompressVector3Track(Vector3AnimationTrack track, Vector3 bindValue, float tolerance)
     {
         if (track == null || track.KeyframeCount == 0)
         {
@@ -58,7 +58,7 @@ public static class AnimationClipCompressor
         return new Vector3AnimationTrack(reducedKeyframes);
     }
 
-    private static QuaternionAnimationTrack? CompressQuaternionTrack(QuaternionAnimationTrack? track, Quaternion bindValue, float toleranceRadians)
+    private static QuaternionAnimationTrack CompressQuaternionTrack(QuaternionAnimationTrack track, Quaternion bindValue, float toleranceRadians)
     {
         if (track == null || track.KeyframeCount == 0)
         {

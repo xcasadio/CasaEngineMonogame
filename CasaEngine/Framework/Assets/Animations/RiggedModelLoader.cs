@@ -39,8 +39,8 @@ namespace CasaEngine.Framework.Assets.Animations;
 public class RiggedModelLoader
 {
     private Assimp.Scene _scene = null!;
-    private AssetContentManager? _assetContentManager;
-    private readonly Effect? _effectToUse;
+    private AssetContentManager _assetContentManager;
+    private readonly Effect _effectToUse;
 
     public static Texture2D DefaultTexture { get; set; }
 
@@ -77,7 +77,7 @@ public class RiggedModelLoader
     /// <summary>
     /// Loading content here is just for visualizing but it wont be requisite if we load all the textures in from xnb's at runtime in completed model.
     /// </summary>
-    public RiggedModelLoader(AssetContentManager? content = null, Effect? defaultEffect = null)
+    public RiggedModelLoader(AssetContentManager content = null, Effect defaultEffect = null)
     {
         _effectToUse = defaultEffect;
         _assetContentManager = content;

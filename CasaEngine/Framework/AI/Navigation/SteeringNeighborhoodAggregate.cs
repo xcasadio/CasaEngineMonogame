@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.AI.Navigation;
 public readonly record struct SteeringNeighborhoodAggregateQuery(
     float Radius,
     uint InclusionMask = 0u,
-    Entity? ExcludedEntity = null,
+    Entity ExcludedEntity = null,
     bool CaptureDebugNeighbors = false);
 
 public readonly record struct SteeringNeighborhoodAggregateResult(

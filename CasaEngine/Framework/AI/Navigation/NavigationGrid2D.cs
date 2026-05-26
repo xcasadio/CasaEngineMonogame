@@ -57,7 +57,7 @@ public sealed class NavigationGrid2D
 
     public Vector3 Origin { get; }
 
-    public static bool TryCreateFromTileMap(TileMapData tileMapData, IReadOnlyList<TileSetData> tileSets, float cellSize, out NavigationGrid2D? grid)
+    public static bool TryCreateFromTileMap(TileMapData tileMapData, IReadOnlyList<TileSetData> tileSets, float cellSize, out NavigationGrid2D grid)
     {
         ArgumentNullException.ThrowIfNull(tileMapData);
         ArgumentNullException.ThrowIfNull(tileSets);
@@ -89,7 +89,7 @@ public sealed class NavigationGrid2D
         return true;
     }
 
-    public static bool TryCreateFromTileMap(TileMapData tileMapData, TileSetData tileSet, float cellSize, out NavigationGrid2D? grid)
+    public static bool TryCreateFromTileMap(TileMapData tileMapData, TileSetData tileSet, float cellSize, out NavigationGrid2D grid)
     {
         ArgumentNullException.ThrowIfNull(tileSet);
         return TryCreateFromTileMap(tileMapData, [tileSet], cellSize, out grid);
@@ -148,7 +148,7 @@ public sealed class NavigationGrid2D
         return GetWorldPosition(x, y);
     }
 
-    public bool TryFindPath(Vector3 start, Vector3 end, NavigationQuery query, out NavigationPath? path)
+    public bool TryFindPath(Vector3 start, Vector3 end, NavigationQuery query, out NavigationPath path)
     {
         return GridPathfinder2D.Shared.TryFindPath(this, start, end, query, out path);
     }
@@ -158,7 +158,7 @@ public sealed class NavigationGrid2D
         for (int layerIndex = 0; layerIndex < tileMapData.Layers.Count; layerIndex++)
         {
             TileMapLayerData layer = tileMapData.Layers[layerIndex];
-            if (layer.CustomProperties.TryGetValue(NavigationRoleProperty, out string? role)
+            if (layer.CustomProperties.TryGetValue(NavigationRoleProperty, out string role)
                 && string.Equals(role, NavigationRoleGrid, StringComparison.OrdinalIgnoreCase))
             {
                 return layerIndex;
@@ -181,7 +181,7 @@ public sealed class NavigationGrid2D
         }
 
         TileSetData tileSet = tileSets[tileSourceIndex];
-        if (!tileSet.TryGetTileData(tileId, out TileData? tileData) || tileData == null)
+        if (!tileSet.TryGetTileData(tileId, out TileData tileData) || tileData == null)
         {
             throw new InvalidOperationException($"Navigation tile id {tileId} was not found in tileset source {tileSourceIndex}.");
         }
@@ -194,7 +194,7 @@ public sealed class NavigationGrid2D
 
     private static bool ReadBool(Dictionary<string, string> properties, string key, bool fallback)
     {
-        if (!properties.TryGetValue(key, out string? rawValue))
+        if (!properties.TryGetValue(key, out string rawValue))
         {
             return fallback;
         }
@@ -209,7 +209,7 @@ public sealed class NavigationGrid2D
 
     private static float ReadFloat(Dictionary<string, string> properties, string key, float fallback)
     {
-        if (!properties.TryGetValue(key, out string? rawValue))
+        if (!properties.TryGetValue(key, out string rawValue))
         {
             return fallback;
         }
@@ -224,7 +224,7 @@ public sealed class NavigationGrid2D
 
     private static NavigationLayerMask ReadLayers(Dictionary<string, string> properties, string key, NavigationLayerMask fallback)
     {
-        if (!properties.TryGetValue(key, out string? rawValue) || string.IsNullOrWhiteSpace(rawValue))
+        if (!properties.TryGetValue(key, out string rawValue) || string.IsNullOrWhiteSpace(rawValue))
         {
             return fallback;
         }

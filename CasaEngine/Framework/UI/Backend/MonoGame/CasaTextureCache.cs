@@ -24,7 +24,7 @@ internal sealed class CasaTextureCache
 
     public SolidColorTexture GetOrCreateSolidColorTexture(Color color)
     {
-        if (!_solidColorTextures.TryGetValue(color, out SolidColorTexture? result))
+        if (!_solidColorTextures.TryGetValue(color, out SolidColorTexture result))
         {
             result = new SolidColorTexture(_graphicsDevice, color);
             _solidColorTextures.Add(color, result);
@@ -38,7 +38,7 @@ internal sealed class CasaTextureCache
         maximumRadius = Math.Clamp(maximumRadius ?? GeneralUtils.NextPowerOf2(desiredRadius), MinimumCircleTextureRadius, MaximumCircleTextureRadius);
         minimumRadius = Math.Clamp(minimumRadius ?? (int)Math.Floor(desiredRadius), MinimumCircleTextureRadius, maximumRadius.Value);
 
-        Texture2D? bestMatch = null;
+        Texture2D bestMatch = null;
         float bestDifference = float.MaxValue;
         foreach (KeyValuePair<int, Texture2D> entry in _circleTextures)
         {
@@ -72,7 +72,7 @@ internal sealed class CasaTextureCache
 
     public void ClearDisposedCircleTextures()
     {
-        List<int>? invalidKeys = null;
+        List<int> invalidKeys = null;
         foreach (KeyValuePair<int, Texture2D> entry in _circleTextures)
         {
             if (entry.Value == null || entry.Value.IsDisposed)

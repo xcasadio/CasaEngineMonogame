@@ -25,7 +25,7 @@ public class InputComponent : GameComponent
     /// Per-view input router. Set by <see cref="CasaEngineGame"/> after initialization.
     /// Provides player → view mapping and UI-first arbitration helpers.
     /// </summary>
-    public InputRouter? InputRouter { get; set; }
+    public InputRouter InputRouter { get; set; }
 
     public InputComponent(Game game)
         : base(game)

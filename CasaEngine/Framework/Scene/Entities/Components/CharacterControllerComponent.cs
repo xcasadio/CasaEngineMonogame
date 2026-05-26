@@ -31,7 +31,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
-    private PhysicsShape? _sweepShape;
+    private PhysicsShape _sweepShape;
     private float _sweepShapeRadius;
     private float _sweepShapeCylinderHeight;
 
@@ -93,7 +93,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     public Vector3 GroundNormal => _groundInfo.Normal;
 
-    public PhysicsBaseComponent? GroundCollider => _groundInfo.Collider;
+    public PhysicsBaseComponent GroundCollider => _groundInfo.Collider;
 
     public Vector3 GroundVelocity => _groundInfo.Collider?.Velocity ?? Vector3.Zero;
 
@@ -126,11 +126,11 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         defaults.Apply(EntityPolicySet.DynamicTransformAnimated);
     }
 
-    public event EventHandler? JumpStarted;
+    public event EventHandler JumpStarted;
 
-    public event EventHandler<CharacterControllerGroundInfo>? Landed;
+    public event EventHandler<CharacterControllerGroundInfo> Landed;
 
-    public event EventHandler<CharacterControllerGroundInfo>? GroundChanged;
+    public event EventHandler<CharacterControllerGroundInfo> GroundChanged;
 
     public override CharacterControllerComponent Clone()
     {
@@ -838,7 +838,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         SetGroundInfo(new CharacterControllerGroundInfo(true, hitResult.Normal, hitResult.Collider, slopeAngle));
     }
 
-    private bool TryResolveCollisionDependencies(out IPhysicsWorld? physicsWorldContext, out CapsuleCollisionComponent? capsuleCollisionComponent)
+    private bool TryResolveCollisionDependencies(out IPhysicsWorld physicsWorldContext, out CapsuleCollisionComponent capsuleCollisionComponent)
     {
         physicsWorldContext = null;
         capsuleCollisionComponent = null;

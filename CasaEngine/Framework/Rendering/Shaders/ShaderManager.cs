@@ -38,7 +38,7 @@ public sealed class ShaderManager : IDisposable
     /// Returns <c>null</c> when <paramref name="shaderAssetId"/> is empty or the asset
     /// cannot be found.
     /// </summary>
-    public ShaderWrapper? GetShader(Guid shaderAssetId)
+    public ShaderWrapper GetShader(Guid shaderAssetId)
     {
         if (shaderAssetId == Guid.Empty)
         {
@@ -50,7 +50,7 @@ public sealed class ShaderManager : IDisposable
             return cached;
         }
 
-        Effect? effect = null;
+        Effect effect = null;
         try
         {
             effect = _assetContentManager.Load<Effect>(shaderAssetId);

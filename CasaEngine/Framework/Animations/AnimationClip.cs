@@ -2,14 +2,14 @@ namespace CasaEngine.Framework.Animations;
 
 public sealed class AnimationClip
 {
-    private readonly JointAnimationTrack?[] _tracksByJointIndex;
+    private readonly JointAnimationTrack[] _tracksByJointIndex;
 
     public AnimationClip(
         string name,
         SkeletonDefinition skeleton,
         IReadOnlyList<JointAnimationTrack> jointTracks,
         float durationSeconds = 0f,
-        AnimationEventTrack? eventTrack = null)
+        AnimationEventTrack eventTrack = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -19,7 +19,7 @@ public sealed class AnimationClip
         Skeleton = skeleton ?? throw new ArgumentNullException(nameof(skeleton));
         ArgumentNullException.ThrowIfNull(jointTracks);
 
-        _tracksByJointIndex = new JointAnimationTrack?[skeleton.Count];
+        _tracksByJointIndex = new JointAnimationTrack[skeleton.Count];
         Name = name;
 
         var computedDuration = 0f;
@@ -61,9 +61,9 @@ public sealed class AnimationClip
 
     public float DurationSeconds { get; }
 
-    public AnimationEventTrack? EventTrack { get; }
+    public AnimationEventTrack EventTrack { get; }
 
-    public bool TryGetJointTrack(int jointIndex, out JointAnimationTrack? track)
+    public bool TryGetJointTrack(int jointIndex, out JointAnimationTrack track)
     {
         if ((uint)jointIndex >= (uint)_tracksByJointIndex.Length)
         {

@@ -121,7 +121,7 @@ public static class RetargetProfileAssetJsonSerializer
         };
     }
 
-    private static TEnum ParseEnum<TEnum>(JToken? token, TEnum fallbackValue) where TEnum : struct
+    private static TEnum ParseEnum<TEnum>(JToken token, TEnum fallbackValue) where TEnum : struct
     {
         if (token == null)
         {

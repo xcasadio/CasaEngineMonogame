@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Assets.TileMap;
 
 public class AnimatedTileData : TileData
 {
-    public string? Animation2dId;
+    public string Animation2dId;
     public Rectangle Location { get; set; }
     public List<AnimatedTileFrameData> Frames { get; } = new();
 

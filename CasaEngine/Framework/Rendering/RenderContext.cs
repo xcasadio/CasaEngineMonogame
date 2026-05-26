@@ -18,14 +18,14 @@ public struct RenderContext
     public RenderFrame Frame;
 
     /// <summary>Lighting data (directional lights, ambient). Null until Phase 5.</summary>
-    public LightingContext? Lighting;
+    public LightingContext Lighting;
 
     /// <summary>Effective environment data resolved for the current view.</summary>
     public ResolvedEnvironmentSettings Environment;
 
     /// <summary>Per-frame rendering statistics (draw calls, binds, etc.).</summary>
-    public RenderStats? Stats;
+    public RenderStats Stats;
 
     /// <summary>Optional forward-shadow resources resolved for the current view.</summary>
-    public ForwardShadowResources? Shadows;
+    public ForwardShadowResources Shadows;
 }

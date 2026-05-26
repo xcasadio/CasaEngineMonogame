@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Animations;
 
 public static class RetargetProcessor
 {
-    public static AnimationClip RetargetClip(AnimationClip sourceClip, RetargetProfile retargetProfile, string? retargetedName = null)
+    public static AnimationClip RetargetClip(AnimationClip sourceClip, RetargetProfile retargetProfile, string retargetedName = null)
     {
         ArgumentNullException.ThrowIfNull(sourceClip);
         ArgumentNullException.ThrowIfNull(retargetProfile);
@@ -46,8 +46,8 @@ public static class RetargetProcessor
             CopyEventTrack(sourceClip.EventTrack));
     }
 
-    private static Vector3AnimationTrack? RetargetTranslationTrack(
-        Vector3AnimationTrack? sourceTrack,
+    private static Vector3AnimationTrack RetargetTranslationTrack(
+        Vector3AnimationTrack sourceTrack,
         RetargetJointMapping jointMapping,
         RetargetProfile retargetProfile)
     {
@@ -78,8 +78,8 @@ public static class RetargetProcessor
         return new Vector3AnimationTrack(keyframes);
     }
 
-    private static QuaternionAnimationTrack? RetargetRotationTrack(
-        QuaternionAnimationTrack? sourceTrack,
+    private static QuaternionAnimationTrack RetargetRotationTrack(
+        QuaternionAnimationTrack sourceTrack,
         RetargetJointMapping jointMapping,
         RetargetProfile retargetProfile)
     {
@@ -113,8 +113,8 @@ public static class RetargetProcessor
         return new QuaternionAnimationTrack(keyframes);
     }
 
-    private static Vector3AnimationTrack? RetargetScaleTrack(
-        Vector3AnimationTrack? sourceTrack,
+    private static Vector3AnimationTrack RetargetScaleTrack(
+        Vector3AnimationTrack sourceTrack,
         RetargetJointMapping jointMapping,
         RetargetProfile retargetProfile)
     {
@@ -138,7 +138,7 @@ public static class RetargetProcessor
         return new Vector3AnimationTrack(keyframes);
     }
 
-    private static AnimationEventTrack? CopyEventTrack(AnimationEventTrack? eventTrack)
+    private static AnimationEventTrack CopyEventTrack(AnimationEventTrack eventTrack)
     {
         if (eventTrack == null || eventTrack.Count == 0)
         {

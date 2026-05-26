@@ -62,7 +62,7 @@ public abstract class RenderPass
         RenderStateCache stateCache,
         ShaderBindCache shaderCache,
         RenderShaderSelector shaderSelector,
-        RenderStats? stats)
+        RenderStats stats)
     {
         var resolvedShader = shaderSelector.Resolve(in item);
         var shader = resolvedShader.Shader;

@@ -31,11 +31,11 @@ public class Entity : ObjectBase
     private readonly List<EntityComponent> _components = [];
     private readonly List<EntityComponent> _componentsForUpdate = [];
     private readonly List<Entity> _children = [];
-    private SceneComponent? _rootComponent;
+    private SceneComponent _rootComponent;
     public CasaEngine.Framework.Scene.World.World World { get; private set; }
 
     public bool IsInitialized { get; private set; }
-    public Entity? Parent { get; private set; }
+    public Entity Parent { get; private set; }
 
     public IEnumerable<Entity> Children => _children;
 
@@ -63,7 +63,7 @@ public class Entity : ObjectBase
         }
     }
 
-    public SceneComponent? RootComponent
+    public SceneComponent RootComponent
     {
         get => _rootComponent;
         set
@@ -86,7 +86,7 @@ public class Entity : ObjectBase
     }
 
     public string GameplayProxyClassName { get; set; }
-    public IGameplayProxy? GameplayProxy { get; private set; }
+    public IGameplayProxy GameplayProxy { get; private set; }
 
     public bool IsEnabled
     {
@@ -297,9 +297,9 @@ public class Entity : ObjectBase
         return component;
     }
 
-    public T? GetComponent<T>() where T : class
+    public T GetComponent<T>() where T : class
     {
-        static T? FindSceneComponentRecursive(SceneComponent? sceneComponent)
+        static T FindSceneComponentRecursive(SceneComponent sceneComponent)
         {
             if (sceneComponent == null)
             {
@@ -313,7 +313,7 @@ public class Entity : ObjectBase
 
             for (int index = 0; index < sceneComponent.Children.Count; index++)
             {
-                T? childComponent = FindSceneComponentRecursive(sceneComponent.Children[index]);
+                T childComponent = FindSceneComponentRecursive(sceneComponent.Children[index]);
                 if (childComponent != null)
                 {
                     return childComponent;
@@ -323,7 +323,7 @@ public class Entity : ObjectBase
             return null;
         }
 
-        T? rootComponent = FindSceneComponentRecursive(RootComponent);
+        T rootComponent = FindSceneComponentRecursive(RootComponent);
         if (rootComponent != null)
         {
             return rootComponent;
@@ -390,7 +390,7 @@ public class Entity : ObjectBase
         return GetCoroutineManager().StartCoroutine(routine, this);
     }
 
-    public CoroutineHandle StartCoroutine(IEnumerator routine, string? name)
+    public CoroutineHandle StartCoroutine(IEnumerator routine, string name)
     {
         return GetCoroutineManager().StartCoroutine(routine, this, name);
     }

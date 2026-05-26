@@ -88,32 +88,32 @@ public class GameEditor : Game, IObservableUpdate
     private HostedEditorGameAdapter _editorRuntime;
     private WorldViewportPanel _worldViewportPanel;
     private MGElement _worldViewportContent;
-    private ContextualDockPanelHost? _hierarchyPanelHost;
-    private MGElement? _hierarchyContent;
+    private ContextualDockPanelHost _hierarchyPanelHost;
+    private MGElement _hierarchyContent;
     private EntitiesPanel _entitiesPanel;
     private MGElement _entitiesContent;
-    private EntityAssetHierarchyPanel? _entityAssetHierarchyPanel;
-    private MGElement? _entityAssetHierarchyContent;
-    private MaterialHierarchyPanel? _materialHierarchyPanel;
-    private MGElement? _materialHierarchyContent;
-    private MGElement? _particleHierarchyContent;
-    private ContextualDockPanelHost? _inspectorPanelHost;
-    private MGElement? _inspectorContent;
+    private EntityAssetHierarchyPanel _entityAssetHierarchyPanel;
+    private MGElement _entityAssetHierarchyContent;
+    private MaterialHierarchyPanel _materialHierarchyPanel;
+    private MGElement _materialHierarchyContent;
+    private MGElement _particleHierarchyContent;
+    private ContextualDockPanelHost _inspectorPanelHost;
+    private MGElement _inspectorContent;
     private EntityDetailsPanel _entityDetailsPanel;
     private MGElement _entityDetailsContent;
-    private EntityDetailsPanel? _entityAssetInspectorPanel;
-    private MGElement? _entityAssetInspectorContent;
-    private MaterialInspectorView? _materialInspectorView;
-    private MGElement? _materialInspectorContent;
-    private MGStackPanel? _particleInspectorView;
-    private ContextualDockPanelHost? _toolboxPanelHost;
-    private MGElement? _toolboxContent;
-    private MGElement? _particleToolboxContent;
-    private TileMapHierarchyPanel? _tileMapHierarchyPanel;
-    private MGElement? _tileMapHierarchyContent;
-    private TileMapInspectorPanel? _tileMapInspectorPanel;
-    private MGElement? _tileMapInspectorContent;
-    private MGElement? _tileMapToolboxContent;
+    private EntityDetailsPanel _entityAssetInspectorPanel;
+    private MGElement _entityAssetInspectorContent;
+    private MaterialInspectorView _materialInspectorView;
+    private MGElement _materialInspectorContent;
+    private MGStackPanel _particleInspectorView;
+    private ContextualDockPanelHost _toolboxPanelHost;
+    private MGElement _toolboxContent;
+    private MGElement _particleToolboxContent;
+    private TileMapHierarchyPanel _tileMapHierarchyPanel;
+    private MGElement _tileMapHierarchyContent;
+    private TileMapInspectorPanel _tileMapInspectorPanel;
+    private MGElement _tileMapInspectorContent;
+    private MGElement _tileMapToolboxContent;
     private ContentBrowserPanel _contentBrowserPanel;
     private MGElement _contentBrowserContent;
     private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
@@ -132,28 +132,28 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _tileMapEditorPanelTitles = new(StringComparer.Ordinal);
     private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
-    private ParticleAssetInspectorPanel? _activeParticleInspectorPanel;
-    private CutsceneAssetInspectorPanel? _activeCutsceneInspectorPanel;
-    private EntityAssetEditorPanel? _activeEntityAssetEditorPanel;
-    private TileMapEditorPanel? _activeTileMapEditorPanel;
+    private ParticleAssetInspectorPanel _activeParticleInspectorPanel;
+    private CutsceneAssetInspectorPanel _activeCutsceneInspectorPanel;
+    private EntityAssetEditorPanel _activeEntityAssetEditorPanel;
+    private TileMapEditorPanel _activeTileMapEditorPanel;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
     private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
-    private UIScreenHierarchyPanel? _screenHierarchyPanel;
-    private MGElement? _screenHierarchyContent;
-    private UIScreenInspectorPanel? _screenInspectorPanel;
-    private MGElement? _screenInspectorContent;
-    private UIScreenToolboxPanel? _screenToolboxPanel;
-    private MGElement? _screenToolboxContent;
+    private UIScreenHierarchyPanel _screenHierarchyPanel;
+    private MGElement _screenHierarchyContent;
+    private UIScreenInspectorPanel _screenInspectorPanel;
+    private MGElement _screenInspectorContent;
+    private UIScreenToolboxPanel _screenToolboxPanel;
+    private MGElement _screenToolboxContent;
     // tracks the most-recently-opened screen for hierarchy-level edits
-    private UIScreenPreviewPanel? _activeScreenPreviewPanel;
-    private string? _nodeClipboard; // JSON-serialized node subtree for copy/paste
+    private UIScreenPreviewPanel _activeScreenPreviewPanel;
+    private string _nodeClipboard; // JSON-serialized node subtree for copy/paste
     private LogsPanel _logsPanel;
     private MGElement _logsContent;
-    private Action? _pendingProjectLauncherAction;
+    private Action _pendingProjectLauncherAction;
     private FrameCachedWindowInputSource _windowInputSource;
-    private string? _editorInputProbePath;
+    private string _editorInputProbePath;
     private int _editorInputProbeFrameIndex;
-    private string? _lastEditorInputProbeSignature;
+    private string _lastEditorInputProbeSignature;
     private readonly EditorSelection _editorSelection = EditorSelection.Current;
     private bool _isSynchronizingSelection;
     private readonly EditorAutomationOptions _automationOptions;
@@ -168,8 +168,8 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationAssetOpenedAt;
     private bool _automationParticleCreateAttempted;
     private bool _automationParticleAssetCreated;
-    private string? _automationCreatedParticleAssetFullPath;
-    private string? _automationCreatedParticleAssetRelativePath;
+    private string _automationCreatedParticleAssetFullPath;
+    private string _automationCreatedParticleAssetRelativePath;
     private bool _automationParticleEditAttempted;
     private bool _automationParticleEdited;
     private TimeSpan _automationParticleEditedAt;
@@ -190,7 +190,7 @@ public class GameEditor : Game, IObservableUpdate
     public event EventHandler<TimeSpan> PreviewUpdate;
     public event EventHandler<EventArgs> EndUpdate;
 
-    public GameEditor(EditorAutomationOptions? automationOptions = null)
+    public GameEditor(EditorAutomationOptions automationOptions = null)
     {
         _automationOptions = automationOptions ?? new EditorAutomationOptions();
         _editorHistory.HistoryChanged += OnEditorHistoryChanged;
@@ -412,7 +412,7 @@ public class GameEditor : Game, IObservableUpdate
         menu.AddButton("Paste", _ => ExecutePaste());
     }
 
-    private static string BuildHistoryMenuLabel(string prefix, string? description)
+    private static string BuildHistoryMenuLabel(string prefix, string description)
         => string.IsNullOrWhiteSpace(description) ? prefix : $"{prefix} {description}";
 
     private void SetupInitialDockLayout()
@@ -426,7 +426,7 @@ public class GameEditor : Game, IObservableUpdate
         ResetDockLayoutToDefault();
     }
 
-    private void OnProjectLoaded(object? sender, EventArgs e)
+    private void OnProjectLoaded(object sender, EventArgs e)
     {
         _editorHistory.ClearAll();
         _editorDirtyState.ClearAll();
@@ -460,7 +460,7 @@ public class GameEditor : Game, IObservableUpdate
         PresentLoadedProject();
     }
 
-    private void OnEditorAssetSaved(object? sender, EditorAssetSavedEventArgs e)
+    private void OnEditorAssetSaved(object sender, EditorAssetSavedEventArgs e)
     {
         if (e.RelativePath.EndsWith(Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
         {
@@ -473,7 +473,7 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        MaterialAsset? savedMaterialAsset = TryGetSavedMaterialAssetForHotReload(e);
+        MaterialAsset savedMaterialAsset = TryGetSavedMaterialAssetForHotReload(e);
         RefreshSavedMaterialInspectorPanels(e);
 
         if (_editorRuntime == null)
@@ -498,7 +498,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void HandleSavedParticleAsset(EditorAssetSavedEventArgs e)
     {
-        ParticleEffectAsset? savedParticleAsset = TryGetSavedParticleAssetForHotReload(e);
+        ParticleEffectAsset savedParticleAsset = TryGetSavedParticleAssetForHotReload(e);
         RefreshSavedParticleInspectorPanels(e);
 
         if (_editorRuntime == null)
@@ -551,7 +551,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private MaterialAsset? TryGetSavedMaterialAssetForHotReload(EditorAssetSavedEventArgs e)
+    private MaterialAsset TryGetSavedMaterialAssetForHotReload(EditorAssetSavedEventArgs e)
     {
         if (e.SaveSource != EditorAssetSaveSource.MaterialInspectorPanel)
         {
@@ -597,7 +597,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private ParticleEffectAsset? TryGetSavedParticleAssetForHotReload(EditorAssetSavedEventArgs e)
+    private ParticleEffectAsset TryGetSavedParticleAssetForHotReload(EditorAssetSavedEventArgs e)
     {
         if (e.SaveSource != EditorAssetSaveSource.ParticleEffectEditorPanel)
         {
@@ -1240,7 +1240,7 @@ public class GameEditor : Game, IObservableUpdate
         return commandStack;
     }
 
-    private bool TryGetActiveScreenCommandStack(out UICommandStack? commandStack)
+    private bool TryGetActiveScreenCommandStack(out UICommandStack commandStack)
     {
         commandStack = null;
 
@@ -1279,7 +1279,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         // Insert after (or inside) the selected node
-        UIScreenNode? parentNode = null;
+        UIScreenNode parentNode = null;
         if (_screenSelection.SelectedNodeId.HasValue)
         {
             parentNode = document.FindNode(_screenSelection.SelectedNodeId.Value);
@@ -1452,7 +1452,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnEditorHistoryChanged(object? sender, EditorHistoryChangedEventArgs e)
+    private void OnEditorHistoryChanged(object sender, EditorHistoryChangedEventArgs e)
     {
         if (e.ChangeKind == EditorHistoryStackChangeKind.Executed
             && e.Context.Kind == EditorHistoryContextKind.World)
@@ -1543,7 +1543,7 @@ public class GameEditor : Game, IObservableUpdate
         });
     }
 
-    private void OnDockHostActivePanelChanged(object? sender, DockPanelNode panel)
+    private void OnDockHostActivePanelChanged(object sender, DockPanelNode panel)
     {
         if (panel.Id == EditorPanelIds.Output)
         {
@@ -1874,7 +1874,7 @@ public class GameEditor : Game, IObservableUpdate
         return Environment.CurrentDirectory;
     }
 
-    private void OnDockHostPanelRemoved(object? sender, DockPanelNode panel)
+    private void OnDockHostPanelRemoved(object sender, DockPanelNode panel)
     {
         if (TryGetUIScreenPreviewPanel(panel.Id, out var previewPanel))
         {
@@ -1972,7 +1972,7 @@ public class GameEditor : Game, IObservableUpdate
         RefreshActiveHistoryContext();
     }
 
-    private void RefreshActiveHistoryContext(string? activePanelId = null)
+    private void RefreshActiveHistoryContext(string activePanelId = null)
     {
         if (string.Equals(activePanelId, EditorPanelIds.ContentBrowser, StringComparison.Ordinal))
         {
@@ -1990,7 +1990,7 @@ public class GameEditor : Game, IObservableUpdate
         _editorHistory.SetActiveContext(context);
     }
 
-    private string? GetActiveDocumentPanelId()
+    private string GetActiveDocumentPanelId()
     {
         if (_dockHost?.LayoutModel == null)
         {
@@ -2035,7 +2035,7 @@ public class GameEditor : Game, IObservableUpdate
         return result;
     }
 
-    private DockPanelNode? CreateDocumentPanelNode(string panelId)
+    private DockPanelNode CreateDocumentPanelNode(string panelId)
     {
         if (_panelRegistry != null
             && _panelRegistry.TryGetDescriptor(panelId, out var descriptor)
@@ -2242,13 +2242,13 @@ public class GameEditor : Game, IObservableUpdate
         return inspectorPanel != null;
     }
 
-    private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel? inspectorPanel)
+    private void SetActiveMaterialInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
     {
         _activeMaterialInspectorPanel = inspectorPanel;
         RefreshMaterialViews();
     }
 
-    private void SetActiveEntityAssetEditorPanel(EntityAssetEditorPanel? entityAssetEditorPanel)
+    private void SetActiveEntityAssetEditorPanel(EntityAssetEditorPanel entityAssetEditorPanel)
     {
         if (ReferenceEquals(_activeEntityAssetEditorPanel, entityAssetEditorPanel))
         {
@@ -2509,7 +2509,7 @@ public class GameEditor : Game, IObservableUpdate
         _tileMapInspectorPanel?.SetEditorPanel(_activeTileMapEditorPanel);
     }
 
-    private DockTabGroupNode? GetDocumentDockGroup()
+    private DockTabGroupNode GetDocumentDockGroup()
     {
         if (_dockHost?.LayoutModel == null)
         {
@@ -2521,12 +2521,12 @@ public class GameEditor : Game, IObservableUpdate
                ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault();
     }
 
-    private void OnEntitiesPanelSelectionChanged(Entity? entity)
+    private void OnEntitiesPanelSelectionChanged(Entity entity)
     {
         _editorSelection.SetSelectedEntity(entity);
     }
 
-    private void OnEntitiesPanelWorldSelectionChanged(Framework.Scene.World.World? world)
+    private void OnEntitiesPanelWorldSelectionChanged(Framework.Scene.World.World world)
     {
         _editorSelection.SetSelectedWorld(world);
     }
@@ -2571,7 +2571,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private static bool TryCreateParticleAssetInFolder(string folderPath, out string fullPath, out string relativePath, out string? errorMessage)
+    private static bool TryCreateParticleAssetInFolder(string folderPath, out string fullPath, out string relativePath, out string errorMessage)
         => TryCreateParticleAssetInFolder(folderPath, ParticleEffectPresetKind.Default, out fullPath, out relativePath, out errorMessage);
 
     private static bool TryCreateParticleAssetInFolder(
@@ -2579,7 +2579,7 @@ public class GameEditor : Game, IObservableUpdate
         ParticleEffectPresetKind presetKind,
         out string fullPath,
         out string relativePath,
-        out string? errorMessage)
+        out string errorMessage)
     {
         fullPath = string.Empty;
         relativePath = string.Empty;
@@ -2867,7 +2867,7 @@ public class GameEditor : Game, IObservableUpdate
         };
     }
 
-    private static bool TryParseParticlePreset(string? rawPreset, out ParticleEffectPresetKind presetKind)
+    private static bool TryParseParticlePreset(string rawPreset, out ParticleEffectPresetKind presetKind)
     {
         presetKind = ParticleEffectPresetKind.Default;
         if (string.IsNullOrWhiteSpace(rawPreset))
@@ -3344,7 +3344,7 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    private void OnDirtyStateChanged(object? sender, EditorDirtyStateChangedEventArgs e)
+    private void OnDirtyStateChanged(object sender, EditorDirtyStateChangedEventArgs e)
     {
         RefreshHistoryContextTitle(e.Context);
     }
@@ -3399,7 +3399,7 @@ public class GameEditor : Game, IObservableUpdate
                 continue;
             }
 
-            if (materialInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            if (materialInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
             {
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
@@ -3422,7 +3422,7 @@ public class GameEditor : Game, IObservableUpdate
                 continue;
             }
 
-            if (particleInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            if (particleInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
             {
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Particle, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetParticleDocumentTitle(pair.Key));
@@ -3445,7 +3445,7 @@ public class GameEditor : Game, IObservableUpdate
                 continue;
             }
 
-            if (entityAssetEditorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            if (entityAssetEditorPanel.TrySaveLoadedAsset(out string errorMessage))
             {
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Entity, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetEntityDocumentTitle(pair.Key));
@@ -3734,7 +3734,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnViewportSelectedEntityChanged(Entity? entity)
+    private void OnViewportSelectedEntityChanged(Entity entity)
     {
         if (_automationOptions.HasAutomation)
         {
@@ -3757,7 +3757,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnEditorSelectionChanged(Entity? entity)
+    private void OnEditorSelectionChanged(Entity entity)
     {
         if (_isSynchronizingSelection)
         {
@@ -3779,7 +3779,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnEditorWorldSelectionChanged(Framework.Scene.World.World? world)
+    private void OnEditorWorldSelectionChanged(Framework.Scene.World.World world)
     {
         if (_isSynchronizingSelection)
         {
@@ -3801,7 +3801,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnEditorComponentSelectionChanged(EntityComponent? component)
+    private void OnEditorComponentSelectionChanged(EntityComponent component)
     {
         Logs.WriteTrace($"[WorldSelection] ComponentSelectionChanged entity={DescribeEntity(component?.Owner)} component={DescribeComponent(component)}");
         RefreshWorldSelectionViews();
@@ -3811,7 +3811,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnEntityDetailsSelectedComponentChanged(EntityComponent? component)
+    private void OnEntityDetailsSelectedComponentChanged(EntityComponent component)
     {
         Logs.WriteTrace($"[WorldSelection] Inspector selected component={DescribeComponent(component)}");
         _editorSelection.SetSelectedComponent(component);
@@ -3841,7 +3841,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private Entity? GetSelectedWorldEntity()
+    private Entity GetSelectedWorldEntity()
     {
         return _editorSelection.SelectedComponent?.Owner ?? _editorSelection.SelectedEntity;
     }
@@ -3967,12 +3967,12 @@ public class GameEditor : Game, IObservableUpdate
             $"Entity {entityAsset.Name} selected");
     }
 
-    private void OnEntityAssetInspectorSelectedComponentChanged(EntityComponent? component)
+    private void OnEntityAssetInspectorSelectedComponentChanged(EntityComponent component)
     {
         _activeEntityAssetEditorPanel?.SetSelectedComponent(component);
     }
 
-    private void OnActiveEntityAssetSelectedEntityChanged(Entity? entity)
+    private void OnActiveEntityAssetSelectedEntityChanged(Entity entity)
     {
         RefreshEntityAssetViews();
 
@@ -3982,7 +3982,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void OnActiveEntityAssetSelectedComponentChanged(EntityComponent? component)
+    private void OnActiveEntityAssetSelectedComponentChanged(EntityComponent component)
     {
         RefreshEntityAssetViews();
 
@@ -4162,7 +4162,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void InitializeEditorInputProbe()
     {
-        string? configuredPath = Environment.GetEnvironmentVariable("CASA_EDITOR_INPUT_PROBE");
+        string configuredPath = Environment.GetEnvironmentVariable("CASA_EDITOR_INPUT_PROBE");
         if (string.IsNullOrWhiteSpace(configuredPath))
         {
             return;
@@ -4173,7 +4173,7 @@ public class GameEditor : Game, IObservableUpdate
                 ? Path.GetFullPath("editor-input-probe.txt")
                 : Path.GetFullPath(configuredPath);
 
-        string? directory = Path.GetDirectoryName(_editorInputProbePath);
+        string directory = Path.GetDirectoryName(_editorInputProbePath);
         if (!string.IsNullOrWhiteSpace(directory))
         {
             Directory.CreateDirectory(directory);
@@ -4184,7 +4184,7 @@ public class GameEditor : Game, IObservableUpdate
             $"Started: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}" + Environment.NewLine + Environment.NewLine);
     }
 
-    private void OnDesktopFocusedKeyboardHandlerChanged(object? sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
+    private void OnDesktopFocusedKeyboardHandlerChanged(object sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
     {
         if (string.IsNullOrWhiteSpace(_editorInputProbePath))
         {
@@ -4269,7 +4269,7 @@ public class GameEditor : Game, IObservableUpdate
         return builder.ToString();
     }
 
-    private static string DescribeMguiKeyboardFocus(MGElement? focusedElement)
+    private static string DescribeMguiKeyboardFocus(MGElement focusedElement)
     {
         if (focusedElement == null)
         {
@@ -4298,7 +4298,7 @@ public class GameEditor : Game, IObservableUpdate
         return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty}";
     }
 
-    private void OnAutomationWorldLoaded(object? sender, EventArgs e)
+    private void OnAutomationWorldLoaded(object sender, EventArgs e)
     {
         _automationWorldLoaded = true;
     }
@@ -4497,7 +4497,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _automationMaterialEditAttempted = true;
-        if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string? snapshotError))
+        if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string snapshotError))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Refused to update material property '{_automationOptions.SetMaterialPropertyKey}': {snapshotError}");
@@ -4541,7 +4541,7 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _automationParticleEditAttempted = true;
-        if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string? snapshotError))
+        if (!TrySnapshotAutomationEditableFile(inspectorPanel, out string snapshotError))
         {
             EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
                 $"[Automation] Refused to update particle property '{_automationOptions.SetParticlePropertyKey}': {snapshotError}");
@@ -4684,7 +4684,7 @@ public class GameEditor : Game, IObservableUpdate
         SynchronizeAutomationWorldViewportSelection();
     }
 
-    private void RestoreAutomationSelection(Entity? entity, EntityComponent? component)
+    private void RestoreAutomationSelection(Entity entity, EntityComponent component)
     {
         _editorSelection.SetSelectedEntity(entity);
         if (component != null)
@@ -4695,7 +4695,7 @@ public class GameEditor : Game, IObservableUpdate
         SynchronizeAutomationWorldViewportSelection();
     }
 
-    private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string? errorMessage)
+    private bool TrySnapshotAutomationEditableFile(MaterialAssetInspectorPanel inspectorPanel, out string errorMessage)
     {
         errorMessage = null;
 
@@ -4722,7 +4722,7 @@ public class GameEditor : Game, IObservableUpdate
         return true;
     }
 
-    private bool TrySnapshotAutomationEditableFile(ParticleAssetInspectorPanel inspectorPanel, out string? errorMessage)
+    private bool TrySnapshotAutomationEditableFile(ParticleAssetInspectorPanel inspectorPanel, out string errorMessage)
     {
         errorMessage = null;
 
@@ -5015,7 +5015,7 @@ public class GameEditor : Game, IObservableUpdate
         _worldViewportPanel?.SetSelectedComponent(_editorSelection.SelectedComponent);
     }
 
-    private Entity? FindAutomationEntity(Framework.Scene.World.World world)
+    private Entity FindAutomationEntity(Framework.Scene.World.World world)
     {
         var entities = EnumerateEntities(world.Entities).ToList();
         if (string.IsNullOrWhiteSpace(_automationOptions.EntityName))
@@ -5029,7 +5029,7 @@ public class GameEditor : Game, IObservableUpdate
             .ElementAtOrDefault(_automationOptions.EntityIndex);
     }
 
-    private EntityComponent? FindAutomationComponent(Entity entity)
+    private EntityComponent FindAutomationComponent(Entity entity)
     {
         if (string.IsNullOrWhiteSpace(_automationOptions.ComponentName))
         {
@@ -5044,7 +5044,7 @@ public class GameEditor : Game, IObservableUpdate
     private void CaptureAutomationDiagnostics()
     {
         string outputPath = ResolveAutomationDiagnosticsPath();
-        string? outputDirectory = Path.GetDirectoryName(outputPath);
+        string outputDirectory = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrWhiteSpace(outputDirectory))
         {
             Directory.CreateDirectory(outputDirectory);
@@ -5064,7 +5064,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Set material property: {FormatAutomationMaterialEdit()}");
         builder.AppendLine($"Entity: {_automationOptions.EntityName ?? "<first>"} [{_automationOptions.EntityIndex}]");
         builder.AppendLine($"Component: {_automationOptions.ComponentName ?? "<none>"}");
-        string? activeDocumentPanelId = GetActiveDocumentPanelId();
+        string activeDocumentPanelId = GetActiveDocumentPanelId();
         var openDocumentPanelIds = GetOpenDocumentPanelIds();
         builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
         builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
@@ -5128,7 +5128,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void AppendMaterialInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    private void AppendMaterialInspectorDiagnostics(StringBuilder builder, string activeDocumentPanelId)
     {
         if (!TryGetActiveMaterialInspectorPanel(out var inspectorPanel))
         {
@@ -5168,7 +5168,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void AppendParticleInspectorDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    private void AppendParticleInspectorDiagnostics(StringBuilder builder, string activeDocumentPanelId)
     {
         if (!TryGetActiveParticleInspectorPanel(out var inspectorPanel))
         {
@@ -5188,7 +5188,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private void AppendEntityAssetDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    private void AppendEntityAssetDiagnostics(StringBuilder builder, string activeDocumentPanelId)
     {
         if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
             || !TryGetEntityAssetEditorPanel(activeDocumentPanelId, out var entityAssetEditorPanel))
@@ -5211,7 +5211,7 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"World selection preserved after asset open: {!_automationSelectionReappliedAfterAssetOpen}");
     }
 
-    private void AppendTileMapDiagnostics(StringBuilder builder, string? activeDocumentPanelId)
+    private void AppendTileMapDiagnostics(StringBuilder builder, string activeDocumentPanelId)
     {
         if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
             || !TryGetTileMapEditorPanel(activeDocumentPanelId, out var tileMapEditorPanel))
@@ -5277,7 +5277,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private static void AppendParticleSystemComponentDiagnostics(StringBuilder builder, ParticleSystemComponent component)
     {
-        AssetInfo? assetInfo = component.ParticleEffectAssetId == Guid.Empty ? null : AssetCatalog.Get(component.ParticleEffectAssetId);
+        AssetInfo assetInfo = component.ParticleEffectAssetId == Guid.Empty ? null : AssetCatalog.Get(component.ParticleEffectAssetId);
         builder.AppendLine("Particle system component:");
         builder.AppendLine($"  - Asset id: {component.ParticleEffectAssetId}");
         builder.AppendLine($"  - Asset file: {assetInfo?.FileName ?? "<none>"}");
@@ -5326,7 +5326,7 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
-    private static string DescribeRuntimeMaterial(MaterialBase? material)
+    private static string DescribeRuntimeMaterial(MaterialBase material)
     {
         if (material == null)
         {
@@ -5449,7 +5449,7 @@ public class GameEditor : Game, IObservableUpdate
                && expectedName[..^"component".Length] == typeName;
     }
 
-    private static string NormalizeAutomationToken(string? value)
+    private static string NormalizeAutomationToken(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -5460,14 +5460,14 @@ public class GameEditor : Game, IObservableUpdate
         return new string(characters).ToLowerInvariant();
     }
 
-    private static string DescribeEntity(Entity? entity)
+    private static string DescribeEntity(Entity entity)
     {
         return entity == null
             ? "<null>"
             : $"'{entity.Name}'";
     }
 
-    private static string DescribeComponent(EntityComponent? component)
+    private static string DescribeComponent(EntityComponent component)
     {
         if (component == null)
         {
@@ -5724,7 +5724,7 @@ public class GameEditor : Game, IObservableUpdate
         RefreshScreenPanelsAfterCommand();
     }
 
-    private static (int left, int top, int right, int bottom) ParseMargin(string? value)
+    private static (int left, int top, int right, int bottom) ParseMargin(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) return (0, 0, 0, 0);
         var parts = value.Split(',');

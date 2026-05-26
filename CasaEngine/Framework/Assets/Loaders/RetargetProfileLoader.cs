@@ -10,7 +10,7 @@ public sealed class RetargetProfileLoader : IAssetLoader
     public bool IsFileSupported(string fileName)
         => Path.GetExtension(fileName).Equals(Constants.FileNameExtensions.RetargetProfile, StringComparison.OrdinalIgnoreCase);
 
-    public object? LoadAsset(string fileName, AssetContentManager assetContentManager)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {

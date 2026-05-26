@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.Rendering.Draw2D;
 
 public class Line2dRenderer
 {
-    private Texture2D? _emptyTexture;
+    private Texture2D _emptyTexture;
 
     public void Init(GraphicsDevice device)
     {

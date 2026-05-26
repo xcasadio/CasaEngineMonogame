@@ -30,12 +30,12 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
         _passes.Add(new TransparentPass());
     }
 
-    public void SetShadowShader(ShaderWrapper? shadowShader)
+    public void SetShadowShader(ShaderWrapper shadowShader)
     {
         _shadowPass.ShadowShader = shadowShader;
     }
 
-    public void SetSkyRenderer(Environment.SkyCubemapRenderer? skyRenderer)
+    public void SetSkyRenderer(Environment.SkyCubemapRenderer skyRenderer)
     {
         _skyPass.Renderer = skyRenderer;
     }

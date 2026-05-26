@@ -18,7 +18,7 @@ public sealed class RiggedModelPoseProvider : ISkinnedMeshPoseProvider
 
     public bool CanUseDualQuaternionSkinning => RiggedModel.CanUseDualQuaternionSkinning;
 
-    public VertexBuffer? GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration)
+    public VertexBuffer GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(graphicsDevice);

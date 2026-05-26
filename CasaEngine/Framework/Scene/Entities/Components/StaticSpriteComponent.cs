@@ -16,12 +16,12 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Static Sprite")]
 public class StaticSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable
 {
-    private Sprite? _sprite;
-    private SpriteData? _spriteData;
-    private SpriteRendererComponent? _spriteRendererComponent;
-    private DepthSortable2DComponent? _depthSortable2DComponent;
+    private Sprite _sprite;
+    private SpriteData _spriteData;
+    private SpriteRendererComponent _spriteRendererComponent;
+    private DepthSortable2DComponent _depthSortable2DComponent;
     private readonly List<(Shape2d, PhysicsBody)> _collisionObjects = new();
-    private IPhysicsWorld? _physicsWorldContext;
+    private IPhysicsWorld _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }
 
@@ -157,7 +157,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
     }
 
-    private void LoadSpriteData(string? spriteDataName)
+    private void LoadSpriteData(string spriteDataName)
     {
         _spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
         _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
@@ -191,7 +191,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
         }
     }
 
-    public void TryLoadSpriteData(string? spriteDataName)
+    public void TryLoadSpriteData(string spriteDataName)
     {
         if (spriteDataName == null)
         {

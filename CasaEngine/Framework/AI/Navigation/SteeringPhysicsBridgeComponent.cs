@@ -8,9 +8,9 @@ namespace CasaEngine.Framework.AI.Navigation;
 public sealed class SteeringPhysicsBridgeComponent : EntityComponent, IWorldSystemDrivenComponent
 {
     private const float ForceEpsilon = 0.0001f;
-    private SteeringAgentComponent? _agentComponent;
-    private PhysicsBaseComponent? _physicsComponent;
-    private SceneComponent? _sceneComponent;
+    private SteeringAgentComponent _agentComponent;
+    private PhysicsBaseComponent _physicsComponent;
+    private SceneComponent _sceneComponent;
 
     public bool AutoOrient { get; set; } = true;
 

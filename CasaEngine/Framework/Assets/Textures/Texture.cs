@@ -10,11 +10,11 @@ public class Texture : ObjectBase, IAssetable
     public static readonly string DefaultTextureName = "defaultTexture";
 
     private Guid _texture2dAssetId = Guid.Empty;
-    protected Texture2D? Texture2d;
+    protected Texture2D Texture2d;
 
     public GraphicsDevice GraphicsDevice { get; private set; }
 
-    public virtual Texture2D? Resource
+    public virtual Texture2D Resource
     {
         get =>
             // Textures and render targets have a different treatment because textures could be set,

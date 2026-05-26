@@ -6,13 +6,13 @@ namespace CasaEngine.Framework.Rendering.Environment;
 
 internal static class EnvironmentAssetLookup
 {
-    public static EnvironmentAsset? TryLoadEnvironmentAsset(RenderView view, Guid assetId)
+    public static EnvironmentAsset TryLoadEnvironmentAsset(RenderView view, Guid assetId)
         => TryLoadAsset<EnvironmentAsset>(view, assetId);
 
-    public static XnaTextureCube? TryLoadTextureCube(RenderView view, Guid assetId)
+    public static XnaTextureCube TryLoadTextureCube(RenderView view, Guid assetId)
         => TryLoadAsset<XnaTextureCube>(view, assetId);
 
-    private static T? TryLoadAsset<T>(RenderView view, Guid assetId) where T : class
+    private static T TryLoadAsset<T>(RenderView view, Guid assetId) where T : class
     {
         if (assetId == Guid.Empty)
         {

@@ -8,7 +8,7 @@ public sealed class CoroutineManager : ICoroutineManager
 {
     private static int _nextManagerId;
 
-    private readonly List<CoroutineInstance?> _slots = [];
+    private readonly List<CoroutineInstance> _slots = [];
     private readonly List<int> _activeSlots = [];
     private readonly Queue<int> _pendingStartSlots = new();
     private readonly Stack<int> _freeSlots = new();
@@ -28,12 +28,12 @@ public sealed class CoroutineManager : ICoroutineManager
         return StartCoroutine(routine, null);
     }
 
-    public CoroutineHandle StartCoroutine(IEnumerator routine, object? owner)
+    public CoroutineHandle StartCoroutine(IEnumerator routine, object owner)
     {
         return StartCoroutine(routine, owner, null);
     }
 
-    public CoroutineHandle StartCoroutine(IEnumerator routine, object? owner, string? name)
+    public CoroutineHandle StartCoroutine(IEnumerator routine, object owner, string name)
     {
         ArgumentNullException.ThrowIfNull(routine);
 
@@ -49,7 +49,7 @@ public sealed class CoroutineManager : ICoroutineManager
 
     public void StopCoroutine(CoroutineHandle handle)
     {
-        if (TryGetInstance(handle, out CoroutineInstance? instance))
+        if (TryGetInstance(handle, out CoroutineInstance instance))
         {
             instance.IsStopped = true;
             instance.CurrentYield = null;
@@ -60,7 +60,7 @@ public sealed class CoroutineManager : ICoroutineManager
     {
         for (int index = 0; index < _slots.Count; index++)
         {
-            CoroutineInstance? instance = _slots[index];
+            CoroutineInstance instance = _slots[index];
             if (instance != null)
             {
                 instance.IsStopped = true;
@@ -75,7 +75,7 @@ public sealed class CoroutineManager : ICoroutineManager
 
         for (int index = 0; index < _slots.Count; index++)
         {
-            CoroutineInstance? instance = _slots[index];
+            CoroutineInstance instance = _slots[index];
             if (instance != null && ReferenceEquals(instance.Owner, owner))
             {
                 instance.IsStopped = true;
@@ -86,14 +86,14 @@ public sealed class CoroutineManager : ICoroutineManager
 
     public bool IsRunning(CoroutineHandle handle)
     {
-        return TryGetInstance(handle, out CoroutineInstance? instance)
+        return TryGetInstance(handle, out CoroutineInstance instance)
             && !instance.IsStopped
             && !instance.IsCompleted;
     }
 
-    public void SetCoroutineName(CoroutineHandle handle, string? name)
+    public void SetCoroutineName(CoroutineHandle handle, string name)
     {
-        if (TryGetInstance(handle, out CoroutineInstance? instance))
+        if (TryGetInstance(handle, out CoroutineInstance instance))
         {
             instance.Name = name;
         }
@@ -105,7 +105,7 @@ public sealed class CoroutineManager : ICoroutineManager
 
         for (int index = 0; index < _slots.Count; index++)
         {
-            CoroutineInstance? instance = _slots[index];
+            CoroutineInstance instance = _slots[index];
             if (instance == null || instance.IsStopped || instance.IsCompleted)
             {
                 continue;
@@ -135,7 +135,7 @@ public sealed class CoroutineManager : ICoroutineManager
         int activeCount = _activeSlots.Count;
         for (int index = 0; index < activeCount; index++)
         {
-            CoroutineInstance? instance = _slots[_activeSlots[index]];
+            CoroutineInstance instance = _slots[_activeSlots[index]];
             if (instance == null || instance.IsStopped || instance.IsCompleted)
             {
                 continue;
@@ -167,7 +167,7 @@ public sealed class CoroutineManager : ICoroutineManager
         while (_pendingStartSlots.Count > 0)
         {
             int slot = _pendingStartSlots.Dequeue();
-            CoroutineInstance? instance = _slots[slot];
+            CoroutineInstance instance = _slots[slot];
             if (instance == null)
             {
                 continue;
@@ -227,7 +227,7 @@ public sealed class CoroutineManager : ICoroutineManager
                 continue;
             }
 
-            object? yielded = current.Current;
+            object yielded = current.Current;
             coroutine.CurrentYield = yielded;
 
             if (yielded == null)
@@ -312,7 +312,7 @@ public sealed class CoroutineManager : ICoroutineManager
         for (int index = _activeSlots.Count - 1; index >= 0; index--)
         {
             int slot = _activeSlots[index];
-            CoroutineInstance? instance = _slots[slot];
+            CoroutineInstance instance = _slots[slot];
             if (instance == null || instance.IsStopped || instance.IsCompleted)
             {
                 _activeSlots.RemoveAt(index);
@@ -325,7 +325,7 @@ public sealed class CoroutineManager : ICoroutineManager
         }
     }
 
-    private bool TryGetInstance(CoroutineHandle handle, out CoroutineInstance? instance)
+    private bool TryGetInstance(CoroutineHandle handle, out CoroutineInstance instance)
     {
         instance = null;
         if (!handle.IsValid || handle.ManagerId != ManagerId || handle.Slot >= _slots.Count)
@@ -333,7 +333,7 @@ public sealed class CoroutineManager : ICoroutineManager
             return false;
         }
 
-        CoroutineInstance? candidate = _slots[handle.Slot];
+        CoroutineInstance candidate = _slots[handle.Slot];
         if (candidate == null || candidate.Handle.Generation != handle.Generation)
         {
             return false;
@@ -380,7 +380,7 @@ public sealed class CoroutineManager : ICoroutineManager
         return $"Coroutine '{name}' failed. Owner: {owner}. Handle: {instance.Handle.ManagerId}/{instance.Handle.Slot}/{instance.Handle.Generation}.";
     }
 
-    private static string? GetOwnerName(object? owner)
+    private static string GetOwnerName(object owner)
     {
         return owner switch
         {
@@ -390,7 +390,7 @@ public sealed class CoroutineManager : ICoroutineManager
         };
     }
 
-    private static string? GetCurrentInstructionName(CoroutineInstance instance)
+    private static string GetCurrentInstructionName(CoroutineInstance instance)
     {
         if (instance.CurrentInstruction != null)
         {
@@ -410,7 +410,7 @@ public sealed class CoroutineManager : ICoroutineManager
         return instance.CurrentYield?.GetType().Name;
     }
 
-    private static float? GetRemainingTime(ICoroutineInstruction? instruction)
+    private static float? GetRemainingTime(ICoroutineInstruction instruction)
     {
         return instruction switch
         {

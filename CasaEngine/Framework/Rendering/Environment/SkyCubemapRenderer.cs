@@ -40,7 +40,7 @@ public sealed class SkyCubemapRenderer
 
     public void Draw(in RenderContext context)
     {
-        XnaTextureCube? cubemap = context.Environment.BackgroundCubemap;
+        XnaTextureCube cubemap = context.Environment.BackgroundCubemap;
         if (cubemap is null)
         {
             return;

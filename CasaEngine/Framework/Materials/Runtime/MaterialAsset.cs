@@ -142,7 +142,7 @@ public sealed class MaterialAsset : ObjectBase
         return _propertyValues.ContainsKey(propertyDefinition.Key);
     }
 
-    public bool TryGetInheritedPropertyValue(string keyOrAlias, Func<Guid, MaterialAsset?>? parentResolver, out MaterialValue value)
+    public bool TryGetInheritedPropertyValue(string keyOrAlias, Func<Guid, MaterialAsset> parentResolver, out MaterialValue value)
     {
         if (!TryGetPropertyDefinition(keyOrAlias, out var propertyDefinition))
         {
@@ -153,10 +153,10 @@ public sealed class MaterialAsset : ObjectBase
         return TryGetInheritedPropertyValue(propertyDefinition.Key, parentResolver, new HashSet<Guid> { Id }, out value!);
     }
 
-    public MaterialValue? GetPropertyValueOrDefault(string keyOrAlias)
+    public MaterialValue GetPropertyValueOrDefault(string keyOrAlias)
         => GetPropertyValueOrDefault(keyOrAlias, null);
 
-    public MaterialValue? GetPropertyValueOrDefault(string keyOrAlias, Func<Guid, MaterialAsset?>? parentResolver)
+    public MaterialValue GetPropertyValueOrDefault(string keyOrAlias, Func<Guid, MaterialAsset> parentResolver)
     {
         var propertyDefinition = GetRequiredPropertyDefinition(keyOrAlias);
         if (_propertyValues.TryGetValue(propertyDefinition.Key, out var value))
@@ -190,7 +190,7 @@ public sealed class MaterialAsset : ObjectBase
     public IReadOnlyList<string> Validate()
         => Validate(null);
 
-    public IReadOnlyList<string> Validate(Func<Guid, MaterialAsset?>? parentResolver)
+    public IReadOnlyList<string> Validate(Func<Guid, MaterialAsset> parentResolver)
     {
         MaterialDefinition definition;
         try
@@ -259,7 +259,7 @@ public sealed class MaterialAsset : ObjectBase
             return;
         }
 
-        List<string>? keysToRemove = null;
+        List<string> keysToRemove = null;
         foreach (var pair in _propertyValues)
         {
             if (!definition.TryGetProperty(pair.Key, out var propertyDefinition)
@@ -283,7 +283,7 @@ public sealed class MaterialAsset : ObjectBase
 
     private bool TryGetInheritedPropertyValue(
         string propertyKey,
-        Func<Guid, MaterialAsset?>? parentResolver,
+        Func<Guid, MaterialAsset> parentResolver,
         HashSet<Guid> visitedAssetIds,
         out MaterialValue value)
     {
@@ -313,7 +313,7 @@ public sealed class MaterialAsset : ObjectBase
         return parentMaterial.TryGetInheritedPropertyValue(propertyKey, parentResolver, visitedAssetIds, out value!);
     }
 
-    private bool HasParentCycle(Func<Guid, MaterialAsset?>? parentResolver, HashSet<Guid> visitedAssetIds)
+    private bool HasParentCycle(Func<Guid, MaterialAsset> parentResolver, HashSet<Guid> visitedAssetIds)
     {
         if (ParentMaterialAssetId == Guid.Empty || parentResolver is null)
         {

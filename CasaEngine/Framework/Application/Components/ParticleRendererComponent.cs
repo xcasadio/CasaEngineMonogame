@@ -23,12 +23,12 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
     };
 
     private readonly List<ParticleRenderPacket> _packets = new(InitialPacketCapacity);
-    private readonly Dictionary<Guid, Texture2D?> _textureCache = new();
-    private readonly CasaEngineGame? _casaEngineGame;
+    private readonly Dictionary<Guid, Texture2D> _textureCache = new();
+    private readonly CasaEngineGame _casaEngineGame;
     private VertexPositionColorTexture[] _vertices = new VertexPositionColorTexture[InitialPacketCapacity * 4];
     private int[] _indices = new int[InitialPacketCapacity * 6];
-    private BasicEffect? _effect;
-    private Texture2D? _fallbackTexture;
+    private BasicEffect _effect;
+    private Texture2D _fallbackTexture;
 
     public int PendingPacketCount => _packets.Count;
 
@@ -88,7 +88,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         _packets.Add(packet);
     }
 
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         if (_packets.Count == 0 || _effect == null)
         {
@@ -165,7 +165,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
     }
 
-    private void DrawPackets(in RenderFrame frame, RenderStats? stats)
+    private void DrawPackets(in RenderFrame frame, RenderStats stats)
     {
         if (_effect == null)
         {
@@ -177,7 +177,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         DepthStencilState previousDepthStencilState = graphicsDevice.DepthStencilState;
         RasterizerState previousRasterizerState = graphicsDevice.RasterizerState;
         SamplerState previousSamplerState = graphicsDevice.SamplerStates[0];
-        IndexBuffer? previousIndexBuffer = graphicsDevice.Indices;
+        IndexBuffer previousIndexBuffer = graphicsDevice.Indices;
 
         try
         {
@@ -236,7 +236,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
     }
 
-    private void AddDrawCalls(RenderStats? stats, int count)
+    private void AddDrawCalls(RenderStats stats, int count)
     {
         FrameDrawCallCount += count;
         if (stats != null)
@@ -246,7 +246,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
     }
 
-    private void AddTextureBind(RenderStats? stats)
+    private void AddTextureBind(RenderStats stats)
     {
         FrameTextureBindCount++;
         if (stats != null)
@@ -255,7 +255,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         }
     }
 
-    private void AddStateChanges(RenderStats? stats, int count)
+    private void AddStateChanges(RenderStats stats, int count)
     {
         FrameStateChangeCount += count;
         if (stats != null)
@@ -304,7 +304,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
             return _fallbackTexture!;
         }
 
-        if (!_textureCache.TryGetValue(textureAssetId, out Texture2D? texture))
+        if (!_textureCache.TryGetValue(textureAssetId, out Texture2D texture))
         {
             texture = TryLoadTexture(textureAssetId);
             _textureCache[textureAssetId] = texture;
@@ -313,7 +313,7 @@ public sealed class ParticleRendererComponent : DrawableGameComponent, IViewFlus
         return texture ?? _fallbackTexture!;
     }
 
-    private Texture2D? TryLoadTexture(Guid textureAssetId)
+    private Texture2D TryLoadTexture(Guid textureAssetId)
     {
         try
         {

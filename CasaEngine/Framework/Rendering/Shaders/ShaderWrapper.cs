@@ -11,7 +11,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 public class ShaderWrapper
 {
     private readonly Effect _effect;
-    private readonly Dictionary<string, EffectParameter?> _paramCache = new();
+    private readonly Dictionary<string, EffectParameter> _paramCache = new();
 
     public Effect Effect => _effect;
 
@@ -21,7 +21,7 @@ public class ShaderWrapper
     }
 
     /// <summary>Returns the cached <see cref="EffectParameter"/> or null if not found.</summary>
-    public EffectParameter? GetParameter(string name)
+    public EffectParameter GetParameter(string name)
     {
         if (!_paramCache.TryGetValue(name, out var param))
         {
@@ -45,11 +45,11 @@ public class ShaderWrapper
     public void SetParameter(string name, Color value) => GetParameter(name)?.SetValue(value.ToVector4());
     public void SetParameter(string name, Matrix value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, Matrix[] value) => GetParameter(name)?.SetValue(value);
-    public void SetParameter(string name, Texture2D? value) => GetParameter(name)?.SetValue(value);
-    public void SetParameter(string name, TextureCube? value) => GetParameter(name)?.SetValue(value);
+    public void SetParameter(string name, Texture2D value) => GetParameter(name)?.SetValue(value);
+    public void SetParameter(string name, TextureCube value) => GetParameter(name)?.SetValue(value);
     public void SetParameter(string name, bool value) => GetParameter(name)?.SetValue(value);
 
-    public void SetTextureParameter(string name, Texture2D? value, RenderStats? stats = null)
+    public void SetTextureParameter(string name, Texture2D value, RenderStats stats = null)
     {
         var parameter = GetParameter(name);
         if (parameter is null)
@@ -65,7 +65,7 @@ public class ShaderWrapper
         }
     }
 
-    public void SetTextureCubeParameter(string name, TextureCube? value, RenderStats? stats = null)
+    public void SetTextureCubeParameter(string name, TextureCube value, RenderStats stats = null)
     {
         var parameter = GetParameter(name);
         if (parameter is null)

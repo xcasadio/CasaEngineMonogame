@@ -49,7 +49,7 @@ public static class EntityPolicyResolver
             policySet.RenderDynamicPolicy != RenderDynamicPolicy.Static);
     }
 
-    public static string? GetSuspectCombinationReason(EntityPolicySet policySet)
+    public static string GetSuspectCombinationReason(EntityPolicySet policySet)
     {
         if (policySet.Mobility == Mobility.Static && policySet.SpatialPolicy == SpatialPolicy.DynamicIndex)
         {

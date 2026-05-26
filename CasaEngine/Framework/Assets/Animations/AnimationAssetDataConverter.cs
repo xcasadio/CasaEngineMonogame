@@ -111,7 +111,7 @@ public static class AnimationAssetDataConverter
             jointTracks.Add(new JointAnimationTrack(jointIndex, translationTrack, rotationTrack, scaleTrack));
         }
 
-        AnimationEventTrack? eventTrack = null;
+        AnimationEventTrack eventTrack = null;
         if (animationClipAsset.Events.Count > 0)
         {
             var eventKeyframes = new AnimationEventKeyframe[animationClipAsset.Events.Count];
@@ -130,7 +130,7 @@ public static class AnimationAssetDataConverter
         return new AnimationClip(clipName, skeletonDefinition, jointTracks, animationClipAsset.DurationSeconds, eventTrack);
     }
 
-    private static void CopyVector3Track(Vector3AnimationTrack? sourceTrack, List<Vector3AnimationKeyframeAsset> destinationKeyframes)
+    private static void CopyVector3Track(Vector3AnimationTrack sourceTrack, List<Vector3AnimationKeyframeAsset> destinationKeyframes)
     {
         destinationKeyframes.Clear();
         if (sourceTrack == null)
@@ -145,7 +145,7 @@ public static class AnimationAssetDataConverter
         }
     }
 
-    private static void CopyQuaternionTrack(QuaternionAnimationTrack? sourceTrack, List<QuaternionAnimationKeyframeAsset> destinationKeyframes)
+    private static void CopyQuaternionTrack(QuaternionAnimationTrack sourceTrack, List<QuaternionAnimationKeyframeAsset> destinationKeyframes)
     {
         destinationKeyframes.Clear();
         if (sourceTrack == null)
@@ -160,7 +160,7 @@ public static class AnimationAssetDataConverter
         }
     }
 
-    private static Vector3AnimationTrack? CreateVector3Track(IReadOnlyList<Vector3AnimationKeyframeAsset> keyframes)
+    private static Vector3AnimationTrack CreateVector3Track(IReadOnlyList<Vector3AnimationKeyframeAsset> keyframes)
     {
         if (keyframes.Count == 0)
         {
@@ -177,7 +177,7 @@ public static class AnimationAssetDataConverter
         return new Vector3AnimationTrack(runtimeKeyframes);
     }
 
-    private static QuaternionAnimationTrack? CreateQuaternionTrack(IReadOnlyList<QuaternionAnimationKeyframeAsset> keyframes)
+    private static QuaternionAnimationTrack CreateQuaternionTrack(IReadOnlyList<QuaternionAnimationKeyframeAsset> keyframes)
     {
         if (keyframes.Count == 0)
         {

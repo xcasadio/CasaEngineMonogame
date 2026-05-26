@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Scene.Entities;
 
 public class EntityReference
 {
-    private JObject? _nodeToLoad;
+    private JObject _nodeToLoad;
 
     //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;

@@ -23,7 +23,7 @@ public sealed class ForwardLightBinder
     private readonly Vector4[] _spotLightDiffuseData = new Vector4[LightingContext.MaxSpotLights];
     private readonly Vector4[] _spotLightSpecularAndOuterConeCosData = new Vector4[LightingContext.MaxSpotLights];
 
-    public void Bind(ShaderWrapper shader, LightingContext? lighting, ForwardShadowResources? shadows, RenderStats? stats = null)
+    public void Bind(ShaderWrapper shader, LightingContext lighting, ForwardShadowResources shadows, RenderStats stats = null)
     {
         ArgumentNullException.ThrowIfNull(shader);
 
@@ -50,7 +50,7 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
-            out Microsoft.Xna.Framework.Graphics.Texture2D? shadowMapTexture);
+            out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         shader.SetParameter(ShaderParameterNames.ActiveDirectionalLightCount, (float)activeDirectionalLightCount);
         shader.SetParameter(ShaderParameterNames.ActivePointLightCount, (float)activePointLightCount);
@@ -97,7 +97,7 @@ public sealed class ForwardLightBinder
         shader.SetParameter(ShaderParameterNames.AmbientColor, ambientColor);
     }
 
-    internal static ForwardLightBindingSnapshot CreateSnapshot(LightingContext? lighting, ForwardShadowResources? shadows = null)
+    internal static ForwardLightBindingSnapshot CreateSnapshot(LightingContext lighting, ForwardShadowResources shadows = null)
     {
         var snapshot = new ForwardLightBindingSnapshot();
         PopulateBindingData(
@@ -123,7 +123,7 @@ public sealed class ForwardLightBinder
             out float shadowDepthBias,
             out float shadowNormalBias,
             out Vector2 shadowMapTexelSize,
-            out Microsoft.Xna.Framework.Graphics.Texture2D? shadowMapTexture);
+            out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture);
 
         snapshot.ActiveDirectionalLightCount = activeDirectionalLightCount;
         snapshot.ActivePointLightCount = activePointLightCount;
@@ -139,8 +139,8 @@ public sealed class ForwardLightBinder
     }
 
     private static void PopulateBindingData(
-        LightingContext? lighting,
-        ForwardShadowResources? shadows,
+        LightingContext lighting,
+        ForwardShadowResources shadows,
         Vector3[] directionalLightDirections,
         Vector3[] directionalLightDiffuseColors,
         Vector3[] directionalLightSpecularColors,
@@ -161,7 +161,7 @@ public sealed class ForwardLightBinder
         out float shadowDepthBias,
         out float shadowNormalBias,
         out Vector2 shadowMapTexelSize,
-        out Microsoft.Xna.Framework.Graphics.Texture2D? shadowMapTexture)
+        out Microsoft.Xna.Framework.Graphics.Texture2D shadowMapTexture)
     {
         activeDirectionalLightCount = lighting is null
             ? 0

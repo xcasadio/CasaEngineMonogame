@@ -11,7 +11,7 @@ public abstract class Primitive2D : IDisposable
     private VertexDeclaration vertexDeclaration;
     private VertexBuffer vertexBuffer;
     private IndexBuffer indexBuffer;
-    private Effect? effect;
+    private Effect effect;
 
     /// <summary>
     /// Finalizer.

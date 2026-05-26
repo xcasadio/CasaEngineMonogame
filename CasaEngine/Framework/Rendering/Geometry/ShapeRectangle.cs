@@ -32,7 +32,7 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         Position = new Vector2(x, y);
     }
 
-    public bool Equals(ShapeRectangle? other)
+    public bool Equals(ShapeRectangle other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -47,7 +47,7 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         return Width == other.Width && Height == other.Height;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

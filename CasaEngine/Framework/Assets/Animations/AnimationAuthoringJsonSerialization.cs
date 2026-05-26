@@ -38,7 +38,7 @@ internal static class AnimationAuthoringJsonSerialization
         };
     }
 
-    public static BoneTransform LoadBoneTransform(JToken? token)
+    public static BoneTransform LoadBoneTransform(JToken token)
     {
         if (token is not JObject node)
         {
@@ -81,7 +81,7 @@ internal static class AnimationAuthoringJsonSerialization
         };
     }
 
-    public static Matrix LoadMatrix(JToken? token)
+    public static Matrix LoadMatrix(JToken token)
     {
         if (token is not JObject node)
         {

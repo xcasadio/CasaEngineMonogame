@@ -15,7 +15,7 @@ public interface IWorldSystemDrivenComponent
 //Entity Components do not have a transform, meaning they do not have any physical location or rotation in the world.
 public abstract class EntityComponent : ObjectBase
 {
-    public Entity? Owner { get; private set; }
+    public Entity Owner { get; private set; }
 
     protected EntityComponent()
     {
@@ -62,7 +62,7 @@ public abstract class EntityComponent : ObjectBase
         return GetCoroutineManager().StartCoroutine(routine, this);
     }
 
-    protected CoroutineHandle StartCoroutine(IEnumerator routine, string? name)
+    protected CoroutineHandle StartCoroutine(IEnumerator routine, string name)
     {
         return GetCoroutineManager().StartCoroutine(routine, this, name);
     }
@@ -98,5 +98,5 @@ public abstract class EntityComponent : ObjectBase
         base.Load(element);
     }
 
-    public string? DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+    public string DisplayName => GetType().GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
 }

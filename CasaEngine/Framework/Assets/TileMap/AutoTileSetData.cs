@@ -5,7 +5,7 @@ public class AutoTileSetData
     public string SpriteSheetFileName { get; set; }
     public List<AutoTileTileSetData> Sets { get; } = new();
 
-    public AutoTileTileSetData? GetTileSetById(int id)
+    public AutoTileTileSetData GetTileSetById(int id)
     {
         foreach (var set in Sets)
         {

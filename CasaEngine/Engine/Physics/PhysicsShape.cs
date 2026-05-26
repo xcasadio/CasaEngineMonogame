@@ -4,7 +4,7 @@ namespace CasaEngine.Engine.Physics;
 
 public sealed class PhysicsShape : IDisposable
 {
-    internal IPhysicsShapeBackend? Backend { get; set; }
+    internal IPhysicsShapeBackend Backend { get; set; }
 
     private PhysicsShape(PhysicsShapeType type, Vector3 halfExtents, float radius, float height)
     {

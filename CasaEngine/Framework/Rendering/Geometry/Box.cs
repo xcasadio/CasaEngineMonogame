@@ -22,7 +22,7 @@ public class Box : Shape3d, IEquatable<Box>
         Size = Vector3.One;
     }
 
-    public bool Equals(Box? other)
+    public bool Equals(Box other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -37,7 +37,7 @@ public class Box : Shape3d, IEquatable<Box>
         return Type == other.Type && Size.Equals(other.Size);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

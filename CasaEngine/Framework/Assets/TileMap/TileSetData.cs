@@ -22,7 +22,7 @@ public class TileSetData : ObjectBase
         return _tileById.ContainsKey(tileId);
     }
 
-    public bool TryGetTileData(int tileId, out TileData? tileData)
+    public bool TryGetTileData(int tileId, out TileData tileData)
     {
         return _tileById.TryGetValue(tileId, out tileData);
     }

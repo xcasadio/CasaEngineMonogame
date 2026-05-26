@@ -22,19 +22,19 @@ public sealed class ViewManager
     // ---- Events ----
 
     /// <summary>Fired when a view is added to the manager.</summary>
-    public event Action<RenderView>? ViewAdded;
+    public event Action<RenderView> ViewAdded;
 
     /// <summary>Fired when a view is removed from the manager.</summary>
-    public event Action<RenderView>? ViewRemoved;
+    public event Action<RenderView> ViewRemoved;
 
     /// <summary>
     /// Fired when a view's host notifies a resize.
     /// Parameters: (view, newWidth, newHeight).
     /// </summary>
-    public event Action<RenderView, int, int>? ViewResized;
+    public event Action<RenderView, int, int> ViewResized;
 
     /// <summary>Fired when <see cref="RenderView.Invalidate"/> causes a re-render.</summary>
-    public event Action<RenderView>? ViewInvalidated;
+    public event Action<RenderView> ViewInvalidated;
 
     // ---- Views ----
 
@@ -88,7 +88,7 @@ public sealed class ViewManager
     /// screen resize, entity focus, drag-drop raycasting).
     /// Automatically set to the first view added. Can be overridden with <see cref="SetActive"/>.
     /// </summary>
-    public RenderView? ActiveView { get; private set; }
+    public RenderView ActiveView { get; private set; }
 
     // ---- Input capture ----
 
@@ -96,7 +96,7 @@ public sealed class ViewManager
     /// The view that is currently capturing all input events (e.g. during a gizmo drag).
     /// Null when no capture is active.
     /// </summary>
-    public RenderView? InputCaptureView { get; private set; }
+    public RenderView InputCaptureView { get; private set; }
 
     // ---- Factory / registry ----
 
@@ -159,12 +159,12 @@ public sealed class ViewManager
         return false;
     }
 
-    public IUIViewRuntime? GetUIView(ViewId id)
+    public IUIViewRuntime GetUIView(ViewId id)
     {
         return TryGetView(id, out var view) ? view.UIView : null;
     }
 
-    public IUIViewRuntime? GetActiveUIView()
+    public IUIViewRuntime GetActiveUIView()
     {
         SynchronizeHostStates();
         return ActiveView?.UIView;
@@ -246,7 +246,7 @@ public sealed class ViewManager
     ///
     /// Returns (null, default) if no view contains the point.
     /// </summary>
-    public (RenderView? view, Vector2 localPoint) ScreenToView(Point screenPoint)
+    public (RenderView view, Vector2 localPoint) ScreenToView(Point screenPoint)
     {
         SynchronizeHostStates();
 

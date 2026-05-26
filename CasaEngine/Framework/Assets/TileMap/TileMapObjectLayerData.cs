@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.Assets.TileMap;
 
 public sealed class TileMapObjectLayerData
 {
-    public string? Name { get; set; }
+    public string Name { get; set; }
     public float zOffset;
     public List<TileMapObjectData> Objects { get; } = new();
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
@@ -31,8 +31,8 @@ public sealed class TileMapObjectLayerData
 public sealed class TileMapObjectData
 {
     public int Id { get; set; }
-    public string? Name { get; set; }
-    public string? Type { get; set; }
+    public string Name { get; set; }
+    public string Type { get; set; }
     public float X { get; set; }
     public float Y { get; set; }
     public float Width { get; set; }

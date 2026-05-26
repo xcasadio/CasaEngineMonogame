@@ -106,7 +106,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
     }
 
     /// <inheritdoc/>
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         if (_spritesData.Count == 0
             && _textsData.Count == 0

@@ -30,10 +30,10 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     };
     private Effect _effect = null!;
     private ShaderWrapper _shader = null!;
-    private ShaderManager? _shaderManager;
-    private ShaderVariantLibrary? _variantLibrary;
-    private RenderShaderSelector? _shaderSelector;
-    private StaticMeshRendererComponent? _staticMeshRendererComponent;
+    private ShaderManager _shaderManager;
+    private ShaderVariantLibrary _variantLibrary;
+    private RenderShaderSelector _shaderSelector;
+    private StaticMeshRendererComponent _staticMeshRendererComponent;
 
     /// <summary>
     /// Fallback lighting for direct renderer usage when no frame lighting is supplied.
@@ -105,7 +105,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     }
 
     /// <inheritdoc/>
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         if (_meshInfos.Count == 0)
         {
@@ -393,8 +393,8 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
 
     private class SkinnedMeshInfo
     {
-        public RiggedModel? SkinnedMesh;
-        public ISkinnedMeshPoseProvider? PoseProvider;
+        public RiggedModel SkinnedMesh;
+        public ISkinnedMeshPoseProvider PoseProvider;
         public SkinningModeSelection SkinningModeSelection { get; set; }
         public Matrix World { get; set; }
         public bool CastShadows { get; set; } = true;

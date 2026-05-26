@@ -39,7 +39,7 @@ public sealed class RenderView
     /// Optional environment override applied only to this view.
     /// Null falls back to the owning world's <see cref="Scene.World.World.EnvironmentSettings"/>.
     /// </summary>
-    public WorldEnvironmentSettings? EnvironmentOverride { get; set; }
+    public WorldEnvironmentSettings EnvironmentOverride { get; set; }
 
     internal LightingContext Lighting { get; } = new();
     internal ResolvedEnvironmentCache EnvironmentCache { get; } = new();
@@ -135,22 +135,22 @@ public sealed class RenderView
     // ---- Extended hooks ----
 
     /// <summary>Optional custom render pipeline. Null = <see cref="DefaultViewPipeline"/>.</summary>
-    public IViewRenderPipeline? Pipeline { get; set; }
+    public IViewRenderPipeline Pipeline { get; set; }
 
     /// <summary>
     /// Optional UI composition service executed by the view pipeline after world rendering.
     /// Null falls back to <see cref="DefaultUICompositionService"/>.
     /// </summary>
-    public IUICompositionService? UICompositionService { get; set; }
+    public IUICompositionService UICompositionService { get; set; }
 
     /// <summary>
     /// Optional presenter called after the render pipeline to display the result.
     /// Null = no post-render presentation step.
     /// </summary>
-    public IViewPresenter? Presenter { get; set; }
+    public IViewPresenter Presenter { get; set; }
 
     /// <summary>Optional host that owns this view's surface and handles resize/close.</summary>
-    public IViewHost? Host { get; set; }
+    public IViewHost Host { get; set; }
 
     // ---- UI integration ----
 
@@ -160,7 +160,7 @@ public sealed class RenderView
     /// and disposed when this view is removed.
     /// Null before the view is registered or after it has been disposed.
     /// </summary>
-    public IUIViewRuntime? UIView { get; set; }
+    public IUIViewRuntime UIView { get; set; }
 
     // ---- Debug ----
 
@@ -182,7 +182,7 @@ public sealed class RenderView
     // ---- User / editor metadata ----
 
     /// <summary>Raised whenever <see cref="Invalidate"/> marks the view dirty.</summary>
-    public event Action<RenderView>? Invalidated;
+    public event Action<RenderView> Invalidated;
 
     /// <summary>
     /// Arbitrary user-defined payload attached to this view.
@@ -190,7 +190,7 @@ public sealed class RenderView
     /// the per-view camera, gizmo, grid, axis components and input providers.
     /// Null in standalone game builds.
     /// </summary>
-    public object? Tag { get; set; }
+    public object Tag { get; set; }
 
     // ---- Constructor ----
 

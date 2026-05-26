@@ -9,7 +9,7 @@ public class PrimitiveBatch
 {
     private const int DefaultBufferSize = 500;
 
-    private Effect? _effect;
+    private Effect _effect;
 
     // the device that we will issue draw calls to.
     private readonly GraphicsDevice _device;
@@ -35,7 +35,7 @@ public class PrimitiveBatch
     {
     }
 
-    public PrimitiveBatch(GraphicsDevice graphicsDevice, Effect? effect, int bufferSize)
+    public PrimitiveBatch(GraphicsDevice graphicsDevice, Effect effect, int bufferSize)
     {
         if (graphicsDevice == null)
         {
@@ -64,7 +64,7 @@ public class PrimitiveBatch
         }
     }
 
-    public Effect? Effect
+    public Effect Effect
     {
         get => _effect;
         set => _effect = value;

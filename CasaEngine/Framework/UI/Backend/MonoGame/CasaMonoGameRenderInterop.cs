@@ -128,7 +128,7 @@ internal static class CasaMonoGameRenderInterop
         return result;
     }
 
-    internal static Effect? GetEffect(DrawSettings settings) => settings.BackendEffect as Effect;
+    internal static Effect GetEffect(DrawSettings settings) => settings.BackendEffect as Effect;
 
     internal static SpriteEffects ToSpriteEffects(UIDrawFlip flip)
     {

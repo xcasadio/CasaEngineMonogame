@@ -17,7 +17,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
         public int WorldUpdateSequence = -1;
         public float Radius;
         public uint InclusionMask;
-        public Entity? ExcludedEntity;
+        public Entity ExcludedEntity;
         public bool CaptureDebugNeighbors;
         public SteeringNeighborhoodAggregateContext Context = SteeringNeighborhoodAggregateContext.Empty;
         public List<Vector3> DebugNeighborPositions = [];
@@ -71,7 +71,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             return SteeringNeighborhoodAggregateContext.Empty;
         }
 
-        List<Vector3>? debugNeighborPositions = query.CaptureDebugNeighbors
+        List<Vector3> debugNeighborPositions = query.CaptureDebugNeighbors
             ? bucket.DebugNeighborPositions
             : null;
 
@@ -109,8 +109,8 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
         for (int entityIndex = 0; entityIndex < _world.Entities.Count; entityIndex++)
         {
             Entity entity = _world.Entities[entityIndex];
-            SteeringAgentComponent? steeringAgent = entity.GetComponent<SteeringAgentComponent>();
-            SceneComponent? sceneComponent = entity.RootComponent;
+            SteeringAgentComponent steeringAgent = entity.GetComponent<SteeringAgentComponent>();
+            SceneComponent sceneComponent = entity.RootComponent;
             if (steeringAgent == null || sceneComponent == null || steeringAgent.Settings.NeighborhoodParticipationMask == 0u)
             {
                 continue;
@@ -141,7 +141,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             }
             else
             {
-                PhysicsBaseComponent? physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
+                PhysicsBaseComponent physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
                 SteeringAgentComponent.ResolveEntityMotion(sceneComponent, physicsComponent, position, out velocity, out forward);
                 positionX = position.X;
                 positionY = position.Y;
@@ -185,7 +185,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
         }
     }
 
-    private SteeringNeighborhoodAggregateResult ComputeNeighborhood(int selfIndex, in SteeringNeighborhoodAggregateQuery query, List<Vector3>? debugNeighborPositions)
+    private SteeringNeighborhoodAggregateResult ComputeNeighborhood(int selfIndex, in SteeringNeighborhoodAggregateQuery query, List<Vector3> debugNeighborPositions)
     {
         if (debugNeighborPositions != null)
         {

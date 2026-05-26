@@ -42,7 +42,7 @@ public sealed class ParticleEffectAsset : ObjectBase
 
         for (int emitterIndex = 0; emitterIndex < Emitters.Count; emitterIndex++)
         {
-            ParticleEmitterDefinition? emitter = Emitters[emitterIndex];
+            ParticleEmitterDefinition emitter = Emitters[emitterIndex];
             if (emitter == null)
             {
                 errors.Add($"Particle effect '{Name}' has a null emitter at index {emitterIndex}.");

@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 
 public static class Physics2dHelper
 {
-    public static PhysicsBody? CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
+    public static PhysicsBody CreateCollisionsFromSprite(Collision2d collisionShape, Vector3 localScale, Matrix worldMatrix,
         IPhysicsWorld physicsWorldContext, ICollideableComponent collideableComponent, Color color)
     {
         switch (collisionShape.Shape.Type)

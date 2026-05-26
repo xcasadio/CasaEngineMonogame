@@ -21,8 +21,8 @@ public static class MaterialDefinitionRegistry
 
     public static IDisposable Register(
         MaterialDefinition definition,
-        MaterialCompiler.RuntimeMaterialFactory? runtimeMaterialFactory = null,
-        MaterialInstancePropertyBlockMapper.OverrideMapper? overrideMapper = null)
+        MaterialCompiler.RuntimeMaterialFactory runtimeMaterialFactory = null,
+        MaterialInstancePropertyBlockMapper.OverrideMapper overrideMapper = null)
     {
         ArgumentNullException.ThrowIfNull(definition);
 
@@ -31,8 +31,8 @@ public static class MaterialDefinitionRegistry
             AddDefinition(definition);
         }
 
-        IDisposable? runtimeFactoryRegistration = null;
-        IDisposable? overrideMapperRegistration = null;
+        IDisposable runtimeFactoryRegistration = null;
+        IDisposable overrideMapperRegistration = null;
 
         try
         {

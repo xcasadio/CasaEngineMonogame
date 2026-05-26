@@ -7,8 +7,8 @@ public sealed class CutsceneDebugSnapshot
     public CutsceneDebugSnapshot(
         CutsceneRuntimeState state,
         Guid assetId,
-        string? assetName,
-        string? assetFileName,
+        string assetName,
+        string assetFileName,
         CoroutineHandle activeHandle,
         IReadOnlyList<CutsceneValidationMessage> validationMessages,
         IReadOnlyList<CoroutineDebugInfo> activeCoroutines)
@@ -26,9 +26,9 @@ public sealed class CutsceneDebugSnapshot
 
     public Guid AssetId { get; }
 
-    public string? AssetName { get; }
+    public string AssetName { get; }
 
-    public string? AssetFileName { get; }
+    public string AssetFileName { get; }
 
     public CoroutineHandle ActiveHandle { get; }
 

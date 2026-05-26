@@ -13,10 +13,10 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Skinned Mesh")]
 public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 {
-    private SkinnedMeshRendererComponent? _skinnedMeshRendererComponent;
-    private SkinnedMesh? _skinnedMesh;
-    private SkinnedMeshAnimationRuntime? _animationRuntime;
-    private RiggedModelPoseProvider? _legacyPoseProvider;
+    private SkinnedMeshRendererComponent _skinnedMeshRendererComponent;
+    private SkinnedMesh _skinnedMesh;
+    private SkinnedMeshAnimationRuntime _animationRuntime;
+    private RiggedModelPoseProvider _legacyPoseProvider;
     private readonly List<TwoBoneIkConstraint> _twoBoneIkConstraints = new();
     private readonly List<LookAtConstraint> _lookAtConstraints = new();
     private readonly List<BoneRotationConstraint> _boneRotationConstraints = new();
@@ -24,7 +24,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     private SkinningModeSelection _skinningModeSelection = SkinningModeSelection.RiggedModelDefault;
 
     public Guid SkinnedMeshAssetId { get; set; } = Guid.Empty;
-    public SkinnedMesh? SkinnedMesh
+    public SkinnedMesh SkinnedMesh
     {
         get => _skinnedMesh;
         set
@@ -60,9 +60,9 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         set => _skinningModeSelection = value;
     }
 
-    public SkeletonDefinition? SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
+    public SkeletonDefinition SkeletonDefinition => _animationRuntime?.SkeletonDefinition ?? SkinnedMesh?.RiggedModel?.SkeletonDefinition;
 
-    public SkeletonPoseModel? CurrentModelPose => _animationRuntime?.ModelPose;
+    public SkeletonPoseModel CurrentModelPose => _animationRuntime?.ModelPose;
 
     public IReadOnlyList<AnimationClip> AnimationClips => _animationRuntime?.AnimationClips ?? SkinnedMesh?.RiggedModel?.AnimationClips ?? Array.Empty<AnimationClip>();
 
@@ -76,7 +76,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
 
     public IReadOnlyList<BoneRotationConstraint> BoneRotationConstraints => _boneRotationConstraints;
 
-    public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
+    public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
     public SkinnedMeshComponent()
     {
@@ -238,7 +238,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         _animationRuntime?.CrossFadeToAnimation(animationIndex, durationSeconds);
     }
 
-    public void CrossFadeToAnimation(int animationIndex, float durationSeconds, AnimationCrossFadeSettings? settings)
+    public void CrossFadeToAnimation(int animationIndex, float durationSeconds, AnimationCrossFadeSettings settings)
     {
         EnsureAnimationRuntime();
         _animationRuntime?.CrossFadeToAnimation(animationIndex, durationSeconds, settings);
@@ -277,7 +277,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
     public void SetAnimationLayer(
         int layerIndex,
         AnimationClip clip,
-        BoneMask? mask = null,
+        BoneMask mask = null,
         float weight = 1f,
         AnimationLayerBlendMode blendMode = AnimationLayerBlendMode.Override,
         bool loop = true,
@@ -436,7 +436,7 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         _animationRuntime = null;
     }
 
-    private ISkinnedMeshPoseProvider? GetPoseProvider(RiggedModel riggedModel)
+    private ISkinnedMeshPoseProvider GetPoseProvider(RiggedModel riggedModel)
     {
         if (_animationRuntime != null && ReferenceEquals(_animationRuntime.RiggedModel, riggedModel))
         {

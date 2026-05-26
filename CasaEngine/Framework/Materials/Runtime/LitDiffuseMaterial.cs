@@ -14,12 +14,12 @@ namespace CasaEngine.Framework.Materials.Runtime;
 /// </summary>
 public class LitDiffuseMaterial : MaterialBase
 {
-    public Texture2D? BasColor { get; set; }
+    public Texture2D BasColor { get; set; }
     public Guid BasColorAssetId { get; set; } = Guid.Empty;
-    public Texture2D? NormalMap { get; set; }
+    public Texture2D NormalMap { get; set; }
     public Guid NormalMapAssetId { get; set; } = Guid.Empty;
     public Guid ReflectionCubeAssetId { get; set; } = Guid.Empty;
-    public XnaTextureCube? ReflectionCube { get; set; }
+    public XnaTextureCube ReflectionCube { get; set; }
     public bool UseSceneReflectionCube { get; set; }
     public Color DiffuseColor { get; set; } = Color.White;
     public Vector3 AmbientColor { get; set; } = Vector3.Zero;
@@ -125,7 +125,7 @@ public class LitDiffuseMaterial : MaterialBase
         shader.SetParameter(ShaderParameterNames.ReflectionMultiplyFactor, ReflectionMultiplyFactor);
         shader.SetParameter(ShaderParameterNames.HasMaterialReflectionCube, ReflectionCube is not null ? 1.0f : 0.0f);
         shader.SetTextureParameter(ShaderParameterNames.BasColorTexture, BasColor, context.Stats);
-        XnaTextureCube? reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Environment.SpecularEnvironmentCubemap : null);
+        XnaTextureCube reflectionCube = ReflectionCube ?? (UseSceneReflectionCube ? context.Environment.SpecularEnvironmentCubemap : null);
         shader.SetTextureCubeParameter(ShaderParameterNames.ReflectionCubeTexture, reflectionCube, context.Stats);
 
         if (NormalMap is not null && BasColor is not null)

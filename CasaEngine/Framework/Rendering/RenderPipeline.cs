@@ -37,14 +37,14 @@ public sealed class RenderPipeline
     /// Optional debug overlay drawn on views that have <see cref="RenderView.ShowDebugOverlay"/> = true.
     /// Assign from the game's Initialize method (requires a FontSystem).
     /// </summary>
-    public DebugOverlay? DebugOverlay { get; set; }
+    public DebugOverlay DebugOverlay { get; set; }
 
     /// <summary>
     /// Optional callback executed just before a view pipeline renders a view.
     /// Useful for view-scoped debug systems that must enqueue primitives into the
     /// same renderer flush as the owning view.
     /// </summary>
-    public Action<RenderView>? BeforeViewRender { get; set; }
+    public Action<RenderView> BeforeViewRender { get; set; }
 
 #if DEBUG
     /// <summary>

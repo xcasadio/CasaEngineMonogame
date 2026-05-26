@@ -23,10 +23,10 @@ public static class CasaMonoGameBackendBootstrap
 {
     public static CasaMonoGameBackendSession<THost> Create<THost>(
         THost host,
-        IRawInputSource? rawInputSource = null,
-        IUISurface? surface = null,
-        IUIAssetProvider? assetProvider = null,
-        CasaMonoGameBackendOptions? options = null)
+        IRawInputSource rawInputSource = null,
+        IUISurface surface = null,
+        IUIAssetProvider assetProvider = null,
+        CasaMonoGameBackendOptions options = null)
         where THost : IRenderHost
     {
         ArgumentNullException.ThrowIfNull(host);

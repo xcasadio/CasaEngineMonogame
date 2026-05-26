@@ -10,7 +10,7 @@ public class TileData
     public int Id { get; set; }
     public TileType Type { get; set; }
     public TileCollisionType CollisionType { get; set; }
-    public Collision2d? CollisionShape { get; set; }
+    public Collision2d CollisionShape { get; set; }
     public bool IsBreakable { get; set; }
     public Dictionary<string, string> CustomProperties { get; } = new(StringComparer.Ordinal);
 

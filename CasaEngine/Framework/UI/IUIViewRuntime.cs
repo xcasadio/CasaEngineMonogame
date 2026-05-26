@@ -42,7 +42,7 @@ public interface IUIViewRuntime : IDisposable
     void PushScreen(IUIScreen screen);
 
     /// <summary>Pops the topmost screen from the hosted UI stack when supported.</summary>
-    IUIScreen? PopScreen();
+    IUIScreen PopScreen();
 
     /// <summary>Removes the given screen from the hosted UI stack when supported.</summary>
     void RemoveScreen(IUIScreen screen);

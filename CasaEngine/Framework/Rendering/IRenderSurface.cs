@@ -14,7 +14,7 @@ public interface IRenderSurface
     Rectangle ViewportRect { get; }
 
     /// <summary>The render target, or null when targeting the backbuffer.</summary>
-    RenderTarget2D? RenderTarget { get; }
+    RenderTarget2D RenderTarget { get; }
 
     /// <summary>
     /// Activates the surface: sets the render target and viewport on the GraphicsDevice.

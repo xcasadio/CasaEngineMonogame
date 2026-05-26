@@ -17,29 +17,29 @@ public sealed class EngineRuntimeContext
 
     public string ProjectPath { get; set; }
 
-    public Func<Guid, AssetInfo?> ResolveAssetInfo { get; set; }
+    public Func<Guid, AssetInfo> ResolveAssetInfo { get; set; }
 
-    public Func<string, AssetInfo?> ResolveAssetInfoByFileName { get; set; }
+    public Func<string, AssetInfo> ResolveAssetInfoByFileName { get; set; }
 
-    public RenderTargetPool? RenderTargetPool { get; set; }
+    public RenderTargetPool RenderTargetPool { get; set; }
 
-    public MaterialCache? MaterialCache { get; set; }
+    public MaterialCache MaterialCache { get; set; }
 
-    internal MaterialAuthoringAssetCache? MaterialAuthoringCache { get; set; }
+    internal MaterialAuthoringAssetCache MaterialAuthoringCache { get; set; }
 
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; set; }
 
     public IUICompositionService UICompositionService { get; set; }
 
-    public IWindowInputSource? WindowInputSource { get; set; }
+    public IWindowInputSource WindowInputSource { get; set; }
 
     public EngineRuntimeContext(
         ProjectSettings projectSettings,
         string projectPath,
-        Func<Guid, AssetInfo?> resolveAssetInfo,
-        Func<string, AssetInfo?>? resolveAssetInfoByFileName = null,
-        IUIViewRuntimeFactory? uiViewRuntimeFactory = null,
-        IUICompositionService? uiCompositionService = null)
+        Func<Guid, AssetInfo> resolveAssetInfo,
+        Func<string, AssetInfo> resolveAssetInfoByFileName = null,
+        IUIViewRuntimeFactory uiViewRuntimeFactory = null,
+        IUICompositionService uiCompositionService = null)
     {
         ProjectSettings = projectSettings;
         ProjectPath = projectPath;
@@ -80,7 +80,7 @@ public sealed class EngineRuntimeContext
         };
     }
 
-    public EngineRuntimeContext CloneWithWindowInputSource(IWindowInputSource? windowInputSource)
+    public EngineRuntimeContext CloneWithWindowInputSource(IWindowInputSource windowInputSource)
     {
         var clone = Clone();
         clone.WindowInputSource = windowInputSource;

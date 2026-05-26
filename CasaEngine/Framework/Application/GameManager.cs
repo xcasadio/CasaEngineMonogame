@@ -13,14 +13,14 @@ namespace CasaEngine.Framework.Application;
 public class GameManager
 {
     private readonly CasaEngineGame _game;
-    private Scene.World.World? _currentWorld;
-    private string? _worldToLoad;
+    private Scene.World.World _currentWorld;
+    private string _worldToLoad;
     private bool _isNewWorld;
     private float _scaledTotalTime;
     private float _timeScale = 1f;
     private long _frameIndex;
 
-    public Scene.World.World? CurrentWorld
+    public Scene.World.World CurrentWorld
     {
         get => _currentWorld;
     }
@@ -131,7 +131,7 @@ public class GameManager
     /// Fired (on all configurations) when a world finishes loading and its views are ready.
     /// Subscribe to push UI screens that depend on a live hosted UI runtime.
     /// </summary>
-    public event EventHandler? WorldLoaded;
+    public event EventHandler WorldLoaded;
 
     public void SyncPlayerViewAssignments()
     {
@@ -166,7 +166,7 @@ public class GameManager
         }
     }
 
-    public IUIViewRuntime? GetPlayerUIView(PlayerController playerController)
+    public IUIViewRuntime GetPlayerUIView(PlayerController playerController)
     {
         ArgumentNullException.ThrowIfNull(playerController);
 
@@ -189,7 +189,7 @@ public class GameManager
         return PlayerIndex.One;
     }
 
-    private RenderView? ResolveAssignedView(
+    private RenderView ResolveAssignedView(
         PlayerController playerController,
         PlayerIndex playerIndex,
         IReadOnlyList<RenderView> views,
@@ -226,5 +226,5 @@ public class GameManager
         WorldChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler? WorldChanged;
+    public event EventHandler WorldChanged;
 }

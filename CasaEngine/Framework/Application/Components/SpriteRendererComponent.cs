@@ -29,9 +29,9 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly VertexPositionTexture[] _vertices = new VertexPositionTexture[NbSprites * 4];
     private readonly List<SpriteDisplayData> _spriteDatas = new(NbSprites);
     private readonly Stack<SpriteDisplayData> _freeSpriteDatas = new(NbSprites);
-    private VertexBuffer? _vertexBuffer;
-    private IndexBuffer? _indexBuffer;
-    private Effect? _effect;
+    private VertexBuffer _vertexBuffer;
+    private IndexBuffer _indexBuffer;
+    private Effect _effect;
     private readonly CasaEngineGame _game;
 
     public bool IsDrawSpriteOriginEnabled = false;
@@ -39,7 +39,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     public bool IsDrawSpriteSheetEnabled = false;
     public bool IsDrawCollisionsEnabled = false;
     public int SpriteSheetTransparency = 124;
-    private Line3dRendererComponent? _line3dRendererComponent;
+    private Line3dRendererComponent _line3dRendererComponent;
     private readonly DepthStencilState _depthStencilState;
     private readonly BlendState _blendState;
     private readonly Vector3 _vertexTopLeft;
@@ -95,7 +95,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <inheritdoc/>
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         if (_spriteDatas.Count == 0)
         {

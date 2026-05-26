@@ -16,20 +16,20 @@ public sealed class WorldUIComponent : IDisposable
 {
     private readonly GraphicsDevice _graphicsDevice;
     private readonly RenderTargetSurface _surface;
-    private readonly List<Action<Texture2D?>> _textureBindings = [];
+    private readonly List<Action<Texture2D>> _textureBindings = [];
     private bool                    _disposed;
 
     /// <summary>The hosted UI runtime rendered to the world texture.</summary>
-    public IUIViewRuntime? UIView { get; set; }
+    public IUIViewRuntime UIView { get; set; }
 
     /// <summary>The render target that the UI is painted into each frame.</summary>
-    public RenderTarget2D? RenderTarget => _surface.RenderTarget;
+    public RenderTarget2D RenderTarget => _surface.RenderTarget;
 
     /// <summary>The pooled render surface backing the offscreen UI pass.</summary>
     public RenderTargetSurface Surface => _surface;
 
     /// <summary>Alias of <see cref="RenderTarget"/> for material or quad consumers.</summary>
-    public Texture2D? Texture => _surface.Texture;
+    public Texture2D Texture => _surface.Texture;
 
     /// <summary>Clear color used before drawing the offscreen UI.</summary>
     public Color ClearColor { get; set; } = Color.Transparent;
@@ -84,7 +84,7 @@ public sealed class WorldUIComponent : IDisposable
         BindTexture(texture => material.BasColor = texture);
     }
 
-    public void BindTexture(Action<Texture2D?> textureBinding)
+    public void BindTexture(Action<Texture2D> textureBinding)
     {
         ArgumentNullException.ThrowIfNull(textureBinding);
 

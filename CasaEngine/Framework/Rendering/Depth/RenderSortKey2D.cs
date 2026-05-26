@@ -93,7 +93,7 @@ public readonly struct RenderSortKey2D : IComparable<RenderSortKey2D>, IEquatabl
            && LocalSortOffset == other.LocalSortOffset
            && StableId == other.StableId;
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is RenderSortKey2D other && Equals(other);
 
     public override int GetHashCode()

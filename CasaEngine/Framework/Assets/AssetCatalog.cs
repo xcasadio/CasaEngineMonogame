@@ -23,19 +23,19 @@ public static class AssetCatalog
         Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
     }
 
-    public static AssetInfo? Get(Guid guid)
+    public static AssetInfo Get(Guid guid)
     {
         _assetInfos.TryGetValue(guid, out var assetInfo);
         return assetInfo;
     }
 
-    public static AssetInfo? Get(string name)
+    public static AssetInfo Get(string name)
     {
         _assetInfosByName.TryGetValue(name, out var assetInfo);
         return assetInfo;
     }
 
-    public static AssetInfo? GetByFileName(string fileName)
+    public static AssetInfo GetByFileName(string fileName)
     {
         _assetInfosByFileName.TryGetValue(fileName, out var assetInfo);
         return assetInfo;
@@ -76,7 +76,7 @@ public static class AssetCatalog
         AddInternal(assetInfo);
     }
 
-    internal static bool RemoveInternal(Guid id, out AssetInfo? assetInfo)
+    internal static bool RemoveInternal(Guid id, out AssetInfo assetInfo)
     {
         if (!_assetInfos.TryGetValue(id, out var existingAssetInfo))
         {
@@ -108,7 +108,7 @@ public static class AssetCatalog
         return !_assetInfos.Any(x => string.Equals(x.Value.Name, newName, StringComparison.InvariantCultureIgnoreCase));
     }
 
-    internal static bool RenameInternal(Guid id, string newName, out AssetInfo? assetInfo, out string? oldName)
+    internal static bool RenameInternal(Guid id, string newName, out AssetInfo assetInfo, out string oldName)
     {
         assetInfo = Get(id);
         oldName = null;

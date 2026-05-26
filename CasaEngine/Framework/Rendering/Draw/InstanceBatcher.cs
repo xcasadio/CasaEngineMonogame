@@ -42,7 +42,7 @@ public sealed class InstanceBatcher : IDisposable
 
     private readonly GraphicsDevice _device;
     private InstanceData[]     _stagingBuffer;
-    private DynamicVertexBuffer? _instanceVB;
+    private DynamicVertexBuffer _instanceVB;
     private bool _disposed;
 
     // -----------------------------------------------------------------------

@@ -28,7 +28,7 @@ public readonly struct FloatCurveKey : IEquatable<FloatCurveKey>
     public bool Equals(FloatCurveKey other)
         => Time.Equals(other.Time) && Value.Equals(other.Value);
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is FloatCurveKey other && Equals(other);
 
     public override int GetHashCode()

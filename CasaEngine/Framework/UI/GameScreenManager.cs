@@ -24,7 +24,7 @@ public sealed class GameScreenManager
     private readonly Dictionary<string, Func<IUIScreen>> _factories = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The currently active state name, or null if none.</summary>
-    public string? CurrentState { get; private set; }
+    public string CurrentState { get; private set; }
 
     public GameScreenManager(ViewManager viewManager)
     {
@@ -89,7 +89,7 @@ public sealed class GameScreenManager
         TransitionTo(newState, null);
     }
 
-    public void TransitionTo(string newState, IEnumerable<ViewId>? targetViews)
+    public void TransitionTo(string newState, IEnumerable<ViewId> targetViews)
     {
         if (string.Equals(CurrentState, newState, StringComparison.OrdinalIgnoreCase))
         {
@@ -126,7 +126,7 @@ public sealed class GameScreenManager
         ClearState(null);
     }
 
-    public void ClearState(IEnumerable<ViewId>? targetViews)
+    public void ClearState(IEnumerable<ViewId> targetViews)
     {
         if (CurrentState == null)
         {
@@ -139,7 +139,7 @@ public sealed class GameScreenManager
         CurrentState = null;
     }
 
-    private IEnumerable<RenderView> ResolveViews(IEnumerable<ViewId>? targetViews)
+    private IEnumerable<RenderView> ResolveViews(IEnumerable<ViewId> targetViews)
     {
         if (targetViews == null)
         {

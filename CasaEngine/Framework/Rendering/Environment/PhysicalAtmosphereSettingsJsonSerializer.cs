@@ -30,7 +30,7 @@ internal static class PhysicalAtmosphereSettingsJsonSerializer
         };
     }
 
-    public static PhysicalAtmosphereSettings Load(JObject? element)
+    public static PhysicalAtmosphereSettings Load(JObject element)
     {
         var settings = new PhysicalAtmosphereSettings();
         if (element is null)

@@ -46,7 +46,7 @@ public readonly struct FloatRange : IEquatable<FloatRange>
     public bool Equals(FloatRange other)
         => Min.Equals(other.Min) && Max.Equals(other.Max);
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is FloatRange other && Equals(other);
 
     public override int GetHashCode()

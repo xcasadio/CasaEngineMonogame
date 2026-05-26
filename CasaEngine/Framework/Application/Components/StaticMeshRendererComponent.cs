@@ -14,11 +14,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 {
     private readonly List<MeshInfo> _meshInfos = new();
     private Effect _effect;
-    private Effect? _skyEffect;
-    private ShaderWrapper? _legacyShaderWrapper;
-    private ShaderWrapper? _unlitShaderWrapper;
-    private SkyCubemapRenderer? _skyRenderer;
-    private MaterialCache? _materialCache;
+    private Effect _skyEffect;
+    private ShaderWrapper _legacyShaderWrapper;
+    private ShaderWrapper _unlitShaderWrapper;
+    private SkyCubemapRenderer _skyRenderer;
+    private MaterialCache _materialCache;
 
     // Phase 4 — per-frame caches that minimise redundant state/shader changes
     private readonly RenderStateCache _stateCache   = new();
@@ -26,12 +26,12 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private readonly List<RenderItem> _renderItems  = new();
 
     // Phase 7 — shader variant system
-    private ShaderManager?         _shaderManager;
-    private ShaderVariantLibrary?  _variantLibrary;
-    private RenderShaderSelector?  _shaderSelector;
+    private ShaderManager         _shaderManager;
+    private ShaderVariantLibrary  _variantLibrary;
+    private RenderShaderSelector  _shaderSelector;
 
     // Phase 9 — hardware instancing
-    private InstanceBatcher? _instanceBatcher;
+    private InstanceBatcher _instanceBatcher;
 
     // Phase 10 — forward render pipeline
     private readonly ForwardRenderPipeline _pipeline = new();
@@ -62,7 +62,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         StaticModelMesh staticModelMesh,
         Matrix world,
         Matrix worldInvertTranspose,
-        MaterialPropertyBlock? propertyOverrides = null,
+        MaterialPropertyBlock propertyOverrides = null,
         bool castShadows = true,
         bool receiveShadows = true)
     {
@@ -73,9 +73,9 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         StaticModelMesh staticModelMesh,
         Matrix world,
         Matrix worldInvertTranspose,
-        IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex,
-        MaterialPropertyBlock? propertyOverrides = null,
-        IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex = null,
+        IReadOnlyDictionary<int, MaterialBase> materialOverridesBySlotIndex,
+        MaterialPropertyBlock propertyOverrides = null,
+        IReadOnlyDictionary<int, MaterialPropertyBlock> propertyOverridesBySlotIndex = null,
         bool castShadows = true,
         bool receiveShadows = true)
     {
@@ -143,7 +143,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     /// WorldViewProj and EyePosition are computed from <paramref name="frame"/> at flush time,
     /// so each view correctly uses its own camera data.
     /// </remarks>
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         GraphicsDevice graphicsDevice = _effect.GraphicsDevice;
 
@@ -323,7 +323,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _meshInfos.Clear();
     }
 
-    private static void ApplyShadowSettings(ShadowSettings? source, ShadowSettings destination)
+    private static void ApplyShadowSettings(ShadowSettings source, ShadowSettings destination)
     {
         ArgumentNullException.ThrowIfNull(destination);
 
@@ -336,7 +336,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         destination.CopyFrom(source);
     }
 
-    private static MaterialBase? GetMaterialOverride(IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex, int slotIndex)
+    private static MaterialBase GetMaterialOverride(IReadOnlyDictionary<int, MaterialBase> materialOverridesBySlotIndex, int slotIndex)
     {
         if (materialOverridesBySlotIndex == null || slotIndex < 0)
         {
@@ -348,7 +348,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             : null;
     }
 
-    private static MaterialPropertyBlock? GetPropertyOverride(IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex, int slotIndex)
+    private static MaterialPropertyBlock GetPropertyOverride(IReadOnlyDictionary<int, MaterialPropertyBlock> propertyOverridesBySlotIndex, int slotIndex)
     {
         if (propertyOverridesBySlotIndex == null || slotIndex < 0)
         {
@@ -367,7 +367,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             Mesh = mesh,
         });
 
-    private CompiledMaterial? ResolveCompiledMaterial(MaterialBase material)
+    private CompiledMaterial ResolveCompiledMaterial(MaterialBase material)
     {
         if (_materialCache == null || material.Id == Guid.Empty)
         {
@@ -381,14 +381,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     private class MeshInfo
     {
-        public StaticModelMesh? StaticModelMesh;
+        public StaticModelMesh StaticModelMesh;
         public Matrix World;
         public Matrix WorldInvertTranspose;
-        public MaterialBase? Material;
-        public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex;
+        public MaterialBase Material;
+        public IReadOnlyDictionary<int, MaterialBase> MaterialOverridesBySlotIndex;
         /// <summary>Optional per-instance overrides (Phase 6).</summary>
-        public MaterialPropertyBlock? PropertyOverrides;
-        public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex;
+        public MaterialPropertyBlock PropertyOverrides;
+        public IReadOnlyDictionary<int, MaterialPropertyBlock> PropertyOverridesBySlotIndex;
         public bool CastShadows = true;
         public bool ReceiveShadows = true;
     }

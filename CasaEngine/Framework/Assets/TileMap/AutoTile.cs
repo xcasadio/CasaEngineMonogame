@@ -26,7 +26,7 @@ public class AutoTileDrawingInfo
 public class AutoTile : Tile
 {
     private Size _tileSize;
-    private TileMapLayerData? _tileMapLayerData;
+    private TileMapLayerData _tileMapLayerData;
     private Size _mapSize;
     private AutoTileDrawingInfo[] _drawingInfos = new AutoTileDrawingInfo[4];
     private int _x, _y;

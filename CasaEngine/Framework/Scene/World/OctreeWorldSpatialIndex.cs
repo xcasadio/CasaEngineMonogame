@@ -40,7 +40,7 @@ public sealed class OctreeWorldSpatialIndex : IWorldSpatialIndex3D
         _octree.ApplyPendingMoves();
     }
 
-    public void Query(BoundingFrustum frustum, List<Entity> results, Func<Entity, bool>? filter = null)
+    public void Query(BoundingFrustum frustum, List<Entity> results, Func<Entity, bool> filter = null)
     {
         ArgumentNullException.ThrowIfNull(results);
 
@@ -53,7 +53,7 @@ public sealed class OctreeWorldSpatialIndex : IWorldSpatialIndex3D
         _octree.GetContainedObjects(frustum, results, filter);
     }
 
-    public void Query(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
+    public void Query(BoundingBox bounds, List<Entity> results, Func<Entity, bool> filter = null)
     {
         ArgumentNullException.ThrowIfNull(results);
         _octree.GetContainedObjects(bounds, results, filter);

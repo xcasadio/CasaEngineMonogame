@@ -154,8 +154,8 @@ public sealed class TileMapStaticChunkBatch
     private short[] _indices = Array.Empty<short>();
 
     public int TileSetIndex { get; private set; }
-    public VertexBuffer? VertexBuffer { get; private set; }
-    public IndexBuffer? IndexBuffer { get; private set; }
+    public VertexBuffer VertexBuffer { get; private set; }
+    public IndexBuffer IndexBuffer { get; private set; }
     public int VertexCount { get; private set; }
     public int IndexCount { get; private set; }
     public int PrimitiveCount => IndexCount / 3;

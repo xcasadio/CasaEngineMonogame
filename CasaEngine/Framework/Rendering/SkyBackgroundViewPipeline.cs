@@ -11,13 +11,13 @@ public sealed class SkyBackgroundViewPipeline : IViewRenderPipeline
 {
     private readonly IViewRenderPipeline _inner;
 
-    private GraphicsDevice? _graphicsDevice;
-    private SpriteBatch? _spriteBatch;
-    private Texture2D? _gradientTexture;
-    private Texture2D? _sunTexture;
-    private SkySettings? _resourceSkySettings;
+    private GraphicsDevice _graphicsDevice;
+    private SpriteBatch _spriteBatch;
+    private Texture2D _gradientTexture;
+    private Texture2D _sunTexture;
+    private SkySettings _resourceSkySettings;
 
-    public SkyBackgroundViewPipeline(SkySettings sky, IViewRenderPipeline? inner = null)
+    public SkyBackgroundViewPipeline(SkySettings sky, IViewRenderPipeline inner = null)
     {
         Sky = sky ?? throw new ArgumentNullException(nameof(sky));
         _inner = inner ?? DefaultViewPipeline.Instance;

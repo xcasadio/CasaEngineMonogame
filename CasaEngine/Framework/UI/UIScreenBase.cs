@@ -20,7 +20,7 @@ public abstract class UIScreenBase : IUIScreen
     public virtual bool BlocksViewsBelow => IsModal;
 
     /// <summary>The <see cref="UIRoot"/> this screen was initialised with.</summary>
-    protected UIRoot? Root { get; private set; }
+    protected UIRoot Root { get; private set; }
 
     private bool _initialized;
 

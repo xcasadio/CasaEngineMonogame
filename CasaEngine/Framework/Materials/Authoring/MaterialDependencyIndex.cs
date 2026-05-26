@@ -8,7 +8,7 @@ internal sealed class MaterialDependencyIndex
 {
     private readonly Dictionary<Guid, Guid> _parentByMaterialId = new();
     private readonly Dictionary<Guid, HashSet<Guid>> _childrenByParentMaterialId = new();
-    private string? _indexedProjectPath;
+    private string _indexedProjectPath;
     private int _indexedMaterialAssetCount = -1;
     private bool _isInitialized;
 
@@ -147,7 +147,7 @@ internal sealed class MaterialDependencyIndex
         }
     }
 
-    private static Guid TryReadParentMaterialAssetId(string? relativeFileName)
+    private static Guid TryReadParentMaterialAssetId(string relativeFileName)
     {
         if (string.IsNullOrWhiteSpace(relativeFileName)
             || string.IsNullOrWhiteSpace(EngineEnvironment.ProjectPath))

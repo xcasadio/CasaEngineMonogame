@@ -21,11 +21,11 @@ internal static class ReflectionProbeResolver
         }
 
         Guid primaryProbeId = selectedProbes[0].ProbeId;
-        XnaTextureCube? primaryCubemap = ResolveCubemap(view, selectedProbes[0]);
+        XnaTextureCube primaryCubemap = ResolveCubemap(view, selectedProbes[0]);
         float primaryWeight = primaryCubemap is not null ? selectedProbes[0].Weight : 0.0f;
 
         Guid secondaryProbeId = Guid.Empty;
-        XnaTextureCube? secondaryCubemap = null;
+        XnaTextureCube secondaryCubemap = null;
         float secondaryWeight = 0.0f;
 
         if (selectedCount > 1)
@@ -69,7 +69,7 @@ internal static class ReflectionProbeResolver
         };
     }
 
-    private static XnaTextureCube? ResolveCubemap(RenderView view, in ResolvedReflectionProbe probe)
+    private static XnaTextureCube ResolveCubemap(RenderView view, in ResolvedReflectionProbe probe)
     {
         if (probe.SpecularCubemapAssetId != Guid.Empty)
         {
@@ -81,7 +81,7 @@ internal static class ReflectionProbeResolver
             return null;
         }
 
-        EnvironmentAsset? environmentAsset = EnvironmentAssetLookup.TryLoadEnvironmentAsset(view, probe.EnvironmentAssetId);
+        EnvironmentAsset environmentAsset = EnvironmentAssetLookup.TryLoadEnvironmentAsset(view, probe.EnvironmentAssetId);
         if (environmentAsset is null)
         {
             return null;
@@ -105,9 +105,9 @@ internal readonly struct ResolvedReflectionProbeBlend
 
     public Guid SecondaryProbeId { get; init; }
 
-    public XnaTextureCube? PrimaryCubemap { get; init; }
+    public XnaTextureCube PrimaryCubemap { get; init; }
 
-    public XnaTextureCube? SecondaryCubemap { get; init; }
+    public XnaTextureCube SecondaryCubemap { get; init; }
 
     public float PrimaryWeight { get; init; }
 

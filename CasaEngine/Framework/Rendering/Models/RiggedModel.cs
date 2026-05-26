@@ -73,18 +73,18 @@ public class RiggedModel : IAssetable
     bool _loopAnimation = true;
     public float CurrentAnimationFrameTime = 0;
 
-    public SkeletonDefinition? SkeletonDefinition { get; private set; }
-    public SkeletonPoseLocal? LocalPose { get; private set; }
-    public SkeletonPoseModel? ModelPose { get; private set; }
-    public AnimationController? AnimationController { get; private set; }
+    public SkeletonDefinition SkeletonDefinition { get; private set; }
+    public SkeletonPoseLocal LocalPose { get; private set; }
+    public SkeletonPoseModel ModelPose { get; private set; }
+    public AnimationController AnimationController { get; private set; }
     public IReadOnlyList<AnimationClip> AnimationClips => _animationClips;
     public IReadOnlyList<MorphTarget> MorphTargets => _morphTargets;
     public IReadOnlyList<MorphClip> MorphClips => _morphClips;
     public SkinningMode SkinningMode { get; set; } = SkinningMode.LinearBlend;
     public Vector4[] DualQuaternionSkinningPalette => _dualQuaternionSkinningPalette;
     public bool CanUseDualQuaternionSkinning { get; private set; } = true;
-    public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
-    public event Action<SkeletonPoseLocal, SkeletonPoseModel>? PosePostProcessing;
+    public event Action<AnimationEventKeyframe> AnimationEventTriggered;
+    public event Action<SkeletonPoseLocal, SkeletonPoseModel> PosePostProcessing;
 
     /// <summary>
     /// Uses static animation frames instead of interpolated frames.
@@ -774,7 +774,7 @@ public class RiggedModel : IAssetable
             (float)Math.Max(sourceAnimation.DurationInSeconds, 0d));
     }
 
-    private static Vector3AnimationTrack? CreateVector3Track(List<double> times, List<Vector3> values)
+    private static Vector3AnimationTrack CreateVector3Track(List<double> times, List<Vector3> values)
     {
         if (times.Count == 0 || values.Count == 0)
         {
@@ -792,7 +792,7 @@ public class RiggedModel : IAssetable
         return new Vector3AnimationTrack(keyframes);
     }
 
-    private static QuaternionAnimationTrack? CreateQuaternionTrack(List<double> times, List<Quaternion> values)
+    private static QuaternionAnimationTrack CreateQuaternionTrack(List<double> times, List<Quaternion> values)
     {
         if (times.Count == 0 || values.Count == 0)
         {
@@ -864,8 +864,8 @@ public class RiggedModel : IAssetable
         public Texture2D TextureReflectionMap;
         public VertexPositionTextureNormalTangentWeights[] Vertices;
         public int[] Indices;
-        public VertexBuffer? VertexBuffer { get; private set; }
-        public IndexBuffer? IndexBuffer { get; private set; }
+        public VertexBuffer VertexBuffer { get; private set; }
+        public IndexBuffer IndexBuffer { get; private set; }
         public bool HasVertexColors { get; set; }
         public string NameOfMesh = "";
         public int NumberOfIndices => Indices.Length;
@@ -938,7 +938,7 @@ public class RiggedModel : IAssetable
         public string Name = "";
         public int BoneShaderFinalTransformIndex = -1;
         public int SkeletonJointIndex = -1;
-        public RiggedModelNode? Parent;
+        public RiggedModelNode Parent;
         public readonly List<RiggedModelNode> Children = new();
 
         // probably don't need most of these they are from the debug phase.

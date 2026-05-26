@@ -38,7 +38,7 @@ public class StaticModelComponent : PrimitiveComponent
     }
 
     /// <summary>Runtime reference to the loaded model.</summary>
-    public StaticModel? StaticModel { get; set; }
+    public StaticModel StaticModel { get; set; }
 
     public List<MaterialSlotOverride> MaterialOverrides { get; } = new();
 
@@ -104,10 +104,10 @@ public class StaticModelComponent : PrimitiveComponent
         return StaticModel != null && StaticModel.ReferencesAnyMaterialAsset(materialAssetIds);
     }
 
-    public bool RefreshResolvedMaterials(Assets.AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
+    public bool RefreshResolvedMaterials(Assets.AssetContentManager assetContentManager, ISet<Guid> affectedMaterialAssetIds = null)
         => RefreshResolvedMaterialsDetailed(assetContentManager, affectedMaterialAssetIds).RefreshedAny;
 
-    internal StaticModelComponentRefreshMetrics RefreshResolvedMaterialsDetailed(Assets.AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
+    internal StaticModelComponentRefreshMetrics RefreshResolvedMaterialsDetailed(Assets.AssetContentManager assetContentManager, ISet<Guid> affectedMaterialAssetIds = null)
     {
         ArgumentNullException.ThrowIfNull(assetContentManager);
 
@@ -142,7 +142,7 @@ public class StaticModelComponent : PrimitiveComponent
             return;
         }
 
-        MaterialSlotOverride? existingOverride = null;
+        MaterialSlotOverride existingOverride = null;
         for (int i = 0; i < MaterialOverrides.Count; i++)
         {
             if (IsMatchingSlot(MaterialOverrides[i], slot))
@@ -211,7 +211,7 @@ public class StaticModelComponent : PrimitiveComponent
 
     private void BuildHierarchy(StaticModelNode node, SceneComponent parent, CasaEngine.Framework.Scene.World.World world)
     {
-        StaticModelMesh? modelMesh = null;
+        StaticModelMesh modelMesh = null;
         if (node.MeshIndex >= 0 && node.MeshIndex < StaticModel!.Meshes.Count)
         {
             modelMesh = StaticModel.Meshes[node.MeshIndex];
@@ -246,7 +246,7 @@ public class StaticModelComponent : PrimitiveComponent
         }
     }
 
-    private static string GetGeneratedComponentName(StaticModelNode node, StaticModelMesh? modelMesh)
+    private static string GetGeneratedComponentName(StaticModelNode node, StaticModelMesh modelMesh)
     {
         if (modelMesh == null)
         {
@@ -353,7 +353,7 @@ public class StaticModelComponent : PrimitiveComponent
     private void RefreshGeneratedMaterialOverrides()
         => _ = RefreshGeneratedMaterialOverrides(affectedMaterialAssetIds: null);
 
-    private StaticModelOverrideRefreshMetrics RefreshGeneratedMaterialOverrides(ISet<Guid>? affectedMaterialAssetIds)
+    private StaticModelOverrideRefreshMetrics RefreshGeneratedMaterialOverrides(ISet<Guid> affectedMaterialAssetIds)
     {
         if (StaticModel == null || Owner?.World == null)
         {
@@ -361,15 +361,15 @@ public class StaticModelComponent : PrimitiveComponent
         }
 
         NormalizeMaterialOverrides();
-        var resolvedOverridesByMesh = new Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides? Overrides, MaterialOverrideResolutionMetrics Metrics)>();
+        var resolvedOverridesByMesh = new Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides Overrides, MaterialOverrideResolutionMetrics Metrics)>();
         return RefreshGeneratedMaterialOverrides(this, Owner.World.Game.AssetContentManager, affectedMaterialAssetIds, resolvedOverridesByMesh);
     }
 
     private StaticModelOverrideRefreshMetrics RefreshGeneratedMaterialOverrides(
         SceneComponent parent,
         Assets.AssetContentManager assetContentManager,
-        ISet<Guid>? affectedMaterialAssetIds,
-        Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides? Overrides, MaterialOverrideResolutionMetrics Metrics)> resolvedOverridesByMesh)
+        ISet<Guid> affectedMaterialAssetIds,
+        Dictionary<StaticModelMesh, (ResolvedStaticModelMaterialOverrides Overrides, MaterialOverrideResolutionMetrics Metrics)> resolvedOverridesByMesh)
     {
         bool refreshedAnyOverrides = false;
         int recalculatedOverrideSlotCount = 0;
@@ -421,7 +421,7 @@ public class StaticModelComponent : PrimitiveComponent
             authoringMaterialCacheMissCount);
     }
 
-    private ResolvedStaticModelMaterialOverrides? CreateResolvedMaterialOverrides(
+    private ResolvedStaticModelMaterialOverrides CreateResolvedMaterialOverrides(
         StaticModelMesh modelMesh,
         Assets.AssetContentManager assetContentManager,
         out MaterialOverrideResolutionMetrics metrics)
@@ -435,7 +435,7 @@ public class StaticModelComponent : PrimitiveComponent
         return StaticModelMaterialOverrideResolver.ResolveForMesh(modelMesh, MaterialOverrides, assetContentManager, out metrics);
     }
 
-    private bool ShouldRefreshGeneratedMaterialOverrides(StaticModelMesh modelMesh, ISet<Guid>? affectedMaterialAssetIds)
+    private bool ShouldRefreshGeneratedMaterialOverrides(StaticModelMesh modelMesh, ISet<Guid> affectedMaterialAssetIds)
     {
         ArgumentNullException.ThrowIfNull(modelMesh);
 

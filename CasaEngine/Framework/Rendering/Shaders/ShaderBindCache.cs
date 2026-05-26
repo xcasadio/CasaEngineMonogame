@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// </summary>
 public sealed class ShaderBindCache
 {
-    private ShaderWrapper? _lastShader;
+    private ShaderWrapper _lastShader;
     private readonly ForwardLightBinder _forwardLightBinder = new();
 
     /// <summary>

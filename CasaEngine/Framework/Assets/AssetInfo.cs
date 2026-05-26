@@ -24,7 +24,7 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         AssetType = string.Empty;
     }
 
-    public bool Equals(AssetInfo? other)
+    public bool Equals(AssetInfo other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -39,7 +39,7 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         return Name == other.Name && Id == other.Id && FileName == other.FileName && AssetType == other.AssetType;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {
@@ -95,7 +95,7 @@ public class AssetInfo : ISerializable, IEquatable<AssetInfo>
         AssetType = string.Empty;
     }
 
-    public static string InferAssetType(string? fileName)
+    public static string InferAssetType(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {

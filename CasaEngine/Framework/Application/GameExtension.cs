@@ -19,7 +19,7 @@ public static class GameExtension
         }
     }
 
-    public static T? GetGameComponent<T>(this Microsoft.Xna.Framework.Game game) where T : GameComponent
+    public static T GetGameComponent<T>(this Microsoft.Xna.Framework.Game game) where T : GameComponent
     {
         foreach (var gameComponent in game.Components)
         {
@@ -32,7 +32,7 @@ public static class GameExtension
         return null;
     }
 
-    public static T? GetDrawableGameComponent<T>(this Microsoft.Xna.Framework.Game game) where T : DrawableGameComponent
+    public static T GetDrawableGameComponent<T>(this Microsoft.Xna.Framework.Game game) where T : DrawableGameComponent
     {
         foreach (var gameComponent in game.Components)
         {

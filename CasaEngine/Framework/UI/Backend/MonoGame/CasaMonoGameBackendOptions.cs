@@ -10,10 +10,10 @@ public sealed class CasaMonoGameBackendOptions
     public static Func<CasaDrawTransaction, IShapeRenderer2D> CreateAposShapeRendererFactory()
         => transaction => CreateOptionalAposShapeRenderer(transaction);
 
-    public IUIAssetProvider? AssetProvider { get; init; }
-    public ITextMeasurementEngine? TextEngine { get; init; }
-    public Action<CasaBackendAdapterRegistry>? ConfigureAdapters { get; init; }
-    public Func<CasaDrawTransaction, IShapeRenderer2D>? CreateShapeRenderer { get; init; }
+    public IUIAssetProvider AssetProvider { get; init; }
+    public ITextMeasurementEngine TextEngine { get; init; }
+    public Action<CasaBackendAdapterRegistry> ConfigureAdapters { get; init; }
+    public Func<CasaDrawTransaction, IShapeRenderer2D> CreateShapeRenderer { get; init; }
 
     internal static CasaMonoGameBackendOptions Default { get; } = new();
 
@@ -25,7 +25,7 @@ public sealed class CasaMonoGameBackendOptions
         const string typeName = "CasaEngine.Framework.UI.Backend.MonoGame.Primitives.CasaAposShapeRenderer2D";
         string qualifiedTypeName = $"{typeName}, {assemblyName}";
 
-        Type? rendererType = Type.GetType(qualifiedTypeName, throwOnError: false);
+        Type rendererType = Type.GetType(qualifiedTypeName, throwOnError: false);
         if (rendererType == null)
         {
             throw new InvalidOperationException(

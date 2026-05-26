@@ -37,8 +37,8 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     private readonly Stack<Line3d> _freeLines = new(NbLines);
     private readonly VertexPositionColor[] _vertices = new VertexPositionColor[NbLines * 2];
 
-    private VertexBuffer? _vertexBuffer;
-    private Effect? _effect;
+    private VertexBuffer _vertexBuffer;
+    private Effect _effect;
     private readonly CasaEngineGame _game;
 
     public int PendingLineCount => _lines.Count;
@@ -78,7 +78,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     }
 
     /// <inheritdoc/>
-    public void Flush(in RenderFrame frame, RenderStats? stats = null)
+    public void Flush(in RenderFrame frame, RenderStats stats = null)
     {
         int pendingLineCount = _lines.Count;
         int lineCount = Math.Min(pendingLineCount, NbLines);
@@ -107,7 +107,7 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         Clear();
     }
 
-    private void Draw(Matrix world, Matrix view, Matrix projection, RenderStats? stats, int lineCount)
+    private void Draw(Matrix world, Matrix view, Matrix projection, RenderStats stats, int lineCount)
     {
         if (_effect == null)
         {
@@ -120,13 +120,13 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
         Draw(_effect, stats, lineCount);
     }
 
-    private void Draw(Effect effect, RenderStats? stats, int lineCount)
+    private void Draw(Effect effect, RenderStats stats, int lineCount)
     {
         var graphicsDevice = effect.GraphicsDevice;
         DepthStencilState previousDepthStencilState = graphicsDevice.DepthStencilState;
         RasterizerState previousRasterizerState = graphicsDevice.RasterizerState;
         BlendState previousBlendState = graphicsDevice.BlendState;
-        IndexBuffer? previousIndexBuffer = graphicsDevice.Indices;
+        IndexBuffer previousIndexBuffer = graphicsDevice.Indices;
 
         try
         {

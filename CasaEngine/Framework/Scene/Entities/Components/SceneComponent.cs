@@ -26,7 +26,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     }
 
     /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
-    public SceneComponent? Parent { get; set; }
+    public SceneComponent Parent { get; set; }
     public List<SceneComponent> Children { get; } = new();
 
     public Matrix WorldMatrixWithScale
@@ -269,7 +269,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         IsBoundingBoxDirty = true;
     }
 
-    private void OnCoordinatesChanged(object? sender, EventArgs e)
+    private void OnCoordinatesChanged(object sender, EventArgs e)
     {
         IsBoundingBoxDirty = true;
     }

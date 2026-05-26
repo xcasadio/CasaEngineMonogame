@@ -24,17 +24,17 @@ public readonly struct ResolvedEnvironmentSettings
 
     public Guid SpecularEnvironmentCubemapAssetId { get; init; }
 
-    public XnaTextureCube? BackgroundCubemap { get; init; }
+    public XnaTextureCube BackgroundCubemap { get; init; }
 
-    public XnaTextureCube? SpecularEnvironmentCubemap { get; init; }
+    public XnaTextureCube SpecularEnvironmentCubemap { get; init; }
 
     public Guid PrimaryReflectionProbeId { get; init; }
 
     public Guid SecondaryReflectionProbeId { get; init; }
 
-    public XnaTextureCube? PrimaryReflectionProbeCubemap { get; init; }
+    public XnaTextureCube PrimaryReflectionProbeCubemap { get; init; }
 
-    public XnaTextureCube? SecondaryReflectionProbeCubemap { get; init; }
+    public XnaTextureCube SecondaryReflectionProbeCubemap { get; init; }
 
     public float PrimaryReflectionProbeWeight { get; init; }
 

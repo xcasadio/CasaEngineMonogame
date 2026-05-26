@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Scripting;
 
 public class ScriptArcBallCamera : GameplayProxy
 {
-    private ArcBallCameraComponent? _arcBallCameraComponent;
+    private ArcBallCameraComponent _arcBallCameraComponent;
     private InputComponent _inputComponent;
 
     public float InputTurnRate { get; set; }

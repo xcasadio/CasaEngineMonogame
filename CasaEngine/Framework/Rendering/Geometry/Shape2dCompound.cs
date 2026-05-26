@@ -26,7 +26,7 @@ public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
     {
 
     }
-    public bool Equals(Shape2dCompound? other)
+    public bool Equals(Shape2dCompound other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -41,7 +41,7 @@ public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
         return Shapes.Equals(other.Shapes);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

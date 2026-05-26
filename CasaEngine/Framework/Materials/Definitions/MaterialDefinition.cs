@@ -11,7 +11,7 @@ public sealed class MaterialDefinition
         Type runtimeMaterialType,
         IEnumerable<MaterialPropertyDefinition> properties,
         string description = "",
-        IEnumerable<string>? legacyTypeNames = null)
+        IEnumerable<string> legacyTypeNames = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
@@ -60,7 +60,7 @@ public sealed class MaterialDefinition
             $"Material definition '{Id}' does not expose a property named '{key}'.");
     }
 
-    private static IReadOnlyList<string> BuildLegacyTypeNames(Type runtimeMaterialType, IEnumerable<string>? legacyTypeNames)
+    private static IReadOnlyList<string> BuildLegacyTypeNames(Type runtimeMaterialType, IEnumerable<string> legacyTypeNames)
     {
         var typeNames = new List<string>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase)

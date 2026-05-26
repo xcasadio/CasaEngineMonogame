@@ -36,9 +36,9 @@ public sealed class WorldEnvironmentSettings
 
     public Guid SpecularEnvironmentCubemapAssetId { get; set; } = Guid.Empty;
 
-    public XnaTextureCube? BackgroundCubemap { get; set; }
+    public XnaTextureCube BackgroundCubemap { get; set; }
 
-    public XnaTextureCube? SpecularEnvironmentCubemap { get; set; }
+    public XnaTextureCube SpecularEnvironmentCubemap { get; set; }
 
     public ShadowSettings Shadows { get; } = new();
 

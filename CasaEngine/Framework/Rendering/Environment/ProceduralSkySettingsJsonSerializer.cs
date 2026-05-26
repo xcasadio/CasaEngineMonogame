@@ -20,7 +20,7 @@ internal static class ProceduralSkySettingsJsonSerializer
         };
     }
 
-    public static ProceduralSkySettings Load(JObject? element)
+    public static ProceduralSkySettings Load(JObject element)
     {
         var settings = new ProceduralSkySettings();
         if (element is null)

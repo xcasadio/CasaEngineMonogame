@@ -22,7 +22,7 @@ public readonly struct ViewId : IEquatable<ViewId>
     public bool IsEmpty => Value == 0;
 
     public bool Equals(ViewId other) => Value == other.Value;
-    public override bool Equals(object? obj) => obj is ViewId other && Equals(other);
+    public override bool Equals(object obj) => obj is ViewId other && Equals(other);
     public override int GetHashCode() => Value.GetHashCode();
     public static bool operator ==(ViewId left, ViewId right) => left.Equals(right);
     public static bool operator !=(ViewId left, ViewId right) => !left.Equals(right);

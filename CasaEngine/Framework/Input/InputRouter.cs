@@ -30,7 +30,7 @@ public sealed class InputRouter
     private readonly Dictionary<ViewId, ViewInputRegistration> _viewInputs = new();
     private readonly Dictionary<ViewId, MouseState> _previousMouseStatesByView = new();
     private MouseState? _previousFallbackMouseState;
-    private ViewInputRegistration? _fallbackInput;
+    private ViewInputRegistration _fallbackInput;
 
     public ViewId CurrentTargetViewId { get; private set; } = ViewId.Empty;
     public ViewId CurrentPointerViewId { get; private set; } = ViewId.Empty;
@@ -297,7 +297,7 @@ public sealed class InputRouter
     /// Returns the <see cref="RenderView"/> assigned to <paramref name="playerIndex"/>,
     /// or null if no assignment or the view could not be found.
     /// </summary>
-    public RenderView? GetRenderViewForPlayer(PlayerIndex playerIndex)
+    public RenderView GetRenderViewForPlayer(PlayerIndex playerIndex)
     {
         if (_playerViews.TryGetValue(playerIndex, out var id)
             && _viewManager.TryGetView(id, out var view))
@@ -308,7 +308,7 @@ public sealed class InputRouter
         return null;
     }
 
-    public IUIViewRuntime? GetUIViewForPlayer(PlayerIndex playerIndex)
+    public IUIViewRuntime GetUIViewForPlayer(PlayerIndex playerIndex)
     {
         return GetRenderViewForPlayer(playerIndex)?.UIView;
     }
@@ -330,7 +330,7 @@ public sealed class InputRouter
     /// and returns it together with the point expressed in view-local coordinates.
     /// Delegates to <see cref="ViewManager.ScreenToView"/>.
     /// </summary>
-    public (RenderView? view, Vector2 localPoint) RouteMouseToView(Point screenPoint)
+    public (RenderView view, Vector2 localPoint) RouteMouseToView(Point screenPoint)
         => _viewManager.ScreenToView(screenPoint);
 
     /// <summary>
@@ -357,7 +357,7 @@ public sealed class InputRouter
         return view.UIView?.InputState.IsKeyboardCaptured ?? false;
     }
 
-    private RenderView? ResolveModalView()
+    private RenderView ResolveModalView()
     {
         for (int i = _viewManager.Views.Count - 1; i >= 0; i--)
         {
@@ -376,7 +376,7 @@ public sealed class InputRouter
         return null;
     }
 
-    private RenderView? ResolvePointerView(RenderView? modalView)
+    private RenderView ResolvePointerView(RenderView modalView)
     {
         if (modalView != null)
         {
@@ -402,7 +402,7 @@ public sealed class InputRouter
         return null;
     }
 
-    private RenderView? ResolveKeyboardFocusView()
+    private RenderView ResolveKeyboardFocusView()
     {
         if (KeyboardFocusViewId.IsEmpty)
         {
@@ -421,7 +421,7 @@ public sealed class InputRouter
         return null;
     }
 
-    private RenderView? ResolveUiPointerCaptureView(RenderView? modalView)
+    private RenderView ResolveUiPointerCaptureView(RenderView modalView)
     {
         if (modalView != null)
         {

@@ -11,15 +11,15 @@ namespace CasaEngine.Framework.Input;
 /// </summary>
 public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource
 {
-    private readonly Func<bool>? _isWindowActive;
-    private readonly Func<GameWindow?>? _getWindow;
+    private readonly Func<bool> _isWindowActive;
+    private readonly Func<GameWindow> _getWindow;
     private readonly bool _suppressKeyboardWhenInactive;
     private readonly List<TextInputEventArgs> _textInputEvents = new();
-    private GameWindow? _subscribedWindow;
+    private GameWindow _subscribedWindow;
 
     public MonoGameWindowInputSource(
-        Func<bool>? isWindowActive = null,
-        Func<GameWindow?>? getWindow = null,
+        Func<bool> isWindowActive = null,
+        Func<GameWindow> getWindow = null,
         bool suppressKeyboardWhenInactive = true)
     {
         _isWindowActive = isWindowActive;
@@ -83,7 +83,7 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
         }
     }
 
-    private void OnTextInput(object? sender, TextInputEventArgs e)
+    private void OnTextInput(object sender, TextInputEventArgs e)
     {
         lock (_textInputEvents)
         {

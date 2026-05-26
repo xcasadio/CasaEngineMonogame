@@ -59,7 +59,7 @@ public sealed class AnimationClipSampler
         return wrappedTime;
     }
 
-    private static Vector3 SampleVector3Track(Vector3AnimationTrack? track, float timeSeconds, float clipDurationSeconds, bool loop, Vector3 fallbackValue)
+    private static Vector3 SampleVector3Track(Vector3AnimationTrack track, float timeSeconds, float clipDurationSeconds, bool loop, Vector3 fallbackValue)
     {
         if (track == null || track.KeyframeCount == 0)
         {
@@ -105,7 +105,7 @@ public sealed class AnimationClipSampler
         return lastKey.Value;
     }
 
-    private static Quaternion SampleQuaternionTrack(QuaternionAnimationTrack? track, float timeSeconds, float clipDurationSeconds, bool loop, Quaternion fallbackValue)
+    private static Quaternion SampleQuaternionTrack(QuaternionAnimationTrack track, float timeSeconds, float clipDurationSeconds, bool loop, Quaternion fallbackValue)
     {
         if (track == null || track.KeyframeCount == 0)
         {

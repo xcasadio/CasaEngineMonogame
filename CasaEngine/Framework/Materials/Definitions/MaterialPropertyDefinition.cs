@@ -11,15 +11,15 @@ public sealed class MaterialPropertyDefinition
         MaterialPropertyType valueType,
         MaterialPropertyGroup group,
         MaterialPropertyFlags flags = MaterialPropertyFlags.None,
-        object? defaultValue = null,
+        object defaultValue = null,
         string description = "",
-        IEnumerable<string>? legacyAliases = null,
-        string? assetKind = null,
-        IEnumerable<MaterialPropertyOption>? options = null,
+        IEnumerable<string> legacyAliases = null,
+        string assetKind = null,
+        IEnumerable<MaterialPropertyOption> options = null,
         float? minValue = null,
         float? maxValue = null,
         float? step = null,
-        string? editorControlHint = null)
+        string editorControlHint = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
@@ -52,12 +52,12 @@ public sealed class MaterialPropertyDefinition
     public MaterialPropertyType ValueType { get; }
     public MaterialPropertyGroup Group { get; }
     public MaterialPropertyFlags Flags { get; }
-    public object? DefaultValue { get; }
-    public string? AssetKind { get; }
+    public object DefaultValue { get; }
+    public string AssetKind { get; }
     public float? MinValue { get; }
     public float? MaxValue { get; }
     public float? Step { get; }
-    public string? EditorControlHint { get; }
+    public string EditorControlHint { get; }
     public IReadOnlyList<string> LegacyAliases { get; }
     public IReadOnlyList<MaterialPropertyOption> Options { get; }
 
@@ -81,7 +81,7 @@ public sealed class MaterialPropertyDefinition
         return false;
     }
 
-    public MaterialValue? GetDefaultMaterialValue()
+    public MaterialValue GetDefaultMaterialValue()
     {
         if (DefaultValue is null)
         {
@@ -91,13 +91,13 @@ public sealed class MaterialPropertyDefinition
         return MaterialValue.FromObject(ValueType, DefaultValue);
     }
 
-    public bool IsValueCompatible(MaterialValue value, out string? validationError)
+    public bool IsValueCompatible(MaterialValue value, out string validationError)
     {
         ArgumentNullException.ThrowIfNull(value);
         return value.IsCompatibleWith(this, out validationError);
     }
 
-    public T? GetDefaultValue<T>()
+    public T GetDefaultValue<T>()
     {
         if (DefaultValue is null)
         {
@@ -157,7 +157,7 @@ public sealed class MaterialPropertyDefinition
         }
     }
 
-    private void ValidateDefaultValue(object? defaultValue)
+    private void ValidateDefaultValue(object defaultValue)
     {
         if (defaultValue is null)
         {
@@ -181,7 +181,7 @@ public sealed class MaterialPropertyDefinition
         }
     }
 
-    private static IReadOnlyList<string> NormalizeAliases(IEnumerable<string>? legacyAliases, string key)
+    private static IReadOnlyList<string> NormalizeAliases(IEnumerable<string> legacyAliases, string key)
     {
         if (legacyAliases is null)
         {
@@ -215,7 +215,7 @@ public sealed class MaterialPropertyDefinition
         return aliases.Count == 0 ? EmptyAliases : aliases.ToArray();
     }
 
-    private static IReadOnlyList<MaterialPropertyOption> NormalizeOptions(IEnumerable<MaterialPropertyOption>? options)
+    private static IReadOnlyList<MaterialPropertyOption> NormalizeOptions(IEnumerable<MaterialPropertyOption> options)
     {
         if (options is null)
         {

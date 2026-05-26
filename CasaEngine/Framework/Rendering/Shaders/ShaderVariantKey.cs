@@ -23,7 +23,7 @@ public readonly struct ShaderVariantKey : IEquatable<ShaderVariantKey>
     public bool Equals(ShaderVariantKey other) =>
         ShaderBaseId == other.ShaderBaseId && Features == other.Features;
 
-    public override bool Equals(object? obj) =>
+    public override bool Equals(object obj) =>
         obj is ShaderVariantKey k && Equals(k);
 
     public override int GetHashCode() => HashCode.Combine(ShaderBaseId, Features);

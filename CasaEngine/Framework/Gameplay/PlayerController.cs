@@ -36,7 +36,7 @@ public class PlayerController : Controller
     /// Set by the system when the player is assigned to a view.
     /// Null until the player has a view and its UI runtime has been created.
     /// </summary>
-    public IUIViewRuntime? UIView { get; set; }
+    public IUIViewRuntime UIView { get; set; }
 
     /// <summary>
     /// Adds <paramref name="screen"/> to this player's HUD layer

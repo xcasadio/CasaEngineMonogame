@@ -16,9 +16,9 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Particle System")]
 public class ParticleSystemComponent : SceneComponent
 {
-    private ParticleEffectAsset? _particleEffectAsset;
-    private ParticleRuntimeInstance? _runtimeInstance;
-    private ParticleRendererComponent? _particleRendererComponent;
+    private ParticleEffectAsset _particleEffectAsset;
+    private ParticleRuntimeInstance _runtimeInstance;
+    private ParticleRendererComponent _particleRendererComponent;
     private readonly List<ParticleRenderPacket> _renderPackets = new(64);
     private float _simulationSpeed = 1.0f;
     private float _emissionScale = 1.0f;
@@ -70,9 +70,9 @@ public class ParticleSystemComponent : SceneComponent
         }
     }
 
-    public ParticleEffectAsset? ParticleEffectAsset => _particleEffectAsset;
+    public ParticleEffectAsset ParticleEffectAsset => _particleEffectAsset;
 
-    public ParticleRuntimeInstance? RuntimeInstance => _runtimeInstance;
+    public ParticleRuntimeInstance RuntimeInstance => _runtimeInstance;
 
     public int LastEmittedCount { get; private set; }
 

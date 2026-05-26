@@ -4,9 +4,9 @@ public sealed class JointAnimationTrack
 {
     public JointAnimationTrack(
         int jointIndex,
-        Vector3AnimationTrack? translationTrack,
-        QuaternionAnimationTrack? rotationTrack,
-        Vector3AnimationTrack? scaleTrack)
+        Vector3AnimationTrack translationTrack,
+        QuaternionAnimationTrack rotationTrack,
+        Vector3AnimationTrack scaleTrack)
     {
         if (jointIndex < 0)
         {
@@ -26,11 +26,11 @@ public sealed class JointAnimationTrack
 
     public int JointIndex { get; }
 
-    public Vector3AnimationTrack? TranslationTrack { get; }
+    public Vector3AnimationTrack TranslationTrack { get; }
 
-    public QuaternionAnimationTrack? RotationTrack { get; }
+    public QuaternionAnimationTrack RotationTrack { get; }
 
-    public Vector3AnimationTrack? ScaleTrack { get; }
+    public Vector3AnimationTrack ScaleTrack { get; }
 
     public float EndTimeSeconds => Math.Max(
         TranslationTrack?.EndTimeSeconds ?? 0f,

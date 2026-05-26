@@ -177,7 +177,7 @@ public static class SteeringPerformanceDiagnostics
 
         public FrameBehaviorMetrics GetBehaviorMetrics(string behaviorName)
         {
-            if (!BehaviorMetrics.TryGetValue(behaviorName, out FrameBehaviorMetrics? behaviorMetrics))
+            if (!BehaviorMetrics.TryGetValue(behaviorName, out FrameBehaviorMetrics behaviorMetrics))
             {
                 behaviorMetrics = new FrameBehaviorMetrics();
                 BehaviorMetrics.Add(behaviorName, behaviorMetrics);
@@ -396,13 +396,13 @@ public static class SteeringPerformanceDiagnostics
             .ToArray();
         foreach (string behaviorName in behaviorNames)
         {
-            if (!AveragedBehaviorMetrics.TryGetValue(behaviorName, out AveragedBehaviorMetric? averagedBehaviorMetric))
+            if (!AveragedBehaviorMetrics.TryGetValue(behaviorName, out AveragedBehaviorMetric averagedBehaviorMetric))
             {
                 averagedBehaviorMetric = new AveragedBehaviorMetric(behaviorName);
                 AveragedBehaviorMetrics.Add(behaviorName, averagedBehaviorMetric);
             }
 
-            if (!Current.BehaviorMetrics.TryGetValue(behaviorName, out FrameBehaviorMetrics? frameBehaviorMetrics))
+            if (!Current.BehaviorMetrics.TryGetValue(behaviorName, out FrameBehaviorMetrics frameBehaviorMetrics))
             {
                 averagedBehaviorMetric.Update(0.0, 0.0, 0.0, 0.0);
                 continue;

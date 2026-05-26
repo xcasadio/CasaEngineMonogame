@@ -32,7 +32,7 @@ public class FileLogger : ILogger
         _stream.Write(msg);
     }
 
-    private void Write(params object[]? args)
+    private void Write(params object[] args)
     {
         bool first = true;
 

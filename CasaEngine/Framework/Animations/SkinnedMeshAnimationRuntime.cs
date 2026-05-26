@@ -86,11 +86,11 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
         set => AnimationController.RootMotionMode = value;
     }
 
-    public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
+    public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
-    public event Action<SkeletonPoseLocal, SkeletonPoseModel>? PosePostProcessing;
+    public event Action<SkeletonPoseLocal, SkeletonPoseModel> PosePostProcessing;
 
-    public VertexBuffer? GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration)
+    public VertexBuffer GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration)
     {
         ArgumentNullException.ThrowIfNull(mesh);
         ArgumentNullException.ThrowIfNull(graphicsDevice);
@@ -157,7 +157,7 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
         RefreshEvaluatedPose();
     }
 
-    public void CrossFadeToAnimation(int animationIndex, float durationSeconds, AnimationCrossFadeSettings? settings = null)
+    public void CrossFadeToAnimation(int animationIndex, float durationSeconds, AnimationCrossFadeSettings settings = null)
     {
         if (!TryResolveAnimationClip(animationIndex, out var resolvedAnimationIndex, out var clip))
         {
@@ -205,7 +205,7 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
     public void SetAnimationLayer(
         int layerIndex,
         AnimationClip clip,
-        BoneMask? mask = null,
+        BoneMask mask = null,
         float weight = 1f,
         AnimationLayerBlendMode blendMode = AnimationLayerBlendMode.Override,
         bool loop = true,
@@ -609,7 +609,7 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
 
         public VertexPositionTextureNormalTangentWeights[] WorkingVertices { get; }
 
-        public DynamicVertexBuffer? VertexBuffer { get; set; }
+        public DynamicVertexBuffer VertexBuffer { get; set; }
 
         public bool HasActiveMorphs { get; set; }
 

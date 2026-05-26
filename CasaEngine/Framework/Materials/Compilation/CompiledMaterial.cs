@@ -6,22 +6,22 @@ namespace CasaEngine.Framework.Materials.Compilation;
 public sealed class CompiledMaterial
 {
     private readonly Dictionary<string, MaterialValue> _properties;
-    private readonly Dictionary<string, Texture2D?> _textures;
+    private readonly Dictionary<string, Texture2D> _textures;
     private readonly Dictionary<string, CompiledMaterialTextureBinding> _textureBindings;
 
     public CompiledMaterial(
         string definitionId,
         EffectiveShaderReference effectiveShader,
         IEnumerable<KeyValuePair<string, MaterialValue>> properties,
-        IEnumerable<KeyValuePair<string, Texture2D?>>? textures = null,
-        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>>? textureBindings = null,
+        IEnumerable<KeyValuePair<string, Texture2D>> textures = null,
+        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>> textureBindings = null,
         Guid sourceAssetId = default,
         string name = "",
         ShaderFeature features = ShaderFeature.None,
-        BlendState? blendState = null,
-        DepthStencilState? depthStencilState = null,
-        RasterizerState? rasterizerState = null,
-        SamplerState? samplerState = null,
+        BlendState blendState = null,
+        DepthStencilState depthStencilState = null,
+        RasterizerState rasterizerState = null,
+        SamplerState samplerState = null,
         bool isTransparent = false,
         RenderQueue queue = RenderQueue.Opaque,
         bool castShadows = true,
@@ -81,7 +81,7 @@ public sealed class CompiledMaterial
 
     public IReadOnlyDictionary<string, MaterialValue> Properties => _properties;
 
-    public IReadOnlyDictionary<string, Texture2D?> Textures => _textures;
+    public IReadOnlyDictionary<string, Texture2D> Textures => _textures;
 
     public IReadOnlyDictionary<string, CompiledMaterialTextureBinding> TextureBindings => _textureBindings;
 
@@ -91,7 +91,7 @@ public sealed class CompiledMaterial
         return _properties.TryGetValue(key, out value!);
     }
 
-    public bool TryGetTexture(string key, out Texture2D? texture)
+    public bool TryGetTexture(string key, out Texture2D texture)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
         return _textures.TryGetValue(key, out texture);
@@ -128,10 +128,10 @@ public sealed class CompiledMaterial
         return lookup;
     }
 
-    private static Dictionary<string, Texture2D?> BuildTextureLookup(
-        IEnumerable<KeyValuePair<string, Texture2D?>>? textures)
+    private static Dictionary<string, Texture2D> BuildTextureLookup(
+        IEnumerable<KeyValuePair<string, Texture2D>> textures)
     {
-        var lookup = new Dictionary<string, Texture2D?>(StringComparer.OrdinalIgnoreCase);
+        var lookup = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
         if (textures is null)
         {
             return lookup;
@@ -156,8 +156,8 @@ public sealed class CompiledMaterial
     }
 
     private static Dictionary<string, CompiledMaterialTextureBinding> BuildTextureBindingLookup(
-        IReadOnlyDictionary<string, Texture2D?> textures,
-        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>>? textureBindings)
+        IReadOnlyDictionary<string, Texture2D> textures,
+        IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>> textureBindings)
     {
         var lookup = new Dictionary<string, CompiledMaterialTextureBinding>(StringComparer.OrdinalIgnoreCase);
 

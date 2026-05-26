@@ -15,9 +15,9 @@ public sealed class ShadowPass : RenderPass
     private const SurfaceFormat PreferredShadowMapSurfaceFormat = SurfaceFormat.Single;
     private const SurfaceFormat FallbackShadowMapSurfaceFormat = SurfaceFormat.Color;
 
-    private RenderTarget2D? _shadowMapAtlas;
+    private RenderTarget2D _shadowMapAtlas;
 
-    public ShaderWrapper? ShadowShader { get; set; }
+    public ShaderWrapper ShadowShader { get; set; }
 
     public ShadowPass() : base(RenderPassType.ShadowPass)
     {
@@ -99,7 +99,7 @@ public sealed class ShadowPass : RenderPass
         }
     }
 
-    private void DrawShadowCaster(in RenderItem item, Matrix lightViewProjection, GraphicsDevice device, RenderStats? stats)
+    private void DrawShadowCaster(in RenderItem item, Matrix lightViewProjection, GraphicsDevice device, RenderStats stats)
     {
         device.SetVertexBuffer(item.Mesh.VertexBuffer);
         device.Indices = item.Mesh.IndexBuffer;
@@ -137,7 +137,7 @@ public sealed class ShadowPass : RenderPass
         }
     }
 
-    private bool ConfigureMaterialMask(MaterialBase material, RenderStats? stats, out float alphaCutoff)
+    private bool ConfigureMaterialMask(MaterialBase material, RenderStats stats, out float alphaCutoff)
     {
         if (material.Queue == RenderQueue.AlphaTest)
         {
@@ -176,7 +176,7 @@ public sealed class ShadowPass : RenderPass
             ?? TryAcquireShadowMapAtlas(device, resolution, FallbackShadowMapSurfaceFormat);
     }
 
-    private static RenderTarget2D? TryAcquireShadowMapAtlas(GraphicsDevice device, int resolution, SurfaceFormat surfaceFormat)
+    private static RenderTarget2D TryAcquireShadowMapAtlas(GraphicsDevice device, int resolution, SurfaceFormat surfaceFormat)
     {
         try
         {

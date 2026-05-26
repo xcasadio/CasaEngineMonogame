@@ -24,8 +24,8 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
     private readonly GraphicsDevice _graphicsDevice;
     private readonly SurfaceFormat  _surfaceFormat;
     private readonly DepthFormat    _depthFormat;
-    private readonly RenderTargetPool? _renderTargetPool;
-    private RenderTarget2D?         _renderTarget;
+    private readonly RenderTargetPool _renderTargetPool;
+    private RenderTarget2D         _renderTarget;
     private bool                    _disposed;
 
     // Debounce state
@@ -39,10 +39,10 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
         ? new Rectangle(0, 0, _renderTarget.Width, _renderTarget.Height)
         : Rectangle.Empty;
 
-    public RenderTarget2D? RenderTarget => _renderTarget;
+    public RenderTarget2D RenderTarget => _renderTarget;
 
     /// <summary>Direct access to the produced texture (alias of <see cref="RenderTarget"/>).</summary>
-    public Texture2D? Texture => _renderTarget;
+    public Texture2D Texture => _renderTarget;
 
     public RenderTargetSurface(
         GraphicsDevice graphicsDevice,
@@ -50,7 +50,7 @@ public sealed class RenderTargetSurface : IRenderSurface, IDisposable
         int            height,
         SurfaceFormat  surfaceFormat = SurfaceFormat.Color,
         DepthFormat    depthFormat   = DepthFormat.Depth24,
-        RenderTargetPool? renderTargetPool = null)
+        RenderTargetPool renderTargetPool = null)
     {
         _graphicsDevice = graphicsDevice;
         _surfaceFormat  = surfaceFormat;

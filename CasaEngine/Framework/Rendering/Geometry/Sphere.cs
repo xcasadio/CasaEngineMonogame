@@ -22,7 +22,7 @@ public class Sphere : Shape3d
         Radius = 1f;
     }
 
-    public bool Equals(Sphere? other)
+    public bool Equals(Sphere other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -37,7 +37,7 @@ public class Sphere : Shape3d
         return Type == other.Type && Radius.Equals(other.Radius);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

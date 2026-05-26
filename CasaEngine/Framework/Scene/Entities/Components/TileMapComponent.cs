@@ -30,9 +30,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
     private bool _needsAutoTileRefresh;
-    private IPhysicsWorld? _physicsWorldContext;
-    private SpriteRendererComponent? _spriteRendererComponent;
-    private Texture2D? _tileSetTexture;
+    private IPhysicsWorld _physicsWorldContext;
+    private SpriteRendererComponent _spriteRendererComponent;
+    private Texture2D _tileSetTexture;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -500,7 +500,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _tileSetTexture = _tileSetTextures[0];
     }
 
-    private bool TryGetTileData(TileMapLayerData layerData, int tileIndex, out TileData? tileData)
+    private bool TryGetTileData(TileMapLayerData layerData, int tileIndex, out TileData tileData)
     {
         var tileId = layerData.tiles[tileIndex];
         if (tileId == TileMapData.EmptyTileId)
@@ -512,7 +512,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return TryGetTileData(layerData.GetTileSourceIndex(tileIndex), tileId, out tileData);
     }
 
-    private bool TryGetTileData(int tileSourceIndex, int tileId, out TileData? tileData)
+    private bool TryGetTileData(int tileSourceIndex, int tileId, out TileData tileData)
     {
         tileData = null;
         return tileSourceIndex >= 0
@@ -572,7 +572,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return tile;
     }
 
-    private PhysicsBody? CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
+    private PhysicsBody CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
         {
@@ -607,7 +607,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return collisionObject;
     }
 
-    private PhysicsBody? CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
+    private PhysicsBody CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
         {
@@ -1187,7 +1187,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _collisionObjects.Clear();
     }
 
-    private void RemoveCollisionObject(PhysicsBody? collisionObject)
+    private void RemoveCollisionObject(PhysicsBody collisionObject)
     {
         if (collisionObject == null)
         {

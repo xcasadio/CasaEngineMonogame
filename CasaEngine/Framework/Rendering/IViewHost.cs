@@ -29,10 +29,10 @@ public interface IViewHost : IDisposable
     /// Fired when the host area is resized.
     /// Parameters: (host, newWidth, newHeight).
     /// </summary>
-    event Action<IViewHost, int, int>? Resized;
+    event Action<IViewHost, int, int> Resized;
 
     /// <summary>Fired when the host is closed or disposed.</summary>
-    event Action<IViewHost>? Closed;
+    event Action<IViewHost> Closed;
 
     /// <summary>
     /// Notifies the host that the containing area has been resized and the

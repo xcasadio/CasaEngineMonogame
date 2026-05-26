@@ -23,14 +23,14 @@ public readonly struct ResolvedShader
 public sealed class RenderShaderSelector
 {
     private readonly ShaderWrapper _fallbackShader;
-    private readonly ShaderManager? _shaderManager;
-    private readonly ShaderVariantLibrary? _variantLibrary;
+    private readonly ShaderManager _shaderManager;
+    private readonly ShaderVariantLibrary _variantLibrary;
     private readonly Dictionary<Guid, ShaderWrapper> _registeredShaders = new();
 
     public RenderShaderSelector(
         ShaderWrapper fallbackShader,
-        ShaderManager? shaderManager = null,
-        ShaderVariantLibrary? variantLibrary = null)
+        ShaderManager shaderManager = null,
+        ShaderVariantLibrary variantLibrary = null)
     {
         _fallbackShader = fallbackShader ?? throw new ArgumentNullException(nameof(fallbackShader));
         _shaderManager = shaderManager;

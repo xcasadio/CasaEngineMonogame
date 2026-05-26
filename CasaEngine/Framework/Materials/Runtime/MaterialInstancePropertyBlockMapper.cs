@@ -17,7 +17,7 @@ public static class MaterialInstancePropertyBlockMapper
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         MaterialInstanceData materialInstanceData,
-        Func<Guid, MaterialAsset?>? parentResolver);
+        Func<Guid, MaterialAsset> parentResolver);
 
     private static readonly object OverrideMapperLock = new();
     private static readonly Dictionary<string, OverrideMapper> OverrideMappers = CreateOverrideMappers();
@@ -25,7 +25,7 @@ public static class MaterialInstancePropertyBlockMapper
     public static MaterialPropertyBlock Create(
         MaterialAsset materialAsset,
         MaterialInstanceData materialInstanceData,
-        Func<Guid, MaterialAsset?>? parentResolver = null)
+        Func<Guid, MaterialAsset> parentResolver = null)
     {
         var propertyBlock = new MaterialPropertyBlock();
         Apply(propertyBlock, materialAsset, materialInstanceData, parentResolver);
@@ -36,7 +36,7 @@ public static class MaterialInstancePropertyBlockMapper
         MaterialPropertyBlock propertyBlock,
         MaterialAsset materialAsset,
         MaterialInstanceData materialInstanceData,
-        Func<Guid, MaterialAsset?>? parentResolver = null)
+        Func<Guid, MaterialAsset> parentResolver = null)
     {
         ArgumentNullException.ThrowIfNull(propertyBlock);
         ArgumentNullException.ThrowIfNull(materialAsset);
@@ -125,7 +125,7 @@ public static class MaterialInstancePropertyBlockMapper
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         MaterialInstanceData materialInstanceData,
-        Func<Guid, MaterialAsset?>? parentResolver)
+        Func<Guid, MaterialAsset> parentResolver)
     {
         Color tintColorOverride = default;
         bool hasTintOverride = TryGetOverrideValue(definition, materialInstanceData, "tint_color", out var tintOverride)
@@ -179,7 +179,7 @@ public static class MaterialInstancePropertyBlockMapper
 
     private static bool CanApplyUnlitAlphaOverride(
         MaterialAsset materialAsset,
-        Func<Guid, MaterialAsset?>? parentResolver)
+        Func<Guid, MaterialAsset> parentResolver)
     {
         if (materialAsset.IsTransparent
             || materialAsset.Queue == RenderQueue.Transparent
@@ -195,7 +195,7 @@ public static class MaterialInstancePropertyBlockMapper
         MaterialAsset materialAsset,
         string propertyKey,
         Color fallback,
-        Func<Guid, MaterialAsset?>? parentResolver)
+        Func<Guid, MaterialAsset> parentResolver)
     {
         var value = materialAsset.GetPropertyValueOrDefault(propertyKey, parentResolver);
         return value != null && value.TryGetColor(out var color)
@@ -207,7 +207,7 @@ public static class MaterialInstancePropertyBlockMapper
         MaterialAsset materialAsset,
         string propertyKey,
         float fallback,
-        Func<Guid, MaterialAsset?>? parentResolver)
+        Func<Guid, MaterialAsset> parentResolver)
     {
         var value = materialAsset.GetPropertyValueOrDefault(propertyKey, parentResolver);
         return value != null && value.TryGetFloat(out var floatValue)

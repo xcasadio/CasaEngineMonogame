@@ -14,12 +14,12 @@ public sealed class AnimationController
     private BoneTransform _previousSampledRootTransform = BoneTransform.Identity;
     private bool _hasPreviousSampledRootTransform;
 
-    private AnimationState? _currentState;
-    private AnimationState? _targetState;
+    private AnimationState _currentState;
+    private AnimationState _targetState;
     private float _crossFadeDurationSeconds;
     private float _crossFadeElapsedSeconds;
     private AnimationCrossFadeSettings _crossFadeSettings = AnimationCrossFadeSettings.Default;
-    private IAnimationGraphNode? _graphRoot;
+    private IAnimationGraphNode _graphRoot;
     private bool _graphPlaying;
     private float _graphTimeSeconds;
 
@@ -45,11 +45,11 @@ public sealed class AnimationController
 
     public RootMotionDelta CurrentRootMotionDelta { get; private set; } = RootMotionDelta.Identity;
 
-    public AnimationState? CurrentState => _currentState;
+    public AnimationState CurrentState => _currentState;
 
-    public AnimationState? TargetState => _targetState;
+    public AnimationState TargetState => _targetState;
 
-    public IAnimationGraphNode? GraphRoot => _graphRoot;
+    public IAnimationGraphNode GraphRoot => _graphRoot;
 
     public float CurrentTimeSeconds => _currentState?.TimeSeconds ?? _graphTimeSeconds;
 
@@ -79,7 +79,7 @@ public sealed class AnimationController
 
     public IReadOnlyList<AnimationLayer> Layers => _layers;
 
-    public event Action<AnimationEventKeyframe>? AnimationEventTriggered;
+    public event Action<AnimationEventKeyframe> AnimationEventTriggered;
 
     public void Play(AnimationClip clip, bool loop = true, float speed = 1f)
     {
@@ -128,7 +128,7 @@ public sealed class AnimationController
         CrossFade(clip, durationSeconds, AnimationCrossFadeSettings.Default, loop, speed);
     }
 
-    public void CrossFade(AnimationClip clip, float durationSeconds, AnimationCrossFadeSettings? settings, bool loop = true, float speed = 1f)
+    public void CrossFade(AnimationClip clip, float durationSeconds, AnimationCrossFadeSettings settings, bool loop = true, float speed = 1f)
     {
         ValidateClip(clip);
         settings ??= AnimationCrossFadeSettings.Default;
@@ -217,7 +217,7 @@ public sealed class AnimationController
     public void SetLayerAnimation(
         int layerIndex,
         AnimationClip clip,
-        BoneMask? mask = null,
+        BoneMask mask = null,
         float weight = 1f,
         AnimationLayerBlendMode blendMode = AnimationLayerBlendMode.Override,
         bool loop = true,

@@ -31,10 +31,10 @@ public abstract class MaterialBase : ISerializable
 
     // --- Render states (null = use renderer defaults) ---
 
-    public BlendState? BlendState { get; set; }
-    public DepthStencilState? DepthStencilState { get; set; }
-    public RasterizerState? RasterizerState { get; set; }
-    public SamplerState? SamplerState { get; set; }
+    public BlendState BlendState { get; set; }
+    public DepthStencilState DepthStencilState { get; set; }
+    public RasterizerState RasterizerState { get; set; }
+    public SamplerState SamplerState { get; set; }
 
     // --- Sorting ---
 
@@ -91,7 +91,7 @@ public abstract class MaterialBase : ISerializable
     /// Asset-backed draw paths should prefer <see cref="CompiledMaterial.Features"/>, while
     /// runtime-only materials can still query this helper when no compiled snapshot exists.
     /// </summary>
-    public virtual ShaderFeature GetFeatures(StaticModelMesh? mesh = null)
+    public virtual ShaderFeature GetFeatures(StaticModelMesh mesh = null)
         => mesh is null
             ? RenderFeatureResolver.ResolveMaterialFeatures(this)
             : RenderFeatureResolver.Resolve(this, mesh);

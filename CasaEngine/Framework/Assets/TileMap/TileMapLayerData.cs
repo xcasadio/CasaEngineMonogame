@@ -9,7 +9,7 @@ public class TileMapLayerData
     public const int EmptyTileId = -1;
     public const int DefaultTileSourceIndex = 0;
 
-    public string? Name { get; set; }
+    public string Name { get; set; }
     public List<int> tiles = new();
     public List<int> tileSources = new();
     public List<TileCellFlags> tileFlags = new();

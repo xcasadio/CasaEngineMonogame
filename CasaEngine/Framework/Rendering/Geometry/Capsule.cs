@@ -24,7 +24,7 @@ public class Capsule : Shape3d, IEquatable<Capsule>
         Length = 1.0f;
     }
 
-    public bool Equals(Capsule? other)
+    public bool Equals(Capsule other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -39,7 +39,7 @@ public class Capsule : Shape3d, IEquatable<Capsule>
         return Type == other.Type && Radius.Equals(other.Radius) && Length.Equals(other.Length);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

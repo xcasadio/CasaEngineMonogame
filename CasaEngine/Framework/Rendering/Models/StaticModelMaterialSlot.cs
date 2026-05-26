@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Rendering.Models;
 
 public sealed class StaticModelMaterialSlot
 {
-    public StaticModelMaterialSlot(int slotIndex, string slotName, int meshIndex, int subMeshIndex, StaticModelMesh mesh, SubMesh? subMesh)
+    public StaticModelMaterialSlot(int slotIndex, string slotName, int meshIndex, int subMeshIndex, StaticModelMesh mesh, SubMesh subMesh)
     {
         SlotIndex = slotIndex;
         SlotName = slotName;
@@ -24,7 +24,7 @@ public sealed class StaticModelMaterialSlot
 
     public StaticModelMesh Mesh { get; }
 
-    public SubMesh? SubMesh { get; }
+    public SubMesh SubMesh { get; }
 
     public bool IsSubMeshSlot => SubMesh != null;
 
@@ -105,7 +105,7 @@ public static class StaticModelMaterialSlots
         }
     }
 
-    public static MaterialSlotOverride? FindMatchingOverride(IReadOnlyList<MaterialSlotOverride>? overrides, StaticModelMaterialSlot slot)
+    public static MaterialSlotOverride FindMatchingOverride(IReadOnlyList<MaterialSlotOverride> overrides, StaticModelMaterialSlot slot)
     {
         ArgumentNullException.ThrowIfNull(slot);
 
@@ -136,7 +136,7 @@ public static class StaticModelMaterialSlots
         return null;
     }
 
-    public static List<MaterialSlotOverride> FindOrphanOverrides(StaticModel model, IReadOnlyList<MaterialSlotOverride>? overrides)
+    public static List<MaterialSlotOverride> FindOrphanOverrides(StaticModel model, IReadOnlyList<MaterialSlotOverride> overrides)
     {
         var result = new List<MaterialSlotOverride>();
         if (overrides == null || overrides.Count == 0)

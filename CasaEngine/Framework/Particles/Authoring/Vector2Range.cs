@@ -33,7 +33,7 @@ public readonly struct Vector2Range : IEquatable<Vector2Range>
     public bool Equals(Vector2Range other)
         => Min.Equals(other.Min) && Max.Equals(other.Max);
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is Vector2Range other && Equals(other);
 
     public override int GetHashCode()

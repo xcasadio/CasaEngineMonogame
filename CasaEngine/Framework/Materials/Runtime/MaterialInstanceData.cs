@@ -48,7 +48,7 @@ public sealed class MaterialInstanceData : ISerializable
         MaterialDefinition definition,
         string keyOrAlias,
         MaterialValue value,
-        out string? validationError)
+        out string validationError)
     {
         ArgumentNullException.ThrowIfNull(definition);
         ArgumentException.ThrowIfNullOrWhiteSpace(keyOrAlias);

@@ -15,8 +15,8 @@ public sealed class CasaGameRenderHost<TObservableGame> : IRenderHost, IDisposab
 
     public object GetService(Type serviceType) => Game.Services.GetService(serviceType)!;
 
-    public event EventHandler<TimeSpan>? PreviewUpdate;
-    public event EventHandler<EventArgs>? EndUpdate;
+    public event EventHandler<TimeSpan> PreviewUpdate;
+    public event EventHandler<EventArgs> EndUpdate;
 
     private Rectangle _previousClientBounds;
     private readonly EventHandler<TimeSpan> _onGamePreviewUpdate;

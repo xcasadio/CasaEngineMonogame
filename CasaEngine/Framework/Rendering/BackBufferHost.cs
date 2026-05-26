@@ -22,10 +22,10 @@ public sealed class BackBufferHost : IViewHost
     public bool IsVisible { get; set; } = true;
 
     /// <inheritdoc/>
-    public event Action<IViewHost, int, int>? Resized;
+    public event Action<IViewHost, int, int> Resized;
 
     /// <inheritdoc/>
-    public event Action<IViewHost>? Closed;
+    public event Action<IViewHost> Closed;
 
     /// <summary>The backbuffer surface owned by this host.</summary>
     public BackBufferSurface Surface => _surface;

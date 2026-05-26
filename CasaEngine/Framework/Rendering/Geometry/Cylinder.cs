@@ -26,7 +26,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
         Length = 1f;
     }
 
-    public bool Equals(Cylinder? other)
+    public bool Equals(Cylinder other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -41,7 +41,7 @@ public class Cylinder : Shape3d, IEquatable<Cylinder>
         return Type == other.Type && Radius.Equals(other.Radius) && Length.Equals(other.Length);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

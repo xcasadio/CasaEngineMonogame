@@ -7,7 +7,7 @@ namespace CasaEngine.Framework.Cutscenes;
 public sealed class CutsceneDirector
 {
     private readonly World _world;
-    private CutsceneAsset? _currentAsset;
+    private CutsceneAsset _currentAsset;
     private CutsceneValidationResult _lastValidation = new();
     private CoroutineHandle _activeHandle = CoroutineHandle.Invalid;
     private CutsceneRuntimeState _state = CutsceneRuntimeState.Idle;

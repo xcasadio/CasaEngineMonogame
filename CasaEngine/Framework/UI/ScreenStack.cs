@@ -22,7 +22,7 @@ public sealed class ScreenStack
     public IReadOnlyList<IUIScreen> Screens => _screens;
 
     /// <summary>The topmost screen, or null if the stack is empty.</summary>
-    public IUIScreen? Top => _screens.Count > 0 ? _screens[^1] : null;
+    public IUIScreen Top => _screens.Count > 0 ? _screens[^1] : null;
 
     /// <summary>True if any screen on the stack blocks lower-priority engine consumers.</summary>
     public bool HasModalInput => _screens.Exists(static s => s.BlocksViewsBelow);
@@ -31,7 +31,7 @@ public sealed class ScreenStack
     /// The highest-priority screen that blocks lower-priority consumers, or null when the stack is non-modal.
     /// Mirrors the same modal rule used by <see cref="Update(GameTime)"/>.
     /// </summary>
-    public IUIScreen? TopBlockingScreen
+    public IUIScreen TopBlockingScreen
     {
         get
         {
@@ -76,7 +76,7 @@ public sealed class ScreenStack
     /// its windows from the desktop.
     /// </summary>
     /// <returns>The popped screen, or null if the stack was empty.</returns>
-    public IUIScreen? Pop()
+    public IUIScreen Pop()
     {
         if (_screens.Count == 0)
         {

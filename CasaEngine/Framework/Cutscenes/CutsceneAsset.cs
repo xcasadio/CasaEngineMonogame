@@ -15,7 +15,7 @@ public sealed class CutsceneAsset : ObjectBase
 
     public int Version { get; set; } = CurrentVersion;
 
-    public CutsceneActionData? RootAction { get; set; }
+    public CutsceneActionData RootAction { get; set; }
 
     public override void Load(JObject element)
     {

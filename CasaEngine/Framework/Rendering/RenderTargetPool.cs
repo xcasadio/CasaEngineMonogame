@@ -23,7 +23,7 @@ public sealed class RenderTargetPool : IDisposable
     private bool _disposed;
 
     /// <summary>A process-wide shared pool. Assign to the engine's GameManager or CasaEngineGame.</summary>
-    public static RenderTargetPool? Shared { get; set; }
+    public static RenderTargetPool Shared { get; set; }
 
     /// <summary>
     /// Total number of render targets currently tracked (acquired + in pool).
@@ -47,7 +47,7 @@ public sealed class RenderTargetPool : IDisposable
         _graphicsDevice = graphicsDevice;
     }
 
-    public static RenderTargetPool? Resolve(RenderTargetPool? renderTargetPool)
+    public static RenderTargetPool Resolve(RenderTargetPool renderTargetPool)
     {
         return renderTargetPool ?? Shared;
     }

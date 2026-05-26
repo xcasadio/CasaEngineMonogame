@@ -20,7 +20,7 @@ internal sealed class CasaRuntimeBackendServices
         IRenderHost host,
         GraphicsDevice graphicsDevice,
         SpriteBatch spriteBatch,
-        IUIAssetProvider? assetProvider,
+        IUIAssetProvider assetProvider,
         CasaMonoGameBackendOptions options)
     {
         ArgumentNullException.ThrowIfNull(host);

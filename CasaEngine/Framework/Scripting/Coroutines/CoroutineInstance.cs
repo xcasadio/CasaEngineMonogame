@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Scripting.Coroutines;
 
 internal sealed class CoroutineInstance : IDisposable
 {
-    public CoroutineInstance(CoroutineHandle handle, IEnumerator routine, object? owner)
+    public CoroutineInstance(CoroutineHandle handle, IEnumerator routine, object owner)
     {
         Handle = handle;
         Owner = owner;
@@ -13,13 +13,13 @@ internal sealed class CoroutineInstance : IDisposable
 
     public CoroutineHandle Handle { get; }
 
-    public object? Owner { get; }
+    public object Owner { get; }
 
     public Stack<IEnumerator> Stack { get; } = new();
 
-    public object? CurrentYield { get; set; }
+    public object CurrentYield { get; set; }
 
-    public ICoroutineInstruction? CurrentInstruction { get; set; }
+    public ICoroutineInstruction CurrentInstruction { get; set; }
 
     public CoroutineHandle WaitingHandle { get; set; } = CoroutineHandle.Invalid;
 
@@ -29,9 +29,9 @@ internal sealed class CoroutineInstance : IDisposable
 
     public bool IsCompleted { get; set; }
 
-    public Exception? Fault { get; set; }
+    public Exception Fault { get; set; }
 
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public void Dispose()
     {

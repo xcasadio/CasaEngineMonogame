@@ -22,10 +22,10 @@ public readonly struct RenderFrame
     public ResolvedEnvironmentSettings Environment { get; init; }
 
     /// <summary>Effective lighting data for the current view.</summary>
-    public LightingContext? Lighting { get; init; }
+    public LightingContext Lighting { get; init; }
 
     /// <summary>Effective forward shadow-map settings for the current view.</summary>
-    public ShadowSettings? Shadows { get; init; }
+    public ShadowSettings Shadows { get; init; }
 
     public RenderFrame(Matrix view, Matrix projection, Vector3 cameraPosition, Rectangle viewportRect)
         : this(view, projection, cameraPosition, viewportRect, default, null, null)
@@ -38,7 +38,7 @@ public readonly struct RenderFrame
         Vector3 cameraPosition,
         Rectangle viewportRect,
         in ResolvedEnvironmentSettings environment,
-        LightingContext? lighting)
+        LightingContext lighting)
         : this(view, projection, cameraPosition, viewportRect, in environment, lighting, null)
     {
     }
@@ -49,8 +49,8 @@ public readonly struct RenderFrame
         Vector3 cameraPosition,
         Rectangle viewportRect,
         in ResolvedEnvironmentSettings environment,
-        LightingContext? lighting,
-        ShadowSettings? shadows)
+        LightingContext lighting,
+        ShadowSettings shadows)
     {
         View = view;
         Projection = projection;

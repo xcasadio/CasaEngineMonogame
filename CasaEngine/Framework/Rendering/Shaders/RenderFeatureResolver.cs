@@ -12,9 +12,9 @@ public readonly struct RenderFeatureInput
 {
     public MaterialBase Material { get; init; }
 
-    public StaticModelMesh? Mesh { get; init; }
+    public StaticModelMesh Mesh { get; init; }
 
-    public RiggedModel.RiggedModelMesh? SkinnedMesh { get; init; }
+    public RiggedModel.RiggedModelMesh SkinnedMesh { get; init; }
 
     public bool IsSkinned { get; init; }
 
@@ -104,7 +104,7 @@ public static class RenderFeatureResolver
 
     public static ShaderFeature Resolve(
         MaterialBase material,
-        StaticModelMesh? mesh = null,
+        StaticModelMesh mesh = null,
         bool isSkinned = false,
         bool isInstanced = false,
         bool hasVertexColor = false)
@@ -132,7 +132,7 @@ public static class RenderFeatureResolver
     public static ShaderFeature AddInstancedFeature(ShaderFeature features)
         => features | ShaderFeature.Instanced;
 
-    private static bool HasVertexColor(StaticModelMesh? mesh)
+    private static bool HasVertexColor(StaticModelMesh mesh)
         => mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&
            HasVertexElement(vertexDeclaration, VertexElementUsage.Color);
 
@@ -146,12 +146,12 @@ public static class RenderFeatureResolver
         return HasTangents(input.Mesh);
     }
 
-    private static bool HasTangents(StaticModelMesh? mesh)
+    private static bool HasTangents(StaticModelMesh mesh)
         => mesh?.HasTangents == true ||
            mesh?.VertexBuffer?.VertexDeclaration is { } vertexDeclaration &&
            HasVertexElement(vertexDeclaration, VertexElementUsage.Tangent);
 
-    private static bool HasVertexColor(RiggedModel.RiggedModelMesh? mesh)
+    private static bool HasVertexColor(RiggedModel.RiggedModelMesh mesh)
         => mesh?.HasVertexColors ?? false;
 
     private static bool HasVertexElement(VertexDeclaration vertexDeclaration, VertexElementUsage usage)

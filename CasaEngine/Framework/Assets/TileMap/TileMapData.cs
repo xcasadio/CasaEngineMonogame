@@ -184,7 +184,7 @@ public class TileMapData : ObjectBase
         return Layers[layerIndex];
     }
 
-    internal static void LoadCustomProperties(JToken? propertiesToken, Dictionary<string, string> customProperties)
+    internal static void LoadCustomProperties(JToken propertiesToken, Dictionary<string, string> customProperties)
     {
         customProperties.Clear();
         if (propertiesToken is not JObject propertiesObject)

@@ -8,7 +8,7 @@ public class StaticTile : Tile
     private readonly Texture2D _texture;
     private readonly Rectangle _positionInTexture;
 
-    public StaticTile(Texture2D texture, StaticTileData? tileData) : base(tileData)
+    public StaticTile(Texture2D texture, StaticTileData tileData) : base(tileData)
     {
         _texture = texture;
         _positionInTexture = tileData.Location;

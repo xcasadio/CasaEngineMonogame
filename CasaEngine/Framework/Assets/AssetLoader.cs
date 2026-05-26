@@ -6,7 +6,7 @@ namespace CasaEngine.Framework.Assets;
 
 public class AssetLoader<T> : IAssetLoader where T : ISerializable, new()
 {
-    public object? LoadAsset(string fileName, AssetContentManager assetContentManager)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {

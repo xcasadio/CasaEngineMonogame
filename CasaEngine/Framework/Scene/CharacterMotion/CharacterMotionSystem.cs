@@ -34,7 +34,7 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
         _world.EntitiesClear += OnEntitiesClear;
     }
 
-    public ICharacterMotionHandle MoveTo(Entity entity, Vector3 destination, CharacterMoveToOptions options, object? owner = null)
+    public ICharacterMotionHandle MoveTo(Entity entity, Vector3 destination, CharacterMoveToOptions options, object owner = null)
     {
         ArgumentNullException.ThrowIfNull(entity);
         options.Validate();
@@ -397,27 +397,27 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
         }
     }
 
-    private void OnEntityAdded(object? sender, Entity entity)
+    private void OnEntityAdded(object sender, Entity entity)
     {
         RegisterEntity(entity);
     }
 
-    private void OnEntityRemoved(object? sender, Entity entity)
+    private void OnEntityRemoved(object sender, Entity entity)
     {
         UnregisterEntity(entity);
     }
 
-    private void OnEntitiesClear(object? sender, EventArgs e)
+    private void OnEntitiesClear(object sender, EventArgs e)
     {
         Clear();
     }
 
-    private void OnEntityComponentAdded(object? sender, EntityComponent component)
+    private void OnEntityComponentAdded(object sender, EntityComponent component)
     {
         RegisterComponent(component);
     }
 
-    private void OnEntityComponentRemoved(object? sender, EntityComponent component)
+    private void OnEntityComponentRemoved(object sender, EntityComponent component)
     {
         UnregisterComponent(component);
     }
@@ -448,7 +448,7 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
 
         public CharacterMoveToRequest(
             CharacterMotionSystem system,
-            object? owner,
+            object owner,
             Entity entity,
             CharacterControllerComponent controller,
             Vector3 destination,
@@ -462,7 +462,7 @@ public sealed class CharacterMotionSystem : IWorldSystem, ICharacterMotionServic
             _options = options;
         }
 
-        public object? Owner { get; }
+        public object Owner { get; }
 
         public Vector3 Destination { get; }
 

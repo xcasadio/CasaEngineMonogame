@@ -12,7 +12,7 @@ public sealed class MaterialCompiler
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         AssetContentManager assetContentManager);
 
     private static readonly object RuntimeMaterialFactoryLock = new();
@@ -92,10 +92,10 @@ public sealed class MaterialCompiler
         AssetContentManager assetContentManager)
     {
         var values = new Dictionary<string, MaterialValue>(StringComparer.OrdinalIgnoreCase);
-        var resolvedParents = new Dictionary<Guid, MaterialAsset?>();
+        var resolvedParents = new Dictionary<Guid, MaterialAsset>();
         var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
 
-        MaterialAsset? ResolveParent(Guid assetId)
+        MaterialAsset ResolveParent(Guid assetId)
         {
             if (resolvedParents.TryGetValue(assetId, out var cachedMaterial))
             {
@@ -133,12 +133,12 @@ public sealed class MaterialCompiler
         return values;
     }
 
-    private static Dictionary<string, Texture2D?> BuildResolvedTextures(
+    private static Dictionary<string, Texture2D> BuildResolvedTextures(
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
         AssetContentManager assetContentManager)
     {
-        var textures = new Dictionary<string, Texture2D?>(StringComparer.OrdinalIgnoreCase);
+        var textures = new Dictionary<string, Texture2D>(StringComparer.OrdinalIgnoreCase);
 
         for (int i = 0; i < definition.Properties.Count; i++)
         {
@@ -164,7 +164,7 @@ public sealed class MaterialCompiler
     private static IEnumerable<KeyValuePair<string, CompiledMaterialTextureBinding>> BuildCompiledTextureBindings(
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         MaterialBase runtimeMaterial)
     {
         for (int i = 0; i < definition.Properties.Count; i++)
@@ -220,7 +220,7 @@ public sealed class MaterialCompiler
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         AssetContentManager assetContentManager)
     {
         RuntimeMaterialFactory factory;
@@ -247,7 +247,7 @@ public sealed class MaterialCompiler
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         AssetContentManager assetContentManager)
     {
         var material = new LitDiffuseMaterial();
@@ -273,7 +273,7 @@ public sealed class MaterialCompiler
         MaterialAsset materialAsset,
         MaterialDefinition definition,
         IReadOnlyDictionary<string, MaterialValue> effectiveValues,
-        IReadOnlyDictionary<string, Texture2D?> resolvedTextures,
+        IReadOnlyDictionary<string, Texture2D> resolvedTextures,
         AssetContentManager assetContentManager)
     {
         var material = new UnlitTextureMaterial();
@@ -309,7 +309,7 @@ public sealed class MaterialCompiler
         material.SetSamplerStateByName(materialAsset.SamplerStateName);
     }
 
-    private static Texture2D? ResolveTextureResource(Guid textureAssetId, AssetContentManager assetContentManager)
+    private static Texture2D ResolveTextureResource(Guid textureAssetId, AssetContentManager assetContentManager)
     {
         if (textureAssetId == Guid.Empty)
         {
@@ -328,7 +328,7 @@ public sealed class MaterialCompiler
         }
     }
 
-    private static XnaTextureCube? ResolveTextureCubeResource(Guid textureAssetId, AssetContentManager assetContentManager)
+    private static XnaTextureCube ResolveTextureCubeResource(Guid textureAssetId, AssetContentManager assetContentManager)
     {
         if (textureAssetId == Guid.Empty)
         {

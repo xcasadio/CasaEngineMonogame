@@ -60,8 +60,8 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 
     internal ITextDrawEngine GetTextRenderer() => (ITextDrawEngine)TextEngine;
 
-    public event EventHandler<EventArgs<ITextMeasurementEngine>>? TextEngineChanged;
-    public event EventHandler<EventArgs>? EndUpdate;
+    public event EventHandler<EventArgs<ITextMeasurementEngine>> TextEngineChanged;
+    public event EventHandler<EventArgs> EndUpdate;
 
     public InputTracker Input { get; }
     public UpdateBaseArgs UpdateArgs { get; private set; }
@@ -72,10 +72,10 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 
     public CasaDesktopRuntime(
         IRenderHost host,
-        IRawInputSource? rawInputSource = null,
-        IUISurface? surface = null,
-        IUIAssetProvider? assetProvider = null,
-        CasaMonoGameBackendOptions? options = null)
+        IRawInputSource rawInputSource = null,
+        IUISurface surface = null,
+        IUIAssetProvider assetProvider = null,
+        CasaMonoGameBackendOptions options = null)
     {
         ArgumentNullException.ThrowIfNull(host);
 
@@ -130,7 +130,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
         }
     }
 
-    public bool UnregisterView(IUIView? view) => view != null && MutableViews.Remove(view);
+    public bool UnregisterView(IUIView view) => view != null && MutableViews.Remove(view);
 
     public void UpdateViews()
     {
@@ -140,7 +140,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
         }
     }
 
-    public void DrawViews(float opacity = 1.0f, DrawSettings? initialDrawSettings = null)
+    public void DrawViews(float opacity = 1.0f, DrawSettings initialDrawSettings = null)
     {
         using var drawTransaction = new CasaDrawTransaction(this, initialDrawSettings ?? DrawSettings.Default, false);
         foreach (IUIView view in MutableViews)
@@ -157,7 +157,7 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
 
     public void ClearDisposedCircleTextures() => Services.TextureCache.ClearDisposedCircleTextures();
 
-    private static IRawInputSource ResolveInputSource(IRenderHost host, IRawInputSource? rawInputSource)
+    private static IRawInputSource ResolveInputSource(IRenderHost host, IRawInputSource rawInputSource)
     {
         if (rawInputSource != null)
         {

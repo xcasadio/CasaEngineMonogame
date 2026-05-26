@@ -9,9 +9,9 @@ public abstract class Tile
 {
     private SpriteRendererComponent _spriteRendererComponent;
 
-    public TileData? TileData { get; }
+    public TileData TileData { get; }
 
-    public Tile(TileData? tileData)
+    public Tile(TileData tileData)
     {
         TileData = tileData;
     }

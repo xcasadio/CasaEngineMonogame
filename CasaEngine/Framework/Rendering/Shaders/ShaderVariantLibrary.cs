@@ -56,7 +56,7 @@ public sealed class ShaderVariantLibrary
     private readonly Dictionary<ShaderVariantKey, Guid> _variantAssets = new();
 
     // Resolved cache: key -> ready ShaderWrapper
-    private readonly Dictionary<ShaderVariantKey, ShaderWrapper?> _resolved = new();
+    private readonly Dictionary<ShaderVariantKey, ShaderWrapper> _resolved = new();
 
     // Per-shader alias maps: shaderBaseId -> (canonicalName -> actualTechniqueName)
     private readonly Dictionary<Guid, Dictionary<string, string>> _aliasMap = new();
@@ -113,17 +113,17 @@ public sealed class ShaderVariantLibrary
     /// Falls back to the base shader when no specific variant is registered.
     /// Returns null when the base shader itself is unavailable.
     /// </summary>
-    public ShaderWrapper? Get(ShaderVariantKey key)
+    public ShaderWrapper Get(ShaderVariantKey key)
         => GetOrResolve(
             key,
             _resolved,
             ResolveShader,
             (shader, resolvedKey) => ApplyTechnique(shader, resolvedKey.ShaderBaseId, resolvedKey.Features));
 
-    internal static TShader? GetOrResolve<TShader>(
+    internal static TShader GetOrResolve<TShader>(
         ShaderVariantKey key,
-        IDictionary<ShaderVariantKey, TShader?> resolved,
-        Func<ShaderVariantKey, TShader?> resolveShader,
+        IDictionary<ShaderVariantKey, TShader> resolved,
+        Func<ShaderVariantKey, TShader> resolveShader,
         Action<TShader, ShaderVariantKey> applySelection)
         where TShader : class
     {
@@ -147,9 +147,9 @@ public sealed class ShaderVariantLibrary
         return result;
     }
 
-    private ShaderWrapper? ResolveShader(ShaderVariantKey key)
+    private ShaderWrapper ResolveShader(ShaderVariantKey key)
     {
-        ShaderWrapper? result = null;
+        ShaderWrapper result = null;
 
         // 1. Try explicit variant asset
         if (_variantAssets.TryGetValue(key, out var variantId))
@@ -227,7 +227,7 @@ public sealed class ShaderVariantLibrary
 
         for (int i = 0; i < fallbackCandidateCount; i++)
         {
-            string? candidate = BuildTechniqueName(fallbackCandidates[i]);
+            string candidate = BuildTechniqueName(fallbackCandidates[i]);
             if (candidate is null)
             {
                 continue;
@@ -298,7 +298,7 @@ public sealed class ShaderVariantLibrary
     /// NormalMap, Reflection, and other material-specialised features are intentionally
     /// excluded so they remain under explicit material control.
     /// </summary>
-    public static string? BuildTechniqueName(ShaderFeature features)
+    public static string BuildTechniqueName(ShaderFeature features)
     {
         features &= CanonicalTechniqueFeatureMask;
 

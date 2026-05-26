@@ -144,7 +144,7 @@ public static class AnimationClipAssetJsonSerializer
         return keyframesNode;
     }
 
-    private static void LoadVector3Keyframes(JArray? keyframesNode, List<Vector3AnimationKeyframeAsset> keyframes)
+    private static void LoadVector3Keyframes(JArray keyframesNode, List<Vector3AnimationKeyframeAsset> keyframes)
     {
         keyframes.Clear();
         if (keyframesNode is null)
@@ -184,7 +184,7 @@ public static class AnimationClipAssetJsonSerializer
         return keyframesNode;
     }
 
-    private static void LoadQuaternionKeyframes(JArray? keyframesNode, List<QuaternionAnimationKeyframeAsset> keyframes)
+    private static void LoadQuaternionKeyframes(JArray keyframesNode, List<QuaternionAnimationKeyframeAsset> keyframes)
     {
         keyframes.Clear();
         if (keyframesNode is null)

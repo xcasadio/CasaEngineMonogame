@@ -2,7 +2,7 @@ namespace CasaEngine.Framework.Materials.Runtime;
 
 internal sealed class ScopedRegistration : IDisposable
 {
-    private Action? _disposeAction;
+    private Action _disposeAction;
 
     public ScopedRegistration(Action disposeAction)
     {

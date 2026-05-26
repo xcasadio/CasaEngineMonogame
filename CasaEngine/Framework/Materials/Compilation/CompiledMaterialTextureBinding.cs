@@ -14,8 +14,8 @@ public readonly struct CompiledMaterialTextureBinding
     public CompiledMaterialTextureBinding(
         Guid assetId,
         CompiledMaterialTextureBindingKind kind,
-        Texture2D? texture = null,
-        XnaTextureCube? textureCube = null)
+        Texture2D texture = null,
+        XnaTextureCube textureCube = null)
     {
         if (kind == CompiledMaterialTextureBindingKind.Texture2D && textureCube is not null)
         {
@@ -37,7 +37,7 @@ public readonly struct CompiledMaterialTextureBinding
 
     public CompiledMaterialTextureBindingKind Kind { get; }
 
-    public Texture2D? Texture { get; }
+    public Texture2D Texture { get; }
 
-    public XnaTextureCube? TextureCube { get; }
+    public XnaTextureCube TextureCube { get; }
 }

@@ -52,8 +52,8 @@ public sealed class CasaBackendAdapterRegistry
 
     private readonly List<IImageAdapter> _imageAdapters = new();
     private readonly List<IRenderTargetAdapter> _renderTargetAdapters = new();
-    private readonly Dictionary<Type, IImageAdapter?> _imageAdapterCache = new();
-    private readonly Dictionary<Type, IRenderTargetAdapter?> _renderTargetAdapterCache = new();
+    private readonly Dictionary<Type, IImageAdapter> _imageAdapterCache = new();
+    private readonly Dictionary<Type, IRenderTargetAdapter> _renderTargetAdapterCache = new();
 
     public void RegisterImageResource<TResource>(Func<TResource, Texture2D> textureAccessor)
         where TResource : class, IUIImageResource
@@ -80,7 +80,7 @@ public sealed class CasaBackendAdapterRegistry
         ArgumentNullException.ThrowIfNull(image);
 
         Type resourceType = image.GetType();
-        if (!_imageAdapterCache.TryGetValue(resourceType, out IImageAdapter? adapter))
+        if (!_imageAdapterCache.TryGetValue(resourceType, out IImageAdapter adapter))
         {
             adapter = ResolveAdapter(_imageAdapters, resourceType);
             _imageAdapterCache[resourceType] = adapter;
@@ -99,7 +99,7 @@ public sealed class CasaBackendAdapterRegistry
         ArgumentNullException.ThrowIfNull(renderTarget);
 
         Type resourceType = renderTarget.GetType();
-        if (!_renderTargetAdapterCache.TryGetValue(resourceType, out IRenderTargetAdapter? adapter))
+        if (!_renderTargetAdapterCache.TryGetValue(resourceType, out IRenderTargetAdapter adapter))
         {
             adapter = ResolveAdapter(_renderTargetAdapters, resourceType);
             _renderTargetAdapterCache[resourceType] = adapter;
@@ -133,7 +133,7 @@ public sealed class CasaBackendAdapterRegistry
         }
     }
 
-    private static TAdapter? ResolveAdapter<TAdapter>(IEnumerable<TAdapter> adapters, Type resourceType)
+    private static TAdapter ResolveAdapter<TAdapter>(IEnumerable<TAdapter> adapters, Type resourceType)
         where TAdapter : class
     {
         foreach (TAdapter adapter in adapters)

@@ -37,7 +37,7 @@ public sealed class World : ObjectBase
     public IPhysicsWorld PhysicsWorld { get; private set; } = null!;
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
-    public GameplayProxy? GameplayProxy { get; private set; }
+    public GameplayProxy GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
     public int UpdateSequence { get; private set; }
@@ -53,8 +53,8 @@ public sealed class World : ObjectBase
     public bool DisplaySpacePartitioning { get; set; }
 
 
-    public event EventHandler? EntitiesClear;
-    public event EventHandler? EntitiesCleared;
+    public event EventHandler EntitiesClear;
+    public event EventHandler EntitiesCleared;
     public event EventHandler<Entity> EntityAdded;
     public event EventHandler<Entity> EntityRemoved;
 
@@ -64,7 +64,7 @@ public sealed class World : ObjectBase
     {
     }
 
-    public World(Func<World, WorldSpatialServices>? spatialServicesFactory)
+    public World(Func<World, WorldSpatialServices> spatialServicesFactory)
     {
         MessageBus = new WorldMessageBus();
         Func<World, WorldSpatialServices> resolvedSpatialServicesFactory = spatialServicesFactory ?? (world => WorldSpatialServices.CreateDefault(world));
@@ -521,7 +521,7 @@ public sealed class World : ObjectBase
                     break;
             }
 
-            string? suspectReason = EntityPolicyResolver.GetSuspectCombinationReason(runtimePolicies.PolicySet);
+            string suspectReason = EntityPolicyResolver.GetSuspectCombinationReason(runtimePolicies.PolicySet);
             if (suspectReason != null)
             {
                 _suspectCombinationCount++;
@@ -621,7 +621,7 @@ public sealed class World : ObjectBase
         }
     }
 
-    public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null)
+    public void QueryEntities(BoundingBox bounds, List<Entity> results, Func<Entity, bool> filter = null)
     {
         ArgumentNullException.ThrowIfNull(results);
         SpatialServices.WorldIndex.Query(bounds, results, filter);
@@ -698,7 +698,7 @@ public sealed class World : ObjectBase
         return GetPlayerController(entity) != null;
     }
 
-    public PlayerController? GetPlayerController(Entity entity)
+    public PlayerController GetPlayerController(Entity entity)
     {
         foreach (var playerController in _playerControllers)
         {
@@ -814,7 +814,7 @@ public sealed class World : ObjectBase
         }
     }
 
-    private void OnEntityChildAdded(object? sender, Entity child)
+    private void OnEntityChildAdded(object sender, Entity child)
     {
         child.Initialize();
         child.InitializeWithWorld(this);
@@ -822,7 +822,7 @@ public sealed class World : ObjectBase
         NotifyEntityAddedRecursive(child);
     }
 
-    private void OnEntityChildRemoved(object? sender, Entity child)
+    private void OnEntityChildRemoved(object sender, Entity child)
     {
         UnsubscribeEntityTree(child);
         NotifyEntityRemovedRecursive(child);

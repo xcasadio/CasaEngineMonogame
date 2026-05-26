@@ -13,5 +13,5 @@ public interface IViewFlushableRenderer
     /// Renders all queued primitives using the provided camera frame, then clears the queue.
     /// When supplied, <paramref name="stats"/> aggregates counters for the current view.
     /// </summary>
-    void Flush(in RenderFrame frame, RenderStats? stats = null);
+    void Flush(in RenderFrame frame, RenderStats stats = null);
 }

@@ -23,7 +23,7 @@ internal sealed class CasaRenderTargetPool
     public CasaRenderTargetLease Rent(GraphicsDevice graphicsDevice, int width, int height, bool preserveContents)
     {
         CasaRenderTargetPoolKey key = CreateKey(width, height, preserveContents);
-        if (_available.TryGetValue(key, out Stack<RenderTarget2D>? stack))
+        if (_available.TryGetValue(key, out Stack<RenderTarget2D> stack))
         {
             while (stack.Count > 0)
             {
@@ -58,7 +58,7 @@ internal sealed class CasaRenderTargetPool
 
         CasaRenderTargetPoolKey key = CreateKey(renderTarget.Width, renderTarget.Height,
             renderTarget.RenderTargetUsage == RenderTargetUsage.PreserveContents);
-        if (!_available.TryGetValue(key, out Stack<RenderTarget2D>? stack))
+        if (!_available.TryGetValue(key, out Stack<RenderTarget2D> stack))
         {
             stack = new Stack<RenderTarget2D>();
             _available[key] = stack;

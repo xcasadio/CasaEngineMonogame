@@ -18,7 +18,7 @@ public struct RenderItem
     /// Optional sub-mesh that defines an index range within <see cref="Mesh"/>.
     /// When null, the entire mesh is drawn.
     /// </summary>
-    public SubMesh? SubMesh;
+    public SubMesh SubMesh;
 
     /// <summary>Material to bind for this draw call.</summary>
     public MaterialBase Material;
@@ -28,7 +28,7 @@ public struct RenderItem
     /// When present, shader id, feature flags, queue and render states should flow from this
     /// stable compiled snapshot instead of being recomputed ad hoc in the draw path.
     /// </summary>
-    public CompiledMaterial? CompiledMaterial;
+    public CompiledMaterial CompiledMaterial;
 
     /// <summary>
     /// Component-level shadow casting flag propagated by the scene component authoring data.
@@ -91,5 +91,5 @@ public struct RenderItem
     /// Optional per-instance parameter overrides (Phase 6).
     /// Applied after <see cref="MaterialBase.Bind"/> so instance values win over material defaults.
     /// </summary>
-    public MaterialPropertyBlock? PropertyOverrides;
+    public MaterialPropertyBlock PropertyOverrides;
 }

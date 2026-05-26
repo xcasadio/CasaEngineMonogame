@@ -26,7 +26,7 @@ public readonly struct CoroutineHandle : IEquatable<CoroutineHandle>
             && Generation == other.Generation;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         return obj is CoroutineHandle other && Equals(other);
     }

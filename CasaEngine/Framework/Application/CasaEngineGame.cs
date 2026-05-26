@@ -24,21 +24,21 @@ namespace CasaEngine.Framework.Application;
 
 public class CasaEngineGame : Game, IObservableUpdate
 {
-    private readonly string? _projectFileName;
-    private readonly GraphicsDeviceManager? _graphicsDeviceManager;
+    private readonly string _projectFileName;
+    private readonly GraphicsDeviceManager _graphicsDeviceManager;
     public GameManager GameManager { get; }
 
     // ---- IObservableUpdate (required by MGUI's GameRenderHost/ViewRenderHost) ----
 
     /// <summary>Fired at the very start of Update. MGUI desktops subscribe to refresh input state.</summary>
-    public event EventHandler<TimeSpan>? PreviewUpdate;
+    public event EventHandler<TimeSpan> PreviewUpdate;
 
     /// <summary>Fired at the very end of Update. MGUI desktops subscribe to finalize frame state.</summary>
-    public new event EventHandler<EventArgs>? EndUpdate;
+    public new event EventHandler<EventArgs> EndUpdate;
     public AssetContentManager AssetContentManager { get; } = new();
     public FontSystem FontSystem { get; private set; }
     internal byte[] DefaultFontSystemTtfData { get; private set; } = Array.Empty<byte>();
-    public SpriteBatch? SpriteBatch { get; set; }
+    public SpriteBatch SpriteBatch { get; set; }
     public InputComponent InputComponent { get; private set; }
     public Renderer2DComponent Renderer2DComponent { get; private set; }
     public SpriteRendererComponent SpriteRendererComponent { get; private set; }
@@ -50,7 +50,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public PhysicsDebugViewRendererComponent PhysicsDebugViewRendererComponent { get; private set; }
     public IUIViewRuntimeFactory UIViewRuntimeFactory { get; }
     public IUICompositionService DefaultUICompositionService { get; }
-    public IRuntimeViewBootstrapper? RuntimeViewBootstrapper { get; }
+    public IRuntimeViewBootstrapper RuntimeViewBootstrapper { get; }
     public EngineRuntimeContext RuntimeContext { get; }
     public MaterialCache MaterialCache { get; }
     public RenderTargetPool RenderTargetPool { get; private set; }
@@ -58,7 +58,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     private readonly MaterialDependencyIndex _materialDependencyIndex = new();
 
     // ---- Multi-view render pipeline ----
-    private RenderPipeline? _renderPipeline;
+    private RenderPipeline _renderPipeline;
 
 #if !FINAL
     public string ContentPath = string.Empty;
@@ -104,9 +104,9 @@ public class CasaEngineGame : Game, IObservableUpdate
     }
 
     public CasaEngineGame(
-        string? projectFileName = null,
-        IGraphicsDeviceService? graphicsDeviceService = null,
-        EngineRuntimeContext? runtimeContext = null)
+        string projectFileName = null,
+        IGraphicsDeviceService graphicsDeviceService = null,
+        EngineRuntimeContext runtimeContext = null)
     {
         AppDomain.CurrentDomain.UnhandledException += HandleUnhandledExceptions;
 
@@ -233,7 +233,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         DisplaySettingsPersistence.Save(fileName, GetDisplaySettings());
     }
 
-    private void OnDeviceReset(object? sender, EventArgs e)
+    private void OnDeviceReset(object sender, EventArgs e)
     {
         GraphicsDevice graphicsDevice;
 
@@ -674,7 +674,7 @@ public class CasaEngineGame : Game, IObservableUpdate
     public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId)
         => ReloadParticleAsset(particleAssetId, null);
 
-    public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId, ParticleEffectAsset? authoringParticleAsset)
+    public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId, ParticleEffectAsset authoringParticleAsset)
     {
         if (particleAssetId == Guid.Empty)
         {
@@ -700,7 +700,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         return hotReloadMetrics;
     }
 
-    public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId, MaterialAsset? authoringMaterialAsset)
+    public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId, MaterialAsset authoringMaterialAsset)
     {
         if (materialAssetId == Guid.Empty)
         {
@@ -793,7 +793,7 @@ public class CasaEngineGame : Game, IObservableUpdate
             authoringMaterialCacheMissCount);
     }
 
-    private ParticleEffectAsset ResolveParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset? authoringParticleAsset)
+    private ParticleEffectAsset ResolveParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset authoringParticleAsset)
     {
         if (authoringParticleAsset != null
             && (authoringParticleAsset.AssetId == particleAssetId || authoringParticleAsset.Id == particleAssetId))
@@ -806,7 +806,7 @@ public class CasaEngineGame : Game, IObservableUpdate
 
     private void CacheParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset particleAsset)
     {
-        AssetInfo? assetInfo = RuntimeContext?.ResolveAssetInfo(particleAssetId) ?? AssetCatalog.Get(particleAssetId);
+        AssetInfo assetInfo = RuntimeContext?.ResolveAssetInfo(particleAssetId) ?? AssetCatalog.Get(particleAssetId);
         if (assetInfo != null)
         {
             particleAsset.AssetId = assetInfo.Id;
@@ -939,5 +939,5 @@ public class CasaEngineGame : Game, IObservableUpdate
         }
     }
 
-    public event EventHandler? FrameComputed;
+    public event EventHandler FrameComputed;
 }

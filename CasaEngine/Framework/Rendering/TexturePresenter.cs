@@ -15,7 +15,7 @@ public sealed class TexturePresenter : IViewPresenter
     /// The most recently rendered texture, or null if the view has not yet been rendered
     /// or the view's surface is not an RT surface.
     /// </summary>
-    public Texture2D? Texture { get; private set; }
+    public Texture2D Texture { get; private set; }
 
     /// <summary>
     /// Updates <see cref="Texture"/> from the view's surface render target.

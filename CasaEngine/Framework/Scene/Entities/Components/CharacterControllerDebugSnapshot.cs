@@ -12,7 +12,7 @@ public readonly struct CharacterControllerDebugSnapshot
         Vector2 moveIntent,
         bool isGrounded,
         Vector3 groundNormal,
-        PhysicsBaseComponent? groundCollider,
+        PhysicsBaseComponent groundCollider,
         Vector3 groundVelocity,
         float groundSlopeAngle,
         HitResult lastCollisionHit,
@@ -45,7 +45,7 @@ public readonly struct CharacterControllerDebugSnapshot
 
     public Vector3 GroundNormal { get; }
 
-    public PhysicsBaseComponent? GroundCollider { get; }
+    public PhysicsBaseComponent GroundCollider { get; }
 
     public Vector3 GroundVelocity { get; }
 

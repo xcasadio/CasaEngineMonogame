@@ -9,7 +9,7 @@ public sealed class GridPathfinder2D
 
     public static GridPathfinder2D Shared { get; } = new();
 
-    public bool TryFindPath(NavigationGrid2D grid, Vector3 start, Vector3 goal, NavigationQuery query, out NavigationPath? path)
+    public bool TryFindPath(NavigationGrid2D grid, Vector3 start, Vector3 goal, NavigationQuery query, out NavigationPath path)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(query);
@@ -24,7 +24,7 @@ public sealed class GridPathfinder2D
         return TryFindPath(grid, startCell, goalCell, query, out path);
     }
 
-    public bool TryFindPath(NavigationGrid2D grid, Point start, Point goal, NavigationQuery query, out NavigationPath? path)
+    public bool TryFindPath(NavigationGrid2D grid, Point start, Point goal, NavigationQuery query, out NavigationPath path)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(query);

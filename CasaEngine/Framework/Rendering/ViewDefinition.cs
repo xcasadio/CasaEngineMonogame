@@ -19,7 +19,7 @@ public sealed record ViewDefinition
     public required IRenderSurface Surface { get; init; }
 
     /// <summary>Optional environment override applied only to this view.</summary>
-    public WorldEnvironmentSettings? EnvironmentOverride { get; init; }
+    public WorldEnvironmentSettings EnvironmentOverride { get; init; }
 
     /// <summary>Clear color. Default: CornflowerBlue.</summary>
     public Color ClearColor { get; init; } = Color.CornflowerBlue;
@@ -50,8 +50,8 @@ public sealed record ViewDefinition
     public float ResolutionScale { get; init; } = 1.0f;
 
     /// <summary>Optional custom render pipeline. Null = use DefaultViewPipeline.</summary>
-    public IViewRenderPipeline? Pipeline { get; init; }
+    public IViewRenderPipeline Pipeline { get; init; }
 
     /// <summary>Optional presenter for post-render display. Null = no extra presentation step.</summary>
-    public IViewPresenter? Presenter { get; init; }
+    public IViewPresenter Presenter { get; init; }
 }

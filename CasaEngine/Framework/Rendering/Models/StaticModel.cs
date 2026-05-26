@@ -15,7 +15,7 @@ namespace CasaEngine.Framework.Rendering.Models;
 /// </summary>
 public class StaticModel : ObjectBase
 {
-    public StaticModelNode? RootNode { get; set; }
+    public StaticModelNode RootNode { get; set; }
 
     public List<StaticModelMesh> Meshes { get; } = new();
 
@@ -119,7 +119,7 @@ public class StaticModel : ObjectBase
         return false;
     }
 
-    public bool RefreshResolvedMaterials(AssetContentManager assetContentManager, ISet<Guid>? affectedMaterialAssetIds = null)
+    public bool RefreshResolvedMaterials(AssetContentManager assetContentManager, ISet<Guid> affectedMaterialAssetIds = null)
     {
         ArgumentNullException.ThrowIfNull(assetContentManager);
 

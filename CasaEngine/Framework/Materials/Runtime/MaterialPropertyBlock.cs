@@ -31,7 +31,7 @@ public sealed class MaterialPropertyBlock
     public void SetVector3(string name, Vector3 value) => _properties[name] = value;
     public void SetVector4(string name, Vector4 value) => _properties[name] = value;
     public void SetColor(string name, Color value) => _properties[name] = value.ToVector4();
-    public void SetTexture(string name, Texture2D? value) => _properties[name] = value!;
+    public void SetTexture(string name, Texture2D value) => _properties[name] = value!;
     public void SetMatrix(string name, Matrix value) => _properties[name] = value;
     public void SetBool(string name, bool value) => _properties[name] = value;
 
@@ -78,7 +78,7 @@ public sealed class MaterialPropertyBlock
     /// Call this <em>after</em> <see cref="MaterialBase.Bind"/> so per-instance values
     /// win over the material default.
     /// </summary>
-    public void Apply(ShaderWrapper shader, RenderStats? stats = null)
+    public void Apply(ShaderWrapper shader, RenderStats stats = null)
     {
         foreach (var (name, value) in _properties)
         {

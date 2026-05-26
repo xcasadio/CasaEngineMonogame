@@ -9,7 +9,7 @@ public sealed class SkeletonDefinitionLoader : IAssetLoader
     public bool IsFileSupported(string fileName)
         => Path.GetExtension(fileName).Equals(Constants.FileNameExtensions.Skeleton, StringComparison.OrdinalIgnoreCase);
 
-    public object? LoadAsset(string fileName, AssetContentManager assetContentManager)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {

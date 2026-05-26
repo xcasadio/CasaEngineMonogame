@@ -27,7 +27,7 @@ public class SubMesh : ISerializable
     public Guid MaterialAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Runtime material instance (resolved from <see cref="MaterialAssetId"/>).</summary>
-    public MaterialBase? Material { get; set; }
+    public MaterialBase Material { get; set; }
 
     public void Load(JObject element)
     {

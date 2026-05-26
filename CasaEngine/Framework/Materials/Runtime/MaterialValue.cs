@@ -12,7 +12,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
     private readonly Vector3 _vector3Value;
     private readonly Vector4 _vector4Value;
     private readonly Guid _textureId;
-    private readonly string? _textValue;
+    private readonly string _textValue;
 
     private MaterialValue(
         MaterialPropertyType type,
@@ -24,7 +24,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
         Vector3 vector3Value = default,
         Vector4 vector4Value = default,
         Guid textureId = default,
-        string? textValue = null)
+        string textValue = null)
     {
         Type = type;
         _floatValue = floatValue;
@@ -194,7 +194,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
         return false;
     }
 
-    public bool TryGetEnum(out string? value)
+    public bool TryGetEnum(out string value)
     {
         if (Type == MaterialPropertyType.Enum)
         {
@@ -206,7 +206,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
         return false;
     }
 
-    public bool TryGetString(out string? value)
+    public bool TryGetString(out string value)
     {
         if (Type == MaterialPropertyType.String)
         {
@@ -234,7 +234,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
             _ => throw new InvalidOperationException($"Unsupported material value type '{Type}'."),
         };
 
-    public bool IsCompatibleWith(MaterialPropertyDefinition definition, out string? validationError)
+    public bool IsCompatibleWith(MaterialPropertyDefinition definition, out string validationError)
     {
         ArgumentNullException.ThrowIfNull(definition);
 
@@ -265,7 +265,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
     public override string ToString()
         => ToObject().ToString() ?? string.Empty;
 
-    public bool Equals(MaterialValue? other)
+    public bool Equals(MaterialValue other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -298,7 +298,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
         };
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is MaterialValue other && Equals(other);
 
     public override int GetHashCode()
@@ -320,7 +320,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
     private static bool ValidateNumericRange(
         MaterialPropertyDefinition definition,
         float value,
-        out string? validationError)
+        out string validationError)
     {
         if (definition.MinValue.HasValue && value < definition.MinValue.Value)
         {
@@ -343,7 +343,7 @@ public sealed class MaterialValue : IEquatable<MaterialValue>
     private static bool ValidateEnumValue(
         MaterialPropertyDefinition definition,
         string value,
-        out string? validationError)
+        out string validationError)
     {
         for (int i = 0; i < definition.Options.Count; i++)
         {

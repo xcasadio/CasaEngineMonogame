@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.Materials.Runtime;
 public class UnlitTextureMaterial : MaterialBase
 {
     /// <summary>Runtime BasColor texture (loaded from <see cref="BasColorAssetId"/>).</summary>
-    public Texture2D? BasColor { get; set; }
+    public Texture2D BasColor { get; set; }
 
     /// <summary>Asset ID of the BasColor texture.</summary>
     public Guid BasColorAssetId { get; set; } = Guid.Empty;

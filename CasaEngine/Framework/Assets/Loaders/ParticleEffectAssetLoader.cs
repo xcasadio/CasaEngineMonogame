@@ -9,7 +9,7 @@ public sealed class ParticleEffectAssetLoader : IAssetLoader
     public bool IsFileSupported(string fileName)
         => Path.GetExtension(fileName).Equals(Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase);
 
-    public object? LoadAsset(string fileName, AssetContentManager assetContentManager)
+    public object LoadAsset(string fileName, AssetContentManager assetContentManager)
     {
         try
         {

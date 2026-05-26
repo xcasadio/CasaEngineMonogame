@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Rendering.Draw;
 /// </summary>
 public sealed class SkyPass : RenderPass
 {
-    public SkyCubemapRenderer? Renderer { get; set; }
+    public SkyCubemapRenderer Renderer { get; set; }
 
     public SkyPass() : base(RenderPassType.SkyPass)
     {

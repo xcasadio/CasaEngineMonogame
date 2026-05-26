@@ -8,7 +8,7 @@ public sealed class MaterialCache
     private readonly Dictionary<Guid, MaterialBase> _runtimeMaterials = new();
     private readonly MaterialCompiler _materialCompiler;
 
-    public MaterialCache(MaterialCompiler? materialCompiler = null)
+    public MaterialCache(MaterialCompiler materialCompiler = null)
     {
         _materialCompiler = materialCompiler ?? new MaterialCompiler();
     }

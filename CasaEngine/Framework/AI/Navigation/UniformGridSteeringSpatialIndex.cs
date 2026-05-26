@@ -75,7 +75,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         {
             for (int cellY = minCellY; cellY <= maxCellY; cellY++)
             {
-                if (!_neighborCells.TryGetValue(CombineCellKey(cellX, cellY), out List<SteeringNeighborSnapshot>? cellSnapshots))
+                if (!_neighborCells.TryGetValue(CombineCellKey(cellX, cellY), out List<SteeringNeighborSnapshot> cellSnapshots))
                 {
                     continue;
                 }
@@ -137,7 +137,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
                 continue;
             }
 
-            SceneComponent? sceneComponent = entity.RootComponent;
+            SceneComponent sceneComponent = entity.RootComponent;
             if (sceneComponent == null)
             {
                 continue;
@@ -163,7 +163,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             }
             else
             {
-                PhysicsBaseComponent? physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
+                PhysicsBaseComponent physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
                 SteeringAgentComponent.ResolveEntityMotion(sceneComponent, physicsComponent, position, out velocity, out forward);
             }
 
@@ -180,7 +180,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             int cellX = ToCell(position.X);
             int cellY = ToCell(position.Y);
             long cellKey = CombineCellKey(cellX, cellY);
-            if (!_neighborCells.TryGetValue(cellKey, out List<SteeringNeighborSnapshot>? cellSnapshots))
+            if (!_neighborCells.TryGetValue(cellKey, out List<SteeringNeighborSnapshot> cellSnapshots))
             {
                 cellSnapshots = [];
                 _neighborCells.Add(cellKey, cellSnapshots);
@@ -288,17 +288,17 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         RemoveRegistration(_wallProviders, providerHost, static registration => registration.Provider, ref _staticIndexDirty);
     }
 
-    private void OnEntityAdded(object? sender, Entity entity)
+    private void OnEntityAdded(object sender, Entity entity)
     {
         RegisterEntity(entity);
     }
 
-    private void OnEntityRemoved(object? sender, Entity entity)
+    private void OnEntityRemoved(object sender, Entity entity)
     {
         UnregisterEntity(entity);
     }
 
-    private void OnEntitiesClear(object? sender, EventArgs e)
+    private void OnEntitiesClear(object sender, EventArgs e)
     {
         for (int entityIndex = 0; entityIndex < _world.Entities.Count; entityIndex++)
         {
@@ -316,7 +316,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         _builtNeighborUpdateSequence = -1;
     }
 
-    private void OnEntitiesCleared(object? sender, EventArgs e)
+    private void OnEntitiesCleared(object sender, EventArgs e)
     {
         _neighborCells.Clear();
         _obstacleCells.Clear();
@@ -324,7 +324,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         _builtNeighborUpdateSequence = -1;
     }
 
-    private void OnEntityComponentAdded(object? sender, EntityComponent component)
+    private void OnEntityComponentAdded(object sender, EntityComponent component)
     {
         if (sender is not Entity entity)
         {
@@ -334,7 +334,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         RegisterProvider(entity, component);
     }
 
-    private void OnEntityComponentRemoved(object? sender, EntityComponent component)
+    private void OnEntityComponentRemoved(object sender, EntityComponent component)
     {
         UnregisterProvider(component);
     }
@@ -406,7 +406,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
         {
             for (int cellY = minCellY; cellY <= maxCellY; cellY++)
             {
-                if (!cells.TryGetValue(CombineCellKey(cellX, cellY), out List<T>? cellItems))
+                if (!cells.TryGetValue(CombineCellKey(cellX, cellY), out List<T> cellItems))
                 {
                     continue;
                 }
@@ -437,7 +437,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             for (int cellY = minCellY; cellY <= maxCellY; cellY++)
             {
                 long key = CombineCellKey(cellX, cellY);
-                if (!cells.TryGetValue(key, out List<SteeringObstacleSnapshot>? cellItems))
+                if (!cells.TryGetValue(key, out List<SteeringObstacleSnapshot> cellItems))
                 {
                     cellItems = [];
                     cells.Add(key, cellItems);
@@ -460,7 +460,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             for (int cellY = minCellY; cellY <= maxCellY; cellY++)
             {
                 long key = CombineCellKey(cellX, cellY);
-                if (!cells.TryGetValue(key, out List<SteeringWallSnapshot>? cellItems))
+                if (!cells.TryGetValue(key, out List<SteeringWallSnapshot> cellItems))
                 {
                     cellItems = [];
                     cells.Add(key, cellItems);

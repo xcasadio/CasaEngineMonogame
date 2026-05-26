@@ -30,7 +30,7 @@ public static class DisplaySettingsPersistence
 
     public static void Save(string fileName, DisplaySettings displaySettings)
     {
-        string? directoryName = Path.GetDirectoryName(fileName);
+        string directoryName = Path.GetDirectoryName(fileName);
         if (!string.IsNullOrWhiteSpace(directoryName))
         {
             Directory.CreateDirectory(directoryName);

@@ -6,11 +6,11 @@ public sealed class CoroutineDebugInfo
 
     public CoroutineHandle Handle { get; init; }
 
-    public string? Name { get; init; }
+    public string Name { get; init; }
 
-    public string? OwnerName { get; init; }
+    public string OwnerName { get; init; }
 
-    public string? CurrentInstruction { get; init; }
+    public string CurrentInstruction { get; init; }
 
     public bool IsPaused { get; init; }
 

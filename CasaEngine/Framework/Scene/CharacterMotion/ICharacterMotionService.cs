@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.Scene.CharacterMotion;
 
 public interface ICharacterMotionService
 {
-    ICharacterMotionHandle MoveTo(Entity entity, Vector3 destination, CharacterMoveToOptions options, object? owner = null);
+    ICharacterMotionHandle MoveTo(Entity entity, Vector3 destination, CharacterMoveToOptions options, object owner = null);
 
     void Cancel(ICharacterMotionHandle handle);
 

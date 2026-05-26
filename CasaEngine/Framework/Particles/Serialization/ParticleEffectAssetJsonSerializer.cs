@@ -128,7 +128,7 @@ public static class ParticleEffectAssetJsonSerializer
         return node;
     }
 
-    private static ParticleEmissionModule LoadEmission(JObject? node)
+    private static ParticleEmissionModule LoadEmission(JObject node)
     {
         var emission = new ParticleEmissionModule();
         if (node == null)
@@ -171,7 +171,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["emit_from_shell"] = shape.EmitFromShell,
         };
 
-    private static ParticleShapeModule LoadShape(JObject? node)
+    private static ParticleShapeModule LoadShape(JObject node)
     {
         var shape = new ParticleShapeModule();
         if (node == null)
@@ -198,7 +198,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["start_color"] = SaveColorGradient(initial.StartColor),
         };
 
-    private static ParticleInitialModule LoadInitial(JObject? node)
+    private static ParticleInitialModule LoadInitial(JObject node)
     {
         var initial = new ParticleInitialModule();
         if (node == null)
@@ -228,7 +228,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["color_over_lifetime"] = SaveColorGradient(simulation.ColorOverLifetime),
         };
 
-    private static ParticleSimulationModule LoadSimulation(JObject? node)
+    private static ParticleSimulationModule LoadSimulation(JObject node)
     {
         var simulation = new ParticleSimulationModule();
         if (node == null)
@@ -262,7 +262,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["always_visible"] = renderer.AlwaysVisible,
         };
 
-    private static ParticleRendererModule LoadRenderer(JObject? node)
+    private static ParticleRendererModule LoadRenderer(JObject node)
     {
         var renderer = new ParticleRendererModule();
         if (node == null)
@@ -294,7 +294,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["frame_over_lifetime"] = SaveFloatCurve(flipbook.FrameOverLifetime ?? FloatCurve.Constant(0.0f)),
         };
 
-    private static ParticleFlipbookModule LoadFlipbook(JObject? node, ParticleFlipbookModule fallback)
+    private static ParticleFlipbookModule LoadFlipbook(JObject node, ParticleFlipbookModule fallback)
     {
         if (node == null)
         {
@@ -320,7 +320,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["max"] = range.Max,
         };
 
-    private static FloatRange LoadFloatRange(JObject? node, FloatRange fallback)
+    private static FloatRange LoadFloatRange(JObject node, FloatRange fallback)
     {
         if (node == null)
         {
@@ -337,7 +337,7 @@ public static class ParticleEffectAssetJsonSerializer
             ["max"] = SaveVector2(range.Max),
         };
 
-    private static Vector2Range LoadVector2Range(JObject? node, Vector2Range fallback)
+    private static Vector2Range LoadVector2Range(JObject node, Vector2Range fallback)
     {
         if (node == null)
         {
@@ -367,7 +367,7 @@ public static class ParticleEffectAssetJsonSerializer
         return node;
     }
 
-    private static FloatCurve LoadFloatCurve(JObject? node, FloatCurve fallback)
+    private static FloatCurve LoadFloatCurve(JObject node, FloatCurve fallback)
     {
         if (node == null || node["keys"] is not JArray keysNode)
         {
@@ -418,7 +418,7 @@ public static class ParticleEffectAssetJsonSerializer
         return node;
     }
 
-    private static ColorGradient LoadColorGradient(JObject? node, ColorGradient fallback)
+    private static ColorGradient LoadColorGradient(JObject node, ColorGradient fallback)
     {
         if (node == null)
         {

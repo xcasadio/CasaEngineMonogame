@@ -8,8 +8,8 @@ namespace CasaEngine.Framework.UI.Backend.MonoGame;
 public sealed class CasaRenderSurfaceAdapter : IUISurface, ICasaSurfaceTargetProvider
 {
     private readonly IRenderSurface _surface;
-    private RenderTarget2D? _cachedRenderTarget;
-    private CasaMonoGameRenderTarget? _cachedAdapter;
+    private RenderTarget2D _cachedRenderTarget;
+    private CasaMonoGameRenderTarget _cachedAdapter;
 
     public CasaRenderSurfaceAdapter(IRenderSurface surface)
     {
@@ -25,7 +25,7 @@ public sealed class CasaRenderSurfaceAdapter : IUISurface, ICasaSurfaceTargetPro
 
     private CasaSurfaceTargetDescriptor GetTargetDescriptor()
     {
-        RenderTarget2D? renderTarget = _surface.RenderTarget;
+        RenderTarget2D renderTarget = _surface.RenderTarget;
         if (renderTarget == null)
         {
             return CasaSurfaceTargetDescriptor.CreateBackBuffer(GetBounds());

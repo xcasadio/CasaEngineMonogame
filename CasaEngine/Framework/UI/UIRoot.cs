@@ -72,7 +72,7 @@ public sealed class UIRoot : IUIViewRuntime
     /// Creates a <see cref="ViewRenderHost"/> from the view's surface so that
     /// MGUI bounds and mouse input are viewport-local.
     /// </summary>
-    public UIRoot(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext? runtimeContext = null)
+    public UIRoot(CasaEngineGame game, IRenderSurface surface, EngineRuntimeContext runtimeContext = null)
     {
         var host    = new ViewRenderHost(game, surface, runtimeContext?.WindowInputSource);
         var backend = CasaMonoGameBackendBootstrap.Create(host, surface: new CasaRenderSurfaceAdapter(surface));
@@ -147,7 +147,7 @@ public sealed class UIRoot : IUIViewRuntime
     public void PushScreen(IUIScreen screen) => ScreenStack.Push(screen);
 
     /// <summary>Pops the topmost screen from the <see cref="ScreenStack"/>.</summary>
-    public IUIScreen? PopScreen() => ScreenStack.Pop();
+    public IUIScreen PopScreen() => ScreenStack.Pop();
 
     /// <summary>Removes a specific screen from the <see cref="ScreenStack"/>.</summary>
     public void RemoveScreen(IUIScreen screen) => ScreenStack.Remove(screen);

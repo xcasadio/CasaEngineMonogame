@@ -24,7 +24,7 @@ internal static class PanoramaEnvironmentGenerator
         CubeMapFace.NegativeZ,
     ];
 
-    public static XnaTextureCube? GetOrCreateCubemap(RenderView view, Guid panoramaAssetId, int requestedCubemapSize)
+    public static XnaTextureCube GetOrCreateCubemap(RenderView view, Guid panoramaAssetId, int requestedCubemapSize)
     {
         ArgumentNullException.ThrowIfNull(view);
 
@@ -42,7 +42,7 @@ internal static class PanoramaEnvironmentGenerator
             return cachedCubemap;
         }
 
-        string? panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
+        string panoramaPath = ResolvePanoramaPath(assetContentManager, panoramaAssetId);
         if (string.IsNullOrWhiteSpace(panoramaPath) || !File.Exists(panoramaPath))
         {
             return null;
@@ -177,9 +177,9 @@ internal static class PanoramaEnvironmentGenerator
     private static int ClampY(int y, int height)
         => Math.Clamp(y, 0, height - 1);
 
-    private static string? ResolvePanoramaPath(AssetContentManager assetContentManager, Guid panoramaAssetId)
+    private static string ResolvePanoramaPath(AssetContentManager assetContentManager, Guid panoramaAssetId)
     {
-        AssetInfo? assetInfo = assetContentManager.RuntimeContext?.ResolveAssetInfo(panoramaAssetId) ?? AssetCatalog.Get(panoramaAssetId);
+        AssetInfo assetInfo = assetContentManager.RuntimeContext?.ResolveAssetInfo(panoramaAssetId) ?? AssetCatalog.Get(panoramaAssetId);
         if (assetInfo is null)
         {
             return null;
@@ -188,7 +188,7 @@ internal static class PanoramaEnvironmentGenerator
         return ResolveAssetPath(assetContentManager.RuntimeContext, assetInfo.FileName);
     }
 
-    private static string ResolveAssetPath(EngineRuntimeContext? runtimeContext, string relativeFileName)
+    private static string ResolveAssetPath(EngineRuntimeContext runtimeContext, string relativeFileName)
     {
         if (runtimeContext != null)
         {

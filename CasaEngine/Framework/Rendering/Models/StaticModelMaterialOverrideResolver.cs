@@ -7,16 +7,16 @@ namespace CasaEngine.Framework.Rendering.Models;
 internal sealed class ResolvedStaticModelMaterialOverrides
 {
     public ResolvedStaticModelMaterialOverrides(
-        IReadOnlyDictionary<int, MaterialBase>? materialOverridesBySlotIndex,
-        IReadOnlyDictionary<int, MaterialPropertyBlock>? propertyOverridesBySlotIndex)
+        IReadOnlyDictionary<int, MaterialBase> materialOverridesBySlotIndex,
+        IReadOnlyDictionary<int, MaterialPropertyBlock> propertyOverridesBySlotIndex)
     {
         MaterialOverridesBySlotIndex = materialOverridesBySlotIndex;
         PropertyOverridesBySlotIndex = propertyOverridesBySlotIndex;
     }
 
-    public IReadOnlyDictionary<int, MaterialBase>? MaterialOverridesBySlotIndex { get; }
+    public IReadOnlyDictionary<int, MaterialBase> MaterialOverridesBySlotIndex { get; }
 
-    public IReadOnlyDictionary<int, MaterialPropertyBlock>? PropertyOverridesBySlotIndex { get; }
+    public IReadOnlyDictionary<int, MaterialPropertyBlock> PropertyOverridesBySlotIndex { get; }
 }
 
 internal readonly record struct MaterialOverrideResolutionMetrics(
@@ -28,13 +28,13 @@ internal static class StaticModelMaterialOverrideResolver
 {
     private static readonly MaterialCompiler MaterialCompiler = new();
 
-    public static ResolvedStaticModelMaterialOverrides? ResolveForMesh(
+    public static ResolvedStaticModelMaterialOverrides ResolveForMesh(
         StaticModelMesh modelMesh,
         IReadOnlyList<MaterialSlotOverride> materialOverrides,
         AssetContentManager assetContentManager)
         => ResolveForMesh(modelMesh, materialOverrides, assetContentManager, out _);
 
-    internal static ResolvedStaticModelMaterialOverrides? ResolveForMesh(
+    internal static ResolvedStaticModelMaterialOverrides ResolveForMesh(
         StaticModelMesh modelMesh,
         IReadOnlyList<MaterialSlotOverride> materialOverrides,
         AssetContentManager assetContentManager,
@@ -50,15 +50,15 @@ internal static class StaticModelMaterialOverrideResolver
             return null;
         }
 
-        Dictionary<int, MaterialBase>? resolvedMaterials = null;
-        Dictionary<int, MaterialPropertyBlock>? resolvedPropertyBlocks = null;
-        var resolvedMaterialAssets = new Dictionary<Guid, MaterialAsset?>();
+        Dictionary<int, MaterialBase> resolvedMaterials = null;
+        Dictionary<int, MaterialPropertyBlock> resolvedPropertyBlocks = null;
+        var resolvedMaterialAssets = new Dictionary<Guid, MaterialAsset>();
         var authoringMaterialCache = assetContentManager.RuntimeContext?.MaterialAuthoringCache;
         int recalculatedSlotCount = 0;
         int authoringMaterialCacheHitCount = 0;
         int authoringMaterialCacheMissCount = 0;
 
-        MaterialAsset? ResolveMaterialAsset(Guid materialAssetId)
+        MaterialAsset ResolveMaterialAsset(Guid materialAssetId)
         {
             if (materialAssetId == Guid.Empty)
             {
@@ -126,7 +126,7 @@ internal static class StaticModelMaterialOverrideResolver
 
             recalculatedSlotCount++;
 
-            MaterialAsset? overrideMaterialAsset = null;
+            MaterialAsset overrideMaterialAsset = null;
             bool hasResolvedMaterialOverride = false;
             if (slotOverride.MaterialAssetId != Guid.Empty)
             {
@@ -157,7 +157,7 @@ internal static class StaticModelMaterialOverrideResolver
                 return;
             }
 
-            MaterialAsset? materialAssetForInstance = null;
+            MaterialAsset materialAssetForInstance = null;
             if (slotOverride.MaterialAssetId != Guid.Empty)
             {
                 if (!hasResolvedMaterialOverride)

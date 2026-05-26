@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.Assets;
 
 public static class ElementFactory
 {
-    private static Dictionary<string, Type>? _typeCache;
+    private static Dictionary<string, Type> _typeCache;
 
     static ElementFactory()
     {
@@ -38,7 +38,7 @@ public static class ElementFactory
             .GroupBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase)
             .ToDictionary(g => g.Key, g => g.First(), StringComparer.InvariantCultureIgnoreCase);
 
-    private static Type? FindTypeByName(string? typeName)
+    private static Type FindTypeByName(string typeName)
     {
         if (string.IsNullOrEmpty(typeName))
         {

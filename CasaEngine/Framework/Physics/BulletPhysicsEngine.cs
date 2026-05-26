@@ -10,10 +10,10 @@ public class BulletPhysicsEngine
 {
     const CollisionFilterGroups DefaultGroup = CollisionFilterGroups.DefaultFilter;
 
-    private DiscreteDynamicsWorld? World { get; }
+    private DiscreteDynamicsWorld World { get; }
 
     private readonly CollisionWorld _collisionWorld;
-    private BulletPhysicsDebugDrawAdapter? _debugDrawAdapter;
+    private BulletPhysicsDebugDrawAdapter _debugDrawAdapter;
 
     private readonly CollisionDispatcher _dispatcher;
     private readonly CollisionConfiguration _collisionConfiguration;
@@ -1030,7 +1030,7 @@ public class BulletPhysicsEngine
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
     /// <returns>The result of this test</returns>
-    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
 
@@ -1045,7 +1045,7 @@ public class BulletPhysicsEngine
         return callback.Result;
     }
 
-    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         result = ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
         return result.Succeeded;
@@ -1062,7 +1062,7 @@ public class BulletPhysicsEngine
     /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
         ArgumentNullException.ThrowIfNull(resultsOutput);
@@ -1179,7 +1179,7 @@ public class BulletPhysicsEngine
             return convexResult.HitFraction;
         }
 
-        public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent? ignoredComponent = null)
+        public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
         {
             _shared ??= new StrideAllHitsConvexResultCallback();
             _shared._resultsList = buffer;
@@ -1215,13 +1215,13 @@ public class BulletPhysicsEngine
             return fraction;
         }
 
-        protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterMask = (CollisionFilterGroups)(-1), ICollideableComponent? ignoredComponent = null)
+        protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterMask = (CollisionFilterGroups)(-1), ICollideableComponent ignoredComponent = null)
         {
             base.Recycle(hitNoContResp, filterGroup, filterMask, ignoredComponent);
             _closestHit = default;
         }
 
-        public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent? ignoredComponent = null)
+        public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
         {
             _shared ??= new StrideClosestConvexResultCallback();
             _shared.Recycle(hitTriggers, filterGroup, filterMask, ignoredComponent);
@@ -1359,7 +1359,7 @@ public class BulletPhysicsEngine
         /// This boolean controls whether the test ignores(when false) or includes(when true) <see cref="PhysicsTriggerComponentBase"/>.
         /// </summary>
         private bool _hitNoContactResponseObjects;
-        private ICollideableComponent? _ignoredComponent;
+        private ICollideableComponent _ignoredComponent;
 
         protected static HitResult ComputeHitResult(ref LocalConvexResult convexResult, bool normalInWorldSpace)
         {
@@ -1385,7 +1385,7 @@ public class BulletPhysicsEngine
             };
         }
 
-        protected virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent? ignoredComponent = null)
+        protected virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
         {
             ClosestHitFraction = float.PositiveInfinity;
             CollisionFilterGroup = filterGroup;
@@ -1492,7 +1492,7 @@ public class BulletPhysicsEngine
 
     private sealed class BulletPhysicsDebugDrawAdapter : DebugDraw
     {
-        public IPhysicsDebugDrawer? DebugDrawer { get; set; }
+        public IPhysicsDebugDrawer DebugDrawer { get; set; }
 
         public override DebugDrawModes DebugMode
         {

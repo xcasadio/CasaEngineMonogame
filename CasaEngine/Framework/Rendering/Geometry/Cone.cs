@@ -20,7 +20,7 @@ public class Cone : Shape3d, IEquatable<Cone>
         Length = 1f;
     }
 
-    public bool Equals(Cone? other)
+    public bool Equals(Cone other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -35,7 +35,7 @@ public class Cone : Shape3d, IEquatable<Cone>
         return Type == other.Type && Radius.Equals(other.Radius) && Length.Equals(other.Length);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

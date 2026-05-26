@@ -45,7 +45,7 @@ public class StaticModelImporter
         _assimpContext.GetSupportedImportFormats().Contains(
             Path.GetExtension(fileName).ToLower());
 
-    public StaticModelImportResult ImportWithMetadata(string filePath, ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
+    public StaticModelImportResult ImportWithMetadata(string filePath, ILegacyMaterialImportProfile legacyMaterialImportProfile = null)
     {
         Assimp.Scene scene;
         try
@@ -97,7 +97,7 @@ public class StaticModelImporter
     /// <see cref="StaticModel"/>.  Call
     /// <see cref="StaticModel.Initialize"/> afterwards to upload GPU buffers.
     /// </summary>
-    public StaticModel Import(string filePath, ILegacyMaterialImportProfile? legacyMaterialImportProfile = null)
+    public StaticModel Import(string filePath, ILegacyMaterialImportProfile legacyMaterialImportProfile = null)
     {
         return ImportWithMetadata(filePath, legacyMaterialImportProfile).Model;
     }
@@ -150,7 +150,7 @@ public class StaticModelImporter
     }
 
     private static List<StaticModelImportedMaterial> BuildMaterials(
-        Assimp.Scene? scene,
+        Assimp.Scene scene,
         string filePath,
         IReadOnlyDictionary<string, LegacyEffectInstance> legacyEffectsByMaterial,
         ILegacyMaterialImportProfile legacyMaterialImportProfile)
@@ -184,7 +184,7 @@ public class StaticModelImporter
                 SpecularPower = ResolveSpecularPower(material, filePath),
             };
 
-            if (legacyEffectsByMaterial.TryGetValue(importedMaterial.Name, out LegacyEffectInstance? effectInstance))
+            if (legacyEffectsByMaterial.TryGetValue(importedMaterial.Name, out LegacyEffectInstance effectInstance))
             {
                 ApplyLegacyEffectMetadata(importedMaterial, effectInstance, filePath);
             }
@@ -234,7 +234,7 @@ public class StaticModelImporter
             }
 
             string materialBody = ExtractBraceBlock(text, braceOpenIndex, out int braceCloseIndex);
-            LegacyEffectInstance? effectInstance = ParseLegacyEffectInstance(materialName, materialBody);
+            LegacyEffectInstance effectInstance = ParseLegacyEffectInstance(materialName, materialBody);
             if (effectInstance != null)
             {
                 result[materialName] = effectInstance;
@@ -246,10 +246,10 @@ public class StaticModelImporter
         return result;
     }
 
-    private static LegacyEffectInstance? ParseLegacyEffectInstance(string materialName, string materialBody)
+    private static LegacyEffectInstance ParseLegacyEffectInstance(string materialName, string materialBody)
     {
         int searchIndex = 0;
-        LegacyEffectInstance? lastInstance = null;
+        LegacyEffectInstance lastInstance = null;
 
         while (true)
         {
@@ -368,17 +368,17 @@ public class StaticModelImporter
             importedMaterial.SpecularPower = specularPower;
         }
 
-        if (effectInstance.Strings.TryGetValue("diffuseTexture", out string? diffuseTexturePath))
+        if (effectInstance.Strings.TryGetValue("diffuseTexture", out string diffuseTexturePath))
         {
             importedMaterial.DiffuseTextureFilePath = ResolveTexturePath(modelFilePath, diffuseTexturePath) ?? importedMaterial.DiffuseTextureFilePath;
         }
 
-        if (effectInstance.Strings.TryGetValue("normalTexture", out string? normalTexturePath))
+        if (effectInstance.Strings.TryGetValue("normalTexture", out string normalTexturePath))
         {
             importedMaterial.NormalTextureFilePath = ResolveTexturePath(modelFilePath, normalTexturePath) ?? importedMaterial.NormalTextureFilePath;
         }
 
-        if (effectInstance.Strings.TryGetValue("reflectionCubeTexture", out string? reflectionTexturePath))
+        if (effectInstance.Strings.TryGetValue("reflectionCubeTexture", out string reflectionTexturePath))
         {
             importedMaterial.ReflectionTextureFilePath = ResolveTexturePath(modelFilePath, reflectionTexturePath)
                 ?? ResolveRelativePath(modelFilePath, reflectionTexturePath);
@@ -409,7 +409,7 @@ public class StaticModelImporter
         out Color color)
     {
         color = Color.White;
-        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length < 3)
+        if (!valuesByName.TryGetValue(key, out float[] values) || values.Length < 3)
         {
             return false;
         }
@@ -429,7 +429,7 @@ public class StaticModelImporter
         out Vector3 vector)
     {
         vector = Vector3.Zero;
-        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length < 3)
+        if (!valuesByName.TryGetValue(key, out float[] values) || values.Length < 3)
         {
             return false;
         }
@@ -444,7 +444,7 @@ public class StaticModelImporter
         out float value)
     {
         value = 0.0f;
-        if (!valuesByName.TryGetValue(key, out float[]? values) || values.Length == 0)
+        if (!valuesByName.TryGetValue(key, out float[] values) || values.Length == 0)
         {
             return false;
         }
@@ -516,7 +516,7 @@ public class StaticModelImporter
             return false;
         }
 
-        MaterialProperty? property = material.GetProperty(propertyName);
+        MaterialProperty property = material.GetProperty(propertyName);
         if (property == null
             || property.PropertyType != PropertyType.Float
             || !property.HasRawData
@@ -696,7 +696,7 @@ public class StaticModelImporter
             return materialName;
         }
 
-        string? diffuseTexturePath = ResolveTextureFilePath(material, modelFilePath, TextureType.Diffuse);
+        string diffuseTexturePath = ResolveTextureFilePath(material, modelFilePath, TextureType.Diffuse);
         if (!string.IsNullOrWhiteSpace(diffuseTexturePath))
         {
             return SanitizeDisplayName(Path.GetFileNameWithoutExtension(diffuseTexturePath));
@@ -705,15 +705,15 @@ public class StaticModelImporter
         return $"Material {materialIndex + 1}";
     }
 
-    private static string? ResolveNormalTextureFilePath(Material material, string modelFilePath)
+    private static string ResolveNormalTextureFilePath(Material material, string modelFilePath)
     {
-        string? normalPath = ResolveTextureFilePath(material, modelFilePath, TextureType.Normals);
+        string normalPath = ResolveTextureFilePath(material, modelFilePath, TextureType.Normals);
         if (!string.IsNullOrWhiteSpace(normalPath))
         {
             return normalPath;
         }
 
-        string? heightPath = ResolveTextureFilePath(material, modelFilePath, TextureType.Height);
+        string heightPath = ResolveTextureFilePath(material, modelFilePath, TextureType.Height);
         if (!string.IsNullOrWhiteSpace(heightPath)
             && Path.GetFileNameWithoutExtension(heightPath).Contains("normal", StringComparison.OrdinalIgnoreCase))
         {
@@ -723,7 +723,7 @@ public class StaticModelImporter
         return null;
     }
 
-    private static string? ResolveTextureFilePath(Material material, string modelFilePath, TextureType textureType)
+    private static string ResolveTextureFilePath(Material material, string modelFilePath, TextureType textureType)
     {
         foreach (var slot in material.GetAllMaterialTextures())
         {
@@ -732,7 +732,7 @@ public class StaticModelImporter
                 continue;
             }
 
-            string? resolvedPath = ResolveTexturePath(modelFilePath, slot.FilePath);
+            string resolvedPath = ResolveTexturePath(modelFilePath, slot.FilePath);
             if (!string.IsNullOrWhiteSpace(resolvedPath))
             {
                 return resolvedPath;
@@ -742,7 +742,7 @@ public class StaticModelImporter
         return null;
     }
 
-    private static string? ResolveTexturePath(string modelFilePath, string? texturePath)
+    private static string ResolveTexturePath(string modelFilePath, string texturePath)
     {
         if (string.IsNullOrWhiteSpace(texturePath) || texturePath.StartsWith('*'))
         {
@@ -762,7 +762,7 @@ public class StaticModelImporter
             : null;
     }
 
-    private static string ResolveRelativePath(string modelFilePath, string? relativePath)
+    private static string ResolveRelativePath(string modelFilePath, string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath))
         {
@@ -773,7 +773,7 @@ public class StaticModelImporter
         return Path.GetFullPath(Path.Combine(modelDirectory, relativePath));
     }
 
-    private static string SanitizeMaterialDisplayName(string? materialName)
+    private static string SanitizeMaterialDisplayName(string materialName)
     {
         if (string.IsNullOrWhiteSpace(materialName))
         {
@@ -787,7 +787,7 @@ public class StaticModelImporter
         return SanitizeDisplayName(sanitized);
     }
 
-    private static string SanitizeDisplayName(string? value)
+    private static string SanitizeDisplayName(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -927,13 +927,13 @@ public sealed class StaticModelImportedMaterial
 
     public string DisplayName { get; set; } = string.Empty;
 
-    public string? DiffuseTextureFilePath { get; set; }
+    public string DiffuseTextureFilePath { get; set; }
 
-    public string? NormalTextureFilePath { get; set; }
+    public string NormalTextureFilePath { get; set; }
 
-    public string? ReflectionTextureFilePath { get; set; }
+    public string ReflectionTextureFilePath { get; set; }
 
-    public string? EffectFilePath { get; set; }
+    public string EffectFilePath { get; set; }
 
     public int LegacyTechniqueIndex { get; set; } = -1;
 

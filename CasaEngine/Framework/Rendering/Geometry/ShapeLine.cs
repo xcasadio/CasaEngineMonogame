@@ -29,7 +29,7 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
         return Start.Equals(other.Start) && End.Equals(other.End);
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

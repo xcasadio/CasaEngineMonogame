@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 
 public abstract class PhysicsBaseComponent : SceneComponent, ICollideableComponent
 {
-    protected IPhysicsWorld? PhysicsWorld;
+    protected IPhysicsWorld PhysicsWorld;
     private BoundingBox _boundingBox;
     private bool _lock;
 
@@ -17,10 +17,10 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
-    protected PhysicsBody? _rigidBody;
+    protected PhysicsBody _rigidBody;
 
     //static object
-    protected PhysicsBody? _collisionObject;
+    protected PhysicsBody _collisionObject;
 
     public HashSet<Collision> Collisions { get; } = new();
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
@@ -136,7 +136,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
-        PhysicsBody? collisionObject = _collisionObject ?? _rigidBody;
+        PhysicsBody collisionObject = _collisionObject ?? _rigidBody;
 
         if (collisionObject != null && Parent != null)
         {
@@ -283,13 +283,13 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         }
     }
 
-    private void OnPositionChanged(object? sender, EventArgs e)
+    private void OnPositionChanged(object sender, EventArgs e)
     {
         ApplyPhysicsWorldTransform();
         IsBoundingBoxDirty = true;
     }
 
-    private void OnOrientationChanged(object? sender, EventArgs e)
+    private void OnOrientationChanged(object sender, EventArgs e)
     {
         ApplyPhysicsWorldTransform();
         IsBoundingBoxDirty = true;

@@ -19,20 +19,20 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Animated Sprite")]
 public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable, IConditionalEntityUpdateSource
 {
-    public event EventHandler<Guid>? FrameChanged;
-    public event EventHandler<Animation2d>? AnimationFinished;
+    public event EventHandler<Guid> FrameChanged;
+    public event EventHandler<Animation2d> AnimationFinished;
 
     private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
     private readonly List<Guid> _animationAssetIds = new();
 
     private AssetContentManager _assetContentManager;
-    private IPhysicsWorld? _physicsWorldContext;
+    private IPhysicsWorld _physicsWorldContext;
     private SpriteRendererComponent _spriteRenderer;
-    private DepthSortable2DComponent? _depthSortable2DComponent;
+    private DepthSortable2DComponent _depthSortable2DComponent;
 
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
-    public Animation2d? CurrentAnimation { get; private set; }
+    public Animation2d CurrentAnimation { get; private set; }
     public List<Animation2d> Animations { get; } = new();
 
     [Browsable(false)]
@@ -253,7 +253,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         Animations.Add(animation2d);
     }
 
-    private SpriteData? GetCurrentSpriteData()
+    private SpriteData GetCurrentSpriteData()
     {
         foreach (var frame in CurrentAnimation.Animation2dData.Frames)
         {
@@ -265,7 +265,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         return null;
     }
 
-    private void OnFrameChanged(object? sender, (Guid oldFrame, Guid newFrame) arg)
+    private void OnFrameChanged(object sender, (Guid oldFrame, Guid newFrame) arg)
     {
         IsBoundingBoxDirty = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
@@ -310,7 +310,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
     }
 
-    private void OnAnimationFinished(object? sender, EventArgs args)
+    private void OnAnimationFinished(object sender, EventArgs args)
     {
         AnimationFinished?.Invoke(this, (Animation2d)sender);
     }

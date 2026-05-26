@@ -71,8 +71,8 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
     private readonly HashSet<Entity> _staticSpatialQueryDedupCache = [];
     private int _updateCount;
     private int _evaluationFrameId;
-    private PhysicsBaseComponent? _physicsComponent;
-    private SceneComponent? _sceneComponent;
+    private PhysicsBaseComponent _physicsComponent;
+    private SceneComponent _sceneComponent;
     private bool _neighborCacheValid;
     private float _neighborCacheRadius;
     private Vector3 _neighborCacheOrigin;
@@ -171,7 +171,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
 
     public bool SetBehaviorEnabled(string name, bool enabled)
     {
-        SteeringBehaviorRuntime? behavior = GetBehavior(name);
+        SteeringBehaviorRuntime behavior = GetBehavior(name);
 
         if (behavior == null)
         {
@@ -184,7 +184,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
 
     public bool SetBehaviorWeight(string name, float weight)
     {
-        SteeringBehaviorRuntime? behavior = GetBehavior(name);
+        SteeringBehaviorRuntime behavior = GetBehavior(name);
 
         if (behavior == null)
         {
@@ -195,7 +195,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         return true;
     }
 
-    public SteeringBehaviorRuntime? GetBehavior(string name)
+    public SteeringBehaviorRuntime GetBehavior(string name)
     {
         for (int index = 0; index < _behaviors.Count; index++)
         {
@@ -208,7 +208,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         return null;
     }
 
-    public Entity? FindEntity(string entityName)
+    public Entity FindEntity(string entityName)
     {
         if (Owner?.World == null || string.IsNullOrWhiteSpace(entityName))
         {
@@ -357,7 +357,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         return TryGetEntityMotion(FindEntity(entityName), out position, out velocity, out forward);
     }
 
-    public bool TryGetEntityMotion(Entity? entity, out Vector3 position, out Vector3 velocity, out Vector3 forward)
+    public bool TryGetEntityMotion(Entity entity, out Vector3 position, out Vector3 velocity, out Vector3 forward)
     {
         position = Vector3.Zero;
         velocity = Vector3.Zero;
@@ -368,8 +368,8 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
             return false;
         }
 
-        SceneComponent? sceneComponent = entity.RootComponent;
-        PhysicsBaseComponent? physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
+        SceneComponent sceneComponent = entity.RootComponent;
+        PhysicsBaseComponent physicsComponent = entity.GetComponent<PhysicsBaseComponent>();
 
         if (sceneComponent == null)
         {
@@ -381,7 +381,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         return true;
     }
 
-    internal static void ResolveEntityMotion(SceneComponent sceneComponent, PhysicsBaseComponent? physicsComponent, Vector3 position, out Vector3 velocity, out Vector3 forward)
+    internal static void ResolveEntityMotion(SceneComponent sceneComponent, PhysicsBaseComponent physicsComponent, Vector3 position, out Vector3 velocity, out Vector3 forward)
     {
         velocity = physicsComponent?.Velocity ?? Vector3.Zero;
 
@@ -407,7 +407,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
     public bool TryGetCollisionRadius(Entity entity, out float radius)
     {
         radius = 0.0f;
-        CircleCollisionComponent? circle = entity.GetComponent<CircleCollisionComponent>();
+        CircleCollisionComponent circle = entity.GetComponent<CircleCollisionComponent>();
         if (circle != null)
         {
             radius = circle.Circle.Radius;
@@ -422,7 +422,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         start = Vector2.Zero;
         end = Vector2.Zero;
 
-        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider wallProvider))
         {
             start = wallProvider.SteeringWallStart;
             end = wallProvider.SteeringWallEnd;
@@ -436,7 +436,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
     {
         normal = Vector2.Zero;
 
-        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider wallProvider))
         {
             normal = wallProvider.SteeringWallNormal;
             if (normal.LengthSquared() > float.Epsilon)
@@ -453,7 +453,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
     {
         thickness = 0.0f;
 
-        if (TryGetWallProvider(entity, out ISteeringWallProvider? wallProvider))
+        if (TryGetWallProvider(entity, out ISteeringWallProvider wallProvider))
         {
             thickness = wallProvider.SteeringWallThickness;
             return true;
@@ -462,7 +462,7 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
         return false;
     }
 
-    private static bool TryGetWallProvider(Entity entity, out ISteeringWallProvider? wallProvider)
+    private static bool TryGetWallProvider(Entity entity, out ISteeringWallProvider wallProvider)
     {
         wallProvider = entity as ISteeringWallProvider ?? entity.GetComponent<ISteeringWallProvider>();
         return wallProvider != null;

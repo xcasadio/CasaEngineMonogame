@@ -47,7 +47,7 @@ public class Octree<T>
         _currentRoot.GetContainedObjects(ref frustum, results, filter);
     }
 
-    public void GetContainedObjects(BoundingBox bounds, List<T> results, Func<T, bool>? filter = null)
+    public void GetContainedObjects(BoundingBox bounds, List<T> results, Func<T, bool> filter = null)
     {
         if (results == null)
         {

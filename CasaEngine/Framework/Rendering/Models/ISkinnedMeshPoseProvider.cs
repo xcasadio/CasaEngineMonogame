@@ -11,7 +11,7 @@ public interface ISkinnedMeshPoseProvider
 
     bool CanUseDualQuaternionSkinning { get; }
 
-    VertexBuffer? GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration);
+    VertexBuffer GetVertexBufferOverride(RiggedModel.RiggedModelMesh mesh, GraphicsDevice graphicsDevice, VertexDeclaration vertexDeclaration);
 
     Matrix GetMeshNodeTransform(RiggedModel.RiggedModelMesh mesh);
 }

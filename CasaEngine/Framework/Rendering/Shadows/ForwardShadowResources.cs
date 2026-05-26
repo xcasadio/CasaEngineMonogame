@@ -13,7 +13,7 @@ public sealed class ForwardShadowResources
 
     public ShadowSettings Settings { get; } = new();
 
-    public RenderTarget2D? ShadowMapAtlas { get; set; }
+    public RenderTarget2D ShadowMapAtlas { get; set; }
 
     public IReadOnlyList<ShadowLight> VisibleLights => _visibleLights;
 

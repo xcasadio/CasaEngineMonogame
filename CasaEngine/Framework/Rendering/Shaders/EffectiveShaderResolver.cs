@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// </summary>
 public readonly struct EffectiveShaderReference
 {
-    public EffectiveShaderReference(Guid shaderId, string? contentName = null)
+    public EffectiveShaderReference(Guid shaderId, string contentName = null)
     {
         ShaderId = shaderId;
         ContentName = contentName;
@@ -23,7 +23,7 @@ public readonly struct EffectiveShaderReference
     /// <summary>
     /// Optional MonoGame content path used for built-in shaders that are not backed by asset files.
     /// </summary>
-    public string? ContentName { get; }
+    public string ContentName { get; }
 
     public bool IsBuiltIn => !string.IsNullOrWhiteSpace(ContentName);
 }

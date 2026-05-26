@@ -11,7 +11,7 @@ internal enum CasaSurfaceTargetKind
 internal readonly record struct CasaSurfaceTargetDescriptor(
     CasaSurfaceTargetKind Kind,
     Rectangle Bounds,
-    IUIRenderTarget? RenderTarget)
+    IUIRenderTarget RenderTarget)
 {
     public bool IsBackBuffer => Kind == CasaSurfaceTargetKind.BackBuffer;
 

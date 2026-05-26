@@ -17,7 +17,7 @@ public static class CutsceneValidator
         return result;
     }
 
-    private static void ValidateAction(CutsceneActionData? action, string path, CutsceneValidationResult result)
+    private static void ValidateAction(CutsceneActionData action, string path, CutsceneValidationResult result)
     {
         if (action == null)
         {

@@ -13,9 +13,9 @@ internal sealed class CasaRenderTargetService
         _owner = owner;
     }
 
-    public void SetRenderTarget(RenderTarget2D? renderTarget, Color? clearColor)
+    public void SetRenderTarget(RenderTarget2D renderTarget, Color? clearColor)
     {
-        RenderTarget2D? currentTarget = GetCurrentRenderTarget();
+        RenderTarget2D currentTarget = GetCurrentRenderTarget();
         if (ReferenceEquals(renderTarget, currentTarget))
         {
             return;
@@ -29,10 +29,10 @@ internal sealed class CasaRenderTargetService
         }
     }
 
-    public IDisposable SetRenderTargetTemporary(RenderTarget2D? renderTarget, Color? clearColor)
-        => new TemporaryChange<RenderTarget2D?, Color?>(GetCurrentRenderTarget(), renderTarget, null, clearColor, SetRenderTarget);
+    public IDisposable SetRenderTargetTemporary(RenderTarget2D renderTarget, Color? clearColor)
+        => new TemporaryChange<RenderTarget2D, Color?>(GetCurrentRenderTarget(), renderTarget, null, clearColor, SetRenderTarget);
 
-    private RenderTarget2D? GetCurrentRenderTarget()
+    private RenderTarget2D GetCurrentRenderTarget()
     {
         RenderTargetBinding[] bindings = _owner.GraphicsDevice.GetRenderTargets();
         return bindings.Length == 0 ? null : bindings[0].RenderTarget as RenderTarget2D;

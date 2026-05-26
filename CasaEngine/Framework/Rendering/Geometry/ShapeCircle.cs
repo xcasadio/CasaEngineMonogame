@@ -29,7 +29,7 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         Radius = radius;
     }
 
-    public bool Equals(ShapeCircle? other)
+    public bool Equals(ShapeCircle other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -44,7 +44,7 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
         return Radius == other.Radius;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         if (ReferenceEquals(null, obj))
         {

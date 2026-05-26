@@ -34,7 +34,7 @@ public class StaticModelMesh
     public Guid MaterialAssetId { get; set; } = Guid.Empty;
 
     /// <summary>Runtime material instance. Resolved from <see cref="MaterialAssetId"/> at load time.</summary>
-    public MaterialBase? Material { get; set; }
+    public MaterialBase Material { get; set; }
 
     /// <summary>
     /// Optional sub-mesh ranges when a single mesh uses multiple materials.
@@ -47,14 +47,14 @@ public class StaticModelMesh
     /// Used by ContentBrowserControl to link the imported texture asset.
     /// Not serialized.
     /// </summary>
-    public string? DiffuseTextureFilePath { get; set; }
+    public string DiffuseTextureFilePath { get; set; }
 
     /// <summary>Runtime texture (loaded via <see cref="LoadTexture"/>).</summary>
-    public Assets.Textures.Texture? Texture { get; set; }
+    public Assets.Textures.Texture Texture { get; set; }
 
     // --- GPU resources (created inside Initialize) ---
-    public VertexBuffer? VertexBuffer { get; private set; }
-    public IndexBuffer? IndexBuffer { get; private set; }
+    public VertexBuffer VertexBuffer { get; private set; }
+    public IndexBuffer IndexBuffer { get; private set; }
     public bool HasTangents => _tangentVertices.Length > 0;
 
     // --- Bounding info ---

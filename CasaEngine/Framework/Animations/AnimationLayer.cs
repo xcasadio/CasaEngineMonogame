@@ -12,7 +12,7 @@ public sealed class AnimationLayer
 
     public int Index { get; }
 
-    public AnimationState? State { get; private set; }
+    public AnimationState State { get; private set; }
 
     public BoneMask Mask { get; private set; }
 
@@ -22,7 +22,7 @@ public sealed class AnimationLayer
 
     public bool Enabled { get; private set; }
 
-    public void Configure(AnimationClip clip, BoneMask? mask, float weight, AnimationLayerBlendMode blendMode, bool loop, float speed)
+    public void Configure(AnimationClip clip, BoneMask mask, float weight, AnimationLayerBlendMode blendMode, bool loop, float speed)
     {
         State = new AnimationState(clip, loop, speed);
         Mask = mask ?? BoneMask.CreateFullBody(clip.Skeleton);

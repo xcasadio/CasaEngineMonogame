@@ -6,11 +6,11 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Character controller animation bridge")]
 public sealed class CharacterControllerAnimationBridgeComponent : EntityComponent, IWorldSystemDrivenComponent
 {
-    private CharacterControllerComponent? _controller;
+    private CharacterControllerComponent _controller;
 
     public CharacterControllerLocomotionAnimationData LocomotionData { get; private set; } = CharacterControllerLocomotionAnimationData.Empty;
 
-    public CharacterControllerComponent? Controller => _controller;
+    public CharacterControllerComponent Controller => _controller;
 
     public override void Attach(Entity actor)
     {

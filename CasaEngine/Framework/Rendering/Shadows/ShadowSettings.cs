@@ -48,7 +48,7 @@ public sealed class ShadowSettings
         MaxDistance = 100.0f;
     }
 
-    public void Load(JObject? element)
+    public void Load(JObject element)
     {
         ResetToDefaults();
 

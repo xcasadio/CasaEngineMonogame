@@ -19,7 +19,7 @@ public class AssetContentManager
 
     public string RootDirectory { get; set; }
 
-    public EngineRuntimeContext? RuntimeContext { get; set; }
+    public EngineRuntimeContext RuntimeContext { get; set; }
 
     public AssetContentManager()
     {
@@ -52,16 +52,16 @@ public class AssetContentManager
         _assetsDictionaryByCategory[categoryName].Add(id, name, asset);
     }
 
-    public T? GetAsset<T>(string name, string categoryName = DefaultCategory)
+    public T GetAsset<T>(string name, string categoryName = DefaultCategory)
     {
-        _assetsDictionaryByCategory[categoryName].Get(name, out object? asset);
-        return (T?)asset;
+        _assetsDictionaryByCategory[categoryName].Get(name, out object asset);
+        return (T)asset;
     }
 
-    public T? GetAsset<T>(Guid id, string categoryName = DefaultCategory)
+    public T GetAsset<T>(Guid id, string categoryName = DefaultCategory)
     {
-        _assetsDictionaryByCategory[categoryName].Get(id, out object? asset);
-        return (T?)asset;
+        _assetsDictionaryByCategory[categoryName].Get(id, out object asset);
+        return (T)asset;
     }
 
     public bool IsFileSupported(string fileName)
@@ -143,7 +143,7 @@ public class AssetContentManager
         return newAsset;
     }
 
-    private AssetInfo? ResolveAssetInfo(Guid id)
+    private AssetInfo ResolveAssetInfo(Guid id)
     {
         if (RuntimeContext?.ResolveAssetInfo != null)
         {
@@ -189,7 +189,7 @@ public class AssetContentManager
         }
     }
 
-    internal void OnDeviceReset(object? sender, EventArgs e)
+    internal void OnDeviceReset(object sender, EventArgs e)
     {
         foreach (var assetDictionaryByCategory in _assetsDictionaryByCategory)
         {

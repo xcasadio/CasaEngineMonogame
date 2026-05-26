@@ -24,7 +24,7 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
     private readonly IRenderSurface      _surface;
     private readonly IWindowInputSource _windowInputSource;
 
-    public ViewRenderHost(CasaEngineGame game, IRenderSurface surface, IWindowInputSource? windowInputSource = null)
+    public ViewRenderHost(CasaEngineGame game, IRenderSurface surface, IWindowInputSource windowInputSource = null)
     {
         _game    = game;
         _surface = surface;
@@ -82,10 +82,10 @@ internal sealed class ViewRenderHost : IRenderHost, IRawInputSource
 
     public KeyboardState GetKeyboardState() => _windowInputSource.GetSnapshot().KeyboardState;
 
-    public object? GetService(Type serviceType) => _game.Services.GetService(serviceType);
+    public object GetService(Type serviceType) => _game.Services.GetService(serviceType);
 
     // ---- IObservableUpdate ----
 
-    public event EventHandler<TimeSpan>?  PreviewUpdate;
-    public event EventHandler<EventArgs>? EndUpdate;
+    public event EventHandler<TimeSpan>  PreviewUpdate;
+    public event EventHandler<EventArgs> EndUpdate;
 }

@@ -16,9 +16,9 @@ public interface IWorldSpatialIndex3D
 
     void ApplyPendingMoves();
 
-    void Query(BoundingFrustum frustum, List<Entity> results, Func<Entity, bool>? filter = null);
+    void Query(BoundingFrustum frustum, List<Entity> results, Func<Entity, bool> filter = null);
 
-    void Query(BoundingBox bounds, List<Entity> results, Func<Entity, bool>? filter = null);
+    void Query(BoundingBox bounds, List<Entity> results, Func<Entity, bool> filter = null);
 
     void DebugDraw(Line3dRendererComponent line3dRendererComponent);
 }

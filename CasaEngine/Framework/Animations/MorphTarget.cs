@@ -17,12 +17,12 @@ public sealed class MorphTarget
         string meshName,
         string name,
         float defaultWeight,
-        IReadOnlyList<Vector3>? positions = null,
-        IReadOnlyList<Vector3>? normals = null,
-        IReadOnlyList<Vector3>? tangents = null,
-        IReadOnlyList<Vector3>? biTangents = null,
-        IReadOnlyList<Vector3[]>? textureCoordinateChannels = null,
-        IReadOnlyList<Vector4[]>? vertexColorChannels = null)
+        IReadOnlyList<Vector3> positions = null,
+        IReadOnlyList<Vector3> normals = null,
+        IReadOnlyList<Vector3> tangents = null,
+        IReadOnlyList<Vector3> biTangents = null,
+        IReadOnlyList<Vector3[]> textureCoordinateChannels = null,
+        IReadOnlyList<Vector4[]> vertexColorChannels = null)
     {
         if (meshIndex < 0)
         {
@@ -79,7 +79,7 @@ public sealed class MorphTarget
 
     public IReadOnlyList<Vector4[]> VertexColorChannels => _vertexColorChannels;
 
-    private static T[] CopyValues<T>(IReadOnlyList<T>? values)
+    private static T[] CopyValues<T>(IReadOnlyList<T> values)
     {
         if (values == null || values.Count == 0)
         {
@@ -95,7 +95,7 @@ public sealed class MorphTarget
         return copy;
     }
 
-    private static T[][] CopyChannels<T>(IReadOnlyList<T[]>? channels)
+    private static T[][] CopyChannels<T>(IReadOnlyList<T[]> channels)
     {
         if (channels == null || channels.Count == 0)
         {

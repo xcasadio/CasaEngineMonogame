@@ -4,7 +4,7 @@ namespace CasaEngine.Framework.Application.Components.Physics;
 
 public class PhysicsSystemComponent : GameComponent
 {
-    private readonly CasaEngineGame? _casaEngineGame;
+    private readonly CasaEngineGame _casaEngineGame;
     private readonly Dictionary<Scene.World.World, PhysicsWorld> _physicsWorldContexts = [];
     private readonly List<Scene.World.World> _worldsToUpdate = [];
 

@@ -25,7 +25,7 @@ public readonly struct ColorGradientKey : IEquatable<ColorGradientKey>
     public bool Equals(ColorGradientKey other)
         => Time.Equals(other.Time) && Color.Equals(other.Color);
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is ColorGradientKey other && Equals(other);
 
     public override int GetHashCode()
@@ -76,7 +76,7 @@ public readonly struct AlphaGradientKey : IEquatable<AlphaGradientKey>
     public bool Equals(AlphaGradientKey other)
         => Time.Equals(other.Time) && Alpha.Equals(other.Alpha);
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
         => obj is AlphaGradientKey other && Equals(other);
 
     public override int GetHashCode()

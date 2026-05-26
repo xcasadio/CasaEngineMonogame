@@ -14,7 +14,7 @@ public class OctreeNode<T>
 
     public BoundingBox Bounds { get; set; }
     public int MaxChildren { get; private set; }
-    public OctreeNode<T>? Parent { get; private set; }
+    public OctreeNode<T> Parent { get; private set; }
     public OctreeNode<T>[] Children { get; private set; } = Array.Empty<OctreeNode<T>>();
 
     public static OctreeNode<T> CreateNewTree(ref BoundingBox bounds, int maxChildren)
@@ -210,7 +210,7 @@ public class OctreeNode<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void GetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool>? filter)
+    public void GetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool> filter)
     {
         System.Diagnostics.Debug.Assert(results != null);
         CoreGetContainedObjects(ref bounds, results, filter);
@@ -316,7 +316,7 @@ public class OctreeNode<T>
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void CoreGetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool>? filter)
+    private void CoreGetContainedObjects(ref BoundingBox bounds, List<T> results, Func<T, bool> filter)
     {
         if (!Bounds.Intersects(bounds))
         {

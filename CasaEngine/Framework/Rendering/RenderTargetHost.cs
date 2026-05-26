@@ -25,10 +25,10 @@ public sealed class RenderTargetHost : IViewHost
     public bool IsVisible { get; set; } = true;
 
     /// <inheritdoc/>
-    public event Action<IViewHost, int, int>? Resized;
+    public event Action<IViewHost, int, int> Resized;
 
     /// <inheritdoc/>
-    public event Action<IViewHost>? Closed;
+    public event Action<IViewHost> Closed;
 
     /// <summary>The render-target surface owned by this host.</summary>
     public RenderTargetSurface Surface => _surface;

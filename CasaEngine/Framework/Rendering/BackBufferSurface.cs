@@ -9,7 +9,7 @@ public sealed class BackBufferSurface : IRenderSurface
 {
     public bool IsBackBuffer => true;
     public Rectangle ViewportRect { get; set; }
-    public RenderTarget2D? RenderTarget => null;
+    public RenderTarget2D RenderTarget => null;
 
     public BackBufferSurface(Rectangle viewportRect)
     {

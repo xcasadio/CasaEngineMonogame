@@ -4,7 +4,7 @@ namespace CasaEngine.Engine.Physics;
 
 public sealed class PhysicsBody : IDisposable
 {
-    private IPhysicsBodyBackend? _backend;
+    private IPhysicsBodyBackend _backend;
 
     internal PhysicsBody(IPhysicsBodyBackend backend)
     {
