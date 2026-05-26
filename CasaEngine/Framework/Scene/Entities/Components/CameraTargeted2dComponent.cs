@@ -98,7 +98,7 @@ public class CameraTargeted2dComponent : Camera3dComponent
     {
 
         var fov = FieldOfView * 0.5f;
-        float z = -((float)Owner.World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
+        float z = -((float)Owner.World.Game.ScreenSizeHeight * 0.5f) / MathF.Tan(fov);
         Position = new(-_offset.X, -_offset.Y, z);
 
         _target = new(-_offset.X, -_offset.Y, 0.0f);

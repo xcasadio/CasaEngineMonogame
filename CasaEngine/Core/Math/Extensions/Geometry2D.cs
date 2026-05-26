@@ -2,22 +2,29 @@
 
 namespace CasaEngine.Core.Math.Extensions;
 
-public static class Vector2Helper
+public static class Geometry2D
 {
-    /// <summary>
-    /// Return angle between two vectors. Used for visibility testing and
-    /// for checking angles between vectors for the road sign generation.
-    /// </summary>
-    /// <param name="vec1">Vector 1</param>
-    /// <param name="vec2">Vector 2</param>
-    /// <returns>Float</returns>
-    public static float GetAngleBetweenVectors(Vector2 vec1, Vector2 vec2)
+    public static float GetAngleBetweenVectors(Vector2 a, Vector2 b)
     {
-        // See http://en.wikipedia.org/wiki/Vector_(spatial)
-        // for help and check out the Dot Product section ^^
-        // Both vectors are normalized so we can save deviding through the
-        // lengths.
-        return MathUtils.Acos(Vector2.Dot(vec1, vec2));
+        if (a.LengthSquared() <= MathUtils.Epsilon || b.LengthSquared() <= MathUtils.Epsilon)
+        {
+            return 0f;
+        }
+
+        a.Normalize();
+        b.Normalize();
+
+        return MathF.Acos(MathHelper.Clamp(Vector2.Dot(a, b), -1f, 1f));
+    }
+
+    public static float GetAngleBetweenNormalizedVectors(Vector2 a, Vector2 b)
+    {
+        if (a.LengthSquared() <= MathUtils.Epsilon || b.LengthSquared() <= MathUtils.Epsilon)
+        {
+            return 0f;
+        }
+
+        return MathF.Acos(MathHelper.Clamp(Vector2.Dot(a, b), -1f, 1f));
     }
 
     public static void Cross(ref Vector2 a, ref Vector2 b, out float c)
@@ -43,7 +50,6 @@ public static class Vector2Helper
     {
         return new Vector2(-s * a.Y, s * a.X);
     }
-
 
     /// <summary>Returns a positive number if c is to the left of the line going from a to b.</summary>
     /// <returns>Positive number if point is left, negative if point is right, and 0 if points are collinear.</returns>

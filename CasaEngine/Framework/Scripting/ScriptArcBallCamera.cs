@@ -122,12 +122,12 @@ public class ScriptArcBallCamera : GameplayProxy
         }
         //if ( dR != 0.0f ) RotateClockwise( dR );
 
-        if (!MathUtils.IsZero(zoom))
+        if (!MathUtils.NearZero(zoom))
         {
             _arcBallCameraComponent.Distance = Math.Max(_arcBallCameraComponent.Distance + zoom * elapsedTime * InputDistanceRate, 0.001f);
         }
 
-        if (!MathUtils.IsZero(rightOffset) || !MathUtils.IsZero(upOffset) || !MathUtils.IsZero(forwardOffset))
+        if (!MathUtils.NearZero(rightOffset) || !MathUtils.NearZero(upOffset) || !MathUtils.NearZero(forwardOffset))
         {
             var pos = _arcBallCameraComponent.Target +
                       _arcBallCameraComponent.Right * rightOffset +

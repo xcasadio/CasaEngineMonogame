@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
 using Matrix = Microsoft.Xna.Framework.Matrix;
 
@@ -7,7 +8,7 @@ public static class MatrixExtensions
 {
     // Therefore the extrinsic rotations to achieve this matrix is the reversed order of operations,
     // ie. Matrix.RotationZ(roll) * Matrix.RotationX(pitch) * Matrix.RotationY(yaw)
-    public static void Decompose(this Matrix matrix, out float yaw, out float pitch, out float roll)
+    public static void DecomposeYawPitchRoll(this Matrix matrix, out float yaw, out float pitch, out float roll)
     {
         // Adapted from 'Euler Angle Formulas' by David Eberly - https://www.geometrictools.com/Documentation/EulerAngles.pdf
         // 2.3 Factor as Ry Rx Rz
@@ -44,22 +45,20 @@ public static class MatrixExtensions
 
     // Creates a matrix that contains both the X, Y and Z rotation, as well as scaling and translation. Note: This function is NOT thread safe.
     // rotation: Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin
-    public static Matrix Transformation(Vector3 scaling, Quaternion rotation, Vector3 translation)
+    public static Matrix Transformation(Vector3 scale, Quaternion rotation, Vector3 translation)
     {
-        return Transformation(ref scaling, ref rotation, ref translation);
+        return Transformation(ref scale, ref rotation, ref translation);
     }
 
     // Creates a matrix that contains both the X, Y and Z rotation, as well as scaling and translation. Note: This function is NOT thread safe.
     // rotation: Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin
-    public static Matrix Transformation(ref Vector3 scaling, ref Quaternion rotation, ref Vector3 translation)
+    // rotation must be normalized
+    public static Matrix Transformation(ref Vector3 scale, ref Quaternion rotation, ref Vector3 translation)
     {
         // Equivalent to:
-        //result =
-        //    Matrix.Scaling(scaling)
-        //    *Matrix.RotationX(rotation.X)
-        //    *Matrix.RotationY(rotation.Y)
-        //    *Matrix.RotationZ(rotation.Z)
-        //    *Matrix.Position(translation);
+        //return Matrix.CreateScale(scale)
+        //       * Matrix.CreateFromQuaternion(rotation)
+        //       * Matrix.CreateTranslation(translation);
 
         Matrix result = new Matrix();
 
@@ -90,23 +89,23 @@ public static class MatrixExtensions
         result.M43 = translation.Z;
 
         // Scale
-        if (scaling.X != 1.0f)
+        if (!MathUtils.IsOne(scale.X))
         {
-            result.M11 *= scaling.X;
-            result.M12 *= scaling.X;
-            result.M13 *= scaling.X;
+            result.M11 *= scale.X;
+            result.M12 *= scale.X;
+            result.M13 *= scale.X;
         }
-        if (scaling.Y != 1.0f)
+        if (!MathUtils.IsOne(scale.Y))
         {
-            result.M21 *= scaling.Y;
-            result.M22 *= scaling.Y;
-            result.M23 *= scaling.Y;
+            result.M21 *= scale.Y;
+            result.M22 *= scale.Y;
+            result.M23 *= scale.Y;
         }
-        if (scaling.Z != 1.0f)
+        if (!MathUtils.IsOne(scale.Z))
         {
-            result.M31 *= scaling.Z;
-            result.M32 *= scaling.Z;
-            result.M33 *= scaling.Z;
+            result.M31 *= scale.Z;
+            result.M32 *= scale.Z;
+            result.M33 *= scale.Z;
         }
 
         result.M14 = 0.0f;
@@ -117,11 +116,13 @@ public static class MatrixExtensions
         return result;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix Invert(this Matrix m)
     {
         return Matrix.Invert(m);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Matrix Transpose(this Matrix m)
     {
         return Matrix.Transpose(m);

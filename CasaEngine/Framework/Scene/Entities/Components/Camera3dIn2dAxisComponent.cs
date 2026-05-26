@@ -36,7 +36,7 @@ public class Camera3dIn2dAxisComponent : Camera3dComponent
     protected override void ComputeViewMatrix()
     {
         var fov = FieldOfView * 0.5f;
-        float z = (Owner.World.Game.ScreenSizeHeight * 0.5f) / MathUtils.Tan(fov);
+        float z = (Owner.World.Game.ScreenSizeHeight * 0.5f) / MathF.Tan(fov);
         Position = new(_target.X, _target.Y, _target.Z + z);
         _viewMatrix = Matrix.CreateLookAt(Position, _target, Up);
 

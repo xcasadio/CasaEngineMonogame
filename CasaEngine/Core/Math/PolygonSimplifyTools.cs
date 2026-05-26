@@ -28,7 +28,7 @@ public static class PolygonSimplifyTools
             Vector2 next = vertices[i + 1 > vertices.Count ? 0 : i + 1];
 
             //If they collinear, continue
-            if (Vector2Helper.IsCollinear(ref prev, ref current, ref next, collinearityTolerance))
+            if (Geometry2D.IsCollinear(ref prev, ref current, ref next, collinearityTolerance))
             {
                 continue;
             }
@@ -299,9 +299,9 @@ public static class PolygonSimplifyTools
         {
             v3 = i == vertices.Count - 1 ? simplified[0] : vertices[i];
 
-            Vector2Helper.Cross(ref v1, ref v2, out float old1);
-            Vector2Helper.Cross(ref v2, ref v3, out float old2);
-            Vector2Helper.Cross(ref v1, ref v3, out float new1);
+            Geometry2D.Cross(ref v1, ref v2, out float old1);
+            Geometry2D.Cross(ref v2, ref v3, out float old2);
+            Geometry2D.Cross(ref v1, ref v3, out float new1);
 
             if (System.Math.Abs(new1 - (old1 + old2)) > areaTolerance)
             {

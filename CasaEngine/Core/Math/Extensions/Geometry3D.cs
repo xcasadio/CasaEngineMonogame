@@ -1,39 +1,23 @@
-//-----------------------------------------------------------------------------
-// Vector3Helper.cs
-//
-// Microsoft XNA Community Game Platform
-// Copyright (C) Microsoft Corporation. All rights reserved.
-//-----------------------------------------------------------------------------
-
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Core.Math.Extensions;
 
-public static class Vector3Helper
+public static class Geometry3D
 {
     public static Vector3 AngleTo(Vector3 from, Vector3 location)
     {
         var angle = new Vector3();
         var v3 = Vector3.Normalize(location - from);
         angle.X = (float)System.Math.Asin(v3.Y);
-        angle.Y = TrigonometryHelper.ArcTanAngle(-v3.Z, -v3.X);
+        angle.Y = MathF.Atan2(-v3.Z, -v3.X);
         return angle;
     }
 
-    /// <summary>
-    /// Return angle between two vectors. Used for visibility testing and
-    /// for checking angles between vectors for the road sign generation.
-    /// </summary>
-    /// <param name="vec1">Vector 1</param>
-    /// <param name="vec2">Vector 2</param>
-    /// <returns>Float</returns>
-    public static float GetAngleBetweenVectors(Vector3 vec1, Vector3 vec2)
+    public static float GetAngleBetweenVectors(Vector3 a, Vector3 b)
     {
-        // See http://en.wikipedia.org/wiki/Vector_(spatial)
-        // for help and check out the Dot Product section ^^
-        // Both vectors are normalized so we can save deviding through the
-        // lengths.
-        return MathUtils.Acos(Vector3.Dot(vec1, vec2));
+        var dot = Vector3.Dot(a, b);
+        dot = MathHelper.Clamp(dot, -1.0f, 1.0f);
+        return MathF.Acos(dot);
     }
 
     /// <summary>
@@ -55,7 +39,7 @@ public static class Vector3Helper
             coeff = -1.0f;
         }
 
-        return coeff * MathUtils.Acos(Vector3.Dot(vec1, vec2));
+        return coeff * MathF.Acos(Vector3.Dot(vec1, vec2));
     }
 
     /// <summary>
@@ -79,16 +63,7 @@ public static class Vector3Helper
     /// <returns></returns>
     public static Matrix GetRotationMatrixBetweenVectors(Vector3 axis, Vector3 vec1, Vector3 vec2)
     {
-        /*Matrix mat = new Matrix( vec1_.X, vec1_.Y, vec1_.Z, 0.0f, vec2_.X, vec2_.Y, vec2_.Z, 0.0f, axis_.X, axis_.Y, axis_.Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f );
-
-        float coeff = 1.0f;
-
-        if ( mat.Determinant() < 0.0f )
-        {
-            coeff = -1.0f;
-        }*/
-
-        return Matrix.CreateFromAxisAngle(axis,/* coeff * */GetAngleBetweenVectors(axis, vec1, vec2));
+        return Matrix.CreateFromAxisAngle(axis, GetAngleBetweenVectors(axis, vec1, vec2));
     }
 
     /// <summary>
@@ -111,23 +86,51 @@ public static class Vector3Helper
     /// <returns></returns>
     public static Quaternion GetQuaternionBetweenVectors(Vector3 axis, Vector3 vec1, Vector3 vec2)
     {
-        /*Matrix mat = new Matrix(vec1_.X, vec1_.Y, vec1_.Z, 0.0f, vec2_.X, vec2_.Y, vec2_.Z, 0.0f, axis_.X, axis_.Y, axis_.Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-
-        float coeff = 1.0f;
-
-        if (mat.Determinant() < 0.0f)
-        {
-            coeff = -1.0f;
-        }
-        
-        return Quaternion.CreateFromAxisAngle(axis_, coeff * GetAngleBetweenVectors(vec1_, vec2_));
-        */
-
-        //float fDot = Vector3.Dot(vec1_, vec2_);
-        //return new Quaternion(axis_.X, axis_.Y, axis_.Z, fDot);
         return Quaternion.CreateFromAxisAngle(axis, GetAngleBetweenVectors(axis, vec1, vec2));
     }
 
+    public static bool TryGetRotationBetween(
+        Vector3 from,
+        Vector3 to,
+        out Quaternion rotation)
+    {
+        rotation = Quaternion.Identity;
+
+        if (from.LengthSquared() <= MathUtils.Epsilon ||
+            to.LengthSquared() <= MathUtils.Epsilon)
+        {
+            return false;
+        }
+
+        from.Normalize();
+        to.Normalize();
+
+        var dot = MathHelper.Clamp(Vector3.Dot(from, to), -1f, 1f);
+
+        if (dot > 1f - MathUtils.Epsilon)
+        {
+            rotation = Quaternion.Identity;
+            return true;
+        }
+
+        if (dot < -1f + MathUtils.Epsilon)
+        {
+            var axis = Vector3.Cross(from, Vector3.Up);
+
+            if (axis.LengthSquared() <= MathUtils.Epsilon)
+                axis = Vector3.Cross(from, Vector3.Right);
+
+            axis.Normalize();
+            rotation = Quaternion.CreateFromAxisAngle(axis, MathHelper.Pi);
+            return true;
+        }
+
+        var rotationAxis = Vector3.Cross(from, to);
+        rotationAxis.Normalize();
+
+        rotation = Quaternion.CreateFromAxisAngle(rotationAxis, MathF.Acos(dot));
+        return true;
+    }
 
     /// <summary>
     /// Distance from our point to the line described by linePos1 and linePos2.
@@ -156,8 +159,7 @@ public static class Vector3Helper
     public static float SignedDistanceToPlane(Vector3 point,
         Vector3 planePosition, Vector3 planeNormal)
     {
-        Vector3 pointVec = planePosition - point;
-        return Vector3.Dot(planeNormal, pointVec);
+        return Vector3.Dot(point - planePosition, planeNormal);
     }
 
 

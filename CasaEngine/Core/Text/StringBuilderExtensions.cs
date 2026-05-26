@@ -119,7 +119,7 @@ public static class StringBuilderExtensions
         }
         else
         {
-            int intNumber = (int)(number * MathUtils.Pow(10, decimalCount) + 0.5f);
+            int intNumber = (int)(number * MathF.Pow(10, decimalCount) + 0.5f);
 
             AppendNumberInternal(builder, intNumber, decimalCount, options);
         }
