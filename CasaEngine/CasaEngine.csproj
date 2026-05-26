@@ -18,6 +18,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="AssimpNet" />
+		<PackageReference Include="BepuPhysics" />
 		<PackageReference Include="FontStashSharp.MonoGame" />
 		<PackageReference Include="MonoGame.Framework.DesktopGL" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" />
