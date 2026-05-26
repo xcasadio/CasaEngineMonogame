@@ -1,6 +1,4 @@
-using CasaEngine.Framework.Rendering;
-
-namespace CasaEngine.Framework.Application.Components;
+namespace CasaEngine.Framework.Rendering;
 
 /// <summary>
 /// Implemented by renderer components that support per-view flushing via <see cref="RenderPipeline"/>.

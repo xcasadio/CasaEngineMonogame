@@ -11,12 +11,12 @@ public class PlanePrimitive : GeometricPrimitive
     {
         if (tessellationHorizontal < 1)
         {
-            throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationHorizontal_");
+            throw new ArgumentOutOfRangeException(nameof(tessellationHorizontal), "PlanePrimitive() : tessellationHorizontal_");
         }
 
         if (tessellationVertical < 1)
         {
-            throw new ArgumentOutOfRangeException("PlanePrimitive() : tessellationVertical_");
+            throw new ArgumentOutOfRangeException(nameof(tessellationVertical), "PlanePrimitive() : tessellationVertical_");
         }
 
         _scale = new Vector2(sizeH, sizeV);
@@ -34,12 +34,12 @@ public class PlanePrimitive : GeometricPrimitive
         var stepV = sizeV / tessellationVertical;
 
         //increment to compute uv
-        int stepHTotal = 0, stepVTotal;
+        int stepHTotal = 0;
 
         //Compute Vertex
         for (var dx = -sizeHBy2; dx <= sizeHBy2; dx += stepH)
         {
-            stepVTotal = 0;
+            var stepVTotal = 0;
 
             for (var dz = -sizeVBy2; dz <= sizeVBy2; dz += stepV)
             {

@@ -7,10 +7,10 @@ public class Line2dRenderer
 {
     private Texture2D _emptyTexture;
 
-    public void Init(GraphicsDevice device)
+    public void Initialize(GraphicsDevice device)
     {
         _emptyTexture = new Texture2D(device, 1, 1, false, SurfaceFormat.Color);
-        _emptyTexture.SetData(new[] { Color.White });
+        _emptyTexture.SetData([Color.White]);
     }
 
     public void DrawLine(SpriteBatch batch, Color color, Vector2 point1, Vector2 point2, float layer = 0f)

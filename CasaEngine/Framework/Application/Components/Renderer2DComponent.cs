@@ -89,7 +89,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
     public override void Initialize()
     {
         base.Initialize();
-        _line2dRenderer.Init(GraphicsDevice);
+        _line2dRenderer.Initialize(GraphicsDevice);
     }
 
     protected override void Dispose(bool disposing)
