@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace CasaEngine.Core.Collections;
 
 /// <summary>
@@ -21,18 +19,18 @@ public class IndexedPriorityQueue<T> : IReadOnlyCollection<int>
     /// <summary>
     /// The elements indexed
     /// </summary>
-    protected List<T> _indexedElements = new();
+    protected List<T> _indexedElements = [];
 
     /// <summary>
     /// The comparer for the indexes
     /// </summary>
-    protected IComparer<T> IndexComparer;
+    protected readonly IComparer<T> IndexComparer;
 
     /// <summary>
     /// This list gives us the index where an element from the indexedPriority list is in the heapElements list. It allows
     /// to move through the priority queue in the 2 ways (from index to indexed element and viceversa)
     /// </summary>
-    protected List<int> ReversedIndexes = new();
+    protected readonly List<int> ReversedIndexes = new();
 
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the indexed priority queue

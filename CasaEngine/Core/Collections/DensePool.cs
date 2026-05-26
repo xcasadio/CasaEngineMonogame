@@ -2,7 +2,7 @@ namespace CasaEngine.Core.Collections;
 
 public sealed class DensePool<T> where T : new()
 {
-    private static int s_nextOwnerId;
+    private static int NextOwnerId;
 
     private readonly int _ownerId;
     private Slot[] _slots;
@@ -26,7 +26,7 @@ public sealed class DensePool<T> where T : new()
             throw new ArgumentOutOfRangeException(nameof(capacity), "DensePool: capacity must be greater than zero.");
         }
 
-        _ownerId = Interlocked.Increment(ref s_nextOwnerId);
+        _ownerId = Interlocked.Increment(ref NextOwnerId);
         _elements = new T[capacity];
         _slots = new Slot[capacity];
         _denseToSlot = new int[capacity];
