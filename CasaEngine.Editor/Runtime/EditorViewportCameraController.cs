@@ -176,7 +176,7 @@ internal sealed class EditorViewportCameraController
 
         if (receivesInput || isKeyboardFocused)
         {
-            HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing);
+            HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing || isKeyboardFocused);
         }
 
         _previousMouseState = mouseState;

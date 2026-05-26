@@ -65,6 +65,72 @@ public class LightComponentTests
         Assert.False(component.CastShadows);
     }
 
+    [Fact]
+    public void CoordinatesMutation_MarksComponentBoundsDirty()
+    {
+        var component = new LightComponent();
+        component.ClearBoundingBoxDirtyRecursive();
+
+        component.Coordinates.Position = new Vector3(1.0f, 2.0f, 3.0f);
+
+        Assert.True(component.IsBoundingBoxDirty);
+    }
+
+    [Fact]
+    public void CoordinatesMutation_IgnoresUnchangedValues()
+    {
+        var component = new LightComponent();
+        int positionChangedCount = 0;
+        component.Coordinates.PositionChanged += (_, _) => positionChangedCount++;
+        component.ClearBoundingBoxDirtyRecursive();
+
+        component.Coordinates.Position = component.Coordinates.Position;
+
+        Assert.False(component.IsBoundingBoxDirty);
+        Assert.Equal(0, positionChangedCount);
+    }
+
+    [Fact]
+    public void LoadedCoordinatesMutation_MarksComponentBoundsDirty()
+    {
+        var component = new LightComponent();
+        var node = new JObject
+        {
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "TestLight",
+            ["coordinates"] = new JObject
+            {
+                ["position"] = new JObject
+                {
+                    ["x"] = 0.0f,
+                    ["y"] = 0.0f,
+                    ["z"] = 0.0f,
+                },
+                ["scale"] = new JObject
+                {
+                    ["x"] = 1.0f,
+                    ["y"] = 1.0f,
+                    ["z"] = 1.0f,
+                },
+                ["rotation"] = new JObject
+                {
+                    ["x"] = 0.0f,
+                    ["y"] = 0.0f,
+                    ["z"] = 0.0f,
+                    ["w"] = 1.0f,
+                },
+            },
+            ["children_component"] = new JArray(),
+            ["light_type"] = LightType.Point.ToString(),
+        };
+        component.Load(node);
+        component.ClearBoundingBoxDirtyRecursive();
+
+        component.Coordinates.Position = new Vector3(4.0f, 5.0f, 6.0f);
+
+        Assert.True(component.IsBoundingBoxDirty);
+    }
+
     [Theory]
     [InlineData(LightType.Directional)]
     [InlineData(LightType.Point)]

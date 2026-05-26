@@ -85,6 +85,9 @@ public class NumericField : MGStackPanel
         _textBox = new MGTextBox(window)
         {
             MinWidth = 60,
+            HasStableTextFootprint = true,
+            AcceptsReturn = false,
+            AcceptsTab = false,
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
@@ -128,7 +131,7 @@ public class NumericField : MGStackPanel
         _value = clamped;
 
         _suppressTextChanged = true;
-        _textBox.SetText(text);
+        _textBox.SetText(text, SuppressLayoutChanged: true);
         _suppressTextChanged = false;
 
         if (notify && previousValue != _value)

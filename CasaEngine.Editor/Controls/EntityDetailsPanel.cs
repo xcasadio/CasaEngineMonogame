@@ -266,6 +266,9 @@ public sealed class EntityDetailsPanel
         _entityNameTextBox = new MGTextBox(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
+            HasStableTextFootprint = true,
+            AcceptsReturn = false,
+            AcceptsTab = false,
             PreferredWidth = 180,
         };
         _entityNameTextBox.TextChanged += OnEntityNameChanged;

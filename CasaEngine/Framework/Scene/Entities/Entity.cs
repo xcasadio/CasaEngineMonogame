@@ -355,6 +355,19 @@ public class Entity : ObjectBase
         return boundingBox;
     }
 
+    public void ClearBoundingBoxDirty()
+    {
+        RootComponent?.ClearBoundingBoxDirtyRecursive();
+
+        foreach (var component in Components)
+        {
+            if (component is SceneComponent sceneComponent)
+            {
+                sceneComponent.ClearBoundingBoxDirtyRecursive();
+            }
+        }
+    }
+
     public void ReActivate()
     {
         ToBeRemoved = false;

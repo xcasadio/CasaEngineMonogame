@@ -3,6 +3,7 @@ using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.Docking;
+using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.Runtime;
 using CasaEngine.EditorServices;
@@ -18,6 +19,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
+using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -31,7 +33,9 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.Docking.Controls;
 using MGUI.Core.UI.Docking.DockLayout;
+using MGUI.Core.Tooling;
 using MGUI.FontStashSharp;
+using MGUI.Shared.Input.Keyboard;
 using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
 using Microsoft.Xna.Framework;
@@ -147,6 +151,9 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _logsContent;
     private Action? _pendingProjectLauncherAction;
     private FrameCachedWindowInputSource _windowInputSource;
+    private string? _editorInputProbePath;
+    private int _editorInputProbeFrameIndex;
+    private string? _lastEditorInputProbeSignature;
     private readonly EditorSelection _editorSelection = EditorSelection.Current;
     private bool _isSynchronizingSelection;
     private readonly EditorAutomationOptions _automationOptions;
@@ -209,7 +216,10 @@ public class GameEditor : Game, IObservableUpdate
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _windowInputSource = new FrameCachedWindowInputSource(new MonoGameWindowInputSource(
             () => IsActive,
-            () => Window));
+            () => Window,
+            suppressKeyboardWhenInactive: false),
+            captureAutomatically: false);
+        InitializeEditorInputProbe();
         const string familyName = "JetBrainsMono";
         string ttfDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"Content\fonts\JetBrainsMono"));
         var backend = CasaMonoGameBackendBootstrap.Create(new CasaGameRenderHost<GameEditor>(this), _windowInputSource);
@@ -240,6 +250,7 @@ public class GameEditor : Game, IObservableUpdate
         backend.Runtime.TextEngine = _fontStashSharpEngine;
 
         _desktop = new MGDesktop(backend.Runtime);
+    _desktop.FocusedKeyboardHandlerChanged += OnDesktopFocusedKeyboardHandlerChanged;
         _desktop.LoadDefaultResources();
 
         // Register editor logger
@@ -3988,8 +3999,17 @@ public class GameEditor : Game, IObservableUpdate
 
     protected override void Update(GameTime gameTime)
     {
-        _windowInputSource.CaptureFrameInput();
-        PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+        using var performanceFrame = EditorPerformanceProbe.BeginFrame(nameof(Update));
+        if (EditorPerformanceProbe.IsEnabled)
+        {
+            EditorPerformanceProbe.SetContext(CreateEditorPerformanceContext());
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("Input.CaptureAndPreview"))
+        {
+            _windowInputSource.CaptureFrameInput();
+            PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
+        }
 
         // ── Keyboard shortcuts ────────────────────────────────────────
         var kb = _windowInputSource.GetKeyboardState();
@@ -4052,41 +4072,231 @@ public class GameEditor : Game, IObservableUpdate
             entityAssetEditorPanel.Update(gameTime);
         }
 
-        _contentBrowserPanel?.Update();
-
-        _desktop.Update();
-        editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
-        if (editorShellCapturesKeyboard)
+        using (EditorPerformanceProbe.BeginPhase("ContentBrowserPanel.Update"))
         {
-            _editorRuntime?.InputComponent.InputRouter?.ClearKeyboardFocus();
+            _contentBrowserPanel?.Update();
         }
 
-        ProcessPendingProjectLauncherAction();
-        _editorRuntime?.UpdateHost(gameTime);
-        _entitiesPanel?.Update();
-        _entityDetailsPanel?.Update();
-        _worldViewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard);
-        foreach (var materialViewportPanel in _materialViewportPanels.Values)
+        using (EditorPerformanceProbe.BeginPhase("MGUI.Desktop.Update"))
         {
-            materialViewportPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
+            _desktop.Update();
+            editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
+            if (editorShellCapturesKeyboard)
+            {
+                _editorRuntime?.InputComponent.InputRouter?.ClearKeyboardFocus();
+            }
         }
-        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
-        {
-            particleInspectorPanel.Update(gameTime);
-        }
-        foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
-        {
-            entityAssetEditorPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
-        }
-        RunAutomation(gameTime.TotalGameTime);
 
-        base.Update(gameTime);
+        using (EditorPerformanceProbe.BeginPhase("ProjectLauncher.PendingAction"))
+        {
+            ProcessPendingProjectLauncherAction();
+        }
 
-        EndUpdate?.Invoke(this, EventArgs.Empty);
+        using (EditorPerformanceProbe.BeginPhase("EditorRuntime.UpdateHost"))
+        {
+            _editorRuntime?.UpdateHost(gameTime);
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EntitiesPanel.Update"))
+        {
+            _entitiesPanel?.Update();
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EntityDetailsPanel.Update"))
+        {
+            _entityDetailsPanel?.Update();
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("WorldViewportPanel.UpdateInput"))
+        {
+            _worldViewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard);
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("MaterialViewportPanels.UpdateInput"))
+        {
+            foreach (var materialViewportPanel in _materialViewportPanels.Values)
+            {
+                materialViewportPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
+            }
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("ParticleInspectorPanels.Update"))
+        {
+            foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+            {
+                particleInspectorPanel.Update(gameTime);
+            }
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EntityAssetEditorPanels.UpdateInput"))
+        {
+            foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+            {
+                entityAssetEditorPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
+            }
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EditorInputProbe.Capture"))
+        {
+            CaptureEditorInputProbe(gameTime, kb, editorShellCapturesKeyboard);
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("Automation.Run"))
+        {
+            RunAutomation(gameTime.TotalGameTime);
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("Game.UpdateBase"))
+        {
+            base.Update(gameTime);
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EndUpdate"))
+        {
+            EndUpdate?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private bool IsEditorShellCapturingKeyboard()
         => _desktop?.ShouldCaptureGameplayInput() == true;
+
+    private void InitializeEditorInputProbe()
+    {
+        string? configuredPath = Environment.GetEnvironmentVariable("CASA_EDITOR_INPUT_PROBE");
+        if (string.IsNullOrWhiteSpace(configuredPath))
+        {
+            return;
+        }
+
+        _editorInputProbePath = string.Equals(configuredPath, "1", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(configuredPath, "true", StringComparison.OrdinalIgnoreCase)
+                ? Path.GetFullPath("editor-input-probe.txt")
+                : Path.GetFullPath(configuredPath);
+
+        string? directory = Path.GetDirectoryName(_editorInputProbePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        File.WriteAllText(_editorInputProbePath,
+            "CasaEngine Editor input probe" + Environment.NewLine +
+            $"Started: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}" + Environment.NewLine + Environment.NewLine);
+    }
+
+    private void OnDesktopFocusedKeyboardHandlerChanged(object? sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
+    {
+        if (string.IsNullOrWhiteSpace(_editorInputProbePath))
+        {
+            return;
+        }
+
+        var builder = new StringBuilder(512);
+        builder.AppendLine($"[InputFocus] frame={_editorInputProbeFrameIndex} previous={DescribeMguiKeyboardFocus(e.PreviousValue)}");
+        builder.AppendLine($"[InputFocus] frame={_editorInputProbeFrameIndex} current={DescribeMguiKeyboardFocus(e.NewValue)}");
+        builder.AppendLine();
+        File.AppendAllText(_editorInputProbePath, builder.ToString());
+    }
+
+    private void CaptureEditorInputProbe(GameTime gameTime, KeyboardState editorKeyboardState, bool editorShellCapturesKeyboard)
+    {
+        if (string.IsNullOrWhiteSpace(_editorInputProbePath))
+        {
+            return;
+        }
+
+        _editorInputProbeFrameIndex++;
+
+        KeyboardState rawKeyboardState = _windowInputSource.GetKeyboardState();
+        KeyboardState desktopKeyboardState = _desktop?.InputTracker.Keyboard.CurrentState ?? new KeyboardState();
+        MouseState rawMouseState = _windowInputSource.GetMouseState();
+        MouseState desktopMouseState = _desktop?.InputTracker.Mouse.CurrentState ?? new MouseState();
+        var inputComponent = _editorRuntime?.InputComponent;
+        var inputRouter = inputComponent?.InputRouter;
+        ViewInputContext viewContext = inputComponent?.CurrentViewInputContext ?? ViewInputContext.Empty;
+        string focusedKeyboardHandler = DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler);
+
+        string signature = string.Create(CultureInfo.InvariantCulture,
+            $"raw={FormatPressedKeys(rawKeyboardState)};desktop={FormatPressedKeys(desktopKeyboardState)};focus={focusedKeyboardHandler};shell={editorShellCapturesKeyboard};router={inputRouter?.KeyboardFocusViewId};target={inputRouter?.CurrentTargetViewId};reason={inputRouter?.CurrentRoutingState.Reason};view={viewContext.ViewId};viewkeys={FormatPressedKeys(viewContext.KeyboardState)}");
+        if (string.Equals(signature, _lastEditorInputProbeSignature, StringComparison.Ordinal)
+            && _editorInputProbeFrameIndex % 30 != 0)
+        {
+            return;
+        }
+
+        _lastEditorInputProbeSignature = signature;
+
+        var builder = new StringBuilder();
+        builder.AppendLine($"[Input] frame={_editorInputProbeFrameIndex} gameTime={gameTime.TotalGameTime:c} active={IsActive} shellCapturesKeyboard={editorShellCapturesKeyboard} desktopCapturesGameplay={_desktop?.ShouldCaptureGameplayInput()}");
+        builder.AppendLine($"  raw: keys={FormatPressedKeys(rawKeyboardState)} mouse=({rawMouseState.X},{rawMouseState.Y}) left={rawMouseState.LeftButton} wheel={rawMouseState.ScrollWheelValue}");
+        builder.AppendLine($"  editorShortcutSnapshot: keys={FormatPressedKeys(editorKeyboardState)}");
+        builder.AppendLine($"  mgui: keys={FormatPressedKeys(desktopKeyboardState)} mouse=({desktopMouseState.X},{desktopMouseState.Y}) left={desktopMouseState.LeftButton} wheel={desktopMouseState.ScrollWheelValue} focus={focusedKeyboardHandler}");
+        if (inputRouter == null)
+        {
+            builder.AppendLine("  router: <null>");
+        }
+        else
+        {
+            builder.AppendLine($"  router: target={inputRouter.CurrentTargetViewId} pointer={inputRouter.CurrentPointerViewId} keyboardFocus={inputRouter.KeyboardFocusViewId} modal={inputRouter.ModalViewId} uiCapture={inputRouter.UIPointerCaptureViewId} capture={inputRouter.GetCapturedViewId()} reason={inputRouter.CurrentRoutingState.Reason}");
+        }
+
+        builder.AppendLine($"  viewContext: view={viewContext.ViewId} frame={viewContext.FrameId} fallback={viewContext.IsFallback} reason={viewContext.RoutingState.Reason} keys={FormatPressedKeys(viewContext.KeyboardState)} mouse=({viewContext.MouseState.X},{viewContext.MouseState.Y}) local={viewContext.LocalPosition} screen={viewContext.ScreenPosition} bounds={viewContext.ScreenBounds}");
+        builder.AppendLine($"  selection: entity={DescribeEntity(_editorSelection.SelectedEntity)} component={DescribeComponent(_editorSelection.SelectedComponent)}");
+        builder.AppendLine();
+
+        File.AppendAllText(_editorInputProbePath, builder.ToString());
+    }
+
+    private static string FormatPressedKeys(KeyboardState state)
+    {
+        Keys[] keys = state.GetPressedKeys();
+        if (keys.Length == 0)
+        {
+            return "<none>";
+        }
+
+        var builder = new StringBuilder();
+        for (int i = 0; i < keys.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append('+');
+            }
+
+            builder.Append(keys[i]);
+        }
+
+        return builder.ToString();
+    }
+
+    private static string DescribeMguiKeyboardFocus(MGElement? focusedElement)
+    {
+        if (focusedElement == null)
+        {
+            return "<none>";
+        }
+
+        bool canReceiveKeyboardInput = focusedElement is IKeyboardHandlerHost keyboardHandlerHost
+            && keyboardHandlerHost.CanReceiveKeyboardInput();
+        string stableId;
+        try
+        {
+            stableId = UIToolingService.GetStableDiagnosticId(focusedElement);
+        }
+        catch
+        {
+            stableId = "<detached>";
+        }
+
+        return $"{focusedElement.GetType().Name}#{focusedElement.UniqueId} type={focusedElement.ElementType} name={focusedElement.Name ?? "<none>"} canHandle={focusedElement.CanHandleKeyboardInput} canReceive={canReceiveKeyboardInput} enabled={focusedElement.DerivedIsEnabled} visible={focusedElement.Visibility} path={stableId}";
+    }
+
+    private string CreateEditorPerformanceContext()
+    {
+        var router = _editorRuntime?.InputComponent.InputRouter;
+        var routingState = router?.CurrentRoutingState ?? InputRoutingState.Empty;
+        return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty}";
+    }
 
     private void OnAutomationWorldLoaded(object? sender, EventArgs e)
     {
@@ -5269,40 +5479,69 @@ public class GameEditor : Game, IObservableUpdate
 
     protected override void Draw(GameTime gameTime)
     {
-        _editorRuntime?.DrawHost(gameTime);
+        using var performanceFrame = EditorPerformanceProbe.BeginFrame(nameof(Draw));
+        if (EditorPerformanceProbe.IsEnabled)
+        {
+            EditorPerformanceProbe.SetContext(CreateEditorPerformanceContext());
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("EditorRuntime.DrawHost"))
+        {
+            _editorRuntime?.DrawHost(gameTime);
+        }
 
         // Refresh the viewport binding after the hosted runtime rendered its view.
-        _worldViewportPanel?.DrawViewport(gameTime);
-        foreach (var materialViewportPanel in _materialViewportPanels.Values)
+        using (EditorPerformanceProbe.BeginPhase("ViewportPanels.DrawViewport"))
         {
-            materialViewportPanel.DrawViewport(gameTime);
-        }
-        foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
-        {
-            entityAssetEditorPanel.DrawViewport(gameTime);
-        }
-        foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
-        {
-            materialInspectorPanel.RefreshPreviewAfterDraw();
-        }
-        foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
-        {
-            particleInspectorPanel.RefreshPreviewAfterDraw();
-        }
-        foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
-        {
-            animationClipPreviewPanel.RefreshPreviewAfterDraw();
-        }
-        foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
-        {
-            tileMapEditorPanel.DrawViewport(gameTime);
+            _worldViewportPanel?.DrawViewport(gameTime);
+            foreach (var materialViewportPanel in _materialViewportPanels.Values)
+            {
+                materialViewportPanel.DrawViewport(gameTime);
+            }
+            foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
+            {
+                entityAssetEditorPanel.DrawViewport(gameTime);
+            }
+            foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
+            {
+                tileMapEditorPanel.DrawViewport(gameTime);
+            }
         }
 
-        GraphicsDevice.Clear(Color.DimGray);
+        using (EditorPerformanceProbe.BeginPhase("InspectorPreviews.RefreshAfterDraw"))
+        {
+            foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
+            {
+                materialInspectorPanel.RefreshPreviewAfterDraw();
+            }
+            foreach (var particleInspectorPanel in _particleInspectorPanels.Values)
+            {
+                particleInspectorPanel.RefreshPreviewAfterDraw();
+            }
+            foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
+            {
+                animationClipPreviewPanel.RefreshPreviewAfterDraw();
+            }
+        }
 
-        _desktop?.Draw();
+        using (EditorPerformanceProbe.BeginPhase("GraphicsDevice.Clear"))
+        {
+            GraphicsDevice.Clear(Color.DimGray);
+        }
 
-        base.Draw(gameTime);
+        using (EditorPerformanceProbe.BeginPhase("MGUI.Desktop.Draw"))
+        {
+            _desktop?.Draw();
+            if (_desktop != null)
+            {
+                UIPerformanceProbe.FlushFrame(_desktop, nameof(GameEditor.Draw));
+            }
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("Game.DrawBase"))
+        {
+            base.Draw(gameTime);
+        }
     }
 
     /// <summary>

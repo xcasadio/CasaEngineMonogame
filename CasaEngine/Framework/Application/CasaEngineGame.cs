@@ -463,7 +463,7 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         try
         {
-            if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource frameCachedWindowInputSource)
+            if (RuntimeContext.WindowInputSource is FrameCachedWindowInputSource { CaptureAutomatically: true } frameCachedWindowInputSource)
             {
                 frameCachedWindowInputSource.CaptureFrameInput();
             }

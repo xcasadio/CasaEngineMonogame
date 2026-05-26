@@ -8,6 +8,7 @@ using MGUI.Shared.Input;
 using MGUI.Shared.Rendering;
 using MGUI.Shared.Text;
 using MGUI.Shared.Text.Engines;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.UI.Backend.MonoGame.Assets;
 
 namespace CasaEngine.Framework.UI.Backend.MonoGame;
@@ -98,6 +99,11 @@ public sealed class CasaDesktopRuntime : IMonoGameDesktopBackend
                 RawInputSource.GetMouseState(),
                 RawInputSource.GetKeyboardState());
             _previousUpdateTimeSpan = elapsed;
+            if (RawInputSource is IWindowTextInputSource textInputSource)
+            {
+                textInputSource.DrainTextInput(Input.Keyboard);
+            }
+
             Input.Update(UpdateArgs);
         };
 

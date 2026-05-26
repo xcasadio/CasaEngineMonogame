@@ -341,6 +341,7 @@ public sealed class World : ObjectBase
                 if (runtimePolicies.UsesDynamicSpatialMaintenance && IsBoundingBoxDirty(entity))
                 {
                     SpatialServices.WorldIndex.Move(entity, entity.GetBoundingBox());
+                    entity.ClearBoundingBoxDirty();
                 }
             }
         }
@@ -588,6 +589,7 @@ public sealed class World : ObjectBase
     private void AddInSpacePartitioning(Entity actor)
     {
         SpatialServices.WorldIndex.Add(actor, actor.GetBoundingBox());
+        actor.ClearBoundingBoxDirty();
     }
 
     public void Draw(in RenderFrame frame)

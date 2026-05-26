@@ -34,6 +34,11 @@ public class Coordinates
         get => _position;
         set
         {
+            if (_position == value)
+            {
+                return;
+            }
+
             _position = value;
             SetDirtyMatrix();
             PositionChanged?.Invoke(this, EventArgs.Empty);
@@ -45,6 +50,11 @@ public class Coordinates
         get => _orientation;
         set
         {
+            if (_orientation == value)
+            {
+                return;
+            }
+
             _orientation = value;
             SetDirtyMatrix();
             OrientationChanged?.Invoke(this, EventArgs.Empty);
@@ -56,6 +66,11 @@ public class Coordinates
         get => _scale;
         set
         {
+            if (_scale == value)
+            {
+                return;
+            }
+
             _scale = value;
             SetDirtyMatrix();
             ScaleChanged?.Invoke(this, EventArgs.Empty);

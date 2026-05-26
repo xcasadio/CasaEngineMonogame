@@ -1,5 +1,6 @@
 using CasaEngine.Engine.Input.Providers;
 using MGUI.Shared.Input;
+using MGUI.Shared.Input.Keyboard;
 using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Framework.Input;
@@ -7,18 +8,21 @@ namespace CasaEngine.Framework.Input;
 /// <summary>
 /// Caches one window input snapshot per frame so all consumers observe the same raw state.
 /// </summary>
-public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider
+public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource
 {
     private readonly IWindowInputSource _inner;
     private long _nextFrameId;
     private WindowInputSnapshot _currentSnapshot = WindowInputSnapshot.Empty;
     private bool _hasCurrentSnapshot;
 
-    public FrameCachedWindowInputSource(IWindowInputSource inner)
+    public FrameCachedWindowInputSource(IWindowInputSource inner, bool captureAutomatically = true)
     {
         ArgumentNullException.ThrowIfNull(inner);
         _inner = inner;
+        CaptureAutomatically = captureAutomatically;
     }
+
+    public bool CaptureAutomatically { get; }
 
     public long CurrentFrameId => _currentSnapshot.FrameId;
 
@@ -39,6 +43,14 @@ public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInput
     public KeyboardState GetKeyboardState() => GetSnapshot().KeyboardState;
 
     public MouseState GetMouseState() => GetSnapshot().MouseState;
+
+    public void DrainTextInput(IKeyboardTextInputSink sink)
+    {
+        if (_inner is IWindowTextInputSource textInputSource)
+        {
+            textInputSource.DrainTextInput(sink);
+        }
+    }
 
     KeyboardState IKeyboardStateProvider.GetState() => GetKeyboardState();
 

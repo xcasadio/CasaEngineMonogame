@@ -185,6 +185,8 @@ public class Gizmo : IDisposable
     private readonly Effect _selectionBoxEffect;
     private readonly List<VertexPositionColor> _selectionBoxVertices = new();
     private VertexPositionColor[] _selectionBoxVerticesCache = Array.Empty<VertexPositionColor>();
+    private BoundingBox _lastSelectionBounds;
+    private bool _hasLastSelectionBounds;
     private bool _selectionBoxDirty = true;
 
     private KeyboardState _currentKeys;
@@ -658,7 +660,11 @@ public class Gizmo : IDisposable
     public void RefreshPresentation()
     {
         bool wasSelectionDirty = _selectionBoxDirty;
-        _selectionBoxDirty = true;
+        bool boundsChanged = RefreshSelectionBoundsSnapshot();
+        if (boundsChanged)
+        {
+            _selectionBoxDirty = true;
+        }
 
         if (_selection.Count < 1)
         {
@@ -669,7 +675,7 @@ public class Gizmo : IDisposable
         // Recompute gizmo position whenever the selection or its bounds changed.
         // Restricting this to the inactive -> active transition leaves the gizmo
         // visually attached to the previous object after selection changes.
-        if (!_isActive || wasSelectionDirty)
+        if (!_isActive || wasSelectionDirty || boundsChanged)
         {
             SetGizmoPosition();
         }
@@ -725,6 +731,31 @@ public class Gizmo : IDisposable
 
         // -- Apply Highlight -- //
         ApplyColor(ActiveAxis, _highlightColor);
+    }
+
+    private bool RefreshSelectionBoundsSnapshot()
+    {
+        if (_selection.Count == 0)
+        {
+            bool hadSelectionBounds = _hasLastSelectionBounds;
+            _hasLastSelectionBounds = false;
+            return hadSelectionBounds;
+        }
+
+        BoundingBox selectionBounds = _selection[0].BoundingBox;
+        for (int index = 1; index < _selection.Count; index++)
+        {
+            selectionBounds = BoundingBox.CreateMerged(selectionBounds, _selection[index].BoundingBox);
+        }
+
+        if (_hasLastSelectionBounds && _lastSelectionBounds.Equals(selectionBounds))
+        {
+            return false;
+        }
+
+        _lastSelectionBounds = selectionBounds;
+        _hasLastSelectionBounds = true;
+        return true;
     }
 
     #region Input Helpers

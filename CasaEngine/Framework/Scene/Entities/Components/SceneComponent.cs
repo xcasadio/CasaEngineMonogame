@@ -17,7 +17,13 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 {
     private Matrix _lastWorldMatrix;
     private Matrix _lastWorldInvertTransposeMatrix;
-    public Coordinates Coordinates { get; protected set; }
+    private Coordinates _coordinates = null!;
+
+    public Coordinates Coordinates
+    {
+        get => _coordinates;
+        protected set => SetCoordinates(value);
+    }
 
     /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
     public SceneComponent? Parent { get; set; }
@@ -88,31 +94,19 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     public Vector3 LocalPosition
     {
         get => Coordinates.Position;
-        set
-        {
-            Coordinates.Position = value;
-            IsBoundingBoxDirty = true;
-        }
+        set => Coordinates.Position = value;
     }
 
     public Quaternion LocalOrientation
     {
         get => Coordinates.Orientation;
-        set
-        {
-            Coordinates.Orientation = value;
-            IsBoundingBoxDirty = true;
-        }
+        set => Coordinates.Orientation = value;
     }
 
     public Vector3 LocalScale
     {
         get => Coordinates.Scale;
-        set
-        {
-            Coordinates.Scale = value;
-            IsBoundingBoxDirty = true;
-        }
+        set => Coordinates.Scale = value;
     }
 
     public Vector3 Position
@@ -148,7 +142,6 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
             }
 
             LocalPosition = value - position;
-            IsBoundingBoxDirty = true;
         }
     }
 
@@ -185,7 +178,6 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
             }
 
             LocalOrientation = value * orientation;
-            IsBoundingBoxDirty = true;
         }
     }
 
@@ -222,7 +214,6 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
             }
 
             LocalScale = value / scale;
-            IsBoundingBoxDirty = true;
         }
     }
 
@@ -240,9 +231,47 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         return localBounds.Transform(WorldMatrixWithScale);
     }
 
+    public void ClearBoundingBoxDirtyRecursive()
+    {
+        IsBoundingBoxDirty = false;
+
+        for (int i = 0; i < Children.Count; i++)
+        {
+            Children[i].ClearBoundingBoxDirtyRecursive();
+        }
+    }
+
     protected SceneComponent()
     {
         Coordinates = new();
+    }
+
+    private void SetCoordinates(Coordinates coordinates)
+    {
+        ArgumentNullException.ThrowIfNull(coordinates);
+
+        if (ReferenceEquals(_coordinates, coordinates))
+        {
+            return;
+        }
+
+        if (_coordinates != null)
+        {
+            _coordinates.PositionChanged -= OnCoordinatesChanged;
+            _coordinates.OrientationChanged -= OnCoordinatesChanged;
+            _coordinates.ScaleChanged -= OnCoordinatesChanged;
+        }
+
+        _coordinates = coordinates;
+        _coordinates.PositionChanged += OnCoordinatesChanged;
+        _coordinates.OrientationChanged += OnCoordinatesChanged;
+        _coordinates.ScaleChanged += OnCoordinatesChanged;
+        IsBoundingBoxDirty = true;
+    }
+
+    private void OnCoordinatesChanged(object? sender, EventArgs e)
+    {
+        IsBoundingBoxDirty = true;
     }
 
     protected SceneComponent(SceneComponent other) : base(other)
