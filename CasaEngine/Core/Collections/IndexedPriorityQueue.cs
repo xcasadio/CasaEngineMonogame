@@ -11,7 +11,6 @@ namespace CasaEngine.Core.Collections;
 /// <typeparam name="T">The type of the indexed elements</typeparam>
 public class IndexedPriorityQueue<T> : PriorityQueue<int>
 {
-
     /// <summary>
     /// The elements indexed
     /// </summary>
@@ -27,8 +26,6 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     /// to move through the priority queue in the 2 ways (from index to indexed element and viceversa)
     /// </summary>
     protected List<int> ReversedIndexes;
-
-
 
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the indexed priority queue
@@ -72,8 +69,6 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
         IndexComparer = indexComparer;
     }
 
-
-
     /// <summary>
     /// Gets or sets the indexed elements list
     /// </summary>
@@ -91,8 +86,6 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
             }
         }
     }
-
-
 
     /// <summary>
     /// Push an object onto the PQ
@@ -182,8 +175,6 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
         return result;
     }
 
-
-
     /// <summary>
     /// Swaps two elements and the indexed elements
     /// </summary>
@@ -221,5 +212,4 @@ public class IndexedPriorityQueue<T> : PriorityQueue<int>
     {
         Update(ReversedIndexes[i]);
     }
-
 }

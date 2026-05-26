@@ -21,30 +21,6 @@ public static class MathUtils
         return System.Math.Abs(a - b) < Epsilon;
     }
 
-    //public static unsafe bool NearEqual(float a, float b)
-    //{
-    //    // Check if the numbers are really close -- needed
-    //    // when comparing numbers near zero.
-    //    if (IsZero(a - b))
-    //        return true;
-    //
-    //    // Original from Bruce Dawson: http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-    //    int aInt = *(int*)&a;
-    //    int bInt = *(int*)&b;
-    //
-    //    // Different signs means they do not match.
-    //    if ((aInt < 0) != (bInt < 0))
-    //        return false;
-    //
-    //    // Find the difference in ULPs.
-    //    int ulp = Math.Abs(aInt - bInt);
-    //
-    //    // Choose of maxUlp = 4
-    //    // according to http://code.google.com/p/googletest/source/browse/trunk/include/gtest/internal/gtest-internal.h
-    //    const int maxUlp = 4;
-    //    return (ulp <= maxUlp);
-    //}
-
     public static bool IsZero(float a)
     {
         return System.Math.Abs(a) < Epsilon;
@@ -65,7 +41,9 @@ public static class MathUtils
     {
         var result = new T[length];
         for (var i = 0; i < length; i++)
+        {
             result[i] = value;
+        }
 
         return result;
     }

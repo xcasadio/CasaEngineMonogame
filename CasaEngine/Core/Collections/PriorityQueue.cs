@@ -1,5 +1,3 @@
-using System.Collections;
-
 namespace CasaEngine.Core.Collections;
 
 /// <summary>
@@ -12,7 +10,6 @@ namespace CasaEngine.Core.Collections;
 /// <typeparam name="T">The type of the elements in the priority queue</typeparam>
 public class PriorityQueue<T> : IPriorityQueue<T>
 {
-
     /// <summary>
     /// The elements in the heap
     /// </summary>

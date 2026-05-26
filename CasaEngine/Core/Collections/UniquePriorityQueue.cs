@@ -12,7 +12,6 @@ namespace CasaEngine.Core.Collections;
 /// <typeparam name="T">The type of the elements in the priority queue</typeparam>
 public class UniquePriorityQueue<T> : PriorityQueue<T>
 {
-
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the unique priority queue
     /// </summary>
@@ -37,8 +36,6 @@ public class UniquePriorityQueue<T> : PriorityQueue<T>
     /// <param name="capacity">The initial capacity of the queue</param>
     public UniquePriorityQueue(IComparer<T> comparer, int capacity) : base(comparer, capacity) { }
 
-
-
     /// <summary>
     /// Enqueues an element in the priority queue if it wasn´t enqueued yet
     /// </summary>
@@ -57,5 +54,4 @@ public class UniquePriorityQueue<T> : PriorityQueue<T>
 
         return base.Enqueue(element);
     }
-
 }

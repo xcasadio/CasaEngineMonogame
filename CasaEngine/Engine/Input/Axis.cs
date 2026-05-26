@@ -1,9 +1,8 @@
-using CasaEngine.Core.Design;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Engine.Input;
 
-public class Axis : Disposable
+public class Axis
 {
     public enum AxisBehaviors
     {

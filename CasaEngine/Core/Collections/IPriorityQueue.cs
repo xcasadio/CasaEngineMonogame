@@ -25,5 +25,4 @@ public interface IPriorityQueue<T> : ICollection<T>, IList<T>, ICloneable
     /// </summary>
     /// <returns>The smallest object</returns>
     T Peek();
-
 }
