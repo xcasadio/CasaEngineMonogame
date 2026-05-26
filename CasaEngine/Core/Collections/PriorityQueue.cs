@@ -8,7 +8,10 @@ namespace CasaEngine.Core.Collections;
 /// (http://www.codeproject.com/csharp/PriorityQueue.asp)
 /// </remarks>
 /// <typeparam name="T">The type of the elements in the priority queue</typeparam>
+#pragma warning disable CS0618
+[Obsolete("Use System.Collections.Generic.PriorityQueue<TElement, TPriority> for regular priority queues. Use IndexedPriorityQueue<T> only when priorities must be mutable.")]
 public class PriorityQueue<T> : IPriorityQueue<T>
+#pragma warning restore CS0618
 {
     /// <summary>
     /// The elements in the heap
@@ -256,7 +259,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <returns></returns>
     IEnumerator IEnumerable.GetEnumerator()
     {
-        throw new NotSupportedException("You can´t iterate through the elements of a priority queue using a non-generic enumerator");
+        throw new NotSupportedException("You canï¿½t iterate through the elements of a priority queue using a non-generic enumerator");
     }
 
     /// <summary>
@@ -333,7 +336,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="item"></param>
     public void Insert(int index, T item)
     {
-        throw new NotSupportedException("You can´t insert an element directly in a priority queue. Use Enqueue instead");
+        throw new NotSupportedException("You canï¿½t insert an element directly in a priority queue. Use Enqueue instead");
     }
 
     /// <summary>
@@ -342,7 +345,7 @@ public class PriorityQueue<T> : IPriorityQueue<T>
     /// <param name="index"></param>
     public void RemoveAt(int index)
     {
-        throw new NotSupportedException("You can´t remove an element directly from a priority queue. Use Dequeue instead");
+        throw new NotSupportedException("You canï¿½t remove an element directly from a priority queue. Use Dequeue instead");
     }
 
     /// <summary>

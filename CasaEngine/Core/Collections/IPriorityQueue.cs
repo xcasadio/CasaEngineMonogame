@@ -4,6 +4,7 @@ namespace CasaEngine.Core.Collections;
 /// This interface defines the needed operations to create a PriorityQueue
 /// </summary>
 /// <typeparam name="T">The type of the elements in the priority queue</typeparam>
+[Obsolete("Use System.Collections.Generic.PriorityQueue<TElement, TPriority> for regular priority queues, or IndexedPriorityQueue<T> when priorities must be mutable.")]
 public interface IPriorityQueue<T> : ICollection<T>, IList<T>, ICloneable
 {
 

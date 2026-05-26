@@ -60,7 +60,9 @@ public sealed class CollectionBehaviorTests
         object extraInfo = new();
         Guid senderId = Guid.NewGuid();
         Guid receiverId = Guid.NewGuid();
+#pragma warning disable CS0618
         var queue = new UniquePriorityQueue<Message>(new MessageComparer(1000.0));
+#pragma warning restore CS0618
 
         int firstIndex = queue.Enqueue(new Message(senderId, receiverId, 7, 10000.0, extraInfo));
         int repeatedIndex = queue.Enqueue(new Message(senderId, receiverId, 7, 10500.0, extraInfo));
@@ -75,7 +77,9 @@ public sealed class CollectionBehaviorTests
     {
         Guid senderId = Guid.NewGuid();
         Guid receiverId = Guid.NewGuid();
+#pragma warning disable CS0618
         var queue = new UniquePriorityQueue<Message>(new MessageComparer(0.0));
+#pragma warning restore CS0618
         Message lateMessage = new(senderId, receiverId, 1, 20000.0, new object());
         Message earlyMessage = new(senderId, receiverId, 1, 10000.0, new object());
 

@@ -2,15 +2,18 @@ namespace CasaEngine.Core.Collections;
 
 /// <summary>
 /// This class represents a priority queue were any given element can only appear once in the queue.
-/// Repeated elements aren´t inserted in the queue.
+/// Repeated elements arenï¿½t inserted in the queue.
 /// </summary>
 /// <remarks>
-/// Another homebred implementation. This one is based on the idea of the STL set (don´t know if they implemented
-/// it this way, the lineal search doesn´t seem very effective as it renders the Enqueue operation O(n) instead
-/// of the original O(log n), but I don´t have a better idea at the moment and this one was pretty easy to do).
+/// Another homebred implementation. This one is based on the idea of the STL set (donï¿½t know if they implemented
+/// it this way, the lineal search doesnï¿½t seem very effective as it renders the Enqueue operation O(n) instead
+/// of the original O(log n), but I donï¿½t have a better idea at the moment and this one was pretty easy to do).
 /// </remarks>
 /// <typeparam name="T">The type of the elements in the priority queue</typeparam>
+#pragma warning disable CS0618
+[Obsolete("Use System.Collections.Generic.PriorityQueue<TElement, TPriority> plus an explicit deduplication policy when uniqueness is required.")]
 public class UniquePriorityQueue<T> : PriorityQueue<T>
+#pragma warning restore CS0618
 {
     /// <summary>
     /// Default constructor. Uses the default comparer for the elements in the unique priority queue
@@ -37,7 +40,7 @@ public class UniquePriorityQueue<T> : PriorityQueue<T>
     public UniquePriorityQueue(IComparer<T> comparer, int capacity) : base(comparer, capacity) { }
 
     /// <summary>
-    /// Enqueues an element in the priority queue if it wasn´t enqueued yet
+    /// Enqueues an element in the priority queue if it wasnï¿½t enqueued yet
     /// </summary>
     /// <param name="element">The element we want to add to the priority queue</param>
     /// <returns>The index where the element was enqueued or -1 if the element was repeated</returns>
