@@ -163,9 +163,9 @@ public static class JsonHelper
         return samplerState;
     }
 
-    public static Coordinates GetCoordinates(this JToken element)
+    public static LocalTransform GetLocalTransform(this JToken element)
     {
-        var c = new Coordinates();
+        var c = new LocalTransform();
         c.Position    = element["position"].GetVector3();
         c.Scale       = element["scale"].GetVector3();
         c.Orientation = element["rotation"].GetQuaternion();

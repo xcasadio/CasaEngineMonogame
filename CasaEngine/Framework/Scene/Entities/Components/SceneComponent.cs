@@ -17,12 +17,12 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 {
     private Matrix _lastWorldMatrix;
     private Matrix _lastWorldInvertTransposeMatrix;
-    private Coordinates _coordinates = null!;
+    private LocalTransform _localTransform = null!;
 
-    public Coordinates Coordinates
+    public LocalTransform LocalTransform
     {
-        get => _coordinates;
-        protected set => SetCoordinates(value);
+        get => _localTransform;
+        protected set => SetLocalTransform(value);
     }
 
     /** What we are currently attached to. If valid, RelativeLocation etc. are used relative to this object */
@@ -33,7 +33,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     {
         get
         {
-            var result = Coordinates.LocalMatrixWithScale;
+            var result = LocalTransform.LocalMatrixWithScale;
 
             if (Parent != null)
             {
@@ -53,7 +53,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     {
         get
         {
-            var result = Coordinates.LocalMatrixWithScale;
+            var result = LocalTransform.LocalMatrixWithScale;
 
             if (Parent != null)
             {
@@ -73,7 +73,7 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
     {
         get
         {
-            var result = Coordinates.LocalMatrixNoScale;
+            var result = LocalTransform.LocalMatrixNoScale;
 
             if (Parent != null)
             {
@@ -93,20 +93,20 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 
     public Vector3 LocalPosition
     {
-        get => Coordinates.Position;
-        set => Coordinates.Position = value;
+        get => LocalTransform.Position;
+        set => LocalTransform.Position = value;
     }
 
     public Quaternion LocalOrientation
     {
-        get => Coordinates.Orientation;
-        set => Coordinates.Orientation = value;
+        get => LocalTransform.Orientation;
+        set => LocalTransform.Orientation = value;
     }
 
     public Vector3 LocalScale
     {
-        get => Coordinates.Scale;
-        set => Coordinates.Scale = value;
+        get => LocalTransform.Scale;
+        set => LocalTransform.Scale = value;
     }
 
     public Vector3 Position
@@ -243,40 +243,40 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
 
     protected SceneComponent()
     {
-        Coordinates = new();
+        LocalTransform = new();
     }
 
-    private void SetCoordinates(Coordinates coordinates)
+    private void SetLocalTransform(LocalTransform localTransform)
     {
-        ArgumentNullException.ThrowIfNull(coordinates);
+        ArgumentNullException.ThrowIfNull(localTransform);
 
-        if (ReferenceEquals(_coordinates, coordinates))
+        if (ReferenceEquals(_localTransform, localTransform))
         {
             return;
         }
 
-        if (_coordinates != null)
+        if (_localTransform != null)
         {
-            _coordinates.PositionChanged -= OnCoordinatesChanged;
-            _coordinates.OrientationChanged -= OnCoordinatesChanged;
-            _coordinates.ScaleChanged -= OnCoordinatesChanged;
+            _localTransform.PositionChanged -= OnLocalTransformChanged;
+            _localTransform.OrientationChanged -= OnLocalTransformChanged;
+            _localTransform.ScaleChanged -= OnLocalTransformChanged;
         }
 
-        _coordinates = coordinates;
-        _coordinates.PositionChanged += OnCoordinatesChanged;
-        _coordinates.OrientationChanged += OnCoordinatesChanged;
-        _coordinates.ScaleChanged += OnCoordinatesChanged;
+        _localTransform = localTransform;
+        _localTransform.PositionChanged += OnLocalTransformChanged;
+        _localTransform.OrientationChanged += OnLocalTransformChanged;
+        _localTransform.ScaleChanged += OnLocalTransformChanged;
         IsBoundingBoxDirty = true;
     }
 
-    private void OnCoordinatesChanged(object sender, EventArgs e)
+    private void OnLocalTransformChanged(object sender, EventArgs e)
     {
         IsBoundingBoxDirty = true;
     }
 
     protected SceneComponent(SceneComponent other) : base(other)
     {
-        Coordinates = new(other.Coordinates);
+        LocalTransform = new(other.LocalTransform);
 
         foreach (var child in other.Children)
         {
@@ -387,16 +387,23 @@ public abstract class SceneComponent : EntityComponent, IBoundingBoxable, ICompo
         component.Detach();
     }
 
-    public void CopyCoordinatesFrom(Coordinates otherCoordinates)
+    public void CopyLocalTransformFrom(LocalTransform otherLocalTransform)
     {
-        Coordinates.CopyFrom(otherCoordinates);
+        LocalTransform.CopyFrom(otherLocalTransform);
         IsBoundingBoxDirty = true;
     }
 
     public override void Load(JObject element)
     {
         base.Load(element);
-        Coordinates = element["coordinates"].GetCoordinates();
+
+        var localTransformNodeName = "local_transform";
+        if (element.ContainsKey("coordinates"))
+        {
+            localTransformNodeName = "coordinates";
+        }
+
+        LocalTransform = element[localTransformNodeName].GetLocalTransform();
 
         foreach (var childComponentNode in element["children_component"])
         {

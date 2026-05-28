@@ -53,9 +53,9 @@ public class TransformComponentEditor : ComponentEditorBase
             return false;
         }
 
-        _positionEditor.Value = SceneComponent.Coordinates.Position;
-        _rotationEditor.Value = SceneComponent.Coordinates.Orientation.GetYawPitchRoll();
-        _scaleEditor.Value = SceneComponent.Coordinates.Scale;
+        _positionEditor.Value = SceneComponent.LocalTransform.Position;
+        _rotationEditor.Value = SceneComponent.LocalTransform.Orientation.GetYawPitchRoll();
+        _scaleEditor.Value = SceneComponent.LocalTransform.Scale;
         return true;
     }
 
@@ -67,34 +67,34 @@ public class TransformComponentEditor : ComponentEditorBase
 
         _positionEditor = new Vector3Editor(Window)
         {
-            Value = SceneComponent.Coordinates.Position,
+            Value = SceneComponent.LocalTransform.Position,
         };
         _positionEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Position"),
-            () => SceneComponent.Coordinates.Position,
-            nextValue => SceneComponent.Coordinates.Position = nextValue,
+            () => SceneComponent.LocalTransform.Position,
+            nextValue => SceneComponent.LocalTransform.Position = nextValue,
             value);
         rowIndex = AddPropertyRow(grid, rowIndex, "Position", _positionEditor);
 
         _rotationEditor = new Vector3Editor(Window)
         {
-            Value = SceneComponent.Coordinates.Orientation.GetYawPitchRoll(),
+            Value = SceneComponent.LocalTransform.Orientation.GetYawPitchRoll(),
         };
         _rotationEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Rotation"),
-            () => SceneComponent.Coordinates.Orientation,
-            nextValue => SceneComponent.Coordinates.Orientation = nextValue,
+            () => SceneComponent.LocalTransform.Orientation,
+            nextValue => SceneComponent.LocalTransform.Orientation = nextValue,
             Quaternion.CreateFromYawPitchRoll(value.X, value.Y, value.Z));
         rowIndex = AddPropertyRow(grid, rowIndex, "Rotation", _rotationEditor);
 
         _scaleEditor = new Vector3Editor(Window)
         {
-            Value = SceneComponent.Coordinates.Scale,
+            Value = SceneComponent.LocalTransform.Scale,
         };
         _scaleEditor.ValueChanged += (_, value) => ApplyValueChange(
             BuildComponentCommandDescription("Scale"),
-            () => SceneComponent.Coordinates.Scale,
-            nextValue => SceneComponent.Coordinates.Scale = nextValue,
+            () => SceneComponent.LocalTransform.Scale,
+            nextValue => SceneComponent.LocalTransform.Scale = nextValue,
             value);
         AddPropertyRow(grid, rowIndex, "Scale", _scaleEditor);
 

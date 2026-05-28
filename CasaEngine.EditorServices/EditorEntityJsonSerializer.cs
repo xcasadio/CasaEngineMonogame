@@ -26,7 +26,7 @@ internal static class EditorEntityJsonSerializer
         {
             if (entityReference.Entity.RootComponent != null)
             {
-                entityReference.InitialCoordinates.CopyFrom(entityReference.Entity.RootComponent.Coordinates);
+                entityReference.InitialLocalTransform.CopyFrom(entityReference.Entity.RootComponent.LocalTransform);
             }
 
             var entityReferenceNode = new JObject();
@@ -156,9 +156,9 @@ internal static class EditorEntityJsonSerializer
         {
             node.Add("name", entityReference.Name);
 
-            var coordinatesNode = new JObject();
-            entityReference.InitialCoordinates.Save(coordinatesNode);
-            node.Add("initial_coordinates", coordinatesNode);
+            var initialLocalTransformNode = new JObject();
+            entityReference.InitialLocalTransform.Save(initialLocalTransformNode);
+            node.Add("initial_local_transform", initialLocalTransformNode);
         }
     }
 
@@ -255,8 +255,8 @@ internal static class EditorEntityJsonSerializer
         SaveEntityComponent(component, node);
 
         var coordinatesNode = new JObject();
-        component.Coordinates.Save(coordinatesNode);
-        node.Add("coordinates", coordinatesNode);
+        component.LocalTransform.Save(coordinatesNode);
+        node.Add("local_transform", coordinatesNode);
 
         var childrenArray = new JArray();
         foreach (var child in component.Children)
@@ -448,9 +448,9 @@ internal static class EditorEntityJsonSerializer
     {
         SaveEntityComponent(component, node);
 
-        var coordinatesNode = new JObject();
-        component.Coordinates.Save(coordinatesNode);
-        node.Add("coordinates", coordinatesNode);
+        var localTransformNode = new JObject();
+        component.LocalTransform.Save(localTransformNode);
+        node.Add("local_transform", localTransformNode);
 
         var childrenArray = new JArray();
         foreach (var child in component.Children)

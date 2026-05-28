@@ -78,8 +78,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     if (world.Game.ExecutionPolicy.UseExternalViewManagement)
     {
-        Coordinates.PositionChanged += OnPositionChanged;
-        Coordinates.OrientationChanged += OnOrientationChanged;
+        LocalTransform.PositionChanged += OnPositionChanged;
+        LocalTransform.OrientationChanged += OnOrientationChanged;
         DestroyPhysicsObject();
     }
 
@@ -144,8 +144,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             //Set only the owner
             //Test how to set all the hierarchy, but how we do with several physic component ?
             //TODO bug : use localMatrix + Actor matrix to calculated the right position of the root component
-            Parent.Coordinates.Position = position;
-            Parent.Coordinates.Orientation = rotation;
+            Parent.LocalTransform.Position = position;
+            Parent.LocalTransform.Orientation = rotation;
         }
     }
 
@@ -238,7 +238,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
-        Parent.Coordinates.Position += _velocity * elapsedTime;
+        Parent.LocalTransform.Position += _velocity * elapsedTime;
         SyncTransformFromScene();
     }
 
@@ -278,8 +278,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     {
         if (Owner != null)
         {
-            Coordinates.PositionChanged -= OnPositionChanged;
-            Coordinates.OrientationChanged -= OnOrientationChanged;
+            LocalTransform.PositionChanged -= OnPositionChanged;
+            LocalTransform.OrientationChanged -= OnOrientationChanged;
         }
     }
 

@@ -232,7 +232,7 @@ public sealed class World : ObjectBase
         var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
         if (playerStartComponent != null)
         {
-            pawn.RootComponent?.Coordinates.CopyFrom(playerStartComponent.Coordinates);
+            pawn.RootComponent?.LocalTransform.CopyFrom(playerStartComponent.LocalTransform);
         }
 
         InternalAddEntities();

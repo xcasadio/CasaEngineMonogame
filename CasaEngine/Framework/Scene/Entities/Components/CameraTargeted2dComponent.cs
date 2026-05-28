@@ -40,7 +40,7 @@ public class CameraTargeted2dComponent : Camera3dComponent
             var viewport = Owner.World.Game.GraphicsDevice.Viewport;
             var screenWidth = Owner.World.Game.ScreenSizeWidth;
             var screenHeight = Owner.World.Game.ScreenSizeHeight;
-            var targetPosition = Target?.RootComponent?.Coordinates.Position ?? Vector3.Zero;
+            var targetPosition = Target?.RootComponent?.LocalTransform.Position ?? Vector3.Zero;
 
             Rectangle deadZone = new Rectangle(
                 (int)(_offset.X + screenWidth * (1.0f - DeadZoneRatio.X) / 2.0f),

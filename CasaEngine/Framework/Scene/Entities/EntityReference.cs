@@ -13,7 +13,7 @@ public class EntityReference
     //if id = Guid.Empty => no reference, the world save the entire entity
     public Guid AssetId { get; set; } = Guid.Empty;
     public string Name { get; set; }
-    public Coordinates InitialCoordinates { get; private set; } = new();
+    public LocalTransform InitialLocalTransform { get; private set; } = new();
     public Entity Entity { get; internal set; }
 
     public void Load(JObject element)
@@ -27,7 +27,14 @@ public class EntityReference
         else
         {
             Name = element["name"].GetString();
-            InitialCoordinates = element["initial_coordinates"].GetCoordinates();
+
+            var initialLocalTransformNodeName = "initial_local_transform";
+            if (element.ContainsKey("initial_coordinates"))
+            {
+                initialLocalTransformNodeName = "initial_coordinates";
+            }
+
+            InitialLocalTransform = element[initialLocalTransformNodeName].GetLocalTransform();
         }
     }
 
@@ -45,7 +52,7 @@ public class EntityReference
         else
         {
             Entity = assetContentManager.Load<Entity>(AssetId).Clone();
-            Entity.RootComponent?.CopyCoordinatesFrom(InitialCoordinates);
+            Entity.RootComponent?.CopyLocalTransformFrom(InitialLocalTransform);
         }
     }
 
@@ -58,7 +65,7 @@ public class EntityReference
 
         if (entityReference.Entity.RootComponent != null)
         {
-            entityReference.Entity.RootComponent.CopyCoordinatesFrom(entityReference.InitialCoordinates);
+            entityReference.Entity.RootComponent.CopyLocalTransformFrom(entityReference.InitialLocalTransform);
         }
 
         return entityReference;

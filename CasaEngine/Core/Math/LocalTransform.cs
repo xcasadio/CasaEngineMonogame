@@ -2,10 +2,7 @@
 
 namespace CasaEngine.Core.Math;
 
-/// <summary>
-/// Todo rename in LocalTransform
-/// </summary>
-public class Coordinates
+public class LocalTransform
 {
     private Vector3 _position;
     private Quaternion _orientation;
@@ -80,7 +77,7 @@ public class Coordinates
         }
     }
 
-    public Coordinates()
+    public LocalTransform()
     {
         _scale = Vector3.One;
         _orientation = Quaternion.Identity;
@@ -88,12 +85,12 @@ public class Coordinates
         SetDirtyMatrix();
     }
 
-    public Coordinates(Coordinates other)
+    public LocalTransform(LocalTransform other)
     {
         CopyFrom(other);
     }
 
-    public void CopyFrom(Coordinates other)
+    public void CopyFrom(LocalTransform other)
     {
         Scale = other._scale;
         Orientation = other._orientation;

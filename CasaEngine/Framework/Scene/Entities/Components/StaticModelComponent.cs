@@ -224,9 +224,9 @@ public class StaticModelComponent : PrimitiveComponent
         };
 
         // Apply the node's local transform.
-        sub.Coordinates.Position    = node.Position;
-        sub.Coordinates.Orientation = node.Rotation;
-        sub.Coordinates.Scale       = node.Scale;
+        sub.LocalTransform.Position    = node.Position;
+        sub.LocalTransform.Orientation = node.Rotation;
+        sub.LocalTransform.Scale       = node.Scale;
 
         // Wire up the mesh if this node has one.
         if (modelMesh != null)

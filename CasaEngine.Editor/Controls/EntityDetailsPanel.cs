@@ -569,9 +569,9 @@ public sealed class EntityDetailsPanel
         }
 
         _observedSceneComponent = sceneComponent;
-        sceneComponent.Coordinates.PositionChanged += OnSelectedSceneComponentTransformChanged;
-        sceneComponent.Coordinates.OrientationChanged += OnSelectedSceneComponentTransformChanged;
-        sceneComponent.Coordinates.ScaleChanged += OnSelectedSceneComponentTransformChanged;
+        sceneComponent.LocalTransform.PositionChanged += OnSelectedSceneComponentTransformChanged;
+        sceneComponent.LocalTransform.OrientationChanged += OnSelectedSceneComponentTransformChanged;
+        sceneComponent.LocalTransform.ScaleChanged += OnSelectedSceneComponentTransformChanged;
     }
 
     private void DetachSelectedComponentObservers()
@@ -581,9 +581,9 @@ public sealed class EntityDetailsPanel
             return;
         }
 
-        _observedSceneComponent.Coordinates.PositionChanged -= OnSelectedSceneComponentTransformChanged;
-        _observedSceneComponent.Coordinates.OrientationChanged -= OnSelectedSceneComponentTransformChanged;
-        _observedSceneComponent.Coordinates.ScaleChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent.LocalTransform.PositionChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent.LocalTransform.OrientationChanged -= OnSelectedSceneComponentTransformChanged;
+        _observedSceneComponent.LocalTransform.ScaleChanged -= OnSelectedSceneComponentTransformChanged;
         _observedSceneComponent = null;
     }
 

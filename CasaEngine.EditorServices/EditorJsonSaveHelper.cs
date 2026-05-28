@@ -142,18 +142,18 @@ internal static class EditorJsonSaveHelper
         jObject.Add("filter_mode", samplerState.FilterMode.ConvertToString());
     }
 
-    public static void Save(this Coordinates coordinates, JObject jObject)
+    public static void Save(this LocalTransform localTransform, JObject jObject)
     {
         var positionObject = new JObject();
-        coordinates.Position.Save(positionObject);
+        localTransform.Position.Save(positionObject);
         jObject.Add("position", positionObject);
 
         var scaleObject = new JObject();
-        coordinates.Scale.Save(scaleObject);
+        localTransform.Scale.Save(scaleObject);
         jObject.Add("scale", scaleObject);
 
         var rotationObject = new JObject();
-        coordinates.Orientation.Save(rotationObject);
+        localTransform.Orientation.Save(rotationObject);
         jObject.Add("rotation", rotationObject);
     }
 
