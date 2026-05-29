@@ -189,7 +189,7 @@ public class WorldViewportPanel : IDisposable
         _viewportHost.DragOver += OnViewportDragOver;
         _viewportHost.DragLeave += OnViewportDragLeave;
         _viewportHost.Drop += OnViewportDrop;
-        _viewportHost.MouseHandler.LMBPressedInside += (_, e) =>
+        _viewportHost.MouseHandler.PressedInside += (_, e) =>
         {
             ActivateThisView(captureInput: false);
         };
@@ -267,7 +267,7 @@ public class WorldViewportPanel : IDisposable
         return result;
     }
 
-    public void UpdateInput(GameTime gameTime, bool editorShellCapturesKeyboard = false)
+    public void UpdateInput(GameTime gameTime, bool editorShellCapturesKeyboard = false, bool editorShellBlocksPointer = false)
     {
         if (_viewportHost == null)
         {
@@ -289,7 +289,7 @@ public class WorldViewportPanel : IDisposable
             && (router?.KeyboardFocusViewId ?? ViewId.Empty) == _renderView.Id;
 
         var inputContext = _editorRuntime.InputComponent.CurrentViewInputContext;
-        bool receivesInput = !editorShellCapturesKeyboard
+        bool receivesInput = !editorShellBlocksPointer
             && !isBlockedByEditorModal
             && _renderView != null
             && IsPointerInputRoutedToView(inputContext, _renderView.Id);
@@ -303,6 +303,7 @@ public class WorldViewportPanel : IDisposable
                 inputContext,
                 receivesInput,
                 isKeyboardFocused,
+                !editorShellCapturesKeyboard,
                 ActivateThisView,
                 () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
         }
@@ -924,8 +925,7 @@ public class WorldViewportPanel : IDisposable
         // Only report real bounds when the element is in the visual tree (active dock tab).
         // When the viewport is a background tab, SetParent(null) detaches it but LayoutBounds
         // retains its last value → ScreenToView would incorrectly route input to this view.
-        _renderViewHost = new MguiViewportViewHost(renderView.Id,
-            () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
+        _renderViewHost = new MguiViewportViewHost(renderView.Id, GetViewportScreenBounds);
         _renderView.Host = _renderViewHost;
         AttachWorld(world);
         EnsureEditorOverlays(world);
@@ -941,6 +941,16 @@ public class WorldViewportPanel : IDisposable
         }
 
         _editorRuntime.InputComponent.InputRouter?.RegisterViewInput(_renderView.Id, _windowInputSource);
+    }
+
+    private Rectangle GetViewportScreenBounds()
+    {
+        if (_viewportHost?.Parent == null)
+        {
+            return Rectangle.Empty;
+        }
+
+        return _viewportHost.ConvertCoordinateSpace(CoordinateSpace.Layout, CoordinateSpace.Screen, _viewportHost.LayoutBounds);
     }
 
     private void ActivateThisView(bool captureInput)
@@ -976,7 +986,7 @@ public class WorldViewportPanel : IDisposable
 
         // Guard: treat detached (background-tab) viewport as if it has no bounds,
         // so clicks in the document area correctly release input / clear keyboard focus.
-        if (_viewportHost.Parent != null && _viewportHost.LayoutBounds.Contains(screenPosition))
+        if (GetViewportScreenBounds().Contains(screenPosition))
         {
             return;
         }

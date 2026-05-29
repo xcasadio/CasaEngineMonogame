@@ -100,6 +100,7 @@ internal sealed class EditorViewportCameraController
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
+        bool canHandleKeyboardInput,
         Action<bool> activateView,
         Action releaseInput)
     {
@@ -174,7 +175,7 @@ internal sealed class EditorViewportCameraController
             ApplyScroll(inputContext.VerticalWheelDelta);
         }
 
-        if (receivesInput || isKeyboardFocused)
+        if (canHandleKeyboardInput && (receivesInput || isKeyboardFocused))
         {
             HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing || isKeyboardFocused);
         }

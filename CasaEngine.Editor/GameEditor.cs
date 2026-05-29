@@ -4014,6 +4014,7 @@ public class GameEditor : Game, IObservableUpdate
         // ── Keyboard shortcuts ────────────────────────────────────────
         var kb = _windowInputSource.GetKeyboardState();
         bool editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
+        bool editorShellBlocksViewportPointer = IsEditorShellBlockingViewportPointer();
         if (!editorShellCapturesKeyboard)
         {
             bool ctrl = kb.IsKeyDown(Keys.LeftControl)
@@ -4081,6 +4082,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             _desktop.Update();
             editorShellCapturesKeyboard = IsEditorShellCapturingKeyboard();
+            editorShellBlocksViewportPointer = IsEditorShellBlockingViewportPointer();
             if (editorShellCapturesKeyboard)
             {
                 _editorRuntime?.InputComponent.InputRouter?.ClearKeyboardFocus();
@@ -4109,14 +4111,14 @@ public class GameEditor : Game, IObservableUpdate
 
         using (EditorPerformanceProbe.BeginPhase("WorldViewportPanel.UpdateInput"))
         {
-            _worldViewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard);
+            _worldViewportPanel?.UpdateInput(gameTime, editorShellCapturesKeyboard, editorShellBlocksViewportPointer);
         }
 
         using (EditorPerformanceProbe.BeginPhase("MaterialViewportPanels.UpdateInput"))
         {
             foreach (var materialViewportPanel in _materialViewportPanels.Values)
             {
-                materialViewportPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
+                materialViewportPanel.UpdateInput(gameTime, editorShellCapturesKeyboard, editorShellBlocksViewportPointer);
             }
         }
 
@@ -4132,7 +4134,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
             {
-                entityAssetEditorPanel.UpdateInput(gameTime, editorShellCapturesKeyboard);
+                entityAssetEditorPanel.UpdateInput(gameTime, editorShellCapturesKeyboard, editorShellBlocksViewportPointer);
             }
         }
 
@@ -4159,6 +4161,17 @@ public class GameEditor : Game, IObservableUpdate
 
     private bool IsEditorShellCapturingKeyboard()
         => _desktop?.ShouldCaptureGameplayInput() == true;
+
+    private bool IsEditorShellBlockingViewportPointer()
+    {
+        if (_desktop == null)
+        {
+            return false;
+        }
+
+        return _desktop.ActiveContextMenu != null
+            || (_desktop.OverlayHost?.IsModal == true && _desktop.OverlayHost.ActiveOverlay != null);
+    }
 
     private void InitializeEditorInputProbe()
     {
