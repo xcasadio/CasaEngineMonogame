@@ -634,7 +634,7 @@ Commit attendu :
 
 - `feat(animation2d): integrate composed runtime in animated sprite component`
 
-### ⏳ Tache 5.2 - Ajouter une validation de chargement d'assets existants
+### 🧪 Tache 5.2 - Ajouter une validation de chargement d'assets existants
 
 Objectif : verrouiller la compatibilite avec les projets existants.
 
@@ -652,6 +652,14 @@ Validation :
 
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore`.
 - Build principal.
+
+Validation realisee :
+
+- Ajout d'un test chargeant `Projects/RPGDemo/TileSets/swordman_stand_right.anim2d` depuis le workspace.
+- Le test verifie `animation_type`, `name`, `frames`, `duration`, `sprite_id` et l'adaptation composee a une seule partie.
+- Diagnostics VS Code propres sur le fichier de test touche.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore -v minimal` tente, mais bloque avant execution par les erreurs preexistantes de `CasaEngine.Tests` (`World.CutsceneDirector`, `World.CoroutineManager`, `LightComponent.Coordinates`, `DualQuaternion`, `PreviewEnvironmentFactory`).
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
 
 Commit attendu :
 

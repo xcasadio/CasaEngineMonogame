@@ -709,4 +709,50 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(new Vector3(-5f, -10f, 0f), bounds.Min);
         Assert.Equal(new Vector3(14f, 10f, 0.1f), bounds.Max);
     }
+
+    [Fact]
+    public void ExistingLegacyAnim2d_LoadsFramesAndAdaptsToOnePartComposition()
+    {
+        var assetPath = Path.Combine(
+            FindRepositoryRoot(),
+            "Projects",
+            "RPGDemo",
+            "TileSets",
+            "swordman_stand_right.anim2d");
+        var animation = new Animation2dData();
+
+        animation.Load(JObject.Parse(File.ReadAllText(assetPath)));
+        var composition = Animation2dCompositionAdapter.Create(animation);
+
+        Assert.Equal(AnimationType.Loop, animation.AnimationType);
+        Assert.Equal("swordman_stand_right", animation.Name);
+        Assert.Equal(2, animation.Frames.Count);
+        Assert.Equal(0.15f, animation.Frames[0].Duration);
+        Assert.Equal(0.15f, animation.Frames[1].Duration);
+        Assert.Empty(animation.Parts);
+        Assert.Single(composition.Parts);
+        Assert.Equal(Animation2dCompositionAdapter.LegacyPartId, composition.Parts[0].Id);
+        Assert.Equal(animation.Frames[0].SpriteId, composition.Parts[0].DefaultSpriteId);
+        Assert.Single(composition.Tracks);
+        Assert.Equal(2, composition.Tracks[0].SpriteKeyframes.Count);
+        Assert.Equal(animation.Frames[0].SpriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
+        Assert.Equal(animation.Frames[1].SpriteId, composition.Tracks[0].SpriteKeyframes[1].Value);
+        Assert.Equal(0.3f, composition.DurationSeconds, 5);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "CasaEngine.MonoGame.sln")))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new DirectoryNotFoundException("CasaEngine repository root was not found.");
+    }
 }
