@@ -842,7 +842,7 @@ Commit attendu :
 
 ## Phase 8 - Nettoyage et documentation
 
-### ⏳ Tache 8.1 - Documenter le format compose V1
+### ✅ Tache 8.1 - Documenter le format compose V1
 
 Objectif : fournir une reference sans melanger import specifique et runtime generique.
 
@@ -857,6 +857,12 @@ Validation :
 
 - Relecture du markdown.
 - Build principal si le repo l'exige pour la livraison.
+
+Validation realisee :
+
+- Documentation ajoutee dans `docs/animation2d-composed-format-v1.md`.
+- La doc couvre l'exemple legacy, l'exemple compose minimal, la compatibilite et les limites V1.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` confirme `build-ok`; avertissements existants non traites.
 
 Commit attendu :
 
