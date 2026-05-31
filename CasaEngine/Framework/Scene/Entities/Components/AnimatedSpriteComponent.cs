@@ -22,6 +22,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 {
     public event EventHandler<Guid> FrameChanged;
     public event EventHandler<Animation2d> AnimationFinished;
+    public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
     private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
     private readonly List<Guid> _animationAssetIds = new();
@@ -39,6 +40,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d CurrentAnimation { get; private set; }
     private Animation2dCompositionSampler _currentCompositionSampler;
+    public Animation2dCompositionRuntimeState CurrentCompositionState => _currentCompositionSampler?.RuntimeState;
     public List<Animation2d> Animations { get; } = new();
 
     [Browsable(false)]
@@ -91,7 +93,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
-        CurrentAnimation.FrameChanged += OnFrameChanged;
         AddOrUdpateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
     }
 
@@ -280,7 +281,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         if (!_compositionSamplerByAnimation.ContainsKey(animation2d))
         {
-            _compositionSamplerByAnimation.Add(animation2d, new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation2d.Animation2dData)));
+            var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation2d.Animation2dData));
+            sampler.AnimationEventTriggered += OnAnimationEventTriggered;
+            _compositionSamplerByAnimation.Add(animation2d, sampler);
         }
     }
 
@@ -451,6 +454,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private void OnAnimationFinished(object sender, EventArgs args)
     {
         AnimationFinished?.Invoke(this, (Animation2d)sender);
+    }
+
+    private void OnAnimationEventTriggered(AnimationEventAsset animationEvent)
+    {
+        AnimationEventTriggered?.Invoke(this, animationEvent);
     }
 
     public override void OnEnabledValueChange()

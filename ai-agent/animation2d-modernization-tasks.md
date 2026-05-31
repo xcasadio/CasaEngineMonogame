@@ -599,7 +599,7 @@ Commit attendu :
 
 ## Phase 5 - Integration composant et compatibilite projets
 
-### ⏳ Tache 5.1 - Integrer le runtime compose dans `AnimatedSpriteComponent`
+### 🧪 Tache 5.1 - Integrer le runtime compose dans `AnimatedSpriteComponent`
 
 Objectif : brancher le nouveau runtime sans casser l'API publique existante.
 
@@ -619,6 +619,16 @@ Validation :
 
 - Tests de composant si disponibles ou tests d'integration limites.
 - Build principal.
+
+Validation realisee :
+
+- `AnimatedSpriteComponent` cree et met a jour un `Animation2dCompositionSampler` pour chaque animation chargee ou ajoutee.
+- Les APIs existantes `SetCurrentAnimation`, `AddAnimation`, `FrameChanged` et `AnimationFinished` restent presentes et les appels demos/projets compilent.
+- Ajout de `CurrentCompositionState` et relai `AnimationEventTriggered` pour le chemin compose.
+- `GetCurrentFrameName()` et `GetCurrentFrameIndex()` restent des APIs legacy frame; la semantique multi-parties est exposee via `CurrentCompositionState`.
+- Correction d'une double inscription locale a `FrameChanged` lors du changement d'animation.
+- Diagnostics VS Code propres sur `AnimatedSpriteComponent`.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
 
 Commit attendu :
 
