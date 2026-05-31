@@ -117,7 +117,7 @@ Validation :
 - La commande cible peut etre bloquee par des erreurs de compilation existantes dans d'autres tests ; verifier que les nouveaux fichiers GameplayMode n'apparaissent pas dans les erreurs.
 - Committer uniquement les tests et le statut de cette tache.
 
-### ⏳ Tache 6 - Validation finale V1
+### ⚠️ Tache 6 - Validation finale V1
 
 Objectif : verifier que la V1 compile avec le workspace courant.
 
@@ -129,5 +129,7 @@ Actions :
 
 Validation :
 
-- Commande de validation finale documentee dans le message de fin.
-- Committer uniquement le statut final du plan si necessaire.
+- `dotnet build CasaEngine/CasaEngine.csproj --no-restore` : OK, avec avertissements existants.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter GameplayMode` : bloque pendant la compilation du projet de tests sur des erreurs existantes hors GameplayMode ; aucune erreur `GameplayMode` trouvee dans la sortie.
+- `dotnet build CasaEngine.MonoGame.sln --no-restore` : bloque dans `CasaEngine.RPGDemo` sur `SceneComponent.Coordinates`, hors scope V1.
+- Committer uniquement le statut final du plan.
