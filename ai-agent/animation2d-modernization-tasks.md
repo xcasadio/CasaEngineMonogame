@@ -170,7 +170,7 @@ Commit attendu :
 
 ## Phase 1 - Modele de donnees authoring compose
 
-### ⏳ Tache 1.1 - Ajouter les types de donnees pour parties composees
+### 🧪 Tache 1.1 - Ajouter les types de donnees pour parties composees
 
 Objectif : representer plusieurs sprites visibles dans une meme animation sans toucher au rendu.
 
@@ -191,6 +191,13 @@ Validation :
 - Tests unitaires de chargement legacy.
 - Tests unitaires de construction d'un asset compose minimal.
 - Build principal.
+
+Validation realisee :
+
+- Ajout des tests `Animation2dAuthoringDataTests` pour le chargement legacy et la construction d'une composition a deux parties.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2dAuthoringDataTests --no-restore -v minimal` est bloque avant execution par des erreurs preexistantes du projet de tests (`World.CutsceneDirector`, `World.CoroutineManager`, `LightComponent.Coordinates`, `DualQuaternion`).
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
 
 Commit attendu :
 

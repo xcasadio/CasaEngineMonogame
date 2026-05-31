@@ -5,6 +5,7 @@ namespace CasaEngine.Framework.Assets.Animations;
 public class Animation2dData : AnimationData
 {
     public List<FrameData> Frames { get; } = new();
+    public List<Animation2dPartData> Parts { get; } = new();
 
     public override void Load(JObject element)
     {
