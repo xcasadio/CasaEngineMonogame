@@ -89,7 +89,7 @@ Resultat 2026-05-31 : restore OK, build OK avec avertissements existants. Assemb
 
 Commit requis : oui, un commit dedie avec les changements de packages et le statut de cette tache.
 
-### ⏳ Tache 2 - Creer le noyau runtime dialogue sans Yarn
+### 🧪 Tache 2 - Creer le noyau runtime dialogue sans Yarn
 
 Objectif : creer une API de dialogue testable sans UI et sans dependance Yarn directe.
 
@@ -112,6 +112,8 @@ Validation :
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue`
 - Si le filtre ne trouve aucun test, lancer les tests ajoutes par nom complet.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : noyau runtime ajoute et `dotnet build CasaEngine/CasaEngine.csproj --no-restore` OK. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue` est bloque avant execution par des erreurs de compilation existantes hors dialogue (`DualQuaternion`, `Pool<>`, `LightComponent.Coordinates`).
 
 Commit requis : oui, un commit dedie avec code, tests et statut.
 
