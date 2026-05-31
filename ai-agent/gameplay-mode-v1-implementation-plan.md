@@ -51,7 +51,7 @@ Validation :
 - Verification du diff cible sur ce fichier.
 - Committer uniquement ce plan.
 
-### ⏳ Tache 2 - Contrats runtime GameplayMode
+### ✅ Tache 2 - Contrats runtime GameplayMode
 
 Objectif : ajouter les types runtime purs de la V1.
 
