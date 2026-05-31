@@ -40,6 +40,7 @@ public sealed class World : ObjectBase
     public GameplayProxy GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
+    public GameplayModeRunner GameplayModeRunner { get; } = new();
     public int UpdateSequence { get; private set; }
     public WorldSpatialServices SpatialServices { get; }
     public WorldEnvironmentSettings EnvironmentSettings { get; } = new();
@@ -80,6 +81,7 @@ public sealed class World : ObjectBase
         foreach (var entity in _entities)
             entity.GameplayProxy?.OnEndPlay(this);
 
+        GameplayModeRunner.Stop();
         RuntimeSystems.Clear();
 
         foreach (var worldUiComponent in _worldUiComponents)
@@ -118,6 +120,13 @@ public sealed class World : ObjectBase
     public void RemoveEntity(Entity entity)
     {
         entity.Destroy();
+    }
+
+    public void SetGameplayMode(GameplayMode mode)
+    {
+        ArgumentNullException.ThrowIfNull(mode);
+
+        GameplayModeRunner.Start(mode, new GameplayContext(this));
     }
 
     public void ClearEntities(bool clearReferences = false)
@@ -302,6 +311,7 @@ public sealed class World : ObjectBase
         UpdateSequence++;
 
         float elapsedTime = frameTime.DeltaTime;
+    GameplayModeRunner.Update(frameTime);
         GameMode?.Tick(elapsedTime);
 
         if (GameMode?.HasMatchEnded() ?? false)

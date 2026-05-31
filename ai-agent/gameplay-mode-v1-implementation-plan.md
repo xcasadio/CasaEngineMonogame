@@ -84,7 +84,7 @@ Validation :
 - Test cible du runner si deja present, sinon build cible.
 - Committer uniquement le runner et le statut de cette tache.
 
-### ⏳ Tache 4 - Integration World minimale
+### ✅ Tache 4 - Integration World minimale
 
 Objectif : brancher le runner dans `World` sans casser l'ancien `GameMode`.
 
