@@ -276,7 +276,7 @@ Validation :
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter GameplayMode` : bloque sur des erreurs existantes hors GameplayMode dans le projet de tests.
 - Committer uniquement les tests et le statut de la tache.
 
-### ⏳ Tache 15 - Validation finale V2
+### ⚠️ Tache 15 - Validation finale V2
 
 Objectif : verifier que la V2 compile au niveau moteur et que les blocages restants sont hors scope.
 
@@ -288,4 +288,7 @@ Actions :
 
 Validation :
 
+- `dotnet build CasaEngine/CasaEngine.csproj --no-restore` : OK, avec 26 avertissements existants.
+- `get_errors` sur `CasaEngine/Framework/Gameplay`, `World.cs` et les tests Gameplay : OK sur les fichiers retournes.
+- `dotnet build CasaEngine.MonoGame.sln --no-restore` : bloque dans `CasaEngine.RPGDemo` sur `SceneComponent.Coordinates`, hors scope GameplayMode.
 - Committer uniquement le statut final du plan.
