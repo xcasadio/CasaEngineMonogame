@@ -43,6 +43,7 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(UIScreenAsset), new AssetLoader<UIScreenAsset>());
         assetContentManager.RegisterAssetLoader(typeof(Scene.World.World), new AssetLoader<Scene.World.World>());
         assetContentManager.RegisterAssetLoader(typeof(PlayerStartupSettings), new AssetLoader<PlayerStartupSettings>());
+        assetContentManager.RegisterAssetLoader(typeof(GameplayModeAsset), new AssetLoader<GameplayModeAsset>());
         assetContentManager.RegisterAssetLoader(typeof(EnvironmentAsset), new EnvironmentAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());

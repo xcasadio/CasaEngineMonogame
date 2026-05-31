@@ -240,7 +240,7 @@ Validation :
 - Build cible du projet `CasaEngine`.
 - Committer uniquement les evenements et le statut de la tache.
 
-### ⏳ Tache 13 - Asset de configuration GameplayMode
+### ✅ Tache 13 - Asset de configuration GameplayMode
 
 Objectif : fournir un asset concret capable de creer un mode runtime sans ressusciter l'ancien `GameMode`.
 

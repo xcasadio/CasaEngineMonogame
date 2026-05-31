@@ -40,6 +40,7 @@ public sealed class World : ObjectBase
     public GameplayProxy GameplayProxy { get; private set; }
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
+    public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
     public GameplayModeRunner GameplayModeRunner { get; } = new();
     public GameplayEventBus GameplayEvents => GameplayModeRunner.Events;
     public int UpdateSequence { get; private set; }
@@ -277,11 +278,29 @@ public sealed class World : ObjectBase
             return;
         }
 
+        StartGameplayModeAsset();
+
         GameplayProxy?.OnBeginPlay(this);
 
         foreach (var entity in _entities)
         {
             entity.GameplayProxy?.OnBeginPlay(this);
+        }
+    }
+
+    private void StartGameplayModeAsset()
+    {
+        if (GameplayModeAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        var gameplayModeAsset = Game.AssetContentManager.Load<GameplayModeAsset>(GameplayModeAssetId);
+        GameplayMode mode = gameplayModeAsset.CreateMode();
+
+        if (mode != null)
+        {
+            SetGameplayMode(mode);
         }
     }
 
@@ -696,6 +715,11 @@ public sealed class World : ObjectBase
         if (element.ContainsKey("player_startup_settings_asset_id"))
         {
             PlayerStartupSettingsAssetId = element["player_startup_settings_asset_id"].GetGuid();
+        }
+
+        if (element.ContainsKey("gameplay_mode_asset_id"))
+        {
+            GameplayModeAssetId = element["gameplay_mode_asset_id"].GetGuid();
         }
 
         if (element["environment"] is JObject environmentNode)
