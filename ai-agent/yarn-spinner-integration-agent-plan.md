@@ -174,7 +174,7 @@ Resultat 2026-05-31 : `UIOverlayDemo` branche `DialogueService` + `DialogueScree
 
 Commit requis : oui, un commit dedie avec demo et statut.
 
-### ⏳ Tache 5 - Ajouter les contrats de presentation dialogue
+### 🧪 Tache 5 - Ajouter les contrats de presentation dialogue
 
 Objectif : separer durablement runtime et UI avant de brancher Yarn.
 
@@ -194,6 +194,8 @@ Validation :
 
 - Tests dialogue ajoutes.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : `IDialoguePresenter` et evenement `PresentationChanged` ajoutes; `DialogueScreen` consomme le contrat au lieu de `DialogueService`. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. Tests dialogue ajoutes, mais `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue` reste bloque avant execution par des erreurs de compilation existantes hors dialogue (`Pool<>`, `DualQuaternion`, et autres erreurs deja presentes dans le projet de tests).
 
 Commit requis : oui, un commit dedie avec contrats et statut.
 

@@ -1,3 +1,4 @@
+using CasaEngine.Framework.Dialogue.Presentation;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.UI;
 using MGUI.Core.UI;
@@ -10,23 +11,23 @@ namespace CasaEngine.Framework.Dialogue.UI;
 
 public sealed class DialogueScreen : UIScreenBase
 {
-    private readonly DialogueService _dialogueService;
+    private readonly IDialoguePresenter _presenter;
     private readonly Action _requestClose;
     private MGWindow _window;
     private MGTextBlock _lineText;
     private bool _subscribed;
 
-    public DialogueScreen(DialogueService dialogueService)
-        : this(dialogueService, static () => { })
+    public DialogueScreen(IDialoguePresenter presenter)
+        : this(presenter, static () => { })
     {
     }
 
-    public DialogueScreen(DialogueService dialogueService, Action requestClose)
+    public DialogueScreen(IDialoguePresenter presenter, Action requestClose)
     {
-        ArgumentNullException.ThrowIfNull(dialogueService);
+        ArgumentNullException.ThrowIfNull(presenter);
         ArgumentNullException.ThrowIfNull(requestClose);
 
-        _dialogueService = dialogueService;
+        _presenter = presenter;
         _requestClose = requestClose;
     }
 
@@ -80,7 +81,7 @@ public sealed class DialogueScreen : UIScreenBase
     {
         if (!_subscribed)
         {
-            _dialogueService.StateChanged += OnDialogueStateChanged;
+            _presenter.PresentationChanged += OnDialoguePresentationChanged;
             _subscribed = true;
         }
 
@@ -91,7 +92,7 @@ public sealed class DialogueScreen : UIScreenBase
     {
         if (_subscribed)
         {
-            _dialogueService.StateChanged -= OnDialogueStateChanged;
+            _presenter.PresentationChanged -= OnDialoguePresentationChanged;
             _subscribed = false;
         }
     }
@@ -104,7 +105,7 @@ public sealed class DialogueScreen : UIScreenBase
         }
     }
 
-    private void OnDialogueStateChanged(object sender, DialogueStateChangedEventArgs args)
+    private void OnDialoguePresentationChanged(object sender, DialoguePresentationChangedEventArgs args)
     {
         RefreshLine();
     }
@@ -116,7 +117,7 @@ public sealed class DialogueScreen : UIScreenBase
             return;
         }
 
-        DialogueLine line = _dialogueService.CurrentLine;
+        DialogueLine line = _presenter.CurrentLine;
         string text = line.Speaker.Length == 0 ? line.Text : $"[b]{line.Speaker}[/b]\n{line.Text}";
         _lineText.SetText(text, MGTextInvalidationMode.ReflowLocal);
     }

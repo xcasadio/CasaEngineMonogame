@@ -46,6 +46,19 @@ public sealed class DialogueServiceTests
     }
 
     [Fact]
+    public void ShowLine_UpdatesCurrentLineWhenAlreadyOpen()
+    {
+        var service = new DialogueService();
+        service.TryOpen("First");
+
+        bool shown = service.ShowLine(new DialogueLine("Second"));
+
+        Assert.True(shown);
+        Assert.True(service.IsOpen);
+        Assert.Equal("Second", service.CurrentLine.Text);
+    }
+
+    [Fact]
     public void Close_IsIdempotentWhenAlreadyClosed()
     {
         var service = new DialogueService();
@@ -79,5 +92,19 @@ public sealed class DialogueServiceTests
         Assert.Equal(DialogueRuntimeState.Open, lastArgs.PreviousState);
         Assert.Equal(DialogueRuntimeState.Closed, lastArgs.CurrentState);
         Assert.True(lastArgs.CurrentLine.IsEmpty);
+    }
+
+    [Fact]
+    public void PresentationChanged_RaisesForLineUpdates()
+    {
+        var service = new DialogueService();
+        int eventCount = 0;
+        service.PresentationChanged += (_, _) => eventCount++;
+
+        service.ShowLine(new DialogueLine("First"));
+        service.ShowLine(new DialogueLine("Second"));
+        service.Close();
+
+        Assert.Equal(3, eventCount);
     }
 }
