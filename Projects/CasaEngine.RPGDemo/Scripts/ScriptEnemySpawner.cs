@@ -1,5 +1,4 @@
 using System;
-using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
@@ -37,8 +36,8 @@ public class ScriptEnemySpawner : GameplayProxy
         _world = world;
         var spawnEntity = world.SpawnEntity<Pawn>(Guid.Parse("afd86c38-7a42-40e6-92b8-58b0d2def9d7")); //"Entities\\character_octopus");
 
-        spawnEntity.RootComponent.Coordinates.Position = Owner.RootComponent.Position;
-        spawnEntity.RootComponent.Coordinates.Orientation = Owner.RootComponent.Orientation;
+        spawnEntity.RootComponent.LocalTransform.Position = Owner.RootComponent.Position;
+        spawnEntity.RootComponent.LocalTransform.Orientation = Owner.RootComponent.Orientation;
     }
 
     public override void OnEndPlay(World world)
