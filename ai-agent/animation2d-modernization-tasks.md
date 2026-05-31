@@ -742,7 +742,7 @@ Commit attendu :
 
 ## Phase 7 - Editeur minimal apres runtime
 
-### ⏳ Tache 7.1 - Identifier la surface editeur reelle
+### ✅ Tache 7.1 - Identifier la surface editeur reelle
 
 Objectif : ne pas construire l'editeur sur des classes fantomes.
 
@@ -760,6 +760,14 @@ Criteres d'acceptation :
 Validation :
 
 - Build principal si code modifie.
+
+Validation realisee :
+
+- Recherche effectuee dans `CasaEngine.Editor` et `CasaEngine.EditorServices`.
+- Surface concrete documentee dans `ai-agent/animation2d-editor-surface-notes.md`.
+- Point d'entree minimal retenu : nouveau panel MGUI `Animation2dAssetInspectorPanel` branche depuis `GameEditor` sur les fichiers `.anim2d`.
+- Aucune classe conceptuelle `GameEditorAnimation2d` n'a ete traitee comme existante.
+- Aucun code modifie dans cette tache; build non relance pour cette tache documentaire.
 
 Commit attendu :
 
