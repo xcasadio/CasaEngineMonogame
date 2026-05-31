@@ -146,7 +146,7 @@ Resultat 2026-05-31 : `DialogueScreen` modal ajoute, branche sur `DialogueServic
 
 Commit requis : oui, un commit dedie avec UI minimale et statut.
 
-### ⏳ Tache 4 - Creer une demo manuelle ouvrir/fermer
+### 🧪 Tache 4 - Creer une demo manuelle ouvrir/fermer
 
 Objectif : prouver que `ScreenStack`, modalite UI et service dialogue fonctionnent ensemble.
 
@@ -169,6 +169,8 @@ Validation :
 
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
 - Lancer la demo si possible et noter le resultat dans ce fichier avant commit.
+
+Resultat 2026-05-31 : `UIOverlayDemo` branche `DialogueService` + `DialogueScreen`. Le dialogue s'ouvre via le bouton HUD `Open Dialogue` ou la touche de test `D`, affiche `Bonjour depuis CasaEngine.`, puis se ferme via `D`, le bouton `Close` ou la fermeture de fenetre. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. Lancement automatise tente avec capture, commande sans sortie console mais aucune capture n'a ete produite; verification interactive de la fenetre reste a faire.
 
 Commit requis : oui, un commit dedie avec demo et statut.
 

@@ -64,6 +64,14 @@ public sealed class DialogueScreen : UIScreenBase
         };
         stack.TryAddChild(_lineText);
 
+        var closeButton = new MGButton(_window, _ => _requestClose())
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+        };
+        closeButton.SetContent("Close");
+        closeButton.Margin = new Thickness(0, 8, 0, 0);
+        stack.TryAddChild(closeButton);
+
         _window.SetContent(stack);
         RefreshLine();
     }

@@ -1,4 +1,6 @@
 using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Dialogue.Runtime;
+using CasaEngine.Framework.Dialogue.UI;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -6,6 +8,7 @@ using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.UI;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -32,9 +35,12 @@ public class UIOverlayDemo : Demo
     private CasaEngineGame? _game;
     private HudScreen?       _hudScreen;
     private PauseMenuScreen? _pauseScreen;
+    private DialogueService? _dialogueService;
+    private DialogueScreen?  _dialogueScreen;
+    private KeyboardState    _previousKeyboard;
 
-    public override string Title => "MGUI UI Overlay Demo (HUD + Modal Pause Menu)";
-    public override string Description => "Demonstrates the MGUI per-view UI overlay system: a persistent HUD panel with an elapsed-time counter, and a modal pause menu that blocks input to lower layers.";
+    public override string Title => "MGUI UI Overlay Demo (HUD + Modal Screens)";
+    public override string Description => "Demonstrates the MGUI per-view UI overlay system: a persistent HUD panel, modal pause menu, and modal dialogue screen. Press D in this demo to toggle the dialogue test line.";
 
     // ---- Demo lifecycle ----
 
@@ -91,14 +97,25 @@ public class UIOverlayDemo : Demo
         var uiView = GetUIView();
         if (uiView == null) return;
 
-        _pauseScreen = new PauseMenuScreen(OnResume);
-        _hudScreen   = new HudScreen(OnOpenPauseMenu);
+        _dialogueService = new DialogueService();
+        _dialogueScreen  = new DialogueScreen(_dialogueService, CloseDialogue);
+        _pauseScreen     = new PauseMenuScreen(OnResume);
+        _hudScreen       = new HudScreen(OnOpenPauseMenu, OpenDialogue);
 
         // Push the HUD as the base layer — it will persist until Clean() is called.
         uiView.PushScreen(_hudScreen);
     }
 
-    public override void Update(GameTime gameTime) { }
+    public override void Update(GameTime gameTime)
+    {
+        KeyboardState keyboard = _game?.IsActive == true ? Keyboard.GetState() : new KeyboardState();
+        if (keyboard.IsKeyDown(Keys.D) && !_previousKeyboard.IsKeyDown(Keys.D))
+        {
+            ToggleDialogue();
+        }
+
+        _previousKeyboard = keyboard;
+    }
 
     public override void OnScreenResized(CasaEngineGame game, int width, int height)
     {
@@ -115,6 +132,11 @@ public class UIOverlayDemo : Demo
                 uiView.RemoveScreen(_pauseScreen);
             }
 
+            if (_dialogueScreen != null)
+            {
+                uiView.RemoveScreen(_dialogueScreen);
+            }
+
             if (_hudScreen != null)
             {
                 uiView.RemoveScreen(_hudScreen);
@@ -123,6 +145,8 @@ public class UIOverlayDemo : Demo
 
         _hudScreen   = null;
         _pauseScreen = null;
+        _dialogueScreen  = null;
+        _dialogueService = null;
         _game        = null;
     }
 
@@ -137,6 +161,50 @@ public class UIOverlayDemo : Demo
     private void OnResume()
     {
         GetUIView()?.PopScreen();
+    }
+
+    private void ToggleDialogue()
+    {
+        if (_dialogueService?.IsOpen == true)
+        {
+            CloseDialogue();
+        }
+        else
+        {
+            OpenDialogue();
+        }
+    }
+
+    private void OpenDialogue()
+    {
+        if (_dialogueService == null || _dialogueScreen == null)
+        {
+            return;
+        }
+
+        var uiView = GetUIView();
+        if (uiView == null)
+        {
+            return;
+        }
+
+        if (!_dialogueService.IsOpen)
+        {
+            _dialogueService.TryOpen("Bonjour depuis CasaEngine.");
+        }
+
+        uiView.RemoveScreen(_dialogueScreen);
+        uiView.PushScreen(_dialogueScreen);
+    }
+
+    private void CloseDialogue()
+    {
+        _dialogueService?.Close();
+
+        if (_dialogueScreen != null)
+        {
+            GetUIView()?.RemoveScreen(_dialogueScreen);
+        }
     }
 
     // ---- Helpers ----

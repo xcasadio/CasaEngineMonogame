@@ -16,6 +16,7 @@ namespace CasaEngine.Demos.Demos;
 internal sealed class HudScreen : UIScreenBase
 {
     private readonly Action _requestPause;
+    private readonly Action _requestDialogue;
 
     private MGWindow?    _window;
     private MGTextBlock? _timeLabel;
@@ -25,7 +26,16 @@ internal sealed class HudScreen : UIScreenBase
     public override bool    IsModal => false;
 
     /// <param name="requestPause">Callback invoked when the player clicks "Pause".</param>
-    public HudScreen(Action requestPause) => _requestPause = requestPause;
+    public HudScreen(Action requestPause)
+        : this(requestPause, static () => { })
+    {
+    }
+
+    public HudScreen(Action requestPause, Action requestDialogue)
+    {
+        _requestPause = requestPause;
+        _requestDialogue = requestDialogue;
+    }
 
     protected override void OnInitialize(UIRoot root)
     {
@@ -59,6 +69,11 @@ internal sealed class HudScreen : UIScreenBase
         pauseBtn.SetContent("[color=yellow]Open Pause Menu[/color]");
         pauseBtn.Margin = new Thickness(0, 8, 0, 0);
         stack.TryAddChild(pauseBtn);
+
+        var dialogueBtn = new MGButton(_window, _ => _requestDialogue());
+        dialogueBtn.SetContent("[color=lightgreen]Open Dialogue[/color]");
+        dialogueBtn.Margin = new Thickness(0, 4, 0, 0);
+        stack.TryAddChild(dialogueBtn);
 
         _window.SetContent(stack);
     }
