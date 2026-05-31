@@ -1135,6 +1135,18 @@
     {
       "id": "7093fe82-182d-4e9a-b725-e54508ca1bb8",
       "file_name": "Content\\Cutscenes\\move_to_direct.cutscene"
+    },
+    {
+      "id": "4668ca19-9ff1-4d91-9b4c-64522888d3f1",
+      "name": "soft_particle",
+      "file_name": "Content\\Textures\\soft_particle.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "2af8c1e7-8d4e-4a87-b146-8b84d888fff2",
+      "name": "soft_particle",
+      "file_name": "Content\\Textures\\soft_particle.texture",
+      "asset_type": "texture"
     }
   ]
 }

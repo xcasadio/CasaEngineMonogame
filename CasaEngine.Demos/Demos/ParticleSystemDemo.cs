@@ -1,7 +1,6 @@
 using System;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
-using CasaEngine.Framework.Assets.Textures;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Rendering.Models;
@@ -26,19 +25,18 @@ public sealed class ParticleSystemDemo : Demo
 
     public override void Initialize(CasaEngineGame game)
     {
-        Guid textureAssetId = ResolveDefaultTextureAssetId(game);
         var world = game.GameManager.CurrentWorld;
 
         AddGround(game);
         AddParticleEntity(world, "Fire Loop", new Vector3(0.0f, 0.1f, 0.0f), CreateFireLoop(), playOnStart: true, out _);
-        AddParticleEntity(world, "Spark Burst", new Vector3(-2.4f, 0.35f, 0.0f), CreateSparkBurst(textureAssetId), playOnStart: true, out _sparkBurst);
-        AddParticleEntity(world, "Smoke Puff", new Vector3(2.4f, 0.35f, 0.0f), CreateSmokePuff(textureAssetId), playOnStart: true, out _smokePuff);
+        AddParticleEntity(world, "Spark Burst", new Vector3(-2.4f, 0.35f, 0.0f), CreateSparkBurst(), playOnStart: true, out _sparkBurst);
+        AddParticleEntity(world, "Smoke Puff", new Vector3(2.4f, 0.35f, 0.0f), CreateSmokePuff(), playOnStart: true, out _smokePuff);
         _burstTimer = BurstIntervalSeconds;
     }
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(0.0f, 4.2f, 8.5f), new Vector3(0.0f, 0.8f, 0.0f), Vector3.Up);
+        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(0.0f, 1.8f, 4.6f), new Vector3(0.0f, 0.65f, 0.0f), Vector3.Up);
     }
 
     public override void Update(GameTime gameTime)
@@ -192,7 +190,7 @@ public sealed class ParticleSystemDemo : Demo
         return curve;
     }
 
-    private static ParticleEffectAsset CreateSparkBurst(Guid textureAssetId)
+    private static ParticleEffectAsset CreateSparkBurst()
     {
         var asset = new ParticleEffectAsset { Name = "Demo_SparkBurst" };
         var emitter = new ParticleEmitterDefinition
@@ -220,7 +218,7 @@ public sealed class ParticleSystemDemo : Demo
         emitter.Simulation.SizeOverLifetime = FloatCurve.FadeOut();
         emitter.Simulation.AlphaOverLifetime = FloatCurve.FadeOut();
         emitter.Simulation.VelocityOverLifetime = FloatCurve.Constant(0.7f);
-        emitter.Renderer.TextureAssetId = textureAssetId;
+        emitter.Renderer.TextureAssetId = SoftParticleTextureAssetId;
         emitter.Renderer.BlendMode = ParticleBlendMode.Additive;
         emitter.Renderer.SortMode = ParticleSortMode.Distance;
         emitter.Renderer.RenderQueue = 3100;
@@ -229,7 +227,7 @@ public sealed class ParticleSystemDemo : Demo
         return asset;
     }
 
-    private static ParticleEffectAsset CreateSmokePuff(Guid textureAssetId)
+    private static ParticleEffectAsset CreateSmokePuff()
     {
         var asset = new ParticleEffectAsset { Name = "Demo_SmokePuff" };
         var emitter = new ParticleEmitterDefinition
@@ -256,17 +254,11 @@ public sealed class ParticleSystemDemo : Demo
         emitter.Simulation.SizeOverLifetime = FloatCurve.Pulse();
         emitter.Simulation.AlphaOverLifetime = FloatCurve.FadeOut();
         emitter.Simulation.VelocityOverLifetime = FloatCurve.Constant(0.45f);
-        emitter.Renderer.TextureAssetId = textureAssetId;
+        emitter.Renderer.TextureAssetId = SoftParticleTextureAssetId;
         emitter.Renderer.BlendMode = ParticleBlendMode.Alpha;
         emitter.Renderer.SortMode = ParticleSortMode.Distance;
         emitter.Renderer.RenderQueue = 3000;
         asset.Emitters.Add(emitter);
         return asset;
-    }
-
-    private static Guid ResolveDefaultTextureAssetId(CasaEngineGame game)
-    {
-        Texture? defaultTexture = game.AssetContentManager.GetAsset<Texture>(Texture.DefaultTextureName);
-        return defaultTexture?.Id ?? Guid.Empty;
     }
 }

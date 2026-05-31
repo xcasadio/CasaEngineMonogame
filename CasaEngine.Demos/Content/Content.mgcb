@@ -19,6 +19,12 @@
 #begin checkboard.png
 /copy:checkboard.png
 
+#begin Textures/soft_particle.png
+/copy:Textures/soft_particle.png
+
+#begin Textures/soft_particle.texture
+/copy:Textures/soft_particle.texture
+
 #begin Maps/map_1_1.tileMap
 /copy:Maps/map_1_1.tileMap
 
