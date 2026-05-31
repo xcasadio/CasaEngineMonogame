@@ -23,6 +23,7 @@
 		<PackageReference Include="MonoGame.Framework.DesktopGL" />
 		<PackageReference Include="MonoGame.Content.Builder.Task" />
 		<PackageReference Include="Newtonsoft.Json" />
+		<PackageReference Include="YarnSpinner" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\MGUI\MGUI.FontStashSharp\MGUI.FontStashSharp.csproj" />
