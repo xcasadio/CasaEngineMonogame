@@ -134,7 +134,7 @@ Commit attendu :
 
 - `docs(animation2d): audit legacy animation usages`
 
-### ⏳ Tache 0.2 - Choisir la strategie de format V1
+### ✅ Tache 0.2 - Choisir la strategie de format V1
 
 Objectif : decider si la V1 etend `Animation2dData` ou ajoute un nouveau type asset compose.
 
@@ -149,6 +149,15 @@ Actions :
 - Comparer deux options : extension compatible de `Animation2dData` ou nouveau type asset avec loader dedie.
 - Choisir l'option qui preserve le chargement des `.anim2d` existants.
 - Documenter la decision dans ce plan avant implementation.
+
+Decision V1 :
+
+- Etendre `Animation2dData` avec des donnees composees optionnelles au lieu d'ajouter un nouveau type asset charge par un loader dedie.
+- Conserver l'extension `.anim2d`, le loader `AssetLoader<Animation2dData>()`, la liste legacy `Frames` et les cles JSON existantes.
+- Ajouter les donnees composees sous forme de collections optionnelles sur `Animation2dData`; un asset qui ne contient que `frames` reste un asset legacy valide.
+- Garder une representation temporelle en secondes pour la V1 authoring, parce que les assets existants utilisent `FrameData.Duration` et le precedent moderne `AnimationEventKeyframe` est time-based.
+- Reporter la conversion legacy vers runtime compose a la tache 2.3, afin que les taches 1.1 a 1.3 restent limitees au modele authoring.
+- Ne pas ajouter de nouveau format, de nouvelle extension ou de nouveau loader tant que le chargement compatible du format compose n'est pas implemente et teste.
 
 Validation :
 
