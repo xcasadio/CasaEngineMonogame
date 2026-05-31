@@ -320,7 +320,7 @@ Resultat 2026-05-31 : `DialogueAsset.FromCompiledProgram(...)` ajoute pour conve
 
 Commit requis : oui, un commit dedie avec chargement et statut.
 
-### ⏳ Tache 10 - Implementer le runner Yarn adapte CasaEngine
+### ✅ Tache 10 - Implementer le runner Yarn adapte CasaEngine
 
 Objectif : executer un dialogue Yarn minimal et emettre des lignes vers le presenter.
 
@@ -342,6 +342,8 @@ Validation :
 
 - Test runner minimal.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : `YarnDialogueRunner` ajoute sous `CasaEngine/Framework/Dialogue/Yarn`. Il deserialise `DialogueAsset.ProgramBytes` via `Yarn.Program.Parser`, configure les handlers requis par `Yarn.Dialogue`, route les lignes via `IDialoguePresenter` et ferme le presenter a la fin du dialogue. Tests runner ajoutes avec presenter fake. Validation comportementale en processus enfant OK avec `DialogueService` : `Started=True`, `RunningAfterStart=True`, `OpenAfterStart=True`, ligne `Bonjour depuis CasaEngine.`, puis `Continued=True`, `RunningAfterContinue=False`, `OpenAfterContinue=False`. `dotnet build CasaEngine/CasaEngine.csproj --no-restore` OK avec avertissements existants. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter YarnDialogueRunnerTests` reste bloque avant execution par des erreurs de compilation existantes hors dialogue (`LightComponent.Coordinates`, `DualQuaternion`, `PreviewEnvironmentFactory`).
 
 Commit requis : oui, un commit dedie avec runner, tests et statut.
 
