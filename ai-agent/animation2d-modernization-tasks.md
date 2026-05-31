@@ -203,7 +203,7 @@ Commit attendu :
 
 - `feat(animation2d): add composed authoring data`
 
-### ⏳ Tache 1.2 - Ajouter les types de pistes et keyframes 2D V1
+### 🧪 Tache 1.2 - Ajouter les types de pistes et keyframes 2D V1
 
 Objectif : animer les proprietes necessaires a la composition.
 
@@ -223,6 +223,13 @@ Validation :
 
 - Tests unitaires du modele et des erreurs de reference.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de tests pour les pistes sprite/position et la detection de references de parties manquantes.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

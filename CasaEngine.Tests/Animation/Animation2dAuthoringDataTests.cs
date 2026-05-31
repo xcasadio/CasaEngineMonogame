@@ -89,4 +89,68 @@ public class Animation2dAuthoringDataTests
         Assert.True(animation.Parts[1].DefaultFlipX);
         Assert.True(animation.Parts[1].DefaultFlipY);
     }
+
+    [Fact]
+    public void Tracks_CanDescribeSpriteAndPositionChanges()
+    {
+        var bodySpriteId = Guid.NewGuid();
+        var weaponSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+        animation.Parts.Add(new Animation2dPartData { Id = "weapon" });
+
+        var bodySpriteTrack = new Animation2dTrackData
+        {
+            TargetPartId = "body",
+            Property = Animation2dTrackProperty.Sprite,
+        };
+        bodySpriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, bodySpriteId));
+        bodySpriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.25f, weaponSpriteId));
+
+        var weaponPositionTrack = new Animation2dTrackData
+        {
+            TargetPartId = "weapon",
+            Property = Animation2dTrackProperty.Position,
+        };
+        weaponPositionTrack.PositionKeyframes.Add(new Animation2dVector2KeyframeData(0f, Vector2.Zero));
+        weaponPositionTrack.PositionKeyframes.Add(new Animation2dVector2KeyframeData(0.5f, new Vector2(8f, -3f)));
+
+        animation.Tracks.Add(bodySpriteTrack);
+        animation.Tracks.Add(weaponPositionTrack);
+
+        Assert.Empty(animation.GetInvalidTrackTargetPartIds());
+        Assert.Equal(Animation2dInterpolationMode.Step, bodySpriteTrack.Interpolation);
+        Assert.Equal(2, bodySpriteTrack.SpriteKeyframes.Count);
+        Assert.Equal(bodySpriteId, bodySpriteTrack.SpriteKeyframes[0].Value);
+        Assert.Equal(0.25f, bodySpriteTrack.SpriteKeyframes[1].TimeSeconds);
+        Assert.Equal(2, weaponPositionTrack.PositionKeyframes.Count);
+        Assert.Equal(new Vector2(8f, -3f), weaponPositionTrack.PositionKeyframes[1].Value);
+    }
+
+    [Fact]
+    public void GetInvalidTrackTargetPartIds_ReturnsMissingPartReferences()
+    {
+        var animation = new Animation2dData();
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+        animation.Tracks.Add(new Animation2dTrackData
+        {
+            TargetPartId = "body",
+            Property = Animation2dTrackProperty.Visible,
+        });
+        animation.Tracks.Add(new Animation2dTrackData
+        {
+            TargetPartId = "weapon",
+            Property = Animation2dTrackProperty.DrawOrder,
+        });
+        animation.Tracks.Add(new Animation2dTrackData
+        {
+            TargetPartId = "weapon",
+            Property = Animation2dTrackProperty.FlipX,
+        });
+
+        var invalidPartIds = animation.GetInvalidTrackTargetPartIds();
+
+        Assert.Single(invalidPartIds);
+        Assert.Equal("weapon", invalidPartIds[0]);
+    }
 }
