@@ -632,4 +632,27 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(defaultSpriteId, spriteIds[1]);
         Assert.Equal(trackedSpriteId, spriteIds[2]);
     }
+
+    [Fact]
+    public void CompositionSampler_UpdatesStableDrawOrder()
+    {
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.Parts.Add(new Animation2dPartData { Id = "body", DefaultDrawOrder = 10 });
+        animation.Parts.Add(new Animation2dPartData { Id = "weapon", DefaultDrawOrder = 5 });
+        animation.Parts.Add(new Animation2dPartData { Id = "fx", DefaultDrawOrder = 5 });
+        var drawOrderTrack = new Animation2dTrackData
+        {
+            TargetPartId = "body",
+            Property = Animation2dTrackProperty.DrawOrder,
+        };
+        drawOrderTrack.DrawOrderKeyframes.Add(new Animation2dIntKeyframeData(0.5f, 0));
+        animation.Tracks.Add(drawOrderTrack);
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+
+        Assert.Equal(new[] { 1, 2, 0 }, sampler.RuntimeState.DrawPartIndices);
+
+        sampler.Seek(0.5f);
+
+        Assert.Equal(new[] { 0, 1, 2 }, sampler.RuntimeState.DrawPartIndices);
+    }
 }

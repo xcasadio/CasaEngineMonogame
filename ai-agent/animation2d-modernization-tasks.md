@@ -522,7 +522,7 @@ Commit attendu :
 
 - `perf(animation2d): cache sprites for runtime drawing`
 
-### ⏳ Tache 4.2 - Dessiner plusieurs parties avec ordre stable
+### 🧪 Tache 4.2 - Dessiner plusieurs parties avec ordre stable
 
 Objectif : afficher une composition de plusieurs sprites dans une meme animation.
 
@@ -545,6 +545,17 @@ Validation :
 - Test logique de tri si isole.
 - Demo ou sample visuel minimal.
 - Build principal.
+
+Validation realisee :
+
+- Ajout d'un ordre de dessin stable dans `Animation2dCompositionRuntimeState` : `DrawOrder`, puis index source.
+- `Animation2dCompositionSampler` recalcule l'ordre de dessin apres application des pistes.
+- `AnimatedSpriteComponent` dessine les parties visibles depuis l'etat compose, applique position locale, flips, couleur et cache sprite.
+- Respect de `DepthSortable2DComponent` via une cle de tri derivee par partie; fallback sans depth sortable via z-order deterministe.
+- Ajout d'un test logique de tri stable et changement de draw order par piste.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Smoke visuel manuel a reprendre avec la demo de la phase 6.
 
 Commit attendu :
 

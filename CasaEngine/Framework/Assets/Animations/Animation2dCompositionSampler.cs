@@ -134,6 +134,8 @@ public sealed class Animation2dCompositionSampler
 
             ApplyTrack(track, part, sampleTime);
         }
+
+        RuntimeState.UpdateDrawOrder();
     }
 
     private static void ApplyTrack(Animation2dTrackData track, Animation2dPartRuntimeState part, float sampleTime)

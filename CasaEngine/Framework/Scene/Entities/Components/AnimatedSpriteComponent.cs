@@ -8,6 +8,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Framework.Rendering.Geometry;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
@@ -26,6 +27,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private readonly List<Guid> _animationAssetIds = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly List<Guid> _spriteIdsToResolve = new();
+    private readonly Dictionary<Animation2d, Animation2dCompositionSampler> _compositionSamplerByAnimation = new();
 
     private AssetContentManager _assetContentManager;
     private IPhysicsWorld _physicsWorldContext;
@@ -35,6 +37,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d CurrentAnimation { get; private set; }
+    private Animation2dCompositionSampler _currentCompositionSampler;
     public List<Animation2d> Animations { get; } = new();
 
     [Browsable(false)]
@@ -67,6 +70,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             if (forceReset)
             {
                 CurrentAnimation.Reset();
+                _currentCompositionSampler?.Reset();
             }
 
             return;
@@ -81,6 +85,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         CurrentAnimation = anim;
         CurrentAnimation.Reset();
+    _compositionSamplerByAnimation.TryGetValue(CurrentAnimation, out _currentCompositionSampler);
+    _currentCompositionSampler?.Reset();
 
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
@@ -153,6 +159,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _physicsWorldContext = Owner.World.PhysicsWorld;
 
         Animations.Clear();
+        _compositionSamplerByAnimation.Clear();
+        _currentCompositionSampler = null;
+        _spriteById.Clear();
 
         foreach (var assetId in _animationAssetIds)
         {
@@ -160,6 +169,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             var animation2d = new Animation2d(animation2dData);
             animation2d.Initialize();
             Animations.Add(animation2d);
+            RegisterCompositionSampler(animation2d);
             CacheAnimationSprites(animation2dData);
         }
 
@@ -217,6 +227,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         if (CurrentAnimation != null)
         {
             CurrentAnimation?.Update(elapsedTime);
+            _currentCompositionSampler?.Update(elapsedTime);
             UpdateCollisionFromFrame(CurrentAnimation.CurrentFrame);
         }
 
@@ -227,6 +238,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         if (CurrentAnimation != null)
         {
+            if (_currentCompositionSampler != null && _currentCompositionSampler.RuntimeState.PartCount > 0)
+            {
+                DrawComposedAnimation();
+                return;
+            }
+
             if (!_spriteById.TryGetValue(CurrentAnimation.CurrentFrame, out var sprite))
             {
                 Logs.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
@@ -250,10 +267,85 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         animation2d.Initialize();
         Animations.Add(animation2d);
+        RegisterCompositionSampler(animation2d);
         if (_assetContentManager != null)
         {
             CacheAnimationSprites(animation2d.Animation2dData);
         }
+    }
+
+    private void RegisterCompositionSampler(Animation2d animation2d)
+    {
+        if (!_compositionSamplerByAnimation.ContainsKey(animation2d))
+        {
+            _compositionSamplerByAnimation.Add(animation2d, new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation2d.Animation2dData)));
+        }
+    }
+
+    private void DrawComposedAnimation()
+    {
+        var runtimeState = _currentCompositionSampler.RuntimeState;
+        var position = new Vector2(Position.X, Position.Y);
+        var scale = new Vector2(Scale.X, Scale.Y);
+
+        for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
+        {
+            var part = runtimeState.Parts[runtimeState.DrawPartIndices[drawIndex]];
+            if (!part.Visible)
+            {
+                continue;
+            }
+
+            if (!_spriteById.TryGetValue(part.SpriteId, out var sprite))
+            {
+                Logs.WriteError($"AnimatedSpriteComponent : the sprite of the composed part '{part.PartId}' doesn't exist '{part.SpriteId}'");
+                continue;
+            }
+
+            var partPosition = new Vector2(
+                position.X + part.Position.X * scale.X,
+                position.Y + part.Position.Y * scale.Y);
+            var spriteEffects = GetPartSpriteEffects(part);
+
+            if (_depthSortable2DComponent != null)
+            {
+                var partWorldPosition = new Vector3(partPosition.X, partPosition.Y, Position.Z);
+                var sortKey = BuildPartSortKey(_depthSortable2DComponent.BuildSortKey(partWorldPosition, Owner.World.CurrentRenderFrame), part);
+                _spriteRenderer.DrawSprite(sprite, partPosition, 0.0f, scale, Color, Position.Z, sortKey, spriteEffects);
+                continue;
+            }
+
+            var zOrder = Position.Z - part.DrawOrder * 0.0001f - part.SourceIndex * 0.000001f;
+            _spriteRenderer.DrawSprite(sprite, partPosition, 0.0f, scale, Color, zOrder, spriteEffects);
+        }
+    }
+
+    private SpriteEffects GetPartSpriteEffects(Animation2dPartRuntimeState part)
+    {
+        var spriteEffects = SpriteEffect;
+        if (part.FlipX)
+        {
+            spriteEffects |= SpriteEffects.FlipHorizontally;
+        }
+
+        if (part.FlipY)
+        {
+            spriteEffects |= SpriteEffects.FlipVertically;
+        }
+
+        return spriteEffects;
+    }
+
+    private static RenderSortKey2D BuildPartSortKey(RenderSortKey2D baseSortKey, Animation2dPartRuntimeState part)
+    {
+        return new RenderSortKey2D(
+            baseSortKey.RenderPass,
+            baseSortKey.SortingLayer,
+            baseSortKey.OrderInLayer,
+            baseSortKey.Elevation,
+            baseSortKey.SortCoordinate,
+            baseSortKey.LocalSortOffset + part.DrawOrder,
+            baseSortKey.StableId + part.SourceIndex);
     }
 
     private void CacheAnimationSprites(Animation2dData animation2dData)
