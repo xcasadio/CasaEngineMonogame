@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Environment;
+using CasaEngine.Compiler.Dialogue;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Configuration;
@@ -118,6 +119,41 @@ public sealed class DialogueAssetJsonSerializerTests
     }
 
     [Fact]
+    public void CompiledYarnAsset_LoadsThroughDialogueLoader()
+    {
+        string sourceFileName = Path.Combine(FindRepositoryRoot(), "CasaEngine.Tests", "Dialogue", "Fixtures", "greeting.yarn");
+        string assetFileName = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + Constants.FileNameExtensions.Dialogue);
+
+        try
+        {
+            var compiler = new YarnDialogueCompiler();
+            YarnDialogueCompilationResult result = compiler.CompileFile(sourceFileName);
+            Assert.True(result.Success, string.Join(Environment.NewLine, result.Diagnostics.Select(diagnostic => diagnostic.Message)));
+
+            DialogueAsset asset = DialogueAsset.FromCompiledProgram("Greeting", "Start", result.ProgramBytes, result.LineTexts);
+            var node = new JObject();
+            DialogueAssetJsonSerializer.Save(asset, node);
+            File.WriteAllText(assetFileName, node.ToString(Formatting.Indented));
+
+            var loader = new DialogueAssetLoader();
+            var loadedAsset = Assert.IsType<DialogueAsset>(loader.LoadAsset(assetFileName, new AssetContentManager()));
+
+            Assert.Equal("Greeting", loadedAsset.Name);
+            Assert.Equal("Start", loadedAsset.StartNode);
+            Assert.True(loadedAsset.HasCompiledProgram);
+            Assert.Equal(result.ProgramBytes, loadedAsset.ProgramBytes);
+            Assert.Contains(loadedAsset.LineTexts.Values, text => text == "Bonjour depuis CasaEngine.");
+        }
+        finally
+        {
+            if (File.Exists(assetFileName))
+            {
+                File.Delete(assetFileName);
+            }
+        }
+    }
+
+    [Fact]
     public void CanMigrate_RejectsFutureVersions()
     {
         Assert.True(DialogueAssetJsonSerializer.CanMigrate(DialogueAsset.CurrentVersion));
@@ -134,5 +170,22 @@ public sealed class DialogueAssetJsonSerializerTests
         };
         asset.LineTexts["line:greeting"] = "Bonjour depuis CasaEngine.";
         return asset;
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        string directory = AppContext.BaseDirectory;
+        while (!File.Exists(Path.Combine(directory, "CasaEngine.MonoGame.sln")))
+        {
+            DirectoryInfo parent = Directory.GetParent(directory);
+            if (parent == null)
+            {
+                throw new InvalidOperationException("Cannot find repository root.");
+            }
+
+            directory = parent.FullName;
+        }
+
+        return directory;
     }
 }

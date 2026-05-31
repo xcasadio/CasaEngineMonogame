@@ -294,7 +294,7 @@ Resultat 2026-05-31 : wrapper `YarnDialogueCompiler` ajoute dans `CasaEngine.Com
 
 Commit requis : oui, un commit dedie avec source test, compilation et statut.
 
-### ⏳ Tache 9 - Charger un asset dialogue issu de Yarn
+### ✅ Tache 9 - Charger un asset dialogue issu de Yarn
 
 Objectif : connecter la compilation Yarn au format d'asset runtime defini a la tache 6.
 
@@ -315,6 +315,8 @@ Validation :
 
 - Test asset compile chargeable.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : `DialogueAsset.FromCompiledProgram(...)` ajoute pour convertir bytes protobuf + table de lignes dans l'asset runtime sans faire dependre `CasaEngine` du projet compiler. Test de round-trip ajoute : compilation de `greeting.yarn`, sauvegarde `.dialogue`, chargement direct par `DialogueAssetLoader`. Validation comportementale en processus enfant OK : `CompileSuccess=True`, `SavedProgramBytes=60`, `LoadedProgramBytes=60`, `LoadedLineCount=1`. `dotnet build CasaEngine/CasaEngine.csproj --no-restore` OK avec avertissements existants. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec 1 avertissement existant. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue` reste bloque avant execution par des erreurs de compilation existantes hors dialogue (`Pool<>`, `DualQuaternion`, `PreviewEnvironmentFactory`).
 
 Commit requis : oui, un commit dedie avec chargement et statut.
 
