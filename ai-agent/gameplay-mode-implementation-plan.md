@@ -155,7 +155,7 @@ Validation :
 
 - Verification du diff cible sur ce fichier.
 
-### ⏳ Tache 8 - Extraire la configuration de demarrage joueur
+### ✅ Tache 8 - Extraire la configuration de demarrage joueur
 
 Objectif : sortir de `GameMode` les donnees de pawn/controller encore utilisees par `World`.
 

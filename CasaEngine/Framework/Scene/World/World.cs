@@ -40,6 +40,8 @@ public sealed class World : ObjectBase
     public GameplayProxy GameplayProxy { get; private set; }
     public Guid GameModeAssetId { get; set; } = Guid.Empty;
     public GameMode GameMode { get; private set; }
+    public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
+    public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
     public GameplayModeRunner GameplayModeRunner { get; } = new();
     public int UpdateSequence { get; private set; }
     public WorldSpatialServices SpatialServices { get; }
@@ -181,6 +183,8 @@ public sealed class World : ObjectBase
 
     private void LoadContent(bool withReference)
     {
+        LoadPlayerStartupSettings();
+
         if (GameModeAssetId != Guid.Empty)
         {
             GameMode = Game.AssetContentManager.Load<GameMode>(GameModeAssetId);
@@ -225,15 +229,27 @@ public sealed class World : ObjectBase
         InternalAddEntities();
     }
 
+    private void LoadPlayerStartupSettings()
+    {
+        if (PlayerStartupSettingsAssetId != Guid.Empty)
+        {
+            PlayerStartupSettings = Game.AssetContentManager.Load<PlayerStartupSettings>(PlayerStartupSettingsAssetId);
+        }
+        else
+        {
+            PlayerStartupSettings = new PlayerStartupSettings();
+        }
+    }
+
     private void InitializePlayerControllers()
     {
-        if (GameMode.DefaultPawnAssetId == Guid.Empty)
+        if (PlayerStartupSettings.DefaultPawnAssetId == Guid.Empty)
         {
             return;
         }
 
-        var pawn = SpawnEntity<Pawn>(GameMode.DefaultPawnAssetId);
-        var playerController = ElementFactory.Create<PlayerController>(GameMode.PlayerControllerClass);
+        var pawn = SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId);
+        var playerController = ElementFactory.Create<PlayerController>(PlayerStartupSettings.PlayerControllerClass);
         playerController.Pawn = pawn;
         playerController.Player = new LocalPlayer(); // TODO
         _playerControllers.Add(playerController);
@@ -311,7 +327,7 @@ public sealed class World : ObjectBase
         UpdateSequence++;
 
         float elapsedTime = frameTime.DeltaTime;
-    GameplayModeRunner.Update(frameTime);
+        GameplayModeRunner.Update(frameTime);
         GameMode?.Tick(elapsedTime);
 
         if (GameMode?.HasMatchEnded() ?? false)
@@ -695,6 +711,12 @@ public sealed class World : ObjectBase
         if (element.ContainsKey("game_mode_asset_id"))
         {
             GameModeAssetId = element["game_mode_asset_id"].GetGuid();
+            PlayerStartupSettingsAssetId = GameModeAssetId;
+        }
+
+        if (element.ContainsKey("player_startup_settings_asset_id"))
+        {
+            PlayerStartupSettingsAssetId = element["player_startup_settings_asset_id"].GetGuid();
         }
 
         if (element["environment"] is JObject environmentNode)
