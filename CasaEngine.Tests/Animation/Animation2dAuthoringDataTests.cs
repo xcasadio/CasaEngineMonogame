@@ -357,4 +357,60 @@ public class Animation2dAuthoringDataTests
         Assert.Single(loadedAnimation.Events);
         Assert.Equal(new AnimationEventAsset(0.25f, "Hit"), loadedAnimation.Events[0]);
     }
+
+    [Fact]
+    public void CompositionAdapter_ConvertsSingleLegacyFrameToOnePart()
+    {
+        var spriteId = Guid.NewGuid();
+        var animation = new Animation2dData
+        {
+            AnimationType = AnimationType.Once,
+        };
+        animation.Frames.Add(new FrameData
+        {
+            Duration = 0.2f,
+            SpriteId = spriteId,
+        });
+
+        var composition = Animation2dCompositionAdapter.Create(animation);
+
+        Assert.Equal(AnimationType.Once, composition.AnimationType);
+        Assert.Equal(0.2f, composition.DurationSeconds);
+        Assert.Single(composition.Parts);
+        Assert.Equal(Animation2dCompositionAdapter.LegacyPartId, composition.Parts[0].Id);
+        Assert.Equal(spriteId, composition.Parts[0].DefaultSpriteId);
+        Assert.Single(composition.Tracks);
+        Assert.Equal(Animation2dTrackProperty.Sprite, composition.Tracks[0].Property);
+        Assert.Single(composition.Tracks[0].SpriteKeyframes);
+        Assert.Equal(0f, composition.Tracks[0].SpriteKeyframes[0].TimeSeconds);
+        Assert.Equal(spriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
+    }
+
+    [Fact]
+    public void CompositionAdapter_PreservesLegacyFrameSequenceAndLoopType()
+    {
+        var firstSpriteId = Guid.NewGuid();
+        var secondSpriteId = Guid.NewGuid();
+        var thirdSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData
+        {
+            AnimationType = AnimationType.Loop,
+        };
+        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
+        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
+        animation.Frames.Add(new FrameData { Duration = 0.3f, SpriteId = thirdSpriteId });
+
+        var composition = Animation2dCompositionAdapter.Create(animation);
+        var spriteKeyframes = composition.Tracks[0].SpriteKeyframes;
+
+        Assert.Equal(AnimationType.Loop, composition.AnimationType);
+        Assert.Equal(0.6f, composition.DurationSeconds, 5);
+        Assert.Equal(3, spriteKeyframes.Count);
+        Assert.Equal(0f, spriteKeyframes[0].TimeSeconds);
+        Assert.Equal(firstSpriteId, spriteKeyframes[0].Value);
+        Assert.Equal(0.1f, spriteKeyframes[1].TimeSeconds);
+        Assert.Equal(secondSpriteId, spriteKeyframes[1].Value);
+        Assert.Equal(0.3f, spriteKeyframes[2].TimeSeconds, 5);
+        Assert.Equal(thirdSpriteId, spriteKeyframes[2].Value);
+    }
 }

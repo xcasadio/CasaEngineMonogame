@@ -337,7 +337,7 @@ Commit attendu :
 
 - `feat(editorservices): serialize composed animation2d data`
 
-### ⏳ Tache 2.3 - Ajouter un adaptateur legacy vers composition a une partie
+### 🧪 Tache 2.3 - Ajouter un adaptateur legacy vers composition a une partie
 
 Objectif : permettre au runtime compose de lire les anciennes animations simples.
 
@@ -358,6 +358,15 @@ Validation :
 - Tests unitaires de conversion avec 1 frame et plusieurs frames.
 - Tests avec `AnimationType.Once` et `AnimationType.Loop` si le comportement actuel est conserve.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Animation2dCompositionAdapter` et `Animation2dCompositionData` sans dependance editeur.
+- Conversion legacy vers une seule partie `legacy` et une piste `Sprite` aux temps cumules des frames.
+- Ajout de tests pour 1 frame, plusieurs frames, `Once` et `Loop`.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 
