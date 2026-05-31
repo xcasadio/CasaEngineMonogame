@@ -773,7 +773,7 @@ Commit attendu :
 
 - `docs(editor): identify animation2d editor surface`
 
-### ⏳ Tache 7.2 - Ajouter une inspection read-only des compositions
+### 🧪 Tache 7.2 - Ajouter une inspection read-only des compositions
 
 Objectif : permettre de verifier un asset compose sans editeur complet.
 
@@ -792,6 +792,14 @@ Validation :
 
 - Smoke test manuel de l'UI.
 - Build principal.
+
+Validation realisee :
+
+- Ajout du panel MGUI read-only `Animation2dAssetInspectorPanel`.
+- Branchement de l'ouverture `.anim2d` depuis `GameEditor` avec document dockable et titre dedie.
+- Inspection affiche frames legacy, parts composees, tracks/keyframes, events et targets de tracks invalides.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` passe sans erreur; avertissements existants non traites.
+- Smoke test manuel UI non execute dans cette passe.
 
 Commit attendu :
 

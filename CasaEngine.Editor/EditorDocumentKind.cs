@@ -7,6 +7,7 @@ public enum EditorDocumentKind
     UIScreen,
     Material,
     Entity,
+    Animation2d,
     AnimationClip,
     Particle,
     Cutscene,

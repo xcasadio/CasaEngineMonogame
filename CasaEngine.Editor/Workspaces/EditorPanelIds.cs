@@ -11,6 +11,7 @@ public static class EditorPanelIds
     public const string UIScreenDocumentPrefix = "panel_ui_screen_";
     public const string MaterialAssetDocumentPrefix = "panel_material_asset_";
     public const string EntityAssetDocumentPrefix = "panel_entity_asset_";
+    public const string Animation2dAssetDocumentPrefix = "panel_animation2d_asset_";
     public const string AnimationClipAssetDocumentPrefix = "panel_animation_clip_";
     public const string ParticleAssetDocumentPrefix = "panel_particle_asset_";
     public const string CutsceneAssetDocumentPrefix = "panel_cutscene_asset_";
