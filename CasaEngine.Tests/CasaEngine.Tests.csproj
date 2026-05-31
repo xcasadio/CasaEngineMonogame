@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CasaEngine.Compiler\CasaEngine.Compiler.csproj" />
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
     <ProjectReference Include="..\CasaEngine.Editor\CasaEngine.Editor.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />

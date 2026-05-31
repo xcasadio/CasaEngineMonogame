@@ -255,10 +255,10 @@ Resultat 2026-05-31 : inspection par reflection des assemblies `YarnSpinner.dll`
 Types/verifications utiles :
 
 - Compilation : `Yarn.Compiler.Compiler.Compile(Yarn.Compiler.CompilationJob)` est statique.
-- Creation de job : `Yarn.Compiler.CompilationJob.CreateFromString(string source, string fileName, Yarn.Library library, int languageVersion)`, `CreateFromFiles(...)`, `CreateFromInputs(...)`.
+- Creation de job : `Yarn.Compiler.CompilationJob.CreateFromString(string fileName, string source, Yarn.Library library, int languageVersion)`, `CreateFromFiles(...)`, `CreateFromInputs(...)`.
 - Resultat : `Yarn.Compiler.CompilationResult.Program`, `StringTable`, `Diagnostics`, `ContainsErrors`, `GetStringForKey(string)`, `GetLabelsForNode(string)`.
 - Ligne compilee : `Yarn.Compiler.StringInfo` expose des champs publics `text`, `nodeName`, `lineNumber`, `fileName`, `isImplicitTag`, `metadata`, `shadowLineID`.
-- Diagnostics : `Yarn.Compiler.Diagnostic` expose `FileName`, `Line`, `Column`, `Message`, `Severity`, `Code`.
+- Diagnostics : `Yarn.Compiler.Diagnostic` expose `FileName`, `Range`, `Message`, `Severity`, `Code`; les positions utiles sont dans `Range.Start.Line` et `Range.Start.Character`.
 - Runtime : `Yarn.Dialogue` se construit avec `Yarn.IVariableStorage`, puis `SetProgram(Yarn.Program)`, `SetNode(string)`, `Continue()`, `SignalContentComplete()`, `SetSelectedOption(int)`, `Stop()`.
 - Handlers runtime : `Yarn.LineHandler.Invoke(Yarn.Line)`, `Yarn.OptionsHandler.Invoke(Yarn.OptionSet)`, `Yarn.CommandHandler.Invoke(Yarn.Command)`, `Yarn.NodeStartHandler.Invoke(string)`, `Yarn.NodeCompleteHandler.Invoke(string)`, `Yarn.DialogueCompleteHandler.Invoke()`.
 - Programme : `Yarn.Program` expose `Parser`, `Nodes`, `LanguageVersion`, `LineIDsForNode(string)` et implemente les methodes protobuf (`WriteTo`, `MergeFrom`, `CalculateSize`). La serialization en bytes devra passer par Google.Protobuf.
@@ -267,7 +267,7 @@ Validation : note factuelle ajoutee; aucun code modifie dans cette tache.
 
 Commit requis : oui, un commit dedie avec la note d'inspection et le statut.
 
-### ⏳ Tache 8 - Compiler un fichier `.yarn` de test hors boucle de jeu
+### ✅ Tache 8 - Compiler un fichier `.yarn` de test hors boucle de jeu
 
 Objectif : valider la compilation Yarn sans UI et sans gameplay.
 
@@ -289,6 +289,8 @@ Validation :
 
 - Test de compilation Yarn minimal.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : wrapper `YarnDialogueCompiler` ajoute dans `CasaEngine.Compiler` avec diagnostics CasaEngine simples, bytes protobuf du programme compile et table de lignes. Fixture `CasaEngine.Tests/Dialogue/Fixtures/greeting.yarn` ajoutee. `dotnet build CasaEngine.Compiler/CasaEngine.Compiler.csproj --no-restore` OK. Validation comportementale hors boucle de jeu par chargement du compiler en processus enfant OK : `Success=True`, `ProgramBytes=60`, `LineCount=1`, `Diagnostics=0`. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue` reste bloque avant execution par des erreurs de compilation existantes hors dialogue (`Pool<>`, `DualQuaternion`, `LightComponent.Coordinates`, `PreviewEnvironmentFactory`).
 
 Commit requis : oui, un commit dedie avec source test, compilation et statut.
 
