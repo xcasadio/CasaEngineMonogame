@@ -41,6 +41,7 @@ public sealed class World : ObjectBase
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
     public GameplayModeRunner GameplayModeRunner { get; } = new();
+    public GameplayEventBus GameplayEvents => GameplayModeRunner.Events;
     public int UpdateSequence { get; private set; }
     public WorldSpatialServices SpatialServices { get; }
     public WorldEnvironmentSettings EnvironmentSettings { get; } = new();
@@ -126,7 +127,7 @@ public sealed class World : ObjectBase
     {
         ArgumentNullException.ThrowIfNull(mode);
 
-        GameplayModeRunner.Start(mode, new GameplayContext(this));
+        GameplayModeRunner.Start(mode, new GameplayContext(this, GameplayModeRunner.Events));
     }
 
     public void ClearEntities(bool clearReferences = false)

@@ -190,7 +190,7 @@ Validation :
 - `dotnet build CasaEngine/CasaEngine.csproj --no-restore`.
 - Committer uniquement la suppression legacy et le statut de la tache.
 
-### ⏳ Tache 10 - Etat V2 et contexte gameplay
+### ✅ Tache 10 - Etat V2 et contexte gameplay
 
 Objectif : completer l'etat runtime et le contexte expose au mode.
 

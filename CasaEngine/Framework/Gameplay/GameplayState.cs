@@ -7,4 +7,5 @@ public sealed class GameplayState
     public float ElapsedTime { get; set; }
     public int Score { get; set; }
     public int Lives { get; set; }
+    public Dictionary<string, object> Variables { get; } = new();
 }

@@ -4,8 +4,11 @@ namespace CasaEngine.Framework.Gameplay;
 
 public sealed class GameplayModeRunner
 {
+    private readonly GameplayEventBus _events = new();
+
     public GameplayMode CurrentMode { get; private set; }
     public GameplayState CurrentState { get; private set; }
+    public GameplayEventBus Events => _events;
 
     public void Start(GameplayMode mode, GameplayContext context)
     {
