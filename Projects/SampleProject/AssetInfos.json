@@ -5521,72 +5521,6 @@
       "asset_type": "screen"
     },
     {
-      "id": "38927128-fe3b-47ba-a863-17724ccb9207",
-      "name": "Kid_Body2",
-      "file_name": "Skinned\\Kid_Body2.png",
-      "asset_type": "png"
-    },
-    {
-      "id": "8b35522e-a8e6-4cda-a2f4-0b7ce3cd1389",
-      "name": "Kid_Body2",
-      "file_name": "Skinned\\Kid_Body2.texture",
-      "asset_type": "texture"
-    },
-    {
-      "id": "13465e20-062e-4ac9-98f4-661a6c69f6d0",
-      "name": "Kid_Hair",
-      "file_name": "Skinned\\Kid_Hair.png",
-      "asset_type": "png"
-    },
-    {
-      "id": "82f9dd6c-cd29-4fec-912b-9edb5b04afe7",
-      "name": "Kid_Hair",
-      "file_name": "Skinned\\Kid_Hair.texture",
-      "asset_type": "texture"
-    },
-    {
-      "id": "4a6d34b9-ef7a-4b9f-893b-a358d86e777f",
-      "name": "kid_face_2_1",
-      "file_name": "Skinned\\kid_face_2_1.png",
-      "asset_type": "png"
-    },
-    {
-      "id": "08a78aa3-4580-474e-8236-68aecc9ddd41",
-      "name": "kid_face_2_1",
-      "file_name": "Skinned\\kid_face_2_1.texture",
-      "asset_type": "texture"
-    },
-    {
-      "id": "af6a55df-62fc-44bd-adc7-a3d4823eb051",
-      "name": "Kid_Eye",
-      "file_name": "Skinned\\Kid_Eye.png",
-      "asset_type": "png"
-    },
-    {
-      "id": "51852e3e-51da-4431-8edc-f6d9f588b652",
-      "name": "Kid_Eye",
-      "file_name": "Skinned\\Kid_Eye.texture",
-      "asset_type": "texture"
-    },
-    {
-      "id": "e6a898ce-3e56-4d33-a0dc-cdab14badbe3",
-      "name": "kid_idle",
-      "file_name": "Skinned\\kid_idle.FBX",
-      "asset_type": "fbx"
-    },
-    {
-      "id": "d1acd5e1-16ba-44e6-bd63-c47e6300b72b",
-      "name": "kid_idle",
-      "file_name": "Skinned\\kid_idle.model",
-      "asset_type": "model"
-    },
-    {
-      "id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
-      "name": "ground_ground1",
-      "file_name": "Models\\ground_ground1.staticModel",
-      "asset_type": "staticmodel"
-    },
-    {
       "id": "6a220bb5-1903-4943-a7ff-297fc87f4201",
       "name": "Box",
       "file_name": "Entities\\Box.staticModel",
@@ -5597,6 +5531,96 @@
       "name": "NewLitDiffuseMaterial",
       "file_name": "NewLitDiffuseMaterial.material",
       "asset_type": "material"
+    },
+    {
+      "id": "cb78e988-6cfa-4420-9764-2fb2069db522",
+      "name": "map_389.tmj",
+      "file_name": "map_389.tmj",
+      "asset_type": "tmj"
+    },
+    {
+      "id": "4f7c85ad-69c6-4691-98bc-496bea3a9dfd",
+      "name": "map_389_map_389_tileset.png",
+      "file_name": "map_389_Imported\\Textures\\map_389_tileset.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "da884c0e-6be9-4d38-a9b9-2d7a1f957fdc",
+      "name": "map_389_map_389_tileset",
+      "file_name": "map_389_Imported\\Textures\\map_389_tileset.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "ae08972a-fa2f-48a2-95f9-af6ae2284937",
+      "name": "map_389_TileSet",
+      "file_name": "map_389_Imported\\map_389.tileset",
+      "asset_type": "tileset"
+    },
+    {
+      "id": "0c94e045-2cab-48ef-b665-f69eb3d8ac3a",
+      "name": "map_389",
+      "file_name": "map_389.tileMap",
+      "asset_type": "tilemap"
+    },
+    {
+      "id": "b926a0a1-a08e-4470-9cc6-8a1c1eb0a00a",
+      "name": "map_386.tmj",
+      "file_name": "map_386.tmj",
+      "asset_type": "tmj"
+    },
+    {
+      "id": "3927521d-3093-42e7-9010-a085662b1f1b",
+      "name": "map_386_map_386_tileset.png",
+      "file_name": "map_386_tileset.png",
+      "asset_type": "png"
+    },
+    {
+      "id": "849c153a-7c4b-4842-a855-440609269d1d",
+      "name": "map_386_map_386_tileset",
+      "file_name": "map_386_tileset.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "c79dd5db-3c13-43e4-9297-2c6c7b0e91d0",
+      "name": "map_386_TileSet",
+      "file_name": "map_386.tileset",
+      "asset_type": "tileset"
+    },
+    {
+      "id": "5587f7ab-089c-4b03-a3d6-1018b937d82f",
+      "name": "map_386",
+      "file_name": "map_386.tileMap",
+      "asset_type": "tilemap"
+    },
+    {
+      "id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",
+      "name": "ground_ground1",
+      "file_name": "Models\\ground_ground1.staticModel",
+      "asset_type": "staticmodel"
+    },
+    {
+      "id": "f12ad8a9-e489-441e-9812-786f747c63ba",
+      "name": "map_389_map_389_tileset",
+      "file_name": "map_389_tileset.texture",
+      "asset_type": "texture"
+    },
+    {
+      "id": "fc832d69-d190-45f2-8a53-7624063cc7fa",
+      "name": "map_389_TileSet",
+      "file_name": "map_389.tileset",
+      "asset_type": "tileset"
+    },
+    {
+      "id": "6cb1efa3-be43-4cb6-a2fa-53b598e847ce",
+      "name": "kid_idle.FBX",
+      "file_name": "kid_idle.FBX",
+      "asset_type": "fbx"
+    },
+    {
+      "id": "9cce92ef-0ce1-4d72-a701-1e781334a73d",
+      "name": "kid_idle",
+      "file_name": "kid_idle.model",
+      "asset_type": "model"
     }
   ]
 }
