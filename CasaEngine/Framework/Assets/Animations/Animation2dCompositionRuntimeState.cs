@@ -13,16 +13,31 @@ public sealed class Animation2dCompositionRuntimeState
     {
         ArgumentNullException.ThrowIfNull(composition);
 
-        _parts.Clear();
         _partIndexById.Clear();
+
+        while (_parts.Count < composition.Parts.Count)
+        {
+            _parts.Add(new Animation2dPartRuntimeState());
+        }
+
+        if (_parts.Count > composition.Parts.Count)
+        {
+            _parts.RemoveRange(composition.Parts.Count, _parts.Count - composition.Parts.Count);
+        }
 
         for (var partIndex = 0; partIndex < composition.Parts.Count; partIndex++)
         {
             var part = composition.Parts[partIndex];
-            var state = new Animation2dPartRuntimeState();
-            state.Reset(part, partIndex);
-            _parts.Add(state);
+            _parts[partIndex].Reset(part, partIndex);
             _partIndexById[part.Id] = partIndex;
+        }
+    }
+
+    internal void ApplyDefaults(Animation2dCompositionData composition)
+    {
+        for (var partIndex = 0; partIndex < composition.Parts.Count; partIndex++)
+        {
+            _parts[partIndex].Reset(composition.Parts[partIndex], partIndex);
         }
     }
 

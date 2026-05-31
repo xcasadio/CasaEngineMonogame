@@ -409,7 +409,7 @@ Commit attendu :
 
 - `feat(animation2d): add composed runtime state`
 
-### ⏳ Tache 3.2 - Ajouter un sampler/update compose
+### 🧪 Tache 3.2 - Ajouter un sampler/update compose
 
 Objectif : appliquer les pistes a l'etat runtime au fil du temps.
 
@@ -432,6 +432,17 @@ Validation :
 - Tests unitaires de boucle.
 - Tests unitaires de compat legacy.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Animation2dCompositionSampler` avec `Reset`, `Seek` et `Update`.
+- Evaluation `Step` pour sprite, position, visible, draw order, flip X et flip Y.
+- Support `Once`, `Loop` et `PingPong` sur le temps de sampling; `Once` clamp en fin.
+- Reapplication des defaults sans recreer les parties a chaque sample.
+- Ajout de tests pour evaluation de piste, boucle legacy et fin `Once`.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

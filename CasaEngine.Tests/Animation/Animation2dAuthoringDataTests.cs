@@ -472,4 +472,83 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(0, bodyIndex);
         Assert.False(runtimeState.TryGetPart("weapon", out _));
     }
+
+    [Fact]
+    public void CompositionSampler_AppliesStepTracksToRuntimeState()
+    {
+        var defaultSpriteId = Guid.NewGuid();
+        var sampledSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "body",
+            DefaultSpriteId = defaultSpriteId,
+            DefaultPosition = Vector2.Zero,
+            DefaultVisible = true,
+        });
+        var spriteTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Sprite };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.2f, sampledSpriteId));
+        var positionTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
+        positionTrack.PositionKeyframes.Add(new Animation2dVector2KeyframeData(0.2f, new Vector2(4f, 5f)));
+        var visibleTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Visible };
+        visibleTrack.VisibleKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, false));
+        var drawOrderTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.DrawOrder };
+        drawOrderTrack.DrawOrderKeyframes.Add(new Animation2dIntKeyframeData(0.2f, 12));
+        var flipXTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipX };
+        flipXTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, true));
+        var flipYTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipY };
+        flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, true));
+        animation.Tracks.Add(spriteTrack);
+        animation.Tracks.Add(positionTrack);
+        animation.Tracks.Add(visibleTrack);
+        animation.Tracks.Add(drawOrderTrack);
+        animation.Tracks.Add(flipXTrack);
+        animation.Tracks.Add(flipYTrack);
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+
+        sampler.Seek(0.2f);
+        Assert.True(sampler.RuntimeState.TryGetPart("body", out var bodyState));
+
+        Assert.Equal(sampledSpriteId, bodyState.SpriteId);
+        Assert.Equal(new Vector2(4f, 5f), bodyState.Position);
+        Assert.False(bodyState.Visible);
+        Assert.Equal(12, bodyState.DrawOrder);
+        Assert.True(bodyState.FlipX);
+        Assert.True(bodyState.FlipY);
+    }
+
+    [Fact]
+    public void CompositionSampler_LoopsLegacyComposition()
+    {
+        var firstSpriteId = Guid.NewGuid();
+        var secondSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData { AnimationType = AnimationType.Loop };
+        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
+        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+
+        sampler.Update(0.15f);
+        Assert.Equal(secondSpriteId, sampler.RuntimeState.Parts[0].SpriteId);
+
+        sampler.Update(0.2f);
+        Assert.Equal(firstSpriteId, sampler.RuntimeState.Parts[0].SpriteId);
+    }
+
+    [Fact]
+    public void CompositionSampler_OnceClampsAtEnd()
+    {
+        var firstSpriteId = Guid.NewGuid();
+        var secondSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
+        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+
+        var isFinished = sampler.Update(1f);
+
+        Assert.True(isFinished);
+        Assert.True(sampler.IsFinished);
+        Assert.Equal(0.3f, sampler.CurrentTime, 5);
+        Assert.Equal(secondSpriteId, sampler.RuntimeState.Parts[0].SpriteId);
+    }
 }
