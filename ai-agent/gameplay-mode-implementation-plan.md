@@ -223,7 +223,7 @@ Validation :
 - Build cible du projet `CasaEngine`.
 - Committer uniquement les objectifs et le statut de la tache.
 
-### ⏳ Tache 12 - Evenements gameplay V2
+### ✅ Tache 12 - Evenements gameplay V2
 
 Objectif : permettre aux objectifs et modes d'ecouter des faits gameplay sans couplage direct.
 

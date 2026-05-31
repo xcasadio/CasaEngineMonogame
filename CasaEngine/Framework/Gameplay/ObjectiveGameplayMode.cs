@@ -12,7 +12,13 @@ public abstract class ObjectiveGameplayMode : GameplayMode
     {
         for (int index = 0; index < Objectives.Count; index++)
         {
-            Objectives[index].Initialize(Context);
+            GameplayObjective objective = Objectives[index];
+            objective.Initialize(Context);
+
+            if (objective is IGameplayEventListener listener)
+            {
+                Context.Events.Register(listener);
+            }
         }
     }
 
@@ -45,5 +51,16 @@ public abstract class ObjectiveGameplayMode : GameplayMode
         }
 
         return hasObjective ? GameplayResult.Success : GameplayResult.Running;
+    }
+
+    public override void Stop()
+    {
+        for (int index = 0; index < Objectives.Count; index++)
+        {
+            if (Objectives[index] is IGameplayEventListener listener)
+            {
+                Context.Events.Unregister(listener);
+            }
+        }
     }
 }
