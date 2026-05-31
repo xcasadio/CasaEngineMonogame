@@ -68,7 +68,7 @@ Validation :
 - Build cible du projet `CasaEngine` ou test compile cible.
 - Committer uniquement les contrats runtime et le statut de cette tache.
 
-### ⏳ Tache 3 - Runner GameplayMode
+### ✅ Tache 3 - Runner GameplayMode
 
 Objectif : ajouter le cycle de vie runtime du mode actif.
 
