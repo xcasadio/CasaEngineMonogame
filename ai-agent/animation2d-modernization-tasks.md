@@ -486,7 +486,7 @@ Commit attendu :
 
 ## Phase 4 - Rendu compose
 
-### ⏳ Tache 4.1 - Pre-resoudre les sprites utilises par animation 2D
+### 🧪 Tache 4.1 - Pre-resoudre les sprites utilises par animation 2D
 
 Objectif : supprimer la creation de sprite dans `Draw()` et preparer le rendu multi-parties.
 
@@ -507,6 +507,16 @@ Validation :
 - Test unitaire si la resolution est isolable.
 - Smoke test manuel ou demo si necessaire.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Animation2dSpriteReferenceCollector` pour collecter les sprites legacy et composes sans doublons.
+- `AnimatedSpriteComponent` pre-resout les sprites au chargement des animations et lors de `AddAnimation` si le composant est initialise.
+- `Draw()` n'appelle plus `Sprite.Create()` et utilise le cache `_spriteById`.
+- Ajout d'un test de collecte de references sprites legacy + composees.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

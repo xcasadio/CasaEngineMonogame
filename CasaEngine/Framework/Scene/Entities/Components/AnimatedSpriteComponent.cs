@@ -24,6 +24,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
     private readonly List<Guid> _animationAssetIds = new();
+    private readonly Dictionary<Guid, Sprite> _spriteById = new();
+    private readonly List<Guid> _spriteIdsToResolve = new();
 
     private AssetContentManager _assetContentManager;
     private IPhysicsWorld _physicsWorldContext;
@@ -158,6 +160,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             var animation2d = new Animation2d(animation2dData);
             animation2d.Initialize();
             Animations.Add(animation2d);
+            CacheAnimationSprites(animation2dData);
         }
 
         foreach (var animation in Animations)
@@ -224,16 +227,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         if (CurrentAnimation != null)
         {
-            var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
-
-            if (spriteData == null)
+            if (!_spriteById.TryGetValue(CurrentAnimation.CurrentFrame, out var sprite))
             {
                 Logs.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
                 return;
             }
 
-            //TODO : create list with all spriteData
-            var sprite = Sprite.Create(spriteData, _assetContentManager);
             var position = new Vector2(Position.X, Position.Y);
             var scale = new Vector2(Scale.X, Scale.Y);
             if (_depthSortable2DComponent != null)
@@ -251,6 +250,50 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         animation2d.Initialize();
         Animations.Add(animation2d);
+        if (_assetContentManager != null)
+        {
+            CacheAnimationSprites(animation2d.Animation2dData);
+        }
+    }
+
+    private void CacheAnimationSprites(Animation2dData animation2dData)
+    {
+        _spriteIdsToResolve.Clear();
+        Animation2dSpriteReferenceCollector.Collect(animation2dData, _spriteIdsToResolve);
+
+        foreach (var spriteId in _spriteIdsToResolve)
+        {
+            ResolveSprite(spriteId);
+        }
+    }
+
+    private Sprite ResolveSprite(Guid spriteId)
+    {
+        if (_spriteById.TryGetValue(spriteId, out var sprite))
+        {
+            return sprite;
+        }
+
+        SpriteData spriteData;
+        try
+        {
+            spriteData = _assetContentManager.Load<SpriteData>(spriteId);
+        }
+        catch (InvalidOperationException exception)
+        {
+            Logs.WriteError($"AnimatedSpriteComponent : can't resolve sprite '{spriteId}' ({exception.Message})");
+            return null;
+        }
+
+        if (spriteData == null)
+        {
+            Logs.WriteError($"AnimatedSpriteComponent : the sprite doesn't exist '{spriteId}'");
+            return null;
+        }
+
+        sprite = Sprite.Create(spriteData, _assetContentManager);
+        _spriteById.Add(spriteId, sprite);
+        return sprite;
     }
 
     private SpriteData GetCurrentSpriteData()

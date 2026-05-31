@@ -608,4 +608,28 @@ public class Animation2dAuthoringDataTests
 
         Assert.Equal(new[] { "LoopEvent", "EndEvent", "LoopEvent" }, triggeredEvents);
     }
+
+    [Fact]
+    public void SpriteReferenceCollector_CollectsLegacyAndComposedSpriteIdsOnce()
+    {
+        var legacySpriteId = Guid.NewGuid();
+        var defaultSpriteId = Guid.NewGuid();
+        var trackedSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = legacySpriteId });
+        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = legacySpriteId });
+        animation.Parts.Add(new Animation2dPartData { Id = "body", DefaultSpriteId = defaultSpriteId });
+        var spriteTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Sprite };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, defaultSpriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.2f, trackedSpriteId));
+        animation.Tracks.Add(spriteTrack);
+        var spriteIds = new List<Guid>();
+
+        Animation2dSpriteReferenceCollector.Collect(animation, spriteIds);
+
+        Assert.Equal(3, spriteIds.Count);
+        Assert.Equal(legacySpriteId, spriteIds[0]);
+        Assert.Equal(defaultSpriteId, spriteIds[1]);
+        Assert.Equal(trackedSpriteId, spriteIds[2]);
+    }
 }
