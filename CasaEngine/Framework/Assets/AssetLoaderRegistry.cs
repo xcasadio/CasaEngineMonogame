@@ -42,7 +42,6 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(TileSetData), new AssetLoader<TileSetData>());
         assetContentManager.RegisterAssetLoader(typeof(UIScreenAsset), new AssetLoader<UIScreenAsset>());
         assetContentManager.RegisterAssetLoader(typeof(Scene.World.World), new AssetLoader<Scene.World.World>());
-        assetContentManager.RegisterAssetLoader(typeof(GameMode), new AssetLoader<GameMode>());
         assetContentManager.RegisterAssetLoader(typeof(PlayerStartupSettings), new AssetLoader<PlayerStartupSettings>());
         assetContentManager.RegisterAssetLoader(typeof(EnvironmentAsset), new EnvironmentAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());

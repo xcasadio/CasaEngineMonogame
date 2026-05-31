@@ -172,7 +172,7 @@ Validation :
 - `dotnet build CasaEngine/CasaEngine.csproj --no-restore`.
 - Committer uniquement cette migration et le statut de la tache.
 
-### ⏳ Tache 9 - Supprimer la classe legacy GameMode
+### ✅ Tache 9 - Supprimer la classe legacy GameMode
 
 Objectif : retirer l'ancien `GameMode` une fois qu'il n'est plus necessaire au spawn joueur.
 

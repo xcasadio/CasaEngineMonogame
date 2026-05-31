@@ -5,7 +5,7 @@ namespace CasaEngine.Framework.UI;
 /// <summary>
 /// Manages global game-state-driven screen transitions across all active views.
 ///
-/// Listens to <see cref="GameFramework.GameMode.GameStateChanged"/> (or equivalent)
+/// Listens to gameplay state changes (for example from <see cref="Gameplay.GameplayModeRunner"/> or equivalent)
 /// and instructs each view's hosted UI runtime to push/pop the
 /// appropriate <see cref="IUIScreen"/> for the new state.
 ///
@@ -13,7 +13,7 @@ namespace CasaEngine.Framework.UI;
 /// <code>
 /// var gsm = new GameScreenManager(viewManager);
 /// gsm.RegisterFactory("MainMenu", () => new MainMenuScreen());
-/// gameMode.GameStateChanged += (_, newState) => gsm.TransitionTo(newState);
+/// gameplayStateChanged += (_, newState) => gsm.TransitionTo(newState);
 /// </code>
 /// </summary>
 public sealed class GameScreenManager

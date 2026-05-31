@@ -7,7 +7,7 @@ public static class Constants
         //world
         public const string Entity = ".entity";
         public const string World = ".world";
-        public const string GameMode = ".gameMode";
+        public const string PlayerStartupSettings = ".gameMode";
         public const string ButtonsMapping = ".buttonsMapping";
 
         //asset

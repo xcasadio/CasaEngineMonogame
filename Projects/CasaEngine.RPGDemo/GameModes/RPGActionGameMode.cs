@@ -2,14 +2,14 @@ using CasaEngine.Framework.Gameplay;
 
 namespace CasaEngine.RPGDemo.GameModes
 {
-    public class RPGActionGameMode : GameMode
+    public class RPGActionGameMode : GameplayMode
     {
-        protected override bool ReadyToEndMatch()
+        public override GameplayResult EvaluateResult()
         {
             //if player is dead
-            //return true;
+            //return GameplayResult.Failure;
 
-            return false;
+            return GameplayResult.Running;
         }
     }
 }

@@ -38,8 +38,6 @@ public sealed class World : ObjectBase
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
     public GameplayProxy GameplayProxy { get; private set; }
-    public Guid GameModeAssetId { get; set; } = Guid.Empty;
-    public GameMode GameMode { get; private set; }
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
     public GameplayModeRunner GameplayModeRunner { get; } = new();
@@ -185,18 +183,6 @@ public sealed class World : ObjectBase
     {
         LoadPlayerStartupSettings();
 
-        if (GameModeAssetId != Guid.Empty)
-        {
-            GameMode = Game.AssetContentManager.Load<GameMode>(GameModeAssetId);
-        }
-        else // TODO remove this
-        {
-            GameMode = new GameMode();
-        }
-
-        GameMode.InitGame(this);
-        GameMode.MatchState = GameMode.EnteringMap;
-
         if (withReference)
         {
             foreach (var entityReference in _entityReferences)
@@ -289,7 +275,6 @@ public sealed class World : ObjectBase
         {
             return;
         }
-        GameMode.StartPlay();
 
         GameplayProxy?.OnBeginPlay(this);
 
@@ -328,12 +313,6 @@ public sealed class World : ObjectBase
 
         float elapsedTime = frameTime.DeltaTime;
         GameplayModeRunner.Update(frameTime);
-        GameMode?.Tick(elapsedTime);
-
-        if (GameMode?.HasMatchEnded() ?? false)
-        {
-            //??
-        }
 
         var toRemove = new List<Entity>();
         var diagnosticsBuilder = new EntityPolicyDiagnosticsBuilder(this);
@@ -710,8 +689,7 @@ public sealed class World : ObjectBase
 
         if (element.ContainsKey("game_mode_asset_id"))
         {
-            GameModeAssetId = element["game_mode_asset_id"].GetGuid();
-            PlayerStartupSettingsAssetId = GameModeAssetId;
+            PlayerStartupSettingsAssetId = element["game_mode_asset_id"].GetGuid();
         }
 
         if (element.ContainsKey("player_startup_settings_asset_id"))
