@@ -2,19 +2,10 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public static class Animation2dCompositionAdapter
 {
-    public const string LegacyPartId = "legacy";
-
     public static Animation2dCompositionData Create(Animation2dData animationData)
     {
         ArgumentNullException.ThrowIfNull(animationData);
 
-        return animationData.Parts.Count > 0 || animationData.Tracks.Count > 0
-            ? CreateFromComposedData(animationData)
-            : CreateFromLegacyFrames(animationData);
-    }
-
-    private static Animation2dCompositionData CreateFromComposedData(Animation2dData animationData)
-    {
         var parts = new List<Animation2dPartData>(animationData.Parts.Count);
         foreach (var part in animationData.Parts)
         {
@@ -30,45 +21,6 @@ public static class Animation2dCompositionAdapter
         return new Animation2dCompositionData(
             animationData.AnimationType,
             CalculateDurationSeconds(animationData.Tracks, animationData.Events),
-            parts,
-            tracks,
-            CopyEvents(animationData.Events));
-    }
-
-    private static Animation2dCompositionData CreateFromLegacyFrames(Animation2dData animationData)
-    {
-        var parts = new List<Animation2dPartData>(animationData.Frames.Count > 0 ? 1 : 0);
-        var tracks = new List<Animation2dTrackData>(animationData.Frames.Count > 0 ? 1 : 0);
-        var durationSeconds = 0f;
-
-        if (animationData.Frames.Count > 0)
-        {
-            parts.Add(new Animation2dPartData
-            {
-                Id = LegacyPartId,
-                Name = "Legacy",
-                DefaultSpriteId = animationData.Frames[0].SpriteId,
-                DefaultVisible = true,
-            });
-
-            var spriteTrack = new Animation2dTrackData
-            {
-                TargetPartId = LegacyPartId,
-                Property = Animation2dTrackProperty.Sprite,
-            };
-
-            foreach (var frame in animationData.Frames)
-            {
-                spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(durationSeconds, frame.SpriteId));
-                durationSeconds += frame.Duration;
-            }
-
-            tracks.Add(spriteTrack);
-        }
-
-        return new Animation2dCompositionData(
-            animationData.AnimationType,
-            durationSeconds,
             parts,
             tracks,
             CopyEvents(animationData.Events));

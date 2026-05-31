@@ -4,7 +4,6 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2dData : AnimationData
 {
-    public List<FrameData> Frames { get; } = new();
     public List<Animation2dPartData> Parts { get; } = new();
     public List<Animation2dTrackData> Tracks { get; } = new();
     public List<AnimationEventAsset> Events { get; } = new();
@@ -35,23 +34,9 @@ public class Animation2dData : AnimationData
     {
         base.Load(element);
 
-        Frames.Clear();
         Parts.Clear();
         Tracks.Clear();
         Events.Clear();
-
-        if (element["frames"] is JArray framesNode)
-        {
-            foreach (var frameNode in framesNode)
-            {
-                if (frameNode is JObject frameObject)
-                {
-                    var frameData = new FrameData();
-                    frameData.Load(frameObject);
-                    Frames.Add(frameData);
-                }
-            }
-        }
 
         if (element["parts"] is JArray partsNode)
         {

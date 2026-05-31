@@ -28,7 +28,6 @@ public class PlayerAttackState : IState<Controller>
         var c = (HumanPlayerController)controller;
 
         if (controller.Character.ComboNumber == 0
-            //&& controller.Character.AnimatedSpriteComponent.CurrentAnimation.CurrentFrameIndex >= 2
             && c.IsAttackButtonPressed() == true)
         {
             controller.Character.ComboNumber = 1;

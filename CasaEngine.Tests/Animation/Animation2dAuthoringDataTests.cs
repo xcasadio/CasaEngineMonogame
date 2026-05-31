@@ -10,44 +10,6 @@ namespace CasaEngine.Tests.Animation;
 public class Animation2dAuthoringDataTests
 {
     [Fact]
-    public void Load_LegacyFrames_PreservesFramesAndLeavesPartsEmpty()
-    {
-        var firstSpriteId = Guid.NewGuid();
-        var secondSpriteId = Guid.NewGuid();
-        var animation = new Animation2dData();
-
-        animation.Load(new JObject
-        {
-            ["animation_type"] = AnimationType.Loop.ToString(),
-            ["id"] = Guid.NewGuid().ToString(),
-            ["name"] = "legacy_walk",
-            ["frames"] = new JArray
-            {
-                new JObject
-                {
-                    ["duration"] = 0.1f,
-                    ["sprite_id"] = firstSpriteId.ToString(),
-                },
-                new JObject
-                {
-                    ["duration"] = 0.2f,
-                    ["sprite_id"] = secondSpriteId.ToString(),
-                },
-            },
-        });
-
-        Assert.Equal(AnimationType.Loop, animation.AnimationType);
-        Assert.Equal("legacy_walk", animation.Name);
-        Assert.Equal(2, animation.Frames.Count);
-        Assert.Equal(0.1f, animation.Frames[0].Duration);
-        Assert.Equal(firstSpriteId, animation.Frames[0].SpriteId);
-        Assert.Equal(0.2f, animation.Frames[1].Duration);
-        Assert.Equal(secondSpriteId, animation.Frames[1].SpriteId);
-        Assert.Empty(animation.Parts);
-        Assert.Empty(animation.Events);
-    }
-
-    [Fact]
     public void Parts_CanDescribeComposedAnimationDefaults()
     {
         var bodySpriteId = Guid.NewGuid();
@@ -167,14 +129,6 @@ public class Animation2dAuthoringDataTests
             ["animation_type"] = AnimationType.Once.ToString(),
             ["id"] = Guid.NewGuid().ToString(),
             ["name"] = "attack",
-            ["frames"] = new JArray
-            {
-                new JObject
-                {
-                    ["duration"] = 0.1f,
-                    ["sprite_id"] = Guid.NewGuid().ToString(),
-                },
-            },
             ["events"] = new JArray
             {
                 new JObject
@@ -266,7 +220,6 @@ public class Animation2dAuthoringDataTests
             },
         });
 
-        Assert.Empty(animation.Frames);
         Assert.Single(animation.Parts);
         Assert.Equal("body", animation.Parts[0].Id);
         Assert.Equal(bodySpriteId, animation.Parts[0].DefaultSpriteId);
@@ -289,28 +242,6 @@ public class Animation2dAuthoringDataTests
         var loadedEvent = AnimationEventAssetJsonSerializer.Load(eventNode);
 
         Assert.Equal(animationEvent, loadedEvent);
-    }
-
-    [Fact]
-    public void EditorAssetJsonSerializer_SavesLegacyAnimationWithoutComposedFields()
-    {
-        var animation = new Animation2dData
-        {
-            AnimationType = AnimationType.Loop,
-            Name = "legacy_idle",
-        };
-        animation.Frames.Add(new FrameData
-        {
-            Duration = 0.1f,
-            SpriteId = Guid.NewGuid(),
-        });
-
-        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
-
-        Assert.NotNull(document["frames"]);
-        Assert.Null(document["parts"]);
-        Assert.Null(document["tracks"]);
-        Assert.Null(document["events"]);
     }
 
     [Fact]
@@ -357,62 +288,6 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(nextSpriteId, loadedAnimation.Tracks[0].SpriteKeyframes[1].Value);
         Assert.Single(loadedAnimation.Events);
         Assert.Equal(new AnimationEventAsset(0.25f, "Hit"), loadedAnimation.Events[0]);
-    }
-
-    [Fact]
-    public void CompositionAdapter_ConvertsSingleLegacyFrameToOnePart()
-    {
-        var spriteId = Guid.NewGuid();
-        var animation = new Animation2dData
-        {
-            AnimationType = AnimationType.Once,
-        };
-        animation.Frames.Add(new FrameData
-        {
-            Duration = 0.2f,
-            SpriteId = spriteId,
-        });
-
-        var composition = Animation2dCompositionAdapter.Create(animation);
-
-        Assert.Equal(AnimationType.Once, composition.AnimationType);
-        Assert.Equal(0.2f, composition.DurationSeconds);
-        Assert.Single(composition.Parts);
-        Assert.Equal(Animation2dCompositionAdapter.LegacyPartId, composition.Parts[0].Id);
-        Assert.Equal(spriteId, composition.Parts[0].DefaultSpriteId);
-        Assert.Single(composition.Tracks);
-        Assert.Equal(Animation2dTrackProperty.Sprite, composition.Tracks[0].Property);
-        Assert.Single(composition.Tracks[0].SpriteKeyframes);
-        Assert.Equal(0f, composition.Tracks[0].SpriteKeyframes[0].TimeSeconds);
-        Assert.Equal(spriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
-    }
-
-    [Fact]
-    public void CompositionAdapter_PreservesLegacyFrameSequenceAndLoopType()
-    {
-        var firstSpriteId = Guid.NewGuid();
-        var secondSpriteId = Guid.NewGuid();
-        var thirdSpriteId = Guid.NewGuid();
-        var animation = new Animation2dData
-        {
-            AnimationType = AnimationType.Loop,
-        };
-        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
-        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
-        animation.Frames.Add(new FrameData { Duration = 0.3f, SpriteId = thirdSpriteId });
-
-        var composition = Animation2dCompositionAdapter.Create(animation);
-        var spriteKeyframes = composition.Tracks[0].SpriteKeyframes;
-
-        Assert.Equal(AnimationType.Loop, composition.AnimationType);
-        Assert.Equal(0.6f, composition.DurationSeconds, 5);
-        Assert.Equal(3, spriteKeyframes.Count);
-        Assert.Equal(0f, spriteKeyframes[0].TimeSeconds);
-        Assert.Equal(firstSpriteId, spriteKeyframes[0].Value);
-        Assert.Equal(0.1f, spriteKeyframes[1].TimeSeconds);
-        Assert.Equal(secondSpriteId, spriteKeyframes[1].Value);
-        Assert.Equal(0.3f, spriteKeyframes[2].TimeSeconds, 5);
-        Assert.Equal(thirdSpriteId, spriteKeyframes[2].Value);
     }
 
     [Fact]
@@ -519,13 +394,17 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
-    public void CompositionSampler_LoopsLegacyComposition()
+    public void CompositionSampler_LoopsSingleSpriteComposition()
     {
         var firstSpriteId = Guid.NewGuid();
         var secondSpriteId = Guid.NewGuid();
         var animation = new Animation2dData { AnimationType = AnimationType.Loop };
-        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
-        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
+        animation.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = firstSpriteId });
+        var spriteTrack = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, firstSpriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.1f, secondSpriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.3f, secondSpriteId));
+        animation.Tracks.Add(spriteTrack);
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         sampler.Update(0.15f);
@@ -541,8 +420,12 @@ public class Animation2dAuthoringDataTests
         var firstSpriteId = Guid.NewGuid();
         var secondSpriteId = Guid.NewGuid();
         var animation = new Animation2dData { AnimationType = AnimationType.Once };
-        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = firstSpriteId });
-        animation.Frames.Add(new FrameData { Duration = 0.2f, SpriteId = secondSpriteId });
+        animation.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = firstSpriteId });
+        var spriteTrack = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, firstSpriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.1f, secondSpriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.3f, secondSpriteId));
+        animation.Tracks.Add(spriteTrack);
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         var isFinished = sampler.Update(1f);
@@ -611,14 +494,11 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
-    public void SpriteReferenceCollector_CollectsLegacyAndComposedSpriteIdsOnce()
+    public void SpriteReferenceCollector_CollectsComposedSpriteIdsOnce()
     {
-        var legacySpriteId = Guid.NewGuid();
         var defaultSpriteId = Guid.NewGuid();
         var trackedSpriteId = Guid.NewGuid();
         var animation = new Animation2dData();
-        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = legacySpriteId });
-        animation.Frames.Add(new FrameData { Duration = 0.1f, SpriteId = legacySpriteId });
         animation.Parts.Add(new Animation2dPartData { Id = "body", DefaultSpriteId = defaultSpriteId });
         var spriteTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Sprite };
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, defaultSpriteId));
@@ -628,10 +508,9 @@ public class Animation2dAuthoringDataTests
 
         Animation2dSpriteReferenceCollector.Collect(animation, spriteIds);
 
-        Assert.Equal(3, spriteIds.Count);
-        Assert.Equal(legacySpriteId, spriteIds[0]);
-        Assert.Equal(defaultSpriteId, spriteIds[1]);
-        Assert.Equal(trackedSpriteId, spriteIds[2]);
+        Assert.Equal(2, spriteIds.Count);
+        Assert.Equal(defaultSpriteId, spriteIds[0]);
+        Assert.Equal(trackedSpriteId, spriteIds[1]);
     }
 
     [Fact]
@@ -711,7 +590,7 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
-    public void ExistingLegacyAnim2d_LoadsFramesAndAdaptsToOnePartComposition()
+    public void ConvertedAnim2d_LoadsSingleSpritePartAndTrack()
     {
         var assetPath = Path.Combine(
             FindRepositoryRoot(),
@@ -726,17 +605,17 @@ public class Animation2dAuthoringDataTests
 
         Assert.Equal(AnimationType.Loop, animation.AnimationType);
         Assert.Equal("swordman_stand_right", animation.Name);
-        Assert.Equal(2, animation.Frames.Count);
-        Assert.Equal(0.15f, animation.Frames[0].Duration);
-        Assert.Equal(0.15f, animation.Frames[1].Duration);
-        Assert.Empty(animation.Parts);
+        Assert.Single(animation.Parts);
+        Assert.Equal("sprite", animation.Parts[0].Id);
+        Assert.Equal("Sprite", animation.Parts[0].Name);
+        Assert.True(animation.Parts[0].DefaultVisible);
         Assert.Single(composition.Parts);
-        Assert.Equal(Animation2dCompositionAdapter.LegacyPartId, composition.Parts[0].Id);
-        Assert.Equal(animation.Frames[0].SpriteId, composition.Parts[0].DefaultSpriteId);
+        Assert.Equal("sprite", composition.Parts[0].Id);
+        Assert.Equal(animation.Parts[0].DefaultSpriteId, composition.Parts[0].DefaultSpriteId);
         Assert.Single(composition.Tracks);
-        Assert.Equal(2, composition.Tracks[0].SpriteKeyframes.Count);
-        Assert.Equal(animation.Frames[0].SpriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
-        Assert.Equal(animation.Frames[1].SpriteId, composition.Tracks[0].SpriteKeyframes[1].Value);
+        Assert.Equal(3, composition.Tracks[0].SpriteKeyframes.Count);
+        Assert.Equal(animation.Parts[0].DefaultSpriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
+        Assert.Equal(composition.Tracks[0].SpriteKeyframes[1].Value, composition.Tracks[0].SpriteKeyframes[2].Value);
         Assert.Equal(0.3f, composition.DurationSeconds, 5);
     }
 
@@ -755,7 +634,6 @@ public class Animation2dAuthoringDataTests
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         Assert.Equal("swordman_composed_demo", animation.Name);
-        Assert.Empty(animation.Frames);
         Assert.Equal(2, animation.Parts.Count);
         Assert.Equal(2, animation.Tracks.Count);
         Assert.Single(animation.Events);

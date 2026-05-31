@@ -157,16 +157,6 @@ internal static class EditorAssetJsonSerializer
     {
         SaveAnimationData(animation2dData, node);
 
-        var framesArrayNode = new JArray();
-        foreach (var frame in animation2dData.Frames)
-        {
-            var frameNode = new JObject();
-            SaveFrameData(frame, frameNode);
-            framesArrayNode.Add(frameNode);
-        }
-
-        node.Add("frames", framesArrayNode);
-
         if (animation2dData.Parts.Count > 0)
         {
             var partsArrayNode = new JArray();
@@ -319,12 +309,6 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add(key, keyframesNode);
-    }
-
-    private static void SaveFrameData(FrameData frameData, JObject node)
-    {
-        node.Add("duration", frameData.Duration);
-        node.Add("sprite_id", frameData.SpriteId);
     }
 
     private static void SaveSpriteData(SpriteData spriteData, JObject node)

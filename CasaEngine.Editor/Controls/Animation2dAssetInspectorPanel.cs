@@ -246,7 +246,6 @@ internal sealed class Animation2dAssetInspectorPanel
             : IsDirty ? $"Modified {EscapeMarkup(_loadedRelativePath)}" : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
 
         AddProperty("Type", _animationData.AnimationType.ToString());
-        AddProperty("Legacy frames", _animationData.Frames.Count.ToString(CultureInfo.InvariantCulture));
         AddProperty("Parts", _animationData.Parts.Count.ToString(CultureInfo.InvariantCulture));
         AddProperty("Tracks", _animationData.Tracks.Count.ToString(CultureInfo.InvariantCulture));
         AddProperty("Events", _animationData.Events.Count.ToString(CultureInfo.InvariantCulture));
@@ -262,20 +261,6 @@ internal sealed class Animation2dAssetInspectorPanel
             for (var index = 0; index < invalidTrackTargets.Count; index++)
             {
                 AddText($"Track target part not found: {EscapeMarkup(invalidTrackTargets[index])}", EditorThemePalette.PrimaryHeaderOpacity);
-            }
-        }
-
-        AddSection("Legacy Frames");
-        if (_animationData.Frames.Count == 0)
-        {
-            AddText("No legacy frames.", EditorThemePalette.SecondaryTextOpacity);
-        }
-        else
-        {
-            for (var index = 0; index < _animationData.Frames.Count; index++)
-            {
-                var frame = _animationData.Frames[index];
-                AddText($"#{index.ToString(CultureInfo.InvariantCulture)} sprite={frame.SpriteId} duration={frame.Duration.ToString("0.###", CultureInfo.InvariantCulture)}s", EditorThemePalette.PrimaryHeaderOpacity);
             }
         }
 

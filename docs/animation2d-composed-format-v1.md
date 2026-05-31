@@ -2,11 +2,11 @@
 
 This document describes the `.anim2d` format currently loaded by `Animation2dData` and saved by `EditorAssetJsonSerializer`.
 
-The V1 modernization keeps the existing `.anim2d` extension. Legacy frame animations and composed animations share the same root document, so existing assets continue to load without migration.
+The V1 modernization keeps the existing `.anim2d` extension. Animation2D assets are composed documents made of sprite parts, property tracks, and optional gameplay events.
 
 ## Root object
 
-Required legacy/root fields:
+Required root fields:
 
 - `animation_type`: value loaded by `AnimationData.AnimationType` (`Once`, `Loop`, `PingPong`).
 - `id`: asset GUID.
@@ -14,36 +14,11 @@ Required legacy/root fields:
 
 Optional payload fields:
 
-- `frames`: legacy sprite frame list.
 - `parts`: composed sprite part defaults.
 - `tracks`: composed property tracks.
 - `events`: gameplay/authoring events dispatched by the composed sampler.
 
-`frames`, `parts`, `tracks`, and `events` are all optional in the loader. Saving only writes `parts`, `tracks`, and `events` when the corresponding lists are non-empty.
-
-## Legacy frame example
-
-Legacy assets are still valid and keep their original frame-based data.
-
-```json
-{
-  "animation_type": "Once",
-  "id": "b930111a-2d6f-4a00-92b7-10fc4db6cdb9",
-  "name": "ryu_idle",
-  "frames": [
-    {
-      "duration": 0.096,
-      "sprite_id": "714a35c7-37b9-4897-a894-d226ba1f449e"
-    },
-    {
-      "duration": 0.096,
-      "sprite_id": "e305cb9b-8760-4b20-a721-19cdcd4ad94a"
-    }
-  ]
-}
-```
-
-At runtime, legacy frames are adapted into a composition with one part named `legacy` and one sprite track. This keeps `AnimatedSpriteComponent` APIs such as frame changed/finished behavior compatible while allowing the composed runtime path to render it.
+`parts`, `tracks`, and `events` are optional in the loader. Saving only writes them when the corresponding lists are non-empty.
 
 ## Composed example
 
@@ -147,22 +122,13 @@ All keyframes use `time_seconds` plus `value`.
 
 Events are dispatched by `Animation2dCompositionSampler.Update`. Seeking or resetting applies pose state but does not emit events.
 
-## Compatibility strategy
-
-The V1 strategy is additive:
-
-- Existing `.anim2d` files with only `frames` continue to load.
-- New composed data lives in optional root arrays instead of a new file extension.
-- Runtime converts legacy frames into a single-part composition, so rendering and sampling share one path.
-- Legacy frame-based collision behavior is preserved for V1.
-
 ## Editor support
 
 The MGUI editor can open `.anim2d` assets through `GameEditor`.
 
 Current editor scope:
 
-- Inspect legacy frames, parts, tracks/keyframes, events, and invalid track targets.
+- Inspect parts, tracks/keyframes, events, and invalid track targets.
 - Edit part name, default sprite id, default position, default draw order, and default visibility.
 - Edit event time/name and add a basic event.
 - Save via the central editor asset writer and serializer.

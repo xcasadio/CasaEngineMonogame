@@ -20,11 +20,10 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Animated Sprite")]
 public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IComponentDrawable, IBoundingBoxable, IConditionalEntityUpdateSource
 {
-    public event EventHandler<Guid> FrameChanged;
     public event EventHandler<Animation2d> AnimationFinished;
     public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
-    private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
+    private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectsBySpriteId = new();
     private readonly List<Guid> _animationAssetIds = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
@@ -40,6 +39,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d CurrentAnimation { get; private set; }
     private Animation2dCompositionSampler _currentCompositionSampler;
+    private Guid _currentSpriteId;
     public Animation2dCompositionRuntimeState CurrentCompositionState => _currentCompositionSampler?.RuntimeState;
     public List<Animation2d> Animations { get; } = new();
 
@@ -74,6 +74,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             {
                 CurrentAnimation.Reset();
                 _currentCompositionSampler?.Reset();
+                UpdateCurrentSprite(true);
             }
 
             return;
@@ -81,9 +82,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         if (CurrentAnimation != null)
         {
-            RemoveCollisionsFromFrame(CurrentAnimation.CurrentFrame);
-            CurrentAnimation.FrameChanged -= OnFrameChanged;
-            CurrentAnimation.AnimationFinished -= OnAnimationFinished;
+            RemoveCollisionsFromSprite(_currentSpriteId);
         }
 
         CurrentAnimation = anim;
@@ -91,9 +90,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _compositionSamplerByAnimation.TryGetValue(CurrentAnimation, out _currentCompositionSampler);
         _currentCompositionSampler?.Reset();
 
-        CurrentAnimation.FrameChanged += OnFrameChanged;
-        CurrentAnimation.AnimationFinished += OnAnimationFinished;
-        AddOrUpdateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+        _currentSpriteId = Guid.Empty;
+        UpdateCurrentSprite(true);
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -115,37 +113,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         return false;
     }
 
-    public Guid GetCurrentFrameName()
-    {
-        if (CurrentAnimation == null)
-        {
-            return Guid.Empty;
-        }
-
-        return CurrentAnimation.CurrentFrame;
-    }
-
-    public int GetCurrentFrameIndex()
-    {
-        if (CurrentAnimation == null)
-        {
-            return -1;
-        }
-
-        int i = 0;
-        foreach (var frame in CurrentAnimation.Animation2dData.Frames)
-        {
-            if (frame.SpriteId == CurrentAnimation.CurrentFrame)
-            {
-                return i;
-            }
-
-            i++;
-        }
-
-        return -1;
-    }
-
     protected override void InitializePrivate()
     {
         base.InitializePrivate();
@@ -163,8 +130,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         Animations.Clear();
         _compositionSamplerByAnimation.Clear();
         _currentCompositionSampler = null;
+        _currentSpriteId = Guid.Empty;
         _spriteById.Clear();
         _spriteDataById.Clear();
+        _collisionObjectsBySpriteId.Clear();
 
         foreach (var assetId in _animationAssetIds)
         {
@@ -174,34 +143,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             Animations.Add(animation2d);
             RegisterCompositionSampler(animation2d);
             CacheAnimationSprites(animation2dData);
-        }
-
-    // Collision authoring remains legacy-frame based in composed Animation2D V1.
-        foreach (var animation in Animations)
-        {
-            foreach (var frame in animation.Animation2dData.Frames)
-            {
-                var spriteData = Owner.World.Game.AssetContentManager.Load<SpriteData>(frame.SpriteId);
-                if (spriteData.CollisionShapes.Count == 0)
-                {
-                    continue;
-                }
-
-                if (!_collisionObjectByFrameId.ContainsKey(frame.SpriteId))
-                {
-                    _collisionObjectByFrameId.Add(frame.SpriteId, new List<(Shape2d, PhysicsBody)>(1));
-                }
-
-                foreach (var collisionShape in spriteData.CollisionShapes)
-                {
-                    var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-                    var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
-                    if (collisionObject != null)
-                    {
-                        _collisionObjectByFrameId[frame.SpriteId].Add(new(collisionShape.Shape, collisionObject));
-                    }
-                }
-            }
         }
 
         if (Animations.Count > 0)
@@ -230,9 +171,16 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         if (CurrentAnimation != null)
         {
-            CurrentAnimation?.Update(elapsedTime);
-            _currentCompositionSampler?.Update(elapsedTime);
-            UpdateCollisionFromFrame(CurrentAnimation.CurrentFrame);
+            var wasFinished = _currentCompositionSampler?.IsFinished == true;
+            var isFinished = _currentCompositionSampler?.Update(elapsedTime) == true;
+            IsBoundingBoxDirty = true;
+            UpdateCurrentSprite(true);
+            UpdateCollisionFromSprite(_currentSpriteId);
+
+            if (!wasFinished && isFinished)
+            {
+                AnimationFinished?.Invoke(this, CurrentAnimation);
+            }
         }
 
         base.Update(elapsedTime);
@@ -245,25 +193,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             if (_currentCompositionSampler != null && _currentCompositionSampler.RuntimeState.PartCount > 0)
             {
                 DrawComposedAnimation();
-                return;
             }
-
-            if (!_spriteById.TryGetValue(CurrentAnimation.CurrentFrame, out var sprite))
-            {
-                Logs.WriteError($"AnimatedSpriteComponent : the sprite of the current frame doesn't exist '{CurrentAnimation.CurrentFrame}'");
-                return;
-            }
-
-            var position = new Vector2(Position.X, Position.Y);
-            var scale = new Vector2(Scale.X, Scale.Y);
-            if (_depthSortable2DComponent != null)
-            {
-                var sortKey = _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame);
-                _spriteRenderer.DrawSprite(sprite, position, 0.0f, scale, Color.White, Position.Z, sortKey);
-                return;
-            }
-
-            _spriteRenderer.DrawSprite(sprite, position, 0.0f, scale, Color.White, Position.Z);
         }
     }
 
@@ -392,69 +322,120 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         sprite = Sprite.Create(spriteData, _assetContentManager);
         _spriteById.Add(spriteId, sprite);
         _spriteDataById[spriteId] = spriteData;
+        CreateCollisionObjectsForSprite(spriteId, spriteData);
         return sprite;
     }
 
-    private SpriteData GetCurrentSpriteData()
+    private void CreateCollisionObjectsForSprite(Guid spriteId, SpriteData spriteData)
     {
-        foreach (var frame in CurrentAnimation.Animation2dData.Frames)
+        if (_physicsWorldContext == null
+            || spriteData.CollisionShapes.Count == 0
+            || _collisionObjectsBySpriteId.ContainsKey(spriteId))
         {
-            if (frame.SpriteId == CurrentAnimation.CurrentFrame)
+            return;
+        }
+
+        _collisionObjectsBySpriteId.Add(spriteId, new List<(Shape2d, PhysicsBody)>(spriteData.CollisionShapes.Count));
+
+        foreach (var collisionShape in spriteData.CollisionShapes)
+        {
+            var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
+            if (collisionObject != null)
             {
-                return Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(frame.SpriteId);
+                _collisionObjectsBySpriteId[spriteId].Add(new(collisionShape.Shape, collisionObject));
             }
         }
-        return null;
     }
 
-    private void OnFrameChanged(object sender, (Guid oldFrame, Guid newFrame) arg)
+    private void UpdateCurrentSprite(bool addCollision)
     {
+        var spriteId = GetPrimarySpriteId();
+        if (_currentSpriteId == spriteId)
+        {
+            if (addCollision)
+            {
+                AddOrUpdateCollisionFromSprite(_currentSpriteId, true);
+            }
+
+            return;
+        }
+
+        var previousSpriteId = _currentSpriteId;
+        if (previousSpriteId != Guid.Empty)
+        {
+            RemoveCollisionsFromSprite(previousSpriteId);
+        }
+
+        _currentSpriteId = spriteId;
         IsBoundingBoxDirty = true;
-        RemoveCollisionsFromFrame(arg.oldFrame);
-        AddOrUpdateCollisionFromFrame(arg.newFrame, true);
 
-        FrameChanged?.Invoke(this, arg.newFrame);
-    }
-
-    private void UpdateCollisionFromFrame(Guid frameId)
-    {
-        AddOrUpdateCollisionFromFrame(frameId, false);
-    }
-
-    private void AddOrUpdateCollisionFromFrame(Guid frameId, bool addCollision)
-    {
-        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects)
-            && CreatePhysicsForEachFrame)
+        if (_currentSpriteId != Guid.Empty)
         {
-            var spriteData = _assetContentManager.GetAsset<SpriteData>(frameId);
+            AddOrUpdateCollisionFromSprite(_currentSpriteId, addCollision);
+        }
+    }
 
-            foreach (var (shape2d, collisionObject) in collisionObjects)
+    private Guid GetPrimarySpriteId()
+    {
+        var runtimeState = _currentCompositionSampler?.RuntimeState;
+        if (runtimeState == null)
+        {
+            return Guid.Empty;
+        }
+
+        for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
+        {
+            var part = runtimeState.Parts[runtimeState.DrawPartIndices[drawIndex]];
+            if (part.Visible && part.SpriteId != Guid.Empty)
             {
-                Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
-                    collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
-                if (addCollision)
-                {
-                    _physicsWorldContext.AddCollisionObject(collisionObject);
-                }
+                return part.SpriteId;
+            }
+        }
+
+        return Guid.Empty;
+    }
+
+    private void UpdateCollisionFromSprite(Guid spriteId)
+    {
+        AddOrUpdateCollisionFromSprite(spriteId, false);
+    }
+
+    private void AddOrUpdateCollisionFromSprite(Guid spriteId, bool addCollision)
+    {
+        if (spriteId == Guid.Empty
+            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects)
+            || !CreatePhysicsForEachFrame)
+        {
+            return;
+        }
+
+        var spriteData = _assetContentManager.GetAsset<SpriteData>(spriteId);
+
+        foreach (var (shape2d, collisionObject) in collisionObjects)
+        {
+            Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
+                collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
+            if (addCollision)
+            {
+                _physicsWorldContext.AddCollisionObject(collisionObject);
             }
         }
     }
 
-    public void RemoveCollisionsFromFrame(Guid frameId)
+    public void RemoveCollisionsFromSprite(Guid spriteId)
     {
-        if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects))
+        if (spriteId == Guid.Empty
+            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects))
         {
-            foreach (var (shape2d, collisionObject) in collisionObjects)
-            {
-                _physicsWorldContext.RemoveCollisionObject(collisionObject);
-                _physicsWorldContext.ClearCollisionDataFrom(this);
-            }
+            return;
         }
-    }
 
-    private void OnAnimationFinished(object sender, EventArgs args)
-    {
-        AnimationFinished?.Invoke(this, (Animation2d)sender);
+        foreach (var (_, collisionObject) in collisionObjects)
+        {
+            _physicsWorldContext.RemoveCollisionObject(collisionObject);
+            _physicsWorldContext.ClearCollisionDataFrom(this);
+        }
     }
 
     private void OnAnimationEventTriggered(AnimationEventAsset animationEvent)
@@ -470,11 +451,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             if (Owner.IsEnabled)
             {
-                AddOrUpdateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+                AddOrUpdateCollisionFromSprite(_currentSpriteId, true);
             }
             else
             {
-                RemoveCollisionsFromFrame(CurrentAnimation.CurrentFrame);
+                RemoveCollisionsFromSprite(_currentSpriteId);
             }
         }
     }
@@ -490,23 +471,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             return composedBounds.Transform(WorldMatrixWithScale);
         }
-
-        if (CurrentAnimation != null)
-        {
-            var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
-            if (spriteData == null)
-            {
-                return GetDefaultBoundingBox();
-            }
-
-            var halfWidth = spriteData.PositionInTexture.Width / 2f;
-            var halfHeight = spriteData.PositionInTexture.Height / 2f;
-
-            min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
-            max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
-            return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
-        }
-
         return GetDefaultBoundingBox();
     }
 

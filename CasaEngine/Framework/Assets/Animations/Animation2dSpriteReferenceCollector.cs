@@ -7,11 +7,6 @@ public static class Animation2dSpriteReferenceCollector
         ArgumentNullException.ThrowIfNull(animationData);
         ArgumentNullException.ThrowIfNull(spriteIds);
 
-        foreach (var frame in animationData.Frames)
-        {
-            AddUnique(spriteIds, frame.SpriteId);
-        }
-
         foreach (var part in animationData.Parts)
         {
             AddUnique(spriteIds, part.DefaultSpriteId);
