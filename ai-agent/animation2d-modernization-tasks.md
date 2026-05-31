@@ -304,7 +304,7 @@ Commit attendu :
 
 - `feat(animation2d): load composed animation json`
 
-### ⏳ Tache 2.2 - Etendre `EditorAssetJsonSerializer`
+### 🧪 Tache 2.2 - Etendre `EditorAssetJsonSerializer`
 
 Objectif : sauvegarder les donnees composees sans perdre les donnees legacy.
 
@@ -324,6 +324,14 @@ Validation :
 
 - Tests `Animation2dAuthoring` dans `CasaEngine.Tests`.
 - Build principal.
+
+Validation realisee :
+
+- `EditorAssetJsonSerializer` sauvegarde `parts`, `tracks` et conserve le JSON legacy sans champs composes quand ils sont vides.
+- Ajout de tests de serialization legacy et round-trip compose via le loader `Animation2dData`.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

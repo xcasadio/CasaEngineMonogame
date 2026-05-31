@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.EditorServices;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -287,5 +288,73 @@ public class Animation2dAuthoringDataTests
         var loadedEvent = AnimationEventAssetJsonSerializer.Load(eventNode);
 
         Assert.Equal(animationEvent, loadedEvent);
+    }
+
+    [Fact]
+    public void EditorAssetJsonSerializer_SavesLegacyAnimationWithoutComposedFields()
+    {
+        var animation = new Animation2dData
+        {
+            AnimationType = AnimationType.Loop,
+            Name = "legacy_idle",
+        };
+        animation.Frames.Add(new FrameData
+        {
+            Duration = 0.1f,
+            SpriteId = Guid.NewGuid(),
+        });
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+
+        Assert.NotNull(document["frames"]);
+        Assert.Null(document["parts"]);
+        Assert.Null(document["tracks"]);
+        Assert.Null(document["events"]);
+    }
+
+    [Fact]
+    public void EditorAssetJsonSerializer_RoundTripsComposedAnimationData()
+    {
+        var spriteId = Guid.NewGuid();
+        var nextSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData
+        {
+            AnimationType = AnimationType.Once,
+            Name = "composed_attack",
+        };
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "body",
+            Name = "Body",
+            DefaultSpriteId = spriteId,
+            DefaultPosition = new Vector2(2f, 3f),
+            DefaultDrawOrder = 10,
+            DefaultVisible = true,
+            DefaultFlipY = true,
+        });
+        var spriteTrack = new Animation2dTrackData
+        {
+            TargetPartId = "body",
+            Property = Animation2dTrackProperty.Sprite,
+        };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, spriteId));
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.5f, nextSpriteId));
+        animation.Tracks.Add(spriteTrack);
+        animation.Events.Add(new AnimationEventAsset(0.25f, "Hit"));
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+
+        var loadedAnimation = new Animation2dData();
+        loadedAnimation.Load(document);
+
+        Assert.Single(loadedAnimation.Parts);
+        Assert.Equal("body", loadedAnimation.Parts[0].Id);
+        Assert.Equal(spriteId, loadedAnimation.Parts[0].DefaultSpriteId);
+        Assert.Equal(new Vector2(2f, 3f), loadedAnimation.Parts[0].DefaultPosition);
+        Assert.True(loadedAnimation.Parts[0].DefaultFlipY);
+        Assert.Single(loadedAnimation.Tracks);
+        Assert.Equal(nextSpriteId, loadedAnimation.Tracks[0].SpriteKeyframes[1].Value);
+        Assert.Single(loadedAnimation.Events);
+        Assert.Equal(new AnimationEventAsset(0.25f, "Hit"), loadedAnimation.Events[0]);
     }
 }

@@ -167,6 +167,28 @@ internal static class EditorAssetJsonSerializer
 
         node.Add("frames", framesArrayNode);
 
+        if (animation2dData.Parts.Count > 0)
+        {
+            var partsArrayNode = new JArray();
+            foreach (var part in animation2dData.Parts)
+            {
+                partsArrayNode.Add(SaveAnimation2dPartData(part));
+            }
+
+            node.Add("parts", partsArrayNode);
+        }
+
+        if (animation2dData.Tracks.Count > 0)
+        {
+            var tracksArrayNode = new JArray();
+            foreach (var track in animation2dData.Tracks)
+            {
+                tracksArrayNode.Add(SaveAnimation2dTrackData(track));
+            }
+
+            node.Add("tracks", tracksArrayNode);
+        }
+
         if (animation2dData.Events.Count == 0)
         {
             return;
@@ -179,6 +201,124 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("events", eventsArrayNode);
+    }
+
+    private static JObject SaveAnimation2dPartData(Animation2dPartData part)
+    {
+        var positionNode = new JObject();
+        part.DefaultPosition.Save(positionNode);
+
+        return new JObject
+        {
+            ["id"] = part.Id,
+            ["name"] = part.Name,
+            ["default_sprite_id"] = part.DefaultSpriteId,
+            ["default_position"] = positionNode,
+            ["default_draw_order"] = part.DefaultDrawOrder,
+            ["default_visible"] = part.DefaultVisible,
+            ["default_flip_x"] = part.DefaultFlipX,
+            ["default_flip_y"] = part.DefaultFlipY,
+        };
+    }
+
+    private static JObject SaveAnimation2dTrackData(Animation2dTrackData track)
+    {
+        var node = new JObject
+        {
+            ["target_part_id"] = track.TargetPartId,
+            ["property"] = track.Property.ToString(),
+            ["interpolation"] = track.Interpolation.ToString(),
+        };
+
+        AddGuidKeyframes(node, "sprite_keyframes", track.SpriteKeyframes);
+        AddVector2Keyframes(node, "position_keyframes", track.PositionKeyframes);
+        AddBoolKeyframes(node, "visible_keyframes", track.VisibleKeyframes);
+        AddIntKeyframes(node, "draw_order_keyframes", track.DrawOrderKeyframes);
+        AddBoolKeyframes(node, "flip_keyframes", track.FlipKeyframes);
+
+        return node;
+    }
+
+    private static void AddGuidKeyframes(JObject node, string key, IReadOnlyList<Animation2dGuidKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            keyframesNode.Add(new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["value"] = keyframe.Value,
+            });
+        }
+
+        node.Add(key, keyframesNode);
+    }
+
+    private static void AddVector2Keyframes(JObject node, string key, IReadOnlyList<Animation2dVector2KeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            var valueNode = new JObject();
+            keyframe.Value.Save(valueNode);
+            keyframesNode.Add(new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["value"] = valueNode,
+            });
+        }
+
+        node.Add(key, keyframesNode);
+    }
+
+    private static void AddBoolKeyframes(JObject node, string key, IReadOnlyList<Animation2dBoolKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            keyframesNode.Add(new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["value"] = keyframe.Value,
+            });
+        }
+
+        node.Add(key, keyframesNode);
+    }
+
+    private static void AddIntKeyframes(JObject node, string key, IReadOnlyList<Animation2dIntKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            keyframesNode.Add(new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["value"] = keyframe.Value,
+            });
+        }
+
+        node.Add(key, keyframesNode);
     }
 
     private static void SaveFrameData(FrameData frameData, JObject node)
