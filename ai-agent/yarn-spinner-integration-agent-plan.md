@@ -347,7 +347,7 @@ Resultat 2026-05-31 : `YarnDialogueRunner` ajoute sous `CasaEngine/Framework/Dia
 
 Commit requis : oui, un commit dedie avec runner, tests et statut.
 
-### ⏳ Tache 11 - Brancher la demo UI sur le runner Yarn
+### ✅ Tache 11 - Brancher la demo UI sur le runner Yarn
 
 Objectif : remplacer le texte code en dur de la demo par une ligne issue d'un fichier Yarn compile.
 
@@ -368,6 +368,8 @@ Validation :
 
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
 - Lancer la demo si possible et noter le resultat dans ce fichier.
+
+Resultat 2026-05-31 : `UIOverlayDemo` utilise maintenant un `YarnDialogueRunner` et charge `Content/Dialogues/greeting.dialogue` via `DialogueAssetLoader`; le texte code en dur a ete retire du flux d'ouverture. La touche de test `D` ouvre la ligne Yarn puis continue/ferme le dialogue, et le bouton de fermeture stoppe le runner. L'asset `.dialogue` compile est copie en sortie par `CasaEngine.Demos.csproj`. Validation directe de l'asset de sortie OK : `AssetExists=True`, `AssetLoaded=True`, `Started=True`, ligne `Bonjour depuis CasaEngine.`, `Continued=True`, `OpenAfterContinue=False`. `dotnet build CasaEngine.Demos/CasaEngine.Demos.csproj --no-restore` OK. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. Lancement automatise de `UI Overlay` depuis `CasaEngine.Demos/bin/Debug/net9.0-windows` OK; capture enregistree dans `artifacts/ui-overlay-yarn-task11.png` sous ce dossier de sortie.
 
 Commit requis : oui, un commit dedie avec demo Yarn minimale et statut.
 

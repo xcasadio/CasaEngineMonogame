@@ -26,6 +26,9 @@
 	  <None Update="Content\Cutscenes\**\*.cutscene">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Content\Dialogues\**\*.dialogue">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 	<ItemGroup>
 	  <None Update="Content\SkinnedMesh\kid_idle.model">

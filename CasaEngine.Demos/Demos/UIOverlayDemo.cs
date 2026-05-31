@@ -1,6 +1,11 @@
+using System.IO;
+using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Assets.Loaders;
+using CasaEngine.Framework.Dialogue.Assets;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.Dialogue.UI;
+using CasaEngine.Framework.Dialogue.Yarn;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
@@ -37,6 +42,8 @@ public class UIOverlayDemo : Demo
     private PauseMenuScreen? _pauseScreen;
     private DialogueService? _dialogueService;
     private DialogueScreen?  _dialogueScreen;
+    private DialogueAsset?       _dialogueAsset;
+    private YarnDialogueRunner?  _dialogueRunner;
     private KeyboardState    _previousKeyboard;
 
     public override string Title => "MGUI UI Overlay Demo (HUD + Modal Screens)";
@@ -98,6 +105,8 @@ public class UIOverlayDemo : Demo
         if (uiView == null) return;
 
         _dialogueService = new DialogueService();
+        _dialogueRunner  = new YarnDialogueRunner(_dialogueService);
+        _dialogueAsset   = LoadDialogueAsset();
         _dialogueScreen  = new DialogueScreen(_dialogueService, CloseDialogue);
         _pauseScreen     = new PauseMenuScreen(OnResume);
         _hudScreen       = new HudScreen(OnOpenPauseMenu, OpenDialogue);
@@ -146,6 +155,8 @@ public class UIOverlayDemo : Demo
         _hudScreen   = null;
         _pauseScreen = null;
         _dialogueScreen  = null;
+        _dialogueRunner  = null;
+        _dialogueAsset   = null;
         _dialogueService = null;
         _game        = null;
     }
@@ -167,7 +178,7 @@ public class UIOverlayDemo : Demo
     {
         if (_dialogueService?.IsOpen == true)
         {
-            CloseDialogue();
+            ContinueDialogue();
         }
         else
         {
@@ -177,7 +188,7 @@ public class UIOverlayDemo : Demo
 
     private void OpenDialogue()
     {
-        if (_dialogueService == null || _dialogueScreen == null)
+        if (_dialogueService == null || _dialogueScreen == null || _dialogueRunner == null || _dialogueAsset == null)
         {
             return;
         }
@@ -190,15 +201,33 @@ public class UIOverlayDemo : Demo
 
         if (!_dialogueService.IsOpen)
         {
-            _dialogueService.TryOpen("Bonjour depuis CasaEngine.");
+            if (!_dialogueRunner.Start(_dialogueAsset))
+            {
+                return;
+            }
         }
 
         uiView.RemoveScreen(_dialogueScreen);
         uiView.PushScreen(_dialogueScreen);
     }
 
+    private void ContinueDialogue()
+    {
+        if (_dialogueRunner?.Continue() != true)
+        {
+            CloseDialogue();
+            return;
+        }
+
+        if (_dialogueService?.IsOpen != true && _dialogueScreen != null)
+        {
+            GetUIView()?.RemoveScreen(_dialogueScreen);
+        }
+    }
+
     private void CloseDialogue()
     {
+        _dialogueRunner?.Stop();
         _dialogueService?.Close();
 
         if (_dialogueScreen != null)
@@ -208,6 +237,18 @@ public class UIOverlayDemo : Demo
     }
 
     // ---- Helpers ----
+
+    private DialogueAsset? LoadDialogueAsset()
+    {
+        if (_game == null)
+        {
+            return null;
+        }
+
+        string fileName = Path.Combine(EngineEnvironment.ProjectPath, "Dialogues", "greeting.dialogue");
+        var loader = new DialogueAssetLoader();
+        return loader.LoadAsset(fileName, _game.AssetContentManager) as DialogueAsset;
+    }
 
     private IUIViewRuntime? GetUIView()
         => _game?.GameManager.ViewManager.GetActiveUIView();

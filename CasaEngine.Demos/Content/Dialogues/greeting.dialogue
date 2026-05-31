@@ -1,0 +1,12 @@
+{
+  "id": "61b4acdc-8d78-44a6-a07e-6a2f2344f8e9",
+  "name": "Greeting",
+  "type": "DialogueAsset",
+  "version": 1,
+  "schema_version": 1,
+  "start_node": "Start",
+  "program_base64": "EjgKBVN0YXJ0Ei8KBVN0YXJ0Mg4KBXRpdGxlEgVTdGFydDoRGg8KDWxpbmU6ZjlmYjA4NzQ6A6IBACAE",
+  "line_texts": {
+    "line:f9fb0874": "Bonjour depuis CasaEngine."
+  }
+}
