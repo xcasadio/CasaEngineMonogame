@@ -14,6 +14,7 @@ namespace CasaEngine.Demos.Demos;
 public sealed class ParticleSystemDemo : Demo
 {
     private const float BurstIntervalSeconds = 1.35f;
+    private static readonly Guid SoftParticleTextureAssetId = new("2af8c1e7-8d4e-4a87-b146-8b84d888fff2");
     private ParticleSystemComponent? _sparkBurst;
     private ParticleSystemComponent? _smokePuff;
     private float _burstTimer;
@@ -29,7 +30,7 @@ public sealed class ParticleSystemDemo : Demo
         var world = game.GameManager.CurrentWorld;
 
         AddGround(game);
-        AddParticleEntity(world, "Fire Loop", new Vector3(0.0f, 0.1f, 0.0f), CreateFireLoop(textureAssetId), playOnStart: true, out _);
+        AddParticleEntity(world, "Fire Loop", new Vector3(0.0f, 0.1f, 0.0f), CreateFireLoop(), playOnStart: true, out _);
         AddParticleEntity(world, "Spark Burst", new Vector3(-2.4f, 0.35f, 0.0f), CreateSparkBurst(textureAssetId), playOnStart: true, out _sparkBurst);
         AddParticleEntity(world, "Smoke Puff", new Vector3(2.4f, 0.35f, 0.0f), CreateSmokePuff(textureAssetId), playOnStart: true, out _smokePuff);
         _burstTimer = BurstIntervalSeconds;
@@ -98,9 +99,9 @@ public sealed class ParticleSystemDemo : Demo
         world.AddEntity(entity);
     }
 
-    private static ParticleEffectAsset CreateFireLoop(Guid textureAssetId)
+    private static ParticleEffectAsset CreateFireLoop()
     {
-        var asset = new ParticleEffectAsset { Name = "Demo_FireLoop" };
+        var asset = new ParticleEffectAsset { Name = "FireLoop_Minimal" };
         var emitter = new ParticleEmitterDefinition
         {
             Name = "Fire Loop",
@@ -109,28 +110,86 @@ public sealed class ParticleSystemDemo : Demo
             MaxParticles = 128,
         };
 
-        emitter.Emission.RateOverTime = 28.0f;
-        emitter.Shape.ShapeType = ParticleShapeType.Cone;
+        emitter.Emission.RateOverTime = 23.0f;
+        emitter.Shape.ShapeType = ParticleShapeType.Point;
+        emitter.Shape.Radius = 0.28f;
         emitter.Shape.AngleDegrees = 18.0f;
-        emitter.Initial.Lifetime = new FloatRange(0.45f, 0.85f);
-        emitter.Initial.Speed = new FloatRange(0.8f, 1.55f);
+        emitter.Initial.Lifetime = new FloatRange(0.55f, 0.95f);
+        emitter.Initial.Speed = new FloatRange(0.8f, 1.75f);
         emitter.Initial.Rotation = new FloatRange(-0.4f, 0.4f);
-        emitter.Initial.AngularVelocity = new FloatRange(-1.0f, 1.0f);
-        emitter.Initial.Size = new Vector2Range(new Vector2(0.16f, 0.22f), new Vector2(0.32f, 0.44f));
-        emitter.Initial.StartColor = ColorGradient.Fire();
+        emitter.Initial.AngularVelocity = new FloatRange(-1.2f, 1.2f);
+        emitter.Initial.Size = new Vector2Range(new Vector2(0.14f, 0.2f), new Vector2(0.28f, 0.42f));
+        emitter.Initial.StartColor = CreateFireLoopStartColor();
         emitter.Simulation.SimulationSpace = ParticleSimulationSpace.World;
         emitter.Simulation.Gravity = new Vector3(0.0f, 1.6f, 0.0f);
         emitter.Simulation.GravityScale = 0.45f;
-        emitter.Simulation.Drag = 0.18f;
-        emitter.Simulation.SizeOverLifetime = FloatCurve.Bell();
-        emitter.Simulation.AlphaOverLifetime = FloatCurve.FadeOut();
-        emitter.Simulation.VelocityOverLifetime = FloatCurve.Constant(0.75f);
-        emitter.Renderer.TextureAssetId = textureAssetId;
+        emitter.Simulation.Drag = 0.2f;
+        emitter.Simulation.SizeOverLifetime = CreateFireLoopSizeOverLifetime();
+        emitter.Simulation.AlphaOverLifetime = CreateFireLoopAlphaOverLifetime();
+        emitter.Simulation.VelocityOverLifetime = CreateFireLoopVelocityOverLifetime();
+        emitter.Simulation.ColorOverLifetime = CreateFireLoopColorOverLifetime();
+        emitter.Renderer.TextureAssetId = SoftParticleTextureAssetId;
+        emitter.Renderer.Flipbook.FrameOverLifetime = CreateFireLoopFrameOverLifetime();
         emitter.Renderer.BlendMode = ParticleBlendMode.Additive;
         emitter.Renderer.SortMode = ParticleSortMode.Distance;
         emitter.Renderer.RenderQueue = 3050;
         asset.Emitters.Add(emitter);
         return asset;
+    }
+
+    private static ColorGradient CreateFireLoopStartColor()
+    {
+        var gradient = new ColorGradient();
+        gradient.AddColorKey(0.0f, new Color(255, 215, 59));
+        gradient.AddAlphaKey(0.0f, 0.9f);
+        gradient.AddAlphaKey(1.0f, 0.0f);
+        return gradient;
+    }
+
+    private static FloatCurve CreateFireLoopSizeOverLifetime()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, 0.55f);
+        curve.AddKey(0.35f, 1.15f);
+        curve.AddKey(1.0f, 0.39999998f);
+        return curve;
+    }
+
+    private static FloatCurve CreateFireLoopAlphaOverLifetime()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, -0.05f);
+        curve.AddKey(0.12f, 1.0f);
+        curve.AddKey(1.0f, -0.05f);
+        return curve;
+    }
+
+    private static FloatCurve CreateFireLoopVelocityOverLifetime()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, 0.95f);
+        curve.AddKey(1.0f, 0.3f);
+        return curve;
+    }
+
+    private static ColorGradient CreateFireLoopColorOverLifetime()
+    {
+        var gradient = new ColorGradient();
+        gradient.AddColorKey(0.0f, Color.White);
+        gradient.AddColorKey(0.38f, new Color(255, 128, 24));
+        gradient.AddColorKey(0.72f, new Color(214, 32, 32));
+        gradient.AddColorKey(1.0f, new Color(84, 75, 73));
+        gradient.AddAlphaKey(0.0f, 1.0f);
+        gradient.AddAlphaKey(1.0f, 0.0f);
+        return gradient;
+    }
+
+    private static FloatCurve CreateFireLoopFrameOverLifetime()
+    {
+        var curve = new FloatCurve();
+        curve.AddKey(0.0f, 0.0f);
+        curve.AddKey(1.0f, -0.05f);
+        return curve;
     }
 
     private static ParticleEffectAsset CreateSparkBurst(Guid textureAssetId)
