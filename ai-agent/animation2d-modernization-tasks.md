@@ -667,7 +667,7 @@ Commit attendu :
 
 ## Phase 6 - Sample minimal
 
-### ⏳ Tache 6.1 - Ajouter un asset compose minimal de demonstration
+### 🧪 Tache 6.1 - Ajouter un asset compose minimal de demonstration
 
 Objectif : avoir un cas concret avec plusieurs images dans une animation.
 
@@ -686,6 +686,19 @@ Validation :
 
 - Smoke test manuel documente.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Projects/RPGDemo/TileSets/swordman_composed_demo.anim2d` avec deux parties visibles (`body`, `weapon`).
+- Reutilisation de sprites RPGDemo existants, sans nouvel asset image.
+- Ajout de pistes `Position` et `DrawOrder` pour montrer mouvement et changement d'ordre de dessin.
+- Ajout d'un event `WeaponSwapLayer` a `0.3s`.
+- Enregistrement de l'asset dans `Projects/RPGDemo/AssetInfos.json`.
+- Ajout d'un test de chargement du sample compose et de sampling a `0.3s`.
+- `jq empty` reussi sur l'asset compose et `AssetInfos.json`.
+- Diagnostics VS Code propres sur le fichier de test touche.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Smoke visuel manuel a reprendre avec la tache 6.2.
 
 Commit attendu :
 

@@ -740,6 +740,34 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(0.3f, composition.DurationSeconds, 5);
     }
 
+    [Fact]
+    public void SampleComposedAnim2d_LoadsPartsTracksAndEvents()
+    {
+        var assetPath = Path.Combine(
+            FindRepositoryRoot(),
+            "Projects",
+            "RPGDemo",
+            "TileSets",
+            "swordman_composed_demo.anim2d");
+        var animation = new Animation2dData();
+
+        animation.Load(JObject.Parse(File.ReadAllText(assetPath)));
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+
+        Assert.Equal("swordman_composed_demo", animation.Name);
+        Assert.Empty(animation.Frames);
+        Assert.Equal(2, animation.Parts.Count);
+        Assert.Equal(2, animation.Tracks.Count);
+        Assert.Single(animation.Events);
+        Assert.Equal("WeaponSwapLayer", animation.Events[0].EventName);
+
+        sampler.Seek(0.3f);
+
+        Assert.True(sampler.RuntimeState.TryGetPart("weapon", out var weaponState));
+        Assert.Equal(new Vector2(26f, -4f), weaponState.Position);
+        Assert.Equal(-5, weaponState.DrawOrder);
+    }
+
     private static string FindRepositoryRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

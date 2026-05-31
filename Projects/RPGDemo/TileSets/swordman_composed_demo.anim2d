@@ -1,0 +1,88 @@
+{
+  "animation_type": "Loop",
+  "id": "8f85a801-6fe3-4773-b64a-b2ff1b729c8b",
+  "name": "swordman_composed_demo",
+  "parts": [
+    {
+      "id": "body",
+      "name": "Body",
+      "default_sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    },
+    {
+      "id": "weapon",
+      "name": "Weapon",
+      "default_sprite_id": "ab69414d-f3ca-409c-b34a-6a8bcde3269e",
+      "default_position": {
+        "x": 18.0,
+        "y": -8.0
+      },
+      "default_draw_order": 10,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
+    {
+      "target_part_id": "weapon",
+      "property": "Position",
+      "interpolation": "Step",
+      "position_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": {
+            "x": 18.0,
+            "y": -8.0
+          }
+        },
+        {
+          "time_seconds": 0.3,
+          "value": {
+            "x": 26.0,
+            "y": -4.0
+          }
+        },
+        {
+          "time_seconds": 0.6,
+          "value": {
+            "x": 18.0,
+            "y": -8.0
+          }
+        }
+      ]
+    },
+    {
+      "target_part_id": "weapon",
+      "property": "DrawOrder",
+      "interpolation": "Step",
+      "draw_order_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": 10
+        },
+        {
+          "time_seconds": 0.3,
+          "value": -5
+        },
+        {
+          "time_seconds": 0.6,
+          "value": 10
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "time_seconds": 0.3,
+      "event_name": "WeaponSwapLayer"
+    }
+  ]
+}
