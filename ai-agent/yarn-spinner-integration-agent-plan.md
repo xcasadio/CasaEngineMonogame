@@ -229,7 +229,7 @@ Resultat 2026-05-31 : asset `DialogueAsset` ajoute avec format JSON `.dialogue`,
 
 Commit requis : oui, un commit dedie avec asset, loader, tests et statut.
 
-### ⏳ Tache 7 - Inspecter l'API Yarn Spinner restauree
+### ✅ Tache 7 - Inspecter l'API Yarn Spinner restauree
 
 Objectif : documenter l'API reelle disponible avant d'ecrire l'adaptateur.
 
@@ -249,6 +249,21 @@ Validation :
 
 - Note factuelle ajoutee dans ce plan ou dans une courte documentation liee.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore` si aucun code n'est modifie, ou validation de compilation si un fichier de notes n'est pas le seul changement.
+
+Resultat 2026-05-31 : inspection par reflection des assemblies `YarnSpinner.dll` et `YarnSpinner.Compiler.dll` restaurees en version `3.2.1`.
+
+Types/verifications utiles :
+
+- Compilation : `Yarn.Compiler.Compiler.Compile(Yarn.Compiler.CompilationJob)` est statique.
+- Creation de job : `Yarn.Compiler.CompilationJob.CreateFromString(string source, string fileName, Yarn.Library library, int languageVersion)`, `CreateFromFiles(...)`, `CreateFromInputs(...)`.
+- Resultat : `Yarn.Compiler.CompilationResult.Program`, `StringTable`, `Diagnostics`, `ContainsErrors`, `GetStringForKey(string)`, `GetLabelsForNode(string)`.
+- Ligne compilee : `Yarn.Compiler.StringInfo` expose des champs publics `text`, `nodeName`, `lineNumber`, `fileName`, `isImplicitTag`, `metadata`, `shadowLineID`.
+- Diagnostics : `Yarn.Compiler.Diagnostic` expose `FileName`, `Line`, `Column`, `Message`, `Severity`, `Code`.
+- Runtime : `Yarn.Dialogue` se construit avec `Yarn.IVariableStorage`, puis `SetProgram(Yarn.Program)`, `SetNode(string)`, `Continue()`, `SignalContentComplete()`, `SetSelectedOption(int)`, `Stop()`.
+- Handlers runtime : `Yarn.LineHandler.Invoke(Yarn.Line)`, `Yarn.OptionsHandler.Invoke(Yarn.OptionSet)`, `Yarn.CommandHandler.Invoke(Yarn.Command)`, `Yarn.NodeStartHandler.Invoke(string)`, `Yarn.NodeCompleteHandler.Invoke(string)`, `Yarn.DialogueCompleteHandler.Invoke()`.
+- Programme : `Yarn.Program` expose `Parser`, `Nodes`, `LanguageVersion`, `LineIDsForNode(string)` et implemente les methodes protobuf (`WriteTo`, `MergeFrom`, `CalculateSize`). La serialization en bytes devra passer par Google.Protobuf.
+
+Validation : note factuelle ajoutee; aucun code modifie dans cette tache.
 
 Commit requis : oui, un commit dedie avec la note d'inspection et le statut.
 
