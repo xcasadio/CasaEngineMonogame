@@ -199,7 +199,7 @@ Resultat 2026-05-31 : `IDialoguePresenter` et evenement `PresentationChanged` aj
 
 Commit requis : oui, un commit dedie avec contrats et statut.
 
-### ⏳ Tache 6 - Creer l'asset dialogue runtime minimal
+### 🧪 Tache 6 - Creer l'asset dialogue runtime minimal
 
 Objectif : ajouter un type d'asset CasaEngine pour representer un dialogue compile ou serialise, sans compiler Yarn encore.
 
@@ -224,6 +224,8 @@ Validation :
 
 - Tests de chargement asset dialogue.
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
+
+Resultat 2026-05-31 : asset `DialogueAsset` ajoute avec format JSON `.dialogue`, `start_node`, `program_base64` et `line_texts`; loader enregistre dans `AssetLoaderRegistry`. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. Tests de serialization/loader ajoutes, mais `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter Dialogue` reste bloque avant execution par des erreurs de compilation existantes hors dialogue (`Pool<>`, `LightComponent.Coordinates`, `DualQuaternion`).
 
 Commit requis : oui, un commit dedie avec asset, loader, tests et statut.
 

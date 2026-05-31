@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Cutscenes;
+using CasaEngine.Framework.Dialogue.Assets;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Gameplay;
@@ -48,5 +49,6 @@ public static class AssetLoaderRegistry
         assetContentManager.RegisterAssetLoader(typeof(MaterialAsset), new MaterialAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(ParticleEffectAsset), new ParticleEffectAssetLoader());
         assetContentManager.RegisterAssetLoader(typeof(CutsceneAsset), new CutsceneAssetLoader());
+        assetContentManager.RegisterAssetLoader(typeof(DialogueAsset), new DialogueAssetLoader());
     }
 }

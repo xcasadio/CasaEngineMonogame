@@ -28,6 +28,7 @@ public static class Constants
         public const string Shader = ".shader";
         public const string Particle = ".particle";
         public const string Cutscene = ".cutscene";
+        public const string Dialogue = ".dialogue";
 
         //project
         public const string Project = ".json";
