@@ -1069,6 +1069,10 @@
       "file_name": "Entities\\weapon_sword.entity"
     },
     {
+      "id": "42e62263-2369-47ad-8cc6-984c43f39d95",
+      "file_name": "Entities\\animation2d_composed_sample.entity"
+    },
+    {
       "id": "18d08ef3-e0a1-4c75-86be-2b7c35f2693f",
       "file_name": "TileSets\\smoke_ring.texture"
     },

@@ -704,7 +704,7 @@ Commit attendu :
 
 - `sample(animation2d): add composed sprite animation asset`
 
-### ⏳ Tache 6.2 - Ajouter une demo ou etendre une demo existante
+### 🧪 Tache 6.2 - Ajouter une demo ou etendre une demo existante
 
 Objectif : valider visuellement le rendu compose et les events.
 
@@ -724,6 +724,17 @@ Validation :
 
 - Lancer la demo si l'environnement le permet.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Projects/RPGDemo/Entities/animation2d_composed_sample.entity` utilisant l'animation composee.
+- Extension de `ScriptWorld.OnBeginPlay()` pour spawner l'entite sample dans `DefaultWorld.world` et tracer l'event 2D `WeaponSwapLayer`.
+- Enregistrement de l'entite sample dans `Projects/RPGDemo/AssetInfos.json`.
+- Ajout de `Projects/RPGDemo/animation2d-composed-sample.md` avec les etapes de lancement et l'event attendu.
+- `jq empty` reussi sur l'entite sample et `AssetInfos.json`.
+- Diagnostics VS Code propres sur `ScriptWorld.cs`.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Smoke visuel manuel non lance dans cette session.
 
 Commit attendu :
 

@@ -1,0 +1,57 @@
+{
+  "id": "42e62263-2369-47ad-8cc6-984c43f39d95",
+  "name": "animation2d_composed_sample",
+  "root_component": {
+    "id": "c6bb70e4-9984-4609-b5bd-38e9a76956de",
+    "name": "AnimatedSpriteComponent",
+    "type": "AnimatedSpriteComponent",
+    "coordinates": {
+      "position": {
+        "x": 540.0,
+        "y": 520.0,
+        "z": 0.2
+      },
+      "scale": {
+        "x": 2.0,
+        "y": 2.0,
+        "z": 1.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0,
+        "w": 1.0
+      }
+    },
+    "children_component": [],
+    "color": {
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "sprite_effect": "None",
+    "animations": [
+      "8f85a801-6fe3-4773-b64a-b2ff1b729c8b"
+    ]
+  },
+  "components": [
+    {
+      "id": "a8e8b1ec-d27c-4f26-b074-3e82b31a5866",
+      "name": "DepthSortable2DComponent",
+      "type": "DepthSortable2DComponent",
+      "render_pass": "YSortedWorld",
+      "sorting_layer": 300,
+      "order_in_layer": 0,
+      "elevation": 0,
+      "sort_anchor": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "local_sort_offset": 0,
+      "sort_mode": "TopDownYUp",
+      "stable_id": 2000
+    }
+  ],
+  "script_class_name": null
+}

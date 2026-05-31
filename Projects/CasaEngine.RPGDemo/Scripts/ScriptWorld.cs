@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using CasaEngine.Core.Logging;
 using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -65,6 +66,12 @@ public class ScriptWorld : GameplayProxy
         var entity       = world.Game.GameManager.CurrentWorld.Entities.First(x => x.Name == "character_link");
         var scriptPlayer = entity.GameplayProxy as ScriptPlayer;
         _playerCharacter = scriptPlayer.Character;
+
+        var sampleEntity = world.SpawnEntity<Entity>("animation2d_composed_sample");
+        var sampleSprite = sampleEntity.GetComponent<AnimatedSpriteComponent>();
+        sampleSprite.SetCurrentAnimation("swordman_composed_demo", true);
+        sampleSprite.AnimationEventTriggered += (_, animationEvent) =>
+            Logs.WriteTrace($"Animation2D composed sample event: {animationEvent.EventName}");
 
         // Get UI view for this render view.
         if (world.Game.GameManager.ViewManager.GetActiveUIView() == null) return;
