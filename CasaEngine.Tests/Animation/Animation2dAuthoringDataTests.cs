@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.EditorServices;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -654,5 +655,58 @@ public class Animation2dAuthoringDataTests
         sampler.Seek(0.5f);
 
         Assert.Equal(new[] { 0, 1, 2 }, sampler.RuntimeState.DrawPartIndices);
+    }
+
+    [Fact]
+    public void BoundsCalculator_CoversVisibleComposedParts()
+    {
+        var bodySpriteId = Guid.NewGuid();
+        var weaponSpriteId = Guid.NewGuid();
+        var hiddenSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "body",
+            DefaultSpriteId = bodySpriteId,
+            DefaultPosition = Vector2.Zero,
+        });
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "weapon",
+            DefaultSpriteId = weaponSpriteId,
+            DefaultPosition = new Vector2(10f, 3f),
+        });
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "hidden",
+            DefaultSpriteId = hiddenSpriteId,
+            DefaultVisible = false,
+            DefaultPosition = new Vector2(100f, 100f),
+        });
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+        var spriteDataById = new Dictionary<Guid, SpriteData>
+        {
+            [bodySpriteId] = new()
+            {
+                PositionInTexture = new Rectangle(0, 0, 10, 20),
+                Origin = new Point(5, 10),
+            },
+            [weaponSpriteId] = new()
+            {
+                PositionInTexture = new Rectangle(0, 0, 4, 6),
+                Origin = Point.Zero,
+            },
+            [hiddenSpriteId] = new()
+            {
+                PositionInTexture = new Rectangle(0, 0, 200, 200),
+                Origin = Point.Zero,
+            },
+        };
+
+        var hasBounds = Animation2dBoundsCalculator.TryCalculateLocalBounds(sampler.RuntimeState, spriteDataById, out var bounds);
+
+        Assert.True(hasBounds);
+        Assert.Equal(new Vector3(-5f, -10f, 0f), bounds.Min);
+        Assert.Equal(new Vector3(14f, 10f, 0.1f), bounds.Max);
     }
 }

@@ -26,6 +26,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectByFrameId = new();
     private readonly List<Guid> _animationAssetIds = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
+    private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
     private readonly List<Guid> _spriteIdsToResolve = new();
     private readonly Dictionary<Animation2d, Animation2dCompositionSampler> _compositionSamplerByAnimation = new();
 
@@ -162,6 +163,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _compositionSamplerByAnimation.Clear();
         _currentCompositionSampler = null;
         _spriteById.Clear();
+        _spriteDataById.Clear();
 
         foreach (var assetId in _animationAssetIds)
         {
@@ -385,6 +387,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         sprite = Sprite.Create(spriteData, _assetContentManager);
         _spriteById.Add(spriteId, sprite);
+        _spriteDataById[spriteId] = spriteData;
         return sprite;
     }
 
@@ -472,22 +475,37 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         var min = Vector3.One * int.MaxValue;
         var max = Vector3.One * int.MinValue;
 
+        if (_currentCompositionSampler != null
+            && _currentCompositionSampler.RuntimeState.PartCount > 0
+            && Animation2dBoundsCalculator.TryCalculateLocalBounds(_currentCompositionSampler.RuntimeState, _spriteDataById, out var composedBounds))
+        {
+            return composedBounds.Transform(WorldMatrixWithScale);
+        }
+
         if (CurrentAnimation != null)
         {
             var spriteData = _assetContentManager.GetAsset<SpriteData>(CurrentAnimation.CurrentFrame);
+            if (spriteData == null)
+            {
+                return GetDefaultBoundingBox();
+            }
+
             var halfWidth = spriteData.PositionInTexture.Width / 2f;
             var halfHeight = spriteData.PositionInTexture.Height / 2f;
 
             min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
             max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            min = Vector3.One * -length;
-            max = Vector3.One * length;
+            return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
         }
 
+        return GetDefaultBoundingBox();
+    }
+
+    private BoundingBox GetDefaultBoundingBox()
+    {
+        const float length = 0.5f;
+        var min = Vector3.One * -length;
+        var max = Vector3.One * length;
         return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
     }
 

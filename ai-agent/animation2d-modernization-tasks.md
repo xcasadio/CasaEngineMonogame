@@ -561,7 +561,7 @@ Commit attendu :
 
 - `feat(animation2d): render composed sprite parts`
 
-### ⏳ Tache 4.3 - Revoir bounds et collisions pour la composition
+### 🧪 Tache 4.3 - Revoir bounds et collisions pour la composition
 
 Objectif : eviter que le composant compose garde des bounds/collisions d'une seule frame sprite.
 
@@ -582,6 +582,16 @@ Validation :
 - Tests unitaires de bounds avec deux parties.
 - Smoke test collision legacy si disponible.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Animation2dBoundsCalculator` pour calculer les bounds locaux depuis les parties visibles et les `SpriteData` resolus.
+- `AnimatedSpriteComponent.GetBoundingBox()` utilise les bounds composes quand un sampler compose est actif, sinon conserve le fallback legacy/current frame.
+- Les collisions restent explicitement sur le chemin legacy par frame pour V1; aucune hitbox/hurtbox composee n'est inventee dans cette tache.
+- Ajout d'un test de bounds avec deux parties visibles et une partie cachee.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Smoke collision legacy a reprendre avec un projet jouable; aucun changement volontaire de collision composee dans cette tache.
 
 Commit attendu :
 
