@@ -868,7 +868,7 @@ Commit attendu :
 
 - `docs(animation2d): document composed format v1`
 
-### ⏳ Tache 8.2 - Nettoyer les noms et TODO obsoletes
+### 🧪 Tache 8.2 - Nettoyer les noms et TODO obsoletes
 
 Objectif : reduire l'ambiguite apres livraison du runtime compose.
 
@@ -882,6 +882,13 @@ Validation :
 
 - Build principal.
 - Tests animation 2D cibles.
+
+Validation realisee :
+
+- Nettoyage local dans `AnimatedSpriteComponent` : nom prive `AddOrUpdateCollisionFromFrame`, indentation et commentaire court sur la compatibilite collision legacy-frame V1.
+- Recherche ciblee : aucun TODO obsolete restant dans `AnimatedSpriteComponent` autour de la creation de sprite en draw.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` confirme `build-ok`; avertissements existants non traites.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore -v minimal` reste bloque avant execution par les erreurs preexistantes du projet tests (`World.CutsceneDirector`, `World.CoroutineManager`, etc.).
 
 Commit attendu :
 

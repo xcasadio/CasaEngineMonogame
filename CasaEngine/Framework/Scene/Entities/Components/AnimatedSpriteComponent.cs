@@ -88,12 +88,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         CurrentAnimation = anim;
         CurrentAnimation.Reset();
-    _compositionSamplerByAnimation.TryGetValue(CurrentAnimation, out _currentCompositionSampler);
-    _currentCompositionSampler?.Reset();
+        _compositionSamplerByAnimation.TryGetValue(CurrentAnimation, out _currentCompositionSampler);
+        _currentCompositionSampler?.Reset();
 
         CurrentAnimation.FrameChanged += OnFrameChanged;
         CurrentAnimation.AnimationFinished += OnAnimationFinished;
-        AddOrUdpateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+        AddOrUpdateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -156,7 +156,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         base.InitializeWithWorld(world);
 
         _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
-    _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
+        _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _assetContentManager = Owner.World.Game.AssetContentManager;
         _physicsWorldContext = Owner.World.PhysicsWorld;
 
@@ -176,6 +176,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             CacheAnimationSprites(animation2dData);
         }
 
+    // Collision authoring remains legacy-frame based in composed Animation2D V1.
         foreach (var animation in Animations)
         {
             foreach (var frame in animation.Animation2dData.Frames)
@@ -410,17 +411,17 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         IsBoundingBoxDirty = true;
         RemoveCollisionsFromFrame(arg.oldFrame);
-        AddOrUdpateCollisionFromFrame(arg.newFrame, true);
+        AddOrUpdateCollisionFromFrame(arg.newFrame, true);
 
         FrameChanged?.Invoke(this, arg.newFrame);
     }
 
     private void UpdateCollisionFromFrame(Guid frameId)
     {
-        AddOrUdpateCollisionFromFrame(frameId, false);
+        AddOrUpdateCollisionFromFrame(frameId, false);
     }
 
-    private void AddOrUdpateCollisionFromFrame(Guid frameId, bool addCollision)
+    private void AddOrUpdateCollisionFromFrame(Guid frameId, bool addCollision)
     {
         if (_collisionObjectByFrameId.TryGetValue(frameId, out var collisionObjects)
             && CreatePhysicsForEachFrame)
@@ -469,7 +470,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         {
             if (Owner.IsEnabled)
             {
-                AddOrUdpateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
+                AddOrUpdateCollisionFromFrame(CurrentAnimation.CurrentFrame, true);
             }
             else
             {
