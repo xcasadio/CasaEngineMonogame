@@ -235,7 +235,7 @@ Commit attendu :
 
 - `feat(animation2d): add composed tracks and keyframes`
 
-### ⏳ Tache 1.3 - Ajouter les events authoring 2D
+### 🧪 Tache 1.3 - Ajouter les events authoring 2D
 
 Objectif : permettre des events d'animation 2D sans dupliquer inutilement le systeme moderne 3D.
 
@@ -255,6 +255,14 @@ Validation :
 
 - Tests serializer round-trip des events.
 - Build principal.
+
+Validation realisee :
+
+- Reutilisation de `AnimationEventAsset` avec un helper JSON partage par le format moderne 3D et les events 2D authoring.
+- Ajout de tests pour le chargement d'events 2D et le round-trip JSON d'un event.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

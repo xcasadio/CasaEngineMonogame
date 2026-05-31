@@ -42,6 +42,7 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(0.2f, animation.Frames[1].Duration);
         Assert.Equal(secondSpriteId, animation.Frames[1].SpriteId);
         Assert.Empty(animation.Parts);
+        Assert.Empty(animation.Events);
     }
 
     [Fact]
@@ -152,5 +153,54 @@ public class Animation2dAuthoringDataTests
 
         Assert.Single(invalidPartIds);
         Assert.Equal("weapon", invalidPartIds[0]);
+    }
+
+    [Fact]
+    public void Load_ReadsTimeBasedAnimationEvents()
+    {
+        var animation = new Animation2dData();
+
+        animation.Load(new JObject
+        {
+            ["animation_type"] = AnimationType.Once.ToString(),
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "attack",
+            ["frames"] = new JArray
+            {
+                new JObject
+                {
+                    ["duration"] = 0.1f,
+                    ["sprite_id"] = Guid.NewGuid().ToString(),
+                },
+            },
+            ["events"] = new JArray
+            {
+                new JObject
+                {
+                    ["time_seconds"] = 0.05f,
+                    ["event_name"] = "HitStart",
+                },
+                new JObject
+                {
+                    ["time_seconds"] = 0.1f,
+                    ["event_name"] = "HitEnd",
+                },
+            },
+        });
+
+        Assert.Equal(2, animation.Events.Count);
+        Assert.Equal(new AnimationEventAsset(0.05f, "HitStart"), animation.Events[0]);
+        Assert.Equal(new AnimationEventAsset(0.1f, "HitEnd"), animation.Events[1]);
+    }
+
+    [Fact]
+    public void AnimationEventAssetJsonSerializer_RoundTripsEventData()
+    {
+        var animationEvent = new AnimationEventAsset(0.25f, "Footstep");
+
+        var eventNode = AnimationEventAssetJsonSerializer.Save(animationEvent);
+        var loadedEvent = AnimationEventAssetJsonSerializer.Load(eventNode);
+
+        Assert.Equal(animationEvent, loadedEvent);
     }
 }

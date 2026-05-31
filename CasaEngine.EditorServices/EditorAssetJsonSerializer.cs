@@ -166,6 +166,19 @@ internal static class EditorAssetJsonSerializer
         }
 
         node.Add("frames", framesArrayNode);
+
+        if (animation2dData.Events.Count == 0)
+        {
+            return;
+        }
+
+        var eventsArrayNode = new JArray();
+        foreach (var animationEvent in animation2dData.Events)
+        {
+            eventsArrayNode.Add(AnimationEventAssetJsonSerializer.Save(animationEvent));
+        }
+
+        node.Add("events", eventsArrayNode);
     }
 
     private static void SaveFrameData(FrameData frameData, JObject node)

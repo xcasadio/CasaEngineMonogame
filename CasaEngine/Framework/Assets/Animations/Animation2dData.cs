@@ -7,6 +7,7 @@ public class Animation2dData : AnimationData
     public List<FrameData> Frames { get; } = new();
     public List<Animation2dPartData> Parts { get; } = new();
     public List<Animation2dTrackData> Tracks { get; } = new();
+    public List<AnimationEventAsset> Events { get; } = new();
 
     public List<string> GetInvalidTrackTargetPartIds()
     {
@@ -39,6 +40,19 @@ public class Animation2dData : AnimationData
             var frameData = new FrameData();
             frameData.Load((JObject)frameNode);
             Frames.Add(frameData);
+        }
+
+        if (element["events"] is not JArray eventsNode)
+        {
+            return;
+        }
+
+        foreach (var eventNode in eventsNode)
+        {
+            if (eventNode is JObject eventObject)
+            {
+                Events.Add(AnimationEventAssetJsonSerializer.Load(eventObject));
+            }
         }
     }
 

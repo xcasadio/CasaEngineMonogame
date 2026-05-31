@@ -210,19 +210,11 @@ public static class AnimationClipAssetJsonSerializer
 
     private static JObject SaveEvent(AnimationEventAsset animationEvent)
     {
-        return new JObject
-        {
-            ["time_seconds"] = animationEvent.TimeSeconds,
-            ["event_name"] = animationEvent.EventName,
-        };
+        return AnimationEventAssetJsonSerializer.Save(animationEvent);
     }
 
     private static AnimationEventAsset LoadEvent(JObject node)
     {
-        ArgumentNullException.ThrowIfNull(node);
-
-        return new AnimationEventAsset(
-            node["time_seconds"]?.Value<float>() ?? 0f,
-            node["event_name"]?.Value<string>() ?? string.Empty);
+        return AnimationEventAssetJsonSerializer.Load(node);
     }
 }
