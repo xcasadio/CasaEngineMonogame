@@ -194,6 +194,91 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
+    public void Load_ReadsComposedPartsAndTracks()
+    {
+        var bodySpriteId = Guid.NewGuid();
+        var alternateSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+
+        animation.Load(new JObject
+        {
+            ["animation_type"] = AnimationType.Once.ToString(),
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "composed_attack",
+            ["parts"] = new JArray
+            {
+                new JObject
+                {
+                    ["id"] = "body",
+                    ["name"] = "Body",
+                    ["default_sprite_id"] = bodySpriteId.ToString(),
+                    ["default_position"] = new JObject
+                    {
+                        ["x"] = 1f,
+                        ["y"] = -2f,
+                    },
+                    ["default_draw_order"] = 10,
+                    ["default_visible"] = true,
+                    ["default_flip_x"] = false,
+                    ["default_flip_y"] = true,
+                },
+            },
+            ["tracks"] = new JArray
+            {
+                new JObject
+                {
+                    ["target_part_id"] = "body",
+                    ["property"] = Animation2dTrackProperty.Sprite.ToString(),
+                    ["interpolation"] = Animation2dInterpolationMode.Step.ToString(),
+                    ["sprite_keyframes"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["time_seconds"] = 0f,
+                            ["value"] = bodySpriteId.ToString(),
+                        },
+                        new JObject
+                        {
+                            ["time_seconds"] = 0.25f,
+                            ["value"] = alternateSpriteId.ToString(),
+                        },
+                    },
+                },
+                new JObject
+                {
+                    ["target_part_id"] = "body",
+                    ["property"] = Animation2dTrackProperty.Position.ToString(),
+                    ["position_keyframes"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["time_seconds"] = 0.5f,
+                            ["value"] = new JObject
+                            {
+                                ["x"] = 6f,
+                                ["y"] = 7f,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        Assert.Empty(animation.Frames);
+        Assert.Single(animation.Parts);
+        Assert.Equal("body", animation.Parts[0].Id);
+        Assert.Equal(bodySpriteId, animation.Parts[0].DefaultSpriteId);
+        Assert.Equal(new Vector2(1f, -2f), animation.Parts[0].DefaultPosition);
+        Assert.True(animation.Parts[0].DefaultFlipY);
+
+        Assert.Equal(2, animation.Tracks.Count);
+        Assert.Equal(Animation2dTrackProperty.Sprite, animation.Tracks[0].Property);
+        Assert.Equal(alternateSpriteId, animation.Tracks[0].SpriteKeyframes[1].Value);
+        Assert.Equal(Animation2dTrackProperty.Position, animation.Tracks[1].Property);
+        Assert.Equal(new Vector2(6f, 7f), animation.Tracks[1].PositionKeyframes[0].Value);
+    }
+
+    [Fact]
     public void AnimationEventAssetJsonSerializer_RoundTripsEventData()
     {
         var animationEvent = new AnimationEventAsset(0.25f, "Footstep");

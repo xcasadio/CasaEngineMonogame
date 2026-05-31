@@ -35,11 +35,44 @@ public class Animation2dData : AnimationData
     {
         base.Load(element);
 
-        foreach (var frameNode in element["frames"])
+        Frames.Clear();
+        Parts.Clear();
+        Tracks.Clear();
+        Events.Clear();
+
+        if (element["frames"] is JArray framesNode)
         {
-            var frameData = new FrameData();
-            frameData.Load((JObject)frameNode);
-            Frames.Add(frameData);
+            foreach (var frameNode in framesNode)
+            {
+                if (frameNode is JObject frameObject)
+                {
+                    var frameData = new FrameData();
+                    frameData.Load(frameObject);
+                    Frames.Add(frameData);
+                }
+            }
+        }
+
+        if (element["parts"] is JArray partsNode)
+        {
+            foreach (var partNode in partsNode)
+            {
+                if (partNode is JObject partObject)
+                {
+                    Parts.Add(Animation2dPartData.Load(partObject));
+                }
+            }
+        }
+
+        if (element["tracks"] is JArray tracksNode)
+        {
+            foreach (var trackNode in tracksNode)
+            {
+                if (trackNode is JObject trackObject)
+                {
+                    Tracks.Add(Animation2dTrackData.Load(trackObject));
+                }
+            }
         }
 
         if (element["events"] is not JArray eventsNode)

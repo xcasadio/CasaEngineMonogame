@@ -270,7 +270,7 @@ Commit attendu :
 
 ## Phase 2 - Serialization et compatibilite JSON
 
-### ⏳ Tache 2.1 - Etendre le chargement JSON sans casser les `.anim2d` existants
+### 🧪 Tache 2.1 - Etendre le chargement JSON sans casser les `.anim2d` existants
 
 Objectif : charger le nouveau format compose en plus du format actuel.
 
@@ -291,6 +291,14 @@ Validation :
 - Tests de chargement legacy depuis un JSON minimal conforme aux assets existants.
 - Tests de chargement compose.
 - Build principal.
+
+Validation realisee :
+
+- Ajout du chargement optionnel `parts` et `tracks`; `frames` legacy reste lu quand present et peut etre absent pour un asset compose pur.
+- Ajout d'un test de chargement JSON compose avec partie, piste sprite et piste position.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 
