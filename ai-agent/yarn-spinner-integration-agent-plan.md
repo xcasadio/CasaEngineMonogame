@@ -117,7 +117,7 @@ Resultat 2026-05-31 : noyau runtime ajoute et `dotnet build CasaEngine/CasaEngin
 
 Commit requis : oui, un commit dedie avec code, tests et statut.
 
-### ⏳ Tache 3 - Ajouter une UI dialogue modale minimale
+### ✅ Tache 3 - Ajouter une UI dialogue modale minimale
 
 Objectif : afficher une ligne de texte via le systeme UI existant.
 
@@ -141,6 +141,8 @@ Validation :
 
 - `dotnet build CasaEngine.MonoGame.sln --no-restore`
 - Verification manuelle dans une demo si l'ecran est branche a une demo a cette etape.
+
+Resultat 2026-05-31 : `DialogueScreen` modal ajoute, branche sur `DialogueService` sans Yarn. `dotnet build CasaEngine.MonoGame.sln --no-restore` OK avec avertissements existants. Verification manuelle repoussee a la tache 4, ou l'ecran est branche a une demo.
 
 Commit requis : oui, un commit dedie avec UI minimale et statut.
 
