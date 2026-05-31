@@ -206,7 +206,7 @@ Validation :
 - Build cible du projet `CasaEngine`.
 - Committer uniquement l'etat/contexte V2 et le statut de la tache.
 
-### ⏳ Tache 11 - Objectifs gameplay V2
+### ✅ Tache 11 - Objectifs gameplay V2
 
 Objectif : ajouter les objectifs composables sans scans couteux du `World` dans `Update`.
 
