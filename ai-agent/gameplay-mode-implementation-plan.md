@@ -257,7 +257,7 @@ Validation :
 - Build cible du projet `CasaEngine`.
 - Committer uniquement l'asset gameplay et le statut de la tache.
 
-### ⏳ Tache 14 - Tests V2
+### ✅ Tache 14 - Tests V2
 
 Objectif : couvrir la migration legacy, objectifs, evenements et assets.
 
@@ -272,6 +272,8 @@ Validation :
 
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter GameplayMode` si le projet de tests compile.
 - Sinon verifier que les nouveaux fichiers n'ont pas d'erreurs et documenter le blocage existant.
+- `get_errors` sur `CasaEngine.Tests/Gameplay/GameplayModeRunnerTests.cs` : OK.
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --no-restore --filter GameplayMode` : bloque sur des erreurs existantes hors GameplayMode dans le projet de tests.
 - Committer uniquement les tests et le statut de la tache.
 
 ### ⏳ Tache 15 - Validation finale V2

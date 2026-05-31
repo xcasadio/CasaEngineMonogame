@@ -1,6 +1,8 @@
 using CasaEngine.Core.Time;
 using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.World;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CasaEngine.Tests.Gameplay;
@@ -115,6 +117,90 @@ public sealed class GameplayModeRunnerTests
         Assert.Equal(0.25f, world.GameplayModeRunner.CurrentState.ElapsedTime);
     }
 
+    [Fact]
+    public void PlayerStartupSettingsLoadsLegacyGameModeShape()
+    {
+        var pawnId = Guid.Parse("faab700a-eb3c-4192-8ac9-d5907af17780");
+        var settings = new PlayerStartupSettings();
+
+        settings.Load(JObject.Parse("""
+        {
+          "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
+          "name": "RpgGameMode",
+          "default_pawn_asset_id": "faab700a-eb3c-4192-8ac9-d5907af17780",
+          "player_controller_class": "PlayerController",
+          "hud_classClass": "LegacyHud"
+        }
+        """));
+
+        Assert.Equal(pawnId, settings.DefaultPawnAssetId);
+        Assert.Equal("PlayerController", settings.PlayerControllerClass);
+        Assert.Equal("LegacyHud", settings.HUDClass);
+    }
+
+    [Fact]
+    public void ObjectiveGameplayModeReturnsSuccessWhenAllObjectivesComplete()
+    {
+        var runner = new GameplayModeRunner();
+        var mode = new TestObjectiveGameplayMode();
+        mode.AddObjective(new SurviveTimerObjective
+        {
+            Duration = 0.5f
+        });
+
+        runner.Start(mode, new GameplayContext(new World(), runner.Events));
+        runner.Update(FrameTime.FromElapsedTime(0.25f, 1));
+
+        Assert.Equal(GameplayResult.Running, runner.CurrentState.Result);
+
+        runner.Update(FrameTime.FromElapsedTime(0.25f, 2));
+
+        Assert.Equal(GameplayResult.Success, runner.CurrentState.Result);
+        Assert.Equal(GameplayPhase.Success, runner.CurrentState.Phase);
+    }
+
+    [Fact]
+    public void ObjectiveGameplayModeReceivesGameplayEvents()
+    {
+        var runner = new GameplayModeRunner();
+        var mode = new TestObjectiveGameplayMode();
+        var objective = new CollectItemsObjective
+        {
+            RequiredCount = 1,
+            RequiredItemId = "coin"
+        };
+        mode.AddObjective(objective);
+
+        runner.Start(mode, new GameplayContext(new World(), runner.Events));
+        runner.Events.Publish(new ItemCollectedEvent(new Entity(), "gem"));
+        runner.Update(FrameTime.FromElapsedTime(0.1f, 1));
+
+        Assert.Equal(GameplayResult.Running, runner.CurrentState.Result);
+
+        runner.Events.Publish(new ItemCollectedEvent(new Entity(), "coin"));
+        runner.Update(FrameTime.FromElapsedTime(0.1f, 2));
+
+        Assert.Equal(1, objective.CurrentCount);
+        Assert.Equal(GameplayResult.Success, runner.CurrentState.Result);
+    }
+
+    [Fact]
+    public void GameplayModeAssetCreatesConfiguredMode()
+    {
+        var asset = new GameplayModeAsset();
+        asset.Load(JObject.Parse($$"""
+        {
+          "id": "42454808-0e3a-4c44-98a6-e3485e7ec9fb",
+          "name": "TestMode",
+          "mode_class_name": "{{nameof(AssetCreatedGameplayMode)}}"
+        }
+        """));
+
+        GameplayMode mode = asset.CreateMode();
+
+        Assert.IsType<AssetCreatedGameplayMode>(mode);
+    }
+
     private sealed class TestGameplayMode : GameplayMode
     {
         public bool InitializeCalled { get; private set; }
@@ -167,5 +253,17 @@ public sealed class GameplayModeRunnerTests
         {
             return Result;
         }
+    }
+
+    private sealed class TestObjectiveGameplayMode : ObjectiveGameplayMode
+    {
+        public void AddObjective(GameplayObjective objective)
+        {
+            Objectives.Add(objective);
+        }
+    }
+
+    public sealed class AssetCreatedGameplayMode : GameplayMode
+    {
     }
 }
