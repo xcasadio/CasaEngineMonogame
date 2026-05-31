@@ -374,7 +374,7 @@ Commit attendu :
 
 ## Phase 3 - Runtime compose sans rendu
 
-### ⏳ Tache 3.1 - Ajouter l'etat runtime des parties composees
+### 🧪 Tache 3.1 - Ajouter l'etat runtime des parties composees
 
 Objectif : separer l'asset immutable de l'etat courant mutable.
 
@@ -394,6 +394,16 @@ Validation :
 
 - Tests unitaires de reset et initialisation.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de `Animation2dCompositionRuntimeState` et `Animation2dPartRuntimeState`.
+- Reset depuis une composition avec application des defaults sprite, position, draw order, visibilite et flips.
+- Acces aux parties par index et par id initialise hors update.
+- Ajout de tests de reset, defaults et nettoyage des parties precedentes.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

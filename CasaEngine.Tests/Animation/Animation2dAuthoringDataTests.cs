@@ -413,4 +413,63 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(0.3f, spriteKeyframes[2].TimeSeconds, 5);
         Assert.Equal(thirdSpriteId, spriteKeyframes[2].Value);
     }
+
+    [Fact]
+    public void CompositionRuntimeState_ResetAppliesPartDefaults()
+    {
+        var bodySpriteId = Guid.NewGuid();
+        var weaponSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "body",
+            DefaultSpriteId = bodySpriteId,
+            DefaultPosition = new Vector2(1f, 2f),
+            DefaultDrawOrder = 5,
+            DefaultVisible = true,
+        });
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "weapon",
+            DefaultSpriteId = weaponSpriteId,
+            DefaultPosition = new Vector2(-3f, 4f),
+            DefaultDrawOrder = 10,
+            DefaultVisible = false,
+            DefaultFlipX = true,
+            DefaultFlipY = true,
+        });
+        var composition = Animation2dCompositionAdapter.Create(animation);
+        var runtimeState = new Animation2dCompositionRuntimeState();
+
+        runtimeState.Reset(composition);
+
+        Assert.Equal(2, runtimeState.PartCount);
+        Assert.True(runtimeState.TryGetPart("weapon", out var weaponState));
+        Assert.Equal(1, weaponState.SourceIndex);
+        Assert.Equal(weaponSpriteId, weaponState.SpriteId);
+        Assert.Equal(new Vector2(-3f, 4f), weaponState.Position);
+        Assert.Equal(10, weaponState.DrawOrder);
+        Assert.False(weaponState.Visible);
+        Assert.True(weaponState.FlipX);
+        Assert.True(weaponState.FlipY);
+    }
+
+    [Fact]
+    public void CompositionRuntimeState_ResetClearsPreviousParts()
+    {
+        var firstAnimation = new Animation2dData();
+        firstAnimation.Parts.Add(new Animation2dPartData { Id = "body" });
+        firstAnimation.Parts.Add(new Animation2dPartData { Id = "weapon" });
+        var secondAnimation = new Animation2dData();
+        secondAnimation.Parts.Add(new Animation2dPartData { Id = "body" });
+        var runtimeState = new Animation2dCompositionRuntimeState();
+
+        runtimeState.Reset(Animation2dCompositionAdapter.Create(firstAnimation));
+        runtimeState.Reset(Animation2dCompositionAdapter.Create(secondAnimation));
+
+        Assert.Single(runtimeState.Parts);
+        Assert.True(runtimeState.TryGetPartIndex("body", out var bodyIndex));
+        Assert.Equal(0, bodyIndex);
+        Assert.False(runtimeState.TryGetPart("weapon", out _));
+    }
 }
