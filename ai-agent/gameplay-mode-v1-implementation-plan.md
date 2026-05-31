@@ -101,7 +101,7 @@ Validation :
 - Build cible du projet `CasaEngine`.
 - Committer uniquement l'integration `World` et le statut de cette tache.
 
-### ⏳ Tache 5 - Tests unitaires V1
+### ✅ Tache 5 - Tests unitaires V1
 
 Objectif : couvrir le comportement minimal du runner et de l'integration monde.
 
@@ -114,6 +114,7 @@ Actions :
 Validation :
 
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj --filter GameplayMode`.
+- La commande cible peut etre bloquee par des erreurs de compilation existantes dans d'autres tests ; verifier que les nouveaux fichiers GameplayMode n'apparaissent pas dans les erreurs.
 - Committer uniquement les tests et le statut de cette tache.
 
 ### ⏳ Tache 6 - Validation finale V1
