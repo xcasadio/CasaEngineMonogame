@@ -2,14 +2,40 @@
   "animation_type": "Loop",
   "id": "0d5695a6-da15-468d-99c0-9d0e89dc3b02",
   "name": "swordman_stand_right",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.15,
-      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.15,
-      "sprite_id": "abefe8aa-6561-48d6-b13e-ae8c7283a3cd"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "abefe8aa-6561-48d6-b13e-ae8c7283a3cd"
+        },
+        {
+          "time_seconds": 0.30,
+          "value": "abefe8aa-6561-48d6-b13e-ae8c7283a3cd"
+        }
+      ]
     }
   ]
 }

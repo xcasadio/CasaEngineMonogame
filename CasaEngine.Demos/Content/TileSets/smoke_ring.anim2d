@@ -2,42 +2,68 @@
   "animation_type": "Once",
   "id": "476fdde7-7cf0-4bf8-a8a7-130d995b38f1",
   "name": "smoke_ring",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.07,
-      "sprite_id": "cd5d1655-4de0-4d20-8509-127d5a428269"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "cd5d1655-4de0-4d20-8509-127d5a428269",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.07,
-      "sprite_id": "8785ccf4-aa84-4bb0-b2ab-b40bec910490"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "212ae78b-69a2-41a3-be21-10cea8d2efc4"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "2875ba92-a042-46d2-b3cf-10163cb6f62e"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "a367627e-3ed7-404f-8c39-9767d076acbe"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "9d11c7eb-9529-4903-8659-711cfb901cb5"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "d1eb3b79-f72d-4cdd-839b-275fa6eaa0ed"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "f1106519-f6de-42ef-a4f1-88dffe635a80"
-    },
-    {
-      "duration": 0.07,
-      "sprite_id": "d74be063-e7da-4e6a-9bc3-9aad9500e131"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "cd5d1655-4de0-4d20-8509-127d5a428269"
+        },
+        {
+          "time_seconds": 0.07,
+          "value": "8785ccf4-aa84-4bb0-b2ab-b40bec910490"
+        },
+        {
+          "time_seconds": 0.14,
+          "value": "212ae78b-69a2-41a3-be21-10cea8d2efc4"
+        },
+        {
+          "time_seconds": 0.21,
+          "value": "2875ba92-a042-46d2-b3cf-10163cb6f62e"
+        },
+        {
+          "time_seconds": 0.28,
+          "value": "a367627e-3ed7-404f-8c39-9767d076acbe"
+        },
+        {
+          "time_seconds": 0.35,
+          "value": "9d11c7eb-9529-4903-8659-711cfb901cb5"
+        },
+        {
+          "time_seconds": 0.42,
+          "value": "d1eb3b79-f72d-4cdd-839b-275fa6eaa0ed"
+        },
+        {
+          "time_seconds": 0.49,
+          "value": "f1106519-f6de-42ef-a4f1-88dffe635a80"
+        },
+        {
+          "time_seconds": 0.56,
+          "value": "d74be063-e7da-4e6a-9bc3-9aad9500e131"
+        },
+        {
+          "time_seconds": 0.63,
+          "value": "d74be063-e7da-4e6a-9bc3-9aad9500e131"
+        }
+      ]
     }
   ]
 }

@@ -2,54 +2,80 @@
   "animation_type": "Once",
   "id": "ed4662cd-732f-44ff-814c-ba4082ae186a",
   "name": "swordman_dying",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.15,
-      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.15,
-      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+        },
+        {
+          "time_seconds": 0.30,
+          "value": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+        },
+        {
+          "time_seconds": 0.45,
+          "value": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+        },
+        {
+          "time_seconds": 0.60,
+          "value": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+        },
+        {
+          "time_seconds": 0.75,
+          "value": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+        },
+        {
+          "time_seconds": 0.90,
+          "value": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+        },
+        {
+          "time_seconds": 1.05,
+          "value": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+        },
+        {
+          "time_seconds": 1.20,
+          "value": "a083afd3-742e-4ffe-833e-0aa6e87e2a3a"
+        },
+        {
+          "time_seconds": 1.35,
+          "value": "bac0a7fe-cc71-40ef-a296-69a809e775bf"
+        },
+        {
+          "time_seconds": 1.50,
+          "value": "40b8860f-533d-4a3d-b0f1-d7b662ada271"
+        },
+        {
+          "time_seconds": 1.65,
+          "value": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+        },
+        {
+          "time_seconds": 1.80,
+          "value": "060345c0-3a3a-4378-b3ca-dbfc08552dcd"
+        }
+      ]
     }
   ]
 }

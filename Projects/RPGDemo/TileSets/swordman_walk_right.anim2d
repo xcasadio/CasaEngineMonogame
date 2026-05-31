@@ -2,22 +2,48 @@
   "animation_type": "Loop",
   "id": "6dc2c025-8ec2-40da-baf9-1f272f9eea1c",
   "name": "swordman_walk_right",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.15,
-      "sprite_id": "d7d7058d-710b-4800-8d10-e6d6269a3b60"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "d7d7058d-710b-4800-8d10-e6d6269a3b60",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.15,
-      "sprite_id": "6aa866ea-bf97-42fd-8e82-2c76198f679f"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "6bbf2b87-e479-41b6-a819-7442d7e3223f"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "d96a7e25-a81e-4a60-a912-c8b967e00807"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "d7d7058d-710b-4800-8d10-e6d6269a3b60"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "6aa866ea-bf97-42fd-8e82-2c76198f679f"
+        },
+        {
+          "time_seconds": 0.30,
+          "value": "6bbf2b87-e479-41b6-a819-7442d7e3223f"
+        },
+        {
+          "time_seconds": 0.45,
+          "value": "d96a7e25-a81e-4a60-a912-c8b967e00807"
+        },
+        {
+          "time_seconds": 0.60,
+          "value": "d96a7e25-a81e-4a60-a912-c8b967e00807"
+        }
+      ]
     }
   ]
 }

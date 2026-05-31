@@ -2,14 +2,40 @@
   "animation_type": "Once",
   "id": "d12d0626-83d4-4d2f-b246-9b4a65c8adc2",
   "name": "ryu_5911",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.096,
-      "sprite_id": "1854dc7d-ba5d-4aa7-b212-3da8d17c752d"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "1854dc7d-ba5d-4aa7-b212-3da8d17c752d",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.096,
-      "sprite_id": "e72310b7-caa5-437d-9567-27157a795ef1"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "1854dc7d-ba5d-4aa7-b212-3da8d17c752d"
+        },
+        {
+          "time_seconds": 0.096,
+          "value": "e72310b7-caa5-437d-9567-27157a795ef1"
+        },
+        {
+          "time_seconds": 0.192,
+          "value": "e72310b7-caa5-437d-9567-27157a795ef1"
+        }
+      ]
     }
   ]
 }

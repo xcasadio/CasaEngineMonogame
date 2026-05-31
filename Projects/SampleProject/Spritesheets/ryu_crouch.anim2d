@@ -2,10 +2,36 @@
   "animation_type": "Once",
   "id": "162df612-0ada-4bdd-bde5-5b94201ce354",
   "name": "ryu_crouch",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.015999999,
-      "sprite_id": "1a024993-0af0-41de-a8ec-43cf846a842e"
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "1a024993-0af0-41de-a8ec-43cf846a842e",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
+    {
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "1a024993-0af0-41de-a8ec-43cf846a842e"
+        },
+        {
+          "time_seconds": 0.015999999,
+          "value": "1a024993-0af0-41de-a8ec-43cf846a842e"
+        }
+      ]
     }
   ]
 }

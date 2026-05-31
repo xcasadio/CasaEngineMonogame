@@ -2,46 +2,72 @@
   "animation_type": "Once",
   "id": "3bb4852f-fb25-4994-8422-72dc1186c951",
   "name": "ryu_620",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.048,
-      "sprite_id": "84040d39-82fe-4549-bd17-ceda6c61534a"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "84040d39-82fe-4549-bd17-ceda6c61534a",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.031999998,
-      "sprite_id": "aa1ef719-f174-403d-983f-741bf84fa794"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "c7f9403d-cf1f-488e-aa2b-8986ba2e2600"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "c389af62-6919-4753-a9cf-3a2e89e72421"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "abee1709-c7df-4d86-b237-9258a838ea72"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "c389af62-6919-4753-a9cf-3a2e89e72421"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "9431b9c7-61a8-46e3-ad09-691ac8a82639"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "6d85954b-9ba7-4473-b742-208985938464"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "184b10f1-3a45-4862-97fd-549d0821e72a"
-    },
-    {
-      "duration": 0.015999999,
-      "sprite_id": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "84040d39-82fe-4549-bd17-ceda6c61534a"
+        },
+        {
+          "time_seconds": 0.048,
+          "value": "aa1ef719-f174-403d-983f-741bf84fa794"
+        },
+        {
+          "time_seconds": 0.079999998,
+          "value": "c7f9403d-cf1f-488e-aa2b-8986ba2e2600"
+        },
+        {
+          "time_seconds": 0.143999994,
+          "value": "c389af62-6919-4753-a9cf-3a2e89e72421"
+        },
+        {
+          "time_seconds": 0.175999992,
+          "value": "abee1709-c7df-4d86-b237-9258a838ea72"
+        },
+        {
+          "time_seconds": 0.207999990,
+          "value": "c389af62-6919-4753-a9cf-3a2e89e72421"
+        },
+        {
+          "time_seconds": 0.239999988,
+          "value": "9431b9c7-61a8-46e3-ad09-691ac8a82639"
+        },
+        {
+          "time_seconds": 0.271999986,
+          "value": "6d85954b-9ba7-4473-b742-208985938464"
+        },
+        {
+          "time_seconds": 0.303999984,
+          "value": "184b10f1-3a45-4862-97fd-549d0821e72a"
+        },
+        {
+          "time_seconds": 0.351999984,
+          "value": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+        },
+        {
+          "time_seconds": 0.367999983,
+          "value": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+        }
+      ]
     }
   ]
 }

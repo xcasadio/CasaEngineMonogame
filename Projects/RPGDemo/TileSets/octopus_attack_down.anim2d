@@ -2,18 +2,44 @@
   "animation_type": "Once",
   "id": "a3c81b9a-fe52-4a93-80da-e2d206303628",
   "name": "octopus_attack_down",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.15,
-      "sprite_id": "18609873-8c39-4702-afd4-d621cf082950"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "18609873-8c39-4702-afd4-d621cf082950",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.15,
-      "sprite_id": "b2d4a4b9-5ada-42b9-a90d-d4ac03bce9a8"
-    },
-    {
-      "duration": 0.15,
-      "sprite_id": "8123cb68-f5e0-451f-bd1b-efc16e082c4a"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "18609873-8c39-4702-afd4-d621cf082950"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "b2d4a4b9-5ada-42b9-a90d-d4ac03bce9a8"
+        },
+        {
+          "time_seconds": 0.30,
+          "value": "8123cb68-f5e0-451f-bd1b-efc16e082c4a"
+        },
+        {
+          "time_seconds": 0.45,
+          "value": "8123cb68-f5e0-451f-bd1b-efc16e082c4a"
+        }
+      ]
     }
   ]
 }

@@ -2,30 +2,56 @@
   "animation_type": "Once",
   "id": "80cde10a-7574-4051-a62f-4865ac99aff6",
   "name": "ryu_240",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.031999998,
-      "sprite_id": "c542a814-c543-4372-ab7b-bef7bdf5c0f0"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "c542a814-c543-4372-ab7b-bef7bdf5c0f0",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.048,
-      "sprite_id": "370a2d5e-b25f-48a2-a23b-208de6a30689"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "9b62fac7-f47e-4337-ac7d-b12fc9bb7cf1"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "a50e8797-7ed3-4fd5-979a-6c48e60a905f"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "a303d1cb-2624-4559-8d66-30c309eb7f3b"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "0c062ff8-9dbe-4a23-bfd4-cd76f29d8693"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "c542a814-c543-4372-ab7b-bef7bdf5c0f0"
+        },
+        {
+          "time_seconds": 0.031999998,
+          "value": "370a2d5e-b25f-48a2-a23b-208de6a30689"
+        },
+        {
+          "time_seconds": 0.079999998,
+          "value": "9b62fac7-f47e-4337-ac7d-b12fc9bb7cf1"
+        },
+        {
+          "time_seconds": 0.143999994,
+          "value": "a50e8797-7ed3-4fd5-979a-6c48e60a905f"
+        },
+        {
+          "time_seconds": 0.207999990,
+          "value": "a303d1cb-2624-4559-8d66-30c309eb7f3b"
+        },
+        {
+          "time_seconds": 0.255999990,
+          "value": "0c062ff8-9dbe-4a23-bfd4-cd76f29d8693"
+        },
+        {
+          "time_seconds": 0.303999990,
+          "value": "0c062ff8-9dbe-4a23-bfd4-cd76f29d8693"
+        }
+      ]
     }
   ]
 }

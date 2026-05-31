@@ -2,14 +2,40 @@
   "animation_type": "Once",
   "id": "cec47a92-032b-4e14-9f6e-f873dfd6e532",
   "name": "swordman_dead_walking_down",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.15,
-      "sprite_id": "ef18c122-47fb-4830-97f4-76c364e3ec0b"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "ef18c122-47fb-4830-97f4-76c364e3ec0b",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.15,
-      "sprite_id": "66c9d531-412e-4b5b-91b0-090460ff4f7f"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "ef18c122-47fb-4830-97f4-76c364e3ec0b"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "66c9d531-412e-4b5b-91b0-090460ff4f7f"
+        },
+        {
+          "time_seconds": 0.30,
+          "value": "66c9d531-412e-4b5b-91b0-090460ff4f7f"
+        }
+      ]
     }
   ]
 }

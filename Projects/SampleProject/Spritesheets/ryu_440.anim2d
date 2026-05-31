@@ -2,34 +2,60 @@
   "animation_type": "Once",
   "id": "5ccb87f3-9770-42c8-930b-b173caf96ddc",
   "name": "ryu_440",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.015999999,
-      "sprite_id": "5d6ef3d5-2d0b-4590-a65f-02df4d14bd1d"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "5d6ef3d5-2d0b-4590-a65f-02df4d14bd1d",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.031999998,
-      "sprite_id": "7628c5ab-38a5-4b49-83af-45e63a198b9a"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "5f455bad-4b4b-447e-9ec2-cedc25601316"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "03d9a104-a1bb-42f3-af39-9946bfbe127a"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "6621f07b-bd26-4452-aa99-bd6dc72e254a"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "5bdba72b-a9eb-42fe-95a8-4db7e1e8fca8"
-    },
-    {
-      "duration": 0.031999998,
-      "sprite_id": "7cd615d6-5b1a-44f4-bf00-3d216add91a7"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "5d6ef3d5-2d0b-4590-a65f-02df4d14bd1d"
+        },
+        {
+          "time_seconds": 0.015999999,
+          "value": "7628c5ab-38a5-4b49-83af-45e63a198b9a"
+        },
+        {
+          "time_seconds": 0.047999997,
+          "value": "5f455bad-4b4b-447e-9ec2-cedc25601316"
+        },
+        {
+          "time_seconds": 0.079999995,
+          "value": "03d9a104-a1bb-42f3-af39-9946bfbe127a"
+        },
+        {
+          "time_seconds": 0.127999995,
+          "value": "6621f07b-bd26-4452-aa99-bd6dc72e254a"
+        },
+        {
+          "time_seconds": 0.175999995,
+          "value": "5bdba72b-a9eb-42fe-95a8-4db7e1e8fca8"
+        },
+        {
+          "time_seconds": 0.239999991,
+          "value": "7cd615d6-5b1a-44f4-bf00-3d216add91a7"
+        },
+        {
+          "time_seconds": 0.271999989,
+          "value": "7cd615d6-5b1a-44f4-bf00-3d216add91a7"
+        }
+      ]
     }
   ]
 }

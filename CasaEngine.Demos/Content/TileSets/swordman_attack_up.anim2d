@@ -2,34 +2,60 @@
   "animation_type": "Once",
   "id": "055bd8ab-941c-4de1-8cf1-f59237972d17",
   "name": "swordman_attack_up",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.03,
-      "sprite_id": "54905c36-36c4-47bd-a56f-dc69d7e404ae"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "54905c36-36c4-47bd-a56f-dc69d7e404ae",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.03,
-      "sprite_id": "12acf137-1e51-450c-a97e-8fd467690ce3"
-    },
-    {
-      "duration": 0.03,
-      "sprite_id": "2f28d5d6-a798-4b43-8398-4f7c87deac18"
-    },
-    {
-      "duration": 0.03,
-      "sprite_id": "7a1411dd-cb4c-49c3-a861-76daa0914c79"
-    },
-    {
-      "duration": 0.03,
-      "sprite_id": "b41f1b1b-88a5-4f75-b453-0dcf16e11adf"
-    },
-    {
-      "duration": 0.03,
-      "sprite_id": "5f521ea5-ee59-4851-825f-58f45e4c06af"
-    },
-    {
-      "duration": 0.03,
-      "sprite_id": "630f4d0a-3008-4438-9d83-b299f6e832b6"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "54905c36-36c4-47bd-a56f-dc69d7e404ae"
+        },
+        {
+          "time_seconds": 0.03,
+          "value": "12acf137-1e51-450c-a97e-8fd467690ce3"
+        },
+        {
+          "time_seconds": 0.06,
+          "value": "2f28d5d6-a798-4b43-8398-4f7c87deac18"
+        },
+        {
+          "time_seconds": 0.09,
+          "value": "7a1411dd-cb4c-49c3-a861-76daa0914c79"
+        },
+        {
+          "time_seconds": 0.12,
+          "value": "b41f1b1b-88a5-4f75-b453-0dcf16e11adf"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "5f521ea5-ee59-4851-825f-58f45e4c06af"
+        },
+        {
+          "time_seconds": 0.18,
+          "value": "630f4d0a-3008-4438-9d83-b299f6e832b6"
+        },
+        {
+          "time_seconds": 0.21,
+          "value": "630f4d0a-3008-4438-9d83-b299f6e832b6"
+        }
+      ]
     }
   ]
 }

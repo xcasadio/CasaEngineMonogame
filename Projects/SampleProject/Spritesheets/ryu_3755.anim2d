@@ -2,30 +2,56 @@
   "animation_type": "Once",
   "id": "9d19622e-e771-4ce4-b160-e405cc48f50d",
   "name": "ryu_3755",
-  "frames": [
+  "parts": [
     {
-      "duration": 0.096,
-      "sprite_id": "1ff9abbf-811b-4b3f-b31c-f4bcfa21a60f"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "1ff9abbf-811b-4b3f-b31c-f4bcfa21a60f",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "duration": 0.08,
-      "sprite_id": "5b1d95eb-4582-4d17-a948-e4a03c80a18b"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "b299b3c2-8d27-4ea2-a418-528896789f3d"
-    },
-    {
-      "duration": 0.063999996,
-      "sprite_id": "4ce9dd6c-0bb1-4ae7-8747-5f91241f426c"
-    },
-    {
-      "duration": 0.048,
-      "sprite_id": "7be826e3-bd72-4ca5-855e-d928dde7a0cd"
-    },
-    {
-      "duration": 0.015999999,
-      "sprite_id": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "1ff9abbf-811b-4b3f-b31c-f4bcfa21a60f"
+        },
+        {
+          "time_seconds": 0.096,
+          "value": "5b1d95eb-4582-4d17-a948-e4a03c80a18b"
+        },
+        {
+          "time_seconds": 0.176,
+          "value": "b299b3c2-8d27-4ea2-a418-528896789f3d"
+        },
+        {
+          "time_seconds": 0.239999996,
+          "value": "4ce9dd6c-0bb1-4ae7-8747-5f91241f426c"
+        },
+        {
+          "time_seconds": 0.303999992,
+          "value": "7be826e3-bd72-4ca5-855e-d928dde7a0cd"
+        },
+        {
+          "time_seconds": 0.351999992,
+          "value": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+        },
+        {
+          "time_seconds": 0.367999991,
+          "value": "0aa506a9-3b5f-4a60-8030-52dc4038b829"
+        }
+      ]
     }
   ]
 }
