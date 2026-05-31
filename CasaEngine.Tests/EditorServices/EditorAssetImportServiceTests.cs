@@ -37,10 +37,11 @@ public class EditorAssetImportServiceTests
 
             Assert.True(catalogChanged);
 
-            string importedMaterialsDirectory = Path.Combine(tempDirectory, "Car_Imported", "Materials");
-            Assert.True(Directory.Exists(importedMaterialsDirectory));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Car_Imported")));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Materials")));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Textures")));
 
-            string[] materialFiles = Directory.GetFiles(importedMaterialsDirectory, "*" + Constants.FileNameExtensions.Material);
+            string[] materialFiles = Directory.GetFiles(tempDirectory, "*" + Constants.FileNameExtensions.Material);
             Assert.NotEmpty(materialFiles);
 
             foreach (string materialFile in materialFiles)
@@ -343,9 +344,15 @@ public class EditorAssetImportServiceTests
             Assert.Equal("kid_idle.FBX", geometryAssetInfo!.FileName);
             Assert.Equal(Constants.FileNameExtensions.Skeleton, Path.GetExtension(skeletonAssetInfo!.FileName));
             Assert.Equal(Constants.FileNameExtensions.SkeletonAnimation, Path.GetExtension(defaultAnimationClipAssetInfo!.FileName));
+            Assert.True(string.IsNullOrEmpty(Path.GetDirectoryName(skeletonAssetInfo.FileName)));
+            Assert.True(string.IsNullOrEmpty(Path.GetDirectoryName(defaultAnimationClipAssetInfo.FileName)));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "kid_idle_Imported")));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Animation")));
 
             string skeletonPath = Path.Combine(tempDirectory, skeletonAssetInfo.FileName);
+            string animationClipPath = Path.Combine(tempDirectory, defaultAnimationClipAssetInfo.FileName);
             Assert.True(File.Exists(skeletonPath));
+            Assert.True(File.Exists(animationClipPath));
 
             var skeletonDocument = JObject.Parse(File.ReadAllText(skeletonPath));
             var joints = Assert.IsType<JArray>(skeletonDocument["joints"]);
@@ -440,14 +447,16 @@ public class EditorAssetImportServiceTests
             Assert.Contains(EditorAssetImportService.LastTiledMapImportResult!.Warnings, warning => warning.Contains("flip", StringComparison.OrdinalIgnoreCase));
 
             string tileMapPath = Path.Combine(tempDirectory, "ImportedLevel.tileMap");
-            string tileSetPath = Path.Combine(tempDirectory, "ImportedLevel_Imported", "ImportedLevel.tileset");
-            string texturePath = Path.Combine(tempDirectory, "ImportedLevel_Imported", "Textures", "tiles.texture");
+            string tileSetPath = Path.Combine(tempDirectory, "ImportedLevel.tileset");
+            string texturePath = Path.Combine(tempDirectory, "tiles.texture");
             string assetCatalogPath = Path.Combine(tempDirectory, "AssetInfos.json");
 
             Assert.True(File.Exists(tileMapPath));
             Assert.True(File.Exists(tileSetPath));
             Assert.True(File.Exists(texturePath));
             Assert.True(File.Exists(assetCatalogPath));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "ImportedLevel_Imported")));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Textures")));
 
             var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
             Assert.Equal("ImportedLevel", (string?)tileMapDocument["name"]);
@@ -553,8 +562,9 @@ public class EditorAssetImportServiceTests
 
             Assert.True(imported);
             Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel.tileMap")));
-            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel_Imported", "EmbeddedLevel.tileset")));
-            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel_Imported", "Textures", "tiles with space.texture")));
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "EmbeddedLevel.tileset")));
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "tiles with space.texture")));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "EmbeddedLevel_Imported")));
         }
         finally
         {
@@ -615,12 +625,13 @@ public class EditorAssetImportServiceTests
 
             Assert.True(imported);
             string tileMapPath = Path.Combine(tempDirectory, "MultiLevel.tileMap");
-            string groundTileSetPath = Path.Combine(tempDirectory, "MultiLevel_Imported", "ground.tileset");
-            string decorTileSetPath = Path.Combine(tempDirectory, "MultiLevel_Imported", "decor.tileset");
+            string groundTileSetPath = Path.Combine(tempDirectory, "ground.tileset");
+            string decorTileSetPath = Path.Combine(tempDirectory, "decor.tileset");
 
             Assert.True(File.Exists(tileMapPath));
             Assert.True(File.Exists(groundTileSetPath));
             Assert.True(File.Exists(decorTileSetPath));
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "MultiLevel_Imported")));
 
             var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
             var tileSetIds = Assert.IsType<JArray>(tileMapDocument["tile_set_asset_ids"]);
@@ -687,7 +698,7 @@ public class EditorAssetImportServiceTests
             bool imported = EditorAssetImportService.ImportFile(tmxPath, Path.Combine(tempDirectory, "AnimatedLevel.tmx"));
 
             Assert.True(imported);
-            string tileSetPath = Path.Combine(tempDirectory, "AnimatedLevel_Imported", "AnimatedLevel.tileset");
+            string tileSetPath = Path.Combine(tempDirectory, "AnimatedLevel.tileset");
             Assert.True(File.Exists(tileSetPath));
 
             var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
@@ -781,12 +792,14 @@ public class EditorAssetImportServiceTests
 
                         Assert.True(imported);
                         string tileMapPath = Path.Combine(tempDirectory, "JsonLevel.tileMap");
-                        string tileSetPath = Path.Combine(tempDirectory, "JsonLevel_Imported", "JsonLevel.tileset");
-                        string texturePath = Path.Combine(tempDirectory, "JsonLevel_Imported", "Textures", "tiles.texture");
+                        string tileSetPath = Path.Combine(tempDirectory, "JsonLevel.tileset");
+                        string texturePath = Path.Combine(tempDirectory, "tiles.texture");
 
                         Assert.True(File.Exists(tileMapPath));
                         Assert.True(File.Exists(tileSetPath));
                         Assert.True(File.Exists(texturePath));
+                        Assert.False(Directory.Exists(Path.Combine(tempDirectory, "JsonLevel_Imported")));
+                        Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Textures")));
 
                         var tileMapDocument = JObject.Parse(File.ReadAllText(tileMapPath));
                         var layers = Assert.IsType<JArray>(tileMapDocument["layers"]);
@@ -870,7 +883,7 @@ public class EditorAssetImportServiceTests
                         bool imported = EditorAssetImportService.ImportFile(tmjPath, Path.Combine(tempDirectory, "AnimatedJsonLevel.tmj"));
 
                         Assert.True(imported);
-                        string tileSetPath = Path.Combine(tempDirectory, "AnimatedJsonLevel_Imported", "AnimatedJsonLevel.tileset");
+                        string tileSetPath = Path.Combine(tempDirectory, "AnimatedJsonLevel.tileset");
                         var tileSetDocument = JObject.Parse(File.ReadAllText(tileSetPath));
                         var tiles = Assert.IsType<JArray>(tileSetDocument["tiles"]);
                         var animatedTile = Assert.IsType<JObject>(tiles[0]);
@@ -956,11 +969,13 @@ public class EditorAssetImportServiceTests
 
     private static IReadOnlyList<MaterialAsset> LoadImportedMaterials(string projectDirectory, string importedFolderName)
     {
-        string importedMaterialsDirectory = Path.Combine(projectDirectory, importedFolderName, "Materials");
-        Assert.True(Directory.Exists(importedMaterialsDirectory));
+        Assert.False(Directory.Exists(Path.Combine(projectDirectory, importedFolderName)));
+        Assert.False(Directory.Exists(Path.Combine(projectDirectory, "Materials")));
+        Assert.False(Directory.Exists(Path.Combine(projectDirectory, "Textures")));
+        Assert.False(Directory.Exists(Path.Combine(projectDirectory, "Animation")));
 
         return Directory
-            .GetFiles(importedMaterialsDirectory, "*" + Constants.FileNameExtensions.Material)
+            .GetFiles(projectDirectory, "*" + Constants.FileNameExtensions.Material)
             .Select(materialFile =>
             {
                 var materialDocument = JObject.Parse(File.ReadAllText(materialFile));

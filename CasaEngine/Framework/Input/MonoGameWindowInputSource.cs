@@ -9,7 +9,7 @@ namespace CasaEngine.Framework.Input;
 /// <summary>
 /// Basic window input source backed directly by MonoGame device state APIs.
 /// </summary>
-public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource
+public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource, IWindowFileDropSource
 {
     private const int FirstTrackedKey = 0;
     private const int LastTrackedKey = 255;
@@ -20,6 +20,7 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
     private readonly Dictionary<KeyboardStateCacheKey, Keys[]> _cachedKeyArrays = new();
     private readonly Keys[] _pressedKeysBuffer = new Keys[LastTrackedKey - FirstTrackedKey + 1];
     private readonly List<TextInputEventArgs> _textInputEvents = new();
+    private readonly List<string> _fileDropPaths = new();
     private GameWindow _subscribedWindow;
     private uint _eventKeys0;
     private uint _eventKeys1;
@@ -87,6 +88,23 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
         }
     }
 
+    public void DrainDroppedFiles(ICollection<string> filePaths)
+    {
+        ArgumentNullException.ThrowIfNull(filePaths);
+
+        EnsureWindowSubscription();
+
+        lock (_fileDropPaths)
+        {
+            for (int index = 0; index < _fileDropPaths.Count; index++)
+            {
+                filePaths.Add(_fileDropPaths[index]);
+            }
+
+            _fileDropPaths.Clear();
+        }
+    }
+
     private void EnsureWindowSubscription()
     {
         var window = _getWindow?.Invoke();
@@ -100,6 +118,7 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
             _subscribedWindow.TextInput -= OnTextInput;
             _subscribedWindow.KeyDown -= OnKeyDown;
             _subscribedWindow.KeyUp -= OnKeyUp;
+            _subscribedWindow.FileDrop -= OnFileDrop;
             ClearEventKeys();
         }
 
@@ -110,6 +129,7 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
             _subscribedWindow.TextInput += OnTextInput;
             _subscribedWindow.KeyDown += OnKeyDown;
             _subscribedWindow.KeyUp += OnKeyUp;
+            _subscribedWindow.FileDrop += OnFileDrop;
         }
     }
 
@@ -171,6 +191,26 @@ public sealed class MonoGameWindowInputSource : IWindowInputSource, IRawInputSou
         lock (_textInputEvents)
         {
             _textInputEvents.Add(e);
+        }
+    }
+
+    private void OnFileDrop(object sender, FileDropEventArgs e)
+    {
+        if (e.Files == null || e.Files.Length == 0)
+        {
+            return;
+        }
+
+        lock (_fileDropPaths)
+        {
+            for (int index = 0; index < e.Files.Length; index++)
+            {
+                string filePath = e.Files[index];
+                if (!string.IsNullOrWhiteSpace(filePath))
+                {
+                    _fileDropPaths.Add(filePath);
+                }
+            }
         }
     }
 

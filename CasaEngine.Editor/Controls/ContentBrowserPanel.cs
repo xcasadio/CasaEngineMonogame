@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using CasaEngine.Core.Design;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.ContentBrowser;
@@ -15,6 +16,7 @@ using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.UI.Backend.MonoGame;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
@@ -134,6 +136,9 @@ public class ContentBrowserPanel
 
     private readonly FileOperationService _fileOperationService = new();
     private readonly ThumbnailCache _thumbnailCache;
+    private readonly CasaDesktopRuntime _runtime;
+    private readonly List<string> _externalDropPaths = new();
+    private readonly ConditionalWeakTable<MGElement, ContentItem> _externalDropTargetFolders = new();
     private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<MGTextBlock>> _tooltipDimensionTexts = new(StringComparer.OrdinalIgnoreCase);
     private string _pendingOperationError = string.Empty;
@@ -219,6 +224,7 @@ public class ContentBrowserPanel
             throw new InvalidOperationException($"{nameof(ContentBrowserPanel)} requires the CasaEngine MGUI backend runtime.");
         }
 
+        _runtime = runtime;
         _thumbnailCache = new ThumbnailCache(
             runtime.GraphicsDevice,
             Config.ThumbnailSize,
@@ -231,6 +237,7 @@ public class ContentBrowserPanel
         _inlineRenameOverlay = new InlineRenameOverlay(window);
         _fileOperationService.ErrorOccurred += OnFileOperationError;
         _fileOperationService.WarningOccurred += OnFileOperationWarning;
+        _runtime.EndUpdate += OnRuntimeEndUpdate;
     }
 
     /// <summary>
@@ -641,6 +648,7 @@ public class ContentBrowserPanel
             {
                 Padding = new Thickness(4, 1, 4, 1),
             };
+            RegisterExternalDropTarget(seg, breadcrumbBtn);
             breadcrumbBtn.SetContent(new MGTextBlock(_window, seg.Name)
             {
                 VerticalAlignment = VerticalAlignment.Center,
@@ -707,6 +715,7 @@ public class ContentBrowserPanel
     private void ConfigureGridItemElement(ContentItem item, MGElement element)
     {
         ConfigureItemToolTip(item, element);
+        RegisterExternalDropTarget(item, element);
 
         if (item.IsDirectory)
         {
@@ -721,6 +730,7 @@ public class ContentBrowserPanel
     private void ConfigureDetailItemElement(ContentItem item, MGElement element)
     {
         ConfigureItemToolTip(item, element);
+        RegisterExternalDropTarget(item, element);
     }
 
     private Texture2D? GetGridItemPreviewTexture(ContentItem item)
@@ -956,6 +966,99 @@ public class ContentBrowserPanel
             var executeViewState = CreateViewState(_currentFolder.FullPath, operation.SelectionAfterExecute);
             ExecuteHistoryOperation("Import", operation, executeViewState, undoViewState);
         }
+    }
+
+    private void OnRuntimeEndUpdate(object? sender, EventArgs e)
+    {
+        if (_runtime.RawInputSource is not IWindowFileDropSource fileDropSource)
+        {
+            return;
+        }
+
+        _externalDropPaths.Clear();
+        fileDropSource.DrainDroppedFiles(_externalDropPaths);
+        if (_externalDropPaths.Count == 0)
+        {
+            return;
+        }
+
+        var targetFolder = ResolveExternalDropTargetFolder();
+        if (targetFolder == null)
+        {
+            return;
+        }
+
+        ImportExternalDroppedFiles(_externalDropPaths, targetFolder);
+    }
+
+    private ContentItem? ResolveExternalDropTargetFolder()
+    {
+        if (_rootItem == null)
+        {
+            return null;
+        }
+
+        var hoveredElement = _window.HoveredElement;
+        var registeredFolder = ResolveRegisteredDropTargetFolder(hoveredElement);
+        if (registeredFolder != null)
+        {
+            return registeredFolder;
+        }
+
+        if (hoveredElement != null && _contentViewHost != null && _contentViewHost.IsSelfOrAncestorOf(hoveredElement))
+        {
+            return _currentFolder;
+        }
+
+        return null;
+    }
+
+    private ContentItem? ResolveRegisteredDropTargetFolder(MGElement? hoveredElement)
+    {
+        var currentElement = hoveredElement;
+        while (currentElement != null)
+        {
+            if (_externalDropTargetFolders.TryGetValue(currentElement, out var folder) && folder.IsDirectory)
+            {
+                return folder;
+            }
+
+            currentElement = currentElement.Parent;
+        }
+
+        return null;
+    }
+
+    private void ImportExternalDroppedFiles(IReadOnlyList<string> externalPaths, ContentItem targetFolder)
+    {
+        if (externalPaths.Count == 0 || !targetFolder.IsDirectory || !Directory.Exists(targetFolder.FullPath))
+        {
+            return;
+        }
+
+        var paths = new string[externalPaths.Count];
+        for (int index = 0; index < externalPaths.Count; index++)
+        {
+            paths[index] = externalPaths[index];
+        }
+
+        var undoViewState = CaptureViewState();
+        if (_fileOperationService.TryImportOperation(paths, targetFolder.FullPath, out var operation))
+        {
+            var executeViewState = CreateViewState(targetFolder.FullPath, operation.SelectionAfterExecute);
+            ExecuteHistoryOperation("Import", operation, executeViewState, undoViewState);
+        }
+    }
+
+    private void RegisterExternalDropTarget(ContentItem item, MGElement element)
+    {
+        if (!item.IsDirectory)
+        {
+            return;
+        }
+
+        _externalDropTargetFolders.Remove(element);
+        _externalDropTargetFolders.Add(element, item);
     }
 
     private void OnPropertiesRequested(ContentItem item)
@@ -1278,6 +1381,8 @@ public class ContentBrowserPanel
         });
         item.Header = header;
         item.AllowDrop = true;
+        RegisterExternalDropTarget(folder, item);
+        RegisterExternalDropTarget(folder, header);
         item.DragEnter += (_, e) => OnFolderDropTargetDragEnter(header, folder, e);
         item.DragOver += (_, e) => OnFolderDropTargetDragOver(header, folder, e);
         item.DragLeave += (_, e) => OnFolderDropTargetDragLeave(header, folder, e);

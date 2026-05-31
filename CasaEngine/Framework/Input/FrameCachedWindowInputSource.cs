@@ -8,7 +8,7 @@ namespace CasaEngine.Framework.Input;
 /// <summary>
 /// Caches one window input snapshot per frame so all consumers observe the same raw state.
 /// </summary>
-public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource
+public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInputSource, IKeyboardStateProvider, IMouseStateProvider, IWindowTextInputSource, IWindowFileDropSource
 {
     private readonly IWindowInputSource _inner;
     private long _nextFrameId;
@@ -49,6 +49,14 @@ public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInput
         if (_inner is IWindowTextInputSource textInputSource)
         {
             textInputSource.DrainTextInput(sink);
+        }
+    }
+
+    public void DrainDroppedFiles(ICollection<string> filePaths)
+    {
+        if (_inner is IWindowFileDropSource fileDropSource)
+        {
+            fileDropSource.DrainDroppedFiles(filePaths);
         }
     }
 

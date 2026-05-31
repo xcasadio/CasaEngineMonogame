@@ -81,9 +81,8 @@ public static class EditorAssetImportService
 
         var tiledMap = new TiledMapImporter().Import(sourceFilePath);
         var mapBaseName = Path.GetFileNameWithoutExtension(destinationFilePath);
-        var importedAssetsDirectory = GetImportedAssetsDirectory(destinationFilePath);
-        var texturesDirectory = Path.Combine(importedAssetsDirectory, "Textures");
-        Directory.CreateDirectory(texturesDirectory);
+        var importedAssetsDirectory = Path.GetDirectoryName(destinationFilePath)!;
+        Directory.CreateDirectory(importedAssetsDirectory);
 
         var importedTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
         var usedTextureFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -96,10 +95,11 @@ public static class EditorAssetImportService
             var tiledTileset = tiledMap.Tilesets[tilesetIndex];
             var textureAssetId = ImportTexture(
                 tiledTileset.ImageFilePath,
-                texturesDirectory,
+                importedAssetsDirectory,
                 mapBaseName,
                 importedTexturesBySourcePath,
-                usedTextureFileNames);
+                usedTextureFileNames,
+                true);
 
             if (textureAssetId == Guid.Empty)
             {
@@ -347,14 +347,19 @@ public static class EditorAssetImportService
             ?? EnsureAssetInfo(rawAssetRelativePath, modelBaseName);
 
         Guid skeletonAssetId = Guid.Empty;
-        string animationDirectory = Path.Combine(GetImportedAssetsDirectory(destinationFilePath), "Animation");
+        string animationDirectory = Path.GetDirectoryName(destinationFilePath)!;
         Directory.CreateDirectory(animationDirectory);
+        var usedAnimationFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         if (riggedModel.SkeletonDefinition != null)
         {
-            string skeletonFullPath = Path.Combine(animationDirectory, modelBaseName + Constants.FileNameExtensions.Skeleton);
+            string skeletonFileName = CreateUniqueImportedFileName(
+                modelBaseName + Constants.FileNameExtensions.Skeleton,
+                animationDirectory,
+                usedAnimationFileNames);
+            string skeletonFullPath = Path.Combine(animationDirectory, skeletonFileName);
             string skeletonRelativePath = GetRelativeProjectPath(skeletonFullPath);
-            string skeletonAssetName = modelBaseName + "_Skeleton";
+            string skeletonAssetName = Path.GetFileNameWithoutExtension(skeletonFileName);
             var skeletonAssetInfo = EnsureAssetInfo(skeletonRelativePath, skeletonAssetName);
             var skeletonAsset = AnimationAssetDataConverter.CreateSkeletonAsset(riggedModel.SkeletonDefinition);
             skeletonAsset.Name = skeletonAssetInfo.Name;
@@ -366,7 +371,6 @@ public static class EditorAssetImportService
         }
 
         var clipAssetIds = new List<Guid>(riggedModel.AnimationClips.Count);
-        var usedClipFileNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var clipIndex = 0; clipIndex < riggedModel.AnimationClips.Count; clipIndex++)
         {
             var animationClip = riggedModel.AnimationClips[clipIndex];
@@ -375,7 +379,8 @@ public static class EditorAssetImportService
                 : $"{modelBaseName}_{SanitizeFileName(animationClip.Name)}";
             string clipFileName = CreateUniqueImportedFileName(
                 clipBaseName + Constants.FileNameExtensions.SkeletonAnimation,
-                usedClipFileNames);
+                animationDirectory,
+                usedAnimationFileNames);
             string clipFullPath = Path.Combine(animationDirectory, clipFileName);
             string clipRelativePath = GetRelativeProjectPath(clipFullPath);
             string clipAssetName = Path.GetFileNameWithoutExtension(clipFileName);
@@ -432,7 +437,7 @@ public static class EditorAssetImportService
         string destinationSourceFilePath)
     {
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
-        string texturesDirectory = Path.Combine(GetImportedAssetsDirectory(destinationSourceFilePath), "Textures");
+        string texturesDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
         Directory.CreateDirectory(texturesDirectory);
 
         var importedTexturesBySourcePath = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
@@ -451,7 +456,8 @@ public static class EditorAssetImportService
                     texturesDirectory,
                     modelBaseName,
                     importedTexturesBySourcePath,
-                    usedTextureFileNames);
+                    usedTextureFileNames,
+                    true);
 
                 if (textureAssetId != Guid.Empty)
                 {
@@ -466,7 +472,8 @@ public static class EditorAssetImportService
                     texturesDirectory,
                     modelBaseName,
                     importedTexturesBySourcePath,
-                    usedTextureFileNames);
+                    usedTextureFileNames,
+                    true);
 
                 if (textureAssetId != Guid.Empty)
                 {
@@ -482,7 +489,8 @@ public static class EditorAssetImportService
                     texturesDirectory,
                     modelBaseName,
                     importedCubeTexturesBySourcePath,
-                    usedTextureFileNames);
+                    usedTextureFileNames,
+                    true);
 
                 if (textureAssetId != Guid.Empty)
                 {
@@ -516,7 +524,7 @@ public static class EditorAssetImportService
         string destinationSourceFilePath)
     {
         string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
-        string materialsDirectory = Path.Combine(GetImportedAssetsDirectory(destinationSourceFilePath), "Materials");
+        string materialsDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
         Directory.CreateDirectory(materialsDirectory);
 
         var materialAssetIdsByMaterialIndex = new Dictionary<int, Guid>();
@@ -527,6 +535,7 @@ public static class EditorAssetImportService
             LegacyImportedMaterialPresentation presentation = LegacyImportedMaterialPresentationResolver.Resolve(importedMaterial);
             string materialFileName = CreateUniqueImportedFileName(
                 SanitizeFileName(importedMaterial.DisplayName) + Constants.FileNameExtensions.Material,
+                materialsDirectory,
                 usedMaterialFileNames);
             string materialFullPath = Path.Combine(materialsDirectory, materialFileName);
             string materialRelativePath = GetRelativeProjectPath(materialFullPath);
@@ -585,7 +594,8 @@ public static class EditorAssetImportService
         string texturesDirectory,
         string modelBaseName,
         Dictionary<string, Guid> importedTexturesBySourcePath,
-        HashSet<string> usedTextureFileNames)
+        HashSet<string> usedTextureFileNames,
+        bool avoidExistingDestinationFileCollisions = false)
     {
         if (importedTexturesBySourcePath.TryGetValue(sourceTexturePath, out var existingTextureAssetId))
         {
@@ -602,9 +612,14 @@ public static class EditorAssetImportService
             return Guid.Empty;
         }
 
-        string copiedTextureFileName = CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
+        string copiedTextureFileName = avoidExistingDestinationFileCollisions
+            ? CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), texturesDirectory, sourceTexturePath, usedTextureFileNames)
+            : CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
         string copiedTextureFullPath = Path.Combine(texturesDirectory, copiedTextureFileName);
-        File.Copy(sourceTexturePath, copiedTextureFullPath, true);
+        if (!IsSameFullPath(sourceTexturePath, copiedTextureFullPath))
+        {
+            File.Copy(sourceTexturePath, copiedTextureFullPath, !avoidExistingDestinationFileCollisions);
+        }
 
         string copiedTextureRelativePath = GetRelativeProjectPath(copiedTextureFullPath);
         string rawTextureAssetName = $"{modelBaseName}_{copiedTextureFileName}";
@@ -626,7 +641,8 @@ public static class EditorAssetImportService
         string texturesDirectory,
         string modelBaseName,
         Dictionary<string, Guid> importedTexturesBySourcePath,
-        HashSet<string> usedTextureFileNames)
+        HashSet<string> usedTextureFileNames,
+        bool avoidExistingDestinationFileCollisions = false)
     {
         if (importedTexturesBySourcePath.TryGetValue(sourceTexturePath, out var existingTextureAssetId))
         {
@@ -639,9 +655,14 @@ public static class EditorAssetImportService
             return Guid.Empty;
         }
 
-        string copiedTextureFileName = CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
+        string copiedTextureFileName = avoidExistingDestinationFileCollisions
+            ? CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), texturesDirectory, sourceTexturePath, usedTextureFileNames)
+            : CreateUniqueImportedFileName(Path.GetFileName(sourceTexturePath), usedTextureFileNames);
         string copiedTextureFullPath = Path.Combine(texturesDirectory, copiedTextureFileName);
-        File.Copy(sourceTexturePath, copiedTextureFullPath, true);
+        if (!IsSameFullPath(sourceTexturePath, copiedTextureFullPath))
+        {
+            File.Copy(sourceTexturePath, copiedTextureFullPath, !avoidExistingDestinationFileCollisions);
+        }
 
         string copiedTextureRelativePath = GetRelativeProjectPath(copiedTextureFullPath);
         string assetName = $"{modelBaseName}_{Path.GetFileNameWithoutExtension(copiedTextureFileName)}";
@@ -681,11 +702,45 @@ public static class EditorAssetImportService
         return candidate;
     }
 
-    private static string GetImportedAssetsDirectory(string destinationSourceFilePath)
+    private static string CreateUniqueImportedFileName(string fileName, string targetDirectory, HashSet<string> usedFileNames)
     {
-        string targetDirectory = Path.GetDirectoryName(destinationSourceFilePath)!;
-        string modelBaseName = Path.GetFileNameWithoutExtension(destinationSourceFilePath);
-        return Path.Combine(targetDirectory, modelBaseName + "_Imported");
+        string baseName = Path.GetFileNameWithoutExtension(fileName);
+        string extension = Path.GetExtension(fileName);
+        string candidate = fileName;
+        int suffix = 2;
+
+        while (!usedFileNames.Add(candidate) || File.Exists(Path.Combine(targetDirectory, candidate)) || Directory.Exists(Path.Combine(targetDirectory, candidate)))
+        {
+            candidate = $"{baseName}_{suffix++}{extension}";
+        }
+
+        return candidate;
+    }
+
+    private static string CreateUniqueImportedFileName(string fileName, string targetDirectory, string sourceFilePath, HashSet<string> usedFileNames)
+    {
+        string baseName = Path.GetFileNameWithoutExtension(fileName);
+        string extension = Path.GetExtension(fileName);
+        string candidate = fileName;
+        int suffix = 2;
+
+        while (!usedFileNames.Add(candidate) || IsExistingDifferentPath(Path.Combine(targetDirectory, candidate), sourceFilePath))
+        {
+            candidate = $"{baseName}_{suffix++}{extension}";
+        }
+
+        return candidate;
+    }
+
+    private static bool IsExistingDifferentPath(string candidatePath, string sourceFilePath)
+    {
+        return (File.Exists(candidatePath) || Directory.Exists(candidatePath))
+            && !IsSameFullPath(candidatePath, sourceFilePath);
+    }
+
+    private static bool IsSameFullPath(string firstPath, string secondPath)
+    {
+        return string.Equals(Path.GetFullPath(firstPath), Path.GetFullPath(secondPath), StringComparison.OrdinalIgnoreCase);
     }
 
     private static string SanitizeFileName(string value)
