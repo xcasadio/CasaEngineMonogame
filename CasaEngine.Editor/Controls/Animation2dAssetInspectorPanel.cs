@@ -4,10 +4,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using CasaEngine.Core.Logging;
+using CasaEngine.Editor.History;
 using CasaEngine.Editor.Styling;
+using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Configuration;
+using Microsoft.Xna.Framework;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;
@@ -27,6 +31,9 @@ internal sealed class Animation2dAssetInspectorPanel
 
     private Animation2dData? _animationData;
     private string? _loadedRelativePath;
+    private string? _historyContextId;
+    private bool _isDirty;
+    private bool _suppressControlCallbacks;
 
     public Animation2dAssetInspectorPanel(MGWindow window)
     {
@@ -36,6 +43,10 @@ internal sealed class Animation2dAssetInspectorPanel
     public Animation2dData? LoadedAnimationData => _animationData;
 
     public string? LoadedRelativePath => _loadedRelativePath;
+
+    public bool IsDirty => _isDirty;
+
+    public event Action<Animation2dAssetInspectorPanel>? DirtyStateChanged;
 
     public MGElement CreateContent()
     {
@@ -74,10 +85,19 @@ internal sealed class Animation2dAssetInspectorPanel
         var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
         scrollViewer.SetContent(_contentStack);
 
+        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+            Margin = new Thickness(8, 0, 8, 8),
+        };
+        toolbar.TryAddChild(CreateButton("Save", SaveLoadedAsset));
+        toolbar.TryAddChild(CreateButton("Reload", ReloadLoadedAsset));
+
         _root = new MGDockPanel(_window);
         _root.TryAddChild(_headerText, Dock.Top);
         _root.TryAddChild(_sourceText, Dock.Top);
         _root.TryAddChild(_statusText, Dock.Top);
+        _root.TryAddChild(toolbar, Dock.Top);
         _root.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
@@ -91,7 +111,77 @@ internal sealed class Animation2dAssetInspectorPanel
 
         _animationData = animationData;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
+        SetDirty(false);
+
+        if (TryGetHistoryContext(out var historyContext))
+        {
+            EditorDirtyStateService.Current.MarkSaved(historyContext);
+        }
+
         RefreshInspector();
+    }
+
+    public void SetHistoryContextId(string historyContextId)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(historyContextId);
+        _historyContextId = historyContextId;
+    }
+
+    public bool ReloadFromDisk()
+    {
+        if (string.IsNullOrWhiteSpace(_loadedRelativePath) || IsDirty)
+        {
+            SetStatus(IsDirty ? $"Unsaved changes kept for {_loadedRelativePath}" : "No Animation2D asset is loaded.");
+            return false;
+        }
+
+        string fullPath = Path.Combine(EngineEnvironment.ProjectPath, _loadedRelativePath);
+        if (!TryLoadAsset(fullPath, out var animationData))
+        {
+            SetStatus($"Unable to reload {_loadedRelativePath}.");
+            return false;
+        }
+
+        LoadAsset(animationData, fullPath);
+        return true;
+    }
+
+    public bool TrySaveLoadedAsset(out string? errorMessage)
+    {
+        errorMessage = null;
+        if (_animationData == null || string.IsNullOrWhiteSpace(_loadedRelativePath))
+        {
+            errorMessage = "No Animation2D asset is loaded.";
+            return false;
+        }
+
+        if (!IsDirty)
+        {
+            SetStatus($"Already saved {_loadedRelativePath}");
+            return true;
+        }
+
+        try
+        {
+            EditorAssetWriterService.SaveAsset(_loadedRelativePath, _animationData, EditorAssetSaveSource.Animation2dEditorPanel);
+            SetDirty(false);
+
+            if (TryGetHistoryContext(out var historyContext))
+            {
+                EditorDirtyStateService.Current.MarkSaved(historyContext);
+            }
+
+            SetStatus($"Saved {_loadedRelativePath}");
+            RefreshInspector();
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Logs.WriteException(exception);
+            errorMessage = exception.Message;
+            SetStatus($"Failed to save {_loadedRelativePath}: {exception.Message}");
+            return false;
+        }
     }
 
     public static bool TryLoadAsset(string fullPath, out Animation2dData animationData)
@@ -151,7 +241,9 @@ internal sealed class Animation2dAssetInspectorPanel
         _sourceText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
             ? "No source path."
             : EscapeMarkup(_loadedRelativePath);
-        _statusText.Text = "Read-only Animation2D asset.";
+        _statusText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
+            ? "Animation2D asset."
+            : IsDirty ? $"Modified {EscapeMarkup(_loadedRelativePath)}" : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
 
         AddProperty("Type", _animationData.AnimationType.ToString());
         AddProperty("Legacy frames", _animationData.Frames.Count.ToString(CultureInfo.InvariantCulture));
@@ -197,7 +289,7 @@ internal sealed class Animation2dAssetInspectorPanel
             for (var index = 0; index < _animationData.Parts.Count; index++)
             {
                 var part = _animationData.Parts[index];
-                AddText($"{EscapeMarkup(part.Id)} name={EscapeMarkup(part.Name)} sprite={part.DefaultSpriteId} pos=({part.DefaultPosition.X.ToString("0.###", CultureInfo.InvariantCulture)}, {part.DefaultPosition.Y.ToString("0.###", CultureInfo.InvariantCulture)}) draw={part.DefaultDrawOrder.ToString(CultureInfo.InvariantCulture)} visible={part.DefaultVisible} flipX={part.DefaultFlipX} flipY={part.DefaultFlipY}", EditorThemePalette.PrimaryHeaderOpacity);
+                AddEditablePart(index, part);
             }
         }
 
@@ -215,6 +307,7 @@ internal sealed class Animation2dAssetInspectorPanel
         }
 
         AddSection("Events");
+        AddButton("Add Event", AddAnimationEvent);
         if (_animationData.Events.Count == 0)
         {
             AddText("No animation events.", EditorThemePalette.SecondaryTextOpacity);
@@ -224,9 +317,307 @@ internal sealed class Animation2dAssetInspectorPanel
             for (var index = 0; index < _animationData.Events.Count; index++)
             {
                 var animationEvent = _animationData.Events[index];
-                AddText($"{animationEvent.TimeSeconds.ToString("0.###", CultureInfo.InvariantCulture)}s {EscapeMarkup(animationEvent.EventName)}", EditorThemePalette.PrimaryHeaderOpacity);
+                AddEditableEvent(index, animationEvent);
             }
         }
+    }
+
+    private void SaveLoadedAsset()
+    {
+        if (!TrySaveLoadedAsset(out string? errorMessage) && !string.IsNullOrWhiteSpace(errorMessage))
+        {
+            SetStatus(errorMessage);
+        }
+    }
+
+    private void ReloadLoadedAsset()
+    {
+        if (!ReloadFromDisk())
+        {
+            SetStatus("Unable to reload Animation2D asset.");
+        }
+    }
+
+    private void AddEditablePart(int index, Animation2dPartData part)
+    {
+        AddText($"{EscapeMarkup(part.Id)}", EditorThemePalette.PrimaryHeaderOpacity);
+        AddTextBoxRow("Name", part.Name, value => ApplyPartName(part, value));
+        AddTextBoxRow("Sprite", part.DefaultSpriteId.ToString("D"), value => ApplyPartSpriteId(part, value));
+        AddTextBoxRow("Position X", FormatFloat(part.DefaultPosition.X), value => ApplyPartPositionX(part, value));
+        AddTextBoxRow("Position Y", FormatFloat(part.DefaultPosition.Y), value => ApplyPartPositionY(part, value));
+        AddTextBoxRow("Draw Order", part.DefaultDrawOrder.ToString(CultureInfo.InvariantCulture), value => ApplyPartDrawOrder(part, value));
+        AddCheckBoxRow("Visible", part.DefaultVisible, value => ApplyPartVisible(part, value));
+        AddText($"  flipX={part.DefaultFlipX} flipY={part.DefaultFlipY} index={index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.SecondaryTextOpacity);
+    }
+
+    private void AddEditableEvent(int index, AnimationEventAsset animationEvent)
+    {
+        AddText($"Event #{index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.PrimaryHeaderOpacity);
+        AddTextBoxRow("Time", FormatFloat(animationEvent.TimeSeconds), value => ApplyEventTime(index, value));
+        AddTextBoxRow("Name", animationEvent.EventName, value => ApplyEventName(index, value));
+    }
+
+    private void AddAnimationEvent()
+    {
+        if (_animationData == null)
+        {
+            return;
+        }
+
+        _animationData.Events.Add(new AnimationEventAsset(0f, "NewEvent"));
+        MarkEdited("Added animation event.");
+        RefreshInspector();
+    }
+
+    private void ApplyPartName(Animation2dPartData part, string value)
+    {
+        string newName = value.Trim();
+        if (part.Name == newName)
+        {
+            return;
+        }
+
+        part.Name = newName;
+        MarkEdited("Updated part name.");
+    }
+
+    private void ApplyPartSpriteId(Animation2dPartData part, string value)
+    {
+        if (!Guid.TryParse(value.Trim(), out var spriteId))
+        {
+            SetStatus("Invalid sprite id GUID.");
+            return;
+        }
+
+        if (part.DefaultSpriteId == spriteId)
+        {
+            return;
+        }
+
+        part.DefaultSpriteId = spriteId;
+        MarkEdited("Updated part sprite id.");
+    }
+
+    private void ApplyPartPositionX(Animation2dPartData part, string value)
+    {
+        if (!TryParseFloat(value, out var x))
+        {
+            SetStatus("Invalid part X position.");
+            return;
+        }
+
+        if (part.DefaultPosition.X == x)
+        {
+            return;
+        }
+
+        part.DefaultPosition = new Vector2(x, part.DefaultPosition.Y);
+        MarkEdited("Updated part X position.");
+    }
+
+    private void ApplyPartPositionY(Animation2dPartData part, string value)
+    {
+        if (!TryParseFloat(value, out var y))
+        {
+            SetStatus("Invalid part Y position.");
+            return;
+        }
+
+        if (part.DefaultPosition.Y == y)
+        {
+            return;
+        }
+
+        part.DefaultPosition = new Vector2(part.DefaultPosition.X, y);
+        MarkEdited("Updated part Y position.");
+    }
+
+    private void ApplyPartDrawOrder(Animation2dPartData part, string value)
+    {
+        if (!int.TryParse(value.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var drawOrder))
+        {
+            SetStatus("Invalid draw order.");
+            return;
+        }
+
+        if (part.DefaultDrawOrder == drawOrder)
+        {
+            return;
+        }
+
+        part.DefaultDrawOrder = drawOrder;
+        MarkEdited("Updated part draw order.");
+    }
+
+    private void ApplyPartVisible(Animation2dPartData part, bool isVisible)
+    {
+        if (part.DefaultVisible == isVisible)
+        {
+            return;
+        }
+
+        part.DefaultVisible = isVisible;
+        MarkEdited("Updated part visibility.");
+    }
+
+    private void ApplyEventTime(int eventIndex, string value)
+    {
+        if (_animationData == null || eventIndex < 0 || eventIndex >= _animationData.Events.Count)
+        {
+            return;
+        }
+
+        if (!TryParseFloat(value, out var timeSeconds) || timeSeconds < 0f)
+        {
+            SetStatus("Invalid event time.");
+            return;
+        }
+
+        var animationEvent = _animationData.Events[eventIndex];
+        if (animationEvent.TimeSeconds == timeSeconds)
+        {
+            return;
+        }
+
+        _animationData.Events[eventIndex] = animationEvent with { TimeSeconds = timeSeconds };
+        MarkEdited("Updated event time.");
+    }
+
+    private void ApplyEventName(int eventIndex, string value)
+    {
+        if (_animationData == null || eventIndex < 0 || eventIndex >= _animationData.Events.Count)
+        {
+            return;
+        }
+
+        string eventName = value.Trim();
+        var animationEvent = _animationData.Events[eventIndex];
+        if (animationEvent.EventName == eventName)
+        {
+            return;
+        }
+
+        _animationData.Events[eventIndex] = animationEvent with { EventName = eventName };
+        MarkEdited("Updated event name.");
+    }
+
+    private void AddTextBoxRow(string label, string value, Action<string> onChanged)
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, label)
+        {
+            PreferredWidth = 82,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        var textBox = new MGTextBox(_window, CharacterLimit: 256)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HasStableTextFootprint = true,
+            AcceptsReturn = false,
+            AcceptsTab = false,
+            MinWidth = 160,
+        };
+        textBox.TextChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            onChanged(args.NewValue ?? string.Empty);
+        };
+
+        _suppressControlCallbacks = true;
+        textBox.SetText(value);
+        _suppressControlCallbacks = false;
+
+        row.TryAddChild(textBox);
+        _contentStack!.TryAddChild(row);
+    }
+
+    private void AddCheckBoxRow(string label, bool isChecked, Action<bool> onChanged)
+    {
+        var checkBox = new MGCheckBox(_window)
+        {
+            IsChecked = isChecked,
+        };
+        checkBox.SetContent(new MGTextBlock(_window, label)
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        checkBox.OnCheckStateChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            onChanged(args.NewValue ?? false);
+        };
+
+        _contentStack!.TryAddChild(checkBox);
+    }
+
+    private void AddButton(string label, Action onClick)
+    {
+        _contentStack!.TryAddChild(CreateButton(label, onClick));
+    }
+
+    private MGButton CreateButton(string label, Action onClick)
+    {
+        var button = new MGButton(_window, _ => onClick())
+        {
+            PreferredWidth = 92,
+        };
+        button.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        return button;
+    }
+
+    private void MarkEdited(string message)
+    {
+        SetDirty(true);
+        SetStatus(message);
+    }
+
+    private void SetDirty(bool isDirty)
+    {
+        if (_isDirty == isDirty)
+        {
+            return;
+        }
+
+        _isDirty = isDirty;
+        DirtyStateChanged?.Invoke(this);
+    }
+
+    private void SetStatus(string message)
+    {
+        if (_statusText != null)
+        {
+            _statusText.Text = EscapeMarkup(message);
+        }
+    }
+
+    private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
+    {
+        if (string.IsNullOrWhiteSpace(_historyContextId))
+        {
+            historyContext = EditorHistoryContext.Empty;
+            return false;
+        }
+
+        historyContext = new EditorHistoryContext(EditorHistoryContextKind.Animation2d, _historyContextId);
+        return true;
     }
 
     private void AddTrack(Animation2dTrackData track)
@@ -326,6 +717,9 @@ internal sealed class Animation2dAssetInspectorPanel
 
     private static string FormatFloat(float value)
         => value.ToString("0.###", CultureInfo.InvariantCulture);
+
+    private static bool TryParseFloat(string value, out float result)
+        => float.TryParse(value.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out result);
 
     private static string EscapeMarkup(string value)
     {

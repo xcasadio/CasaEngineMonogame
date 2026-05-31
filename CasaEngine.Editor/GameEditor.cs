@@ -1687,6 +1687,7 @@ public class GameEditor : Game, IObservableUpdate
 
         SaveDirtyMaterialInspectors();
         SaveDirtyParticleInspectors();
+        SaveDirtyAnimation2dInspectors();
         SaveDirtyEntityAssetEditors();
 
         EditorProjectAuthoringService.SaveProject(_editorRuntime?.GameManager.CurrentWorld);
@@ -1954,8 +1955,10 @@ public class GameEditor : Game, IObservableUpdate
 
         if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
         {
+            animation2dInspectorPanel.DirtyStateChanged -= OnAnimation2dInspectorDirtyStateChanged;
             _animation2dInspectorPanels.Remove(panel.Id);
             _animation2dInspectorPanelTitles.Remove(panel.Id);
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panel.Id));
             if (ReferenceEquals(_activeAnimation2dInspectorPanel, animation2dInspectorPanel))
             {
                 _activeAnimation2dInspectorPanel = null;
@@ -3252,10 +3255,12 @@ public class GameEditor : Game, IObservableUpdate
         if (!_animation2dInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
             inspectorPanel = new Animation2dAssetInspectorPanel(_mainWindow);
+            inspectorPanel.DirtyStateChanged += OnAnimation2dInspectorDirtyStateChanged;
             _animation2dInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
         }
 
+        inspectorPanel.SetHistoryContextId(panelId);
         if (createdPanel)
         {
             inspectorPanel.LoadAsset(animationData, fullPath);
@@ -3472,6 +3477,11 @@ public class GameEditor : Game, IObservableUpdate
         UpdateDockPanelTitleForParticleInspector(inspectorPanel);
     }
 
+    private void OnAnimation2dInspectorDirtyStateChanged(Animation2dAssetInspectorPanel inspectorPanel)
+    {
+        UpdateDockPanelTitleForAnimation2dInspector(inspectorPanel);
+    }
+
     private bool TryGetMaterialInspectorPanelId(MaterialAssetInspectorPanel inspectorPanel, out string panelId)
     {
         foreach (var pair in _materialInspectorPanels)
@@ -3490,6 +3500,21 @@ public class GameEditor : Game, IObservableUpdate
     private bool TryGetParticleInspectorPanelId(ParticleAssetInspectorPanel inspectorPanel, out string panelId)
     {
         foreach (var pair in _particleInspectorPanels)
+        {
+            if (ReferenceEquals(pair.Value, inspectorPanel))
+            {
+                panelId = pair.Key;
+                return true;
+            }
+        }
+
+        panelId = string.Empty;
+        return false;
+    }
+
+    private bool TryGetAnimation2dInspectorPanelId(Animation2dAssetInspectorPanel inspectorPanel, out string panelId)
+    {
+        foreach (var pair in _animation2dInspectorPanels)
         {
             if (ReferenceEquals(pair.Value, inspectorPanel))
             {
@@ -3548,6 +3573,29 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void SaveDirtyAnimation2dInspectors()
+    {
+        foreach (var pair in _animation2dInspectorPanels)
+        {
+            var animation2dInspectorPanel = pair.Value;
+            if (!animation2dInspectorPanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (animation2dInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetAnimation2dDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Animation2D asset saved: {animation2dInspectorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
     private void SaveDirtyEntityAssetEditors()
     {
         foreach (var pair in _entityAssetEditorPanels)
@@ -3584,6 +3632,14 @@ public class GameEditor : Game, IObservableUpdate
         if (TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
         {
             UpdateDockPanelTitle(panelId, GetParticleDocumentTitle(panelId));
+        }
+    }
+
+    private void UpdateDockPanelTitleForAnimation2dInspector(Animation2dAssetInspectorPanel inspectorPanel)
+    {
+        if (TryGetAnimation2dInspectorPanelId(inspectorPanel, out var panelId))
+        {
+            UpdateDockPanelTitle(panelId, GetAnimation2dDocumentTitle(panelId));
         }
     }
 
@@ -3631,6 +3687,14 @@ public class GameEditor : Game, IObservableUpdate
                 if (_particleInspectorPanelTitles.ContainsKey(context.Id))
                 {
                     UpdateDockPanelTitle(context.Id, GetParticleDocumentTitle(context.Id));
+                }
+
+                break;
+
+            case EditorHistoryContextKind.Animation2d:
+                if (_animation2dInspectorPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetAnimation2dDocumentTitle(context.Id));
                 }
 
                 break;
@@ -3695,7 +3759,16 @@ public class GameEditor : Game, IObservableUpdate
         => _cutsceneInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Cutscene";
 
     private string GetAnimation2dDocumentTitle(string panelId)
-        => _animation2dInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Animation2D";
+    {
+        var title = _animation2dInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Animation2D";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panelId));
+        if (TryGetAnimation2dAssetInspectorPanel(panelId, out var inspectorPanel))
+        {
+            isDirty |= inspectorPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
 
     private string GetEntityDocumentTitle(string panelId)
     {

@@ -7,6 +7,7 @@ public enum EditorHistoryContextKind
     UIScreen,
     Material,
     Entity,
+    Animation2d,
     AnimationClip,
     Particle,
     TileMap,

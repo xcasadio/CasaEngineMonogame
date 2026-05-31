@@ -805,7 +805,7 @@ Commit attendu :
 
 - `feat(editor): inspect composed animation2d assets`
 
-### ⏳ Tache 7.3 - Ajouter l'edition minimale des parties et events
+### 🧪 Tache 7.3 - Ajouter l'edition minimale des parties et events
 
 Objectif : couvrir seulement les modifications indispensables apres l'inspection.
 
@@ -826,6 +826,15 @@ Validation :
 - Tests serializer si des cas nouveaux apparaissent.
 - Smoke test manuel UI.
 - Build principal.
+
+Validation realisee :
+
+- Edition MGUI ajoutee pour nom de part, sprite par defaut, position par defaut, draw order et visibilite.
+- Edition MGUI ajoutee pour le temps et le nom des events, avec ajout d'un event authoring minimal.
+- Sauvegarde branchee via `EditorAssetWriterService.SaveAsset`, donc via `EditorAssetJsonSerializer`.
+- Inputs invalides GUID/numeriques refuses avec message de statut sans modifier la donnee chargee.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` confirme `build-ok`; avertissements existants non traites.
+- Smoke test manuel UI non execute dans cette passe.
 
 Commit attendu :
 

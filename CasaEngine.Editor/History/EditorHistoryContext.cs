@@ -23,6 +23,7 @@ public readonly record struct EditorHistoryContext(EditorHistoryContextKind Kind
             EditorDocumentKind.UIScreen => new EditorHistoryContext(EditorHistoryContextKind.UIScreen, document.Id),
             EditorDocumentKind.Material => new EditorHistoryContext(EditorHistoryContextKind.Material, document.Id),
             EditorDocumentKind.Entity => new EditorHistoryContext(EditorHistoryContextKind.Entity, document.Id),
+            EditorDocumentKind.Animation2d => new EditorHistoryContext(EditorHistoryContextKind.Animation2d, document.Id),
             EditorDocumentKind.AnimationClip => new EditorHistoryContext(EditorHistoryContextKind.AnimationClip, document.Id),
             EditorDocumentKind.Particle => new EditorHistoryContext(EditorHistoryContextKind.Particle, document.Id),
             EditorDocumentKind.TileMap => new EditorHistoryContext(EditorHistoryContextKind.TileMap, document.Id),
