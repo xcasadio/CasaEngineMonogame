@@ -6,6 +6,8 @@ public sealed class Animation2dCompositionSampler
 
     public Animation2dCompositionRuntimeState RuntimeState { get; } = new();
 
+    public event Action<AnimationEventAsset> AnimationEventTriggered;
+
     public float CurrentTime { get; private set; }
 
     public bool IsFinished { get; private set; }
@@ -42,6 +44,7 @@ public sealed class Animation2dCompositionSampler
             return IsFinished;
         }
 
+        var previousTime = CurrentTime;
         CurrentTime += MathF.Max(0f, elapsedTime);
         if (_composition.AnimationType == AnimationType.Once && CurrentTime > _composition.DurationSeconds)
         {
@@ -49,8 +52,43 @@ public sealed class Animation2dCompositionSampler
             IsFinished = true;
         }
 
+        DispatchEvents(previousTime, CurrentTime);
         ApplyTracks(GetSampleTime(CurrentTime));
         return IsFinished;
+    }
+
+    private void DispatchEvents(float previousTime, float currentTime)
+    {
+        var handler = AnimationEventTriggered;
+        if (handler == null || _composition.Events.Count == 0)
+        {
+            return;
+        }
+
+        if (_composition.AnimationType == AnimationType.Loop && currentTime > _composition.DurationSeconds)
+        {
+            var previousSampleTime = GetSampleTime(previousTime);
+            var currentSampleTime = GetSampleTime(currentTime);
+            if (currentSampleTime < previousSampleTime || currentTime - previousTime > _composition.DurationSeconds)
+            {
+                DispatchEventRange(handler, previousSampleTime, _composition.DurationSeconds);
+                DispatchEventRange(handler, 0f, currentSampleTime);
+                return;
+            }
+        }
+
+        DispatchEventRange(handler, GetSampleTime(previousTime), GetSampleTime(currentTime));
+    }
+
+    private void DispatchEventRange(Action<AnimationEventAsset> handler, float startExclusive, float endInclusive)
+    {
+        foreach (var animationEvent in _composition.Events)
+        {
+            if (animationEvent.TimeSeconds > startExclusive && animationEvent.TimeSeconds <= endInclusive)
+            {
+                handler(animationEvent);
+            }
+        }
     }
 
     private float GetSampleTime(float timeSeconds)

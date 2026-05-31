@@ -448,7 +448,7 @@ Commit attendu :
 
 - `feat(animation2d): sample composed tracks`
 
-### ⏳ Tache 3.3 - Dispatcher les events 2D runtime
+### 🧪 Tache 3.3 - Dispatcher les events 2D runtime
 
 Objectif : signaler les events quand l'update traverse leurs keyframes.
 
@@ -469,6 +469,16 @@ Validation :
 
 - Tests equivalents aux cas `AnimationControllerTests` pour animation 2D.
 - Build principal.
+
+Validation realisee :
+
+- Ajout de l'event runtime `AnimationEventTriggered` sur `Animation2dCompositionSampler`.
+- Dispatch pendant `Update` uniquement; `Seek` et `Reset` ne dispatchent pas.
+- Gestion du wrap pour les animations `Loop` avec redispatch des events apres retour au debut.
+- Ajout de tests equivalents aux cas 3D : crossing, seek sans dispatch, loop apres wrap.
+- Diagnostics VS Code propres sur les fichiers touches.
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v minimal` reussi.
+- Execution des tests unitaires a reprendre quand le projet `CasaEngine.Tests` recompilera; le blocage preexistant est documente en tache 1.1.
 
 Commit attendu :
 

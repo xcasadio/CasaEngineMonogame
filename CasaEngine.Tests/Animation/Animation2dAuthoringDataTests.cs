@@ -551,4 +551,61 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(0.3f, sampler.CurrentTime, 5);
         Assert.Equal(secondSpriteId, sampler.RuntimeState.Parts[0].SpriteId);
     }
+
+    [Fact]
+    public void CompositionSampler_UpdateDispatchesAnimationEventsWhenCrossingKeyframes()
+    {
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+        var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
+        track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
+        animation.Tracks.Add(track);
+        animation.Events.Add(new AnimationEventAsset(0.25f, "Footstep"));
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+        var triggeredEvents = new List<string>();
+        sampler.AnimationEventTriggered += animationEvent => triggeredEvents.Add(animationEvent.EventName);
+
+        sampler.Update(0.3f);
+
+        Assert.Single(triggeredEvents);
+        Assert.Equal("Footstep", triggeredEvents[0]);
+    }
+
+    [Fact]
+    public void CompositionSampler_SeekDoesNotDispatchAnimationEvents()
+    {
+        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+        var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
+        track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
+        animation.Tracks.Add(track);
+        animation.Events.Add(new AnimationEventAsset(0.25f, "Footstep"));
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+        var triggeredEvents = new List<string>();
+        sampler.AnimationEventTriggered += animationEvent => triggeredEvents.Add(animationEvent.EventName);
+
+        sampler.Seek(0.5f);
+
+        Assert.Empty(triggeredEvents);
+    }
+
+    [Fact]
+    public void CompositionSampler_UpdateDispatchesLoopedAnimationEventsAfterWrap()
+    {
+        var animation = new Animation2dData { AnimationType = AnimationType.Loop };
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+        var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
+        track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
+        animation.Tracks.Add(track);
+        animation.Events.Add(new AnimationEventAsset(0.1f, "LoopEvent"));
+        animation.Events.Add(new AnimationEventAsset(0.9f, "EndEvent"));
+        var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
+        var triggeredEvents = new List<string>();
+        sampler.AnimationEventTriggered += animationEvent => triggeredEvents.Add(animationEvent.EventName);
+
+        sampler.Update(0.95f);
+        sampler.Update(0.2f);
+
+        Assert.Equal(new[] { "LoopEvent", "EndEvent", "LoopEvent" }, triggeredEvents);
+    }
 }
