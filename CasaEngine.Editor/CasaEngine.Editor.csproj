@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
     <ProjectReference Include="..\CasaEngine.EditorServices\CasaEngine.EditorServices.csproj" />
+    <ProjectReference Include="..\CasaEngine.Shaders\CasaEngine.Shaders.csproj" />
     <ProjectReference Include="..\GizmoTool\GizmoTools.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.FontStashSharp\MGUI.FontStashSharp.csproj" />

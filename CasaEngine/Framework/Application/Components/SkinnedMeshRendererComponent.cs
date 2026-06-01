@@ -75,7 +75,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
     {
         var linearBlendShader = SkinningModeShaderResolver.Resolve(SkinningMode.LinearBlend);
         var dualQuaternionShader = SkinningModeShaderResolver.Resolve(SkinningMode.DualQuaternion);
-        _effect = Game.Content.Load<Effect>(linearBlendShader.ContentName!);
+        _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.SkinEffectContentName);
         _shader = new ShaderWrapper(_effect);
 
         if (Game is CasaEngineGame casaEngineGame)
@@ -102,6 +102,28 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         }
 
         base.LoadContent();
+    }
+
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_shader is null)
+        {
+            return false;
+        }
+
+        if (!string.Equals(
+                BuiltInShaderCatalog.NormalizeContentName(contentName),
+                BuiltInShaderCatalog.SkinEffectContentName,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        _shader.ReplaceEffect(effect);
+        _effect = effect;
+        return true;
     }
 
     /// <inheritdoc/>

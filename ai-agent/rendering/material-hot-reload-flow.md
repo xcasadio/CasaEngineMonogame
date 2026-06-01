@@ -48,3 +48,4 @@ This note maps the current end-to-end hot reload path for material authoring cha
 - The save hook is material-specific today; it does not listen for `.fx` or `.fxh` saves.
 - `ShaderCompiler` exists as an offline compile wrapper around `mgfxc`, but there is no equivalent editor/runtime hot reload path that recompiles shader source, invalidates loaded `Effect` instances, and refreshes dependent views.
 - Result: material parameter edits have a defined hot reload path, shader source edits do not.
+- Implementation backlog for this gap: `ai-agent/shader-source-hot-reload-tasks.md`.

@@ -86,6 +86,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly EditorHistoryService _editorHistory = EditorHistoryService.Current;
     private readonly EditorDirtyStateService _editorDirtyState = EditorDirtyStateService.Current;
     private HostedEditorGameAdapter _editorRuntime;
+    private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private WorldViewportPanel _worldViewportPanel;
     private MGElement _worldViewportContent;
     private ContextualDockPanelHost _hierarchyPanelHost;
@@ -331,6 +332,7 @@ public class GameEditor : Game, IObservableUpdate
         {
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
+            _shaderSourceHotReloadService?.Dispose();
             _editorDirtyState.DirtyStateChanged -= OnDirtyStateChanged;
             if (_dockHost != null)
             {
@@ -693,6 +695,8 @@ public class GameEditor : Game, IObservableUpdate
     {
         ApplyAutomationProjectDirectory();
         EnsureEditorRuntimeInitialized();
+        _shaderSourceHotReloadService ??= new EditorShaderSourceHotReloadService(_editorRuntime);
+        _shaderSourceHotReloadService.Reconfigure();
         EnsureShellChromeInitialized();
         EnsureDockHostInitialized();
 
@@ -4385,6 +4389,11 @@ public class GameEditor : Game, IObservableUpdate
         using (EditorPerformanceProbe.BeginPhase("ProjectLauncher.PendingAction"))
         {
             ProcessPendingProjectLauncherAction();
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("ShaderHotReload.Process"))
+        {
+            _shaderSourceHotReloadService?.ProcessPendingChanges();
         }
 
         using (EditorPerformanceProbe.BeginPhase("EditorRuntime.UpdateHost"))

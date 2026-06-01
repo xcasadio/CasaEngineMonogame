@@ -17,6 +17,7 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     private Effect _skyEffect;
     private ShaderWrapper _legacyShaderWrapper;
     private ShaderWrapper _unlitShaderWrapper;
+    private ShaderWrapper _shadowDepthShaderWrapper;
     private SkyCubemapRenderer _skyRenderer;
     private MaterialCache _materialCache;
 
@@ -95,19 +96,16 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     protected override void LoadContent()
     {
-        _effect = Game.Content.Load<Effect>("Shaders\\LitForward");
-        _effect.CurrentTechnique = _effect.Techniques["LitForward_PixelLighting_Texture"];
-        var unlitEffect = Game.Content.Load<Effect>("Shaders\\UnlitTexture");
-        var shadowDepthEffect = Game.Content.Load<Effect>("Shaders\\ShadowDepth");
-        _skyEffect = Game.Content.Load<Effect>("Shaders\\SkyCubemap");
+        _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.LitForwardContentName);
+        var unlitEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.UnlitTextureContentName);
+        var shadowDepthEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.ShadowDepthContentName);
+        _skyEffect = Game.Content.Load<Effect>(BuiltInShaderCatalog.SkyCubemapContentName);
         _skyRenderer = new SkyCubemapRenderer(_skyEffect);
-        _pipeline.SetShadowShader(new ShaderWrapper(shadowDepthEffect));
+        _shadowDepthShaderWrapper = new ShaderWrapper(shadowDepthEffect);
+        _pipeline.SetShadowShader(_shadowDepthShaderWrapper);
         _pipeline.SetSkyRenderer(_skyRenderer);
 
-        _effect.Parameters["DiffuseColor"].SetValue(Vector4.One);
-        _effect.Parameters["EmissiveColor"].SetValue(Vector3.One * 0.5f);
-        _effect.Parameters["SpecularColor"].SetValue(Vector3.One * 0.5f);
-        _effect.Parameters["SpecularPower"].SetValue(5.0f);
+        ApplyLitForwardDefaults(_effect);
 
         _legacyShaderWrapper = new ShaderWrapper(_effect);
         _unlitShaderWrapper = new ShaderWrapper(unlitEffect);
@@ -136,6 +134,66 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         _instanceBatcher = new InstanceBatcher(_effect.GraphicsDevice);
 
         base.LoadContent();
+    }
+
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (_legacyShaderWrapper is null
+            || _unlitShaderWrapper is null
+            || _shadowDepthShaderWrapper is null
+            || _skyRenderer is null)
+        {
+            return false;
+        }
+
+        string normalizedContentName = BuiltInShaderCatalog.NormalizeContentName(contentName);
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.LitForwardContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            ApplyLitForwardDefaults(effect);
+            _legacyShaderWrapper.ReplaceEffect(effect);
+            _effect = effect;
+            return true;
+        }
+
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.UnlitTextureContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            _unlitShaderWrapper.ReplaceEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.ShadowDepthContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            _shadowDepthShaderWrapper.ReplaceEffect(effect);
+            return true;
+        }
+
+        if (string.Equals(normalizedContentName, BuiltInShaderCatalog.SkyCubemapContentName, StringComparison.OrdinalIgnoreCase))
+        {
+            Effect previousSkyEffect = _skyEffect;
+            _skyEffect = effect;
+            _skyRenderer = new SkyCubemapRenderer(_skyEffect);
+            _pipeline.SetSkyRenderer(_skyRenderer);
+            previousSkyEffect.Dispose();
+            return true;
+        }
+
+        return false;
+    }
+
+    private static void ApplyLitForwardDefaults(Effect effect)
+    {
+        var technique = effect.Techniques["LitForward_PixelLighting_Texture"];
+        if (technique != null)
+        {
+            effect.CurrentTechnique = technique;
+        }
+
+        effect.Parameters["DiffuseColor"]?.SetValue(Vector4.One);
+        effect.Parameters["EmissiveColor"]?.SetValue(Vector3.One * 0.5f);
+        effect.Parameters["SpecularColor"]?.SetValue(Vector3.One * 0.5f);
+        effect.Parameters["SpecularPower"]?.SetValue(5.0f);
     }
 
     /// <inheritdoc/>

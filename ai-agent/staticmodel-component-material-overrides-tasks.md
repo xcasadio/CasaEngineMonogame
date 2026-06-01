@@ -1,4 +1,15 @@
-# StaticModelComponent Material Overrides — Plan d'implémentation
+# [ARCHIVE] StaticModelComponent Material Overrides — Plan d'implémentation
+
+## Etat du document
+
+Ce plan a ete absorbe par la migration materials moderne et son statut ouvert n'est plus fiable.
+
+Le besoin fonctionnel principal est deja couvert par :
+
+- `ai-agent/material-system-modernization-tasks.md` T07.01 a T07.04
+- `ai-agent/rendering/materials-workflow.md` pour le workflow runtime actuel des overrides par slot
+
+Ce fichier reste utile comme decomposition historique du besoin initial, mais toute nouvelle tache sur les overrides materials doit partir d'un plan cible actif plutot que de cette liste.
 
 ## Objectif
 

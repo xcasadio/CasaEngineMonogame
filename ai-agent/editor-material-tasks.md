@@ -1,4 +1,18 @@
-# Édition des propriétés de Material dans l'éditeur — Liste de tâches
+# [ARCHIVE] Édition des propriétés de Material dans l'éditeur — Liste de tâches
+
+## Etat du document
+
+Ce plan n'est plus un backlog actif.
+
+Il decrivait un inspecteur material WPF a construire, alors que le repo utilise maintenant un inspecteur material MGUI genere et un preview runtime deja en place.
+
+Sources de verite a utiliser a la place :
+
+- `ai-agent/material-system-modernization-tasks.md` pour la migration materials deja livree
+- `ai-agent/material-inspector-stability-plan.md` pour la validation editeur encore ouverte
+- `ai-agent/rendering/materials-workflow.md` pour l'etat final de l'architecture
+
+Consequence : conserver ce fichier uniquement comme trace historique du besoin initial, et ne pas y ajouter de nouvelles taches.
 
 ## Contexte
 

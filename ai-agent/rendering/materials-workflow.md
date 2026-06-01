@@ -136,5 +136,6 @@ Remove-Item Env:CASAENGINE_START_DEMO
 
 ## Documents associes
 
-- `docs/rendering/effect-file-inventory.md` pour la cartographie effect -> consumers et la separation material/debug.
-- `docs/rendering/shader-naming-convention.md` pour la convention de nommage appliquee aux shaders actifs et aux shaders archives.
+- `ai-agent/rendering/effect-file-inventory.md` pour la cartographie effect -> consumers et la separation material/debug.
+- `ai-agent/rendering/shader-naming-convention.md` pour la convention de nommage appliquee aux shaders actifs et aux shaders archives.
+- `ai-agent/shader-source-hot-reload-tasks.md` pour le backlog du hot reload des sources `.fx` / `.fxh`.

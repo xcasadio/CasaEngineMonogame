@@ -1,4 +1,16 @@
-# Refactor d'architecture materials CasaEngine — Liste de taches IA
+# [ARCHIVE] Refactor d'architecture materials CasaEngine — Liste de taches IA
+
+## Etat du document
+
+Ce plan exploratoire n'est plus la source de verite du backlog.
+
+Une partie importante de son contenu a deja ete livree via :
+
+- `ai-agent/material-shader-deep-audit-tasks.md` pour le contrat de capacites, l'extensibilite du registre, la compilation extensible et le draw path compile
+- `ai-agent/material-system-modernization-tasks.md` pour la migration authoring/runtime et l'integration editor/runtime
+- `ai-agent/rendering/materials-workflow.md` pour l'etat final documente
+
+Le laisser entierement ouvert en l'etat est trompeur. Le conserver uniquement comme note d'orientation long terme ; toute nouvelle tache d'architecture doit repartir de l'etat final documente, pas de cette liste.
 
 ## Objectif
 

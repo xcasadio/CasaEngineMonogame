@@ -45,7 +45,7 @@
   - `CasaEngine/Framework/Materials/MaterialDependencyIndex.cs`
   Commit conseillé: `fix(editor): stop reloading material inspector on self save`
 
-- 🧪 Valider le flux d'édition material
+- ✅ Valider le flux d'édition material
   Objectif: vérifier build + smoke d'ouverture d'un material dans l'éditeur, sans régression de chargement ni de preview.
   Fichiers ciblés:
   - `CasaEngine.Editor/Controls/MaterialAssetInspectorPanel.cs`

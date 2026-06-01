@@ -86,6 +86,6 @@ Ce qui est volontairement hors scope:
 Limites techniques assumees:
 - le diffuse environment actuel echantillonne directement le cubemap global par normale monde
 - le specular environment reste une premiere passe simple
-- le rig de directional lights reste base sur le setup legacy centralise par `EnvironmentLightingResolver`
+- l'environnement continue d'alimenter l'ambient et le specular globaux, mais la lumiere directe forward vient des lumieres collectees du world via `LightingContext` et `ForwardLightBinder`
 
 Les chantiers V2 correspondants restent dans le plan sous `ENV-022` a `ENV-026`.

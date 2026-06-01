@@ -10,7 +10,7 @@ namespace CasaEngine.Framework.Rendering.Shaders;
 /// </summary>
 public class ShaderWrapper
 {
-    private readonly Effect _effect;
+    private Effect _effect;
     private readonly Dictionary<string, EffectParameter> _paramCache = new();
 
     public Effect Effect => _effect;
@@ -18,6 +18,37 @@ public class ShaderWrapper
     public ShaderWrapper(Effect effect)
     {
         _effect = effect ?? throw new ArgumentNullException(nameof(effect));
+    }
+
+    public void ReplaceEffect(Effect effect, bool disposePreviousEffect = true)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (ReferenceEquals(_effect, effect))
+        {
+            _paramCache.Clear();
+            return;
+        }
+
+        string? currentTechniqueName = _effect.CurrentTechnique?.Name;
+        Effect previousEffect = _effect;
+
+        _effect = effect;
+        _paramCache.Clear();
+
+        if (!string.IsNullOrWhiteSpace(currentTechniqueName))
+        {
+            var replacementTechnique = _effect.Techniques[currentTechniqueName];
+            if (replacementTechnique != null)
+            {
+                _effect.CurrentTechnique = replacementTechnique;
+            }
+        }
+
+        if (disposePreviousEffect)
+        {
+            previousEffect.Dispose();
+        }
     }
 
     /// <summary>Returns the cached <see cref="EffectParameter"/> or null if not found.</summary>

@@ -19,7 +19,7 @@ public static class ShaderCompiler
     public static ShaderCompiled Compile(string sourceFile, string defines, TargetPlatform platform, EffectProcessorDebugMode debugMode = EffectProcessorDebugMode.Optimize)
     {
         ShaderCompiled shaderCompiled = new ShaderCompiled();
-        var mgfxc = Path.Combine(Environment.CurrentDirectory, mgfxcPath);
+        var mgfxc = ResolveMgfxcPath();
         var destFile = Path.GetTempFileName();
         var arguments = "\"" + mgfxc + "\" \"" + sourceFile + "\" \"" + destFile + "\" /Profile:" + GetProfileForPlatform(platform);
 
@@ -50,6 +50,23 @@ public static class ShaderCompiler
         shaderCompiled.Logs = ProcessErrorsAndWarnings(!success, stderr, sourceFile);
 
         return shaderCompiled;
+    }
+
+    private static string ResolveMgfxcPath()
+    {
+        string appBaseDirectoryPath = Path.Combine(AppContext.BaseDirectory, mgfxcPath);
+        if (File.Exists(appBaseDirectoryPath))
+        {
+            return appBaseDirectoryPath;
+        }
+
+        string currentDirectoryPath = Path.Combine(Environment.CurrentDirectory, mgfxcPath);
+        if (File.Exists(currentDirectoryPath))
+        {
+            return currentDirectoryPath;
+        }
+
+        return appBaseDirectoryPath;
     }
 
     private static string GetProfileForPlatform(TargetPlatform platform)

@@ -66,7 +66,24 @@ public class Line3dRendererComponent : DrawableGameComponent, IViewFlushableRend
     protected override void LoadContent()
     {
         _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColor), NbLines * 2, BufferUsage.None);
-        _effect = Game.Content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
+        _effect = Game.Content.Load<Effect>(BuiltInShaderCatalog.DebugPrimitiveColorContentName).Clone();
+    }
+
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (!string.Equals(
+                BuiltInShaderCatalog.NormalizeContentName(contentName),
+                BuiltInShaderCatalog.DebugPrimitiveColorContentName,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        _effect.Dispose();
+        _effect = effect;
+        return true;
     }
 
     public override void Update(GameTime gameTime)

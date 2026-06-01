@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering.Geometry;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Depth;
+using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -89,9 +90,26 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         _vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionTexture), NbSprites * 4, BufferUsage.None);
         _indexBuffer = new IndexBuffer(GraphicsDevice, typeof(short), 6, BufferUsage.None);
         _indexBuffer.SetData(new short[] { 0, 1, 2, 0, 2, 3 });
-        _effect = _game.Content.Load<Effect>("Shaders\\SpriteBatch");
+        _effect = _game.Content.Load<Effect>(BuiltInShaderCatalog.SpriteBatchContentName);
 
         _line3dRendererComponent = _game.GetGameComponent<Line3dRendererComponent>();
+    }
+
+    public bool TryReloadBuiltInShader(string contentName, Effect effect)
+    {
+        ArgumentNullException.ThrowIfNull(effect);
+
+        if (!string.Equals(
+                BuiltInShaderCatalog.NormalizeContentName(contentName),
+                BuiltInShaderCatalog.SpriteBatchContentName,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        _effect.Dispose();
+        _effect = effect;
+        return true;
     }
 
     /// <inheritdoc/>

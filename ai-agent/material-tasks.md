@@ -1,4 +1,19 @@
-# Système de Materials — Architecture & Liste de tâches
+# [ARCHIVE] Système de Materials — Architecture & Liste de tâches
+
+## Etat du document
+
+Ce document capture un etat pre-migration du moteur et n'est plus une source de verite fiable pour le backlog.
+
+Il contient notamment des hypotheses qui ne sont plus vraies dans le repo courant : `basicEffect.fx` comme shader lit principal, absence de `LightComponent`, absence de pipeline `MaterialAsset` -> `CompiledMaterial`, et draw path encore hardcode autour du fallback legacy.
+
+Backlog et references fiables a utiliser a la place :
+
+- `ai-agent/material-system-modernization-tasks.md` pour la migration materials cloturee
+- `ai-agent/material-shader-deep-audit-tasks.md` pour l'audit et les refactors deja realises
+- `ai-agent/rendering/materials-workflow.md` pour l'etat final authoring/runtime
+- `ai-agent/shader-source-hot-reload-tasks.md` pour le principal manque fonctionnel restant cote shaders
+
+Consequence : ne pas reutiliser cette liste comme plan de travail actif.
 
 ## Analyse de l'existant
 

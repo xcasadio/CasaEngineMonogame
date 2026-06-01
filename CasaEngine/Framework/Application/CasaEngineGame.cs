@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Shaders;
 using CasaEngine.Framework.UI;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
@@ -700,6 +701,82 @@ public class CasaEngineGame : Game, IObservableUpdate
         return hotReloadMetrics;
     }
 
+    public ShaderHotReloadMetrics ReloadBuiltInShader(string contentName, byte[] effectByteCode)
+    {
+        if (string.IsNullOrWhiteSpace(contentName)
+            || effectByteCode == null
+            || effectByteCode.Length == 0)
+        {
+            return default;
+        }
+
+        string normalizedContentName = BuiltInShaderCatalog.NormalizeContentName(contentName);
+        if (!BuiltInShaderCatalog.TryGetByContentName(normalizedContentName, out _))
+        {
+            return default;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        int reloadedConsumerCount = 0;
+
+        using var baseEffect = new Effect(GraphicsDevice, effectByteCode);
+
+        switch (normalizedContentName)
+        {
+            case BuiltInShaderCatalog.LitForwardContentName:
+            case BuiltInShaderCatalog.UnlitTextureContentName:
+            case BuiltInShaderCatalog.ShadowDepthContentName:
+            case BuiltInShaderCatalog.SkyCubemapContentName:
+                if (MeshRendererComponent is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => MeshRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+
+            case BuiltInShaderCatalog.SkinEffectContentName:
+                if (SkinnedMeshRendererComponent is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => SkinnedMeshRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+
+            case BuiltInShaderCatalog.SpriteBatchContentName:
+                if (SpriteRendererComponent is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => SpriteRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+
+            case BuiltInShaderCatalog.DebugPrimitiveColorContentName:
+                if (Line3dRendererComponent is not null
+                    && TryReloadBuiltInShaderClone(baseEffect, effect => Line3dRendererComponent.TryReloadBuiltInShader(normalizedContentName, effect)))
+                {
+                    reloadedConsumerCount++;
+                }
+                break;
+        }
+
+        int invalidatedViewCount = reloadedConsumerCount > 0 ? InvalidateAllViews() : 0;
+        stopwatch.Stop();
+
+        var hotReloadMetrics = new ShaderHotReloadMetrics(
+            normalizedContentName,
+            reloadedConsumerCount,
+            invalidatedViewCount,
+            stopwatch.Elapsed.TotalMilliseconds);
+
+        if (reloadedConsumerCount > 0)
+        {
+            Logs.WriteInfo(
+                $"[ShaderHotReload] shader='{hotReloadMetrics.ShaderContentName}' reloadedConsumers={hotReloadMetrics.ReloadedConsumerCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+        }
+
+        return hotReloadMetrics;
+    }
+
     public MaterialHotReloadMetrics ReloadMaterialAsset(Guid materialAssetId, MaterialAsset authoringMaterialAsset)
     {
         if (materialAssetId == Guid.Empty)
@@ -919,6 +996,25 @@ public class CasaEngineGame : Game, IObservableUpdate
         }
 
         return invalidatedViewCount;
+    }
+
+    private static bool TryReloadBuiltInShaderClone(Effect sourceEffect, Func<Effect, bool> reloadAction)
+    {
+        Effect effectClone = sourceEffect.Clone();
+        bool reloaded = false;
+
+        try
+        {
+            reloaded = reloadAction(effectClone);
+            return reloaded;
+        }
+        finally
+        {
+            if (!reloaded)
+            {
+                effectClone.Dispose();
+            }
+        }
     }
 
     private static double GetElapsedMilliseconds(long startTimestamp)
