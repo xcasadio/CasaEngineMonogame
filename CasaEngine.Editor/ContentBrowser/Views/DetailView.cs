@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.ContentBrowser.Models;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers.Grids;
@@ -77,6 +78,10 @@ public sealed class DetailView : IContentView
 
     public void SetItems(IReadOnlyList<ContentItem> items)
     {
+        using var performancePhase = EditorPerformanceProbe.IsEnabled
+            ? EditorPerformanceProbe.BeginPhase($"ContentBrowser.DetailView.SetItems count={items?.Count ?? 0}")
+            : default;
+
         _items.Clear();
         if (items != null)
         {

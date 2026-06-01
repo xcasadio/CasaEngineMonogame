@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using CasaEngine.Core.Design;
+using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.History;
 using CasaEngine.Editor.ContentBrowser;
 using CasaEngine.Editor.ContentBrowser.Controls;
@@ -80,6 +81,10 @@ public class ContentBrowserPanel
         public IReadOnlyList<string> SelectionPaths { get; }
     }
 
+    private sealed class GridItemDropTargetRegistration
+    {
+    }
+
     private sealed class ExecutedContentBrowserCommand : IEditorCommand
     {
         private readonly FileOperationService _fileOperationService;
@@ -139,6 +144,7 @@ public class ContentBrowserPanel
     private readonly CasaDesktopRuntime _runtime;
     private readonly List<string> _externalDropPaths = new();
     private readonly ConditionalWeakTable<MGElement, ContentItem> _externalDropTargetFolders = new();
+    private readonly ConditionalWeakTable<MGElement, GridItemDropTargetRegistration> _gridItemDropTargetRegistrations = new();
     private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<MGTextBlock>> _tooltipDimensionTexts = new(StringComparer.OrdinalIgnoreCase);
     private string _pendingOperationError = string.Empty;
@@ -356,6 +362,16 @@ public class ContentBrowserPanel
         result.Add($"Current folder items: {currentFolderItemCount}");
         result.Add($"Particle thumbnails: {loadedParticleThumbnailCount}/{particleThumbnailCount} loaded");
         return result;
+    }
+
+    public string GetPerformanceDiagnosticContext()
+    {
+        var activeView = _activeContentView == _detailView
+            ? "Detail"
+            : _activeContentView == _gridView
+                ? "Grid"
+                : "None";
+        return $"cbView={activeView} cbItems={_currentFolder?.Children.Count ?? 0} cbTreeFolders={_itemToFolder.Count} cbSearchLength={_searchFilter.Length} cbThumbs={_thumbnailCache.EntryCount}";
     }
 
     public void RegisterContextMenuExtension(ContentItemType type, string label, Action<ContentItem> action)
@@ -715,16 +731,24 @@ public class ContentBrowserPanel
     private void ConfigureGridItemElement(ContentItem item, MGElement element)
     {
         ConfigureItemToolTip(item, element);
+        element.OverlayBrush = null;
+        element.AllowDrop = item.IsDirectory;
         RegisterExternalDropTarget(item, element);
+        EnsureGridItemDropTargetHandlers(element);
+    }
 
-        if (item.IsDirectory)
+    private void EnsureGridItemDropTargetHandlers(MGElement element)
+    {
+        if (_gridItemDropTargetRegistrations.TryGetValue(element, out _))
         {
-            element.AllowDrop = true;
-            element.DragEnter += (_, e) => OnFolderDropTargetDragEnter(element, item, e);
-            element.DragOver += (_, e) => OnFolderDropTargetDragOver(element, item, e);
-            element.DragLeave += (_, e) => OnFolderDropTargetDragLeave(element, item, e);
-            element.Drop += (_, e) => OnFolderDropTargetDrop(element, item, e);
+            return;
         }
+
+        element.DragEnter += OnGridItemDropTargetDragEnter;
+        element.DragOver += OnGridItemDropTargetDragOver;
+        element.DragLeave += OnGridItemDropTargetDragLeave;
+        element.Drop += OnGridItemDropTargetDrop;
+        _gridItemDropTargetRegistrations.Add(element, new GridItemDropTargetRegistration());
     }
 
     private void ConfigureDetailItemElement(ContentItem item, MGElement element)
@@ -1052,12 +1076,13 @@ public class ContentBrowserPanel
 
     private void RegisterExternalDropTarget(ContentItem item, MGElement element)
     {
+        _externalDropTargetFolders.Remove(element);
+
         if (!item.IsDirectory)
         {
             return;
         }
 
-        _externalDropTargetFolders.Remove(element);
         _externalDropTargetFolders.Add(element, item);
     }
 
@@ -1290,6 +1315,59 @@ public class ContentBrowserPanel
         PerformDrop(targetFolder, e.Data.GetData<List<ContentItem>>(), e.Data.DropEffect);
     }
 
+    private void OnGridItemDropTargetDragEnter(object? sender, DragEnterEventArgs e)
+    {
+        if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
+        {
+            OnFolderDropTargetDragEnter(targetElement, targetFolder, e);
+        }
+    }
+
+    private void OnGridItemDropTargetDragOver(object? sender, DragOverEventArgs e)
+    {
+        if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
+        {
+            OnFolderDropTargetDragOver(targetElement, targetFolder, e);
+            return;
+        }
+
+        e.Data.DropEffect = DragDropEffect.None;
+    }
+
+    private void OnGridItemDropTargetDragLeave(object? sender, DragLeaveEventArgs e)
+    {
+        if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
+        {
+            OnFolderDropTargetDragLeave(targetElement, targetFolder, e);
+        }
+    }
+
+    private void OnGridItemDropTargetDrop(object? sender, DropEventArgs e)
+    {
+        if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
+        {
+            OnFolderDropTargetDrop(targetElement, targetFolder, e);
+        }
+    }
+
+    private bool TryResolveGridItemDropTarget(object? sender, out MGElement targetElement, out ContentItem targetFolder)
+    {
+        if (sender is MGElement element)
+        {
+            var folder = ResolveRegisteredDropTargetFolder(element);
+            if (folder != null)
+            {
+                targetElement = element;
+                targetFolder = folder;
+                return true;
+            }
+        }
+
+        targetElement = null!;
+        targetFolder = null!;
+        return false;
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     //  Catalog / project event handlers
     // ─────────────────────────────────────────────────────────────────────────
@@ -1309,6 +1387,8 @@ public class ContentBrowserPanel
     /// </summary>
     private void RebuildTree()
     {
+        using var performancePhase = EditorPerformanceProbe.BeginPhase("ContentBrowserPanel.RebuildTree");
+
         if (_inlineRenameOverlay.IsOpen)
         {
             _inlineRenameOverlay.Cancel();
@@ -1346,6 +1426,8 @@ public class ContentBrowserPanel
     /// <summary>Rebuilds the <see cref="_treeView"/> from <see cref="_rootItem"/>.</summary>
     private void RefreshTreeView()
     {
+        using var performancePhase = EditorPerformanceProbe.BeginPhase("ContentBrowserPanel.RefreshTreeView");
+
         _treeView.ClearItems();
         _itemToFolder.Clear();
 
@@ -1425,6 +1507,8 @@ public class ContentBrowserPanel
 
     private void RefreshAssetList()
     {
+        using var performancePhase = EditorPerformanceProbe.BeginPhase("ContentBrowserPanel.RefreshAssetList");
+
         var displayFolder = _currentFolder ?? _rootItem;
         var previousSelection = GetSelectedItems();
         var pendingSelectionPaths = _pendingSelectionPaths;

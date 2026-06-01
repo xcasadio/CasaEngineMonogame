@@ -4601,7 +4601,8 @@ public class GameEditor : Game, IObservableUpdate
     {
         var router = _editorRuntime?.InputComponent.InputRouter;
         var routingState = router?.CurrentRoutingState ?? InputRoutingState.Empty;
-        return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty}";
+        var contentBrowserContext = _contentBrowserPanel?.GetPerformanceDiagnosticContext() ?? "cbView=None cbItems=0 cbTreeFolders=0 cbSearchLength=0 cbThumbs=0";
+        return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty} {contentBrowserContext}";
     }
 
     private void OnAutomationWorldLoaded(object sender, EventArgs e)

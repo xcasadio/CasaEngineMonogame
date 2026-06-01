@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.Styling;
 using MGUI.Core.UI;
@@ -20,17 +21,59 @@ public sealed class GridView : IContentView
 {
     private sealed class GridItemCard
     {
-        public ContentItem Item { get; }
+        public ContentItem? Item { get; private set; }
         public MGBorder Border { get; }
-        public MGImage? PreviewImage { get; }
+        public MGBorder PreviewHost { get; }
+        public MGImage? PreviewImage { get; private set; }
         public MGTextBlock NameText { get; }
 
-        public GridItemCard(ContentItem item, MGBorder border, MGImage? previewImage, MGTextBlock nameText)
+        public GridItemCard(MGBorder border, MGBorder previewHost, MGTextBlock nameText)
+        {
+            Border = border;
+            PreviewHost = previewHost;
+            NameText = nameText;
+        }
+
+        public void Bind(ContentItem item, Func<ContentItem, Texture2D?> previewSelector, Action<ContentItem, MGElement>? itemElementInitializer, int previewSize)
+        {
+            UpdatePresentation(item, previewSelector, previewSize);
+            itemElementInitializer?.Invoke(item, Border);
+        }
+
+        public void UpdatePresentation(ContentItem item, Func<ContentItem, Texture2D?> previewSelector, int previewSize)
         {
             Item = item;
-            Border = border;
-            PreviewImage = previewImage;
-            NameText = nameText;
+            NameText.Text = GetDisplayName(item.Name);
+            SetPreview(previewSelector(item), previewSize);
+        }
+
+        private void SetPreview(Texture2D? previewTexture, int previewSize)
+        {
+            if (previewTexture == null)
+            {
+                if (PreviewImage != null)
+                {
+                    PreviewImage.Source = null;
+                }
+
+                return;
+            }
+
+            var textureData = new MGTextureData(EditorIcons.AsImage(previewTexture)!);
+            if (PreviewImage == null)
+            {
+                PreviewImage = new MGImage(Border.SelfOrParentWindow, textureData, Stretch: Stretch.Uniform)
+                {
+                    PreferredWidth = previewSize,
+                    PreferredHeight = previewSize,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                };
+                PreviewHost.SetContent(PreviewImage);
+                return;
+            }
+
+            PreviewImage.Source = textureData;
         }
     }
 
@@ -40,16 +83,18 @@ public sealed class GridView : IContentView
 
     private readonly MGGrid _root;
     private readonly MGScrollViewer _scrollViewer;
-    private readonly MGWrapPanel _itemsPanel;
+    private readonly VirtualizingWrapPanel _itemsPanel;
     private readonly MGTextBlock _emptyStateText;
     private readonly Func<ContentItem, Texture2D?> _previewSelector;
     private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
     private readonly Dictionary<string, GridItemCard> _cardsByPath = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<MGElement, GridItemCard> _cardsByElement = new();
     private readonly HashSet<string> _selectedPaths = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<ContentItem> _items = new();
     private readonly int _thumbnailSize;
     private readonly int _previewSize;
     private readonly int _cardWidth;
+    private readonly int _cardHeight;
 
     public MGElement RootElement => _root;
 
@@ -70,15 +115,21 @@ public sealed class GridView : IContentView
         _thumbnailSize = Math.Max(48, thumbnailSize);
         _previewSize = Math.Max(40, _thumbnailSize - 12);
         _cardWidth = _thumbnailSize + 32;
+        _cardHeight = _previewSize + 56;
         _previewSelector = previewSelector ?? throw new ArgumentNullException(nameof(previewSelector));
         _itemElementInitializer = itemElementInitializer;
 
-        _itemsPanel = new MGWrapPanel(window, Orientation.Horizontal)
+        _itemsPanel = new VirtualizingWrapPanel(window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
+            ItemWidth = _cardWidth,
+            ItemHeight = _cardHeight,
             Spacing = 4,
+            BufferRows = 2,
         };
+        _itemsPanel.ItemGenerator = GenerateCardElement;
+        _itemsPanel.ItemRecycler = RecycleCardElement;
 
         _scrollViewer = new MGScrollViewer(window)
         {
@@ -109,23 +160,22 @@ public sealed class GridView : IContentView
 
     public void SetItems(IReadOnlyList<ContentItem> items)
     {
+        using var performancePhase = EditorPerformanceProbe.IsEnabled
+            ? EditorPerformanceProbe.BeginPhase($"ContentBrowser.GridView.SetItems count={items?.Count ?? 0}")
+            : default;
+
         _items.Clear();
         _cardsByPath.Clear();
         _selectedPaths.Clear();
         PressedItem = null;
-        _ = _itemsPanel.TryRemoveAll();
+        _itemsPanel.InvalidateData();
 
         if (items != null)
         {
             _items.AddRange(items);
         }
 
-        foreach (var item in _items)
-        {
-            var card = CreateCard(item);
-            _cardsByPath[item.FullPath] = card;
-            _itemsPanel.TryAddChild(card.Border);
-        }
+        _itemsPanel.TotalItemCount = _items.Count;
 
         UpdateEmptyState();
         SelectionChanged?.Invoke(Array.Empty<ContentItem>());
@@ -152,7 +202,7 @@ public sealed class GridView : IContentView
         }
 
         _selectedPaths.Clear();
-        GridItemCard? firstSelectedCard = null;
+        int firstSelectedIndex = -1;
         foreach (var item in items)
         {
             if (item == null)
@@ -160,17 +210,27 @@ public sealed class GridView : IContentView
                 continue;
             }
 
-            if (_cardsByPath.TryGetValue(item.FullPath, out var card))
+            for (int index = 0; index < _items.Count; index++)
             {
-                _selectedPaths.Add(card.Item.FullPath);
-                firstSelectedCard ??= card;
+                if (!string.Equals(_items[index].FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                _selectedPaths.Add(_items[index].FullPath);
+                if (firstSelectedIndex < 0)
+                {
+                    firstSelectedIndex = index;
+                }
+
+                break;
             }
         }
 
         UpdateAllCardVisualStates();
-        if (firstSelectedCard != null)
+        if (firstSelectedIndex >= 0)
         {
-            _scrollViewer.EnsureElementVisible(firstSelectedCard.Border);
+            _itemsPanel.EnsureIndexVisible(firstSelectedIndex);
         }
 
         SelectionChanged?.Invoke(GetSelectedItems());
@@ -203,44 +263,65 @@ public sealed class GridView : IContentView
             return;
         }
 
-        card.NameText.Text = GetDisplayName(item.Name);
-        if (card.PreviewImage != null)
-        {
-            var previewTexture = _previewSelector(item);
-            card.PreviewImage.Source = previewTexture == null ? null : new MGTextureData(EditorIcons.AsImage(previewTexture)!);
-        }
+        card.UpdatePresentation(item, _previewSelector, _previewSize);
+        UpdateCardVisualState(item.FullPath);
     }
 
-    private GridItemCard CreateCard(ContentItem item)
+    private MGElement GenerateCardElement(int index)
     {
-        var previewTexture = _previewSelector(item);
-        MGImage? previewImage = null;
-        if (previewTexture != null)
+        var item = _items[index];
+        GridItemCard card;
+        if (_itemsPanel.TryDequeueRecycledElement(out var recycledElement)
+            && _cardsByElement.TryGetValue(recycledElement, out var recycledCard))
         {
-            previewImage = new MGImage(_scrollViewer.SelfOrParentWindow, EditorIcons.AsImage(previewTexture)!, Stretch: Stretch.Uniform)
-            {
-                PreferredWidth = _previewSize,
-                PreferredHeight = _previewSize,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
+            card = recycledCard;
+        }
+        else
+        {
+            card = CreateCard();
+            _cardsByElement[card.Border] = card;
         }
 
+        BindCard(card, item);
+        return card.Border;
+    }
+
+    private void RecycleCardElement(int index, MGElement element)
+    {
+        if (!_cardsByElement.TryGetValue(element, out var card) || card.Item == null)
+        {
+            return;
+        }
+
+        _cardsByPath.Remove(card.Item.FullPath);
+        card.Border.OverlayBrush = null;
+    }
+
+    private void BindCard(GridItemCard card, ContentItem item)
+    {
+        if (card.Item != null)
+        {
+            _cardsByPath.Remove(card.Item.FullPath);
+        }
+
+        card.Bind(item, _previewSelector, _itemElementInitializer, _previewSize);
+        _cardsByPath[item.FullPath] = card;
+        UpdateCardVisualState(item.FullPath);
+    }
+
+    private GridItemCard CreateCard()
+    {
         var previewHost = new MGBorder(_scrollViewer.SelfOrParentWindow, new Thickness(0), MGUniformBorderBrush.Black)
         {
             Padding = new Thickness(0),
             CornerRadius = MGCornerRadius.Zero,
+            PreferredHeight = _previewSize,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.GridItemPreviewBackground)),
         };
 
-        if (previewImage != null)
-        {
-            previewHost.SetContent(previewImage);
-        }
-
-        var nameText = new MGTextBlock(_scrollViewer.SelfOrParentWindow, GetDisplayName(item.Name))
+        var nameText = new MGTextBlock(_scrollViewer.SelfOrParentWindow, string.Empty)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Top,
@@ -269,23 +350,60 @@ public sealed class GridView : IContentView
             Margin = new Thickness(0),
             CornerRadius = new MGCornerRadius(8),
             PreferredWidth = _cardWidth,
+            PreferredHeight = _cardHeight,
             MinWidth = _cardWidth,
+            MinHeight = _cardHeight,
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top,
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(IdleBackgroundColor)),
         };
         border.SetContent(content);
 
-        _itemElementInitializer?.Invoke(item, border);
-        border.MouseHandler.LMBPressedInside += (_, _) => OnCardPressed(item);
-        border.MouseHandler.LMBDoubleClickedInside += (_, _) => OnCardDoubleClicked(item);
-        border.MouseHandler.DragStart += (_, e) => OnCardDragStart(item, e);
-        border.MouseHandler.RMBReleasedInside += (_, e) => OnCardRightClicked(item, e.Position);
-        border.MouseHandler.Entered += (_, _) => UpdateCardVisualState(item.FullPath);
-        border.MouseHandler.Exited += (_, _) => UpdateCardVisualState(item.FullPath);
+        var card = new GridItemCard(border, previewHost, nameText);
+        border.MouseHandler.LMBPressedInside += (_, _) =>
+        {
+            if (card.Item != null)
+            {
+                OnCardPressed(card.Item);
+            }
+        };
+        border.MouseHandler.LMBDoubleClickedInside += (_, _) =>
+        {
+            if (card.Item != null)
+            {
+                OnCardDoubleClicked(card.Item);
+            }
+        };
+        border.MouseHandler.DragStart += (_, e) =>
+        {
+            if (card.Item != null)
+            {
+                OnCardDragStart(card.Item, e);
+            }
+        };
+        border.MouseHandler.RMBReleasedInside += (_, e) =>
+        {
+            if (card.Item != null)
+            {
+                OnCardRightClicked(card.Item, e.Position);
+            }
+        };
+        border.MouseHandler.Entered += (_, _) =>
+        {
+            if (card.Item != null)
+            {
+                UpdateCardVisualState(card.Item.FullPath);
+            }
+        };
+        border.MouseHandler.Exited += (_, _) =>
+        {
+            if (card.Item != null)
+            {
+                UpdateCardVisualState(card.Item.FullPath);
+            }
+        };
 
-        UpdateCardVisualState(item.FullPath);
-        return new GridItemCard(item, border, previewImage, nameText);
+        return card;
     }
 
     private IReadOnlyList<ContentItem> GetSelectedItems()
