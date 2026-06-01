@@ -21,6 +21,7 @@ public sealed class EditorShellLayoutBuilder
         var toolbox = CreatePanelNode(EditorPanelIds.Toolbox);
         var contentBrowser = CreatePanelNode(EditorPanelIds.ContentBrowser);
         var output = CreatePanelNode(EditorPanelIds.Output);
+        var animation2dTimeline = CreatePanelNode(EditorPanelIds.Animation2dTimeline);
 
         var documentGroup = new DockTabGroupNode
         {
@@ -60,6 +61,7 @@ public sealed class EditorShellLayoutBuilder
 
         var bottomGroup = new DockTabGroupNode();
         bottomGroup.AddPanel(contentBrowser, -1);
+        bottomGroup.AddPanel(animation2dTimeline, -1);
         bottomGroup.AddPanel(output, -1);
         bottomGroup.SetActivePanel(contentBrowser.Id);
 

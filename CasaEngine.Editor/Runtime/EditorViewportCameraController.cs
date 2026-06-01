@@ -100,6 +100,7 @@ internal sealed class EditorViewportCameraController
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
+        bool allowFreeCameraMovement,
         bool canHandleKeyboardInput,
         Action<bool> activateView,
         Action releaseInput)
@@ -125,19 +126,19 @@ internal sealed class EditorViewportCameraController
         var mouseState = inputContext.MouseState;
         var keyboardState = inputContext.KeyboardState;
 
-        if (receivesInput && mouseState.MiddleButton == ButtonState.Pressed && _previousMouseState.MiddleButton == ButtonState.Released)
+        if (allowFreeCameraMovement && receivesInput && mouseState.MiddleButton == ButtonState.Pressed && _previousMouseState.MiddleButton == ButtonState.Released)
         {
             activateView(true);
             _isMiddleDragCapturing = true;
         }
 
-        if (receivesInput && mouseState.RightButton == ButtonState.Pressed && _previousMouseState.RightButton == ButtonState.Released)
+        if (allowFreeCameraMovement && receivesInput && mouseState.RightButton == ButtonState.Pressed && _previousMouseState.RightButton == ButtonState.Released)
         {
             activateView(true);
             _isRightDragCapturing = true;
         }
 
-        if (_isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Pressed)
+        if (allowFreeCameraMovement && _isMiddleDragCapturing && mouseState.MiddleButton == ButtonState.Pressed)
         {
             var dx = mouseState.X - _previousMouseState.X;
             var dy = mouseState.Y - _previousMouseState.Y;
@@ -147,7 +148,7 @@ internal sealed class EditorViewportCameraController
             }
         }
 
-        if (_isRightDragCapturing && mouseState.RightButton == ButtonState.Pressed)
+        if (allowFreeCameraMovement && _isRightDragCapturing && mouseState.RightButton == ButtonState.Pressed)
         {
             var dx = mouseState.X - _previousMouseState.X;
             var dy = mouseState.Y - _previousMouseState.Y;
@@ -169,13 +170,14 @@ internal sealed class EditorViewportCameraController
             ReleaseInputIfIdle(mouseState, releaseInput);
         }
 
-        if (receivesInput && inputContext.VerticalWheelDelta != 0)
+        if (allowFreeCameraMovement && receivesInput && inputContext.VerticalWheelDelta != 0)
         {
             activateView(false);
             ApplyScroll(inputContext.VerticalWheelDelta);
+            ApplyTo(camera);
         }
 
-        if (canHandleKeyboardInput && (receivesInput || isKeyboardFocused))
+        if (allowFreeCameraMovement && canHandleKeyboardInput && (receivesInput || isKeyboardFocused))
         {
             HandleKeyboardCameraInput(camera, keyboardState, (float)gameTime.ElapsedGameTime.TotalSeconds, _isRightDragCapturing || isKeyboardFocused);
         }

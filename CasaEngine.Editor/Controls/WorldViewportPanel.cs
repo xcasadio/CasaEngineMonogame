@@ -24,6 +24,7 @@ using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.DragDrop;
 using MGUI.Shared.Helpers;
+using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
@@ -45,6 +46,10 @@ public class WorldViewportPanel : IDisposable
     public bool EnablePreviewSelection { get; set; }
 
     public bool EnablePreviewGizmo { get; set; }
+
+    public bool ShowEditorOverlays { get; set; } = true;
+
+    public bool UseFront2dCamera { get; set; }
 
     public EditorHistoryContext GizmoHistoryContext
     {
@@ -152,9 +157,13 @@ public class WorldViewportPanel : IDisposable
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
+    private BoundingBox? _front2dFocusedBounds;
+    private float _front2dPixelsPerWorldUnit;
     private int _rtWidth = 16;
     private int _rtHeight = 16;
     private static readonly MGSolidFillBrush DropHighlightBrush = new(EditorThemePalette.DropHighlight);
+    private const float MinFront2dPixelsPerWorldUnit = 0.01f;
+    private const float MaxFront2dPixelsPerWorldUnit = 1024.0f;
 
     internal WorldViewportPanel(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime, IWindowInputSource windowInputSource)
     {
@@ -202,6 +211,7 @@ public class WorldViewportPanel : IDisposable
                 SelectPreviewEntityRoot();
             }
         };
+        _viewportHost.MouseHandler.Scrolled += OnViewportScrolled;
 
         _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
         {
@@ -303,6 +313,7 @@ public class WorldViewportPanel : IDisposable
                 inputContext,
                 receivesInput,
                 isKeyboardFocused,
+                !UseFront2dCamera,
                 !editorShellCapturesKeyboard,
                 ActivateThisView,
                 () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
@@ -442,7 +453,11 @@ public class WorldViewportPanel : IDisposable
             }
 
             _gizmoController.SetSelectedTransformable(null, _renderWorldOverride);
-            _cameraController.SetState(MathHelper.PiOver4, -MathHelper.Pi / 6f, 4.2f, Vector3.Zero);
+            _cameraController.SetState(
+                UseFront2dCamera ? 0f : MathHelper.PiOver4,
+                0f - (UseFront2dCamera ? 0f : MathHelper.Pi / 6f),
+                4.2f,
+                Vector3.Zero);
         }
         else if (leavingPreview && _savedPrimaryWorldCameraState.HasValue)
         {
@@ -467,11 +482,92 @@ public class WorldViewportPanel : IDisposable
         }
 
         var bounds = entity.GetBoundingBox();
-        var diagonal = Vector3.Distance(bounds.Min, bounds.Max);
-        var distance = Math.Max(5f, diagonal <= 0f ? 10f : diagonal * 1.5f);
+        var focusTarget = (bounds.Min + bounds.Max) * 0.5f;
 
-        _cameraController.Focus(entity.RootComponent.Position, distance);
+        if (UseFront2dCamera)
+        {
+            _front2dFocusedBounds = bounds;
+            _front2dPixelsPerWorldUnit = _rtWidth > 16 && _rtHeight > 16
+                ? ComputeFront2dFitPixelsPerWorldUnit(bounds)
+                : 0f;
+            ApplyFront2dFocus();
+        }
+        else
+        {
+            var diagonal = Vector3.Distance(bounds.Min, bounds.Max);
+            var distance = Math.Max(5f, diagonal <= 0f ? 10f : diagonal * 1.5f);
+            _cameraController.Focus(focusTarget, distance);
+            _cameraController.ApplyTo(_camera);
+        }
+    }
+
+    private float ComputeFront2dFitPixelsPerWorldUnit(BoundingBox bounds)
+    {
+        float width = Math.Max(1f, bounds.Max.X - bounds.Min.X);
+        float height = Math.Max(1f, bounds.Max.Y - bounds.Min.Y);
+        float availableWidth = Math.Max(1f, _rtWidth - 48f);
+        float availableHeight = Math.Max(1f, _rtHeight - 48f);
+        float fitPixelsPerWidth = availableWidth / width;
+        float fitPixelsPerHeight = availableHeight / height;
+        return Math.Clamp(Math.Min(fitPixelsPerWidth, fitPixelsPerHeight), MinFront2dPixelsPerWorldUnit, MaxFront2dPixelsPerWorldUnit);
+    }
+
+    private void ApplyFront2dFocus()
+    {
+        if (!UseFront2dCamera || _camera == null || !_front2dFocusedBounds.HasValue)
+        {
+            return;
+        }
+
+        if (_front2dPixelsPerWorldUnit <= 0f)
+        {
+            if (_rtWidth <= 16 || _rtHeight <= 16)
+            {
+                return;
+            }
+
+            _front2dPixelsPerWorldUnit = ComputeFront2dFitPixelsPerWorldUnit(_front2dFocusedBounds.Value);
+        }
+
+        BoundingBox bounds = _front2dFocusedBounds.Value;
+        float verticalHalfFov = Math.Max(0.01f, _camera.FieldOfView * 0.5f);
+        float halfDepth = Math.Max(0f, (bounds.Max.Z - bounds.Min.Z) * 0.5f);
+        float distance = (_rtHeight * 0.5f) / (_front2dPixelsPerWorldUnit * MathF.Tan(verticalHalfFov));
+        distance = Math.Clamp(distance + halfDepth + 8f, 0.5f, 1000f);
+
+        Vector3 focusTarget = (bounds.Min + bounds.Max) * 0.5f;
+        _cameraController.SetState(0f, 0f, distance, focusTarget);
         _cameraController.ApplyTo(_camera);
+        _renderView?.Invalidate();
+    }
+
+    private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    {
+        if (!UseFront2dCamera || e.ScrollWheelDelta == 0 || _viewportHost.Parent == null || !_front2dFocusedBounds.HasValue)
+        {
+            return;
+        }
+
+        Rectangle bounds = !_viewportHost.ActualLayoutBounds.IsEmpty ? _viewportHost.ActualLayoutBounds : _viewportHost.LayoutBounds;
+        if (!bounds.Contains(e.Position))
+        {
+            return;
+        }
+
+        ActivateThisView(captureInput: false);
+        if (_front2dPixelsPerWorldUnit <= 0f)
+        {
+            _front2dPixelsPerWorldUnit = ComputeFront2dFitPixelsPerWorldUnit(_front2dFocusedBounds.Value);
+        }
+
+        float wheelSteps = e.ScrollWheelDelta / 120.0f;
+        _front2dPixelsPerWorldUnit = MathHelper.Clamp(
+            _front2dPixelsPerWorldUnit * MathF.Pow(1.1f, wheelSteps),
+            MinFront2dPixelsPerWorldUnit,
+            MaxFront2dPixelsPerWorldUnit);
+
+        ApplyFront2dFocus();
+        e.SetHandledBy(_viewportHost ?? sender as IMouseHandlerHost);
     }
 
     private void OnViewportDragEnter(object? sender, DragEnterEventArgs e)
@@ -521,6 +617,11 @@ public class WorldViewportPanel : IDisposable
 
         _surface?.EnsureSize(width, height);
         _camera?.OnScreenResized(width, height);
+        if (UseFront2dCamera)
+        {
+            ApplyFront2dFocus();
+        }
+
         RefreshTextureBinding();
     }
 
@@ -928,7 +1029,11 @@ public class WorldViewportPanel : IDisposable
         _renderViewHost = new MguiViewportViewHost(renderView.Id, GetViewportScreenBounds);
         _renderView.Host = _renderViewHost;
         AttachWorld(world);
-        EnsureEditorOverlays(world);
+        if (ShowEditorOverlays)
+        {
+            EnsureEditorOverlays(world);
+        }
+
         EnsureEditorGizmo(world);
         _gizmoController.SetSelectedTransformable(_selectedTransformable, world);
     }
@@ -1304,6 +1409,11 @@ public class WorldViewportPanel : IDisposable
         DetachWorld();
         _gizmoController.DeleteEntitiesRequested -= OnGizmoDeleteEntitiesRequested;
         _gizmoController.SelectedEntityChanged -= OnGizmoSelectedEntityChanged;
+
+        if (_viewportHost != null)
+        {
+            _viewportHost.MouseHandler.Scrolled -= OnViewportScrolled;
+        }
 
         if (_renderView != null)
         {

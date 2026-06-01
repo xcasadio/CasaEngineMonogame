@@ -105,6 +105,10 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _entityAssetInspectorContent;
     private MaterialInspectorView _materialInspectorView;
     private MGElement _materialInspectorContent;
+    private Animation2dInspectorView _animation2dInspectorView;
+    private MGElement _animation2dInspectorContent;
+    private Animation2dTimelinePanel _animation2dTimelinePanel;
+    private MGElement _animation2dTimelineContent;
     private MGStackPanel _particleInspectorView;
     private ContextualDockPanelHost _toolboxPanelHost;
     private MGElement _toolboxContent;
@@ -697,11 +701,14 @@ public class GameEditor : Game, IObservableUpdate
             ResetDockLayoutToDefault();
         }
 
+        EnsureAnimation2dTimelineDockPanel();
+
         _ = GetOrCreateWorldViewportContent();
         _ = GetOrCreateHierarchyContent();
         _ = GetOrCreateInspectorContent();
         _ = GetOrCreateToolboxContent();
         _ = GetOrCreateContentBrowserContent();
+        _ = GetOrCreateAnimation2dTimelineContent();
 
         _contentBrowserPanel?.Refresh();
         ActivateWorldDocument();
@@ -1045,6 +1052,15 @@ public class GameEditor : Game, IObservableUpdate
                 ContentFactory = GetOrCreateTileMapInspectorContent,
                 Refresh = _ => RefreshTileMapViews(),
             });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.Animation2d,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateAnimation2dInspectorContent,
+                Refresh = _ => RefreshAnimation2dViews(),
+            });
         }
 
         _inspectorContent ??= _inspectorPanelHost.CreateContent();
@@ -1118,6 +1134,22 @@ public class GameEditor : Game, IObservableUpdate
         _materialInspectorContent ??= _materialInspectorView.CreateContent();
         _materialInspectorView.SetInspectorPanel(_activeMaterialInspectorPanel);
         return _materialInspectorContent;
+    }
+
+    private MGElement GetOrCreateAnimation2dInspectorContent()
+    {
+        _animation2dInspectorView ??= new Animation2dInspectorView(_mainWindow);
+        _animation2dInspectorContent ??= _animation2dInspectorView.CreateContent();
+        _animation2dInspectorView.SetInspectorPanel(_activeAnimation2dInspectorPanel);
+        return _animation2dInspectorContent;
+    }
+
+    private MGElement GetOrCreateAnimation2dTimelineContent()
+    {
+        _animation2dTimelinePanel ??= new Animation2dTimelinePanel(_mainWindow);
+        _animation2dTimelineContent ??= _animation2dTimelinePanel.CreateContent();
+        _animation2dTimelinePanel.SetInspectorPanel(_activeAnimation2dInspectorPanel);
+        return _animation2dTimelineContent;
     }
 
     private MGElement GetOrCreateEntityAssetInspectorContent()
@@ -1543,6 +1575,13 @@ public class GameEditor : Game, IObservableUpdate
                 Kind = EditorPanelKind.Tool,
                 ContentFactory = GetOrCreateLogsContent,
             },
+            new EditorPanelDescriptor
+            {
+                Id = EditorPanelIds.Animation2dTimeline,
+                Title = "Animation2D Timeline",
+                Kind = EditorPanelKind.Tool,
+                ContentFactory = GetOrCreateAnimation2dTimelineContent,
+            },
         });
     }
 
@@ -1708,12 +1747,15 @@ public class GameEditor : Game, IObservableUpdate
             ResetDockLayoutToDefault();
         }
 
+        EnsureAnimation2dTimelineDockPanel();
+
         SyncActiveEditorDocumentFromDockState();
     }
 
     private void ResetDockLayout()
     {
         ResetDockLayoutToDefault();
+        EnsureAnimation2dTimelineDockPanel();
         SyncActiveEditorDocumentFromDockState();
     }
 
@@ -1956,12 +1998,14 @@ public class GameEditor : Game, IObservableUpdate
         if (TryGetAnimation2dAssetInspectorPanel(panel.Id, out var animation2dInspectorPanel))
         {
             animation2dInspectorPanel.DirtyStateChanged -= OnAnimation2dInspectorDirtyStateChanged;
+            animation2dInspectorPanel.Dispose();
             _animation2dInspectorPanels.Remove(panel.Id);
             _animation2dInspectorPanelTitles.Remove(panel.Id);
             _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, panel.Id));
             if (ReferenceEquals(_activeAnimation2dInspectorPanel, animation2dInspectorPanel))
             {
                 _activeAnimation2dInspectorPanel = null;
+                RefreshAnimation2dViews();
             }
         }
 
@@ -2177,6 +2221,54 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         return null;
+    }
+
+    private DockPanelNode CreateRegisteredToolPanelNode(string panelId)
+    {
+        if (_panelRegistry == null
+            || !_panelRegistry.TryGetDescriptor(panelId, out var descriptor)
+            || descriptor.Kind != EditorPanelKind.Tool)
+        {
+            return null;
+        }
+
+        return new DockPanelNode(descriptor.Id)
+        {
+            Title = descriptor.Title,
+            DockableType = DockableType.Tool,
+            CanClose = descriptor.CanClose,
+            CanFloat = descriptor.CanFloat,
+            CanAutoHide = descriptor.CanAutoHide,
+            ContentFactory = descriptor.ContentFactory,
+        };
+    }
+
+    private void EnsureAnimation2dTimelineDockPanel()
+    {
+        if (_dockHost?.LayoutModel == null
+            || _dockHost.LayoutModel.FindPanelById(EditorPanelIds.Animation2dTimeline) != null)
+        {
+            return;
+        }
+
+        _panelRegistry ??= CreatePanelRegistry();
+        var panelNode = CreateRegisteredToolPanelNode(EditorPanelIds.Animation2dTimeline);
+        if (panelNode == null)
+        {
+            return;
+        }
+
+        var targetGroup = _dockHost.LayoutModel.GetAllTabGroups()
+            .FirstOrDefault(group => group.Panels.Any(panel => panel.Id == EditorPanelIds.ContentBrowser || panel.Id == EditorPanelIds.Output))
+            ?? _dockHost.LayoutModel.GetAllTabGroups().FirstOrDefault(group => !group.IsDocumentArea)
+            ?? GetDocumentDockGroup();
+
+        if (targetGroup == null)
+        {
+            return;
+        }
+
+        DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, targetGroup);
     }
 
     private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
@@ -2419,6 +2511,7 @@ public class GameEditor : Game, IObservableUpdate
     private void ActivateAnimation2dDocument(string panelId, Animation2dAssetInspectorPanel inspectorPanel)
     {
         _activeAnimation2dInspectorPanel = inspectorPanel;
+        RefreshAnimation2dViews();
         _editorContext.SetActiveDocument(new EditorDocumentContext(
             EditorDocumentKind.Animation2d,
             panelId,
@@ -2525,6 +2618,12 @@ public class GameEditor : Game, IObservableUpdate
     {
         _materialHierarchyPanel?.SetInspectorPanel(_activeMaterialInspectorPanel);
         _materialInspectorView?.SetInspectorPanel(_activeMaterialInspectorPanel);
+    }
+
+    private void RefreshAnimation2dViews()
+    {
+        _animation2dInspectorView?.SetInspectorPanel(_activeAnimation2dInspectorPanel);
+        _animation2dTimelinePanel?.SetInspectorPanel(_activeAnimation2dInspectorPanel);
     }
 
     private void RefreshEntityAssetViews()
@@ -3254,7 +3353,7 @@ public class GameEditor : Game, IObservableUpdate
         bool createdPanel = false;
         if (!_animation2dInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
-            inspectorPanel = new Animation2dAssetInspectorPanel(_mainWindow);
+            inspectorPanel = new Animation2dAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
             inspectorPanel.DirtyStateChanged += OnAnimation2dInspectorDirtyStateChanged;
             _animation2dInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
@@ -4250,6 +4349,11 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var animationClipPreviewPanel in _animationClipPreviewPanels.Values)
         {
             animationClipPreviewPanel.Update(gameTime);
+        }
+
+        foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
+        {
+            animation2dInspectorPanel.Update(gameTime);
         }
 
         foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
@@ -5703,6 +5807,10 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var entityAssetEditorPanel in _entityAssetEditorPanels.Values)
             {
                 entityAssetEditorPanel.DrawViewport(gameTime);
+            }
+            foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
+            {
+                animation2dInspectorPanel.DrawViewport(gameTime);
             }
             foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
             {

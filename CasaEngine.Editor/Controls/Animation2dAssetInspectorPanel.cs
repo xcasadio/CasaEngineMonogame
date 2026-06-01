@@ -6,38 +6,75 @@ using System.Globalization;
 using System.IO;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.History;
+using CasaEngine.Editor.Runtime;
 using CasaEngine.Editor.Styling;
 using CasaEngine.EditorServices;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
 using CasaEngine.Framework.Configuration;
+using CasaEngine.Framework.Assets.Sprites;
+using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Border_Brushes;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MonoGame.Extended;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Editor.Controls;
 
-internal sealed class Animation2dAssetInspectorPanel
+internal sealed class Animation2dAssetInspectorPanel : IDisposable
 {
     private readonly MGWindow _window;
+    private readonly GraphicsDevice _graphicsDevice;
+    private readonly HostedEditorGameAdapter _editorRuntime;
+    private readonly IWindowInputSource _windowInputSource;
+    private readonly PreviewWorldDriver _previewWorldDriver;
+    private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
+    private readonly List<Guid> _spriteIdsToResolve = new();
 
     private MGDockPanel? _root;
+    private MGDockPanel? _inspectorRoot;
+    private MGDockPanel? _timelineRoot;
+    private WorldViewportPanel? _previewViewportPanel;
+    private Entity? _previewEntity;
+    private AnimatedSpriteComponent? _previewSpriteComponent;
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
+    private MGTextBlock? _timelineText;
     private MGStackPanel? _contentStack;
+    private Animation2dCompositionSampler? _previewSampler;
 
     private Animation2dData? _animationData;
     private string? _loadedRelativePath;
     private string? _historyContextId;
+    private float _previewDurationSeconds;
     private bool _isDirty;
     private bool _suppressControlCallbacks;
+    private bool _disposed;
 
-    public Animation2dAssetInspectorPanel(MGWindow window)
+    public Animation2dAssetInspectorPanel(
+        MGWindow window,
+        GraphicsDevice graphicsDevice,
+        HostedEditorGameAdapter editorRuntime,
+        IWindowInputSource windowInputSource)
     {
         _window = window;
+        _graphicsDevice = graphicsDevice;
+        _editorRuntime = editorRuntime;
+        _windowInputSource = windowInputSource;
+        _previewWorldDriver = new PreviewWorldDriver(
+            _editorRuntime,
+            new PreviewWorldDriverOptions
+            {
+                WorldName = "Animation2D Preview",
+                UpdateMode = PreviewWorldUpdateMode.Continuous,
+            });
     }
 
     public Animation2dData? LoadedAnimationData => _animationData;
@@ -53,6 +90,37 @@ internal sealed class Animation2dAssetInspectorPanel
         if (_root != null)
         {
             return _root;
+        }
+
+        _previewViewportPanel = new WorldViewportPanel(_window, _graphicsDevice, _editorRuntime, _windowInputSource)
+        {
+            EnablePreviewSelection = false,
+            EnablePreviewGizmo = false,
+            ShowEditorOverlays = false,
+            UseFront2dCamera = true,
+        };
+
+        _root = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _root.TryAddChild(_previewViewportPanel.CreateContent(), Dock.Top);
+
+        if (_previewWorldDriver.World != null)
+        {
+            _previewViewportPanel.SetWorldOverride(_previewWorldDriver.World);
+            _previewViewportPanel.FocusEntity(_previewEntity);
+        }
+
+        return _root;
+    }
+
+    public MGElement CreateInspectorContent()
+    {
+        if (_inspectorRoot != null)
+        {
+            return _inspectorRoot;
         }
 
         _headerText = new MGTextBlock(_window, "[b]Animation2D Inspector[/b]")
@@ -85,6 +153,21 @@ internal sealed class Animation2dAssetInspectorPanel
         var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
         scrollViewer.SetContent(_contentStack);
 
+        var inspectorBorder = new MGBorder(
+            _window,
+            new Thickness(1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground)),
+            Margin = new Thickness(4, 0, 6, 4),
+            Padding = new Thickness(0),
+            MinWidth = 280,
+            PreferredWidth = 360,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        inspectorBorder.SetContent(scrollViewer);
+
         var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
         {
             Spacing = 4,
@@ -93,15 +176,43 @@ internal sealed class Animation2dAssetInspectorPanel
         toolbar.TryAddChild(CreateButton("Save", SaveLoadedAsset));
         toolbar.TryAddChild(CreateButton("Reload", ReloadLoadedAsset));
 
-        _root = new MGDockPanel(_window);
-        _root.TryAddChild(_headerText, Dock.Top);
-        _root.TryAddChild(_sourceText, Dock.Top);
-        _root.TryAddChild(_statusText, Dock.Top);
-        _root.TryAddChild(toolbar, Dock.Top);
-        _root.TryAddChild(scrollViewer, Dock.Top);
+        var headerStack = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 2,
+        };
+        headerStack.TryAddChild(_headerText);
+        headerStack.TryAddChild(_sourceText);
+        headerStack.TryAddChild(toolbar);
+        headerStack.TryAddChild(_statusText);
+
+        _inspectorRoot = new MGDockPanel(_window)
+        {
+            Margin = new Thickness(0, 4, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _inspectorRoot.TryAddChild(headerStack, Dock.Top);
+        _inspectorRoot.TryAddChild(inspectorBorder, Dock.Top);
 
         RefreshInspector();
-        return _root;
+        return _inspectorRoot;
+    }
+
+    public MGElement CreateTimelineContent()
+    {
+        if (_timelineRoot != null)
+        {
+            return _timelineRoot;
+        }
+
+        _timelineRoot = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _timelineRoot.TryAddChild(CreateTimelinePanel(), Dock.Top);
+        RefreshTimelineText();
+        return _timelineRoot;
     }
 
     public void LoadAsset(Animation2dData animationData, string fullPath)
@@ -112,6 +223,7 @@ internal sealed class Animation2dAssetInspectorPanel
         _animationData = animationData;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         SetDirty(false);
+        RebuildPreviewState();
 
         if (TryGetHistoryContext(out var historyContext))
         {
@@ -184,6 +296,56 @@ internal sealed class Animation2dAssetInspectorPanel
         }
     }
 
+    public void Update(GameTime gameTime)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _previewWorldDriver.Tick(gameTime);
+
+        if (_previewSampler == null)
+        {
+            return;
+        }
+
+        if (_previewSampler.IsFinished)
+        {
+            return;
+        }
+
+        var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        if (elapsedSeconds <= 0f)
+        {
+            return;
+        }
+
+        _previewSampler.Update(elapsedSeconds);
+        RefreshTimelineText();
+    }
+
+    public void DrawViewport(GameTime gameTime)
+    {
+        _previewViewportPanel?.DrawViewport(gameTime);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+        _previewViewportPanel?.Dispose();
+        _previewWorldDriver.Dispose();
+        _previewViewportPanel = null;
+        _previewEntity = null;
+        _previewSpriteComponent = null;
+        _previewSampler = null;
+    }
+
     public static bool TryLoadAsset(string fullPath, out Animation2dData animationData)
     {
         animationData = new Animation2dData();
@@ -234,6 +396,7 @@ internal sealed class Animation2dAssetInspectorPanel
             _headerText.Text = "[b]Animation2D Inspector[/b]";
             _sourceText.Text = "No animation asset loaded.";
             _statusText.Text = "Open a .anim2d asset from the Content Browser.";
+            RefreshTimelineText();
             return;
         }
 
@@ -249,6 +412,7 @@ internal sealed class Animation2dAssetInspectorPanel
         AddProperty("Parts", _animationData.Parts.Count.ToString(CultureInfo.InvariantCulture));
         AddProperty("Tracks", _animationData.Tracks.Count.ToString(CultureInfo.InvariantCulture));
         AddProperty("Events", _animationData.Events.Count.ToString(CultureInfo.InvariantCulture));
+        AddProperty("Duration", FormatSeconds(_previewDurationSeconds));
 
         AddSection("Validation");
         var invalidTrackTargets = _animationData.GetInvalidTrackTargetPartIds();
@@ -305,6 +469,8 @@ internal sealed class Animation2dAssetInspectorPanel
                 AddEditableEvent(index, animationEvent);
             }
         }
+
+        RefreshTimelineText();
     }
 
     private void SaveLoadedAsset()
@@ -572,6 +738,7 @@ internal sealed class Animation2dAssetInspectorPanel
     {
         SetDirty(true);
         SetStatus(message);
+        RebuildPreviewState();
     }
 
     private void SetDirty(bool isDirty)
@@ -591,6 +758,183 @@ internal sealed class Animation2dAssetInspectorPanel
         {
             _statusText.Text = EscapeMarkup(message);
         }
+    }
+
+    private MGElement CreateTimelinePanel()
+    {
+        var stack = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 4,
+            Margin = new Thickness(8, 6, 8, 6),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        stack.TryAddChild(new MGTextBlock(_window, "[b]Timeline[/b]")
+        {
+            WrapText = true,
+        });
+
+        _timelineText = new MGTextBlock(_window, "No animation loaded.")
+        {
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            WrapText = true,
+        };
+        stack.TryAddChild(_timelineText);
+
+        var surface = new MGBorder(
+            _window,
+            new Thickness(1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground)),
+            MinHeight = 48,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        stack.TryAddChild(surface);
+
+        var panel = new MGBorder(
+            _window,
+            new Thickness(1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground)),
+            Margin = new Thickness(4, 0, 4, 4),
+            Padding = new Thickness(0),
+            MinHeight = 112,
+            PreferredHeight = 128,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        panel.SetContent(stack);
+        return panel;
+    }
+
+    private void RebuildPreviewState()
+    {
+        _previewSampler = null;
+        _previewDurationSeconds = 0f;
+        _spriteDataById.Clear();
+        _spriteIdsToResolve.Clear();
+
+        if (_animationData == null)
+        {
+            _previewWorldDriver.Clear();
+            _previewViewportPanel?.SetWorldOverride(null);
+            _previewEntity = null;
+            _previewSpriteComponent = null;
+            RefreshTimelineText();
+            return;
+        }
+
+        var composition = Animation2dCompositionAdapter.Create(_animationData);
+        _previewDurationSeconds = composition.DurationSeconds;
+
+        var unresolvedSpriteCount = 0;
+        Animation2dSpriteReferenceCollector.Collect(_animationData, _spriteIdsToResolve);
+        for (var index = 0; index < _spriteIdsToResolve.Count; index++)
+        {
+            try
+            {
+                ResolveSprite(_spriteIdsToResolve[index]);
+            }
+            catch (Exception exception) when (exception is InvalidOperationException or IOException or ArgumentException)
+            {
+                unresolvedSpriteCount++;
+                Logs.WriteException(exception);
+            }
+        }
+
+        _previewSampler = new Animation2dCompositionSampler(composition);
+        _previewSampler.Reset();
+        var previewPosition = Vector3.Zero;
+        if (Animation2dBoundsCalculator.TryCalculateLocalBounds(_previewSampler.RuntimeState, _spriteDataById, out var bounds))
+        {
+            var center = (bounds.Min + bounds.Max) * 0.5f;
+            previewPosition = new Vector3(-center.X, -center.Y, 0f);
+        }
+
+        RebuildPreviewWorld(previewPosition);
+        if (unresolvedSpriteCount > 0)
+        {
+            SetStatus($"Animation2D preview has {unresolvedSpriteCount.ToString(CultureInfo.InvariantCulture)} unresolved sprite reference(s).");
+        }
+
+        RefreshTimelineText();
+    }
+
+    private void RebuildPreviewWorld(Vector3 previewPosition)
+    {
+        _previewEntity = null;
+        _previewSpriteComponent = null;
+
+        if (_animationData == null)
+        {
+            _previewWorldDriver.Clear();
+            _previewViewportPanel?.SetWorldOverride(null);
+            return;
+        }
+
+        var animationData = _animationData;
+        _previewWorldDriver.Rebuild(world =>
+        {
+            var entity = new Entity
+            {
+                Name = string.IsNullOrWhiteSpace(animationData.Name) ? "Animation2D Preview" : animationData.Name,
+            };
+
+            var spriteComponent = new AnimatedSpriteComponent
+            {
+                CreatePhysicsForEachFrame = false,
+                Position = previewPosition,
+            };
+
+            entity.RootComponent = spriteComponent;
+            world.AddEntity(entity);
+
+            _previewEntity = entity;
+            _previewSpriteComponent = spriteComponent;
+        });
+
+        if (_previewSpriteComponent != null)
+        {
+            _previewSpriteComponent.AddAnimation(new Animation2d(animationData));
+            if (_previewSpriteComponent.Animations.Count > 0)
+            {
+                _previewSpriteComponent.SetCurrentAnimation(0, true);
+            }
+        }
+
+        _previewWorldDriver.RefreshNow();
+        if (_previewViewportPanel != null)
+        {
+            _previewViewportPanel.SetWorldOverride(_previewWorldDriver.World);
+            _previewViewportPanel.FocusEntity(_previewEntity);
+        }
+    }
+
+    private void ResolveSprite(Guid spriteId)
+    {
+        if (spriteId == Guid.Empty || _spriteDataById.ContainsKey(spriteId))
+        {
+            return;
+        }
+
+        var spriteData = _editorRuntime.AssetContentManager.Load<SpriteData>(spriteId);
+        _spriteDataById.Add(spriteId, spriteData);
+    }
+
+    private void RefreshTimelineText()
+    {
+        if (_timelineText == null)
+        {
+            return;
+        }
+
+        if (_animationData == null || _previewSampler == null)
+        {
+            _timelineText.Text = "No animation loaded.";
+            return;
+        }
+
+        _timelineText.Text = $"{FormatSeconds(_previewSampler.CurrentTime)} / {FormatSeconds(_previewDurationSeconds)}  Events: {_animationData.Events.Count.ToString(CultureInfo.InvariantCulture)}";
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
