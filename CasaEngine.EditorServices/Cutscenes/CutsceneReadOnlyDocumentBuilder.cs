@@ -17,7 +17,12 @@ public static class CutsceneReadOnlyDocumentBuilder
             asset.RootAction == null ? null : BuildAction(asset.RootAction, "root_action"),
             CopyValidationMessages(validationResult.Messages),
             runtimeSnapshot?.State ?? CutsceneRuntimeState.Idle,
-            runtimeSnapshot == null ? Array.Empty<CutsceneReadOnlyCoroutineInfo>() : CopyActiveCoroutines(runtimeSnapshot.ActiveCoroutines));
+            runtimeSnapshot == null ? Array.Empty<CutsceneReadOnlyCoroutineInfo>() : CopyActiveCoroutines(runtimeSnapshot.ActiveCoroutines),
+            runtimeSnapshot?.ActiveActionType,
+            runtimeSnapshot?.ActiveActionEntityName,
+            runtimeSnapshot?.ActiveActionDestination,
+            runtimeSnapshot?.ActiveActionState,
+            runtimeSnapshot?.ActiveActionStopReason);
     }
 
     private static CutsceneReadOnlyActionNode BuildAction(CutsceneActionData action, string path)
@@ -35,6 +40,13 @@ public static class CutsceneReadOnlyDocumentBuilder
                 node.AddProperty("destination", FormatVector3(moveToAction.Destination));
                 node.AddProperty("stopping_distance", moveToAction.StoppingDistance.ToString("0.###", CultureInfo.InvariantCulture));
                 node.AddProperty("timeout_seconds", moveToAction.TimeoutSeconds.ToString("0.###", CultureInfo.InvariantCulture));
+                break;
+
+            case NavigateToCutsceneActionData navigateToAction:
+                node.AddProperty("entity", navigateToAction.EntityName);
+                node.AddProperty("destination", FormatVector3(navigateToAction.Destination));
+                node.AddProperty("stopping_distance", navigateToAction.StoppingDistance.ToString("0.###", CultureInfo.InvariantCulture));
+                node.AddProperty("timeout_seconds", navigateToAction.TimeoutSeconds.ToString("0.###", CultureInfo.InvariantCulture));
                 break;
 
             case SequenceCutsceneActionData sequenceAction:

@@ -1137,6 +1137,10 @@
       "file_name": "Content\\Cutscenes\\move_to_direct.cutscene"
     },
     {
+      "id": "c61ab6e8-1c4f-44b2-a674-0c50fa526a5d",
+      "file_name": "Content\\Cutscenes\\navigate_to_grid.cutscene"
+    },
+    {
       "id": "4668ca19-9ff1-4d91-9b4c-64522888d3f1",
       "name": "soft_particle",
       "file_name": "Content\\Textures\\soft_particle.png",

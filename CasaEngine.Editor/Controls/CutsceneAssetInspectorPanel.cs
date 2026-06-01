@@ -170,6 +170,14 @@ internal sealed class CutsceneAssetInspectorPanel
         AddProperty("Editable", _document.CanEdit ? "True" : "False");
         AddProperty("Runtime state", _document.RuntimeState.ToString());
         AddProperty("Active coroutines", _document.ActiveCoroutines.Count.ToString(CultureInfo.InvariantCulture));
+        if (!string.IsNullOrWhiteSpace(_document.ActiveActionType))
+        {
+            AddProperty("Active action", _document.ActiveActionType);
+            AddProperty("Action entity", string.IsNullOrWhiteSpace(_document.ActiveActionEntityName) ? "<none>" : _document.ActiveActionEntityName);
+            AddProperty("Action destination", _document.ActiveActionDestination.HasValue ? FormatVector3(_document.ActiveActionDestination.Value) : "<none>");
+            AddProperty("Action state", string.IsNullOrWhiteSpace(_document.ActiveActionState) ? "<none>" : _document.ActiveActionState);
+            AddProperty("Action stop reason", string.IsNullOrWhiteSpace(_document.ActiveActionStopReason) ? "<none>" : _document.ActiveActionStopReason);
+        }
 
         AddSection("Actions");
         if (_document.RootAction == null)
@@ -268,6 +276,11 @@ internal sealed class CutsceneAssetInspectorPanel
             Opacity = opacity,
             WrapText = true,
         });
+    }
+
+    private static string FormatVector3(Microsoft.Xna.Framework.Vector3 value)
+    {
+        return string.Create(CultureInfo.InvariantCulture, $"{value.X:0.###}, {value.Y:0.###}, {value.Z:0.###}");
     }
 
     private static string EscapeMarkup(string value)

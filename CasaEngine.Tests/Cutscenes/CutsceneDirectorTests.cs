@@ -1,4 +1,5 @@
 using CasaEngine.Core.Time;
+using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -287,6 +288,133 @@ public sealed class CutsceneDirectorTests
     }
 
     [Fact]
+    public void Play_NavigateToActionCompletesViaNavigationAgent()
+    {
+        var world = new World();
+        Entity entity = CreateNavigableEntity(out CharacterControllerComponent controller, out NavigationAgentComponent navigationAgent, out _);
+        AddEntityToWorld(world, entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "NavigateHero",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+                TimeoutSeconds = 3f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        for (int frameIndex = 1; frameIndex <= 20; frameIndex++)
+        {
+            AdvanceWorld(world, frameIndex);
+            if (!world.CutsceneDirector.IsPlaying)
+            {
+                break;
+            }
+        }
+
+        CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Completed, snapshot.State);
+        Assert.Equal(CutsceneActionTypes.NavigateTo, snapshot.ActiveActionType);
+        Assert.Equal("ReachedDestination", snapshot.ActiveActionStopReason);
+        Assert.True(navigationAgent.ReachedDestination);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+        Assert.InRange(entity.RootComponent!.Position.X, 2.45f, 2.55f);
+    }
+
+    [Fact]
+    public void Play_NavigateToActionFailsWhenNavigationMapIsMissing()
+    {
+        var world = new World();
+        Entity entity = CreateNavigableEntity(out _, out NavigationAgentComponent navigationAgent, out _);
+        navigationAgent.NavigationMap = null;
+        AddEntityToWorld(world, entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "NavigateHeroWithoutMap",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        AdvanceWorld(world, 1);
+
+        CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+        Assert.False(world.CutsceneDirector.IsPlaying);
+        Assert.Equal(CutsceneRuntimeState.Failed, snapshot.State);
+        Assert.Contains("NavigationMap", snapshot.ActiveActionStopReason);
+    }
+
+    [Fact]
+    public void Stop_CancelsNavigateToAndRestoresControlMode()
+    {
+        var world = new World();
+        Entity entity = CreateNavigableEntity(out CharacterControllerComponent controller, out NavigationAgentComponent navigationAgent, out CharacterControllerNavigationDriverComponent driver);
+        AddEntityToWorld(world, entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "StopNavigateHero",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        AdvanceWorld(world, 1);
+
+        Assert.True(navigationAgent.HasDestination);
+        Assert.True(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.AI, controller.ControlMode);
+
+        world.CutsceneDirector.Stop();
+
+        CutsceneDebugSnapshot snapshot = world.CutsceneDirector.GetDebugSnapshot();
+        Assert.False(navigationAgent.HasDestination);
+        Assert.False(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+        Assert.Equal(CutsceneRuntimeState.Stopped, snapshot.State);
+        Assert.Equal("Cancelled", snapshot.ActiveActionStopReason);
+    }
+
+    [Fact]
+    public void WorldClear_CancelsActiveNavigateTo()
+    {
+        var world = new World();
+        Entity entity = CreateNavigableEntity(out CharacterControllerComponent controller, out NavigationAgentComponent navigationAgent, out CharacterControllerNavigationDriverComponent driver);
+        AddEntityToWorld(world, entity);
+        var asset = new CutsceneAsset
+        {
+            Name = "ClearNavigateHero",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2.5f, 0f, 0.5f),
+                StoppingDistance = 0.05f,
+            }
+        };
+
+        world.CutsceneDirector.Play(asset);
+        AdvanceWorld(world, 1);
+
+        world.Clear();
+
+        Assert.False(navigationAgent.HasDestination);
+        Assert.False(driver.IsMoving);
+        Assert.Equal(CharacterControlMode.Player, controller.ControlMode);
+        Assert.Equal(CutsceneRuntimeState.Stopped, world.CutsceneDirector.GetDebugSnapshot().State);
+    }
+
+    [Fact]
     public void WorldClearStopsCutsceneDirector()
     {
         var world = new World();
@@ -400,6 +528,39 @@ public sealed class CutsceneDirectorTests
         };
         entity.AddComponent(controller);
         return entity;
+    }
+
+    private static Entity CreateNavigableEntity(
+        out CharacterControllerComponent controller,
+        out NavigationAgentComponent navigationAgent,
+        out CharacterControllerNavigationDriverComponent navigationDriver)
+    {
+        Entity entity = CreateControlledEntity(out controller);
+        entity.RootComponent!.Position = new Vector3(0.5f, 0f, 0.5f);
+        navigationAgent = new NavigationAgentComponent
+        {
+            NavigationMap = CreateGroundGrid(3, 1),
+            Query = new NavigationQuery { LayerMask = NavigationLayerMask.Ground },
+            StoppingDistance = 0.05f,
+        };
+        navigationDriver = new CharacterControllerNavigationDriverComponent();
+        entity.AddComponent(navigationAgent);
+        entity.AddComponent(navigationDriver);
+        return entity;
+    }
+
+    private static NavigationGrid2D CreateGroundGrid(int width, int height)
+    {
+        var grid = new NavigationGrid2D(width, height, 1f);
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                grid.SetCell(x, y, new NavigationGridCell(true, 1f, NavigationLayerMask.Ground));
+            }
+        }
+
+        return grid;
     }
 
     private sealed class TestSceneComponent : SceneComponent

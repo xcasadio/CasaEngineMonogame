@@ -1,6 +1,7 @@
 using CasaEngine.EditorServices.Cutscenes;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Scripting.Coroutines;
+using Microsoft.Xna.Framework;
 using Xunit;
 
 namespace CasaEngine.Tests.EditorServices.Cutscenes;
@@ -73,5 +74,43 @@ public sealed class CutsceneReadOnlyDocumentBuilderTests
         Assert.Single(document.ActiveCoroutines);
         Assert.Equal(7, document.ActiveCoroutines[0].Id);
         Assert.Equal("WaitForSeconds", document.ActiveCoroutines[0].CurrentInstruction);
+    }
+
+    [Fact]
+    public void Build_IncludesNavigateToActionAndRuntimeActionState()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "Navigate",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2f, 0f, 4f),
+                StoppingDistance = 0.2f,
+                TimeoutSeconds = 6f,
+            },
+        };
+        var runtimeSnapshot = new CutsceneDebugSnapshot(
+            CutsceneRuntimeState.Playing,
+            asset.AssetId,
+            asset.Name,
+            asset.FileName,
+            CoroutineHandle.Invalid,
+            Array.Empty<CutsceneValidationMessage>(),
+            Array.Empty<CoroutineDebugInfo>(),
+            CutsceneActionTypes.NavigateTo,
+            "Hero",
+            new Vector3(2f, 0f, 4f),
+            "Moving",
+            string.Empty);
+
+        var document = CutsceneReadOnlyDocumentBuilder.Build(asset, runtimeSnapshot);
+
+        Assert.Equal(CutsceneActionTypes.NavigateTo, document.RootAction!.Type);
+        Assert.Contains(document.RootAction.Properties, property => property.Name == "destination" && property.Value == "2, 0, 4");
+        Assert.Equal(CutsceneActionTypes.NavigateTo, document.ActiveActionType);
+        Assert.Equal("Hero", document.ActiveActionEntityName);
+        Assert.Equal(new Vector3(2f, 0f, 4f), document.ActiveActionDestination);
+        Assert.Equal("Moving", document.ActiveActionState);
     }
 }

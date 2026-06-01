@@ -1,4 +1,5 @@
 using System.Collections;
+using CasaEngine.Framework.AI.Navigation;
 using CasaEngine.Framework.Scene.CharacterMotion;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -45,10 +46,40 @@ internal static class CutsceneActionCoroutineFactory
 
                 break;
 
+            case NavigateToCutsceneActionData navigateToAction:
+                if (!TryStartNavigateTo(navigateToAction, world, out NavigationAgentComponent navigationAgent, out string failureReason))
+                {
+                    owner.MarkRuntimeFailure(failureReason);
+                    yield break;
+                }
+
+                var navigationInstruction = new NavigateToCutsceneInstruction(navigationAgent, navigateToAction.TimeoutSeconds);
+                owner.BeginNavigationAction(navigateToAction, navigationAgent);
+                try
+                {
+                    yield return navigationInstruction;
+                    owner.UpdateNavigationAction(navigationAgent, navigationInstruction.State, navigationInstruction.StopReason);
+                    if (!navigationInstruction.ReachedDestination)
+                    {
+                        owner.MarkRuntimeFailure(navigationInstruction.StopReason);
+                        yield break;
+                    }
+                }
+                finally
+                {
+                    owner.EndNavigationAction(navigationAgent);
+                }
+
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 for (int index = 0; index < sequenceAction.Actions.Count; index++)
                 {
                     yield return ExecuteAction(sequenceAction.Actions[index], world, owner);
+                    if (owner.HasRuntimeFailure)
+                    {
+                        yield break;
+                    }
                 }
 
                 break;
@@ -72,6 +103,10 @@ internal static class CutsceneActionCoroutineFactory
                 for (int index = 0; index < handles.Count; index++)
                 {
                     yield return handles[index];
+                    if (owner.HasRuntimeFailure)
+                    {
+                        yield break;
+                    }
                 }
 
                 break;
@@ -79,6 +114,55 @@ internal static class CutsceneActionCoroutineFactory
             default:
                 throw new InvalidOperationException($"Unsupported cutscene action data type: {action.GetType().FullName}");
         }
+    }
+
+    private static bool TryStartNavigateTo(NavigateToCutsceneActionData action, World world, out NavigationAgentComponent navigationAgent, out string failureReason)
+    {
+        navigationAgent = null;
+        failureReason = string.Empty;
+
+        Entity entity = FindEntityByName(world, action.EntityName);
+        if (entity == null)
+        {
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' was not found.";
+            return false;
+        }
+
+        navigationAgent = entity.GetComponent<NavigationAgentComponent>();
+        if (navigationAgent == null)
+        {
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' has no NavigationAgentComponent.";
+            return false;
+        }
+
+        if (navigationAgent.NavigationMap == null)
+        {
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' has no NavigationMap.";
+            return false;
+        }
+
+        if (entity.GetComponent<CharacterControllerNavigationDriverComponent>() == null)
+        {
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' has no CharacterControllerNavigationDriverComponent.";
+            return false;
+        }
+
+        if (entity.GetComponent<CharacterControllerComponent>() == null)
+        {
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' has no CharacterControllerComponent.";
+            return false;
+        }
+
+        navigationAgent.StoppingDistance = action.StoppingDistance;
+        navigationAgent.MoveTo(action.Destination);
+        if (!navigationAgent.RequestPath())
+        {
+            navigationAgent.Cancel();
+            failureReason = $"NavigateTo action target entity '{action.EntityName}' could not find a navigation path.";
+            return false;
+        }
+
+        return true;
     }
 
     private static ICharacterMotionHandle StartMoveTo(MoveToCutsceneActionData action, World world, CutsceneDirector owner)
@@ -115,5 +199,63 @@ internal static class CutsceneActionCoroutineFactory
         }
 
         return null;
+    }
+
+    private sealed class NavigateToCutsceneInstruction : ICoroutineInstruction
+    {
+        private const string ReachedDestinationReason = "ReachedDestination";
+        private const string CancelledReason = "Cancelled";
+        private const string TimeoutReason = "Timeout";
+
+        private readonly NavigationAgentComponent _navigationAgent;
+        private readonly float _timeoutSeconds;
+        private float _elapsedSeconds;
+
+        public NavigateToCutsceneInstruction(NavigationAgentComponent navigationAgent, float timeoutSeconds)
+        {
+            _navigationAgent = navigationAgent ?? throw new ArgumentNullException(nameof(navigationAgent));
+            _timeoutSeconds = timeoutSeconds;
+            State = "Moving";
+            StopReason = string.Empty;
+        }
+
+        public bool ReachedDestination { get; private set; }
+
+        public string State { get; private set; }
+
+        public string StopReason { get; private set; }
+
+        public bool IsCompleted(CoroutineUpdateContext context)
+        {
+            if (_navigationAgent.ReachedDestination)
+            {
+                ReachedDestination = true;
+                State = "Completed";
+                StopReason = ReachedDestinationReason;
+                return true;
+            }
+
+            if (!_navigationAgent.HasDestination && !_navigationAgent.HasPath && !_navigationAgent.IsPathRequestPending)
+            {
+                State = "Cancelled";
+                StopReason = CancelledReason;
+                return true;
+            }
+
+            if (_timeoutSeconds > 0f)
+            {
+                _elapsedSeconds += Math.Max(0f, context.DeltaTime);
+                if (_elapsedSeconds >= _timeoutSeconds)
+                {
+                    _navigationAgent.Cancel();
+                    State = "TimedOut";
+                    StopReason = TimeoutReason;
+                    return true;
+                }
+            }
+
+            State = _navigationAgent.IsPathRequestPending ? "PathPending" : "Moving";
+            return false;
+        }
     }
 }

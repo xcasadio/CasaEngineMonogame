@@ -1,0 +1,27 @@
+{
+  "id": "c61ab6e8-1c4f-44b2-a674-0c50fa526a5d",
+  "name": "Cutscene NavigateTo Grid Demo",
+  "type": "CutsceneAsset",
+  "version": 1,
+  "schema_version": 1,
+  "root_action": {
+    "type": "Sequence",
+    "actions": [
+      {
+        "type": "Wait",
+        "seconds": 0.15
+      },
+      {
+        "type": "NavigateTo",
+        "entity": "CutsceneNavHero",
+        "destination": {
+          "x": 3.5,
+          "y": 0.5,
+          "z": 0.5
+        },
+        "stopping_distance": 0.12,
+        "timeout_seconds": 8.0
+      }
+    ]
+  }
+}

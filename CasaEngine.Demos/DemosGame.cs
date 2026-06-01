@@ -67,6 +67,7 @@ public class DemosGame : CasaEngineGame
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;
 
         _demos.Add(new CutsceneMoveToDemo());
+    _demos.Add(new CutsceneNavigateToDemo());
         _demos.Add(new Collision3dBasicDemo());
         _demos.Add(new Collision2dBasicDemo());
         _demos.Add(new StaticModelDemo());

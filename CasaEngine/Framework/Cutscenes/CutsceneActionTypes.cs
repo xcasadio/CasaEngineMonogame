@@ -4,6 +4,7 @@ public static class CutsceneActionTypes
 {
     public const string Wait = "Wait";
     public const string MoveTo = "MoveTo";
+    public const string NavigateTo = "NavigateTo";
     public const string Sequence = "Sequence";
     public const string Parallel = "Parallel";
 }

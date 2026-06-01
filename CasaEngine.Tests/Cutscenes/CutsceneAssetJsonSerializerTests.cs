@@ -65,6 +65,34 @@ public sealed class CutsceneAssetJsonSerializerTests
     }
 
     [Fact]
+    public void SaveLoad_RoundTripsNavigateToAction()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "NavigateHero",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                EntityName = "Hero",
+                Destination = new Vector3(2f, 0f, 4f),
+                StoppingDistance = 0.2f,
+                TimeoutSeconds = 6f,
+            }
+        };
+        var node = new JObject();
+
+        CutsceneAssetJsonSerializer.Save(asset, node);
+
+        var loaded = new CutsceneAsset();
+        loaded.Load(node);
+
+        NavigateToCutsceneActionData navigateTo = Assert.IsType<NavigateToCutsceneActionData>(loaded.RootAction);
+        Assert.Equal("Hero", navigateTo.EntityName);
+        Assert.Equal(new Vector3(2f, 0f, 4f), navigateTo.Destination);
+        Assert.Equal(0.2f, navigateTo.StoppingDistance);
+        Assert.Equal(6f, navigateTo.TimeoutSeconds);
+    }
+
+    [Fact]
     public void Validate_ReportsV1ErrorsAndWarnings()
     {
         var asset = new CutsceneAsset
@@ -108,6 +136,27 @@ public sealed class CutsceneAssetJsonSerializerTests
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.entity"));
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.stopping_distance"));
         Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("MoveTo.timeout_seconds"));
+    }
+
+    [Fact]
+    public void Validate_ReportsNavigateToErrors()
+    {
+        var asset = new CutsceneAsset
+        {
+            Name = "InvalidNavigateTo",
+            RootAction = new NavigateToCutsceneActionData
+            {
+                StoppingDistance = -1f,
+                TimeoutSeconds = -1f,
+            }
+        };
+
+        CutsceneValidationResult result = asset.Validate();
+
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("NavigateTo.entity"));
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("NavigateTo.stopping_distance"));
+        Assert.Contains(result.Messages, message => message.Severity == CutsceneValidationSeverity.Error && message.Message.Contains("NavigateTo.timeout_seconds"));
     }
 
     [Fact]

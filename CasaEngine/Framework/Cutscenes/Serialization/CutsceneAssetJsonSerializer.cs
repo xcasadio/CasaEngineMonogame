@@ -63,6 +63,13 @@ public static class CutsceneAssetJsonSerializer
                 node["timeout_seconds"] = moveToAction.TimeoutSeconds;
                 break;
 
+            case NavigateToCutsceneActionData navigateToAction:
+                node["entity"] = navigateToAction.EntityName;
+                node["destination"] = SaveVector3(navigateToAction.Destination);
+                node["stopping_distance"] = navigateToAction.StoppingDistance;
+                node["timeout_seconds"] = navigateToAction.TimeoutSeconds;
+                break;
+
             case SequenceCutsceneActionData sequenceAction:
                 node["actions"] = SaveActions(sequenceAction.Actions);
                 break;
@@ -96,6 +103,13 @@ public static class CutsceneAssetJsonSerializer
                 Seconds = node["seconds"]?.GetSingle() ?? 0f
             },
             CutsceneActionTypes.MoveTo => new MoveToCutsceneActionData
+            {
+                EntityName = node["entity"]?.GetString() ?? string.Empty,
+                Destination = node["destination"] is { } destinationNode ? destinationNode.GetVector3() : Vector3.Zero,
+                StoppingDistance = node["stopping_distance"]?.GetSingle() ?? 0.1f,
+                TimeoutSeconds = node["timeout_seconds"]?.GetSingle() ?? 0f,
+            },
+            CutsceneActionTypes.NavigateTo => new NavigateToCutsceneActionData
             {
                 EntityName = node["entity"]?.GetString() ?? string.Empty,
                 Destination = node["destination"] is { } destinationNode ? destinationNode.GetVector3() : Vector3.Zero,

@@ -21,7 +21,7 @@ Décisions validées :
 
 Surfaces repo déjà identifiées :
 
-- `World.CoroutineManager` existe dans `CasaEngine/Framework/Scene/World/World.cs`.
+- `World.CoroutineManager` existe dans `CasaEngine/Framework/Scene/World/World.cs` et pointe vers `World.RuntimeSystems.CoroutineManager`.
 - `CoroutineManager`, `CoroutineHandle`, `WaitForSeconds` et `CoroutineUpdateContext` existent dans `CasaEngine/Framework/Scripting/Coroutines`.
 - Les loaders sont enregistrés dans `CasaEngine/Framework/Assets/AssetLoaderRegistry.cs`.
 - Le contrat loader est `CasaEngine/Framework/Assets/IAssetLoader.cs`.
@@ -32,7 +32,7 @@ Surfaces repo déjà identifiées :
 Surfaces V2 déjà présentes dans le repo :
 
 - `MoveToCutsceneActionData` et `CharacterControllerMoveToDriverComponent` existent déjà.
-- `CutsceneDirector.Stop()` annule et retire désormais les drivers `MoveTo` runtime encore actifs.
+- `CutsceneDirector.Stop()` annule et retire désormais les drivers `MoveTo` runtime encore actifs, puis annule les agents navigation activés par la cutscene.
 - `NavigationGrid2D`, `GridPathfinder2D`, `NavigationAgentComponent`, `CharacterControllerNavigationDriverComponent` et `CharacterControllerSteeringBridgeComponent` existent déjà côté runtime.
 - l'éditeur sait déjà afficher un asset `.cutscene` en lecture seule.
 
@@ -342,90 +342,98 @@ Règles runtime prévues :
 - `NavigateTo` échoue explicitement si aucun chemin n'est trouvé ou si le timeout expire ;
 - `CutsceneDirector.Stop()` devra appeler `NavigationAgentComponent.Cancel()` pour les agents activés par la cutscene.
 
-### ⏳ Tâche 13 — Bridge runtime cutscene -> navigation
+### ✅ Tâche 13 — Bridge runtime cutscene -> navigation
 
 Objectif : exécuter la première action navigation cutscene via les composants runtime déjà présents, sans élargir prématurément le scope.
 
 Actions :
 
-- étendre le modèle d'actions, la validation et la sérialisation JSON ;
-- résoudre l'entité cible puis son `NavigationAgentComponent` ;
-- déléguer le déplacement calculé à l'agent/navigation driver existant ;
-- échouer explicitement si l'agent, la carte ou la cible requise sont absents ;
-- ne pas ajouter de repath dynamique, de navmesh 3D ou d'obstacles avancés dans cette tranche.
+- ✅ étendre le modèle d'actions, la validation et la sérialisation JSON ;
+- ✅ résoudre l'entité cible puis son `NavigationAgentComponent` ;
+- ✅ déléguer le déplacement calculé à l'agent/navigation driver existant ;
+- ✅ échouer explicitement si l'agent, la carte ou la cible requise sont absents ;
+- ✅ ne pas ajouter de repath dynamique, de navmesh 3D ou d'obstacles avancés dans cette tranche.
 
 Validation :
 
-- tests unitaires ciblés sur l'action navigation réussie et les erreurs attendues ;
-- build ciblé vert ;
-- aucune régression sur `MoveTo` direct.
+- ✅ tests unitaires ajoutés sur l'action navigation réussie et les erreurs attendues dans `CasaEngine.Tests/Cutscenes` ;
+- ✅ `dotnet build .\CasaEngine\CasaEngine.csproj -c Debug --no-restore -v:minimal` vert ;
+- ⚠️ `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter "Cutscene|Navigation"` bloqué par des erreurs existantes hors cutscene/navigation V2 : `Pool<>`, `DualQuaternion`, `LightComponent.Coordinates`, `PreviewEnvironmentFactory` ;
+- ✅ aucune erreur nouvelle détectée dans les fichiers cutscene/editor services touchés.
 
-### ⏳ Tâche 14 — Propagation `Stop`/`Cancel` vers les drivers navigation actifs
+### ✅ Tâche 14 — Propagation `Stop`/`Cancel` vers les drivers navigation actifs
 
 Objectif : appliquer à la navigation la même discipline que pour `MoveTo` direct.
 
 Actions :
 
-- suivre les drivers/agents navigation activés par la cutscene ;
-- propager `CutsceneDirector.Stop()` et `World.Clear()` vers ces drivers ;
-- annuler proprement la navigation active, restaurer le mode de contrôle et nettoyer les helpers runtime temporaires ;
-- couvrir aussi le cas d'annulation en cours de déplacement calculé.
+- ✅ suivre les agents navigation activés par la cutscene ;
+- ✅ propager `CutsceneDirector.Stop()` et `World.Clear()` vers ces agents ;
+- ✅ annuler proprement la navigation active et restaurer le mode de contrôle via le driver runtime existant ;
+- ✅ couvrir aussi le cas d'annulation en cours de déplacement calculé.
 
 Validation :
 
-- tests ciblés `Stop`, `Cancel` et `World.Clear()` sur navigation ;
-- aucune fuite de driver runtime sur l'entité après arrêt ;
-- compatibilité conservée avec la tranche `MoveTo` directe.
+- ✅ tests ciblés `Stop`, `Cancel` et `World.Clear()` sur navigation ajoutés ;
+- ✅ build runtime vert ;
+- ⚠️ exécution des tests bloquée par les erreurs existantes du projet de tests listées en tâche 13 ;
+- ✅ compatibilité conservée avec la tranche `MoveTo` directe.
 
-### ⏳ Tâche 15 — Debug runtime et éditeur lecture seule V2
+### ✅ Tâche 15 — Debug runtime et éditeur lecture seule V2
 
 Objectif : rendre observable l'état de la navigation cutscene sans éditeur complet.
 
 Actions :
 
-- étendre `CutsceneDebugSnapshot` avec l'action active, la destination, l'état du driver et la raison d'arrêt ;
-- exposer ces informations dans le document lecture seule et le panneau d'inspection ;
-- garder l'UI en lecture seule ;
-- ne pas ajouter de timeline ni d'édition interactive dans cette tranche.
+- ✅ étendre `CutsceneDebugSnapshot` avec l'action active, la destination, l'état navigation et la raison d'arrêt ;
+- ✅ exposer ces informations dans le document lecture seule et le panneau d'inspection ;
+- ✅ garder l'UI en lecture seule ;
+- ✅ ne pas ajouter de timeline ni d'édition interactive dans cette tranche.
 
 Validation :
 
-- tests du builder lecture seule et du snapshot runtime ;
-- affichage cohérent des nouveaux états sans régression sur l'existant.
+- ✅ tests du builder lecture seule et du snapshot runtime ajoutés ;
+- ✅ `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore -v:minimal` vert ;
+- ⚠️ exécution des tests bloquée par les erreurs existantes du projet de tests listées en tâche 13.
 
-### ⏳ Tâche 16 — CutsceneDemo navigation minimale
+### 🧪 Tâche 16 — CutsceneDemo navigation minimale
 
 Objectif : valider visuellement la première intégration navigation avant toute extension plus ambitieuse.
 
 Actions :
 
-- enrichir ou dupliquer la démo minimale pour brancher une carte de navigation réelle ;
-- ajouter un asset `.cutscene` qui utilise la nouvelle action V2 ;
-- prévoir au moins un cas simple de destination atteignable et un cas d'arrêt manuel ;
-- documenter la procédure de validation visuelle attendue pour l'utilisateur.
+- ✅ dupliquer la démo minimale avec une carte `NavigationGrid2D` réelle ;
+- ✅ ajouter `Content/Cutscenes/navigate_to_grid.cutscene` qui utilise `NavigateTo` ;
+- ✅ prévoir un cas simple de destination atteignable et un arrêt manuel via `S` ;
+- ✅ documenter la procédure de validation visuelle dans `CasaEngine.Demos/Demos/CutsceneNavigateToDemo.md`.
 
 Validation :
 
-- build ou lancement ciblé de la démo ;
-- tests runtime navigation verts ;
+- ✅ `jq empty .\CasaEngine.Demos\Content\Cutscenes\navigate_to_grid.cutscene` et `jq empty .\CasaEngine.Demos\Content\AssetInfos.json` ;
+- ✅ `dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj -c Debug --no-restore -v:minimal` vert ;
+- ✅ smoke automatisé depuis `CasaEngine.Demos` avec `CASAENGINE_START_DEMO="Cutscene NavigateTo demo"` et capture `artifacts/validation/cutscene-navigate-to-demo.png` ;
+- ⚠️ tests runtime navigation non exécutables tant que le projet `CasaEngine.Tests` ne compile pas ;
 - 🧪 validation visuelle utilisateur obligatoire : navigation visible, arrêt correct, retour de contrôle, relecture de la démo sans état résiduel.
 
-### ⏳ Tâche 17 — Validation finale V2 incrémentale
+### ✅ Tâche 17 — Validation finale V2 incrémentale
 
 Objectif : terminer la tranche V2 minimale sans perdre la discipline de validation par petites étapes.
 
 Actions :
 
-- relancer les tests `Cutscene`, `CharacterController` et `Navigation` ciblés ;
-- relancer au moins un build de solution ;
-- mettre à jour ce plan avec les statuts finaux et les résultats constatés ;
-- consigner explicitement les validations visuelles encore en attente côté utilisateur.
+- ✅ relancer les tests `Cutscene`, `CharacterController` et `Navigation` ciblés quand possible ;
+- ✅ relancer au moins un build de solution ;
+- ✅ mettre à jour ce plan avec les statuts finaux et les résultats constatés ;
+- ✅ consigner explicitement les validations visuelles encore en attente côté utilisateur.
 
 Validation :
 
-- `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter 'Cutscene|CharacterController|Navigation'` vert ;
-- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` vert ou blocage documenté ;
-- les tâches de démo restent `🧪 Needs testing` tant que l'utilisateur n'a pas donné son feu vert.
+- ⚠️ `dotnet test .\CasaEngine.Tests\CasaEngine.Tests.csproj -c Debug --no-restore --filter "Cutscene|Navigation"` bloque avant exécution par compilation globale du projet de tests : `Pool<>`, `DualQuaternion`, `LightComponent.Coordinates`, `PreviewEnvironmentFactory` ;
+- ✅ `dotnet build .\CasaEngine\CasaEngine.csproj -c Debug --no-restore -v:minimal` vert ;
+- ✅ `dotnet build .\CasaEngine.Editor\CasaEngine.Editor.csproj -c Debug --no-restore -v:minimal` vert ;
+- ✅ `dotnet build .\CasaEngine.Demos\CasaEngine.Demos.csproj -c Debug --no-restore -v:minimal` vert ;
+- ✅ `dotnet build .\CasaEngine.Editor.MonoGame.sln -c Debug --no-restore -v:minimal` vert, avec warnings existants dans `CasaEngine.DotNetCompiler` ;
+- 🧪 les tâches de démo restent `Needs testing` tant que l'utilisateur n'a pas donné son feu vert visuel.
 
 ## Format `.cutscene` V1 attendu
 

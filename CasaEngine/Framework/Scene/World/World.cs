@@ -50,6 +50,9 @@ public sealed class World : ObjectBase
     public IReadOnlyList<PlayerController> PlayerControllers => _playerControllers;
     public IWorldMessageBus MessageBus { get; }
     public WorldRuntimeSystems RuntimeSystems { get; }
+    public CharacterMotionSystem CharacterMotion => RuntimeSystems.CharacterMotion;
+    public CoroutineManager CoroutineManager => RuntimeSystems.CoroutineManager;
+    public CutsceneDirector CutsceneDirector => RuntimeSystems.CutsceneDirector;
     public EntityPolicyDiagnosticsSnapshot PolicyDiagnostics { get; private set; } = EntityPolicyDiagnosticsSnapshot.Empty;
     public RenderFrame? CurrentRenderFrame { get; private set; }
 

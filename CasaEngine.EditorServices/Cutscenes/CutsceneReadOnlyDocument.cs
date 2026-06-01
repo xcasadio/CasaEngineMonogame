@@ -1,4 +1,5 @@
 using CasaEngine.Framework.Cutscenes;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.EditorServices.Cutscenes;
 
@@ -55,6 +56,32 @@ public sealed class CutsceneReadOnlyDocument
         IReadOnlyList<CutsceneValidationMessage> validationMessages,
         CutsceneRuntimeState runtimeState,
         IReadOnlyList<CutsceneReadOnlyCoroutineInfo> activeCoroutines)
+        : this(
+            assetName,
+            assetFileName,
+            rootAction,
+            validationMessages,
+            runtimeState,
+            activeCoroutines,
+            null,
+            null,
+            null,
+            null,
+            null)
+    { }
+
+    public CutsceneReadOnlyDocument(
+        string assetName,
+        string assetFileName,
+        CutsceneReadOnlyActionNode? rootAction,
+        IReadOnlyList<CutsceneValidationMessage> validationMessages,
+        CutsceneRuntimeState runtimeState,
+        IReadOnlyList<CutsceneReadOnlyCoroutineInfo> activeCoroutines,
+        string? activeActionType,
+        string? activeActionEntityName,
+        Vector3? activeActionDestination,
+        string? activeActionState,
+        string? activeActionStopReason)
     {
         ArgumentNullException.ThrowIfNull(assetName);
         ArgumentNullException.ThrowIfNull(assetFileName);
@@ -67,6 +94,11 @@ public sealed class CutsceneReadOnlyDocument
         ValidationMessages = validationMessages;
         RuntimeState = runtimeState;
         ActiveCoroutines = activeCoroutines;
+        ActiveActionType = activeActionType;
+        ActiveActionEntityName = activeActionEntityName;
+        ActiveActionDestination = activeActionDestination;
+        ActiveActionState = activeActionState;
+        ActiveActionStopReason = activeActionStopReason;
     }
 
     public string AssetName { get; }
@@ -80,6 +112,16 @@ public sealed class CutsceneReadOnlyDocument
     public CutsceneRuntimeState RuntimeState { get; }
 
     public IReadOnlyList<CutsceneReadOnlyCoroutineInfo> ActiveCoroutines { get; }
+
+    public string? ActiveActionType { get; }
+
+    public string? ActiveActionEntityName { get; }
+
+    public Vector3? ActiveActionDestination { get; }
+
+    public string? ActiveActionState { get; }
+
+    public string? ActiveActionStopReason { get; }
 
     public bool CanEdit => false;
 }
