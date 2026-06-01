@@ -38,6 +38,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public Color Color { get; set; }
     public SpriteEffects SpriteEffect { get; set; }
     public Animation2d CurrentAnimation { get; private set; }
+    public bool IsPlaybackPaused { get; set; }
+    public float CurrentAnimationTimeSeconds => _currentCompositionSampler?.CurrentTime ?? 0f;
     private Animation2dCompositionSampler _currentCompositionSampler;
     private Guid _currentSpriteId;
     public Animation2dCompositionRuntimeState CurrentCompositionState => _currentCompositionSampler?.RuntimeState;
@@ -169,7 +171,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             return;
         }
 
-        if (CurrentAnimation != null)
+        if (CurrentAnimation != null && !IsPlaybackPaused)
         {
             var wasFinished = _currentCompositionSampler?.IsFinished == true;
             var isFinished = _currentCompositionSampler?.Update(elapsedTime) == true;
@@ -184,6 +186,20 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
 
         base.Update(elapsedTime);
+    }
+
+    public bool SeekCurrentAnimation(float timeSeconds)
+    {
+        if (_currentCompositionSampler == null)
+        {
+            return false;
+        }
+
+        _currentCompositionSampler.Seek(timeSeconds);
+        IsBoundingBoxDirty = true;
+        UpdateCurrentSprite(true);
+        UpdateCollisionFromSprite(_currentSpriteId);
+        return true;
     }
 
     public override void Draw(float elapsedTime)

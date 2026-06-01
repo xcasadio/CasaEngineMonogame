@@ -47,16 +47,22 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGTextBlock? _timelineText;
+    private MGCheckBox? _timelinePlayCheckBox;
+    private MGSlider? _timelineSlider;
+    private MGNumericUpDown? _timelineTimeInput;
     private MGStackPanel? _contentStack;
-    private Animation2dCompositionSampler? _previewSampler;
 
     private Animation2dData? _animationData;
     private string? _loadedRelativePath;
     private string? _historyContextId;
     private float _previewDurationSeconds;
+    private float _previewTimeSeconds;
     private bool _isDirty;
+    private bool _isPreviewPlaying = true;
     private bool _suppressControlCallbacks;
     private bool _disposed;
+
+    private const double TimelineTimeStepMilliseconds = 0.01d;
 
     public Animation2dAssetInspectorPanel(
         MGWindow window,
@@ -305,24 +311,13 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         _previewWorldDriver.Tick(gameTime);
 
-        if (_previewSampler == null)
+        if (_previewSpriteComponent != null)
         {
-            return;
+            _previewTimeSeconds = _previewSpriteComponent.CurrentAnimationTimeSeconds;
         }
 
-        if (_previewSampler.IsFinished)
-        {
-            return;
-        }
-
-        var elapsedSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds;
-        if (elapsedSeconds <= 0f)
-        {
-            return;
-        }
-
-        _previewSampler.Update(elapsedSeconds);
         RefreshTimelineText();
+        RefreshTimelineControls();
     }
 
     public void DrawViewport(GameTime gameTime)
@@ -343,7 +338,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _previewViewportPanel = null;
         _previewEntity = null;
         _previewSpriteComponent = null;
-        _previewSampler = null;
     }
 
     public static bool TryLoadAsset(string fullPath, out Animation2dData animationData)
@@ -397,6 +391,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             _sourceText.Text = "No animation asset loaded.";
             _statusText.Text = "Open a .anim2d asset from the Content Browser.";
             RefreshTimelineText();
+            RefreshTimelineControls();
             return;
         }
 
@@ -471,6 +466,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         RefreshTimelineText();
+        RefreshTimelineControls();
     }
 
     private void SaveLoadedAsset()
@@ -780,6 +776,61 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         };
         stack.TryAddChild(_timelineText);
 
+        var controlsRow = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        _timelinePlayCheckBox = new MGCheckBox(_window)
+        {
+            IsChecked = _isPreviewPlaying,
+        };
+        _timelinePlayCheckBox.SetContent(new MGTextBlock(_window, "Play")
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        _timelinePlayCheckBox.OnCheckStateChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            SetPreviewPlaybackEnabled(args.NewValue ?? false);
+        };
+        controlsRow.TryAddChild(_timelinePlayCheckBox);
+
+        controlsRow.TryAddChild(new MGTextBlock(_window, "Time (ms)")
+        {
+            PreferredWidth = 80,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        _timelineTimeInput = new MGNumericUpDown(
+            _window,
+            0d,
+            GetTimelineMaximumMilliseconds(),
+            0d,
+            TimelineTimeStepMilliseconds,
+            2,
+            "F2")
+        {
+            MinWidth = 160,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        _timelineTimeInput.ValueChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            ApplyTimelineTimeMilliseconds(args.NewValue);
+        };
+        controlsRow.TryAddChild(_timelineTimeInput);
+        stack.TryAddChild(controlsRow);
+
         var surface = new MGBorder(
             _window,
             new Thickness(1),
@@ -789,6 +840,25 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             MinHeight = 48,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
+
+        _timelineSlider = new MGSlider(_window, 0f, (float)GetTimelineMaximumMilliseconds(), 0f)
+        {
+            Margin = new Thickness(8, 8, 8, 8),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+            ShowValueLabel = true,
+            ValueLabelFormat = "F2",
+        };
+        _timelineSlider.ValueChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            ApplyTimelineTimeMilliseconds(args.NewValue);
+        };
+        surface.SetContent(_timelineSlider);
         stack.TryAddChild(surface);
 
         var panel = new MGBorder(
@@ -804,23 +874,25 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         panel.SetContent(stack);
+        RefreshTimelineControls();
         return panel;
     }
 
     private void RebuildPreviewState()
     {
-        _previewSampler = null;
         _previewDurationSeconds = 0f;
         _spriteDataById.Clear();
         _spriteIdsToResolve.Clear();
 
         if (_animationData == null)
         {
+            _previewTimeSeconds = 0f;
             _previewWorldDriver.Clear();
             _previewViewportPanel?.SetWorldOverride(null);
             _previewEntity = null;
             _previewSpriteComponent = null;
             RefreshTimelineText();
+            RefreshTimelineControls();
             return;
         }
 
@@ -842,22 +914,26 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             }
         }
 
-        _previewSampler = new Animation2dCompositionSampler(composition);
-        _previewSampler.Reset();
+        var boundsSampler = new Animation2dCompositionSampler(composition);
+        boundsSampler.Reset();
         var previewPosition = Vector3.Zero;
-        if (Animation2dBoundsCalculator.TryCalculateLocalBounds(_previewSampler.RuntimeState, _spriteDataById, out var bounds))
+        if (Animation2dBoundsCalculator.TryCalculateLocalBounds(boundsSampler.RuntimeState, _spriteDataById, out var bounds))
         {
             var center = (bounds.Min + bounds.Max) * 0.5f;
             previewPosition = new Vector3(-center.X, -center.Y, 0f);
         }
 
         RebuildPreviewWorld(previewPosition);
+        _previewTimeSeconds = Math.Clamp(_previewTimeSeconds, 0f, Math.Max(0f, _previewDurationSeconds));
+        ApplyPreviewPlaybackState();
+        SeekPreviewTime(_previewTimeSeconds);
         if (unresolvedSpriteCount > 0)
         {
             SetStatus($"Animation2D preview has {unresolvedSpriteCount.ToString(CultureInfo.InvariantCulture)} unresolved sprite reference(s).");
         }
 
         RefreshTimelineText();
+        RefreshTimelineControls();
     }
 
     private void RebuildPreviewWorld(Vector3 previewPosition)
@@ -900,6 +976,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             {
                 _previewSpriteComponent.SetCurrentAnimation(0, true);
             }
+
+            _previewSpriteComponent.IsPlaybackPaused = !_isPreviewPlaying;
         }
 
         _previewWorldDriver.RefreshNow();
@@ -928,13 +1006,78 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
-        if (_animationData == null || _previewSampler == null)
+        if (_animationData == null || _previewSpriteComponent == null)
         {
             _timelineText.Text = "No animation loaded.";
             return;
         }
 
-        _timelineText.Text = $"{FormatSeconds(_previewSampler.CurrentTime)} / {FormatSeconds(_previewDurationSeconds)}  Events: {_animationData.Events.Count.ToString(CultureInfo.InvariantCulture)}";
+        _timelineText.Text = $"{FormatSeconds(_previewTimeSeconds)} / {FormatSeconds(_previewDurationSeconds)}  Events: {_animationData.Events.Count.ToString(CultureInfo.InvariantCulture)}";
+    }
+
+    private void SetPreviewPlaybackEnabled(bool isPlaying)
+    {
+        _isPreviewPlaying = isPlaying;
+        ApplyPreviewPlaybackState();
+        RefreshTimelineControls();
+    }
+
+    private void ApplyPreviewPlaybackState()
+    {
+        if (_previewSpriteComponent != null)
+        {
+            _previewSpriteComponent.IsPlaybackPaused = !_isPreviewPlaying;
+        }
+    }
+
+    private void ApplyTimelineTimeMilliseconds(double timeMilliseconds)
+    {
+        SeekPreviewTime((float)(timeMilliseconds / 1000.0d));
+    }
+
+    private void SeekPreviewTime(float timeSeconds)
+    {
+        _previewTimeSeconds = Math.Clamp(timeSeconds, 0f, Math.Max(0f, _previewDurationSeconds));
+        _previewSpriteComponent?.SeekCurrentAnimation(_previewTimeSeconds);
+        RefreshTimelineText();
+        RefreshTimelineControls();
+    }
+
+    private double GetTimelineMaximumMilliseconds()
+    {
+        return Math.Max(TimelineTimeStepMilliseconds, _previewDurationSeconds * 1000.0d);
+    }
+
+    private void RefreshTimelineControls()
+    {
+        bool hasAnimation = _animationData != null && _previewSpriteComponent != null;
+        double maximumMilliseconds = GetTimelineMaximumMilliseconds();
+        double currentMilliseconds = Math.Clamp(_previewTimeSeconds * 1000.0d, 0d, maximumMilliseconds);
+
+        _suppressControlCallbacks = true;
+
+        if (_timelinePlayCheckBox != null)
+        {
+            _timelinePlayCheckBox.IsChecked = _isPreviewPlaying;
+            _timelinePlayCheckBox.IsEnabled = hasAnimation;
+        }
+
+        if (_timelineTimeInput != null)
+        {
+            _timelineTimeInput.Minimum = 0d;
+            _timelineTimeInput.Maximum = maximumMilliseconds;
+            _timelineTimeInput.Value = currentMilliseconds;
+            _timelineTimeInput.IsEnabled = hasAnimation;
+        }
+
+        if (_timelineSlider != null)
+        {
+            _timelineSlider.SetRange(0f, (float)maximumMilliseconds);
+            _timelineSlider.Value = (float)currentMilliseconds;
+            _timelineSlider.IsEnabled = hasAnimation;
+        }
+
+        _suppressControlCallbacks = false;
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
