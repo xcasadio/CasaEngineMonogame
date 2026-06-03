@@ -2,52 +2,36 @@
   "animation_type": "Once",
   "id": "c5d7500d-42be-46cd-b12b-079981f46053",
   "name": "ryu_192",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f"
-        },
-        {
-          "time_seconds": 1.9199998,
-          "value": "365a616d-bbdd-4ab5-92be-7a4b86871889"
-        },
-        {
-          "time_seconds": 2.0799998,
-          "value": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f"
-        },
-        {
-          "time_seconds": 2.1759998,
-          "value": "ac15c18b-2bbc-42b8-8128-faa68b9cd836"
-        },
-        {
-          "time_seconds": 2.2559998,
-          "value": "d3464b37-e782-49fe-a119-b2f3c275ff02"
-        },
-        {
-          "time_seconds": 2.3359998,
-          "value": "d3464b37-e782-49fe-a119-b2f3c275ff02"
-        }
-      ]
+      "time_seconds": 1.9199998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "365a616d-bbdd-4ab5-92be-7a4b86871889"
+    },
+    {
+      "time_seconds": 2.0799998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "c3f23132-0908-4e9a-aa96-bbc7ca9bf94f"
+    },
+    {
+      "time_seconds": 2.1759998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "ac15c18b-2bbc-42b8-8128-faa68b9cd836"
+    },
+    {
+      "time_seconds": 2.2559998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d3464b37-e782-49fe-a119-b2f3c275ff02"
+    },
+    {
+      "time_seconds": 2.3359998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d3464b37-e782-49fe-a119-b2f3c275ff02"
     }
   ]
 }

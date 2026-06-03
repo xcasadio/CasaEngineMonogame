@@ -2,40 +2,21 @@
   "animation_type": "Loop",
   "id": "48f89e4e-5e24-4c43-92a2-c077f2110dc8",
   "name": "octopus_walk_left",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "6ccdbb03-89ac-4da6-907c-126a663f36a4",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "6ccdbb03-89ac-4da6-907c-126a663f36a4"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "6ccdbb03-89ac-4da6-907c-126a663f36a4"
-        },
-        {
-          "time_seconds": 0.15,
-          "value": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
-        },
-        {
-          "time_seconds": 0.30,
-          "value": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
-        }
-      ]
+      "time_seconds": 0.15,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
+    },
+    {
+      "time_seconds": 0.3,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
     }
   ]
 }

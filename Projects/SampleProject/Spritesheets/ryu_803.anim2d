@@ -2,52 +2,36 @@
   "animation_type": "Once",
   "id": "48a6a200-8029-4df2-a4ea-02c6a2756e1b",
   "name": "ryu_803",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
-        },
-        {
-          "time_seconds": 0.048,
-          "value": "c0452165-1060-472c-9d94-5c7857ab90ca"
-        },
-        {
-          "time_seconds": 0.096,
-          "value": "52c1292a-fb32-427c-8ef6-71053b10c6a5"
-        },
-        {
-          "time_seconds": 0.144,
-          "value": "729a64b1-8342-4170-8391-43b5c788f98b"
-        },
-        {
-          "time_seconds": 0.192,
-          "value": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
-        },
-        {
-          "time_seconds": 0.31999999,
-          "value": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
-        }
-      ]
+      "time_seconds": 0.048,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "c0452165-1060-472c-9d94-5c7857ab90ca"
+    },
+    {
+      "time_seconds": 0.096,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "52c1292a-fb32-427c-8ef6-71053b10c6a5"
+    },
+    {
+      "time_seconds": 0.144,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "729a64b1-8342-4170-8391-43b5c788f98b"
+    },
+    {
+      "time_seconds": 0.192,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
+    },
+    {
+      "time_seconds": 0.31999999,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "63a32e56-ac71-4943-9a51-0e4f35f412cd"
     }
   ]
 }

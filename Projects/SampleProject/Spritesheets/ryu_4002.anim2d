@@ -2,36 +2,16 @@
   "animation_type": "Once",
   "id": "d7cce12c-f545-485d-aaa4-1dc8f243194f",
   "name": "ryu_4002",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e"
-        },
-        {
-          "time_seconds": 0.015999999,
-          "value": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e"
-        }
-      ]
+      "time_seconds": 0.015999999,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "9ae8bc27-aab7-493e-ac7a-37a79d6a955e"
     }
   ]
 }

@@ -2,48 +2,31 @@
   "animation_type": "Once",
   "id": "cd389284-5cd7-4aa2-8901-f1cfdb55011a",
   "name": "swordman_attack3_right",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "d2f82411-c63d-4c5a-accb-dda56cb6e4ac",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d2f82411-c63d-4c5a-accb-dda56cb6e4ac"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "d2f82411-c63d-4c5a-accb-dda56cb6e4ac"
-        },
-        {
-          "time_seconds": 0.03,
-          "value": "0bb0452d-9266-47bb-8eac-656d54c911f5"
-        },
-        {
-          "time_seconds": 0.06,
-          "value": "3d3fb59f-374e-49ad-9473-f959def6b8a0"
-        },
-        {
-          "time_seconds": 0.09,
-          "value": "873637ee-35e0-455f-8158-2685ecea9b25"
-        },
-        {
-          "time_seconds": 0.12,
-          "value": "873637ee-35e0-455f-8158-2685ecea9b25"
-        }
-      ]
+      "time_seconds": 0.03,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "0bb0452d-9266-47bb-8eac-656d54c911f5"
+    },
+    {
+      "time_seconds": 0.06,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "3d3fb59f-374e-49ad-9473-f959def6b8a0"
+    },
+    {
+      "time_seconds": 0.09,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "873637ee-35e0-455f-8158-2685ecea9b25"
+    },
+    {
+      "time_seconds": 0.12,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "873637ee-35e0-455f-8158-2685ecea9b25"
     }
   ]
 }

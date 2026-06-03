@@ -2,212 +2,236 @@
   "animation_type": "Once",
   "id": "17c25f7a-588b-4370-8703-3e96779a2eb4",
   "name": "ryu_3180",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
-        },
-        {
-          "time_seconds": 0.031999998,
-          "value": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
-        },
-        {
-          "time_seconds": 0.063999996,
-          "value": "13a193ca-78fa-4237-80ea-f959a4e200af"
-        },
-        {
-          "time_seconds": 0.111999996,
-          "value": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
-        },
-        {
-          "time_seconds": 0.191999996,
-          "value": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
-        },
-        {
-          "time_seconds": 0.271999996,
-          "value": "e95bfc02-bb00-4155-8508-e8851f9999d6"
-        },
-        {
-          "time_seconds": 0.351999996,
-          "value": "9168301e-e6b2-41d2-a9ea-394eee3201bf"
-        },
-        {
-          "time_seconds": 0.431999996,
-          "value": "51471cbf-2531-47fd-8af5-0a149d1a11df"
-        },
-        {
-          "time_seconds": 0.511999996,
-          "value": "0efdf8da-2d49-4611-a650-bc06afaa4e84"
-        },
-        {
-          "time_seconds": 0.591999996,
-          "value": "a4fffda1-a314-4c62-b505-bc4758169aa1"
-        },
-        {
-          "time_seconds": 0.719999986,
-          "value": "13a193ca-78fa-4237-80ea-f959a4e200af"
-        },
-        {
-          "time_seconds": 0.767999986,
-          "value": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
-        },
-        {
-          "time_seconds": 0.815999986,
-          "value": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
-        },
-        {
-          "time_seconds": 0.863999986,
-          "value": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
-        },
-        {
-          "time_seconds": 0.895999984,
-          "value": "022ab457-944a-4c16-997c-aeefcc64b16e"
-        },
-        {
-          "time_seconds": 0.943999984,
-          "value": "43066313-e310-4780-b18c-23344dcdf575"
-        },
-        {
-          "time_seconds": 0.975999982,
-          "value": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
-        },
-        {
-          "time_seconds": 1.007999980,
-          "value": "022ab457-944a-4c16-997c-aeefcc64b16e"
-        },
-        {
-          "time_seconds": 1.055999980,
-          "value": "43066313-e310-4780-b18c-23344dcdf575"
-        },
-        {
-          "time_seconds": 1.087999978,
-          "value": "7e88574f-ebb5-4b38-84a8-d094968ca8db"
-        },
-        {
-          "time_seconds": 1.119999976,
-          "value": "2d1ad1f7-ca96-4276-a030-fd995a1f9072"
-        },
-        {
-          "time_seconds": 1.167999976,
-          "value": "f7f2ac0f-7066-4cfe-bfc0-b5aacdc27d80"
-        },
-        {
-          "time_seconds": 1.231999972,
-          "value": "2dcf84bb-7d8a-4fc4-b12b-fb2d8126b98f"
-        },
-        {
-          "time_seconds": 1.295999968,
-          "value": "f02ddd38-14ce-4f5b-b5cf-a13457cc40d9"
-        },
-        {
-          "time_seconds": 1.343999968,
-          "value": "0b7ecc0b-c004-4360-af47-1a6191e09259"
-        },
-        {
-          "time_seconds": 1.391999968,
-          "value": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
-        },
-        {
-          "time_seconds": 1.423999966,
-          "value": "022ab457-944a-4c16-997c-aeefcc64b16e"
-        },
-        {
-          "time_seconds": 1.471999966,
-          "value": "43066313-e310-4780-b18c-23344dcdf575"
-        },
-        {
-          "time_seconds": 1.503999964,
-          "value": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
-        },
-        {
-          "time_seconds": 1.535999962,
-          "value": "022ab457-944a-4c16-997c-aeefcc64b16e"
-        },
-        {
-          "time_seconds": 1.583999962,
-          "value": "43066313-e310-4780-b18c-23344dcdf575"
-        },
-        {
-          "time_seconds": 1.615999960,
-          "value": "7e88574f-ebb5-4b38-84a8-d094968ca8db"
-        },
-        {
-          "time_seconds": 1.647999958,
-          "value": "2d1ad1f7-ca96-4276-a030-fd995a1f9072"
-        },
-        {
-          "time_seconds": 1.695999958,
-          "value": "f7f2ac0f-7066-4cfe-bfc0-b5aacdc27d80"
-        },
-        {
-          "time_seconds": 1.759999954,
-          "value": "2dcf84bb-7d8a-4fc4-b12b-fb2d8126b98f"
-        },
-        {
-          "time_seconds": 1.823999950,
-          "value": "f02ddd38-14ce-4f5b-b5cf-a13457cc40d9"
-        },
-        {
-          "time_seconds": 1.871999950,
-          "value": "00fffd94-3f0d-49a0-9250-ac430a213c8b"
-        },
-        {
-          "time_seconds": 1.903999948,
-          "value": "9cec74a9-c68a-4ff7-9428-29883d60a41f"
-        },
-        {
-          "time_seconds": 1.935999946,
-          "value": "2554f9da-98a1-4d59-975c-1fbb45064611"
-        },
-        {
-          "time_seconds": 1.967999944,
-          "value": "57d987b2-b9ec-42b2-a5ea-a81e5d5389b5"
-        },
-        {
-          "time_seconds": 1.999999942,
-          "value": "ba9bf8f8-0488-4a43-a81f-01da191c6304"
-        },
-        {
-          "time_seconds": 2.063999938,
-          "value": "d6697fd0-4276-429d-8139-2d0b35489d8d"
-        },
-        {
-          "time_seconds": 2.127999934,
-          "value": "69d74cdc-6805-4397-a0e0-382c0c8879df"
-        },
-        {
-          "time_seconds": 2.191999930,
-          "value": "0f2660ce-f938-4c7f-be27-f9c7d9620450"
-        },
-        {
-          "time_seconds": 2.223999928,
-          "value": "4957bbb0-397c-4977-bf27-9bec40463f31"
-        },
-        {
-          "time_seconds": 2.255999926,
-          "value": "4957bbb0-397c-4977-bf27-9bec40463f31"
-        }
-      ]
+      "time_seconds": 0.031999998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
+    },
+    {
+      "time_seconds": 0.063999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "13a193ca-78fa-4237-80ea-f959a4e200af"
+    },
+    {
+      "time_seconds": 0.111999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d15299f7-e335-4023-ac3e-1ccdd184fa1a"
+    },
+    {
+      "time_seconds": 0.191999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "51d08764-5de9-4bd6-8d11-f2b7e9d108aa"
+    },
+    {
+      "time_seconds": 0.271999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "e95bfc02-bb00-4155-8508-e8851f9999d6"
+    },
+    {
+      "time_seconds": 0.351999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "9168301e-e6b2-41d2-a9ea-394eee3201bf"
+    },
+    {
+      "time_seconds": 0.431999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "51471cbf-2531-47fd-8af5-0a149d1a11df"
+    },
+    {
+      "time_seconds": 0.511999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "0efdf8da-2d49-4611-a650-bc06afaa4e84"
+    },
+    {
+      "time_seconds": 0.591999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "a4fffda1-a314-4c62-b505-bc4758169aa1"
+    },
+    {
+      "time_seconds": 0.719999986,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "13a193ca-78fa-4237-80ea-f959a4e200af"
+    },
+    {
+      "time_seconds": 0.767999986,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "068276f0-3cc3-4432-b1ec-31f7e9968d93"
+    },
+    {
+      "time_seconds": 0.815999986,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d6f8b9f2-868a-4838-aed1-f4e72dc05772"
+    },
+    {
+      "time_seconds": 0.863999986,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
+    },
+    {
+      "time_seconds": 0.895999984,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "022ab457-944a-4c16-997c-aeefcc64b16e"
+    },
+    {
+      "time_seconds": 0.943999984,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "43066313-e310-4780-b18c-23344dcdf575"
+    },
+    {
+      "time_seconds": 0.975999982,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
+    },
+    {
+      "time_seconds": 1.00799998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "022ab457-944a-4c16-997c-aeefcc64b16e"
+    },
+    {
+      "time_seconds": 1.05599998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "43066313-e310-4780-b18c-23344dcdf575"
+    },
+    {
+      "time_seconds": 1.087999978,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "7e88574f-ebb5-4b38-84a8-d094968ca8db"
+    },
+    {
+      "time_seconds": 1.119999976,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2d1ad1f7-ca96-4276-a030-fd995a1f9072"
+    },
+    {
+      "time_seconds": 1.167999976,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f7f2ac0f-7066-4cfe-bfc0-b5aacdc27d80"
+    },
+    {
+      "time_seconds": 1.231999972,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2dcf84bb-7d8a-4fc4-b12b-fb2d8126b98f"
+    },
+    {
+      "time_seconds": 1.295999968,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f02ddd38-14ce-4f5b-b5cf-a13457cc40d9"
+    },
+    {
+      "time_seconds": 1.343999968,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "0b7ecc0b-c004-4360-af47-1a6191e09259"
+    },
+    {
+      "time_seconds": 1.391999968,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
+    },
+    {
+      "time_seconds": 1.423999966,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "022ab457-944a-4c16-997c-aeefcc64b16e"
+    },
+    {
+      "time_seconds": 1.471999966,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "43066313-e310-4780-b18c-23344dcdf575"
+    },
+    {
+      "time_seconds": 1.503999964,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d0775d4f-4c55-4233-a7f4-222371ae1cd2"
+    },
+    {
+      "time_seconds": 1.535999962,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "022ab457-944a-4c16-997c-aeefcc64b16e"
+    },
+    {
+      "time_seconds": 1.583999962,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "43066313-e310-4780-b18c-23344dcdf575"
+    },
+    {
+      "time_seconds": 1.61599996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "7e88574f-ebb5-4b38-84a8-d094968ca8db"
+    },
+    {
+      "time_seconds": 1.647999958,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2d1ad1f7-ca96-4276-a030-fd995a1f9072"
+    },
+    {
+      "time_seconds": 1.695999958,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f7f2ac0f-7066-4cfe-bfc0-b5aacdc27d80"
+    },
+    {
+      "time_seconds": 1.759999954,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2dcf84bb-7d8a-4fc4-b12b-fb2d8126b98f"
+    },
+    {
+      "time_seconds": 1.82399995,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f02ddd38-14ce-4f5b-b5cf-a13457cc40d9"
+    },
+    {
+      "time_seconds": 1.87199995,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "00fffd94-3f0d-49a0-9250-ac430a213c8b"
+    },
+    {
+      "time_seconds": 1.903999948,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "9cec74a9-c68a-4ff7-9428-29883d60a41f"
+    },
+    {
+      "time_seconds": 1.935999946,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2554f9da-98a1-4d59-975c-1fbb45064611"
+    },
+    {
+      "time_seconds": 1.967999944,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "57d987b2-b9ec-42b2-a5ea-a81e5d5389b5"
+    },
+    {
+      "time_seconds": 1.999999942,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "ba9bf8f8-0488-4a43-a81f-01da191c6304"
+    },
+    {
+      "time_seconds": 2.063999938,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "d6697fd0-4276-429d-8139-2d0b35489d8d"
+    },
+    {
+      "time_seconds": 2.127999934,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "69d74cdc-6805-4397-a0e0-382c0c8879df"
+    },
+    {
+      "time_seconds": 2.19199993,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "0f2660ce-f938-4c7f-be27-f9c7d9620450"
+    },
+    {
+      "time_seconds": 2.223999928,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "4957bbb0-397c-4977-bf27-9bec40463f31"
+    },
+    {
+      "time_seconds": 2.255999926,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "4957bbb0-397c-4977-bf27-9bec40463f31"
     }
   ]
 }

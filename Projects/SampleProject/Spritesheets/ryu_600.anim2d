@@ -2,60 +2,46 @@
   "animation_type": "Once",
   "id": "75b20fc9-6bb7-491d-b3dd-03c0e64cc416",
   "name": "ryu_600",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "55e8b6d0-a557-4d94-a3d6-6cf3a7b87ca2",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "55e8b6d0-a557-4d94-a3d6-6cf3a7b87ca2"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "55e8b6d0-a557-4d94-a3d6-6cf3a7b87ca2"
-        },
-        {
-          "time_seconds": 0.048,
-          "value": "c1cca87c-ae26-4fbe-882c-1af063e7dffe"
-        },
-        {
-          "time_seconds": 0.144,
-          "value": "2d411898-7160-454a-a15d-9b910002e121"
-        },
-        {
-          "time_seconds": 0.192,
-          "value": "5314dedd-a94f-4587-bdd2-55b0540969d2"
-        },
-        {
-          "time_seconds": 0.240,
-          "value": "2d411898-7160-454a-a15d-9b910002e121"
-        },
-        {
-          "time_seconds": 0.271999998,
-          "value": "7be826e3-bd72-4ca5-855e-d928dde7a0cd"
-        },
-        {
-          "time_seconds": 0.303999996,
-          "value": "184b10f1-3a45-4862-97fd-549d0821e72a"
-        },
-        {
-          "time_seconds": 0.319999995,
-          "value": "184b10f1-3a45-4862-97fd-549d0821e72a"
-        }
-      ]
+      "time_seconds": 0.048,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "c1cca87c-ae26-4fbe-882c-1af063e7dffe"
+    },
+    {
+      "time_seconds": 0.144,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2d411898-7160-454a-a15d-9b910002e121"
+    },
+    {
+      "time_seconds": 0.192,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "5314dedd-a94f-4587-bdd2-55b0540969d2"
+    },
+    {
+      "time_seconds": 0.24,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "2d411898-7160-454a-a15d-9b910002e121"
+    },
+    {
+      "time_seconds": 0.271999998,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "7be826e3-bd72-4ca5-855e-d928dde7a0cd"
+    },
+    {
+      "time_seconds": 0.303999996,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "184b10f1-3a45-4862-97fd-549d0821e72a"
+    },
+    {
+      "time_seconds": 0.319999995,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "184b10f1-3a45-4862-97fd-549d0821e72a"
     }
   ]
 }
