@@ -137,7 +137,7 @@ public class LogsPanel
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
             ItemTemplate = BuildEntryTemplate,
-            VirtualizationMode = ListBoxVirtualizationMode.Never,
+            VirtualizationMode = ListBoxVirtualizationMode.Always,
         };
         _listBox.ScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
         _listBox.ScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -307,19 +307,7 @@ public class LogsPanel
 
     private bool TryGetEntryAtPosition(Point screenPosition, out LogEntry entry)
     {
-        var unscaledPosition = _listBox.ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.UnscaledScreen, screenPosition);
-        foreach (var item in _listBox.ListBoxItems)
-        {
-            var bounds = item.ContentPresenter.ActualLayoutBounds;
-            if (!bounds.IsEmpty && bounds.ContainsInclusive(unscaledPosition))
-            {
-                entry = item.Data;
-                return true;
-            }
-        }
-
-        entry = null!;
-        return false;
+        return _listBox.TryGetItemAtPosition(screenPosition, out entry);
     }
 
     private static void CopyToClipboard(string text)

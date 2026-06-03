@@ -2,36 +2,52 @@
   "animation_type": "Once",
   "id": "85153afe-a3ca-4cb9-bd8d-1af921cf6671",
   "name": "ryu_5200",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "0457150e-e402-47b8-8b4d-69fd16f8e563"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "0457150e-e402-47b8-8b4d-69fd16f8e563",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.063999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "d5156205-fed0-4dc4-a103-b2485e6e19d1"
-    },
-    {
-      "time_seconds": 0.159999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "84a618fc-9f36-48a8-bd58-c5ba387d7a32"
-    },
-    {
-      "time_seconds": 0.223999992,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "602a3a80-e221-4221-b4d0-fec6ee967959"
-    },
-    {
-      "time_seconds": 0.287999988,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
-    },
-    {
-      "time_seconds": 0.351999984,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "0457150e-e402-47b8-8b4d-69fd16f8e563"
+        },
+        {
+          "time_seconds": 0.063999996,
+          "value": "d5156205-fed0-4dc4-a103-b2485e6e19d1"
+        },
+        {
+          "time_seconds": 0.159999996,
+          "value": "84a618fc-9f36-48a8-bd58-c5ba387d7a32"
+        },
+        {
+          "time_seconds": 0.223999992,
+          "value": "602a3a80-e221-4221-b4d0-fec6ee967959"
+        },
+        {
+          "time_seconds": 0.287999988,
+          "value": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+        },
+        {
+          "time_seconds": 0.351999984,
+          "value": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+        }
+      ]
     }
   ]
 }

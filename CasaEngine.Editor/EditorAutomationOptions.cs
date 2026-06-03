@@ -7,6 +7,11 @@ public sealed class EditorAutomationOptions
 {
     public string? ProjectPath { get; private set; }
     public string? OpenAssetPath { get; private set; }
+    public string? ActivatePanelId { get; private set; }
+    public string? ContentBrowserFolderPath { get; private set; }
+    public string? ContentBrowserScrollTarget { get; private set; }
+    public string? DockResizeTarget { get; private set; }
+    public string? DockInputDragTarget { get; private set; }
     public string? CreateParticleAssetFolder { get; private set; }
     public string? CreateParticlePresetName { get; private set; }
     public string? DropParticleAssetPath { get; private set; }
@@ -47,6 +52,31 @@ public sealed class EditorAutomationOptions
 
                 case "--open-asset":
                     options.OpenAssetPath = next;
+                    index++;
+                    break;
+
+                case "--activate-panel":
+                    options.ActivatePanelId = next;
+                    index++;
+                    break;
+
+                case "--content-folder":
+                    options.ContentBrowserFolderPath = next;
+                    index++;
+                    break;
+
+                case "--content-scroll":
+                    options.ContentBrowserScrollTarget = next;
+                    index++;
+                    break;
+
+                case "--dock-resize":
+                    options.DockResizeTarget = next;
+                    index++;
+                    break;
+
+                case "--dock-input-drag":
+                    options.DockInputDragTarget = next;
                     index++;
                     break;
 

@@ -2,151 +2,144 @@
   "animation_type": "Once",
   "id": "4ecfc9eb-c323-486e-bb62-d06b322530fe",
   "name": "ryu_3600",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "178f47a5-3f83-4bd0-8571-7aba4c88de29",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.031999998,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "81136034-6aa3-43f2-9a38-3a0cd4742716"
-    },
-    {
-      "time_seconds": 0.063999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
-    },
-    {
-      "time_seconds": 0.095999994,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
-    },
-    {
-      "time_seconds": 0.127999992,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "202d5a26-fa72-48eb-892a-7f3b7b285ac8"
-    },
-    {
-      "time_seconds": 0.143999991,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "82d228ad-22d3-4cd2-a624-0b9b9aec89b3"
-    },
-    {
-      "time_seconds": 0.15999999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "7aebdc66-8710-4475-9e94-ebfbdb6dd481"
-    },
-    {
-      "time_seconds": 0.175999989,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "00330e21-96d5-418c-8d2c-a0b832f511b8"
-    },
-    {
-      "time_seconds": 0.191999988,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "3ff6f87a-5c5f-476f-a8fa-dfec9228713d"
-    },
-    {
-      "time_seconds": 0.207999987,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "1ada43e4-a381-4380-a6af-71a3d9163257"
-    },
-    {
-      "time_seconds": 0.223999986,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "729a64b1-8342-4170-8391-43b5c788f98b"
-    },
-    {
-      "time_seconds": 0.239999985,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
-    },
-    {
-      "time_seconds": 0.255999984,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
-    },
-    {
-      "time_seconds": 0.303999984,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "81136034-6aa3-43f2-9a38-3a0cd4742716"
-    },
-    {
-      "time_seconds": 0.335999982,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
-    },
-    {
-      "time_seconds": 0.36799998,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
-    },
-    {
-      "time_seconds": 0.399999978,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "202d5a26-fa72-48eb-892a-7f3b7b285ac8"
-    },
-    {
-      "time_seconds": 0.415999977,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "82d228ad-22d3-4cd2-a624-0b9b9aec89b3"
-    },
-    {
-      "time_seconds": 0.431999976,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "7aebdc66-8710-4475-9e94-ebfbdb6dd481"
-    },
-    {
-      "time_seconds": 0.447999975,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "00330e21-96d5-418c-8d2c-a0b832f511b8"
-    },
-    {
-      "time_seconds": 0.463999974,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "3ff6f87a-5c5f-476f-a8fa-dfec9228713d"
-    },
-    {
-      "time_seconds": 0.479999973,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "1ada43e4-a381-4380-a6af-71a3d9163257"
-    },
-    {
-      "time_seconds": 0.495999972,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "729a64b1-8342-4170-8391-43b5c788f98b"
-    },
-    {
-      "time_seconds": 0.511999971,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
-    },
-    {
-      "time_seconds": 0.52799997,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
-    },
-    {
-      "time_seconds": 0.559999968,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "81136034-6aa3-43f2-9a38-3a0cd4742716"
-    },
-    {
-      "time_seconds": 0.591999966,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
-    },
-    {
-      "time_seconds": 0.623999964,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
-    },
-    {
-      "time_seconds": 3.823999964,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
+        },
+        {
+          "time_seconds": 0.031999998,
+          "value": "81136034-6aa3-43f2-9a38-3a0cd4742716"
+        },
+        {
+          "time_seconds": 0.063999996,
+          "value": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
+        },
+        {
+          "time_seconds": 0.095999994,
+          "value": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
+        },
+        {
+          "time_seconds": 0.127999992,
+          "value": "202d5a26-fa72-48eb-892a-7f3b7b285ac8"
+        },
+        {
+          "time_seconds": 0.143999991,
+          "value": "82d228ad-22d3-4cd2-a624-0b9b9aec89b3"
+        },
+        {
+          "time_seconds": 0.15999999,
+          "value": "7aebdc66-8710-4475-9e94-ebfbdb6dd481"
+        },
+        {
+          "time_seconds": 0.175999989,
+          "value": "00330e21-96d5-418c-8d2c-a0b832f511b8"
+        },
+        {
+          "time_seconds": 0.191999988,
+          "value": "3ff6f87a-5c5f-476f-a8fa-dfec9228713d"
+        },
+        {
+          "time_seconds": 0.207999987,
+          "value": "1ada43e4-a381-4380-a6af-71a3d9163257"
+        },
+        {
+          "time_seconds": 0.223999986,
+          "value": "729a64b1-8342-4170-8391-43b5c788f98b"
+        },
+        {
+          "time_seconds": 0.239999985,
+          "value": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+        },
+        {
+          "time_seconds": 0.255999984,
+          "value": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
+        },
+        {
+          "time_seconds": 0.303999984,
+          "value": "81136034-6aa3-43f2-9a38-3a0cd4742716"
+        },
+        {
+          "time_seconds": 0.335999982,
+          "value": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
+        },
+        {
+          "time_seconds": 0.36799998,
+          "value": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
+        },
+        {
+          "time_seconds": 0.399999978,
+          "value": "202d5a26-fa72-48eb-892a-7f3b7b285ac8"
+        },
+        {
+          "time_seconds": 0.415999977,
+          "value": "82d228ad-22d3-4cd2-a624-0b9b9aec89b3"
+        },
+        {
+          "time_seconds": 0.431999976,
+          "value": "7aebdc66-8710-4475-9e94-ebfbdb6dd481"
+        },
+        {
+          "time_seconds": 0.447999975,
+          "value": "00330e21-96d5-418c-8d2c-a0b832f511b8"
+        },
+        {
+          "time_seconds": 0.463999974,
+          "value": "3ff6f87a-5c5f-476f-a8fa-dfec9228713d"
+        },
+        {
+          "time_seconds": 0.479999973,
+          "value": "1ada43e4-a381-4380-a6af-71a3d9163257"
+        },
+        {
+          "time_seconds": 0.495999972,
+          "value": "729a64b1-8342-4170-8391-43b5c788f98b"
+        },
+        {
+          "time_seconds": 0.511999971,
+          "value": "6667ba6f-615a-4238-b5e7-f2b4d060174a"
+        },
+        {
+          "time_seconds": 0.52799997,
+          "value": "178f47a5-3f83-4bd0-8571-7aba4c88de29"
+        },
+        {
+          "time_seconds": 0.559999968,
+          "value": "81136034-6aa3-43f2-9a38-3a0cd4742716"
+        },
+        {
+          "time_seconds": 0.591999966,
+          "value": "39bc5563-5d69-45ad-bbf7-8ad2a6c78339"
+        },
+        {
+          "time_seconds": 0.623999964,
+          "value": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
+        },
+        {
+          "time_seconds": 3.823999964,
+          "value": "f7d6cde6-de8e-4366-a366-ddb10c89f079"
+        }
+      ]
     }
   ]
 }

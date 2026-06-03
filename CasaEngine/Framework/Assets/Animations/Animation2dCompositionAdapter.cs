@@ -6,24 +6,34 @@ public static class Animation2dCompositionAdapter
     {
         ArgumentNullException.ThrowIfNull(animationData);
 
-        var parts = new List<Animation2dPartData>(animationData.Parts.Count);
-        foreach (var part in animationData.Parts)
-        {
-            parts.Add(ClonePart(part));
-        }
-
-        var tracks = new List<Animation2dTrackData>(animationData.Tracks.Count);
-        foreach (var track in animationData.Tracks)
-        {
-            tracks.Add(CloneTrack(track));
-        }
-
         return new Animation2dCompositionData(
             animationData.AnimationType,
             CalculateDurationSeconds(animationData.Tracks, animationData.Events),
-            parts,
-            tracks,
+            CopyParts(animationData.Parts),
+            CopyTracks(animationData.Tracks),
             CopyEvents(animationData.Events));
+    }
+
+    private static List<Animation2dPartData> CopyParts(List<Animation2dPartData> parts)
+    {
+        var copy = new List<Animation2dPartData>(parts.Count);
+        foreach (var part in parts)
+        {
+            copy.Add(ClonePart(part));
+        }
+
+        return copy;
+    }
+
+    private static List<Animation2dTrackData> CopyTracks(List<Animation2dTrackData> tracks)
+    {
+        var copy = new List<Animation2dTrackData>(tracks.Count);
+        foreach (var track in tracks)
+        {
+            copy.Add(CloneTrack(track));
+        }
+
+        return copy;
     }
 
     private static Animation2dPartData ClonePart(Animation2dPartData part)
@@ -109,7 +119,6 @@ public static class Animation2dCompositionAdapter
 
         return durationSeconds;
     }
-
     private static float GetLastGuidKeyframeTime(List<Animation2dGuidKeyframeData> keyframes)
     {
         return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;

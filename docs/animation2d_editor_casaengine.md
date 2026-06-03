@@ -1,10 +1,23 @@
-# Éditeur d’animations 2D composées pour CasaEngine
+# Éditeur d’animations 2D pour CasaEngine
 
 ## Objectif
 
-L’objectif est de développer dans CasaEngine un éditeur d’animations 2D capable de reconstruire, visualiser, corriger et exporter des animations issues du jeu **Alundra**.
+L’objectif est de développer dans CasaEngine un éditeur générique d’animations 2D pour les assets `.anim2d` déjà utilisés par le moteur et l’éditeur.
 
-Les animations d’Alundra ne doivent pas être vues uniquement comme une succession d’images complètes. Elles peuvent être composées de plusieurs sprites, chacun ayant sa propre position, visibilité, ordre d’affichage et parfois ses propres changements de frame.
+Une animation 2D CasaEngine ne doit pas être vue uniquement comme une succession d’images complètes. Elle peut être composée de plusieurs sprites, chacun ayant sa propre position, visibilité, ordre d’affichage et ses propres changements dans le temps.
+
+Ce document décrit une direction produit et des contraintes verrouillées pour le format composé actuel. Les anciennes mentions d’un sous-ensemble V1 mono-sprite/event-only doivent être lues comme de l’historique de conception, pas comme une cible encore supportée dans le dépôt.
+
+Décisions verrouillées :
+
+- conserver l’extension `.anim2d` et le contrat chargé par `Animation2dData` ;
+- conserver le modèle time-based déjà en place (`time_seconds`) ;
+- cibler directement une animation 2D composée avec `parts`, `tracks` et `events` ;
+- garder une timeline read-only graduée en secondes, scrollable horizontalement, zoomable et centrée sur les événements ;
+- rester centré sur l’éditeur générique CasaEngine ;
+- séparer strictement runtime et éditeur.
+
+Les noms conceptuels utilisés plus bas (`Animation2DAsset`, `AnimationPlayer2D`, etc.) restent des repères de conception. Toute implémentation doit rester alignée sur les types réellement présents dans le dépôt.
 
 L’éditeur doit donc être pensé comme un éditeur d’**animations 2D composées**, inspiré de plusieurs outils existants :
 
@@ -13,9 +26,6 @@ L’éditeur doit donc être pensé comme un éditeur d’**animations 2D compos
 - **Unity Animation Window** pour l’interface timeline, keyframes et preview.
 - **Tiled** pour la philosophie de formats ouverts, JSON lisibles et propriétés personnalisées.
 - **PaperZD / Unreal Animation Blueprint** pour les notifies et, plus tard, les graphes d’animation.
-
-L’outil ne doit pas être conçu uniquement pour Alundra.  
-Il doit être un éditeur générique d’animations 2D pour CasaEngine, avec un importer/exporter spécifique aux données Alundra.
 
 ---
 
@@ -41,7 +51,7 @@ Le modèle doit séparer clairement :
 - les parties visibles du personnage ou de l’objet ;
 - les animations ;
 - les keyframes ;
-- les données spécifiques à Alundra ;
+- les données source optionnelles ;
 - les données génériques utilisables par CasaEngine.
 
 ---
@@ -55,7 +65,7 @@ Il représente un personnage, un objet animé, un effet visuel ou une entité 2D
 Exemples :
 
 ```text id="dt7orw"
-Alundra_Player
+Hero_Player
 Enemy_Bat
 NPC_Villager
 Chest_Open
@@ -87,7 +97,7 @@ Responsabilités :
 - conserver la bibliothèque de sprites utilisée ;
 - définir les parties animables ;
 - stocker les clips d’animation ;
-- conserver les métadonnées nécessaires au round-trip avec Alundra si possible.
+- conserver les métadonnées nécessaires au round-trip avec la source si besoin.
 
 ---
 
@@ -102,9 +112,9 @@ Elle peut référencer :
 - une texture complète ;
 - une spritesheet ;
 - des régions dans une texture ;
-- des sprites extraits depuis les données Alundra ;
+- des sprites importés depuis une source externe ;
 - des palettes ou CLUT si nécessaire ;
-- des informations PSX spécifiques.
+- des informations de source optionnelles.
 
 Exemple :
 
@@ -142,7 +152,7 @@ public sealed class SpriteAttachment
 
     public Dictionary<string, string> CustomProperties { get; set; }
 
-    public AlundraSpriteMetadata AlundraMetadata { get; set; }
+    public SourceSpriteMetadata SourceMetadata { get; set; }
 }
 ```
 
@@ -150,14 +160,14 @@ Exemples de propriétés :
 
 ```text id="r0boin"
 Id              = "sprite_0123"
-Name            = "Alundra_Body_Walk_01"
-TexturePath     = "Sprites/Alundra/Player.png"
+Name            = "Hero_Body_Walk_01"
+TexturePath     = "Sprites/Characters/Hero.png"
 SourceRectangle = x, y, width, height
 Pivot           = 0, 0
 DefaultOffset   = -8, -24
 ```
 
-Pour Alundra, cet objet peut aussi conserver :
+Selon la source, cet objet peut aussi conserver :
 
 ```text id="1kr64u"
 originalSpriteId
@@ -193,7 +203,7 @@ SpriteComposition
  └── Part: effect
 ```
 
-Dans Alundra, certaines animations peuvent être composées de plusieurs primitives ou morceaux de sprites affichés ensemble.
+Selon la source, certaines animations peuvent etre composees de plusieurs primitives ou morceaux de sprites affiches ensemble.
 
 ---
 
@@ -288,11 +298,11 @@ public sealed class AnimationClip2D
 
     public Dictionary<string, string> CustomProperties { get; set; }
 
-    public AlundraAnimationMetadata AlundraMetadata { get; set; }
+    public SourceAnimationMetadata SourceMetadata { get; set; }
 }
 ```
 
-Pour Alundra, il est conseillé de travailler avec un modèle **frame-based** plutôt que uniquement time-based.
+  Pour la V1, il faut rester aligné sur le modèle **time-based** déjà en place.
 
 Exemple :
 
@@ -345,7 +355,7 @@ public sealed class AnimationTrack2D
 
 ## 6.2 Types de pistes
 
-Les types de pistes nécessaires pour Alundra sont principalement :
+Les types de pistes utiles à plus long terme sont principalement :
 
 ```text id="vjbnnc"
 AttachmentTrack     -> changement de sprite/image
@@ -357,7 +367,9 @@ PaletteTrack        -> changement de palette/CLUT si nécessaire
 EventTrack          -> son, hitbox, effet, script
 ```
 
-Pour une V1, les plus importantes sont :
+Ces pistes ne sont pas dans le périmètre de la V1 actuelle. Elles deviennent pertinentes à partir du moment où l’éditeur gère une vraie composition multi-sprite.
+
+Pour les versions suivantes, les plus importantes sont :
 
 ```text id="tfnck9"
 attachment
@@ -374,14 +386,14 @@ flipY
 
 ## 7.1 Rôle
 
-Une keyframe représente une valeur à une frame donnée.
+Une keyframe représente une valeur à un instant donné.
 
 Exemple :
 
 ```csharp id="6ghxy3"
 public sealed class Keyframe2D
 {
-    public int Frame { get; set; }
+  public float TimeSeconds { get; set; }
 
     public object Value { get; set; }
 
@@ -395,7 +407,7 @@ Exemple :
 
 ```json id="b0nqne"
 {
-  "frame": 4,
+  "time_seconds": 0.133,
   "value": {
     "x": 2,
     "y": -1
@@ -408,17 +420,17 @@ Exemple :
 
 ## 7.2 Interpolation
 
-Pour Alundra, l’interpolation par défaut doit être `Step`.
+Quand des tracks de propriétés existeront, l’interpolation par défaut devra être `Step`.
 
-Cela signifie que la valeur change brutalement à la frame indiquée.
+Cela signifie que la valeur change brutalement au temps indiqué.
 
 ```text id="3xh98g"
-Frame 0 -> sprite_0100
-Frame 4 -> sprite_0101
-Frame 8 -> sprite_0102
+0.0s   -> sprite_0100
+0.133s -> sprite_0101
+0.266s -> sprite_0102
 ```
 
-Il ne faut pas interpoler automatiquement les positions ou les sprites, car les animations PSX sont souvent pensées comme des changements discrets.
+Il ne faut pas interpoler automatiquement les positions ou les sprites tant que le systeme reste centre sur des changements discrets.
 
 Modes possibles :
 
@@ -431,7 +443,7 @@ public enum AnimationInterpolationMode
 }
 ```
 
-Pour la V1 :
+Pour une premiere version de tracks de proprietes :
 
 ```text id="20ll47"
 Step uniquement
@@ -472,11 +484,11 @@ Le draw order peut changer pendant l’animation.
 Exemple :
 
 ```text id="rmilni"
-Frame 0:
+Time 0.0s:
  ├── body
  └── weapon
 
-Frame 6:
+Time 0.2s:
  ├── weapon
  └── body
 ```
@@ -493,13 +505,13 @@ Structure possible :
 ```csharp id="q47kj2"
 public sealed class DrawOrderKeyframe
 {
-    public int Frame { get; set; }
+  public float TimeSeconds { get; set; }
 
     public List<string> OrderedPartIds { get; set; }
 }
 ```
 
-Pour la V1, un simple `drawOrder` par partie peut suffire.
+Quand la composition multi-sprite arrivera, un simple `drawOrder` par partie pourra suffire pour une premiere iteration.
 
 ---
 
@@ -509,15 +521,15 @@ Pour la V1, un simple `drawOrder` par partie peut suffire.
 
 Les événements d’animation sont inspirés de PaperZD, Unreal et Unity Animation Events.
 
-Ils permettent de déclencher quelque chose à une frame précise.
+Ils permettent de déclencher quelque chose à un temps précis.
 
-Exemples :
+Exemples génériques :
 
 ```text id="wvvn95"
-Frame 3  -> PlaySound("step")
-Frame 6  -> EnableHitbox("sword")
-Frame 8  -> SpawnEffect("slash")
-Frame 10 -> DisableHitbox("sword")
+0.10s -> PlaySound("step")
+0.20s -> EnableHitbox("sword")
+0.26s -> SpawnEffect("slash")
+0.33s -> DisableHitbox("sword")
 ```
 
 Structure :
@@ -525,7 +537,7 @@ Structure :
 ```csharp id="ypu4ka"
 public sealed class AnimationEvent2D
 {
-    public int Frame { get; set; }
+  public float TimeSeconds { get; set; }
 
     public string EventType { get; set; }
 
@@ -535,7 +547,7 @@ public sealed class AnimationEvent2D
 }
 ```
 
-Pour Alundra, cela peut servir plus tard à représenter :
+Cela peut servir plus tard à représenter :
 
 ```text id="ogru3u"
 sons
@@ -546,58 +558,37 @@ appels de scripts
 moments de collision
 ```
 
-Pour la V1, les événements peuvent être simplement affichés mais pas forcément exécutés.
+Pour la V1, seuls deux événements sont nécessaires : `changeSprite` et `restart`.
 
 ---
 
-# 10. Métadonnées Alundra
+# 10. Données source optionnelles
 
-## 10.1 Pourquoi conserver les données originales ?
+## 10.1 Pourquoi conserver des données source ?
 
-L’importer Alundra doit préserver le maximum d’informations brutes.
+Une source d’import spécifique peut conserver des informations brutes si cela aide au round-trip ou au diagnostic.
 
-Même si CasaEngine utilise une structure propre, il est important de conserver :
+Pour la V1 générique CasaEngine, ces données restent optionnelles et ne doivent pas structurer le runtime ni l’éditeur. Si elles existent, il est utile de pouvoir conserver :
 
-- les ids originaux ;
-- les offsets d’origine ;
-- les indices de sprites ;
-- les adresses ou offsets dans les fichiers ;
-- les palettes ;
-- les durées ;
-- les flags inconnus ;
-- les valeurs non encore comprises.
+- les identifiants de source ;
+- le chemin ou le nom du fichier source ;
+- les propriétés brutes non mappées ;
+- les valeurs utiles au debug ou au round-trip.
 
-Cela évite de perdre des informations pendant l’analyse.
+Il vaut mieux garder ces données dans un bloc optionnel que les mélanger au contrat runtime principal.
 
 ---
 
-## 10.2 Exemple
+## 10.2 Exemple conceptuel
 
 ```csharp id="00mjuv"
-public sealed class AlundraAnimationMetadata
+public sealed class SourceAnimationMetadata
 {
-    public int OriginalAnimationId { get; set; }
+  public string SourceId { get; set; }
 
-    public int OriginalDataOffset { get; set; }
+  public string SourceFile { get; set; }
 
-    public string SourceFile { get; set; }
-
-    public Dictionary<string, int> RawFlags { get; set; }
-
-    public List<UnknownAlundraField> UnknownFields { get; set; }
-}
-```
-
-```csharp id="69qoxu"
-public sealed class UnknownAlundraField
-{
-    public string Name { get; set; }
-
-    public int Offset { get; set; }
-
-    public int RawValue { get; set; }
-
-    public string Comment { get; set; }
+  public Dictionary<string, string> RawProperties { get; set; }
 }
 ```
 
@@ -621,13 +612,13 @@ Exemple simplifié :
 ```json id="iz04oj"
 {
   "formatVersion": 1,
-  "name": "Alundra_Player",
+  "name": "Hero_Player",
   "spriteLibrary": {
     "attachments": [
       {
         "id": "sprite_0123",
         "name": "body_walk_01",
-        "texture": "Sprites/Alundra/player.png",
+        "texture": "Sprites/Characters/Hero.png",
         "sourceRectangle": {
           "x": 0,
           "y": 0,
@@ -810,607 +801,360 @@ public sealed class SpritePartInstance
 
 # 14. Éditeur d’animation
 
-# 14.1 Objectif de l’éditeur
+## 14.1 Objectif de l’éditeur
 
-L’éditeur doit permettre de :
+La V1 de l’éditeur doit rester volontairement étroite.
 
-- importer une animation Alundra ;
-- afficher les sprites composant l’animation ;
-- lire l’animation frame par frame ;
-- visualiser et modifier les keyframes ;
-- inspecter les propriétés des parties ;
-- corriger les offsets ;
-- changer les sprites associés aux frames ;
-- modifier l’ordre d’affichage ;
-- exporter vers un format CasaEngine ;
-- conserver les métadonnées d’origine.
+Elle doit permettre de :
+
+- ouvrir un asset `.anim2d` existant ;
+- prévisualiser une animation 2D qui n’affiche qu’un seul sprite à la fois ;
+- lire l’animation dans le temps ;
+- afficher une timeline read-only graduée en secondes ;
+- permettre le scroll horizontal et le zoom de cette timeline ;
+- afficher les événements sous forme de marqueurs sur la piste ;
+- sélectionner un événement dans la timeline ;
+- visualiser les propriétés de l’événement sélectionné dans l’inspector ;
+- afficher les validations utiles à l’asset courant.
 
 L’éditeur doit être intégré à CasaEngine et utiliser MGUI pour l’interface.
 
 ---
 
-# 15. Organisation générale de l’éditeur
+# 15. Organisation générale de l’éditeur V1
 
-Interface proposée :
+Interface proposée pour la V1 :
 
 ```text id="wjy4n3"
 Animation2DEditor
- ├── Animation Browser
- ├── Sprite Library Panel
- ├── Part / Slot Hierarchy
  ├── Preview Viewport
- ├── Timeline
- ├── Track List
- ├── Property Grid
- ├── Event / Notify Panel
- ├── Import / Export Panel
+ ├── Event Timeline (read-only)
+ ├── Inspector
  └── Validation / Debug Panel
 ```
 
+Les surfaces de composition, de bibliothèque de sprites, de hiérarchie de parties et de tracks de propriétés sont hors V1.
+
 ---
 
-# 16. Animation Browser
+# 16. Preview Viewport
 
 ## 16.1 Rôle
 
-Le panneau `Animation Browser` permet de voir toutes les animations disponibles pour un asset.
-
-Exemple :
-
-```text id="1tr74l"
-Alundra_Player
- ├── Idle_Down
- ├── Idle_Up
- ├── Idle_Left
- ├── Idle_Right
- ├── Walk_Down
- ├── Walk_Up
- ├── Walk_Left
- ├── Walk_Right
- ├── Attack_Down
- └── Hurt
-```
-
-Fonctionnalités :
-
-- sélectionner un clip ;
-- créer un nouveau clip ;
-- dupliquer un clip ;
-- renommer un clip ;
-- supprimer un clip ;
-- filtrer les clips ;
-- afficher les métadonnées Alundra associées.
-
----
-
-# 17. Sprite Library Panel
-
-## 17.1 Rôle
-
-Le panneau `Sprite Library` affiche tous les sprites disponibles.
-
-Il doit permettre de :
-
-- voir les sprites extraits ;
-- afficher leur id ;
-- afficher leur nom ;
-- afficher leur rectangle source ;
-- afficher leur pivot ;
-- afficher leur palette éventuelle ;
-- glisser-déposer un sprite sur une partie ;
-- rechercher un sprite par id ou nom ;
-- filtrer les sprites utilisés/non utilisés.
-
-Pour Alundra, ce panneau est essentiel pour vérifier si l’extraction est correcte.
-
----
-
-# 18. Part / Slot Hierarchy
-
-## 18.1 Rôle
-
-Ce panneau affiche les parties de l’animation.
-
-Inspiré des slots de Spine.
-
-Exemple :
-
-```text id="tguzn1"
-Parts
- ├── shadow
- ├── body
- ├── head
- ├── weapon
- └── effect
-```
-
-Fonctionnalités :
-
-- sélectionner une partie ;
-- renommer une partie ;
-- activer/désactiver une partie ;
-- changer son ordre d’affichage ;
-- verrouiller une partie ;
-- afficher le sprite courant ;
-- créer une nouvelle partie ;
-- supprimer une partie ;
-- grouper des parties si nécessaire.
-
-Pour Alundra, les parties peuvent correspondre à des primitives ou morceaux de sprites utilisés par une animation.
-
----
-
-# 19. Preview Viewport
-
-## 19.1 Rôle
-
 Le `Preview Viewport` affiche l’animation en temps réel.
 
-Il doit permettre de visualiser l’animation comme elle apparaîtra dans CasaEngine.
+En V1, il n’affiche qu’un seul sprite courant. Ce sprite peut changer dans le temps uniquement via les événements supportés.
 
 Fonctionnalités minimales :
 
 - Play ;
 - Pause ;
 - Stop ;
-- frame suivante ;
-- frame précédente ;
+- scrubbing temporel ;
 - zoom ;
 - déplacement de la vue ;
 - grille ;
 - axes X/Y ;
-- origine de l’entité ;
-- bounding box ;
-- affichage des pivots ;
-- affichage des rectangles de sprites ;
-- affichage du draw order ;
-- fond transparent, noir, blanc ou custom.
+- affichage du sprite courant ;
+- affichage des avertissements de validation.
 
 ---
 
-## 19.2 Options spécifiques Alundra
+# 17. Event Timeline
 
-Pour reconstruire fidèlement les animations Alundra, le viewport devrait proposer :
+## 17.1 Rôle
 
-```text id="c7bqkf"
-Mode CasaEngine
-Mode PSX approximatif
-Affichage des offsets originaux
-Affichage des sprites par primitive
-Affichage des palettes/CLUT
-Affichage des coordonnées sources
-Affichage des flags inconnus
-```
-
----
-
-# 20. Timeline
-
-## 20.1 Rôle
-
-La timeline est inspirée de Unity Animation Window et Godot AnimationPlayer.
+La timeline V1 est une timeline read-only.
 
 Elle affiche :
 
-- les frames ;
-- les pistes ;
-- les keyframes ;
+- l’échelle de temps graduée en secondes ;
 - la position courante du playhead ;
-- la durée du clip ;
-- les événements.
+- une unique piste logique d’événements ;
+- les événements triés par temps, matérialisés par des losanges.
 
 Structure :
 
 ```text id="kog7qy"
 Timeline
- ├── Frame ruler
+ ├── Time ruler
  ├── Playhead
- ├── Tracks
- │    ├── body.attachment
- │    ├── body.position
- │    ├── body.visible
- │    ├── weapon.attachment
- │    └── weapon.position
- └── Events
+ └── Event Track
+  ├── changeSprite
+  ├── changeSprite
+  └── restart
+```
+
+## 17.2 Fonctionnalités
+
+La timeline V1 doit permettre de :
+
+- déplacer le playhead ;
+- faire défiler horizontalement la vue de timeline ;
+- zoomer pour modifier l’espacement entre les graduations ;
+- afficher les événements sur une piste unique ;
+- sélectionner un événement ;
+- synchroniser la sélection vers l’inspector ;
+- montrer clairement le temps de chaque événement.
+
+La timeline V1 ne doit pas permettre de :
+
+- créer des événements ;
+- déplacer des événements ;
+- supprimer des événements ;
+- éditer une valeur directement sur la timeline ;
+- afficher des pistes de composition ou de propriétés.
+
+---
+
+# 18. Inspector
+
+## 18.1 Rôle
+
+L’inspector V1 sert principalement à visualiser les propriétés de l’événement sélectionné dans la timeline.
+
+Exemple pour un événement `changeSprite` :
+
+```text id="5qk2rp"
+Selected Event
+ ├── Time: 0.133s
+ ├── Type: changeSprite
+ └── Sprite: sprite_0123
+```
+
+Exemple pour un événement `restart` :
+
+```text id="eph22v"
+Selected Event
+ ├── Time: 0.400s
+ └── Type: restart
+```
+
+En V1, l’inspector n’a pas besoin d’exposer une édition complète de l’asset.
+
+---
+
+# 19. Événements V1
+
+## 19.1 Rôle
+
+La V1 repose uniquement sur les événements.
+
+Il n’y a pas encore de composition, pas de parties animées, pas de tracks de propriétés et pas de keyframes de position/visibilité/draw order.
+
+Une animation V1 contient :
+
+- un seul sprite courant visible à un instant donné ;
+- une unique piste logique d’événements ;
+- des événements triés dans le temps.
+
+## 19.2 Types d’événements supportés en V1
+
+Deux événements sont requis en V1 :
+
+```text id="ll4l2f"
+changeSprite
+restart
+```
+
+### `changeSprite`
+
+Cet événement change le sprite courant affiché par la preview/runtime.
+
+Il doit exposer une propriété de référence vers le sprite cible afin que l’inspector puisse l’afficher.
+
+Dans le contrat `.anim2d` V1, cette référence est persistée via `sprite_asset_id`.
+
+### `restart`
+
+Cet événement redémarre l’animation depuis le début.
+
+Il permet de créer une boucle sans introduire pour l’instant un système de composition ou de state machine.
+
+---
+
+# 20. Ouverture / Sauvegarde / Export
+
+## 20.1 Ouvrir un asset `.anim2d`
+
+La V1 doit d’abord ouvrir les assets `.anim2d` existants via le pipeline déjà présent dans CasaEngine.
+
+Entrée attendue :
+
+```text id="7o7c1e"
+.anim2d
+```
+
+Le chargement doit préserver le contrat `.anim2d` existant.
+
+La V1 se limite cependant à un sous-ensemble fonctionnel :
+
+- un seul sprite courant ;
+- une seule piste logique d’événements ;
+- aucune composition éditable ;
+- aucun track de propriété éditable.
+
+## 20.2 Sauvegarder un asset `.anim2d`
+
+La V1 ne doit pas introduire une nouvelle extension ni un nouveau contrat de fichier.
+
+Sortie attendue :
+
+```text id="vuuyzt"
+.anim2d
 ```
 
 ---
 
-## 20.2 Fonctionnalités
-
-La timeline doit permettre de :
-
-- déplacer le playhead ;
-- sélectionner une keyframe ;
-- déplacer une keyframe ;
-- ajouter une keyframe ;
-- supprimer une keyframe ;
-- copier/coller une keyframe ;
-- dupliquer une plage de frames ;
-- zoomer horizontalement ;
-- passer en mode frame-by-frame ;
-- afficher les frames vides ;
-- afficher les changements de sprites ;
-- afficher les changements de position.
-
----
-
-# 21. Track List
+# 21. Validation / Debug Panel
 
 ## 21.1 Rôle
 
-La `Track List` affiche les propriétés animées.
+Ce panneau est important pour l’authoring et le diagnostic.
 
-Exemple :
+En V1, il doit détecter au minimum :
 
-```text id="t9e0jj"
-body
- ├── attachment
- ├── position
- ├── visible
- └── drawOrder
-
-weapon
- ├── attachment
- ├── position
- └── visible
-```
-
-Fonctionnalités :
-
-- ajouter une piste ;
-- supprimer une piste ;
-- masquer une piste ;
-- verrouiller une piste ;
-- filtrer les pistes ;
-- regrouper les pistes par partie ;
-- mettre en évidence les pistes modifiées à la frame courante.
-
----
-
-# 22. Property Grid
-
-## 22.1 Rôle
-
-La `Property Grid` permet d’éditer précisément la valeur sélectionnée.
-
-Elle doit pouvoir éditer :
-
-- les propriétés de l’asset ;
-- les propriétés d’un clip ;
-- les propriétés d’une partie ;
-- les propriétés d’un sprite ;
-- les propriétés d’une keyframe ;
-- les propriétés d’un événement.
-
-Exemple pour une keyframe de position :
-
-```text id="5qk2rp"
-Selected Keyframe
- ├── Frame: 4
- ├── Property: body.position
- ├── X: 2
- ├── Y: -1
- └── Interpolation: Step
-```
-
-Exemple pour une partie :
-
-```text id="eph22v"
-Part: body
- ├── Default Attachment: sprite_0123
- ├── Default Position X: 0
- ├── Default Position Y: 0
- ├── Default Draw Order: 10
- ├── Visible: true
- ├── Flip X: false
- └── Flip Y: false
-```
-
----
-
-# 23. Event / Notify Panel
-
-## 23.1 Rôle
-
-Ce panneau affiche les événements associés à l’animation.
-
-Exemples :
-
-```text id="ll4l2f"
-Frame 3  PlaySound footstep
-Frame 6  EnableHitbox sword
-Frame 8  SpawnEffect slash
-```
-
-Pour la V1, il peut être en lecture seule.
-
-Pour les versions suivantes, il pourra permettre :
-
-- ajouter un événement ;
-- supprimer un événement ;
-- éditer les paramètres ;
-- tester l’événement dans le viewport ;
-- connecter l’événement au gameplay CasaEngine.
-
----
-
-# 24. Import / Export Panel
-
-## 24.1 Import Alundra
-
-Le panneau d’import doit permettre de charger les données extraites par les outils Alundra.
-
-Entrées possibles :
-
-```text id="7o7c1e"
-animations.json
-sprites.json
-spritesheet.png
-metadata.json
-```
-
-L’importer doit créer :
-
-```text id="te2v3c"
-Animation2DAsset
-SpriteLibrary
-SpriteComposition
-AnimationClips
-Tracks
-Keyframes
-Metadata
-```
-
----
-
-## 24.2 Export CasaEngine
-
-L’export CasaEngine doit générer un fichier propre, sans dépendance directe aux structures brutes d’Alundra.
-
-Sorties possibles :
-
-```text id="vuuyzt"
-.alundra.animation2d.json
-.animation2d.json
-.animation2d.casa
-```
-
-Le format exporté doit pouvoir être chargé par le runtime CasaEngine.
-
----
-
-## 24.3 Export debug
-
-L’éditeur peut aussi exporter :
-
-```text id="ax82wr"
-spritesheet de preview
-GIF de debug
-PNG par frame
-JSON détaillé avec métadonnées
-rapport de validation
-```
-
-Cela permet de comparer l’animation reconstruite avec l’animation originale.
-
----
-
-# 25. Validation / Debug Panel
-
-## 25.1 Rôle
-
-Ce panneau est important pour le reverse engineering.
-
-Il doit détecter :
-
-- sprite manquant ;
-- attachment non trouvé ;
-- keyframe invalide ;
-- frame hors limites ;
-- partie sans sprite ;
-- draw order incohérent ;
-- offset suspect ;
-- palette manquante ;
-- champ Alundra inconnu ;
 - animation vide ;
-- durée invalide.
+- événement avec temps négatif ;
+- événement non trié ;
+- type d’événement inconnu ;
+- événement `changeSprite` sans sprite cible ;
+- référence de sprite introuvable.
 
 Exemple :
 
 ```text id="xwq5n6"
 Warnings
- ├── Frame 4: sprite_0188 not found
- ├── Frame 7: body.position has invalid value
- ├── Clip Walk_Down: unknown flag 0x04 is not mapped
- └── Part weapon: no default attachment
+ ├── Time 0.000s: changeSprite has no sprite target
+ ├── Time 0.233s: sprite reference was not found
+ ├── Time 0.400s: unknown event type
+ └── Timeline: events are not sorted by time
 ```
 
 ---
 
-# 26. Workflow d’utilisation
+# 22. Workflow d’utilisation
 
-## 26.1 Importer une animation Alundra
+## 22.1 Ouvrir une animation `.anim2d`
 
 ```text id="rgivxl"
-1. L’utilisateur sélectionne un fichier d’animation extrait.
-2. L’importer charge les sprites.
-3. L’importer crée les attachments.
-4. L’importer crée les parts.
-5. L’importer crée les clips.
-6. L’importer crée les pistes.
-7. L’importer crée les keyframes.
-8. L’éditeur affiche l’animation dans le viewport.
+1. L’utilisateur ouvre un asset `.anim2d` depuis le Content Browser.
+2. L’éditeur charge l’asset.
+3. L’éditeur affiche la preview et la piste d’événements.
 ```
 
----
-
-## 26.2 Vérifier l’animation
+## 22.2 Vérifier l’animation
 
 ```text id="fach4d"
 1. L’utilisateur lance la preview.
-2. Il compare visuellement l’animation.
-3. Il active l’affichage des offsets.
-4. Il vérifie les sprites utilisés.
-5. Il inspecte les keyframes.
-6. Il corrige les positions si nécessaire.
+2. Il scrube la timeline time-based.
+3. Il sélectionne un événement.
+4. Il visualise ses propriétés dans l’inspector.
+5. Il contrôle que la séquence `changeSprite` / `restart` correspond au résultat attendu.
 ```
 
----
-
-## 26.3 Corriger une frame
-
-```text id="sn6y32"
-1. L’utilisateur sélectionne une frame.
-2. Il sélectionne une partie.
-3. Il modifie le sprite ou la position.
-4. Une keyframe est créée ou mise à jour.
-5. La preview se met à jour immédiatement.
-```
-
----
-
-## 26.4 Exporter
+## 22.3 Valider
 
 ```text id="hypcgc"
-1. L’utilisateur valide l’animation.
-2. L’éditeur lance les validations.
-3. Les erreurs bloquantes sont affichées.
-4. Le fichier CasaEngine est généré.
-5. Le runtime peut charger l’animation.
+1. L’utilisateur consulte les avertissements.
+2. Il vérifie les références de sprite.
+3. Il vérifie l’ordre temporel des événements.
+4. Le runtime peut ensuite charger l’animation.
 ```
 
 ---
 
-# 27. Règles importantes pour la V1
+# 23. Règles importantes pour la V1
 
-## 27.1 Animation frame-based
+## 23.1 Animation time-based
 
-La V1 doit être basée sur des frames entières.
+La V1 reste basée sur le temps.
 
 ```text id="0x0ayp"
-Frame 0
-Frame 1
-Frame 2
-Frame 3
+0.0s
+0.1s
+0.2s
+0.3s
 ```
 
-Cela correspond mieux aux données Alundra et évite les erreurs de timing liées aux floats.
+## 23.2 Mono-sprite uniquement
 
----
+La V1 n’affiche qu’un seul sprite à la fois.
 
-## 27.2 Interpolation désactivée par défaut
+Il n’y a pas encore de composition de plusieurs sprites visibles simultanément.
 
-Toutes les pistes doivent utiliser `Step` par défaut.
+## 23.3 Une seule piste logique d’événements
 
-```text id="1a62pq"
-spriteId  -> Step
-position  -> Step
-visible   -> Step
-drawOrder -> Step
-flip      -> Step
-```
+La V1 n’utilise qu’une seule piste logique d’événements.
 
-L’interpolation moderne pourra être ajoutée plus tard.
+Cette piste contient uniquement des événements `changeSprite` et `restart`.
 
----
+## 23.4 Timeline read-only
 
-## 27.3 Ne pas perdre les données inconnues
+La timeline V1 sert à visualiser et sélectionner les événements, pas à les éditer. Elle reste graduée en secondes, scrollable horizontalement et zoomable.
 
-Toute donnée Alundra non comprise doit être conservée.
+## 23.5 Conserver le contrat `.anim2d`
 
-```text id="vcaxld"
-UnknownField_00
-UnknownFlag_01
-RawValue_02
-OriginalOffset
-OriginalAnimationId
-```
+La V1 ne doit pas casser le contrat `.anim2d` existant.
 
-Il vaut mieux stocker une donnée inutile que la perdre définitivement.
-
----
-
-## 27.4 Séparer runtime et éditeur
+## 23.6 Séparer runtime et éditeur
 
 Le runtime CasaEngine ne doit pas dépendre de l’éditeur.
 
-Structure recommandée :
-
-```text id="vk5vnh"
-CasaEngine.Framework
- └── Animations2D runtime
-
-CasaEngine.Editor
- └── Animation2DEditor
-
-CasaEngine.Tools.Alundra
- └── Importer / Exporter Alundra
-```
-
 ---
 
-# 28. V1 recommandée
+# 24. V1 recommandée
 
 La V1 doit rester simple et testable.
 
 Fonctionnalités V1 :
 
 ```text id="ohmp6b"
-- Charger un Animation2DAsset
-- Importer des animations Alundra
-- Afficher les sprites extraits
-- Afficher une composition de sprites
-- Lire un clip en preview
-- Avancer frame par frame
-- Afficher une timeline
-- Afficher les pistes attachment et position
-- Éditer spriteId
-- Éditer position X/Y
-- Éditer visible
-- Éditer drawOrder
-- Exporter en JSON CasaEngine
-- Afficher les erreurs de validation
+- Ouvrir un `.anim2d` existant
+- Prévisualiser une animation mono-sprite
+- Afficher une timeline read-only graduée d’événements
+- Supporter le scroll horizontal et le zoom de timeline
+- Afficher les événements comme marqueurs sélectionnables
+- Sélectionner un événement sur la timeline
+- Visualiser ses propriétés dans l’inspector
+- Supporter `changeSprite`
+- Supporter `restart`
+- Afficher les validations de base
 ```
 
 À éviter en V1 :
 
 ```text id="lvff7x"
-- bones
-- IK
-- blending
+- composition multi-sprite
+- parties / slots
+- tracks de propriétés
+- édition de timeline
+- keyframes de position
+- draw order animé
+- state machine
 - animation graph
-- transitions complexes
-- interpolation avancée
-- skinning
-- mesh deform
-- éditeur de state machine
 ```
 
 ---
 
-# 29. V2 possible
+# 25. V2 possible
 
 La V2 peut ajouter :
 
 ```text id="001rxd"
-- Animation events
-- Notifies
-- Hitboxes
-- Hurtboxes
-- Sons
-- Effets visuels
-- Comparaison avec capture originale
-- Export GIF ou PNG sequence
-- Onion skinning
-- Outils de duplication de keyframes
-- Multi-selection de keyframes
-- Édition avancée de draw order
+- composition de plusieurs sprites
+- parties / slots
+- tracks de propriétés
+- changement de visibilité
+- draw order animé
+- timeline authoring
+- édition des événements dans l’inspector
+- validation plus détaillée
 ```
 
 ---
 
-# 30. V3 possible
+# 26. V3 possible
 
 La V3 peut évoluer vers un vrai système moderne d’animation 2D :
 
@@ -1429,28 +1173,16 @@ La V3 peut évoluer vers un vrai système moderne d’animation 2D :
 
 ---
 
-# 31. Résumé des inspirations
+# 27. Résumé des inspirations
 
 ## Godot
 
 À reprendre :
 
 ```text id="o88udj"
-- Animation par pistes
-- Animation de propriétés
-- Preview directe
-- Structure flexible
-```
-
-## Spine
-
-À reprendre :
-
-```text id="8czjbh"
-- Slots
-- Attachments
-- Draw order
-- Composition de sprites
+- timeline claire
+- preview directe
+- scrubbing
 ```
 
 ## Unity
@@ -1458,22 +1190,9 @@ La V3 peut évoluer vers un vrai système moderne d’animation 2D :
 À reprendre :
 
 ```text id="66vwap"
-- Timeline claire
-- Keyframes visibles
-- Property editing
-- Scrubbing
-- Mode record plus tard
-```
-
-## Tiled
-
-À reprendre :
-
-```text id="3mlpad"
-- Format ouvert
-- JSON lisible
-- Propriétés personnalisées
-- Import/export simple
+- lecture temporelle
+- sélection visuelle d’éléments sur la timeline
+- inspector synchronisé avec la sélection
 ```
 
 ## PaperZD / Unreal
@@ -1481,62 +1200,28 @@ La V3 peut évoluer vers un vrai système moderne d’animation 2D :
 À reprendre plus tard :
 
 ```text id="itrivo"
-- Notifies
-- Animation graph
-- State machine
-- Transitions gameplay
+- notifies typés
+- animation graph
+- state machine
+- transitions gameplay
 ```
 
 ---
 
-# 32. Conclusion
+# 28. Conclusion
 
-L’éditeur d’animation 2D de CasaEngine doit être pensé comme un outil générique d’animation de sprites composés.
+La V1 de l’éditeur Animation2D CasaEngine ne doit pas partir tout de suite sur la composition.
 
-Pour Alundra, il doit d’abord permettre de reconstruire fidèlement les animations extraites :
+Elle doit d’abord livrer un sous-ensemble simple :
 
 ```text id="wqoqmx"
-sprites
-parts
-offsets
-keyframes
-ordre d’affichage
-durées
-métadonnées originales
+.anim2d
+mono-sprite
+event track unique
+changeSprite
+restart
+timeline read-only
+inspector de visualisation
 ```
 
-Mais l’architecture doit rester suffisamment propre pour être réutilisée ensuite dans CasaEngine pour :
-
-```text id="cofb50"
-personnages 2D
-effets visuels
-UI animée
-cutscenes simples
-objets interactifs
-animations de gameplay
-```
-
-La V1 doit rester très simple :
-
-```text id="el9rho"
-Animation2DAsset
-SpriteLibrary
-SpriteComposition
-AnimationClip2D
-Tracks
-Keyframes
-Preview
-Timeline
-Import Alundra
-Export CasaEngine
-```
-
-Le plus important est de ne pas créer un outil trop spécialisé Alundra dès le départ.
-
-La bonne approche est :
-
-```text id="zp14sw"
-Créer un éditeur CasaEngine d’animations 2D composées
-+
-Ajouter un importer/exporter Alundra
-```
+La composition, les tracks de propriétés et l’authoring complet de timeline sont reportés aux versions suivantes.

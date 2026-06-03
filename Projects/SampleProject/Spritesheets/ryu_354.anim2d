@@ -2,71 +2,80 @@
   "animation_type": "Once",
   "id": "429a80c0-bba9-4c9f-bd78-0b1858c599fb",
   "name": "ryu_354",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "5e3aa351-f473-450b-9120-dd25115b4676"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "5e3aa351-f473-450b-9120-dd25115b4676",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.9599999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f8e09209-75e6-49af-867d-068920f65b4c"
-    },
-    {
-      "time_seconds": 1.1039999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "c102d4d8-74b8-4a8f-8b63-85cf7242ffb7"
-    },
-    {
-      "time_seconds": 1.2479999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "f50e1c87-7e85-4554-ac90-5f5198b84e39"
-    },
-    {
-      "time_seconds": 1.4399999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "5ced21a4-ecc2-42dc-82c0-c29fd139c56d"
-    },
-    {
-      "time_seconds": 1.5519999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "010f5ddc-5ed4-49bc-823a-4e94f71b7252"
-    },
-    {
-      "time_seconds": 1.7439999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "aa33e9d3-040a-4454-ab2e-1dfeea26d0b3"
-    },
-    {
-      "time_seconds": 1.7919999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "d90f06a2-f62f-4bba-a593-866f9c079da1"
-    },
-    {
-      "time_seconds": 1.8399999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "4103ae69-299f-4068-b151-5c067e7578cd"
-    },
-    {
-      "time_seconds": 1.8879999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "e7505736-6658-4ccd-a909-522e8fc33013"
-    },
-    {
-      "time_seconds": 2.2879999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "978c3b16-2633-42df-b206-e344d7bda219"
-    },
-    {
-      "time_seconds": 2.351999896,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "21bfb686-d74c-4a0b-bc70-47adfabef02d"
-    },
-    {
-      "time_seconds": 2.415999892,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "21bfb686-d74c-4a0b-bc70-47adfabef02d"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "5e3aa351-f473-450b-9120-dd25115b4676"
+        },
+        {
+          "time_seconds": 0.9599999,
+          "value": "f8e09209-75e6-49af-867d-068920f65b4c"
+        },
+        {
+          "time_seconds": 1.1039999,
+          "value": "c102d4d8-74b8-4a8f-8b63-85cf7242ffb7"
+        },
+        {
+          "time_seconds": 1.2479999,
+          "value": "f50e1c87-7e85-4554-ac90-5f5198b84e39"
+        },
+        {
+          "time_seconds": 1.4399999,
+          "value": "5ced21a4-ecc2-42dc-82c0-c29fd139c56d"
+        },
+        {
+          "time_seconds": 1.5519999,
+          "value": "010f5ddc-5ed4-49bc-823a-4e94f71b7252"
+        },
+        {
+          "time_seconds": 1.7439999,
+          "value": "aa33e9d3-040a-4454-ab2e-1dfeea26d0b3"
+        },
+        {
+          "time_seconds": 1.7919999,
+          "value": "d90f06a2-f62f-4bba-a593-866f9c079da1"
+        },
+        {
+          "time_seconds": 1.8399999,
+          "value": "4103ae69-299f-4068-b151-5c067e7578cd"
+        },
+        {
+          "time_seconds": 1.8879999,
+          "value": "e7505736-6658-4ccd-a909-522e8fc33013"
+        },
+        {
+          "time_seconds": 2.2879999,
+          "value": "978c3b16-2633-42df-b206-e344d7bda219"
+        },
+        {
+          "time_seconds": 2.351999896,
+          "value": "21bfb686-d74c-4a0b-bc70-47adfabef02d"
+        },
+        {
+          "time_seconds": 2.415999892,
+          "value": "21bfb686-d74c-4a0b-bc70-47adfabef02d"
+        }
+      ]
     }
   ]
 }

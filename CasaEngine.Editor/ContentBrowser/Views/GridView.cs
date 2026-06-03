@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using CasaEngine.Editor.Diagnostics;
 using CasaEngine.Editor.ContentBrowser.Models;
 using CasaEngine.Editor.Styling;
@@ -112,6 +113,7 @@ public sealed class GridView : IContentView
         Func<ContentItem, Texture2D?> previewSelector,
         Action<ContentItem, MGElement>? itemElementInitializer = null)
     {
+        ArgumentNullException.ThrowIfNull(window);
         _thumbnailSize = Math.Max(48, thumbnailSize);
         _previewSize = Math.Max(40, _thumbnailSize - 12);
         _cardWidth = _thumbnailSize + 32;
@@ -191,6 +193,39 @@ public sealed class GridView : IContentView
         _selectedPaths.Clear();
         UpdateAllCardVisualStates();
         SelectionChanged?.Invoke(Array.Empty<ContentItem>());
+    }
+
+    public bool TryApplyAutomationScrollTarget(string target)
+    {
+        if (!string.Equals(target, "bottom", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (_items.Count == 0)
+        {
+            return true;
+        }
+
+        if (_scrollViewer.ContentViewport.Height <= 0
+            || !_itemsPanel.HasAttachedScrollViewer
+            || _itemsPanel.FirstRealizedIndex < 0)
+        {
+            return false;
+        }
+
+        _scrollViewer.VerticalOffset = _scrollViewer.MaxVerticalOffset;
+        return true;
+    }
+
+    public IReadOnlyList<string> GetAutomationStateSnapshot()
+    {
+        return new[]
+        {
+            string.Create(CultureInfo.InvariantCulture,
+                $"Grid viewport: {_scrollViewer.ContentViewport.Width}x{_scrollViewer.ContentViewport.Height} scroll={_scrollViewer.VerticalOffset:0.##}/{_scrollViewer.MaxVerticalOffset:0.##}"),
+            $"Grid virtualization: attachedScrollViewer={_itemsPanel.HasAttachedScrollViewer} columns={_itemsPanel.CurrentColumnCount} realized={_itemsPanel.FirstRealizedIndex}-{_itemsPanel.LastRealizedIndex} items={_items.Count}",
+        };
     }
 
     public void RestoreSelection(IReadOnlyList<ContentItem> items)

@@ -455,6 +455,7 @@ public class Animation2dAuthoringDataTests
         Assert.Equal("Footstep", triggeredEvents[0]);
     }
 
+
     [Fact]
     public void CompositionSampler_SeekDoesNotDispatchAnimationEvents()
     {

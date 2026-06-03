@@ -36,7 +36,7 @@ public readonly record struct Vector3AnimationKeyframeAsset(float TimeSeconds, V
 
 public readonly record struct QuaternionAnimationKeyframeAsset(float TimeSeconds, Quaternion Value);
 
-public readonly record struct AnimationEventAsset(float TimeSeconds, string EventName);
+public readonly record struct AnimationEventAsset(float TimeSeconds, string EventName, Guid SpriteAssetId = default);
 
 public static class AnimationClipAssetJsonSerializer
 {

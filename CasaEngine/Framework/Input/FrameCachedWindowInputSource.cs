@@ -14,6 +14,8 @@ public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInput
     private long _nextFrameId;
     private WindowInputSnapshot _currentSnapshot = WindowInputSnapshot.Empty;
     private bool _hasCurrentSnapshot;
+    private WindowInputSnapshot _queuedSnapshotOverride = WindowInputSnapshot.Empty;
+    private bool _hasQueuedSnapshotOverride;
 
     public FrameCachedWindowInputSource(IWindowInputSource inner, bool captureAutomatically = true)
     {
@@ -26,9 +28,16 @@ public sealed class FrameCachedWindowInputSource : IWindowInputSource, IRawInput
 
     public long CurrentFrameId => _currentSnapshot.FrameId;
 
+    public void QueueNextSnapshot(WindowInputSnapshot snapshot)
+    {
+        _queuedSnapshotOverride = snapshot;
+        _hasQueuedSnapshotOverride = true;
+    }
+
     public WindowInputSnapshot CaptureFrameInput()
     {
-        var snapshot = _inner.GetSnapshot();
+        var snapshot = _hasQueuedSnapshotOverride ? _queuedSnapshotOverride : _inner.GetSnapshot();
+        _hasQueuedSnapshotOverride = false;
         long frameId = Interlocked.Increment(ref _nextFrameId);
         _currentSnapshot = snapshot with { FrameId = frameId };
         _hasCurrentSnapshot = true;

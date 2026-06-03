@@ -531,7 +531,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _rtWidth = width;
         _rtHeight = height;
         _renderViewHost?.NotifyResized(width, height);
-        _surface?.EnsureSize(width, height);
+        _surface?.RequestResize(width, height);
         _camera?.OnScreenResized(width, height);
         _renderView?.Invalidate();
         RefreshTextureBinding();

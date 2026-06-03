@@ -62,6 +62,35 @@ public class GameEditor : Game, IObservableUpdate
         SparkBurst,
     }
 
+    private sealed class DockResizeAutomationState
+    {
+        public DockResizeAutomationState(MGDockSplitContainer splitContainer, float[] ratios)
+        {
+            SplitContainer = splitContainer;
+            Ratios = ratios;
+        }
+
+        public MGDockSplitContainer SplitContainer { get; }
+        public float[] Ratios { get; }
+        public int NextRatioIndex { get; set; }
+    }
+
+    private sealed class DockInputDragAutomationState
+    {
+        public DockInputDragAutomationState(string targetKey, MGDockSplitContainer splitContainer, MouseState[] mouseStates)
+        {
+            TargetKey = targetKey;
+            SplitContainer = splitContainer;
+            MouseStates = mouseStates;
+        }
+
+        public string TargetKey { get; }
+        public MGDockSplitContainer SplitContainer { get; }
+        public MouseState[] MouseStates { get; }
+        public int NextFrameIndex { get; set; }
+        public int LastLoggedFrameIndex { get; set; }
+    }
+
     private const string EditorLayoutDirectoryName = ".casaeditor";
     private const string EditorLayoutFileName = "layout.editor.json";
 
@@ -171,9 +200,23 @@ public class GameEditor : Game, IObservableUpdate
     private bool _automationSelectionReappliedAfterAssetOpen;
     private bool _automationDiagnosticsCaptured;
     private TimeSpan _automationSelectionAppliedAt;
+    private bool _automationPanelActivationApplied;
+    private TimeSpan _automationPanelActivatedAt;
+    private bool _automationContentFolderSelectionAttempted;
+    private bool _automationContentFolderSelectionApplied;
+    private TimeSpan _automationContentFolderSelectionAppliedAt;
+    private bool _automationContentScrollAttempted;
+    private bool _automationContentScrollApplied;
+    private TimeSpan _automationContentScrollAppliedAt;
     private bool _automationAssetOpenAttempted;
     private bool _automationAssetOpened;
     private TimeSpan _automationAssetOpenedAt;
+    private bool _automationDockResizeCompleted;
+    private TimeSpan _automationDockResizeCompletedAt;
+    private DockResizeAutomationState _automationDockResizeState;
+    private bool _automationDockInputDragCompleted;
+    private TimeSpan _automationDockInputDragCompletedAt;
+    private DockInputDragAutomationState _automationDockInputDragState;
     private bool _automationParticleCreateAttempted;
     private bool _automationParticleAssetCreated;
     private string _automationCreatedParticleAssetFullPath;
@@ -4299,6 +4342,7 @@ public class GameEditor : Game, IObservableUpdate
 
         using (EditorPerformanceProbe.BeginPhase("Input.CaptureAndPreview"))
         {
+            PrepareAutomationWindowInputOverride(gameTime.TotalGameTime);
             _windowInputSource.CaptureFrameInput();
             PreviewUpdate?.Invoke(this, gameTime.TotalGameTime);
         }
@@ -4611,7 +4655,7 @@ public class GameEditor : Game, IObservableUpdate
         var router = _editorRuntime?.InputComponent.InputRouter;
         var routingState = router?.CurrentRoutingState ?? InputRoutingState.Empty;
         var contentBrowserContext = _contentBrowserPanel?.GetPerformanceDiagnosticContext() ?? "cbView=None cbItems=0 cbTreeFolders=0 cbSearchLength=0 cbThumbs=0";
-        return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty} {contentBrowserContext}";
+        return $"selection={DescribeEntity(_editorSelection.SelectedEntity)}/{DescribeComponent(_editorSelection.SelectedComponent)} focus={DescribeMguiKeyboardFocus(_desktop?.FocusedKeyboardHandler)} route={routingState.Reason} target={routingState.TargetViewId} keyboardFocus={router?.KeyboardFocusViewId ?? ViewId.Empty} bottomPanel={GetActiveBottomToolPanelId()} {contentBrowserContext}";
     }
 
     private void OnAutomationWorldLoaded(object sender, EventArgs e)
@@ -4640,6 +4684,63 @@ public class GameEditor : Game, IObservableUpdate
             {
                 _automationSelectionApplied = true;
                 _automationSelectionAppliedAt = totalGameTime;
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ActivatePanelId)
+            && !_automationPanelActivationApplied)
+        {
+            if (TryApplyAutomationDockPanelActivation(totalGameTime))
+            {
+                _automationPanelActivationApplied = true;
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ContentBrowserFolderPath)
+            && !_automationContentFolderSelectionAttempted)
+        {
+            if (TryApplyAutomationContentFolderSelection(totalGameTime))
+            {
+                _automationContentFolderSelectionAttempted = true;
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ContentBrowserScrollTarget)
+            && !_automationContentScrollAttempted)
+        {
+            if (TryApplyAutomationContentBrowserScroll(totalGameTime))
+            {
+                _automationContentScrollAttempted = true;
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.DockResizeTarget)
+            && !_automationDockResizeCompleted)
+        {
+            if (TryApplyAutomationDockResize(totalGameTime))
+            {
+                _automationDockResizeCompleted = true;
+                _automationDockResizeCompletedAt = totalGameTime;
+            }
+
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.DockInputDragTarget)
+            && !_automationDockInputDragCompleted)
+        {
+            if (TryFinalizeAutomationDockInputDrag(totalGameTime))
+            {
+                _automationDockInputDragCompleted = true;
+                _automationDockInputDragCompletedAt = totalGameTime;
             }
 
             return;
@@ -4676,6 +4777,31 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationAssetOpened && _automationAssetOpenedAt > readyAt)
         {
             readyAt = _automationAssetOpenedAt;
+        }
+
+        if (_automationPanelActivationApplied && _automationPanelActivatedAt > readyAt)
+        {
+            readyAt = _automationPanelActivatedAt;
+        }
+
+        if (_automationContentFolderSelectionApplied && _automationContentFolderSelectionAppliedAt > readyAt)
+        {
+            readyAt = _automationContentFolderSelectionAppliedAt;
+        }
+
+        if (_automationContentScrollApplied && _automationContentScrollAppliedAt > readyAt)
+        {
+            readyAt = _automationContentScrollAppliedAt;
+        }
+
+        if (_automationDockResizeCompleted && _automationDockResizeCompletedAt > readyAt)
+        {
+            readyAt = _automationDockResizeCompletedAt;
+        }
+
+        if (_automationDockInputDragCompleted && _automationDockInputDragCompletedAt > readyAt)
+        {
+            readyAt = _automationDockInputDragCompletedAt;
         }
 
         if (_automationMaterialEdited && _automationMaterialEditedAt > readyAt)
@@ -4730,6 +4856,495 @@ public class GameEditor : Game, IObservableUpdate
 
         var desiredComponent = desiredEntity == null ? null : FindAutomationComponent(desiredEntity);
         return ReferenceEquals(_editorSelection.SelectedComponent, desiredComponent);
+    }
+
+    private bool TryApplyAutomationDockPanelActivation(TimeSpan totalGameTime)
+    {
+        string panelId = ResolveAutomationPanelId(_automationOptions.ActivatePanelId);
+        if (string.IsNullOrWhiteSpace(panelId))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unknown dock panel alias '{_automationOptions.ActivatePanelId}'.");
+            return true;
+        }
+
+        if (_dockHost?.LayoutModel == null)
+        {
+            return false;
+        }
+
+        if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal))
+        {
+            EnsureAnimation2dTimelineDockPanel();
+        }
+
+        if (!TryFindTabGroupByPanelId(panelId, out _))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Dock panel '{panelId}' was not found in the current layout.");
+            return true;
+        }
+
+        ActivateDockPanel(panelId);
+        _automationPanelActivatedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Activated dock panel '{panelId}'.");
+        return true;
+    }
+
+    private bool TryApplyAutomationDockResize(TimeSpan totalGameTime)
+    {
+        if (_dockHost?.Content == null)
+        {
+            return false;
+        }
+
+        if (_automationDockResizeState == null)
+        {
+            if (!TryResolveDockResizeTarget(_automationOptions.DockResizeTarget, out string targetKey))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                    $"[Automation] Unknown dock resize target '{_automationOptions.DockResizeTarget}'. Expected 'bottom' or 'left'.");
+                _automationDockResizeCompletedAt = totalGameTime;
+                return true;
+            }
+
+            if (!TryFindDockResizeSplitContainer(targetKey, out var splitContainer))
+            {
+                return false;
+            }
+
+            float[] ratios = BuildDockResizeRatios(splitContainer.SplitRatio);
+            _automationDockResizeState = new DockResizeAutomationState(splitContainer, ratios);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Starting dock resize target='{targetKey}' ratios={ratios.Length} initial={splitContainer.SplitRatio:0.###}");
+        }
+
+        if (_automationDockResizeState.NextRatioIndex < _automationDockResizeState.Ratios.Length)
+        {
+            float ratio = _automationDockResizeState.Ratios[_automationDockResizeState.NextRatioIndex];
+            _automationDockResizeState.SplitContainer.SetSplitRatioWithoutSync(ratio);
+            _automationDockResizeState.NextRatioIndex++;
+            return false;
+        }
+
+        _automationDockResizeState.SplitContainer.CommitRatioToModel();
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Completed dock resize target='{_automationOptions.DockResizeTarget}'.");
+        _automationDockResizeState = null;
+        _automationDockResizeCompletedAt = totalGameTime;
+        return true;
+    }
+
+    private void PrepareAutomationWindowInputOverride(TimeSpan totalGameTime)
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.DockInputDragTarget)
+            || _automationDockInputDragCompleted)
+        {
+            return;
+        }
+
+        if (!CanStartAutomationDockInputDrag())
+        {
+            return;
+        }
+
+        if (_automationDockInputDragState == null)
+        {
+            if (!TryResolveDockResizeTarget(_automationOptions.DockInputDragTarget, out string targetKey))
+            {
+                EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                    $"[Automation] Unknown dock input drag target '{_automationOptions.DockInputDragTarget}'. Expected 'bottom' or 'left'.");
+                _automationDockInputDragCompleted = true;
+                _automationDockInputDragCompletedAt = totalGameTime;
+                return;
+            }
+
+            if (!TryFindDockResizeSplitContainer(targetKey, out var splitContainer)
+                || splitContainer.SplitterBarLayoutBounds == Rectangle.Empty)
+            {
+                return;
+            }
+
+            MouseState[] mouseStates = BuildDockInputDragMouseStates(splitContainer);
+            _automationDockInputDragState = new DockInputDragAutomationState(targetKey, splitContainer, mouseStates);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Starting dock input drag target='{targetKey}' frames={mouseStates.Length} initialRatio={splitContainer.SplitRatio:0.###} splitter={splitContainer.SplitterBarLayoutBounds}");
+        }
+
+        if (_automationDockInputDragState.NextFrameIndex >= _automationDockInputDragState.MouseStates.Length)
+        {
+            return;
+        }
+
+        MouseState nextMouseState = _automationDockInputDragState.MouseStates[_automationDockInputDragState.NextFrameIndex];
+        _windowInputSource.QueueNextSnapshot(new WindowInputSnapshot(new KeyboardState(), nextMouseState));
+        _automationDockInputDragState.NextFrameIndex++;
+    }
+
+    private bool CanStartAutomationDockInputDrag()
+    {
+        if (!_automationWorldLoaded || _dockHost?.Content == null || !_automationSelectionApplied)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.OpenAssetPath) && !_automationAssetOpened)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ActivatePanelId) && !_automationPanelActivationApplied)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ContentBrowserFolderPath) && !_automationContentFolderSelectionApplied)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(_automationOptions.ContentBrowserScrollTarget) && !_automationContentScrollApplied)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryFinalizeAutomationDockInputDrag(TimeSpan totalGameTime)
+    {
+        if (_automationDockInputDragState == null)
+        {
+            return false;
+        }
+
+        LogAutomationDockInputDragProgress();
+
+        if (_automationDockInputDragState.NextFrameIndex < _automationDockInputDragState.MouseStates.Length)
+        {
+            return false;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Completed dock input drag target='{_automationDockInputDragState.TargetKey}' finalRatio={_automationDockInputDragState.SplitContainer.SplitRatio:0.###} first={_automationDockInputDragState.SplitContainer.FirstChild?.LayoutBounds} second={_automationDockInputDragState.SplitContainer.SecondChild?.LayoutBounds}");
+        _automationDockInputDragState = null;
+        _automationDockInputDragCompletedAt = totalGameTime;
+        return true;
+    }
+
+    private void LogAutomationDockInputDragProgress()
+    {
+        if (_automationDockInputDragState == null)
+        {
+            return;
+        }
+
+        int frameIndex = _automationDockInputDragState.NextFrameIndex;
+        if (frameIndex == _automationDockInputDragState.LastLoggedFrameIndex)
+        {
+            return;
+        }
+
+        bool shouldLog = frameIndex == 1
+            || frameIndex == _automationDockInputDragState.MouseStates.Length
+            || frameIndex % 12 == 0;
+        if (!shouldLog)
+        {
+            return;
+        }
+
+        _automationDockInputDragState.LastLoggedFrameIndex = frameIndex;
+        MouseState mouseState = _automationDockInputDragState.MouseStates[Math.Min(frameIndex - 1, _automationDockInputDragState.MouseStates.Length - 1)];
+        MGDockSplitterBar splitterBar = FindDockSplitterBar(_automationDockInputDragState.SplitContainer);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Dock input drag step={frameIndex}/{_automationDockInputDragState.MouseStates.Length} mouse=({mouseState.X},{mouseState.Y}) left={mouseState.LeftButton} ratio={_automationDockInputDragState.SplitContainer.SplitRatio:0.###} splitter={_automationDockInputDragState.SplitContainer.SplitterBarLayoutBounds} splitterHover={splitterBar?.IsHovered} splitterDragging={splitterBar?.IsDragging} hovered={DescribeAutomationElement(_mainWindow?.HoveredElement)} pressed={DescribeAutomationElement(_mainWindow?.PressedElement)} first={_automationDockInputDragState.SplitContainer.FirstChild?.LayoutBounds} second={_automationDockInputDragState.SplitContainer.SecondChild?.LayoutBounds}");
+    }
+
+    private bool TryApplyAutomationContentFolderSelection(TimeSpan totalGameTime)
+    {
+        ApplyAutomationProjectDirectory();
+        string folderPath = ResolveAutomationAssetPath(_automationOptions.ContentBrowserFolderPath!);
+        if (!Directory.Exists(folderPath))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Content folder '{_automationOptions.ContentBrowserFolderPath}' does not exist (resolved='{folderPath}').");
+            return true;
+        }
+
+        _ = GetOrCreateContentBrowserContent();
+        if (_contentBrowserPanel == null)
+        {
+            return false;
+        }
+
+        if (_contentBrowserPanel.TryNavigateToFolderPath(folderPath))
+        {
+            _automationContentFolderSelectionApplied = true;
+            _automationContentFolderSelectionAppliedAt = totalGameTime;
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+                $"[Automation] Selected content folder '{_automationOptions.ContentBrowserFolderPath}'.");
+            return true;
+        }
+
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+            $"[Automation] Unable to select content folder '{_automationOptions.ContentBrowserFolderPath}' (resolved='{folderPath}').");
+        return true;
+    }
+
+    private bool TryApplyAutomationContentBrowserScroll(TimeSpan totalGameTime)
+    {
+        _ = GetOrCreateContentBrowserContent();
+        if (_contentBrowserPanel == null)
+        {
+            return false;
+        }
+
+        string target = NormalizeAutomationToken(_automationOptions.ContentBrowserScrollTarget!);
+        if (!string.Equals(target, "bottom", StringComparison.Ordinal))
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
+                $"[Automation] Unknown content scroll target '{_automationOptions.ContentBrowserScrollTarget}'. Expected 'bottom'.");
+            return true;
+        }
+
+        if (!_contentBrowserPanel.TryApplyAutomationScrollTarget(target))
+        {
+            return false;
+        }
+
+        _automationContentScrollApplied = true;
+        _automationContentScrollAppliedAt = totalGameTime;
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Automation] Applied content scroll target='{_automationOptions.ContentBrowserScrollTarget}'.");
+        return true;
+    }
+
+    private string ResolveAutomationPanelId(string rawPanelId)
+    {
+        string normalizedPanelId = NormalizeAutomationToken(rawPanelId);
+        return normalizedPanelId switch
+        {
+            "worldviewport" => EditorPanelIds.WorldViewport,
+            "hierarchy" => EditorPanelIds.Hierarchy,
+            "inspector" => EditorPanelIds.Inspector,
+            "toolbox" => EditorPanelIds.Toolbox,
+            "contentbrowser" => EditorPanelIds.ContentBrowser,
+            "output" => EditorPanelIds.Output,
+            "animation2dtimeline" => EditorPanelIds.Animation2dTimeline,
+            "timeline" => EditorPanelIds.Animation2dTimeline,
+            _ => rawPanelId,
+        };
+    }
+
+    private static bool TryResolveDockResizeTarget(string rawTarget, out string targetKey)
+    {
+        targetKey = NormalizeAutomationToken(rawTarget);
+        return targetKey == "bottom" || targetKey == "left";
+    }
+
+    private bool TryFindDockResizeSplitContainer(string targetKey, out MGDockSplitContainer splitContainer)
+    {
+        splitContainer = null;
+        if (_dockHost == null)
+        {
+            return false;
+        }
+
+        foreach (MGElement element in _dockHost.TraverseVisualTree(true, false, false, false))
+        {
+            if (element is not MGDockSplitContainer candidate || candidate.ModelNode == null)
+            {
+                continue;
+            }
+
+            if (targetKey == "bottom" && IsBottomDockSplit(candidate.ModelNode))
+            {
+                splitContainer = candidate;
+                return true;
+            }
+
+            if (targetKey == "left" && IsLeftDockSplit(candidate.ModelNode))
+            {
+                splitContainer = candidate;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static float[] BuildDockResizeRatios(float initialRatio)
+    {
+        const int stepsPerSegment = 18;
+        float lowerRatio = Math.Clamp(initialRatio - 0.16f, 0.10f, 0.90f);
+        float upperRatio = Math.Clamp(initialRatio + 0.10f, 0.10f, 0.90f);
+        var ratios = new List<float>(stepsPerSegment * 3);
+        AppendInterpolatedRatios(ratios, initialRatio, lowerRatio, stepsPerSegment);
+        AppendInterpolatedRatios(ratios, lowerRatio, upperRatio, stepsPerSegment);
+        AppendInterpolatedRatios(ratios, upperRatio, initialRatio, stepsPerSegment);
+        return ratios.ToArray();
+    }
+
+    private static void AppendInterpolatedRatios(List<float> ratios, float start, float end, int stepsPerSegment)
+    {
+        for (int stepIndex = 1; stepIndex <= stepsPerSegment; stepIndex++)
+        {
+            float amount = stepsPerSegment <= 1 ? 1.0f : (float)stepIndex / stepsPerSegment;
+            ratios.Add(MathHelper.Lerp(start, end, amount));
+        }
+    }
+
+    private static MouseState[] BuildDockInputDragMouseStates(MGDockSplitContainer splitContainer)
+    {
+        float[] ratios = BuildDockResizeRatios(splitContainer.SplitRatio);
+        var mouseStates = new MouseState[ratios.Length + 3];
+        Point startPoint = GetDockInputDragPoint(splitContainer, splitContainer.SplitRatio);
+        mouseStates[0] = CreateMouseState(startPoint, ButtonState.Released);
+        mouseStates[1] = CreateMouseState(startPoint, ButtonState.Pressed);
+
+        for (int index = 0; index < ratios.Length; index++)
+        {
+            Point point = GetDockInputDragPoint(splitContainer, ratios[index]);
+            mouseStates[index + 2] = CreateMouseState(point, ButtonState.Pressed);
+        }
+
+        Point endPoint = GetDockInputDragPoint(splitContainer, ratios[ratios.Length - 1]);
+        mouseStates[mouseStates.Length - 1] = CreateMouseState(endPoint, ButtonState.Released);
+        return mouseStates;
+    }
+
+    private static Point GetDockInputDragPoint(MGDockSplitContainer splitContainer, float ratio)
+    {
+        Rectangle layoutBounds = splitContainer.LayoutBounds;
+        Rectangle splitterBounds = splitContainer.SplitterBarLayoutBounds;
+        int splitterThickness = Math.Max(1, splitContainer.SplitterThickness);
+
+        if (splitContainer.Orientation == Orientation.Horizontal)
+        {
+            int availableWidth = Math.Max(1, layoutBounds.Width - splitterThickness);
+            int firstWidth = (int)Math.Round(Math.Clamp(ratio, 0.0f, 1.0f) * availableWidth, MidpointRounding.AwayFromZero);
+            int x = layoutBounds.Left + firstWidth + splitterThickness / 2;
+            int y = splitterBounds != Rectangle.Empty ? splitterBounds.Center.Y : layoutBounds.Center.Y;
+            return new Point(x, y);
+        }
+
+        int availableHeight = Math.Max(1, layoutBounds.Height - splitterThickness);
+        int firstHeight = (int)Math.Round(Math.Clamp(ratio, 0.0f, 1.0f) * availableHeight, MidpointRounding.AwayFromZero);
+        int dragY = layoutBounds.Top + firstHeight + splitterThickness / 2;
+        int dragX = splitterBounds != Rectangle.Empty ? splitterBounds.Center.X : layoutBounds.Center.X;
+        return new Point(dragX, dragY);
+    }
+
+    private static MouseState CreateMouseState(Point point, ButtonState leftButton)
+        => new(point.X, point.Y, 0, leftButton, ButtonState.Released, ButtonState.Released, ButtonState.Released, ButtonState.Released);
+
+    private static MGDockSplitterBar FindDockSplitterBar(MGDockSplitContainer splitContainer)
+    {
+        if (splitContainer == null)
+        {
+            return null;
+        }
+
+        foreach (MGElement child in splitContainer.GetChildren())
+        {
+            if (child is MGDockSplitterBar splitterBar)
+            {
+                return splitterBar;
+            }
+        }
+
+        return null;
+    }
+
+    private static string DescribeAutomationElement(MGElement element)
+    {
+        if (element == null)
+        {
+            return "<none>";
+        }
+
+        string stableId;
+        try
+        {
+            stableId = UIToolingService.GetStableDiagnosticId(element);
+        }
+        catch
+        {
+            stableId = "<detached>";
+        }
+
+        return $"{element.GetType().Name}:{stableId}";
+    }
+
+    private bool TryFindTabGroupByPanelId(string panelId, out DockTabGroupNode targetGroup)
+    {
+        targetGroup = null;
+        if (_dockHost?.LayoutModel == null)
+        {
+            return false;
+        }
+
+        foreach (DockTabGroupNode group in _dockHost.LayoutModel.GetAllTabGroups())
+        {
+            if (TabGroupContainsPanel(group, panelId))
+            {
+                targetGroup = group;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private string GetActiveBottomToolPanelId()
+    {
+        if (_dockHost?.LayoutModel == null)
+        {
+            return "<none>";
+        }
+
+        foreach (DockTabGroupNode group in _dockHost.LayoutModel.GetAllTabGroups())
+        {
+            if (TabGroupContainsPanel(group, EditorPanelIds.ContentBrowser))
+            {
+                return string.IsNullOrWhiteSpace(group.ActivePanelId) ? "<none>" : group.ActivePanelId;
+            }
+        }
+
+        return "<none>";
+    }
+
+    private static bool IsBottomDockSplit(DockSplitNode splitNode)
+    {
+        return splitNode.Orientation == Orientation.Vertical
+            && splitNode.SecondChild is DockTabGroupNode bottomGroup
+            && TabGroupContainsPanel(bottomGroup, EditorPanelIds.ContentBrowser);
+    }
+
+    private static bool IsLeftDockSplit(DockSplitNode splitNode)
+    {
+        return splitNode.Orientation == Orientation.Horizontal
+            && splitNode.FirstChild is DockTabGroupNode leftGroup
+            && TabGroupContainsPanel(leftGroup, EditorPanelIds.Hierarchy);
+    }
+
+    private static bool TabGroupContainsPanel(DockTabGroupNode group, string panelId)
+    {
+        if (group == null)
+        {
+            return false;
+        }
+
+        foreach (DockPanelNode panel in group.Panels)
+        {
+            if (string.Equals(panel.Id, panelId, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void TryApplyAutomationAssetOpen(TimeSpan totalGameTime)
@@ -5372,6 +5987,11 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Captured at: {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
         builder.AppendLine($"Project: {_automationOptions.ProjectPath}");
         builder.AppendLine($"Open asset: {_automationOptions.OpenAssetPath ?? "<none>"}");
+        builder.AppendLine($"Activate panel: {_automationOptions.ActivatePanelId ?? "<none>"}");
+        builder.AppendLine($"Content folder: {_automationOptions.ContentBrowserFolderPath ?? "<none>"}");
+        builder.AppendLine($"Content scroll: {_automationOptions.ContentBrowserScrollTarget ?? "<none>"}");
+        builder.AppendLine($"Dock resize target: {_automationOptions.DockResizeTarget ?? "<none>"}");
+        builder.AppendLine($"Dock input drag target: {_automationOptions.DockInputDragTarget ?? "<none>"}");
         builder.AppendLine($"Create particle asset: {_automationOptions.CreateParticleAssetFolder ?? "<none>"}");
         builder.AppendLine($"Create particle preset: {_automationOptions.CreateParticlePresetName ?? "<none>"}");
         builder.AppendLine($"Drop particle asset: {_automationOptions.DropParticleAssetPath ?? "<none>"}");

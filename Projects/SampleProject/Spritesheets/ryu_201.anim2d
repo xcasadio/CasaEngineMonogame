@@ -2,31 +2,48 @@
   "animation_type": "Once",
   "id": "5efb01be-b0a7-44ea-b575-be83825354af",
   "name": "ryu_201",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "a9634fb3-54de-45ef-af89-a7b2524a2bb5"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "a9634fb3-54de-45ef-af89-a7b2524a2bb5",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.031999998,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ce3e83e3-1a28-4ef3-b65a-fe620ad9c1fa"
-    },
-    {
-      "time_seconds": 0.063999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "1725d76b-10a0-41ce-b74b-735ca2f22049"
-    },
-    {
-      "time_seconds": 0.111999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ce2d0698-768f-4012-ab4f-1ab3c2446fc6"
-    },
-    {
-      "time_seconds": 0.143999994,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ce2d0698-768f-4012-ab4f-1ab3c2446fc6"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "a9634fb3-54de-45ef-af89-a7b2524a2bb5"
+        },
+        {
+          "time_seconds": 0.031999998,
+          "value": "ce3e83e3-1a28-4ef3-b65a-fe620ad9c1fa"
+        },
+        {
+          "time_seconds": 0.063999996,
+          "value": "1725d76b-10a0-41ce-b74b-735ca2f22049"
+        },
+        {
+          "time_seconds": 0.111999996,
+          "value": "ce2d0698-768f-4012-ab4f-1ab3c2446fc6"
+        },
+        {
+          "time_seconds": 0.143999994,
+          "value": "ce2d0698-768f-4012-ab4f-1ab3c2446fc6"
+        }
+      ]
     }
   ]
 }

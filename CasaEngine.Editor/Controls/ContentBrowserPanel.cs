@@ -85,6 +85,51 @@ public class ContentBrowserPanel
     {
     }
 
+    private sealed class ItemToolTipBinding
+    {
+        public ItemToolTipBinding(
+            MGToolTip toolTip,
+            MGContentPresenter previewPresenter,
+            MGTextBlock nameText,
+            MGTextBlock typeText,
+            MGTextBlock pathText,
+            MGTextBlock sizeText,
+            MGTextBlock dimensionsText,
+            MGTextBlock modifiedText)
+        {
+            ToolTip = toolTip;
+            PreviewPresenter = previewPresenter;
+            NameText = nameText;
+            TypeText = typeText;
+            PathText = pathText;
+            SizeText = sizeText;
+            DimensionsText = dimensionsText;
+            ModifiedText = modifiedText;
+        }
+
+        public MGToolTip ToolTip { get; }
+
+        public MGContentPresenter PreviewPresenter { get; }
+
+        public MGImage? PreviewImage { get; set; }
+
+        public MGTextBlock NameText { get; }
+
+        public MGTextBlock TypeText { get; }
+
+        public MGTextBlock PathText { get; }
+
+        public MGTextBlock SizeText { get; }
+
+        public MGTextBlock DimensionsText { get; }
+
+        public MGTextBlock ModifiedText { get; }
+
+        public string? RegisteredPreviewPath { get; set; }
+
+        public string? RegisteredDimensionPath { get; set; }
+    }
+
     private sealed class ExecutedContentBrowserCommand : IEditorCommand
     {
         private readonly FileOperationService _fileOperationService;
@@ -145,6 +190,7 @@ public class ContentBrowserPanel
     private readonly List<string> _externalDropPaths = new();
     private readonly ConditionalWeakTable<MGElement, ContentItem> _externalDropTargetFolders = new();
     private readonly ConditionalWeakTable<MGElement, GridItemDropTargetRegistration> _gridItemDropTargetRegistrations = new();
+    private readonly ConditionalWeakTable<MGElement, ItemToolTipBinding> _itemToolTipBindings = new();
     private readonly Dictionary<string, List<MGImage>> _tooltipPreviewImages = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, List<MGTextBlock>> _tooltipDimensionTexts = new(StringComparer.OrdinalIgnoreCase);
     private string _pendingOperationError = string.Empty;
@@ -188,6 +234,7 @@ public class ContentBrowserPanel
     private GridView _gridView = null!;
     private DetailView _detailView = null!;
     private IContentView _activeContentView = null!;
+    private IReadOnlyList<ContentItem> _visibleItems = Array.Empty<ContentItem>();
 
     // Data model
     private ContentItem? _rootItem;
@@ -266,9 +313,7 @@ public class ContentBrowserPanel
         _treeView.MouseHandler.RMBReleasedInside += OnTreeViewRightClick;
         _window.WindowKeyboardHandler.Pressed += OnGlobalKeyPressed;
 
-        var treeScroll = new MGScrollViewer(_window);
-        treeScroll.SetContent(_treeView);
-        var treePane = WrapPanelSurface(treeScroll, TreeBackgroundColor);
+        var treePane = WrapPanelSurface(_treeView, TreeBackgroundColor);
 
         // Content views (right pane)
         _gridView = new GridView(_window, Config.ThumbnailSize, GetGridItemPreviewTexture, ConfigureGridItemElement);
@@ -361,7 +406,22 @@ public class ContentBrowserPanel
 
         result.Add($"Current folder items: {currentFolderItemCount}");
         result.Add($"Particle thumbnails: {loadedParticleThumbnailCount}/{particleThumbnailCount} loaded");
+        var gridState = _gridView.GetAutomationStateSnapshot();
+        for (int index = 0; index < gridState.Count; index++)
+        {
+            result.Add(gridState[index]);
+        }
         return result;
+    }
+
+    public bool TryApplyAutomationScrollTarget(string target)
+    {
+        if (_activeContentView != _gridView)
+        {
+            return false;
+        }
+
+        return _gridView.TryApplyAutomationScrollTarget(target);
     }
 
     public string GetPerformanceDiagnosticContext()
@@ -439,6 +499,47 @@ public class ContentBrowserPanel
 
         // Try to select matching tree node
         SelectTreeNode(folder);
+    }
+
+    public bool TryNavigateToFolderPath(string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath))
+        {
+            return false;
+        }
+
+        string normalizedFolderPath = Path.GetFullPath(folderPath);
+        if (_rootItem == null)
+        {
+            _pendingCurrentFolderPath = normalizedFolderPath;
+            RebuildTree();
+        }
+
+        if (_rootItem == null)
+        {
+            return false;
+        }
+
+        ContentItem? folder = FindFolder(_rootItem, normalizedFolderPath);
+        if (folder == null)
+        {
+            _pendingCurrentFolderPath = normalizedFolderPath;
+            RebuildTree();
+
+            folder = _currentFolder;
+            if (folder == null || !string.Equals(folder.FullPath, normalizedFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                folder = FindFolder(_rootItem, normalizedFolderPath);
+            }
+        }
+
+        if (folder == null)
+        {
+            return false;
+        }
+
+        NavigateTo(folder);
+        return true;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -582,6 +683,7 @@ public class ContentBrowserPanel
         }
 
         var previousSelection = GetSelectedItems();
+        view.SetItems(_visibleItems);
         _activeContentView = view;
         _contentViewHost.SetContent(view.RootElement);
         view.RestoreSelection(previousSelection);
@@ -1516,14 +1618,14 @@ public class ContentBrowserPanel
         ClearTooltipRegistrations();
         if (displayFolder == null)
         {
-            _gridView?.SetItems(Array.Empty<ContentItem>());
-            _detailView?.SetItems(Array.Empty<ContentItem>());
+            _visibleItems = Array.Empty<ContentItem>();
+            _activeContentView?.SetItems(_visibleItems);
             return;
         }
 
         var orderedItems = ContentBrowserItemQuery.GetVisibleItems(displayFolder, _searchFilter, ShouldIncludeItem);
-        _gridView.SetItems(orderedItems);
-        _detailView.SetItems(orderedItems);
+        _visibleItems = orderedItems;
+        _activeContentView.SetItems(_visibleItems);
 
         if (pendingSelectionPaths != null && pendingSelectionPaths.Count > 0)
         {
@@ -2277,7 +2379,7 @@ public class ContentBrowserPanel
         {
             foreach (var dimensionLabel in dimensionLabels)
             {
-                dimensionLabel.Text = $"Dimensions: {sourceSize.X} x {sourceSize.Y}";
+                dimensionLabel.SetText($"Dimensions: {sourceSize.X} x {sourceSize.Y}", MGTextInvalidationMode.ReflowLocal);
             }
         }
     }
@@ -2300,7 +2402,44 @@ public class ContentBrowserPanel
 
     private void ConfigureItemToolTip(ContentItem item, MGElement host)
     {
-        var tooltip = new MGToolTip(_window, host, item.Type == ContentItemType.Texture ? 280 : 260, item.Type == ContentItemType.Texture ? 340 : 190)
+        var previewResult = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
+        var binding = GetOrCreateItemToolTipBinding(host);
+        binding.ToolTip.WindowWidth = item.Type == ContentItemType.Texture ? 280 : 260;
+        binding.ToolTip.WindowHeight = item.Type == ContentItemType.Texture ? 340 : 190;
+
+        UpdateItemToolTipPreview(binding, item, previewResult.Texture ?? item.Thumbnail ?? GetIconForType(item.Type));
+        SetToolTipText(binding.NameText, item.Name);
+        SetToolTipText(binding.TypeText, $"Type: {ContentItemDisplay.GetTypeLabel(item)}");
+        SetToolTipText(binding.PathText, $"Path: {ContentItemDisplay.GetRelativePath(GetConfiguredRootPath(), item)}");
+        SetToolTipText(binding.SizeText, $"Size: {(item.IsDirectory ? "-" : ContentItemDisplay.FormatSize(item.Size))}");
+
+        if (item.Type == ContentItemType.Texture)
+        {
+            string dimensions = previewResult.SourceSize.HasValue
+                ? $"Dimensions: {previewResult.SourceSize.Value.X} x {previewResult.SourceSize.Value.Y}"
+                : "Dimensions: loading...";
+            binding.DimensionsText.Visibility = Visibility.Visible;
+            SetToolTipText(binding.DimensionsText, dimensions);
+            UpdateTooltipDimensionsRegistration(binding, item.FullPath);
+        }
+        else
+        {
+            binding.DimensionsText.Visibility = Visibility.Collapsed;
+            SetToolTipText(binding.DimensionsText, string.Empty);
+            UpdateTooltipDimensionsRegistration(binding, null);
+        }
+
+        SetToolTipText(binding.ModifiedText, $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}");
+    }
+
+    private ItemToolTipBinding GetOrCreateItemToolTipBinding(MGElement host)
+    {
+        if (_itemToolTipBindings.TryGetValue(host, out var binding))
+        {
+            return binding;
+        }
+
+        var toolTip = new MGToolTip(_window, host, 260, 190)
         {
             ShowDelayOverride = TimeSpan.FromMilliseconds(180),
         };
@@ -2311,37 +2450,121 @@ public class ContentBrowserPanel
             Spacing = 6,
         };
 
-        var previewResult = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
-        if (previewResult.Texture != null)
+        var previewPresenter = new MGContentPresenter(_window)
         {
-            var preview = new MGImage(_window, EditorIcons.AsImage(previewResult.Texture)!, Stretch: Stretch.Uniform)
+            PreferredWidth = 200,
+            PreferredHeight = 200,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Visibility = Visibility.Collapsed,
+        };
+        panel.TryAddChild(previewPresenter);
+
+        var nameText = new MGTextBlock(_window, string.Empty)
+        {
+            IsBold = true,
+            WrapText = true,
+        };
+        var typeText = new MGTextBlock(_window, string.Empty);
+        var pathText = new MGTextBlock(_window, string.Empty)
+        {
+            WrapText = true,
+        };
+        var sizeText = new MGTextBlock(_window, string.Empty);
+        var dimensionsText = new MGTextBlock(_window, string.Empty)
+        {
+            Visibility = Visibility.Collapsed,
+        };
+        var modifiedText = new MGTextBlock(_window, string.Empty);
+
+        panel.TryAddChild(nameText);
+        panel.TryAddChild(typeText);
+        panel.TryAddChild(pathText);
+        panel.TryAddChild(sizeText);
+        panel.TryAddChild(dimensionsText);
+        panel.TryAddChild(modifiedText);
+
+        toolTip.SetContent(panel);
+        host.ToolTip = toolTip;
+
+        binding = new ItemToolTipBinding(
+            toolTip,
+            previewPresenter,
+            nameText,
+            typeText,
+            pathText,
+            sizeText,
+            dimensionsText,
+            modifiedText);
+        _itemToolTipBindings.Add(host, binding);
+        return binding;
+    }
+
+    private void UpdateItemToolTipPreview(ItemToolTipBinding binding, ContentItem item, Texture2D? previewTexture)
+    {
+        if (previewTexture == null)
+        {
+            if (binding.PreviewImage != null)
+            {
+                binding.PreviewImage.Source = null;
+            }
+
+            binding.PreviewPresenter.Visibility = Visibility.Collapsed;
+            UpdateTooltipPreviewRegistration(binding, null);
+            return;
+        }
+
+        if (binding.PreviewImage == null)
+        {
+            binding.PreviewImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(previewTexture)!))
             {
                 PreferredWidth = 200,
                 PreferredHeight = 200,
                 HorizontalAlignment = HorizontalAlignment.Center,
             };
-            panel.TryAddChild(preview);
-            RegisterTooltipPreview(item.FullPath, preview);
+            binding.PreviewPresenter.SetContent(binding.PreviewImage);
         }
-
-        panel.TryAddChild(new MGTextBlock(_window, item.Name) { IsBold = true, WrapText = true });
-        panel.TryAddChild(new MGTextBlock(_window, $"Type: {ContentItemDisplay.GetTypeLabel(item)}"));
-        panel.TryAddChild(new MGTextBlock(_window, $"Path: {ContentItemDisplay.GetRelativePath(GetConfiguredRootPath(), item)}") { WrapText = true });
-        panel.TryAddChild(new MGTextBlock(_window, $"Size: {(item.IsDirectory ? "-" : ContentItemDisplay.FormatSize(item.Size))}"));
-
-        if (item.Type == ContentItemType.Texture)
+        else
         {
-            var dimensions = previewResult.SourceSize.HasValue
-                ? $"Dimensions: {previewResult.SourceSize.Value.X} x {previewResult.SourceSize.Value.Y}"
-                : "Dimensions: loading...";
-            var dimensionsText = new MGTextBlock(_window, dimensions);
-            panel.TryAddChild(dimensionsText);
-            RegisterTooltipDimensions(item.FullPath, dimensionsText);
+            binding.PreviewImage.Source = new MGTextureData(EditorIcons.AsImage(previewTexture)!);
         }
 
-        panel.TryAddChild(new MGTextBlock(_window, $"Modified: {(item.LastModified == default ? "-" : item.LastModified.ToString("yyyy-MM-dd HH:mm"))}"));
-        tooltip.SetContent(panel);
-        host.ToolTip = tooltip;
+        binding.PreviewPresenter.Visibility = Visibility.Visible;
+        UpdateTooltipPreviewRegistration(binding, item.FullPath);
+    }
+
+    private static void SetToolTipText(MGTextBlock textBlock, string value)
+    {
+        textBlock.SetText(value, MGTextInvalidationMode.ReflowLocal);
+    }
+
+    private void UpdateTooltipPreviewRegistration(ItemToolTipBinding binding, string? path)
+    {
+        if (!string.IsNullOrWhiteSpace(binding.RegisteredPreviewPath) && binding.PreviewImage != null)
+        {
+            UnregisterTooltipPreview(binding.RegisteredPreviewPath, binding.PreviewImage);
+        }
+
+        binding.RegisteredPreviewPath = null;
+        if (!string.IsNullOrWhiteSpace(path) && binding.PreviewImage != null)
+        {
+            RegisterTooltipPreview(path, binding.PreviewImage);
+            binding.RegisteredPreviewPath = path;
+        }
+    }
+
+    private void UpdateTooltipDimensionsRegistration(ItemToolTipBinding binding, string? path)
+    {
+        if (!string.IsNullOrWhiteSpace(binding.RegisteredDimensionPath))
+        {
+            UnregisterTooltipDimensions(binding.RegisteredDimensionPath, binding.DimensionsText);
+        }
+
+        binding.RegisteredDimensionPath = null;
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            RegisterTooltipDimensions(path, binding.DimensionsText);
+            binding.RegisteredDimensionPath = path;
+        }
     }
 
     private void RegisterTooltipPreview(string path, MGImage preview)
@@ -2355,6 +2578,20 @@ public class ContentBrowserPanel
         previews.Add(preview);
     }
 
+    private void UnregisterTooltipPreview(string path, MGImage preview)
+    {
+        if (!_tooltipPreviewImages.TryGetValue(path, out var previews))
+        {
+            return;
+        }
+
+        previews.Remove(preview);
+        if (previews.Count == 0)
+        {
+            _tooltipPreviewImages.Remove(path);
+        }
+    }
+
     private void RegisterTooltipDimensions(string path, MGTextBlock dimensionsLabel)
     {
         if (!_tooltipDimensionTexts.TryGetValue(path, out var labels))
@@ -2364,6 +2601,20 @@ public class ContentBrowserPanel
         }
 
         labels.Add(dimensionsLabel);
+    }
+
+    private void UnregisterTooltipDimensions(string path, MGTextBlock dimensionsLabel)
+    {
+        if (!_tooltipDimensionTexts.TryGetValue(path, out var labels))
+        {
+            return;
+        }
+
+        labels.Remove(dimensionsLabel);
+        if (labels.Count == 0)
+        {
+            _tooltipDimensionTexts.Remove(path);
+        }
     }
 
     private void ClearTooltipRegistrations()

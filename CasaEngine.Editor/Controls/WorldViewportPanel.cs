@@ -615,7 +615,7 @@ public class WorldViewportPanel : IDisposable
 
         _renderViewHost?.NotifyResized(width, height);
 
-        _surface?.EnsureSize(width, height);
+        _surface?.RequestResize(width, height);
         _camera?.OnScreenResized(width, height);
         if (UseFront2dCamera)
         {

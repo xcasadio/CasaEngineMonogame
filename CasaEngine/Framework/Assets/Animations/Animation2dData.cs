@@ -8,6 +8,19 @@ public class Animation2dData : AnimationData
     public List<Animation2dTrackData> Tracks { get; } = new();
     public List<AnimationEventAsset> Events { get; } = new();
 
+    public bool AreEventsSortedByTime()
+    {
+        for (var index = 1; index < Events.Count; index++)
+        {
+            if (Events[index - 1].TimeSeconds > Events[index].TimeSeconds)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public List<string> GetInvalidTrackTargetPartIds()
     {
         var partIds = new HashSet<string>(StringComparer.Ordinal);
@@ -73,5 +86,4 @@ public class Animation2dData : AnimationData
             }
         }
     }
-
 }

@@ -2,51 +2,64 @@
   "animation_type": "Once",
   "id": "b7b4e45a-334b-44a0-8f8e-4fed31d10c52",
   "name": "ryu_43",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "6975156f-60b3-4c63-b92f-ccd4b17bba16"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "6975156f-60b3-4c63-b92f-ccd4b17bba16",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.063999996,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "aacf88ac-e871-4588-ae7a-60ebacc0ae15"
-    },
-    {
-      "time_seconds": 0.127999992,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "30cbb994-3738-4cff-ab45-6fa4dc6f50ee"
-    },
-    {
-      "time_seconds": 0.191999988,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "bc5489a3-7075-42a1-a9b7-d8f59dc108ba"
-    },
-    {
-      "time_seconds": 0.255999984,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "7ee5b896-96ec-46a8-bc82-46a72032414e"
-    },
-    {
-      "time_seconds": 0.31999998,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "558dfb8f-df8e-4923-8d6f-b5d9a65af464"
-    },
-    {
-      "time_seconds": 0.383999976,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "3a64881b-30a0-4c71-b74b-73721224fc90"
-    },
-    {
-      "time_seconds": 0.447999972,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "1ffd999d-cef5-4dee-bd41-9c5574f09f23"
-    },
-    {
-      "time_seconds": 0.463999971,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "1ffd999d-cef5-4dee-bd41-9c5574f09f23"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "6975156f-60b3-4c63-b92f-ccd4b17bba16"
+        },
+        {
+          "time_seconds": 0.063999996,
+          "value": "aacf88ac-e871-4588-ae7a-60ebacc0ae15"
+        },
+        {
+          "time_seconds": 0.127999992,
+          "value": "30cbb994-3738-4cff-ab45-6fa4dc6f50ee"
+        },
+        {
+          "time_seconds": 0.191999988,
+          "value": "bc5489a3-7075-42a1-a9b7-d8f59dc108ba"
+        },
+        {
+          "time_seconds": 0.255999984,
+          "value": "7ee5b896-96ec-46a8-bc82-46a72032414e"
+        },
+        {
+          "time_seconds": 0.31999998,
+          "value": "558dfb8f-df8e-4923-8d6f-b5d9a65af464"
+        },
+        {
+          "time_seconds": 0.383999976,
+          "value": "3a64881b-30a0-4c71-b74b-73721224fc90"
+        },
+        {
+          "time_seconds": 0.447999972,
+          "value": "1ffd999d-cef5-4dee-bd41-9c5574f09f23"
+        },
+        {
+          "time_seconds": 0.463999971,
+          "value": "1ffd999d-cef5-4dee-bd41-9c5574f09f23"
+        }
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Animations;

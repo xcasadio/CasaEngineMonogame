@@ -2,46 +2,60 @@
   "animation_type": "Once",
   "id": "7eb78512-0486-4eb7-b353-27f82275eea7",
   "name": "baton_attack_right",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "91dd9021-c4b7-4206-bce6-d8a4b861fbc2"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "91dd9021-c4b7-4206-bce6-d8a4b861fbc2",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.03,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "987bbc3e-91b3-4ca1-ab50-4bf54632e4f5"
-    },
-    {
-      "time_seconds": 0.06,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "188524ca-89fd-48a1-a35c-3ac8b2b3c05e"
-    },
-    {
-      "time_seconds": 0.09,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "c35d25d6-8118-43a0-a84a-c01da64a3def"
-    },
-    {
-      "time_seconds": 0.12,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "8bf0728c-4bff-485f-afe5-aafa70c04a01"
-    },
-    {
-      "time_seconds": 0.15,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "55f66f76-70bd-413a-91f4-faadebf818ab"
-    },
-    {
-      "time_seconds": 0.18,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ed656e02-3659-472a-ba62-be7328bc3801"
-    },
-    {
-      "time_seconds": 0.21,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ed656e02-3659-472a-ba62-be7328bc3801"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "91dd9021-c4b7-4206-bce6-d8a4b861fbc2"
+        },
+        {
+          "time_seconds": 0.03,
+          "value": "987bbc3e-91b3-4ca1-ab50-4bf54632e4f5"
+        },
+        {
+          "time_seconds": 0.06,
+          "value": "188524ca-89fd-48a1-a35c-3ac8b2b3c05e"
+        },
+        {
+          "time_seconds": 0.09,
+          "value": "c35d25d6-8118-43a0-a84a-c01da64a3def"
+        },
+        {
+          "time_seconds": 0.12,
+          "value": "8bf0728c-4bff-485f-afe5-aafa70c04a01"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "55f66f76-70bd-413a-91f4-faadebf818ab"
+        },
+        {
+          "time_seconds": 0.18,
+          "value": "ed656e02-3659-472a-ba62-be7328bc3801"
+        },
+        {
+          "time_seconds": 0.21,
+          "value": "ed656e02-3659-472a-ba62-be7328bc3801"
+        }
+      ]
     }
   ]
 }

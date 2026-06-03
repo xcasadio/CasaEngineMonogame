@@ -2,46 +2,60 @@
   "animation_type": "Once",
   "id": "32e3984c-74f8-45ba-a177-1b40cf5a78f5",
   "name": "swordman_attack_right",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "0700303e-807e-4172-ac7d-3fe4abef67f7"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "0700303e-807e-4172-ac7d-3fe4abef67f7",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.03,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "642343d8-6a06-48ab-8352-2f0f881ecb98"
-    },
-    {
-      "time_seconds": 0.06,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "d5a1df2c-6f6c-4e1d-a17f-4a900db8653c"
-    },
-    {
-      "time_seconds": 0.09,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "ea265ac6-a85c-41ad-b1f2-f3df1b108bd5"
-    },
-    {
-      "time_seconds": 0.12,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "2567759c-c4cb-4782-a843-b514fff6f430"
-    },
-    {
-      "time_seconds": 0.15,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "89a2a3bd-d7e9-4536-9c97-51e1146c6a6f"
-    },
-    {
-      "time_seconds": 0.18,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "406b91ef-7406-4059-bc52-b202f0f7ef77"
-    },
-    {
-      "time_seconds": 0.21,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "406b91ef-7406-4059-bc52-b202f0f7ef77"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "0700303e-807e-4172-ac7d-3fe4abef67f7"
+        },
+        {
+          "time_seconds": 0.03,
+          "value": "642343d8-6a06-48ab-8352-2f0f881ecb98"
+        },
+        {
+          "time_seconds": 0.06,
+          "value": "d5a1df2c-6f6c-4e1d-a17f-4a900db8653c"
+        },
+        {
+          "time_seconds": 0.09,
+          "value": "ea265ac6-a85c-41ad-b1f2-f3df1b108bd5"
+        },
+        {
+          "time_seconds": 0.12,
+          "value": "2567759c-c4cb-4782-a843-b514fff6f430"
+        },
+        {
+          "time_seconds": 0.15,
+          "value": "89a2a3bd-d7e9-4536-9c97-51e1146c6a6f"
+        },
+        {
+          "time_seconds": 0.18,
+          "value": "406b91ef-7406-4059-bc52-b202f0f7ef77"
+        },
+        {
+          "time_seconds": 0.21,
+          "value": "406b91ef-7406-4059-bc52-b202f0f7ef77"
+        }
+      ]
     }
   ]
 }

@@ -2,36 +2,52 @@
   "animation_type": "Once",
   "id": "b13ae55a-dac9-4f3a-b19f-9af3d8a39c11",
   "name": "ryu_3751",
-  "events": [
+  "parts": [
     {
-      "time_seconds": 0.0,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "051501c2-15d2-4f8b-abd8-1e2d4ecb27c6"
-    },
+      "id": "sprite",
+      "name": "Sprite",
+      "default_sprite_id": "051501c2-15d2-4f8b-abd8-1e2d4ecb27c6",
+      "default_position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "default_draw_order": 0,
+      "default_visible": true,
+      "default_flip_x": false,
+      "default_flip_y": false
+    }
+  ],
+  "tracks": [
     {
-      "time_seconds": 0.9599999,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "a2a8b348-6c37-4cea-92c8-c8e9c7adcfb9"
-    },
-    {
-      "time_seconds": 1.08799989,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "0b1e0c52-f791-4503-8b92-680a27976762"
-    },
-    {
-      "time_seconds": 1.18399989,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "7cd7235f-504f-4176-b4f7-6e3d848743c0"
-    },
-    {
-      "time_seconds": 1.247999886,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "edcc3c9e-09c7-4b0f-bb16-45d80a5760cb"
-    },
-    {
-      "time_seconds": 1.311999882,
-      "event_name": "changeSprite",
-      "sprite_asset_id": "edcc3c9e-09c7-4b0f-bb16-45d80a5760cb"
+      "target_part_id": "sprite",
+      "property": "Sprite",
+      "interpolation": "Step",
+      "sprite_keyframes": [
+        {
+          "time_seconds": 0.0,
+          "value": "051501c2-15d2-4f8b-abd8-1e2d4ecb27c6"
+        },
+        {
+          "time_seconds": 0.9599999,
+          "value": "a2a8b348-6c37-4cea-92c8-c8e9c7adcfb9"
+        },
+        {
+          "time_seconds": 1.08799989,
+          "value": "0b1e0c52-f791-4503-8b92-680a27976762"
+        },
+        {
+          "time_seconds": 1.18399989,
+          "value": "7cd7235f-504f-4176-b4f7-6e3d848743c0"
+        },
+        {
+          "time_seconds": 1.247999886,
+          "value": "edcc3c9e-09c7-4b0f-bb16-45d80a5760cb"
+        },
+        {
+          "time_seconds": 1.311999882,
+          "value": "edcc3c9e-09c7-4b0f-bb16-45d80a5760cb"
+        }
+      ]
     }
   ]
 }
