@@ -2,40 +2,21 @@
   "animation_type": "Once",
   "id": "622cba9d-6abe-4429-9609-b4a810d73fe6",
   "name": "swordman_dead_stand_right",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "b4316d26-6d5b-43f2-ba42-05b88db26c5c",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "b4316d26-6d5b-43f2-ba42-05b88db26c5c"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "b4316d26-6d5b-43f2-ba42-05b88db26c5c"
-        },
-        {
-          "time_seconds": 0.15,
-          "value": "533755ca-0dfc-46af-aae8-ce5ac9c1d5cd"
-        },
-        {
-          "time_seconds": 0.30,
-          "value": "533755ca-0dfc-46af-aae8-ce5ac9c1d5cd"
-        }
-      ]
+      "time_seconds": 0.15,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "533755ca-0dfc-46af-aae8-ce5ac9c1d5cd"
+    },
+    {
+      "time_seconds": 0.3,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "533755ca-0dfc-46af-aae8-ce5ac9c1d5cd"
     }
   ]
 }

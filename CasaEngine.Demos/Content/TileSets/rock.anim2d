@@ -2,44 +2,26 @@
   "animation_type": "Loop",
   "id": "9364b17a-6956-4c5f-bc98-e869dda4e9dd",
   "name": "rock",
-  "parts": [
+  "events": [
     {
-      "id": "sprite",
-      "name": "Sprite",
-      "default_sprite_id": "007570c3-10e1-432e-b9b8-63e3368c1311",
-      "default_position": {
-        "x": 0.0,
-        "y": 0.0
-      },
-      "default_draw_order": 0,
-      "default_visible": true,
-      "default_flip_x": false,
-      "default_flip_y": false
-    }
-  ],
-  "tracks": [
+      "time_seconds": 0.0,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "007570c3-10e1-432e-b9b8-63e3368c1311"
+    },
     {
-      "target_part_id": "sprite",
-      "property": "Sprite",
-      "interpolation": "Step",
-      "sprite_keyframes": [
-        {
-          "time_seconds": 0.0,
-          "value": "007570c3-10e1-432e-b9b8-63e3368c1311"
-        },
-        {
-          "time_seconds": 0.16,
-          "value": "72365865-7569-4a17-b102-981883c60ffb"
-        },
-        {
-          "time_seconds": 0.32,
-          "value": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
-        },
-        {
-          "time_seconds": 0.48,
-          "value": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
-        }
-      ]
+      "time_seconds": 0.16,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "72365865-7569-4a17-b102-981883c60ffb"
+    },
+    {
+      "time_seconds": 0.32,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
+    },
+    {
+      "time_seconds": 0.48,
+      "event_name": "changeSprite",
+      "sprite_asset_id": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
     }
   ]
 }
