@@ -39,6 +39,14 @@ internal sealed class TimelineViewTransform
         return TimeToContentX(durationSeconds);
     }
 
+    public float GetScrollXForAnchor(float anchorTimeSeconds, float anchorViewportX, float pixelsPerSecond)
+    {
+        float actualAnchorTimeSeconds = Math.Max(0f, anchorTimeSeconds);
+        float actualAnchorViewportX = Math.Max(0f, anchorViewportX);
+        float actualPixelsPerSecond = Math.Max(0f, pixelsPerSecond);
+        return (actualAnchorTimeSeconds * actualPixelsPerSecond) - actualAnchorViewportX;
+    }
+
     public float GetMaxScrollX(float durationSeconds, float viewportWidth)
     {
         return Math.Max(0f, GetContentWidth(durationSeconds) - Math.Max(0f, viewportWidth));

@@ -251,7 +251,7 @@ internal class TimelineControl : MGGrid
         ViewState.PixelsPerSecond = actualPixelsPerSecond;
         if (anchorViewportX.HasValue && anchorTimeSeconds.HasValue)
         {
-            ViewState.ScrollX = (anchorTimeSeconds.Value * actualPixelsPerSecond) - anchorViewportX.Value;
+            ViewState.ScrollX = ViewTransform.GetScrollXForAnchor(anchorTimeSeconds.Value, anchorViewportX.Value, actualPixelsPerSecond);
         }
 
         SyncTransformFromViewState();

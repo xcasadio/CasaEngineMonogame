@@ -56,6 +56,25 @@ public class TimelineViewTransformTests
     }
 
     [Fact]
+    public void AnchoredZoom_KeepsAnchorTimeAtSameViewportPosition()
+    {
+        var transform = new TimelineViewTransform
+        {
+            PixelsPerSecond = 96f,
+            ScrollX = 24f,
+        };
+
+        const float anchorViewportX = 180f;
+        float anchorTime = transform.ViewportXToTime(anchorViewportX);
+        float newScrollX = transform.GetScrollXForAnchor(anchorTime, anchorViewportX, 192f);
+
+        transform.PixelsPerSecond = 192f;
+        transform.ScrollX = newScrollX;
+
+        Assert.Equal(anchorTime, transform.ViewportXToTime(anchorViewportX), 4);
+    }
+
+    [Fact]
     public void MajorTickStep_AdaptsToZoom()
     {
         Assert.Equal(5f, TimelineTickCalculator.GetMajorTickStepSeconds(10f, 64f), 4);
