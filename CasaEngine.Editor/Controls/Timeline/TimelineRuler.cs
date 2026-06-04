@@ -22,6 +22,7 @@ internal sealed class TimelineRuler : MGElement
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
         IsHitTestVisible = true;
+        MouseHandler.LMBReleasedInside += OnLeftMouseReleasedInside;
         MouseHandler.Scrolled += OnScrolled;
     }
 
@@ -58,6 +59,7 @@ internal sealed class TimelineRuler : MGElement
 
         Color tickColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color labelColor = Color.White * (EditorThemePalette.SecondaryTextOpacity * DA.Opacity);
+        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, layoutBounds.Top), new Vector2(layoutBounds.Left, layoutBounds.Bottom), tickColor, 1f);
         float baselineY = layoutBounds.Bottom - 1f;
         DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, baselineY), new Vector2(layoutBounds.Right, baselineY), tickColor, 1f);
 
@@ -164,5 +166,32 @@ internal sealed class TimelineRuler : MGElement
         float anchorViewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
         _owner.ApplyMouseWheelZoom(wheelSteps, anchorViewportX);
         e.SetHandledBy(this);
+    }
+
+    private void OnLeftMouseReleasedInside(object? sender, MGUI.Shared.Input.Mouse.BaseMouseReleasedEventArgs e)
+    {
+        if (_owner.Model == null)
+        {
+            return;
+        }
+
+        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        if (!bounds.Contains(e.Position))
+        {
+            return;
+        }
+
+        int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
+        int timeAreaRight = bounds.Right - TimelineControlMetrics.TimeAreaPaddingRight;
+        if (e.Position.X < timeAreaLeft || e.Position.X > timeAreaRight)
+        {
+            return;
+        }
+
+        float viewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
+        float timeSeconds = _owner.ViewTransform.ViewportXToTime(viewportX);
+        _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
+        _owner.NotifyTimeScrubbed(timeSeconds);
+        e.SetHandledBy(this, false);
     }
 }

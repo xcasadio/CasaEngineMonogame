@@ -22,7 +22,7 @@ internal sealed class TimelineTrackHeaderPanel : MGBorder
     public TimelineTrackHeaderPanel(MGWindow window)
         : base(window)
     {
-        BorderThickness = new Thickness(1);
+        BorderThickness = new Thickness(0);
         BorderBrush = new MGUniformBorderBrush(EditorThemePalette.PreviewSurfaceBorder);
         BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground));
         Padding = new Thickness(TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding, TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding);

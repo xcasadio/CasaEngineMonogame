@@ -22,7 +22,7 @@ internal sealed class TimelineCornerHeader : MGBorder
     public TimelineCornerHeader(MGWindow window)
         : base(window)
     {
-        BorderThickness = new Thickness(1);
+        BorderThickness = new Thickness(0, 0, 0, 1);
         BorderBrush = new MGUniformBorderBrush(EditorThemePalette.PreviewSurfaceBorder);
         BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground));
         Padding = new Thickness(TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding, TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding);

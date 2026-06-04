@@ -59,9 +59,7 @@ internal sealed class TimelineViewport : MGElement
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         Color borderColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color gridColor = borderColor * 0.65f;
-        Color laneFillColor = Color.Black * (0.18f * DA.Opacity);
-
-        DA.Context.StrokeAndFillRectangle(origin, new RectangleF(timeAreaBounds.X, timeAreaBounds.Y, timeAreaBounds.Width, timeAreaBounds.Height), borderColor, laneFillColor, new Thickness(1));
+        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, layoutBounds.Top), new Vector2(layoutBounds.Left, layoutBounds.Bottom), borderColor, 1f);
 
         float timelineEndSeconds = _owner.GetTimelineEndSeconds();
         float majorTickStep = TimelineTickCalculator.GetMajorTickStepSeconds(_owner.ViewTransform.PixelsPerSecond, TimelineControlMetrics.MajorTickTargetPixels);
@@ -93,7 +91,7 @@ internal sealed class TimelineViewport : MGElement
             DA.Context.StrokeLineSegment(origin, new Vector2(x, timeAreaBounds.Top), new Vector2(x, timeAreaBounds.Bottom), isMajor ? gridColor : gridColor * 0.5f, 1f);
         }
 
-        float centerY = timeAreaBounds.Center.Y;
+        float centerY = layoutBounds.Center.Y;
         DrawPlayhead(DA, origin, layoutBounds, timeAreaBounds);
         DrawEvents(DA, origin, timeAreaBounds, centerY);
     }
@@ -295,11 +293,10 @@ internal sealed class TimelineViewport : MGElement
     private static Rectangle GetTimeAreaBounds(Rectangle layoutBounds)
     {
         int width = Math.Max(1, layoutBounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight);
-        int height = Math.Max(1, layoutBounds.Height - (TimelineControlMetrics.ViewportVerticalPadding * 2));
         return new Rectangle(
             layoutBounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft,
-            layoutBounds.Top + TimelineControlMetrics.ViewportVerticalPadding,
+            layoutBounds.Top,
             width,
-            height);
+            Math.Max(1, layoutBounds.Height));
     }
 }
