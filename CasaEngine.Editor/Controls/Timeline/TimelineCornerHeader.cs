@@ -2,6 +2,7 @@
 
 using System;
 using CasaEngine.Editor.Styling;
+using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
@@ -22,7 +23,7 @@ internal sealed class TimelineCornerHeader : MGBorder
     public TimelineCornerHeader(MGWindow window)
         : base(window)
     {
-        BorderThickness = new Thickness(0, 0, 0, 1);
+        BorderThickness = new Thickness(0);
         BorderBrush = new MGUniformBorderBrush(EditorThemePalette.PreviewSurfaceBorder);
         BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground));
         Padding = new Thickness(TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding, TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding);
@@ -36,5 +37,13 @@ internal sealed class TimelineCornerHeader : MGBorder
             WrapText = false,
         };
         SetContent(_textBlock);
+    }
+
+    public override void DrawSelf(ElementDrawArgs DA, Rectangle layoutBounds)
+    {
+        Vector2 origin = DA.Offset.ToVector2();
+        Color borderColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
+        float baselineY = layoutBounds.Bottom - 1f;
+        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, baselineY), new Vector2(layoutBounds.Right, baselineY), borderColor, 1f);
     }
 }
