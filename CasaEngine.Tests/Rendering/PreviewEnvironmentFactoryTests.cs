@@ -1,3 +1,4 @@
+using CasaEngine.Editor.Runtime.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Environment;
 using Microsoft.Xna.Framework;
 using Xunit;

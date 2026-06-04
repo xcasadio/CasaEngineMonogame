@@ -26,6 +26,7 @@ public sealed class EditorViewportCameraControllerTests
             inputContext,
             receivesInput: true,
             isKeyboardFocused: false,
+            allowFreeCameraMovement: true,
             canHandleKeyboardInput: false,
             activateView: _ => activated = true,
             releaseInput: () => { });
@@ -50,6 +51,7 @@ public sealed class EditorViewportCameraControllerTests
             inputContext,
             receivesInput: true,
             isKeyboardFocused: false,
+            allowFreeCameraMovement: true,
             canHandleKeyboardInput: false,
             activateView: _ => { },
             releaseInput: () => { });
@@ -60,6 +62,7 @@ public sealed class EditorViewportCameraControllerTests
             inputContext,
             receivesInput: true,
             isKeyboardFocused: true,
+            allowFreeCameraMovement: true,
             canHandleKeyboardInput: true,
             activateView: _ => { },
             releaseInput: () => { });

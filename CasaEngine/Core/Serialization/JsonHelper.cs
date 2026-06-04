@@ -16,7 +16,14 @@ public static class JsonHelper
 
     public static Guid GetGuid(this JToken element)
     {
-        return Guid.Parse(element.Value<string>());
+        ArgumentNullException.ThrowIfNull(element);
+
+        if (element.Type == JTokenType.Guid)
+        {
+            return element.Value<Guid>();
+        }
+
+        return Guid.Parse(element.Value<string>()!);
     }
 
     public static float GetSingle(this JToken element)

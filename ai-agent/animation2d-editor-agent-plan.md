@@ -213,9 +213,10 @@ Validation :
 Etat actuel :
 
 - `dotnet build CasaEngine.Editor/CasaEngine.Editor.csproj -c Debug --no-restore` valide ;
+- `dotnet build CasaEngine.Editor.MonoGame.sln -c Debug --no-restore` valide ;
 - la tranche Animation2D / Timeline compile sans erreur locale ;
-- la commande documentee `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore` reste bloquee par des erreurs pre-existantes hors tranche Animation2D (`Pool<>`, `DualQuaternion`, `PreviewEnvironmentFactory`, `LightComponent.Coordinates`, signatures de `EditorViewportCameraController.Update`) ;
-- une tentative ciblee `FullyQualifiedName~TimelineViewTransformTests` echoue sur les memes blocages globaux du projet de tests ;
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~TimelineViewTransformTests --no-restore` valide ;
+- `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore` valide apres mise a jour des tests obsoletes du projet `CasaEngine.Tests` et correction du round-trip des `Guid` natifs dans `JsonHelper.GetGuid()` ;
 - le smoke manuel `GameEditor` n'a pas ete execute dans cette session CLI.
 
 Commit attendu :

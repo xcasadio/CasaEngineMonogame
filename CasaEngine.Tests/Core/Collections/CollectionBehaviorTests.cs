@@ -128,11 +128,9 @@ public sealed class CollectionBehaviorTests
     [Fact]
     public void Pool_Release_MovesLastActiveElementIntoReleasedSlot()
     {
-#pragma warning disable CS0618
-        var pool = new Pool<PooledItem>(2);
-        Pool<PooledItem>.Accessor first = pool.Fetch();
-        Pool<PooledItem>.Accessor second = pool.Fetch();
-#pragma warning restore CS0618
+        var pool = new DensePool<PooledItem>(2);
+        DensePool<PooledItem>.Handle first = pool.Fetch();
+        DensePool<PooledItem>.Handle second = pool.Fetch();
         pool[first].Value = 1;
         pool[second].Value = 2;
 
@@ -140,24 +138,23 @@ public sealed class CollectionBehaviorTests
 
         Assert.Equal(1, pool.Count);
         Assert.Equal(2, pool.Elements[0].Value);
-        Assert.Equal(0, second.Index);
+        Assert.Equal(0, pool.GetIndex(second));
     }
 
     [Fact]
-    public void Pool_Fetch_ReusesReleasedAccessorWithoutGenerationGuard()
+    public void Pool_Fetch_InvalidatesReleasedHandleAndReusesReleasedSlotWithGenerationGuard()
     {
-#pragma warning disable CS0618
-        var pool = new Pool<PooledItem>(2);
-        Pool<PooledItem>.Accessor first = pool.Fetch();
-#pragma warning restore CS0618
+        var pool = new DensePool<PooledItem>(2);
+        DensePool<PooledItem>.Handle first = pool.Fetch();
         _ = pool.Fetch();
 
         pool.Release(first);
-        Pool<PooledItem>.Accessor reused = pool.Fetch();
+        DensePool<PooledItem>.Handle reused = pool.Fetch();
         pool[reused].Value = 42;
 
-        Assert.Same(first, reused);
-        Assert.Equal(42, pool[first].Value);
+        Assert.NotEqual(first, reused);
+        Assert.False(pool.TryGet(first, out _));
+        Assert.Equal(42, pool[reused].Value);
     }
 
     private sealed class PooledItem

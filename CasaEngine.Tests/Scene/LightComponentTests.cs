@@ -71,7 +71,7 @@ public class LightComponentTests
         var component = new LightComponent();
         component.ClearBoundingBoxDirtyRecursive();
 
-        component.Coordinates.Position = new Vector3(1.0f, 2.0f, 3.0f);
+        component.LocalTransform.Position = new Vector3(1.0f, 2.0f, 3.0f);
 
         Assert.True(component.IsBoundingBoxDirty);
     }
@@ -81,10 +81,10 @@ public class LightComponentTests
     {
         var component = new LightComponent();
         int positionChangedCount = 0;
-        component.Coordinates.PositionChanged += (_, _) => positionChangedCount++;
+        component.LocalTransform.PositionChanged += (_, _) => positionChangedCount++;
         component.ClearBoundingBoxDirtyRecursive();
 
-        component.Coordinates.Position = component.Coordinates.Position;
+        component.LocalTransform.Position = component.LocalTransform.Position;
 
         Assert.False(component.IsBoundingBoxDirty);
         Assert.Equal(0, positionChangedCount);
@@ -126,7 +126,7 @@ public class LightComponentTests
         component.Load(node);
         component.ClearBoundingBoxDirtyRecursive();
 
-        component.Coordinates.Position = new Vector3(4.0f, 5.0f, 6.0f);
+        component.LocalTransform.Position = new Vector3(4.0f, 5.0f, 6.0f);
 
         Assert.True(component.IsBoundingBoxDirty);
     }

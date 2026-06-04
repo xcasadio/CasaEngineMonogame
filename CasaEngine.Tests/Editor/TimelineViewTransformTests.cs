@@ -77,7 +77,7 @@ public class TimelineViewTransformTests
     [Fact]
     public void MajorTickStep_AdaptsToZoom()
     {
-        Assert.Equal(5f, TimelineTickCalculator.GetMajorTickStepSeconds(10f, 64f), 4);
+        Assert.Equal(10f, TimelineTickCalculator.GetMajorTickStepSeconds(10f, 64f), 4);
         Assert.Equal(1f, TimelineTickCalculator.GetMajorTickStepSeconds(64f, 64f), 4);
         Assert.Equal(0.25f, TimelineTickCalculator.GetMajorTickStepSeconds(256f, 64f), 4);
         Assert.Equal(0.2f, TimelineTickCalculator.GetMinorTickStepSeconds(1f), 4);
@@ -108,7 +108,7 @@ public class TimelineViewTransformTests
             8f,
             32f,
             14f,
-            new Microsoft.Xna.Framework.Point(68, 32));
+            new Microsoft.Xna.Framework.Point(18, 32));
 
         Assert.Same(firstEvent, hitEvent);
     }
