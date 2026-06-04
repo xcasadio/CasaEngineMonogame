@@ -48,9 +48,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGTextBlock? _timelineText;
-    private MGTextBlock? _timelineZoomText;
-    private MGCheckBox? _timelinePlayCheckBox;
-    private MGNumericUpDown? _timelineTimeInput;
     private Animation2dTimelineControl? _timelineControl;
     private MGStackPanel? _contentStack;
 
@@ -66,7 +63,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private bool _suppressControlCallbacks;
     private bool _disposed;
 
-    private const double TimelineTimeStepSeconds = 0.01d;
     private const float TimelineMinimumZoomFactor = 0.5f;
     private const float TimelineMaximumZoomFactor = 3.0f;
     private const float TimelineBasePixelsPerSecond = 96f;
@@ -995,10 +991,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             Margin = new Thickness(8, 6, 8, 6),
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
-        stack.TryAddChild(new MGTextBlock(_window, "[b]Timeline[/b]")
-        {
-            WrapText = true,
-        });
 
         _timelineText = new MGTextBlock(_window, "No animation loaded.")
         {
@@ -1006,76 +998,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             WrapText = true,
         };
         stack.TryAddChild(_timelineText);
-
-        var controlsRow = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 8,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-        };
-
-        _timelinePlayCheckBox = new MGCheckBox(_window)
-        {
-            IsChecked = _isPreviewPlaying,
-        };
-        _timelinePlayCheckBox.SetContent(new MGTextBlock(_window, "Play")
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-        _timelinePlayCheckBox.OnCheckStateChanged += (_, args) =>
-        {
-            if (_suppressControlCallbacks)
-            {
-                return;
-            }
-
-            SetPreviewPlaybackEnabled(args.NewValue ?? false);
-        };
-        controlsRow.TryAddChild(_timelinePlayCheckBox);
-
-        controlsRow.TryAddChild(new MGTextBlock(_window, "Time (s)")
-        {
-            PreferredWidth = 72,
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
-        _timelineTimeInput = new MGNumericUpDown(
-            _window,
-            0d,
-            GetTimelineMaximumSeconds(),
-            0d,
-            TimelineTimeStepSeconds,
-            2,
-            "F2")
-        {
-            MinWidth = 120,
-            PreferredWidth = 120,
-            HorizontalAlignment = HorizontalAlignment.Left,
-        };
-        _timelineTimeInput.ValueChanged += (_, args) =>
-        {
-            if (_suppressControlCallbacks)
-            {
-                return;
-            }
-
-            ApplyTimelineTimeSeconds(args.NewValue);
-        };
-        controlsRow.TryAddChild(_timelineTimeInput);
-
-        controlsRow.TryAddChild(new MGTextBlock(_window, "Zoom")
-        {
-            Margin = new Thickness(12, 0, 0, 0),
-            PreferredWidth = 44,
-            VerticalAlignment = VerticalAlignment.Center,
-        });
-
-        _timelineZoomText = new MGTextBlock(_window, FormatZoomPercentage(_timelineZoomFactor))
-        {
-            PreferredWidth = 64,
-            VerticalAlignment = VerticalAlignment.Center,
-        };
-        controlsRow.TryAddChild(_timelineZoomText);
-        stack.TryAddChild(controlsRow);
 
         _timelineControl = new Animation2dTimelineControl(_window)
         {
@@ -1256,11 +1178,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
-        var selectedSuffix = TryGetSelectedEvent(out var selectedEvent)
-            ? $"  Selected: {EscapeMarkup(selectedEvent.EventName)} @ {FormatSeconds(selectedEvent.TimeSeconds)}"
-            : string.Empty;
-
-        _timelineText.Text = $"{FormatSeconds(_previewTimeSeconds)} / {FormatSeconds(_previewDurationSeconds)}  Events: {_timelineDisplayEvents.Count.ToString(CultureInfo.InvariantCulture)}{selectedSuffix}";
+        _timelineText.Text = $"{FormatSeconds(_previewTimeSeconds)} / {FormatSeconds(_previewDurationSeconds)}  Events: {_timelineDisplayEvents.Count.ToString(CultureInfo.InvariantCulture)}  Zoom {FormatZoomPercentage(_timelineZoomFactor)}";
     }
 
     private bool IsTimelinePresentationAttached()
@@ -1432,24 +1350,12 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         return $"{animationEvent.EventName} @ {FormatSeconds(animationEvent.TimeSeconds)}";
     }
 
-    private void SetPreviewPlaybackEnabled(bool isPlaying)
-    {
-        _isPreviewPlaying = isPlaying;
-        ApplyPreviewPlaybackState();
-        RefreshTimelineControls();
-    }
-
     private void ApplyPreviewPlaybackState()
     {
         if (_previewSpriteComponent != null)
         {
             _previewSpriteComponent.IsPlaybackPaused = !_isPreviewPlaying;
         }
-    }
-
-    private void ApplyTimelineTimeSeconds(double timeSeconds)
-    {
-        SeekPreviewTime((float)timeSeconds);
     }
 
     private void SeekPreviewTime(float timeSeconds)
@@ -1461,42 +1367,9 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         RefreshTimelinePlaybackState();
     }
 
-    private double GetTimelineMaximumSeconds()
-    {
-        return Math.Max(TimelineTimeStepSeconds, _previewDurationSeconds);
-    }
-
     private void RefreshTimelineControls()
     {
-        bool hasAnimationData = _animationData != null;
-        bool hasPreview = _previewSpriteComponent != null;
-        double maximumSeconds = GetTimelineMaximumSeconds();
-        double currentSeconds = Math.Clamp(_previewTimeSeconds, 0d, maximumSeconds);
-
         _suppressControlCallbacks = true;
-
-        if (_timelinePlayCheckBox != null)
-        {
-            _timelinePlayCheckBox.IsChecked = _isPreviewPlaying;
-            _timelinePlayCheckBox.IsEnabled = hasPreview;
-        }
-
-        if (_timelineTimeInput != null)
-        {
-            _timelineTimeInput.Minimum = 0d;
-            _timelineTimeInput.Maximum = maximumSeconds;
-            _timelineTimeInput.Value = currentSeconds;
-            _timelineTimeInput.IsEnabled = hasPreview;
-        }
-
-        if (_timelineZoomText != null)
-        {
-            _timelineZoomText.Text = hasAnimationData
-                ? FormatZoomPercentage(_timelineZoomFactor)
-                : "100 %";
-            _timelineZoomText.Opacity = hasAnimationData ? 1f : EditorThemePalette.SecondaryTextOpacity;
-        }
-
         _suppressControlCallbacks = false;
     }
 
