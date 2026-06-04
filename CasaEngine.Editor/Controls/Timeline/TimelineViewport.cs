@@ -31,6 +31,14 @@ internal sealed class TimelineViewport : MGElement
         MouseHandler.LMBReleasedInside += OnLeftMouseReleasedInside;
         MouseHandler.MovedInside += OnMouseMovedInside;
         MouseHandler.Exited += OnMouseExited;
+        MouseHandler.Scrolled += OnScrolled;
+    }
+
+    public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
+    {
+        sharedSize = new Thickness(0);
+        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + ((int)MathF.Ceiling(TimelineControlMetrics.EventHalfSize) * 2) + 4;
+        return new Thickness(availableSize.Width, desiredHeight, 0, 0);
     }
 
     public float GetVisibleTimeAreaWidth()
@@ -51,7 +59,6 @@ internal sealed class TimelineViewport : MGElement
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         Color borderColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color gridColor = borderColor * 0.65f;
-        Color axisColor = EditorThemePalette.PanelBorder * DA.Opacity;
         Color laneFillColor = Color.Black * (0.18f * DA.Opacity);
 
         DA.Context.StrokeAndFillRectangle(origin, new RectangleF(timeAreaBounds.X, timeAreaBounds.Y, timeAreaBounds.Width, timeAreaBounds.Height), borderColor, laneFillColor, new Thickness(1));
@@ -87,16 +94,20 @@ internal sealed class TimelineViewport : MGElement
         }
 
         float centerY = timeAreaBounds.Center.Y;
-        DA.Context.StrokeLineSegment(origin, new Vector2(timeAreaBounds.Left, centerY), new Vector2(timeAreaBounds.Right, centerY), axisColor, 1f);
-        DrawPlayhead(DA, origin, timeAreaBounds);
+        DrawPlayhead(DA, origin, layoutBounds, timeAreaBounds);
         DrawEvents(DA, origin, timeAreaBounds, centerY);
     }
 
-    private void DrawPlayhead(ElementDrawArgs DA, Vector2 origin, Rectangle timeAreaBounds)
+    private void DrawPlayhead(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds, Rectangle timeAreaBounds)
     {
         float x = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(_owner.CurrentTimeSeconds);
+        if (x < timeAreaBounds.Left - TimelineControlMetrics.Epsilon || x > timeAreaBounds.Right + TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
         Color playheadColor = EditorThemePalette.InlineRenameBorder * DA.Opacity;
-        DA.Context.StrokeLineSegment(origin, new Vector2(x, timeAreaBounds.Top), new Vector2(x, timeAreaBounds.Bottom), playheadColor, 1.5f);
+        DA.Context.StrokeLineSegment(origin, new Vector2(x, layoutBounds.Top), new Vector2(x, layoutBounds.Bottom), playheadColor, 1.5f);
     }
 
     private void DrawEvents(ElementDrawArgs DA, Vector2 origin, Rectangle timeAreaBounds, float centerY)
@@ -206,6 +217,32 @@ internal sealed class TimelineViewport : MGElement
         _hoveredEvent = null;
         RefreshToolTip();
         _owner.InvalidateViewPresentation();
+    }
+
+    private void OnScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    {
+        if (_owner.Model == null || e.ScrollWheelDelta == 0)
+        {
+            return;
+        }
+
+        Rectangle bounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        if (!bounds.Contains(e.Position))
+        {
+            return;
+        }
+
+        int timeAreaLeft = bounds.Left + TimelineControlMetrics.TimeAreaPaddingLeft;
+        int timeAreaRight = bounds.Right - TimelineControlMetrics.TimeAreaPaddingRight;
+        if (e.Position.X < timeAreaLeft || e.Position.X > timeAreaRight)
+        {
+            return;
+        }
+
+        float wheelSteps = e.ScrollWheelDelta / 120.0f;
+        float anchorViewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, GetVisibleTimeAreaWidth());
+        _owner.ApplyMouseWheelZoom(wheelSteps, anchorViewportX);
+        e.SetHandledBy(this);
     }
 
     private TimelineEvent? HitTestEvent(Point layoutPosition, Rectangle timeAreaBounds)

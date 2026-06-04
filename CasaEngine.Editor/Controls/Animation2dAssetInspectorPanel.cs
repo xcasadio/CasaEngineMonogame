@@ -48,9 +48,9 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGTextBlock? _timelineText;
+    private MGTextBlock? _timelineZoomText;
     private MGCheckBox? _timelinePlayCheckBox;
     private MGNumericUpDown? _timelineTimeInput;
-    private MGSlider? _timelineZoomSlider;
     private Animation2dTimelineControl? _timelineControl;
     private MGStackPanel? _contentStack;
 
@@ -460,6 +460,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             AddProperty("Index", (_selectedEventIndex + 1).ToString(CultureInfo.InvariantCulture));
             AddProperty("Time", FormatSeconds(selectedEvent.TimeSeconds));
             AddProperty("Type", selectedEvent.EventName);
+            if (selectedEvent.SpriteAssetId != Guid.Empty)
+            {
+                AddProperty("Sprite", selectedEvent.SpriteAssetId.ToString("D"));
+            }
         }
 
         RefreshTimelineText();
@@ -1065,32 +1069,24 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             VerticalAlignment = VerticalAlignment.Center,
         });
 
-        _timelineZoomSlider = new MGSlider(_window, TimelineMinimumZoomFactor, TimelineMaximumZoomFactor, _timelineZoomFactor)
+        _timelineZoomText = new MGTextBlock(_window, FormatZoomPercentage(_timelineZoomFactor))
         {
-            MinWidth = 180,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            ShowValueLabel = true,
-            ValueLabelFormat = "F2",
+            PreferredWidth = 64,
+            VerticalAlignment = VerticalAlignment.Center,
         };
-        _timelineZoomSlider.ValueChanged += (_, args) =>
-        {
-            if (_suppressControlCallbacks)
-            {
-                return;
-            }
-
-            ApplyTimelineZoom(args.NewValue);
-        };
-        controlsRow.TryAddChild(_timelineZoomSlider);
+        controlsRow.TryAddChild(_timelineZoomText);
         stack.TryAddChild(controlsRow);
 
         _timelineControl = new Animation2dTimelineControl(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
+            MinimumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMinimumZoomFactor,
+            MaximumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMaximumZoomFactor,
         };
         _timelineControl.EventSelected += SelectEvent;
         _timelineControl.ScrubRequested += SeekPreviewTime;
+        _timelineControl.PixelsPerSecondChanged += OnTimelinePixelsPerSecondChanged;
 
         var surface = new MGBorder(
             _window,
@@ -1098,8 +1094,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
         {
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground)),
-            MinHeight = 136,
-            PreferredHeight = 154,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         surface.SetContent(_timelineControl);
@@ -1113,8 +1107,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground)),
             Margin = new Thickness(4, 0, 4, 4),
             Padding = new Thickness(0),
-            MinHeight = 130,
-            PreferredHeight = 148,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         panel.SetContent(stack);
@@ -1373,6 +1365,21 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
+        for (var trackIndex = 0; trackIndex < _animationData.Tracks.Count; trackIndex++)
+        {
+            Animation2dTrackData track = _animationData.Tracks[trackIndex];
+            if (track.Property != Animation2dTrackProperty.Sprite)
+            {
+                continue;
+            }
+
+            for (var keyframeIndex = 0; keyframeIndex < track.SpriteKeyframes.Count; keyframeIndex++)
+            {
+                Animation2dGuidKeyframeData keyframe = track.SpriteKeyframes[keyframeIndex];
+                _timelineDisplayEvents.Add(new AnimationEventAsset(keyframe.TimeSeconds, "changeSprite", keyframe.Value));
+            }
+        }
+
         if (_animationData.Events.Count > 0)
         {
             for (var index = 0; index < _animationData.Events.Count; index++)
@@ -1380,6 +1387,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                 _timelineDisplayEvents.Add(_animationData.Events[index]);
             }
         }
+
+        _timelineDisplayEvents.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
     }
 
     private void ClearTimelineDisplayEvents()
@@ -1443,19 +1452,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         SeekPreviewTime((float)timeSeconds);
     }
 
-    private void ApplyTimelineZoom(double zoomFactor)
-    {
-        float actualZoomFactor = Math.Clamp((float)zoomFactor, TimelineMinimumZoomFactor, TimelineMaximumZoomFactor);
-        if (Math.Abs(_timelineZoomFactor - actualZoomFactor) < 0.001f)
-        {
-            return;
-        }
-
-        _timelineZoomFactor = actualZoomFactor;
-        RefreshTimelineData();
-        RefreshTimelineControls();
-    }
-
     private void SeekPreviewTime(float timeSeconds)
     {
         _previewTimeSeconds = Math.Clamp(timeSeconds, 0f, Math.Max(0f, _previewDurationSeconds));
@@ -1493,14 +1489,33 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             _timelineTimeInput.IsEnabled = hasPreview;
         }
 
-        if (_timelineZoomSlider != null)
+        if (_timelineZoomText != null)
         {
-            _timelineZoomSlider.SetRange(TimelineMinimumZoomFactor, TimelineMaximumZoomFactor);
-            _timelineZoomSlider.Value = _timelineZoomFactor;
-            _timelineZoomSlider.IsEnabled = hasAnimationData;
+            _timelineZoomText.Text = hasAnimationData
+                ? FormatZoomPercentage(_timelineZoomFactor)
+                : "100 %";
+            _timelineZoomText.Opacity = hasAnimationData ? 1f : EditorThemePalette.SecondaryTextOpacity;
         }
 
         _suppressControlCallbacks = false;
+    }
+
+    private void OnTimelinePixelsPerSecondChanged(float pixelsPerSecond)
+    {
+        float actualZoomFactor = Math.Clamp(pixelsPerSecond / TimelineBasePixelsPerSecond, TimelineMinimumZoomFactor, TimelineMaximumZoomFactor);
+        if (Math.Abs(_timelineZoomFactor - actualZoomFactor) < 0.001f)
+        {
+            return;
+        }
+
+        _timelineZoomFactor = actualZoomFactor;
+        RefreshTimelineControls();
+    }
+
+    private static string FormatZoomPercentage(float zoomFactor)
+    {
+        int percentage = (int)MathF.Round(zoomFactor * 100f);
+        return $"{percentage.ToString(CultureInfo.InvariantCulture)} %";
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)

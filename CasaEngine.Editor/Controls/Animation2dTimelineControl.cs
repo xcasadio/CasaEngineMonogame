@@ -17,7 +17,8 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     public Animation2dTimelineControl(MGWindow window)
         : base(window)
     {
-        TrackHeaderText = "Events";
+        CornerHeaderText = string.Empty;
+        TrackHeaderText = "track 01";
         SelectedEventChanged += OnSelectedEventChanged;
         TimeScrubbed += timeSeconds => ScrubRequested?.Invoke(timeSeconds);
     }

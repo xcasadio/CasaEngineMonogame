@@ -25,7 +25,7 @@ internal sealed class TimelineTrackHeaderPanel : MGBorder
         BorderThickness = new Thickness(1);
         BorderBrush = new MGUniformBorderBrush(EditorThemePalette.PreviewSurfaceBorder);
         BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground));
-        Padding = new Thickness(TimelineControlMetrics.HeaderPadding, 4, TimelineControlMetrics.HeaderPadding, 4);
+        Padding = new Thickness(TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding, TimelineControlMetrics.HeaderPadding, TimelineControlMetrics.HeaderVerticalPadding);
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 

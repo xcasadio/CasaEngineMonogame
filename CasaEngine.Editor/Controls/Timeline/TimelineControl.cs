@@ -52,6 +52,8 @@ internal class TimelineControl : MGGrid
         set => _trackHeaderPanel.Text = value ?? string.Empty;
     }
 
+    public event Action<float>? PixelsPerSecondChanged;
+
     public event Action<TimelineEvent?>? SelectedEventChanged;
 
     public event Action<float>? TimeScrubbed;
@@ -66,8 +68,8 @@ internal class TimelineControl : MGGrid
 
         AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
         AddColumn(GridLength.CreateWeightedLength(1));
-        AddRow(GridLength.CreatePixelLength(TimelineControlMetrics.RulerRowHeight));
-        AddRow(GridLength.CreateWeightedLength(1));
+        AddRow(GridLength.Auto);
+        AddRow(GridLength.Auto);
         _scrollBarRow = AddRow(GridLength.CreatePixelLength(0));
 
         _cornerHeader = new TimelineCornerHeader(window);
@@ -197,12 +199,30 @@ internal class TimelineControl : MGGrid
         TimeScrubbed?.Invoke(timeSeconds);
     }
 
+    internal void ApplyMouseWheelZoom(float wheelSteps, float anchorViewportX)
+    {
+        if (Math.Abs(wheelSteps) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        float actualAnchorViewportX = Math.Max(0f, anchorViewportX);
+        float anchorTimeSeconds = ViewTransform.ViewportXToTime(actualAnchorViewportX);
+        float desiredPixelsPerSecond = ViewState.PixelsPerSecond * MathF.Pow(TimelineControlMetrics.MouseWheelZoomMultiplier, wheelSteps);
+        SetPixelsPerSecond(desiredPixelsPerSecond, actualAnchorViewportX, anchorTimeSeconds);
+    }
+
     internal void InvalidateViewPresentation()
     {
         ArrangeChanged(this, true);
     }
 
     private void SetPixelsPerSecond(float desiredPixelsPerSecond)
+    {
+        SetPixelsPerSecond(desiredPixelsPerSecond, null, null);
+    }
+
+    private void SetPixelsPerSecond(float desiredPixelsPerSecond, float? anchorViewportX, float? anchorTimeSeconds)
     {
         float actualPixelsPerSecond = Math.Clamp(desiredPixelsPerSecond, MinimumPixelsPerSecond, MaximumPixelsPerSecond);
         if (Math.Abs(ViewState.PixelsPerSecond - actualPixelsPerSecond) < TimelineControlMetrics.Epsilon)
@@ -211,10 +231,16 @@ internal class TimelineControl : MGGrid
         }
 
         ViewState.PixelsPerSecond = actualPixelsPerSecond;
+        if (anchorViewportX.HasValue && anchorTimeSeconds.HasValue)
+        {
+            ViewState.ScrollX = (anchorTimeSeconds.Value * actualPixelsPerSecond) - anchorViewportX.Value;
+        }
+
         SyncTransformFromViewState();
         ClampScrollToViewport();
         UpdateHorizontalScrollBarState();
         InvalidateViewPresentation();
+        PixelsPerSecondChanged?.Invoke(actualPixelsPerSecond);
     }
 
     private TimelineEvent? GetSelectedEvent()
