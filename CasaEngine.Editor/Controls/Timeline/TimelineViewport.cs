@@ -59,7 +59,6 @@ internal sealed class TimelineViewport : MGElement
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         Color borderColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color gridColor = borderColor * 0.65f;
-        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, layoutBounds.Top), new Vector2(layoutBounds.Left, layoutBounds.Bottom), borderColor, 1f);
 
         float timelineEndSeconds = _owner.GetTimelineEndSeconds();
         float majorTickStep = TimelineTickCalculator.GetMajorTickStepSeconds(_owner.ViewTransform.PixelsPerSecond, TimelineControlMetrics.MajorTickTargetPixels);

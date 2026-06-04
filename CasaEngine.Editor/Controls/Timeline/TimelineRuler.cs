@@ -59,9 +59,7 @@ internal sealed class TimelineRuler : MGElement
 
         Color tickColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color labelColor = Color.White * (EditorThemePalette.SecondaryTextOpacity * DA.Opacity);
-        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, layoutBounds.Top), new Vector2(layoutBounds.Left, layoutBounds.Bottom), tickColor, 1f);
         float baselineY = layoutBounds.Bottom - 1f;
-        DA.Context.StrokeLineSegment(origin, new Vector2(layoutBounds.Left, baselineY), new Vector2(layoutBounds.Right, baselineY), tickColor, 1f);
 
         float timelineEndSeconds = _owner.GetTimelineEndSeconds();
         float playheadX = contentLeft + _owner.ViewTransform.TimeToViewportX(_owner.CurrentTimeSeconds);

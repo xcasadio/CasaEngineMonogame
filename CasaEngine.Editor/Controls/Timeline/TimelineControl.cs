@@ -2,6 +2,7 @@
 
 using System;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Helpers;
 
@@ -10,6 +11,7 @@ namespace CasaEngine.Editor.Controls.Timeline;
 internal class TimelineControl : MGGrid
 {
     private readonly RowDefinition _scrollBarRow;
+    private readonly MGGrid _timelineGrid;
     private readonly TimelineCornerHeader _cornerHeader;
     private readonly TimelineRuler _ruler;
     private readonly TimelineTrackHeaderPanel _trackHeaderPanel;
@@ -66,11 +68,25 @@ internal class TimelineControl : MGGrid
         ColumnSpacing = 0;
         RowSpacing = 0;
 
-        AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
         AddColumn(GridLength.CreateWeightedLength(1));
         AddRow(GridLength.Auto);
-        AddRow(GridLength.Auto);
         _scrollBarRow = AddRow(GridLength.CreatePixelLength(0));
+
+        _timelineGrid = new MGGrid(window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            ColumnSpacing = 1,
+            RowSpacing = 1,
+            GridLineMargin = 0,
+            GridLinesVisibility = GridLinesVisibility.InnerHorizontal | GridLinesVisibility.InnerVertical,
+            HorizontalGridLineBrush = new MGSolidFillBrush(CasaEngine.Editor.Styling.EditorThemePalette.PreviewSurfaceBorder),
+            VerticalGridLineBrush = new MGSolidFillBrush(CasaEngine.Editor.Styling.EditorThemePalette.PreviewSurfaceBorder),
+        };
+        _timelineGrid.AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
+        _timelineGrid.AddColumn(GridLength.CreateWeightedLength(1));
+        _timelineGrid.AddRow(GridLength.Auto);
+        _timelineGrid.AddRow(GridLength.Auto);
 
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
@@ -79,11 +95,13 @@ internal class TimelineControl : MGGrid
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
         _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
 
-        TryAddChild(0, 0, _cornerHeader);
-        TryAddChild(0, 1, _ruler);
-        TryAddChild(1, 0, _trackHeaderPanel);
-        TryAddChild(1, 1, _viewport);
-        TryAddChild(2, 1, _horizontalScrollBar);
+        _timelineGrid.TryAddChild(0, 0, _cornerHeader);
+        _timelineGrid.TryAddChild(0, 1, _ruler);
+        _timelineGrid.TryAddChild(1, 0, _trackHeaderPanel);
+        _timelineGrid.TryAddChild(1, 1, _viewport);
+
+        TryAddChild(0, 0, _timelineGrid);
+        TryAddChild(1, 0, _horizontalScrollBar);
 
         ViewState.PixelsPerSecond = 96f;
         SyncTransformFromViewState();
