@@ -22,6 +22,7 @@ using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
+using MGUI.Shared.Input.Keyboard;
 using MonoGame.Extended;
 using Newtonsoft.Json.Linq;
 
@@ -36,7 +37,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
     private readonly List<Guid> _spriteIdsToResolve = new();
-    private readonly List<AnimationEventAsset> _timelineDisplayEvents = new();
+    private readonly List<TimelineDisplayEventItem> _timelineDisplayEvents = new();
+    private readonly List<AnimationEventAsset> _timelineControlEvents = new();
 
     private MGDockPanel? _root;
     private MGDockPanel? _inspectorRoot;
@@ -66,6 +68,46 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private const float TimelineMinimumZoomFactor = 0.5f;
     private const float TimelineMaximumZoomFactor = 3.0f;
     private const float TimelineBasePixelsPerSecond = 96f;
+
+    private enum TimelineDisplayEventSourceKind
+    {
+        PersistedEvent,
+        SpriteTrackKeyframe,
+    }
+
+    private readonly record struct TimelineDisplayEventLocator(
+        TimelineDisplayEventSourceKind SourceKind,
+        int TrackIndex,
+        string EventName,
+        Guid SpriteAssetId,
+        float TimeSeconds);
+
+    private sealed class TimelineDisplayEventItem
+    {
+        public TimelineDisplayEventItem(
+            AnimationEventAsset eventValue,
+            TimelineDisplayEventSourceKind sourceKind,
+            int trackIndex = -1,
+            int keyframeIndex = -1,
+            int eventIndex = -1)
+        {
+            Event = eventValue;
+            SourceKind = sourceKind;
+            TrackIndex = trackIndex;
+            KeyframeIndex = keyframeIndex;
+            EventIndex = eventIndex;
+        }
+
+        public AnimationEventAsset Event { get; }
+
+        public TimelineDisplayEventSourceKind SourceKind { get; }
+
+        public int TrackIndex { get; }
+
+        public int KeyframeIndex { get; }
+
+        public int EventIndex { get; }
+    }
 
     public Animation2dAssetInspectorPanel(
         MGWindow window,
@@ -132,67 +174,19 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return _inspectorRoot;
         }
 
-        _headerText = new MGTextBlock(_window, "[b]Animation2D Inspector[/b]")
-        {
-            Margin = new Thickness(8, 6, 8, 4),
-            WrapText = true,
-        };
-
-        _sourceText = new MGTextBlock(_window, "No animation asset loaded.")
-        {
-            Margin = new Thickness(8, 0, 8, 4),
-            Opacity = EditorThemePalette.SecondaryTextOpacity,
-            WrapText = true,
-        };
-
-        _statusText = new MGTextBlock(_window, "Open a .anim2d asset from the Content Browser.")
-        {
-            Margin = new Thickness(8, 0, 8, 8),
-            Opacity = EditorThemePalette.SecondaryTextOpacity,
-            WrapText = true,
-        };
+        _headerText = new MGTextBlock(_window, string.Empty);
+        _sourceText = new MGTextBlock(_window, string.Empty);
+        _statusText = new MGTextBlock(_window, string.Empty);
 
         _contentStack = new MGStackPanel(_window, Orientation.Vertical)
         {
             Spacing = 6,
-            Margin = new Thickness(8, 0, 8, 8),
+            Margin = new Thickness(8, 8, 8, 8),
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
 
         var scrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Auto, ScrollBarVisibility.Auto);
         scrollViewer.SetContent(_contentStack);
-
-        var inspectorBorder = new MGBorder(
-            _window,
-            new Thickness(1),
-            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
-        {
-            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground)),
-            Margin = new Thickness(4, 0, 6, 4),
-            Padding = new Thickness(0),
-            MinWidth = 280,
-            PreferredWidth = 360,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalAlignment = VerticalAlignment.Stretch,
-        };
-        inspectorBorder.SetContent(scrollViewer);
-
-        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 4,
-            Margin = new Thickness(8, 0, 8, 8),
-        };
-        toolbar.TryAddChild(CreateButton("Save", SaveLoadedAsset));
-        toolbar.TryAddChild(CreateButton("Reload", ReloadLoadedAsset));
-
-        var headerStack = new MGStackPanel(_window, Orientation.Vertical)
-        {
-            Spacing = 2,
-        };
-        headerStack.TryAddChild(_headerText);
-        headerStack.TryAddChild(_sourceText);
-        headerStack.TryAddChild(toolbar);
-        headerStack.TryAddChild(_statusText);
 
         _inspectorRoot = new MGDockPanel(_window)
         {
@@ -200,8 +194,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
         };
-        _inspectorRoot.TryAddChild(headerStack, Dock.Top);
-        _inspectorRoot.TryAddChild(inspectorBorder, Dock.Top);
+        _inspectorRoot.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
         return _inspectorRoot;
@@ -390,7 +383,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private void RefreshInspector()
     {
-        if (_headerText == null || _sourceText == null || _statusText == null || _contentStack == null)
+        if (_contentStack == null)
         {
             return;
         }
@@ -400,9 +393,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         {
             ClearTimelineDisplayEvents();
             _selectedEventIndex = -1;
-            _headerText.Text = "[b]Animation2D Inspector[/b]";
-            _sourceText.Text = "No animation asset loaded.";
-            _statusText.Text = "Open a .anim2d asset from the Content Browser.";
+            AddText("No animation asset loaded.", EditorThemePalette.SecondaryTextOpacity);
             RefreshTimelineText();
             RefreshTimelineControls();
             RefreshTimelineData();
@@ -412,39 +403,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         RebuildTimelineDisplayEvents();
         ClampSelectedEventIndex();
 
-        _headerText.Text = $"[b]{EscapeMarkup(_animationData.Name)}[/b]";
-        _sourceText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
-            ? "No source path."
-            : EscapeMarkup(_loadedRelativePath);
-        _statusText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
-            ? "Animation2D asset."
-            : IsDirty ? $"Modified {EscapeMarkup(_loadedRelativePath)}" : $"Asset: {EscapeMarkup(_loadedRelativePath)}";
-
-        AddProperty("Type", _animationData.AnimationType.ToString());
-        AddProperty("Parts", _animationData.Parts.Count.ToString(CultureInfo.InvariantCulture));
-        AddProperty("Tracks", _animationData.Tracks.Count.ToString(CultureInfo.InvariantCulture));
-        AddProperty("Events", _animationData.Events.Count.ToString(CultureInfo.InvariantCulture));
-        AddProperty("Duration", FormatSeconds(_previewDurationSeconds));
-
-        AddSection("Composition");
-        AddText("Timeline is read-only.", EditorThemePalette.SecondaryTextOpacity);
-
-        AddSection("Validation");
-        var validationMessages = BuildValidationMessages();
-        if (validationMessages.Count == 0)
-        {
-            AddText("No validation warnings.", EditorThemePalette.SecondaryTextOpacity);
-        }
-        else
-        {
-            for (var index = 0; index < validationMessages.Count; index++)
-            {
-                AddText(validationMessages[index], EditorThemePalette.PrimaryHeaderOpacity);
-            }
-        }
-
-        AddSection("Selected Event");
-        if (!TryGetSelectedEvent(out var selectedEvent))
+        if (!TryGetSelectedEvent(out var selectedEvent) || selectedEvent == null)
         {
             AddText(_timelineDisplayEvents.Count == 0
                 ? "No animation events."
@@ -453,13 +412,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
         else
         {
-            AddProperty("Index", (_selectedEventIndex + 1).ToString(CultureInfo.InvariantCulture));
-            AddProperty("Time", FormatSeconds(selectedEvent.TimeSeconds));
-            AddProperty("Type", selectedEvent.EventName);
-            if (selectedEvent.SpriteAssetId != Guid.Empty)
-            {
-                AddProperty("Sprite", selectedEvent.SpriteAssetId.ToString("D"));
-            }
+            _contentStack.TryAddChild(CreateCommittedTextBoxRow("Time", FormatFloat(selectedEvent.Event.TimeSeconds), value => ApplySelectedEventTime(selectedEvent, value)));
+            _contentStack.TryAddChild(CreateSelectedEventTypeBox(selectedEvent));
         }
 
         RefreshTimelineText();
@@ -495,13 +449,6 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         AddText($"  flipX={part.DefaultFlipX} flipY={part.DefaultFlipY} index={index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.SecondaryTextOpacity);
     }
 
-    private void AddEditableEvent(int index, AnimationEventAsset animationEvent)
-    {
-        AddText($"Event #{index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.PrimaryHeaderOpacity);
-        AddTextBoxRow("Time", FormatFloat(animationEvent.TimeSeconds), value => ApplyEventTime(index, value));
-        AddTextBoxRow("Name", animationEvent.EventName, value => ApplyEventName(index, value));
-    }
-
     private void AddAnimationEvent()
     {
         if (_animationData == null)
@@ -509,7 +456,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
-        _animationData.Events.Add(new AnimationEventAsset(0f, "NewEvent"));
+        _animationData.Events.Add(new AnimationEventAsset(0f, Animation2dEventNames.Restart));
         MarkEdited("Added animation event.");
         RefreshInspector();
     }
@@ -625,25 +572,33 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         _animationData.Events[eventIndex] = animationEvent with { TimeSeconds = timeSeconds };
+        SortAnimationEvents(_animationData.Events);
         MarkEdited("Updated event time.");
     }
 
-    private void ApplyEventName(int eventIndex, string value)
+    private void ApplySelectedEventTime(TimelineDisplayEventItem selectedEvent, string value)
     {
-        if (_animationData == null || eventIndex < 0 || eventIndex >= _animationData.Events.Count)
+        if (_animationData == null)
         {
             return;
         }
 
-        string eventName = value.Trim();
-        var animationEvent = _animationData.Events[eventIndex];
-        if (animationEvent.EventName == eventName)
+        if (!TryParseFloat(value, out var timeSeconds) || timeSeconds < 0f)
         {
+            SetStatus("Invalid event time.");
             return;
         }
 
-        _animationData.Events[eventIndex] = animationEvent with { EventName = eventName };
-        MarkEdited("Updated event name.");
+        switch (selectedEvent.SourceKind)
+        {
+            case TimelineDisplayEventSourceKind.PersistedEvent:
+                ApplyPersistedSelectedEventTime(selectedEvent, timeSeconds);
+                break;
+
+            case TimelineDisplayEventSourceKind.SpriteTrackKeyframe:
+                ApplySpriteTrackSelectedEventTime(selectedEvent, timeSeconds);
+                break;
+        }
     }
 
     private void ApplyGuidKeyframeTime(List<Animation2dGuidKeyframeData> keyframes, int keyframeIndex, string value, string label)
@@ -877,6 +832,113 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private void AddTextBoxRow(string label, string value, Action<string> onChanged)
     {
+        _contentStack!.TryAddChild(CreateTextBoxRow(label, value, onChanged));
+    }
+
+    private MGElement CreateCommittedTextBoxRow(string label, string value, Action<string> onChanged)
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, label)
+        {
+            PreferredWidth = 82,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        var textBox = new MGTextBox(_window, CharacterLimit: 256)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HasStableTextFootprint = true,
+            AcceptsReturn = false,
+            AcceptsTab = false,
+            MinWidth = 160,
+        };
+
+        string lastCommittedValue = value;
+
+        void Commit()
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            string currentValue = textBox.Text ?? string.Empty;
+            if (string.Equals(currentValue, lastCommittedValue, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            lastCommittedValue = currentValue;
+            onChanged(currentValue);
+        }
+
+        EventHandler<BaseKeyPressedEventArgs>? keyPressedHandler = null;
+        EventHandler<MGUI.Shared.Helpers.EventArgs<MGElement>>? focusChangedHandler = null;
+        EventHandler<MGUI.Shared.Helpers.EventArgs<MGElement>>? parentChangedHandler = null;
+
+        keyPressedHandler = (_, args) =>
+        {
+            if (args.IsHandled || args.Key != Microsoft.Xna.Framework.Input.Keys.Enter)
+            {
+                return;
+            }
+
+            Commit();
+            args.SetHandledBy(textBox, false);
+        };
+
+        focusChangedHandler = (_, args) =>
+        {
+            if (ReferenceEquals(args.PreviousValue, textBox) && !ReferenceEquals(args.NewValue, textBox))
+            {
+                Commit();
+            }
+        };
+
+        parentChangedHandler = (_, args) =>
+        {
+            if (args.NewValue != null)
+            {
+                return;
+            }
+
+            textBox.KeyboardHandler.Pressed -= keyPressedHandler;
+            if (_window.Desktop != null)
+            {
+                _window.Desktop.FocusedKeyboardHandlerChanged -= focusChangedHandler;
+            }
+
+            row.OnParentChanged -= parentChangedHandler;
+        };
+
+        textBox.KeyboardHandler.Pressed += keyPressedHandler;
+        if (_window.Desktop != null)
+        {
+            _window.Desktop.FocusedKeyboardHandlerChanged += focusChangedHandler;
+        }
+
+        row.OnParentChanged += parentChangedHandler;
+
+        _suppressControlCallbacks = true;
+        textBox.SetText(value);
+        _suppressControlCallbacks = false;
+
+        row.TryAddChild(textBox);
+        return row;
+    }
+
+    private void AddCheckBoxRow(string label, bool isChecked, Action<bool> onChanged)
+    {
+        _contentStack!.TryAddChild(CreateCheckBoxRow(label, isChecked, onChanged));
+    }
+
+    private MGElement CreateTextBoxRow(string label, string value, Action<string> onChanged)
+    {
         var row = new MGStackPanel(_window, Orientation.Horizontal)
         {
             Spacing = 6,
@@ -912,10 +974,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _suppressControlCallbacks = false;
 
         row.TryAddChild(textBox);
-        _contentStack!.TryAddChild(row);
+        return row;
     }
 
-    private void AddCheckBoxRow(string label, bool isChecked, Action<bool> onChanged)
+    private MGElement CreateCheckBoxRow(string label, bool isChecked, Action<bool> onChanged)
     {
         var checkBox = new MGCheckBox(_window)
         {
@@ -935,7 +997,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             onChanged(args.NewValue ?? false);
         };
 
-        _contentStack!.TryAddChild(checkBox);
+        return checkBox;
     }
 
     private void AddButton(string label, Action onClick)
@@ -1201,7 +1263,21 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         _timelineControl.IsEnabled = _animationData != null;
         _timelineControl.PixelsPerSecond = TimelineBasePixelsPerSecond * _timelineZoomFactor;
-        _timelineControl.SetTimelineData(_animationData == null ? null : _timelineDisplayEvents, _previewDurationSeconds);
+        if (_animationData == null)
+        {
+            _timelineControl.SetTimelineData(null, _previewDurationSeconds);
+        }
+        else
+        {
+            _timelineControlEvents.Clear();
+            for (var index = 0; index < _timelineDisplayEvents.Count; index++)
+            {
+                _timelineControlEvents.Add(_timelineDisplayEvents[index].Event);
+            }
+
+            _timelineControl.SetTimelineData(_timelineControlEvents, _previewDurationSeconds);
+        }
+
         _timelineControl.SetPlaybackState(_previewTimeSeconds, _selectedEventIndex);
     }
 
@@ -1243,7 +1319,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         _selectedEventIndex = eventIndex;
-        SetStatus($"Selected {DescribeEvent(_timelineDisplayEvents[eventIndex])}.");
+        SetStatus($"Selected {DescribeEvent(_timelineDisplayEvents[eventIndex].Event)}.");
         RefreshTimelineText();
         RefreshTimelinePlaybackState();
         RefreshInspector();
@@ -1263,11 +1339,11 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
     }
 
-    private bool TryGetSelectedEvent(out AnimationEventAsset animationEvent)
+    private bool TryGetSelectedEvent(out TimelineDisplayEventItem? animationEvent)
     {
         if (_animationData == null || _selectedEventIndex < 0 || _selectedEventIndex >= _timelineDisplayEvents.Count)
         {
-            animationEvent = default;
+            animationEvent = null;
             return false;
         }
 
@@ -1294,7 +1370,11 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             for (var keyframeIndex = 0; keyframeIndex < track.SpriteKeyframes.Count; keyframeIndex++)
             {
                 Animation2dGuidKeyframeData keyframe = track.SpriteKeyframes[keyframeIndex];
-                _timelineDisplayEvents.Add(new AnimationEventAsset(keyframe.TimeSeconds, "changeSprite", keyframe.Value));
+                _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
+                    new AnimationEventAsset(keyframe.TimeSeconds, Animation2dEventNames.ChangeSprite, keyframe.Value),
+                    TimelineDisplayEventSourceKind.SpriteTrackKeyframe,
+                    trackIndex,
+                    keyframeIndex));
             }
         }
 
@@ -1302,11 +1382,14 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         {
             for (var index = 0; index < _animationData.Events.Count; index++)
             {
-                _timelineDisplayEvents.Add(_animationData.Events[index]);
+                _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
+                    _animationData.Events[index],
+                    TimelineDisplayEventSourceKind.PersistedEvent,
+                    eventIndex: index));
             }
         }
 
-        _timelineDisplayEvents.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
+        _timelineDisplayEvents.Sort(static (left, right) => left.Event.TimeSeconds.CompareTo(right.Event.TimeSeconds));
     }
 
     private void ClearTimelineDisplayEvents()
@@ -1515,6 +1598,258 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             Animation2dTrackProperty.FlipY => track.FlipKeyframes.Count,
             _ => 0,
         };
+    }
+
+    private MGElement CreateSelectedEventTypeBox(TimelineDisplayEventItem selectedEvent)
+    {
+        var content = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        if (CanSelectSpriteForEvent(selectedEvent))
+        {
+            content.TryAddChild(CreateSpriteSelectorRow(selectedEvent.Event.SpriteAssetId, spriteId => ApplySelectedEventSprite(selectedEvent, spriteId)));
+        }
+
+        var box = new MGBorder(
+            _window,
+            new Thickness(1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBorder)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ContentBackground)),
+            Padding = new Thickness(8, 6, 8, 8),
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        box.SetContent(content);
+
+        var stack = new MGStackPanel(_window, Orientation.Vertical)
+        {
+            Spacing = 4,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+        stack.TryAddChild(new MGTextBlock(_window, $"[b]{EscapeMarkup(selectedEvent.Event.EventName)}[/b]")
+        {
+            WrapText = true,
+        });
+        stack.TryAddChild(box);
+        return stack;
+    }
+
+    private MGElement CreateSpriteSelectorRow(Guid selectedSpriteId, Action<Guid> onChanged)
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, "Sprite")
+        {
+            PreferredWidth = 82,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        var selector = new AssetSelector(_window)
+        {
+            AssetId = selectedSpriteId,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            Filter = IsSpriteAsset,
+        };
+        selector.AssetChanged += (_, assetId) =>
+        {
+            if (_suppressControlCallbacks)
+            {
+                return;
+            }
+
+            onChanged(assetId);
+        };
+
+        row.TryAddChild(selector);
+        return row;
+    }
+
+    private void ApplySelectedEventSprite(TimelineDisplayEventItem selectedEvent, Guid spriteAssetId)
+    {
+        if (_animationData == null)
+        {
+            return;
+        }
+
+        switch (selectedEvent.SourceKind)
+        {
+            case TimelineDisplayEventSourceKind.PersistedEvent:
+                ApplyPersistedSelectedEventSprite(selectedEvent, spriteAssetId);
+                break;
+
+            case TimelineDisplayEventSourceKind.SpriteTrackKeyframe:
+                ApplySpriteTrackSelectedEventSprite(selectedEvent, spriteAssetId);
+                break;
+        }
+    }
+
+    private void ApplyPersistedSelectedEventTime(TimelineDisplayEventItem selectedEvent, float timeSeconds)
+    {
+        if (_animationData == null || selectedEvent.EventIndex < 0 || selectedEvent.EventIndex >= _animationData.Events.Count)
+        {
+            return;
+        }
+
+        var animationEvent = _animationData.Events[selectedEvent.EventIndex];
+        if (animationEvent.TimeSeconds == timeSeconds)
+        {
+            return;
+        }
+
+        var updatedEvent = animationEvent with { TimeSeconds = timeSeconds };
+        _animationData.Events[selectedEvent.EventIndex] = updatedEvent;
+        SortAnimationEvents(_animationData.Events);
+        FinalizeSelectedEventEdit("Updated event time.", CreateLocator(selectedEvent, updatedEvent));
+    }
+
+    private void ApplyPersistedSelectedEventSprite(TimelineDisplayEventItem selectedEvent, Guid spriteAssetId)
+    {
+        if (_animationData == null || selectedEvent.EventIndex < 0 || selectedEvent.EventIndex >= _animationData.Events.Count)
+        {
+            return;
+        }
+
+        var animationEvent = _animationData.Events[selectedEvent.EventIndex];
+        if (animationEvent.SpriteAssetId == spriteAssetId)
+        {
+            return;
+        }
+
+        var updatedEvent = animationEvent with { SpriteAssetId = spriteAssetId };
+        _animationData.Events[selectedEvent.EventIndex] = updatedEvent;
+        FinalizeSelectedEventEdit("Updated event sprite.", CreateLocator(selectedEvent, updatedEvent));
+    }
+
+    private void ApplySpriteTrackSelectedEventTime(TimelineDisplayEventItem selectedEvent, float timeSeconds)
+    {
+        if (_animationData == null
+            || selectedEvent.TrackIndex < 0
+            || selectedEvent.TrackIndex >= _animationData.Tracks.Count)
+        {
+            return;
+        }
+
+        var keyframes = _animationData.Tracks[selectedEvent.TrackIndex].SpriteKeyframes;
+        if (selectedEvent.KeyframeIndex < 0 || selectedEvent.KeyframeIndex >= keyframes.Count)
+        {
+            return;
+        }
+
+        var keyframe = keyframes[selectedEvent.KeyframeIndex];
+        if (keyframe.TimeSeconds == timeSeconds)
+        {
+            return;
+        }
+
+        keyframes[selectedEvent.KeyframeIndex] = new Animation2dGuidKeyframeData(timeSeconds, keyframe.Value);
+        SortGuidKeyframes(keyframes);
+        var updatedEvent = new AnimationEventAsset(timeSeconds, Animation2dEventNames.ChangeSprite, keyframe.Value);
+        FinalizeSelectedEventEdit("Updated event time.", CreateLocator(selectedEvent, updatedEvent));
+    }
+
+    private void ApplySpriteTrackSelectedEventSprite(TimelineDisplayEventItem selectedEvent, Guid spriteAssetId)
+    {
+        if (_animationData == null
+            || selectedEvent.TrackIndex < 0
+            || selectedEvent.TrackIndex >= _animationData.Tracks.Count)
+        {
+            return;
+        }
+
+        var keyframes = _animationData.Tracks[selectedEvent.TrackIndex].SpriteKeyframes;
+        if (selectedEvent.KeyframeIndex < 0 || selectedEvent.KeyframeIndex >= keyframes.Count)
+        {
+            return;
+        }
+
+        var keyframe = keyframes[selectedEvent.KeyframeIndex];
+        if (keyframe.Value == spriteAssetId)
+        {
+            return;
+        }
+
+        keyframes[selectedEvent.KeyframeIndex] = new Animation2dGuidKeyframeData(keyframe.TimeSeconds, spriteAssetId);
+        var updatedEvent = new AnimationEventAsset(keyframe.TimeSeconds, Animation2dEventNames.ChangeSprite, spriteAssetId);
+        FinalizeSelectedEventEdit("Updated event sprite.", CreateLocator(selectedEvent, updatedEvent));
+    }
+
+    private void FinalizeSelectedEventEdit(string message, TimelineDisplayEventLocator locator)
+    {
+        SetDirty(true);
+        SetStatus(message);
+        RebuildPreviewState();
+        RestoreSelectedEvent(locator);
+        RefreshInspector();
+    }
+
+    private void RestoreSelectedEvent(TimelineDisplayEventLocator locator)
+    {
+        int selectedIndex = FindDisplayEventIndex(locator);
+        if (selectedIndex >= 0)
+        {
+            _selectedEventIndex = selectedIndex;
+        }
+    }
+
+    private int FindDisplayEventIndex(TimelineDisplayEventLocator locator)
+    {
+        for (var index = 0; index < _timelineDisplayEvents.Count; index++)
+        {
+            var candidate = _timelineDisplayEvents[index];
+            if (candidate.SourceKind != locator.SourceKind)
+            {
+                continue;
+            }
+
+            if (locator.SourceKind == TimelineDisplayEventSourceKind.SpriteTrackKeyframe && candidate.TrackIndex != locator.TrackIndex)
+            {
+                continue;
+            }
+
+            if (!string.Equals(candidate.Event.EventName, locator.EventName, StringComparison.Ordinal)
+                || candidate.Event.SpriteAssetId != locator.SpriteAssetId
+                || candidate.Event.TimeSeconds != locator.TimeSeconds)
+            {
+                continue;
+            }
+
+            return index;
+        }
+
+        return -1;
+    }
+
+    private static TimelineDisplayEventLocator CreateLocator(TimelineDisplayEventItem selectedEvent, AnimationEventAsset updatedEvent)
+    {
+        return new TimelineDisplayEventLocator(
+            selectedEvent.SourceKind,
+            selectedEvent.TrackIndex,
+            updatedEvent.EventName,
+            updatedEvent.SpriteAssetId,
+            updatedEvent.TimeSeconds);
+    }
+
+    private static void SortAnimationEvents(List<AnimationEventAsset> events)
+    {
+        events.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
+    }
+
+    private static bool CanSelectSpriteForEvent(TimelineDisplayEventItem selectedEvent)
+    {
+        return string.Equals(selectedEvent.Event.EventName, Animation2dEventNames.ChangeSprite, StringComparison.Ordinal);
+    }
+
+    private static bool IsSpriteAsset(AssetInfo assetInfo)
+    {
+        return string.Equals(assetInfo.AssetType, "sprite", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(Path.GetExtension(assetInfo.FileName), Constants.FileNameExtensions.Sprite, StringComparison.OrdinalIgnoreCase);
     }
 
     private void AddSection(string title)

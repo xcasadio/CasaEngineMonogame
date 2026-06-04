@@ -28,60 +28,90 @@ public sealed class Animation2dCompositionSampler
 
     public void Seek(float timeSeconds)
     {
-        CurrentTime = MathF.Max(0f, timeSeconds);
-        IsFinished = _composition.AnimationType == AnimationType.Once
+        float actualTimeSeconds = MathF.Max(0f, timeSeconds);
+        CurrentTime = NormalizeTime(actualTimeSeconds);
+        IsFinished = !_composition.HasRestartEvent
             && _composition.DurationSeconds > 0f
-            && CurrentTime >= _composition.DurationSeconds;
-        ApplyTracks(GetSampleTime(CurrentTime));
+            && actualTimeSeconds >= _composition.DurationSeconds;
+        ApplyTracks(CurrentTime);
     }
 
     public bool Update(float elapsedTime)
     {
+        if (_composition.HasRestartEvent)
+        {
+            UpdateLooping(MathF.Max(0f, elapsedTime));
+            return false;
+        }
+
         if (_composition.DurationSeconds <= 0f)
         {
-            IsFinished = _composition.AnimationType == AnimationType.Once;
+            IsFinished = true;
             ApplyTracks(0f);
             return IsFinished;
         }
 
         var previousTime = CurrentTime;
         CurrentTime += MathF.Max(0f, elapsedTime);
-        if (_composition.AnimationType == AnimationType.Once && CurrentTime > _composition.DurationSeconds)
+        if (CurrentTime > _composition.DurationSeconds)
         {
             CurrentTime = _composition.DurationSeconds;
             IsFinished = true;
         }
 
-        DispatchEvents(previousTime, CurrentTime);
-        ApplyTracks(GetSampleTime(CurrentTime));
+        DispatchEventRange(AnimationEventTriggered, previousTime, CurrentTime);
+        ApplyTracks(CurrentTime);
         return IsFinished;
     }
 
-    private void DispatchEvents(float previousTime, float currentTime)
+    private void UpdateLooping(float elapsedTime)
     {
         var handler = AnimationEventTriggered;
+        float restartTimeSeconds = _composition.RestartTimeSeconds;
+        if (restartTimeSeconds <= 0f)
+        {
+            CurrentTime = 0f;
+            IsFinished = false;
+            ApplyTracks(0f);
+            return;
+        }
+
+        float previousTime = CurrentTime;
+        float remainingTime = elapsedTime;
+        while (remainingTime > 0f)
+        {
+            float timeUntilRestart = restartTimeSeconds - previousTime;
+            if (timeUntilRestart <= 0f)
+            {
+                timeUntilRestart = restartTimeSeconds;
+            }
+
+            if (remainingTime < timeUntilRestart)
+            {
+                float currentTime = previousTime + remainingTime;
+                DispatchEventRange(handler, previousTime, currentTime);
+                previousTime = currentTime;
+                remainingTime = 0f;
+                break;
+            }
+
+            DispatchEventRange(handler, previousTime, restartTimeSeconds);
+            remainingTime -= timeUntilRestart;
+            previousTime = 0f;
+        }
+
+        CurrentTime = previousTime;
+        IsFinished = false;
+        ApplyTracks(CurrentTime);
+    }
+
+    private void DispatchEventRange(Action<AnimationEventAsset>? handler, float startExclusive, float endInclusive)
+    {
         if (handler == null || _composition.Events.Count == 0)
         {
             return;
         }
 
-        if (_composition.AnimationType == AnimationType.Loop && currentTime > _composition.DurationSeconds)
-        {
-            var previousSampleTime = GetSampleTime(previousTime);
-            var currentSampleTime = GetSampleTime(currentTime);
-            if (currentSampleTime < previousSampleTime || currentTime - previousTime > _composition.DurationSeconds)
-            {
-                DispatchEventRange(handler, previousSampleTime, _composition.DurationSeconds);
-                DispatchEventRange(handler, 0f, currentSampleTime);
-                return;
-            }
-        }
-
-        DispatchEventRange(handler, GetSampleTime(previousTime), GetSampleTime(currentTime));
-    }
-
-    private void DispatchEventRange(Action<AnimationEventAsset> handler, float startExclusive, float endInclusive)
-    {
         foreach (var animationEvent in _composition.Events)
         {
             if (animationEvent.TimeSeconds > startExclusive && animationEvent.TimeSeconds <= endInclusive)
@@ -91,34 +121,29 @@ public sealed class Animation2dCompositionSampler
         }
     }
 
-    private float GetSampleTime(float timeSeconds)
+    private float NormalizeTime(float timeSeconds)
     {
-        var durationSeconds = _composition.DurationSeconds;
-        if (durationSeconds <= 0f || timeSeconds <= durationSeconds)
+        if (_composition.HasRestartEvent)
+        {
+            return WrapLoopTime(timeSeconds, _composition.RestartTimeSeconds);
+        }
+
+        if (_composition.DurationSeconds <= 0f)
+        {
+            return 0f;
+        }
+
+        return MathF.Min(timeSeconds, _composition.DurationSeconds);
+    }
+
+    private static float WrapLoopTime(float timeSeconds, float restartTimeSeconds)
+    {
+        if (restartTimeSeconds <= 0f || timeSeconds <= restartTimeSeconds)
         {
             return timeSeconds;
         }
 
-        if (_composition.AnimationType == AnimationType.Loop)
-        {
-            var wrappedTime = timeSeconds % durationSeconds;
-            return wrappedTime == 0f ? durationSeconds : wrappedTime;
-        }
-
-        if (_composition.AnimationType == AnimationType.PingPong)
-        {
-            var pingPongTime = timeSeconds;
-            var pingPongState = 0;
-            while (pingPongTime > durationSeconds)
-            {
-                pingPongTime -= durationSeconds;
-                pingPongState = 1 - pingPongState;
-            }
-
-            return pingPongState == 1 ? durationSeconds - pingPongTime : pingPongTime;
-        }
-
-        return durationSeconds;
+        return timeSeconds % restartTimeSeconds;
     }
 
     private void ApplyTracks(float sampleTime)

@@ -1,5 +1,4 @@
 {
-  "animation_type": "Loop",
   "id": "9364b17a-6956-4c5f-bc98-e869dda4e9dd",
   "name": "rock",
   "parts": [
@@ -40,6 +39,12 @@
           "value": "f117a1a6-f2cf-4a5f-95c3-a00f0c66f2d7"
         }
       ]
+    }
+  ],
+  "events": [
+    {
+      "time_seconds": 0.48,
+      "event_name": "restart"
     }
   ]
 }

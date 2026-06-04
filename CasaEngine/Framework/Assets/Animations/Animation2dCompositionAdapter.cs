@@ -6,12 +6,14 @@ public static class Animation2dCompositionAdapter
     {
         ArgumentNullException.ThrowIfNull(animationData);
 
+        var copiedEvents = CopyEvents(animationData.Events);
+
         return new Animation2dCompositionData(
-            animationData.AnimationType,
-            CalculateDurationSeconds(animationData.Tracks, animationData.Events),
+            animationData.GetDurationSeconds(),
+            FindRestartTimeSeconds(copiedEvents),
             CopyParts(animationData.Parts),
             CopyTracks(animationData.Tracks),
-            CopyEvents(animationData.Events));
+            copiedEvents);
     }
 
     private static List<Animation2dPartData> CopyParts(List<Animation2dPartData> parts)
@@ -99,43 +101,20 @@ public static class Animation2dCompositionAdapter
         return copy;
     }
 
-    private static float CalculateDurationSeconds(List<Animation2dTrackData> tracks, List<AnimationEventAsset> events)
+    private static float FindRestartTimeSeconds(List<AnimationEventAsset> events)
     {
-        var durationSeconds = 0f;
-
-        foreach (var track in tracks)
+        var restartTimeSeconds = 0f;
+        for (var index = 0; index < events.Count; index++)
         {
-            durationSeconds = MathF.Max(durationSeconds, GetLastGuidKeyframeTime(track.SpriteKeyframes));
-            durationSeconds = MathF.Max(durationSeconds, GetLastVector2KeyframeTime(track.PositionKeyframes));
-            durationSeconds = MathF.Max(durationSeconds, GetLastBoolKeyframeTime(track.VisibleKeyframes));
-            durationSeconds = MathF.Max(durationSeconds, GetLastIntKeyframeTime(track.DrawOrderKeyframes));
-            durationSeconds = MathF.Max(durationSeconds, GetLastBoolKeyframeTime(track.FlipKeyframes));
+            var animationEvent = events[index];
+            if (!string.Equals(animationEvent.EventName, Animation2dEventNames.Restart, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            restartTimeSeconds = MathF.Max(restartTimeSeconds, animationEvent.TimeSeconds);
         }
 
-        foreach (var animationEvent in events)
-        {
-            durationSeconds = MathF.Max(durationSeconds, animationEvent.TimeSeconds);
-        }
-
-        return durationSeconds;
-    }
-    private static float GetLastGuidKeyframeTime(List<Animation2dGuidKeyframeData> keyframes)
-    {
-        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
-    }
-
-    private static float GetLastVector2KeyframeTime(List<Animation2dVector2KeyframeData> keyframes)
-    {
-        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
-    }
-
-    private static float GetLastBoolKeyframeTime(List<Animation2dBoolKeyframeData> keyframes)
-    {
-        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
-    }
-
-    private static float GetLastIntKeyframeTime(List<Animation2dIntKeyframeData> keyframes)
-    {
-        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
+        return restartTimeSeconds;
     }
 }

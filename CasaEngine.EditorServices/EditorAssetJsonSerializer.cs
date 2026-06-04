@@ -147,15 +147,9 @@ internal static class EditorAssetJsonSerializer
         node.Add("input_device", keyButton.InputDevice.ToString());
     }
 
-    private static void SaveAnimationData(AnimationData animationData, JObject node)
-    {
-        node.Add("animation_type", animationData.AnimationType.ToString());
-        SaveObjectBase(animationData, node);
-    }
-
     private static void SaveAnimation2dData(Animation2dData animation2dData, JObject node)
     {
-        SaveAnimationData(animation2dData, node);
+        SaveObjectBase(animation2dData, node);
 
         if (animation2dData.Parts.Count > 0)
         {

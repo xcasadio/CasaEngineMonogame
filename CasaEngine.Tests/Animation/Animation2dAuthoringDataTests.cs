@@ -126,7 +126,6 @@ public class Animation2dAuthoringDataTests
 
         animation.Load(new JObject
         {
-            ["animation_type"] = AnimationType.Once.ToString(),
             ["id"] = Guid.NewGuid().ToString(),
             ["name"] = "attack",
             ["events"] = new JArray
@@ -158,7 +157,6 @@ public class Animation2dAuthoringDataTests
 
         animation.Load(new JObject
         {
-            ["animation_type"] = AnimationType.Once.ToString(),
             ["id"] = Guid.NewGuid().ToString(),
             ["name"] = "composed_attack",
             ["parts"] = new JArray
@@ -236,12 +234,64 @@ public class Animation2dAuthoringDataTests
     [Fact]
     public void AnimationEventAssetJsonSerializer_RoundTripsEventData()
     {
-        var animationEvent = new AnimationEventAsset(0.25f, "Footstep");
+        var spriteId = Guid.NewGuid();
+        var animationEvent = new AnimationEventAsset(0.25f, Animation2dEventNames.ChangeSprite, spriteId);
 
         var eventNode = AnimationEventAssetJsonSerializer.Save(animationEvent);
         var loadedEvent = AnimationEventAssetJsonSerializer.Load(eventNode);
 
         Assert.Equal(animationEvent, loadedEvent);
+    }
+
+    [Fact]
+    public void Load_LegacyLoopType_AppendsRestartEventAtDuration()
+    {
+        var spriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+
+        animation.Load(new JObject
+        {
+            ["animation_type"] = AnimationType.Loop.ToString(),
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "legacy_loop",
+            ["parts"] = new JArray
+            {
+                new JObject
+                {
+                    ["id"] = "body",
+                    ["default_sprite_id"] = spriteId.ToString(),
+                    ["default_position"] = new JObject
+                    {
+                        ["x"] = 0f,
+                        ["y"] = 0f,
+                    },
+                },
+            },
+            ["tracks"] = new JArray
+            {
+                new JObject
+                {
+                    ["target_part_id"] = "body",
+                    ["property"] = Animation2dTrackProperty.Sprite.ToString(),
+                    ["sprite_keyframes"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["time_seconds"] = 0f,
+                            ["value"] = spriteId.ToString(),
+                        },
+                        new JObject
+                        {
+                            ["time_seconds"] = 0.5f,
+                            ["value"] = spriteId.ToString(),
+                        },
+                    },
+                },
+            },
+        });
+
+        Assert.Single(animation.Events);
+        Assert.Equal(new AnimationEventAsset(0.5f, Animation2dEventNames.Restart), animation.Events[0]);
     }
 
     [Fact]
@@ -251,7 +301,6 @@ public class Animation2dAuthoringDataTests
         var nextSpriteId = Guid.NewGuid();
         var animation = new Animation2dData
         {
-            AnimationType = AnimationType.Once,
             Name = "composed_attack",
         };
         animation.Parts.Add(new Animation2dPartData
@@ -275,6 +324,7 @@ public class Animation2dAuthoringDataTests
         animation.Events.Add(new AnimationEventAsset(0.25f, "Hit"));
 
         Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+    Assert.Null(document["animation_type"]);
 
         var loadedAnimation = new Animation2dData();
         loadedAnimation.Load(document);
@@ -354,7 +404,7 @@ public class Animation2dAuthoringDataTests
     {
         var defaultSpriteId = Guid.NewGuid();
         var sampledSpriteId = Guid.NewGuid();
-        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData
         {
             Id = "body",
@@ -398,13 +448,14 @@ public class Animation2dAuthoringDataTests
     {
         var firstSpriteId = Guid.NewGuid();
         var secondSpriteId = Guid.NewGuid();
-        var animation = new Animation2dData { AnimationType = AnimationType.Loop };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = firstSpriteId });
         var spriteTrack = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, firstSpriteId));
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.1f, secondSpriteId));
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.3f, secondSpriteId));
         animation.Tracks.Add(spriteTrack);
+        animation.Events.Add(new AnimationEventAsset(0.3f, Animation2dEventNames.Restart));
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         sampler.Update(0.15f);
@@ -419,7 +470,7 @@ public class Animation2dAuthoringDataTests
     {
         var firstSpriteId = Guid.NewGuid();
         var secondSpriteId = Guid.NewGuid();
-        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = firstSpriteId });
         var spriteTrack = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, firstSpriteId));
@@ -439,7 +490,7 @@ public class Animation2dAuthoringDataTests
     [Fact]
     public void CompositionSampler_UpdateDispatchesAnimationEventsWhenCrossingKeyframes()
     {
-        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "body" });
         var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
         track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
@@ -459,7 +510,7 @@ public class Animation2dAuthoringDataTests
     [Fact]
     public void CompositionSampler_SeekDoesNotDispatchAnimationEvents()
     {
-        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "body" });
         var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
         track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
@@ -477,13 +528,14 @@ public class Animation2dAuthoringDataTests
     [Fact]
     public void CompositionSampler_UpdateDispatchesLoopedAnimationEventsAfterWrap()
     {
-        var animation = new Animation2dData { AnimationType = AnimationType.Loop };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "body" });
         var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
         track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
         animation.Tracks.Add(track);
         animation.Events.Add(new AnimationEventAsset(0.1f, "LoopEvent"));
         animation.Events.Add(new AnimationEventAsset(0.9f, "EndEvent"));
+        animation.Events.Add(new AnimationEventAsset(1f, Animation2dEventNames.Restart));
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
         var triggeredEvents = new List<string>();
         sampler.AnimationEventTriggered += animationEvent => triggeredEvents.Add(animationEvent.EventName);
@@ -491,7 +543,7 @@ public class Animation2dAuthoringDataTests
         sampler.Update(0.95f);
         sampler.Update(0.2f);
 
-        Assert.Equal(new[] { "LoopEvent", "EndEvent", "LoopEvent" }, triggeredEvents);
+        Assert.Equal(new[] { "LoopEvent", "EndEvent", Animation2dEventNames.Restart, "LoopEvent" }, triggeredEvents);
     }
 
     [Fact]
@@ -517,7 +569,7 @@ public class Animation2dAuthoringDataTests
     [Fact]
     public void CompositionSampler_UpdatesStableDrawOrder()
     {
-        var animation = new Animation2dData { AnimationType = AnimationType.Once };
+        var animation = new Animation2dData();
         animation.Parts.Add(new Animation2dPartData { Id = "body", DefaultDrawOrder = 10 });
         animation.Parts.Add(new Animation2dPartData { Id = "weapon", DefaultDrawOrder = 5 });
         animation.Parts.Add(new Animation2dPartData { Id = "fx", DefaultDrawOrder = 5 });
@@ -604,12 +656,14 @@ public class Animation2dAuthoringDataTests
         animation.Load(JObject.Parse(File.ReadAllText(assetPath)));
         var composition = Animation2dCompositionAdapter.Create(animation);
 
-        Assert.Equal(AnimationType.Loop, animation.AnimationType);
         Assert.Equal("swordman_stand_right", animation.Name);
         Assert.Single(animation.Parts);
         Assert.Equal("sprite", animation.Parts[0].Id);
         Assert.Equal("Sprite", animation.Parts[0].Name);
         Assert.True(animation.Parts[0].DefaultVisible);
+        Assert.Single(animation.Events);
+        Assert.Equal(Animation2dEventNames.Restart, animation.Events[0].EventName);
+        Assert.Equal(0.3f, animation.Events[0].TimeSeconds, 5);
         Assert.Single(composition.Parts);
         Assert.Equal("sprite", composition.Parts[0].Id);
         Assert.Equal(animation.Parts[0].DefaultSpriteId, composition.Parts[0].DefaultSpriteId);
@@ -637,8 +691,10 @@ public class Animation2dAuthoringDataTests
         Assert.Equal("swordman_composed_demo", animation.Name);
         Assert.Equal(2, animation.Parts.Count);
         Assert.Equal(2, animation.Tracks.Count);
-        Assert.Single(animation.Events);
+        Assert.Equal(2, animation.Events.Count);
         Assert.Equal("WeaponSwapLayer", animation.Events[0].EventName);
+        Assert.Equal(Animation2dEventNames.Restart, animation.Events[1].EventName);
+        Assert.Equal(0.6f, animation.Events[1].TimeSeconds, 5);
 
         sampler.Seek(0.3f);
 

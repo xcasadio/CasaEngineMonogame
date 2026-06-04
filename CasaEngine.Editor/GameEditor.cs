@@ -1771,6 +1771,7 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
+        SaveSelectedAnimation2dInspector();
         SaveDirtyMaterialInspectors();
         SaveDirtyParticleInspectors();
         SaveDirtyAnimation2dInspectors();
@@ -1780,6 +1781,28 @@ public class GameEditor : Game, IObservableUpdate
         EditorAssetCatalogService.Save();
         _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport));
         Logs.WriteInfo($"Project saved: {EditorProjectSession.CurrentProjectFilePath}");
+    }
+
+    private void SaveSelectedAnimation2dInspector()
+    {
+        string activeDocumentPanelId = GetActiveDocumentPanelId();
+        if (string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetAnimation2dAssetInspectorPanel(activeDocumentPanelId, out var animation2dInspectorPanel)
+            || !animation2dInspectorPanel.IsDirty)
+        {
+            return;
+        }
+
+        if (animation2dInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
+        {
+            _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Animation2d, activeDocumentPanelId));
+            UpdateDockPanelTitle(activeDocumentPanelId, GetAnimation2dDocumentTitle(activeDocumentPanelId));
+            Logs.WriteInfo($"Animation2D asset saved: {animation2dInspectorPanel.LoadedRelativePath}");
+        }
+        else if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            Logs.WriteWarning(errorMessage);
+        }
     }
 
     private void SaveDockLayout()
@@ -2633,6 +2656,13 @@ public class GameEditor : Game, IObservableUpdate
             && TryGetCutsceneAssetInspectorPanel(activeDocumentPanelId, out var cutsceneInspectorPanel))
         {
             ActivateCutsceneDocument(activeDocumentPanelId, cutsceneInspectorPanel);
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            && TryGetAnimation2dAssetInspectorPanel(activeDocumentPanelId, out var animation2dInspectorPanel))
+        {
+            ActivateAnimation2dDocument(activeDocumentPanelId, animation2dInspectorPanel);
             return;
         }
 

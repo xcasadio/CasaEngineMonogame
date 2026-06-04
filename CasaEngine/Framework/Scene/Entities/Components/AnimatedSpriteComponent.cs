@@ -70,7 +70,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
     public void SetCurrentAnimation(Animation2d anim, bool forceReset)
     {
-        if (CurrentAnimation != null && CurrentAnimation.AnimationData.Name == anim.AnimationData.Name)
+        if (CurrentAnimation != null && CurrentAnimation.Animation2dData.Name == anim.Animation2dData.Name)
         {
             if (forceReset)
             {
@@ -105,7 +105,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         foreach (var anim in Animations)
         {
-            if (anim.AnimationData.Name == name)
+            if (anim.Animation2dData.Name == name)
             {
                 SetCurrentAnimation(anim, forceReset);
                 return true;
