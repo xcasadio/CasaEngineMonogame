@@ -1084,20 +1084,13 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         controlsRow.TryAddChild(_timelineZoomSlider);
         stack.TryAddChild(controlsRow);
 
-        var timelineScrollViewer = new MGScrollViewer(_window, ScrollBarVisibility.Disabled, ScrollBarVisibility.Auto)
+        _timelineControl = new Animation2dTimelineControl(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
         };
-
-        _timelineControl = new Animation2dTimelineControl(_window)
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Stretch,
-        };
         _timelineControl.EventSelected += SelectEvent;
         _timelineControl.ScrubRequested += SeekPreviewTime;
-        timelineScrollViewer.SetContent(_timelineControl);
 
         var surface = new MGBorder(
             _window,
@@ -1109,7 +1102,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             PreferredHeight = 154,
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
-        surface.SetContent(timelineScrollViewer);
+        surface.SetContent(_timelineControl);
         stack.TryAddChild(surface);
 
         var panel = new MGBorder(
@@ -1309,7 +1302,27 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private void SelectEvent(int eventIndex)
     {
-        if (_animationData == null || eventIndex < 0 || eventIndex >= _timelineDisplayEvents.Count)
+        if (_animationData == null)
+        {
+            return;
+        }
+
+        if (eventIndex < 0)
+        {
+            if (_selectedEventIndex < 0)
+            {
+                return;
+            }
+
+            _selectedEventIndex = -1;
+            SetStatus("Timeline selection cleared.");
+            RefreshTimelineText();
+            RefreshTimelinePlaybackState();
+            RefreshInspector();
+            return;
+        }
+
+        if (eventIndex >= _timelineDisplayEvents.Count)
         {
             return;
         }

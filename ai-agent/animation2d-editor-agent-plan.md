@@ -221,7 +221,7 @@ Commit attendu :
 
 - `test(animation2d): validate v1 event-only editor slice`
 
-### ⏳ Tache V1.12 — Verrouiller le modele generique minimal du controle Timeline
+### ✅ Tache V1.12 — Verrouiller le modele generique minimal du controle Timeline
 
 Objectif : introduire un modele generique minimal pour la timeline, distinct du rendu et branche sur une liste directe d'evenements.
 
@@ -241,7 +241,7 @@ Commit attendu :
 
 - `refactor(editor): add minimal timeline model`
 
-### ⏳ Tache V1.13 — Introduire `TimelineViewState` et `TimelineViewTransform`
+### 🧪 Tache V1.13 — Introduire `TimelineViewState` et `TimelineViewTransform`
 
 Objectif : separer l'etat de vue et centraliser les conversions temps/ecran pour la ruler, le viewport, le playhead et le scroll.
 
@@ -256,11 +256,18 @@ Validation :
 - build editeur ;
 - tests cibles sur `TimeToX`, `XToTime` et bornes de scroll.
 
+Etat actuel :
+
+- `TimelineViewState`, `TimelineViewTransform` et `TimelineTickCalculator` sont ajoutes ;
+- build editeur et build solution editeur valides ;
+- des tests cibles existent sur les conversions, les bornes de scroll et les graduations ;
+- l'execution de `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` reste bloquee par des erreurs pre-existantes hors tranche Timeline.
+
 Commit attendu :
 
 - `refactor(editor): add timeline view state and transform`
 
-### ⏳ Tache V1.14 — Decouper le controle en sous-controles V1
+### 🧪 Tache V1.14 — Decouper le controle en sous-controles V1
 
 Objectif : remplacer le controle monolithique par une composition explicite `CornerHeader`, `TimelineRuler`, `TrackHeaderPanel`, `TimelineViewport`, `HorizontalScrollBar`.
 
@@ -275,11 +282,17 @@ Validation :
 - build editeur ;
 - ouverture d'un `.anim2d` avec rendu visuel equivalent ou meilleur sur la timeline.
 
+Etat actuel :
+
+- `CornerHeader`, `TimelineRuler`, `TrackHeaderPanel`, `TimelineViewport` et `HorizontalScrollBar` sont introduits ;
+- le build editeur et le build solution editeur sont valides ;
+- le smoke visuel manuel dans `GameEditor` n'a pas ete execute dans cette session CLI.
+
 Commit attendu :
 
 - `refactor(editor): split timeline into subcontrols`
 
-### ⏳ Tache V1.15 — Rebrancher l'integration Animation2D sur le nouveau controle
+### 🧪 Tache V1.15 — Rebrancher l'integration Animation2D sur le nouveau controle
 
 Objectif : reconnecter `Animation2dTimelinePanel` et `Animation2dAssetInspectorPanel` au nouveau controle sans reintroduire de couplage fort.
 
@@ -293,11 +306,18 @@ Validation :
 
 - smoke manuel : ouvrir un `.anim2d`, voir les evenements, selectionner un event, verifier la synchro avec l'inspector.
 
+Etat actuel :
+
+- `Animation2dTimelineControl` est devenu un adaptateur sur le controle generique ;
+- `Animation2dAssetInspectorPanel` consomme le nouveau controle sans `MGScrollViewer` externe ;
+- la synchro compile et les evenements publics historiques sont preserves ;
+- le smoke manuel reste a faire.
+
 Commit attendu :
 
 - `refactor(editor): reconnect animation2d timeline integration`
 
-### ⏳ Tache V1.16 — Rebrancher scroll horizontal et zoom sur un transform partage
+### 🧪 Tache V1.16 — Rebrancher scroll horizontal et zoom sur un transform partage
 
 Objectif : faire converger ruler, viewport et scrollbar horizontale vers le meme scroll et le meme zoom.
 
@@ -312,11 +332,17 @@ Validation :
 - smoke manuel : scroll horizontal, zoom avant, zoom arriere ;
 - verification visuelle de l'alignement ruler / playhead / evenements.
 
+Etat actuel :
+
+- le ruler, le viewport et la scrollbar horizontale utilisent le meme `TimelineViewTransform` ;
+- le zoom continue de piloter `PixelsPerSecond` depuis l'inspector ;
+- l'alignement compile et les tests couvrent les conversions et bornes, mais la verification visuelle manuelle reste a faire.
+
 Commit attendu :
 
 - `feat(editor): align timeline scroll and zoom`
 
-### ⏳ Tache V1.17 — Preserver le playhead et le scrub read-only
+### 🧪 Tache V1.17 — Preserver le playhead et le scrub read-only
 
 Objectif : conserver un playhead visible et une interaction de scrub dans la V1 sans ouvrir l'edition des evenements.
 
@@ -330,11 +356,17 @@ Validation :
 
 - smoke manuel : cliquer ou scrubber la timeline et verifier la mise a jour du temps courant et du playhead.
 
+Etat actuel :
+
+- le playhead est dessine dans `TimelineViewport` ;
+- le clic viewport met a jour le temps courant et relaye le scrub vers l'integration Animation2D ;
+- le smoke manuel de scrub reste a faire.
+
 Commit attendu :
 
 - `feat(editor): keep read-only playhead and scrub`
 
-### ⏳ Tache V1.18 — Verrouiller les garde-fous de performance du viewport timeline
+### 🧪 Tache V1.18 — Verrouiller les garde-fous de performance du viewport timeline
 
 Objectif : s'assurer que le nouveau decoupage reste leger et respecte les contraintes hot path de l'editeur.
 
@@ -346,11 +378,19 @@ Doit couvrir au moins :
 - pas de dessin des evenements hors zone visible ;
 - invalidations limitees aux sous-parties concernees.
 
+Etat actuel :
+
+- aucun controle enfant par event n'est cree ;
+- aucun LINQ n'est ajoute dans le rendu, le hit testing ou les updates du controle timeline ;
+- les evenements hors fenetre visible ne sont pas dessines ;
+- les changements de vue utilisent `ArrangeChanged` sur le controle timeline ;
+- aucun profiling manuel n'a ete execute dans cette session CLI.
+
 Commit attendu :
 
 - `perf(editor): harden timeline viewport hot path`
 
-### ⏳ Tache V1.19 — Ajouter les tests cibles du controle Timeline
+### 🧪 Tache V1.19 — Ajouter les tests cibles du controle Timeline
 
 Objectif : couvrir le coeur deterministe du nouveau controle timeline avec des tests ciblés.
 
@@ -361,6 +401,12 @@ Doit couvrir au moins :
 - hit testing des events ;
 - bornes de scroll horizontal ;
 - conservation de l'alignement pendant zoom et scroll.
+
+Etat actuel :
+
+- des tests cibles ont ete ajoutes pour `TimeToX` / `XToTime`, les bornes de scroll, les graduations majeures et le hit testing des events ;
+- le fichier de tests compile localement sans erreur ;
+- l'execution `dotnet test` reste bloquee par des erreurs pre-existantes hors tranche Timeline dans `CasaEngine.Tests`.
 
 Commit attendu :
 

@@ -1,0 +1,17 @@
+namespace CasaEngine.Editor.Controls.Timeline;
+
+internal static class TimelineControlMetrics
+{
+    public const int TrackColumnWidth = 120;
+    public const int RulerRowHeight = 24;
+    public const int ScrollBarRowHeight = 16;
+    public const int TimeAreaPaddingLeft = 8;
+    public const int TimeAreaPaddingRight = 12;
+    public const int ViewportVerticalPadding = 8;
+    public const int HeaderPadding = 8;
+    public const int LabelFontSize = 11;
+    public const float MajorTickTargetPixels = 64f;
+    public const float EventHalfSize = 7f;
+    public const float EventHitRadius = 14f;
+    public const float Epsilon = 0.0001f;
+}
