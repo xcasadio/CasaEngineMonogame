@@ -646,7 +646,7 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             return;
         }
 
-        _editorRuntime.AssetContentManager.AddAsset(spriteAssetId, _spriteData.Name, _spriteData);
+        _editorRuntime.AssetContentManager.AddAsset(spriteAssetId, _spriteData?.Name ?? string.Empty, _spriteData);
     }
 
     private Guid GetLoadedSpriteAssetId()
