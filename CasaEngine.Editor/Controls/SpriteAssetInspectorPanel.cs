@@ -28,9 +28,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
     private readonly GraphicsDevice _graphicsDevice;
 
     private MGDockPanel? _inspectorRoot;
-    private MGTextBlock? _headerText;
-    private MGTextBlock? _sourceText;
-    private MGTextBlock? _statusText;
     private MGStackPanel? _contentStack;
     private SpritePreviewViewport? _previewViewport;
 
@@ -65,34 +62,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             return _inspectorRoot;
         }
 
-        _headerText = new MGTextBlock(_window, "[b]Sprite Inspector[/b]")
-        {
-            Margin = new Thickness(8, 6, 8, 4),
-            WrapText = true,
-        };
-
-        _sourceText = new MGTextBlock(_window, "No sprite asset loaded.")
-        {
-            Margin = new Thickness(8, 0, 8, 4),
-            Opacity = 0.8f,
-            WrapText = true,
-        };
-
-        _statusText = new MGTextBlock(_window, "Open a .sprite asset from the Content Browser.")
-        {
-            Margin = new Thickness(8, 0, 8, 8),
-            Opacity = 0.7f,
-            WrapText = true,
-        };
-
-        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 4,
-            Margin = new Thickness(8, 0, 8, 8),
-        };
-        toolbar.TryAddChild(CreateButton("Save", SaveLoadedAsset));
-        toolbar.TryAddChild(CreateButton("Reload", ReloadLoadedAsset));
-
         _contentStack = new MGStackPanel(_window, Orientation.Vertical)
         {
             Spacing = 6,
@@ -107,10 +76,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
         };
-        _inspectorRoot.TryAddChild(_headerText, Dock.Top);
-        _inspectorRoot.TryAddChild(_sourceText, Dock.Top);
-        _inspectorRoot.TryAddChild(_statusText, Dock.Top);
-        _inspectorRoot.TryAddChild(toolbar, Dock.Top);
         _inspectorRoot.TryAddChild(scrollViewer, Dock.Top);
 
         RefreshInspector();
@@ -168,7 +133,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
         if (IsDirty)
         {
-            SetStatus($"Unsaved changes kept for {_loadedRelativePath}");
             return false;
         }
 
@@ -194,7 +158,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
         if (!IsDirty)
         {
-            SetStatus($"Already saved {_loadedRelativePath}");
             return true;
         }
 
@@ -209,15 +172,12 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
                 EditorDirtyStateService.Current.MarkSaved(historyContext);
             }
 
-            RefreshStatusText();
-            SetStatus($"Saved {_loadedRelativePath}");
             return true;
         }
         catch (Exception exception)
         {
             Logs.WriteException(exception);
             errorMessage = exception.Message;
-            SetStatus($"Failed to save {_loadedRelativePath}: {exception.Message}");
             return false;
         }
     }
@@ -316,23 +276,20 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
     private void SaveLoadedAsset()
     {
-        if (!TrySaveLoadedAsset(out string? errorMessage) && !string.IsNullOrWhiteSpace(errorMessage))
+        if (TrySaveLoadedAsset(out string? errorMessage) && !string.IsNullOrWhiteSpace(errorMessage))
         {
-            SetStatus(errorMessage);
+            Logs.WriteError(errorMessage);
         }
     }
 
     private void ReloadLoadedAsset()
     {
-        if (!ReloadFromDisk())
-        {
-            SetStatus("Unable to reload sprite asset.");
-        }
+        ReloadFromDisk();
     }
 
     private void RefreshInspector()
     {
-        if (_contentStack == null || _headerText == null || _sourceText == null || _statusText == null)
+        if (_contentStack == null)
         {
             return;
         }
@@ -340,24 +297,10 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         _contentStack.TryRemoveAll();
         if (_spriteData == null)
         {
-            _headerText.Text = "[b]Sprite Inspector[/b]";
-            _sourceText.Text = "No sprite asset loaded.";
-            _statusText.Text = "Open a .sprite asset from the Content Browser.";
             return;
         }
 
-        RefreshHeaderText();
-        RefreshSourceText();
-        RefreshStatusText();
-
-        _contentStack.TryAddChild(BuildSectionHeader("Asset"));
-        _contentStack.TryAddChild(BuildPropertyRow("Name", CreateTextBox(_spriteData.Name, value => ApplyChange(() =>
-        {
-            _spriteData.Name = string.IsNullOrWhiteSpace(value) ? "Sprite" : value;
-        }, "Name", RefreshHeaderText))));
-        _contentStack.TryAddChild(BuildPropertyRow("Sprite Sheet", CreateTextureSelectorRow()));
-
-        _contentStack.TryAddChild(BuildSectionHeader("Texture Rect"));
+        _contentStack.TryAddChild(BuildSectionHeader("Texture Rectangle"));
         _contentStack.TryAddChild(BuildPropertyRow("X", CreateIntField(_spriteData.PositionInTexture.X, -32768, 32768, value => ApplyChange(() =>
             _spriteData.PositionInTexture = new Rectangle(value, _spriteData.PositionInTexture.Y, _spriteData.PositionInTexture.Width, _spriteData.PositionInTexture.Height),
             "Location X",
@@ -538,14 +481,11 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         if (_spriteData == null)
         {
             _previewViewport?.ClearAsset();
-            RefreshStatusText();
             return;
         }
 
         CacheLoadedSpriteAsset();
         _previewViewport?.LoadAsset(_spriteData);
-
-        RefreshStatusText();
     }
 
     private void CacheLoadedSpriteAsset()
@@ -587,7 +527,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         SetDirty(true);
         RefreshPreviewState();
         afterApply?.Invoke();
-        SetStatus($"{label} updated.");
     }
 
     private bool TryGetHistoryContext(out EditorHistoryContext historyContext)
@@ -611,48 +550,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
         _isDirty = isDirty;
         DirtyStateChanged?.Invoke(this);
-    }
-
-    private void RefreshHeaderText()
-    {
-        if (_headerText == null)
-        {
-            return;
-        }
-
-        string title = string.IsNullOrWhiteSpace(_spriteData?.Name) ? "Sprite" : _spriteData.Name;
-        _headerText.Text = $"[b]Sprite Inspector[/b]  [opacity=0.7]{EscapeMarkup(title)}[/opacity]";
-    }
-
-    private void RefreshSourceText()
-    {
-        if (_sourceText == null)
-        {
-            return;
-        }
-
-        _sourceText.Text = string.IsNullOrWhiteSpace(_loadedRelativePath)
-            ? "No sprite asset loaded."
-            : $"Source: {EscapeMarkup(_loadedRelativePath)}";
-    }
-
-    private void RefreshStatusText()
-    {
-        if (_spriteData == null)
-        {
-            SetStatus("Open a .sprite asset from the Content Browser.");
-            return;
-        }
-
-        SetStatus($"Sprite ready. Size: {_spriteData.PositionInTexture.Width} x {_spriteData.PositionInTexture.Height}.");
-    }
-
-    private void SetStatus(string message)
-    {
-        if (_statusText != null)
-        {
-            _statusText.Text = EscapeMarkup(message);
-        }
     }
 
     private MGElement BuildSectionHeader(string text)
@@ -753,31 +650,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             }
         };
         return combo;
-    }
-
-    private MGElement CreateTextureSelectorRow()
-    {
-        var row = new MGStackPanel(_window, Orientation.Horizontal)
-        {
-            Spacing = 4,
-        };
-
-        var selector = new AssetSelector(_window)
-        {
-            AssetId = _spriteData?.SpriteSheetAssetId ?? Guid.Empty,
-            Filter = IsTextureAsset,
-        };
-        selector.AssetChanged += (_, assetId) => ApplyChange(() =>
-            _spriteData!.SpriteSheetAssetId = assetId,
-            "Sprite Sheet",
-            RefreshPreviewState);
-        row.TryAddChild(selector);
-        row.TryAddChild(CreateButton("Clear", () =>
-        {
-            selector.AssetId = Guid.Empty;
-            ApplyChange(() => _spriteData!.SpriteSheetAssetId = Guid.Empty, "Sprite Sheet", RefreshPreviewState);
-        }));
-        return row;
     }
 
     private bool IsTextureAsset(AssetInfo assetInfo)

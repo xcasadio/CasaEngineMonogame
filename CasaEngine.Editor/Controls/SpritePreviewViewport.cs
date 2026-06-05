@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.Runtime;
+using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Geometry;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
@@ -11,6 +13,7 @@ using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Shared.Helpers;
+using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
@@ -65,11 +68,15 @@ internal sealed class SpritePreviewViewport : IDisposable
     private readonly GraphicsDevice _graphicsDevice;
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly PreviewWorldDriver _previewWorldDriver;
+    private readonly EditorSpriteOverlayRenderer _overlayRenderer;
 
     private MGStackPanel? _root;
     private MGDockPanel? _viewportHost;
     private MGImage? _viewportImage;
     private MGTextBlock? _statusText;
+    private MGTextBlock? _zoomText;
+    private MGCheckBox? _showCollisionsCheckBox;
+    private MGCheckBox? _showHotspotCheckBox;
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
     private MguiPreviewViewHost? _renderViewHost;
@@ -82,13 +89,22 @@ internal sealed class SpritePreviewViewport : IDisposable
     private string _statusMessage = "Open a .sprite asset from the Content Browser.";
     private int _rtWidth = 360;
     private int _rtHeight = 260;
+    private bool _showCollisions = true;
+    private bool _showHotspot = true;
+    private bool _fitZoom = true;
+    private float _pixelsPerUnit = 1f;
+    private bool _suspendControlCallbacks;
     private bool _disposed;
+
+    private const float MinPixelsPerUnit = 0.05f;
+    private const float MaxPixelsPerUnit = 4096f;
 
     public SpritePreviewViewport(MGWindow window, GraphicsDevice graphicsDevice, HostedEditorGameAdapter editorRuntime)
     {
         _window = window;
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
+        _overlayRenderer = new EditorSpriteOverlayRenderer(editorRuntime.Content);
         _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
         {
             WorldName = "SpritePreviewWorld",
@@ -113,6 +129,35 @@ internal sealed class SpritePreviewViewport : IDisposable
             WrapText = true,
         };
 
+        _zoomText = new MGTextBlock(_window, "Zoom: 100%")
+        {
+            Margin = new Thickness(4, 0, 4, 0),
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            FontSize = 10,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+
+        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 8,
+            Margin = new Thickness(4, 0, 4, 0),
+        };
+        _showCollisionsCheckBox = CreateCheckBox("Collisions", _showCollisions, isChecked =>
+        {
+            _showCollisions = isChecked == true;
+            _renderView?.Invalidate();
+        });
+        _showHotspotCheckBox = CreateCheckBox("Hotspot", _showHotspot, isChecked =>
+        {
+            _showHotspot = isChecked == true;
+            _renderView?.Invalidate();
+        });
+        toolbar.TryAddChild(_showCollisionsCheckBox);
+        toolbar.TryAddChild(_showHotspotCheckBox);
+        toolbar.TryAddChild(_zoomText);
+        toolbar.TryAddChild(CreateButton("100%", SetZoom100));
+        toolbar.TryAddChild(CreateButton("Fit", FitToView));
+
         _viewportHost = new MGDockPanel(_window)
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
@@ -120,6 +165,7 @@ internal sealed class SpritePreviewViewport : IDisposable
             MinHeight = 260,
         };
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
+        _viewportHost.MouseHandler.Scrolled += OnViewportScrolled;
 
         _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
         {
@@ -153,9 +199,12 @@ internal sealed class SpritePreviewViewport : IDisposable
             Spacing = 4,
             Margin = new Thickness(4, 0, 4, 6),
         };
+        _root.TryAddChild(toolbar);
         _root.TryAddChild(_statusText);
         _root.TryAddChild(viewportBorder);
 
+        SynchronizeControlsFromState();
+        RefreshZoomText();
         RefreshTextureBinding();
         return _root;
     }
@@ -169,7 +218,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         _previewEntity!.Name = string.IsNullOrWhiteSpace(spriteData.Name) ? "Sprite Preview" : spriteData.Name;
         _previewSpriteComponent!.SetSpriteData(spriteData);
         _previewWorldDriver.RefreshNow();
-        ConfigureCamera();
+        FitToView();
         SetStatusMessage($"Preview ready. Sprite size: {spriteData.PositionInTexture.Width} x {spriteData.PositionInTexture.Height}.");
         _renderView?.Invalidate();
     }
@@ -178,7 +227,10 @@ internal sealed class SpritePreviewViewport : IDisposable
     {
         _spriteData = null;
         _previewSpriteComponent?.SetSpriteData(null);
+        _fitZoom = true;
+        _pixelsPerUnit = 1f;
         SetStatusMessage("Open a .sprite asset from the Content Browser.");
+        RefreshZoomText();
         _renderView?.Invalidate();
     }
 
@@ -194,6 +246,10 @@ internal sealed class SpritePreviewViewport : IDisposable
             $"View world: {_renderView?.World.Name ?? "<none>"}",
             $"Texture: {DescribeBoundTexture()}",
             $"Status: {_statusMessage}",
+            $"Zoom percent: {MathF.Round(_pixelsPerUnit * 100f, 2)}",
+            $"Fit zoom: {_fitZoom}",
+            $"Show collisions: {_showCollisions}",
+            $"Show hotspot: {_showHotspot}",
         };
 
         var previewComponentStates = _previewSpriteComponent?.GetDebugStateSnapshot() ?? Array.Empty<string>();
@@ -217,6 +273,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         if (_viewportHost != null)
         {
             _viewportHost.OnLayoutBoundsChanged -= OnViewportBoundsChanged;
+            _viewportHost.MouseHandler.Scrolled -= OnViewportScrolled;
         }
 
         if (_renderView != null)
@@ -233,6 +290,7 @@ internal sealed class SpritePreviewViewport : IDisposable
 
         _renderViewHost?.Dispose();
         _renderViewHost = null;
+        _overlayRenderer.Dispose();
         _surface?.Dispose();
         _surface = null;
         _previewWorldDriver.Dispose();
@@ -285,6 +343,9 @@ internal sealed class SpritePreviewViewport : IDisposable
         }
 
         _renderView = renderView;
+        var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
+        overlayPipeline.RenderVectorOverlayAction = RenderPreviewVectorOverlay;
+        renderView.Pipeline = overlayPipeline;
         _renderViewHost = new MguiPreviewViewHost(renderView.Id,
             () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
         _renderView.Host = _renderViewHost;
@@ -319,15 +380,9 @@ internal sealed class SpritePreviewViewport : IDisposable
         }
 
         BoundingBox bounds = SpriteDataBoundsCalculator.CalculateLocalBounds(_spriteData);
-        float width = Math.Max(1f, bounds.Max.X - bounds.Min.X);
-        float height = Math.Max(1f, bounds.Max.Y - bounds.Min.Y);
-        float availableWidth = Math.Max(1f, _rtWidth - 16f);
-        float availableHeight = Math.Max(1f, _rtHeight - 16f);
-        float pixelsPerUnit = Math.Min(availableWidth / width, availableHeight / height);
-
         float verticalHalfFov = Math.Max(0.01f, _camera.FieldOfView * 0.5f);
         float halfDepth = Math.Max(0f, (bounds.Max.Z - bounds.Min.Z) * 0.5f);
-        float distance = (_rtHeight * 0.5f) / (pixelsPerUnit * MathF.Tan(verticalHalfFov));
+        float distance = (_rtHeight * 0.5f) / (_pixelsPerUnit * MathF.Tan(verticalHalfFov));
         distance = Math.Clamp(distance + halfDepth + 2f, 0.5f, 1000f);
 
         Vector3 focusTarget = (bounds.Min + bounds.Max) * 0.5f;
@@ -350,8 +405,35 @@ internal sealed class SpritePreviewViewport : IDisposable
         _renderViewHost?.NotifyResized(width, height);
         _surface?.RequestResize(width, height);
         _camera?.OnScreenResized(width, height);
+        if (_fitZoom && _spriteData != null)
+        {
+            _pixelsPerUnit = ComputeFitPixelsPerUnit(_spriteData);
+            RefreshZoomText();
+        }
+
         ConfigureCamera();
         RefreshTextureBinding();
+    }
+
+    private void OnViewportScrolled(object? sender, MGUI.Shared.Input.Mouse.BaseMouseScrolledEventArgs e)
+    {
+        if (_spriteData == null || e.ScrollWheelDelta == 0 || _viewportHost == null || _viewportHost.Parent == null)
+        {
+            return;
+        }
+
+        Rectangle bounds = !_viewportHost.ActualLayoutBounds.IsEmpty ? _viewportHost.ActualLayoutBounds : _viewportHost.LayoutBounds;
+        if (!bounds.Contains(e.Position))
+        {
+            return;
+        }
+
+        float wheelSteps = e.ScrollWheelDelta / 120.0f;
+        _fitZoom = false;
+        _pixelsPerUnit = MathHelper.Clamp(_pixelsPerUnit * MathF.Pow(1.1f, wheelSteps), MinPixelsPerUnit, MaxPixelsPerUnit);
+        RefreshZoomText();
+        ConfigureCamera();
+        e.SetHandledBy(_viewportHost ?? sender as IMouseHandlerHost);
     }
 
     private void RefreshTextureBinding()
@@ -383,6 +465,121 @@ internal sealed class SpritePreviewViewport : IDisposable
         return _boundTexture == null
             ? "<none>"
             : $"{_boundTexture.Width}x{_boundTexture.Height}";
+    }
+
+    private void FitToView()
+    {
+        if (_spriteData == null)
+        {
+            return;
+        }
+
+        _fitZoom = true;
+        _pixelsPerUnit = ComputeFitPixelsPerUnit(_spriteData);
+        RefreshZoomText();
+        ConfigureCamera();
+    }
+
+    private void SetZoom100()
+    {
+        _fitZoom = false;
+        _pixelsPerUnit = 1f;
+        RefreshZoomText();
+        ConfigureCamera();
+    }
+
+    private float ComputeFitPixelsPerUnit(SpriteData spriteData)
+    {
+        BoundingBox bounds = SpriteDataBoundsCalculator.CalculateLocalBounds(spriteData);
+        float width = Math.Max(1f, bounds.Max.X - bounds.Min.X);
+        float height = Math.Max(1f, bounds.Max.Y - bounds.Min.Y);
+        float availableWidth = Math.Max(1f, _rtWidth - 16f);
+        float availableHeight = Math.Max(1f, _rtHeight - 16f);
+        return Math.Clamp(Math.Min(availableWidth / width, availableHeight / height), MinPixelsPerUnit, MaxPixelsPerUnit);
+    }
+
+    private void RefreshZoomText()
+    {
+        if (_zoomText == null)
+        {
+            return;
+        }
+
+        _zoomText.Text = $"Zoom: {_pixelsPerUnit * 100f:0.#}%";
+    }
+
+    private MGButton CreateButton(string label, Action onClick)
+    {
+        var button = new MGButton(_window, _ => onClick())
+        {
+            PreferredWidth = 64,
+        };
+        button.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        return button;
+    }
+
+    private MGCheckBox CreateCheckBox(string label, bool isChecked, Action<bool?> onChanged)
+    {
+        var checkBox = new MGCheckBox(_window)
+        {
+            IsChecked = isChecked,
+        };
+        checkBox.SetContent(new MGTextBlock(_window, label)
+        {
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        checkBox.OnCheckStateChanged += (_, args) =>
+        {
+            if (_suspendControlCallbacks)
+            {
+                return;
+            }
+
+            onChanged(args.NewValue);
+        };
+        return checkBox;
+    }
+
+    private void SynchronizeControlsFromState()
+    {
+        _suspendControlCallbacks = true;
+        try
+        {
+            if (_showCollisionsCheckBox != null)
+            {
+                _showCollisionsCheckBox.IsChecked = _showCollisions;
+            }
+
+            if (_showHotspotCheckBox != null)
+            {
+                _showHotspotCheckBox.IsChecked = _showHotspot;
+            }
+        }
+        finally
+        {
+            _suspendControlCallbacks = false;
+        }
+    }
+
+    private void RenderPreviewVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        if (_previewSpriteComponent == null || _spriteData == null)
+        {
+            return;
+        }
+
+        _overlayRenderer.Draw(
+            graphicsDevice,
+            in frame,
+            _spriteData,
+            _previewSpriteComponent.Position,
+            new Vector2(_previewSpriteComponent.Scale.X, _previewSpriteComponent.Scale.Y),
+            _showCollisions,
+            _showHotspot);
     }
 
     private static string EscapeMarkup(string value)
