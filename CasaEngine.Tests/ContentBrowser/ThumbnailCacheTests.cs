@@ -57,8 +57,8 @@ public sealed class ThumbnailCacheTests : IDisposable
     [Fact]
     public void GetOrRequest_QueuesParticleThumbnailRender_WhenRendererIsProvided()
     {
-        using var renderer = new FakeParticleThumbnailRenderer();
-        using var cache = new ThumbnailCache(null, 64, maxEntries: 2, particleThumbnailRenderer: renderer);
+        using var renderer = new FakeAssetThumbnailRenderer(path => path.EndsWith(".particle", StringComparison.OrdinalIgnoreCase));
+        using var cache = new ThumbnailCache(null, 64, maxEntries: 2, new IAssetThumbnailRenderer[] { renderer });
         string path = CreateParticleFile("spark.particle");
         var item = new ContentItem(path, false);
 
@@ -71,9 +71,36 @@ public sealed class ThumbnailCacheTests : IDisposable
         Assert.Equal(1, cache.EntryCount);
     }
 
-    private sealed class FakeParticleThumbnailRenderer : IParticleThumbnailRenderer
+    [Fact]
+    public void GetOrRequest_QueuesSpriteThumbnailRender_WhenRendererIsProvided()
     {
+        using var renderer = new FakeAssetThumbnailRenderer(path => path.EndsWith(".sprite", StringComparison.OrdinalIgnoreCase));
+        using var cache = new ThumbnailCache(null, 64, maxEntries: 2, new IAssetThumbnailRenderer[] { renderer });
+        string path = CreateSpriteFile("hero.sprite");
+        var item = new ContentItem(path, false);
+
+        ThumbnailCacheResult result = cache.GetOrRequest(item, null);
+
+        Assert.False(result.IsLoaded);
+        Assert.Single(renderer.EnqueuedRequests);
+        Assert.Equal(path, renderer.EnqueuedRequests[0].Path);
+        Assert.Equal(1L, renderer.EnqueuedRequests[0].RequestId);
+        Assert.Equal(1, cache.EntryCount);
+    }
+
+    private sealed class FakeAssetThumbnailRenderer : IAssetThumbnailRenderer
+    {
+        private readonly Func<string, bool> _canRender;
+
+        public FakeAssetThumbnailRenderer(Func<string, bool> canRender)
+        {
+            _canRender = canRender;
+        }
+
         public List<(string Path, long RequestId)> EnqueuedRequests { get; } = new();
+
+        public bool CanRender(string path)
+            => _canRender(path);
 
         public void Enqueue(string path, long requestId)
             => EnqueuedRequests.Add((path, requestId));
@@ -82,7 +109,7 @@ public sealed class ThumbnailCacheTests : IDisposable
         {
         }
 
-        public bool TryDequeueCompleted(out ParticleThumbnailRenderResult result)
+        public bool TryDequeueCompleted(out AssetThumbnailRenderResult result)
         {
             result = default;
             return false;
@@ -192,6 +219,31 @@ public sealed class ThumbnailCacheTests : IDisposable
                     }
                 }
             ]
+        }
+        """);
+        return path;
+    }
+
+    private string CreateSpriteFile(string fileName)
+    {
+        var path = Path.Combine(_rootPath, fileName);
+        File.WriteAllText(path, """
+        {
+            "id": "22222222-2222-2222-2222-222222222222",
+            "name": "HeroSprite",
+            "sprite_sheet_asset_id": "33333333-3333-3333-3333-333333333333",
+            "location": {
+                "x": 0,
+                "y": 0,
+                "width": 32,
+                "height": 48
+            },
+            "hotspot": {
+                "x": 16,
+                "y": 24
+            },
+            "collisions": [],
+            "sockets": []
         }
         """);
         return path;

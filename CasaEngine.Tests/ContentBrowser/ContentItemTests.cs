@@ -28,6 +28,16 @@ public class ContentItemTests
     }
 
     [Fact]
+    public void Constructor_DeducesSpriteTypeFromExtension()
+    {
+        var item = new ContentItem("D:/Project/sprites/hero.sprite", false);
+
+        Assert.Equal("hero.sprite", item.Name);
+        Assert.Equal(".sprite", item.Extension);
+        Assert.Equal(ContentItemType.Sprite, item.Type);
+    }
+
+    [Fact]
     public void UpdatePath_RefreshesDerivedPropertiesAndRaisesNotifications()
     {
         var item = new ContentItem("D:/Project/texture.png", false);
