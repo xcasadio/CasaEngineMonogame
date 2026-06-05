@@ -49,7 +49,7 @@ public sealed class ThumbnailCache : IDisposable
     private static readonly ImageCodecInfo? BmpImageEncoder = ResolveImageEncoder(ImageFormat.Bmp);
 
     private readonly GraphicsDevice? _graphicsDevice;
-    private readonly IParticleThumbnailRenderer? _particleThumbnailRenderer;
+    private readonly IReadOnlyList<IAssetThumbnailRenderer>? _assetThumbnailRenderers;
     private readonly int _thumbnailSize;
     private readonly int _maxEntries;
     private readonly Dictionary<string, CacheEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
@@ -76,10 +76,10 @@ public sealed class ThumbnailCache : IDisposable
     {
     }
 
-    internal ThumbnailCache(GraphicsDevice? graphicsDevice, int thumbnailSize, int maxEntries, IParticleThumbnailRenderer? particleThumbnailRenderer)
+    internal ThumbnailCache(GraphicsDevice? graphicsDevice, int thumbnailSize, int maxEntries, IReadOnlyList<IAssetThumbnailRenderer>? assetThumbnailRenderers)
     {
         _graphicsDevice = graphicsDevice;
-        _particleThumbnailRenderer = particleThumbnailRenderer;
+        _assetThumbnailRenderers = assetThumbnailRenderers;
         _thumbnailSize = Math.Max(32, thumbnailSize);
         _maxEntries = Math.Max(1, maxEntries);
     }
@@ -107,13 +107,14 @@ public sealed class ThumbnailCache : IDisposable
             }
 
             var requestId = ++_nextRequestId;
-            bool usesParticleRenderer = IsParticleThumbnailPath(normalizedPath) && _particleThumbnailRenderer != null;
-            var initialStatus = _graphicsDevice == null && !usesParticleRenderer ? CacheEntryStatus.Failed : CacheEntryStatus.Loading;
+            IAssetThumbnailRenderer? assetThumbnailRenderer = ResolveAssetThumbnailRenderer(normalizedPath);
+            bool usesAssetRenderer = assetThumbnailRenderer != null;
+            var initialStatus = _graphicsDevice == null && !usesAssetRenderer ? CacheEntryStatus.Failed : CacheEntryStatus.Loading;
             entry = new CacheEntry(normalizedPath, initialStatus, ++_accessSequence, requestId);
             _entries[normalizedPath] = entry;
-            if (usesParticleRenderer)
+            if (usesAssetRenderer)
             {
-                _particleThumbnailRenderer.Enqueue(normalizedPath, requestId);
+                assetThumbnailRenderer!.Enqueue(normalizedPath, requestId);
             }
             else if (_graphicsDevice != null)
             {
@@ -144,19 +145,23 @@ public sealed class ThumbnailCache : IDisposable
 
     public void Update(int maxCreatesPerTick = 4)
     {
-        _particleThumbnailRenderer?.Update();
-        if (_particleThumbnailRenderer != null)
+        if (_assetThumbnailRenderers != null)
         {
-            while (_particleThumbnailRenderer.TryDequeueCompleted(out ParticleThumbnailRenderResult renderedParticleThumbnail))
+            for (int rendererIndex = 0; rendererIndex < _assetThumbnailRenderers.Count; rendererIndex++)
             {
-                lock (_syncRoot)
+                var assetThumbnailRenderer = _assetThumbnailRenderers[rendererIndex];
+                assetThumbnailRenderer.Update();
+                while (assetThumbnailRenderer.TryDequeueCompleted(out AssetThumbnailRenderResult renderedAssetThumbnail))
                 {
-                    _completedLoads.Enqueue(new PendingThumbnailLoad(
-                        renderedParticleThumbnail.RequestId,
-                        renderedParticleThumbnail.Path,
-                        renderedParticleThumbnail.ImageBytes,
-                        renderedParticleThumbnail.SourceSize,
-                        renderedParticleThumbnail.Succeeded));
+                    lock (_syncRoot)
+                    {
+                        _completedLoads.Enqueue(new PendingThumbnailLoad(
+                            renderedAssetThumbnail.RequestId,
+                            renderedAssetThumbnail.Path,
+                            renderedAssetThumbnail.ImageBytes,
+                            renderedAssetThumbnail.SourceSize,
+                            renderedAssetThumbnail.Succeeded));
+                    }
                 }
             }
         }
@@ -223,13 +228,21 @@ public sealed class ThumbnailCache : IDisposable
     public void Dispose()
     {
         InvalidateAll();
-        _particleThumbnailRenderer?.Dispose();
+        if (_assetThumbnailRenderers == null)
+        {
+            return;
+        }
+
+        for (int rendererIndex = 0; rendererIndex < _assetThumbnailRenderers.Count; rendererIndex++)
+        {
+            _assetThumbnailRenderers[rendererIndex].Dispose();
+        }
     }
 
     public static bool SupportsThumbnail(ContentItem item)
         => item != null
         && !item.IsDirectory
-        && (item.Type == ContentItemType.Texture || item.Type == ContentItemType.Particle)
+        && (item.Type == ContentItemType.Texture || item.Type == ContentItemType.Particle || item.Type == ContentItemType.Sprite)
         && File.Exists(item.FullPath);
 
     private async Task LoadThumbnailAsync(string path, long requestId)
@@ -303,8 +316,24 @@ public sealed class ThumbnailCache : IDisposable
         return null;
     }
 
-    private static bool IsParticleThumbnailPath(string path)
-        => string.Equals(Path.GetExtension(path), ".particle", StringComparison.OrdinalIgnoreCase);
+    private IAssetThumbnailRenderer? ResolveAssetThumbnailRenderer(string path)
+    {
+        if (_assetThumbnailRenderers == null)
+        {
+            return null;
+        }
+
+        for (int rendererIndex = 0; rendererIndex < _assetThumbnailRenderers.Count; rendererIndex++)
+        {
+            var assetThumbnailRenderer = _assetThumbnailRenderers[rendererIndex];
+            if (assetThumbnailRenderer.CanRender(path))
+            {
+                return assetThumbnailRenderer;
+            }
+        }
+
+        return null;
+    }
 
     private void ApplyPendingLoad(PendingThumbnailLoad pendingLoad)
     {

@@ -1,41 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Runtime;
-using CasaEngine.Editor.Runtime.Rendering.Environment;
-using CasaEngine.Editor.Styling;
+using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Configuration;
-using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Scene.World;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json.Linq;
+using DrawingBitmap = System.Drawing.Bitmap;
+using DrawingGraphics = System.Drawing.Graphics;
+using DrawingRectangle = System.Drawing.Rectangle;
+using XnaPoint = Microsoft.Xna.Framework.Point;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;
 
-internal readonly record struct AssetThumbnailRenderResult(
-    long RequestId,
-    string Path,
-    byte[]? ImageBytes,
-    Point? SourceSize,
-    bool Succeeded);
-
-internal interface IAssetThumbnailRenderer : IDisposable
-{
-    bool CanRender(string path);
-
-    void Enqueue(string path, long requestId);
-
-    void Update();
-
-    bool TryDequeueCompleted(out AssetThumbnailRenderResult result);
-}
-
-internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
+internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
 {
     private sealed class PendingThumbnailRequest
     {
@@ -50,13 +35,9 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
         public string Path { get; }
     }
 
-    private const float WarmupSeconds = 0.45f;
-    private const int WarmupStepCount = 15;
-
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly GraphicsDevice _graphicsDevice;
     private readonly int _thumbnailSize;
-    private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly Queue<PendingThumbnailRequest> _pendingRequests = new();
     private readonly Queue<AssetThumbnailRenderResult> _completedResults = new();
@@ -64,13 +45,13 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
     private Entity? _previewEntity;
-    private ParticleSystemComponent? _particleComponent;
+    private StaticSpriteComponent? _previewSpriteComponent;
     private Entity? _cameraEntity;
     private CameraLookAtComponent? _camera;
     private PendingThumbnailRequest? _activeRequest;
     private bool _disposed;
 
-    public ParticleSceneThumbnailRenderer(GraphicsDevice graphicsDevice, int thumbnailSize, HostedEditorGameAdapter editorRuntime)
+    public SpriteSceneThumbnailRenderer(GraphicsDevice graphicsDevice, int thumbnailSize, HostedEditorGameAdapter editorRuntime)
     {
         ArgumentNullException.ThrowIfNull(graphicsDevice);
         ArgumentNullException.ThrowIfNull(editorRuntime);
@@ -80,13 +61,13 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
         _editorRuntime = editorRuntime;
         _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
         {
-            WorldName = "ParticleThumbnailPreviewWorld",
+            WorldName = "SpriteThumbnailPreviewWorld",
             UpdateMode = PreviewWorldUpdateMode.Manual,
         });
     }
 
     public bool CanRender(string path)
-        => string.Equals(Path.GetExtension(path), Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase);
+        => string.Equals(Path.GetExtension(path), Constants.FileNameExtensions.Sprite, StringComparison.OrdinalIgnoreCase);
 
     public void Enqueue(string path, long requestId)
     {
@@ -154,31 +135,30 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
         _surface?.Dispose();
         _surface = null;
         _previewWorldDriver.Dispose();
-        _particleComponent = null;
         _previewEntity = null;
+        _previewSpriteComponent = null;
         _camera = null;
         _cameraEntity = null;
     }
 
     private void StartNextRequest(PendingThumbnailRequest request)
     {
-        EnsurePreviewSceneCreated();
         EnsureRenderViewCreated();
 
-        ParticleEffectAsset? particleAsset = TryLoadParticleAsset(request.Path);
-        if (particleAsset == null || _particleComponent == null || _previewWorldDriver.World == null)
+        if (!SpriteAssetInspectorPanel.TryLoadAsset(request.Path, out var spriteAsset)
+            || _previewSpriteComponent == null
+            || _previewWorldDriver.World == null)
         {
             _completedResults.Enqueue(new AssetThumbnailRenderResult(request.RequestId, request.Path, null, null, false));
             return;
         }
 
-        _particleComponent.Looping = HasLoopingEmitter(particleAsset);
-        _particleComponent.SimulationSpeed = 1.0f;
-        _particleComponent.ColorTint = Color.White;
-        _particleComponent.SetParticleEffectAsset(particleAsset);
-        _particleComponent.Restart(clearParticles: true);
-        ResetPreviewTransform(particleAsset);
-        WarmUpSimulation(_previewWorldDriver.World);
+        CacheSpriteAsset(spriteAsset);
+        Guid spriteAssetId = spriteAsset.AssetId != Guid.Empty ? spriteAsset.AssetId : spriteAsset.Id;
+        _previewSpriteComponent.SpriteAssetId = spriteAssetId;
+        _previewSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteAsset);
+        _previewWorldDriver.RefreshNow();
+        ConfigureCamera(spriteAsset);
 
         if (_renderView == null || _surface?.RenderTarget == null)
         {
@@ -214,11 +194,12 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
             using var output = new MemoryStream();
             RenderTarget2D renderTarget = _surface.RenderTarget;
             renderTarget.SaveAsPng(output, renderTarget.Width, renderTarget.Height);
+            byte[] croppedBytes = CropTransparentPadding(output.ToArray(), out XnaPoint sourceSize);
             _completedResults.Enqueue(new AssetThumbnailRenderResult(
                 _activeRequest.RequestId,
                 _activeRequest.Path,
-                output.ToArray(),
-                new Point(renderTarget.Width, renderTarget.Height),
+                croppedBytes,
+                sourceSize,
                 true));
         }
         catch
@@ -242,22 +223,13 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
 
         _previewWorldDriver.Rebuild(world =>
         {
-            PreviewWorldLightRig.AddDefaultLights(world);
-
             _previewEntity = new Entity
             {
-                Name = "ParticleThumbnailPreviewEntity",
+                Name = "SpriteThumbnailPreviewEntity",
             };
 
-            _particleComponent = new ParticleSystemComponent
-            {
-                PlayOnStart = false,
-                Looping = true,
-                SimulateInEditor = true,
-                SimulationSpeed = 1.0f,
-                ColorTint = Color.White,
-            };
-            _previewEntity.RootComponent = _particleComponent;
+            _previewSpriteComponent = new StaticSpriteComponent();
+            _previewEntity.RootComponent = _previewSpriteComponent;
             world.AddEntity(_previewEntity);
         });
     }
@@ -273,7 +245,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
 
         _cameraEntity = new Entity
         {
-            Name = "ParticleThumbnailCamera",
+            Name = "SpriteThumbnailCamera",
             IsVisible = false,
         };
 
@@ -291,105 +263,128 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
 
         ViewId viewId = _editorRuntime.GameManager.ViewManager.CreateView(new ViewDefinition
         {
-            Name = "Particle Thumbnail",
+            Name = "Sprite Thumbnail",
             World = _previewWorldDriver.World!,
             Camera = _camera,
             Surface = _surface,
-            ClearColor = EditorThemePalette.PreviewClearColor,
-            EnvironmentOverride = _environmentOverride,
+            ClearColor = Microsoft.Xna.Framework.Color.Transparent,
             UpdateMode = ViewUpdateMode.OnDemand,
         });
 
         if (!_editorRuntime.GameManager.ViewManager.TryGetView(viewId, out RenderView? renderView))
         {
-            throw new InvalidOperationException("The particle thumbnail renderer could not create its offscreen render view.");
+            throw new InvalidOperationException("The sprite thumbnail renderer could not create its offscreen render view.");
         }
 
         _renderView = renderView;
     }
 
-    private static ParticleEffectAsset? TryLoadParticleAsset(string path)
+    private void CacheSpriteAsset(SpriteData spriteAsset)
     {
-        try
+        Guid spriteAssetId = spriteAsset.AssetId != Guid.Empty ? spriteAsset.AssetId : spriteAsset.Id;
+        AssetInfo? assetInfo = AssetCatalog.Get(spriteAssetId);
+        if (assetInfo != null)
         {
-            var node = JObject.Parse(File.ReadAllText(path));
-            var asset = new ParticleEffectAsset();
-            asset.Load(node);
-            asset.FileName = path;
-            asset.AssetId = asset.Id;
+            spriteAsset.AssetId = assetInfo.Id;
+            spriteAsset.Name = assetInfo.Name;
+            spriteAsset.FileName = assetInfo.FileName;
+            _editorRuntime.AssetContentManager.AddAsset(assetInfo, spriteAsset);
+            return;
+        }
 
-            IReadOnlyList<string> errors = asset.Validate();
-            return errors.Count == 0 ? asset : null;
-        }
-        catch
-        {
-            return null;
-        }
+        _editorRuntime.AssetContentManager.AddAsset(spriteAssetId, spriteAsset.Name, spriteAsset);
     }
 
-    private void WarmUpSimulation(World world)
-    {
-        float stepSeconds = WarmupSeconds / WarmupStepCount;
-        for (int stepIndex = 0; stepIndex < WarmupStepCount; stepIndex++)
-        {
-            world.Update(stepSeconds);
-        }
-    }
-
-    private void ResetPreviewTransform(ParticleEffectAsset particleAsset)
-    {
-        if (_particleComponent != null)
-        {
-            _particleComponent.LocalPosition = Vector3.Zero;
-            _particleComponent.LocalOrientation = Quaternion.Identity;
-            _particleComponent.LocalScale = Vector3.One;
-        }
-
-        ConfigureCamera(particleAsset);
-    }
-
-    private void ConfigureCamera(ParticleEffectAsset particleAsset)
+    private void ConfigureCamera(SpriteData spriteAsset)
     {
         if (_camera == null)
         {
             return;
         }
 
-        float radius = CalculatePreviewRadius(particleAsset);
-        Vector3 target = new(0.0f, radius * 0.25f, 0.0f);
-        Vector3 position = new(0.0f, radius * 0.45f, Math.Max(3.0f, radius * 3.0f));
-        _camera.SetPositionAndTarget(position, target);
+        BoundingBox bounds = SpriteDataBoundsCalculator.CalculateLocalBounds(spriteAsset);
+        float width = Math.Max(1f, bounds.Max.X - bounds.Min.X);
+        float height = Math.Max(1f, bounds.Max.Y - bounds.Min.Y);
+        float availableWidth = Math.Max(1f, _thumbnailSize - 16f);
+        float availableHeight = Math.Max(1f, _thumbnailSize - 16f);
+        float pixelsPerUnit = Math.Min(availableWidth / width, availableHeight / height);
+
+        float verticalHalfFov = Math.Max(0.01f, _camera.FieldOfView * 0.5f);
+        float halfDepth = Math.Max(0f, (bounds.Max.Z - bounds.Min.Z) * 0.5f);
+        float distance = (_thumbnailSize * 0.5f) / (pixelsPerUnit * MathF.Tan(verticalHalfFov));
+        distance = Math.Clamp(distance + halfDepth + 2f, 0.5f, 1000f);
+
+        Vector3 focusTarget = (bounds.Min + bounds.Max) * 0.5f;
+        _camera.SetPositionAndTarget(new Vector3(focusTarget.X, focusTarget.Y, distance), focusTarget);
     }
 
-    private static float CalculatePreviewRadius(ParticleEffectAsset particleAsset)
+    private static byte[] CropTransparentPadding(byte[] imageBytes, out XnaPoint sourceSize)
     {
-        if (particleAsset.Emitters.Count == 0)
+        using var input = new MemoryStream(imageBytes, writable: false);
+        using var bitmap = new DrawingBitmap(input);
+        DrawingRectangle cropBounds = FindVisibleBounds(bitmap);
+        sourceSize = new XnaPoint(cropBounds.Width, cropBounds.Height);
+
+        if (cropBounds.Width <= 0 || cropBounds.Height <= 0
+            || (cropBounds.X == 0 && cropBounds.Y == 0 && cropBounds.Width == bitmap.Width && cropBounds.Height == bitmap.Height))
         {
-            return 1.5f;
+            sourceSize = new XnaPoint(bitmap.Width, bitmap.Height);
+            return imageBytes;
         }
 
-        float radius = 1.5f;
-        for (int emitterIndex = 0; emitterIndex < particleAsset.Emitters.Count; emitterIndex++)
-        {
-            ParticleEmitterDefinition emitter = particleAsset.Emitters[emitterIndex];
-            radius = MathF.Max(radius, emitter.Shape.Radius + MathF.Max(emitter.Shape.Size.X, emitter.Shape.Size.Y) * 0.5f);
-            radius = MathF.Max(radius, MathF.Max(emitter.Initial.Size.Max.X, emitter.Initial.Size.Max.Y));
-            radius = MathF.Max(radius, emitter.Initial.Speed.Max * emitter.Initial.Lifetime.Max * 0.35f);
-        }
+        using var cropped = new DrawingBitmap(cropBounds.Width, cropBounds.Height, PixelFormat.Format32bppArgb);
+        using var graphics = DrawingGraphics.FromImage(cropped);
+        graphics.Clear(System.Drawing.Color.Transparent);
+        graphics.DrawImage(bitmap, new DrawingRectangle(0, 0, cropBounds.Width, cropBounds.Height), cropBounds, GraphicsUnit.Pixel);
 
-        return MathHelper.Clamp(radius, 1.5f, 12.0f);
+        using var output = new MemoryStream();
+        cropped.Save(output, ImageFormat.Png);
+        return output.ToArray();
     }
 
-    private static bool HasLoopingEmitter(ParticleEffectAsset particleAsset)
+    private static DrawingRectangle FindVisibleBounds(DrawingBitmap bitmap)
     {
-        for (int emitterIndex = 0; emitterIndex < particleAsset.Emitters.Count; emitterIndex++)
+        int minX = bitmap.Width;
+        int minY = bitmap.Height;
+        int maxX = -1;
+        int maxY = -1;
+
+        for (int y = 0; y < bitmap.Height; y++)
         {
-            if (particleAsset.Emitters[emitterIndex].Looping)
+            for (int x = 0; x < bitmap.Width; x++)
             {
-                return true;
+                if (bitmap.GetPixel(x, y).A == 0)
+                {
+                    continue;
+                }
+
+                if (x < minX)
+                {
+                    minX = x;
+                }
+
+                if (y < minY)
+                {
+                    minY = y;
+                }
+
+                if (x > maxX)
+                {
+                    maxX = x;
+                }
+
+                if (y > maxY)
+                {
+                    maxY = y;
+                }
             }
         }
 
-        return false;
+        if (maxX < minX || maxY < minY)
+        {
+            return new DrawingRectangle(0, 0, bitmap.Width, bitmap.Height);
+        }
+
+        return new DrawingRectangle(minX, minY, maxX - minX + 1, maxY - minY + 1);
     }
 }

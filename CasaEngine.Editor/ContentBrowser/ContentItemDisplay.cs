@@ -18,6 +18,7 @@ public static class ContentItemDisplay
         {
             ContentItemType.Folder => EditorIcons.Folder,
             ContentItemType.Texture => EditorIcons.Image,
+            ContentItemType.Sprite => EditorIcons.Image,
             ContentItemType.Model => EditorIcons.Box,
             ContentItemType.Sound => EditorIcons.Volume,
             ContentItemType.Script => EditorIcons.FileCode,
@@ -44,6 +45,7 @@ public static class ContentItemDisplay
         return item.Type switch
         {
             ContentItemType.Texture => "Texture",
+            ContentItemType.Sprite => "Sprite",
             ContentItemType.Model => "Model",
             ContentItemType.Sound => "Sound",
             ContentItemType.Script => "Script",

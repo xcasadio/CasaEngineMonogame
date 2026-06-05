@@ -8,6 +8,7 @@ public enum EditorSelectionKind
     WorldComponent,
     UIScreenNode,
     MaterialAsset,
+    SpriteAsset,
     EntityAsset,
     EntityAssetComponent,
     TileMapLayer,

@@ -6,6 +6,7 @@ public enum ContentItemType
     Unknown,
     Folder,
     Texture,
+    Sprite,
     Model,
     Sound,
     Script,

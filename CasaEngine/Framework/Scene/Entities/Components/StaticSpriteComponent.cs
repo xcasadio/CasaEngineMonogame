@@ -91,25 +91,13 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public override BoundingBox GetBoundingBox()
     {
-        var min = Vector3.One * int.MaxValue;
-        var max = Vector3.One * int.MinValue;
-
         if (_spriteData != null)
         {
-            var halfWidth = _spriteData.PositionInTexture.Width / 2f;
-            var halfHeight = _spriteData.PositionInTexture.Height / 2f;
-
-            min = Vector3.Min(min, new Vector3(-halfWidth, -halfHeight, 0f));
-            max = Vector3.Max(max, new Vector3(halfWidth, halfHeight, 0.1f));
-        }
-        else // default box
-        {
-            const float length = 0.5f;
-            min = Vector3.One * -length;
-            max = Vector3.One * length;
+            return SpriteDataBoundsCalculator.CalculateLocalBounds(_spriteData).Transform(WorldMatrixWithScale);
         }
 
-        return new BoundingBox(min, max).Transform(WorldMatrixWithScale);
+        const float length = 0.5f;
+        return new BoundingBox(Vector3.One * -length, Vector3.One * length).Transform(WorldMatrixWithScale);
     }
 
     public override void Draw(float elapsedTime)
@@ -160,10 +148,52 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private void LoadSpriteData(string spriteDataName)
     {
         _spriteData = Owner.World.Game.AssetContentManager.GetAsset<SpriteData>(spriteDataName);
+        if (_spriteData != null && _spriteData.AssetId != Guid.Empty)
+        {
+            SpriteAssetId = _spriteData.AssetId;
+        }
+
         _sprite = Sprite.Create(_spriteData, Owner.World.Game.AssetContentManager);
         RemoveCollisions();
         AddCollisions();
         IsBoundingBoxDirty = true;
+    }
+
+    public bool ReloadSpriteAsset(Guid spriteAssetId, SpriteData spriteData)
+    {
+        ArgumentNullException.ThrowIfNull(spriteData);
+
+        bool isMatchingSprite = SpriteAssetId == spriteAssetId
+            || (_spriteData != null
+                && (_spriteData.AssetId == spriteAssetId
+                    || _spriteData.Id == spriteAssetId
+                    || string.Equals(_spriteData.Name, spriteData.Name, StringComparison.Ordinal)));
+        if (!isMatchingSprite)
+        {
+            return false;
+        }
+
+        _spriteData = spriteData;
+        if (spriteData.AssetId != Guid.Empty)
+        {
+            SpriteAssetId = spriteData.AssetId;
+        }
+
+        RemoveCollisions();
+
+        var assetContentManager = Owner?.World?.Game?.AssetContentManager;
+        if (assetContentManager != null)
+        {
+            _sprite = Sprite.Create(spriteData, assetContentManager);
+        }
+
+        if (Owner?.IsEnabled != false)
+        {
+            AddCollisions();
+        }
+
+        IsBoundingBoxDirty = true;
+        return true;
     }
 
     private void AddCollisions()

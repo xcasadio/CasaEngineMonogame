@@ -17,6 +17,7 @@ using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Particles;
 using CasaEngine.Framework.Particles.Authoring;
 using CasaEngine.Framework.Rendering;
@@ -54,6 +55,8 @@ namespace CasaEngine.Editor;
 
 public class GameEditor : Game, IObservableUpdate
 {
+    private readonly record struct AssetDocumentRoute(string Extension, Func<string, bool> TryOpenDocument);
+
     private enum ParticleEffectPresetKind
     {
         Default,
@@ -139,9 +142,12 @@ public class GameEditor : Game, IObservableUpdate
     private MGElement _animation2dInspectorContent;
     private Animation2dTimelinePanel _animation2dTimelinePanel;
     private MGElement _animation2dTimelineContent;
+    private MGStackPanel _spriteInspectorView;
     private MGStackPanel _particleInspectorView;
     private ContextualDockPanelHost _toolboxPanelHost;
     private MGElement _toolboxContent;
+    private MGElement _spriteHierarchyContent;
+    private MGElement _spriteToolboxContent;
     private MGElement _particleToolboxContent;
     private TileMapHierarchyPanel _tileMapHierarchyPanel;
     private MGElement _tileMapHierarchyContent;
@@ -153,6 +159,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, UIScreenPreviewPanel> _screenPreviewPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _screenPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, MaterialAssetInspectorPanel> _materialInspectorPanels = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, SpriteAssetInspectorPanel> _spriteInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, ParticleAssetInspectorPanel> _particleInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, CutsceneAssetInspectorPanel> _cutsceneInspectorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, Animation2dAssetInspectorPanel> _animation2dInspectorPanels = new(StringComparer.Ordinal);
@@ -161,6 +168,7 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, TileMapEditorPanel> _tileMapEditorPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, WorldViewportPanel> _materialViewportPanels = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _materialInspectorPanelTitles = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _spriteInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _particleInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _cutsceneInspectorPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _animation2dInspectorPanelTitles = new(StringComparer.Ordinal);
@@ -168,11 +176,13 @@ public class GameEditor : Game, IObservableUpdate
     private readonly Dictionary<string, string> _animationClipPreviewPanelTitles = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _tileMapEditorPanelTitles = new(StringComparer.Ordinal);
     private MaterialAssetInspectorPanel _activeMaterialInspectorPanel;
+    private SpriteAssetInspectorPanel _activeSpriteInspectorPanel;
     private ParticleAssetInspectorPanel _activeParticleInspectorPanel;
     private CutsceneAssetInspectorPanel _activeCutsceneInspectorPanel;
     private Animation2dAssetInspectorPanel _activeAnimation2dInspectorPanel;
     private EntityAssetEditorPanel _activeEntityAssetEditorPanel;
     private TileMapEditorPanel _activeTileMapEditorPanel;
+    private IReadOnlyList<AssetDocumentRoute>? _assetDocumentRoutes;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
     private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
     private UIScreenHierarchyPanel _screenHierarchyPanel;
@@ -514,6 +524,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnEditorAssetSaved(object sender, EditorAssetSavedEventArgs e)
     {
+        if (e.RelativePath.EndsWith(Constants.FileNameExtensions.Sprite, StringComparison.OrdinalIgnoreCase))
+        {
+            HandleSavedSpriteAsset(e);
+            return;
+        }
+
         if (e.RelativePath.EndsWith(Constants.FileNameExtensions.Particle, StringComparison.OrdinalIgnoreCase))
         {
             HandleSavedParticleAsset(e);
@@ -546,6 +562,35 @@ public class GameEditor : Game, IObservableUpdate
             : _editorRuntime.ReloadMaterialAsset(materialAssetId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Reloaded material asset='{e.RelativePath}' id='{materialAssetId}' affectedMaterials={hotReloadMetrics.AffectedMaterialCount} invalidatedRuntimeMaterials={hotReloadMetrics.InvalidatedRuntimeMaterialCount} invalidatedAuthoringMaterials={hotReloadMetrics.InvalidatedAuthoringMaterialCount} refreshedStaticModelComponents={hotReloadMetrics.RefreshedStaticModelComponentCount} recalculatedOverrideSlots={hotReloadMetrics.RecalculatedOverrideSlotCount} authoringCacheHits={hotReloadMetrics.AuthoringMaterialCacheHitCount} authoringCacheMisses={hotReloadMetrics.AuthoringMaterialCacheMissCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+    }
+
+    private void HandleSavedSpriteAsset(EditorAssetSavedEventArgs e)
+    {
+        SpriteData? savedSpriteAsset = TryGetSavedSpriteAssetForHotReload(e);
+        RefreshSavedSpriteInspectorPanels(e);
+        InvalidateSavedSpriteThumbnail(e);
+
+        if (_editorRuntime == null)
+        {
+            return;
+        }
+
+        Guid spriteAssetId = ResolveCatalogSpriteAssetId(e.RelativePath);
+        if (spriteAssetId == Guid.Empty)
+        {
+            spriteAssetId = e.AssetId;
+        }
+
+        if (spriteAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        var hotReloadMetrics = savedSpriteAsset != null
+            ? _editorRuntime.ReloadSpriteAsset(spriteAssetId, savedSpriteAsset)
+            : _editorRuntime.ReloadSpriteAsset(spriteAssetId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Reloaded sprite asset='{e.RelativePath}' id='{spriteAssetId}' refreshedStaticSprites={hotReloadMetrics.RefreshedStaticSpriteComponentCount} refreshedAnimatedSprites={hotReloadMetrics.RefreshedAnimatedSpriteComponentCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
     }
 
     private void HandleSavedParticleAsset(EditorAssetSavedEventArgs e)
@@ -603,6 +648,29 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void RefreshSavedSpriteInspectorPanels(EditorAssetSavedEventArgs e)
+    {
+        string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
+        foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
+        {
+            if (!IsMatchingSpriteInspectorPanel(spriteInspectorPanel, e.AssetId, normalizedRelativePath))
+            {
+                continue;
+            }
+
+            if (e.SaveSource != EditorAssetSaveSource.SpriteEditorPanel
+                && spriteInspectorPanel.ReloadFromDisk()
+                && TryGetSpriteInspectorPanelId(spriteInspectorPanel, out var panelId))
+            {
+                var historyContext = new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId);
+                _editorHistory.Clear(historyContext);
+                _editorDirtyState.MarkSaved(historyContext);
+            }
+
+            UpdateDockPanelTitleForSpriteInspector(spriteInspectorPanel);
+        }
+    }
+
     private MaterialAsset TryGetSavedMaterialAssetForHotReload(EditorAssetSavedEventArgs e)
     {
         if (e.SaveSource != EditorAssetSaveSource.MaterialInspectorPanel)
@@ -621,6 +689,30 @@ public class GameEditor : Game, IObservableUpdate
             if (materialInspectorPanel.LoadedMaterialAsset != null)
             {
                 return materialInspectorPanel.LoadedMaterialAsset;
+            }
+        }
+
+        return null;
+    }
+
+    private SpriteData? TryGetSavedSpriteAssetForHotReload(EditorAssetSavedEventArgs e)
+    {
+        if (e.SaveSource != EditorAssetSaveSource.SpriteEditorPanel)
+        {
+            return null;
+        }
+
+        string normalizedRelativePath = NormalizeRelativePath(e.RelativePath);
+        foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
+        {
+            if (!IsMatchingSpriteInspectorPanel(spriteInspectorPanel, e.AssetId, normalizedRelativePath))
+            {
+                continue;
+            }
+
+            if (spriteInspectorPanel.LoadedSpriteData != null)
+            {
+                return spriteInspectorPanel.LoadedSpriteData;
             }
         }
 
@@ -694,6 +786,27 @@ public class GameEditor : Game, IObservableUpdate
             StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsMatchingSpriteInspectorPanel(SpriteAssetInspectorPanel spriteInspectorPanel, Guid assetId, string normalizedRelativePath)
+    {
+        var loadedSpriteData = spriteInspectorPanel.LoadedSpriteData;
+        if (assetId != Guid.Empty
+            && loadedSpriteData != null
+            && (loadedSpriteData.AssetId == assetId || loadedSpriteData.Id == assetId))
+        {
+            return true;
+        }
+
+        if (string.IsNullOrWhiteSpace(spriteInspectorPanel.LoadedRelativePath))
+        {
+            return false;
+        }
+
+        return string.Equals(
+            NormalizeRelativePath(spriteInspectorPanel.LoadedRelativePath),
+            normalizedRelativePath,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
     private static bool IsMatchingParticleInspectorPanel(ParticleAssetInspectorPanel particleInspectorPanel, Guid assetId, string normalizedRelativePath)
     {
         var loadedParticleAsset = particleInspectorPanel.LoadedParticleAsset;
@@ -719,6 +832,14 @@ public class GameEditor : Game, IObservableUpdate
         => relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
     private static Guid ResolveCatalogMaterialAssetId(string relativePath)
+    {
+        string normalizedRelativePath = NormalizeRelativePath(relativePath);
+        var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
+                        ?? AssetCatalog.GetByFileName(normalizedRelativePath.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return assetInfo?.Id ?? Guid.Empty;
+    }
+
+    private static Guid ResolveCatalogSpriteAssetId(string relativePath)
     {
         string normalizedRelativePath = NormalizeRelativePath(relativePath);
         var assetInfo = AssetCatalog.GetByFileName(normalizedRelativePath)
@@ -964,6 +1085,15 @@ public class GameEditor : Game, IObservableUpdate
             _hierarchyPanelHost.Register(new ContextualPanelDefinition
             {
                 Role = EditorPanelRole.Hierarchy,
+                DocumentKind = EditorDocumentKind.Sprite,
+                Title = "Hierarchy",
+                ContentFactory = GetOrCreateSpriteHierarchyContent,
+                Refresh = _ => RefreshSpriteViews(),
+            });
+
+            _hierarchyPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Hierarchy,
                 DocumentKind = EditorDocumentKind.Particle,
                 Title = "Hierarchy",
                 ContentFactory = GetOrCreateParticleHierarchyContent,
@@ -1027,6 +1157,17 @@ public class GameEditor : Game, IObservableUpdate
         return _particleHierarchyContent;
     }
 
+    private MGElement GetOrCreateSpriteHierarchyContent()
+    {
+        _spriteHierarchyContent ??= new MGTextBlock(_mainWindow, "Sprite assets do not expose a hierarchy tree. Use Inspector to edit the active sprite asset.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _spriteHierarchyContent;
+    }
+
     private MGElement GetOrCreateTileMapHierarchyContent()
     {
         _tileMapHierarchyPanel ??= new TileMapHierarchyPanel(_mainWindow);
@@ -1080,6 +1221,15 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Inspector",
                 ContentFactory = GetOrCreateEntityAssetInspectorContent,
                 Refresh = _ => RefreshEntityAssetViews(),
+            });
+
+            _inspectorPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Inspector,
+                DocumentKind = EditorDocumentKind.Sprite,
+                Title = "Inspector",
+                ContentFactory = GetOrCreateSpriteInspectorContent,
+                Refresh = _ => RefreshSpriteViews(),
             });
 
             _inspectorPanelHost.Register(new ContextualPanelDefinition
@@ -1224,6 +1374,18 @@ public class GameEditor : Game, IObservableUpdate
         return _particleInspectorView;
     }
 
+    private MGElement GetOrCreateSpriteInspectorContent()
+    {
+        _spriteInspectorView ??= new MGStackPanel(_mainWindow, Orientation.Vertical)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        RefreshSpriteViews();
+        return _spriteInspectorView;
+    }
+
     private MGElement GetOrCreateTileMapInspectorContent()
     {
         _tileMapInspectorPanel ??= new TileMapInspectorPanel(_mainWindow);
@@ -1250,6 +1412,15 @@ public class GameEditor : Game, IObservableUpdate
                 Title = "Toolbox",
                 ContentFactory = GetOrCreateScreenToolboxContent,
                 Refresh = _ => RefreshScreenViews(),
+            });
+
+            _toolboxPanelHost.Register(new ContextualPanelDefinition
+            {
+                Role = EditorPanelRole.Toolbox,
+                DocumentKind = EditorDocumentKind.Sprite,
+                Title = "Toolbox",
+                ContentFactory = GetOrCreateSpriteToolboxContent,
+                Refresh = _ => RefreshSpriteViews(),
             });
 
             _toolboxPanelHost.Register(new ContextualPanelDefinition
@@ -1299,6 +1470,17 @@ public class GameEditor : Game, IObservableUpdate
             WrapText = true,
         };
         return _particleToolboxContent;
+    }
+
+    private MGElement GetOrCreateSpriteToolboxContent()
+    {
+        _spriteToolboxContent ??= new MGTextBlock(_mainWindow, "Sprite assets do not use toolbox controls. Use the preview to inspect the rendered sprite and Inspector to edit authoring data.")
+        {
+            Margin = new Thickness(8, 6, 8, 4),
+            Opacity = 0.75f,
+            WrapText = true,
+        };
+        return _spriteToolboxContent;
     }
 
     private MGElement GetOrCreateTileMapToolboxContent()
@@ -1655,6 +1837,10 @@ public class GameEditor : Game, IObservableUpdate
         {
             ActivateEntityDocument(panel.Id, entityAssetEditorPanel);
         }
+        else if (TryGetSpriteAssetInspectorPanel(panel.Id, out var spriteInspectorPanel))
+        {
+            ActivateSpriteDocument(panel.Id, spriteInspectorPanel);
+        }
         else if (TryGetParticleAssetInspectorPanel(panel.Id, out var particleInspectorPanel))
         {
             ActivateParticleDocument(panel.Id, particleInspectorPanel);
@@ -1773,6 +1959,7 @@ public class GameEditor : Game, IObservableUpdate
 
         SaveSelectedAnimation2dInspector();
         SaveDirtyMaterialInspectors();
+        SaveDirtySpriteInspectors();
         SaveDirtyParticleInspectors();
         SaveDirtyAnimation2dInspectors();
         SaveDirtyEntityAssetEditors();
@@ -2041,6 +2228,21 @@ public class GameEditor : Game, IObservableUpdate
             }
         }
 
+        if (TryGetSpriteAssetInspectorPanel(panel.Id, out var spriteInspectorPanel))
+        {
+            spriteInspectorPanel.DirtyStateChanged -= OnSpriteInspectorDirtyStateChanged;
+            spriteInspectorPanel.Dispose();
+            _spriteInspectorPanels.Remove(panel.Id);
+            _spriteInspectorPanelTitles.Remove(panel.Id);
+            _editorHistory.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panel.Id));
+            _editorDirtyState.Remove(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panel.Id));
+            if (ReferenceEquals(_activeSpriteInspectorPanel, spriteInspectorPanel))
+            {
+                _activeSpriteInspectorPanel = null;
+                RefreshSpriteViews();
+            }
+        }
+
         if (TryGetParticleAssetInspectorPanel(panel.Id, out var particleInspectorPanel))
         {
             particleInspectorPanel.DirtyStateChanged -= OnParticleInspectorDirtyStateChanged;
@@ -2238,6 +2440,19 @@ public class GameEditor : Game, IObservableUpdate
             };
         }
 
+        if (TryGetSpriteAssetInspectorPanel(panelId, out var spriteInspectorPanel))
+        {
+            return new DockPanelNode(panelId)
+            {
+                Title = GetSpriteDocumentTitle(panelId),
+                DockableType = DockableType.Document,
+                CanClose = true,
+                CanFloat = true,
+                CanAutoHide = false,
+                ContentFactory = spriteInspectorPanel.CreateDocumentContent,
+            };
+        }
+
         if (TryGetParticleAssetInspectorPanel(panelId, out var particleInspectorPanel))
         {
             return new DockPanelNode(panelId)
@@ -2377,6 +2592,18 @@ public class GameEditor : Game, IObservableUpdate
         return _materialInspectorPanels.TryGetValue(panelId, out inspectorPanel);
     }
 
+    private bool TryGetSpriteAssetInspectorPanel(string panelId, out SpriteAssetInspectorPanel inspectorPanel)
+    {
+        inspectorPanel = null!;
+
+        if (!panelId.StartsWith(EditorPanelIds.SpriteAssetDocumentPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return _spriteInspectorPanels.TryGetValue(panelId, out inspectorPanel);
+    }
+
     private bool TryGetParticleAssetInspectorPanel(string panelId, out ParticleAssetInspectorPanel inspectorPanel)
     {
         inspectorPanel = null!;
@@ -2446,6 +2673,12 @@ public class GameEditor : Game, IObservableUpdate
     private bool TryGetActiveParticleInspectorPanel(out ParticleAssetInspectorPanel inspectorPanel)
     {
         inspectorPanel = _activeParticleInspectorPanel!;
+        return inspectorPanel != null;
+    }
+
+    private bool TryGetActiveSpriteInspectorPanel(out SpriteAssetInspectorPanel inspectorPanel)
+    {
+        inspectorPanel = _activeSpriteInspectorPanel!;
         return inspectorPanel != null;
     }
 
@@ -2550,6 +2783,19 @@ public class GameEditor : Game, IObservableUpdate
             entityAssetEditorPanel));
         SyncGlobalSelectionFromActiveDocument();
         RefreshActiveHistoryContext();
+    }
+
+    private void ActivateSpriteDocument(string panelId, SpriteAssetInspectorPanel inspectorPanel)
+    {
+        _activeSpriteInspectorPanel = inspectorPanel;
+        _editorContext.SetActiveDocument(new EditorDocumentContext(
+            EditorDocumentKind.Sprite,
+            panelId,
+            _spriteInspectorPanelTitles.TryGetValue(panelId, out var title) ? title : "Sprite",
+            inspectorPanel));
+        SyncGlobalSelectionFromActiveDocument();
+        RefreshActiveHistoryContext();
+        RefreshSpriteViews();
     }
 
     private void ActivateParticleDocument(string panelId, ParticleAssetInspectorPanel inspectorPanel)
@@ -2712,6 +2958,28 @@ public class GameEditor : Game, IObservableUpdate
             _entityAssetInspectorPanel.HistoryContext = _activeEntityAssetEditorPanel?.HistoryContext ?? EditorHistoryContext.Empty;
             _entityAssetInspectorPanel.SyncSelection(_activeEntityAssetEditorPanel?.SelectedEntity, _activeEntityAssetEditorPanel?.SelectedComponent);
         }
+    }
+
+    private void RefreshSpriteViews()
+    {
+        if (_spriteInspectorView == null)
+        {
+            return;
+        }
+
+        _spriteInspectorView.TryRemoveAll();
+        if (_activeSpriteInspectorPanel == null)
+        {
+            _spriteInspectorView.TryAddChild(new MGTextBlock(_mainWindow, "No sprite asset selected.")
+            {
+                Margin = new Thickness(8, 6, 8, 4),
+                Opacity = 0.75f,
+                WrapText = true,
+            });
+            return;
+        }
+
+        _spriteInspectorView.TryAddChild(_activeSpriteInspectorPanel.CreateContent());
     }
 
     private void RefreshParticleViews()
@@ -3132,44 +3400,51 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private IReadOnlyList<AssetDocumentRoute> GetAssetDocumentRoutes()
+    {
+        _assetDocumentRoutes ??=
+        [
+            new AssetDocumentRoute(Constants.FileNameExtensions.Screen, TryOpenUIScreenAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.SkeletonAnimation, TryOpenAnimationClipAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Entity, TryOpenEntityAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Animation2d, TryOpenAnimation2dAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Sprite, TryOpenSpriteAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Particle, TryOpenParticleAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Cutscene, TryOpenCutsceneAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.TileMap, TryOpenTileMapAsset),
+            new AssetDocumentRoute(Constants.FileNameExtensions.Material, TryOpenMaterialAsset),
+        ];
+
+        return _assetDocumentRoutes;
+    }
+
+    private void InvalidateSavedSpriteThumbnail(EditorAssetSavedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(e.FullPath))
+        {
+            return;
+        }
+
+        _contentBrowserPanel?.InvalidateThumbnail(e.FullPath);
+    }
+
     private bool TryOpenEditorAsset(string fullPath)
     {
-        if (TryOpenUIScreenAsset(fullPath))
+        if (string.IsNullOrWhiteSpace(fullPath))
         {
-            return true;
+            return false;
         }
 
-        if (TryOpenAnimationClipAsset(fullPath))
+        string extension = Path.GetExtension(fullPath);
+        foreach (var route in GetAssetDocumentRoutes())
         {
-            return true;
+            if (string.Equals(route.Extension, extension, StringComparison.OrdinalIgnoreCase))
+            {
+                return route.TryOpenDocument(fullPath);
+            }
         }
 
-        if (TryOpenEntityAsset(fullPath))
-        {
-            return true;
-        }
-
-        if (TryOpenAnimation2dAsset(fullPath))
-        {
-            return true;
-        }
-
-        if (TryOpenParticleAsset(fullPath))
-        {
-            return true;
-        }
-
-        if (TryOpenCutsceneAsset(fullPath))
-        {
-            return true;
-        }
-
-        if (TryOpenTileMapAsset(fullPath))
-        {
-            return true;
-        }
-
-        return TryOpenMaterialAsset(fullPath);
+        return false;
     }
 
     private bool TryOpenUIScreenAsset(string fullPath)
@@ -3359,6 +3634,62 @@ public class GameEditor : Game, IObservableUpdate
         ActivateDockPanel(panelId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Opened particle asset='{particleAsset.Name}', panel='{panelId}'");
+        return true;
+    }
+
+    private bool TryOpenSpriteAsset(string fullPath)
+    {
+        if (!SpriteAssetInspectorPanel.TryLoadAsset(fullPath, out var spriteAsset))
+        {
+            return false;
+        }
+
+        EnsureDockHostInitialized();
+
+        Guid documentId = spriteAsset.AssetId != Guid.Empty ? spriteAsset.AssetId : spriteAsset.Id;
+        var panelId = $"{EditorPanelIds.SpriteAssetDocumentPrefix}{documentId:N}";
+        bool createdPanel = false;
+        if (!_spriteInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
+        {
+            inspectorPanel = new SpriteAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+            inspectorPanel.DirtyStateChanged += OnSpriteInspectorDirtyStateChanged;
+            _spriteInspectorPanels.Add(panelId, inspectorPanel);
+            createdPanel = true;
+        }
+
+        inspectorPanel.SetHistoryContextId(panelId);
+        if (createdPanel || !inspectorPanel.IsDirty)
+        {
+            inspectorPanel.LoadAsset(spriteAsset, fullPath);
+        }
+
+        var panelTitle = string.IsNullOrWhiteSpace(spriteAsset.Name)
+            ? Path.GetFileNameWithoutExtension(fullPath)
+            : spriteAsset.Name;
+        _spriteInspectorPanelTitles[panelId] = panelTitle;
+
+        var existingPanel = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (existingPanel == null)
+        {
+            var panelNode = CreateDocumentPanelNode(panelId);
+            var targetGroup = GetDocumentDockGroup();
+            if (panelNode == null || targetGroup == null)
+            {
+                return false;
+            }
+
+            panelNode.Title = GetSpriteDocumentTitle(panelId);
+            DockOperation.DockAsTab(_dockHost!.LayoutModel, panelNode, targetGroup);
+        }
+        else
+        {
+            existingPanel.Title = GetSpriteDocumentTitle(panelId);
+        }
+
+        ActivateSpriteDocument(panelId, inspectorPanel);
+        ActivateDockPanel(panelId);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
+            $"[Editor] Opened sprite asset='{spriteAsset.Name}', panel='{panelId}'");
         return true;
     }
 
@@ -3653,6 +3984,11 @@ public class GameEditor : Game, IObservableUpdate
         UpdateDockPanelTitleForParticleInspector(inspectorPanel);
     }
 
+    private void OnSpriteInspectorDirtyStateChanged(SpriteAssetInspectorPanel inspectorPanel)
+    {
+        UpdateDockPanelTitleForSpriteInspector(inspectorPanel);
+    }
+
     private void OnAnimation2dInspectorDirtyStateChanged(Animation2dAssetInspectorPanel inspectorPanel)
     {
         UpdateDockPanelTitleForAnimation2dInspector(inspectorPanel);
@@ -3676,6 +4012,21 @@ public class GameEditor : Game, IObservableUpdate
     private bool TryGetParticleInspectorPanelId(ParticleAssetInspectorPanel inspectorPanel, out string panelId)
     {
         foreach (var pair in _particleInspectorPanels)
+        {
+            if (ReferenceEquals(pair.Value, inspectorPanel))
+            {
+                panelId = pair.Key;
+                return true;
+            }
+        }
+
+        panelId = string.Empty;
+        return false;
+    }
+
+    private bool TryGetSpriteInspectorPanelId(SpriteAssetInspectorPanel inspectorPanel, out string panelId)
+    {
+        foreach (var pair in _spriteInspectorPanels)
         {
             if (ReferenceEquals(pair.Value, inspectorPanel))
             {
@@ -3718,6 +4069,29 @@ public class GameEditor : Game, IObservableUpdate
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Material, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetMaterialDocumentTitle(pair.Key));
                 Logs.WriteInfo($"Material saved: {materialInspectorPanel.LoadedRelativePath}");
+            }
+            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                Logs.WriteWarning(errorMessage);
+            }
+        }
+    }
+
+    private void SaveDirtySpriteInspectors()
+    {
+        foreach (var pair in _spriteInspectorPanels)
+        {
+            var spriteInspectorPanel = pair.Value;
+            if (!spriteInspectorPanel.IsDirty)
+            {
+                continue;
+            }
+
+            if (spriteInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            {
+                _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Sprite, pair.Key));
+                UpdateDockPanelTitle(pair.Key, GetSpriteDocumentTitle(pair.Key));
+                Logs.WriteInfo($"Sprite asset saved: {spriteInspectorPanel.LoadedRelativePath}");
             }
             else if (!string.IsNullOrWhiteSpace(errorMessage))
             {
@@ -3803,6 +4177,14 @@ public class GameEditor : Game, IObservableUpdate
         }
     }
 
+    private void UpdateDockPanelTitleForSpriteInspector(SpriteAssetInspectorPanel inspectorPanel)
+    {
+        if (TryGetSpriteInspectorPanelId(inspectorPanel, out var panelId))
+        {
+            UpdateDockPanelTitle(panelId, GetSpriteDocumentTitle(panelId));
+        }
+    }
+
     private void UpdateDockPanelTitleForParticleInspector(ParticleAssetInspectorPanel inspectorPanel)
     {
         if (TryGetParticleInspectorPanelId(inspectorPanel, out var panelId))
@@ -3839,6 +4221,14 @@ public class GameEditor : Game, IObservableUpdate
                 if (_materialInspectorPanelTitles.ContainsKey(context.Id))
                 {
                     UpdateDockPanelTitle(context.Id, GetMaterialDocumentTitle(context.Id));
+                }
+
+                break;
+
+            case EditorHistoryContextKind.Sprite:
+                if (_spriteInspectorPanelTitles.ContainsKey(context.Id))
+                {
+                    UpdateDockPanelTitle(context.Id, GetSpriteDocumentTitle(context.Id));
                 }
 
                 break;
@@ -3912,6 +4302,18 @@ public class GameEditor : Game, IObservableUpdate
         var title = _materialInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Material";
         bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Material, panelId));
         if (TryGetMaterialAssetInspectorPanel(panelId, out var inspectorPanel))
+        {
+            isDirty |= inspectorPanel.IsDirty;
+        }
+
+        return isDirty ? $"{title} *" : title;
+    }
+
+    private string GetSpriteDocumentTitle(string panelId)
+    {
+        var title = _spriteInspectorPanelTitles.TryGetValue(panelId, out var value) ? value : "Sprite";
+        bool isDirty = _editorDirtyState.IsDirty(new EditorHistoryContext(EditorHistoryContextKind.Sprite, panelId));
+        if (TryGetSpriteAssetInspectorPanel(panelId, out var inspectorPanel))
         {
             isDirty |= inspectorPanel.IsDirty;
         }
@@ -4230,6 +4632,10 @@ public class GameEditor : Game, IObservableUpdate
                 _editorContext.SetSelection(CreateMaterialSelectionState());
                 break;
 
+            case EditorDocumentKind.Sprite:
+                _editorContext.SetSelection(CreateSpriteSelectionState());
+                break;
+
             case EditorDocumentKind.Entity:
                 _editorContext.SetSelection(CreateEntitySelectionState());
                 break;
@@ -4306,6 +4712,21 @@ public class GameEditor : Game, IObservableUpdate
             materialAsset,
             1,
             $"Material {materialAsset.Name} selected");
+    }
+
+    private EditorSelectionState CreateSpriteSelectionState()
+    {
+        var spriteAsset = _activeSpriteInspectorPanel?.LoadedSpriteData;
+        if (spriteAsset == null)
+        {
+            return EditorSelectionState.Empty;
+        }
+
+        return new EditorSelectionState(
+            EditorSelectionKind.SpriteAsset,
+            spriteAsset,
+            1,
+            $"Sprite {spriteAsset.Name} selected");
     }
 
     private EditorSelectionState CreateEntitySelectionState()
@@ -4432,6 +4853,11 @@ public class GameEditor : Game, IObservableUpdate
         foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
         {
             animation2dInspectorPanel.Update(gameTime);
+        }
+
+        foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
+        {
+            spriteInspectorPanel.Update(gameTime);
         }
 
         foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
@@ -6037,6 +6463,7 @@ public class GameEditor : Game, IObservableUpdate
         AppendWorldViewportDiagnostics(builder);
         AppendContentBrowserDiagnostics(builder);
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
+        AppendSpriteInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendMaterialInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendEntityAssetDiagnostics(builder, activeDocumentPanelId);
         AppendTileMapDiagnostics(builder, activeDocumentPanelId);
@@ -6148,6 +6575,28 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         builder.AppendLine("Particle inspector state:");
+        for (int index = 0; index < state.Count; index++)
+        {
+            builder.AppendLine($"  - {state[index]}");
+        }
+    }
+
+    private void AppendSpriteInspectorDiagnostics(StringBuilder builder, string activeDocumentPanelId)
+    {
+        if (!TryGetActiveSpriteInspectorPanel(out var inspectorPanel)
+            || string.IsNullOrWhiteSpace(activeDocumentPanelId)
+            || !TryGetSpriteAssetInspectorPanel(activeDocumentPanelId, out _))
+        {
+            return;
+        }
+
+        var state = inspectorPanel.GetAutomationStateSnapshot();
+        if (state.Count == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine("Sprite document state:");
         for (int index = 0; index < state.Count; index++)
         {
             builder.AppendLine($"  - {state[index]}");
@@ -6471,6 +6920,10 @@ public class GameEditor : Game, IObservableUpdate
             foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
             {
                 animation2dInspectorPanel.DrawViewport(gameTime);
+            }
+            foreach (var spriteInspectorPanel in _spriteInspectorPanels.Values)
+            {
+                spriteInspectorPanel.DrawViewport(gameTime);
             }
             foreach (var tileMapEditorPanel in _tileMapEditorPanels.Values)
             {

@@ -481,7 +481,16 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        var bounds = entity.GetBoundingBox();
+        FocusBounds(entity.GetBoundingBox());
+    }
+
+    public void FocusBounds(BoundingBox bounds)
+    {
+        if (_camera == null)
+        {
+            return;
+        }
+
         var focusTarget = (bounds.Min + bounds.Max) * 0.5f;
 
         if (UseFront2dCamera)

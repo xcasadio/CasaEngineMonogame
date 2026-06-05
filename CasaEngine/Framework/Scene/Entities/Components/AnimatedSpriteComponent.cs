@@ -224,6 +224,34 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
     }
 
+    public bool ReloadSpriteAsset(Guid spriteAssetId, SpriteData spriteData)
+    {
+        ArgumentNullException.ThrowIfNull(spriteData);
+
+        if (spriteAssetId == Guid.Empty
+            || _assetContentManager == null
+            || (!_spriteById.ContainsKey(spriteAssetId) && !_spriteDataById.ContainsKey(spriteAssetId)))
+        {
+            return false;
+        }
+
+        bool wasCurrentSprite = _currentSpriteId == spriteAssetId;
+        ClearCollisionObjectsForSprite(spriteAssetId);
+
+        _spriteDataById[spriteAssetId] = spriteData;
+        _spriteById[spriteAssetId] = Sprite.Create(spriteData, _assetContentManager);
+        CreateCollisionObjectsForSprite(spriteAssetId, spriteData);
+
+        IsBoundingBoxDirty = true;
+        if (wasCurrentSprite)
+        {
+            UpdateCurrentSprite(true);
+            UpdateCollisionFromSprite(spriteAssetId);
+        }
+
+        return true;
+    }
+
     private void RegisterCompositionSampler(Animation2d animation2d)
     {
         if (!_compositionSamplerByAnimation.ContainsKey(animation2d))
@@ -452,6 +480,24 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             _physicsWorldContext.RemoveCollisionObject(collisionObject);
             _physicsWorldContext.ClearCollisionDataFrom(this);
         }
+    }
+
+    private void ClearCollisionObjectsForSprite(Guid spriteId)
+    {
+        if (spriteId == Guid.Empty
+            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects))
+        {
+            return;
+        }
+
+        for (int collisionIndex = 0; collisionIndex < collisionObjects.Count; collisionIndex++)
+        {
+            var collisionObject = collisionObjects[collisionIndex].Item2;
+            _physicsWorldContext.RemoveCollisionObject(collisionObject);
+            _physicsWorldContext.ClearCollisionDataFrom(this);
+        }
+
+        _collisionObjectsBySpriteId.Remove(spriteId);
     }
 
     private void OnAnimationEventTriggered(AnimationEventAsset animationEvent)

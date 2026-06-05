@@ -243,13 +243,14 @@ public sealed class ContentItem : INotifyPropertyChanged
         { ".particle", ContentItemType.Particle },
         // TileMaps
         { ".tileMap", ContentItemType.TileMap },
+        // Sprites
+        { ".sprite", ContentItemType.Sprite },
         // Prefabs / Entities
         { ".entity", ContentItemType.Prefab },
         { ".prefab", ContentItemType.Prefab },
         // Animations
         { ".anim",       ContentItemType.Animation },
         { ".animation",  ContentItemType.Animation },
-        { ".sprite",     ContentItemType.Animation },
     };
 
     private static ContentItemType DeduceType(string extension)

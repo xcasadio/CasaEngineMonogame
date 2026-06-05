@@ -278,13 +278,21 @@ public class ContentBrowserPanel
         }
 
         _runtime = runtime;
+        List<IAssetThumbnailRenderer>? assetThumbnailRenderers = null;
+        if (editorRuntime != null)
+        {
+            assetThumbnailRenderers =
+            [
+                new ParticleSceneThumbnailRenderer(runtime.GraphicsDevice, Config.ThumbnailSize, editorRuntime),
+                new SpriteSceneThumbnailRenderer(runtime.GraphicsDevice, Config.ThumbnailSize, editorRuntime),
+            ];
+        }
+
         _thumbnailCache = new ThumbnailCache(
             runtime.GraphicsDevice,
             Config.ThumbnailSize,
             500,
-            particleThumbnailRenderer: editorRuntime != null
-                ? new ParticleSceneThumbnailRenderer(runtime.GraphicsDevice, Config.ThumbnailSize, editorRuntime)
-                : null);
+            assetThumbnailRenderers);
         _thumbnailCache.ThumbnailReady += OnThumbnailReady;
         _contextMenu = new ContentContextMenu(window);
         _inlineRenameOverlay = new InlineRenameOverlay(window);
@@ -373,6 +381,29 @@ public class ContentBrowserPanel
         RebuildTree();
     }
 
+    public void InvalidateThumbnail(string fullPath)
+    {
+        if (string.IsNullOrWhiteSpace(fullPath))
+        {
+            return;
+        }
+
+        _thumbnailCache.Invalidate(fullPath);
+        if (_rootItem == null)
+        {
+            return;
+        }
+
+        var item = FindItemByPath(_rootItem, fullPath);
+        if (item == null)
+        {
+            return;
+        }
+
+        item.Thumbnail = null;
+        _gridView?.RefreshItemPresentation(item);
+    }
+
     public IReadOnlyList<string> GetAutomationStateSnapshot()
     {
         var result = new List<string>(8)
@@ -386,26 +417,41 @@ public class ContentBrowserPanel
         int currentFolderItemCount = _currentFolder?.Children.Count ?? 0;
         int particleThumbnailCount = 0;
         int loadedParticleThumbnailCount = 0;
+        int spriteThumbnailCount = 0;
+        int loadedSpriteThumbnailCount = 0;
         if (_currentFolder != null)
         {
             foreach (var item in _currentFolder.Children)
             {
-                if (item.Type != ContentItemType.Particle)
+                if (item.Type == ContentItemType.Particle)
+                {
+                    particleThumbnailCount++;
+                    var particleThumbnail = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
+                    if (particleThumbnail.IsLoaded && particleThumbnail.Texture != null)
+                    {
+                        loadedParticleThumbnailCount++;
+                    }
+
+                    continue;
+                }
+
+                if (item.Type != ContentItemType.Sprite)
                 {
                     continue;
                 }
 
-                particleThumbnailCount++;
-                var thumbnail = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
-                if (thumbnail.IsLoaded && thumbnail.Texture != null)
+                spriteThumbnailCount++;
+                var spriteThumbnail = _thumbnailCache.GetOrRequest(item, GetIconForType(item.Type));
+                if (spriteThumbnail.IsLoaded && spriteThumbnail.Texture != null)
                 {
-                    loadedParticleThumbnailCount++;
+                    loadedSpriteThumbnailCount++;
                 }
             }
         }
 
         result.Add($"Current folder items: {currentFolderItemCount}");
         result.Add($"Particle thumbnails: {loadedParticleThumbnailCount}/{particleThumbnailCount} loaded");
+        result.Add($"Sprite thumbnails: {loadedSpriteThumbnailCount}/{spriteThumbnailCount} loaded");
         var gridState = _gridView.GetAutomationStateSnapshot();
         for (int index = 0; index < gridState.Count; index++)
         {

@@ -8,6 +8,7 @@ public enum EditorDocumentKind
     Material,
     Entity,
     Animation2d,
+    Sprite,
     AnimationClip,
     Particle,
     Cutscene,

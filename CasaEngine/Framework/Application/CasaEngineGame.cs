@@ -1,5 +1,6 @@
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Rendering;
@@ -675,6 +676,9 @@ public class CasaEngineGame : Game, IObservableUpdate
     public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId)
         => ReloadParticleAsset(particleAssetId, null);
 
+    public SpriteHotReloadMetrics ReloadSpriteAsset(Guid spriteAssetId)
+        => ReloadSpriteAsset(spriteAssetId, null);
+
     public ParticleHotReloadMetrics ReloadParticleAsset(Guid particleAssetId, ParticleEffectAsset authoringParticleAsset)
     {
         if (particleAssetId == Guid.Empty)
@@ -697,6 +701,32 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         Logs.WriteInfo(
             $"[ParticleHotReload] particle='{particleAssetId}' refreshedParticleSystemComponents={hotReloadMetrics.RefreshedParticleSystemComponentCount} rebuiltRuntimeInstances={hotReloadMetrics.RebuiltRuntimeInstanceCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+
+        return hotReloadMetrics;
+    }
+
+    public SpriteHotReloadMetrics ReloadSpriteAsset(Guid spriteAssetId, SpriteData authoringSpriteData)
+    {
+        if (spriteAssetId == Guid.Empty)
+        {
+            return default;
+        }
+
+        var stopwatch = Stopwatch.StartNew();
+        SpriteData spriteData = ResolveSpriteAssetForHotReload(spriteAssetId, authoringSpriteData);
+        CacheSpriteAssetForHotReload(spriteAssetId, spriteData);
+        (int refreshedStaticSpriteComponentCount, int refreshedAnimatedSpriteComponentCount) = RefreshLoadedSprites(spriteAssetId, spriteData);
+        int invalidatedViewCount = InvalidateAllViews();
+        stopwatch.Stop();
+
+        var hotReloadMetrics = new SpriteHotReloadMetrics(
+            refreshedStaticSpriteComponentCount,
+            refreshedAnimatedSpriteComponentCount,
+            invalidatedViewCount,
+            stopwatch.Elapsed.TotalMilliseconds);
+
+        Logs.WriteInfo(
+            $"[SpriteHotReload] sprite='{spriteAssetId}' refreshedStaticSprites={hotReloadMetrics.RefreshedStaticSpriteComponentCount} refreshedAnimatedSprites={hotReloadMetrics.RefreshedAnimatedSpriteComponentCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
 
         return hotReloadMetrics;
     }
@@ -881,6 +911,17 @@ public class CasaEngineGame : Game, IObservableUpdate
         return AssetContentManager.Load<ParticleEffectAsset>(particleAssetId, cache: false);
     }
 
+    private SpriteData ResolveSpriteAssetForHotReload(Guid spriteAssetId, SpriteData authoringSpriteData)
+    {
+        if (authoringSpriteData != null
+            && (authoringSpriteData.AssetId == spriteAssetId || authoringSpriteData.Id == spriteAssetId))
+        {
+            return authoringSpriteData;
+        }
+
+        return AssetContentManager.Load<SpriteData>(spriteAssetId, cache: false);
+    }
+
     private void CacheParticleAssetForHotReload(Guid particleAssetId, ParticleEffectAsset particleAsset)
     {
         AssetInfo assetInfo = RuntimeContext?.ResolveAssetInfo(particleAssetId) ?? AssetCatalog.Get(particleAssetId);
@@ -895,6 +936,22 @@ public class CasaEngineGame : Game, IObservableUpdate
 
         particleAsset.AssetId = particleAssetId;
         AssetContentManager.AddAsset(particleAssetId, particleAsset.Name, particleAsset);
+    }
+
+    private void CacheSpriteAssetForHotReload(Guid spriteAssetId, SpriteData spriteData)
+    {
+        AssetInfo assetInfo = RuntimeContext?.ResolveAssetInfo(spriteAssetId) ?? AssetCatalog.Get(spriteAssetId);
+        if (assetInfo != null)
+        {
+            spriteData.AssetId = assetInfo.Id;
+            spriteData.Name = assetInfo.Name;
+            spriteData.FileName = assetInfo.FileName;
+            AssetContentManager.AddAsset(assetInfo, spriteData);
+            return;
+        }
+
+        spriteData.AssetId = spriteAssetId;
+        AssetContentManager.AddAsset(spriteAssetId, spriteData.Name, spriteData);
     }
 
     private int RefreshLoadedParticleSystems(Guid particleAssetId, ParticleEffectAsset particleAsset)
@@ -920,6 +977,100 @@ public class CasaEngineGame : Game, IObservableUpdate
         }
 
         return refreshedComponentCount;
+    }
+
+    private (int RefreshedStaticSpriteComponentCount, int RefreshedAnimatedSpriteComponentCount) RefreshLoadedSprites(Guid spriteAssetId, SpriteData spriteData)
+    {
+        int refreshedStaticSpriteComponentCount = 0;
+        int refreshedAnimatedSpriteComponentCount = 0;
+        var visitedWorlds = new HashSet<CasaEngine.Framework.Scene.World.World>();
+
+        var currentWorld = GameManager.CurrentWorld;
+        if (currentWorld != null && visitedWorlds.Add(currentWorld))
+        {
+            (int refreshedStaticCount, int refreshedAnimatedCount) = RefreshLoadedSprites(currentWorld, spriteAssetId, spriteData);
+            refreshedStaticSpriteComponentCount += refreshedStaticCount;
+            refreshedAnimatedSpriteComponentCount += refreshedAnimatedCount;
+        }
+
+        foreach (var view in GameManager.ViewManager.Views)
+        {
+            var world = view.World;
+            if (world == null || !visitedWorlds.Add(world))
+            {
+                continue;
+            }
+
+            (int refreshedStaticCount, int refreshedAnimatedCount) = RefreshLoadedSprites(world, spriteAssetId, spriteData);
+            refreshedStaticSpriteComponentCount += refreshedStaticCount;
+            refreshedAnimatedSpriteComponentCount += refreshedAnimatedCount;
+        }
+
+        return (refreshedStaticSpriteComponentCount, refreshedAnimatedSpriteComponentCount);
+    }
+
+    private static (int RefreshedStaticSpriteComponentCount, int RefreshedAnimatedSpriteComponentCount) RefreshLoadedSprites(
+        CasaEngine.Framework.Scene.World.World world,
+        Guid spriteAssetId,
+        SpriteData spriteData)
+    {
+        int refreshedStaticSpriteComponentCount = 0;
+        int refreshedAnimatedSpriteComponentCount = 0;
+
+        foreach (var entity in EnumerateEntities(world.Entities))
+        {
+            if (entity.RootComponent != null)
+            {
+                (int refreshedStaticCount, int refreshedAnimatedCount) = RefreshSpriteComponentTree(entity.RootComponent, spriteAssetId, spriteData);
+                refreshedStaticSpriteComponentCount += refreshedStaticCount;
+                refreshedAnimatedSpriteComponentCount += refreshedAnimatedCount;
+            }
+
+            for (int componentIndex = 0; componentIndex < entity.ComponentList.Count; componentIndex++)
+            {
+                switch (entity.ComponentList[componentIndex])
+                {
+                    case StaticSpriteComponent staticSpriteComponent when staticSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteData):
+                        refreshedStaticSpriteComponentCount++;
+                        break;
+
+                    case AnimatedSpriteComponent animatedSpriteComponent when animatedSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteData):
+                        refreshedAnimatedSpriteComponentCount++;
+                        break;
+                }
+            }
+        }
+
+        return (refreshedStaticSpriteComponentCount, refreshedAnimatedSpriteComponentCount);
+    }
+
+    private static (int RefreshedStaticSpriteComponentCount, int RefreshedAnimatedSpriteComponentCount) RefreshSpriteComponentTree(
+        SceneComponent sceneComponent,
+        Guid spriteAssetId,
+        SpriteData spriteData)
+    {
+        int refreshedStaticSpriteComponentCount = 0;
+        int refreshedAnimatedSpriteComponentCount = 0;
+
+        switch (sceneComponent)
+        {
+            case StaticSpriteComponent staticSpriteComponent when staticSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteData):
+                refreshedStaticSpriteComponentCount++;
+                break;
+
+            case AnimatedSpriteComponent animatedSpriteComponent when animatedSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteData):
+                refreshedAnimatedSpriteComponentCount++;
+                break;
+        }
+
+        for (int childIndex = 0; childIndex < sceneComponent.Children.Count; childIndex++)
+        {
+            (int refreshedStaticCount, int refreshedAnimatedCount) = RefreshSpriteComponentTree(sceneComponent.Children[childIndex], spriteAssetId, spriteData);
+            refreshedStaticSpriteComponentCount += refreshedStaticCount;
+            refreshedAnimatedSpriteComponentCount += refreshedAnimatedCount;
+        }
+
+        return (refreshedStaticSpriteComponentCount, refreshedAnimatedSpriteComponentCount);
     }
 
     private static int RefreshLoadedParticleSystems(

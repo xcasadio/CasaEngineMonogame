@@ -8,6 +8,7 @@ public enum EditorHistoryContextKind
     Material,
     Entity,
     Animation2d,
+    Sprite,
     AnimationClip,
     Particle,
     TileMap,

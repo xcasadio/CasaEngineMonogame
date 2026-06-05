@@ -13,6 +13,7 @@ public enum EditorAssetSaveSource
     EntityAssetEditorPanel = 2,
     ParticleEffectEditorPanel = 3,
     Animation2dEditorPanel = 4,
+    SpriteEditorPanel = 5,
 }
 
 public sealed class EditorAssetSavedEventArgs : EventArgs
