@@ -11,10 +11,7 @@ using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Configuration;
-using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.Geometry;
-using CasaEngine.Framework.Scene.Entities;
-using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;
@@ -28,18 +25,14 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 {
     private readonly MGWindow _window;
     private readonly HostedEditorGameAdapter _editorRuntime;
-    private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly GraphicsDevice _graphicsDevice;
-    private readonly IWindowInputSource _windowInputSource;
 
     private MGDockPanel? _inspectorRoot;
     private MGTextBlock? _headerText;
     private MGTextBlock? _sourceText;
     private MGTextBlock? _statusText;
     private MGStackPanel? _contentStack;
-    private WorldViewportPanel? _previewViewportPanel;
-    private Entity? _previewEntity;
-    private EditorSpritePreviewComponent? _previewSpriteComponent;
+    private SpritePreviewViewport? _previewViewport;
 
     private SpriteData? _spriteData;
     private string? _loadedRelativePath;
@@ -50,20 +43,11 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
     public SpriteAssetInspectorPanel(
         MGWindow window,
         GraphicsDevice graphicsDevice,
-        HostedEditorGameAdapter editorRuntime,
-        IWindowInputSource windowInputSource)
+        HostedEditorGameAdapter editorRuntime)
     {
         _window = window;
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
-        _windowInputSource = windowInputSource;
-        _previewWorldDriver = new PreviewWorldDriver(
-            editorRuntime,
-            new PreviewWorldDriverOptions
-            {
-                WorldName = "Sprite Preview",
-                UpdateMode = PreviewWorldUpdateMode.Manual,
-            });
     }
 
     public SpriteData? LoadedSpriteData => _spriteData;
@@ -135,26 +119,19 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
     public MGElement CreateDocumentContent()
     {
-        if (_previewViewportPanel != null)
+        if (_previewViewport != null)
         {
-            return _previewViewportPanel.CreateContent();
+            return _previewViewport.CreateContent();
         }
 
-        _previewViewportPanel = new WorldViewportPanel(_window, _graphicsDevice, _editorRuntime, _windowInputSource)
-        {
-            EnablePreviewSelection = false,
-            EnablePreviewGizmo = false,
-            ShowEditorOverlays = false,
-            UseFront2dCamera = true,
-        };
+        _previewViewport = new SpritePreviewViewport(_window, _graphicsDevice, _editorRuntime);
 
-        if (_previewWorldDriver.World != null)
+        if (_spriteData != null)
         {
-            _previewViewportPanel.SetWorldOverride(_previewWorldDriver.World);
-            FocusPreview();
+            _previewViewport.LoadAsset(_spriteData);
         }
 
-        return _previewViewportPanel.CreateContent();
+        return _previewViewport.CreateContent();
     }
 
     public void SetHistoryContextId(string historyContextId)
@@ -171,7 +148,6 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         _spriteData = spriteData;
         _loadedRelativePath = Path.GetRelativePath(EngineEnvironment.ProjectPath, fullPath);
         CacheLoadedSpriteAsset();
-        EnsurePreviewWorldCreated();
         RefreshPreviewState();
         SetDirty(false);
 
@@ -248,12 +224,11 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
     public void Update(GameTime gameTime)
     {
-        _previewWorldDriver.Tick(gameTime);
     }
 
     public void DrawViewport(GameTime gameTime)
     {
-        _previewViewportPanel?.DrawViewport(gameTime);
+        _previewViewport?.RefreshAfterDraw();
     }
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
@@ -275,16 +250,10 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             $"Collisions: {_spriteData.CollisionShapes.Count}",
         };
 
-        var previewStates = _previewViewportPanel?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
+        var previewStates = _previewViewport?.GetAutomationStateSnapshot() ?? Array.Empty<string>();
         for (int index = 0; index < previewStates.Count; index++)
         {
             result.Add($"Preview {previewStates[index]}");
-        }
-
-        var previewComponentStates = _previewSpriteComponent?.GetDebugStateSnapshot() ?? Array.Empty<string>();
-        for (int index = 0; index < previewComponentStates.Count; index++)
-        {
-            result.Add($"Preview {previewComponentStates[index]}");
         }
 
         return result;
@@ -298,8 +267,7 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         }
 
         _disposed = true;
-        _previewViewportPanel?.Dispose();
-        _previewWorldDriver.Dispose();
+        _previewViewport?.Dispose();
     }
 
     public static bool TryLoadAsset(string fullPath, out SpriteData spriteData)
@@ -565,69 +533,19 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         ApplyChange(() => _spriteData.CollisionShapes.Remove(collision), "Remove Collision", RefreshInspector);
     }
 
-    private void EnsurePreviewWorldCreated()
-    {
-        if (_spriteData == null || _previewWorldDriver.World != null)
-        {
-            return;
-        }
-
-        _previewWorldDriver.Rebuild(world =>
-        {
-            _previewEntity = new Entity
-            {
-                Name = string.IsNullOrWhiteSpace(_spriteData.Name) ? "Sprite Preview" : _spriteData.Name,
-            };
-
-            _previewSpriteComponent = new EditorSpritePreviewComponent
-            {
-                Color = Color.White,
-                SpriteEffect = SpriteEffects.None,
-            };
-
-            _previewEntity.RootComponent = _previewSpriteComponent;
-            world.AddEntity(_previewEntity);
-        });
-    }
-
     private void RefreshPreviewState()
     {
         if (_spriteData == null)
         {
-            _previewWorldDriver.Clear();
-            _previewViewportPanel?.SetWorldOverride(null);
-            _previewEntity = null;
-            _previewSpriteComponent = null;
+            _previewViewport?.ClearAsset();
             RefreshStatusText();
             return;
         }
 
         CacheLoadedSpriteAsset();
-        EnsurePreviewWorldCreated();
-        if (_previewEntity != null)
-        {
-            _previewEntity.Name = string.IsNullOrWhiteSpace(_spriteData.Name) ? "Sprite Preview" : _spriteData.Name;
-        }
-
-        _previewSpriteComponent?.SetSpriteData(_spriteData);
-        _previewWorldDriver.RefreshNow();
-        if (_previewViewportPanel != null)
-        {
-            _previewViewportPanel.SetWorldOverride(_previewWorldDriver.World);
-            FocusPreview();
-        }
+        _previewViewport?.LoadAsset(_spriteData);
 
         RefreshStatusText();
-    }
-
-    private void FocusPreview()
-    {
-        if (_previewViewportPanel == null || _spriteData == null)
-        {
-            return;
-        }
-
-        _previewViewportPanel.FocusBounds(SpriteDataBoundsCalculator.CalculateLocalBounds(_spriteData));
     }
 
     private void CacheLoadedSpriteAsset()

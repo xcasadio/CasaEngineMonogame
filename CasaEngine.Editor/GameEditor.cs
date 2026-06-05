@@ -3651,7 +3651,7 @@ public class GameEditor : Game, IObservableUpdate
         bool createdPanel = false;
         if (!_spriteInspectorPanels.TryGetValue(panelId, out var inspectorPanel))
         {
-            inspectorPanel = new SpriteAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+            inspectorPanel = new SpriteAssetInspectorPanel(_mainWindow, GraphicsDevice, _editorRuntime);
             inspectorPanel.DirtyStateChanged += OnSpriteInspectorDirtyStateChanged;
             _spriteInspectorPanels.Add(panelId, inspectorPanel);
             createdPanel = true;
