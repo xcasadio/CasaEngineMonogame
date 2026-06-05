@@ -281,6 +281,12 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             result.Add($"Preview {previewStates[index]}");
         }
 
+        var previewComponentStates = _previewSpriteComponent?.GetDebugStateSnapshot() ?? Array.Empty<string>();
+        for (int index = 0; index < previewComponentStates.Count; index++)
+        {
+            result.Add($"Preview {previewComponentStates[index]}");
+        }
+
         return result;
     }
 

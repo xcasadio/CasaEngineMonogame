@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Assets.Sprites;
@@ -13,10 +14,25 @@ internal sealed class EditorSpritePreviewComponent : SceneComponent, IComponentD
     private SpriteRendererComponent? _spriteRendererComponent;
     private SpriteData? _spriteData;
     private Sprite? _sprite;
+    private int _drawInvocationCount;
 
     public Color Color { get; set; } = Color.White;
 
     public SpriteEffects SpriteEffect { get; set; } = SpriteEffects.None;
+
+    public IReadOnlyList<string> GetDebugStateSnapshot()
+    {
+        string boundsText = _spriteData == null
+            ? "<none>"
+            : SpriteDataBoundsCalculator.CalculateLocalBounds(_spriteData).ToString();
+        return
+        [
+            $"Preview component sprite loaded: {_sprite != null}",
+            $"Preview component texture loaded: {_sprite?.Texture?.Resource != null}",
+            $"Preview component draw calls: {_drawInvocationCount}",
+            $"Preview component bounds: {boundsText}",
+        ];
+    }
 
     public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
     {
@@ -29,6 +45,7 @@ internal sealed class EditorSpritePreviewComponent : SceneComponent, IComponentD
     public void SetSpriteData(SpriteData? spriteData)
     {
         _spriteData = spriteData;
+        _drawInvocationCount = 0;
         RebuildSprite();
         IsBoundingBoxDirty = true;
     }
@@ -63,6 +80,7 @@ internal sealed class EditorSpritePreviewComponent : SceneComponent, IComponentD
 
         var position = new Vector2(Position.X, Position.Y);
         var scale = new Vector2(Scale.X, Scale.Y);
+        _drawInvocationCount++;
         _spriteRendererComponent.DrawSprite(_sprite, position, 0.0f, scale, Color, Position.Z, drawDebug: false, effects: SpriteEffect);
     }
 
