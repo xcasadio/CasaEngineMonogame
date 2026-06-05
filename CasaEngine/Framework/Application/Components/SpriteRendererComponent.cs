@@ -339,21 +339,39 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects = SpriteEffects.None)
     {
-        DrawSprite(sprite, pos, rot, scale, color, zOrder, effects, GraphicsDevice.ScissorRectangle);
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug: true, effects, GraphicsDevice.ScissorRectangle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects = SpriteEffects.None)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug, effects, GraphicsDevice.ScissorRectangle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, SpriteEffects effects = SpriteEffects.None)
     {
-        DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, effects, GraphicsDevice.ScissorRectangle);
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, drawDebug: true, effects, GraphicsDevice.ScissorRectangle);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, bool drawDebug, SpriteEffects effects = SpriteEffects.None)
+    {
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, drawDebug, effects, GraphicsDevice.ScissorRectangle);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle);
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, drawDebug: true, effects, scissorRectangle);
+    }
 
-        if (IsDrawCollisionsEnabled)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, drawDebug);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
         {
             foreach (var collision2d in sprite.SpriteData.CollisionShapes)
             {
@@ -365,9 +383,15 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle)
     {
-        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, true, true, sortKey);
+        DrawSprite(sprite, pos, rot, scale, color, zOrder, sortKey, drawDebug: true, effects, scissorRectangle);
+    }
 
-        if (IsDrawCollisionsEnabled)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects, scissorRectangle, drawDebug, true, sortKey);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
         {
             foreach (var collision2d in sprite.SpriteData.CollisionShapes)
             {

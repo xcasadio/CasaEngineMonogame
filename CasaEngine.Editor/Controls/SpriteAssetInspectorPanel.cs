@@ -39,7 +39,7 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
     private MGStackPanel? _contentStack;
     private WorldViewportPanel? _previewViewportPanel;
     private Entity? _previewEntity;
-    private StaticSpriteComponent? _previewSpriteComponent;
+    private EditorSpritePreviewComponent? _previewSpriteComponent;
 
     private SpriteData? _spriteData;
     private string? _loadedRelativePath;
@@ -573,9 +573,8 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
                 Name = string.IsNullOrWhiteSpace(_spriteData.Name) ? "Sprite Preview" : _spriteData.Name,
             };
 
-            _previewSpriteComponent = new StaticSpriteComponent
+            _previewSpriteComponent = new EditorSpritePreviewComponent
             {
-                SpriteAssetId = GetLoadedSpriteAssetId(),
                 Color = Color.White,
                 SpriteEffect = SpriteEffects.None,
             };
@@ -604,7 +603,7 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
             _previewEntity.Name = string.IsNullOrWhiteSpace(_spriteData.Name) ? "Sprite Preview" : _spriteData.Name;
         }
 
-        _previewSpriteComponent?.ReloadSpriteAsset(GetLoadedSpriteAssetId(), _spriteData);
+        _previewSpriteComponent?.SetSpriteData(_spriteData);
         _previewWorldDriver.RefreshNow();
         if (_previewViewportPanel != null)
         {

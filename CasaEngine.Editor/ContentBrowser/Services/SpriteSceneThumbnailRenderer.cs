@@ -45,7 +45,7 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
     private Entity? _previewEntity;
-    private StaticSpriteComponent? _previewSpriteComponent;
+    private EditorSpritePreviewComponent? _previewSpriteComponent;
     private Entity? _cameraEntity;
     private CameraLookAtComponent? _camera;
     private PendingThumbnailRequest? _activeRequest;
@@ -154,9 +154,7 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
         }
 
         CacheSpriteAsset(spriteAsset);
-        Guid spriteAssetId = spriteAsset.AssetId != Guid.Empty ? spriteAsset.AssetId : spriteAsset.Id;
-        _previewSpriteComponent.SpriteAssetId = spriteAssetId;
-        _previewSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteAsset);
+        _previewSpriteComponent.SetSpriteData(spriteAsset);
         _previewWorldDriver.RefreshNow();
         ConfigureCamera(spriteAsset);
 
@@ -228,7 +226,7 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
                 Name = "SpriteThumbnailPreviewEntity",
             };
 
-            _previewSpriteComponent = new StaticSpriteComponent();
+            _previewSpriteComponent = new EditorSpritePreviewComponent();
             _previewEntity.RootComponent = _previewSpriteComponent;
             world.AddEntity(_previewEntity);
         });

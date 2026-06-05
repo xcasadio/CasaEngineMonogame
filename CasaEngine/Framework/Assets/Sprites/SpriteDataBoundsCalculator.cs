@@ -9,9 +9,9 @@ public static class SpriteDataBoundsCalculator
         ArgumentNullException.ThrowIfNull(spriteData);
 
         float left = -spriteData.Origin.X;
-        float top = -spriteData.Origin.Y;
+        float top = spriteData.Origin.Y - spriteData.PositionInTexture.Height;
         float right = spriteData.PositionInTexture.Width - spriteData.Origin.X;
-        float bottom = spriteData.PositionInTexture.Height - spriteData.Origin.Y;
+        float bottom = spriteData.Origin.Y;
 
         return new BoundingBox(
             new Vector3(left, top, 0f),
