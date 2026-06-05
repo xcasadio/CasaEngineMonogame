@@ -23,7 +23,7 @@ public class MeleeWeapon : Weapon
         Entity.IsEnabled = true;
         Entity.IsVisible = true;
 
-        var animationName = Character.AnimatedSpriteComponent.CurrentAnimation.AnimationData.Name;
+        var animationName = Character.AnimatedSpriteComponent.CurrentAnimation.Animation2dData.Name;
         var animationNameWithOrientation = animationName.Replace(Character.AnimationPrefix, "baton");
         _animatedSpriteComponent.SetCurrentAnimation(animationNameWithOrientation, true);
     }
