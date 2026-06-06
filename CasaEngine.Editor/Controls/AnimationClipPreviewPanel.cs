@@ -555,10 +555,30 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         }
 
         _renderView = renderView;
-        _renderViewHost = new MguiPreviewViewHost(renderView.Id,
-            () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
+        _renderViewHost = new MguiPreviewViewHost(renderView.Id, GetViewportScreenBounds);
         _renderView.Host = _renderViewHost;
         _renderView.Invalidate();
+    }
+
+    private Rectangle GetViewportScreenBounds()
+    {
+        if (_viewportHost == null || !IsAttachedToWindow(_viewportHost))
+        {
+            return Rectangle.Empty;
+        }
+
+        return _viewportHost.ConvertCoordinateSpace(CoordinateSpace.Layout, CoordinateSpace.Screen, _viewportHost.LayoutBounds);
+    }
+
+    private static bool IsAttachedToWindow(MGElement element)
+    {
+        MGElement current = element;
+        while (current.Parent != null)
+        {
+            current = current.Parent;
+        }
+
+        return ReferenceEquals(current, current.SelfOrParentWindow);
     }
 
     private void EnsurePreviewSceneCreated()
