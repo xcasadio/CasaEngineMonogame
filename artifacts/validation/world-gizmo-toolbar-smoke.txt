@@ -1,0 +1,52 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-06-06 07:27:48.923
+Project: Projects/SampleProject/SampleProject.json
+Open asset: <none>
+Activate panel: <none>
+Content folder: <none>
+Content scroll: <none>
+Dock resize target: <none>
+Dock input drag target: <none>
+Create particle asset: <none>
+Create particle preset: <none>
+Drop particle asset: <none>
+Set particle property: <none>
+Particle undo/redo smoke: False undo=False redo=False
+Set material property: <none>
+Entity: <first> [0]
+Component: <none>
+Active document panel: panel_world_viewport
+Open document panels: panel_world_viewport
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 918x554
+  - Physics debug world: DefaultWorld
+  - Forward directional lights: 0
+  - Forward point lights: 2
+  - Forward spot lights: 0
+  - Gizmo mode: Translate
+  - Gizmo space: World
+  - Light gizmos: 2
+  - Light billboard gizmos: 0
+  - Light wire gizmos: 2
+  - Light gizmo lines: 288
+  - Particle gizmos: 0
+  - Particle gizmo lines: 0
+  - Physics debug bodies: 4
+Content browser state:
+  - Root: D:\development\repo\CasaEngineMonogame\Projects\SampleProject
+  - Current folder: D:\development\repo\CasaEngineMonogame\Projects\SampleProject
+  - View mode: Grid
+  - Thumbnail cache entries: 0
+  - Current folder items: 12
+  - Particle thumbnails: 0/0 loaded
+  - Sprite thumbnails: 0/0 loaded
+  - Grid viewport: 1033x162 scroll=0/124
+  - Grid virtualization: attachedScrollViewer=True columns=7 realized=0-9 items=10
+Selected entity: 'ground'
+Selected component: <null>
+Entries: 1
+
+2026-06-06 07:27:47.971 [Info] [Editor] Shader source hot reload watching='D:\development\repo\CasaEngineMonogame\CasaEngine\Content\Shaders' targetPlatform=Windows rootShaders=7

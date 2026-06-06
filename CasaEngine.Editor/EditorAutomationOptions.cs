@@ -5,6 +5,8 @@ namespace CasaEngine.Editor;
 
 public sealed class EditorAutomationOptions
 {
+    private const double DefaultCaptureDelaySeconds = 6.0;
+
     public string? ProjectPath { get; private set; }
     public string? OpenAssetPath { get; private set; }
     public string? ActivatePanelId { get; private set; }
@@ -24,10 +26,28 @@ public sealed class EditorAutomationOptions
     public int EntityIndex { get; private set; }
     public string? ComponentName { get; private set; }
     public string? DiagnosticsOutputPath { get; private set; }
-    public double CaptureDelaySeconds { get; private set; } = 6.0;
+    public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
+    private bool EntityIndexSpecified { get; set; }
+    private bool CaptureDelaySpecified { get; set; }
 
-    public bool HasAutomation => !string.IsNullOrWhiteSpace(ProjectPath);
+    public bool HasProjectPath => !string.IsNullOrWhiteSpace(ProjectPath);
+    public bool HasAutomation => !string.IsNullOrWhiteSpace(EntityName)
+        || EntityIndexSpecified
+        || !string.IsNullOrWhiteSpace(ComponentName)
+        || !string.IsNullOrWhiteSpace(ActivatePanelId)
+        || !string.IsNullOrWhiteSpace(ContentBrowserFolderPath)
+        || !string.IsNullOrWhiteSpace(ContentBrowserScrollTarget)
+        || !string.IsNullOrWhiteSpace(DockResizeTarget)
+        || !string.IsNullOrWhiteSpace(DockInputDragTarget)
+        || !string.IsNullOrWhiteSpace(CreateParticleAssetFolder)
+        || !string.IsNullOrWhiteSpace(CreateParticlePresetName)
+        || !string.IsNullOrWhiteSpace(DropParticleAssetPath)
+        || !string.IsNullOrWhiteSpace(SetParticlePropertyKey)
+        || ParticleUndoRedoSmoke
+        || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
+        || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
+        || CaptureDelaySpecified;
 
     public static EditorAutomationOptions Parse(string[] args)
     {
@@ -125,6 +145,7 @@ public sealed class EditorAutomationOptions
                     if (int.TryParse(next, NumberStyles.Integer, CultureInfo.InvariantCulture, out int entityIndex))
                     {
                         options.EntityIndex = Math.Max(0, entityIndex);
+                        options.EntityIndexSpecified = true;
                     }
 
                     index++;
@@ -144,6 +165,7 @@ public sealed class EditorAutomationOptions
                     if (double.TryParse(next, NumberStyles.Float, CultureInfo.InvariantCulture, out double captureDelaySeconds))
                     {
                         options.CaptureDelaySeconds = Math.Max(0.5, captureDelaySeconds);
+                        options.CaptureDelaySpecified = true;
                     }
 
                     index++;

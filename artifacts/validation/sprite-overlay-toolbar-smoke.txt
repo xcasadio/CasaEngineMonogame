@@ -1,0 +1,73 @@
+CasaEngine Editor diagnostics
+Captured at: 2026-06-06 07:27:45.678
+Project: Projects/SampleProject/SampleProject.json
+Open asset: Spritesheets/ryu_0_0.sprite
+Activate panel: <none>
+Content folder: <none>
+Content scroll: <none>
+Dock resize target: <none>
+Dock input drag target: <none>
+Create particle asset: <none>
+Create particle preset: <none>
+Drop particle asset: <none>
+Set particle property: <none>
+Particle undo/redo smoke: False undo=False redo=False
+Set material property: <none>
+Entity: <first> [0]
+Component: <none>
+Active document panel: panel_sprite_asset_714a35c737b94897a894d226ba1f449e
+Open document panels: panel_world_viewport, panel_sprite_asset_714a35c737b94897a894d226ba1f449e
+World viewport state:
+  - View world: DefaultWorld
+  - World override: <none>
+  - Environment override: <none>
+  - Texture: 16x16
+  - Physics debug world: DefaultWorld
+  - Forward directional lights: 0
+  - Forward point lights: 0
+  - Forward spot lights: 0
+  - Gizmo mode: Translate
+  - Gizmo space: World
+  - Light gizmos: 0
+  - Light billboard gizmos: 0
+  - Light wire gizmos: 0
+  - Light gizmo lines: 0
+  - Particle gizmos: 0
+  - Particle gizmo lines: 0
+Content browser state:
+  - Root: D:\development\repo\CasaEngineMonogame\Projects\SampleProject
+  - Current folder: D:\development\repo\CasaEngineMonogame\Projects\SampleProject
+  - View mode: Grid
+  - Thumbnail cache entries: 0
+  - Current folder items: 12
+  - Particle thumbnails: 0/0 loaded
+  - Sprite thumbnails: 0/0 loaded
+  - Grid viewport: 1033x162 scroll=0/124
+  - Grid virtualization: attachedScrollViewer=True columns=7 realized=0-9 items=10
+Sprite document state:
+  - Name: ryu_0_0
+  - Path: Spritesheets\ryu_0_0.sprite
+  - Dirty: False
+  - Sprite sheet: ryu
+  - Location: 2026,327,59,105
+  - Origin: 28,101
+  - Sockets: 0
+  - Collisions: 1
+  - Preview View world: SpritePreviewWorld
+  - Preview Texture: 898x526
+  - Preview Status: Preview ready. Sprite size: 59 x 105.
+  - Preview Zoom percent: 485,71
+  - Preview Fit zoom: True
+  - Preview Show collisions: True
+  - Preview Show hotspot: True
+  - Preview Preview component sprite loaded: True
+  - Preview Preview component texture loaded: True
+  - Preview Preview component draw calls: 1
+  - Preview Preview component bounds: {{Min:{X:-28 Y:-4 Z:0} Max:{X:31 Y:101 Z:0,1}}}
+Selected entity: 'ground'
+Selected component: <null>
+Entries: 3
+
+2026-06-06 07:27:44.622 [Info] [Editor] Shader source hot reload watching='D:\development\repo\CasaEngineMonogame\CasaEngine\Content\Shaders' targetPlatform=Windows rootShaders=7
+2026-06-06 07:27:45.137 [Info] [Editor] Opened sprite asset='ryu_0_0', panel='panel_sprite_asset_714a35c737b94897a894d226ba1f449e'
+2026-06-06 07:27:45.137 [Info] [Automation] Opened asset='Spritesheets/ryu_0_0.sprite'

@@ -104,7 +104,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         _window = window;
         _graphicsDevice = graphicsDevice;
         _editorRuntime = editorRuntime;
-        _overlayRenderer = new EditorSpriteOverlayRenderer(editorRuntime.Content);
+        _overlayRenderer = new EditorSpriteOverlayRenderer();
         _previewWorldDriver = new PreviewWorldDriver(editorRuntime, new PreviewWorldDriverOptions
         {
             WorldName = "SpritePreviewWorld",
@@ -165,6 +165,7 @@ internal sealed class SpritePreviewViewport : IDisposable
             MinHeight = 260,
         };
         _viewportHost.OnLayoutBoundsChanged += OnViewportBoundsChanged;
+        _viewportHost.OnEndingDraw += OnViewportEndingDraw;
         _viewportHost.MouseHandler.Scrolled += OnViewportScrolled;
 
         _viewportImage = new MGImage(_window, new MGTextureData(EditorIcons.AsImage(_surface!.Texture!)!), Stretch: Stretch.Fill)
@@ -273,6 +274,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         if (_viewportHost != null)
         {
             _viewportHost.OnLayoutBoundsChanged -= OnViewportBoundsChanged;
+            _viewportHost.OnEndingDraw -= OnViewportEndingDraw;
             _viewportHost.MouseHandler.Scrolled -= OnViewportScrolled;
         }
 
@@ -343,9 +345,6 @@ internal sealed class SpritePreviewViewport : IDisposable
         }
 
         _renderView = renderView;
-        var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
-        overlayPipeline.RenderVectorOverlayAction = RenderPreviewVectorOverlay;
-        renderView.Pipeline = overlayPipeline;
         _renderViewHost = new MguiPreviewViewHost(renderView.Id,
             () => _viewportHost?.Parent != null ? _viewportHost.LayoutBounds : Rectangle.Empty);
         _renderView.Host = _renderViewHost;
@@ -565,21 +564,31 @@ internal sealed class SpritePreviewViewport : IDisposable
         }
     }
 
-    private void RenderPreviewVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    private void OnViewportEndingDraw(object? sender, MGElement.MGElementDrawEventArgs e)
     {
-        if (_previewSpriteComponent == null || _spriteData == null)
+        if (_previewSpriteComponent == null || _spriteData == null || _viewportHost == null)
+        {
+            return;
+        }
+
+        Rectangle viewportBounds = !_viewportHost.ActualLayoutBounds.IsEmpty
+            ? _viewportHost.ActualLayoutBounds
+            : _viewportHost.LayoutBounds;
+        if (viewportBounds.Width <= 0 || viewportBounds.Height <= 0)
         {
             return;
         }
 
         _overlayRenderer.Draw(
-            graphicsDevice,
-            in frame,
+            e.DA.Context,
+            viewportBounds,
             _spriteData,
             _previewSpriteComponent.Position,
             new Vector2(_previewSpriteComponent.Scale.X, _previewSpriteComponent.Scale.Y),
+            _pixelsPerUnit,
             _showCollisions,
-            _showHotspot);
+            _showHotspot,
+            e.DA.Opacity);
     }
 
     private static string EscapeMarkup(string value)

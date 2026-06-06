@@ -1,31 +1,22 @@
 using System;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Geometry;
-using CasaEngine.Framework.Rendering.Shaders;
+using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 
 namespace CasaEngine.Editor.Runtime.Overlays;
 
 internal sealed class EditorSpriteOverlayRenderer : IDisposable
 {
     private const int CircleSegments = 48;
-    private const int MaxLineVertices = 2048;
 
     private static readonly Color HotspotColor = new(255, 205, 64, 240);
 
     private readonly Vector2[] _circlePoints = new Vector2[CircleSegments];
-    private readonly VertexPositionColor[] _vertices = new VertexPositionColor[MaxLineVertices];
-    private readonly Effect _effect;
-    private int _vertexCount;
 
-    public EditorSpriteOverlayRenderer(ContentManager content)
+    public EditorSpriteOverlayRenderer()
     {
-        ArgumentNullException.ThrowIfNull(content);
-
-        _effect = content.Load<Effect>("Shaders\\DebugPrimitiveColor").Clone();
         for (int index = 0; index < CircleSegments; index++)
         {
             float angle = MathHelper.TwoPi * index / CircleSegments;
@@ -34,114 +25,129 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
     }
 
     public void Draw(
-        GraphicsDevice graphicsDevice,
-        in RenderFrame frame,
+        IUIDrawContext drawContext,
+        Rectangle viewportBounds,
         SpriteData? spriteData,
         Vector3 spritePosition,
         Vector2 spriteScale,
+        float pixelsPerUnit,
         bool showCollisions,
-        bool showHotspot)
+        bool showHotspot,
+        float opacity = 1.0f)
     {
-        ArgumentNullException.ThrowIfNull(graphicsDevice);
+        ArgumentNullException.ThrowIfNull(drawContext);
 
-        if (spriteData == null || (!showCollisions && !showHotspot))
+        if (spriteData == null
+            || viewportBounds.Width <= 0
+            || viewportBounds.Height <= 0
+            || pixelsPerUnit <= 0f
+            || (!showCollisions && !showHotspot))
         {
             return;
         }
 
-        _vertexCount = 0;
+        var mapper = ScreenSpaceMapper.Create(viewportBounds, spriteData, spritePosition, spriteScale, pixelsPerUnit);
 
         if (showHotspot)
         {
             float hotspotHalfSize = Math.Clamp(MathF.Min(spriteData.PositionInTexture.Width, spriteData.PositionInTexture.Height) * 0.08f, 4f, 12f);
-            AddLine(
-                new Vector3(spritePosition.X - hotspotHalfSize, spritePosition.Y, spritePosition.Z - 0.001f),
-                new Vector3(spritePosition.X + hotspotHalfSize, spritePosition.Y, spritePosition.Z - 0.001f),
-                HotspotColor);
-            AddLine(
-                new Vector3(spritePosition.X, spritePosition.Y - hotspotHalfSize, spritePosition.Z - 0.001f),
-                new Vector3(spritePosition.X, spritePosition.Y + hotspotHalfSize, spritePosition.Z - 0.001f),
-                HotspotColor);
+            DrawHotspot(drawContext, in mapper, spritePosition, hotspotHalfSize, HotspotColor * opacity);
         }
 
-        if (showCollisions)
-        {
-            for (int collisionIndex = 0; collisionIndex < spriteData.CollisionShapes.Count; collisionIndex++)
-            {
-                Collision2d collision = spriteData.CollisionShapes[collisionIndex];
-                Color collisionColor = collision.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-                switch (collision.Shape)
-                {
-                    case ShapeRectangle rectangle:
-                        AddRectangle(spritePosition, spriteScale, spriteData.Origin, rectangle, collisionColor);
-                        break;
-
-                    case ShapeCircle circle:
-                        AddCircle(spritePosition, spriteScale, spriteData.Origin, circle, collisionColor);
-                        break;
-                }
-            }
-        }
-
-        if (_vertexCount == 0)
+        if (!showCollisions)
         {
             return;
         }
 
-        using var guard = new GraphicsStateGuard(graphicsDevice);
-
-        graphicsDevice.DepthStencilState = DepthStencilState.None;
-        graphicsDevice.RasterizerState = RasterizerState.CullNone;
-        graphicsDevice.BlendState = BlendState.AlphaBlend;
-        graphicsDevice.Indices = null;
-
-        _effect.Parameters[ShaderParameterNames.WorldViewProj]?.SetValue(frame.View * frame.Projection);
-        _effect.Parameters[ShaderParameterNames.ColorMultiplier]?.SetValue(Vector4.One);
-
-        int primitiveCount = _vertexCount / 2;
-        for (int passIndex = 0; passIndex < _effect.CurrentTechnique.Passes.Count; passIndex++)
+        for (int collisionIndex = 0; collisionIndex < spriteData.CollisionShapes.Count; collisionIndex++)
         {
-            _effect.CurrentTechnique.Passes[passIndex].Apply();
-            graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, _vertices, 0, primitiveCount);
+            Collision2d collision = spriteData.CollisionShapes[collisionIndex];
+            Color collisionColor = collision.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+            Color strokeColor = collisionColor * opacity;
+            switch (collision.Shape)
+            {
+                case ShapeRectangle rectangle:
+                    DrawRectangle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, rectangle, strokeColor);
+                    break;
+
+                case ShapeCircle circle:
+                    DrawCircle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, circle, strokeColor);
+                    break;
+            }
         }
     }
 
     public void Dispose()
     {
-        _effect.Dispose();
     }
 
-    private void AddRectangle(Vector3 spritePosition, Vector2 spriteScale, Point origin, ShapeRectangle rectangle, Color color)
+    private void DrawHotspot(IUIDrawContext drawContext, in ScreenSpaceMapper mapper, Vector3 spritePosition, float hotspotHalfSize, Color color)
+    {
+        Vector2 center = mapper.WorldToScreen(new Vector2(spritePosition.X, spritePosition.Y));
+        float horizontalHalfLength = hotspotHalfSize * mapper.PixelWidth;
+        float verticalHalfLength = hotspotHalfSize * mapper.PixelHeight;
+
+        drawContext.StrokeLineSegment(
+            Vector2.Zero,
+            new Vector2(center.X - horizontalHalfLength, center.Y),
+            new Vector2(center.X + horizontalHalfLength, center.Y),
+            color,
+            mapper.PixelHeight);
+        drawContext.StrokeLineSegment(
+            Vector2.Zero,
+            new Vector2(center.X, center.Y - verticalHalfLength),
+            new Vector2(center.X, center.Y + verticalHalfLength),
+            color,
+            mapper.PixelWidth);
+    }
+
+    private void DrawRectangle(
+        IUIDrawContext drawContext,
+        in ScreenSpaceMapper mapper,
+        Vector3 spritePosition,
+        Vector2 spriteScale,
+        Point origin,
+        ShapeRectangle rectangle,
+        Color color)
     {
         float x = spritePosition.X + (rectangle.Position.X - origin.X) * spriteScale.X;
         float y = spritePosition.Y - (rectangle.Position.Y - origin.Y + rectangle.Height) * spriteScale.Y;
         float width = rectangle.Width * spriteScale.X;
         float height = rectangle.Height * spriteScale.Y;
-        float z = spritePosition.Z - 0.001f;
 
-        Vector3 topLeft = new(x, y, z);
-        Vector3 topRight = new(x + width, y, z);
-        Vector3 bottomLeft = new(x, y + height, z);
-        Vector3 bottomRight = new(x + width, y + height, z);
+        Vector2 point0 = mapper.WorldToScreen(new Vector2(x, y));
+        Vector2 point1 = mapper.WorldToScreen(new Vector2(x + width, y));
+        Vector2 point2 = mapper.WorldToScreen(new Vector2(x + width, y + height));
+        Vector2 point3 = mapper.WorldToScreen(new Vector2(x, y + height));
 
-        AddLine(topLeft, topRight, color);
-        AddLine(topLeft, bottomLeft, color);
-        AddLine(topRight, bottomRight, color);
-        AddLine(bottomLeft, bottomRight, color);
+        float left = MathF.Min(MathF.Min(point0.X, point1.X), MathF.Min(point2.X, point3.X));
+        float right = MathF.Max(MathF.Max(point0.X, point1.X), MathF.Max(point2.X, point3.X));
+        float top = MathF.Min(MathF.Min(point0.Y, point1.Y), MathF.Min(point2.Y, point3.Y));
+        float bottom = MathF.Max(MathF.Max(point0.Y, point1.Y), MathF.Max(point2.Y, point3.Y));
+
+        DrawRectangleOutline(drawContext, new RectangleF(left, top, right - left, bottom - top), color, mapper.PixelWidth, mapper.PixelHeight);
     }
 
-    private void AddCircle(Vector3 spritePosition, Vector2 spriteScale, Point origin, ShapeCircle circle, Color color)
+    private void DrawCircle(
+        IUIDrawContext drawContext,
+        in ScreenSpaceMapper mapper,
+        Vector3 spritePosition,
+        Vector2 spriteScale,
+        Point origin,
+        ShapeCircle circle,
+        Color color)
     {
-        float radius = circle.Radius * MathF.Max(MathF.Abs(spriteScale.X), MathF.Abs(spriteScale.Y));
-        if (radius <= 0f)
+        float radiusX = circle.Radius * mapper.PixelWidth;
+        float radiusY = circle.Radius * mapper.PixelHeight;
+        if (radiusX <= 0f || radiusY <= 0f)
         {
             return;
         }
 
-        Vector3 center = new(
+        Vector2 center = mapper.WorldToScreen(new Vector2(
             spritePosition.X + (circle.Position.X - origin.X) * spriteScale.X,
-            spritePosition.Y - (circle.Position.Y - origin.Y) * spriteScale.Y,
-            spritePosition.Z - 0.001f);
+            spritePosition.Y - (circle.Position.Y - origin.Y) * spriteScale.Y));
+        float strokeThickness = Math.Max(1f, MathF.Max(mapper.PixelWidth, mapper.PixelHeight));
 
         for (int index = 0; index < CircleSegments; index++)
         {
@@ -153,20 +159,51 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
 
             Vector2 point = _circlePoints[index];
             Vector2 nextPoint = _circlePoints[nextIndex];
-            Vector3 start = center + new Vector3(point.X * radius, point.Y * radius, 0f);
-            Vector3 end = center + new Vector3(nextPoint.X * radius, nextPoint.Y * radius, 0f);
-            AddLine(start, end, color);
+            Vector2 start = new(center.X + point.X * radiusX, center.Y - point.Y * radiusY);
+            Vector2 end = new(center.X + nextPoint.X * radiusX, center.Y - nextPoint.Y * radiusY);
+            drawContext.StrokeLineSegment(Vector2.Zero, start, end, color, strokeThickness);
         }
     }
 
-    private void AddLine(Vector3 start, Vector3 end, Color color)
+    private static void DrawRectangleOutline(IUIDrawContext drawContext, RectangleF rectangle, Color color, float verticalStrokeThickness, float horizontalStrokeThickness)
     {
-        if (_vertexCount + 2 > _vertices.Length)
+        if (rectangle.Width <= 0f || rectangle.Height <= 0f)
         {
             return;
         }
 
-        _vertices[_vertexCount++] = new VertexPositionColor(start, color);
-        _vertices[_vertexCount++] = new VertexPositionColor(end, color);
+        float topThickness = Math.Min(horizontalStrokeThickness, rectangle.Height);
+        float bottomThickness = topThickness;
+        float leftThickness = Math.Min(verticalStrokeThickness, rectangle.Width);
+        float rightThickness = leftThickness;
+
+        drawContext.FillRectangle(Vector2.Zero, new RectangleF(rectangle.Left, rectangle.Top, rectangle.Width, topThickness), color);
+        drawContext.FillRectangle(Vector2.Zero, new RectangleF(rectangle.Left, rectangle.Bottom - bottomThickness, rectangle.Width, bottomThickness), color);
+        drawContext.FillRectangle(Vector2.Zero, new RectangleF(rectangle.Left, rectangle.Top, leftThickness, rectangle.Height), color);
+        drawContext.FillRectangle(Vector2.Zero, new RectangleF(rectangle.Right - rightThickness, rectangle.Top, rightThickness, rectangle.Height), color);
+    }
+
+    private readonly record struct ScreenSpaceMapper(Vector2 ViewportCenter, Vector2 FocusWorld, float PixelsPerUnit, float PixelWidth, float PixelHeight)
+    {
+        public static ScreenSpaceMapper Create(Rectangle viewportBounds, SpriteData spriteData, Vector3 spritePosition, Vector2 spriteScale, float pixelsPerUnit)
+        {
+            BoundingBox localBounds = SpriteDataBoundsCalculator.CalculateLocalBounds(spriteData);
+            float focusX = spritePosition.X + ((localBounds.Min.X + localBounds.Max.X) * 0.5f * spriteScale.X);
+            float focusY = spritePosition.Y + ((localBounds.Min.Y + localBounds.Max.Y) * 0.5f * spriteScale.Y);
+
+            return new ScreenSpaceMapper(
+                new Vector2(viewportBounds.Left + viewportBounds.Width * 0.5f, viewportBounds.Top + viewportBounds.Height * 0.5f),
+                new Vector2(focusX, focusY),
+                pixelsPerUnit,
+                Math.Max(1f, MathF.Abs(spriteScale.X) * pixelsPerUnit),
+                Math.Max(1f, MathF.Abs(spriteScale.Y) * pixelsPerUnit));
+        }
+
+        public Vector2 WorldToScreen(Vector2 worldPosition)
+        {
+            return new Vector2(
+                ViewportCenter.X + (worldPosition.X - FocusWorld.X) * PixelsPerUnit,
+                ViewportCenter.Y - (worldPosition.Y - FocusWorld.Y) * PixelsPerUnit);
+        }
     }
 }

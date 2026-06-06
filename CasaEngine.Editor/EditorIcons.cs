@@ -62,6 +62,8 @@ public static class EditorIcons
     public static Texture2D? ListTree   { get; private set; }
     public static Texture2D? ZoomIn     { get; private set; }
     public static Texture2D? ZoomOut    { get; private set; }
+    public static Texture2D? Globe      { get; private set; }
+    public static Texture2D? Cuboid     { get; private set; }
 
     // ── additional icons for Content Browser ──────────────────────────────
     public static Texture2D? Grid3x3    { get; private set; }
@@ -139,6 +141,8 @@ public static class EditorIcons
         ListTree     = Try(content, Prefix + "list-tree");
         ZoomIn       = Try(content, Prefix + "zoom-in");
         ZoomOut      = Try(content, Prefix + "zoom-out");
+        Globe        = Try(content, Prefix + "globe");
+        Cuboid       = Try(content, Prefix + "cuboid");
 
         Grid3x3      = Try(content, Prefix + "grid-3x3");
         FileCode     = Try(content, Prefix + "file-code-2");

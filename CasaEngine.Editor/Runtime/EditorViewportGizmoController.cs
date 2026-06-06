@@ -42,6 +42,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
     private KeyboardState _previousKeyboardState;
     private bool _suppressSelectionChanged;
     private ManipulationSession? _activeManipulation;
+    private GizmoMode _activeMode = GizmoMode.Translate;
+    private TransformSpace _activeSpace = TransformSpace.World;
 
     public EditorViewportGizmoController(HostedEditorGameAdapter editorRuntime)
     {
@@ -54,8 +56,50 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
     public EditorHistoryContext HistoryContext { get; set; } = DefaultHistoryContext;
 
+    public GizmoMode ActiveMode
+    {
+        get => _activeMode;
+        set
+        {
+            if (_activeMode == value)
+            {
+                return;
+            }
+
+            _activeMode = value;
+            if (_gizmo?.Gizmo != null && _gizmo.Gizmo.ActiveMode != value)
+            {
+                _gizmo.Gizmo.ActiveMode = value;
+            }
+
+            ActiveModeChanged?.Invoke(value);
+        }
+    }
+
+    public TransformSpace ActiveSpace
+    {
+        get => _activeSpace;
+        set
+        {
+            if (_activeSpace == value)
+            {
+                return;
+            }
+
+            _activeSpace = value;
+            if (_gizmo?.Gizmo != null && _gizmo.Gizmo.ActiveSpace != value)
+            {
+                _gizmo.Gizmo.ActiveSpace = value;
+            }
+
+            ActiveSpaceChanged?.Invoke(value);
+        }
+    }
+
     public event Action<Entity?>? SelectedEntityChanged;
     public event Action<IReadOnlyList<Entity>>? DeleteEntitiesRequested;
+    public event Action<GizmoMode>? ActiveModeChanged;
+    public event Action<TransformSpace>? ActiveSpaceChanged;
 
     public void EnsureInitialized(RenderView? renderView, ArcBallCameraComponent? camera, RenderTargetSurface? surface, World world)
     {
@@ -70,12 +114,16 @@ internal sealed class EditorViewportGizmoController : IDisposable
             _gizmo.Initialize();
             _gizmo.SelectionChanged += OnGizmoSelectionChanged;
             _gizmo.DeleteSelectionEvent += OnGizmoDeleteSelectionChanged;
+            _gizmo.Gizmo.GizmoModeChangedEvent += OnGizmoModeChanged;
+            _gizmo.Gizmo.TransformSpaceChangedEvent += OnGizmoTransformSpaceChanged;
         }
 
         _gizmo.ActiveCamera = camera;
         _gizmo.ActiveSurface = surface;
         _gizmo.SelectionWorld = world;
         _gizmo.IsActiveViewport = true;
+        _gizmo.Gizmo.ActiveMode = _activeMode;
+        _gizmo.Gizmo.ActiveSpace = _activeSpace;
         _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
 
         var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
@@ -202,29 +250,29 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D1))
         {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.Translate;
+            ActiveMode = GizmoMode.Translate;
         }
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D2))
         {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.Rotate;
+            ActiveMode = GizmoMode.Rotate;
         }
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D3))
         {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.NonUniformScale;
+            ActiveMode = GizmoMode.NonUniformScale;
         }
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.D4))
         {
-            _gizmo.Gizmo.ActiveMode = GizmoMode.UniformScale;
+            ActiveMode = GizmoMode.UniformScale;
         }
 
         _gizmo.Gizmo.PrecisionModeEnabled = isKeyboardFocused && (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.O))
         {
-            _gizmo.Gizmo.ToggleActiveSpace();
+            ActiveSpace = ActiveSpace == TransformSpace.Local ? TransformSpace.World : TransformSpace.Local;
         }
 
         if (isKeyboardFocused && IsNewKeyPress(keyboardState, Keys.I))
@@ -283,6 +331,8 @@ internal sealed class EditorViewportGizmoController : IDisposable
         if (_gizmo != null)
         {
             CancelManipulation();
+            _gizmo.Gizmo.TransformSpaceChangedEvent -= OnGizmoTransformSpaceChanged;
+            _gizmo.Gizmo.GizmoModeChangedEvent -= OnGizmoModeChanged;
             _gizmo.DeleteSelectionEvent -= OnGizmoDeleteSelectionChanged;
             _gizmo.SelectionChanged -= OnGizmoSelectionChanged;
             _gizmo.ClearSelection();
@@ -322,6 +372,40 @@ internal sealed class EditorViewportGizmoController : IDisposable
 
         CancelManipulation();
         DeleteEntitiesRequested?.Invoke(entities);
+    }
+
+    private void OnGizmoModeChanged(object? sender, EventArgs e)
+    {
+        if (_gizmo?.Gizmo == null)
+        {
+            return;
+        }
+
+        GizmoMode mode = _gizmo.Gizmo.ActiveMode;
+        if (_activeMode == mode)
+        {
+            return;
+        }
+
+        _activeMode = mode;
+        ActiveModeChanged?.Invoke(mode);
+    }
+
+    private void OnGizmoTransformSpaceChanged(object? sender, EventArgs e)
+    {
+        if (_gizmo?.Gizmo == null)
+        {
+            return;
+        }
+
+        TransformSpace space = _gizmo.Gizmo.ActiveSpace;
+        if (_activeSpace == space)
+        {
+            return;
+        }
+
+        _activeSpace = space;
+        ActiveSpaceChanged?.Invoke(space);
     }
 
     private void ApplySelectionUpdate(Action updateSelection)

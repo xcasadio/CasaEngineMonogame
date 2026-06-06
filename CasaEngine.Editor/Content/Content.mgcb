@@ -106,6 +106,18 @@
 /processorParam:TextureFormat=Color
 /build:icons/png-black/copy.png
 
+#begin icons/png-black/cuboid.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-black/cuboid.png;icons/png-black/cuboid
+
 #begin icons/png-black/eye-off.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -189,6 +201,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:icons/png-black/folder.png
+
+#begin icons/png-black/globe.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-black/globe.png;icons/png-black/globe
 
 #begin icons/png-black/grid-3x3.png
 /importer:TextureImporter
@@ -694,6 +718,18 @@
 /processorParam:TextureFormat=Color
 /build:icons/png-white/clipboard-paste.png
 
+#begin icons/png-white/cone.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-white/cone.png
+
 #begin icons/png-white/copy-plus.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -717,6 +753,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:icons/png-white/copy.png
+
+#begin icons/png-white/cuboid.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-white/cuboid.png;icons/png-white/cuboid
 
 #begin icons/png-white/eye-off.png
 /importer:TextureImporter
@@ -802,6 +850,18 @@
 /processorParam:TextureFormat=Color
 /build:icons/png-white/folder.png
 
+#begin icons/png-white/globe.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-white/globe.png;icons/png-white/globe
+
 #begin icons/png-white/grid-3x3.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -874,18 +934,6 @@
 /processorParam:TextureFormat=Color
 /build:icons/png-white/lightbulb.png
 
-#begin icons/png-white/cone.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:icons/png-white/cone.png
-
 #begin icons/png-white/list-tree.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -897,18 +945,6 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:icons/png-white/list-tree.png
-
-#begin icons/png-white/sun.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:icons/png-white/sun.png
 
 #begin icons/png-white/lock-open.png
 /importer:TextureImporter
@@ -1173,6 +1209,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:icons/png-white/square.png
+
+#begin icons/png-white/sun.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:icons/png-white/sun.png
 
 #begin icons/png-white/terminal.png
 /importer:TextureImporter

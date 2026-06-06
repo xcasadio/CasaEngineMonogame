@@ -205,6 +205,7 @@ public class GameEditor : Game, IObservableUpdate
     private bool _isSynchronizingSelection;
     private readonly EditorAutomationOptions _automationOptions;
     private KeyboardState _previousShortcutKeyboardState;
+    private bool _startupAssetOpenAttempted;
     private bool _automationWorldLoaded;
     private bool _automationSelectionApplied;
     private bool _automationSelectionReappliedAfterAssetOpen;
@@ -367,7 +368,7 @@ public class GameEditor : Game, IObservableUpdate
         EditorProjectAuthoringService.ProjectLoaded += OnProjectLoaded;
         EditorAssetWriterService.AssetSaved += OnEditorAssetSaved;
 
-        if (_automationOptions.HasAutomation)
+        if (_automationOptions.HasProjectPath)
         {
             QueueProjectOpen(_automationOptions.ProjectPath!);
         }
@@ -520,6 +521,7 @@ public class GameEditor : Game, IObservableUpdate
         _automationMaterialEdited = false;
         _automationDiagnosticsCaptured = false;
         PresentLoadedProject();
+        TryOpenStartupAssetIfRequested();
     }
 
     private void OnEditorAssetSaved(object sender, EditorAssetSavedEventArgs e)
@@ -1027,6 +1029,7 @@ public class GameEditor : Game, IObservableUpdate
         if (_worldViewportPanel == null)
         {
             _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
+            _worldViewportPanel.ShowGizmoToolbar = true;
             _worldViewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
         }
 
@@ -5824,6 +5827,24 @@ public class GameEditor : Game, IObservableUpdate
 
         EditorDiagnosticsBuffer.Append(LogVerbosity.Warning,
             $"[Automation] Unable to open asset='{_automationOptions.OpenAssetPath}' (resolved='{fullPath}')");
+    }
+
+    private void TryOpenStartupAssetIfRequested()
+    {
+        if (_startupAssetOpenAttempted
+            || _automationOptions.HasAutomation
+            || string.IsNullOrWhiteSpace(_automationOptions.OpenAssetPath))
+        {
+            return;
+        }
+
+        _startupAssetOpenAttempted = true;
+
+        string fullPath = ResolveAutomationAssetPath(_automationOptions.OpenAssetPath);
+        if (!TryOpenEditorAsset(fullPath))
+        {
+            Logs.WriteWarning($"Unable to open startup asset '{_automationOptions.OpenAssetPath}' (resolved='{fullPath}').");
+        }
     }
 
     private void TryApplyAutomationParticleAssetCreate(TimeSpan totalGameTime)

@@ -19,7 +19,9 @@ using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.Framework.Scene.Transform;
+using GizmoTools;
 using MGUI.Core.UI;
+using MGUI.Core.UI.Brushes.Border_Brushes;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers;
 using MGUI.Core.UI.DragDrop;
@@ -27,6 +29,7 @@ using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
 using VerticalAlignment = MGUI.Core.UI.VerticalAlignment;
 
@@ -50,6 +53,8 @@ public class WorldViewportPanel : IDisposable
     public bool ShowEditorOverlays { get; set; } = true;
 
     public bool UseFront2dCamera { get; set; }
+
+    public bool ShowGizmoToolbar { get; set; }
 
     public EditorHistoryContext GizmoHistoryContext
     {
@@ -126,8 +131,15 @@ public class WorldViewportPanel : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly IWindowInputSource _windowInputSource;
 
+    private MGDockPanel _root = null!;
     private MGDockPanel _viewportHost = null!;
     private MGImage _viewportImage = null!;
+    private MGToggleButton? _translateToggleButton;
+    private MGToggleButton? _rotateToggleButton;
+    private MGToggleButton? _scaleToggleButton;
+    private MGToggleButton? _worldSpaceToggleButton;
+    private MGToggleButton? _localSpaceToggleButton;
+    private bool _suspendToolbarCallbacks;
 
     private RenderTargetSurface? _surface;
     private RenderView? _renderView;
@@ -174,16 +186,29 @@ public class WorldViewportPanel : IDisposable
         _gizmoController = new EditorViewportGizmoController(editorRuntime);
         _gizmoController.SelectedEntityChanged += OnGizmoSelectedEntityChanged;
         _gizmoController.DeleteEntitiesRequested += OnGizmoDeleteEntitiesRequested;
+        _gizmoController.ActiveModeChanged += OnGizmoActiveModeChanged;
+        _gizmoController.ActiveSpaceChanged += OnGizmoActiveSpaceChanged;
     }
 
     public MGElement CreateContent()
     {
-        if (_viewportHost != null)
+        if (_root != null)
         {
-            return _viewportHost;
+            return _root;
         }
 
         EnsureRenderViewCreated();
+
+        _root = new MGDockPanel(_window)
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+
+        if (ShowGizmoToolbar)
+        {
+            _root.TryAddChild(BuildGizmoToolbar(), Dock.Top);
+        }
 
         _viewportHost = new ViewportHostPanel(_window)
         {
@@ -229,7 +254,10 @@ public class WorldViewportPanel : IDisposable
 
         _viewportHost.TryAddChild(_viewportImage, Dock.Top);
 
-        return _viewportHost;
+        _root.TryAddChild(_viewportHost, Dock.Top);
+        SynchronizeGizmoToolbarState();
+
+        return _root;
     }
 
     public void DrawViewport(GameTime gameTime)
@@ -260,6 +288,8 @@ public class WorldViewportPanel : IDisposable
             $"Forward directional lights: {_lastActiveDirectionalLightCount}",
             $"Forward point lights: {_lastActivePointLightCount}",
             $"Forward spot lights: {_lastActiveSpotLightCount}",
+            $"Gizmo mode: {_gizmoController.ActiveMode}",
+            $"Gizmo space: {_gizmoController.ActiveSpace}",
             $"Light gizmos: {_lightOverlayCollector.Items.Count}",
             $"Light billboard gizmos: {_lightBillboardOverlayRenderer?.LastDrawnItemCount ?? 0}",
             $"Light wire gizmos: {_lightWireOverlayRenderer?.LastDrawnItemCount ?? 0}",
@@ -1084,6 +1114,178 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
+    private MGElement BuildGizmoToolbar()
+    {
+        var toolbar = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+            Margin = new Thickness(6, 4, 6, 4),
+        };
+
+        _translateToggleButton = CreateGizmoToggleButton(EditorIcons.Move, "Move", isChecked =>
+        {
+            if (isChecked)
+            {
+                _gizmoController.ActiveMode = GizmoMode.Translate;
+            }
+            else
+            {
+                SynchronizeGizmoToolbarState();
+            }
+        });
+        _rotateToggleButton = CreateGizmoToggleButton(EditorIcons.Rotate, "Rotate", isChecked =>
+        {
+            if (isChecked)
+            {
+                _gizmoController.ActiveMode = GizmoMode.Rotate;
+            }
+            else
+            {
+                SynchronizeGizmoToolbarState();
+            }
+        });
+        _scaleToggleButton = CreateGizmoToggleButton(EditorIcons.Scale, "Scale", isChecked =>
+        {
+            if (isChecked)
+            {
+                _gizmoController.ActiveMode = GizmoMode.NonUniformScale;
+            }
+            else
+            {
+                SynchronizeGizmoToolbarState();
+            }
+        });
+        _worldSpaceToggleButton = CreateGizmoToggleButton(EditorIcons.Globe, "World", isChecked =>
+        {
+            if (isChecked)
+            {
+                _gizmoController.ActiveSpace = TransformSpace.World;
+            }
+            else
+            {
+                SynchronizeGizmoToolbarState();
+            }
+        });
+        _localSpaceToggleButton = CreateGizmoToggleButton(EditorIcons.Cuboid, "Local", isChecked =>
+        {
+            if (isChecked)
+            {
+                _gizmoController.ActiveSpace = TransformSpace.Local;
+            }
+            else
+            {
+                SynchronizeGizmoToolbarState();
+            }
+        });
+
+        toolbar.TryAddChild(_translateToggleButton);
+        toolbar.TryAddChild(_rotateToggleButton);
+        toolbar.TryAddChild(_scaleToggleButton);
+        toolbar.TryAddChild(new MGSeparator(_window, Orientation.Vertical)
+        {
+            Margin = new Thickness(4, 2, 4, 2),
+        });
+        toolbar.TryAddChild(_worldSpaceToggleButton);
+        toolbar.TryAddChild(_localSpaceToggleButton);
+
+        var surface = new MGBorder(
+            _window,
+            new Thickness(0, 0, 0, 1),
+            new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PanelBorder)))
+        {
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.ToolbarBackground)),
+        };
+        surface.SetContent(toolbar);
+        return surface;
+    }
+
+    private MGToggleButton CreateGizmoToggleButton(Texture2D? icon, string fallbackLabel, Action<bool> onToggled)
+    {
+        var button = new MGToggleButton(_window)
+        {
+            Padding = new Thickness(4),
+            MinWidth = 28,
+            MinHeight = 28,
+            PreferredWidth = 30,
+            PreferredHeight = 30,
+            BorderBrush = new MGUniformBorderBrush(new MGSolidFillBrush(EditorThemePalette.PanelBorder)),
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(new Color(34, 38, 46))),
+            CheckedBackgroundBrush = new MGSolidFillBrush(new Color(58, 110, 182, 215)),
+            CheckedTextForeground = Color.White,
+        };
+
+        if (icon != null)
+        {
+            button.SetContent(new MGImage(_window, EditorIcons.AsImage(icon)!, Stretch: Stretch.Uniform)
+            {
+                PreferredWidth = 18,
+                PreferredHeight = 18,
+            });
+        }
+        else
+        {
+            button.SetContent(new MGTextBlock(_window, fallbackLabel)
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 10,
+            });
+        }
+
+        button.OnCheckStateChanged += (_, args) =>
+        {
+            if (_suspendToolbarCallbacks)
+            {
+                return;
+            }
+
+            onToggled(args.NewValue);
+        };
+        return button;
+    }
+
+    private void SynchronizeGizmoToolbarState()
+    {
+        if (!ShowGizmoToolbar)
+        {
+            return;
+        }
+
+        _suspendToolbarCallbacks = true;
+        try
+        {
+            if (_translateToggleButton != null)
+            {
+                _translateToggleButton.IsChecked = _gizmoController.ActiveMode == GizmoMode.Translate;
+            }
+
+            if (_rotateToggleButton != null)
+            {
+                _rotateToggleButton.IsChecked = _gizmoController.ActiveMode == GizmoMode.Rotate;
+            }
+
+            if (_scaleToggleButton != null)
+            {
+                _scaleToggleButton.IsChecked = _gizmoController.ActiveMode == GizmoMode.NonUniformScale
+                    || _gizmoController.ActiveMode == GizmoMode.UniformScale;
+            }
+
+            if (_worldSpaceToggleButton != null)
+            {
+                _worldSpaceToggleButton.IsChecked = _gizmoController.ActiveSpace == TransformSpace.World;
+            }
+
+            if (_localSpaceToggleButton != null)
+            {
+                _localSpaceToggleButton.IsChecked = _gizmoController.ActiveSpace == TransformSpace.Local;
+            }
+        }
+        finally
+        {
+            _suspendToolbarCallbacks = false;
+        }
+    }
+
     public void ReleaseInputIfOutside(Point screenPosition)
     {
         if (_renderView == null || _viewportHost == null)
@@ -1247,6 +1449,16 @@ public class WorldViewportPanel : IDisposable
         }
 
         DeleteEntities(entities);
+    }
+
+    private void OnGizmoActiveModeChanged(GizmoMode mode)
+    {
+        SynchronizeGizmoToolbarState();
+    }
+
+    private void OnGizmoActiveSpaceChanged(TransformSpace space)
+    {
+        SynchronizeGizmoToolbarState();
     }
 
     private void SynchronizeCamera()
@@ -1418,6 +1630,8 @@ public class WorldViewportPanel : IDisposable
         DetachWorld();
         _gizmoController.DeleteEntitiesRequested -= OnGizmoDeleteEntitiesRequested;
         _gizmoController.SelectedEntityChanged -= OnGizmoSelectedEntityChanged;
+        _gizmoController.ActiveModeChanged -= OnGizmoActiveModeChanged;
+        _gizmoController.ActiveSpaceChanged -= OnGizmoActiveSpaceChanged;
 
         if (_viewportHost != null)
         {
