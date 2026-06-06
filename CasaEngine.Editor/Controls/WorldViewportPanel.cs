@@ -582,7 +582,7 @@ public class WorldViewportPanel : IDisposable
 
     private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
     {
-        if (!UseFront2dCamera || e.ScrollWheelDelta == 0 || _viewportHost.Parent == null || !_front2dFocusedBounds.HasValue)
+        if (!UseFront2dCamera || e.ScrollWheelDelta == 0 || !IsAttachedToWindow(_viewportHost) || !_front2dFocusedBounds.HasValue)
         {
             return;
         }
@@ -1089,12 +1089,23 @@ public class WorldViewportPanel : IDisposable
 
     private Rectangle GetViewportScreenBounds()
     {
-        if (_viewportHost?.Parent == null)
+        if (_viewportHost == null || !IsAttachedToWindow(_viewportHost))
         {
             return Rectangle.Empty;
         }
 
         return _viewportHost.ConvertCoordinateSpace(CoordinateSpace.Layout, CoordinateSpace.Screen, _viewportHost.LayoutBounds);
+    }
+
+    private static bool IsAttachedToWindow(MGElement element)
+    {
+        MGElement current = element;
+        while (current.Parent != null)
+        {
+            current = current.Parent;
+        }
+
+        return ReferenceEquals(current, current.SelfOrParentWindow);
     }
 
     private void ActivateThisView(bool captureInput)
