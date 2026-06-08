@@ -301,32 +301,43 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
         }
 
         _contentStack.TryAddChild(BuildSectionHeader("Texture Rectangle"));
-        _contentStack.TryAddChild(BuildPropertyRow("X", CreateIntField(_spriteData.PositionInTexture.X, -32768, 32768, value => ApplyChange(() =>
-            _spriteData.PositionInTexture = new Rectangle(value, _spriteData.PositionInTexture.Y, _spriteData.PositionInTexture.Width, _spriteData.PositionInTexture.Height),
+        var textureRectanglePanel = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        textureRectanglePanel.TryAddChild(BuildPropertyRow("X", CreateIntField(_spriteData.PositionInTexture.X, -32768, 32768, value => ApplyChange(() =>
+                _spriteData.PositionInTexture = new Rectangle(value, _spriteData.PositionInTexture.Y, _spriteData.PositionInTexture.Width, _spriteData.PositionInTexture.Height),
             "Location X",
             RefreshPreviewState))));
-        _contentStack.TryAddChild(BuildPropertyRow("Y", CreateIntField(_spriteData.PositionInTexture.Y, -32768, 32768, value => ApplyChange(() =>
-            _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, value, _spriteData.PositionInTexture.Width, _spriteData.PositionInTexture.Height),
+        textureRectanglePanel.TryAddChild(BuildPropertyRow("Y", CreateIntField(_spriteData.PositionInTexture.Y, -32768, 32768, value => ApplyChange(() =>
+                _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, value, _spriteData.PositionInTexture.Width, _spriteData.PositionInTexture.Height),
             "Location Y",
             RefreshPreviewState))));
-        _contentStack.TryAddChild(BuildPropertyRow("Width", CreateIntField(_spriteData.PositionInTexture.Width, 1, 32768, value => ApplyChange(() =>
-            _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, _spriteData.PositionInTexture.Y, value, _spriteData.PositionInTexture.Height),
+        textureRectanglePanel.TryAddChild(BuildPropertyRow("W", CreateIntField(_spriteData.PositionInTexture.Width, 1, 32768, value => ApplyChange(() =>
+                _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, _spriteData.PositionInTexture.Y, value, _spriteData.PositionInTexture.Height),
             "Location Width",
             RefreshPreviewState))));
-        _contentStack.TryAddChild(BuildPropertyRow("Height", CreateIntField(_spriteData.PositionInTexture.Height, 1, 32768, value => ApplyChange(() =>
-            _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, _spriteData.PositionInTexture.Y, _spriteData.PositionInTexture.Width, value),
+        textureRectanglePanel.TryAddChild(BuildPropertyRow("H", CreateIntField(_spriteData.PositionInTexture.Height, 1, 32768, value => ApplyChange(() =>
+                _spriteData.PositionInTexture = new Rectangle(_spriteData.PositionInTexture.X, _spriteData.PositionInTexture.Y, _spriteData.PositionInTexture.Width, value),
             "Location Height",
             RefreshPreviewState))));
 
+        _contentStack.TryAddChild(BuildPropertyRow("", textureRectanglePanel));
+
         _contentStack.TryAddChild(BuildSectionHeader("Origin"));
-        _contentStack.TryAddChild(BuildPropertyRow("Origin X", CreateIntField(_spriteData.Origin.X, -32768, 32768, value => ApplyChange(() =>
-            _spriteData.Origin = new Point(value, _spriteData.Origin.Y),
-            "Origin X",
+        var originPanel = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        originPanel.TryAddChild(BuildPropertyRow("X", CreateIntField(_spriteData.Origin.X, -32768, 32768, value => ApplyChange(() =>
+                _spriteData.Origin = new Point(value, _spriteData.Origin.Y),
+            "X",
             RefreshPreviewState))));
-        _contentStack.TryAddChild(BuildPropertyRow("Origin Y", CreateIntField(_spriteData.Origin.Y, -32768, 32768, value => ApplyChange(() =>
-            _spriteData.Origin = new Point(_spriteData.Origin.X, value),
-            "Origin Y",
+        originPanel.TryAddChild(BuildPropertyRow("Y", CreateIntField(_spriteData.Origin.Y, -32768, 32768, value => ApplyChange(() =>
+                _spriteData.Origin = new Point(_spriteData.Origin.X, value),
+            "Y",
             RefreshPreviewState))));
+        _contentStack.TryAddChild(BuildPropertyRow("", originPanel));
 
         _contentStack.TryAddChild(BuildSectionHeader($"Sockets ({_spriteData.Sockets.Count})"));
         _contentStack.TryAddChild(BuildPropertyRow("Sockets", CreateButton("Add Socket", AddSocket)));
@@ -386,24 +397,30 @@ internal sealed class SpriteAssetInspectorPanel : IDisposable
 
         _contentStack.TryAddChild(BuildSectionHeader($"Collision {collisionIndex + 1}"));
         _contentStack.TryAddChild(BuildPropertyRow("Hit Type", CreateEnumCombo(collision.CollisionHitType, value => ApplyChange(() => collision.CollisionHitType = value, "Collision Type"))));
+        var shapePanel = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 4,
+        };
+        _contentStack.TryAddChild(BuildPropertyRow("", shapePanel));
 
         switch (collision.Shape)
         {
             case ShapeRectangle rectangle:
-                _contentStack.TryAddChild(BuildPropertyRow("Shape", BuildText("Rectangle")));
-                _contentStack.TryAddChild(BuildPropertyRow("X", CreateFloatField(rectangle.Position.X, -32768f, 32768f, 1f, value => ApplyChange(() => rectangle.Position = new Vector2(value, rectangle.Position.Y), "Collision X"))));
-                _contentStack.TryAddChild(BuildPropertyRow("Y", CreateFloatField(rectangle.Position.Y, -32768f, 32768f, 1f, value => ApplyChange(() => rectangle.Position = new Vector2(rectangle.Position.X, value), "Collision Y"))));
-                _contentStack.TryAddChild(BuildPropertyRow("Width", CreateFloatField(rectangle.Width, 0.01f, 32768f, 1f, value => ApplyChange(() => rectangle.Width = value, "Collision Width"))));
-                _contentStack.TryAddChild(BuildPropertyRow("Height", CreateFloatField(rectangle.Height, 0.01f, 32768f, 1f, value => ApplyChange(() => rectangle.Height = value, "Collision Height"))));
+                shapePanel.TryAddChild(BuildPropertyRow("X", CreateFloatField(rectangle.Position.X, -32768f, 32768f, 1f, value => ApplyChange(() => rectangle.Position = new Vector2(value, rectangle.Position.Y), "Collision X"))));
+                shapePanel.TryAddChild(BuildPropertyRow("Y", CreateFloatField(rectangle.Position.Y, -32768f, 32768f, 1f, value => ApplyChange(() => rectangle.Position = new Vector2(rectangle.Position.X, value), "Collision Y"))));
+                shapePanel.TryAddChild(BuildPropertyRow("W", CreateFloatField(rectangle.Width, 0.01f, 32768f, 1f, value => ApplyChange(() => rectangle.Width = value, "Collision Width"))));
+                shapePanel.TryAddChild(BuildPropertyRow("H", CreateFloatField(rectangle.Height, 0.01f, 32768f, 1f, value => ApplyChange(() => rectangle.Height = value, "Collision Height"))));
+                _contentStack.TryAddChild(BuildPropertyRow("", BuildText("Rectangle")));
                 _contentStack.TryAddChild(BuildPropertyRow("Rotation", CreateFloatField(rectangle.Rotation, -360f, 360f, 1f, value => ApplyChange(() => rectangle.Rotation = value, "Collision Rotation"))));
+
                 break;
 
             case ShapeCircle circle:
-                _contentStack.TryAddChild(BuildPropertyRow("Shape", BuildText("Circle")));
-                _contentStack.TryAddChild(BuildPropertyRow("X", CreateFloatField(circle.Position.X, -32768f, 32768f, 1f, value => ApplyChange(() => circle.Position = new Vector2(value, circle.Position.Y), "Collision X"))));
-                _contentStack.TryAddChild(BuildPropertyRow("Y", CreateFloatField(circle.Position.Y, -32768f, 32768f, 1f, value => ApplyChange(() => circle.Position = new Vector2(circle.Position.X, value), "Collision Y"))));
+                shapePanel.TryAddChild(BuildPropertyRow("X", CreateFloatField(circle.Position.X, -32768f, 32768f, 1f, value => ApplyChange(() => circle.Position = new Vector2(value, circle.Position.Y), "Collision X"))));
+                shapePanel.TryAddChild(BuildPropertyRow("Y", CreateFloatField(circle.Position.Y, -32768f, 32768f, 1f, value => ApplyChange(() => circle.Position = new Vector2(circle.Position.X, value), "Collision Y"))));
                 _contentStack.TryAddChild(BuildPropertyRow("Radius", CreateFloatField(circle.Radius, 0.01f, 32768f, 1f, value => ApplyChange(() => circle.Radius = value, "Collision Radius"))));
                 _contentStack.TryAddChild(BuildPropertyRow("Rotation", CreateFloatField(circle.Rotation, -360f, 360f, 1f, value => ApplyChange(() => circle.Rotation = value, "Collision Rotation"))));
+                _contentStack.TryAddChild(BuildPropertyRow("", BuildText("Circle")));
                 break;
 
             default:
