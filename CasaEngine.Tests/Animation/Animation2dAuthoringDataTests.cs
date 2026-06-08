@@ -398,6 +398,94 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
+    public void EditorAssetJsonSerializer_RoundTripsAllPropertyTrackTypes()
+    {
+        var bodySpriteId = Guid.NewGuid();
+        var nextSpriteId = Guid.NewGuid();
+        var animation = new Animation2dData
+        {
+            Name = "all_property_tracks",
+        };
+        animation.Parts.Add(new Animation2dPartData
+        {
+            Id = "body",
+            Name = "Body",
+            DefaultSpriteId = bodySpriteId,
+            DefaultPosition = new Vector2(1f, 2f),
+            DefaultDrawOrder = 4,
+            DefaultVisible = true,
+        });
+
+        var spriteTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Sprite };
+        spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.1f, nextSpriteId));
+        animation.Tracks.Add(spriteTrack);
+
+        var positionTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
+        positionTrack.PositionKeyframes.Add(new Animation2dVector2KeyframeData(0.2f, new Vector2(3f, 4f)));
+        animation.Tracks.Add(positionTrack);
+
+        var visibleTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Visible };
+        visibleTrack.VisibleKeyframes.Add(new Animation2dBoolKeyframeData(0.3f, false));
+        animation.Tracks.Add(visibleTrack);
+
+        var drawOrderTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.DrawOrder };
+        drawOrderTrack.DrawOrderKeyframes.Add(new Animation2dIntKeyframeData(0.4f, 12));
+        animation.Tracks.Add(drawOrderTrack);
+
+        var flipXTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipX };
+        flipXTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.5f, true));
+        animation.Tracks.Add(flipXTrack);
+
+        var flipYTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipY };
+        flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.6f, true));
+        animation.Tracks.Add(flipYTrack);
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+
+        var loadedAnimation = new Animation2dData();
+        loadedAnimation.Load(document);
+
+        Assert.Equal(6, loadedAnimation.Tracks.Count);
+        Assert.Equal(Animation2dTrackProperty.Sprite, loadedAnimation.Tracks[0].Property);
+        Assert.Equal(nextSpriteId, loadedAnimation.Tracks[0].SpriteKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.Position, loadedAnimation.Tracks[1].Property);
+        Assert.Equal(new Vector2(3f, 4f), loadedAnimation.Tracks[1].PositionKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.Visible, loadedAnimation.Tracks[2].Property);
+        Assert.False(loadedAnimation.Tracks[2].VisibleKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.DrawOrder, loadedAnimation.Tracks[3].Property);
+        Assert.Equal(12, loadedAnimation.Tracks[3].DrawOrderKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.FlipX, loadedAnimation.Tracks[4].Property);
+        Assert.True(loadedAnimation.Tracks[4].FlipKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.FlipY, loadedAnimation.Tracks[5].Property);
+        Assert.True(loadedAnimation.Tracks[5].FlipKeyframes[0].Value);
+    }
+
+    [Fact]
+    public void GetDurationSeconds_UsesAllPropertyTrackTypes()
+    {
+        var animation = new Animation2dData();
+        animation.Parts.Add(new Animation2dPartData { Id = "body" });
+
+        var visibleTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Visible };
+        visibleTrack.VisibleKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, false));
+        animation.Tracks.Add(visibleTrack);
+
+        var drawOrderTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.DrawOrder };
+        drawOrderTrack.DrawOrderKeyframes.Add(new Animation2dIntKeyframeData(0.4f, 10));
+        animation.Tracks.Add(drawOrderTrack);
+
+        var flipXTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipX };
+        flipXTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.6f, true));
+        animation.Tracks.Add(flipXTrack);
+
+        var flipYTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipY };
+        flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.8f, true));
+        animation.Tracks.Add(flipYTrack);
+
+        Assert.Equal(0.8f, animation.GetDurationSeconds(), 5);
+    }
+
+    [Fact]
     public void LegacyDemoAnim2d_CanBeSerializedToCanonicalComposedFormat()
     {
         var assetPath = Path.Combine(

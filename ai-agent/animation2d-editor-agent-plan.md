@@ -428,7 +428,7 @@ Commit attendu :
 
 - `feat(animation2d): add multi-sprite composition`
 
-### ⏳ Tache V2.2 — Ajouter les tracks de proprietes
+### ✅ Tache V2.2 — Ajouter les tracks de proprietes
 
 Objectif : introduire des tracks `Sprite`, `Position`, `Visible`, `DrawOrder`, `FlipX`, `FlipY`.
 
