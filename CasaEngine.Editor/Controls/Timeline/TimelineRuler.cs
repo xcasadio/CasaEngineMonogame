@@ -160,6 +160,8 @@ internal sealed class TimelineRuler : MGElement
             return;
         }
 
+        _owner.Focus(KeyboardFocusSource.Pointer);
+
         float wheelSteps = e.ScrollWheelDelta / 120.0f;
         float anchorViewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
         _owner.ApplyMouseWheelZoom(wheelSteps, anchorViewportX);
@@ -185,6 +187,8 @@ internal sealed class TimelineRuler : MGElement
         {
             return;
         }
+
+        _owner.Focus(KeyboardFocusSource.Pointer);
 
         float viewportX = Math.Clamp(e.Position.X - timeAreaLeft, 0f, Math.Max(0f, bounds.Width - TimelineControlMetrics.TimeAreaPaddingLeft - TimelineControlMetrics.TimeAreaPaddingRight));
         float timeSeconds = _owner.ViewTransform.ViewportXToTime(viewportX);

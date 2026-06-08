@@ -1,10 +1,13 @@
 #nullable enable
 
 using System;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Helpers;
+using MGUI.Shared.Input.Keyboard;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -58,7 +61,17 @@ internal class TimelineControl : MGGrid
 
     public event Action<TimelineEvent?>? SelectedEventChanged;
 
+    public event Action<TimelineLane?>? SelectedLaneChanged;
+
     public event Action<float>? TimeScrubbed;
+
+    public event Action<TimelineEvent, float>? EventTimeEditCommitted;
+
+    public event Action<TimelineLane, float>? InsertRequested;
+
+    public event Action<TimelineEvent, float>? DuplicateRequested;
+
+    public event Action<TimelineEvent>? DeleteRequested;
 
     public TimelineControl(MGWindow window)
         : base(window)
@@ -90,7 +103,7 @@ internal class TimelineControl : MGGrid
 
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
-        _trackHeaderPanel = new TimelineTrackHeaderPanel(window);
+    _trackHeaderPanel = new TimelineTrackHeaderPanel(window, this);
         _viewport = new TimelineViewport(window, this);
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
         _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
@@ -106,6 +119,8 @@ internal class TimelineControl : MGGrid
         ViewState.PixelsPerSecond = 96f;
         SyncTransformFromViewState();
         UpdateHorizontalScrollBarState();
+
+        KeyboardHandler.Pressed += OnKeyboardPressed;
     }
 
     public override void UpdateSelf(ElementUpdateArgs UA)
@@ -135,13 +150,28 @@ internal class TimelineControl : MGGrid
         {
             _currentTimeSeconds = 0f;
             ViewState.SelectedEventId = null;
+            ViewState.SelectedLaneId = null;
         }
         else
         {
             _currentTimeSeconds = Math.Clamp(_currentTimeSeconds, 0f, GetTimelineEndSeconds());
-            if (ViewState.SelectedEventId.HasValue && GetSelectedEvent() == null)
+            TimelineEvent? selectedEvent = GetSelectedEvent();
+            if (ViewState.SelectedEventId.HasValue && selectedEvent == null)
             {
                 ViewState.SelectedEventId = null;
+            }
+
+            if (selectedEvent != null)
+            {
+                ViewState.SelectedLaneId = selectedEvent.LaneId;
+            }
+            else if (_model.Lanes.Count > 0 && (!ViewState.SelectedLaneId.HasValue || GetLane(ViewState.SelectedLaneId.Value) == null))
+            {
+                ViewState.SelectedLaneId = _model.Lanes[0].Id;
+            }
+            else if (_model.Lanes.Count == 0)
+            {
+                ViewState.SelectedLaneId = null;
             }
         }
 
@@ -179,21 +209,71 @@ internal class TimelineControl : MGGrid
     public void SetSelectedEventId(Guid? selectedEventId, bool notify)
     {
         Guid? actualSelectedEventId = selectedEventId;
-        if (actualSelectedEventId.HasValue && !ContainsEvent(actualSelectedEventId.Value))
+        TimelineEvent? selectedEvent = null;
+        if (actualSelectedEventId.HasValue)
         {
-            actualSelectedEventId = null;
+            selectedEvent = FindEvent(actualSelectedEventId.Value);
+            if (selectedEvent == null)
+            {
+                actualSelectedEventId = null;
+            }
         }
 
         if (ViewState.SelectedEventId == actualSelectedEventId)
         {
+            if (selectedEvent != null && ViewState.SelectedLaneId != selectedEvent.LaneId)
+            {
+                SetSelectedLaneId(selectedEvent.LaneId, notify);
+            }
+
             return;
         }
 
         ViewState.SelectedEventId = actualSelectedEventId;
+        if (selectedEvent != null)
+        {
+            SetSelectedLaneId(selectedEvent.LaneId, notify);
+        }
+
         InvalidateViewPresentation();
         if (notify)
         {
-            SelectedEventChanged?.Invoke(GetSelectedEvent());
+            SelectedEventChanged?.Invoke(selectedEvent);
+        }
+    }
+
+    public void SetSelectedLaneId(Guid? selectedLaneId)
+    {
+        SetSelectedLaneId(selectedLaneId, true);
+    }
+
+    public void SetSelectedLaneId(Guid? selectedLaneId, bool notify)
+    {
+        Guid? actualSelectedLaneId = selectedLaneId;
+        if (_model == null || _model.Lanes.Count == 0)
+        {
+            actualSelectedLaneId = null;
+        }
+        else
+        {
+            if (actualSelectedLaneId.HasValue && GetLane(actualSelectedLaneId.Value) == null)
+            {
+                actualSelectedLaneId = null;
+            }
+
+            actualSelectedLaneId ??= _model.Lanes[0].Id;
+        }
+
+        if (ViewState.SelectedLaneId == actualSelectedLaneId)
+        {
+            return;
+        }
+
+        ViewState.SelectedLaneId = actualSelectedLaneId;
+        InvalidateViewPresentation();
+        if (notify)
+        {
+            SelectedLaneChanged?.Invoke(GetSelectedLane());
         }
     }
 
@@ -215,6 +295,177 @@ internal class TimelineControl : MGGrid
     internal void NotifyTimeScrubbed(float timeSeconds)
     {
         TimeScrubbed?.Invoke(timeSeconds);
+    }
+
+    internal int GetLaneCount()
+    {
+        return _model?.Lanes.Count > 0 ? _model.Lanes.Count : 1;
+    }
+
+    internal Rectangle GetLaneBounds(Rectangle layoutBounds, int laneIndex)
+    {
+        Rectangle contentBounds = GetLaneContentBounds(layoutBounds);
+        int actualLaneIndex = Math.Clamp(laneIndex, 0, GetLaneCount() - 1);
+        int top = contentBounds.Top + (actualLaneIndex * TimelineControlMetrics.TrackRowHeight);
+        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TimelineControlMetrics.TrackRowHeight);
+    }
+
+    internal TimelineLane? GetLaneAtY(Rectangle layoutBounds, int y)
+    {
+        if (_model == null || _model.Lanes.Count == 0)
+        {
+            return null;
+        }
+
+        Rectangle contentBounds = GetLaneContentBounds(layoutBounds);
+        if (y < contentBounds.Top || y >= contentBounds.Bottom)
+        {
+            return null;
+        }
+
+        int laneIndex = Math.Clamp((y - contentBounds.Top) / TimelineControlMetrics.TrackRowHeight, 0, _model.Lanes.Count - 1);
+        return _model.Lanes[laneIndex];
+    }
+
+    internal int GetLaneIndex(Guid laneId)
+    {
+        if (_model == null)
+        {
+            return -1;
+        }
+
+        for (var index = 0; index < _model.Lanes.Count; index++)
+        {
+            if (_model.Lanes[index].Id == laneId)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    internal TimelineLane? GetLane(Guid laneId)
+    {
+        if (_model == null)
+        {
+            return null;
+        }
+
+        for (var index = 0; index < _model.Lanes.Count; index++)
+        {
+            if (_model.Lanes[index].Id == laneId)
+            {
+                return _model.Lanes[index];
+            }
+        }
+
+        return null;
+    }
+
+    internal TimelineLane? GetSelectedLane()
+    {
+        if (_model == null || _model.Lanes.Count == 0)
+        {
+            return null;
+        }
+
+        if (ViewState.SelectedLaneId.HasValue)
+        {
+            TimelineLane? lane = GetLane(ViewState.SelectedLaneId.Value);
+            if (lane != null)
+            {
+                return lane;
+            }
+        }
+
+        return _model.Lanes.Count > 0 ? _model.Lanes[0] : null;
+    }
+
+    internal void CommitDraggedEventTime(Guid eventId, float timeSeconds)
+    {
+        TimelineEvent? timelineEvent = FindEvent(eventId);
+        if (timelineEvent == null || !timelineEvent.IsEditable)
+        {
+            return;
+        }
+
+        float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
+        if (Math.Abs(actualTime - timelineEvent.TimeSeconds) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        EventTimeEditCommitted?.Invoke(timelineEvent, actualTime);
+    }
+
+    internal bool TryInsertAtSelectedLane(float timeSeconds)
+    {
+        TimelineLane? lane = GetSelectedLane();
+        if (lane == null || !lane.IsEditable)
+        {
+            return false;
+        }
+
+        InsertRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        return true;
+    }
+
+    internal bool TryDuplicateSelectedEvent(float timeSeconds)
+    {
+        TimelineEvent? selectedEvent = GetSelectedEvent();
+        if (selectedEvent == null || !selectedEvent.IsEditable)
+        {
+            return false;
+        }
+
+        DuplicateRequested?.Invoke(selectedEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        return true;
+    }
+
+    internal bool TryDeleteSelectedEvent()
+    {
+        TimelineEvent? selectedEvent = GetSelectedEvent();
+        if (selectedEvent == null || !selectedEvent.IsEditable)
+        {
+            return false;
+        }
+
+        DeleteRequested?.Invoke(selectedEvent);
+        return true;
+    }
+
+    internal MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
+    {
+        if (ParentWindow == null)
+        {
+            return null;
+        }
+
+        MGContextMenu menu = new(ParentWindow, string.Empty);
+        float actualCursorTime = Math.Clamp(cursorTimeSeconds, 0f, GetTimelineEndSeconds());
+
+        if (lane != null && lane.IsEditable)
+        {
+            string laneLabel = string.IsNullOrWhiteSpace(lane.Label) ? "lane" : lane.Label;
+            menu.AddButton($"Add on {laneLabel} at cursor", _ => InsertRequested?.Invoke(lane, actualCursorTime));
+            menu.AddButton($"Add on {laneLabel} at playhead", _ => InsertRequested?.Invoke(lane, CurrentTimeSeconds));
+        }
+
+        if (timelineEvent != null && timelineEvent.IsEditable)
+        {
+            if (menu.Items.Count > 0)
+            {
+                menu.AddSeparator();
+            }
+
+            string itemLabel = string.IsNullOrWhiteSpace(timelineEvent.EventType) ? "item" : timelineEvent.EventType;
+            menu.AddButton($"Duplicate {itemLabel} at cursor", _ => DuplicateRequested?.Invoke(timelineEvent, actualCursorTime));
+            menu.AddButton($"Duplicate {itemLabel} at playhead", _ => DuplicateRequested?.Invoke(timelineEvent, CurrentTimeSeconds));
+            menu.AddButton($"Delete {itemLabel}", _ => DeleteRequested?.Invoke(timelineEvent));
+        }
+
+        return menu.Items.Count > 0 ? menu : null;
     }
 
     internal void ApplyMouseWheelZoom(float wheelSteps, float anchorViewportX)
@@ -263,39 +514,42 @@ internal class TimelineControl : MGGrid
 
     private TimelineEvent? GetSelectedEvent()
     {
-        if (!ViewState.SelectedEventId.HasValue || _model == null)
+        if (!ViewState.SelectedEventId.HasValue)
+        {
+            return null;
+        }
+
+        return FindEvent(ViewState.SelectedEventId.Value);
+    }
+
+    private bool ContainsEvent(Guid eventId)
+    {
+        return FindEvent(eventId) != null;
+    }
+
+    private TimelineEvent? FindEvent(Guid eventId)
+    {
+        if (_model == null)
         {
             return null;
         }
 
         for (var index = 0; index < _model.Events.Count; index++)
         {
-            TimelineEvent timelineEvent = _model.Events[index];
-            if (timelineEvent.Id == ViewState.SelectedEventId.Value)
+            if (_model.Events[index].Id == eventId)
             {
-                return timelineEvent;
+                return _model.Events[index];
             }
         }
 
         return null;
     }
 
-    private bool ContainsEvent(Guid eventId)
+    private Rectangle GetLaneContentBounds(Rectangle layoutBounds)
     {
-        if (_model == null)
-        {
-            return false;
-        }
-
-        for (var index = 0; index < _model.Events.Count; index++)
-        {
-            if (_model.Events[index].Id == eventId)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        int top = layoutBounds.Top + TimelineControlMetrics.ViewportVerticalPadding;
+        int height = Math.Max(1, GetLaneCount() * TimelineControlMetrics.TrackRowHeight);
+        return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), height);
     }
 
     private void ClampScrollToViewport()
@@ -353,5 +607,51 @@ internal class TimelineControl : MGGrid
         ViewState.ScrollX = actualScrollX;
         SyncTransformFromViewState();
         InvalidateViewPresentation();
+    }
+
+    private void OnKeyboardPressed(object? sender, BaseKeyPressedEventArgs e)
+    {
+        if (e.IsHandled)
+        {
+            return;
+        }
+
+        bool controlDown = KeyboardHandler.Tracker.IsControlDown;
+        if (!HandleShortcut(e.Key, controlDown))
+        {
+            return;
+        }
+
+        e.SetHandledBy(this, false);
+    }
+
+    private bool HandleShortcut(Keys key, bool controlDown)
+    {
+        if (controlDown && key == Keys.D)
+        {
+            return TryDuplicateSelectedEvent(CurrentTimeSeconds);
+        }
+
+        switch (key)
+        {
+            case Keys.Insert:
+                return TryInsertAtSelectedLane(CurrentTimeSeconds);
+
+            case Keys.Delete:
+            case Keys.Back:
+                return TryDeleteSelectedEvent();
+
+            case Keys.Escape:
+                if (ViewState.SelectedEventId.HasValue)
+                {
+                    SetSelectedEventId(null, true);
+                    return true;
+                }
+
+                return false;
+
+            default:
+                return false;
+        }
     }
 }

@@ -91,13 +91,16 @@ public class TimelineViewTransformTests
             PixelsPerSecond = 100f,
             ScrollX = 40f,
         };
+        Guid laneId = Guid.NewGuid();
         var firstEvent = new TimelineEvent
         {
+            LaneId = laneId,
             TimeSeconds = 0.5f,
             EventType = "A",
         };
         var secondEvent = new TimelineEvent
         {
+            LaneId = laneId,
             TimeSeconds = 1f,
             EventType = "B",
         };
@@ -106,6 +109,7 @@ public class TimelineViewTransformTests
             new[] { firstEvent, secondEvent },
             transform,
             8f,
+            laneId,
             32f,
             14f,
             new Microsoft.Xna.Framework.Point(18, 32));
@@ -120,8 +124,10 @@ public class TimelineViewTransformTests
         {
             PixelsPerSecond = 100f,
         };
+        Guid laneId = Guid.NewGuid();
         var timelineEvent = new TimelineEvent
         {
+            LaneId = laneId,
             TimeSeconds = 1f,
             EventType = "A",
         };
@@ -130,6 +136,7 @@ public class TimelineViewTransformTests
             new[] { timelineEvent },
             transform,
             8f,
+            laneId,
             32f,
             14f,
             new Microsoft.Xna.Framework.Point(200, 80));

@@ -15,6 +15,10 @@ internal sealed class TimelineViewport : MGElement
     private readonly TimelineControl _owner;
     private readonly MGToolTip _eventToolTip;
     private TimelineEvent? _hoveredEvent;
+    private TimelineEvent? _pressedEvent;
+    private TimelineEvent? _draggedEvent;
+    private float _draggedEventTimeSeconds;
+    private bool _ignoreNextRelease;
 
     public TimelineViewport(MGWindow window, TimelineControl owner)
         : base(window, MGElementType.Misc)
@@ -28,7 +32,13 @@ internal sealed class TimelineViewport : MGElement
             ShowDelayOverride = TimeSpan.Zero,
         };
 
+        MouseHandler.DragStartCondition = DragStartCondition.MouseMovedAfterPress;
+        MouseHandler.LMBPressedInside += OnLeftMousePressedInside;
         MouseHandler.LMBReleasedInside += OnLeftMouseReleasedInside;
+        MouseHandler.RMBReleasedInside += OnRightMouseReleasedInside;
+        MouseHandler.DragStart += OnDragStart;
+        MouseHandler.Dragged += OnDragged;
+        MouseHandler.DragEnd += OnDragEnd;
         MouseHandler.MovedInside += OnMouseMovedInside;
         MouseHandler.Exited += OnMouseExited;
         MouseHandler.Scrolled += OnScrolled;
@@ -37,7 +47,7 @@ internal sealed class TimelineViewport : MGElement
     public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
     {
         sharedSize = new Thickness(0);
-        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + ((int)MathF.Ceiling(TimelineControlMetrics.EventHalfSize) * 2) + 4;
+        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetLaneCount() * TimelineControlMetrics.TrackRowHeight);
         return new Thickness(availableSize.Width, desiredHeight, 0, 0);
     }
 
@@ -57,6 +67,8 @@ internal sealed class TimelineViewport : MGElement
         DA.Context.FillRectangle(origin, new RectangleF(layoutBounds.X, layoutBounds.Y, layoutBounds.Width, layoutBounds.Height), EditorThemePalette.PreviewSurfaceBackground * DA.Opacity);
 
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+        DrawLaneBackgrounds(DA, origin, layoutBounds);
+
         Color borderColor = EditorThemePalette.PreviewSurfaceBorder * DA.Opacity;
         Color gridColor = borderColor * 0.65f;
 
@@ -90,9 +102,36 @@ internal sealed class TimelineViewport : MGElement
             DA.Context.StrokeLineSegment(origin, new Vector2(x, timeAreaBounds.Top), new Vector2(x, timeAreaBounds.Bottom), isMajor ? gridColor : gridColor * 0.5f, 1f);
         }
 
-        float centerY = layoutBounds.Center.Y;
         DrawPlayhead(DA, origin, layoutBounds, timeAreaBounds);
-        DrawEvents(DA, origin, timeAreaBounds, centerY);
+        DrawEvents(DA, origin, layoutBounds, timeAreaBounds);
+    }
+
+    private void DrawLaneBackgrounds(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds)
+    {
+        if (_owner.Model == null || _owner.Model.Lanes.Count == 0)
+        {
+            return;
+        }
+
+        for (var laneIndex = 0; laneIndex < _owner.Model.Lanes.Count; laneIndex++)
+        {
+            TimelineLane lane = _owner.Model.Lanes[laneIndex];
+            Rectangle laneBounds = _owner.GetLaneBounds(layoutBounds, laneIndex);
+            bool isSelected = _owner.ViewState.SelectedLaneId == lane.Id;
+            Color laneColor = isSelected
+                ? EditorThemePalette.AccentSelection * (0.18f * DA.Opacity)
+                : (laneIndex % 2 == 0 ? Color.Transparent : Color.Black * (0.08f * DA.Opacity));
+
+            if (laneColor.A > 0)
+            {
+                DA.Context.FillRectangle(origin, new RectangleF(laneBounds.X, laneBounds.Y, laneBounds.Width, laneBounds.Height), laneColor);
+            }
+
+            if (laneIndex > 0)
+            {
+                DA.Context.StrokeLineSegment(origin, new Vector2(laneBounds.Left, laneBounds.Top), new Vector2(laneBounds.Right, laneBounds.Top), EditorThemePalette.PreviewSurfaceBorder * DA.Opacity, 1f);
+            }
+        }
     }
 
     private void DrawPlayhead(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds, Rectangle timeAreaBounds)
@@ -107,7 +146,7 @@ internal sealed class TimelineViewport : MGElement
         DA.Context.StrokeLineSegment(origin, new Vector2(x, layoutBounds.Top), new Vector2(x, layoutBounds.Bottom), playheadColor, 1.5f);
     }
 
-    private void DrawEvents(ElementDrawArgs DA, Vector2 origin, Rectangle timeAreaBounds, float centerY)
+    private void DrawEvents(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds, Rectangle timeAreaBounds)
     {
         if (_owner.Model == null)
         {
@@ -118,7 +157,16 @@ internal sealed class TimelineViewport : MGElement
         for (var index = 0; index < _owner.Model.Events.Count; index++)
         {
             TimelineEvent timelineEvent = _owner.Model.Events[index];
-            float x = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(timelineEvent.TimeSeconds);
+            int laneIndex = _owner.GetLaneIndex(timelineEvent.LaneId);
+            if (laneIndex < 0)
+            {
+                continue;
+            }
+
+            Rectangle laneBounds = _owner.GetLaneBounds(layoutBounds, laneIndex);
+            float centerY = laneBounds.Center.Y;
+            float renderedTime = GetRenderedEventTime(timelineEvent);
+            float x = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedTime);
             if (x < timeAreaBounds.Left - eventHalfSize || x > timeAreaBounds.Right + eventHalfSize)
             {
                 continue;
@@ -165,33 +213,171 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
+        if (_ignoreNextRelease)
+        {
+            _ignoreNextRelease = false;
+            return;
+        }
+
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
-        Rectangle timeAreaBounds = GetTimeAreaBounds(LayoutBounds);
+        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         if (!timeAreaBounds.Contains(layoutPosition))
         {
             return;
         }
 
-        TimelineEvent? hitEvent = HitTestEvent(layoutPosition, timeAreaBounds);
+        TimelineLane? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        if (lane != null)
+        {
+            _owner.SetSelectedLaneId(lane.Id, true);
+        }
+
+        TimelineEvent? hitEvent = lane != null ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
         _owner.SetSelectedEventId(hitEvent?.Id, true);
 
         float timeSeconds = GetTimeAtPosition(layoutPosition.X, timeAreaBounds.Left);
         _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
         _owner.NotifyTimeScrubbed(timeSeconds);
+        _pressedEvent = null;
         e.SetHandledBy(this, false);
     }
 
-    private void OnMouseMovedInside(object? sender, BaseMouseMovedEventArgs e)
+    private void OnLeftMousePressedInside(object? sender, BaseMousePressedEventArgs e)
     {
         if (_owner.Model == null)
         {
             return;
         }
 
+        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
+        Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+        if (!timeAreaBounds.Contains(layoutPosition))
+        {
+            return;
+        }
+
+        _owner.Focus(KeyboardFocusSource.Pointer);
+
+        TimelineLane? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        if (lane != null)
+        {
+            _owner.SetSelectedLaneId(lane.Id, true);
+        }
+
+        _pressedEvent = lane != null ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
+        if (_pressedEvent != null)
+        {
+            _owner.SetSelectedEventId(_pressedEvent.Id, true);
+        }
+        else
+        {
+            _owner.SetSelectedEventId(null, true);
+        }
+
+        e.SetHandledBy(this, false);
+    }
+
+    private void OnRightMouseReleasedInside(object? sender, BaseMouseReleasedEventArgs e)
+    {
+        if (_owner.Model == null)
+        {
+            return;
+        }
+
+        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
+        Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+        if (!timeAreaBounds.Contains(layoutPosition))
+        {
+            return;
+        }
+
+        _owner.Focus(KeyboardFocusSource.Pointer);
+
+        TimelineLane? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        if (lane == null)
+        {
+            return;
+        }
+
+        TimelineEvent? hitEvent = HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane);
+        _owner.SetSelectedLaneId(lane.Id, true);
+        _owner.SetSelectedEventId(hitEvent?.Id, true);
+
+        float timeSeconds = GetTimeAtPosition(layoutPosition.X, timeAreaBounds.Left);
+        MGContextMenu? menu = _owner.CreateContextMenu(lane, hitEvent, timeSeconds);
+        if (menu != null && menu.TryOpenContextMenu(e.Position))
+        {
+            e.SetHandledBy(menu, false);
+        }
+    }
+
+    private void OnDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    {
+        if (_owner.Model == null || !e.IsLMB || e.Condition != DragStartCondition.MouseMovedAfterPress)
+        {
+            return;
+        }
+
+        if (_pressedEvent == null || !_pressedEvent.IsEditable)
+        {
+            return;
+        }
+
+        _draggedEvent = _pressedEvent;
+        _draggedEventTimeSeconds = _pressedEvent.TimeSeconds;
+        _owner.Focus(KeyboardFocusSource.Pointer);
+        e.SetHandledBy(this, false);
+    }
+
+    private void OnDragged(object? sender, BaseMouseDraggedEventArgs e)
+    {
+        if (_draggedEvent == null || !e.IsLMB)
+        {
+            return;
+        }
+
+        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
+        Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+        float x = Math.Clamp(layoutPosition.X, timeAreaBounds.Left, timeAreaBounds.Right);
+        _draggedEventTimeSeconds = GetTimeAtPosition(x, timeAreaBounds.Left);
+        _owner.SetCurrentTimeSeconds(_draggedEventTimeSeconds, notify: false);
+        _owner.NotifyTimeScrubbed(_draggedEventTimeSeconds);
+        _owner.InvalidateViewPresentation();
+    }
+
+    private void OnDragEnd(object? sender, BaseMouseDragEndEventArgs e)
+    {
+        if (_draggedEvent == null || !e.IsLMB)
+        {
+            return;
+        }
+
+        _owner.CommitDraggedEventTime(_draggedEvent.Id, _draggedEventTimeSeconds);
+        _draggedEvent = null;
+        _pressedEvent = null;
+        _ignoreNextRelease = true;
+        _owner.InvalidateViewPresentation();
+    }
+
+    private void OnMouseMovedInside(object? sender, BaseMouseMovedEventArgs e)
+    {
+        if (_owner.Model == null || _draggedEvent != null)
+        {
+            return;
+        }
+
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.CurrentPosition);
-        Rectangle timeAreaBounds = GetTimeAreaBounds(LayoutBounds);
-        TimelineEvent? hitEvent = timeAreaBounds.Contains(layoutPosition)
-            ? HitTestEvent(layoutPosition, timeAreaBounds)
+        Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
+        Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
+        TimelineLane? lane = timeAreaBounds.Contains(layoutPosition)
+            ? _owner.GetLaneAtY(layoutBounds, layoutPosition.Y)
+            : null;
+        TimelineEvent? hitEvent = lane != null
+            ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane)
             : null;
 
         if (ReferenceEquals(hitEvent, _hoveredEvent) || (hitEvent != null && _hoveredEvent?.Id == hitEvent.Id))
@@ -206,7 +392,7 @@ internal sealed class TimelineViewport : MGElement
 
     private void OnMouseExited(object? sender, BaseMouseMovedEventArgs e)
     {
-        if (_hoveredEvent == null)
+        if (_hoveredEvent == null || _draggedEvent != null)
         {
             return;
         }
@@ -242,9 +428,15 @@ internal sealed class TimelineViewport : MGElement
         e.SetHandledBy(this);
     }
 
-    private TimelineEvent? HitTestEvent(Point layoutPosition, Rectangle timeAreaBounds)
+    private TimelineEvent? HitTestEvent(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineLane lane)
     {
         if (_owner.Model == null)
+        {
+            return null;
+        }
+
+        int laneIndex = _owner.GetLaneIndex(lane.Id);
+        if (laneIndex < 0)
         {
             return null;
         }
@@ -253,7 +445,8 @@ internal sealed class TimelineViewport : MGElement
             _owner.Model.Events,
             _owner.ViewTransform,
             timeAreaBounds.Left,
-            timeAreaBounds.Center.Y,
+            lane.Id,
+            _owner.GetLaneBounds(layoutBounds, laneIndex).Center.Y,
             TimelineControlMetrics.EventHitRadius,
             layoutPosition);
     }
@@ -266,11 +459,24 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
+        TimelineLane? lane = _owner.GetLane(_hoveredEvent.LaneId);
+        string laneLabel = string.IsNullOrWhiteSpace(lane?.Label) ? string.Empty : $"Track: {lane.Label}\n";
+        string valueLabel = string.IsNullOrWhiteSpace(_hoveredEvent.ValueText) ? string.Empty : $"\nValue: {_hoveredEvent.ValueText}";
         _eventToolTip.SetContent(
-            $"Type: {_hoveredEvent.EventType}\nTime: {_hoveredEvent.TimeSeconds.ToString("0.###", CultureInfo.InvariantCulture)} s",
+            $"{laneLabel}Type: {_hoveredEvent.EventType}\nTime: {GetRenderedEventTime(_hoveredEvent).ToString("0.###", CultureInfo.InvariantCulture)} s{valueLabel}",
             null,
             12);
         ToolTip = _eventToolTip;
+    }
+
+    private float GetRenderedEventTime(TimelineEvent timelineEvent)
+    {
+        if (_draggedEvent != null && _draggedEvent.Id == timelineEvent.Id)
+        {
+            return _draggedEventTimeSeconds;
+        }
+
+        return timelineEvent.TimeSeconds;
     }
 
     private float GetTimeAtPosition(float x, float contentLeft)

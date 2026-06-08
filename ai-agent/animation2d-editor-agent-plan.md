@@ -436,7 +436,7 @@ Commit attendu :
 
 - `feat(animation2d): add property tracks`
 
-### ⏳ Tache V2.3 — Timeline authoring
+### ✅ Tache V2.3 — Timeline authoring
 
 Objectif : rendre la timeline editable.
 
