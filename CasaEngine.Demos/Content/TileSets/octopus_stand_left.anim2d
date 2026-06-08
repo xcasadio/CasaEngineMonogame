@@ -1,5 +1,4 @@
 {
-  "animation_type": "Loop",
   "id": "f0b91f3b-63b3-4c93-a860-0100561bc259",
   "name": "octopus_stand_left",
   "parts": [
@@ -36,6 +35,12 @@
           "value": "de7d5cef-0392-434a-aa51-aa7824b3bf79"
         }
       ]
+    }
+  ],
+  "events": [
+    {
+      "time_seconds": 2.0,
+      "event_name": "restart"
     }
   ]
 }

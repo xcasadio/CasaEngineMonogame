@@ -341,6 +341,86 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
+    public void EditorAssetJsonSerializer_CanonicalizesLegacyLoopAnimationData()
+    {
+        var spriteId = Guid.NewGuid();
+        var animation = new Animation2dData();
+
+        animation.Load(new JObject
+        {
+            ["animation_type"] = AnimationType.Loop.ToString(),
+            ["id"] = Guid.NewGuid().ToString(),
+            ["name"] = "legacy_loop",
+            ["parts"] = new JArray
+            {
+                new JObject
+                {
+                    ["id"] = "sprite",
+                    ["name"] = "Sprite",
+                    ["default_sprite_id"] = spriteId.ToString(),
+                    ["default_position"] = new JObject
+                    {
+                        ["x"] = 0f,
+                        ["y"] = 0f,
+                    },
+                },
+            },
+            ["tracks"] = new JArray
+            {
+                new JObject
+                {
+                    ["target_part_id"] = "sprite",
+                    ["property"] = Animation2dTrackProperty.Sprite.ToString(),
+                    ["sprite_keyframes"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["time_seconds"] = 0f,
+                            ["value"] = spriteId.ToString(),
+                        },
+                        new JObject
+                        {
+                            ["time_seconds"] = 0.5f,
+                            ["value"] = spriteId.ToString(),
+                        },
+                    },
+                },
+            },
+        });
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+        Assert.Null(document["animation_type"]);
+
+        var eventsNode = Assert.IsType<JArray>(document["events"]);
+        Assert.Single(eventsNode);
+        Assert.Equal(Animation2dEventNames.Restart, eventsNode[0]?["event_name"]?.Value<string>());
+        Assert.Equal(0.5f, eventsNode[0]?["time_seconds"]?.Value<float>() ?? -1f, 5);
+    }
+
+    [Fact]
+    public void LegacyDemoAnim2d_CanBeSerializedToCanonicalComposedFormat()
+    {
+        var assetPath = Path.Combine(
+            FindRepositoryRoot(),
+            "CasaEngine.Demos",
+            "Content",
+            "TileSets",
+            "swordman_walk_up.anim2d");
+        var animation = new Animation2dData();
+
+        animation.Load(JObject.Parse(File.ReadAllText(assetPath)));
+
+        Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
+        Assert.Null(document["animation_type"]);
+        Assert.NotNull(document["parts"]);
+        Assert.NotNull(document["tracks"]);
+
+        var eventsNode = Assert.IsType<JArray>(document["events"]);
+        Assert.Single(eventsNode);
+        Assert.Equal(Animation2dEventNames.Restart, eventsNode[0]?["event_name"]?.Value<string>());
+    }
+
+    [Fact]
     public void CompositionRuntimeState_ResetAppliesPartDefaults()
     {
         var bodySpriteId = Guid.NewGuid();

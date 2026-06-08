@@ -420,7 +420,7 @@ Commit attendu :
 
 ## V2 — Composition et authoring de base
 
-### ⏳ Tache V2.1 — Introduire la composition multi-sprite
+### ✅ Tache V2.1 — Introduire la composition multi-sprite
 
 Objectif : ajouter plusieurs sprites visibles en meme temps, avec parts / slots.
 

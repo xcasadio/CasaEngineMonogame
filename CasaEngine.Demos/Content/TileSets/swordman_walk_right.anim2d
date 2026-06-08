@@ -1,5 +1,4 @@
 {
-  "animation_type": "Loop",
   "id": "6dc2c025-8ec2-40da-baf9-1f272f9eea1c",
   "name": "swordman_walk_right",
   "parts": [
@@ -44,6 +43,12 @@
           "value": "d96a7e25-a81e-4a60-a912-c8b967e00807"
         }
       ]
+    }
+  ],
+  "events": [
+    {
+      "time_seconds": 0.6,
+      "event_name": "restart"
     }
   ]
 }
