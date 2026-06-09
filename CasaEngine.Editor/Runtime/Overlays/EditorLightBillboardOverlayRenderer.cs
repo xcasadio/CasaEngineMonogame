@@ -74,7 +74,7 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
 
     private bool DrawLightIcon(Viewport viewport, in RenderFrame frame, in EditorLightOverlayItem light)
     {
-        Texture2D? texture = GetIconTexture(light.Type);
+        Texture2D texture = GetIconTexture(light.Type);
         if (texture == null)
         {
             return false;
@@ -103,7 +103,7 @@ public sealed class EditorLightBillboardOverlayRenderer : IDisposable
         return true;
     }
 
-    private static Texture2D? GetIconTexture(LightType lightType)
+    private static Texture2D GetIconTexture(LightType lightType)
     {
         return lightType switch
         {

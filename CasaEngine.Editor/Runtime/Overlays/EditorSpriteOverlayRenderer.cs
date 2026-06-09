@@ -27,7 +27,7 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
     public void Draw(
         IUIDrawContext drawContext,
         Rectangle viewportBounds,
-        SpriteData? spriteData,
+        SpriteData spriteData,
         Vector3 spritePosition,
         Vector2 spriteScale,
         float pixelsPerUnit,

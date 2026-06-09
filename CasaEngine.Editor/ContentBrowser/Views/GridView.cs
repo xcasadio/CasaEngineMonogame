@@ -22,10 +22,10 @@ public sealed class GridView : IContentView
 {
     private sealed class GridItemCard
     {
-        public ContentItem? Item { get; private set; }
+        public ContentItem Item { get; private set; }
         public MGBorder Border { get; }
         public MGBorder PreviewHost { get; }
-        public MGImage? PreviewImage { get; private set; }
+        public MGImage PreviewImage { get; private set; }
         public MGTextBlock NameText { get; }
 
         public GridItemCard(MGBorder border, MGBorder previewHost, MGTextBlock nameText)
@@ -35,20 +35,20 @@ public sealed class GridView : IContentView
             NameText = nameText;
         }
 
-        public void Bind(ContentItem item, Func<ContentItem, Texture2D?> previewSelector, Action<ContentItem, MGElement>? itemElementInitializer, int previewSize)
+        public void Bind(ContentItem item, Func<ContentItem, Texture2D> previewSelector, Action<ContentItem, MGElement> itemElementInitializer, int previewSize)
         {
             UpdatePresentation(item, previewSelector, previewSize);
             itemElementInitializer?.Invoke(item, Border);
         }
 
-        public void UpdatePresentation(ContentItem item, Func<ContentItem, Texture2D?> previewSelector, int previewSize)
+        public void UpdatePresentation(ContentItem item, Func<ContentItem, Texture2D> previewSelector, int previewSize)
         {
             Item = item;
             NameText.Text = GetDisplayName(item.Name);
             SetPreview(previewSelector(item), previewSize);
         }
 
-        private void SetPreview(Texture2D? previewTexture, int previewSize)
+        private void SetPreview(Texture2D previewTexture, int previewSize)
         {
             if (previewTexture == null)
             {
@@ -86,8 +86,8 @@ public sealed class GridView : IContentView
     private readonly MGScrollViewer _scrollViewer;
     private readonly VirtualizingWrapPanel _itemsPanel;
     private readonly MGTextBlock _emptyStateText;
-    private readonly Func<ContentItem, Texture2D?> _previewSelector;
-    private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
+    private readonly Func<ContentItem, Texture2D> _previewSelector;
+    private readonly Action<ContentItem, MGElement> _itemElementInitializer;
     private readonly Dictionary<string, GridItemCard> _cardsByPath = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<MGElement, GridItemCard> _cardsByElement = new();
     private readonly HashSet<string> _selectedPaths = new(StringComparer.OrdinalIgnoreCase);
@@ -99,19 +99,19 @@ public sealed class GridView : IContentView
 
     public MGElement RootElement => _root;
 
-    public ContentItem? PressedItem { get; private set; }
+    public ContentItem PressedItem { get; private set; }
 
     public IReadOnlyList<ContentItem> SelectedItems => GetSelectedItems();
 
-    public event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
-    public event Action<ContentItem>? FileDoubleClicked;
-    public event Action<ContentItem>? DirectoryDoubleClicked;
+    public event Action<IReadOnlyList<ContentItem>> SelectionChanged;
+    public event Action<ContentItem> FileDoubleClicked;
+    public event Action<ContentItem> DirectoryDoubleClicked;
 
     public GridView(
         MGWindow window,
         int thumbnailSize,
-        Func<ContentItem, Texture2D?> previewSelector,
-        Action<ContentItem, MGElement>? itemElementInitializer = null)
+        Func<ContentItem, Texture2D> previewSelector,
+        Action<ContentItem, MGElement> itemElementInitializer = null)
     {
         ArgumentNullException.ThrowIfNull(window);
         _thumbnailSize = Math.Max(48, thumbnailSize);
@@ -455,7 +455,7 @@ public sealed class GridView : IContentView
         return selectedItems;
     }
 
-    private void OnBackgroundPressed(object? sender, MGUI.Shared.Input.Mouse.BaseMousePressedEventArgs e)
+    private void OnBackgroundPressed(object sender, MGUI.Shared.Input.Mouse.BaseMousePressedEventArgs e)
     {
         var hovered = _scrollViewer.SelfOrParentWindow.HoveredElement;
         if (hovered == null)

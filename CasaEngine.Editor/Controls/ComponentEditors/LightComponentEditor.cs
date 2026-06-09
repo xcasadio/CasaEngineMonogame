@@ -9,7 +9,7 @@ public sealed class LightComponentEditor : TransformComponentEditor
 {
     private LightComponent LightComponent => (LightComponent)Component;
 
-    public LightComponentEditor(MGWindow window, LightComponent component, Action? refreshRequested = null)
+    public LightComponentEditor(MGWindow window, LightComponent component, Action refreshRequested = null)
         : base(window, component, refreshRequested)
     {
     }

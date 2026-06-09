@@ -6,11 +6,11 @@ public sealed class EditorContextService
 {
     public static EditorContextService Current { get; } = new();
 
-    public event Action<EditorDocumentContext?>? ActiveDocumentChanged;
+    public event Action<EditorDocumentContext> ActiveDocumentChanged;
 
-    public event Action<EditorSelectionState>? SelectionChanged;
+    public event Action<EditorSelectionState> SelectionChanged;
 
-    public EditorDocumentContext? ActiveDocument { get; private set; }
+    public EditorDocumentContext ActiveDocument { get; private set; }
 
     public EditorSelectionState Selection { get; private set; } = EditorSelectionState.Empty;
 
@@ -18,7 +18,7 @@ public sealed class EditorContextService
     {
     }
 
-    public void SetActiveDocument(EditorDocumentContext? document)
+    public void SetActiveDocument(EditorDocumentContext document)
     {
         if (Equals(ActiveDocument, document))
         {

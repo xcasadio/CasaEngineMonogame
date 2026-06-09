@@ -193,7 +193,7 @@ public sealed class FileOperationService : IDisposable
         var addedAssetEntries = RegisterAssetsUnderPaths(createdPaths);
         RefreshRootModel();
 
-        List<ContentBrowserTrashEntry>? trashEntries = null;
+        List<ContentBrowserTrashEntry> trashEntries = null;
         operation = new ReversibleFileOperation(
             service => service.TryRedoCopyLikeOperation(trashEntries, addedAssetEntries, createdPaths),
             service =>
@@ -238,7 +238,7 @@ public sealed class FileOperationService : IDisposable
         var addedAssetEntries = GetAddedAssetEntries(snapshotBeforeImport, snapshotAfterImport);
         RefreshRootModel();
 
-        List<ContentBrowserTrashEntry>? trashEntries = null;
+        List<ContentBrowserTrashEntry> trashEntries = null;
         operation = new ReversibleFileOperation(
             service => service.TryRedoCopyLikeOperation(trashEntries, addedAssetEntries, createdPaths),
             service =>
@@ -469,7 +469,7 @@ public sealed class FileOperationService : IDisposable
     }
 
     private bool TryRedoCopyLikeOperation(
-        List<ContentBrowserTrashEntry>? trashEntries,
+        List<ContentBrowserTrashEntry> trashEntries,
         IReadOnlyList<AssetInfo> assetEntries,
         IReadOnlyList<string> selectionAfterExecute)
     {
@@ -1115,7 +1115,7 @@ public sealed class FileOperationService : IDisposable
 
     private static void MovePathExact(string sourcePath, string destinationPath, bool isDirectory)
     {
-        string? destinationDirectory = Path.GetDirectoryName(destinationPath);
+        string destinationDirectory = Path.GetDirectoryName(destinationPath);
         if (!string.IsNullOrWhiteSpace(destinationDirectory))
         {
             Directory.CreateDirectory(destinationDirectory);
@@ -1132,7 +1132,7 @@ public sealed class FileOperationService : IDisposable
 
     private static void CopyPathExact(string sourcePath, string destinationPath, bool isDirectory)
     {
-        string? destinationDirectory = Path.GetDirectoryName(destinationPath);
+        string destinationDirectory = Path.GetDirectoryName(destinationPath);
         if (!string.IsNullOrWhiteSpace(destinationDirectory))
         {
             Directory.CreateDirectory(destinationDirectory);

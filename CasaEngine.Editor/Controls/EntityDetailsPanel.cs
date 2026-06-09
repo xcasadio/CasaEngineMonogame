@@ -33,18 +33,18 @@ public sealed class EntityDetailsPanel
     private readonly Dictionary<MGTreeViewItem, EntityComponent> _itemToComponent = new();
     private readonly Dictionary<EntityComponent, MGTreeViewItem> _componentToItem = new();
 
-    private MGDockPanel? _root;
-    private MGTextBox? _entityNameTextBox;
-    private MGButton? _addComponentButton;
-    private MGTreeView? _componentTree;
-    private MGScrollViewer? _detailsScrollViewer;
-    private MGStackPanel? _detailsContent;
-    private MGTextBlock? _componentSummaryText;
-    private World? _selectedWorld;
-    private Entity? _selectedEntity;
-    private EntityComponent? _selectedComponent;
-    private SceneComponent? _observedSceneComponent;
-    private ComponentEditorBase? _activeComponentEditor;
+    private MGDockPanel _root;
+    private MGTextBox _entityNameTextBox;
+    private MGButton _addComponentButton;
+    private MGTreeView _componentTree;
+    private MGScrollViewer _detailsScrollViewer;
+    private MGStackPanel _detailsContent;
+    private MGTextBlock _componentSummaryText;
+    private World _selectedWorld;
+    private Entity _selectedEntity;
+    private EntityComponent _selectedComponent;
+    private SceneComponent _observedSceneComponent;
+    private ComponentEditorBase _activeComponentEditor;
     private bool _suppressEntityNameChanged;
     private bool _suppressComponentSelectionChanged;
     private bool _selectedComponentRefreshPending;
@@ -56,7 +56,7 @@ public sealed class EntityDetailsPanel
         _includeComponentTree = includeComponentTree;
     }
 
-    public event Action<EntityComponent?>? SelectedComponentChanged;
+    public event Action<EntityComponent> SelectedComponentChanged;
 
     public EditorHistoryContext HistoryContext
     {
@@ -121,22 +121,22 @@ public sealed class EntityDetailsPanel
         return _root;
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         SyncSelection(entity?.World, entity, ReferenceEquals(_selectedEntity, entity) ? _selectedComponent : null);
     }
 
-    public void SetSelectedWorld(World? world)
+    public void SetSelectedWorld(World world)
     {
         SyncSelection(world, null, null);
     }
 
-    public void SetSelectedComponent(EntityComponent? component)
+    public void SetSelectedComponent(EntityComponent component)
     {
         ApplyComponentSelection(component, rebuildPropertyEditors: true);
     }
 
-    public void SyncSelection(World? world, Entity? entity, EntityComponent? component)
+    public void SyncSelection(World world, Entity entity, EntityComponent component)
     {
         bool worldChanged = !ReferenceEquals(_selectedWorld, world);
         bool entityChanged = !ReferenceEquals(_selectedEntity, entity);
@@ -171,7 +171,7 @@ public sealed class EntityDetailsPanel
         ApplyComponentSelection(component, rebuildPropertyEditors: true);
     }
 
-    public void SyncSelection(Entity? entity, EntityComponent? component)
+    public void SyncSelection(Entity entity, EntityComponent component)
     {
         SyncSelection(entity?.World, entity, component);
     }
@@ -196,9 +196,9 @@ public sealed class EntityDetailsPanel
         }
     }
 
-    private void ApplyComponentSelection(EntityComponent? component, bool rebuildPropertyEditors)
+    private void ApplyComponentSelection(EntityComponent component, bool rebuildPropertyEditors)
     {
-        EntityComponent? resolvedComponent = component;
+        EntityComponent resolvedComponent = component;
 
         if (_componentTree == null)
         {
@@ -326,19 +326,19 @@ public sealed class EntityDetailsPanel
         _selectedEntity.ComponentRemoved -= OnEntityComponentChanged;
     }
 
-    private void OnSelectedEntityNameChanged(object? sender, EntityNameChangedEventArgs e)
+    private void OnSelectedEntityNameChanged(object sender, EntityNameChangedEventArgs e)
     {
         RefreshEntityHeader();
     }
 
-    private void OnEntityComponentChanged(object? sender, EntityComponent component)
+    private void OnEntityComponentChanged(object sender, EntityComponent component)
     {
         Trace($"Entity component list changed entity={DescribeEntity(_selectedEntity)} changedComponent={DescribeComponent(component)}");
         RebuildComponentTree();
         RebuildPropertyEditors();
     }
 
-    private void OnEntityNameChanged(object? sender, EventArgs<string> e)
+    private void OnEntityNameChanged(object sender, EventArgs<string> e)
     {
         if (_suppressEntityNameChanged || _selectedEntity == null)
         {
@@ -480,7 +480,7 @@ public sealed class EntityDetailsPanel
         }
     }
 
-    private void OnComponentTreeSelectionChanged(object? sender, MGTreeViewItem? item)
+    private void OnComponentTreeSelectionChanged(object sender, MGTreeViewItem item)
     {
         if (_suppressComponentSelectionChanged)
         {
@@ -548,7 +548,7 @@ public sealed class EntityDetailsPanel
         RebuildPropertyEditors();
     }
 
-    private void SetSelectedComponentInternal(EntityComponent? component)
+    private void SetSelectedComponentInternal(EntityComponent component)
     {
         if (ReferenceEquals(_selectedComponent, component))
         {
@@ -587,7 +587,7 @@ public sealed class EntityDetailsPanel
         _observedSceneComponent = null;
     }
 
-    private void OnSelectedSceneComponentTransformChanged(object? sender, EventArgs e)
+    private void OnSelectedSceneComponentTransformChanged(object sender, EventArgs e)
     {
         _selectedComponentRefreshPending = true;
     }
@@ -985,7 +985,7 @@ public sealed class EntityDetailsPanel
         return rowIndex + 1;
     }
 
-    private MGComboBox<string> CreateStringCombo(IEnumerable<string> items, string? selectedItem, Action<string> onChanged)
+    private MGComboBox<string> CreateStringCombo(IEnumerable<string> items, string selectedItem, Action<string> onChanged)
     {
         var combo = new MGComboBox<string>(_window)
         {
@@ -1131,7 +1131,7 @@ public sealed class EntityDetailsPanel
             new EditorDelegateCommand(description, execute, undo));
     }
 
-    private void ApplyComponentMutationSelection(EntityComponent? component)
+    private void ApplyComponentMutationSelection(EntityComponent component)
     {
         _selectedComponent = component;
         RebuildComponentTree();
@@ -1139,7 +1139,7 @@ public sealed class EntityDetailsPanel
         SelectedComponentChanged?.Invoke(component);
     }
 
-    private static void AttachComponent(Entity entity, EntityComponent component, SceneComponent? selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
+    private static void AttachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
     {
         if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
         {
@@ -1161,7 +1161,7 @@ public sealed class EntityDetailsPanel
         }
     }
 
-    private static void DetachComponent(Entity entity, EntityComponent component, SceneComponent? selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
+    private static void DetachComponent(Entity entity, EntityComponent component, SceneComponent selectedSceneComponent, bool attachAsChild, bool attachAsRoot)
     {
         if (attachAsChild && selectedSceneComponent != null && component is SceneComponent childSceneComponent)
         {
@@ -1292,21 +1292,21 @@ public sealed class EntityDetailsPanel
         return value.Replace("[", "[[", StringComparison.Ordinal);
     }
 
-    private static string DescribeEntity(Entity? entity)
+    private static string DescribeEntity(Entity entity)
     {
         return entity == null
             ? "<null>"
             : $"'{entity.Name}'";
     }
 
-    private static string DescribeWorld(World? world)
+    private static string DescribeWorld(World world)
     {
         return world == null
             ? "<null>"
             : $"'{world.Name}'";
     }
 
-    private static string DescribeComponent(EntityComponent? component)
+    private static string DescribeComponent(EntityComponent component)
     {
         if (component == null)
         {

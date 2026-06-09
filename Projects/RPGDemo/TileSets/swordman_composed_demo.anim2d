@@ -1,4 +1,5 @@
 {
+  "animation_type": "Loop",
   "id": "8f85a801-6fe3-4773-b64a-b2ff1b729c8b",
   "name": "swordman_composed_demo",
   "parts": [
@@ -82,10 +83,6 @@
     {
       "time_seconds": 0.3,
       "event_name": "WeaponSwapLayer"
-    },
-    {
-      "time_seconds": 0.6,
-      "event_name": "restart"
     }
   ]
 }

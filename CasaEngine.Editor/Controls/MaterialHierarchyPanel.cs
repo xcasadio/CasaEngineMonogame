@@ -9,15 +9,15 @@ public sealed class MaterialHierarchyPanel
 {
     private readonly MGWindow _window;
 
-    private MGStackPanel? _root;
-    private MaterialAssetInspectorPanel? _activeInspectorPanel;
+    private MGStackPanel _root;
+    private MaterialAssetInspectorPanel _activeInspectorPanel;
 
     public MaterialHierarchyPanel(MGWindow window)
     {
         _window = window;
     }
 
-    public void SetInspectorPanel(MaterialAssetInspectorPanel? inspectorPanel)
+    public void SetInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
     {
         _activeInspectorPanel = inspectorPanel;
         RefreshContent();
@@ -49,7 +49,7 @@ public sealed class MaterialHierarchyPanel
 
         _root.TryRemoveAll();
 
-        MaterialAsset? materialAsset = _activeInspectorPanel?.LoadedMaterialAsset;
+        MaterialAsset materialAsset = _activeInspectorPanel?.LoadedMaterialAsset;
         if (materialAsset == null)
         {
             _root.TryAddChild(new MGTextBlock(_window, "No material selected.")

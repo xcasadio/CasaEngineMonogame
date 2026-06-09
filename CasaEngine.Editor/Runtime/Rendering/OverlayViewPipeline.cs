@@ -26,32 +26,32 @@ public class OverlayViewPipeline : IViewRenderPipeline
     /// Called after the main world flush to render the editor grid.
     /// Signature: (graphicsDevice, view, frame).
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderGridAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderGridAction { get; set; }
 
     /// <summary>
     /// Called to render gizmos (translation/rotation/scale handles).
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderGizmosAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderGizmosAction { get; set; }
 
     /// <summary>
     /// Called to render the axis orientation indicator (corner XYZ icon).
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderAxisAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderAxisAction { get; set; }
 
     /// <summary>
     /// Called to render editor-only vector overlays using a dedicated canvas pass.
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderVectorOverlayAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderVectorOverlayAction { get; set; }
 
     /// <summary>
     /// Called to render the selection outline around selected entities.
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderSelectionOutlineAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderSelectionOutlineAction { get; set; }
 
     /// <summary>
     /// Called last to render any 2D editor UI overlay (labels, handles, etc.).
     /// </summary>
-    public Action<GraphicsDevice, RenderView, RenderFrame>? RenderUIOverlayAction { get; set; }
+    public Action<GraphicsDevice, RenderView, RenderFrame> RenderUIOverlayAction { get; set; }
 
     /// <inheritdoc/>
     public virtual void RenderView(

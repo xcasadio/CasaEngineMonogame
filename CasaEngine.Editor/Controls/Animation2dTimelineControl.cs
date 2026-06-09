@@ -6,7 +6,7 @@ using MGUI.Core.UI;
 
 namespace CasaEngine.Editor.Controls;
 
-internal readonly record struct Animation2dTimelineLaneData(string Label, bool IsEditable = true);
+internal readonly record struct Animation2dTimelineLaneData(string Label, bool IsEditable = true, bool AllowsTrackInsert = true, bool AllowsTrackDelete = false);
 
 internal readonly record struct Animation2dTimelineEventData(int LaneIndex, float TimeSeconds, string Label, string ValueText = "", bool IsEditable = true);
 
@@ -14,6 +14,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 {
     private readonly Dictionary<Guid, int> _eventIndexById = new();
     private readonly Dictionary<Guid, int> _laneIndexById = new();
+    private readonly Dictionary<Guid, Animation2dTimelineLaneData> _laneDataById = new();
 
     public event Action<float> ScrubRequested;
 
@@ -24,6 +25,14 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     public event Action<int, string>? LaneLabelEdited;
 
     public event Action<Animation2dTrackProperty, int, float>? TrackPropertyInsertRequested;
+
+    public event Action<Animation2dTrackProperty, int>? TrackRequested;
+
+    public event Action<int>? TrackDeleted;
+
+    public event Action<int>? EventCopied;
+
+    public event Action<int, int, float>? EventPasted;
 
     public event Action<float>? PersistedEventInsertRequested;
 
@@ -48,12 +57,15 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         DuplicateRequested += OnDuplicateRequested;
         DeleteRequested += OnDeleteRequested;
         InsertRequested += OnInsertRequested;
+        CopyRequested += OnCopyRequested;
+        PasteRequested += OnPasteRequested;
     }
 
     public void SetTimelineData(IReadOnlyList<Animation2dTimelineLaneData> lanes, IReadOnlyList<Animation2dTimelineEventData> events, float durationSeconds)
     {
         _eventIndexById.Clear();
         _laneIndexById.Clear();
+        _laneDataById.Clear();
 
         TimelineModel model = null;
         if (lanes != null)
@@ -75,6 +87,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 
                 model.Lanes.Add(lane);
                 _laneIndexById[lane.Id] = laneIndex;
+                _laneDataById[lane.Id] = laneData;
             }
 
             if (events != null)
@@ -214,6 +227,39 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         }
     }
 
+    private void OnCopyRequested(TimelineEvent timelineEvent)
+    {
+        if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
+        {
+            EventCopied?.Invoke(eventIndex);
+        }
+    }
+
+    private void OnPasteRequested(TimelineLane lane, float timeSeconds)
+    {
+        if (!_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
+        {
+            return;
+        }
+
+        int sourceEventIndex = -1;
+        if (Model != null && ViewState.SelectedEventId.HasValue)
+        {
+            for (var index = 0; index < Model.Events.Count; index++)
+            {
+                if (Model.Events[index].Id != ViewState.SelectedEventId.Value)
+                {
+                    continue;
+                }
+
+                _eventIndexById.TryGetValue(Model.Events[index].Id, out sourceEventIndex);
+                break;
+            }
+        }
+
+        EventPasted?.Invoke(sourceEventIndex, laneIndex, timeSeconds);
+    }
+
     internal override MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
     {
         MGContextMenu? menu = base.CreateContextMenu(lane, timelineEvent, cursorTimeSeconds);
@@ -250,4 +296,39 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         menu.AddButton(label, _ => TrackPropertyInsertRequested?.Invoke(property, laneIndex, timeSeconds));
     }
+
+    internal override MGContextMenu? CreateTrackHeaderContextMenu(TimelineLane lane)
+    {
+        if (!_laneIndexById.TryGetValue(lane.Id, out int laneIndex)
+            || !_laneDataById.TryGetValue(lane.Id, out Animation2dTimelineLaneData laneData)
+            || ParentWindow == null)
+        {
+            return null;
+        }
+
+        MGContextMenu menu = new(ParentWindow, string.Empty);
+        if (laneData.AllowsTrackInsert)
+        {
+            menu.AddButton("Add attachment track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.Sprite, laneIndex));
+            menu.AddButton("Add localPositionOffset track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.Position, laneIndex));
+            menu.AddButton("Add visible track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.Visible, laneIndex));
+            menu.AddButton("Add flipX track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.FlipX, laneIndex));
+            menu.AddButton("Add flipY track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.FlipY, laneIndex));
+            menu.AddButton("Add rotation track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.Rotation, laneIndex));
+            menu.AddButton("Add drawOrder track", _ => TrackRequested?.Invoke(Animation2dTrackProperty.DrawOrder, laneIndex));
+        }
+
+        if (laneData.AllowsTrackDelete)
+        {
+            if (menu.Items.Count > 0)
+            {
+                menu.AddSeparator();
+            }
+
+            menu.AddButton("Delete track", _ => TrackDeleted?.Invoke(laneIndex));
+        }
+
+        return menu.Items.Count > 0 ? menu : null;
+    }
+
 }

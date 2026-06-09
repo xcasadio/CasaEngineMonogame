@@ -41,10 +41,10 @@ public abstract class ComponentEditorBase
 
     protected MGWindow Window { get; }
     protected EntityComponent Component { get; }
-    protected Action? RefreshRequested { get; }
+    protected Action RefreshRequested { get; }
     public EditorHistoryContext HistoryContext { get; set; } = DefaultHistoryContext;
 
-    protected ComponentEditorBase(MGWindow window, EntityComponent component, Action? refreshRequested = null)
+    protected ComponentEditorBase(MGWindow window, EntityComponent component, Action refreshRequested = null)
     {
         Window = window;
         Component = component;
@@ -137,11 +137,11 @@ public abstract class ComponentEditorBase
         return rowIndex + 1;
     }
 
-    protected MGExpander? CreateGenericSection(
+    protected MGExpander CreateGenericSection(
         object target,
         string headerText,
-        ISet<string>? excludedPropertyNames = null,
-        Func<PropertyDescriptor, bool>? includeProperty = null)
+        ISet<string> excludedPropertyNames = null,
+        Func<PropertyDescriptor, bool> includeProperty = null)
     {
         var grid = CreatePropertyGrid();
         int rowIndex = 0;
@@ -172,7 +172,7 @@ public abstract class ComponentEditorBase
         return section;
     }
 
-    protected MGComboBox<string> CreateStringCombo(IEnumerable<string> items, string? selectedItem, Action<string> onChanged)
+    protected MGComboBox<string> CreateStringCombo(IEnumerable<string> items, string selectedItem, Action<string> onChanged)
     {
         var combo = new MGComboBox<string>(Window)
         {
@@ -229,7 +229,7 @@ public abstract class ComponentEditorBase
     protected string BuildComponentCommandDescription(string subject)
         => $"Edit {GetDisplayName(Component)} {subject}";
 
-    protected void ApplyPropertyChange(object target, PropertyDescriptor property, object? newValue, Action? afterApply = null)
+    protected void ApplyPropertyChange(object target, PropertyDescriptor property, object newValue, Action afterApply = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(property);
@@ -254,7 +254,7 @@ public abstract class ComponentEditorBase
             });
     }
 
-    protected void ApplyValueChange<T>(string description, Func<T> getter, Action<T> setter, T newValue, Action? afterApply = null)
+    protected void ApplyValueChange<T>(string description, Func<T> getter, Action<T> setter, T newValue, Action afterApply = null)
     {
         ArgumentNullException.ThrowIfNull(getter);
         ArgumentNullException.ThrowIfNull(setter);
@@ -279,7 +279,7 @@ public abstract class ComponentEditorBase
             });
     }
 
-    protected virtual MGElement? CreatePropertyEditor(object target, PropertyDescriptor property)
+    protected virtual MGElement CreatePropertyEditor(object target, PropertyDescriptor property)
     {
         var propertyType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
         var currentValue = property.GetValue(target);
@@ -290,7 +290,7 @@ public abstract class ComponentEditorBase
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
             };
-            textBox.SetText((string?)currentValue ?? string.Empty);
+            textBox.SetText((string)currentValue ?? string.Empty);
             textBox.TextChanged += (_, e) => ApplyPropertyChange(target, property, e.NewValue);
             return textBox;
         }
@@ -398,7 +398,7 @@ public abstract class ComponentEditorBase
     private static bool IsColorLikeProperty(PropertyDescriptor property)
         => HasColorIndicator(property.Name) || HasColorIndicator(property.DisplayName);
 
-    private static bool HasColorIndicator(string? value)
+    private static bool HasColorIndicator(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
@@ -411,8 +411,8 @@ public abstract class ComponentEditorBase
 
     private static bool CanEditProperty(
         PropertyDescriptor property,
-        ISet<string>? excludedPropertyNames,
-        Func<PropertyDescriptor, bool>? includeProperty)
+        ISet<string> excludedPropertyNames,
+        Func<PropertyDescriptor, bool> includeProperty)
     {
         if (!property.IsBrowsable || property.IsReadOnly)
         {

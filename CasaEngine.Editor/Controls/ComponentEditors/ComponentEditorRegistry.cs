@@ -7,7 +7,7 @@ namespace CasaEngine.Editor.Controls.ComponentEditors;
 
 public static class ComponentEditorRegistry
 {
-    private static readonly (Type ComponentType, Func<MGWindow, EntityComponent, Action?, ComponentEditorBase> Factory)[] Registrations =
+    private static readonly (Type ComponentType, Func<MGWindow, EntityComponent, Action, ComponentEditorBase> Factory)[] Registrations =
     [
         (typeof(StaticModelComponent), (window, component, refreshRequested) => new StaticModelComponentEditor(window, (StaticModelComponent)component, refreshRequested)),
         (typeof(StaticModelSubMeshComponent), (window, component, _) => new StaticModelSubMeshComponentEditor(window, (StaticModelSubMeshComponent)component)),
@@ -21,7 +21,7 @@ public static class ComponentEditorRegistry
     public static ComponentEditorBase Create(
         MGWindow window,
         EntityComponent component,
-        Action? refreshRequested = null,
+        Action refreshRequested = null,
         EditorHistoryContext? historyContext = null)
     {
         foreach (var registration in Registrations)

@@ -1,4 +1,5 @@
 {
+  "animation_type": "Once",
   "id": "5f770544-fe6b-4cfb-a7ac-43f46c0c153c",
   "name": "octopus_attack_left",
   "parts": [

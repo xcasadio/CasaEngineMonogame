@@ -20,7 +20,7 @@ public class Vector3ColorEditor : MGColorField
         set => base.Value = ColorValue.FromVector3(value);
     }
 
-    public new event EventHandler<Vector3>? ValueChanged;
+    public new event EventHandler<Vector3> ValueChanged;
 
     public Vector3ColorEditor(MGWindow window, Vector3? initialValue = null)
         : base(window, ColorValue.FromVector3(initialValue ?? Vector3.Zero), CreateOptions(initialValue ?? Vector3.Zero))
@@ -60,7 +60,7 @@ public class Vector3ColorEditor : MGColorField
         };
     }
 
-    private void OnBaseValueChanged(object? sender, ColorFieldValueChangedEventArgs e)
+    private void OnBaseValueChanged(object sender, ColorFieldValueChangedEventArgs e)
     {
         ColorValue colorValue = e.NewValue ?? ColorValue.FromVector3(Vector3.Zero);
         ValueChanged?.Invoke(this, new Vector3(colorValue.R, colorValue.G, colorValue.B));

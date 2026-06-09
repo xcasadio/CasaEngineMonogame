@@ -15,23 +15,23 @@ public sealed class EditorViewContext : IDisposable
 
     public RenderView RenderView { get; }
 
-    public Framework.Scene.World.World? World { get; set; }
+    public Framework.Scene.World.World World { get; set; }
 
-    public CameraComponent? Camera { get; set; }
+    public CameraComponent Camera { get; set; }
 
-    public Entity? CameraEntity { get; set; }
+    public Entity CameraEntity { get; set; }
 
-    public RenderTargetSurface? Surface { get; set; }
+    public RenderTargetSurface Surface { get; set; }
 
-    public TransformGizmoComponent? Gizmo { get; set; }
+    public TransformGizmoComponent Gizmo { get; set; }
 
-    public GridComponent? Grid { get; set; }
+    public GridComponent Grid { get; set; }
 
-    public AxisComponent? Axis { get; set; }
+    public AxisComponent Axis { get; set; }
 
-    public IKeyboardStateProvider? KeyboardProvider { get; set; }
+    public IKeyboardStateProvider KeyboardProvider { get; set; }
 
-    public IMouseStateProvider? MouseProvider { get; set; }
+    public IMouseStateProvider MouseProvider { get; set; }
 
     public string Name { get; set; }
 

@@ -37,7 +37,7 @@ public sealed class LoggerEditor : ILogger
     public IReadOnlyList<LogEntry> Entries => _entries;
 
     /// <summary>Raised on the calling thread each time a new <see cref="LogEntry"/> is appended.</summary>
-    public event EventHandler<LogEntry>? EntryAdded;
+    public event EventHandler<LogEntry> EntryAdded;
 
     // ── ILogger implementation ───────────────────────────────────────────────
 

@@ -20,13 +20,13 @@ public class TransformComponentEditor : ComponentEditorBase
         nameof(SceneComponent.LocalOrientation),
     };
 
-    private Vector3Editor? _positionEditor;
-    private Vector3Editor? _rotationEditor;
-    private Vector3Editor? _scaleEditor;
+    private Vector3Editor _positionEditor;
+    private Vector3Editor _rotationEditor;
+    private Vector3Editor _scaleEditor;
 
     protected SceneComponent SceneComponent => (SceneComponent)Component;
 
-    public TransformComponentEditor(MGWindow window, SceneComponent component, Action? refreshRequested = null)
+    public TransformComponentEditor(MGWindow window, SceneComponent component, Action refreshRequested = null)
         : base(window, component, refreshRequested)
     {
     }

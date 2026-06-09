@@ -14,13 +14,13 @@ namespace CasaEngine.Editor.ContentBrowser.Views;
 public sealed class DetailView : IContentView
 {
     private readonly MGWindow _window;
-    private readonly Func<ContentItemType, Texture2D?> _iconSelector;
+    private readonly Func<ContentItemType, Texture2D> _iconSelector;
     private readonly MGGrid _root;
     private readonly MGListView<ContentItem> _listView;
     private readonly List<ContentItem> _items = new();
-    private readonly Action<ContentItem, MGElement>? _itemElementInitializer;
+    private readonly Action<ContentItem, MGElement> _itemElementInitializer;
     private readonly MGTextBlock _emptyStateText;
-    private MGListViewColumn<ContentItem>? _nameColumn;
+    private MGListViewColumn<ContentItem> _nameColumn;
 
     public MGElement RootElement => _root;
 
@@ -35,11 +35,11 @@ public sealed class DetailView : IContentView
         }
     }
 
-    public event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
-    public event Action<ContentItem>? FileDoubleClicked;
-    public event Action<ContentItem>? DirectoryDoubleClicked;
+    public event Action<IReadOnlyList<ContentItem>> SelectionChanged;
+    public event Action<ContentItem> FileDoubleClicked;
+    public event Action<ContentItem> DirectoryDoubleClicked;
 
-    public DetailView(MGWindow window, Func<ContentItemType, Texture2D?> iconSelector, Action<ContentItem, MGElement>? itemElementInitializer = null)
+    public DetailView(MGWindow window, Func<ContentItemType, Texture2D> iconSelector, Action<ContentItem, MGElement> itemElementInitializer = null)
     {
         _window = window;
         _iconSelector = iconSelector ?? throw new ArgumentNullException(nameof(iconSelector));
@@ -174,12 +174,12 @@ public sealed class DetailView : IContentView
         modifiedColumn.SortKeySelector = item => item.LastModified;
     }
 
-    private void OnSelectionChanged(object? sender, GridSelection? selection)
+    private void OnSelectionChanged(object sender, GridSelection? selection)
     {
         SelectionChanged?.Invoke(SelectedItems);
     }
 
-    private void OnMouseDoubleClickedInside(object? sender, MGUI.Shared.Input.Mouse.BaseMouseClickedEventArgs e)
+    private void OnMouseDoubleClickedInside(object sender, MGUI.Shared.Input.Mouse.BaseMouseClickedEventArgs e)
     {
         var selected = GetSelectedItem();
         if (selected == null)
@@ -196,13 +196,13 @@ public sealed class DetailView : IContentView
         FileDoubleClicked?.Invoke(selected);
     }
 
-    private ContentItem? GetSelectedItem()
+    private ContentItem GetSelectedItem()
     {
         var rowItem = GetSelectedRowItem();
         return rowItem?.Data;
     }
 
-    private MGListViewItem<ContentItem>? GetSelectedRowItem()
+    private MGListViewItem<ContentItem> GetSelectedRowItem()
     {
         var selection = _listView.SelectedData;
         if (!selection.HasValue || _listView.RowItems == null)
@@ -221,7 +221,7 @@ public sealed class DetailView : IContentView
 
     private MGElement CreateIconCell(ContentItem item)
     {
-        Texture2D? icon = _iconSelector(item.Type);
+        Texture2D icon = _iconSelector(item.Type);
         if (icon == null)
         {
             return new MGTextBlock(_window, string.Empty);

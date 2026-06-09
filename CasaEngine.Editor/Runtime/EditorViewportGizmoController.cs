@@ -37,11 +37,11 @@ internal sealed class EditorViewportGizmoController : IDisposable
     }
 
     private readonly HostedEditorGameAdapter _editorRuntime;
-    private TransformGizmoComponent? _gizmo;
+    private TransformGizmoComponent _gizmo;
     private MouseState _previousMouseState;
     private KeyboardState _previousKeyboardState;
     private bool _suppressSelectionChanged;
-    private ManipulationSession? _activeManipulation;
+    private ManipulationSession _activeManipulation;
     private GizmoMode _activeMode = GizmoMode.Translate;
     private TransformSpace _activeSpace = TransformSpace.World;
 
@@ -96,12 +96,12 @@ internal sealed class EditorViewportGizmoController : IDisposable
         }
     }
 
-    public event Action<Entity?>? SelectedEntityChanged;
-    public event Action<IReadOnlyList<Entity>>? DeleteEntitiesRequested;
-    public event Action<GizmoMode>? ActiveModeChanged;
-    public event Action<TransformSpace>? ActiveSpaceChanged;
+    public event Action<Entity> SelectedEntityChanged;
+    public event Action<IReadOnlyList<Entity>> DeleteEntitiesRequested;
+    public event Action<GizmoMode> ActiveModeChanged;
+    public event Action<TransformSpace> ActiveSpaceChanged;
 
-    public void EnsureInitialized(RenderView? renderView, ArcBallCameraComponent? camera, RenderTargetSurface? surface, World world)
+    public void EnsureInitialized(RenderView renderView, ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (renderView == null || camera == null || surface == null)
         {
@@ -131,7 +131,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         renderView.Pipeline = overlayPipeline;
     }
 
-    public void Synchronize(ArcBallCameraComponent? camera, RenderTargetSurface? surface, World? world)
+    public void Synchronize(ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (_gizmo == null)
         {
@@ -161,17 +161,17 @@ internal sealed class EditorViewportGizmoController : IDisposable
         RefreshPresentation();
     }
 
-    public void RefreshWorldSelection(World world, Entity? selectedEntity)
+    public void RefreshWorldSelection(World world, Entity selectedEntity)
     {
         SetSelectedTransformable(selectedEntity?.RootComponent, world);
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         SetSelectedTransformable(entity?.RootComponent, entity?.World ?? _gizmo?.SelectionWorld);
     }
 
-    public void SetSelectedTransformable(ITransformableObject? transformable, World? world)
+    public void SetSelectedTransformable(ITransformableObject transformable, World world)
     {
         if (_gizmo == null)
         {
@@ -215,9 +215,9 @@ internal sealed class EditorViewportGizmoController : IDisposable
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
-        ArcBallCameraComponent? camera,
-        RenderTargetSurface? surface,
-        World? world)
+        ArcBallCameraComponent camera,
+        RenderTargetSurface surface,
+        World world)
     {
         if (_gizmo == null || camera == null || surface == null)
         {
@@ -342,7 +342,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         }
     }
 
-    private void OnGizmoSelectionChanged(object? sender, List<ITransformableObject> selection)
+    private void OnGizmoSelectionChanged(object sender, List<ITransformableObject> selection)
     {
         if (_suppressSelectionChanged)
         {
@@ -357,7 +357,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         SelectedEntityChanged?.Invoke(selectedEntity);
     }
 
-    private void OnGizmoDeleteSelectionChanged(object? sender, List<ITransformableObject> selection)
+    private void OnGizmoDeleteSelectionChanged(object sender, List<ITransformableObject> selection)
     {
         if (!AllowDeleteSelection)
         {
@@ -374,7 +374,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         DeleteEntitiesRequested?.Invoke(entities);
     }
 
-    private void OnGizmoModeChanged(object? sender, EventArgs e)
+    private void OnGizmoModeChanged(object sender, EventArgs e)
     {
         if (_gizmo?.Gizmo == null)
         {
@@ -391,7 +391,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         ActiveModeChanged?.Invoke(mode);
     }
 
-    private void OnGizmoTransformSpaceChanged(object? sender, EventArgs e)
+    private void OnGizmoTransformSpaceChanged(object sender, EventArgs e)
     {
         if (_gizmo?.Gizmo == null)
         {
@@ -615,7 +615,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         return false;
     }
 
-    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world, ITransformableObject? explicitSelection = null)
+    private static IEnumerable<ITransformableObject> GetViewportSelectableObjects(World world, ITransformableObject explicitSelection = null)
     {
         var selectables = new List<ITransformableObject>();
 

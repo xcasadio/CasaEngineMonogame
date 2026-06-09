@@ -10,7 +10,7 @@ public readonly record struct EditorHistoryContext(EditorHistoryContextKind Kind
 
     public bool IsEmpty => Kind == EditorHistoryContextKind.None || string.IsNullOrWhiteSpace(Id);
 
-    public static EditorHistoryContext FromDocument(EditorDocumentContext? document)
+    public static EditorHistoryContext FromDocument(EditorDocumentContext document)
     {
         if (document == null || string.IsNullOrWhiteSpace(document.Id))
         {

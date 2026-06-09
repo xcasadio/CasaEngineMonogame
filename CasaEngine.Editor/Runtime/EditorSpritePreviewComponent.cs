@@ -11,9 +11,9 @@ namespace CasaEngine.Editor.Runtime;
 
 internal sealed class EditorSpritePreviewComponent : SceneComponent, IComponentDrawable, IBoundingBoxable
 {
-    private SpriteRendererComponent? _spriteRendererComponent;
-    private SpriteData? _spriteData;
-    private Sprite? _sprite;
+    private SpriteRendererComponent _spriteRendererComponent;
+    private SpriteData _spriteData;
+    private Sprite _sprite;
     private int _drawInvocationCount;
 
     public Color Color { get; set; } = Color.White;
@@ -42,7 +42,7 @@ internal sealed class EditorSpritePreviewComponent : SceneComponent, IComponentD
         IsBoundingBoxDirty = true;
     }
 
-    public void SetSpriteData(SpriteData? spriteData)
+    public void SetSpriteData(SpriteData spriteData)
     {
         _spriteData = spriteData;
         _drawInvocationCount = 0;

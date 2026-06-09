@@ -7,25 +7,25 @@ public sealed class EditorAutomationOptions
 {
     private const double DefaultCaptureDelaySeconds = 6.0;
 
-    public string? ProjectPath { get; private set; }
-    public string? OpenAssetPath { get; private set; }
-    public string? ActivatePanelId { get; private set; }
-    public string? ContentBrowserFolderPath { get; private set; }
-    public string? ContentBrowserScrollTarget { get; private set; }
-    public string? DockResizeTarget { get; private set; }
-    public string? DockInputDragTarget { get; private set; }
-    public string? CreateParticleAssetFolder { get; private set; }
-    public string? CreateParticlePresetName { get; private set; }
-    public string? DropParticleAssetPath { get; private set; }
-    public string? SetParticlePropertyKey { get; private set; }
-    public string? SetParticlePropertyValue { get; private set; }
+    public string ProjectPath { get; private set; }
+    public string OpenAssetPath { get; private set; }
+    public string ActivatePanelId { get; private set; }
+    public string ContentBrowserFolderPath { get; private set; }
+    public string ContentBrowserScrollTarget { get; private set; }
+    public string DockResizeTarget { get; private set; }
+    public string DockInputDragTarget { get; private set; }
+    public string CreateParticleAssetFolder { get; private set; }
+    public string CreateParticlePresetName { get; private set; }
+    public string DropParticleAssetPath { get; private set; }
+    public string SetParticlePropertyKey { get; private set; }
+    public string SetParticlePropertyValue { get; private set; }
     public bool ParticleUndoRedoSmoke { get; private set; }
-    public string? SetMaterialPropertyKey { get; private set; }
-    public string? SetMaterialPropertyValue { get; private set; }
-    public string? EntityName { get; private set; }
+    public string SetMaterialPropertyKey { get; private set; }
+    public string SetMaterialPropertyValue { get; private set; }
+    public string EntityName { get; private set; }
     public int EntityIndex { get; private set; }
-    public string? ComponentName { get; private set; }
-    public string? DiagnosticsOutputPath { get; private set; }
+    public string ComponentName { get; private set; }
+    public string DiagnosticsOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
     private bool EntityIndexSpecified { get; set; }

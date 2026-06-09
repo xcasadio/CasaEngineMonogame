@@ -11,8 +11,8 @@ public sealed class ReversibleFileOperation
     public ReversibleFileOperation(
         Func<FileOperationService, bool> redoAction,
         Func<FileOperationService, bool> undoAction,
-        IReadOnlyList<string>? selectionAfterExecute = null,
-        IReadOnlyList<string>? selectionAfterUndo = null)
+        IReadOnlyList<string> selectionAfterExecute = null,
+        IReadOnlyList<string> selectionAfterUndo = null)
     {
         ArgumentNullException.ThrowIfNull(redoAction);
         ArgumentNullException.ThrowIfNull(undoAction);

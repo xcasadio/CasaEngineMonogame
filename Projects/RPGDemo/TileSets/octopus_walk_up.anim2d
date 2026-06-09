@@ -1,4 +1,5 @@
 {
+  "animation_type": "Loop",
   "id": "49142dc9-779a-4284-ae7d-e2c0f26102cf",
   "name": "octopus_walk_up",
   "parts": [
@@ -35,12 +36,6 @@
           "value": "4faed9d1-b614-4a14-80ab-2e2a690b0da8"
         }
       ]
-    }
-  ],
-  "events": [
-    {
-      "time_seconds": 0.3,
-      "event_name": "restart"
     }
   ]
 }

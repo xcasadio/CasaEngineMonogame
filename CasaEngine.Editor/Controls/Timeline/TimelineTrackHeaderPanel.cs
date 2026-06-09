@@ -170,14 +170,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             _owner.SetSelectedLaneId(lane.Id, true);
             _owner.SetSelectedEventId(null, true);
 
-            if (!lane.IsEditable)
-            {
-                return;
-            }
-
-            MGContextMenu menu = new(_window, string.Empty);
-            menu.AddButton("Rename track", _ => BeginEdit(new LaneRowState { Lane = lane, Border = border, Label = label, TextBox = textBox }));
-            if (menu.TryOpenContextMenu(e.Position))
+            MGContextMenu? menu = _owner.CreateTrackHeaderContextMenu(lane);
+            if (menu != null && menu.TryOpenContextMenu(e.Position))
             {
                 e.SetHandledBy(menu, false);
             }

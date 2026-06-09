@@ -42,13 +42,13 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
     private readonly Queue<PendingThumbnailRequest> _pendingRequests = new();
     private readonly Queue<AssetThumbnailRenderResult> _completedResults = new();
 
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private Entity? _previewEntity;
-    private EditorSpritePreviewComponent? _previewSpriteComponent;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
-    private PendingThumbnailRequest? _activeRequest;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private Entity _previewEntity;
+    private EditorSpritePreviewComponent _previewSpriteComponent;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
+    private PendingThumbnailRequest _activeRequest;
     private bool _disposed;
 
     public SpriteSceneThumbnailRenderer(GraphicsDevice graphicsDevice, int thumbnailSize, HostedEditorGameAdapter editorRuntime)
@@ -269,7 +269,7 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
             UpdateMode = ViewUpdateMode.OnDemand,
         });
 
-        if (!_editorRuntime.GameManager.ViewManager.TryGetView(viewId, out RenderView? renderView))
+        if (!_editorRuntime.GameManager.ViewManager.TryGetView(viewId, out RenderView renderView))
         {
             throw new InvalidOperationException("The sprite thumbnail renderer could not create its offscreen render view.");
         }
@@ -280,7 +280,7 @@ internal sealed class SpriteSceneThumbnailRenderer : IAssetThumbnailRenderer
     private void CacheSpriteAsset(SpriteData spriteAsset)
     {
         Guid spriteAssetId = spriteAsset.AssetId != Guid.Empty ? spriteAsset.AssetId : spriteAsset.Id;
-        AssetInfo? assetInfo = AssetCatalog.Get(spriteAssetId);
+        AssetInfo assetInfo = AssetCatalog.Get(spriteAssetId);
         if (assetInfo != null)
         {
             spriteAsset.AssetId = assetInfo.Id;

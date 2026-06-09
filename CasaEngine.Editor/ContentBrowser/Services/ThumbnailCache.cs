@@ -14,7 +14,7 @@ using DrawingRectangle = System.Drawing.Rectangle;
 
 namespace CasaEngine.Editor.ContentBrowser.Services;
 
-public readonly record struct ThumbnailCacheResult(Texture2D? Texture, Point? SourceSize, bool IsLoaded);
+public readonly record struct ThumbnailCacheResult(Texture2D Texture, Point? SourceSize, bool IsLoaded);
 
 public sealed class ThumbnailCache : IDisposable
 {
@@ -29,7 +29,7 @@ public sealed class ThumbnailCache : IDisposable
     {
         public string Path { get; }
         public CacheEntryStatus Status { get; set; }
-        public Texture2D? Texture { get; set; }
+        public Texture2D Texture { get; set; }
         public Point? SourceSize { get; set; }
         public long LastAccessSequence { get; set; }
         public long RequestId { get; }
@@ -43,13 +43,13 @@ public sealed class ThumbnailCache : IDisposable
         }
     }
 
-    private readonly record struct PendingThumbnailLoad(long RequestId, string Path, byte[]? ImageBytes, Point? SourceSize, bool Succeeded);
+    private readonly record struct PendingThumbnailLoad(long RequestId, string Path, byte[] ImageBytes, Point? SourceSize, bool Succeeded);
 
-    private static readonly ImageCodecInfo? PngImageEncoder = ResolveImageEncoder(ImageFormat.Png);
-    private static readonly ImageCodecInfo? BmpImageEncoder = ResolveImageEncoder(ImageFormat.Bmp);
+    private static readonly ImageCodecInfo PngImageEncoder = ResolveImageEncoder(ImageFormat.Png);
+    private static readonly ImageCodecInfo BmpImageEncoder = ResolveImageEncoder(ImageFormat.Bmp);
 
-    private readonly GraphicsDevice? _graphicsDevice;
-    private readonly IReadOnlyList<IAssetThumbnailRenderer>? _assetThumbnailRenderers;
+    private readonly GraphicsDevice _graphicsDevice;
+    private readonly IReadOnlyList<IAssetThumbnailRenderer> _assetThumbnailRenderers;
     private readonly int _thumbnailSize;
     private readonly int _maxEntries;
     private readonly Dictionary<string, CacheEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
@@ -58,7 +58,7 @@ public sealed class ThumbnailCache : IDisposable
     private long _accessSequence;
     private long _nextRequestId;
 
-    public event Action<string, Texture2D, Point>? ThumbnailReady;
+    public event Action<string, Texture2D, Point> ThumbnailReady;
 
     public int EntryCount
     {
@@ -71,12 +71,12 @@ public sealed class ThumbnailCache : IDisposable
         }
     }
 
-    public ThumbnailCache(GraphicsDevice? graphicsDevice, int thumbnailSize, int maxEntries = 500)
+    public ThumbnailCache(GraphicsDevice graphicsDevice, int thumbnailSize, int maxEntries = 500)
         : this(graphicsDevice, thumbnailSize, maxEntries, null)
     {
     }
 
-    internal ThumbnailCache(GraphicsDevice? graphicsDevice, int thumbnailSize, int maxEntries, IReadOnlyList<IAssetThumbnailRenderer>? assetThumbnailRenderers)
+    internal ThumbnailCache(GraphicsDevice graphicsDevice, int thumbnailSize, int maxEntries, IReadOnlyList<IAssetThumbnailRenderer> assetThumbnailRenderers)
     {
         _graphicsDevice = graphicsDevice;
         _assetThumbnailRenderers = assetThumbnailRenderers;
@@ -84,7 +84,7 @@ public sealed class ThumbnailCache : IDisposable
         _maxEntries = Math.Max(1, maxEntries);
     }
 
-    public ThumbnailCacheResult GetOrRequest(ContentItem item, Texture2D? placeholder)
+    public ThumbnailCacheResult GetOrRequest(ContentItem item, Texture2D placeholder)
     {
         if (item == null)
         {
@@ -97,7 +97,7 @@ public sealed class ThumbnailCache : IDisposable
         }
 
         var normalizedPath = NormalizePath(item.FullPath);
-        CacheEntry? entry;
+        CacheEntry entry;
         lock (_syncRoot)
         {
             if (_entries.TryGetValue(normalizedPath, out entry))
@@ -107,7 +107,7 @@ public sealed class ThumbnailCache : IDisposable
             }
 
             var requestId = ++_nextRequestId;
-            IAssetThumbnailRenderer? assetThumbnailRenderer = ResolveAssetThumbnailRenderer(normalizedPath);
+            IAssetThumbnailRenderer assetThumbnailRenderer = ResolveAssetThumbnailRenderer(normalizedPath);
             bool usesAssetRenderer = assetThumbnailRenderer != null;
             var initialStatus = _graphicsDevice == null && !usesAssetRenderer ? CacheEntryStatus.Failed : CacheEntryStatus.Loading;
             entry = new CacheEntry(normalizedPath, initialStatus, ++_accessSequence, requestId);
@@ -183,14 +183,14 @@ public sealed class ThumbnailCache : IDisposable
         }
     }
 
-    public void Invalidate(string? path)
+    public void Invalidate(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
             return;
         }
 
-        CacheEntry? removedEntry = null;
+        CacheEntry removedEntry = null;
         lock (_syncRoot)
         {
             if (_entries.Remove(NormalizePath(path), out var entry))
@@ -302,7 +302,7 @@ public sealed class ThumbnailCache : IDisposable
         throw new InvalidOperationException("No image encoder is available for thumbnail generation.");
     }
 
-    private static ImageCodecInfo? ResolveImageEncoder(ImageFormat format)
+    private static ImageCodecInfo ResolveImageEncoder(ImageFormat format)
     {
         var encoders = ImageCodecInfo.GetImageEncoders();
         for (var index = 0; index < encoders.Length; index++)
@@ -316,7 +316,7 @@ public sealed class ThumbnailCache : IDisposable
         return null;
     }
 
-    private IAssetThumbnailRenderer? ResolveAssetThumbnailRenderer(string path)
+    private IAssetThumbnailRenderer ResolveAssetThumbnailRenderer(string path)
     {
         if (_assetThumbnailRenderers == null)
         {
@@ -337,7 +337,7 @@ public sealed class ThumbnailCache : IDisposable
 
     private void ApplyPendingLoad(PendingThumbnailLoad pendingLoad)
     {
-        Texture2D? createdTexture = null;
+        Texture2D createdTexture = null;
         try
         {
             if (_graphicsDevice != null && pendingLoad.Succeeded && pendingLoad.ImageBytes != null)
@@ -346,7 +346,7 @@ public sealed class ThumbnailCache : IDisposable
                 createdTexture = Texture2D.FromStream(_graphicsDevice, stream);
             }
 
-            CacheEntry? existingEntry;
+            CacheEntry existingEntry;
             lock (_syncRoot)
             {
                 if (!_entries.TryGetValue(pendingLoad.Path, out existingEntry)
@@ -381,7 +381,7 @@ public sealed class ThumbnailCache : IDisposable
         {
             while (_entries.Count > _maxEntries)
             {
-                CacheEntry? leastRecentlyUsed = null;
+                CacheEntry leastRecentlyUsed = null;
                 foreach (var entry in _entries.Values)
                 {
                     if (leastRecentlyUsed == null || entry.LastAccessSequence < leastRecentlyUsed.LastAccessSequence)

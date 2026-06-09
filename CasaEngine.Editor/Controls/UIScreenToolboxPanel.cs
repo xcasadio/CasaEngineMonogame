@@ -18,8 +18,8 @@ public sealed class UIScreenToolboxPanel
     private readonly MGWindow _window;
     private readonly UIControlRegistry _registry;
 
-    private MGDockPanel? _root;
-    private UIScreenDocument? _document;
+    private MGDockPanel _root;
+    private UIScreenDocument _document;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Events
@@ -29,7 +29,7 @@ public sealed class UIScreenToolboxPanel
     /// Fired when the user clicks a control button in the toolbox.
     /// The argument is the <see cref="UIControlRegistryEntry"/> to insert.
     /// </summary>
-    public event Action<UIControlRegistryEntry>? ControlRequested;
+    public event Action<UIControlRegistryEntry> ControlRequested;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -50,7 +50,7 @@ public sealed class UIScreenToolboxPanel
     //  Public API
     // ─────────────────────────────────────────────────────────────────────
 
-    public void SetDocument(UIScreenDocument? document)
+    public void SetDocument(UIScreenDocument document)
     {
         _document = document;
         UpdateButtonStates();

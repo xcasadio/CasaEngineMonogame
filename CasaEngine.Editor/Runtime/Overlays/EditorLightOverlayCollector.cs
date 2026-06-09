@@ -13,9 +13,9 @@ public sealed class EditorLightOverlayCollector
     public IReadOnlyList<EditorLightOverlayItem> Items => _items;
 
     public IReadOnlyList<EditorLightOverlayItem> Collect(
-        World? world,
-        Entity? selectedEntity,
-        EntityComponent? selectedComponent)
+        World world,
+        Entity selectedEntity,
+        EntityComponent selectedComponent)
     {
         _items.Clear();
 
@@ -33,7 +33,7 @@ public sealed class EditorLightOverlayCollector
         return _items;
     }
 
-    private void CollectEntity(Entity entity, Entity? selectedEntity, EntityComponent? selectedComponent)
+    private void CollectEntity(Entity entity, Entity selectedEntity, EntityComponent selectedComponent)
     {
         if (entity.ToBeRemoved || !entity.IsEnabled || !entity.IsVisible)
         {
@@ -47,7 +47,7 @@ public sealed class EditorLightOverlayCollector
         CollectChildEntities(entity, selectedEntity, selectedComponent);
     }
 
-    private void CollectStandaloneComponents(Entity entity, bool isSelectedEntity, EntityComponent? selectedComponent)
+    private void CollectStandaloneComponents(Entity entity, bool isSelectedEntity, EntityComponent selectedComponent)
     {
         if (entity.Components is IReadOnlyList<EntityComponent> components)
         {
@@ -69,7 +69,7 @@ public sealed class EditorLightOverlayCollector
         EntityComponent component,
         Entity entity,
         bool isSelectedEntity,
-        EntityComponent? selectedComponent)
+        EntityComponent selectedComponent)
     {
         if (ReferenceEquals(component, entity.RootComponent))
         {
@@ -89,10 +89,10 @@ public sealed class EditorLightOverlayCollector
     }
 
     private void CollectSceneComponent(
-        SceneComponent? sceneComponent,
+        SceneComponent sceneComponent,
         Entity entity,
         bool isSelectedEntity,
-        EntityComponent? selectedComponent)
+        EntityComponent selectedComponent)
     {
         if (sceneComponent == null)
         {
@@ -111,7 +111,7 @@ public sealed class EditorLightOverlayCollector
         }
     }
 
-    private void CollectChildEntities(Entity entity, Entity? selectedEntity, EntityComponent? selectedComponent)
+    private void CollectChildEntities(Entity entity, Entity selectedEntity, EntityComponent selectedComponent)
     {
         if (entity.Children is IReadOnlyList<Entity> children)
         {
@@ -133,7 +133,7 @@ public sealed class EditorLightOverlayCollector
         Entity entity,
         LightComponent lightComponent,
         bool isSelectedEntity,
-        EntityComponent? selectedComponent)
+        EntityComponent selectedComponent)
     {
         bool isSelectedLight = ReferenceEquals(lightComponent, selectedComponent);
         bool isSelected = isSelectedLight || (selectedComponent == null && isSelectedEntity);

@@ -29,13 +29,13 @@ public sealed class EntityAssetEditorPanel : IDisposable
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
     private readonly PreviewWorldDriver _previewWorldDriver;
 
-    private WorldViewportPanel? _viewportPanel;
-    private MGElement? _viewportContent;
-    private Entity? _selectedEntity;
-    private EntityComponent? _selectedComponent;
-    private Entity? _entity;
-    private string? _loadedRelativePath;
-    private string? _historyContextId;
+    private WorldViewportPanel _viewportPanel;
+    private MGElement _viewportContent;
+    private Entity _selectedEntity;
+    private EntityComponent _selectedComponent;
+    private Entity _entity;
+    private string _loadedRelativePath;
+    private string _historyContextId;
 
     internal EntityAssetEditorPanel(
         MGWindow window,
@@ -54,13 +54,13 @@ public sealed class EntityAssetEditorPanel : IDisposable
         });
     }
 
-    public Entity? LoadedEntity => _entity;
+    public Entity LoadedEntity => _entity;
 
-    public Entity? SelectedEntity => _selectedEntity ?? _entity;
+    public Entity SelectedEntity => _selectedEntity ?? _entity;
 
-    public EntityComponent? SelectedComponent => _selectedComponent;
+    public EntityComponent SelectedComponent => _selectedComponent;
 
-    public string? LoadedRelativePath => _loadedRelativePath;
+    public string LoadedRelativePath => _loadedRelativePath;
 
     public EditorHistoryContext HistoryContext => string.IsNullOrWhiteSpace(_historyContextId)
         ? EditorHistoryContext.Empty
@@ -68,9 +68,9 @@ public sealed class EntityAssetEditorPanel : IDisposable
 
     public bool IsDirty => TryGetHistoryContext(out var historyContext) && EditorDirtyStateService.Current.IsDirty(historyContext);
 
-    public event Action<Entity?>? SelectedEntityChanged;
+    public event Action<Entity> SelectedEntityChanged;
 
-    public event Action<EntityComponent?>? SelectedComponentChanged;
+    public event Action<EntityComponent> SelectedComponentChanged;
 
     public MGElement CreateContent()
     {
@@ -136,7 +136,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         return true;
     }
 
-    public bool TrySaveLoadedAsset(out string? errorMessage)
+    public bool TrySaveLoadedAsset(out string errorMessage)
     {
         errorMessage = null;
 
@@ -171,7 +171,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
     }
 
-    public void SetSelectedComponent(EntityComponent? component)
+    public void SetSelectedComponent(EntityComponent component)
     {
         if (component != null && !ContainsEntity(component.Owner))
         {
@@ -181,12 +181,12 @@ public sealed class EntityAssetEditorPanel : IDisposable
         SetSelection(component?.Owner ?? SelectedEntity, component);
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         SetSelection(entity, _selectedComponent);
     }
 
-    public void FocusEntity(Entity? entity)
+    public void FocusEntity(Entity entity)
     {
         _viewportPanel?.FocusEntity(entity);
     }
@@ -339,7 +339,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         _viewportPanel.SetSelectedTransformable(transformable);
     }
 
-    private ITransformableObject? GetSelectedTransformable()
+    private ITransformableObject GetSelectedTransformable()
     {
         if (_selectedComponent is SceneComponent sceneComponent)
         {
@@ -349,7 +349,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         return _selectedComponent == null ? SelectedEntity?.RootComponent : null;
     }
 
-    private void OnViewportSelectedEntityChanged(Entity? entity)
+    private void OnViewportSelectedEntityChanged(Entity entity)
     {
         if (_entity == null)
         {
@@ -368,9 +368,9 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
     }
 
-    private void SetSelection(Entity? entity, EntityComponent? component)
+    private void SetSelection(Entity entity, EntityComponent component)
     {
-        Entity? normalizedEntity = NormalizeSelectedEntity(entity);
+        Entity normalizedEntity = NormalizeSelectedEntity(entity);
         if (component != null && !ReferenceEquals(component.Owner, normalizedEntity))
         {
             component = null;
@@ -398,7 +398,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         }
     }
 
-    private Entity? NormalizeSelectedEntity(Entity? entity)
+    private Entity NormalizeSelectedEntity(Entity entity)
     {
         if (_entity == null)
         {
@@ -413,7 +413,7 @@ public sealed class EntityAssetEditorPanel : IDisposable
         return entity;
     }
 
-    private bool ContainsEntity(Entity? entity)
+    private bool ContainsEntity(Entity entity)
     {
         if (_entity == null || entity == null)
         {
@@ -453,14 +453,14 @@ public sealed class EntityAssetEditorPanel : IDisposable
         return true;
     }
 
-    private static string DescribeEntity(Entity? entity)
+    private static string DescribeEntity(Entity entity)
     {
         return entity == null
             ? "<null>"
             : $"'{entity.Name}'";
     }
 
-    private static string DescribeComponent(EntityComponent? component)
+    private static string DescribeComponent(EntityComponent component)
     {
         if (component == null)
         {

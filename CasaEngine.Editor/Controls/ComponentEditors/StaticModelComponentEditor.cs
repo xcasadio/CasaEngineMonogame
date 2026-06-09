@@ -17,7 +17,7 @@ public sealed class StaticModelComponentEditor : TransformComponentEditor
 
     private StaticModelComponent StaticModelComponent => (StaticModelComponent)Component;
 
-    public StaticModelComponentEditor(MGWindow window, StaticModelComponent component, Action? refreshRequested = null)
+    public StaticModelComponentEditor(MGWindow window, StaticModelComponent component, Action refreshRequested = null)
         : base(window, component, refreshRequested)
     {
     }

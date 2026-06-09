@@ -54,9 +54,9 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
 
         public Rectangle ScreenBounds => _getScreenBounds();
 
-        public event Action<IViewHost, int, int>? Resized;
+        public event Action<IViewHost, int, int> Resized;
 
-        public event Action<IViewHost>? Closed;
+        public event Action<IViewHost> Closed;
 
         public void NotifyResized(int newWidth, int newHeight)
         {
@@ -81,37 +81,37 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
     private readonly PreviewWorldDriver _previewWorldDriver;
 
-    private MGStackPanel? _root;
-    private MGTextBlock? _titleText;
-    private MGTextBlock? _sourceText;
-    private MGTextBlock? _statusText;
-    private MGTextBlock? _metricsText;
-    private MGDockPanel? _viewportHost;
-    private MGImage? _viewportImage;
-    private MGButton? _playPauseButton;
-    private MGButton? _modeButton;
-    private MGCheckBox? _loopCheckBox;
-    private MGCheckBox? _rootMotionApplyCheckBox;
-    private MGSlider? _speedSlider;
-    private MGSlider? _blendWeightSlider;
+    private MGStackPanel _root;
+    private MGTextBlock _titleText;
+    private MGTextBlock _sourceText;
+    private MGTextBlock _statusText;
+    private MGTextBlock _metricsText;
+    private MGDockPanel _viewportHost;
+    private MGImage _viewportImage;
+    private MGButton _playPauseButton;
+    private MGButton _modeButton;
+    private MGCheckBox _loopCheckBox;
+    private MGCheckBox _rootMotionApplyCheckBox;
+    private MGSlider _speedSlider;
+    private MGSlider _blendWeightSlider;
 
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private MguiPreviewViewHost? _renderViewHost;
-    private Texture2D? _boundTexture;
-    private Entity? _previewEntity;
-    private SkinnedMeshComponent? _skinnedMeshComponent;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private MguiPreviewViewHost _renderViewHost;
+    private Texture2D _boundTexture;
+    private Entity _previewEntity;
+    private SkinnedMeshComponent _skinnedMeshComponent;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
 
-    private AnimationClipAsset? _animationClipAsset;
-    private string? _loadedRelativePath;
-    private AssetInfo? _resolvedPreviewMeshAssetInfo;
-    private AnimationClip? _selectedClip;
-    private AnimationClip? _blendReferenceClip;
-    private AnimationClipNode? _selectedClipNode;
-    private AnimationClipNode? _blendReferenceClipNode;
-    private LinearBlendAnimationNode? _linearBlendNode;
+    private AnimationClipAsset _animationClipAsset;
+    private string _loadedRelativePath;
+    private AssetInfo _resolvedPreviewMeshAssetInfo;
+    private AnimationClip _selectedClip;
+    private AnimationClip _blendReferenceClip;
+    private AnimationClipNode _selectedClipNode;
+    private AnimationClipNode _blendReferenceClipNode;
+    private LinearBlendAnimationNode _linearBlendNode;
     private PreviewMode _previewMode;
     private bool _isPlaying = true;
     private bool _isLooping = true;
@@ -139,9 +139,9 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         });
     }
 
-    public string? LoadedRelativePath => _loadedRelativePath;
+    public string LoadedRelativePath => _loadedRelativePath;
 
-    public AnimationClipAsset? LoadedAnimationClipAsset => _animationClipAsset;
+    public AnimationClipAsset LoadedAnimationClipAsset => _animationClipAsset;
 
     public MGElement CreateContent()
     {
@@ -629,9 +629,9 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         _skinnedMeshComponent.SkinnedMesh = null;
     }
 
-    private AssetInfo? ResolvePreviewMeshAsset(AnimationClipAsset animationClipAsset)
+    private AssetInfo ResolvePreviewMeshAsset(AnimationClipAsset animationClipAsset)
     {
-        AssetInfo? bestMatch = null;
+        AssetInfo bestMatch = null;
         Guid currentClipId = animationClipAsset.AssetId != Guid.Empty ? animationClipAsset.AssetId : animationClipAsset.Id;
 
         foreach (var assetInfo in AssetCatalog.AssetInfos)
@@ -671,7 +671,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         return bestMatch;
     }
 
-    private AnimationClip? ResolveBlendReferenceClip(Guid selectedClipAssetId)
+    private AnimationClip ResolveBlendReferenceClip(Guid selectedClipAssetId)
     {
         if (_skinnedMeshComponent?.SkinnedMesh == null)
         {
@@ -958,7 +958,7 @@ internal sealed class AnimationClipPreviewPanel : IDisposable
         }
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         int width = Math.Max(64, e.NewValue.Width);
         int height = Math.Max(64, e.NewValue.Height);

@@ -45,7 +45,7 @@ public class LogsPanel
     private MGListBox<LogEntry> _listBox = null!;
     private MGComboBox<string> _filterCombo = null!;
     private MGButton _copyAllButton = null!;
-    private MGElement? _rootContent;
+    private MGElement _rootContent;
     private bool _isSubscribed;
 
     private LogVerbosity? _activeFilter; // null = show all
@@ -218,7 +218,7 @@ public class LogsPanel
     // Event handlers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void OnEntryAdded(object? sender, LogEntry entry)
+    private void OnEntryAdded(object sender, LogEntry entry)
     {
         if (PassesFilter(entry))
         {
@@ -226,7 +226,7 @@ public class LogsPanel
         }
     }
 
-    private void OnFilterChanged(object? sender, EventArgs<string> e)
+    private void OnFilterChanged(object sender, EventArgs<string> e)
     {
         _activeFilter = _filterCombo.SelectedItem == FilterAll
             ? null
@@ -234,7 +234,7 @@ public class LogsPanel
         RefreshList();
     }
 
-    private void OnListBoxRightClick(object? sender, BaseMouseReleasedEventArgs e)
+    private void OnListBoxRightClick(object sender, BaseMouseReleasedEventArgs e)
     {
         if (e.IsHandled || !TryGetEntryAtPosition(e.Position, out var entry))
         {

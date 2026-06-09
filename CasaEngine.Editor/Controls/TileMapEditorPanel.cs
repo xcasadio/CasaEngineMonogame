@@ -97,18 +97,18 @@ internal sealed class TileMapEditorPanel : IDisposable
     private readonly List<Texture2D> _tileSetTextures = new();
     private readonly List<bool> _layerVisibility = new();
 
-    private MGDockPanel? _root;
-    private MGDockPanel? _viewportHost;
-    private MGImage? _viewportImage;
-    private MGTextBlock? _statusText;
-    private MGCheckBox? _showCollisionCheckBox;
-    private SpriteBatch? _spriteBatch;
-    private RenderTarget2D? _renderTarget;
-    private Texture2D? _whitePixel;
-    private Texture2D? _boundTexture;
-    private AnimatedCellState?[] _animatedCells = Array.Empty<AnimatedCellState?>();
-    private TileMapData? _tileMapData;
-    private string? _loadedRelativePath;
+    private MGDockPanel _root;
+    private MGDockPanel _viewportHost;
+    private MGImage _viewportImage;
+    private MGTextBlock _statusText;
+    private MGCheckBox _showCollisionCheckBox;
+    private SpriteBatch _spriteBatch;
+    private RenderTarget2D _renderTarget;
+    private Texture2D _whitePixel;
+    private Texture2D _boundTexture;
+    private AnimatedCellState[] _animatedCells = Array.Empty<AnimatedCellState>();
+    private TileMapData _tileMapData;
+    private string _loadedRelativePath;
     private string _statusMessage = "Open a .tileMap asset from the Content Browser.";
     private Vector2 _cameraOffset = new(24f, 24f);
     private Vector2 _dragStartCameraOffset;
@@ -128,13 +128,13 @@ internal sealed class TileMapEditorPanel : IDisposable
         _editorRuntime = editorRuntime;
     }
 
-    public TileMapData? LoadedTileMap => _tileMapData;
-    public string? LoadedRelativePath => _loadedRelativePath;
+    public TileMapData LoadedTileMap => _tileMapData;
+    public string LoadedRelativePath => _loadedRelativePath;
     public int SelectedLayerIndex => _selectedLayerIndex;
 
-    public TileMapLayerData? SelectedLayer => _tileMapData != null
-        && _selectedLayerIndex >= 0
-        && _selectedLayerIndex < _tileMapData.Layers.Count
+    public TileMapLayerData SelectedLayer => _tileMapData != null
+                                             && _selectedLayerIndex >= 0
+                                             && _selectedLayerIndex < _tileMapData.Layers.Count
             ? _tileMapData.Layers[_selectedLayerIndex]
             : null;
 
@@ -158,8 +158,8 @@ internal sealed class TileMapEditorPanel : IDisposable
         }
     }
 
-    public event Action? LayersChanged;
-    public event Action<int>? SelectedLayerChanged;
+    public event Action LayersChanged;
+    public event Action<int> SelectedLayerChanged;
 
     public MGElement CreateContent()
     {
@@ -491,7 +491,7 @@ internal sealed class TileMapEditorPanel : IDisposable
 
     private void RebuildAnimatedCells()
     {
-        _animatedCells = Array.Empty<AnimatedCellState?>();
+        _animatedCells = Array.Empty<AnimatedCellState>();
         if (_tileMapData == null || _tileMapData.Layers.Count == 0)
         {
             return;
@@ -756,7 +756,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         return sourceRectangle.Width > 0 && sourceRectangle.Height > 0;
     }
 
-    private bool TryGetTileData(TileMapLayerData layer, int tileIndex, out TileData? tileData)
+    private bool TryGetTileData(TileMapLayerData layer, int tileIndex, out TileData tileData)
     {
         tileData = null;
         if (tileIndex < 0 || tileIndex >= layer.tiles.Count)
@@ -840,7 +840,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         }
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         var width = Math.Max(64, e.NewValue.Width);
         var height = Math.Max(64, e.NewValue.Height);
@@ -854,7 +854,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         _needsRender = true;
     }
 
-    private void OnViewportDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    private void OnViewportDragStart(object sender, BaseMouseDragStartEventArgs e)
     {
         if (!e.IsLMB && !e.IsMMB)
         {
@@ -866,7 +866,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         e.SetHandledBy(_viewportHost ?? sender as IMouseHandlerHost);
     }
 
-    private void OnViewportDragged(object? sender, BaseMouseDraggedEventArgs e)
+    private void OnViewportDragged(object sender, BaseMouseDraggedEventArgs e)
     {
         if (!_isPanning || (!e.IsLMB && !e.IsMMB))
         {
@@ -878,7 +878,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         _needsRender = true;
     }
 
-    private void OnViewportDragEnd(object? sender, BaseMouseDragEndEventArgs e)
+    private void OnViewportDragEnd(object sender, BaseMouseDragEndEventArgs e)
     {
         if (!e.IsLMB && !e.IsMMB)
         {
@@ -888,7 +888,7 @@ internal sealed class TileMapEditorPanel : IDisposable
         _isPanning = false;
     }
 
-    private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    private void OnViewportScrolled(object sender, BaseMouseScrolledEventArgs e)
     {
         if (e.ScrollWheelDelta == 0 || _viewportHost == null || _viewportHost.Parent == null)
         {

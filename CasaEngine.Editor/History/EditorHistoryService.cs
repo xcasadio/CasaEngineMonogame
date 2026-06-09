@@ -11,13 +11,13 @@ public sealed class EditorHistoryService
     private readonly Dictionary<EditorHistoryContext, EditorHistoryStack> _stacks = new();
     private readonly Dictionary<EditorHistoryStack, EditorHistoryContext> _stackContexts = new();
     private EditorHistoryContext _activeContext = EditorHistoryContext.Empty;
-    private EditorHistoryStack? _activeStack;
+    private EditorHistoryStack _activeStack;
 
-    public event Action<EditorHistoryContext>? ActiveContextChanged;
+    public event Action<EditorHistoryContext> ActiveContextChanged;
 
-    public event Action? ActiveHistoryChanged;
+    public event Action ActiveHistoryChanged;
 
-    public event EventHandler<EditorHistoryChangedEventArgs>? HistoryChanged;
+    public event EventHandler<EditorHistoryChangedEventArgs> HistoryChanged;
 
     public EditorHistoryContext ActiveContext => _activeContext;
 
@@ -27,9 +27,9 @@ public sealed class EditorHistoryService
 
     public bool CanRedo => _activeStack?.CanRedo == true;
 
-    public string? UndoDescription => _activeStack?.UndoDescription;
+    public string UndoDescription => _activeStack?.UndoDescription;
 
-    public string? RedoDescription => _activeStack?.RedoDescription;
+    public string RedoDescription => _activeStack?.RedoDescription;
 
     private EditorHistoryService()
     {
@@ -54,7 +54,7 @@ public sealed class EditorHistoryService
         return stack;
     }
 
-    public bool TryGet(EditorHistoryContext context, out EditorHistoryStack? stack)
+    public bool TryGet(EditorHistoryContext context, out EditorHistoryStack stack)
     {
         if (context.IsEmpty)
         {
@@ -113,7 +113,7 @@ public sealed class EditorHistoryService
     public void BeginTransaction(EditorHistoryContext context, string description)
         => GetOrCreate(context).BeginTransaction(description);
 
-    public void CommitTransaction(EditorHistoryContext context, string? description = null)
+    public void CommitTransaction(EditorHistoryContext context, string description = null)
     {
         if (TryGet(context, out var stack))
         {
@@ -205,7 +205,7 @@ public sealed class EditorHistoryService
         _activeStack = null;
     }
 
-    private void OnStackChanged(object? sender, EditorHistoryStackChangedEventArgs e)
+    private void OnStackChanged(object sender, EditorHistoryStackChangedEventArgs e)
     {
         if (sender is not EditorHistoryStack stack || !_stackContexts.TryGetValue(stack, out var context))
         {

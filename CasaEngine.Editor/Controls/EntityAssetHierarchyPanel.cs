@@ -17,12 +17,12 @@ public sealed class EntityAssetHierarchyPanel
     private readonly HashSet<Guid> _expandedEntityIds = [];
     private readonly HashSet<Entity> _observedEntities = [];
 
-    private MGDockPanel? _root;
-    private MGTreeView? _treeView;
-    private MGTextBlock? _summaryText;
-    private MGTreeViewItem? _rootEntityItem;
-    private EntityAssetEditorPanel? _editorPanel;
-    private Entity? _observedRootEntity;
+    private MGDockPanel _root;
+    private MGTreeView _treeView;
+    private MGTextBlock _summaryText;
+    private MGTreeViewItem _rootEntityItem;
+    private EntityAssetEditorPanel _editorPanel;
+    private Entity _observedRootEntity;
     private bool _suppressSelectionChanged;
 
     public EntityAssetHierarchyPanel(MGWindow window)
@@ -61,7 +61,7 @@ public sealed class EntityAssetHierarchyPanel
         return _root;
     }
 
-    public void SetEditorPanel(EntityAssetEditorPanel? editorPanel)
+    public void SetEditorPanel(EntityAssetEditorPanel editorPanel)
     {
         if (ReferenceEquals(_editorPanel, editorPanel))
         {
@@ -91,12 +91,12 @@ public sealed class EntityAssetHierarchyPanel
         ApplySelection(_editorPanel?.SelectedEntity ?? _editorPanel?.LoadedEntity);
     }
 
-    private void OnSelectedEntityChanged(Entity? entity)
+    private void OnSelectedEntityChanged(Entity entity)
     {
         ApplySelection(entity);
     }
 
-    private void OnTreeSelectionChanged(object? sender, MGTreeViewItem? item)
+    private void OnTreeSelectionChanged(object sender, MGTreeViewItem item)
     {
         if (_suppressSelectionChanged || _editorPanel == null)
         {
@@ -108,7 +108,7 @@ public sealed class EntityAssetHierarchyPanel
             : _editorPanel.LoadedEntity);
     }
 
-    private void OnTreeItemExpanded(object? sender, MGTreeViewItem item)
+    private void OnTreeItemExpanded(object sender, MGTreeViewItem item)
     {
         if (_itemToEntity.TryGetValue(item, out var entity))
         {
@@ -116,7 +116,7 @@ public sealed class EntityAssetHierarchyPanel
         }
     }
 
-    private void OnTreeItemCollapsed(object? sender, MGTreeViewItem item)
+    private void OnTreeItemCollapsed(object sender, MGTreeViewItem item)
     {
         if (_itemToEntity.TryGetValue(item, out var entity))
         {
@@ -149,7 +149,7 @@ public sealed class EntityAssetHierarchyPanel
         UpdateSummary(entity);
     }
 
-    private void ApplySelection(Entity? entity)
+    private void ApplySelection(Entity entity)
     {
         if (_treeView == null)
         {
@@ -243,7 +243,7 @@ public sealed class EntityAssetHierarchyPanel
         return header;
     }
 
-    private void UpdateSummary(Entity? entity)
+    private void UpdateSummary(Entity entity)
     {
         if (_summaryText == null)
         {
@@ -260,7 +260,7 @@ public sealed class EntityAssetHierarchyPanel
         _summaryText.SetText($"{entityCount} entit{(entityCount == 1 ? "y" : "ies")}");
     }
 
-    private void AttachEntityTree(Entity? entity)
+    private void AttachEntityTree(Entity entity)
     {
         if (ReferenceEquals(_observedRootEntity, entity))
         {
@@ -323,21 +323,21 @@ public sealed class EntityAssetHierarchyPanel
         }
     }
 
-    private void OnEntityChildAdded(object? sender, Entity child)
+    private void OnEntityChildAdded(object sender, Entity child)
     {
         SubscribeEntityTree(child);
         RebuildTree();
         ApplySelection(_editorPanel?.SelectedEntity ?? _editorPanel?.LoadedEntity);
     }
 
-    private void OnEntityChildRemoved(object? sender, Entity child)
+    private void OnEntityChildRemoved(object sender, Entity child)
     {
         UnsubscribeEntityTree(child);
         RebuildTree();
         ApplySelection(_editorPanel?.SelectedEntity ?? _editorPanel?.LoadedEntity);
     }
 
-    private void OnEntityNameChanged(object? sender, EntityNameChangedEventArgs e)
+    private void OnEntityNameChanged(object sender, EntityNameChangedEventArgs e)
     {
         RebuildTree();
         ApplySelection(_editorPanel?.SelectedEntity ?? _editorPanel?.LoadedEntity);

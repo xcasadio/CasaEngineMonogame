@@ -19,7 +19,7 @@ public class Program
                 ? Path.GetFullPath(automationOptions.DiagnosticsOutputPath)
                 : Path.Combine(Environment.CurrentDirectory, "editor-automation-error.txt");
 
-            string? outputDirectory = Path.GetDirectoryName(outputPath);
+            string outputDirectory = Path.GetDirectoryName(outputPath);
             if (!string.IsNullOrWhiteSpace(outputDirectory))
             {
                 Directory.CreateDirectory(outputDirectory);

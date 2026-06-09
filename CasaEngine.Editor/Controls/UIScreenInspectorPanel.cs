@@ -23,27 +23,27 @@ public sealed class UIScreenInspectorPanel
     private readonly MGWindow _window;
     private readonly UIScreenSelectionService _selection;
     private readonly UIPropertyRegistry _registry;
-    private UICommandStack? _commandStack;
+    private UICommandStack _commandStack;
 
-    private MGDockPanel? _root;
-    private MGStackPanel? _propertiesStack;
-    private MGTextBlock? _statusText;
-    private MGTextBox? _nameEditor;
+    private MGDockPanel _root;
+    private MGStackPanel _propertiesStack;
+    private MGTextBlock _statusText;
+    private MGTextBox _nameEditor;
     private bool _hasDesktopFocusSubscription;
 
-    private UIScreenDocument? _document;
+    private UIScreenDocument _document;
     private bool _refreshPending;
     private bool _suppressEditorEvents;
 
-    private MGTextBox? _activeTextTransactionEditor;
-    private UIScreenNode? _activeTextTransactionNode;
-    private string? _activeTextTransactionPropertyName;
-    private string? _activeTextTransactionInitialValue;
-    private string? _activeTextTransactionDescription;
+    private MGTextBox _activeTextTransactionEditor;
+    private UIScreenNode _activeTextTransactionNode;
+    private string _activeTextTransactionPropertyName;
+    private string _activeTextTransactionInitialValue;
+    private string _activeTextTransactionDescription;
 
     // R-05: track last node to skip full rebuild on same-node re-selection
     private DocumentNodeId? _lastRenderedNodeId;
-    private string? _lastRenderedControlType;
+    private string _lastRenderedControlType;
 
     private readonly List<(MGTextBox Editor, UIPropertyDescriptor Descriptor, MGTextBlock ErrorLabel)> _editors = new();
 
@@ -52,14 +52,14 @@ public sealed class UIScreenInspectorPanel
     // ─────────────────────────────────────────────────────────────────────
 
     /// <summary>Fired when a property is successfully changed in the document.</summary>
-    public event Action<UIScreenDocument>? DocumentModified;
+    public event Action<UIScreenDocument> DocumentModified;
 
     /// <summary>
     /// Fired when a single property is changed.
     /// Args: document, nodeId, propertyName, newSerializedValue.
     /// Use this for the incremental preview update path (R-01).
     /// </summary>
-    public event Action<UIScreenDocument, DocumentNodeId, string, string?>? PropertyModified;
+    public event Action<UIScreenDocument, DocumentNodeId, string, string> PropertyModified;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Constructor
@@ -89,7 +89,7 @@ public sealed class UIScreenInspectorPanel
     //  Public API
     // ─────────────────────────────────────────────────────────────────────
 
-    public void SetDocument(UIScreenDocument? document)
+    public void SetDocument(UIScreenDocument document)
     {
         FinalizeActiveTextTransaction();
         _document = document;
@@ -282,7 +282,7 @@ public sealed class UIScreenInspectorPanel
         _propertiesStack.TryAddChild(BuildNameRow(node));
 
         // Grouped property rows
-        string? lastCategory = null;
+        string lastCategory = null;
         foreach (var desc in _registry.GetDescriptors(node.ControlType))
         {
             if (!string.Equals(desc.Category, lastCategory, StringComparison.Ordinal))
@@ -456,7 +456,7 @@ public sealed class UIScreenInspectorPanel
         };
     }
 
-    private void ApplyNodeNameChange(UIScreenNode node, MGTextBox editor, string? newName)
+    private void ApplyNodeNameChange(UIScreenNode node, MGTextBox editor, string newName)
     {
         if (_commandStack != null)
         {
@@ -472,9 +472,9 @@ public sealed class UIScreenInspectorPanel
         }
     }
 
-    private void ApplyPropertyChange(UIScreenNode node, UIPropertyDescriptor descriptor, MGTextBox editor, string? serializedValue)
+    private void ApplyPropertyChange(UIScreenNode node, UIPropertyDescriptor descriptor, MGTextBox editor, string serializedValue)
     {
-        string? currentValue = node.Properties.TryGetValue(descriptor.Name, out var property)
+        string currentValue = node.Properties.TryGetValue(descriptor.Name, out var property)
             ? property.SerializedValue
             : null;
         if (string.Equals(currentValue, serializedValue, StringComparison.Ordinal))
@@ -498,7 +498,7 @@ public sealed class UIScreenInspectorPanel
         }
     }
 
-    private void EnsureTextTransaction(MGTextBox editor, UIScreenNode node, string? propertyName, string? initialValue, string description)
+    private void EnsureTextTransaction(MGTextBox editor, UIScreenNode node, string propertyName, string initialValue, string description)
     {
         if (_commandStack == null)
         {
@@ -533,7 +533,7 @@ public sealed class UIScreenInspectorPanel
             return;
         }
 
-        string? currentValue = GetCurrentTransactionValue();
+        string currentValue = GetCurrentTransactionValue();
         bool hasChanged = !string.Equals(currentValue, _activeTextTransactionInitialValue, StringComparison.Ordinal);
 
         if (hasChanged)
@@ -556,7 +556,7 @@ public sealed class UIScreenInspectorPanel
         ClearTextTransaction();
     }
 
-    private string? GetCurrentTransactionValue()
+    private string GetCurrentTransactionValue()
     {
         if (_activeTextTransactionNode == null)
         {
@@ -582,7 +582,7 @@ public sealed class UIScreenInspectorPanel
         _activeTextTransactionDescription = null;
     }
 
-    private void OnFocusedKeyboardHandlerChanged(object? sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
+    private void OnFocusedKeyboardHandlerChanged(object sender, MGUI.Shared.Helpers.EventArgs<MGElement> e)
     {
         if (_activeTextTransactionEditor != null
             && ReferenceEquals(e.PreviousValue, _activeTextTransactionEditor)
@@ -596,7 +596,7 @@ public sealed class UIScreenInspectorPanel
     //  Validation
     // ─────────────────────────────────────────────────────────────────────
 
-    private static string? Validate(string value, Type type)
+    private static string Validate(string value, Type type)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

@@ -74,6 +74,12 @@ internal class TimelineControl : MGGrid
 
     public event Action<TimelineEvent>? DeleteRequested;
 
+    public event Action<TimelineEvent>? CopyRequested;
+
+    public event Action<TimelineLane, float>? PasteRequested;
+
+    public event Action<TimelineLane, string>? TrackRenameRequested;
+
     public event Action<TimelineLane, string>? LaneLabelEditCommitted;
 
     public TimelineControl(MGWindow window)
@@ -297,6 +303,13 @@ internal class TimelineControl : MGGrid
             }
         }
 
+        float viewportWidth = _viewport.GetVisibleTimeAreaWidth();
+        if (viewportWidth > 0f)
+        {
+            float visibleEndSeconds = ViewTransform.ViewportXToTime(viewportWidth);
+            timelineEndSeconds = Math.Max(timelineEndSeconds, visibleEndSeconds);
+        }
+
         return timelineEndSeconds > 0f ? timelineEndSeconds : 1f;
     }
 
@@ -407,6 +420,17 @@ internal class TimelineControl : MGGrid
         EventTimeEditCommitted?.Invoke(timelineEvent, actualTime);
     }
 
+    internal void DuplicateDraggedEvent(Guid eventId, float timeSeconds)
+    {
+        TimelineEvent? timelineEvent = FindEvent(eventId);
+        if (timelineEvent == null || !timelineEvent.IsEditable)
+        {
+            return;
+        }
+
+        DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+    }
+
     internal bool TryInsertAtSelectedLane(float timeSeconds)
     {
         TimelineLane? lane = GetSelectedLane();
@@ -443,6 +467,30 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
+    internal bool TryCopySelectedEvent()
+    {
+        TimelineEvent? selectedEvent = GetSelectedEvent();
+        if (selectedEvent == null || !selectedEvent.IsEditable)
+        {
+            return false;
+        }
+
+        CopyRequested?.Invoke(selectedEvent);
+        return true;
+    }
+
+    internal bool TryPasteToSelectedLane(float timeSeconds)
+    {
+        TimelineLane? lane = GetSelectedLane();
+        if (lane == null || !lane.IsEditable)
+        {
+            return false;
+        }
+
+        PasteRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        return true;
+    }
+
     internal virtual MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
     {
         if (ParentWindow == null)
@@ -468,9 +516,38 @@ internal class TimelineControl : MGGrid
             }
 
             string itemLabel = string.IsNullOrWhiteSpace(timelineEvent.EventType) ? "item" : timelineEvent.EventType;
+            menu.AddButton($"Copy {itemLabel}", _ => CopyRequested?.Invoke(timelineEvent));
             menu.AddButton($"Duplicate {itemLabel} at cursor", _ => DuplicateRequested?.Invoke(timelineEvent, actualCursorTime));
             menu.AddButton($"Duplicate {itemLabel} at playhead", _ => DuplicateRequested?.Invoke(timelineEvent, CurrentTimeSeconds));
             menu.AddButton($"Delete {itemLabel}", _ => DeleteRequested?.Invoke(timelineEvent));
+        }
+
+        if (lane != null && lane.IsEditable)
+        {
+            if (menu.Items.Count > 0)
+            {
+                menu.AddSeparator();
+            }
+
+            menu.AddButton($"Paste on {lane.Label} at cursor", _ => PasteRequested?.Invoke(lane, actualCursorTime));
+            menu.AddButton($"Paste on {lane.Label} at playhead", _ => PasteRequested?.Invoke(lane, CurrentTimeSeconds));
+        }
+
+        return menu.Items.Count > 0 ? menu : null;
+    }
+
+    internal virtual MGContextMenu? CreateTrackHeaderContextMenu(TimelineLane lane)
+    {
+        if (ParentWindow == null)
+        {
+            return null;
+        }
+
+        MGContextMenu menu = new(ParentWindow, string.Empty);
+        if (lane.IsEditable)
+        {
+            menu.AddButton("Rename track", _ => TrackRenameRequested?.Invoke(lane, lane.Label));
+            menu.AddButton("Paste on track at playhead", _ => PasteRequested?.Invoke(lane, CurrentTimeSeconds));
         }
 
         return menu.Items.Count > 0 ? menu : null;
@@ -650,6 +727,16 @@ internal class TimelineControl : MGGrid
         if (controlDown && key == Keys.D)
         {
             return TryDuplicateSelectedEvent(CurrentTimeSeconds);
+        }
+
+        if (controlDown && key == Keys.C)
+        {
+            return TryCopySelectedEvent();
+        }
+
+        if (controlDown && key == Keys.V)
+        {
+            return TryPasteToSelectedLane(CurrentTimeSeconds);
         }
 
         switch (key)

@@ -7,7 +7,7 @@ namespace CasaEngine.Editor.ContentBrowser;
 
 public static class ContentItemDisplay
 {
-    public static Texture2D? GetIcon(ContentBrowserConfig? config, ContentItemType type)
+    public static Texture2D GetIcon(ContentBrowserConfig config, ContentItemType type)
     {
         if (config != null && config.CustomIcons.TryGetValue(type, out var customIcon) && customIcon != null)
         {

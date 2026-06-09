@@ -70,13 +70,13 @@ public class ContentBrowserPanel
 
     private sealed class ContentBrowserViewState
     {
-        public ContentBrowserViewState(string? folderPath, IReadOnlyList<string> selectionPaths)
+        public ContentBrowserViewState(string folderPath, IReadOnlyList<string> selectionPaths)
         {
             FolderPath = folderPath;
             SelectionPaths = selectionPaths;
         }
 
-        public string? FolderPath { get; }
+        public string FolderPath { get; }
 
         public IReadOnlyList<string> SelectionPaths { get; }
     }
@@ -111,7 +111,7 @@ public class ContentBrowserPanel
 
         public MGContentPresenter PreviewPresenter { get; }
 
-        public MGImage? PreviewImage { get; set; }
+        public MGImage PreviewImage { get; set; }
 
         public MGTextBlock NameText { get; }
 
@@ -125,9 +125,9 @@ public class ContentBrowserPanel
 
         public MGTextBlock ModifiedText { get; }
 
-        public string? RegisteredPreviewPath { get; set; }
+        public string RegisteredPreviewPath { get; set; }
 
-        public string? RegisteredDimensionPath { get; set; }
+        public string RegisteredDimensionPath { get; set; }
     }
 
     private sealed class ExecutedContentBrowserCommand : IEditorCommand
@@ -197,24 +197,24 @@ public class ContentBrowserPanel
     private string _pendingOperationWarning = string.Empty;
     private readonly ContentContextMenu _contextMenu;
     private readonly InlineRenameOverlay _inlineRenameOverlay;
-    private string? _pendingCurrentFolderPath;
-    private List<string>? _pendingSelectionPaths;
+    private string _pendingCurrentFolderPath;
+    private List<string> _pendingSelectionPaths;
     private readonly List<string> _clipboardPaths = new();
     private bool _clipboardMoveOperation;
     private readonly Dictionary<ContentItemType, List<ContextMenuExtension>> _contextMenuExtensions = new();
 
     /// <summary>Raised when a file is selected (single click).</summary>
-    public event Action<ContentItem>? FileSelected;
+    public event Action<ContentItem> FileSelected;
     /// <summary>Raised when a file is opened (double-click).</summary>
-    public event Action<ContentItem>? FileOpened;
+    public event Action<ContentItem> FileOpened;
     /// <summary>Raised when a file or folder is deleted.</summary>
-    public event Action<ContentItem>? FileDeleted;
+    public event Action<ContentItem> FileDeleted;
     /// <summary>Raised when a file or folder is renamed (item, old name).</summary>
-    public event Action<ContentItem, string>? FileRenamed;
+    public event Action<ContentItem, string> FileRenamed;
     /// <summary>Raised when a file or folder is moved (item, old parent).</summary>
-    public event Action<ContentItem, ContentItem>? FileMoved;
+    public event Action<ContentItem, ContentItem> FileMoved;
     /// <summary>Raised when the selection set changes.</summary>
-    public event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
+    public event Action<IReadOnlyList<ContentItem>> SelectionChanged;
 
     private readonly MGWindow _window;
 
@@ -237,8 +237,8 @@ public class ContentBrowserPanel
     private IReadOnlyList<ContentItem> _visibleItems = Array.Empty<ContentItem>();
 
     // Data model
-    private ContentItem? _rootItem;
-    private ContentItem? _currentFolder;
+    private ContentItem _rootItem;
+    private ContentItem _currentFolder;
 
     /// <summary>Maps each tree-view item → ContentItem (folder).</summary>
     private readonly Dictionary<MGTreeViewItem, ContentItem> _itemToFolder = new();
@@ -258,7 +258,7 @@ public class ContentBrowserPanel
     {
     }
 
-    public ContentBrowserPanel(MGWindow window, ContentBrowserConfig? config)
+    public ContentBrowserPanel(MGWindow window, ContentBrowserConfig config)
         : this(window, config, null)
     {
     }
@@ -268,7 +268,7 @@ public class ContentBrowserPanel
     {
     }
 
-    internal ContentBrowserPanel(MGWindow window, ContentBrowserConfig? config, HostedEditorGameAdapter? editorRuntime)
+    internal ContentBrowserPanel(MGWindow window, ContentBrowserConfig config, HostedEditorGameAdapter editorRuntime)
     {
         _window = window;
         Config = config ?? new ContentBrowserConfig();
@@ -278,7 +278,7 @@ public class ContentBrowserPanel
         }
 
         _runtime = runtime;
-        List<IAssetThumbnailRenderer>? assetThumbnailRenderers = null;
+        List<IAssetThumbnailRenderer> assetThumbnailRenderers = null;
         if (editorRuntime != null)
         {
             assetThumbnailRenderers =
@@ -566,7 +566,7 @@ public class ContentBrowserPanel
             return false;
         }
 
-        ContentItem? folder = FindFolder(_rootItem, normalizedFolderPath);
+        ContentItem folder = FindFolder(_rootItem, normalizedFolderPath);
         if (folder == null)
         {
             _pendingCurrentFolderPath = normalizedFolderPath;
@@ -710,7 +710,7 @@ public class ContentBrowserPanel
         element.MouseHandler.RMBReleasedInside += OnAssetListRightClick;
     }
 
-    private void OnViewModeChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> e)
+    private void OnViewModeChanged(object sender, MGUI.Shared.Helpers.EventArgs<string> e)
     {
         if (string.Equals(e.NewValue, "Details", StringComparison.Ordinal))
         {
@@ -753,7 +753,7 @@ public class ContentBrowserPanel
         Events.RaiseSelectionChanged(selectedItems);
     }
 
-    private MGButton MakeIconButton(Texture2D? icon, string tooltip, Action action)
+    private MGButton MakeIconButton(Texture2D icon, string tooltip, Action action)
     {
         var btn = new MGButton(_window, _ => action())
         {
@@ -905,7 +905,7 @@ public class ContentBrowserPanel
         RegisterExternalDropTarget(item, element);
     }
 
-    private Texture2D? GetGridItemPreviewTexture(ContentItem item)
+    private Texture2D GetGridItemPreviewTexture(ContentItem item)
     {
         var placeholder = GetIconForType(item.Type);
         var cached = _thumbnailCache.GetOrRequest(item, placeholder);
@@ -919,9 +919,9 @@ public class ContentBrowserPanel
     }
 
     /// <summary>Returns the best icon <see cref="Texture2D"/> for the given type.</summary>
-    private Texture2D? GetIconForType(ContentItemType type) => ContentItemDisplay.GetIcon(Config, type);
+    private Texture2D GetIconForType(ContentItemType type) => ContentItemDisplay.GetIcon(Config, type);
     
-    private void OnTreeViewRightClick(object? sender, BaseMouseReleasedEventArgs e)
+    private void OnTreeViewRightClick(object sender, BaseMouseReleasedEventArgs e)
     {
         var menu = _contextMenu.CreateTreeMenu(
             _currentFolder,
@@ -937,7 +937,7 @@ public class ContentBrowserPanel
         _treeView.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
 
-    private void OnAssetListRightClick(object? sender, BaseMouseReleasedEventArgs e)
+    private void OnAssetListRightClick(object sender, BaseMouseReleasedEventArgs e)
     {
         var selected = GetSelectedItem();
 
@@ -1080,12 +1080,12 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnCopyRequested(ContentItem? item)
+    private void OnCopyRequested(ContentItem item)
     {
         SetClipboardItems(GetContextItems(item), false);
     }
 
-    private void OnCutRequested(ContentItem? item)
+    private void OnCutRequested(ContentItem item)
     {
         SetClipboardItems(GetContextItems(item), true);
     }
@@ -1140,7 +1140,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnRuntimeEndUpdate(object? sender, EventArgs e)
+    private void OnRuntimeEndUpdate(object sender, EventArgs e)
     {
         if (_runtime.RawInputSource is not IWindowFileDropSource fileDropSource)
         {
@@ -1163,7 +1163,7 @@ public class ContentBrowserPanel
         ImportExternalDroppedFiles(_externalDropPaths, targetFolder);
     }
 
-    private ContentItem? ResolveExternalDropTargetFolder()
+    private ContentItem ResolveExternalDropTargetFolder()
     {
         if (_rootItem == null)
         {
@@ -1185,7 +1185,7 @@ public class ContentBrowserPanel
         return null;
     }
 
-    private ContentItem? ResolveRegisteredDropTargetFolder(MGElement? hoveredElement)
+    private ContentItem ResolveRegisteredDropTargetFolder(MGElement hoveredElement)
     {
         var currentElement = hoveredElement;
         while (currentElement != null)
@@ -1239,7 +1239,7 @@ public class ContentBrowserPanel
         FormsMessageBox.Show(BuildPropertiesText(item), $"Properties - {item.Name}", FormsMessageBoxButtons.OK, FormsMessageBoxIcon.Information);
     }
 
-    private void OnCopyPathRequested(ContentItem? item)
+    private void OnCopyPathRequested(ContentItem item)
     {
         if (item == null)
         {
@@ -1272,13 +1272,13 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnSearchTextChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> e)
+    private void OnSearchTextChanged(object sender, MGUI.Shared.Helpers.EventArgs<string> e)
     {
         _searchFilter = e.NewValue?.Trim() ?? string.Empty;
         RefreshAssetList();
     }
 
-    private void OnTreeViewKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    private void OnTreeViewKeyPressed(object sender, BaseKeyPressedEventArgs e)
     {
         if (e.IsHandled || _treeView.SelectedItem == null)
         {
@@ -1311,7 +1311,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnAssetListKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    private void OnAssetListKeyPressed(object sender, BaseKeyPressedEventArgs e)
     {
         if (e.IsHandled)
         {
@@ -1365,14 +1365,14 @@ public class ContentBrowserPanel
         e.SetHandledBy(element, true);
     }
 
-    private void OnAssetListDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    private void OnAssetListDragStart(object sender, BaseMouseDragStartEventArgs e)
     {
         if (!e.IsLMB)
         {
             return;
         }
 
-        ContentItem? draggedItem = null;
+        ContentItem draggedItem = null;
         if (sender == _gridView.RootElement)
         {
             draggedItem = _gridView.PressedItem;
@@ -1387,7 +1387,7 @@ public class ContentBrowserPanel
         OnAssetItemDragStart(sender as MGElement ?? _contentViewHost, draggedItem, e);
     }
 
-    private void OnAssetListDragEnter(object? sender, DragEnterEventArgs e)
+    private void OnAssetListDragEnter(object sender, DragEnterEventArgs e)
     {
         if (sender is not MGElement element)
         {
@@ -1400,7 +1400,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnAssetListDragOver(object? sender, DragOverEventArgs e)
+    private void OnAssetListDragOver(object sender, DragOverEventArgs e)
     {
         if (sender is not MGElement element)
         {
@@ -1413,7 +1413,7 @@ public class ContentBrowserPanel
             : null;
     }
 
-    private void OnAssetListDragLeave(object? sender, DragLeaveEventArgs e)
+    private void OnAssetListDragLeave(object sender, DragLeaveEventArgs e)
     {
         if (sender is MGElement element)
         {
@@ -1421,7 +1421,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnAssetListDrop(object? sender, DropEventArgs e)
+    private void OnAssetListDrop(object sender, DropEventArgs e)
     {
         if (sender is MGElement element)
         {
@@ -1463,7 +1463,7 @@ public class ContentBrowserPanel
         PerformDrop(targetFolder, e.Data.GetData<List<ContentItem>>(), e.Data.DropEffect);
     }
 
-    private void OnGridItemDropTargetDragEnter(object? sender, DragEnterEventArgs e)
+    private void OnGridItemDropTargetDragEnter(object sender, DragEnterEventArgs e)
     {
         if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
         {
@@ -1471,7 +1471,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnGridItemDropTargetDragOver(object? sender, DragOverEventArgs e)
+    private void OnGridItemDropTargetDragOver(object sender, DragOverEventArgs e)
     {
         if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
         {
@@ -1482,7 +1482,7 @@ public class ContentBrowserPanel
         e.Data.DropEffect = DragDropEffect.None;
     }
 
-    private void OnGridItemDropTargetDragLeave(object? sender, DragLeaveEventArgs e)
+    private void OnGridItemDropTargetDragLeave(object sender, DragLeaveEventArgs e)
     {
         if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
         {
@@ -1490,7 +1490,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void OnGridItemDropTargetDrop(object? sender, DropEventArgs e)
+    private void OnGridItemDropTargetDrop(object sender, DropEventArgs e)
     {
         if (TryResolveGridItemDropTarget(sender, out var targetElement, out var targetFolder))
         {
@@ -1498,7 +1498,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private bool TryResolveGridItemDropTarget(object? sender, out MGElement targetElement, out ContentItem targetFolder)
+    private bool TryResolveGridItemDropTarget(object sender, out MGElement targetElement, out ContentItem targetFolder)
     {
         if (sender is MGElement element)
         {
@@ -1520,11 +1520,11 @@ public class ContentBrowserPanel
     //  Catalog / project event handlers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void OnProjectLoaded(object? sender, EventArgs e) => RebuildTree();
-    private void OnAssetAdded(object? sender, AssetInfo e) => RebuildTree();
-    private void OnAssetRemoved(object? sender, AssetInfo e) => RebuildTree();
-    private void OnAssetRenamed(object? sender, EventArgs<AssetInfo, string> a) => RebuildTree();
-    private void OnAssetCleared(object? sender, EventArgs e) => RebuildTree();
+    private void OnProjectLoaded(object sender, EventArgs e) => RebuildTree();
+    private void OnAssetAdded(object sender, AssetInfo e) => RebuildTree();
+    private void OnAssetRemoved(object sender, AssetInfo e) => RebuildTree();
+    private void OnAssetRenamed(object sender, EventArgs<AssetInfo, string> a) => RebuildTree();
+    private void OnAssetCleared(object sender, EventArgs e) => RebuildTree();
 
     // ─────────────────────────────────────────────────────────────────────────
     //  Tree building
@@ -1635,7 +1635,7 @@ public class ContentBrowserPanel
     //  Tree selection → asset list
     // ─────────────────────────────────────────────────────────────────────────
 
-    private void OnFolderSelectionChanged(object? sender, MGTreeViewItem? tvi)
+    private void OnFolderSelectionChanged(object sender, MGTreeViewItem tvi)
     {
         if (tvi != null && _itemToFolder.TryGetValue(tvi, out var folder))
         {
@@ -1728,7 +1728,7 @@ public class ContentBrowserPanel
         return selectedItems;
     }
 
-    private ContentItem? GetSelectedItem()
+    private ContentItem GetSelectedItem()
     {
         var selectedItems = GetSelectedItems();
         return selectedItems.Count > 0 ? selectedItems[0] : null;
@@ -1742,7 +1742,7 @@ public class ContentBrowserPanel
             : DragDropEffect.Move;
     }
 
-    private static bool CanDropIntoFolder(ContentItem? targetFolder, IReadOnlyList<ContentItem>? draggedItems)
+    private static bool CanDropIntoFolder(ContentItem targetFolder, IReadOnlyList<ContentItem> draggedItems)
     {
         if (targetFolder == null || !targetFolder.IsDirectory || draggedItems == null || draggedItems.Count == 0)
         {
@@ -1776,7 +1776,7 @@ public class ContentBrowserPanel
         return true;
     }
 
-    private static bool CanPasteIntoFolder(ContentItem? targetFolder, IReadOnlyList<ContentItem>? clipboardItems, bool isMoveOperation)
+    private static bool CanPasteIntoFolder(ContentItem targetFolder, IReadOnlyList<ContentItem> clipboardItems, bool isMoveOperation)
     {
         if (targetFolder == null || !targetFolder.IsDirectory || clipboardItems == null || clipboardItems.Count == 0)
         {
@@ -1813,7 +1813,7 @@ public class ContentBrowserPanel
         return true;
     }
 
-    private void PerformDrop(ContentItem targetFolder, IReadOnlyList<ContentItem>? draggedItems, DragDropEffect effect)
+    private void PerformDrop(ContentItem targetFolder, IReadOnlyList<ContentItem> draggedItems, DragDropEffect effect)
     {
         if (!CanDropIntoFolder(targetFolder, draggedItems))
         {
@@ -1847,7 +1847,7 @@ public class ContentBrowserPanel
         _pendingOperationWarning = message;
     }
 
-    private void OnGlobalKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    private void OnGlobalKeyPressed(object sender, BaseKeyPressedEventArgs e)
     {
         if (e.IsHandled || _inlineRenameOverlay.IsOpen)
         {
@@ -1957,7 +1957,7 @@ public class ContentBrowserPanel
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>Finds a folder in the tree by path.</summary>
-    private static ContentItem? FindFolder(ContentItem root, string fullPath)
+    private static ContentItem FindFolder(ContentItem root, string fullPath)
     {
         if (string.Equals(root.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -1976,7 +1976,7 @@ public class ContentBrowserPanel
     }
 
     /// <summary>Selects the tree node corresponding to the given folder.</summary>
-    private void SelectTreeNode(ContentItem? folder)
+    private void SelectTreeNode(ContentItem folder)
     {
         if (folder == null)
         {
@@ -2011,7 +2011,7 @@ public class ContentBrowserPanel
             return false;
         }
 
-        string? executeFolderPath = _currentFolder?.FullPath;
+        string executeFolderPath = _currentFolder?.FullPath;
         if (!copied)
         {
             executeFolderPath = TranslateFolderPath(_currentFolder?.FullPath, sourcePaths, operation.SelectionAfterExecute);
@@ -2093,7 +2093,7 @@ public class ContentBrowserPanel
         return items;
     }
 
-    private IReadOnlyList<ContentItem> GetContextItems(ContentItem? item)
+    private IReadOnlyList<ContentItem> GetContextItems(ContentItem item)
     {
         if (item == null)
         {
@@ -2129,7 +2129,7 @@ public class ContentBrowserPanel
         return new ContentBrowserViewState(_currentFolder?.FullPath, selectionPaths);
     }
 
-    private ContentBrowserViewState CreateViewState(string? folderPath, IReadOnlyList<string> selectionPaths)
+    private ContentBrowserViewState CreateViewState(string folderPath, IReadOnlyList<string> selectionPaths)
         => new(folderPath, selectionPaths);
 
     private void RestoreViewState(ContentBrowserViewState viewState)
@@ -2170,7 +2170,7 @@ public class ContentBrowserPanel
                 () => RestoreViewState(undoViewState)));
     }
 
-    private string? GetFolderPathAfterDelete(IReadOnlyList<ContentItem> removedItems)
+    private string GetFolderPathAfterDelete(IReadOnlyList<ContentItem> removedItems)
     {
         if (_currentFolder == null)
         {
@@ -2189,7 +2189,7 @@ public class ContentBrowserPanel
         return currentFolderPath;
     }
 
-    private static string? TranslateFolderPath(string? folderPath, string sourcePath, string destinationPath)
+    private static string TranslateFolderPath(string folderPath, string sourcePath, string destinationPath)
     {
         if (string.IsNullOrWhiteSpace(folderPath) || !IsSamePathOrDescendant(folderPath, sourcePath))
         {
@@ -2207,9 +2207,9 @@ public class ContentBrowserPanel
             : Path.Combine(destinationPath, relativeSuffix);
     }
 
-    private static string? TranslateFolderPath(string? folderPath, IReadOnlyList<string> sourcePaths, IReadOnlyList<string> destinationPaths)
+    private static string TranslateFolderPath(string folderPath, IReadOnlyList<string> sourcePaths, IReadOnlyList<string> destinationPaths)
     {
-        string? translatedPath = folderPath;
+        string translatedPath = folderPath;
         int count = Math.Min(sourcePaths.Count, destinationPaths.Count);
         for (int i = 0; i < count; i++)
         {
@@ -2378,7 +2378,7 @@ public class ContentBrowserPanel
         return false;
     }
 
-    private static ContentItem? FindItemByPath(ContentItem root, string fullPath)
+    private static ContentItem FindItemByPath(ContentItem root, string fullPath)
     {
         if (string.Equals(root.FullPath, fullPath, StringComparison.OrdinalIgnoreCase))
         {
@@ -2545,7 +2545,7 @@ public class ContentBrowserPanel
         return binding;
     }
 
-    private void UpdateItemToolTipPreview(ItemToolTipBinding binding, ContentItem item, Texture2D? previewTexture)
+    private void UpdateItemToolTipPreview(ItemToolTipBinding binding, ContentItem item, Texture2D previewTexture)
     {
         if (previewTexture == null)
         {
@@ -2583,7 +2583,7 @@ public class ContentBrowserPanel
         textBlock.SetText(value, MGTextInvalidationMode.ReflowLocal);
     }
 
-    private void UpdateTooltipPreviewRegistration(ItemToolTipBinding binding, string? path)
+    private void UpdateTooltipPreviewRegistration(ItemToolTipBinding binding, string path)
     {
         if (!string.IsNullOrWhiteSpace(binding.RegisteredPreviewPath) && binding.PreviewImage != null)
         {
@@ -2598,7 +2598,7 @@ public class ContentBrowserPanel
         }
     }
 
-    private void UpdateTooltipDimensionsRegistration(ItemToolTipBinding binding, string? path)
+    private void UpdateTooltipDimensionsRegistration(ItemToolTipBinding binding, string path)
     {
         if (!string.IsNullOrWhiteSpace(binding.RegisteredDimensionPath))
         {

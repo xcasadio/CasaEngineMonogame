@@ -47,8 +47,8 @@ internal sealed class ParticlePreviewViewport : IDisposable
         public bool IsVisible => ScreenBounds.Width > 0 && ScreenBounds.Height > 0;
         public Rectangle ScreenBounds => _getScreenBounds();
 
-        public event Action<IViewHost, int, int>? Resized;
-        public event Action<IViewHost>? Closed;
+        public event Action<IViewHost, int, int> Resized;
+        public event Action<IViewHost> Closed;
 
         public void NotifyResized(int newWidth, int newHeight)
         {
@@ -74,31 +74,31 @@ internal sealed class ParticlePreviewViewport : IDisposable
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
 
-    private MGDockPanel? _root;
-    private MGStackPanel? _controlsRoot;
-    private MGTextBlock? _statusText;
-    private MGTextBlock? _metricsText;
-    private MGDockPanel? _viewportHost;
-    private MGImage? _viewportImage;
-    private MGButton? _playButton;
-    private MGButton? _pauseButton;
-    private MGButton? _stopButton;
-    private MGButton? _restartButton;
-    private MGCheckBox? _loopCheckBox;
-    private MGSlider? _speedSlider;
+    private MGDockPanel _root;
+    private MGStackPanel _controlsRoot;
+    private MGTextBlock _statusText;
+    private MGTextBlock _metricsText;
+    private MGDockPanel _viewportHost;
+    private MGImage _viewportImage;
+    private MGButton _playButton;
+    private MGButton _pauseButton;
+    private MGButton _stopButton;
+    private MGButton _restartButton;
+    private MGCheckBox _loopCheckBox;
+    private MGSlider _speedSlider;
 
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private MguiPreviewViewHost? _renderViewHost;
-    private Texture2D? _boundTexture;
-    private Entity? _previewEntity;
-    private ParticleSystemComponent? _particleComponent;
-    private EditorParticleWireOverlayRenderer? _particleWireOverlayRenderer;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private MguiPreviewViewHost _renderViewHost;
+    private Texture2D _boundTexture;
+    private Entity _previewEntity;
+    private ParticleSystemComponent _particleComponent;
+    private EditorParticleWireOverlayRenderer _particleWireOverlayRenderer;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
 
-    private ParticleEffectAsset? _particleAsset;
-    private string? _loadedRelativePath;
+    private ParticleEffectAsset _particleAsset;
+    private string _loadedRelativePath;
     private bool _isPlaying = true;
     private bool _isLooping = true;
     private float _simulationSpeed = 1.0f;
@@ -272,7 +272,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
         return _root;
     }
 
-    public World? GetOrCreatePreviewWorld()
+    public World GetOrCreatePreviewWorld()
     {
         EnsurePreviewSceneCreated();
         return _previewWorldDriver.World;
@@ -784,7 +784,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
         }
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         int width = Math.Max(64, e.NewValue.Width);
         int height = Math.Max(64, e.NewValue.Height);
@@ -802,7 +802,7 @@ internal sealed class ParticlePreviewViewport : IDisposable
         RefreshTextureBinding();
     }
 
-    private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    private void OnViewportScrolled(object sender, BaseMouseScrolledEventArgs e)
     {
         if (_particleAsset == null || e.ScrollWheelDelta == 0 || _viewportHost == null || _viewportHost.Parent == null)
         {

@@ -8,15 +8,15 @@ public sealed class MaterialInspectorView
 {
     private readonly MGWindow _window;
 
-    private MGStackPanel? _root;
-    private MaterialAssetInspectorPanel? _activeInspectorPanel;
+    private MGStackPanel _root;
+    private MaterialAssetInspectorPanel _activeInspectorPanel;
 
     public MaterialInspectorView(MGWindow window)
     {
         _window = window;
     }
 
-    public void SetInspectorPanel(MaterialAssetInspectorPanel? inspectorPanel)
+    public void SetInspectorPanel(MaterialAssetInspectorPanel inspectorPanel)
     {
         _activeInspectorPanel = inspectorPanel;
         RefreshContent();

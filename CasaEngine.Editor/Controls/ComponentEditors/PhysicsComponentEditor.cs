@@ -100,7 +100,7 @@ public sealed class PhysicsComponentEditor : TransformComponentEditor
         return section;
     }
 
-    private MGExpander? CreateShapeSection()
+    private MGExpander CreateShapeSection()
     {
         var grid = CreatePropertyGrid();
         int rowIndex = 0;

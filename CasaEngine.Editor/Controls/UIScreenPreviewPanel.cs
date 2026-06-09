@@ -28,22 +28,22 @@ public sealed class UIScreenPreviewPanel
     private readonly UIScreenXamlParser _xamlParser = new();
     private readonly UIScreenPreviewBuilder _previewBuilder = new();
 
-    private MGDockPanel? _root;
-    private MGTextBlock? _titleText;
-    private MGTextBlock? _sourceText;
-    private MGTextBlock? _statusText;
-    private MGTextBlock? _coordinateText;   // Q-03: cursor coordinate display
-    private MGBorder? _previewSurface;
+    private MGDockPanel _root;
+    private MGTextBlock _titleText;
+    private MGTextBlock _sourceText;
+    private MGTextBlock _statusText;
+    private MGTextBlock _coordinateText;   // Q-03: cursor coordinate display
+    private MGBorder _previewSurface;
     private IReadOnlyDictionary<DocumentNodeId, MGElement> _nodeMap = new Dictionary<DocumentNodeId, MGElement>();
-    private UIScreenSelectionService? _selectionService;
-    private UIScreenDocument? _currentDocument;
+    private UIScreenSelectionService _selectionService;
+    private UIScreenDocument _currentDocument;
     private readonly object _reloadSync = new();
-    private string? _loadedAssetFilePath;
-    private string? _loadedSourceXamlPath;
+    private string _loadedAssetFilePath;
+    private string _loadedSourceXamlPath;
     private bool _reloadRequested;
     private string _reloadReason = string.Empty;
-    private FileSystemWatcher? _assetWatcher;
-    private FileSystemWatcher? _sourceXamlWatcher;
+    private FileSystemWatcher _assetWatcher;
+    private FileSystemWatcher _sourceXamlWatcher;
 
     // ── drag-to-move / drag-to-resize state ──────────────────────────────
     private DocumentNodeId? _draggingNodeId;
@@ -231,10 +231,10 @@ public sealed class UIScreenPreviewPanel
     }
 
     /// <summary>Fired after the document is successfully parsed, or <c>null</c> when load fails.</summary>
-    public event Action<UIScreenDocument?>? DocumentLoaded;
+    public event Action<UIScreenDocument> DocumentLoaded;
 
     /// <summary>The document currently loaded into this panel, or null if nothing is open.</summary>
-    public UIScreenDocument? CurrentDocument => _currentDocument;
+    public UIScreenDocument CurrentDocument => _currentDocument;
 
     /// <summary>
     /// Returns the screen-space <see cref="Microsoft.Xna.Framework.Rectangle"/> of
@@ -251,13 +251,13 @@ public sealed class UIScreenPreviewPanel
     }
 
     /// <summary>Fired when the user clicks a control in the preview. Contains the best-fit <see cref="DocumentNodeId"/>, or null if no match.</summary>
-    public event Action<DocumentNodeId?>? NodePicked;
+    public event Action<DocumentNodeId?> NodePicked;
 
     /// <summary>Fired when the user drags a control to a new position. Args: nodeId, deltaX, deltaY.</summary>
-    public event Action<DocumentNodeId, int, int>? NodeMoveRequested;
+    public event Action<DocumentNodeId, int, int> NodeMoveRequested;
 
     /// <summary>Fired when the user drags a resize handle. Args: nodeId, anchor, deltaX, deltaY.</summary>
-    public event Action<DocumentNodeId, ResizeAnchor, int, int>? NodeResizeRequested;
+    public event Action<DocumentNodeId, ResizeAnchor, int, int> NodeResizeRequested;
 
     /// <summary>The node that is currently selected in the editor, used to scope drag operations.</summary>
     public DocumentNodeId? SelectedNodeId { get; set; }
@@ -274,7 +274,7 @@ public sealed class UIScreenPreviewPanel
     /// Returns <c>false</c> when the element or property is not patchable — callers should
     /// fall back to <see cref="RefreshPreviewOnly"/> or <see cref="LoadDocumentDirectly"/>.
     /// </summary>
-    public bool TryApplyPropertyUpdate(DocumentNodeId nodeId, string propertyName, string? value)
+    public bool TryApplyPropertyUpdate(DocumentNodeId nodeId, string propertyName, string value)
     {
         if (!_nodeMap.TryGetValue(nodeId, out var element))
         {
@@ -346,13 +346,13 @@ public sealed class UIScreenPreviewPanel
     }
 
     /// <summary>Fired when the user requests a PNG export.  Game1 handles the actual rendering.</summary>
-    public event Action? ExportPngRequested;
+    public event Action ExportPngRequested;
 
     // ─────────────────────────────────────────────────────────────────────
     //  Q-03: Cursor coordinate display
     // ─────────────────────────────────────────────────────────────────────
 
-    private void OnPreviewMouseMoved(object? sender, BaseMouseMovedEventArgs e)
+    private void OnPreviewMouseMoved(object sender, BaseMouseMovedEventArgs e)
     {
         if (_coordinateText == null)
         {
@@ -446,7 +446,7 @@ public sealed class UIScreenPreviewPanel
 
     public void Update()
     {
-        string? reloadReason = null;
+        string reloadReason = null;
 
         lock (_reloadSync)
         {
@@ -553,7 +553,7 @@ public sealed class UIScreenPreviewPanel
         ConfigureWatcher(ref _sourceXamlWatcher, sourceXamlPath);
     }
 
-    private void ConfigureWatcher(ref FileSystemWatcher? watcher, string filePath)
+    private void ConfigureWatcher(ref FileSystemWatcher watcher, string filePath)
     {
         string fullPath = Path.GetFullPath(filePath);
         string directory = Path.GetDirectoryName(fullPath) ?? throw new InvalidOperationException("Watcher path must have a directory.");
@@ -682,7 +682,7 @@ public sealed class UIScreenPreviewPanel
     //  Preview picking
     // ─────────────────────────────────────────────────────────────────────
 
-    private void OnPreviewClicked(object? sender, BaseMousePressedEventArgs e)
+    private void OnPreviewClicked(object sender, BaseMousePressedEventArgs e)
     {
         var click = e.Position;
 
@@ -779,7 +779,7 @@ public sealed class UIScreenPreviewPanel
     //  Drag — move and resize
     // ─────────────────────────────────────────────────────────────────────
 
-    private void OnPreviewDragStart(object? sender, BaseMouseDragStartEventArgs e)
+    private void OnPreviewDragStart(object sender, BaseMouseDragStartEventArgs e)
     {
         if (!e.IsLMB)
         {
@@ -816,7 +816,7 @@ public sealed class UIScreenPreviewPanel
         _draggingNodeId = nodeId;
     }
 
-    private void OnPreviewDragEnd(object? sender, BaseMouseDragEndEventArgs e)
+    private void OnPreviewDragEnd(object sender, BaseMouseDragEndEventArgs e)
     {
         if (!e.IsLMB || _draggingNodeId == null)
         {
@@ -850,7 +850,7 @@ public sealed class UIScreenPreviewPanel
     //  so the overlay never appears on background tabs.
     // ─────────────────────────────────────────────────────────────────────
 
-    private void OnPreviewSurfaceEndingDraw(object? sender, MGElement.MGElementDrawEventArgs e)
+    private void OnPreviewSurfaceEndingDraw(object sender, MGElement.MGElementDrawEventArgs e)
     {
         if (ShowGrid)
             DrawGridOverlay(e.DA);

@@ -42,9 +42,9 @@ namespace CasaEngine.Editor.Controls;
 /// </summary>
 public class WorldViewportPanel : IDisposable
 {
-    private readonly record struct EntityDeletion(Entity Entity, Entity? Parent);
+    private readonly record struct EntityDeletion(Entity Entity, Entity Parent);
 
-    public event Action<Entity?>? SelectedEntityChanged;
+    public event Action<Entity> SelectedEntityChanged;
 
     public bool EnablePreviewSelection { get; set; }
 
@@ -105,9 +105,9 @@ public class WorldViewportPanel : IDisposable
 
         public Rectangle ScreenBounds => _getScreenBounds();
 
-        public event Action<IViewHost, int, int>? Resized;
+        public event Action<IViewHost, int, int> Resized;
 
-        public event Action<IViewHost>? Closed;
+        public event Action<IViewHost> Closed;
 
         public void NotifyResized(int newWidth, int newHeight)
         {
@@ -134,38 +134,38 @@ public class WorldViewportPanel : IDisposable
     private MGDockPanel _root = null!;
     private MGDockPanel _viewportHost = null!;
     private MGImage _viewportImage = null!;
-    private MGToggleButton? _translateToggleButton;
-    private MGToggleButton? _rotateToggleButton;
-    private MGToggleButton? _scaleToggleButton;
-    private MGToggleButton? _worldSpaceToggleButton;
-    private MGToggleButton? _localSpaceToggleButton;
+    private MGToggleButton _translateToggleButton;
+    private MGToggleButton _rotateToggleButton;
+    private MGToggleButton _scaleToggleButton;
+    private MGToggleButton _worldSpaceToggleButton;
+    private MGToggleButton _localSpaceToggleButton;
     private bool _suspendToolbarCallbacks;
 
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private MguiViewportViewHost? _renderViewHost;
-    private GridComponent? _grid;
-    private AxisComponent? _axis;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private MguiViewportViewHost _renderViewHost;
+    private GridComponent _grid;
+    private AxisComponent _axis;
     private readonly EditorLightOverlayCollector _lightOverlayCollector = new();
     private readonly EditorParticleOverlayCollector _particleOverlayCollector = new();
-    private EditorLightBillboardOverlayRenderer? _lightBillboardOverlayRenderer;
-    private EditorLightWireOverlayRenderer? _lightWireOverlayRenderer;
-    private EditorParticleWireOverlayRenderer? _particleWireOverlayRenderer;
-    private Action<GraphicsDevice, RenderView, RenderFrame>? _externalVectorOverlayAction;
-    private Action<GraphicsDevice, RenderView, RenderFrame>? _externalUiOverlayAction;
+    private EditorLightBillboardOverlayRenderer _lightBillboardOverlayRenderer;
+    private EditorLightWireOverlayRenderer _lightWireOverlayRenderer;
+    private EditorParticleWireOverlayRenderer _particleWireOverlayRenderer;
+    private Action<GraphicsDevice, RenderView, RenderFrame> _externalVectorOverlayAction;
+    private Action<GraphicsDevice, RenderView, RenderFrame> _externalUiOverlayAction;
     private int _lastActiveDirectionalLightCount;
     private int _lastActivePointLightCount;
     private int _lastActiveSpotLightCount;
-    private Texture2D? _boundTexture;
-    private World? _fallbackWorld;
-    private World? _observedWorld;
-    private World? _renderWorldOverride;
-    private WorldEnvironmentSettings? _environmentOverride;
-    private Entity? _cameraEntity;
-    private Entity? _selectedEntity;
-    private EntityComponent? _selectedComponent;
-    private ITransformableObject? _selectedTransformable;
-    private ArcBallCameraComponent? _camera;
+    private Texture2D _boundTexture;
+    private World _fallbackWorld;
+    private World _observedWorld;
+    private World _renderWorldOverride;
+    private WorldEnvironmentSettings _environmentOverride;
+    private Entity _cameraEntity;
+    private Entity _selectedEntity;
+    private EntityComponent _selectedComponent;
+    private ITransformableObject _selectedTransformable;
+    private ArcBallCameraComponent _camera;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewportGizmoController _gizmoController;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
@@ -378,7 +378,7 @@ public class WorldViewportPanel : IDisposable
             or InputRoutingReason.Modal;
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         _selectedEntity = entity;
         _selectedComponent = null;
@@ -386,7 +386,7 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
     }
 
-    public void SetSelectedComponent(EntityComponent? component)
+    public void SetSelectedComponent(EntityComponent component)
     {
         _selectedComponent = component;
 
@@ -405,7 +405,7 @@ public class WorldViewportPanel : IDisposable
         _gizmoController.SetSelectedTransformable(_selectedTransformable, TryGetSelectionWorld());
     }
 
-    public void SetSelectedTransformable(ITransformableObject? transformable)
+    public void SetSelectedTransformable(ITransformableObject transformable)
     {
         _selectedTransformable = transformable;
 
@@ -439,7 +439,7 @@ public class WorldViewportPanel : IDisposable
 
     public bool HasWorldOverride => _renderWorldOverride != null;
 
-    public void SetEnvironmentOverride(WorldEnvironmentSettings? environmentSettings)
+    public void SetEnvironmentOverride(WorldEnvironmentSettings environmentSettings)
     {
         if (ReferenceEquals(_environmentOverride, environmentSettings))
         {
@@ -455,7 +455,7 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    public void SetWorldOverride(World? world)
+    public void SetWorldOverride(World world)
     {
         if (ReferenceEquals(_renderWorldOverride, world))
         {
@@ -504,7 +504,7 @@ public class WorldViewportPanel : IDisposable
         _renderView?.Invalidate();
     }
 
-    public void FocusEntity(Entity? entity)
+    public void FocusEntity(Entity entity)
     {
         if (entity?.RootComponent == null || _camera == null)
         {
@@ -580,7 +580,7 @@ public class WorldViewportPanel : IDisposable
         _renderView?.Invalidate();
     }
 
-    private void OnViewportScrolled(object? sender, BaseMouseScrolledEventArgs e)
+    private void OnViewportScrolled(object sender, BaseMouseScrolledEventArgs e)
     {
         if (!UseFront2dCamera || e.ScrollWheelDelta == 0 || !IsAttachedToWindow(_viewportHost) || !_front2dFocusedBounds.HasValue)
         {
@@ -609,7 +609,7 @@ public class WorldViewportPanel : IDisposable
         e.SetHandledBy(_viewportHost ?? sender as IMouseHandlerHost);
     }
 
-    private void OnViewportDragEnter(object? sender, DragEnterEventArgs e)
+    private void OnViewportDragEnter(object sender, DragEnterEventArgs e)
     {
         var draggedItems = e.Data.GetData<List<ContentItem>>();
         bool canDrop = CanDropAssets(draggedItems);
@@ -619,7 +619,7 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    private void OnViewportDragOver(object? sender, DragOverEventArgs e)
+    private void OnViewportDragOver(object sender, DragOverEventArgs e)
     {
         var draggedItems = e.Data.GetData<List<ContentItem>>();
         bool canDrop = CanDropAssets(draggedItems);
@@ -627,18 +627,18 @@ public class WorldViewportPanel : IDisposable
         _viewportHost.OverlayBrush = canDrop ? DropHighlightBrush : null;
     }
 
-    private void OnViewportDragLeave(object? sender, DragLeaveEventArgs e)
+    private void OnViewportDragLeave(object sender, DragLeaveEventArgs e)
     {
         _viewportHost.OverlayBrush = null;
     }
 
-    private void OnViewportDrop(object? sender, DropEventArgs e)
+    private void OnViewportDrop(object sender, DropEventArgs e)
     {
         _viewportHost.OverlayBrush = null;
         DropAssets(e.Data.GetData<List<ContentItem>>());
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         var newBounds = e.NewValue;
         var width = Math.Max(16, newBounds.Width);
@@ -664,7 +664,7 @@ public class WorldViewportPanel : IDisposable
         RefreshTextureBinding();
     }
 
-    private bool CanDropAssets(IReadOnlyList<ContentItem>? draggedItems)
+    private bool CanDropAssets(IReadOnlyList<ContentItem> draggedItems)
     {
         if (HasWorldOverride)
         {
@@ -692,7 +692,7 @@ public class WorldViewportPanel : IDisposable
         return false;
     }
 
-    private void DropAssets(IReadOnlyList<ContentItem>? draggedItems)
+    private void DropAssets(IReadOnlyList<ContentItem> draggedItems)
     {
         var world = _editorRuntime.GameManager.CurrentWorld;
         if (world == null || draggedItems == null || draggedItems.Count == 0)
@@ -967,7 +967,7 @@ public class WorldViewportPanel : IDisposable
             deletions.Add(new EntityDeletion(entity, entity.Parent));
         }
 
-        Entity? nextSelection = deletions.Count == 1 ? deletions[0].Parent : null;
+        Entity nextSelection = deletions.Count == 1 ? deletions[0].Parent : null;
         string description = deletions.Count == 1 ? "Delete Entity" : $"Delete {deletions.Count} Entities";
 
         ExecuteWorldCommand(
@@ -993,7 +993,7 @@ public class WorldViewportPanel : IDisposable
             });
     }
 
-    private void ApplySelection(Entity? entity)
+    private void ApplySelection(Entity entity)
     {
         _selectedEntity = entity;
         _gizmoController.SetSelectedEntity(entity);
@@ -1210,7 +1210,7 @@ public class WorldViewportPanel : IDisposable
         return surface;
     }
 
-    private MGToggleButton CreateGizmoToggleButton(Texture2D? icon, string fallbackLabel, Action<bool> onToggled)
+    private MGToggleButton CreateGizmoToggleButton(Texture2D icon, string fallbackLabel, Action<bool> onToggled)
     {
         var button = new MGToggleButton(_window)
         {
@@ -1407,7 +1407,7 @@ public class WorldViewportPanel : IDisposable
         _observedWorld = null;
     }
 
-    private void OnWorldEntityAdded(object? sender, Entity entity)
+    private void OnWorldEntityAdded(object sender, Entity entity)
     {
         if (sender is World world)
         {
@@ -1415,7 +1415,7 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    private void OnWorldEntityRemoved(object? sender, Entity entity)
+    private void OnWorldEntityRemoved(object sender, Entity entity)
     {
         if (ReferenceEquals(_selectedEntity, entity))
         {
@@ -1431,7 +1431,7 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    private void OnWorldEntitiesCleared(object? sender, EventArgs e)
+    private void OnWorldEntitiesCleared(object sender, EventArgs e)
     {
         _selectedEntity = null;
         _selectedComponent = null;
@@ -1444,7 +1444,7 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
-    private void OnGizmoSelectedEntityChanged(Entity? entity)
+    private void OnGizmoSelectedEntityChanged(Entity entity)
     {
         _selectedEntity = entity;
         _selectedComponent = null;
@@ -1631,7 +1631,7 @@ public class WorldViewportPanel : IDisposable
         return !HasWorldOverride || EnablePreviewGizmo;
     }
 
-    private World? TryGetSelectionWorld()
+    private World TryGetSelectionWorld()
     {
         return _renderView?.World ?? _renderWorldOverride ?? _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld;
     }
@@ -1683,7 +1683,7 @@ public class WorldViewportPanel : IDisposable
         _surface?.Dispose();
     }
 
-    private void DisposeOverlayComponent(DrawableGameComponent? component)
+    private void DisposeOverlayComponent(DrawableGameComponent component)
     {
         if (component == null)
         {

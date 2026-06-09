@@ -12,7 +12,7 @@ public class ColorEditor : MGColorField
         set => base.Value = ColorValue.FromXnaColor(value);
     }
 
-    public new event EventHandler<Color>? ValueChanged;
+    public new event EventHandler<Color> ValueChanged;
 
     public ColorEditor(MGWindow window, Color? initialColor = null)
         : base(window, ColorValue.FromXnaColor(initialColor ?? Color.White), CreateOptions(initialColor ?? Color.White))
@@ -44,7 +44,7 @@ public class ColorEditor : MGColorField
         };
     }
 
-    private void OnBaseValueChanged(object? sender, ColorFieldValueChangedEventArgs e)
+    private void OnBaseValueChanged(object sender, ColorFieldValueChangedEventArgs e)
     {
         ValueChanged?.Invoke(this, (e.NewValue ?? ColorValue.FromXnaColor(Color.White)).ToXnaColor());
     }

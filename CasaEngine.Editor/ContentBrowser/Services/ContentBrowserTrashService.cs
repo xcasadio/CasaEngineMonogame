@@ -69,7 +69,7 @@ public sealed class ContentBrowserTrashService
             return false;
         }
 
-        string? parentDirectory = Path.GetDirectoryName(trashEntry.OriginalPath);
+        string parentDirectory = Path.GetDirectoryName(trashEntry.OriginalPath);
         if (!string.IsNullOrWhiteSpace(parentDirectory))
         {
             Directory.CreateDirectory(parentDirectory);
@@ -89,7 +89,7 @@ public sealed class ContentBrowserTrashService
 
     private static bool TryMove(string sourcePath, string destinationPath, bool isDirectory)
     {
-        string? destinationDirectory = Path.GetDirectoryName(destinationPath);
+        string destinationDirectory = Path.GetDirectoryName(destinationPath);
         if (!string.IsNullOrWhiteSpace(destinationDirectory))
         {
             Directory.CreateDirectory(destinationDirectory);
@@ -131,7 +131,7 @@ public sealed class ContentBrowserTrashService
         return Path.Combine(EngineEnvironment.ProjectPath, TrashDirectoryName, ContentBrowserDirectoryName);
     }
 
-    private static void DeleteEmptyTrashDirectories(string? directoryPath)
+    private static void DeleteEmptyTrashDirectories(string directoryPath)
     {
         string trashRootPath = GetTrashRootPath();
         while (!string.IsNullOrWhiteSpace(directoryPath)
@@ -141,7 +141,7 @@ public sealed class ContentBrowserTrashService
                && Directory.GetFiles(directoryPath).Length == 0
                && Directory.GetDirectories(directoryPath).Length == 0)
         {
-            string? parentDirectory = Path.GetDirectoryName(directoryPath);
+            string parentDirectory = Path.GetDirectoryName(directoryPath);
             Directory.Delete(directoryPath);
             directoryPath = parentDirectory;
         }

@@ -12,7 +12,7 @@ public enum ContentViewMode
 
 public sealed class ContentBrowserConfig
 {
-    public string? RootDirectory { get; set; }
+    public string RootDirectory { get; set; }
 
     public string[] ExcludedExtensions { get; set; } = { ".meta", ".tmp" };
 
@@ -24,5 +24,5 @@ public sealed class ContentBrowserConfig
 
     public bool ShowHiddenFiles { get; set; }
 
-    public Dictionary<ContentItemType, Texture2D?> CustomIcons { get; } = new();
+    public Dictionary<ContentItemType, Texture2D> CustomIcons { get; } = new();
 }

@@ -21,21 +21,21 @@ public sealed class UIScreenHierarchyPanel
 {
     private readonly MGWindow _window;
     private readonly UIScreenSelectionService _selection;
-    private UICommandStack? _commandStack;
+    private UICommandStack _commandStack;
 
-    private MGDockPanel? _root;
-    private MGTreeView? _treeView;
-    private MGTextBlock? _statusText;
-    private MGTextBox? _filterBox;
-    private MGTextBlock? _breadcrumbText;  // Q-07
+    private MGDockPanel _root;
+    private MGTreeView _treeView;
+    private MGTextBlock _statusText;
+    private MGTextBox _filterBox;
+    private MGTextBlock _breadcrumbText;  // Q-07
 
-    private UIScreenDocument? _document;
+    private UIScreenDocument _document;
     private bool _suppressSelectionSync;
     private bool _rebuildPending;
     private string _filterText = string.Empty;
 
     // R-04: Tree snapshot for diffing (DFS list of node id + label)
-    private readonly record struct NodeSnapshot(DocumentNodeId Id, string ControlType, string? Name);
+    private readonly record struct NodeSnapshot(DocumentNodeId Id, string ControlType, string Name);
     private List<NodeSnapshot> _treeSnapshot = new();
 
     private readonly Dictionary<MGTreeViewItem, DocumentNodeId> _itemToNode = new();
@@ -56,7 +56,7 @@ public sealed class UIScreenHierarchyPanel
     // ─────────────────────────────────────────────────────────────────────
 
     /// <summary>Loads (or clears) the displayed document tree.</summary>
-    public void SetDocument(UIScreenDocument? document)
+    public void SetDocument(UIScreenDocument document)
     {
         // R-04: Skip full rebuild when tree structure is unchanged (only property values changed).
         var newSnapshot = BuildSnapshot(document);
@@ -77,10 +77,10 @@ public sealed class UIScreenHierarchyPanel
     /// Fired after a node is deleted. Passes the modified document so that
     /// the caller can rebuild the preview.
     /// </summary>
-    public event Action<UIScreenDocument>? NodeDeleted;
+    public event Action<UIScreenDocument> NodeDeleted;
 
     /// <summary>Fired when the user requests a node duplication via the context menu.</summary>
-    public event Action<UIScreenDocument, DocumentNodeId>? NodeDuplicateRequested;
+    public event Action<UIScreenDocument, DocumentNodeId> NodeDuplicateRequested;
 
     public MGElement CreateContent()
     {
@@ -191,7 +191,7 @@ public sealed class UIScreenHierarchyPanel
     //  R-04: Snapshot helpers
     // ─────────────────────────────────────────────────────────────────────
 
-    private static List<NodeSnapshot> BuildSnapshot(UIScreenDocument? document)
+    private static List<NodeSnapshot> BuildSnapshot(UIScreenDocument document)
     {
         var result = new List<NodeSnapshot>();
         if (document?.Root != null)
@@ -428,7 +428,7 @@ public sealed class UIScreenHierarchyPanel
         }
     }
 
-    private void OnTreeSelectionChanged(object? sender, MGTreeViewItem item)
+    private void OnTreeSelectionChanged(object sender, MGTreeViewItem item)
     {
         if (_suppressSelectionSync)
         {

@@ -7,9 +7,9 @@ namespace CasaEngine.Editor.Runtime;
 internal sealed class HostedEditorGameAdapter : CasaEngineGame
 {
     public HostedEditorGameAdapter(
-        string? projectFileName = null,
-        IGraphicsDeviceService? graphicsDeviceService = null,
-        EngineRuntimeContext? runtimeContext = null)
+        string projectFileName = null,
+        IGraphicsDeviceService graphicsDeviceService = null,
+        EngineRuntimeContext runtimeContext = null)
         : base(projectFileName, graphicsDeviceService, runtimeContext)
     {
     }

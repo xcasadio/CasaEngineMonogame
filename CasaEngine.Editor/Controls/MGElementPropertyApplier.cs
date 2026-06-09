@@ -18,7 +18,7 @@ internal static class MGElementPropertyApplier
     /// Tries to apply <paramref name="propertyName"/> = <paramref name="value"/> to
     /// <paramref name="element"/>.  Returns true on success.
     /// </summary>
-    public static bool TryApply(MGElement element, string propertyName, string? value)
+    public static bool TryApply(MGElement element, string propertyName, string value)
     {
         ArgumentNullException.ThrowIfNull(element);
         if (string.IsNullOrWhiteSpace(propertyName))
@@ -110,7 +110,7 @@ internal static class MGElementPropertyApplier
         return false;
     }
 
-    private static int? TryParseNullableInt(string? value)
+    private static int? TryParseNullableInt(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

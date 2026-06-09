@@ -20,7 +20,7 @@ namespace CasaEngine.Editor.ContentBrowser.Services;
 internal readonly record struct AssetThumbnailRenderResult(
     long RequestId,
     string Path,
-    byte[]? ImageBytes,
+    byte[] ImageBytes,
     Point? SourceSize,
     bool Succeeded);
 
@@ -61,13 +61,13 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
     private readonly Queue<PendingThumbnailRequest> _pendingRequests = new();
     private readonly Queue<AssetThumbnailRenderResult> _completedResults = new();
 
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private Entity? _previewEntity;
-    private ParticleSystemComponent? _particleComponent;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
-    private PendingThumbnailRequest? _activeRequest;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private Entity _previewEntity;
+    private ParticleSystemComponent _particleComponent;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
+    private PendingThumbnailRequest _activeRequest;
     private bool _disposed;
 
     public ParticleSceneThumbnailRenderer(GraphicsDevice graphicsDevice, int thumbnailSize, HostedEditorGameAdapter editorRuntime)
@@ -165,7 +165,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
         EnsurePreviewSceneCreated();
         EnsureRenderViewCreated();
 
-        ParticleEffectAsset? particleAsset = TryLoadParticleAsset(request.Path);
+        ParticleEffectAsset particleAsset = TryLoadParticleAsset(request.Path);
         if (particleAsset == null || _particleComponent == null || _previewWorldDriver.World == null)
         {
             _completedResults.Enqueue(new AssetThumbnailRenderResult(request.RequestId, request.Path, null, null, false));
@@ -300,7 +300,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
             UpdateMode = ViewUpdateMode.OnDemand,
         });
 
-        if (!_editorRuntime.GameManager.ViewManager.TryGetView(viewId, out RenderView? renderView))
+        if (!_editorRuntime.GameManager.ViewManager.TryGetView(viewId, out RenderView renderView))
         {
             throw new InvalidOperationException("The particle thumbnail renderer could not create its offscreen render view.");
         }
@@ -308,7 +308,7 @@ internal sealed class ParticleSceneThumbnailRenderer : IAssetThumbnailRenderer
         _renderView = renderView;
     }
 
-    private static ParticleEffectAsset? TryLoadParticleAsset(string path)
+    private static ParticleEffectAsset TryLoadParticleAsset(string path)
     {
         try
         {

@@ -36,7 +36,7 @@ internal sealed class PreviewWorldDriver : IDisposable
         _options = options;
     }
 
-    public World? World { get; private set; }
+    public World World { get; private set; }
 
     public World Rebuild(Action<World> populate)
     {

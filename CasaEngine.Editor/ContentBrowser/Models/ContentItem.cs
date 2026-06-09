@@ -103,7 +103,7 @@ public sealed class ContentItem : INotifyPropertyChanged
     //  Construction
     // ──────────────────────────────────────────────────────────────────────
 
-    public ContentItem(string fullPath, bool isDirectory, ContentItem? parent = null)
+    public ContentItem(string fullPath, bool isDirectory, ContentItem parent = null)
     {
         IsDirectory = isDirectory;
         Parent = parent;

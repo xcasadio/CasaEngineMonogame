@@ -14,7 +14,7 @@ public sealed class ContentContextMenu
         _window = window ?? throw new ArgumentNullException(nameof(window));
     }
 
-    public MGContextMenu CreateTreeMenu(ContentItem? currentFolder, bool hasClipboardItems,
+    public MGContextMenu CreateTreeMenu(ContentItem currentFolder, bool hasClipboardItems,
         Action onOpen,
         Action onNewFolder,
         Action onRename,
@@ -56,20 +56,20 @@ public sealed class ContentContextMenu
         return menu;
     }
 
-    public MGContextMenu CreateContentMenu(ContentItem? selectedItem, bool hasClipboardItems,
+    public MGContextMenu CreateContentMenu(ContentItem selectedItem, bool hasClipboardItems,
         Action onNewFolder,
         Action onImport,
         Action onRefresh,
         Action onPaste,
-        Action? onOpen = null,
-        Action? onRename = null,
-        Action? onDuplicate = null,
-        Action? onCopy = null,
-        Action? onCut = null,
-        Action? onCopyPath = null,
-        Action? onShowInExplorer = null,
-        Action? onProperties = null,
-        Action? onDelete = null)
+        Action onOpen = null,
+        Action onRename = null,
+        Action onDuplicate = null,
+        Action onCopy = null,
+        Action onCut = null,
+        Action onCopyPath = null,
+        Action onShowInExplorer = null,
+        Action onProperties = null,
+        Action onDelete = null)
     {
         var menu = new MGContextMenu(_window, null);
 
@@ -101,7 +101,7 @@ public sealed class ContentContextMenu
         return menu;
     }
 
-    private void AddButton(MGContextMenu menu, string text, Texture2D? icon, Action? action)
+    private void AddButton(MGContextMenu menu, string text, Texture2D icon, Action action)
     {
         if (action == null)
         {

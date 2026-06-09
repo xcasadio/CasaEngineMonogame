@@ -16,20 +16,20 @@ public class TransformGizmoComponent : DrawableGameComponent
 {
     public Gizmo Gizmo { get; private set; }
 
-    private CasaEngineGame? _game;
+    private CasaEngineGame _game;
     private readonly Dictionary<ITransformableObject, GizmoTransformableAdapter> _selectionAdapters = [];
 
-    public event EventHandler<List<ITransformableObject>>? DeleteSelectionEvent;
-    public event EventHandler<List<ITransformableObject>>? SelectionChanged;
-    public event EventHandler<List<ITransformableObject>>? CopyTriggered;
+    public event EventHandler<List<ITransformableObject>> DeleteSelectionEvent;
+    public event EventHandler<List<ITransformableObject>> SelectionChanged;
+    public event EventHandler<List<ITransformableObject>> CopyTriggered;
 
-    public CameraComponent? ActiveCamera { get; set; }
+    public CameraComponent ActiveCamera { get; set; }
 
-    public RenderTargetSurface? ActiveSurface { get; set; }
+    public RenderTargetSurface ActiveSurface { get; set; }
 
     public bool IsActiveViewport { get; set; }
 
-    public Scene.World.World? SelectionWorld { get; set; }
+    public Scene.World.World SelectionWorld { get; set; }
 
     public TransformGizmoComponent(Game game) : base(game)
     {
@@ -174,17 +174,17 @@ public class TransformGizmoComponent : DrawableGameComponent
             .ToList();
     }
 
-    private void OnGizmoSelectionChanged(object? sender, List<ITransformable> selection)
+    private void OnGizmoSelectionChanged(object sender, List<ITransformable> selection)
     {
         SelectionChanged?.Invoke(this, UnwrapSelection(selection));
     }
 
-    private void OnGizmoDeleteSelectionEvent(object? sender, List<ITransformable> selection)
+    private void OnGizmoDeleteSelectionEvent(object sender, List<ITransformable> selection)
     {
         DeleteSelectionEvent?.Invoke(this, UnwrapSelection(selection));
     }
 
-    private void OnGizmoCopyTriggered(object? sender, List<ITransformable> selection)
+    private void OnGizmoCopyTriggered(object sender, List<ITransformable> selection)
     {
         CopyTriggered?.Invoke(this, UnwrapSelection(selection));
     }

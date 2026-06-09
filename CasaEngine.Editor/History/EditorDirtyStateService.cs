@@ -10,7 +10,7 @@ public sealed class EditorDirtyStateService
 
     private readonly Dictionary<EditorHistoryContext, DirtyStateEntry> _states = new();
 
-    public event EventHandler<EditorDirtyStateChangedEventArgs>? DirtyStateChanged;
+    public event EventHandler<EditorDirtyStateChangedEventArgs> DirtyStateChanged;
 
     private EditorDirtyStateService(EditorHistoryService historyService)
     {
@@ -65,7 +65,7 @@ public sealed class EditorDirtyStateService
         }
     }
 
-    private void OnHistoryChanged(object? sender, EditorHistoryChangedEventArgs e)
+    private void OnHistoryChanged(object sender, EditorHistoryChangedEventArgs e)
     {
         var state = GetOrCreateState(e.Context);
         state.CurrentRevision = e.CurrentRevision;

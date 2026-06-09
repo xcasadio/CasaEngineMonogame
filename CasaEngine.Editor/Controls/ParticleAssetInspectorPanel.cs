@@ -25,19 +25,19 @@ namespace CasaEngine.Editor.Controls;
 public sealed class ParticleAssetInspectorPanel : IDisposable
 {
     private readonly MGWindow _window;
-    private readonly ParticlePreviewViewport? _particlePreview;
+    private readonly ParticlePreviewViewport _particlePreview;
 
-    private MGDockPanel? _root;
-    private MGElement? _documentContent;
-    private MGTextBlock? _headerText;
-    private MGTextBlock? _sourceText;
-    private MGTextBlock? _statusText;
-    private MGStackPanel? _emitterStack;
+    private MGDockPanel _root;
+    private MGElement _documentContent;
+    private MGTextBlock _headerText;
+    private MGTextBlock _sourceText;
+    private MGTextBlock _statusText;
+    private MGStackPanel _emitterStack;
 
-    private ParticleEffectAsset? _particleAsset;
-    private string? _loadedRelativePath;
-    private string? _historyContextId;
-    private string? _savedSnapshot;
+    private ParticleEffectAsset _particleAsset;
+    private string _loadedRelativePath;
+    private string _historyContextId;
+    private string _savedSnapshot;
     private bool _isDirty;
 
     public ParticleAssetInspectorPanel(MGWindow window)
@@ -51,13 +51,13 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         _particlePreview = new ParticlePreviewViewport(window, graphicsDevice, editorRuntime);
     }
 
-    public ParticleEffectAsset? LoadedParticleAsset => _particleAsset;
+    public ParticleEffectAsset LoadedParticleAsset => _particleAsset;
 
-    public string? LoadedRelativePath => _loadedRelativePath;
+    public string LoadedRelativePath => _loadedRelativePath;
 
     public bool IsDirty => _isDirty;
 
-    public event Action<ParticleAssetInspectorPanel>? DirtyStateChanged;
+    public event Action<ParticleAssetInspectorPanel> DirtyStateChanged;
 
     public MGElement CreateContent()
     {
@@ -183,7 +183,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         return true;
     }
 
-    public bool TrySaveLoadedAsset(out string? errorMessage)
+    public bool TrySaveLoadedAsset(out string errorMessage)
     {
         errorMessage = null;
 
@@ -256,7 +256,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         return result;
     }
 
-    public World? GetOrCreatePreviewWorld()
+    public World GetOrCreatePreviewWorld()
     {
         return _particlePreview?.GetOrCreatePreviewWorld();
     }
@@ -286,7 +286,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
             return false;
         }
 
-        if (!TrySaveLoadedAsset(out string? saveError))
+        if (!TrySaveLoadedAsset(out string saveError))
         {
             statusMessage = saveError ?? "Unable to save particle asset.";
             return false;
@@ -353,7 +353,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
 
     private void SaveLoadedAsset()
     {
-        if (!TrySaveLoadedAsset(out string? errorMessage) && !string.IsNullOrWhiteSpace(errorMessage))
+        if (!TrySaveLoadedAsset(out string errorMessage) && !string.IsNullOrWhiteSpace(errorMessage))
         {
             SetStatus(errorMessage);
         }
@@ -1087,7 +1087,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         RefreshSourceText();
         RefreshStatusText();
 
-        string? fullPath = GetLoadedFullPath();
+        string fullPath = GetLoadedFullPath();
         if (_particlePreview != null && fullPath != null)
         {
             _particlePreview.LoadAsset(particleAsset, fullPath);
@@ -1136,7 +1136,7 @@ public sealed class ParticleAssetInspectorPanel : IDisposable
         }
     }
 
-    private string? GetLoadedFullPath()
+    private string GetLoadedFullPath()
     {
         if (string.IsNullOrWhiteSpace(_loadedRelativePath))
         {

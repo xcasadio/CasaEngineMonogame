@@ -12,9 +12,9 @@ public interface IContentView
 
     IReadOnlyList<ContentItem> SelectedItems { get; }
 
-    event Action<IReadOnlyList<ContentItem>>? SelectionChanged;
-    event Action<ContentItem>? FileDoubleClicked;
-    event Action<ContentItem>? DirectoryDoubleClicked;
+    event Action<IReadOnlyList<ContentItem>> SelectionChanged;
+    event Action<ContentItem> FileDoubleClicked;
+    event Action<ContentItem> DirectoryDoubleClicked;
 
     void SetItems(IReadOnlyList<ContentItem> items);
     void ClearSelection();

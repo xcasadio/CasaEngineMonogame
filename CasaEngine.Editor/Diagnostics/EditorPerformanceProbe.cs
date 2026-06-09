@@ -11,7 +11,7 @@ internal static class EditorPerformanceProbe
     private const double DefaultSlowFrameThresholdMs = 12.0;
     private const int MaxPhases = 64;
 
-    private static readonly string? OutputPath;
+    private static readonly string OutputPath;
     private static readonly int SampleInterval;
     private static readonly double SlowFrameThresholdMs;
     private static readonly PhaseMetric[] Phases = new PhaseMetric[MaxPhases];
@@ -24,7 +24,7 @@ internal static class EditorPerformanceProbe
 
     static EditorPerformanceProbe()
     {
-        string? configuredPath = Environment.GetEnvironmentVariable("CASA_EDITOR_PERF_PROBE");
+        string configuredPath = Environment.GetEnvironmentVariable("CASA_EDITOR_PERF_PROBE");
         if (string.IsNullOrWhiteSpace(configuredPath) || string.Equals(configuredPath, "0", StringComparison.OrdinalIgnoreCase))
         {
             return;
@@ -37,7 +37,7 @@ internal static class EditorPerformanceProbe
         SampleInterval = TryReadInt("CASA_EDITOR_PERF_SAMPLE_INTERVAL", DefaultSampleInterval, 1);
         SlowFrameThresholdMs = TryReadDouble("CASA_EDITOR_PERF_THRESHOLD_MS", DefaultSlowFrameThresholdMs, 0.0);
 
-        string? directory = Path.GetDirectoryName(OutputPath);
+        string directory = Path.GetDirectoryName(OutputPath);
         if (!string.IsNullOrWhiteSpace(directory))
         {
             Directory.CreateDirectory(directory);
@@ -135,7 +135,7 @@ internal static class EditorPerformanceProbe
 
     private static int TryReadInt(string name, int fallback, int minimum)
     {
-        string? value = Environment.GetEnvironmentVariable(name);
+        string value = Environment.GetEnvironmentVariable(name);
         return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed)
             ? Math.Max(minimum, parsed)
             : fallback;
@@ -143,7 +143,7 @@ internal static class EditorPerformanceProbe
 
     private static double TryReadDouble(string name, double fallback, double minimum)
     {
-        string? value = Environment.GetEnvironmentVariable(name);
+        string value = Environment.GetEnvironmentVariable(name);
         return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed)
             ? Math.Max(minimum, parsed)
             : fallback;
@@ -174,7 +174,7 @@ internal static class EditorPerformanceProbe
 
     public readonly struct PhaseScope : IDisposable
     {
-        private readonly string? _name;
+        private readonly string _name;
         private readonly long _startTimestamp;
 
         public PhaseScope(string name, long startTimestamp)

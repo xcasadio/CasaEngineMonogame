@@ -14,9 +14,9 @@ internal sealed class EditorShaderSourceHotReloadService : IDisposable
     private readonly HostedEditorGameAdapter _editorRuntime;
     private readonly object _syncRoot = new();
     private readonly HashSet<string> _pendingChangedRelativePaths = new(StringComparer.OrdinalIgnoreCase);
-    private FileSystemWatcher? _watcher;
-    private ShaderDependencyIndex? _dependencyIndex;
-    private string? _contentSourceRoot;
+    private FileSystemWatcher _watcher;
+    private ShaderDependencyIndex _dependencyIndex;
+    private string _contentSourceRoot;
     private TargetPlatform _targetPlatform = TargetPlatform.Windows;
 
     public EditorShaderSourceHotReloadService(HostedEditorGameAdapter editorRuntime)
@@ -253,7 +253,7 @@ internal sealed class EditorShaderSourceHotReloadService : IDisposable
 
     private static bool TryResolveContentSourceRoot(out string contentSourceRoot)
     {
-        string? currentDirectory = Path.GetFullPath(AppContext.BaseDirectory);
+        string currentDirectory = Path.GetFullPath(AppContext.BaseDirectory);
         while (!string.IsNullOrWhiteSpace(currentDirectory))
         {
             string candidate = Path.Combine(currentDirectory, "CasaEngine", "Content");

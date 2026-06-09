@@ -9,28 +9,28 @@ public sealed class EditorSelection
 {
     public static EditorSelection Current { get; } = new();
 
-    public event Action<World?>? WorldSelectionChanged;
+    public event Action<World> WorldSelectionChanged;
 
-    public event Action<Entity?>? SelectionChanged;
+    public event Action<Entity> SelectionChanged;
 
-    public event Action<EntityComponent?>? ComponentSelectionChanged;
+    public event Action<EntityComponent> ComponentSelectionChanged;
 
-    public World? SelectedWorld { get; private set; }
+    public World SelectedWorld { get; private set; }
 
-    public Entity? SelectedEntity { get; private set; }
+    public Entity SelectedEntity { get; private set; }
 
-    public EntityComponent? SelectedComponent { get; private set; }
+    public EntityComponent SelectedComponent { get; private set; }
 
     private EditorSelection()
     {
     }
 
-    public void SetSelectedWorld(World? world)
+    public void SetSelectedWorld(World world)
     {
         UpdateSelection(world, null, null);
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         var component = SelectedComponent != null && ReferenceEquals(SelectedComponent.Owner, entity)
             ? SelectedComponent
@@ -39,7 +39,7 @@ public sealed class EditorSelection
         UpdateSelection(entity?.World, entity, component);
     }
 
-    public void SetSelectedComponent(EntityComponent? component)
+    public void SetSelectedComponent(EntityComponent component)
     {
         if (component == null)
         {
@@ -60,7 +60,7 @@ public sealed class EditorSelection
         UpdateSelection(null, null, null);
     }
 
-    private void UpdateSelection(World? world, Entity? entity, EntityComponent? component)
+    private void UpdateSelection(World world, Entity entity, EntityComponent component)
     {
         bool worldChanged = !ReferenceEquals(SelectedWorld, world);
         bool entityChanged = !ReferenceEquals(SelectedEntity, entity);

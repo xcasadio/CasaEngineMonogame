@@ -26,36 +26,36 @@ namespace CasaEngine.Editor.Controls;
 public sealed class EntitiesPanel
 {
     private readonly MGWindow _window;
-    private readonly Func<World?> _getCurrentWorld;
+    private readonly Func<World> _getCurrentWorld;
 
     private readonly Dictionary<MGTreeViewItem, Entity> _itemToEntity = new();
     private readonly Dictionary<Entity, MGTreeViewItem> _entityToItem = new();
     private readonly HashSet<Guid> _expandedEntityIds = [];
     private readonly HashSet<Entity> _observedEntities = [];
 
-    private MGDockPanel? _root;
-    private MGTreeView? _treeView;
-    private MGTreeViewItem? _worldRootItem;
-    private MGTextBox? _searchBox;
-    private MGTextBlock? _summaryText;
-    private World? _currentWorld;
-    private World? _selectedWorld;
-    private Entity? _selectedEntity;
+    private MGDockPanel _root;
+    private MGTreeView _treeView;
+    private MGTreeViewItem _worldRootItem;
+    private MGTextBox _searchBox;
+    private MGTextBlock _summaryText;
+    private World _currentWorld;
+    private World _selectedWorld;
+    private Entity _selectedEntity;
     private int _selectedEntityCount;
     private string _filterText = string.Empty;
     private bool _suppressSelectionChanged;
 
-    public EntitiesPanel(MGWindow window, Func<World?> getCurrentWorld)
+    public EntitiesPanel(MGWindow window, Func<World> getCurrentWorld)
     {
         _window = window;
         _getCurrentWorld = getCurrentWorld;
     }
 
-    public event Action<Entity?>? SelectedEntityChanged;
+    public event Action<Entity> SelectedEntityChanged;
 
-    public event Action<World?>? SelectedWorldChanged;
+    public event Action<World> SelectedWorldChanged;
 
-    public event Action<Entity>? EntityDoubleClicked;
+    public event Action<Entity> EntityDoubleClicked;
 
     public MGElement CreateContent()
     {
@@ -116,17 +116,17 @@ public sealed class EntitiesPanel
         RebuildTree();
     }
 
-    public void SetSelectedEntity(Entity? entity)
+    public void SetSelectedEntity(Entity entity)
     {
         SetSelectionState(null, entity, entity != null ? 1 : 0);
     }
 
-    public void SetSelectedWorld(World? world)
+    public void SetSelectedWorld(World world)
     {
         SetSelectionState(world, null, world != null ? 1 : 0);
     }
 
-    public void SetSelectionState(World? world, Entity? entity, int selectedEntityCount)
+    public void SetSelectionState(World world, Entity entity, int selectedEntityCount)
     {
         _selectedWorld = world;
         _selectedEntity = entity;
@@ -212,7 +212,7 @@ public sealed class EntitiesPanel
         return toolbar;
     }
 
-    private MGButton CreateIconButton(Texture2D? icon, Action<MGButton> onClick)
+    private MGButton CreateIconButton(Texture2D icon, Action<MGButton> onClick)
     {
         var button = new MGButton(_window, onClick)
         {
@@ -234,18 +234,18 @@ public sealed class EntitiesPanel
         return button;
     }
 
-    private void OnProjectLoaded(object? sender, EventArgs e)
+    private void OnProjectLoaded(object sender, EventArgs e)
     {
         Refresh();
     }
 
-    private void OnSearchTextChanged(object? sender, MGUI.Shared.Helpers.EventArgs<string> e)
+    private void OnSearchTextChanged(object sender, MGUI.Shared.Helpers.EventArgs<string> e)
     {
         _filterText = e.NewValue?.Trim() ?? string.Empty;
         RebuildTree();
     }
 
-    private void OnTreeSelectionChanged(object? sender, MGTreeViewItem item)
+    private void OnTreeSelectionChanged(object sender, MGTreeViewItem item)
     {
         if (_suppressSelectionChanged)
         {
@@ -269,7 +269,7 @@ public sealed class EntitiesPanel
         SelectedEntityChanged?.Invoke(_selectedEntity);
     }
 
-    private void OnTreeItemExpanded(object? sender, MGTreeViewItem item)
+    private void OnTreeItemExpanded(object sender, MGTreeViewItem item)
     {
         if (_itemToEntity.TryGetValue(item, out var entity))
         {
@@ -277,7 +277,7 @@ public sealed class EntitiesPanel
         }
     }
 
-    private void OnTreeItemCollapsed(object? sender, MGTreeViewItem item)
+    private void OnTreeItemCollapsed(object sender, MGTreeViewItem item)
     {
         if (_itemToEntity.TryGetValue(item, out var entity))
         {
@@ -285,7 +285,7 @@ public sealed class EntitiesPanel
         }
     }
 
-    private void OnTreeItemDoubleClicked(object? sender, MGTreeViewItem item)
+    private void OnTreeItemDoubleClicked(object sender, MGTreeViewItem item)
     {
         if (_itemToEntity.TryGetValue(item, out var entity))
         {
@@ -293,7 +293,7 @@ public sealed class EntitiesPanel
         }
     }
 
-    private void OnTreeRightClick(object? sender, BaseMouseReleasedEventArgs e)
+    private void OnTreeRightClick(object sender, BaseMouseReleasedEventArgs e)
     {
         var menu = new MGContextMenu(_window, null);
         var selectedEntity = _treeView?.SelectedItem != null && _itemToEntity.TryGetValue(_treeView.SelectedItem, out var entity)
@@ -315,7 +315,7 @@ public sealed class EntitiesPanel
         _treeView?.GetDesktop().TryOpenContextMenu(menu, e.Position);
     }
 
-    private void AttachWorld(World? world)
+    private void AttachWorld(World world)
     {
         if (ReferenceEquals(_currentWorld, world))
         {
@@ -359,13 +359,13 @@ public sealed class EntitiesPanel
         _currentWorld = null;
     }
 
-    private void OnWorldEntityAdded(object? sender, Entity entity)
+    private void OnWorldEntityAdded(object sender, Entity entity)
     {
         SubscribeEntityTree(entity);
         RebuildTree();
     }
 
-    private void OnWorldEntityRemoved(object? sender, Entity entity)
+    private void OnWorldEntityRemoved(object sender, Entity entity)
     {
         UnsubscribeEntityTree(entity);
         if (ReferenceEquals(_selectedEntity, entity))
@@ -377,7 +377,7 @@ public sealed class EntitiesPanel
         RebuildTree();
     }
 
-    private void OnWorldEntitiesCleared(object? sender, EventArgs e)
+    private void OnWorldEntitiesCleared(object sender, EventArgs e)
     {
         foreach (var entity in _observedEntities.ToList())
         {
@@ -419,7 +419,7 @@ public sealed class EntitiesPanel
         }
     }
 
-    private void OnEntityNameChanged(object? sender, EntityNameChangedEventArgs e)
+    private void OnEntityNameChanged(object sender, EntityNameChangedEventArgs e)
     {
         RebuildTree();
     }
@@ -549,7 +549,7 @@ public sealed class EntitiesPanel
             : DragDropEffect.None;
     }
 
-    private void DropParticleAssetOnEntity(Entity entity, IReadOnlyList<ContentItem>? draggedItems)
+    private void DropParticleAssetOnEntity(Entity entity, IReadOnlyList<ContentItem> draggedItems)
     {
         if (!TryResolveFirstParticleAsset(draggedItems, out var assetInfo))
         {
@@ -593,7 +593,7 @@ public sealed class EntitiesPanel
             });
     }
 
-    private bool TryResolveFirstParticleAsset(IReadOnlyList<ContentItem>? draggedItems, out AssetInfo assetInfo)
+    private bool TryResolveFirstParticleAsset(IReadOnlyList<ContentItem> draggedItems, out AssetInfo assetInfo)
     {
         assetInfo = null!;
         if (_currentWorld == null || !AssetCatalog.IsLoaded || draggedItems == null || draggedItems.Count == 0)
@@ -741,7 +741,7 @@ public sealed class EntitiesPanel
         }
     }
 
-    private void AddEntity(Entity? parent)
+    private void AddEntity(Entity parent)
     {
         if (_currentWorld == null)
         {
@@ -872,7 +872,7 @@ public sealed class EntitiesPanel
             new EditorDelegateCommand(description, execute, undo));
     }
 
-    private void ApplySelectionAfterMutation(Entity? entity)
+    private void ApplySelectionAfterMutation(Entity entity)
     {
         _selectedWorld = null;
         _selectedEntity = entity;

@@ -8,8 +8,8 @@ namespace CasaEngine.Editor.Controls;
 internal sealed class TileMapInspectorPanel
 {
     private readonly MGWindow _window;
-    private MGStackPanel? _root;
-    private TileMapEditorPanel? _editorPanel;
+    private MGStackPanel _root;
+    private TileMapEditorPanel _editorPanel;
 
     public TileMapInspectorPanel(MGWindow window)
     {
@@ -34,7 +34,7 @@ internal sealed class TileMapInspectorPanel
         return _root;
     }
 
-    public void SetEditorPanel(TileMapEditorPanel? editorPanel)
+    public void SetEditorPanel(TileMapEditorPanel editorPanel)
     {
         if (ReferenceEquals(_editorPanel, editorPanel))
         {

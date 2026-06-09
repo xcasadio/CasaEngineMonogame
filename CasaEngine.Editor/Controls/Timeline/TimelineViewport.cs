@@ -236,9 +236,13 @@ internal sealed class TimelineViewport : MGElement
         TimelineEvent? hitEvent = lane != null ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
         _owner.SetSelectedEventId(hitEvent?.Id, true);
 
-        float timeSeconds = GetTimeAtPosition(layoutPosition.X, timeAreaBounds.Left);
-        _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
-        _owner.NotifyTimeScrubbed(timeSeconds);
+        if (hitEvent == null)
+        {
+            float timeSeconds = GetTimeAtPosition(layoutPosition.X, timeAreaBounds.Left);
+            _owner.SetCurrentTimeSeconds(timeSeconds, notify: false);
+            _owner.NotifyTimeScrubbed(timeSeconds);
+        }
+
         _pressedEvent = null;
         e.SetHandledBy(this, false);
     }
@@ -356,7 +360,16 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        _owner.CommitDraggedEventTime(_draggedEvent.Id, _draggedEventTimeSeconds);
+        bool controlDown = _owner.KeyboardHandler.Tracker.IsControlDown;
+        if (controlDown)
+        {
+            _owner.DuplicateDraggedEvent(_draggedEvent.Id, _draggedEventTimeSeconds);
+        }
+        else
+        {
+            _owner.CommitDraggedEventTime(_draggedEvent.Id, _draggedEventTimeSeconds);
+        }
+
         _draggedEvent = null;
         _pressedEvent = null;
         _ignoreNextRelease = true;

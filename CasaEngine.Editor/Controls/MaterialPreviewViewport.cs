@@ -53,9 +53,9 @@ internal sealed class MaterialPreviewViewport : IDisposable
 
         public Rectangle ScreenBounds => _getScreenBounds();
 
-        public event Action<IViewHost, int, int>? Resized;
+        public event Action<IViewHost, int, int> Resized;
 
-        public event Action<IViewHost>? Closed;
+        public event Action<IViewHost> Closed;
 
         public void NotifyResized(int newWidth, int newHeight)
         {
@@ -83,19 +83,19 @@ internal sealed class MaterialPreviewViewport : IDisposable
     private readonly WorldEnvironmentSettings _environmentOverride = PreviewEnvironmentFactory.CreateNeutralPreview(EditorThemePalette.PreviewClearColor);
     private readonly PreviewWorldDriver _previewWorldDriver;
 
-    private MGStackPanel? _root;
-    private MGDockPanel? _viewportHost;
-    private MGImage? _viewportImage;
-    private MGTextBlock? _statusText;
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private MguiPreviewViewHost? _renderViewHost;
-    private Texture2D? _boundTexture;
-    private StaticModelSubMeshComponent? _previewMeshComponent;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
-    private MaterialAsset? _materialAsset;
-    private MaterialBase? _runtimeMaterial;
+    private MGStackPanel _root;
+    private MGDockPanel _viewportHost;
+    private MGImage _viewportImage;
+    private MGTextBlock _statusText;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private MguiPreviewViewHost _renderViewHost;
+    private Texture2D _boundTexture;
+    private StaticModelSubMeshComponent _previewMeshComponent;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
+    private MaterialAsset _materialAsset;
+    private MaterialBase _runtimeMaterial;
     private PreviewPrimitiveKind _activeShape = PreviewPrimitiveKind.Sphere;
     private string _statusMessage = "Preview ready. Neutral 3-point lighting.";
     private int _rtWidth = 240;
@@ -196,13 +196,13 @@ internal sealed class MaterialPreviewViewport : IDisposable
         return _root;
     }
 
-    public World? GetOrCreatePreviewWorld()
+    public World GetOrCreatePreviewWorld()
     {
         EnsurePreviewSceneCreated();
         return _previewWorldDriver.World;
     }
 
-    public void SetMaterialAsset(MaterialAsset? materialAsset)
+    public void SetMaterialAsset(MaterialAsset materialAsset)
     {
         _materialAsset = materialAsset;
 
@@ -538,7 +538,7 @@ internal sealed class MaterialPreviewViewport : IDisposable
         _renderView?.Invalidate();
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         int width = Math.Max(32, e.NewValue.Width);
         int height = Math.Max(32, e.NewValue.Height);

@@ -13,5 +13,5 @@ public sealed class ContextualPanelDefinition
 
     public required Func<MGElement> ContentFactory { get; init; }
 
-    public Action<EditorContextService>? Refresh { get; init; }
+    public Action<EditorContextService> Refresh { get; init; }
 }

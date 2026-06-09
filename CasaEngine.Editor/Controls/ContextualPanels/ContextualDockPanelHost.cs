@@ -15,10 +15,10 @@ public sealed class ContextualDockPanelHost
     private readonly string _emptyMessage;
     private readonly Dictionary<EditorDocumentKind, ContextualPanelDefinition> _definitions = new();
 
-    private MGDockPanel? _root;
-    private MGTextBlock? _statusText;
-    private MGStackPanel? _contentHost;
-    private ContextualPanelDefinition? _activeDefinition;
+    private MGDockPanel _root;
+    private MGTextBlock _statusText;
+    private MGStackPanel _contentHost;
+    private ContextualPanelDefinition _activeDefinition;
 
     public ContextualDockPanelHost(
         MGWindow window,

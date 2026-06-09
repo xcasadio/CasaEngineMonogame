@@ -22,11 +22,11 @@ public sealed class InlineRenameOverlay
 
     private readonly MGWindow _parentWindow;
 
-    private MGWindow? _popupWindow;
-    private MGTextBox? _textBox;
-    private ContentItem? _item;
-    private Func<ContentItem, string, bool>? _commitRename;
-    private Action? _cancelRename;
+    private MGWindow _popupWindow;
+    private MGTextBox _textBox;
+    private ContentItem _item;
+    private Func<ContentItem, string, bool> _commitRename;
+    private Action _cancelRename;
 
     public bool IsOpen => _popupWindow != null;
 
@@ -35,7 +35,7 @@ public sealed class InlineRenameOverlay
         _parentWindow = parentWindow ?? throw new ArgumentNullException(nameof(parentWindow));
     }
 
-    public void Show(ContentItem item, Rectangle anchorBounds, Func<ContentItem, string, bool> commitRename, Action? cancelRename = null)
+    public void Show(ContentItem item, Rectangle anchorBounds, Func<ContentItem, string, bool> commitRename, Action cancelRename = null)
     {
         if (item == null)
         {
@@ -99,7 +99,7 @@ public sealed class InlineRenameOverlay
         ClosePopup();
     }
 
-    private void OnPopupReleasedOutside(object? sender, BaseMouseReleasedEventArgs e)
+    private void OnPopupReleasedOutside(object sender, BaseMouseReleasedEventArgs e)
     {
         if (e.IsLMB)
         {
@@ -107,7 +107,7 @@ public sealed class InlineRenameOverlay
         }
     }
 
-    private void OnTextBoxKeyPressed(object? sender, BaseKeyPressedEventArgs e)
+    private void OnTextBoxKeyPressed(object sender, BaseKeyPressedEventArgs e)
     {
         if (_textBox == null || !ReferenceEquals(_textBox, sender))
         {
@@ -163,7 +163,7 @@ public sealed class InlineRenameOverlay
         return true;
     }
 
-    private static string? ValidateName(ContentItem item, string proposedName)
+    private static string ValidateName(ContentItem item, string proposedName)
     {
         if (string.IsNullOrWhiteSpace(proposedName))
         {

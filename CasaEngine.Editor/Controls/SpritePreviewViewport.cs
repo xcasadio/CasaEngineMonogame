@@ -43,9 +43,9 @@ internal sealed class SpritePreviewViewport : IDisposable
 
         public Rectangle ScreenBounds => _getScreenBounds();
 
-        public event Action<IViewHost, int, int>? Resized;
+        public event Action<IViewHost, int, int> Resized;
 
-        public event Action<IViewHost>? Closed;
+        public event Action<IViewHost> Closed;
 
         public void NotifyResized(int newWidth, int newHeight)
         {
@@ -70,22 +70,22 @@ internal sealed class SpritePreviewViewport : IDisposable
     private readonly PreviewWorldDriver _previewWorldDriver;
     private readonly EditorSpriteOverlayRenderer _overlayRenderer;
 
-    private MGStackPanel? _root;
-    private MGDockPanel? _viewportHost;
-    private MGImage? _viewportImage;
-    private MGTextBlock? _statusText;
-    private MGTextBlock? _zoomText;
-    private MGCheckBox? _showCollisionsCheckBox;
-    private MGCheckBox? _showHotspotCheckBox;
-    private RenderTargetSurface? _surface;
-    private RenderView? _renderView;
-    private MguiPreviewViewHost? _renderViewHost;
-    private Texture2D? _boundTexture;
-    private Entity? _previewEntity;
-    private EditorSpritePreviewComponent? _previewSpriteComponent;
-    private Entity? _cameraEntity;
-    private CameraLookAtComponent? _camera;
-    private SpriteData? _spriteData;
+    private MGStackPanel _root;
+    private MGDockPanel _viewportHost;
+    private MGImage _viewportImage;
+    private MGTextBlock _statusText;
+    private MGTextBlock _zoomText;
+    private MGCheckBox _showCollisionsCheckBox;
+    private MGCheckBox _showHotspotCheckBox;
+    private RenderTargetSurface _surface;
+    private RenderView _renderView;
+    private MguiPreviewViewHost _renderViewHost;
+    private Texture2D _boundTexture;
+    private Entity _previewEntity;
+    private EditorSpritePreviewComponent _previewSpriteComponent;
+    private Entity _cameraEntity;
+    private CameraLookAtComponent _camera;
+    private SpriteData _spriteData;
     private string _statusMessage = "Open a .sprite asset from the Content Browser.";
     private int _rtWidth = 360;
     private int _rtHeight = 260;
@@ -409,7 +409,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         _renderView?.Invalidate();
     }
 
-    private void OnViewportBoundsChanged(object? sender, EventArgs<Rectangle> e)
+    private void OnViewportBoundsChanged(object sender, EventArgs<Rectangle> e)
     {
         int width = Math.Max(32, e.NewValue.Width);
         int height = Math.Max(32, e.NewValue.Height);
@@ -434,7 +434,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         RefreshTextureBinding();
     }
 
-    private void OnViewportScrolled(object? sender, MGUI.Shared.Input.Mouse.BaseMouseScrolledEventArgs e)
+    private void OnViewportScrolled(object sender, MGUI.Shared.Input.Mouse.BaseMouseScrolledEventArgs e)
     {
         if (_spriteData == null || e.ScrollWheelDelta == 0 || _viewportHost == null || _viewportHost.Parent == null)
         {
@@ -584,7 +584,7 @@ internal sealed class SpritePreviewViewport : IDisposable
         }
     }
 
-    private void OnViewportEndingDraw(object? sender, MGElement.MGElementDrawEventArgs e)
+    private void OnViewportEndingDraw(object sender, MGElement.MGElementDrawEventArgs e)
     {
         if (_previewSpriteComponent == null || _spriteData == null || _viewportHost == null)
         {
