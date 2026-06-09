@@ -4,9 +4,9 @@ public sealed class Animation2dCompositionData
 {
     public float DurationSeconds { get; }
 
-    public float RestartTimeSeconds { get; }
+    public AnimationType AnimationType { get; }
 
-    public bool HasRestartEvent => RestartTimeSeconds > 0f;
+    public bool IsLooping => AnimationType == AnimationType.Loop;
 
     public IReadOnlyList<Animation2dPartData> Parts { get; }
 
@@ -16,13 +16,13 @@ public sealed class Animation2dCompositionData
 
     internal Animation2dCompositionData(
         float durationSeconds,
-        float restartTimeSeconds,
+        AnimationType animationType,
         IReadOnlyList<Animation2dPartData> parts,
         IReadOnlyList<Animation2dTrackData> tracks,
         IReadOnlyList<AnimationEventAsset> events)
     {
         DurationSeconds = durationSeconds;
-        RestartTimeSeconds = restartTimeSeconds;
+        AnimationType = animationType;
         Parts = parts;
         Tracks = tracks;
         Events = events;

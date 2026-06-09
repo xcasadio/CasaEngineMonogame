@@ -5,9 +5,34 @@ namespace CasaEngine.Framework.Assets.Animations;
 
 public class Animation2dData : ObjectBase
 {
+    public AnimationType AnimationType { get; set; } = AnimationType.Once;
+
     public List<Animation2dPartData> Parts { get; } = new();
     public List<Animation2dTrackData> Tracks { get; } = new();
     public List<AnimationEventAsset> Events { get; } = new();
+
+    public string GetTrackName(int trackIndex)
+    {
+        if (trackIndex < 0 || trackIndex >= Tracks.Count)
+        {
+            return string.Empty;
+        }
+
+        return GetDefaultTrackName(trackIndex);
+    }
+
+    public void EnsureTrackNames()
+    {
+        for (var index = 0; index < Tracks.Count; index++)
+        {
+            if (!string.IsNullOrWhiteSpace(Tracks[index].Name))
+            {
+                continue;
+            }
+
+            Tracks[index].Name = GetDefaultTrackName(index);
+        }
+    }
 
     public float GetDurationSeconds()
     {
@@ -20,6 +45,7 @@ public class Animation2dData : ObjectBase
             durationSeconds = MathF.Max(durationSeconds, GetLastBoolKeyframeTime(track.VisibleKeyframes));
             durationSeconds = MathF.Max(durationSeconds, GetLastIntKeyframeTime(track.DrawOrderKeyframes));
             durationSeconds = MathF.Max(durationSeconds, GetLastBoolKeyframeTime(track.FlipKeyframes));
+            durationSeconds = MathF.Max(durationSeconds, GetLastFloatKeyframeTime(track.RotationKeyframes));
         }
 
         foreach (var animationEvent in Events)
@@ -69,13 +95,10 @@ public class Animation2dData : ObjectBase
     {
         base.Load(element);
 
-        bool shouldAppendLegacyRestartEvent = false;
-        if (element["animation_type"] is JToken animationTypeNode
+        AnimationType = element["animation_type"] is JToken animationTypeNode
             && Enum.TryParse(animationTypeNode.Value<string>(), true, out AnimationType animationType)
-            && animationType == AnimationType.Loop)
-        {
-            shouldAppendLegacyRestartEvent = true;
-        }
+                ? animationType
+                : AnimationType.Once;
 
         Parts.Clear();
         Tracks.Clear();
@@ -105,48 +128,32 @@ public class Animation2dData : ObjectBase
 
         if (element["events"] is not JArray eventsNode)
         {
-            TryAppendLegacyRestartEvent(shouldAppendLegacyRestartEvent);
+            EnsureTrackNames();
             return;
         }
 
+        bool inferredLoopFromLegacyRestartEvent = false;
         foreach (var eventNode in eventsNode)
         {
             if (eventNode is JObject eventObject)
             {
-                Events.Add(AnimationEventAssetJsonSerializer.Load(eventObject));
+                AnimationEventAsset animationEvent = AnimationEventAssetJsonSerializer.Load(eventObject);
+                if (string.Equals(animationEvent.EventName, Animation2dEventNames.Restart, StringComparison.OrdinalIgnoreCase))
+                {
+                    inferredLoopFromLegacyRestartEvent = true;
+                    continue;
+                }
+
+                Events.Add(animationEvent);
             }
         }
 
-        TryAppendLegacyRestartEvent(shouldAppendLegacyRestartEvent);
-    }
-
-    private void TryAppendLegacyRestartEvent(bool shouldAppendLegacyRestartEvent)
-    {
-        if (!shouldAppendLegacyRestartEvent || HasRestartEvent())
+        if (element["animation_type"] == null && inferredLoopFromLegacyRestartEvent)
         {
-            return;
+            AnimationType = AnimationType.Loop;
         }
 
-        float durationSeconds = GetDurationSeconds();
-        if (durationSeconds <= 0f)
-        {
-            return;
-        }
-
-        Events.Add(new AnimationEventAsset(durationSeconds, Animation2dEventNames.Restart));
-    }
-
-    private bool HasRestartEvent()
-    {
-        for (var index = 0; index < Events.Count; index++)
-        {
-            if (string.Equals(Events[index].EventName, Animation2dEventNames.Restart, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        EnsureTrackNames();
     }
 
     private static float GetLastGuidKeyframeTime(List<Animation2dGuidKeyframeData> keyframes)
@@ -167,5 +174,15 @@ public class Animation2dData : ObjectBase
     private static float GetLastIntKeyframeTime(List<Animation2dIntKeyframeData> keyframes)
     {
         return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
+    }
+
+    private static float GetLastFloatKeyframeTime(List<Animation2dFloatKeyframeData> keyframes)
+    {
+        return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
+    }
+
+    private static string GetDefaultTrackName(int trackIndex)
+    {
+        return $"track {trackIndex + 1:00}";
     }
 }

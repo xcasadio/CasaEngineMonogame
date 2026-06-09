@@ -14,6 +14,8 @@ public sealed class Animation2dPartData
 
     public Vector2 DefaultPosition { get; set; } = Vector2.Zero;
 
+    public float DefaultRotation { get; set; }
+
     public int DefaultDrawOrder { get; set; }
 
     public bool DefaultVisible { get; set; } = true;
@@ -32,6 +34,7 @@ public sealed class Animation2dPartData
             Name = node["name"]?.Value<string>() ?? string.Empty,
             DefaultSpriteId = node["default_sprite_id"]?.GetGuid() ?? Guid.Empty,
             DefaultPosition = node["default_position"]?.GetVector2() ?? Vector2.Zero,
+            DefaultRotation = node["default_rotation"]?.Value<float>() ?? 0f,
             DefaultDrawOrder = node["default_draw_order"]?.Value<int>() ?? 0,
             DefaultVisible = node["default_visible"]?.Value<bool>() ?? true,
             DefaultFlipX = node["default_flip_x"]?.Value<bool>() ?? false,

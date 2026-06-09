@@ -10,7 +10,7 @@ public static class Animation2dCompositionAdapter
 
         return new Animation2dCompositionData(
             animationData.GetDurationSeconds(),
-            FindRestartTimeSeconds(copiedEvents),
+            animationData.AnimationType,
             CopyParts(animationData.Parts),
             CopyTracks(animationData.Tracks),
             copiedEvents);
@@ -46,6 +46,7 @@ public static class Animation2dCompositionAdapter
             Name = part.Name,
             DefaultSpriteId = part.DefaultSpriteId,
             DefaultPosition = part.DefaultPosition,
+            DefaultRotation = part.DefaultRotation,
             DefaultDrawOrder = part.DefaultDrawOrder,
             DefaultVisible = part.DefaultVisible,
             DefaultFlipX = part.DefaultFlipX,
@@ -57,6 +58,7 @@ public static class Animation2dCompositionAdapter
     {
         var clone = new Animation2dTrackData
         {
+            Name = track.Name,
             TargetPartId = track.TargetPartId,
             Property = track.Property,
             Interpolation = track.Interpolation,
@@ -87,6 +89,11 @@ public static class Animation2dCompositionAdapter
             clone.FlipKeyframes.Add(keyframe);
         }
 
+        foreach (var keyframe in track.RotationKeyframes)
+        {
+            clone.RotationKeyframes.Add(keyframe);
+        }
+
         return clone;
     }
 
@@ -99,22 +106,5 @@ public static class Animation2dCompositionAdapter
         }
 
         return copy;
-    }
-
-    private static float FindRestartTimeSeconds(List<AnimationEventAsset> events)
-    {
-        var restartTimeSeconds = 0f;
-        for (var index = 0; index < events.Count; index++)
-        {
-            var animationEvent = events[index];
-            if (!string.Equals(animationEvent.EventName, Animation2dEventNames.Restart, StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            restartTimeSeconds = MathF.Max(restartTimeSeconds, animationEvent.TimeSeconds);
-        }
-
-        return restartTimeSeconds;
     }
 }

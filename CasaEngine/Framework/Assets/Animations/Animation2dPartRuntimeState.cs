@@ -12,6 +12,8 @@ public sealed class Animation2dPartRuntimeState
 
     public Vector2 Position { get; set; } = Vector2.Zero;
 
+    public float Rotation { get; set; }
+
     public int DrawOrder { get; set; }
 
     public bool Visible { get; set; } = true;
@@ -26,6 +28,7 @@ public sealed class Animation2dPartRuntimeState
         SourceIndex = sourceIndex;
         SpriteId = part.DefaultSpriteId;
         Position = part.DefaultPosition;
+        Rotation = part.DefaultRotation;
         DrawOrder = part.DefaultDrawOrder;
         Visible = part.DefaultVisible;
         FlipX = part.DefaultFlipX;

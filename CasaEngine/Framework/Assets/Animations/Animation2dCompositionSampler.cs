@@ -30,7 +30,7 @@ public sealed class Animation2dCompositionSampler
     {
         float actualTimeSeconds = MathF.Max(0f, timeSeconds);
         CurrentTime = NormalizeTime(actualTimeSeconds);
-        IsFinished = !_composition.HasRestartEvent
+        IsFinished = _composition.AnimationType != AnimationType.Loop
             && _composition.DurationSeconds > 0f
             && actualTimeSeconds >= _composition.DurationSeconds;
         ApplyTracks(CurrentTime);
@@ -38,7 +38,7 @@ public sealed class Animation2dCompositionSampler
 
     public bool Update(float elapsedTime)
     {
-        if (_composition.HasRestartEvent)
+        if (_composition.AnimationType == AnimationType.Loop)
         {
             UpdateLooping(MathF.Max(0f, elapsedTime));
             return false;
@@ -67,7 +67,7 @@ public sealed class Animation2dCompositionSampler
     private void UpdateLooping(float elapsedTime)
     {
         var handler = AnimationEventTriggered;
-        float restartTimeSeconds = _composition.RestartTimeSeconds;
+        float restartTimeSeconds = _composition.DurationSeconds;
         if (restartTimeSeconds <= 0f)
         {
             CurrentTime = 0f;
@@ -123,9 +123,9 @@ public sealed class Animation2dCompositionSampler
 
     private float NormalizeTime(float timeSeconds)
     {
-        if (_composition.HasRestartEvent)
+        if (_composition.AnimationType == AnimationType.Loop)
         {
-            return WrapLoopTime(timeSeconds, _composition.RestartTimeSeconds);
+            return WrapLoopTime(timeSeconds, _composition.DurationSeconds);
         }
 
         if (_composition.DurationSeconds <= 0f)
@@ -210,6 +210,12 @@ public sealed class Animation2dCompositionSampler
                     }
                 }
                 break;
+            case Animation2dTrackProperty.Rotation:
+                if (TryEvaluateFloat(track.RotationKeyframes, sampleTime, out var rotation))
+                {
+                    part.Rotation = rotation;
+                }
+                break;
             default:
                 throw new NotSupportedException($"Animation2d track property '{track.Property}' is not supported.");
         }
@@ -256,6 +262,25 @@ public sealed class Animation2dCompositionSampler
     private static bool TryEvaluateBool(List<Animation2dBoolKeyframeData> keyframes, float sampleTime, out bool value)
     {
         value = false;
+        var hasValue = false;
+        for (var index = 0; index < keyframes.Count; index++)
+        {
+            var keyframe = keyframes[index];
+            if (keyframe.TimeSeconds > sampleTime)
+            {
+                break;
+            }
+
+            value = keyframe.Value;
+            hasValue = true;
+        }
+
+        return hasValue;
+    }
+
+    private static bool TryEvaluateFloat(List<Animation2dFloatKeyframeData> keyframes, float sampleTime, out float value)
+    {
+        value = 0f;
         var hasValue = false;
         for (var index = 0; index < keyframes.Count; index++)
         {

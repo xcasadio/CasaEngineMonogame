@@ -291,12 +291,12 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             {
                 var partWorldPosition = new Vector3(partPosition.X, partPosition.Y, Position.Z);
                 var sortKey = BuildPartSortKey(_depthSortable2DComponent.BuildSortKey(partWorldPosition, Owner.World.CurrentRenderFrame), part);
-                _spriteRenderer.DrawSprite(sprite, partPosition, 0.0f, scale, Color, Position.Z, sortKey, spriteEffects);
+                _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, Position.Z, sortKey, spriteEffects);
                 continue;
             }
 
             var zOrder = Position.Z - part.DrawOrder * 0.0001f - part.SourceIndex * 0.000001f;
-            _spriteRenderer.DrawSprite(sprite, partPosition, 0.0f, scale, Color, zOrder, spriteEffects);
+            _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, zOrder, spriteEffects);
         }
     }
 

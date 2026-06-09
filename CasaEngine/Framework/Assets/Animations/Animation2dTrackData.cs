@@ -11,7 +11,8 @@ public enum Animation2dTrackProperty
     Visible,
     DrawOrder,
     FlipX,
-    FlipY
+    FlipY,
+    Rotation
 }
 
 public enum Animation2dInterpolationMode
@@ -21,6 +22,8 @@ public enum Animation2dInterpolationMode
 
 public sealed class Animation2dTrackData
 {
+    public string Name { get; set; } = string.Empty;
+
     public string TargetPartId { get; set; } = string.Empty;
 
     public Animation2dTrackProperty Property { get; set; }
@@ -37,12 +40,15 @@ public sealed class Animation2dTrackData
 
     public List<Animation2dBoolKeyframeData> FlipKeyframes { get; } = new();
 
+    public List<Animation2dFloatKeyframeData> RotationKeyframes { get; } = new();
+
     public static Animation2dTrackData Load(JObject node)
     {
         ArgumentNullException.ThrowIfNull(node);
 
         var track = new Animation2dTrackData
         {
+            Name = node["name"]?.Value<string>() ?? string.Empty,
             TargetPartId = node["target_part_id"]?.Value<string>() ?? string.Empty,
             Property = node["property"]?.GetEnum<Animation2dTrackProperty>() ?? Animation2dTrackProperty.Sprite,
             Interpolation = node["interpolation"]?.GetEnum<Animation2dInterpolationMode>() ?? Animation2dInterpolationMode.Step,
@@ -53,6 +59,7 @@ public sealed class Animation2dTrackData
         LoadBoolKeyframes(node["visible_keyframes"] as JArray, track.VisibleKeyframes);
         LoadIntKeyframes(node["draw_order_keyframes"] as JArray, track.DrawOrderKeyframes);
         LoadBoolKeyframes(node["flip_keyframes"] as JArray, track.FlipKeyframes);
+        LoadFloatKeyframes(node["rotation_keyframes"] as JArray, track.RotationKeyframes);
         return track;
     }
 
@@ -127,6 +134,24 @@ public sealed class Animation2dTrackData
             }
         }
     }
+
+    private static void LoadFloatKeyframes(JArray keyframesNode, List<Animation2dFloatKeyframeData> keyframes)
+    {
+        if (keyframesNode == null)
+        {
+            return;
+        }
+
+        foreach (var keyframeNode in keyframesNode)
+        {
+            if (keyframeNode is JObject keyframeObject)
+            {
+                keyframes.Add(new Animation2dFloatKeyframeData(
+                    keyframeObject["time_seconds"]?.Value<float>() ?? 0f,
+                    keyframeObject["value"]?.Value<float>() ?? 0f));
+            }
+        }
+    }
 }
 
 public readonly record struct Animation2dGuidKeyframeData(float TimeSeconds, Guid Value);
@@ -136,3 +161,5 @@ public readonly record struct Animation2dVector2KeyframeData(float TimeSeconds, 
 public readonly record struct Animation2dBoolKeyframeData(float TimeSeconds, bool Value);
 
 public readonly record struct Animation2dIntKeyframeData(float TimeSeconds, int Value);
+
+public readonly record struct Animation2dFloatKeyframeData(float TimeSeconds, float Value);

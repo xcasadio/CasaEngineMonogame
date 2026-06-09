@@ -182,7 +182,7 @@ public class GameEditor : Game, IObservableUpdate
     private Animation2dAssetInspectorPanel _activeAnimation2dInspectorPanel;
     private EntityAssetEditorPanel _activeEntityAssetEditorPanel;
     private TileMapEditorPanel _activeTileMapEditorPanel;
-    private IReadOnlyList<AssetDocumentRoute>? _assetDocumentRoutes;
+    private IReadOnlyList<AssetDocumentRoute> _assetDocumentRoutes;
     private readonly EditorServices.ScreenEditor.Selection.UIScreenSelectionService _screenSelection = new();
     private readonly Dictionary<string, UICommandStack> _screenCommandStacks = new(StringComparer.Ordinal);
     private UIScreenHierarchyPanel _screenHierarchyPanel;
@@ -568,8 +568,9 @@ public class GameEditor : Game, IObservableUpdate
 
     private void HandleSavedSpriteAsset(EditorAssetSavedEventArgs e)
     {
-        SpriteData? savedSpriteAsset = TryGetSavedSpriteAssetForHotReload(e);
+        SpriteData savedSpriteAsset = TryGetSavedSpriteAssetForHotReload(e);
         RefreshSavedSpriteInspectorPanels(e);
+        RefreshAnimation2dPreviewPanelsForSavedSprite(e, savedSpriteAsset);
         InvalidateSavedSpriteThumbnail(e);
 
         if (_editorRuntime == null)
@@ -593,6 +594,25 @@ public class GameEditor : Game, IObservableUpdate
             : _editorRuntime.ReloadSpriteAsset(spriteAssetId);
         EditorDiagnosticsBuffer.Append(LogVerbosity.Info,
             $"[Editor] Reloaded sprite asset='{e.RelativePath}' id='{spriteAssetId}' refreshedStaticSprites={hotReloadMetrics.RefreshedStaticSpriteComponentCount} refreshedAnimatedSprites={hotReloadMetrics.RefreshedAnimatedSpriteComponentCount} invalidatedViews={hotReloadMetrics.InvalidatedViewCount} elapsedMs={hotReloadMetrics.ElapsedMilliseconds:F2}");
+    }
+
+    private void RefreshAnimation2dPreviewPanelsForSavedSprite(EditorAssetSavedEventArgs e, SpriteData savedSpriteAsset)
+    {
+        Guid spriteAssetId = ResolveCatalogSpriteAssetId(e.RelativePath);
+        if (spriteAssetId == Guid.Empty)
+        {
+            spriteAssetId = e.AssetId;
+        }
+
+        if (spriteAssetId == Guid.Empty)
+        {
+            return;
+        }
+
+        foreach (var animation2dInspectorPanel in _animation2dInspectorPanels.Values)
+        {
+            animation2dInspectorPanel.TryRefreshReferencedSpriteAsset(spriteAssetId, savedSpriteAsset);
+        }
     }
 
     private void HandleSavedParticleAsset(EditorAssetSavedEventArgs e)
@@ -697,7 +717,7 @@ public class GameEditor : Game, IObservableUpdate
         return null;
     }
 
-    private SpriteData? TryGetSavedSpriteAssetForHotReload(EditorAssetSavedEventArgs e)
+    private SpriteData TryGetSavedSpriteAssetForHotReload(EditorAssetSavedEventArgs e)
     {
         if (e.SaveSource != EditorAssetSaveSource.SpriteEditorPanel)
         {
@@ -4090,7 +4110,7 @@ public class GameEditor : Game, IObservableUpdate
                 continue;
             }
 
-            if (spriteInspectorPanel.TrySaveLoadedAsset(out string? errorMessage))
+            if (spriteInspectorPanel.TrySaveLoadedAsset(out string errorMessage))
             {
                 _editorDirtyState.MarkSaved(new EditorHistoryContext(EditorHistoryContextKind.Sprite, pair.Key));
                 UpdateDockPanelTitle(pair.Key, GetSpriteDocumentTitle(pair.Key));

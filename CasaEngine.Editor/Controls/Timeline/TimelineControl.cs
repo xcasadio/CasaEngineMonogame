@@ -14,6 +14,7 @@ namespace CasaEngine.Editor.Controls.Timeline;
 internal class TimelineControl : MGGrid
 {
     private readonly RowDefinition _scrollBarRow;
+    private readonly ColumnDefinition _trackColumn;
     private readonly MGGrid _timelineGrid;
     private readonly TimelineCornerHeader _cornerHeader;
     private readonly TimelineRuler _ruler;
@@ -73,6 +74,8 @@ internal class TimelineControl : MGGrid
 
     public event Action<TimelineEvent>? DeleteRequested;
 
+    public event Action<TimelineLane, string>? LaneLabelEditCommitted;
+
     public TimelineControl(MGWindow window)
         : base(window)
     {
@@ -96,7 +99,7 @@ internal class TimelineControl : MGGrid
             HorizontalGridLineBrush = new MGSolidFillBrush(CasaEngine.Editor.Styling.EditorThemePalette.PreviewSurfaceBorder),
             VerticalGridLineBrush = new MGSolidFillBrush(CasaEngine.Editor.Styling.EditorThemePalette.PreviewSurfaceBorder),
         };
-        _timelineGrid.AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
+        _trackColumn = _timelineGrid.AddColumn(GridLength.CreatePixelLength(TimelineControlMetrics.TrackColumnWidth));
         _timelineGrid.AddColumn(GridLength.CreateWeightedLength(1));
         _timelineGrid.AddRow(GridLength.Auto);
         _timelineGrid.AddRow(GridLength.Auto);
@@ -104,6 +107,7 @@ internal class TimelineControl : MGGrid
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
     _trackHeaderPanel = new TimelineTrackHeaderPanel(window, this);
+        _trackHeaderPanel.LaneLabelEdited += (lane, label) => LaneLabelEditCommitted?.Invoke(lane, label);
         _viewport = new TimelineViewport(window, this);
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
         _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
@@ -126,6 +130,7 @@ internal class TimelineControl : MGGrid
     public override void UpdateSelf(ElementUpdateArgs UA)
     {
         base.UpdateSelf(UA);
+        UpdateTrackColumnWidth();
 
         int viewportWidth = (int)MathF.Round(_viewport.GetVisibleTimeAreaWidth());
         float timelineEndSeconds = GetTimelineEndSeconds();
@@ -175,6 +180,8 @@ internal class TimelineControl : MGGrid
             }
         }
 
+        _trackHeaderPanel.RefreshRows();
+        UpdateTrackColumnWidth();
         ClampScrollToViewport();
         UpdateHorizontalScrollBarState();
         InvalidateViewPresentation();
@@ -270,6 +277,7 @@ internal class TimelineControl : MGGrid
         }
 
         ViewState.SelectedLaneId = actualSelectedLaneId;
+        _trackHeaderPanel.RefreshSelection();
         InvalidateViewPresentation();
         if (notify)
         {
@@ -589,6 +597,18 @@ internal class TimelineControl : MGGrid
         {
             _scrollBarRow.Length = GridLength.CreatePixelLength(rowHeight);
         }
+    }
+
+    private void UpdateTrackColumnWidth()
+    {
+        float desiredWidth = _trackHeaderPanel.GetDesiredColumnWidth();
+        int width = (int)MathF.Ceiling(Math.Max(TimelineControlMetrics.TrackColumnWidth, desiredWidth));
+        if (_trackColumn.Length.IsPixelLength && _trackColumn.Length.Pixels == width)
+        {
+            return;
+        }
+
+        _trackColumn.Length = GridLength.CreatePixelLength(width);
     }
 
     private void OnHorizontalScrollBarValueChanged(object? sender, EventArgs<float> e)

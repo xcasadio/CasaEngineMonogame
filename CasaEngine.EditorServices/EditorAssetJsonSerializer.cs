@@ -150,6 +150,8 @@ internal static class EditorAssetJsonSerializer
     private static void SaveAnimation2dData(Animation2dData animation2dData, JObject node)
     {
         SaveObjectBase(animation2dData, node);
+        animation2dData.EnsureTrackNames();
+        node.Add("animation_type", animation2dData.AnimationType.ToString());
 
         if (animation2dData.Parts.Count > 0)
         {
@@ -165,26 +167,29 @@ internal static class EditorAssetJsonSerializer
         if (animation2dData.Tracks.Count > 0)
         {
             var tracksArrayNode = new JArray();
-            foreach (var track in animation2dData.Tracks)
+            for (var trackIndex = 0; trackIndex < animation2dData.Tracks.Count; trackIndex++)
             {
-                tracksArrayNode.Add(SaveAnimation2dTrackData(track));
+                tracksArrayNode.Add(SaveAnimation2dTrackData(animation2dData.Tracks[trackIndex], animation2dData.GetTrackName(trackIndex)));
             }
 
             node.Add("tracks", tracksArrayNode);
         }
 
-        if (animation2dData.Events.Count == 0)
-        {
-            return;
-        }
-
-        var eventsArrayNode = new JArray();
+        var persistedEvents = new JArray();
         foreach (var animationEvent in animation2dData.Events)
         {
-            eventsArrayNode.Add(AnimationEventAssetJsonSerializer.Save(animationEvent));
+            if (string.Equals(animationEvent.EventName, Animation2dEventNames.Restart, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            persistedEvents.Add(AnimationEventAssetJsonSerializer.Save(animationEvent));
         }
 
-        node.Add("events", eventsArrayNode);
+        if (persistedEvents.Count > 0)
+        {
+            node.Add("events", persistedEvents);
+        }
     }
 
     private static JObject SaveAnimation2dPartData(Animation2dPartData part)
@@ -198,6 +203,7 @@ internal static class EditorAssetJsonSerializer
             ["name"] = part.Name,
             ["default_sprite_id"] = part.DefaultSpriteId,
             ["default_position"] = positionNode,
+            ["default_rotation"] = part.DefaultRotation,
             ["default_draw_order"] = part.DefaultDrawOrder,
             ["default_visible"] = part.DefaultVisible,
             ["default_flip_x"] = part.DefaultFlipX,
@@ -205,10 +211,11 @@ internal static class EditorAssetJsonSerializer
         };
     }
 
-    private static JObject SaveAnimation2dTrackData(Animation2dTrackData track)
+    private static JObject SaveAnimation2dTrackData(Animation2dTrackData track, string trackName)
     {
         var node = new JObject
         {
+            ["name"] = trackName,
             ["target_part_id"] = track.TargetPartId,
             ["property"] = track.Property.ToString(),
             ["interpolation"] = track.Interpolation.ToString(),
@@ -219,6 +226,7 @@ internal static class EditorAssetJsonSerializer
         AddBoolKeyframes(node, "visible_keyframes", track.VisibleKeyframes);
         AddIntKeyframes(node, "draw_order_keyframes", track.DrawOrderKeyframes);
         AddBoolKeyframes(node, "flip_keyframes", track.FlipKeyframes);
+        AddFloatKeyframes(node, "rotation_keyframes", track.RotationKeyframes);
 
         return node;
     }
@@ -286,6 +294,26 @@ internal static class EditorAssetJsonSerializer
     }
 
     private static void AddIntKeyframes(JObject node, string key, IReadOnlyList<Animation2dIntKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            return;
+        }
+
+        var keyframesNode = new JArray();
+        foreach (var keyframe in keyframes)
+        {
+            keyframesNode.Add(new JObject
+            {
+                ["time_seconds"] = keyframe.TimeSeconds,
+                ["value"] = keyframe.Value,
+            });
+        }
+
+        node.Add(key, keyframesNode);
+    }
+
+    private static void AddFloatKeyframes(JObject node, string key, IReadOnlyList<Animation2dFloatKeyframeData> keyframes)
     {
         if (keyframes.Count == 0)
         {

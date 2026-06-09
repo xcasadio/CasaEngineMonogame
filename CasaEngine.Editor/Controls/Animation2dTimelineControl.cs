@@ -20,6 +20,8 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 
     public event Action<int> LaneSelected;
 
+    public event Action<int, string>? LaneLabelEdited;
+
     public event Action<int, float> EventTimeEdited;
 
     public event Action<int, float> EventDuplicated;
@@ -35,6 +37,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         TrackHeaderText = "track 01";
         SelectedEventChanged += OnSelectedEventChanged;
         SelectedLaneChanged += OnSelectedLaneChanged;
+        LaneLabelEditCommitted += OnLaneLabelEditCommitted;
         TimeScrubbed += timeSeconds => ScrubRequested?.Invoke(timeSeconds);
         EventTimeEditCommitted += OnEventTimeEditCommitted;
         DuplicateRequested += OnDuplicateRequested;
@@ -164,6 +167,14 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         }
 
         LaneSelected?.Invoke(-1);
+    }
+
+    private void OnLaneLabelEditCommitted(TimelineLane lane, string label)
+    {
+        if (_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
+        {
+            LaneLabelEdited?.Invoke(laneIndex, label);
+        }
     }
 
     private void OnEventTimeEditCommitted(TimelineEvent timelineEvent, float timeSeconds)

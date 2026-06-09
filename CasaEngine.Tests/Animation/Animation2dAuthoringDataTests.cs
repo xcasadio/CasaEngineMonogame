@@ -244,7 +244,7 @@ public class Animation2dAuthoringDataTests
     }
 
     [Fact]
-    public void Load_LegacyLoopType_AppendsRestartEventAtDuration()
+    public void Load_LoopAnimationType_DoesNotAppendRestartEvent()
     {
         var spriteId = Guid.NewGuid();
         var animation = new Animation2dData();
@@ -290,8 +290,10 @@ public class Animation2dAuthoringDataTests
             },
         });
 
-        Assert.Single(animation.Events);
-        Assert.Equal(new AnimationEventAsset(0.5f, Animation2dEventNames.Restart), animation.Events[0]);
+        Assert.Equal(AnimationType.Loop, animation.AnimationType);
+        Assert.Empty(animation.Events);
+        Assert.Single(animation.Tracks);
+        Assert.Equal("track 01", animation.Tracks[0].Name);
     }
 
     [Fact]
@@ -302,6 +304,7 @@ public class Animation2dAuthoringDataTests
         var animation = new Animation2dData
         {
             Name = "composed_attack",
+            AnimationType = AnimationType.Once,
         };
         animation.Parts.Add(new Animation2dPartData
         {
@@ -324,17 +327,19 @@ public class Animation2dAuthoringDataTests
         animation.Events.Add(new AnimationEventAsset(0.25f, "Hit"));
 
         Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
-    Assert.Null(document["animation_type"]);
+        Assert.Equal(AnimationType.Once.ToString(), document["animation_type"]?.Value<string>());
 
         var loadedAnimation = new Animation2dData();
         loadedAnimation.Load(document);
 
+        Assert.Equal(AnimationType.Once, loadedAnimation.AnimationType);
         Assert.Single(loadedAnimation.Parts);
         Assert.Equal("body", loadedAnimation.Parts[0].Id);
         Assert.Equal(spriteId, loadedAnimation.Parts[0].DefaultSpriteId);
         Assert.Equal(new Vector2(2f, 3f), loadedAnimation.Parts[0].DefaultPosition);
         Assert.True(loadedAnimation.Parts[0].DefaultFlipY);
         Assert.Single(loadedAnimation.Tracks);
+        Assert.Equal("track 01", loadedAnimation.Tracks[0].Name);
         Assert.Equal(nextSpriteId, loadedAnimation.Tracks[0].SpriteKeyframes[1].Value);
         Assert.Single(loadedAnimation.Events);
         Assert.Equal(new AnimationEventAsset(0.25f, "Hit"), loadedAnimation.Events[0]);
@@ -348,7 +353,6 @@ public class Animation2dAuthoringDataTests
 
         animation.Load(new JObject
         {
-            ["animation_type"] = AnimationType.Loop.ToString(),
             ["id"] = Guid.NewGuid().ToString(),
             ["name"] = "legacy_loop",
             ["parts"] = new JArray
@@ -386,15 +390,19 @@ public class Animation2dAuthoringDataTests
                     },
                 },
             },
+            ["events"] = new JArray
+            {
+                new JObject
+                {
+                    ["time_seconds"] = 0.5f,
+                    ["event_name"] = Animation2dEventNames.Restart,
+                },
+            },
         });
 
         Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
-        Assert.Null(document["animation_type"]);
-
-        var eventsNode = Assert.IsType<JArray>(document["events"]);
-        Assert.Single(eventsNode);
-        Assert.Equal(Animation2dEventNames.Restart, eventsNode[0]?["event_name"]?.Value<string>());
-        Assert.Equal(0.5f, eventsNode[0]?["time_seconds"]?.Value<float>() ?? -1f, 5);
+        Assert.Equal(AnimationType.Loop.ToString(), document["animation_type"]?.Value<string>());
+        Assert.Null(document["events"]);
     }
 
     [Fact]
@@ -440,12 +448,18 @@ public class Animation2dAuthoringDataTests
         flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.6f, true));
         animation.Tracks.Add(flipYTrack);
 
+        var rotationTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Rotation };
+        rotationTrack.RotationKeyframes.Add(new Animation2dFloatKeyframeData(0.7f, 1.25f));
+        animation.Tracks.Add(rotationTrack);
+
         Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
 
         var loadedAnimation = new Animation2dData();
         loadedAnimation.Load(document);
 
-        Assert.Equal(6, loadedAnimation.Tracks.Count);
+        Assert.Equal(7, loadedAnimation.Tracks.Count);
+        Assert.Equal(AnimationType.Once, loadedAnimation.AnimationType);
+        Assert.Equal("track 01", loadedAnimation.Tracks[0].Name);
         Assert.Equal(Animation2dTrackProperty.Sprite, loadedAnimation.Tracks[0].Property);
         Assert.Equal(nextSpriteId, loadedAnimation.Tracks[0].SpriteKeyframes[0].Value);
         Assert.Equal(Animation2dTrackProperty.Position, loadedAnimation.Tracks[1].Property);
@@ -458,6 +472,8 @@ public class Animation2dAuthoringDataTests
         Assert.True(loadedAnimation.Tracks[4].FlipKeyframes[0].Value);
         Assert.Equal(Animation2dTrackProperty.FlipY, loadedAnimation.Tracks[5].Property);
         Assert.True(loadedAnimation.Tracks[5].FlipKeyframes[0].Value);
+        Assert.Equal(Animation2dTrackProperty.Rotation, loadedAnimation.Tracks[6].Property);
+        Assert.Equal(1.25f, loadedAnimation.Tracks[6].RotationKeyframes[0].Value, 5);
     }
 
     [Fact]
@@ -482,7 +498,11 @@ public class Animation2dAuthoringDataTests
         flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.8f, true));
         animation.Tracks.Add(flipYTrack);
 
-        Assert.Equal(0.8f, animation.GetDurationSeconds(), 5);
+        var rotationTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Rotation };
+        rotationTrack.RotationKeyframes.Add(new Animation2dFloatKeyframeData(1.0f, 0.5f));
+        animation.Tracks.Add(rotationTrack);
+
+        Assert.Equal(1.0f, animation.GetDurationSeconds(), 5);
     }
 
     [Fact]
@@ -499,13 +519,10 @@ public class Animation2dAuthoringDataTests
         animation.Load(JObject.Parse(File.ReadAllText(assetPath)));
 
         Assert.True(EditorAssetJsonSerializer.TrySerialize(animation, out var document));
-        Assert.Null(document["animation_type"]);
+        Assert.Equal(AnimationType.Loop.ToString(), document["animation_type"]?.Value<string>());
         Assert.NotNull(document["parts"]);
         Assert.NotNull(document["tracks"]);
-
-        var eventsNode = Assert.IsType<JArray>(document["events"]);
-        Assert.Single(eventsNode);
-        Assert.Equal(Animation2dEventNames.Restart, eventsNode[0]?["event_name"]?.Value<string>());
+        Assert.Null(document["events"]);
     }
 
     [Fact]
@@ -592,12 +609,15 @@ public class Animation2dAuthoringDataTests
         flipXTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, true));
         var flipYTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.FlipY };
         flipYTrack.FlipKeyframes.Add(new Animation2dBoolKeyframeData(0.2f, true));
+        var rotationTrack = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Rotation };
+        rotationTrack.RotationKeyframes.Add(new Animation2dFloatKeyframeData(0.2f, 0.75f));
         animation.Tracks.Add(spriteTrack);
         animation.Tracks.Add(positionTrack);
         animation.Tracks.Add(visibleTrack);
         animation.Tracks.Add(drawOrderTrack);
         animation.Tracks.Add(flipXTrack);
         animation.Tracks.Add(flipYTrack);
+        animation.Tracks.Add(rotationTrack);
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         sampler.Seek(0.2f);
@@ -609,6 +629,7 @@ public class Animation2dAuthoringDataTests
         Assert.Equal(12, bodyState.DrawOrder);
         Assert.True(bodyState.FlipX);
         Assert.True(bodyState.FlipY);
+        Assert.Equal(0.75f, bodyState.Rotation, 5);
     }
 
     [Fact]
@@ -617,13 +638,13 @@ public class Animation2dAuthoringDataTests
         var firstSpriteId = Guid.NewGuid();
         var secondSpriteId = Guid.NewGuid();
         var animation = new Animation2dData();
+        animation.AnimationType = AnimationType.Loop;
         animation.Parts.Add(new Animation2dPartData { Id = "sprite", DefaultSpriteId = firstSpriteId });
         var spriteTrack = new Animation2dTrackData { TargetPartId = "sprite", Property = Animation2dTrackProperty.Sprite };
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0f, firstSpriteId));
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.1f, secondSpriteId));
         spriteTrack.SpriteKeyframes.Add(new Animation2dGuidKeyframeData(0.3f, secondSpriteId));
         animation.Tracks.Add(spriteTrack);
-        animation.Events.Add(new AnimationEventAsset(0.3f, Animation2dEventNames.Restart));
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         sampler.Update(0.15f);
@@ -697,13 +718,13 @@ public class Animation2dAuthoringDataTests
     public void CompositionSampler_UpdateDispatchesLoopedAnimationEventsAfterWrap()
     {
         var animation = new Animation2dData();
+        animation.AnimationType = AnimationType.Loop;
         animation.Parts.Add(new Animation2dPartData { Id = "body" });
         var track = new Animation2dTrackData { TargetPartId = "body", Property = Animation2dTrackProperty.Position };
         track.PositionKeyframes.Add(new Animation2dVector2KeyframeData(1f, Vector2.Zero));
         animation.Tracks.Add(track);
         animation.Events.Add(new AnimationEventAsset(0.1f, "LoopEvent"));
         animation.Events.Add(new AnimationEventAsset(0.9f, "EndEvent"));
-        animation.Events.Add(new AnimationEventAsset(1f, Animation2dEventNames.Restart));
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
         var triggeredEvents = new List<string>();
         sampler.AnimationEventTriggered += animationEvent => triggeredEvents.Add(animationEvent.EventName);
@@ -711,7 +732,7 @@ public class Animation2dAuthoringDataTests
         sampler.Update(0.95f);
         sampler.Update(0.2f);
 
-        Assert.Equal(new[] { "LoopEvent", "EndEvent", Animation2dEventNames.Restart, "LoopEvent" }, triggeredEvents);
+        Assert.Equal(new[] { "LoopEvent", "EndEvent", "LoopEvent" }, triggeredEvents);
     }
 
     [Fact]
@@ -825,17 +846,17 @@ public class Animation2dAuthoringDataTests
         var composition = Animation2dCompositionAdapter.Create(animation);
 
         Assert.Equal("swordman_stand_right", animation.Name);
+        Assert.Equal(AnimationType.Loop, animation.AnimationType);
         Assert.Single(animation.Parts);
         Assert.Equal("sprite", animation.Parts[0].Id);
         Assert.Equal("Sprite", animation.Parts[0].Name);
         Assert.True(animation.Parts[0].DefaultVisible);
-        Assert.Single(animation.Events);
-        Assert.Equal(Animation2dEventNames.Restart, animation.Events[0].EventName);
-        Assert.Equal(0.3f, animation.Events[0].TimeSeconds, 5);
+        Assert.Empty(animation.Events);
         Assert.Single(composition.Parts);
         Assert.Equal("sprite", composition.Parts[0].Id);
         Assert.Equal(animation.Parts[0].DefaultSpriteId, composition.Parts[0].DefaultSpriteId);
         Assert.Single(composition.Tracks);
+        Assert.Equal("track 01", composition.Tracks[0].Name);
         Assert.Equal(3, composition.Tracks[0].SpriteKeyframes.Count);
         Assert.Equal(animation.Parts[0].DefaultSpriteId, composition.Tracks[0].SpriteKeyframes[0].Value);
         Assert.Equal(composition.Tracks[0].SpriteKeyframes[1].Value, composition.Tracks[0].SpriteKeyframes[2].Value);
@@ -857,12 +878,13 @@ public class Animation2dAuthoringDataTests
         var sampler = new Animation2dCompositionSampler(Animation2dCompositionAdapter.Create(animation));
 
         Assert.Equal("swordman_composed_demo", animation.Name);
+        Assert.Equal(AnimationType.Loop, animation.AnimationType);
         Assert.Equal(2, animation.Parts.Count);
         Assert.Equal(2, animation.Tracks.Count);
-        Assert.Equal(2, animation.Events.Count);
+        Assert.Equal("track 01", animation.Tracks[0].Name);
+        Assert.Equal("track 02", animation.Tracks[1].Name);
+        Assert.Single(animation.Events);
         Assert.Equal("WeaponSwapLayer", animation.Events[0].EventName);
-        Assert.Equal(Animation2dEventNames.Restart, animation.Events[1].EventName);
-        Assert.Equal(0.6f, animation.Events[1].TimeSeconds, 5);
 
         sampler.Seek(0.3f);
 

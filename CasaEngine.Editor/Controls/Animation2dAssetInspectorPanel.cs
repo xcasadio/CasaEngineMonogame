@@ -89,7 +89,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         float TimeSeconds,
         Vector2 Vector2Value,
         bool BoolValue,
-        int IntValue);
+        int IntValue,
+        float FloatValue);
 
     private sealed class TimelineDisplayLane
     {
@@ -127,7 +128,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             string valueText = "",
             Vector2 vector2Value = default,
             bool boolValue = false,
-            int intValue = 0)
+            int intValue = 0,
+            float floatValue = 0f)
         {
             Event = eventValue;
             SourceKind = sourceKind;
@@ -141,6 +143,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             Vector2Value = vector2Value;
             BoolValue = boolValue;
             IntValue = intValue;
+            FloatValue = floatValue;
         }
 
         public AnimationEventAsset Event { get; }
@@ -166,6 +169,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         public bool BoolValue { get; }
 
         public int IntValue { get; }
+
+        public float FloatValue { get; }
     }
 
     public Animation2dAssetInspectorPanel(
@@ -403,6 +408,44 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _previewSpriteComponent = null;
     }
 
+    public bool TryRefreshReferencedSpriteAsset(Guid spriteAssetId, SpriteData savedSpriteData = null)
+    {
+        if (_disposed || _animationData == null || spriteAssetId == Guid.Empty)
+        {
+            return false;
+        }
+
+        _spriteIdsToResolve.Clear();
+        Animation2dSpriteReferenceCollector.Collect(_animationData, _spriteIdsToResolve);
+        bool isReferencedSprite = false;
+        for (var index = 0; index < _spriteIdsToResolve.Count; index++)
+        {
+            if (_spriteIdsToResolve[index] != spriteAssetId)
+            {
+                continue;
+            }
+
+            isReferencedSprite = true;
+            break;
+        }
+
+        if (!isReferencedSprite)
+        {
+            return false;
+        }
+
+        SpriteData spriteData = savedSpriteData ?? _editorRuntime.AssetContentManager.Load<SpriteData>(spriteAssetId, cache: false);
+        _spriteDataById[spriteAssetId] = spriteData;
+
+        if (_previewSpriteComponent != null)
+        {
+            _previewSpriteComponent.ReloadSpriteAsset(spriteAssetId, spriteData);
+            _previewWorldDriver.RefreshNow();
+        }
+
+        return true;
+    }
+
     public static bool TryLoadAsset(string fullPath, out Animation2dData animationData)
     {
         animationData = new Animation2dData();
@@ -466,6 +509,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         ClampSelectedLaneIndex();
         ClampSelectedEventIndex();
 
+        _contentStack.TryAddChild(CreateAnimationTypeRow());
+
         if (!TryGetSelectedEvent(out var selectedEvent) || selectedEvent == null)
         {
             AddText(_selectedLaneIndex >= 0 && _selectedLaneIndex < _timelineDisplayLanes.Count
@@ -509,9 +554,68 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         AddTextBoxRow("Sprite", part.DefaultSpriteId.ToString("D"), value => ApplyPartSpriteId(part, value));
         AddTextBoxRow("Position X", FormatFloat(part.DefaultPosition.X), value => ApplyPartPositionX(part, value));
         AddTextBoxRow("Position Y", FormatFloat(part.DefaultPosition.Y), value => ApplyPartPositionY(part, value));
+        AddTextBoxRow("Rotation", FormatFloat(part.DefaultRotation), value => ApplyPartRotation(part, value));
         AddTextBoxRow("Draw Order", part.DefaultDrawOrder.ToString(CultureInfo.InvariantCulture), value => ApplyPartDrawOrder(part, value));
         AddCheckBoxRow("Visible", part.DefaultVisible, value => ApplyPartVisible(part, value));
         AddText($"  flipX={part.DefaultFlipX} flipY={part.DefaultFlipY} index={index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.SecondaryTextOpacity);
+    }
+
+    private MGElement CreateAnimationTypeRow()
+    {
+        var row = new MGStackPanel(_window, Orientation.Horizontal)
+        {
+            Spacing = 6,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+        };
+
+        row.TryAddChild(new MGTextBlock(_window, "Type")
+        {
+            PreferredWidth = 82,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+
+        var combo = new MGComboBox<string>(_window)
+        {
+            MinWidth = 140,
+        };
+        combo.DropdownItemTemplate = item =>
+        {
+            var button = combo.CreateDefaultDropdownButton();
+            button.SetContent(item);
+            return button;
+        };
+        combo.SelectedItemTemplate = item => new MGTextBlock(_window, item)
+        {
+            Padding = new Thickness(4, 1, 4, 1),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        combo.SetItemsSource(new[] { AnimationType.Once.ToString(), AnimationType.Loop.ToString() });
+        combo.SelectedItem = (_animationData?.AnimationType ?? AnimationType.Once).ToString();
+        combo.SelectedItemChanged += (_, args) =>
+        {
+            if (_suppressControlCallbacks
+                || string.IsNullOrWhiteSpace(args.NewValue)
+                || !Enum.TryParse(args.NewValue, out AnimationType animationType))
+            {
+                return;
+            }
+
+            ApplyAnimationType(animationType);
+        };
+
+        row.TryAddChild(combo);
+        return row;
+    }
+
+    private void ApplyAnimationType(AnimationType animationType)
+    {
+        if (_animationData == null || _animationData.AnimationType == animationType)
+        {
+            return;
+        }
+
+        _animationData.AnimationType = animationType;
+        MarkEdited("Updated animation type.");
     }
 
     private void AddAnimationEvent()
@@ -521,7 +625,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
-        _animationData.Events.Add(new AnimationEventAsset(0f, Animation2dEventNames.Restart));
+        _animationData.Events.Add(new AnimationEventAsset(0f, "NewEvent"));
         MarkEdited("Added animation event.");
         RefreshInspector();
     }
@@ -587,6 +691,23 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         part.DefaultPosition = new Vector2(part.DefaultPosition.X, y);
         MarkEdited("Updated part Y position.");
+    }
+
+    private void ApplyPartRotation(Animation2dPartData part, string value)
+    {
+        if (!TryParseFloat(value, out var rotation))
+        {
+            SetStatus("Invalid part rotation.");
+            return;
+        }
+
+        if (Math.Abs(part.DefaultRotation - rotation) < 0.0001f)
+        {
+            return;
+        }
+
+        part.DefaultRotation = rotation;
+        MarkEdited("Updated part rotation.");
     }
 
     private void ApplyPartDrawOrder(Animation2dPartData part, string value)
@@ -880,6 +1001,54 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         MarkEdited($"Updated {label} keyframe value.");
     }
 
+    private void ApplyFloatKeyframeTime(List<Animation2dFloatKeyframeData> keyframes, int keyframeIndex, string value, string label)
+    {
+        if (keyframeIndex < 0 || keyframeIndex >= keyframes.Count)
+        {
+            return;
+        }
+
+        if (!TryParseFloat(value, out var timeSeconds) || timeSeconds < 0f)
+        {
+            SetStatus($"Invalid {label} keyframe time.");
+            return;
+        }
+
+        var keyframe = keyframes[keyframeIndex];
+        if (Math.Abs(keyframe.TimeSeconds - timeSeconds) < 0.0001f)
+        {
+            return;
+        }
+
+        keyframes[keyframeIndex] = new Animation2dFloatKeyframeData(timeSeconds, keyframe.Value);
+        SortFloatKeyframes(keyframes);
+        MarkEdited($"Updated {label} keyframe time.");
+        RefreshInspector();
+    }
+
+    private void ApplyFloatKeyframeValue(List<Animation2dFloatKeyframeData> keyframes, int keyframeIndex, string value, string label)
+    {
+        if (keyframeIndex < 0 || keyframeIndex >= keyframes.Count)
+        {
+            return;
+        }
+
+        if (!TryParseFloat(value, out var floatValue))
+        {
+            SetStatus($"Invalid {label} keyframe value.");
+            return;
+        }
+
+        var keyframe = keyframes[keyframeIndex];
+        if (Math.Abs(keyframe.Value - floatValue) < 0.0001f)
+        {
+            return;
+        }
+
+        keyframes[keyframeIndex] = new Animation2dFloatKeyframeData(keyframe.TimeSeconds, floatValue);
+        MarkEdited($"Updated {label} keyframe value.");
+    }
+
     private static void SortGuidKeyframes(List<Animation2dGuidKeyframeData> keyframes)
     {
         keyframes.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
@@ -896,6 +1065,11 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     }
 
     private static void SortIntKeyframes(List<Animation2dIntKeyframeData> keyframes)
+    {
+        keyframes.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
+    }
+
+    private static void SortFloatKeyframes(List<Animation2dFloatKeyframeData> keyframes)
     {
         keyframes.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
     }
@@ -1140,6 +1314,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         };
         _timelineControl.EventSelected += SelectEvent;
         _timelineControl.LaneSelected += SelectLane;
+        _timelineControl.LaneLabelEdited += OnTimelineLaneLabelEdited;
         _timelineControl.ScrubRequested += SeekPreviewTime;
         _timelineControl.PixelsPerSecondChanged += OnTimelinePixelsPerSecondChanged;
         _timelineControl.EventTimeEdited += OnTimelineEventTimeEdited;
@@ -1503,7 +1678,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         for (var trackIndex = 0; trackIndex < _animationData.Tracks.Count; trackIndex++)
         {
             Animation2dTrackData track = _animationData.Tracks[trackIndex];
-            string laneLabel = _timelineDisplayLanes.Count > trackIndex ? _timelineDisplayLanes[trackIndex].Label : $"{track.TargetPartId}.{track.Property}";
+            string laneLabel = _timelineDisplayLanes.Count > trackIndex ? _timelineDisplayLanes[trackIndex].Label : _animationData.GetTrackName(trackIndex);
+            string trackItemLabel = GetTimelineTrackEventLabel(track.Property);
 
             switch (track.Property)
             {
@@ -1512,7 +1688,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                     {
                         Animation2dGuidKeyframeData keyframe = track.SpriteKeyframes[keyframeIndex];
                         _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
-                            new AnimationEventAsset(keyframe.TimeSeconds, track.Property.ToString(), keyframe.Value),
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel, keyframe.Value),
                             TimelineDisplayEventSourceKind.TrackKeyframe,
                             trackIndex,
                             laneLabel,
@@ -1528,7 +1704,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                     {
                         Animation2dVector2KeyframeData keyframe = track.PositionKeyframes[keyframeIndex];
                         _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
-                            new AnimationEventAsset(keyframe.TimeSeconds, track.Property.ToString()),
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel),
                             TimelineDisplayEventSourceKind.TrackKeyframe,
                             trackIndex,
                             laneLabel,
@@ -1545,7 +1721,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                     {
                         Animation2dBoolKeyframeData keyframe = track.VisibleKeyframes[keyframeIndex];
                         _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
-                            new AnimationEventAsset(keyframe.TimeSeconds, track.Property.ToString()),
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel),
                             TimelineDisplayEventSourceKind.TrackKeyframe,
                             trackIndex,
                             laneLabel,
@@ -1562,7 +1738,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                     {
                         Animation2dIntKeyframeData keyframe = track.DrawOrderKeyframes[keyframeIndex];
                         _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
-                            new AnimationEventAsset(keyframe.TimeSeconds, track.Property.ToString()),
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel),
                             TimelineDisplayEventSourceKind.TrackKeyframe,
                             trackIndex,
                             laneLabel,
@@ -1580,7 +1756,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                     {
                         Animation2dBoolKeyframeData keyframe = track.FlipKeyframes[keyframeIndex];
                         _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
-                            new AnimationEventAsset(keyframe.TimeSeconds, track.Property.ToString()),
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel),
                             TimelineDisplayEventSourceKind.TrackKeyframe,
                             trackIndex,
                             laneLabel,
@@ -1589,6 +1765,23 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                             keyframeIndex,
                             valueText: keyframe.Value.ToString(CultureInfo.InvariantCulture),
                             boolValue: keyframe.Value));
+                    }
+                    break;
+
+                case Animation2dTrackProperty.Rotation:
+                    for (var keyframeIndex = 0; keyframeIndex < track.RotationKeyframes.Count; keyframeIndex++)
+                    {
+                        Animation2dFloatKeyframeData keyframe = track.RotationKeyframes[keyframeIndex];
+                        _timelineDisplayEvents.Add(new TimelineDisplayEventItem(
+                            new AnimationEventAsset(keyframe.TimeSeconds, trackItemLabel),
+                            TimelineDisplayEventSourceKind.TrackKeyframe,
+                            trackIndex,
+                            laneLabel,
+                            track.Property,
+                            trackIndex,
+                            keyframeIndex,
+                                valueText: FormatFloat(keyframe.Value),
+                                floatValue: keyframe.Value));
                     }
                     break;
             }
@@ -1626,7 +1819,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         for (var trackIndex = 0; trackIndex < _animationData.Tracks.Count; trackIndex++)
         {
             Animation2dTrackData track = _animationData.Tracks[trackIndex];
-            _timelineDisplayLanes.Add(new TimelineDisplayLane($"{track.TargetPartId}.{track.Property}", TimelineDisplayLaneSourceKind.TrackKeyframes, trackIndex, track.Property));
+            _timelineDisplayLanes.Add(new TimelineDisplayLane(_animationData.GetTrackName(trackIndex), TimelineDisplayLaneSourceKind.TrackKeyframes, trackIndex, track.Property));
         }
 
         _timelineDisplayLanes.Add(new TimelineDisplayLane("Events", TimelineDisplayLaneSourceKind.PersistedEvents));
@@ -1664,6 +1857,33 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private void OnTimelineLaneInsertRequested(int laneIndex, float timeSeconds)
     {
         InsertTimelineItem(laneIndex, timeSeconds);
+    }
+
+    private void OnTimelineLaneLabelEdited(int laneIndex, string label)
+    {
+        if (_animationData == null || laneIndex < 0 || laneIndex >= _timelineDisplayLanes.Count)
+        {
+            return;
+        }
+
+        TimelineDisplayLane lane = _timelineDisplayLanes[laneIndex];
+        if (lane.SourceKind != TimelineDisplayLaneSourceKind.TrackKeyframes || lane.TrackIndex < 0 || lane.TrackIndex >= _animationData.Tracks.Count)
+        {
+            return;
+        }
+
+        string normalizedName = string.IsNullOrWhiteSpace(label)
+            ? $"track {lane.TrackIndex + 1:00}"
+            : label.Trim();
+        if (string.Equals(_animationData.Tracks[lane.TrackIndex].Name, normalizedName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _animationData.Tracks[lane.TrackIndex].Name = normalizedName;
+        SetDirty(true);
+        SetStatus($"Renamed track to {EscapeMarkup(normalizedName)}.");
+        RefreshInspector();
     }
 
     private bool TryGetTimelineDisplayEvent(int eventIndex, out TimelineDisplayEventItem timelineEvent)
@@ -1723,7 +1943,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             newEvent.TimeSeconds,
             Vector2.Zero,
             false,
-            0), laneIndex, true);
+            0,
+            0f), laneIndex, true);
     }
 
     private void InsertTrackKeyframe(TimelineDisplayLane lane, float timeSeconds)
@@ -1763,6 +1984,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             case Animation2dTrackProperty.FlipY:
                 UpsertBoolTrackKeyframe(lane.TrackIndex, timeSeconds, partState.FlipY, lane.TrackProperty.Value, lane.TrackIndex, true);
                 break;
+
+            case Animation2dTrackProperty.Rotation:
+                UpsertRotationTrackKeyframe(lane.TrackIndex, timeSeconds, partState.Rotation, lane.TrackProperty.Value, lane.TrackIndex, true);
+                break;
         }
     }
 
@@ -1801,7 +2026,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         _animationData.Events.Add(duplicatedEvent);
         SortAnimationEvents(_animationData.Events);
-        FinalizeTimelineMutation("Duplicated event.", CreateLocator(selectedEvent, duplicatedEvent.TimeSeconds, duplicatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue), selectedEvent.LaneIndex, true);
+        FinalizeTimelineMutation("Duplicated event.", CreateLocator(selectedEvent, duplicatedEvent.TimeSeconds, duplicatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue), selectedEvent.LaneIndex, true);
     }
 
     private void DuplicateTrackKeyframe(TimelineDisplayEventItem selectedEvent, float timeSeconds)
@@ -1829,6 +2054,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
             case Animation2dTrackProperty.DrawOrder:
                 UpsertDrawOrderTrackKeyframe(selectedEvent.TrackIndex, timeSeconds, selectedEvent.IntValue, selectedEvent.TrackProperty.Value, selectedEvent.LaneIndex, false);
+                break;
+
+            case Animation2dTrackProperty.Rotation:
+                UpsertRotationTrackKeyframe(selectedEvent.TrackIndex, timeSeconds, selectedEvent.FloatValue, selectedEvent.TrackProperty.Value, selectedEvent.LaneIndex, false);
                 break;
         }
     }
@@ -1889,6 +2118,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             case Animation2dTrackProperty.FlipY when selectedEvent.KeyframeIndex < track.FlipKeyframes.Count:
                 track.FlipKeyframes.RemoveAt(selectedEvent.KeyframeIndex);
                 break;
+
+            case Animation2dTrackProperty.Rotation when selectedEvent.KeyframeIndex < track.RotationKeyframes.Count:
+                track.RotationKeyframes.RemoveAt(selectedEvent.KeyframeIndex);
+                break;
         }
     }
 
@@ -1937,7 +2170,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         SortGuidKeyframes(keyframes);
-        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated sprite keyframe." : isInsert ? "Added sprite keyframe." : "Duplicated sprite keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), spriteAssetId, timeSeconds, Vector2.Zero, false, 0), laneIndex, true);
+        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated sprite keyframe." : isInsert ? "Added sprite keyframe." : "Duplicated sprite keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), spriteAssetId, timeSeconds, Vector2.Zero, false, 0, 0f), laneIndex, true);
     }
 
     private void UpsertPositionTrackKeyframe(int trackIndex, float timeSeconds, Vector2 value, Animation2dTrackProperty property, int laneIndex, bool isInsert)
@@ -1965,7 +2198,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         SortVector2Keyframes(keyframes);
-        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated position keyframe." : isInsert ? "Added position keyframe." : "Duplicated position keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, value, false, 0), laneIndex, true);
+        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated position keyframe." : isInsert ? "Added position keyframe." : "Duplicated position keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, value, false, 0, 0f), laneIndex, true);
     }
 
     private void UpsertBoolTrackKeyframe(int trackIndex, float timeSeconds, bool value, Animation2dTrackProperty property, int laneIndex, bool isInsert)
@@ -1996,7 +2229,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         SortBoolKeyframes(keyframes);
-        FinalizeTimelineMutation(existingIndex >= 0 ? $"Updated {property} keyframe." : isInsert ? $"Added {property} keyframe." : $"Duplicated {property} keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, Vector2.Zero, value, 0), laneIndex, true);
+        FinalizeTimelineMutation(existingIndex >= 0 ? $"Updated {property} keyframe." : isInsert ? $"Added {property} keyframe." : $"Duplicated {property} keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, Vector2.Zero, value, 0, 0f), laneIndex, true);
     }
 
     private void UpsertDrawOrderTrackKeyframe(int trackIndex, float timeSeconds, int value, Animation2dTrackProperty property, int laneIndex, bool isInsert)
@@ -2024,7 +2257,35 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         SortIntKeyframes(keyframes);
-        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated draw order keyframe." : isInsert ? "Added draw order keyframe." : "Duplicated draw order keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, Vector2.Zero, false, value), laneIndex, true);
+        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated draw order keyframe." : isInsert ? "Added draw order keyframe." : "Duplicated draw order keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, Vector2.Zero, false, value, 0f), laneIndex, true);
+    }
+
+    private void UpsertRotationTrackKeyframe(int trackIndex, float timeSeconds, float value, Animation2dTrackProperty property, int laneIndex, bool isInsert)
+    {
+        if (_animationData == null || trackIndex < 0 || trackIndex >= _animationData.Tracks.Count)
+        {
+            return;
+        }
+
+        var keyframes = _animationData.Tracks[trackIndex].RotationKeyframes;
+        int existingIndex = FindFloatKeyframeIndexAtTime(keyframes, timeSeconds);
+        if (existingIndex >= 0 && Math.Abs(keyframes[existingIndex].Value - value) < 0.0001f)
+        {
+            SetStatus("An identical rotation keyframe already exists at this time.");
+            return;
+        }
+
+        if (existingIndex >= 0)
+        {
+            keyframes[existingIndex] = new Animation2dFloatKeyframeData(timeSeconds, value);
+        }
+        else
+        {
+            keyframes.Add(new Animation2dFloatKeyframeData(timeSeconds, value));
+        }
+
+        SortFloatKeyframes(keyframes);
+        FinalizeTimelineMutation(existingIndex >= 0 ? "Updated rotation keyframe." : isInsert ? "Added rotation keyframe." : "Duplicated rotation keyframe.", new TimelineDisplayEventLocator(TimelineDisplayEventSourceKind.TrackKeyframe, property, trackIndex, property.ToString(), Guid.Empty, timeSeconds, Vector2.Zero, false, 0, value), laneIndex, true);
     }
 
     private void FinalizeTimelineMutation(string message, TimelineDisplayEventLocator? locator, int laneIndex, bool restoreSelection)
@@ -2103,6 +2364,19 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     }
 
     private static int FindIntKeyframeIndexAtTime(List<Animation2dIntKeyframeData> keyframes, float timeSeconds)
+    {
+        for (var index = 0; index < keyframes.Count; index++)
+        {
+            if (Math.Abs(keyframes[index].TimeSeconds - timeSeconds) < TimelineControlMetrics.Epsilon)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private static int FindFloatKeyframeIndexAtTime(List<Animation2dFloatKeyframeData> keyframes, float timeSeconds)
     {
         for (var index = 0; index < keyframes.Count; index++)
         {
@@ -2237,6 +2511,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             case Animation2dTrackProperty.FlipY:
                 AddEditableBoolKeyframes(track.FlipKeyframes, "flipY");
                 break;
+
+            case Animation2dTrackProperty.Rotation:
+                AddEditableRotationKeyframes(track.RotationKeyframes);
+                break;
         }
     }
 
@@ -2309,6 +2587,23 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
     }
 
+    private void AddEditableRotationKeyframes(List<Animation2dFloatKeyframeData> keyframes)
+    {
+        if (keyframes.Count == 0)
+        {
+            AddText("  No rotation keyframes.", EditorThemePalette.SecondaryTextOpacity);
+            return;
+        }
+
+        for (var index = 0; index < keyframes.Count; index++)
+        {
+            var keyframe = keyframes[index];
+            AddText($"  Key {index.ToString(CultureInfo.InvariantCulture)}", EditorThemePalette.SecondaryTextOpacity);
+            AddTextBoxRow("Time", FormatFloat(keyframe.TimeSeconds), value => ApplyFloatKeyframeTime(keyframes, index, value, "rotation"));
+            AddTextBoxRow("Value", FormatFloat(keyframe.Value), value => ApplyFloatKeyframeValue(keyframes, index, value, "rotation"));
+        }
+    }
+
     private static int GetTrackKeyCount(Animation2dTrackData track)
     {
         return track.Property switch
@@ -2319,6 +2614,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             Animation2dTrackProperty.DrawOrder => track.DrawOrderKeyframes.Count,
             Animation2dTrackProperty.FlipX => track.FlipKeyframes.Count,
             Animation2dTrackProperty.FlipY => track.FlipKeyframes.Count,
+            Animation2dTrackProperty.Rotation => track.RotationKeyframes.Count,
             _ => 0,
         };
     }
@@ -2362,6 +2658,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
                     case Animation2dTrackProperty.DrawOrder:
                         content.TryAddChild(CreateCommittedTextBoxRow("Value", selectedEvent.IntValue.ToString(CultureInfo.InvariantCulture), value => ApplyTrackSelectedEventIntValue(selectedEvent, value)));
+                        break;
+
+                    case Animation2dTrackProperty.Rotation:
+                        content.TryAddChild(CreateCommittedTextBoxRow("Value", FormatFloat(selectedEvent.FloatValue), value => ApplyTrackSelectedEventFloatValue(selectedEvent, value)));
                         break;
                 }
 
@@ -2467,7 +2767,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         var updatedEvent = animationEvent with { EventName = eventName };
         _animationData.Events[selectedEvent.EventIndex] = updatedEvent;
-        FinalizeSelectedEventEdit("Updated event type.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, updatedEvent.EventName));
+        FinalizeSelectedEventEdit("Updated event type.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue, updatedEvent.EventName));
     }
 
     private void ApplyPersistedSelectedEventTime(TimelineDisplayEventItem selectedEvent, float timeSeconds)
@@ -2486,7 +2786,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         var updatedEvent = animationEvent with { TimeSeconds = timeSeconds };
         _animationData.Events[selectedEvent.EventIndex] = updatedEvent;
         SortAnimationEvents(_animationData.Events);
-        FinalizeSelectedEventEdit("Updated event time.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue));
+        FinalizeSelectedEventEdit("Updated event time.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue));
     }
 
     private void ApplyPersistedSelectedEventSprite(TimelineDisplayEventItem selectedEvent, Guid spriteAssetId)
@@ -2504,7 +2804,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         var updatedEvent = animationEvent with { SpriteAssetId = spriteAssetId };
         _animationData.Events[selectedEvent.EventIndex] = updatedEvent;
-        FinalizeSelectedEventEdit("Updated event sprite.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue));
+        FinalizeSelectedEventEdit("Updated event sprite.", CreateLocator(selectedEvent, updatedEvent.TimeSeconds, updatedEvent.SpriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue));
     }
 
     private void ApplyTrackSelectedEventTime(TimelineDisplayEventItem selectedEvent, float timeSeconds)
@@ -2528,7 +2828,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                 }
 
                 MovePositionKeyframe(track.PositionKeyframes, selectedEvent.KeyframeIndex, timeSeconds, selectedEvent.Vector2Value);
-                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, selectedEvent.Vector2Value, false, 0));
+                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, selectedEvent.Vector2Value, false, 0, 0f));
                 break;
 
             case Animation2dTrackProperty.Visible:
@@ -2538,7 +2838,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                 }
 
                 MoveBoolKeyframe(track.VisibleKeyframes, selectedEvent.KeyframeIndex, timeSeconds, selectedEvent.BoolValue);
-                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, selectedEvent.BoolValue, 0));
+                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, selectedEvent.BoolValue, 0, 0f));
                 break;
 
             case Animation2dTrackProperty.DrawOrder:
@@ -2548,7 +2848,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                 }
 
                 MoveIntKeyframe(track.DrawOrderKeyframes, selectedEvent.KeyframeIndex, timeSeconds, selectedEvent.IntValue);
-                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, false, selectedEvent.IntValue));
+                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, false, selectedEvent.IntValue, 0f));
                 break;
 
             case Animation2dTrackProperty.FlipX:
@@ -2559,7 +2859,17 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
                 }
 
                 MoveBoolKeyframe(track.FlipKeyframes, selectedEvent.KeyframeIndex, timeSeconds, selectedEvent.BoolValue);
-                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, selectedEvent.BoolValue, 0));
+                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, selectedEvent.BoolValue, 0, 0f));
+                break;
+
+            case Animation2dTrackProperty.Rotation:
+                if (selectedEvent.KeyframeIndex < 0 || selectedEvent.KeyframeIndex >= track.RotationKeyframes.Count)
+                {
+                    return;
+                }
+
+                MoveFloatKeyframe(track.RotationKeyframes, selectedEvent.KeyframeIndex, timeSeconds, selectedEvent.FloatValue);
+                FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, Guid.Empty, Vector2.Zero, false, 0, selectedEvent.FloatValue));
                 break;
         }
     }
@@ -2587,7 +2897,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dGuidKeyframeData(timeSeconds, keyframe.Value);
         SortGuidKeyframes(keyframes);
-        FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, keyframe.Value, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue));
+        FinalizeSelectedEventEdit("Updated keyframe time.", CreateLocator(selectedEvent, timeSeconds, keyframe.Value, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue));
     }
 
     private void ApplySpriteTrackSelectedEventSprite(TimelineDisplayEventItem selectedEvent, Guid spriteAssetId)
@@ -2612,7 +2922,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dGuidKeyframeData(keyframe.TimeSeconds, spriteAssetId);
-        FinalizeSelectedEventEdit("Updated keyframe sprite.", CreateLocator(selectedEvent, keyframe.TimeSeconds, spriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue));
+        FinalizeSelectedEventEdit("Updated keyframe sprite.", CreateLocator(selectedEvent, keyframe.TimeSeconds, spriteAssetId, selectedEvent.Vector2Value, selectedEvent.BoolValue, selectedEvent.IntValue, selectedEvent.FloatValue));
     }
 
     private void ApplyTrackSelectedEventVector2X(TimelineDisplayEventItem selectedEvent, string value)
@@ -2636,7 +2946,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         Vector2 newValue = new(x, keyframes[selectedEvent.KeyframeIndex].Value.Y);
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dVector2KeyframeData(keyframes[selectedEvent.KeyframeIndex].TimeSeconds, newValue);
-        FinalizeSelectedEventEdit("Updated position keyframe X.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, newValue, false, 0));
+        FinalizeSelectedEventEdit("Updated position keyframe X.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, newValue, false, 0, 0f));
     }
 
     private void ApplyTrackSelectedEventVector2Y(TimelineDisplayEventItem selectedEvent, string value)
@@ -2660,7 +2970,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         Vector2 newValue = new(keyframes[selectedEvent.KeyframeIndex].Value.X, y);
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dVector2KeyframeData(keyframes[selectedEvent.KeyframeIndex].TimeSeconds, newValue);
-        FinalizeSelectedEventEdit("Updated position keyframe Y.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, newValue, false, 0));
+        FinalizeSelectedEventEdit("Updated position keyframe Y.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, newValue, false, 0, 0f));
     }
 
     private void ApplyTrackSelectedEventBoolValue(TimelineDisplayEventItem selectedEvent, bool value)
@@ -2679,7 +2989,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dBoolKeyframeData(keyframes[selectedEvent.KeyframeIndex].TimeSeconds, value);
-        FinalizeSelectedEventEdit($"Updated {selectedEvent.TrackProperty} keyframe value.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, Vector2.Zero, value, 0));
+        FinalizeSelectedEventEdit($"Updated {selectedEvent.TrackProperty} keyframe value.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, Vector2.Zero, value, 0, 0f));
     }
 
     private void ApplyTrackSelectedEventIntValue(TimelineDisplayEventItem selectedEvent, string value)
@@ -2702,7 +3012,30 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         keyframes[selectedEvent.KeyframeIndex] = new Animation2dIntKeyframeData(keyframes[selectedEvent.KeyframeIndex].TimeSeconds, drawOrder);
-        FinalizeSelectedEventEdit("Updated draw order keyframe value.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, Vector2.Zero, false, drawOrder));
+        FinalizeSelectedEventEdit("Updated draw order keyframe value.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, Vector2.Zero, false, drawOrder, 0f));
+    }
+
+    private void ApplyTrackSelectedEventFloatValue(TimelineDisplayEventItem selectedEvent, string value)
+    {
+        if (_animationData == null || selectedEvent.TrackIndex < 0 || selectedEvent.TrackIndex >= _animationData.Tracks.Count || selectedEvent.KeyframeIndex < 0)
+        {
+            return;
+        }
+
+        if (!TryParseFloat(value, out float floatValue))
+        {
+            SetStatus("Invalid rotation.");
+            return;
+        }
+
+        var keyframes = _animationData.Tracks[selectedEvent.TrackIndex].RotationKeyframes;
+        if (selectedEvent.KeyframeIndex >= keyframes.Count)
+        {
+            return;
+        }
+
+        keyframes[selectedEvent.KeyframeIndex] = new Animation2dFloatKeyframeData(keyframes[selectedEvent.KeyframeIndex].TimeSeconds, floatValue);
+        FinalizeSelectedEventEdit("Updated rotation keyframe value.", CreateLocator(selectedEvent, keyframes[selectedEvent.KeyframeIndex].TimeSeconds, Guid.Empty, Vector2.Zero, false, 0, floatValue));
     }
 
     private void FinalizeSelectedEventEdit(string message, TimelineDisplayEventLocator locator)
@@ -2772,6 +3105,9 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
                     case Animation2dTrackProperty.DrawOrder when candidate.IntValue != locator.IntValue:
                         continue;
+
+                    case Animation2dTrackProperty.Rotation when Math.Abs(candidate.FloatValue - locator.FloatValue) > 0.0001f:
+                        continue;
                 }
             }
 
@@ -2781,7 +3117,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         return -1;
     }
 
-    private static TimelineDisplayEventLocator CreateLocator(TimelineDisplayEventItem selectedEvent, float timeSeconds, Guid spriteAssetId, Vector2 vector2Value, bool boolValue, int intValue, string eventName = null)
+    private static TimelineDisplayEventLocator CreateLocator(TimelineDisplayEventItem selectedEvent, float timeSeconds, Guid spriteAssetId, Vector2 vector2Value, bool boolValue, int intValue, float floatValue, string eventName = null)
     {
         return new TimelineDisplayEventLocator(
             selectedEvent.SourceKind,
@@ -2792,7 +3128,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             timeSeconds,
             vector2Value,
             boolValue,
-            intValue);
+            intValue,
+            floatValue);
     }
 
     private static void SortAnimationEvents(List<AnimationEventAsset> events)
@@ -2803,7 +3140,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private static bool CanSelectSpriteForEvent(TimelineDisplayEventItem selectedEvent)
     {
         return selectedEvent.SourceKind == TimelineDisplayEventSourceKind.TrackKeyframe && selectedEvent.TrackProperty == Animation2dTrackProperty.Sprite
-            || string.Equals(selectedEvent.Event.EventName, Animation2dEventNames.ChangeSprite, StringComparison.Ordinal);
+            || string.Equals(selectedEvent.Event.EventName, Animation2dEventNames.ChangeSprite, StringComparison.Ordinal)
+            || string.Equals(selectedEvent.Event.EventName, "attachment", StringComparison.Ordinal);
     }
 
     private static string GetSelectedEventTitle(TimelineDisplayEventItem selectedEvent)
@@ -2859,6 +3197,37 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         SortIntKeyframes(keyframes);
+    }
+
+    private static void MoveFloatKeyframe(List<Animation2dFloatKeyframeData> keyframes, int keyframeIndex, float timeSeconds, float value)
+    {
+        int existingIndex = FindFloatKeyframeIndexAtTime(keyframes, timeSeconds);
+        if (existingIndex >= 0 && existingIndex != keyframeIndex)
+        {
+            keyframes[existingIndex] = new Animation2dFloatKeyframeData(timeSeconds, value);
+            keyframes.RemoveAt(keyframeIndex > existingIndex ? keyframeIndex : keyframeIndex + 1);
+        }
+        else
+        {
+            keyframes[keyframeIndex] = new Animation2dFloatKeyframeData(timeSeconds, value);
+        }
+
+        SortFloatKeyframes(keyframes);
+    }
+
+    private static string GetTimelineTrackEventLabel(Animation2dTrackProperty property)
+    {
+        return property switch
+        {
+            Animation2dTrackProperty.Sprite => "attachment",
+            Animation2dTrackProperty.Position => "localPositionOffset",
+            Animation2dTrackProperty.Visible => "visible",
+            Animation2dTrackProperty.FlipX => "flipX",
+            Animation2dTrackProperty.FlipY => "flipY",
+            Animation2dTrackProperty.Rotation => "rotation",
+            Animation2dTrackProperty.DrawOrder => "drawOrder",
+            _ => property.ToString(),
+        };
     }
 
     private static bool IsSpriteAsset(AssetInfo assetInfo)
