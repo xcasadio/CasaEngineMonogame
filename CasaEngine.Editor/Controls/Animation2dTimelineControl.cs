@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Framework.Assets.Animations;
 using MGUI.Core.UI;
 
 namespace CasaEngine.Editor.Controls;
@@ -21,6 +22,10 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     public event Action<int> LaneSelected;
 
     public event Action<int, string>? LaneLabelEdited;
+
+    public event Action<Animation2dTrackProperty, int, float>? TrackPropertyInsertRequested;
+
+    public event Action<float>? PersistedEventInsertRequested;
 
     public event Action<int, float> EventTimeEdited;
 
@@ -207,5 +212,42 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         {
             LaneInsertRequested?.Invoke(laneIndex, timeSeconds);
         }
+    }
+
+    internal override MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
+    {
+        MGContextMenu? menu = base.CreateContextMenu(lane, timelineEvent, cursorTimeSeconds);
+        menu ??= ParentWindow != null ? new MGContextMenu(ParentWindow, string.Empty) : null;
+        if (menu == null)
+        {
+            return null;
+        }
+
+        if (menu.Items.Count > 0)
+        {
+            menu.AddSeparator();
+        }
+
+        int laneIndex = -1;
+        if (lane != null)
+        {
+            _laneIndexById.TryGetValue(lane.Id, out laneIndex);
+        }
+
+        AddPropertyInsert(menu, "Add attachment", Animation2dTrackProperty.Sprite, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add localPositionOffset", Animation2dTrackProperty.Position, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add visible", Animation2dTrackProperty.Visible, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add flipX", Animation2dTrackProperty.FlipX, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add flipY", Animation2dTrackProperty.FlipY, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add rotation", Animation2dTrackProperty.Rotation, laneIndex, cursorTimeSeconds);
+        AddPropertyInsert(menu, "Add drawOrder", Animation2dTrackProperty.DrawOrder, laneIndex, cursorTimeSeconds);
+        menu.AddButton("Add custom event", _ => PersistedEventInsertRequested?.Invoke(cursorTimeSeconds));
+
+        return menu;
+    }
+
+    private void AddPropertyInsert(MGContextMenu menu, string label, Animation2dTrackProperty property, int laneIndex, float timeSeconds)
+    {
+        menu.AddButton(label, _ => TrackPropertyInsertRequested?.Invoke(property, laneIndex, timeSeconds));
     }
 }

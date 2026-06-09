@@ -1315,6 +1315,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _timelineControl.EventSelected += SelectEvent;
         _timelineControl.LaneSelected += SelectLane;
         _timelineControl.LaneLabelEdited += OnTimelineLaneLabelEdited;
+        _timelineControl.TrackPropertyInsertRequested += OnTimelineTrackPropertyInsertRequested;
+        _timelineControl.PersistedEventInsertRequested += OnTimelinePersistedEventInsertRequested;
         _timelineControl.ScrubRequested += SeekPreviewTime;
         _timelineControl.PixelsPerSecondChanged += OnTimelinePixelsPerSecondChanged;
         _timelineControl.EventTimeEdited += OnTimelineEventTimeEdited;
@@ -1822,7 +1824,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             _timelineDisplayLanes.Add(new TimelineDisplayLane(_animationData.GetTrackName(trackIndex), TimelineDisplayLaneSourceKind.TrackKeyframes, trackIndex, track.Property));
         }
 
-        _timelineDisplayLanes.Add(new TimelineDisplayLane("Events", TimelineDisplayLaneSourceKind.PersistedEvents));
+        _timelineDisplayLanes.Add(new TimelineDisplayLane(_animationData.GetEventTrackName(), TimelineDisplayLaneSourceKind.PersistedEvents));
     }
 
     private void ClearTimelineDisplayLanes()
@@ -1867,23 +1869,80 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         TimelineDisplayLane lane = _timelineDisplayLanes[laneIndex];
-        if (lane.SourceKind != TimelineDisplayLaneSourceKind.TrackKeyframes || lane.TrackIndex < 0 || lane.TrackIndex >= _animationData.Tracks.Count)
+        if (lane.SourceKind == TimelineDisplayLaneSourceKind.TrackKeyframes)
+        {
+            if (lane.TrackIndex < 0 || lane.TrackIndex >= _animationData.Tracks.Count)
+            {
+                return;
+            }
+
+            string normalizedName = string.IsNullOrWhiteSpace(label)
+                ? $"track {lane.TrackIndex + 1:00}"
+                : label.Trim();
+            if (string.Equals(_animationData.Tracks[lane.TrackIndex].Name, normalizedName, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _animationData.Tracks[lane.TrackIndex].Name = normalizedName;
+            SetDirty(true);
+            SetStatus($"Renamed track to {EscapeMarkup(normalizedName)}.");
+            RefreshInspector();
+            return;
+        }
+
+        if (lane.SourceKind == TimelineDisplayLaneSourceKind.PersistedEvents)
+        {
+            string normalizedName = string.IsNullOrWhiteSpace(label)
+                ? $"track {_animationData.Tracks.Count + 1:00}"
+                : label.Trim();
+            if (string.Equals(_animationData.EventTrackName, normalizedName, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _animationData.EventTrackName = normalizedName;
+            SetDirty(true);
+            SetStatus($"Renamed track to {EscapeMarkup(normalizedName)}.");
+            RefreshInspector();
+        }
+    }
+
+    private void OnTimelineTrackPropertyInsertRequested(Animation2dTrackProperty property, int contextLaneIndex, float timeSeconds)
+    {
+        if (_animationData == null)
         {
             return;
         }
 
-        string normalizedName = string.IsNullOrWhiteSpace(label)
-            ? $"track {lane.TrackIndex + 1:00}"
-            : label.Trim();
-        if (string.Equals(_animationData.Tracks[lane.TrackIndex].Name, normalizedName, StringComparison.Ordinal))
+        if (!TryResolveInsertionTargetPartId(contextLaneIndex, out string targetPartId))
         {
+            SetStatus("Select a track lane to choose the target part for the new keyframe.");
             return;
         }
 
-        _animationData.Tracks[lane.TrackIndex].Name = normalizedName;
-        SetDirty(true);
-        SetStatus($"Renamed track to {EscapeMarkup(normalizedName)}.");
-        RefreshInspector();
+        int oldTrackCount = _animationData.Tracks.Count;
+        int trackIndex = FindTrackIndex(targetPartId, property);
+        if (trackIndex < 0)
+        {
+            trackIndex = _animationData.Tracks.Count;
+            _animationData.Tracks.Add(new Animation2dTrackData
+            {
+                Name = $"track {trackIndex + 1:00}",
+                TargetPartId = targetPartId,
+                Property = property,
+                Interpolation = Animation2dInterpolationMode.Step,
+            });
+
+            ShiftDefaultEventTrackNameIfNeeded(oldTrackCount);
+        }
+
+        InsertTrackKeyframe(new TimelineDisplayLane(_animationData.GetTrackName(trackIndex), TimelineDisplayLaneSourceKind.TrackKeyframes, trackIndex, property), timeSeconds);
+    }
+
+    private void OnTimelinePersistedEventInsertRequested(float timeSeconds)
+    {
+        InsertPersistedEvent(_timelineDisplayLanes.Count - 1, timeSeconds);
     }
 
     private bool TryGetTimelineDisplayEvent(int eventIndex, out TimelineDisplayEventItem timelineEvent)
@@ -2322,6 +2381,98 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
 
         return false;
+    }
+
+    private bool TryResolveInsertionTargetPartId(int contextLaneIndex, out string targetPartId)
+    {
+        targetPartId = string.Empty;
+        if (_animationData == null)
+        {
+            return false;
+        }
+
+        if (contextLaneIndex >= 0
+            && contextLaneIndex < _timelineDisplayLanes.Count)
+        {
+            TimelineDisplayLane contextLane = _timelineDisplayLanes[contextLaneIndex];
+            if (contextLane.SourceKind == TimelineDisplayLaneSourceKind.TrackKeyframes
+                && contextLane.TrackIndex >= 0
+                && contextLane.TrackIndex < _animationData.Tracks.Count)
+            {
+                targetPartId = _animationData.Tracks[contextLane.TrackIndex].TargetPartId;
+                return !string.IsNullOrWhiteSpace(targetPartId);
+            }
+        }
+
+        if (_selectedEventIndex >= 0
+            && _selectedEventIndex < _timelineDisplayEvents.Count)
+        {
+            TimelineDisplayEventItem selectedEvent = _timelineDisplayEvents[_selectedEventIndex];
+            if (selectedEvent.SourceKind == TimelineDisplayEventSourceKind.TrackKeyframe
+                && selectedEvent.TrackIndex >= 0
+                && selectedEvent.TrackIndex < _animationData.Tracks.Count)
+            {
+                targetPartId = _animationData.Tracks[selectedEvent.TrackIndex].TargetPartId;
+                return !string.IsNullOrWhiteSpace(targetPartId);
+            }
+        }
+
+        if (_selectedLaneIndex >= 0
+            && _selectedLaneIndex < _timelineDisplayLanes.Count)
+        {
+            TimelineDisplayLane selectedLane = _timelineDisplayLanes[_selectedLaneIndex];
+            if (selectedLane.SourceKind == TimelineDisplayLaneSourceKind.TrackKeyframes
+                && selectedLane.TrackIndex >= 0
+                && selectedLane.TrackIndex < _animationData.Tracks.Count)
+            {
+                targetPartId = _animationData.Tracks[selectedLane.TrackIndex].TargetPartId;
+                return !string.IsNullOrWhiteSpace(targetPartId);
+            }
+        }
+
+        if (_animationData.Parts.Count == 1)
+        {
+            targetPartId = _animationData.Parts[0].Id;
+            return !string.IsNullOrWhiteSpace(targetPartId);
+        }
+
+        return false;
+    }
+
+    private int FindTrackIndex(string targetPartId, Animation2dTrackProperty property)
+    {
+        if (_animationData == null)
+        {
+            return -1;
+        }
+
+        for (var index = 0; index < _animationData.Tracks.Count; index++)
+        {
+            Animation2dTrackData track = _animationData.Tracks[index];
+            if (string.Equals(track.TargetPartId, targetPartId, StringComparison.Ordinal)
+                && track.Property == property)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private void ShiftDefaultEventTrackNameIfNeeded(int oldTrackCount)
+    {
+        if (_animationData == null)
+        {
+            return;
+        }
+
+        string previousDefaultName = $"track {oldTrackCount + 1:00}";
+        if (!string.Equals(_animationData.EventTrackName, previousDefaultName, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _animationData.EventTrackName = $"track {_animationData.Tracks.Count + 1:00}";
     }
 
     private static int FindGuidKeyframeIndexAtTime(List<Animation2dGuidKeyframeData> keyframes, float timeSeconds)

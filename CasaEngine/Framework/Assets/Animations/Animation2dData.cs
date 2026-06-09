@@ -7,6 +7,8 @@ public class Animation2dData : ObjectBase
 {
     public AnimationType AnimationType { get; set; } = AnimationType.Once;
 
+    public string EventTrackName { get; set; } = string.Empty;
+
     public List<Animation2dPartData> Parts { get; } = new();
     public List<Animation2dTrackData> Tracks { get; } = new();
     public List<AnimationEventAsset> Events { get; } = new();
@@ -18,7 +20,16 @@ public class Animation2dData : ObjectBase
             return string.Empty;
         }
 
-        return GetDefaultTrackName(trackIndex);
+        return string.IsNullOrWhiteSpace(Tracks[trackIndex].Name)
+            ? GetDefaultTrackName(trackIndex)
+            : Tracks[trackIndex].Name;
+    }
+
+    public string GetEventTrackName()
+    {
+        return string.IsNullOrWhiteSpace(EventTrackName)
+            ? GetDefaultTrackName(Tracks.Count)
+            : EventTrackName;
     }
 
     public void EnsureTrackNames()
@@ -31,6 +42,11 @@ public class Animation2dData : ObjectBase
             }
 
             Tracks[index].Name = GetDefaultTrackName(index);
+        }
+
+        if (string.IsNullOrWhiteSpace(EventTrackName))
+        {
+            EventTrackName = GetDefaultTrackName(Tracks.Count);
         }
     }
 
@@ -99,6 +115,7 @@ public class Animation2dData : ObjectBase
             && Enum.TryParse(animationTypeNode.Value<string>(), true, out AnimationType animationType)
                 ? animationType
                 : AnimationType.Once;
+        EventTrackName = element["event_track_name"]?.Value<string>() ?? string.Empty;
 
         Parts.Clear();
         Tracks.Clear();

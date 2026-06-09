@@ -152,6 +152,7 @@ internal static class EditorAssetJsonSerializer
         SaveObjectBase(animation2dData, node);
         animation2dData.EnsureTrackNames();
         node.Add("animation_type", animation2dData.AnimationType.ToString());
+        node.Add("event_track_name", animation2dData.GetEventTrackName());
 
         if (animation2dData.Parts.Count > 0)
         {

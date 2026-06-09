@@ -26,6 +26,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 
         public MGBorder Border { get; init; }
 
+        public MGTextBlock Label { get; init; }
+
         public MGTextBox TextBox { get; init; }
     }
 
@@ -64,11 +66,12 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         if (_owner.Model == null || _owner.Model.Lanes.Count == 0)
         {
             var fallbackBorder = CreateLaneBorder(isSelected: false);
-            var fallbackTextBox = CreateReadonlyTextBox(_text);
-            fallbackBorder.SetContent(fallbackTextBox);
+            fallbackBorder.SetContent(CreateReadonlyLabel(_text));
             TryAddChild(fallbackBorder);
             return;
         }
+
+        TryAddChild(CreateSpacer(TimelineControlMetrics.ViewportVerticalPadding));
 
         for (var index = 0; index < _owner.Model.Lanes.Count; index++)
         {
@@ -77,6 +80,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             _rowsByLaneId[lane.Id] = rowState;
             TryAddChild(rowState.Border);
         }
+
+        TryAddChild(CreateSpacer(TimelineControlMetrics.ViewportVerticalPadding));
 
         RefreshSelection();
     }
@@ -110,8 +115,11 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
     private LaneRowState CreateLaneRow(TimelineLane lane)
     {
         var border = CreateLaneBorder(_owner.ViewState.SelectedLaneId == lane.Id);
-        var textBox = CreateReadonlyTextBox(lane.Label);
-        textBox.MouseHandler.LMBDoubleClickedInside += (_, e) =>
+        var label = CreateReadonlyLabel(lane.Label);
+        var textBox = CreateEditorTextBox(lane.Label);
+        border.SetContent(label);
+
+        border.MouseHandler.LMBDoubleClickedInside += (_, e) =>
         {
             if (!lane.IsEditable)
             {
@@ -121,8 +129,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             _owner.Focus(KeyboardFocusSource.Pointer);
             _owner.SetSelectedLaneId(lane.Id, true);
             _owner.SetSelectedEventId(null, true);
-            BeginEdit(new LaneRowState { Lane = lane, Border = border, TextBox = textBox });
-            e.SetHandledBy(textBox, false);
+            BeginEdit(new LaneRowState { Lane = lane, Border = border, Label = label, TextBox = textBox });
+            e.SetHandledBy(border, false);
         };
 
         textBox.KeyboardHandler.Pressed += (_, e) =>
@@ -168,18 +176,18 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             }
 
             MGContextMenu menu = new(_window, string.Empty);
-            menu.AddButton("Rename track", _ => BeginEdit(new LaneRowState { Lane = lane, Border = border, TextBox = textBox }));
+            menu.AddButton("Rename track", _ => BeginEdit(new LaneRowState { Lane = lane, Border = border, Label = label, TextBox = textBox }));
             if (menu.TryOpenContextMenu(e.Position))
             {
                 e.SetHandledBy(menu, false);
             }
         };
 
-        border.SetContent(textBox);
         return new LaneRowState
         {
             Lane = lane,
             Border = border,
+            Label = label,
             TextBox = textBox,
         };
     }
@@ -202,7 +210,18 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         return border;
     }
 
-    private MGTextBox CreateReadonlyTextBox(string text)
+    private MGTextBlock CreateReadonlyLabel(string text)
+    {
+        return new MGTextBlock(_window, text ?? string.Empty)
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment = VerticalAlignment.Center,
+            WrapText = false,
+            Padding = new Thickness(0),
+        };
+    }
+
+    private MGTextBox CreateEditorTextBox(string text)
     {
         var textBox = new MGTextBox(_window, CharacterLimit: 256)
         {
@@ -234,6 +253,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         _editingRow = row;
         _editingOriginalText = row.TextBox.Text ?? string.Empty;
         row.TextBox.IsReadonly = false;
+        row.Border.SetContent(row.TextBox);
         row.TextBox.RequestFocus();
 
         if (_window.Desktop != null)
@@ -253,6 +273,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         LaneRowState editingRow = _editingRow;
         _editingRow = null;
         editingRow.TextBox.IsReadonly = true;
+        editingRow.Label.Text = editingRow.TextBox.Text ?? string.Empty;
+        editingRow.Border.SetContent(editingRow.Label);
 
         if (_window.Desktop != null)
         {
@@ -280,6 +302,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         _editingRow = null;
         editingRow.TextBox.IsReadonly = true;
         editingRow.TextBox.SetText(_editingOriginalText, true);
+        editingRow.Label.Text = _editingOriginalText;
+        editingRow.Border.SetContent(editingRow.Label);
 
         if (_window.Desktop != null)
         {
@@ -320,5 +344,18 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         font = textEngine.ResolveFont(new FontSpec(ParentWindow.Desktop.DefaultFontFamily, TimelineControlMetrics.LabelFontSize, CustomFontStyles.Normal));
         scale = font.SuggestedScale;
         return font.IsAvailable;
+    }
+
+    private MGBorder CreateSpacer(int height)
+    {
+        return new MGBorder(_window)
+        {
+            BorderThickness = new Thickness(0),
+            MinHeight = height,
+            PreferredHeight = height,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            BackgroundBrush = new VisualStateFillBrush(new MGSolidFillBrush(EditorThemePalette.PreviewSurfaceBackground)),
+        };
     }
 }

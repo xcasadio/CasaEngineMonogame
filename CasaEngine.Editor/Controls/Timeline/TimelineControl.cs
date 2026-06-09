@@ -443,7 +443,7 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
+    internal virtual MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
     {
         if (ParentWindow == null)
         {
