@@ -318,6 +318,26 @@ internal class TimelineControl : MGGrid
         TimeScrubbed?.Invoke(timeSeconds);
     }
 
+    protected void NotifyDuplicateRequested(TimelineEvent timelineEvent, float timeSeconds)
+    {
+        DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+    }
+
+    protected void NotifyDeleteRequested(TimelineEvent timelineEvent)
+    {
+        DeleteRequested?.Invoke(timelineEvent);
+    }
+
+    protected void NotifyCopyRequested(TimelineEvent timelineEvent)
+    {
+        CopyRequested?.Invoke(timelineEvent);
+    }
+
+    protected void NotifyPasteRequested(TimelineLane lane, float timeSeconds)
+    {
+        PasteRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+    }
+
     internal int GetLaneCount()
     {
         return _model?.Lanes.Count > 0 ? _model.Lanes.Count : 1;

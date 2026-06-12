@@ -28,14 +28,24 @@ public class Animation2dData : ObjectBase
     public string GetEventTrackName()
     {
         return string.IsNullOrWhiteSpace(EventTrackName)
-            ? GetDefaultTrackName(Tracks.Count)
+            ? GetDefaultLegacyEventTrackName()
             : EventTrackName;
+    }
+
+    public string GetDefaultLegacyEventTrackName()
+    {
+        return GetDefaultTrackName(Math.Max(Parts.Count, GetLaneIds().Count));
     }
 
     public void EnsureTrackNames()
     {
         for (var index = 0; index < Tracks.Count; index++)
         {
+            if (string.IsNullOrWhiteSpace(Tracks[index].LaneId))
+            {
+                Tracks[index].LaneId = Tracks[index].TargetPartId;
+            }
+
             if (!string.IsNullOrWhiteSpace(Tracks[index].Name))
             {
                 continue;
@@ -46,7 +56,7 @@ public class Animation2dData : ObjectBase
 
         if (string.IsNullOrWhiteSpace(EventTrackName))
         {
-            EventTrackName = GetDefaultTrackName(Tracks.Count);
+            EventTrackName = GetDefaultLegacyEventTrackName();
         }
     }
 
@@ -76,7 +86,15 @@ public class Animation2dData : ObjectBase
     {
         for (var index = 1; index < Events.Count; index++)
         {
-            if (Events[index - 1].TimeSeconds > Events[index].TimeSeconds)
+            AnimationEventAsset previous = Events[index - 1];
+            AnimationEventAsset current = Events[index];
+            int laneOrder = string.Compare(previous.TargetPartId, current.TargetPartId, StringComparison.Ordinal);
+            if (laneOrder > 0)
+            {
+                return false;
+            }
+
+            if (laneOrder == 0 && previous.TimeSeconds > current.TimeSeconds)
             {
                 return false;
             }
@@ -105,6 +123,94 @@ public class Animation2dData : ObjectBase
         }
 
         return invalidPartIds;
+    }
+
+    public List<string> GetInvalidEventTargetPartIds()
+    {
+        var partIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var part in Parts)
+        {
+            partIds.Add(part.Id);
+        }
+
+        var invalidPartIds = new List<string>();
+        foreach (var animationEvent in Events)
+        {
+            if (string.IsNullOrWhiteSpace(animationEvent.TargetPartId)
+                || partIds.Contains(animationEvent.TargetPartId)
+                || invalidPartIds.Contains(animationEvent.TargetPartId))
+            {
+                continue;
+            }
+
+            invalidPartIds.Add(animationEvent.TargetPartId);
+        }
+
+        return invalidPartIds;
+    }
+
+    public List<string> GetLaneIds()
+    {
+        var laneIds = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+
+        for (var index = 0; index < Tracks.Count; index++)
+        {
+            string laneId = string.IsNullOrWhiteSpace(Tracks[index].LaneId)
+                ? Tracks[index].TargetPartId
+                : Tracks[index].LaneId;
+            if (string.IsNullOrWhiteSpace(laneId) || !seen.Add(laneId))
+            {
+                continue;
+            }
+
+            laneIds.Add(laneId);
+        }
+
+        for (var index = 0; index < Events.Count; index++)
+        {
+            string laneId = Events[index].TargetPartId;
+            if (string.IsNullOrWhiteSpace(laneId) || !seen.Add(laneId))
+            {
+                continue;
+            }
+
+            laneIds.Add(laneId);
+        }
+
+        return laneIds;
+    }
+
+    public string GetLaneDisplayName(string laneId, int laneOrdinal)
+    {
+        if (!string.IsNullOrWhiteSpace(laneId))
+        {
+            for (var index = 0; index < Parts.Count; index++)
+            {
+                Animation2dPartData part = Parts[index];
+                if (string.Equals(part.Id, laneId, StringComparison.Ordinal))
+                {
+                    if (!string.IsNullOrWhiteSpace(part.Name))
+                    {
+                        return part.Name;
+                    }
+
+                    return $"Track {laneOrdinal + 1}";
+                }
+            }
+
+            for (var index = 0; index < Tracks.Count; index++)
+            {
+                Animation2dTrackData track = Tracks[index];
+                string trackLaneId = string.IsNullOrWhiteSpace(track.LaneId) ? track.TargetPartId : track.LaneId;
+                if (string.Equals(trackLaneId, laneId, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(track.Name))
+                {
+                    return track.Name;
+                }
+            }
+        }
+
+        return $"Track {laneOrdinal + 1}";
     }
 
     public override void Load(JObject element)
@@ -165,6 +271,8 @@ public class Animation2dData : ObjectBase
             }
         }
 
+        SortEventsByLaneAndTime();
+
         if (element["animation_type"] == null && inferredLoopFromLegacyRestartEvent)
         {
             AnimationType = AnimationType.Loop;
@@ -198,8 +306,28 @@ public class Animation2dData : ObjectBase
         return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
     }
 
+    public void SortEventsByLaneAndTime()
+    {
+        Events.Sort(static (left, right) =>
+        {
+            int laneOrder = string.Compare(left.TargetPartId, right.TargetPartId, StringComparison.Ordinal);
+            if (laneOrder != 0)
+            {
+                return laneOrder;
+            }
+
+            int timeOrder = left.TimeSeconds.CompareTo(right.TimeSeconds);
+            if (timeOrder != 0)
+            {
+                return timeOrder;
+            }
+
+            return string.Compare(left.EventName, right.EventName, StringComparison.Ordinal);
+        });
+    }
+
     private static string GetDefaultTrackName(int trackIndex)
     {
-        return $"track {trackIndex + 1:00}";
+        return $"Track {trackIndex + 1}";
     }
 }

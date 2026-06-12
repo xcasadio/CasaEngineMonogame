@@ -27,7 +27,7 @@ internal sealed class TimelineViewport : MGElement
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
-        _eventToolTip = new MGToolTip(window, this, 220, 56)
+        _eventToolTip = new MGToolTip(window, this, 0, 0)
         {
             ShowDelayOverride = TimeSpan.Zero,
         };
@@ -213,6 +213,12 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
+        if (_draggedEvent != null)
+        {
+            e.SetHandledBy(this, false);
+            return;
+        }
+
         if (_ignoreNextRelease)
         {
             _ignoreNextRelease = false;
@@ -346,10 +352,8 @@ internal sealed class TimelineViewport : MGElement
         Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
-        float x = Math.Clamp(layoutPosition.X, timeAreaBounds.Left, timeAreaBounds.Right);
+        float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
         _draggedEventTimeSeconds = GetTimeAtPosition(x, timeAreaBounds.Left);
-        _owner.SetCurrentTimeSeconds(_draggedEventTimeSeconds, notify: false);
-        _owner.NotifyTimeScrubbed(_draggedEventTimeSeconds);
         _owner.InvalidateViewPresentation();
     }
 
@@ -472,14 +476,19 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        TimelineLane? lane = _owner.GetLane(_hoveredEvent.LaneId);
-        string laneLabel = string.IsNullOrWhiteSpace(lane?.Label) ? string.Empty : $"Track: {lane.Label}\n";
-        string valueLabel = string.IsNullOrWhiteSpace(_hoveredEvent.ValueText) ? string.Empty : $"\nValue: {_hoveredEvent.ValueText}";
-        _eventToolTip.SetContent(
-            $"{laneLabel}Type: {_hoveredEvent.EventType}\nTime: {GetRenderedEventTime(_hoveredEvent).ToString("0.###", CultureInfo.InvariantCulture)} s{valueLabel}",
-            null,
-            12);
+        string toolTipText = string.IsNullOrWhiteSpace(_hoveredEvent.ToolTipText)
+            ? BuildDefaultToolTipText(_hoveredEvent)
+            : _hoveredEvent.ToolTipText;
+        _eventToolTip.SetContent(toolTipText, null, 12);
+        _eventToolTip.ApplySizeToContent(SizeToContent.WidthAndHeight, 40, 24, 520, 360, false);
         ToolTip = _eventToolTip;
+    }
+
+    private string BuildDefaultToolTipText(TimelineEvent timelineEvent)
+    {
+        TimelineLane? lane = _owner.GetLane(timelineEvent.LaneId);
+        string laneLabel = string.IsNullOrWhiteSpace(lane?.Label) ? string.Empty : $"Track: {lane.Label}\n";
+        return $"{laneLabel}Type: {timelineEvent.EventType}\nTime: {GetRenderedEventTime(timelineEvent).ToString("0.###", CultureInfo.InvariantCulture)} s";
     }
 
     private float GetRenderedEventTime(TimelineEvent timelineEvent)

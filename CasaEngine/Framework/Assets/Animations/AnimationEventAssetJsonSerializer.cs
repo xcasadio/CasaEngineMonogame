@@ -18,6 +18,11 @@ public static class AnimationEventAssetJsonSerializer
             node["sprite_asset_id"] = animationEvent.SpriteAssetId;
         }
 
+        if (!string.IsNullOrWhiteSpace(animationEvent.TargetPartId))
+        {
+            node["target_part_id"] = animationEvent.TargetPartId;
+        }
+
         return node;
     }
 
@@ -28,6 +33,7 @@ public static class AnimationEventAssetJsonSerializer
         return new AnimationEventAsset(
             node["time_seconds"]?.Value<float>() ?? 0f,
             node["event_name"]?.Value<string>() ?? string.Empty,
-            node["sprite_asset_id"]?.GetGuid() ?? Guid.Empty);
+            node["sprite_asset_id"]?.GetGuid() ?? Guid.Empty,
+            node["target_part_id"]?.Value<string>() ?? string.Empty);
     }
 }

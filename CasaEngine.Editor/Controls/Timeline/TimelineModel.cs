@@ -33,5 +33,7 @@ internal sealed class TimelineEvent
 
     public string ValueText { get; set; } = string.Empty;
 
+    public string ToolTipText { get; set; } = string.Empty;
+
     public bool IsEditable { get; set; } = true;
 }

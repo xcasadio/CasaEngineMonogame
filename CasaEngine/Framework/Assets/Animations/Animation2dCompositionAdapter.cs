@@ -58,6 +58,7 @@ public static class Animation2dCompositionAdapter
     {
         var clone = new Animation2dTrackData
         {
+            LaneId = track.LaneId,
             Name = track.Name,
             TargetPartId = track.TargetPartId,
             Property = track.Property,

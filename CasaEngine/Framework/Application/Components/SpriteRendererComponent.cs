@@ -477,10 +477,13 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             throw new ArgumentException($"{nameof(texture2d)} is disposed");
         }
 
-        var uvTopLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, effects == SpriteEffects.FlipVertically ? sourceInTexture.Bottom : sourceInTexture.Top);
-        var uvTopRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Bottom : sourceInTexture.Top);
-        var uvBottomRight = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, effects == SpriteEffects.FlipVertically ? sourceInTexture.Top : sourceInTexture.Bottom);
-        var uvBottomLeft = new Vector2(effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, effects == SpriteEffects.FlipHorizontally ? sourceInTexture.Top : sourceInTexture.Bottom);
+        bool flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+        bool flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+
+        var uvTopLeft = new Vector2(flipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, flipVertically ? sourceInTexture.Bottom : sourceInTexture.Top);
+        var uvTopRight = new Vector2(flipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, flipVertically ? sourceInTexture.Bottom : sourceInTexture.Top);
+        var uvBottomRight = new Vector2(flipHorizontally ? sourceInTexture.Left : sourceInTexture.Right, flipVertically ? sourceInTexture.Top : sourceInTexture.Bottom);
+        var uvBottomLeft = new Vector2(flipHorizontally ? sourceInTexture.Right : sourceInTexture.Left, flipVertically ? sourceInTexture.Top : sourceInTexture.Bottom);
 
         var textureSize = new Vector2(texture2d.Width, texture2d.Height);
         uvTopLeft /= textureSize;

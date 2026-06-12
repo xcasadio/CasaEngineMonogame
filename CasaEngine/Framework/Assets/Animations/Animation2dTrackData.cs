@@ -22,6 +22,8 @@ public enum Animation2dInterpolationMode
 
 public sealed class Animation2dTrackData
 {
+    public string LaneId { get; set; } = string.Empty;
+
     public string Name { get; set; } = string.Empty;
 
     public string TargetPartId { get; set; } = string.Empty;
@@ -48,6 +50,7 @@ public sealed class Animation2dTrackData
 
         var track = new Animation2dTrackData
         {
+            LaneId = node["lane_id"]?.Value<string>() ?? string.Empty,
             Name = node["name"]?.Value<string>() ?? string.Empty,
             TargetPartId = node["target_part_id"]?.Value<string>() ?? string.Empty,
             Property = node["property"]?.GetEnum<Animation2dTrackProperty>() ?? Animation2dTrackProperty.Sprite,
