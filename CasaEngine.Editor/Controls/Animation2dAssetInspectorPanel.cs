@@ -1408,6 +1408,8 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _timelineControl.EditPolicy = new Animation2dTimelineEditPolicy();
         // Snapping reste desactive par defaut pour conserver le comportement time-based actuel.
         _timelineControl.SnapSettings.IsEnabled = false;
+        // La preview est pilotee par le sprite component ; le controleur expose seek/etat de lecture.
+        _timelineControl.PlaybackController = new Animation2dTimelinePlaybackController(() => _previewTimeSeconds, SeekPreviewTime);
         _timelineControl.ItemSelected += SelectEvent;
         _timelineControl.TrackSelected += SelectLane;
         _timelineControl.TrackLabelEdited += OnTimelineLaneLabelEdited;

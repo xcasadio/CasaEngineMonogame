@@ -532,7 +532,7 @@ Etat actuel :
 
 # Phase 5 — Playback et unite de temps
 
-### ⏳ Tache 5.1 — `ITimelinePlaybackController` + controleur Animation2D
+### ✅ Tache 5.1 — `ITimelinePlaybackController` + controleur Animation2D
 
 Objectif : separer la lecture/scrub du controle.
 
@@ -556,6 +556,16 @@ Validation :
 Commit attendu :
 
 - `feat(timeline): add playback controller abstraction`
+
+Etat actuel :
+
+- ajoute : `ITimelinePlaybackController` (dossier `Playback/`),
+  `Animation2dTimelinePlaybackController` (wrapper sur `_previewTimeSeconds` + `SeekPreviewTime`),
+  `TimelineControl.PlaybackController` + le hook `UpdatePlayback(deltaTime)`.
+- branche cote inspector. **Sans regression** : la preview Animation2D reste pilotee par le
+  sprite component (lecture auto, lue chaque frame), donc `Update` du controleur est un no-op
+  et `UpdatePlayback` n'est pas appele dans la boucle Animation2D pour eviter un double pilotage.
+  Le controleur expose neanmoins play/pause/stop/seek/etat pour un futur bouton de lecture.
 
 ### ⏳ Tache 5.2 — `TimelineTimeUnit` (secondes / frames)
 

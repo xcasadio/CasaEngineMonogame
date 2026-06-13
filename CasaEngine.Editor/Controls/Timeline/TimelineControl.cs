@@ -11,6 +11,7 @@ using MGUI.Shared.Input.Keyboard;
 using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Editor.Controls.Timeline.Rendering;
 using CasaEngine.Editor.Controls.Timeline.Menu;
+using CasaEngine.Editor.Controls.Timeline.Playback;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -42,6 +43,8 @@ internal class TimelineControl : MGGrid
     public ITimelineItemRenderer ItemRenderer { get; set; } = new DefaultTimelineItemRenderer();
 
     internal ITimelineContextMenuProvider? ContextMenuProvider { get; set; }
+
+    public ITimelinePlaybackController? PlaybackController { get; set; }
 
     public TimelineSnapSettings SnapSettings { get; } = new();
 
@@ -778,6 +781,17 @@ internal class TimelineControl : MGGrid
     internal void InvalidateViewPresentation()
     {
         ArrangeChanged(this, true);
+    }
+
+    public void UpdatePlayback(float deltaTime)
+    {
+        if (PlaybackController == null || !PlaybackController.IsPlaying)
+        {
+            return;
+        }
+
+        PlaybackController.Update(deltaTime);
+        SetCurrentTimeSeconds(PlaybackController.CurrentTime, notify: true);
     }
 
     private void SetPixelsPerSecond(float desiredPixelsPerSecond)
