@@ -22,7 +22,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 {
     private sealed class LaneRowState
     {
-        public TimelineLane Lane { get; init; }
+        public TimelineTrack Lane { get; init; }
 
         public MGBorder Border { get; init; }
 
@@ -45,7 +45,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         set => _text = value ?? string.Empty;
     }
 
-    public event Action<TimelineLane, string>? LaneLabelEdited;
+    public event Action<TimelineTrack, string>? LaneLabelEdited;
 
     public TimelineTrackHeaderPanel(MGWindow window, TimelineControl owner)
         : base(window, Orientation.Vertical)
@@ -63,7 +63,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         TryRemoveAll();
         _rowsByLaneId.Clear();
 
-        if (_owner.Model == null || _owner.Model.Lanes.Count == 0)
+        if (_owner.Model == null || _owner.Model.Tracks.Count == 0)
         {
             var fallbackBorder = CreateLaneBorder(isSelected: false);
             fallbackBorder.SetContent(CreateReadonlyLabel(_text));
@@ -73,9 +73,9 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 
         TryAddChild(CreateSpacer(TimelineControlMetrics.ViewportVerticalPadding));
 
-        for (var index = 0; index < _owner.Model.Lanes.Count; index++)
+        for (var index = 0; index < _owner.Model.Tracks.Count; index++)
         {
-            TimelineLane lane = _owner.Model.Lanes[index];
+            TimelineTrack lane = _owner.Model.Tracks[index];
             LaneRowState rowState = CreateLaneRow(lane);
             _rowsByLaneId[lane.Id] = rowState;
             TryAddChild(rowState.Border);
@@ -98,21 +98,21 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
     public float GetDesiredColumnWidth()
     {
         float desiredWidth = TimelineControlMetrics.TrackColumnWidth;
-        if (_owner.Model == null || _owner.Model.Lanes.Count == 0)
+        if (_owner.Model == null || _owner.Model.Tracks.Count == 0)
         {
             return MathF.Max(desiredWidth, MeasureLabelWidth(_text));
         }
 
-        for (var index = 0; index < _owner.Model.Lanes.Count; index++)
+        for (var index = 0; index < _owner.Model.Tracks.Count; index++)
         {
-            TimelineLane lane = _owner.Model.Lanes[index];
+            TimelineTrack lane = _owner.Model.Tracks[index];
             desiredWidth = MathF.Max(desiredWidth, MeasureLabelWidth(lane.Label));
         }
 
         return desiredWidth;
     }
 
-    private LaneRowState CreateLaneRow(TimelineLane lane)
+    private LaneRowState CreateLaneRow(TimelineTrack lane)
     {
         var border = CreateLaneBorder(_owner.ViewState.SelectedLaneId == lane.Id);
         var label = CreateReadonlyLabel(lane.Label);

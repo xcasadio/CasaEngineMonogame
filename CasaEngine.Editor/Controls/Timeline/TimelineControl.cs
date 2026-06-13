@@ -60,27 +60,27 @@ internal class TimelineControl : MGGrid
 
     public event Action<float>? PixelsPerSecondChanged;
 
-    public event Action<TimelineEvent?>? SelectedEventChanged;
+    public event Action<TimelineItem?>? SelectedEventChanged;
 
-    public event Action<TimelineLane?>? SelectedLaneChanged;
+    public event Action<TimelineTrack?>? SelectedLaneChanged;
 
     public event Action<float>? TimeScrubbed;
 
-    public event Action<TimelineEvent, float>? EventTimeEditCommitted;
+    public event Action<TimelineItem, float>? EventTimeEditCommitted;
 
-    public event Action<TimelineLane, float>? InsertRequested;
+    public event Action<TimelineTrack, float>? InsertRequested;
 
-    public event Action<TimelineEvent, float>? DuplicateRequested;
+    public event Action<TimelineItem, float>? DuplicateRequested;
 
-    public event Action<TimelineEvent>? DeleteRequested;
+    public event Action<TimelineItem>? DeleteRequested;
 
-    public event Action<TimelineEvent>? CopyRequested;
+    public event Action<TimelineItem>? CopyRequested;
 
-    public event Action<TimelineLane, float>? PasteRequested;
+    public event Action<TimelineTrack, float>? PasteRequested;
 
-    public event Action<TimelineLane, string>? TrackRenameRequested;
+    public event Action<TimelineTrack, string>? TrackRenameRequested;
 
-    public event Action<TimelineLane, string>? LaneLabelEditCommitted;
+    public event Action<TimelineTrack, string>? LaneLabelEditCommitted;
 
     public TimelineControl(MGWindow window)
         : base(window)
@@ -166,7 +166,7 @@ internal class TimelineControl : MGGrid
         else
         {
             _currentTimeSeconds = Math.Clamp(_currentTimeSeconds, 0f, GetTimelineEndSeconds());
-            TimelineEvent? selectedEvent = GetSelectedEvent();
+            TimelineItem? selectedEvent = GetSelectedEvent();
             if (ViewState.SelectedEventId.HasValue && selectedEvent == null)
             {
                 ViewState.SelectedEventId = null;
@@ -174,13 +174,13 @@ internal class TimelineControl : MGGrid
 
             if (selectedEvent != null)
             {
-                ViewState.SelectedLaneId = selectedEvent.LaneId;
+                ViewState.SelectedLaneId = selectedEvent.TrackId;
             }
-            else if (_model.Lanes.Count > 0 && (!ViewState.SelectedLaneId.HasValue || GetLane(ViewState.SelectedLaneId.Value) == null))
+            else if (_model.Tracks.Count > 0 && (!ViewState.SelectedLaneId.HasValue || GetLane(ViewState.SelectedLaneId.Value) == null))
             {
-                ViewState.SelectedLaneId = _model.Lanes[0].Id;
+                ViewState.SelectedLaneId = _model.Tracks[0].Id;
             }
-            else if (_model.Lanes.Count == 0)
+            else if (_model.Tracks.Count == 0)
             {
                 ViewState.SelectedLaneId = null;
             }
@@ -222,7 +222,7 @@ internal class TimelineControl : MGGrid
     public void SetSelectedEventId(Guid? selectedEventId, bool notify)
     {
         Guid? actualSelectedEventId = selectedEventId;
-        TimelineEvent? selectedEvent = null;
+        TimelineItem? selectedEvent = null;
         if (actualSelectedEventId.HasValue)
         {
             selectedEvent = FindEvent(actualSelectedEventId.Value);
@@ -234,9 +234,9 @@ internal class TimelineControl : MGGrid
 
         if (ViewState.SelectedEventId == actualSelectedEventId)
         {
-            if (selectedEvent != null && ViewState.SelectedLaneId != selectedEvent.LaneId)
+            if (selectedEvent != null && ViewState.SelectedLaneId != selectedEvent.TrackId)
             {
-                SetSelectedLaneId(selectedEvent.LaneId, notify);
+                SetSelectedLaneId(selectedEvent.TrackId, notify);
             }
 
             return;
@@ -245,7 +245,7 @@ internal class TimelineControl : MGGrid
         ViewState.SelectedEventId = actualSelectedEventId;
         if (selectedEvent != null)
         {
-            SetSelectedLaneId(selectedEvent.LaneId, notify);
+            SetSelectedLaneId(selectedEvent.TrackId, notify);
         }
 
         InvalidateViewPresentation();
@@ -263,7 +263,7 @@ internal class TimelineControl : MGGrid
     public void SetSelectedLaneId(Guid? selectedLaneId, bool notify)
     {
         Guid? actualSelectedLaneId = selectedLaneId;
-        if (_model == null || _model.Lanes.Count == 0)
+        if (_model == null || _model.Tracks.Count == 0)
         {
             actualSelectedLaneId = null;
         }
@@ -274,7 +274,7 @@ internal class TimelineControl : MGGrid
                 actualSelectedLaneId = null;
             }
 
-            actualSelectedLaneId ??= _model.Lanes[0].Id;
+            actualSelectedLaneId ??= _model.Tracks[0].Id;
         }
 
         if (ViewState.SelectedLaneId == actualSelectedLaneId)
@@ -297,9 +297,9 @@ internal class TimelineControl : MGGrid
         if (_model != null)
         {
             timelineEndSeconds = Math.Max(timelineEndSeconds, Math.Max(0f, _model.DurationSeconds));
-            for (var index = 0; index < _model.Events.Count; index++)
+            for (var index = 0; index < _model.Items.Count; index++)
             {
-                timelineEndSeconds = Math.Max(timelineEndSeconds, _model.Events[index].TimeSeconds);
+                timelineEndSeconds = Math.Max(timelineEndSeconds, _model.Items[index].StartTime);
             }
         }
 
@@ -318,29 +318,29 @@ internal class TimelineControl : MGGrid
         TimeScrubbed?.Invoke(timeSeconds);
     }
 
-    protected void NotifyDuplicateRequested(TimelineEvent timelineEvent, float timeSeconds)
+    protected void NotifyDuplicateRequested(TimelineItem timelineEvent, float timeSeconds)
     {
         DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
     }
 
-    protected void NotifyDeleteRequested(TimelineEvent timelineEvent)
+    protected void NotifyDeleteRequested(TimelineItem timelineEvent)
     {
         DeleteRequested?.Invoke(timelineEvent);
     }
 
-    protected void NotifyCopyRequested(TimelineEvent timelineEvent)
+    protected void NotifyCopyRequested(TimelineItem timelineEvent)
     {
         CopyRequested?.Invoke(timelineEvent);
     }
 
-    protected void NotifyPasteRequested(TimelineLane lane, float timeSeconds)
+    protected void NotifyPasteRequested(TimelineTrack lane, float timeSeconds)
     {
         PasteRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
     }
 
     internal int GetLaneCount()
     {
-        return _model?.Lanes.Count > 0 ? _model.Lanes.Count : 1;
+        return _model?.Tracks.Count > 0 ? _model.Tracks.Count : 1;
     }
 
     internal Rectangle GetLaneBounds(Rectangle layoutBounds, int laneIndex)
@@ -351,9 +351,9 @@ internal class TimelineControl : MGGrid
         return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TimelineControlMetrics.TrackRowHeight);
     }
 
-    internal TimelineLane? GetLaneAtY(Rectangle layoutBounds, int y)
+    internal TimelineTrack? GetLaneAtY(Rectangle layoutBounds, int y)
     {
-        if (_model == null || _model.Lanes.Count == 0)
+        if (_model == null || _model.Tracks.Count == 0)
         {
             return null;
         }
@@ -364,8 +364,8 @@ internal class TimelineControl : MGGrid
             return null;
         }
 
-        int laneIndex = Math.Clamp((y - contentBounds.Top) / TimelineControlMetrics.TrackRowHeight, 0, _model.Lanes.Count - 1);
-        return _model.Lanes[laneIndex];
+        int laneIndex = Math.Clamp((y - contentBounds.Top) / TimelineControlMetrics.TrackRowHeight, 0, _model.Tracks.Count - 1);
+        return _model.Tracks[laneIndex];
     }
 
     internal int GetLaneIndex(Guid laneId)
@@ -375,9 +375,9 @@ internal class TimelineControl : MGGrid
             return -1;
         }
 
-        for (var index = 0; index < _model.Lanes.Count; index++)
+        for (var index = 0; index < _model.Tracks.Count; index++)
         {
-            if (_model.Lanes[index].Id == laneId)
+            if (_model.Tracks[index].Id == laneId)
             {
                 return index;
             }
@@ -386,53 +386,53 @@ internal class TimelineControl : MGGrid
         return -1;
     }
 
-    internal TimelineLane? GetLane(Guid laneId)
+    internal TimelineTrack? GetLane(Guid laneId)
     {
         if (_model == null)
         {
             return null;
         }
 
-        for (var index = 0; index < _model.Lanes.Count; index++)
+        for (var index = 0; index < _model.Tracks.Count; index++)
         {
-            if (_model.Lanes[index].Id == laneId)
+            if (_model.Tracks[index].Id == laneId)
             {
-                return _model.Lanes[index];
+                return _model.Tracks[index];
             }
         }
 
         return null;
     }
 
-    internal TimelineLane? GetSelectedLane()
+    internal TimelineTrack? GetSelectedLane()
     {
-        if (_model == null || _model.Lanes.Count == 0)
+        if (_model == null || _model.Tracks.Count == 0)
         {
             return null;
         }
 
         if (ViewState.SelectedLaneId.HasValue)
         {
-            TimelineLane? lane = GetLane(ViewState.SelectedLaneId.Value);
+            TimelineTrack? lane = GetLane(ViewState.SelectedLaneId.Value);
             if (lane != null)
             {
                 return lane;
             }
         }
 
-        return _model.Lanes.Count > 0 ? _model.Lanes[0] : null;
+        return _model.Tracks.Count > 0 ? _model.Tracks[0] : null;
     }
 
     internal void CommitDraggedEventTime(Guid eventId, float timeSeconds)
     {
-        TimelineEvent? timelineEvent = FindEvent(eventId);
+        TimelineItem? timelineEvent = FindEvent(eventId);
         if (timelineEvent == null || !timelineEvent.IsEditable)
         {
             return;
         }
 
         float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
-        if (Math.Abs(actualTime - timelineEvent.TimeSeconds) < TimelineControlMetrics.Epsilon)
+        if (Math.Abs(actualTime - timelineEvent.StartTime) < TimelineControlMetrics.Epsilon)
         {
             return;
         }
@@ -442,7 +442,7 @@ internal class TimelineControl : MGGrid
 
     internal void DuplicateDraggedEvent(Guid eventId, float timeSeconds)
     {
-        TimelineEvent? timelineEvent = FindEvent(eventId);
+        TimelineItem? timelineEvent = FindEvent(eventId);
         if (timelineEvent == null || !timelineEvent.IsEditable)
         {
             return;
@@ -453,7 +453,7 @@ internal class TimelineControl : MGGrid
 
     internal bool TryInsertAtSelectedLane(float timeSeconds)
     {
-        TimelineLane? lane = GetSelectedLane();
+        TimelineTrack? lane = GetSelectedLane();
         if (lane == null || !lane.IsEditable)
         {
             return false;
@@ -465,7 +465,7 @@ internal class TimelineControl : MGGrid
 
     internal bool TryDuplicateSelectedEvent(float timeSeconds)
     {
-        TimelineEvent? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedEvent();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -477,7 +477,7 @@ internal class TimelineControl : MGGrid
 
     internal bool TryDeleteSelectedEvent()
     {
-        TimelineEvent? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedEvent();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -489,7 +489,7 @@ internal class TimelineControl : MGGrid
 
     internal bool TryCopySelectedEvent()
     {
-        TimelineEvent? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedEvent();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -501,7 +501,7 @@ internal class TimelineControl : MGGrid
 
     internal bool TryPasteToSelectedLane(float timeSeconds)
     {
-        TimelineLane? lane = GetSelectedLane();
+        TimelineTrack? lane = GetSelectedLane();
         if (lane == null || !lane.IsEditable)
         {
             return false;
@@ -511,7 +511,7 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal virtual MGContextMenu? CreateContextMenu(TimelineLane? lane, TimelineEvent? timelineEvent, float cursorTimeSeconds)
+    internal virtual MGContextMenu? CreateContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
     {
         if (ParentWindow == null)
         {
@@ -535,7 +535,7 @@ internal class TimelineControl : MGGrid
                 menu.AddSeparator();
             }
 
-            string itemLabel = string.IsNullOrWhiteSpace(timelineEvent.EventType) ? "item" : timelineEvent.EventType;
+            string itemLabel = string.IsNullOrWhiteSpace(timelineEvent.ItemType) ? "item" : timelineEvent.ItemType;
             menu.AddButton($"Copy {itemLabel}", _ => CopyRequested?.Invoke(timelineEvent));
             menu.AddButton($"Duplicate {itemLabel} at cursor", _ => DuplicateRequested?.Invoke(timelineEvent, actualCursorTime));
             menu.AddButton($"Duplicate {itemLabel} at playhead", _ => DuplicateRequested?.Invoke(timelineEvent, CurrentTimeSeconds));
@@ -556,7 +556,7 @@ internal class TimelineControl : MGGrid
         return menu.Items.Count > 0 ? menu : null;
     }
 
-    internal virtual MGContextMenu? CreateTrackHeaderContextMenu(TimelineLane lane)
+    internal virtual MGContextMenu? CreateTrackHeaderContextMenu(TimelineTrack lane)
     {
         if (ParentWindow == null)
         {
@@ -617,7 +617,7 @@ internal class TimelineControl : MGGrid
         PixelsPerSecondChanged?.Invoke(actualPixelsPerSecond);
     }
 
-    private TimelineEvent? GetSelectedEvent()
+    private TimelineItem? GetSelectedEvent()
     {
         if (!ViewState.SelectedEventId.HasValue)
         {
@@ -632,18 +632,18 @@ internal class TimelineControl : MGGrid
         return FindEvent(eventId) != null;
     }
 
-    private TimelineEvent? FindEvent(Guid eventId)
+    private TimelineItem? FindEvent(Guid eventId)
     {
         if (_model == null)
         {
             return null;
         }
 
-        for (var index = 0; index < _model.Events.Count; index++)
+        for (var index = 0; index < _model.Items.Count; index++)
         {
-            if (_model.Events[index].Id == eventId)
+            if (_model.Items[index].Id == eventId)
             {
-                return _model.Events[index];
+                return _model.Items[index];
             }
         }
 

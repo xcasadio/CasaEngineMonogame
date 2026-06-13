@@ -6,8 +6,8 @@ namespace CasaEngine.Editor.Controls.Timeline;
 
 internal static class TimelineHitTest
 {
-    public static TimelineEvent HitTestNearestEvent(
-        IReadOnlyList<TimelineEvent> events,
+    public static TimelineItem HitTestNearestEvent(
+        IReadOnlyList<TimelineItem> events,
         TimelineViewTransform transform,
         float contentLeft,
         Guid laneId,
@@ -15,19 +15,19 @@ internal static class TimelineHitTest
         float hitRadius,
         Point layoutPosition)
     {
-        TimelineEvent result = null;
+        TimelineItem result = null;
         float bestDistanceSquared = float.MaxValue;
         float hitRadiusSquared = hitRadius * hitRadius;
 
         for (var index = 0; index < events.Count; index++)
         {
-            TimelineEvent timelineEvent = events[index];
-            if (timelineEvent.LaneId != laneId)
+            TimelineItem timelineEvent = events[index];
+            if (timelineEvent.TrackId != laneId)
             {
                 continue;
             }
 
-            float x = contentLeft + transform.TimeToViewportX(timelineEvent.TimeSeconds);
+            float x = contentLeft + transform.TimeToViewportX(timelineEvent.StartTime);
             float dx = layoutPosition.X - x;
             float dy = layoutPosition.Y - eventCenterY;
             float distanceSquared = (dx * dx) + (dy * dy);

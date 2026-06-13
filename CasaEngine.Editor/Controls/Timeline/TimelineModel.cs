@@ -3,16 +3,16 @@ using System.Collections.Generic;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
-internal sealed class TimelineModel
+public sealed class TimelineModel
 {
     public float DurationSeconds { get; set; } = 0f;
 
-    public List<TimelineLane> Lanes { get; } = new();
+    public List<TimelineTrack> Tracks { get; } = new();
 
-    public List<TimelineEvent> Events { get; } = new();
+    public List<TimelineItem> Items { get; } = new();
 }
 
-internal sealed class TimelineLane
+public sealed class TimelineTrack
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
@@ -21,15 +21,15 @@ internal sealed class TimelineLane
     public bool IsEditable { get; set; } = true;
 }
 
-internal sealed class TimelineEvent
+public sealed class TimelineItem
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public Guid LaneId { get; set; }
+    public Guid TrackId { get; set; }
 
-    public float TimeSeconds { get; set; }
+    public float StartTime { get; set; }
 
-    public string EventType { get; set; } = string.Empty;
+    public string ItemType { get; set; } = string.Empty;
 
     public string ValueText { get; set; } = string.Empty;
 

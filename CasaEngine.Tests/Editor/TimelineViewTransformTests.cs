@@ -12,16 +12,16 @@ public class TimelineViewTransformTests
         {
             DurationSeconds = 3.5f,
         };
-        model.Events.Add(new TimelineEvent
+        model.Items.Add(new TimelineItem
         {
-            TimeSeconds = 0.5f,
-            EventType = "Hit",
+            StartTime = 0.5f,
+            ItemType = "Hit",
         });
 
         Assert.Equal(3.5f, model.DurationSeconds);
-        Assert.Single(model.Events);
-        Assert.Equal(0.5f, model.Events[0].TimeSeconds);
-        Assert.Equal("Hit", model.Events[0].EventType);
+        Assert.Single(model.Items);
+        Assert.Equal(0.5f, model.Items[0].StartTime);
+        Assert.Equal("Hit", model.Items[0].ItemType);
     }
 
     [Fact]
@@ -92,20 +92,20 @@ public class TimelineViewTransformTests
             ScrollX = 40f,
         };
         Guid laneId = Guid.NewGuid();
-        var firstEvent = new TimelineEvent
+        var firstEvent = new TimelineItem
         {
-            LaneId = laneId,
-            TimeSeconds = 0.5f,
-            EventType = "A",
+            TrackId = laneId,
+            StartTime = 0.5f,
+            ItemType = "A",
         };
-        var secondEvent = new TimelineEvent
+        var secondEvent = new TimelineItem
         {
-            LaneId = laneId,
-            TimeSeconds = 1f,
-            EventType = "B",
+            TrackId = laneId,
+            StartTime = 1f,
+            ItemType = "B",
         };
 
-        TimelineEvent? hitEvent = TimelineHitTest.HitTestNearestEvent(
+        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestEvent(
             new[] { firstEvent, secondEvent },
             transform,
             8f,
@@ -125,14 +125,14 @@ public class TimelineViewTransformTests
             PixelsPerSecond = 100f,
         };
         Guid laneId = Guid.NewGuid();
-        var timelineEvent = new TimelineEvent
+        var timelineEvent = new TimelineItem
         {
-            LaneId = laneId,
-            TimeSeconds = 1f,
-            EventType = "A",
+            TrackId = laneId,
+            StartTime = 1f,
+            ItemType = "A",
         };
 
-        TimelineEvent? hitEvent = TimelineHitTest.HitTestNearestEvent(
+        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestEvent(
             new[] { timelineEvent },
             transform,
             8f,
