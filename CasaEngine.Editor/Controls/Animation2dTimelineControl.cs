@@ -6,23 +6,23 @@ using MGUI.Core.UI;
 
 namespace CasaEngine.Editor.Controls;
 
-internal readonly record struct Animation2dTimelineLaneData(string Label, bool IsEditable = true, bool AllowsPropertyInsert = true, bool AllowsCustomEventInsert = true, bool AllowsTrackInsert = true, bool AllowsTrackDelete = false, IReadOnlyList<Animation2dTrackProperty>? DeletableTrackProperties = null);
+internal readonly record struct Animation2dTimelineTrackData(string Label, bool IsEditable = true, bool AllowsPropertyInsert = true, bool AllowsCustomEventInsert = true, bool AllowsTrackInsert = true, bool AllowsTrackDelete = false, IReadOnlyList<Animation2dTrackProperty>? DeletableTrackProperties = null);
 
-internal readonly record struct Animation2dTimelineEventData(int LaneIndex, float TimeSeconds, string Label, string ValueText = "", bool IsEditable = true, string ToolTipText = "");
+internal readonly record struct Animation2dTimelineItemData(int TrackIndex, float StartTime, string Label, string ValueText = "", bool IsEditable = true, string ToolTipText = "");
 
 internal sealed class Animation2dTimelineControl : TimelineControl
 {
     private readonly Dictionary<Guid, int> _eventIndexById = new();
     private readonly Dictionary<Guid, int> _laneIndexById = new();
-    private readonly Dictionary<Guid, Animation2dTimelineLaneData> _laneDataById = new();
+    private readonly Dictionary<Guid, Animation2dTimelineTrackData> _laneDataById = new();
 
     public event Action<float> ScrubRequested;
 
-    public event Action<int> EventSelected;
+    public event Action<int> ItemSelected;
 
-    public event Action<int> LaneSelected;
+    public event Action<int> TrackSelected;
 
-    public event Action<int, string>? LaneLabelEdited;
+    public event Action<int, string>? TrackLabelEdited;
 
     public event Action<Animation2dTrackProperty, int, float>? TrackPropertyInsertRequested;
 
@@ -30,19 +30,19 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 
     public event Action<int>? TrackDeleted;
 
-    public event Action<int>? EventCopied;
+    public event Action<int>? ItemCopied;
 
-    public event Action<int, int, float>? EventPasted;
+    public event Action<int, int, float>? ItemPasted;
 
-    public event Action<int, float>? PersistedEventInsertRequested;
+    public event Action<int, float>? PersistedItemInsertRequested;
 
-    public event Action<int, float> EventTimeEdited;
+    public event Action<int, float> ItemTimeEdited;
 
-    public event Action<int, float> EventDuplicated;
+    public event Action<int, float> ItemDuplicated;
 
-    public event Action<int> EventDeleted;
+    public event Action<int> ItemDeleted;
 
-    public event Action<int, float> LaneInsertRequested;
+    public event Action<int, float> TrackInsertRequested;
 
     public Animation2dTimelineControl(MGWindow window)
         : base(window)
@@ -61,7 +61,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         PasteRequested += OnPasteRequested;
     }
 
-    public void SetTimelineData(IReadOnlyList<Animation2dTimelineLaneData> lanes, IReadOnlyList<Animation2dTimelineEventData> events, float durationSeconds)
+    public void SetTimelineData(IReadOnlyList<Animation2dTimelineTrackData> lanes, IReadOnlyList<Animation2dTimelineItemData> events, float durationSeconds)
     {
         _eventIndexById.Clear();
         _laneIndexById.Clear();
@@ -77,7 +77,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 
             for (var laneIndex = 0; laneIndex < lanes.Count; laneIndex++)
             {
-                Animation2dTimelineLaneData laneData = lanes[laneIndex];
+                Animation2dTimelineTrackData laneData = lanes[laneIndex];
                 TimelineTrack lane = new()
                 {
                     Id = Guid.NewGuid(),
@@ -94,8 +94,8 @@ internal sealed class Animation2dTimelineControl : TimelineControl
             {
                 for (var index = 0; index < events.Count; index++)
                 {
-                    Animation2dTimelineEventData eventData = events[index];
-                    if (eventData.LaneIndex < 0 || eventData.LaneIndex >= model.Tracks.Count)
+                    Animation2dTimelineItemData eventData = events[index];
+                    if (eventData.TrackIndex < 0 || eventData.TrackIndex >= model.Tracks.Count)
                     {
                         continue;
                     }
@@ -103,8 +103,8 @@ internal sealed class Animation2dTimelineControl : TimelineControl
                     TimelineItem timelineEvent = new()
                     {
                         Id = Guid.NewGuid(),
-                        TrackId = model.Tracks[eventData.LaneIndex].Id,
-                        StartTime = eventData.TimeSeconds,
+                        TrackId = model.Tracks[eventData.TrackIndex].Id,
+                        StartTime = eventData.StartTime,
                         ItemType = eventData.Label,
                         ValueText = eventData.ValueText,
                         ToolTipText = eventData.ToolTipText,
@@ -158,41 +158,41 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (selectedEvent == null)
         {
-            EventSelected?.Invoke(-1);
+            ItemSelected?.Invoke(-1);
             return;
         }
 
         if (_eventIndexById.TryGetValue(selectedEvent.Id, out int eventIndex))
         {
-            EventSelected?.Invoke(eventIndex);
+            ItemSelected?.Invoke(eventIndex);
             return;
         }
 
-        EventSelected?.Invoke(-1);
+        ItemSelected?.Invoke(-1);
     }
 
     private void OnSelectedLaneChanged(TimelineTrack selectedLane)
     {
         if (selectedLane == null)
         {
-            LaneSelected?.Invoke(-1);
+            TrackSelected?.Invoke(-1);
             return;
         }
 
         if (_laneIndexById.TryGetValue(selectedLane.Id, out int laneIndex))
         {
-            LaneSelected?.Invoke(laneIndex);
+            TrackSelected?.Invoke(laneIndex);
             return;
         }
 
-        LaneSelected?.Invoke(-1);
+        TrackSelected?.Invoke(-1);
     }
 
     private void OnLaneLabelEditCommitted(TimelineTrack lane, string label)
     {
         if (_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
         {
-            LaneLabelEdited?.Invoke(laneIndex, label);
+            TrackLabelEdited?.Invoke(laneIndex, label);
         }
     }
 
@@ -200,7 +200,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
         {
-            EventTimeEdited?.Invoke(eventIndex, timeSeconds);
+            ItemTimeEdited?.Invoke(eventIndex, timeSeconds);
         }
     }
 
@@ -208,7 +208,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
         {
-            EventDuplicated?.Invoke(eventIndex, timeSeconds);
+            ItemDuplicated?.Invoke(eventIndex, timeSeconds);
         }
     }
 
@@ -216,7 +216,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
         {
-            EventDeleted?.Invoke(eventIndex);
+            ItemDeleted?.Invoke(eventIndex);
         }
     }
 
@@ -224,7 +224,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
         {
-            LaneInsertRequested?.Invoke(laneIndex, timeSeconds);
+            TrackInsertRequested?.Invoke(laneIndex, timeSeconds);
         }
     }
 
@@ -232,7 +232,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
         {
-            EventCopied?.Invoke(eventIndex);
+            ItemCopied?.Invoke(eventIndex);
         }
     }
 
@@ -258,7 +258,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
             }
         }
 
-        EventPasted?.Invoke(sourceEventIndex, laneIndex, timeSeconds);
+        ItemPasted?.Invoke(sourceEventIndex, laneIndex, timeSeconds);
     }
 
     internal override MGContextMenu? CreateContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
@@ -277,7 +277,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
             _laneIndexById.TryGetValue(lane.Id, out laneIndex);
         }
 
-        if (lane != null && _laneDataById.TryGetValue(lane.Id, out Animation2dTimelineLaneData laneData))
+        if (lane != null && _laneDataById.TryGetValue(lane.Id, out Animation2dTimelineTrackData laneData))
         {
             AddInsertionSubmenu(menu, laneData, "Add at cursor", laneIndex, actualCursorTime);
             AddInsertionSubmenu(menu, laneData, "Add at playhead", laneIndex, CurrentTimeSeconds);
@@ -316,7 +316,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         return menu;
     }
 
-    private void AddInsertionSubmenu(MGContextMenu menu, Animation2dTimelineLaneData laneData, string label, int laneIndex, float timeSeconds)
+    private void AddInsertionSubmenu(MGContextMenu menu, Animation2dTimelineTrackData laneData, string label, int laneIndex, float timeSeconds)
     {
         if (!laneData.AllowsPropertyInsert && !laneData.AllowsCustomEventInsert)
         {
@@ -338,7 +338,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
 
         if (laneData.AllowsCustomEventInsert)
         {
-            submenu.AddButton("custom event", _ => PersistedEventInsertRequested?.Invoke(laneIndex, timeSeconds));
+            submenu.AddButton("custom event", _ => PersistedItemInsertRequested?.Invoke(laneIndex, timeSeconds));
         }
 
         button.Submenu = submenu;
@@ -352,7 +352,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     internal override MGContextMenu? CreateTrackHeaderContextMenu(TimelineTrack lane)
     {
         if (!_laneIndexById.TryGetValue(lane.Id, out int laneIndex)
-            || !_laneDataById.TryGetValue(lane.Id, out Animation2dTimelineLaneData laneData)
+            || !_laneDataById.TryGetValue(lane.Id, out Animation2dTimelineTrackData laneData)
             || ParentWindow == null)
         {
             return null;

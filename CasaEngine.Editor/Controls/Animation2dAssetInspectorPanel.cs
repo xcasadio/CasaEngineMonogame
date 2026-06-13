@@ -1405,21 +1405,21 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             MinimumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMinimumZoomFactor,
             MaximumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMaximumZoomFactor,
         };
-        _timelineControl.EventSelected += SelectEvent;
-        _timelineControl.LaneSelected += SelectLane;
-        _timelineControl.LaneLabelEdited += OnTimelineLaneLabelEdited;
+        _timelineControl.ItemSelected += SelectEvent;
+        _timelineControl.TrackSelected += SelectLane;
+        _timelineControl.TrackLabelEdited += OnTimelineLaneLabelEdited;
         _timelineControl.TrackPropertyInsertRequested += OnTimelineTrackPropertyInsertRequested;
         _timelineControl.TrackRequested += OnTimelineTrackRequested;
         _timelineControl.TrackDeleted += OnTimelineTrackDeleted;
-        _timelineControl.EventCopied += OnTimelineEventCopied;
-        _timelineControl.EventPasted += OnTimelineEventPasted;
-        _timelineControl.PersistedEventInsertRequested += OnTimelinePersistedEventInsertRequested;
+        _timelineControl.ItemCopied += OnTimelineEventCopied;
+        _timelineControl.ItemPasted += OnTimelineEventPasted;
+        _timelineControl.PersistedItemInsertRequested += OnTimelinePersistedEventInsertRequested;
         _timelineControl.ScrubRequested += SeekPreviewTime;
         _timelineControl.PixelsPerSecondChanged += OnTimelinePixelsPerSecondChanged;
-        _timelineControl.EventTimeEdited += OnTimelineEventTimeEdited;
-        _timelineControl.EventDuplicated += OnTimelineEventDuplicated;
-        _timelineControl.EventDeleted += OnTimelineEventDeleted;
-        _timelineControl.LaneInsertRequested += OnTimelineLaneInsertRequested;
+        _timelineControl.ItemTimeEdited += OnTimelineEventTimeEdited;
+        _timelineControl.ItemDuplicated += OnTimelineEventDuplicated;
+        _timelineControl.ItemDeleted += OnTimelineEventDeleted;
+        _timelineControl.TrackInsertRequested += OnTimelineLaneInsertRequested;
 
         var surface = new MGBorder(
             _window,
@@ -1622,13 +1622,13 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
         else
         {
-            var laneData = new List<Animation2dTimelineLaneData>(_timelineDisplayLanes.Count);
-            var eventData = new List<Animation2dTimelineEventData>(_timelineDisplayEvents.Count);
+            var laneData = new List<Animation2dTimelineTrackData>(_timelineDisplayLanes.Count);
+            var eventData = new List<Animation2dTimelineItemData>(_timelineDisplayEvents.Count);
 
             for (var laneIndex = 0; laneIndex < _timelineDisplayLanes.Count; laneIndex++)
             {
                 TimelineDisplayLane lane = _timelineDisplayLanes[laneIndex];
-                laneData.Add(new Animation2dTimelineLaneData(
+                laneData.Add(new Animation2dTimelineTrackData(
                     lane.Label,
                     lane.IsEditable,
                     AllowsPropertyInsert: lane.SourceKind == TimelineDisplayLaneSourceKind.TrackKeyframes,
@@ -1643,7 +1643,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             for (var index = 0; index < _timelineDisplayEvents.Count; index++)
             {
                 TimelineDisplayEventItem item = _timelineDisplayEvents[index];
-                eventData.Add(new Animation2dTimelineEventData(item.LaneIndex, item.Event.TimeSeconds, item.Event.EventName, item.ValueText, true, BuildTimelineToolTipText(item)));
+                eventData.Add(new Animation2dTimelineItemData(item.LaneIndex, item.Event.TimeSeconds, item.Event.EventName, item.ValueText, true, BuildTimelineToolTipText(item)));
             }
 
             _timelineControl.SetTimelineData(laneData, eventData, _previewDurationSeconds);

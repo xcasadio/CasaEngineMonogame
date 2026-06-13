@@ -157,7 +157,7 @@ Commit attendu :
 
 - `refactor(timeline): rename control events and methods to item/track vocabulary`
 
-### ⏳ Tache 1.3 — Propager le renommage a la couche Animation2D et aux tests
+### ✅ Tache 1.3 — Propager le renommage a la couche Animation2D et aux tests
 
 Objectif : terminer le renommage jusqu'a l'API Animation2D et l'inspector, sans regression.
 
@@ -192,6 +192,19 @@ Validation :
 Commit attendu :
 
 - `refactor(animation2d): propagate track/item rename through editor integration`
+
+Etat actuel :
+
+- Renommes : les deux records-pont (`Animation2dTimelineTrackData`,
+  `Animation2dTimelineItemData`, membres `TrackIndex`/`StartTime`) et les 10 evenements
+  publics de `Animation2dTimelineControl`, plus leurs abonnements dans l'inspector.
+- **Volontairement non renomme** : le domaine d'affichage interne de l'inspector
+  (`TimelineDisplayLane`, `_selectedLaneIndex`, `SelectEvent`/`SelectLane`, et surtout
+  `EditorHistorySnapshot.SelectedLaneIndex` qui est serialise). Le renommer casserait la
+  compatibilite des snapshots d'historique sans rien apporter a la frontiere timeline. Seule
+  l'API qui parle au controle generique a ete migree vers Track/Item.
+- Validation : build editeur + build tests verts ; 36 tests `~Timeline`/`~Animation2d`
+  reussis. Smoke manuel `GameEditor` non execute en CLI.
 
 ---
 
