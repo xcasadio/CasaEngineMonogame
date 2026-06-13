@@ -240,7 +240,7 @@ Commit attendu :
 
 - `feat(timeline): add item duration and kind to generic model`
 
-### ⏳ Tache 2.2 — Rendu par type : remplacer `DrawEvents` par `DrawItems`
+### ✅ Tache 2.2 — Rendu par type : remplacer `DrawEvents` par `DrawItems`
 
 Objectif : router le rendu selon `Kind` tout en conservant le visuel actuel pour `Instant`.
 

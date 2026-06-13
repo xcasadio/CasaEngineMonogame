@@ -7,6 +7,8 @@ using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using MGUI.Core.UI;
 using MGUI.Shared.Input.Mouse;
+using MGUI.Shared.Text;
+using MGUI.Shared.Text.Engines;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -103,7 +105,7 @@ internal sealed class TimelineViewport : MGElement
         }
 
         DrawPlayhead(DA, origin, layoutBounds, timeAreaBounds);
-        DrawEvents(DA, origin, layoutBounds, timeAreaBounds);
+        DrawItems(DA, origin, layoutBounds, timeAreaBounds);
     }
 
     private void DrawLaneBackgrounds(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds)
@@ -146,34 +148,32 @@ internal sealed class TimelineViewport : MGElement
         DA.Context.StrokeLineSegment(origin, new Vector2(x, layoutBounds.Top), new Vector2(x, layoutBounds.Bottom), playheadColor, 1.5f);
     }
 
-    private void DrawEvents(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds, Rectangle timeAreaBounds)
+    private void DrawItems(ElementDrawArgs DA, Vector2 origin, Rectangle layoutBounds, Rectangle timeAreaBounds)
     {
         if (_owner.Model == null)
         {
             return;
         }
 
-        float eventHalfSize = Math.Min(TimelineControlMetrics.ItemHalfSize, Math.Max(3f, (timeAreaBounds.Height * 0.5f) - 1f));
+        float itemHalfSize = Math.Min(TimelineControlMetrics.ItemHalfSize, Math.Max(3f, (timeAreaBounds.Height * 0.5f) - 1f));
+        TryResolveFont(out ITextMeasurementEngine textEngine, out ResolvedFont font, out float fontScale);
+
         for (var index = 0; index < _owner.Model.Items.Count; index++)
         {
-            TimelineItem timelineEvent = _owner.Model.Items[index];
-            int laneIndex = _owner.GetTrackIndex(timelineEvent.TrackId);
-            if (laneIndex < 0)
+            TimelineItem item = _owner.Model.Items[index];
+            int trackIndex = _owner.GetTrackIndex(item.TrackId);
+            if (trackIndex < 0)
             {
                 continue;
             }
 
-            Rectangle laneBounds = _owner.GetTrackBounds(layoutBounds, laneIndex);
-            float centerY = laneBounds.Center.Y;
-            float renderedTime = GetRenderedItemTime(timelineEvent);
-            float x = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedTime);
-            if (x < timeAreaBounds.Left - eventHalfSize || x > timeAreaBounds.Right + eventHalfSize)
-            {
-                continue;
-            }
+            Rectangle trackBounds = _owner.GetTrackBounds(layoutBounds, trackIndex);
+            float centerY = trackBounds.Center.Y;
+            float renderedStart = GetRenderedItemTime(item);
+            float startX = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedStart);
 
-            bool isSelected = _owner.ViewState.SelectedItemId == timelineEvent.Id;
-            bool isHovered = _hoveredItem?.Id == timelineEvent.Id;
+            bool isSelected = _owner.ViewState.SelectedItemId == item.Id;
+            bool isHovered = _hoveredItem?.Id == item.Id;
 
             Color fillColor = isSelected
                 ? EditorThemePalette.AccentSelection * DA.Opacity
@@ -186,16 +186,60 @@ internal sealed class TimelineViewport : MGElement
                     ? EditorThemePalette.AccentSelection * DA.Opacity
                     : EditorThemePalette.PanelBorder * DA.Opacity;
 
-            DrawDiamond(DA, origin, x, centerY, eventHalfSize, fillColor, strokeColor);
+            switch (item.Kind)
+            {
+                case TimelineItemKind.Duration:
+                case TimelineItemKind.Range:
+                {
+                    float endX = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedStart + Math.Max(0f, item.Duration));
+                    if (endX < timeAreaBounds.Left - TimelineControlMetrics.Epsilon || startX > timeAreaBounds.Right + TimelineControlMetrics.Epsilon)
+                    {
+                        continue;
+                    }
+
+                    if (item.Kind == TimelineItemKind.Range)
+                    {
+                        DrawRangeItem(DA, origin, startX, endX, trackBounds, fillColor, strokeColor);
+                    }
+                    else
+                    {
+                        DrawDurationItem(DA, origin, startX, endX, trackBounds, fillColor, strokeColor, item, textEngine, font, fontScale, DA.Opacity);
+                    }
+
+                    break;
+                }
+
+                case TimelineItemKind.Marker:
+                {
+                    if (startX < timeAreaBounds.Left - itemHalfSize || startX > timeAreaBounds.Right + itemHalfSize)
+                    {
+                        continue;
+                    }
+
+                    DA.Context.StrokeLineSegment(origin, new Vector2(startX, layoutBounds.Top), new Vector2(startX, layoutBounds.Bottom), strokeColor, 1.5f);
+                    break;
+                }
+
+                default:
+                {
+                    if (startX < timeAreaBounds.Left - itemHalfSize || startX > timeAreaBounds.Right + itemHalfSize)
+                    {
+                        continue;
+                    }
+
+                    DrawDiamond(DA, origin, startX, centerY, itemHalfSize, fillColor, strokeColor);
+                    break;
+                }
+            }
         }
     }
 
-    private static void DrawDiamond(ElementDrawArgs DA, Vector2 origin, float x, float centerY, float eventHalfSize, Color fillColor, Color strokeColor)
+    private static void DrawDiamond(ElementDrawArgs DA, Vector2 origin, float x, float centerY, float itemHalfSize, Color fillColor, Color strokeColor)
     {
-        Vector2 top = new(x, centerY - eventHalfSize);
-        Vector2 right = new(x + eventHalfSize, centerY);
-        Vector2 bottom = new(x, centerY + eventHalfSize);
-        Vector2 left = new(x - eventHalfSize, centerY);
+        Vector2 top = new(x, centerY - itemHalfSize);
+        Vector2 right = new(x + itemHalfSize, centerY);
+        Vector2 bottom = new(x, centerY + itemHalfSize);
+        Vector2 left = new(x - itemHalfSize, centerY);
 
         DA.Context.FillTriangle(origin, top, fillColor, right, fillColor, bottom, fillColor);
         DA.Context.FillTriangle(origin, top, fillColor, bottom, fillColor, left, fillColor);
@@ -204,6 +248,67 @@ internal sealed class TimelineViewport : MGElement
         DA.Context.StrokeLineSegment(origin, right, bottom, strokeColor, 1f);
         DA.Context.StrokeLineSegment(origin, bottom, left, strokeColor, 1f);
         DA.Context.StrokeLineSegment(origin, left, top, strokeColor, 1f);
+    }
+
+    private static void DrawBlockBorder(ElementDrawArgs DA, Vector2 origin, float left, float top, float right, float bottom, Color strokeColor)
+    {
+        Vector2 topLeft = new(left, top);
+        Vector2 topRight = new(right, top);
+        Vector2 bottomRight = new(right, bottom);
+        Vector2 bottomLeft = new(left, bottom);
+
+        DA.Context.StrokeLineSegment(origin, topLeft, topRight, strokeColor, 1f);
+        DA.Context.StrokeLineSegment(origin, topRight, bottomRight, strokeColor, 1f);
+        DA.Context.StrokeLineSegment(origin, bottomRight, bottomLeft, strokeColor, 1f);
+        DA.Context.StrokeLineSegment(origin, bottomLeft, topLeft, strokeColor, 1f);
+    }
+
+    private void DrawDurationItem(ElementDrawArgs DA, Vector2 origin, float startX, float endX, Rectangle trackBounds, Color fillColor, Color strokeColor, TimelineItem item, ITextMeasurementEngine textEngine, ResolvedFont font, float fontScale, float opacity)
+    {
+        float top = trackBounds.Top + 3f;
+        float bottom = trackBounds.Bottom - 3f;
+        float left = startX;
+        float right = Math.Max(startX + 2f, endX);
+        float width = right - left;
+        float height = Math.Max(6f, bottom - top);
+
+        DA.Context.FillRectangle(origin, new RectangleF(left, top, width, height), fillColor * 0.55f);
+        DrawBlockBorder(DA, origin, left, top, right, top + height, strokeColor);
+
+        string label = string.IsNullOrEmpty(item.DisplayName) ? item.ItemType : item.DisplayName;
+        if (string.IsNullOrEmpty(label) || !font.IsAvailable)
+        {
+            return;
+        }
+
+        Vector2 textSize = textEngine.MeasureText(font, label);
+        if (textSize.X > width - 6f)
+        {
+            return;
+        }
+
+        float textHeight = Math.Max(textSize.Y, font.LineHeight * fontScale);
+        float labelX = left + 4f;
+        float labelY = top + Math.Max(0f, (height - textHeight) * 0.5f);
+        Vector2 drawPosition = new Vector2(labelX, labelY) + (font.DrawOrigin * fontScale) + origin;
+        DA.DT.DrawTextViaEngine(font, label, drawPosition, Color.Black * opacity, font.DrawOrigin, fontScale);
+    }
+
+    private void DrawRangeItem(ElementDrawArgs DA, Vector2 origin, float startX, float endX, Rectangle trackBounds, Color fillColor, Color strokeColor)
+    {
+        float left = startX;
+        float right = Math.Max(startX + 2f, endX);
+        DA.Context.FillRectangle(origin, new RectangleF(left, trackBounds.Top + 2f, right - left, Math.Max(4f, trackBounds.Height - 4f)), fillColor * 0.25f);
+        DA.Context.StrokeLineSegment(origin, new Vector2(left, trackBounds.Top), new Vector2(left, trackBounds.Bottom), strokeColor, 1f);
+        DA.Context.StrokeLineSegment(origin, new Vector2(right, trackBounds.Top), new Vector2(right, trackBounds.Bottom), strokeColor, 1f);
+    }
+
+    private bool TryResolveFont(out ITextMeasurementEngine textEngine, out ResolvedFont font, out float scale)
+    {
+        textEngine = GetTextEngine();
+        font = textEngine.ResolveFont(new FontSpec(ParentWindow.Desktop.DefaultFontFamily, TimelineControlMetrics.LabelFontSize, CustomFontStyles.Normal));
+        scale = font.SuggestedScale;
+        return font.IsAvailable;
     }
 
     private void OnLeftMouseReleasedInside(object? sender, BaseMouseReleasedEventArgs e)
