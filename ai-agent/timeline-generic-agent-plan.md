@@ -290,7 +290,7 @@ Commit attendu :
 
 - `feat(timeline): add area-aware hit testing for items`
 
-### ⏳ Tache 2.4 — Deplacement et redimensionnement des items a duree
+### ✅ Tache 2.4 — Deplacement et redimensionnement des items a duree
 
 Objectif : permettre move et resize des items `Duration`, sans casser le drag des items
 `Instant`.

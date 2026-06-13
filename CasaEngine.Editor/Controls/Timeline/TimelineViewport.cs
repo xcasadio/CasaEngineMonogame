@@ -18,9 +18,20 @@ internal sealed class TimelineViewport : MGElement
     private readonly MGToolTip _itemToolTip;
     private TimelineItem? _hoveredItem;
     private TimelineItem? _pressedItem;
+    private TimelineHitTestArea _pressedArea = TimelineHitTestArea.None;
     private TimelineItem? _draggedItem;
-    private float _draggedItemTimeSeconds;
+    private DragMode _dragMode = DragMode.None;
+    private float _dragStartTime;
+    private float _dragDuration;
     private bool _ignoreNextRelease;
+
+    private enum DragMode
+    {
+        None,
+        Move,
+        ResizeStart,
+        ResizeEnd
+    }
 
     public TimelineViewport(MGWindow window, TimelineControl owner)
         : base(window, MGElementType.Misc)
@@ -191,7 +202,7 @@ internal sealed class TimelineViewport : MGElement
                 case TimelineItemKind.Duration:
                 case TimelineItemKind.Range:
                 {
-                    float endX = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedStart + Math.Max(0f, item.Duration));
+                    float endX = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedStart + Math.Max(0f, GetRenderedItemDuration(item)));
                     if (endX < timeAreaBounds.Left - TimelineControlMetrics.Epsilon || startX > timeAreaBounds.Right + TimelineControlMetrics.Epsilon)
                     {
                         continue;
@@ -381,7 +392,11 @@ internal sealed class TimelineViewport : MGElement
             _owner.SetSelectedTrackId(lane.Id, true);
         }
 
-        _pressedItem = lane != null ? HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane).Item : null;
+        TimelineHitTestResult pressed = lane != null
+            ? HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane)
+            : new TimelineHitTestResult { Area = TimelineHitTestArea.None };
+        _pressedItem = pressed.Item;
+        _pressedArea = pressed.Area;
         if (_pressedItem != null)
         {
             _owner.SetSelectedItemId(_pressedItem.Id, true);
@@ -441,8 +456,23 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
+        DragMode mode = _pressedArea switch
+        {
+            TimelineHitTestArea.ResizeStart when _pressedItem.CanResizeStart => DragMode.ResizeStart,
+            TimelineHitTestArea.ResizeEnd when _pressedItem.CanResizeEnd => DragMode.ResizeEnd,
+            _ when _pressedItem.CanMove => DragMode.Move,
+            _ => DragMode.None,
+        };
+
+        if (mode == DragMode.None)
+        {
+            return;
+        }
+
         _draggedItem = _pressedItem;
-        _draggedItemTimeSeconds = _pressedItem.StartTime;
+        _dragMode = mode;
+        _dragStartTime = _pressedItem.StartTime;
+        _dragDuration = _pressedItem.Duration;
         _owner.Focus(KeyboardFocusSource.Pointer);
         e.SetHandledBy(this, false);
     }
@@ -458,7 +488,35 @@ internal sealed class TimelineViewport : MGElement
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
-        _draggedItemTimeSeconds = GetTimeAtPosition(x, timeAreaBounds.Left);
+        float cursorTime = GetTimeAtPosition(x, timeAreaBounds.Left);
+
+        switch (_dragMode)
+        {
+            case DragMode.ResizeStart:
+            {
+                float fixedEnd = _draggedItem.StartTime + _draggedItem.Duration;
+                float newStart = Math.Clamp(cursorTime, 0f, fixedEnd - TimelineControlMetrics.MinimumItemDurationSeconds);
+                _dragStartTime = newStart;
+                _dragDuration = fixedEnd - newStart;
+                break;
+            }
+
+            case DragMode.ResizeEnd:
+            {
+                float newEnd = Math.Max(cursorTime, _draggedItem.StartTime + TimelineControlMetrics.MinimumItemDurationSeconds);
+                _dragStartTime = _draggedItem.StartTime;
+                _dragDuration = newEnd - _draggedItem.StartTime;
+                break;
+            }
+
+            default:
+            {
+                _dragStartTime = cursorTime;
+                _dragDuration = _draggedItem.Duration;
+                break;
+            }
+        }
+
         _owner.InvalidateViewPresentation();
     }
 
@@ -470,17 +528,22 @@ internal sealed class TimelineViewport : MGElement
         }
 
         bool controlDown = _owner.KeyboardHandler.Tracker.IsControlDown;
-        if (controlDown)
+        if (_dragMode == DragMode.ResizeStart || _dragMode == DragMode.ResizeEnd)
         {
-            _owner.DuplicateDraggedItem(_draggedItem.Id, _draggedItemTimeSeconds);
+            _owner.CommitDraggedItemResize(_draggedItem.Id, _dragStartTime, _dragDuration);
+        }
+        else if (controlDown)
+        {
+            _owner.DuplicateDraggedItem(_draggedItem.Id, _dragStartTime);
         }
         else
         {
-            _owner.CommitDraggedItemTime(_draggedItem.Id, _draggedItemTimeSeconds);
+            _owner.CommitDraggedItemTime(_draggedItem.Id, _dragStartTime);
         }
 
         _draggedItem = null;
         _pressedItem = null;
+        _dragMode = DragMode.None;
         _ignoreNextRelease = true;
         _owner.InvalidateViewPresentation();
     }
@@ -592,14 +655,24 @@ internal sealed class TimelineViewport : MGElement
         return $"{laneLabel}Type: {timelineEvent.ItemType}\nTime: {GetRenderedItemTime(timelineEvent).ToString("0.###", CultureInfo.InvariantCulture)} s";
     }
 
-    private float GetRenderedItemTime(TimelineItem timelineEvent)
+    private float GetRenderedItemTime(TimelineItem item)
     {
-        if (_draggedItem != null && _draggedItem.Id == timelineEvent.Id)
+        if (_draggedItem != null && _draggedItem.Id == item.Id)
         {
-            return _draggedItemTimeSeconds;
+            return _dragStartTime;
         }
 
-        return timelineEvent.StartTime;
+        return item.StartTime;
+    }
+
+    private float GetRenderedItemDuration(TimelineItem item)
+    {
+        if (_draggedItem != null && _draggedItem.Id == item.Id)
+        {
+            return _dragDuration;
+        }
+
+        return item.Duration;
     }
 
     private float GetTimeAtPosition(float x, float contentLeft)

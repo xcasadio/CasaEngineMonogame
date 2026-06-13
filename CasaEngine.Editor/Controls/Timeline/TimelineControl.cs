@@ -68,6 +68,8 @@ internal class TimelineControl : MGGrid
 
     public event Action<TimelineItem, float>? ItemTimeEditCommitted;
 
+    public event Action<TimelineItem, float, float>? ItemResizeCommitted;
+
     public event Action<TimelineTrack, float>? InsertRequested;
 
     public event Action<TimelineItem, float>? DuplicateRequested;
@@ -438,6 +440,25 @@ internal class TimelineControl : MGGrid
         }
 
         ItemTimeEditCommitted?.Invoke(timelineEvent, actualTime);
+    }
+
+    internal void CommitDraggedItemResize(Guid itemId, float newStartTime, float newDuration)
+    {
+        TimelineItem? item = FindItem(itemId);
+        if (item == null || !item.IsEditable)
+        {
+            return;
+        }
+
+        float actualStart = Math.Clamp(newStartTime, 0f, GetTimelineEndSeconds());
+        float actualDuration = Math.Max(0f, newDuration);
+        if (Math.Abs(actualStart - item.StartTime) < TimelineControlMetrics.Epsilon
+            && Math.Abs(actualDuration - item.Duration) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        ItemResizeCommitted?.Invoke(item, actualStart, actualDuration);
     }
 
     internal void DuplicateDraggedItem(Guid eventId, float timeSeconds)
