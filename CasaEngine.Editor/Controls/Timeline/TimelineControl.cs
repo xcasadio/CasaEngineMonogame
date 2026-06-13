@@ -60,13 +60,13 @@ internal class TimelineControl : MGGrid
 
     public event Action<float>? PixelsPerSecondChanged;
 
-    public event Action<TimelineItem?>? SelectedEventChanged;
+    public event Action<TimelineItem?>? SelectedItemChanged;
 
-    public event Action<TimelineTrack?>? SelectedLaneChanged;
+    public event Action<TimelineTrack?>? SelectedTrackChanged;
 
     public event Action<float>? TimeScrubbed;
 
-    public event Action<TimelineItem, float>? EventTimeEditCommitted;
+    public event Action<TimelineItem, float>? ItemTimeEditCommitted;
 
     public event Action<TimelineTrack, float>? InsertRequested;
 
@@ -80,7 +80,7 @@ internal class TimelineControl : MGGrid
 
     public event Action<TimelineTrack, string>? TrackRenameRequested;
 
-    public event Action<TimelineTrack, string>? LaneLabelEditCommitted;
+    public event Action<TimelineTrack, string>? TrackLabelEditCommitted;
 
     public TimelineControl(MGWindow window)
         : base(window)
@@ -113,7 +113,7 @@ internal class TimelineControl : MGGrid
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
     _trackHeaderPanel = new TimelineTrackHeaderPanel(window, this);
-        _trackHeaderPanel.LaneLabelEdited += (lane, label) => LaneLabelEditCommitted?.Invoke(lane, label);
+        _trackHeaderPanel.TrackLabelEdited += (lane, label) => TrackLabelEditCommitted?.Invoke(lane, label);
         _viewport = new TimelineViewport(window, this);
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
         _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
@@ -160,29 +160,29 @@ internal class TimelineControl : MGGrid
         if (_model == null)
         {
             _currentTimeSeconds = 0f;
-            ViewState.SelectedEventId = null;
-            ViewState.SelectedLaneId = null;
+            ViewState.SelectedItemId = null;
+            ViewState.SelectedTrackId = null;
         }
         else
         {
             _currentTimeSeconds = Math.Clamp(_currentTimeSeconds, 0f, GetTimelineEndSeconds());
-            TimelineItem? selectedEvent = GetSelectedEvent();
-            if (ViewState.SelectedEventId.HasValue && selectedEvent == null)
+            TimelineItem? selectedEvent = GetSelectedItem();
+            if (ViewState.SelectedItemId.HasValue && selectedEvent == null)
             {
-                ViewState.SelectedEventId = null;
+                ViewState.SelectedItemId = null;
             }
 
             if (selectedEvent != null)
             {
-                ViewState.SelectedLaneId = selectedEvent.TrackId;
+                ViewState.SelectedTrackId = selectedEvent.TrackId;
             }
-            else if (_model.Tracks.Count > 0 && (!ViewState.SelectedLaneId.HasValue || GetLane(ViewState.SelectedLaneId.Value) == null))
+            else if (_model.Tracks.Count > 0 && (!ViewState.SelectedTrackId.HasValue || GetTrack(ViewState.SelectedTrackId.Value) == null))
             {
-                ViewState.SelectedLaneId = _model.Tracks[0].Id;
+                ViewState.SelectedTrackId = _model.Tracks[0].Id;
             }
             else if (_model.Tracks.Count == 0)
             {
-                ViewState.SelectedLaneId = null;
+                ViewState.SelectedTrackId = null;
             }
         }
 
@@ -214,53 +214,53 @@ internal class TimelineControl : MGGrid
         }
     }
 
-    public void SetSelectedEventId(Guid? selectedEventId)
+    public void SetSelectedItemId(Guid? selectedEventId)
     {
-        SetSelectedEventId(selectedEventId, true);
+        SetSelectedItemId(selectedEventId, true);
     }
 
-    public void SetSelectedEventId(Guid? selectedEventId, bool notify)
+    public void SetSelectedItemId(Guid? selectedEventId, bool notify)
     {
         Guid? actualSelectedEventId = selectedEventId;
         TimelineItem? selectedEvent = null;
         if (actualSelectedEventId.HasValue)
         {
-            selectedEvent = FindEvent(actualSelectedEventId.Value);
+            selectedEvent = FindItem(actualSelectedEventId.Value);
             if (selectedEvent == null)
             {
                 actualSelectedEventId = null;
             }
         }
 
-        if (ViewState.SelectedEventId == actualSelectedEventId)
+        if (ViewState.SelectedItemId == actualSelectedEventId)
         {
-            if (selectedEvent != null && ViewState.SelectedLaneId != selectedEvent.TrackId)
+            if (selectedEvent != null && ViewState.SelectedTrackId != selectedEvent.TrackId)
             {
-                SetSelectedLaneId(selectedEvent.TrackId, notify);
+                SetSelectedTrackId(selectedEvent.TrackId, notify);
             }
 
             return;
         }
 
-        ViewState.SelectedEventId = actualSelectedEventId;
+        ViewState.SelectedItemId = actualSelectedEventId;
         if (selectedEvent != null)
         {
-            SetSelectedLaneId(selectedEvent.TrackId, notify);
+            SetSelectedTrackId(selectedEvent.TrackId, notify);
         }
 
         InvalidateViewPresentation();
         if (notify)
         {
-            SelectedEventChanged?.Invoke(selectedEvent);
+            SelectedItemChanged?.Invoke(selectedEvent);
         }
     }
 
-    public void SetSelectedLaneId(Guid? selectedLaneId)
+    public void SetSelectedTrackId(Guid? selectedLaneId)
     {
-        SetSelectedLaneId(selectedLaneId, true);
+        SetSelectedTrackId(selectedLaneId, true);
     }
 
-    public void SetSelectedLaneId(Guid? selectedLaneId, bool notify)
+    public void SetSelectedTrackId(Guid? selectedLaneId, bool notify)
     {
         Guid? actualSelectedLaneId = selectedLaneId;
         if (_model == null || _model.Tracks.Count == 0)
@@ -269,7 +269,7 @@ internal class TimelineControl : MGGrid
         }
         else
         {
-            if (actualSelectedLaneId.HasValue && GetLane(actualSelectedLaneId.Value) == null)
+            if (actualSelectedLaneId.HasValue && GetTrack(actualSelectedLaneId.Value) == null)
             {
                 actualSelectedLaneId = null;
             }
@@ -277,17 +277,17 @@ internal class TimelineControl : MGGrid
             actualSelectedLaneId ??= _model.Tracks[0].Id;
         }
 
-        if (ViewState.SelectedLaneId == actualSelectedLaneId)
+        if (ViewState.SelectedTrackId == actualSelectedLaneId)
         {
             return;
         }
 
-        ViewState.SelectedLaneId = actualSelectedLaneId;
+        ViewState.SelectedTrackId = actualSelectedLaneId;
         _trackHeaderPanel.RefreshSelection();
         InvalidateViewPresentation();
         if (notify)
         {
-            SelectedLaneChanged?.Invoke(GetSelectedLane());
+            SelectedTrackChanged?.Invoke(GetSelectedTrack());
         }
     }
 
@@ -338,27 +338,27 @@ internal class TimelineControl : MGGrid
         PasteRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
     }
 
-    internal int GetLaneCount()
+    internal int GetTrackCount()
     {
         return _model?.Tracks.Count > 0 ? _model.Tracks.Count : 1;
     }
 
-    internal Rectangle GetLaneBounds(Rectangle layoutBounds, int laneIndex)
+    internal Rectangle GetTrackBounds(Rectangle layoutBounds, int laneIndex)
     {
-        Rectangle contentBounds = GetLaneContentBounds(layoutBounds);
-        int actualLaneIndex = Math.Clamp(laneIndex, 0, GetLaneCount() - 1);
+        Rectangle contentBounds = GetTrackContentBounds(layoutBounds);
+        int actualLaneIndex = Math.Clamp(laneIndex, 0, GetTrackCount() - 1);
         int top = contentBounds.Top + (actualLaneIndex * TimelineControlMetrics.TrackRowHeight);
         return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), TimelineControlMetrics.TrackRowHeight);
     }
 
-    internal TimelineTrack? GetLaneAtY(Rectangle layoutBounds, int y)
+    internal TimelineTrack? GetTrackAtY(Rectangle layoutBounds, int y)
     {
         if (_model == null || _model.Tracks.Count == 0)
         {
             return null;
         }
 
-        Rectangle contentBounds = GetLaneContentBounds(layoutBounds);
+        Rectangle contentBounds = GetTrackContentBounds(layoutBounds);
         if (y < contentBounds.Top || y >= contentBounds.Bottom)
         {
             return null;
@@ -368,7 +368,7 @@ internal class TimelineControl : MGGrid
         return _model.Tracks[laneIndex];
     }
 
-    internal int GetLaneIndex(Guid laneId)
+    internal int GetTrackIndex(Guid laneId)
     {
         if (_model == null)
         {
@@ -386,7 +386,7 @@ internal class TimelineControl : MGGrid
         return -1;
     }
 
-    internal TimelineTrack? GetLane(Guid laneId)
+    internal TimelineTrack? GetTrack(Guid laneId)
     {
         if (_model == null)
         {
@@ -404,16 +404,16 @@ internal class TimelineControl : MGGrid
         return null;
     }
 
-    internal TimelineTrack? GetSelectedLane()
+    internal TimelineTrack? GetSelectedTrack()
     {
         if (_model == null || _model.Tracks.Count == 0)
         {
             return null;
         }
 
-        if (ViewState.SelectedLaneId.HasValue)
+        if (ViewState.SelectedTrackId.HasValue)
         {
-            TimelineTrack? lane = GetLane(ViewState.SelectedLaneId.Value);
+            TimelineTrack? lane = GetTrack(ViewState.SelectedTrackId.Value);
             if (lane != null)
             {
                 return lane;
@@ -423,9 +423,9 @@ internal class TimelineControl : MGGrid
         return _model.Tracks.Count > 0 ? _model.Tracks[0] : null;
     }
 
-    internal void CommitDraggedEventTime(Guid eventId, float timeSeconds)
+    internal void CommitDraggedItemTime(Guid eventId, float timeSeconds)
     {
-        TimelineItem? timelineEvent = FindEvent(eventId);
+        TimelineItem? timelineEvent = FindItem(eventId);
         if (timelineEvent == null || !timelineEvent.IsEditable)
         {
             return;
@@ -437,12 +437,12 @@ internal class TimelineControl : MGGrid
             return;
         }
 
-        EventTimeEditCommitted?.Invoke(timelineEvent, actualTime);
+        ItemTimeEditCommitted?.Invoke(timelineEvent, actualTime);
     }
 
-    internal void DuplicateDraggedEvent(Guid eventId, float timeSeconds)
+    internal void DuplicateDraggedItem(Guid eventId, float timeSeconds)
     {
-        TimelineItem? timelineEvent = FindEvent(eventId);
+        TimelineItem? timelineEvent = FindItem(eventId);
         if (timelineEvent == null || !timelineEvent.IsEditable)
         {
             return;
@@ -451,9 +451,9 @@ internal class TimelineControl : MGGrid
         DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
     }
 
-    internal bool TryInsertAtSelectedLane(float timeSeconds)
+    internal bool TryInsertAtSelectedTrack(float timeSeconds)
     {
-        TimelineTrack? lane = GetSelectedLane();
+        TimelineTrack? lane = GetSelectedTrack();
         if (lane == null || !lane.IsEditable)
         {
             return false;
@@ -463,9 +463,9 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal bool TryDuplicateSelectedEvent(float timeSeconds)
+    internal bool TryDuplicateSelectedItem(float timeSeconds)
     {
-        TimelineItem? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedItem();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -475,9 +475,9 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal bool TryDeleteSelectedEvent()
+    internal bool TryDeleteSelectedItem()
     {
-        TimelineItem? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedItem();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -487,9 +487,9 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal bool TryCopySelectedEvent()
+    internal bool TryCopySelectedItem()
     {
-        TimelineItem? selectedEvent = GetSelectedEvent();
+        TimelineItem? selectedEvent = GetSelectedItem();
         if (selectedEvent == null || !selectedEvent.IsEditable)
         {
             return false;
@@ -499,9 +499,9 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal bool TryPasteToSelectedLane(float timeSeconds)
+    internal bool TryPasteToSelectedTrack(float timeSeconds)
     {
-        TimelineTrack? lane = GetSelectedLane();
+        TimelineTrack? lane = GetSelectedTrack();
         if (lane == null || !lane.IsEditable)
         {
             return false;
@@ -617,22 +617,22 @@ internal class TimelineControl : MGGrid
         PixelsPerSecondChanged?.Invoke(actualPixelsPerSecond);
     }
 
-    private TimelineItem? GetSelectedEvent()
+    private TimelineItem? GetSelectedItem()
     {
-        if (!ViewState.SelectedEventId.HasValue)
+        if (!ViewState.SelectedItemId.HasValue)
         {
             return null;
         }
 
-        return FindEvent(ViewState.SelectedEventId.Value);
+        return FindItem(ViewState.SelectedItemId.Value);
     }
 
-    private bool ContainsEvent(Guid eventId)
+    private bool ContainsItem(Guid eventId)
     {
-        return FindEvent(eventId) != null;
+        return FindItem(eventId) != null;
     }
 
-    private TimelineItem? FindEvent(Guid eventId)
+    private TimelineItem? FindItem(Guid eventId)
     {
         if (_model == null)
         {
@@ -650,10 +650,10 @@ internal class TimelineControl : MGGrid
         return null;
     }
 
-    private Rectangle GetLaneContentBounds(Rectangle layoutBounds)
+    private Rectangle GetTrackContentBounds(Rectangle layoutBounds)
     {
         int top = layoutBounds.Top + TimelineControlMetrics.ViewportVerticalPadding;
-        int height = Math.Max(1, GetLaneCount() * TimelineControlMetrics.TrackRowHeight);
+        int height = Math.Max(1, GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
         return new Rectangle(layoutBounds.Left, top, Math.Max(1, layoutBounds.Width), height);
     }
 
@@ -746,32 +746,32 @@ internal class TimelineControl : MGGrid
     {
         if (controlDown && key == Keys.D)
         {
-            return TryDuplicateSelectedEvent(CurrentTimeSeconds);
+            return TryDuplicateSelectedItem(CurrentTimeSeconds);
         }
 
         if (controlDown && key == Keys.C)
         {
-            return TryCopySelectedEvent();
+            return TryCopySelectedItem();
         }
 
         if (controlDown && key == Keys.V)
         {
-            return TryPasteToSelectedLane(CurrentTimeSeconds);
+            return TryPasteToSelectedTrack(CurrentTimeSeconds);
         }
 
         switch (key)
         {
             case Keys.Insert:
-                return TryInsertAtSelectedLane(CurrentTimeSeconds);
+                return TryInsertAtSelectedTrack(CurrentTimeSeconds);
 
             case Keys.Delete:
             case Keys.Back:
-                return TryDeleteSelectedEvent();
+                return TryDeleteSelectedItem();
 
             case Keys.Escape:
-                if (ViewState.SelectedEventId.HasValue)
+                if (ViewState.SelectedItemId.HasValue)
                 {
-                    SetSelectedEventId(null, true);
+                    SetSelectedItemId(null, true);
                     return true;
                 }
 

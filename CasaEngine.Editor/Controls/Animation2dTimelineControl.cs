@@ -49,11 +49,11 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         CornerHeaderText = string.Empty;
         TrackHeaderText = "Track 1";
-        SelectedEventChanged += OnSelectedEventChanged;
-        SelectedLaneChanged += OnSelectedLaneChanged;
-        LaneLabelEditCommitted += OnLaneLabelEditCommitted;
+        SelectedItemChanged += OnSelectedEventChanged;
+        SelectedTrackChanged += OnSelectedLaneChanged;
+        TrackLabelEditCommitted += OnLaneLabelEditCommitted;
         TimeScrubbed += timeSeconds => ScrubRequested?.Invoke(timeSeconds);
-        EventTimeEditCommitted += OnEventTimeEditCommitted;
+        ItemTimeEditCommitted += OnEventTimeEditCommitted;
         DuplicateRequested += OnDuplicateRequested;
         DeleteRequested += OnDeleteRequested;
         InsertRequested += OnInsertRequested;
@@ -150,8 +150,8 @@ internal sealed class Animation2dTimelineControl : TimelineControl
             }
         }
 
-        SetSelectedLaneId(selectedLaneId, false);
-        SetSelectedEventId(selectedEventId, false);
+        SetSelectedTrackId(selectedLaneId, false);
+        SetSelectedItemId(selectedEventId, false);
     }
 
     private void OnSelectedEventChanged(TimelineItem selectedEvent)
@@ -244,11 +244,11 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         }
 
         int sourceEventIndex = -1;
-        if (Model != null && ViewState.SelectedEventId.HasValue)
+        if (Model != null && ViewState.SelectedItemId.HasValue)
         {
             for (var index = 0; index < Model.Items.Count; index++)
             {
-                if (Model.Items[index].Id != ViewState.SelectedEventId.Value)
+                if (Model.Items[index].Id != ViewState.SelectedItemId.Value)
                 {
                     continue;
                 }
@@ -284,11 +284,11 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         }
 
         TimelineItem? selectedEvent = timelineEvent;
-        if (selectedEvent == null && Model != null && ViewState.SelectedEventId.HasValue)
+        if (selectedEvent == null && Model != null && ViewState.SelectedItemId.HasValue)
         {
             for (var index = 0; index < Model.Items.Count; index++)
             {
-                if (Model.Items[index].Id == ViewState.SelectedEventId.Value)
+                if (Model.Items[index].Id == ViewState.SelectedItemId.Value)
                 {
                     selectedEvent = Model.Items[index];
                     break;

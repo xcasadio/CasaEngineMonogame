@@ -105,7 +105,7 @@ public class TimelineViewTransformTests
             ItemType = "B",
         };
 
-        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestEvent(
+        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestItem(
             new[] { firstEvent, secondEvent },
             transform,
             8f,
@@ -132,7 +132,7 @@ public class TimelineViewTransformTests
             ItemType = "A",
         };
 
-        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestEvent(
+        TimelineItem? hitEvent = TimelineHitTest.HitTestNearestItem(
             new[] { timelineEvent },
             transform,
             8f,

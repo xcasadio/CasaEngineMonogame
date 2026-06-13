@@ -8,7 +8,7 @@ internal sealed class TimelineViewState
 
     public float ScrollX { get; set; }
 
-    public Guid? SelectedEventId { get; set; }
+    public Guid? SelectedItemId { get; set; }
 
-    public Guid? SelectedLaneId { get; set; }
+    public Guid? SelectedTrackId { get; set; }
 }

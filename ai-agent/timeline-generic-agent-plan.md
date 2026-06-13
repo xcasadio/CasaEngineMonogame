@@ -122,7 +122,7 @@ Commit attendu :
 
 - `refactor(timeline): rename model to generic track/item and make it public`
 
-### ⏳ Tache 1.2 — Renommer l'API publique et interne de `TimelineControl`
+### ✅ Tache 1.2 — Renommer l'API publique et interne de `TimelineControl`
 
 Objectif : aligner evenements et methodes du controle sur le vocabulaire `Item`/`Track`.
 

@@ -13,11 +13,11 @@ namespace CasaEngine.Editor.Controls.Timeline;
 internal sealed class TimelineViewport : MGElement
 {
     private readonly TimelineControl _owner;
-    private readonly MGToolTip _eventToolTip;
-    private TimelineItem? _hoveredEvent;
-    private TimelineItem? _pressedEvent;
-    private TimelineItem? _draggedEvent;
-    private float _draggedEventTimeSeconds;
+    private readonly MGToolTip _itemToolTip;
+    private TimelineItem? _hoveredItem;
+    private TimelineItem? _pressedItem;
+    private TimelineItem? _draggedItem;
+    private float _draggedItemTimeSeconds;
     private bool _ignoreNextRelease;
 
     public TimelineViewport(MGWindow window, TimelineControl owner)
@@ -27,7 +27,7 @@ internal sealed class TimelineViewport : MGElement
         HorizontalAlignment = HorizontalAlignment.Stretch;
         VerticalAlignment = VerticalAlignment.Stretch;
 
-        _eventToolTip = new MGToolTip(window, this, 0, 0)
+        _itemToolTip = new MGToolTip(window, this, 0, 0)
         {
             ShowDelayOverride = TimeSpan.Zero,
         };
@@ -47,7 +47,7 @@ internal sealed class TimelineViewport : MGElement
     public override Thickness MeasureSelfOverride(Size availableSize, out Thickness sharedSize)
     {
         sharedSize = new Thickness(0);
-        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetLaneCount() * TimelineControlMetrics.TrackRowHeight);
+        int desiredHeight = (TimelineControlMetrics.ViewportVerticalPadding * 2) + (_owner.GetTrackCount() * TimelineControlMetrics.TrackRowHeight);
         return new Thickness(availableSize.Width, desiredHeight, 0, 0);
     }
 
@@ -116,8 +116,8 @@ internal sealed class TimelineViewport : MGElement
         for (var laneIndex = 0; laneIndex < _owner.Model.Tracks.Count; laneIndex++)
         {
             TimelineTrack lane = _owner.Model.Tracks[laneIndex];
-            Rectangle laneBounds = _owner.GetLaneBounds(layoutBounds, laneIndex);
-            bool isSelected = _owner.ViewState.SelectedLaneId == lane.Id;
+            Rectangle laneBounds = _owner.GetTrackBounds(layoutBounds, laneIndex);
+            bool isSelected = _owner.ViewState.SelectedTrackId == lane.Id;
             Color laneColor = isSelected
                 ? EditorThemePalette.AccentSelection * (0.18f * DA.Opacity)
                 : (laneIndex % 2 == 0 ? Color.Transparent : Color.Black * (0.08f * DA.Opacity));
@@ -153,27 +153,27 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        float eventHalfSize = Math.Min(TimelineControlMetrics.EventHalfSize, Math.Max(3f, (timeAreaBounds.Height * 0.5f) - 1f));
+        float eventHalfSize = Math.Min(TimelineControlMetrics.ItemHalfSize, Math.Max(3f, (timeAreaBounds.Height * 0.5f) - 1f));
         for (var index = 0; index < _owner.Model.Items.Count; index++)
         {
             TimelineItem timelineEvent = _owner.Model.Items[index];
-            int laneIndex = _owner.GetLaneIndex(timelineEvent.TrackId);
+            int laneIndex = _owner.GetTrackIndex(timelineEvent.TrackId);
             if (laneIndex < 0)
             {
                 continue;
             }
 
-            Rectangle laneBounds = _owner.GetLaneBounds(layoutBounds, laneIndex);
+            Rectangle laneBounds = _owner.GetTrackBounds(layoutBounds, laneIndex);
             float centerY = laneBounds.Center.Y;
-            float renderedTime = GetRenderedEventTime(timelineEvent);
+            float renderedTime = GetRenderedItemTime(timelineEvent);
             float x = timeAreaBounds.Left + _owner.ViewTransform.TimeToViewportX(renderedTime);
             if (x < timeAreaBounds.Left - eventHalfSize || x > timeAreaBounds.Right + eventHalfSize)
             {
                 continue;
             }
 
-            bool isSelected = _owner.ViewState.SelectedEventId == timelineEvent.Id;
-            bool isHovered = _hoveredEvent?.Id == timelineEvent.Id;
+            bool isSelected = _owner.ViewState.SelectedItemId == timelineEvent.Id;
+            bool isHovered = _hoveredItem?.Id == timelineEvent.Id;
 
             Color fillColor = isSelected
                 ? EditorThemePalette.AccentSelection * DA.Opacity
@@ -213,7 +213,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        if (_draggedEvent != null)
+        if (_draggedItem != null)
         {
             e.SetHandledBy(this, false);
             return;
@@ -233,14 +233,14 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        TimelineTrack? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        TimelineTrack? lane = _owner.GetTrackAtY(layoutBounds, layoutPosition.Y);
         if (lane != null)
         {
-            _owner.SetSelectedLaneId(lane.Id, true);
+            _owner.SetSelectedTrackId(lane.Id, true);
         }
 
-        TimelineItem? hitEvent = lane != null ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
-        _owner.SetSelectedEventId(hitEvent?.Id, true);
+        TimelineItem? hitEvent = lane != null ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
+        _owner.SetSelectedItemId(hitEvent?.Id, true);
 
         if (hitEvent == null)
         {
@@ -249,7 +249,7 @@ internal sealed class TimelineViewport : MGElement
             _owner.NotifyTimeScrubbed(timeSeconds);
         }
 
-        _pressedEvent = null;
+        _pressedItem = null;
         e.SetHandledBy(this, false);
     }
 
@@ -270,20 +270,20 @@ internal sealed class TimelineViewport : MGElement
 
         _owner.Focus(KeyboardFocusSource.Pointer);
 
-        TimelineTrack? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        TimelineTrack? lane = _owner.GetTrackAtY(layoutBounds, layoutPosition.Y);
         if (lane != null)
         {
-            _owner.SetSelectedLaneId(lane.Id, true);
+            _owner.SetSelectedTrackId(lane.Id, true);
         }
 
-        _pressedEvent = lane != null ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
-        if (_pressedEvent != null)
+        _pressedItem = lane != null ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
+        if (_pressedItem != null)
         {
-            _owner.SetSelectedEventId(_pressedEvent.Id, true);
+            _owner.SetSelectedItemId(_pressedItem.Id, true);
         }
         else
         {
-            _owner.SetSelectedEventId(null, true);
+            _owner.SetSelectedItemId(null, true);
         }
 
         e.SetHandledBy(this, false);
@@ -306,15 +306,15 @@ internal sealed class TimelineViewport : MGElement
 
         _owner.Focus(KeyboardFocusSource.Pointer);
 
-        TimelineTrack? lane = _owner.GetLaneAtY(layoutBounds, layoutPosition.Y);
+        TimelineTrack? lane = _owner.GetTrackAtY(layoutBounds, layoutPosition.Y);
         if (lane == null)
         {
             return;
         }
 
-        TimelineItem? hitEvent = HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane);
-        _owner.SetSelectedLaneId(lane.Id, true);
-        _owner.SetSelectedEventId(hitEvent?.Id, true);
+        TimelineItem? hitEvent = HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane);
+        _owner.SetSelectedTrackId(lane.Id, true);
+        _owner.SetSelectedItemId(hitEvent?.Id, true);
 
         float timeSeconds = GetTimeAtPosition(layoutPosition.X, timeAreaBounds.Left);
         MGContextMenu? menu = _owner.CreateContextMenu(lane, hitEvent, timeSeconds);
@@ -331,20 +331,20 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        if (_pressedEvent == null || !_pressedEvent.IsEditable)
+        if (_pressedItem == null || !_pressedItem.IsEditable)
         {
             return;
         }
 
-        _draggedEvent = _pressedEvent;
-        _draggedEventTimeSeconds = _pressedEvent.StartTime;
+        _draggedItem = _pressedItem;
+        _draggedItemTimeSeconds = _pressedItem.StartTime;
         _owner.Focus(KeyboardFocusSource.Pointer);
         e.SetHandledBy(this, false);
     }
 
     private void OnDragged(object? sender, BaseMouseDraggedEventArgs e)
     {
-        if (_draggedEvent == null || !e.IsLMB)
+        if (_draggedItem == null || !e.IsLMB)
         {
             return;
         }
@@ -353,13 +353,13 @@ internal sealed class TimelineViewport : MGElement
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
-        _draggedEventTimeSeconds = GetTimeAtPosition(x, timeAreaBounds.Left);
+        _draggedItemTimeSeconds = GetTimeAtPosition(x, timeAreaBounds.Left);
         _owner.InvalidateViewPresentation();
     }
 
     private void OnDragEnd(object? sender, BaseMouseDragEndEventArgs e)
     {
-        if (_draggedEvent == null || !e.IsLMB)
+        if (_draggedItem == null || !e.IsLMB)
         {
             return;
         }
@@ -367,22 +367,22 @@ internal sealed class TimelineViewport : MGElement
         bool controlDown = _owner.KeyboardHandler.Tracker.IsControlDown;
         if (controlDown)
         {
-            _owner.DuplicateDraggedEvent(_draggedEvent.Id, _draggedEventTimeSeconds);
+            _owner.DuplicateDraggedItem(_draggedItem.Id, _draggedItemTimeSeconds);
         }
         else
         {
-            _owner.CommitDraggedEventTime(_draggedEvent.Id, _draggedEventTimeSeconds);
+            _owner.CommitDraggedItemTime(_draggedItem.Id, _draggedItemTimeSeconds);
         }
 
-        _draggedEvent = null;
-        _pressedEvent = null;
+        _draggedItem = null;
+        _pressedItem = null;
         _ignoreNextRelease = true;
         _owner.InvalidateViewPresentation();
     }
 
     private void OnMouseMovedInside(object? sender, BaseMouseMovedEventArgs e)
     {
-        if (_owner.Model == null || _draggedEvent != null)
+        if (_owner.Model == null || _draggedItem != null)
         {
             return;
         }
@@ -391,30 +391,30 @@ internal sealed class TimelineViewport : MGElement
         Rectangle layoutBounds = !ActualLayoutBounds.IsEmpty ? ActualLayoutBounds : LayoutBounds;
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         TimelineTrack? lane = timeAreaBounds.Contains(layoutPosition)
-            ? _owner.GetLaneAtY(layoutBounds, layoutPosition.Y)
+            ? _owner.GetTrackAtY(layoutBounds, layoutPosition.Y)
             : null;
         TimelineItem? hitEvent = lane != null
-            ? HitTestEvent(layoutPosition, layoutBounds, timeAreaBounds, lane)
+            ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane)
             : null;
 
-        if (ReferenceEquals(hitEvent, _hoveredEvent) || (hitEvent != null && _hoveredEvent?.Id == hitEvent.Id))
+        if (ReferenceEquals(hitEvent, _hoveredItem) || (hitEvent != null && _hoveredItem?.Id == hitEvent.Id))
         {
             return;
         }
 
-        _hoveredEvent = hitEvent;
+        _hoveredItem = hitEvent;
         RefreshToolTip();
         _owner.InvalidateViewPresentation();
     }
 
     private void OnMouseExited(object? sender, BaseMouseMovedEventArgs e)
     {
-        if (_hoveredEvent == null || _draggedEvent != null)
+        if (_hoveredItem == null || _draggedItem != null)
         {
             return;
         }
 
-        _hoveredEvent = null;
+        _hoveredItem = null;
         RefreshToolTip();
         _owner.InvalidateViewPresentation();
     }
@@ -445,57 +445,57 @@ internal sealed class TimelineViewport : MGElement
         e.SetHandledBy(this);
     }
 
-    private TimelineItem? HitTestEvent(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack lane)
+    private TimelineItem? HitTestItem(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack lane)
     {
         if (_owner.Model == null)
         {
             return null;
         }
 
-        int laneIndex = _owner.GetLaneIndex(lane.Id);
+        int laneIndex = _owner.GetTrackIndex(lane.Id);
         if (laneIndex < 0)
         {
             return null;
         }
 
-        return TimelineHitTest.HitTestNearestEvent(
+        return TimelineHitTest.HitTestNearestItem(
             _owner.Model.Items,
             _owner.ViewTransform,
             timeAreaBounds.Left,
             lane.Id,
-            _owner.GetLaneBounds(layoutBounds, laneIndex).Center.Y,
-            TimelineControlMetrics.EventHitRadius,
+            _owner.GetTrackBounds(layoutBounds, laneIndex).Center.Y,
+            TimelineControlMetrics.ItemHitRadius,
             layoutPosition);
     }
 
     private void RefreshToolTip()
     {
-        if (_hoveredEvent == null)
+        if (_hoveredItem == null)
         {
             ToolTip = null;
             return;
         }
 
-        string toolTipText = string.IsNullOrWhiteSpace(_hoveredEvent.ToolTipText)
-            ? BuildDefaultToolTipText(_hoveredEvent)
-            : _hoveredEvent.ToolTipText;
-        _eventToolTip.SetContent(toolTipText, null, 12);
-        _eventToolTip.ApplySizeToContent(SizeToContent.WidthAndHeight, 40, 24, 520, 360, false);
-        ToolTip = _eventToolTip;
+        string toolTipText = string.IsNullOrWhiteSpace(_hoveredItem.ToolTipText)
+            ? BuildDefaultToolTipText(_hoveredItem)
+            : _hoveredItem.ToolTipText;
+        _itemToolTip.SetContent(toolTipText, null, 12);
+        _itemToolTip.ApplySizeToContent(SizeToContent.WidthAndHeight, 40, 24, 520, 360, false);
+        ToolTip = _itemToolTip;
     }
 
     private string BuildDefaultToolTipText(TimelineItem timelineEvent)
     {
-        TimelineTrack? lane = _owner.GetLane(timelineEvent.TrackId);
+        TimelineTrack? lane = _owner.GetTrack(timelineEvent.TrackId);
         string laneLabel = string.IsNullOrWhiteSpace(lane?.Label) ? string.Empty : $"Track: {lane.Label}\n";
-        return $"{laneLabel}Type: {timelineEvent.ItemType}\nTime: {GetRenderedEventTime(timelineEvent).ToString("0.###", CultureInfo.InvariantCulture)} s";
+        return $"{laneLabel}Type: {timelineEvent.ItemType}\nTime: {GetRenderedItemTime(timelineEvent).ToString("0.###", CultureInfo.InvariantCulture)} s";
     }
 
-    private float GetRenderedEventTime(TimelineItem timelineEvent)
+    private float GetRenderedItemTime(TimelineItem timelineEvent)
     {
-        if (_draggedEvent != null && _draggedEvent.Id == timelineEvent.Id)
+        if (_draggedItem != null && _draggedItem.Id == timelineEvent.Id)
         {
-            return _draggedEventTimeSeconds;
+            return _draggedItemTimeSeconds;
         }
 
         return timelineEvent.StartTime;

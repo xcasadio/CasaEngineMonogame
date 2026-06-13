@@ -20,9 +20,9 @@ namespace CasaEngine.Editor.Controls.Timeline;
 
 internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 {
-    private sealed class LaneRowState
+    private sealed class TrackRowState
     {
-        public TimelineTrack Lane { get; init; }
+        public TimelineTrack Track { get; init; }
 
         public MGBorder Border { get; init; }
 
@@ -33,10 +33,10 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 
     private readonly MGWindow _window;
     private readonly TimelineControl _owner;
-    private readonly Dictionary<Guid, LaneRowState> _rowsByLaneId = new();
+    private readonly Dictionary<Guid, TrackRowState> _rowsByTrackId = new();
 
     private string _text = string.Empty;
-    private LaneRowState? _editingRow;
+    private TrackRowState? _editingRow;
     private string _editingOriginalText = string.Empty;
 
     public string Text
@@ -45,7 +45,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         set => _text = value ?? string.Empty;
     }
 
-    public event Action<TimelineTrack, string>? LaneLabelEdited;
+    public event Action<TimelineTrack, string>? TrackLabelEdited;
 
     public TimelineTrackHeaderPanel(MGWindow window, TimelineControl owner)
         : base(window, Orientation.Vertical)
@@ -61,7 +61,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
     {
         CommitActiveEdit();
         TryRemoveAll();
-        _rowsByLaneId.Clear();
+        _rowsByTrackId.Clear();
 
         if (_owner.Model == null || _owner.Model.Tracks.Count == 0)
         {
@@ -76,8 +76,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         for (var index = 0; index < _owner.Model.Tracks.Count; index++)
         {
             TimelineTrack lane = _owner.Model.Tracks[index];
-            LaneRowState rowState = CreateLaneRow(lane);
-            _rowsByLaneId[lane.Id] = rowState;
+            TrackRowState rowState = CreateLaneRow(lane);
+            _rowsByTrackId[lane.Id] = rowState;
             TryAddChild(rowState.Border);
         }
 
@@ -88,9 +88,9 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
 
     public void RefreshSelection()
     {
-        foreach (KeyValuePair<Guid, LaneRowState> pair in _rowsByLaneId)
+        foreach (KeyValuePair<Guid, TrackRowState> pair in _rowsByTrackId)
         {
-            bool isSelected = _owner.ViewState.SelectedLaneId == pair.Key;
+            bool isSelected = _owner.ViewState.SelectedTrackId == pair.Key;
             ApplySelectionVisual(pair.Value.Border, pair.Value.TextBox, isSelected);
         }
     }
@@ -112,9 +112,9 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         return desiredWidth;
     }
 
-    private LaneRowState CreateLaneRow(TimelineTrack lane)
+    private TrackRowState CreateLaneRow(TimelineTrack lane)
     {
-        var border = CreateLaneBorder(_owner.ViewState.SelectedLaneId == lane.Id);
+        var border = CreateLaneBorder(_owner.ViewState.SelectedTrackId == lane.Id);
         var label = CreateReadonlyLabel(lane.Label);
         var textBox = CreateEditorTextBox(lane.Label);
         border.SetContent(label);
@@ -127,15 +127,15 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             }
 
             _owner.Focus(KeyboardFocusSource.Pointer);
-            _owner.SetSelectedLaneId(lane.Id, true);
-            _owner.SetSelectedEventId(null, true);
-            BeginEdit(new LaneRowState { Lane = lane, Border = border, Label = label, TextBox = textBox });
+            _owner.SetSelectedTrackId(lane.Id, true);
+            _owner.SetSelectedItemId(null, true);
+            BeginEdit(new TrackRowState { Track = lane, Border = border, Label = label, TextBox = textBox });
             e.SetHandledBy(border, false);
         };
 
         textBox.KeyboardHandler.Pressed += (_, e) =>
         {
-            if (_editingRow?.Lane.Id != lane.Id)
+            if (_editingRow?.Track.Id != lane.Id)
             {
                 return;
             }
@@ -158,8 +158,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         {
             CommitActiveEdit();
             _owner.Focus(KeyboardFocusSource.Pointer);
-            _owner.SetSelectedLaneId(lane.Id, true);
-            _owner.SetSelectedEventId(null, true);
+            _owner.SetSelectedTrackId(lane.Id, true);
+            _owner.SetSelectedItemId(null, true);
             e.SetHandledBy(border, false);
         };
 
@@ -167,8 +167,8 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
         {
             CommitActiveEdit();
             _owner.Focus(KeyboardFocusSource.Pointer);
-            _owner.SetSelectedLaneId(lane.Id, true);
-            _owner.SetSelectedEventId(null, true);
+            _owner.SetSelectedTrackId(lane.Id, true);
+            _owner.SetSelectedItemId(null, true);
 
             MGContextMenu? menu = _owner.CreateTrackHeaderContextMenu(lane);
             if (menu != null && menu.TryOpenContextMenu(e.Position))
@@ -177,9 +177,9 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             }
         };
 
-        return new LaneRowState
+        return new TrackRowState
         {
-            Lane = lane,
+            Track = lane,
             Border = border,
             Label = label,
             TextBox = textBox,
@@ -240,7 +240,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
                 : EditorThemePalette.PreviewSurfaceBackground));
     }
 
-    private void BeginEdit(LaneRowState row)
+    private void BeginEdit(TrackRowState row)
     {
         CommitActiveEdit();
 
@@ -264,7 +264,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             return;
         }
 
-        LaneRowState editingRow = _editingRow;
+        TrackRowState editingRow = _editingRow;
         _editingRow = null;
         editingRow.TextBox.IsReadonly = true;
         editingRow.Label.Text = editingRow.TextBox.Text ?? string.Empty;
@@ -282,7 +282,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             return;
         }
 
-        LaneLabelEdited?.Invoke(editingRow.Lane, newText);
+        TrackLabelEdited?.Invoke(editingRow.Track, newText);
     }
 
     private void CancelActiveEdit()
@@ -292,7 +292,7 @@ internal sealed class TimelineTrackHeaderPanel : MGStackPanel
             return;
         }
 
-        LaneRowState editingRow = _editingRow;
+        TrackRowState editingRow = _editingRow;
         _editingRow = null;
         editingRow.TextBox.IsReadonly = true;
         editingRow.TextBox.SetText(_editingOriginalText, true);

@@ -13,8 +13,8 @@ internal static class TimelineControlMetrics
     public const int HeaderVerticalPadding = 6;
     public const int LabelFontSize = 11;
     public const float MajorTickTargetPixels = 64f;
-    public const float EventHalfSize = 7f;
-    public const float EventHitRadius = 14f;
+    public const float ItemHalfSize = 7f;
+    public const float ItemHitRadius = 14f;
     public const float MouseWheelZoomMultiplier = 1.12f;
     public const float Epsilon = 0.0001f;
 }

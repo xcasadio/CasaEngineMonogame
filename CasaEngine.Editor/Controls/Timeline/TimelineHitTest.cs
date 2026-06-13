@@ -6,7 +6,7 @@ namespace CasaEngine.Editor.Controls.Timeline;
 
 internal static class TimelineHitTest
 {
-    public static TimelineItem HitTestNearestEvent(
+    public static TimelineItem HitTestNearestItem(
         IReadOnlyList<TimelineItem> events,
         TimelineViewTransform transform,
         float contentLeft,
