@@ -15,6 +15,8 @@ internal static class TimelineControlMetrics
     public const float MajorTickTargetPixels = 64f;
     public const float ItemHalfSize = 7f;
     public const float ItemHitRadius = 14f;
+    public const float ResizeHandleWidth = 5f;
+    public const float MinimumItemDurationSeconds = 0.01f;
     public const float MouseWheelZoomMultiplier = 1.12f;
     public const float Epsilon = 0.0001f;
 }

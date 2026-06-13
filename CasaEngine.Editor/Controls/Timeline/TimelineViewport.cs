@@ -344,7 +344,7 @@ internal sealed class TimelineViewport : MGElement
             _owner.SetSelectedTrackId(lane.Id, true);
         }
 
-        TimelineItem? hitEvent = lane != null ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
+        TimelineItem? hitEvent = lane != null ? HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane).Item : null;
         _owner.SetSelectedItemId(hitEvent?.Id, true);
 
         if (hitEvent == null)
@@ -381,7 +381,7 @@ internal sealed class TimelineViewport : MGElement
             _owner.SetSelectedTrackId(lane.Id, true);
         }
 
-        _pressedItem = lane != null ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane) : null;
+        _pressedItem = lane != null ? HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane).Item : null;
         if (_pressedItem != null)
         {
             _owner.SetSelectedItemId(_pressedItem.Id, true);
@@ -417,7 +417,7 @@ internal sealed class TimelineViewport : MGElement
             return;
         }
 
-        TimelineItem? hitEvent = HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane);
+        TimelineItem? hitEvent = HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane).Item;
         _owner.SetSelectedTrackId(lane.Id, true);
         _owner.SetSelectedItemId(hitEvent?.Id, true);
 
@@ -499,7 +499,7 @@ internal sealed class TimelineViewport : MGElement
             ? _owner.GetTrackAtY(layoutBounds, layoutPosition.Y)
             : null;
         TimelineItem? hitEvent = lane != null
-            ? HitTestItem(layoutPosition, layoutBounds, timeAreaBounds, lane)
+            ? HitTestAt(layoutPosition, layoutBounds, timeAreaBounds, lane).Item
             : null;
 
         if (ReferenceEquals(hitEvent, _hoveredItem) || (hitEvent != null && _hoveredItem?.Id == hitEvent.Id))
@@ -550,26 +550,22 @@ internal sealed class TimelineViewport : MGElement
         e.SetHandledBy(this);
     }
 
-    private TimelineItem? HitTestItem(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack lane)
+    private TimelineHitTestResult HitTestAt(Point layoutPosition, Rectangle layoutBounds, Rectangle timeAreaBounds, TimelineTrack track)
     {
-        if (_owner.Model == null)
+        int trackIndex = _owner.Model != null ? _owner.GetTrackIndex(track.Id) : -1;
+        if (trackIndex < 0)
         {
-            return null;
+            return new TimelineHitTestResult { Track = track, Area = TimelineHitTestArea.TrackBody };
         }
 
-        int laneIndex = _owner.GetTrackIndex(lane.Id);
-        if (laneIndex < 0)
-        {
-            return null;
-        }
-
-        return TimelineHitTest.HitTestNearestItem(
-            _owner.Model.Items,
+        return TimelineHitTest.HitTestTrack(
+            _owner.Model!.Items,
             _owner.ViewTransform,
             timeAreaBounds.Left,
-            lane.Id,
-            _owner.GetTrackBounds(layoutBounds, laneIndex).Center.Y,
+            track,
+            _owner.GetTrackBounds(layoutBounds, trackIndex),
             TimelineControlMetrics.ItemHitRadius,
+            TimelineControlMetrics.ResizeHandleWidth,
             layoutPosition);
     }
 

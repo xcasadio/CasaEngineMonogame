@@ -265,7 +265,7 @@ Commit attendu :
 
 - `feat(timeline): render items by kind (instant/duration/marker/range)`
 
-### ⏳ Tache 2.3 — Hit testing generique avec zones
+### ✅ Tache 2.3 — Hit testing generique avec zones
 
 Objectif : un hit testing qui distingue corps d'item et bords de redimensionnement.
 
