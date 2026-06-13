@@ -485,7 +485,7 @@ Commit attendu :
 
 - `feat(timeline): extract item rendering behind a renderer interface`
 
-### ⏳ Tache 4.2 — `ITimelineContextMenuProvider` + migration Animation2D
+### ✅ Tache 4.2 — `ITimelineContextMenuProvider` + migration Animation2D
 
 Objectif : remplacer le sous-classement des menus par une composition.
 
@@ -512,6 +512,21 @@ Validation :
 Commit attendu :
 
 - `refactor(timeline): move context menus to a provider`
+
+Etat actuel :
+
+- ajoute : `ITimelineContextMenuProvider` (dossier `Menu/`, interne) +
+  `TimelineControl.ContextMenuProvider`.
+- `TimelineControl.CreateContextMenu` / `CreateTrackHeaderContextMenu` ne sont plus virtuels :
+  ils routent vers le provider s'il est present, sinon vers `BuildDefaultContextMenu` /
+  `BuildDefaultTrackHeaderContextMenu` (menu generique par evenements).
+- `Animation2dTimelineControl` implemente `ITimelineContextMenuProvider` (implementation
+  explicite) et se branche via `ContextMenuProvider = this` ; les anciens `override` sont
+  devenus les methodes du provider, avec la meme logique (sous-menus d'insertion par
+  propriete, custom event, copy/paste/delete, add/delete track). Menus identiques.
+- la sous-classe `Animation2dTimelineControl` subsiste mais ne fait plus d'override de menu ;
+  elle agit comme adapter + provider + porteur des evenements selection/copy/paste. Son
+  elimination complete au profit d'un `TimelineControl` nu reste un objectif futur.
 
 ---
 

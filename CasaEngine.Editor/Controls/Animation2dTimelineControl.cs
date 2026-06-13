@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.Controls.Timeline;
 using CasaEngine.Editor.Controls.Timeline.Editing;
+using CasaEngine.Editor.Controls.Timeline.Menu;
 using CasaEngine.Framework.Assets.Animations;
 using MGUI.Core.UI;
 
@@ -11,7 +12,7 @@ internal readonly record struct Animation2dTimelineTrackData(string Label, bool 
 
 internal readonly record struct Animation2dTimelineItemData(int TrackIndex, float StartTime, string Label, string ValueText = "", bool IsEditable = true, string ToolTipText = "");
 
-internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAdapter
+internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAdapter, ITimelineContextMenuProvider
 {
     private readonly Dictionary<Guid, int> _eventIndexById = new();
     private readonly Dictionary<Guid, int> _laneIndexById = new();
@@ -53,6 +54,9 @@ internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAda
 
         // Les intentions d'edition et le temps courant passent par l'adapter (ITimelineAdapter).
         Adapter = this;
+
+        // Les menus contextuels passent par le provider (ITimelineContextMenuProvider).
+        ContextMenuProvider = this;
 
         // La selection et le presse-papier restent cables par evenements (l'adapter ne couvre
         // pas copy/paste, et la selection conserve son comportement exact d'origine).
@@ -285,7 +289,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAda
         ItemPasted?.Invoke(sourceEventIndex, laneIndex, timeSeconds);
     }
 
-    internal override MGContextMenu? CreateContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
+    MGContextMenu? ITimelineContextMenuProvider.CreateContextMenu(TimelineControl timeline, TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
     {
         if (ParentWindow == null)
         {
@@ -373,7 +377,7 @@ internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAda
         menu.AddButton(label, _ => TrackPropertyInsertRequested?.Invoke(property, laneIndex, timeSeconds));
     }
 
-    internal override MGContextMenu? CreateTrackHeaderContextMenu(TimelineTrack lane)
+    MGContextMenu? ITimelineContextMenuProvider.CreateTrackHeaderContextMenu(TimelineControl timeline, TimelineTrack lane)
     {
         if (!_laneIndexById.TryGetValue(lane.Id, out int laneIndex)
             || !_laneDataById.TryGetValue(lane.Id, out Animation2dTimelineTrackData laneData)

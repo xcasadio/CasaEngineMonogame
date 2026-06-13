@@ -10,6 +10,7 @@ using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Keyboard;
 using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Editor.Controls.Timeline.Rendering;
+using CasaEngine.Editor.Controls.Timeline.Menu;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -39,6 +40,8 @@ internal class TimelineControl : MGGrid
     public ITimelineAdapter? Adapter { get; set; }
 
     public ITimelineItemRenderer ItemRenderer { get; set; } = new DefaultTimelineItemRenderer();
+
+    internal ITimelineContextMenuProvider? ContextMenuProvider { get; set; }
 
     public TimelineSnapSettings SnapSettings { get; } = new();
 
@@ -677,7 +680,17 @@ internal class TimelineControl : MGGrid
         return true;
     }
 
-    internal virtual MGContextMenu? CreateContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
+    internal MGContextMenu? CreateContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
+    {
+        if (ContextMenuProvider != null)
+        {
+            return ContextMenuProvider.CreateContextMenu(this, lane, timelineEvent, cursorTimeSeconds);
+        }
+
+        return BuildDefaultContextMenu(lane, timelineEvent, cursorTimeSeconds);
+    }
+
+    private MGContextMenu? BuildDefaultContextMenu(TimelineTrack? lane, TimelineItem? timelineEvent, float cursorTimeSeconds)
     {
         if (ParentWindow == null)
         {
@@ -722,7 +735,17 @@ internal class TimelineControl : MGGrid
         return menu.Items.Count > 0 ? menu : null;
     }
 
-    internal virtual MGContextMenu? CreateTrackHeaderContextMenu(TimelineTrack lane)
+    internal MGContextMenu? CreateTrackHeaderContextMenu(TimelineTrack lane)
+    {
+        if (ContextMenuProvider != null)
+        {
+            return ContextMenuProvider.CreateTrackHeaderContextMenu(this, lane);
+        }
+
+        return BuildDefaultTrackHeaderContextMenu(lane);
+    }
+
+    private MGContextMenu? BuildDefaultTrackHeaderContextMenu(TimelineTrack lane)
     {
         if (ParentWindow == null)
         {
