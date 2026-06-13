@@ -462,7 +462,7 @@ Commit attendu :
 
 # Phase 4 — Rendu et menus extensibles
 
-### ⏳ Tache 4.1 — `ITimelineItemRenderer` + renderer par defaut
+### ✅ Tache 4.1 — `ITimelineItemRenderer` + renderer par defaut
 
 Objectif : extraire le dessin des items hors du viewport.
 

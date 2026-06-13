@@ -9,6 +9,7 @@ using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Keyboard;
 using CasaEngine.Editor.Controls.Timeline.Editing;
+using CasaEngine.Editor.Controls.Timeline.Rendering;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -36,6 +37,8 @@ internal class TimelineControl : MGGrid
     public ITimelineEditPolicy? EditPolicy { get; set; }
 
     public ITimelineAdapter? Adapter { get; set; }
+
+    public ITimelineItemRenderer ItemRenderer { get; set; } = new DefaultTimelineItemRenderer();
 
     public TimelineSnapSettings SnapSettings { get; } = new();
 

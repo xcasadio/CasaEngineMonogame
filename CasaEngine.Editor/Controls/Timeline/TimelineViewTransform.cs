@@ -2,7 +2,7 @@ using System;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
-internal sealed class TimelineViewTransform
+public sealed class TimelineViewTransform
 {
     public float PixelsPerSecond { get; set; } = 96f;
 
