@@ -389,7 +389,7 @@ Etat actuel :
   `SnapSettings.IsEnabled = false`, donc aucun snap par defaut et les valeurs de drag restent
   identiques. Le snapping est une capacite activable plus tard.
 
-### ⏳ Tache 3.2 — `ITimelineAdapter` + `Animation2dTimelineAdapter`
+### ✅ Tache 3.2 — `ITimelineAdapter` + `Animation2dTimelineAdapter`
 
 Objectif : isoler la construction du modele et la traduction des intentions d'edition.
 
@@ -404,6 +404,23 @@ Contraintes :
   traduction des intentions d'edition (move/resize/delete/duplicate/insert/rename/selection/
   temps courant) passe desormais par `ITimelineAdapter`, et non plus par les evenements
   publics historiques de `Animation2dTimelineControl` lorsqu'un adapter est present.
+
+Etat actuel :
+
+- ajoute : `ITimelineAdapter` (dossier `Editing/`) + `TimelineControl.Adapter`.
+- routage : quand un adapter est present, `TimelineControl` route move, resize, delete,
+  duplicate, insert, rename de track et temps courant vers l'adapter (avec repli sur les
+  evenements publics quand `Adapter == null`, pour les consommateurs purement event-based).
+- `Animation2dTimelineControl` implemente `ITimelineAdapter` (implementation explicite) et se
+  branche comme son propre adapter (`Adapter = this`). La traduction `Guid <-> index` et la
+  notification de l'inspector (evenements index-based historiques) sont preservees.
+- **Restees sur evenements (par securite, comportement identique)** : la selection
+  (`SelectedItemChanged`/`SelectedTrackChanged`) et le presse-papier (`CopyRequested`/
+  `PasteRequested`). `ITimelineAdapter` ne definit pas copy/paste ; la selection garde sa
+  logique de de-duplication d'origine cote inspector. `OnSelectionChanged` existe sur
+  l'interface mais n'est pas appele par le controle pour Animation2D.
+- subclass `Animation2dTimelineControl` conserve (les menus contextuels restent override ;
+  leur passage en provider est la tache 4.2). Le smoke manuel `GameEditor` reste a faire.
 
 Fichiers cibles :
 

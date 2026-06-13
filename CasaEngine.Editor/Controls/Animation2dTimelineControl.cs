@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CasaEngine.Editor.Controls.Timeline;
+using CasaEngine.Editor.Controls.Timeline.Editing;
 using CasaEngine.Framework.Assets.Animations;
 using MGUI.Core.UI;
 
@@ -10,7 +11,7 @@ internal readonly record struct Animation2dTimelineTrackData(string Label, bool 
 
 internal readonly record struct Animation2dTimelineItemData(int TrackIndex, float StartTime, string Label, string ValueText = "", bool IsEditable = true, string ToolTipText = "");
 
-internal sealed class Animation2dTimelineControl : TimelineControl
+internal sealed class Animation2dTimelineControl : TimelineControl, ITimelineAdapter
 {
     private readonly Dictionary<Guid, int> _eventIndexById = new();
     private readonly Dictionary<Guid, int> _laneIndexById = new();
@@ -49,14 +50,14 @@ internal sealed class Animation2dTimelineControl : TimelineControl
     {
         CornerHeaderText = string.Empty;
         TrackHeaderText = "Track 1";
+
+        // Les intentions d'edition et le temps courant passent par l'adapter (ITimelineAdapter).
+        Adapter = this;
+
+        // La selection et le presse-papier restent cables par evenements (l'adapter ne couvre
+        // pas copy/paste, et la selection conserve son comportement exact d'origine).
         SelectedItemChanged += OnSelectedEventChanged;
         SelectedTrackChanged += OnSelectedLaneChanged;
-        TrackLabelEditCommitted += OnLaneLabelEditCommitted;
-        TimeScrubbed += timeSeconds => ScrubRequested?.Invoke(timeSeconds);
-        ItemTimeEditCommitted += OnEventTimeEditCommitted;
-        DuplicateRequested += OnDuplicateRequested;
-        DeleteRequested += OnDeleteRequested;
-        InsertRequested += OnInsertRequested;
         CopyRequested += OnCopyRequested;
         PasteRequested += OnPasteRequested;
     }
@@ -190,44 +191,65 @@ internal sealed class Animation2dTimelineControl : TimelineControl
         TrackSelected?.Invoke(-1);
     }
 
-    private void OnLaneLabelEditCommitted(TimelineTrack lane, string label)
+    TimelineModel ITimelineAdapter.BuildModel()
     {
-        if (_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
+        return Model ?? new TimelineModel();
+    }
+
+    void ITimelineAdapter.MoveItem(Guid itemId, Guid targetTrackId, float newStartTime)
+    {
+        if (_eventIndexById.TryGetValue(itemId, out int eventIndex))
         {
-            TrackLabelEdited?.Invoke(laneIndex, label);
+            ItemTimeEdited?.Invoke(eventIndex, newStartTime);
         }
     }
 
-    private void OnEventTimeEditCommitted(TimelineItem timelineEvent, float timeSeconds)
+    void ITimelineAdapter.ResizeItem(Guid itemId, float newStartTime, float newDuration)
     {
-        if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
-        {
-            ItemTimeEdited?.Invoke(eventIndex, timeSeconds);
-        }
+        // Les evenements Animation2D sont ponctuels : aucun redimensionnement.
     }
 
-    private void OnDuplicateRequested(TimelineItem timelineEvent, float timeSeconds)
+    void ITimelineAdapter.DeleteItem(Guid itemId)
     {
-        if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
-        {
-            ItemDuplicated?.Invoke(eventIndex, timeSeconds);
-        }
-    }
-
-    private void OnDeleteRequested(TimelineItem timelineEvent)
-    {
-        if (_eventIndexById.TryGetValue(timelineEvent.Id, out int eventIndex))
+        if (_eventIndexById.TryGetValue(itemId, out int eventIndex))
         {
             ItemDeleted?.Invoke(eventIndex);
         }
     }
 
-    private void OnInsertRequested(TimelineTrack lane, float timeSeconds)
+    void ITimelineAdapter.DuplicateItem(Guid itemId, Guid targetTrackId, float newStartTime)
     {
-        if (_laneIndexById.TryGetValue(lane.Id, out int laneIndex))
+        if (_eventIndexById.TryGetValue(itemId, out int eventIndex))
         {
-            TrackInsertRequested?.Invoke(laneIndex, timeSeconds);
+            ItemDuplicated?.Invoke(eventIndex, newStartTime);
         }
+    }
+
+    void ITimelineAdapter.InsertItem(Guid trackId, float time)
+    {
+        if (_laneIndexById.TryGetValue(trackId, out int laneIndex))
+        {
+            TrackInsertRequested?.Invoke(laneIndex, time);
+        }
+    }
+
+    void ITimelineAdapter.RenameTrack(Guid trackId, string newName)
+    {
+        if (_laneIndexById.TryGetValue(trackId, out int laneIndex))
+        {
+            TrackLabelEdited?.Invoke(laneIndex, newName);
+        }
+    }
+
+    void ITimelineAdapter.OnSelectionChanged(Guid? itemId, Guid? trackId)
+    {
+        ItemSelected?.Invoke(itemId.HasValue && _eventIndexById.TryGetValue(itemId.Value, out int eventIndex) ? eventIndex : -1);
+        TrackSelected?.Invoke(trackId.HasValue && _laneIndexById.TryGetValue(trackId.Value, out int laneIndex) ? laneIndex : -1);
+    }
+
+    void ITimelineAdapter.OnCurrentTimeChanged(float time)
+    {
+        ScrubRequested?.Invoke(time);
     }
 
     private void OnCopyRequested(TimelineItem timelineEvent)

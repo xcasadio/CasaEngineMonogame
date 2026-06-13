@@ -35,6 +35,8 @@ internal class TimelineControl : MGGrid
 
     public ITimelineEditPolicy? EditPolicy { get; set; }
 
+    public ITimelineAdapter? Adapter { get; set; }
+
     public TimelineSnapSettings SnapSettings { get; } = new();
 
     public TimelineModel? Model => _model;
@@ -120,7 +122,17 @@ internal class TimelineControl : MGGrid
         _cornerHeader = new TimelineCornerHeader(window);
         _ruler = new TimelineRuler(window, this);
     _trackHeaderPanel = new TimelineTrackHeaderPanel(window, this);
-        _trackHeaderPanel.TrackLabelEdited += (lane, label) => TrackLabelEditCommitted?.Invoke(lane, label);
+        _trackHeaderPanel.TrackLabelEdited += (lane, label) =>
+        {
+            if (Adapter != null)
+            {
+                Adapter.RenameTrack(lane.Id, label);
+            }
+            else
+            {
+                TrackLabelEditCommitted?.Invoke(lane, label);
+            }
+        };
         _viewport = new TimelineViewport(window, this);
         _horizontalScrollBar = new TimelineHorizontalScrollBar(window);
         _horizontalScrollBar.ValueChanged += OnHorizontalScrollBarValueChanged;
@@ -322,17 +334,39 @@ internal class TimelineControl : MGGrid
 
     internal void NotifyTimeScrubbed(float timeSeconds)
     {
-        TimeScrubbed?.Invoke(timeSeconds);
+        if (Adapter != null)
+        {
+            Adapter.OnCurrentTimeChanged(timeSeconds);
+        }
+        else
+        {
+            TimeScrubbed?.Invoke(timeSeconds);
+        }
     }
 
     protected void NotifyDuplicateRequested(TimelineItem timelineEvent, float timeSeconds)
     {
-        DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
+        if (Adapter != null)
+        {
+            Adapter.DuplicateItem(timelineEvent.Id, timelineEvent.TrackId, actualTime);
+        }
+        else
+        {
+            DuplicateRequested?.Invoke(timelineEvent, actualTime);
+        }
     }
 
     protected void NotifyDeleteRequested(TimelineItem timelineEvent)
     {
-        DeleteRequested?.Invoke(timelineEvent);
+        if (Adapter != null)
+        {
+            Adapter.DeleteItem(timelineEvent.Id);
+        }
+        else
+        {
+            DeleteRequested?.Invoke(timelineEvent);
+        }
     }
 
     protected void NotifyCopyRequested(TimelineItem timelineEvent)
@@ -466,7 +500,14 @@ internal class TimelineControl : MGGrid
             return;
         }
 
-        ItemTimeEditCommitted?.Invoke(timelineEvent, actualTime);
+        if (Adapter != null)
+        {
+            Adapter.MoveItem(timelineEvent.Id, timelineEvent.TrackId, actualTime);
+        }
+        else
+        {
+            ItemTimeEditCommitted?.Invoke(timelineEvent, actualTime);
+        }
     }
 
     internal void CommitDraggedItemResize(Guid itemId, float newStartTime, float newDuration)
@@ -490,7 +531,14 @@ internal class TimelineControl : MGGrid
             return;
         }
 
-        ItemResizeCommitted?.Invoke(item, actualStart, actualDuration);
+        if (Adapter != null)
+        {
+            Adapter.ResizeItem(item.Id, actualStart, actualDuration);
+        }
+        else
+        {
+            ItemResizeCommitted?.Invoke(item, actualStart, actualDuration);
+        }
     }
 
     private bool IsEditAllowed(TimelineItem item, float newStartTime, float newDuration, bool isResize)
@@ -529,7 +577,15 @@ internal class TimelineControl : MGGrid
             return;
         }
 
-        DuplicateRequested?.Invoke(timelineEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
+        if (Adapter != null)
+        {
+            Adapter.DuplicateItem(timelineEvent.Id, timelineEvent.TrackId, actualTime);
+        }
+        else
+        {
+            DuplicateRequested?.Invoke(timelineEvent, actualTime);
+        }
     }
 
     internal bool TryInsertAtSelectedTrack(float timeSeconds)
@@ -540,7 +596,16 @@ internal class TimelineControl : MGGrid
             return false;
         }
 
-        InsertRequested?.Invoke(lane, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
+        if (Adapter != null)
+        {
+            Adapter.InsertItem(lane.Id, actualTime);
+        }
+        else
+        {
+            InsertRequested?.Invoke(lane, actualTime);
+        }
+
         return true;
     }
 
@@ -552,7 +617,16 @@ internal class TimelineControl : MGGrid
             return false;
         }
 
-        DuplicateRequested?.Invoke(selectedEvent, Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds()));
+        float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
+        if (Adapter != null)
+        {
+            Adapter.DuplicateItem(selectedEvent.Id, selectedEvent.TrackId, actualTime);
+        }
+        else
+        {
+            DuplicateRequested?.Invoke(selectedEvent, actualTime);
+        }
+
         return true;
     }
 
@@ -564,7 +638,15 @@ internal class TimelineControl : MGGrid
             return false;
         }
 
-        DeleteRequested?.Invoke(selectedEvent);
+        if (Adapter != null)
+        {
+            Adapter.DeleteItem(selectedEvent.Id);
+        }
+        else
+        {
+            DeleteRequested?.Invoke(selectedEvent);
+        }
+
         return true;
     }
 
