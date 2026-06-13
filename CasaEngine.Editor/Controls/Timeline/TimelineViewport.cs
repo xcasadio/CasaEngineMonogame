@@ -488,7 +488,7 @@ internal sealed class TimelineViewport : MGElement
         Point layoutPosition = ConvertCoordinateSpace(CoordinateSpace.Screen, CoordinateSpace.Layout, e.Position);
         Rectangle timeAreaBounds = GetTimeAreaBounds(layoutBounds);
         float x = Math.Max(layoutPosition.X, timeAreaBounds.Left);
-        float cursorTime = GetTimeAtPosition(x, timeAreaBounds.Left);
+        float cursorTime = _owner.SnapTime(GetTimeAtPosition(x, timeAreaBounds.Left), _draggedItem);
 
         switch (_dragMode)
         {

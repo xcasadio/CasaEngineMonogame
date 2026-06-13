@@ -349,7 +349,7 @@ Commit attendu :
 Objectif global : sortir les regles metier et la construction du modele hors du controle,
 validees par une implementation Animation2D.
 
-### ⏳ Tache 3.1 — `ITimelineEditPolicy` + snap + validation
+### ✅ Tache 3.1 — `ITimelineEditPolicy` + snap + validation
 
 Objectif : centraliser snap et regles d'edition derriere une policy branchee sur le controle.
 
@@ -377,6 +377,17 @@ Validation :
 Commit attendu :
 
 - `feat(timeline): add edit policy with snapping and validation`
+
+Etat actuel :
+
+- ajoutes : `ITimelineEditPolicy`, `TimelineSnapSettings`, `TimelineSnapMode`,
+  `TimelineSnapContext`, `TimelineValidationResult` (dossier `Editing/`), et
+  `Animation2dTimelineEditPolicy` (snap frame/step).
+- branche : `TimelineControl.EditPolicy` + `SnapSettings` ; le snap est applique pendant le
+  drag (`SnapTime`) et les commits move/resize consultent `CanMove`/`CanResize` + `ValidateMove`.
+- **comportement Animation2D inchange** : l'editeur branche la policy mais laisse
+  `SnapSettings.IsEnabled = false`, donc aucun snap par defaut et les valeurs de drag restent
+  identiques. Le snapping est une capacite activable plus tard.
 
 ### ⏳ Tache 3.2 — `ITimelineAdapter` + `Animation2dTimelineAdapter`
 

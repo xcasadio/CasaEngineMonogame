@@ -1405,6 +1405,9 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             MinimumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMinimumZoomFactor,
             MaximumPixelsPerSecond = TimelineBasePixelsPerSecond * TimelineMaximumZoomFactor,
         };
+        _timelineControl.EditPolicy = new Animation2dTimelineEditPolicy();
+        // Snapping reste desactive par defaut pour conserver le comportement time-based actuel.
+        _timelineControl.SnapSettings.IsEnabled = false;
         _timelineControl.ItemSelected += SelectEvent;
         _timelineControl.TrackSelected += SelectLane;
         _timelineControl.TrackLabelEdited += OnTimelineLaneLabelEdited;

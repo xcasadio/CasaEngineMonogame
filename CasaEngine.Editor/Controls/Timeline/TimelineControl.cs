@@ -8,6 +8,7 @@ using MGUI.Core.UI.Brushes.Fill_Brushes;
 using MGUI.Core.UI.Containers.Grids;
 using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Keyboard;
+using CasaEngine.Editor.Controls.Timeline.Editing;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
@@ -31,6 +32,10 @@ internal class TimelineControl : MGGrid
     public TimelineViewState ViewState { get; } = new();
 
     public TimelineViewTransform ViewTransform { get; } = new();
+
+    public ITimelineEditPolicy? EditPolicy { get; set; }
+
+    public TimelineSnapSettings SnapSettings { get; } = new();
 
     public TimelineModel? Model => _model;
 
@@ -425,6 +430,23 @@ internal class TimelineControl : MGGrid
         return _model.Tracks.Count > 0 ? _model.Tracks[0] : null;
     }
 
+    internal float SnapTime(float time, TimelineItem? item)
+    {
+        if (_model == null || EditPolicy == null || !SnapSettings.IsEnabled)
+        {
+            return time;
+        }
+
+        TimelineSnapContext context = new()
+        {
+            Model = _model,
+            Track = item != null ? GetTrack(item.TrackId) : null,
+            Item = item,
+            SnapSettings = SnapSettings,
+        };
+        return EditPolicy.SnapTime(time, context);
+    }
+
     internal void CommitDraggedItemTime(Guid eventId, float timeSeconds)
     {
         TimelineItem? timelineEvent = FindItem(eventId);
@@ -435,6 +457,11 @@ internal class TimelineControl : MGGrid
 
         float actualTime = Math.Clamp(timeSeconds, 0f, GetTimelineEndSeconds());
         if (Math.Abs(actualTime - timelineEvent.StartTime) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        if (!IsEditAllowed(timelineEvent, actualTime, timelineEvent.Duration, isResize: false))
         {
             return;
         }
@@ -458,7 +485,40 @@ internal class TimelineControl : MGGrid
             return;
         }
 
+        if (!IsEditAllowed(item, actualStart, actualDuration, isResize: true))
+        {
+            return;
+        }
+
         ItemResizeCommitted?.Invoke(item, actualStart, actualDuration);
+    }
+
+    private bool IsEditAllowed(TimelineItem item, float newStartTime, float newDuration, bool isResize)
+    {
+        if (EditPolicy == null || _model == null)
+        {
+            return true;
+        }
+
+        TimelineTrack? track = GetTrack(item.TrackId);
+        if (track == null)
+        {
+            return true;
+        }
+
+        if (isResize)
+        {
+            if (!EditPolicy.CanResizeItem(item, newStartTime, newDuration))
+            {
+                return false;
+            }
+        }
+        else if (!EditPolicy.CanMoveItem(item, track, newStartTime))
+        {
+            return false;
+        }
+
+        return EditPolicy.ValidateMove(_model, item, track, newStartTime, newDuration).IsValid;
     }
 
     internal void DuplicateDraggedItem(Guid eventId, float timeSeconds)
