@@ -435,7 +435,7 @@ Commit attendu :
 
 - `feat(timeline): add timeline adapter and animation2d implementation`
 
-### ⏳ Tache 3.3 — Tests des abstractions d'edition
+### ✅ Tache 3.3 — Tests des abstractions d'edition
 
 Objectif : couvrir le coeur deterministe des nouvelles abstractions.
 
