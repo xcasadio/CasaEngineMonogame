@@ -317,7 +317,7 @@ Commit attendu :
 
 - `feat(timeline): support move and resize of duration items`
 
-### ⏳ Tache 2.5 — Cloture du coeur : build, tests, smoke
+### ✅ Tache 2.5 — Cloture du coeur : build, tests, smoke
 
 Objectif : verrouiller la fin du coeur generique avec une verification reproductible.
 
@@ -328,6 +328,15 @@ Validation :
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Timeline --no-restore`
 - `dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj -c Debug --filter FullyQualifiedName~Animation2d --no-restore`
 - smoke manuel complet dans `GameEditor`.
+
+Etat actuel :
+
+- build editeur : vert ; build solution `CasaEngine.Editor.MonoGame.sln` : vert (0 erreur) ;
+- tests `~Timeline` + `~Animation2d` : 36 reussis, 0 echec ;
+- les items Animation2D restent `Instant` (rendu losange inchange) ; le rendu blocs,
+  le hit-test par zones et le move/resize ne sont exerces que par des items `Duration`,
+  non presents en Animation2D ;
+- smoke manuel `GameEditor` non execute en CLI.
 
 Commit attendu :
 
