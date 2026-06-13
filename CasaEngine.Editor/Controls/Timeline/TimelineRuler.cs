@@ -68,6 +68,8 @@ internal sealed class TimelineRuler : MGElement
             DrawPlayhead(DA, origin, layoutBounds, playheadX);
         }
 
+        TimelineTimeUnit timeUnit = _owner.Model?.TimeUnit ?? TimelineTimeUnit.Seconds;
+        float frameRate = _owner.Model?.FrameRate ?? 60f;
         float majorTickStep = TimelineTickCalculator.GetMajorTickStepSeconds(_owner.ViewTransform.PixelsPerSecond, TimelineControlMetrics.MajorTickTargetPixels);
         float minorTickStep = TimelineTickCalculator.GetMinorTickStepSeconds(majorTickStep);
         int startIndex = (int)MathF.Floor(Math.Max(0f, _owner.ViewTransform.ViewportXToTime(-TimelineControlMetrics.TimeAreaPaddingLeft)) / minorTickStep);
@@ -103,7 +105,7 @@ internal sealed class TimelineRuler : MGElement
                 continue;
             }
 
-            string label = timeSeconds.ToString("0.##", CultureInfo.InvariantCulture);
+            string label = TimelineTickCalculator.FormatTimeLabel(timeSeconds, timeUnit, frameRate);
             Vector2 textSize = textEngine.MeasureText(font, label);
             float textHeight = Math.Max(textSize.Y, font.LineHeight * scale);
             float labelX = Math.Min(x + 2f, contentRight - textSize.X - 2f);

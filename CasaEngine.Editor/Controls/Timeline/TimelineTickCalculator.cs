@@ -1,9 +1,20 @@
 using System;
+using System.Globalization;
 
 namespace CasaEngine.Editor.Controls.Timeline;
 
 internal static class TimelineTickCalculator
 {
+    public static string FormatTimeLabel(float timeSeconds, TimelineTimeUnit unit, float frameRate)
+    {
+        if (unit == TimelineTimeUnit.Frames && frameRate > 0f)
+        {
+            return MathF.Round(timeSeconds * frameRate).ToString("0", CultureInfo.InvariantCulture);
+        }
+
+        return timeSeconds.ToString("0.##", CultureInfo.InvariantCulture);
+    }
+
     private static readonly float[] MajorTickCandidatesSeconds =
     {
         0.1f,

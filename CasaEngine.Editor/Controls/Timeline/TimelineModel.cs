@@ -9,6 +9,10 @@ public sealed class TimelineModel
 {
     public float DurationSeconds { get; set; } = 0f;
 
+    public TimelineTimeUnit TimeUnit { get; set; } = TimelineTimeUnit.Seconds;
+
+    public float FrameRate { get; set; } = 60f;
+
     public List<TimelineTrack> Tracks { get; } = new();
 
     public List<TimelineItem> Items { get; } = new();

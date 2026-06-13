@@ -123,4 +123,18 @@ public class TimelineEditingTests
         Assert.Null(miss.Item);
         Assert.Equal(TimelineHitTestArea.TrackBody, miss.Area);
     }
+
+    [Fact]
+    public void FormatTimeLabel_Seconds_UsesSecondsFormat()
+    {
+        Assert.Equal("1.5", TimelineTickCalculator.FormatTimeLabel(1.5f, TimelineTimeUnit.Seconds, 60f));
+        Assert.Equal("0", TimelineTickCalculator.FormatTimeLabel(0f, TimelineTimeUnit.Seconds, 60f));
+    }
+
+    [Fact]
+    public void FormatTimeLabel_Frames_UsesFrameNumber()
+    {
+        Assert.Equal("30", TimelineTickCalculator.FormatTimeLabel(0.5f, TimelineTimeUnit.Frames, 60f));
+        Assert.Equal("10", TimelineTickCalculator.FormatTimeLabel(1f, TimelineTimeUnit.Frames, 10f));
+    }
 }

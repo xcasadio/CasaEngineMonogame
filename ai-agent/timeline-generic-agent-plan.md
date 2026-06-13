@@ -567,7 +567,7 @@ Etat actuel :
   et `UpdatePlayback` n'est pas appele dans la boucle Animation2D pour eviter un double pilotage.
   Le controleur expose neanmoins play/pause/stop/seek/etat pour un futur bouton de lecture.
 
-### ⏳ Tache 5.2 — `TimelineTimeUnit` (secondes / frames)
+### ✅ Tache 5.2 — `TimelineTimeUnit` (secondes / frames)
 
 Objectif : permettre a la ruler d'afficher secondes ou frames sans changer le stockage.
 
@@ -589,6 +589,16 @@ Validation :
 Commit attendu :
 
 - `feat(timeline): support frames time unit on the ruler`
+
+Etat actuel :
+
+- ajoute : `TimelineTimeUnit { Seconds, Frames }`, `TimelineModel.TimeUnit` (defaut Seconds)
+  et `TimelineModel.FrameRate` (defaut 60).
+- la ruler formate ses labels via `TimelineTickCalculator.FormatTimeLabel` (secondes en
+  `0.##`, frames en numero de frame). Le pas des graduations reste base sur les secondes ;
+  seul l'affichage change. Stockage interne en secondes inchange.
+- defaut Seconds : Animation2D n'opte pas pour Frames, rendu de la ruler inchange.
+- tests : `FormatTimeLabel` couvert pour secondes et frames.
 
 ---
 
