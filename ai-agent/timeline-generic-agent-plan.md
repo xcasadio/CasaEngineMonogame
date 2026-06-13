@@ -214,7 +214,7 @@ Objectif global de la phase : introduire la duree et le type visuel d'item dans 
 le rendu et l'interaction, avec des defauts **retro-compatibles** (Animation2D reste en items
 ponctuels au rendu identique).
 
-### ⏳ Tache 2.1 — Ajouter `Duration`, `TimelineItemKind` et les drapeaux d'edition
+### ✅ Tache 2.1 — Ajouter `Duration`, `TimelineItemKind` et les drapeaux d'edition
 
 Objectif : enrichir `TimelineItem` sans changer le comportement par defaut.
 

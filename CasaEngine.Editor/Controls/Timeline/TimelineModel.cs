@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 
@@ -21,6 +23,14 @@ public sealed class TimelineTrack
     public bool IsEditable { get; set; } = true;
 }
 
+public enum TimelineItemKind
+{
+    Instant,
+    Duration,
+    Range,
+    Marker
+}
+
 public sealed class TimelineItem
 {
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -29,11 +39,25 @@ public sealed class TimelineItem
 
     public float StartTime { get; set; }
 
+    public float Duration { get; set; } = 0f;
+
+    public TimelineItemKind Kind { get; set; } = TimelineItemKind.Instant;
+
     public string ItemType { get; set; } = string.Empty;
+
+    public string DisplayName { get; set; } = string.Empty;
 
     public string ValueText { get; set; } = string.Empty;
 
     public string ToolTipText { get; set; } = string.Empty;
 
     public bool IsEditable { get; set; } = true;
+
+    public bool CanMove { get; set; } = true;
+
+    public bool CanResizeStart { get; set; }
+
+    public bool CanResizeEnd { get; set; }
+
+    public object? Source { get; set; }
 }
