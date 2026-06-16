@@ -32,6 +32,7 @@ public class SkeletalAnimationBlendingDemo : Demo
     private SkinnedMeshComponent? _skinnedMeshComponent;
     private WeightedBlendAnimationNode? _blendNode;
     private readonly AnimationClipNode[] _clipNodes = new AnimationClipNode[3];
+    private BlendingControlsScreen? _controlsScreen;
 
     // three.js default blend weights: idle 0, walk 1, run 0.
     private float _idleWeight;
@@ -100,6 +101,13 @@ public class SkeletalAnimationBlendingDemo : Demo
         // three.js-style close 3/4 front view (camera offset (1,2,-3) scaled to the kid).
         // The character faces -Z, so the camera sits on the -Z side to see the front.
         camera.SetPositionAndTarget(new Vector3(3.4f, 5.2f, -12.5f), new Vector3(0f, 2.7f, 0f));
+
+        var uiView = GetUIView();
+        if (uiView != null && _controlsScreen == null)
+        {
+            _controlsScreen = new BlendingControlsScreen();
+            uiView.PushScreen(_controlsScreen);
+        }
     }
 
     public override void Initialize(CasaEngineGame game)
@@ -173,6 +181,12 @@ public class SkeletalAnimationBlendingDemo : Demo
 
     public override void Clean()
     {
+        if (_controlsScreen != null)
+        {
+            GetUIView()?.RemoveScreen(_controlsScreen);
+            _controlsScreen = null;
+        }
+
         if (_game?.GameManager.CurrentWorld is { } world)
         {
             world.EnvironmentSettings.ResetToDefaults();
@@ -185,6 +199,9 @@ public class SkeletalAnimationBlendingDemo : Demo
         _blendNode = null;
         Array.Clear(_clipNodes);
     }
+
+    private CasaEngine.Framework.UI.IUIViewRuntime? GetUIView()
+        => _game?.GameManager.ViewManager.GetActiveUIView();
 
     private static void CreateGround(World world, GraphicsDevice graphicsDevice)
     {

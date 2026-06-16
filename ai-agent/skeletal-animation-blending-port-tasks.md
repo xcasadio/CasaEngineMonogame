@@ -279,7 +279,16 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 6 — Fenêtre « Controls » (structure MGUI)
 
-- ⏳ **Todo** — Créer l'écran du panneau de contrôle
+- ✅ **Done** — Créer l'écran du panneau de contrôle
+  - `BlendingControlsScreen : UIScreenBase` (couche HUD), `MGWindow` ancré en haut-droite,
+    `MGScrollViewer` + `MGStackPanel` de 6 `MGExpander` :
+    Visibility, Activation/Deactivation, Pausing/Stepping, Crossfading, Blend Weights,
+    General Speed, avec `MGCheckBox`, `MGButton` et `MGSlider` (valeurs affichées).
+  - L'écran expose des `event Action`/`Action<float>`/`Action<bool>` vers le demo et
+    des méthodes `SetWeightDisplays` / `SetCrossFadeButtonsEnabled` ; aucune logique de
+    lecture dans l'écran. Le demo crée + pousse l'écran (`InitializeCamera`) et le retire
+    dans `Clean`.
+  - Validation : capture montre le panneau complet avec ses 6 sections repliables.
   - Objectif : reproduire la structure du panneau lil-gui avec ses 6 sections repliables,
     sans encore câbler toute la logique.
   - Détails :
@@ -402,7 +411,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 3 | ✅ Done | feat(demos): add kid locomotion skinned model factory (idle/walk/run) |
 | 4 | ✅ Done | feat(demos): add skeletal animation blending demo scene |
 | 5 | ✅ Done | feat(demos): drive idle/walk/run weighted blend |
-| 6 | ⏳ Todo | — |
+| 6 | ✅ Done | feat(demos): add blending controls panel (MGUI) |
 | 7 | ⏳ Todo | — |
 | 8 | ⏳ Todo | — |
 | 9 | ⏳ Todo | — |
