@@ -159,7 +159,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 1 — Nœud de blend pondéré N voies (framework)
 
-- ⏳ **Todo** — Ajouter `WeightedBlendAnimationNode`
+- ✅ **Done** — Ajouter `WeightedBlendAnimationNode`
   - Objectif : un nœud de graphe d'animation qui mélange `N` entrées selon `N` poids,
     normalisés par la somme des poids ; si la somme est nulle, retomber sur la pose de bind.
   - Détails :
@@ -372,7 +372,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | Tâche | Statut | Commit |
 | --- | --- | --- |
 | 0 | ✅ Done | chore(demos): add three.js blending reference screenshot |
-| 1 | ⏳ Todo | — |
+| 1 | ✅ Done | feat(animation): add weighted N-way blend graph node |
 | 2 | ⏳ Todo | — |
 | 3 | ⏳ Todo | — |
 | 4 | ⏳ Todo | — |
