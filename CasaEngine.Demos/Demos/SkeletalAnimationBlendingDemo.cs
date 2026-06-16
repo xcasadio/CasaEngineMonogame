@@ -124,9 +124,10 @@ public class SkeletalAnimationBlendingDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        // three.js-style close 3/4 front view (camera offset (1,2,-3) scaled to the kid).
-        // The character faces -Z, so the camera sits on the -Z side to see the front.
-        camera.SetPositionAndTarget(new Vector3(3.4f, 5.2f, -12.5f), new Vector3(0f, 2.7f, 0f));
+        // three.js-style front view (FOV 45, camera offset (1,2,-3) scaled to the kid so
+        // the character fills roughly two thirds of the frame). The character faces -Z,
+        // so the camera sits on the -Z side to see the front.
+        camera.SetPositionAndTarget(new Vector3(4.2f, 6.0f, -16.5f), new Vector3(0f, 2.6f, 0f));
 
         var uiView = GetUIView();
         if (uiView != null && _controlsScreen == null)

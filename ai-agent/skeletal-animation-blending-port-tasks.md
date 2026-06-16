@@ -382,7 +382,19 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 10 — Parité visuelle par capture d'écran
 
-- ⏳ **Todo** — Comparer CasaEngine vs three.js et ajuster
+- ✅ **Done** — Comparer CasaEngine vs three.js et ajuster
+  - Capture finale `artifacts/validation/blending-casaengine.png` et montage côte à côte
+    `artifacts/validation/blending-compare.png` (référence three.js à gauche).
+  - Cadrage ajusté : caméra `(4.2, 6.0, -16.5)` cible `(0, 2.6, 0)`, personnage plein cadre
+    à ~2/3 de hauteur, fond gris `0xa0a0a0`, sol gris `0xcbcbcb`, ambient `0.72`/`1.25`.
+    Composition (scène grise + personnage de face + panneau Controls à droite) conforme
+    à l'exemple three.js.
+  - Écarts résiduels documentés :
+    1. Modèle « kid » au lieu du Soldier (CasaEngine n'a pas l'asset `Soldier.glb` ;
+       le modèle kid existant fournit idle/walk/run sur un squelette compatible).
+    2. Pas d'ombre de contact (les ombres monde rendent le fond noir — limitation moteur
+       préexistante, voir Tâche 4).
+    3. Pas de brouillard : horizon net au lieu du fondu three.js (Tâche 11, optionnelle).
   - Objectif : obtenir un rendu équivalent (pose idle par défaut, cadrage, fond, ombre).
   - Détails :
     - Capturer le demo avec `CASAENGINE_CAPTURE_SCREENSHOT_PATH` →
@@ -436,6 +448,6 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 7 | ✅ Done | feat(demos): wire blend weight and speed controls |
 | 8 | ✅ Done | feat(demos): wire crossfade, activation and single-step controls |
 | 9 | ✅ Done | feat(demos): add model and skeleton visibility toggles |
-| 10 | ⏳ Todo | — |
+| 10 | ✅ Done | test(demos): validate skeletal blending demo visual parity |
 | 11 (optionnel) | ⏳ Todo | — |
 | 12 | ⏳ Todo | — |
