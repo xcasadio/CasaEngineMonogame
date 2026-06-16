@@ -106,6 +106,10 @@ public class SkeletalAnimationBlendingDemo : Demo
         if (uiView != null && _controlsScreen == null)
         {
             _controlsScreen = new BlendingControlsScreen();
+            _controlsScreen.IdleWeightChanged += weight => _idleWeight = weight;
+            _controlsScreen.WalkWeightChanged += weight => _walkWeight = weight;
+            _controlsScreen.RunWeightChanged += weight => _runWeight = weight;
+            _controlsScreen.TimeScaleChanged += speed => _timeScale = speed;
             uiView.PushScreen(_controlsScreen);
         }
     }

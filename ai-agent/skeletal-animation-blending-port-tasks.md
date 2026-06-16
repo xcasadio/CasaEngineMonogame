@@ -316,7 +316,12 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 7 — Câblage Blend Weights + General Speed
 
-- ⏳ **Todo** — Relier les sliders de poids et de vitesse
+- ✅ **Done** — Relier les sliders de poids et de vitesse
+  - Le demo s'abonne à `IdleWeightChanged`/`WalkWeightChanged`/`RunWeightChanged` et
+    `TimeScaleChanged` pour mettre à jour `_idleWeight`/`_walkWeight`/`_runWeight`/`_timeScale`,
+    appliqués chaque frame dans `Update`. La synchronisation des sliders depuis l'extérieur
+    (`SetWeightDisplays`) est utilisée par les crossfades en Tâche 8.
+  - Validation : build OK ; le test interactif (déplacement des sliders) est manuel.
   - Objectif : les sliders *idle/walk/run weight* mettent à jour les poids du nœud ;
     *time scale* met à jour la vitesse.
   - Détails :
@@ -412,7 +417,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 4 | ✅ Done | feat(demos): add skeletal animation blending demo scene |
 | 5 | ✅ Done | feat(demos): drive idle/walk/run weighted blend |
 | 6 | ✅ Done | feat(demos): add blending controls panel (MGUI) |
-| 7 | ⏳ Todo | — |
+| 7 | ✅ Done | feat(demos): wire blend weight and speed controls |
 | 8 | ⏳ Todo | — |
 | 9 | ⏳ Todo | — |
 | 10 | ⏳ Todo | — |
