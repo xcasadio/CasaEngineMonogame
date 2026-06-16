@@ -1,5 +1,6 @@
 using System;
 using CasaEngine.Engine.Primitives.ThreeD;
+using CasaEngine.Framework.Animations;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.Rendering.Models;
@@ -22,9 +23,21 @@ public class SkeletalAnimationBlendingDemo : Demo
         Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
     private const float CharacterScale = 0.1f;
 
+    private const int IdleIndex = 0;
+    private const int WalkIndex = 1;
+    private const int RunIndex = 2;
+
     private CasaEngineGame? _game;
     private Entity? _characterEntity;
     private SkinnedMeshComponent? _skinnedMeshComponent;
+    private WeightedBlendAnimationNode? _blendNode;
+    private readonly AnimationClipNode[] _clipNodes = new AnimationClipNode[3];
+
+    // three.js default blend weights: idle 0, walk 1, run 0.
+    private float _idleWeight;
+    private float _walkWeight = 1f;
+    private float _runWeight;
+    private float _timeScale = 1f;
 
     public override string Title => "Skeletal animation blending";
 
@@ -112,13 +125,50 @@ public class SkeletalAnimationBlendingDemo : Demo
         _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
 
-        _skinnedMeshComponent.PlayAnimation(0);
+        BuildBlendGraph();
 
         world.AddEntity(_characterEntity);
     }
 
+    private void BuildBlendGraph()
+    {
+        if (_skinnedMeshComponent == null)
+        {
+            return;
+        }
+
+        var clips = _skinnedMeshComponent.AnimationClips;
+        if (clips.Count < 3)
+        {
+            throw new InvalidOperationException("The skeletal blending demo expects idle, walk and run clips.");
+        }
+
+        _clipNodes[IdleIndex] = new AnimationClipNode(clips[IdleIndex], loop: true);
+        _clipNodes[WalkIndex] = new AnimationClipNode(clips[WalkIndex], loop: true);
+        _clipNodes[RunIndex] = new AnimationClipNode(clips[RunIndex], loop: true);
+
+        _blendNode = new WeightedBlendAnimationNode(
+            new IAnimationGraphNode[] { _clipNodes[IdleIndex], _clipNodes[WalkIndex], _clipNodes[RunIndex] },
+            new[] { _idleWeight, _walkWeight, _runWeight });
+
+        _skinnedMeshComponent.PlayAnimationGraph(_blendNode);
+    }
+
     public override void Update(GameTime gameTime)
     {
+        if (_blendNode == null)
+        {
+            return;
+        }
+
+        _blendNode.SetWeight(IdleIndex, _idleWeight);
+        _blendNode.SetWeight(WalkIndex, _walkWeight);
+        _blendNode.SetWeight(RunIndex, _runWeight);
+
+        for (var clipIndex = 0; clipIndex < _clipNodes.Length; clipIndex++)
+        {
+            _clipNodes[clipIndex].Speed = _timeScale;
+        }
     }
 
     public override void Clean()
@@ -132,6 +182,8 @@ public class SkeletalAnimationBlendingDemo : Demo
         _game = null;
         _characterEntity = null;
         _skinnedMeshComponent = null;
+        _blendNode = null;
+        Array.Clear(_clipNodes);
     }
 
     private static void CreateGround(World world, GraphicsDevice graphicsDevice)

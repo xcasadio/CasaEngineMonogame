@@ -260,7 +260,11 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 5 — Mélange idle/walk/run pondéré + vitesse
 
-- ⏳ **Todo** — Brancher le `WeightedBlendAnimationNode`
+- ✅ **Done** — Brancher le `WeightedBlendAnimationNode`
+  - 3 `AnimationClipNode` (idle/walk/run, `Loop = true`) + un `WeightedBlendAnimationNode`
+    racine joué via `PlayAnimationGraph`. Poids par défaut three.js : idle 0, walk 1, run 0.
+    `Update` applique les poids au nœud et `Speed = _timeScale` aux 3 clips chaque frame.
+  - Validation : capture montre le personnage en pose de marche (walk weight 1).
   - Objectif : jouer les 3 clips simultanément via `PlayAnimationGraph`, avec des poids
     pilotables et une vitesse globale.
   - Détails :
@@ -397,7 +401,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 2 | ✅ Done | feat(animation): add explicit single-step advance for paused playback |
 | 3 | ✅ Done | feat(demos): add kid locomotion skinned model factory (idle/walk/run) |
 | 4 | ✅ Done | feat(demos): add skeletal animation blending demo scene |
-| 5 | ⏳ Todo | — |
+| 5 | ✅ Done | feat(demos): drive idle/walk/run weighted blend |
 | 6 | ⏳ Todo | — |
 | 7 | ⏳ Todo | — |
 | 8 | ⏳ Todo | — |
