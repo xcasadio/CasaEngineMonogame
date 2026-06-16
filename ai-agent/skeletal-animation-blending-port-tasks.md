@@ -224,7 +224,20 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 4 — Scène du demo (caméra, sol, éclairage, fond)
 
-- ⏳ **Todo** — Créer `SkeletalAnimationBlendingDemo` (scène statique)
+- ✅ **Done** — Créer `SkeletalAnimationBlendingDemo` (scène statique)
+  - Demo enregistré dans `DemosGame` (`Title = "Skeletal animation blending"`).
+  - Caméra `CameraLookAtComponent`, vue 3/4 avant rapprochée style three.js ;
+    le personnage regarde −Z, la caméra est placée côté −Z pour voir la face.
+  - Fond gris `0xa0a0a0`, sol `LitDiffuseMaterial` gris `0xcbcbcb` (plan 100×100),
+    ambient clair approximant l'`HemisphereLight`, lumière directionnelle clé + fill.
+  - Personnage chargé via `KidLocomotionModelFactory`, joue `idle`.
+  - ⚠ Note ombres : les ombres monde restent **désactivées**. Les activer rend le clear
+    du fond `SolidColor` noir sur une vue back-buffer (la passe d'ombre change de render
+    target et MonoGame jette le clear du back-buffer). Le fond gris étant l'élément
+    visuel dominant de l'exemple, il est conservé ; l'ombre de contact est omise
+    (limitation moteur préexistante, hors périmètre de cette tâche).
+  - Validation : capture `artifacts/validation/blending-casaengine-task4.png` (fond gris,
+    sol gris, personnage de face plein cadre).
   - Objectif : nouveau demo enregistré, reproduisant le cadrage et l'ambiance three.js,
     sans encore le mélange ni le panneau.
   - Détails :
@@ -383,7 +396,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 1 | ✅ Done | feat(animation): add weighted N-way blend graph node |
 | 2 | ✅ Done | feat(animation): add explicit single-step advance for paused playback |
 | 3 | ✅ Done | feat(demos): add kid locomotion skinned model factory (idle/walk/run) |
-| 4 | ⏳ Todo | — |
+| 4 | ✅ Done | feat(demos): add skeletal animation blending demo scene |
 | 5 | ⏳ Todo | — |
 | 6 | ⏳ Todo | — |
 | 7 | ⏳ Todo | — |

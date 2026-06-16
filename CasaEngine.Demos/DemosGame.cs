@@ -79,6 +79,7 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new StaticShadowValidationDemo());
         _demos.Add(new AnimationBlendDemo());
         _demos.Add(new AnimationIkDemo());
+        _demos.Add(new SkeletalAnimationBlendingDemo());
         _demos.Add(new SceneManagementDemo());
         _demos.Add(new SplitScreenDemo());
         _demos.Add(new RenderToTextureDemo());
