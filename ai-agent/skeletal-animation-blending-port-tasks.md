@@ -363,7 +363,13 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 9 — Visibilité modèle + squelette
 
-- ⏳ **Todo** — Brancher *show model* et *show skeleton*
+- ✅ **Done** — Brancher *show model* et *show skeleton*
+  - *show model* → `Entity.IsVisible` de l'entité du personnage.
+  - *show skeleton* → `SkeletonDebugVisualizer.Draw(_game.Line3dRendererComponent,
+    CurrentModelPose, WorldMatrixWithScale, options)` chaque frame quand activé (comme
+    `AnimationIkDemo`). Les os à l'intérieur du mesh opaque sont occludés par le depth test,
+    comportement identique au `SkeletonHelper` three.js (masquer le modèle pour voir tout le squelette).
+  - Validation : capture avec squelette activé montre les repères d'axes colorés sur le personnage.
   - Objectif : reproduire `model.visible` et le `SkeletonHelper`.
   - Détails :
     - *show model* → `Entity.IsVisible` de l'entité du personnage.
@@ -429,7 +435,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 6 | ✅ Done | feat(demos): add blending controls panel (MGUI) |
 | 7 | ✅ Done | feat(demos): wire blend weight and speed controls |
 | 8 | ✅ Done | feat(demos): wire crossfade, activation and single-step controls |
-| 9 | ⏳ Todo | — |
+| 9 | ✅ Done | feat(demos): add model and skeleton visibility toggles |
 | 10 | ⏳ Todo | — |
 | 11 (optionnel) | ⏳ Todo | — |
 | 12 | ⏳ Todo | — |

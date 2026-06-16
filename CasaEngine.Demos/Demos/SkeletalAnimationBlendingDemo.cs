@@ -23,6 +23,14 @@ public class SkeletalAnimationBlendingDemo : Demo
         Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
     private const float CharacterScale = 0.1f;
 
+    private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
+        0.15f,
+        true,
+        new Color(255, 214, 96),
+        new Color(255, 110, 110),
+        new Color(110, 255, 150),
+        new Color(96, 170, 255));
+
     private const int IdleIndex = 0;
     private const int WalkIndex = 1;
     private const int RunIndex = 2;
@@ -54,6 +62,9 @@ public class SkeletalAnimationBlendingDemo : Demo
     // Crossfade duration settings.
     private bool _useDefaultDuration = true;
     private float _customDuration = 3.5f;
+
+    // Visibility state.
+    private bool _showSkeleton;
 
     public override string Title => "Skeletal animation blending";
 
@@ -125,6 +136,9 @@ public class SkeletalAnimationBlendingDemo : Demo
             _controlsScreen.WalkWeightChanged += weight => _walkWeight = weight;
             _controlsScreen.RunWeightChanged += weight => _runWeight = weight;
             _controlsScreen.TimeScaleChanged += speed => _timeScale = speed;
+
+            _controlsScreen.ShowModelChanged += ShowModel;
+            _controlsScreen.ShowSkeletonChanged += visible => _showSkeleton = visible;
 
             _controlsScreen.DeactivateAllRequested += DeactivateAll;
             _controlsScreen.ActivateAllRequested += ActivateAll;
@@ -223,6 +237,33 @@ public class SkeletalAnimationBlendingDemo : Demo
 
         ApplyWeightsAndSpeed();
         UpdateCrossFadeControls();
+
+        if (_showSkeleton)
+        {
+            DrawSkeleton();
+        }
+    }
+
+    private void ShowModel(bool visible)
+    {
+        if (_characterEntity != null)
+        {
+            _characterEntity.IsVisible = visible;
+        }
+    }
+
+    private void DrawSkeleton()
+    {
+        if (_game == null || _skinnedMeshComponent?.CurrentModelPose == null)
+        {
+            return;
+        }
+
+        SkeletonDebugVisualizer.Draw(
+            _game.Line3dRendererComponent,
+            _skinnedMeshComponent.CurrentModelPose,
+            _skinnedMeshComponent.WorldMatrixWithScale,
+            SkeletonDebugOptions);
     }
 
     private void ApplyWeightsAndSpeed()
@@ -351,6 +392,7 @@ public class SkeletalAnimationBlendingDemo : Demo
         Array.Clear(_clipNodes);
         _crossFading = false;
         _paused = false;
+        _showSkeleton = false;
     }
 
     private CasaEngine.Framework.UI.IUIViewRuntime? GetUIView()
