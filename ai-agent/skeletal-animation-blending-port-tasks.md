@@ -194,7 +194,15 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 3 — Modèle skinné « kid » avec idle + walk + run
 
-- ⏳ **Todo** — Réunir les 3 clips sur un même squelette
+- ✅ **Done** — Réunir les 3 clips sur un même squelette
+  - Implémenté via l'approche de repli (B), runtime merge, dans
+    `KidLocomotionModelFactory.Create(game)` : charge `kid_idle.FBX` (mesh + squelette
+    affichés) puis `kid_walk.FBX`/`kid_run.FBX`, valide la compatibilité de squelette,
+    rebind les clips et appelle `RiggedModel.OverrideRuntimeAnimationAssets` pour exposer
+    3 clips nommés `Idle`, `Walk`, `Run`. Aucun changement de content pipeline requis
+    (les 3 FBX sont déjà `/copy` dans `Content.mgcb`). Le même chemin runtime est
+    déjà prouvé par `AnimationBlendDemo` ; la vérification live `AnimationClips.Count == 3`
+    est couverte par le chargement du demo (Tâches 4 et 10).
   - Objectif : disposer d'un `SkinnedMesh` exposant **3 clips** (idle, walk, run)
     sur le squelette du personnage kid.
   - Approche recommandée (A) : importer via l'éditeur `kid_idle.FBX`, `kid_walk.FBX`,
@@ -374,7 +382,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 0 | ✅ Done | chore(demos): add three.js blending reference screenshot |
 | 1 | ✅ Done | feat(animation): add weighted N-way blend graph node |
 | 2 | ✅ Done | feat(animation): add explicit single-step advance for paused playback |
-| 3 | ⏳ Todo | — |
+| 3 | ✅ Done | feat(demos): add kid locomotion skinned model factory (idle/walk/run) |
 | 4 | ⏳ Todo | — |
 | 5 | ⏳ Todo | — |
 | 6 | ⏳ Todo | — |
