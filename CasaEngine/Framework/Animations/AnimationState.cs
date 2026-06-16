@@ -66,4 +66,33 @@ public sealed class AnimationState
             IsPlaying = false;
         }
     }
+
+    /// <summary>
+    /// Advances playback time by <paramref name="elapsedSeconds"/> regardless of the
+    /// paused state, without flipping <see cref="IsPlaying"/>. Used for explicit
+    /// single-step advancing while the controller is paused.
+    /// </summary>
+    public void AdvanceForced(float elapsedSeconds)
+    {
+        if (elapsedSeconds == 0f)
+        {
+            return;
+        }
+
+        TimeSeconds += elapsedSeconds * Speed;
+
+        if (Loop || Clip.DurationSeconds <= 0f)
+        {
+            return;
+        }
+
+        if (TimeSeconds >= Clip.DurationSeconds)
+        {
+            TimeSeconds = Clip.DurationSeconds;
+        }
+        else if (TimeSeconds <= 0f)
+        {
+            TimeSeconds = 0f;
+        }
+    }
 }

@@ -128,6 +128,16 @@ public sealed class SkinnedMeshAnimationRuntime : ISkinnedMeshPoseProvider, IDis
         RefreshEvaluatedPose();
     }
 
+    /// <summary>
+    /// Advances playback by <paramref name="deltaSeconds"/> regardless of the paused
+    /// state, then refreshes the evaluated pose. Used for single-step playback.
+    /// </summary>
+    public void AdvanceAnimation(float deltaSeconds)
+    {
+        AnimationController.Advance(deltaSeconds);
+        RefreshEvaluatedPose();
+    }
+
     public bool PlayAnimation(string animationName)
     {
         if (!TryGetAnimationIndex(animationName, out var animationIndex))

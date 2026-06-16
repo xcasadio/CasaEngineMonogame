@@ -298,6 +298,43 @@ public class AnimationControllerTests
         Assert.True(controller.IsPlaying);
     }
 
+    [Fact]
+    public void Advance_WhilePausedGraph_StepsPlaybackForward()
+    {
+        var skeleton = CreateSkeleton();
+        var clipNode = new AnimationClipNode(CreateClip(skeleton, "Move", Vector3.Zero, new Vector3(4f, 0f, 0f)), loop: false);
+        var controller = new AnimationController(skeleton);
+
+        controller.PlayGraph(clipNode);
+        controller.Pause();
+        controller.Update(0.5f);
+
+        Assert.Equal(Vector3.Zero, controller.OutputPose.GetTransform(0).Translation);
+
+        controller.Advance(0.25f);
+
+        Assert.Equal(new Vector3(1f, 0f, 0f), controller.OutputPose.GetTransform(0).Translation);
+        Assert.False(controller.IsPlaying);
+    }
+
+    [Fact]
+    public void Advance_WhilePausedSingleState_StepsPlaybackForward()
+    {
+        var skeleton = CreateSkeleton();
+        var clip = CreateClip(skeleton, "Move", Vector3.Zero, new Vector3(8f, 0f, 0f));
+        var controller = new AnimationController(skeleton);
+
+        controller.Play(clip, loop: false);
+        controller.Pause();
+        controller.Update(0.5f);
+
+        Assert.Equal(Vector3.Zero, controller.OutputPose.GetTransform(0).Translation);
+
+        controller.Advance(0.25f);
+
+        Assert.Equal(new Vector3(2f, 0f, 0f), controller.OutputPose.GetTransform(0).Translation);
+    }
+
     private static SkeletonDefinition CreateSkeleton()
     {
         return new SkeletonDefinition(

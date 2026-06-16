@@ -176,7 +176,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 2 — Avance explicite pour le single-step (framework)
 
-- ⏳ **Todo** — Ajouter `AdvanceAnimation(float deltaSeconds)`
+- ✅ **Done** — Ajouter `AdvanceAnimation(float deltaSeconds)`
   - Objectif : permettre d'avancer la lecture d'un pas fixe même en pause
     (équivalent de `mixer.update(sizeOfNextStep)` en single-step).
   - Détails :
@@ -373,7 +373,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | --- | --- | --- |
 | 0 | ✅ Done | chore(demos): add three.js blending reference screenshot |
 | 1 | ✅ Done | feat(animation): add weighted N-way blend graph node |
-| 2 | ⏳ Todo | — |
+| 2 | ✅ Done | feat(animation): add explicit single-step advance for paused playback |
 | 3 | ⏳ Todo | — |
 | 4 | ⏳ Todo | — |
 | 5 | ⏳ Todo | — |

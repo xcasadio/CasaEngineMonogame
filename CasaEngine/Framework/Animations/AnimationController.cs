@@ -310,6 +310,76 @@ public sealed class AnimationController
         }
     }
 
+    /// <summary>
+    /// Advances playback by <paramref name="elapsedSeconds"/> regardless of the paused
+    /// state, then re-evaluates the output pose. Mirrors <see cref="Update"/> but bypasses
+    /// the paused gate, enabling explicit single-step advancing.
+    /// </summary>
+    public void Advance(float elapsedSeconds)
+    {
+        if (elapsedSeconds == 0f)
+        {
+            return;
+        }
+
+        if (_graphRoot != null)
+        {
+            if (_graphRoot is IAnimationGraphRuntimeNode runtimeNode)
+            {
+                runtimeNode.Advance(elapsedSeconds);
+                _graphTimeSeconds += elapsedSeconds;
+            }
+
+            _graphRoot.Evaluate(OutputPose);
+            ApplyLayers();
+            UpdateRootMotionDelta();
+            return;
+        }
+
+        if (_currentState == null)
+        {
+            return;
+        }
+
+        var previousCurrentTime = _currentState.TimeSeconds;
+        _currentState.AdvanceForced(elapsedSeconds);
+
+        if (_targetState == null)
+        {
+            _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, OutputPose, _currentState.Loop);
+            ApplyLayers();
+            DispatchAnimationEvents(_currentState, previousCurrentTime, _currentState.TimeSeconds);
+            UpdateRootMotionDelta();
+            return;
+        }
+
+        _targetState.AdvanceForced(elapsedSeconds);
+        _crossFadeElapsedSeconds += elapsedSeconds;
+
+        _sampler.Sample(_currentState.Clip, _currentState.TimeSeconds, _sourcePose, _currentState.Loop);
+        _sampler.Sample(_targetState.Clip, _targetState.TimeSeconds, _targetPose, _targetState.Loop);
+
+        var linearBlendWeight = _crossFadeDurationSeconds <= 0f
+            ? 1f
+            : Math.Clamp(_crossFadeElapsedSeconds / _crossFadeDurationSeconds, 0f, 1f);
+        PreserveRootTranslationVelocity(previousCurrentTime, elapsedSeconds, linearBlendWeight);
+        var blendWeight = AnimationTransitionEasing.Evaluate(_crossFadeSettings.EasingMode, linearBlendWeight);
+
+        AnimationPoseBlender.Blend(_sourcePose, _targetPose, blendWeight, OutputPose);
+        ApplyLayers();
+        DispatchAnimationEvents(_currentState, previousCurrentTime, _currentState.TimeSeconds);
+        UpdateRootMotionDelta();
+
+        if (blendWeight >= 1f)
+        {
+            _currentState = _targetState;
+            _targetState = null;
+            _crossFadeDurationSeconds = 0f;
+            _crossFadeElapsedSeconds = 0f;
+            _crossFadeSettings = AnimationCrossFadeSettings.Default;
+        }
+    }
+
     private void ValidateClip(AnimationClip clip)
     {
         if (!ReferenceEquals(clip.Skeleton, Skeleton))

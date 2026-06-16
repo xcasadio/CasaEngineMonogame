@@ -274,6 +274,16 @@ public class SkinnedMeshComponent : PrimitiveComponent, IRootMotionDeltaSource
         _animationRuntime?.SeekAnimation(timeSeconds);
     }
 
+    /// <summary>
+    /// Advances the animation by a fixed delta even while paused. Used to single-step
+    /// the playback (equivalent to advancing the mixer by one step).
+    /// </summary>
+    public void AdvanceAnimation(float deltaSeconds)
+    {
+        EnsureAnimationRuntime();
+        _animationRuntime?.AdvanceAnimation(deltaSeconds);
+    }
+
     public void SetAnimationLayer(
         int layerIndex,
         AnimationClip clip,
