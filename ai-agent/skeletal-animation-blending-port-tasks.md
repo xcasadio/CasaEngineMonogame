@@ -409,7 +409,22 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 11 — (Optionnel / stretch) Brouillard linéaire
 
-- ⏳ **Todo** — Ajouter un brouillard linéaire distance
+- ⚠ **Différée (optionnelle, non réalisée)** — Ajouter un brouillard linéaire distance
+  - Décision : non implémentée. Le brouillard linéaire fidèle nécessite une modification
+    transverse à fort risque de régression :
+    - édition de `LitForward.fx` **et** `skinEffect.fx` (le personnage est skinné), avec un
+      constant buffer à registres explicitement packés (`_cb(cN)`/`_ps(cN)`) — toute erreur
+      de packing casse tout le rendu éclairé ;
+    - ajout d'uniformes fog + binding C# (`ForwardLightBinder`), résolution
+      (`EnvironmentResolver`/`ResolvedEnvironmentSettings`) et champs sérialisés
+      (`WorldEnvironmentSettings`) ;
+    - recompilation des shaders (MGFXC), dont la chaîne a des blocages connus dans ce repo.
+  - Cette feature affecterait **tous** les matériaux éclairés de toutes les scènes ; elle est
+    hors du périmètre d'un portage de demo. La parité de base (fond gris + sol gris) est
+    atteinte sans brouillard ; l'écart résiduel est un horizon net au lieu d'un fondu.
+  - Pour une réalisation future : ajouter un bloc fog opt-in (couleur, near, far, `FogEnabled`)
+    par défaut désactivé (`FogEnabled = 0` → aucun changement pour les scènes existantes),
+    appliqué en fin de pixel shader `mix(color, fogColor, fogFactor)`.
   - Objectif : reproduire `scene.fog` (couleur `0xa0a0a0`, near 10, far 50) pour la parité fine.
   - Détails :
     - Ajouter des paramètres de brouillard à `WorldEnvironmentSettings` (couleur, near, far, activé)
@@ -424,7 +439,19 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 12 — Finalisation
 
-- ⏳ **Todo** — Nettoyage et cohérence
+- ✅ **Done** — Nettoyage et cohérence
+  - Demo enregistré dans `DemosGame`. `Clean()` réinitialise l'environnement
+    (`ResetToDefaults` + `MarkDirty`), retire l'écran `Controls` de la vue et remet à zéro
+    l'état (poids, crossfade, pause, squelette, nœuds).
+  - Hot path `Update` : pas de LINQ ni d'allocation évitable (`Vector3.Lerp` est une struct ;
+    la création des tableaux/nœuds n'a lieu qu'à l'initialisation, pas par frame).
+  - Libellés du panneau conformes à l'exemple three.js (6 dossiers, mêmes intitulés de
+    cases/boutons/sliders).
+  - Validation : `dotnet build CasaEngine.MonoGame.sln -c Debug` → 0 erreur ; tests
+    `WeightedBlendAnimationNodeTests` (7) et `AnimationControllerTests` (23, dont single-step)
+    passent. Un échec de test préexistant et sans rapport (`EditorAssetImportServiceTests.
+    ImportFile_SkinnedModelAuthorsSeparatedAnimationAssets`) est dû à un fixture FBX manquant
+    (`Projects/SampleProject/Skinned/kid_idle.FBX`), non touché par ce travail.
   - Objectif : vérifier l'enregistrement du demo, le `Clean()` (reset environnement, retrait
     de l'écran UI), l'absence d'allocations évitables dans `Update`/`Draw`, et la cohérence
     des libellés du panneau avec l'exemple.
@@ -449,5 +476,5 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 8 | ✅ Done | feat(demos): wire crossfade, activation and single-step controls |
 | 9 | ✅ Done | feat(demos): add model and skeleton visibility toggles |
 | 10 | ✅ Done | test(demos): validate skeletal blending demo visual parity |
-| 11 (optionnel) | ⏳ Todo | — |
-| 12 | ⏳ Todo | — |
+| 11 (optionnel) | ⚠ Différée | — (non réalisée, voir note) |
+| 12 | ✅ Done | chore(demos): finalize skeletal animation blending demo |
