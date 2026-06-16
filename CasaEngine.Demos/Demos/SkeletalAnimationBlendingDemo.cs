@@ -40,6 +40,21 @@ public class SkeletalAnimationBlendingDemo : Demo
     private float _runWeight;
     private float _timeScale = 1f;
 
+    // Crossfade state (mirrors three.js prepareCrossFade / executeCrossFade).
+    private bool _crossFading;
+    private float _crossFadeElapsed;
+    private float _crossFadeDuration;
+    private Vector3 _crossFadeStart;
+    private Vector3 _crossFadeTarget;
+
+    // Pausing / stepping state.
+    private bool _paused;
+    private float _stepSize = 0.05f;
+
+    // Crossfade duration settings.
+    private bool _useDefaultDuration = true;
+    private float _customDuration = 3.5f;
+
     public override string Title => "Skeletal animation blending";
 
     public override string Description =>
@@ -110,6 +125,20 @@ public class SkeletalAnimationBlendingDemo : Demo
             _controlsScreen.WalkWeightChanged += weight => _walkWeight = weight;
             _controlsScreen.RunWeightChanged += weight => _runWeight = weight;
             _controlsScreen.TimeScaleChanged += speed => _timeScale = speed;
+
+            _controlsScreen.DeactivateAllRequested += DeactivateAll;
+            _controlsScreen.ActivateAllRequested += ActivateAll;
+            _controlsScreen.PauseContinueRequested += PauseContinue;
+            _controlsScreen.SingleStepRequested += MakeSingleStep;
+            _controlsScreen.StepSizeChanged += size => _stepSize = size;
+
+            _controlsScreen.UseDefaultDurationChanged += useDefault => _useDefaultDuration = useDefault;
+            _controlsScreen.CustomDurationChanged += duration => _customDuration = duration;
+            _controlsScreen.WalkToIdleRequested += () => PrepareCrossFade(new Vector3(1f, 0f, 0f), 1.0f);
+            _controlsScreen.IdleToWalkRequested += () => PrepareCrossFade(new Vector3(0f, 1f, 0f), 0.5f);
+            _controlsScreen.WalkToRunRequested += () => PrepareCrossFade(new Vector3(0f, 0f, 1f), 2.5f);
+            _controlsScreen.RunToWalkRequested += () => PrepareCrossFade(new Vector3(0f, 1f, 0f), 5.0f);
+
             uiView.PushScreen(_controlsScreen);
         }
     }
@@ -173,6 +202,36 @@ public class SkeletalAnimationBlendingDemo : Demo
             return;
         }
 
+        if (_crossFading)
+        {
+            _crossFadeElapsed += (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float t = _crossFadeDuration <= 0f
+                ? 1f
+                : MathHelper.Clamp(_crossFadeElapsed / _crossFadeDuration, 0f, 1f);
+            var weights = Vector3.Lerp(_crossFadeStart, _crossFadeTarget, t);
+            _idleWeight = weights.X;
+            _walkWeight = weights.Y;
+            _runWeight = weights.Z;
+
+            _controlsScreen?.SetWeightDisplays(_idleWeight, _walkWeight, _runWeight);
+
+            if (t >= 1f)
+            {
+                _crossFading = false;
+            }
+        }
+
+        ApplyWeightsAndSpeed();
+        UpdateCrossFadeControls();
+    }
+
+    private void ApplyWeightsAndSpeed()
+    {
+        if (_blendNode == null)
+        {
+            return;
+        }
+
         _blendNode.SetWeight(IdleIndex, _idleWeight);
         _blendNode.SetWeight(WalkIndex, _walkWeight);
         _blendNode.SetWeight(RunIndex, _runWeight);
@@ -181,6 +240,94 @@ public class SkeletalAnimationBlendingDemo : Demo
         {
             _clipNodes[clipIndex].Speed = _timeScale;
         }
+    }
+
+    // Enables/disables the crossfade buttons based on the current pure-weight state
+    // (mirrors three.js updateCrossFadeControls).
+    private void UpdateCrossFadeControls()
+    {
+        if (_controlsScreen == null)
+        {
+            return;
+        }
+
+        if (_idleWeight == 1f && _walkWeight == 0f && _runWeight == 0f)
+        {
+            _controlsScreen.SetCrossFadeButtonsEnabled(false, true, false, false);
+        }
+        else if (_idleWeight == 0f && _walkWeight == 1f && _runWeight == 0f)
+        {
+            _controlsScreen.SetCrossFadeButtonsEnabled(true, false, true, false);
+        }
+        else if (_idleWeight == 0f && _walkWeight == 0f && _runWeight == 1f)
+        {
+            _controlsScreen.SetCrossFadeButtonsEnabled(false, false, false, true);
+        }
+        else
+        {
+            _controlsScreen.SetCrossFadeButtonsEnabled(true, true, true, true);
+        }
+    }
+
+    private void PrepareCrossFade(Vector3 targetWeights, float defaultDuration)
+    {
+        // Leaving single-step / paused mode, like three.js prepareCrossFade.
+        SetPaused(false);
+
+        _crossFadeDuration = _useDefaultDuration ? defaultDuration : _customDuration;
+        _crossFadeStart = new Vector3(_idleWeight, _walkWeight, _runWeight);
+        _crossFadeTarget = targetWeights;
+        _crossFadeElapsed = 0f;
+        _crossFading = true;
+    }
+
+    private void DeactivateAll()
+    {
+        _crossFading = false;
+        _idleWeight = 0f;
+        _walkWeight = 0f;
+        _runWeight = 0f;
+        _controlsScreen?.SetWeightDisplays(0f, 0f, 0f);
+    }
+
+    private void ActivateAll()
+    {
+        _crossFading = false;
+        _idleWeight = 0f;
+        _walkWeight = 1f;
+        _runWeight = 0f;
+        _controlsScreen?.SetWeightDisplays(0f, 1f, 0f);
+    }
+
+    private void PauseContinue()
+    {
+        SetPaused(!_paused);
+    }
+
+    private void SetPaused(bool paused)
+    {
+        if (_paused == paused)
+        {
+            return;
+        }
+
+        _paused = paused;
+        if (_paused)
+        {
+            _skinnedMeshComponent?.PauseAnimation();
+        }
+        else
+        {
+            _skinnedMeshComponent?.ResumeAnimation();
+        }
+    }
+
+    private void MakeSingleStep()
+    {
+        // Freeze continuous playback and advance exactly one step (three.js single step).
+        SetPaused(true);
+        ApplyWeightsAndSpeed();
+        _skinnedMeshComponent?.AdvanceAnimation(_stepSize);
     }
 
     public override void Clean()
@@ -202,6 +349,8 @@ public class SkeletalAnimationBlendingDemo : Demo
         _skinnedMeshComponent = null;
         _blendNode = null;
         Array.Clear(_clipNodes);
+        _crossFading = false;
+        _paused = false;
     }
 
     private CasaEngine.Framework.UI.IUIViewRuntime? GetUIView()

@@ -335,7 +335,17 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 
 ### Tâche 8 — Câblage Crossfading + Activation + Pause/Single-step
 
-- ⏳ **Todo** — Relier les boutons d'interaction
+- ✅ **Done** — Relier les boutons d'interaction
+  - Crossfade : anime les poids vers `(1,0,0)`/`(0,1,0)`/`(0,0,1)` sur la durée
+    (défauts three.js 1.0/0.5/2.5/5.0, ou durée custom si « use default duration »
+    décoché), avec synchro des sliders via `SetWeightDisplays`.
+  - Activate/Deactivate all : remet `(0,1,0)` / met tous les poids à 0.
+  - pause/continue : `PauseAnimation`/`ResumeAnimation`. make single step : passe en pause
+    puis `AdvanceAnimation(stepSize)` (Tâche 2).
+  - Boutons de crossfade activés/désactivés selon l'état des poids
+    (`UpdateCrossFadeControls`, mirroir three.js).
+  - Validation : la capture montre les boutons walk→idle / walk→run activés et
+    idle→walk / run→walk désactivés pour l'état walk=1 ; runtime sans crash.
   - Objectif : reproduire les transitions et contrôles de lecture.
   - Détails :
     - Crossfade : animer `_xxxWeight` vers la cible `(1,0,0)`/`(0,1,0)`/`(0,0,1)` sur
@@ -418,7 +428,7 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 5 | ✅ Done | feat(demos): drive idle/walk/run weighted blend |
 | 6 | ✅ Done | feat(demos): add blending controls panel (MGUI) |
 | 7 | ✅ Done | feat(demos): wire blend weight and speed controls |
-| 8 | ⏳ Todo | — |
+| 8 | ✅ Done | feat(demos): wire crossfade, activation and single-step controls |
 | 9 | ⏳ Todo | — |
 | 10 | ⏳ Todo | — |
 | 11 (optionnel) | ⏳ Todo | — |
