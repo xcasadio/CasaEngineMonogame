@@ -57,7 +57,7 @@ Change the 3D model import/loading stack:
 ## Phase A — Packages & project boundaries
 
 - ✅ **A1 — Central package versions.** In `Directory.Packages.props`, added `SharpGLTF.Core` 1.0.6, `SharpGLTF.Toolkit` 1.0.6, and `AssimpNetter` 6.0.4. `AssimpNet` 4.1.0 kept temporarily (removed in E3).
-- ⏳ **A2 — Runtime SharpGLTF reference.** Add `SharpGLTF.Core` + `SharpGLTF.Toolkit` `PackageReference` to `CasaEngine/CasaEngine.csproj`. Restore/build. Commit.
+- ✅ **A2 — Runtime SharpGLTF reference.** Added `SharpGLTF.Core` + `SharpGLTF.Toolkit` `PackageReference` to `CasaEngine/CasaEngine.csproj`. Restore + build green.
 - ⏳ **A3 — Editor AssimpNetter reference.** Add `AssimpNetter` (+ `SharpGLTF` if needed) `PackageReference` to `CasaEngine.EditorServices/CasaEngine.EditorServices.csproj`. Restore/build. Commit.
 
 ## Phase B — Runtime SharpGLTF readers
