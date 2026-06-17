@@ -54,10 +54,10 @@ Dans l'éditeur CasaEngine, l'interface doit s'adapter au type d'asset ouvert :
   `EnsureAnimation2dTimelineDockPanel()` par `SyncContextualToolPanels()`
   (load/reset) ; s'abonner à `EditorContextService.ActiveDocumentChanged` pour
   re-synchroniser à chaque changement d'asset.
-- 🧪 **T5 — Données obsolètes & ré-entrance** : détacher la vue spécialisée
+- ✅ **T5 — Données obsolètes & ré-entrance** : détacher la vue spécialisée
   (`_animation2dTimelinePanel.SetInspectorPanel(null)`) quand le panneau est
   retiré ; garde de ré-entrance sur la synchro.
-- ⏳ **T6 — Build & vérification** : compiler la solution éditeur ; vérifier
+- ✅ **T6 — Build & vérification** : compiler la solution éditeur ; vérifier
   l'ouverture Animation2D → Material → World et l'apparition/disparition du
   panneau Timeline.
 
