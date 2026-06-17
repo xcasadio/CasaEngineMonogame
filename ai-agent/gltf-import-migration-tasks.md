@@ -77,6 +77,30 @@ Two facts force a change to the original ordering:
 
 - ✅ **B1 — Static glTF reader.** Added `GltfStaticModelReader` (SharpGLTF) at `CasaEngine/Framework/Assets/Loaders/GltfStaticModelReader.cs` building `StaticModel` (geometry, node hierarchy, PBR material metadata, external texture paths) with the same `StaticModelImportResult` contract. Triangle winding reversed to match the legacy `FlipWindingOrder`; glTF UVs kept (no flip). Unit tests in `GltfStaticModelReaderTests.cs` (3 passing). Lives alongside the legacy importer until the cutover. Legacy `.X`/RacingGame effect metadata is intentionally out of scope here (handled editor-side in C2).
 - ⏳ **B2 — Rigged glTF reader.** Add `GltfRiggedModelReader` (SharpGLTF) building `RiggedModel`: node tree, bind/offset matrices, skin/bones, vertex weights, animation clips, morph targets — feature parity with `RiggedModelLoader`, preserving `RiggedModel` structure and `SkeletonDefinition` / `AnimationClip` outputs. Commit.
+
+### B2 implementation design (verified against the existing code)
+
+**Key insight — the runtime bridge.** `RiggedModel.InitializeRuntimeAnimation()` builds the modern `SkeletonDefinition` + `AnimationClip`s **from the RiggedModel's own raw structures** (`FlatListToAllNodes`, each node's `BindLocalTransformMg` / `Parent` / `IsThisARealBone` / `OffsetMatrixMg` / `BoneShaderFinalTransformIndex`, and `OriginalAnimations`), via `BuildSkeletonDefinition()` + `BuildAnimationClip()`. So the SharpGLTF reader only needs to populate the **same raw structures** the Assimp loader does, then call `InitializeRuntimeAnimation()`. The skeleton/clip construction (already unit-tested) is reused unchanged.
+
+**Structures to populate (mirror `RiggedModelLoader.CreateModel` order):**
+1. `RootNodeOfTree` + recursive `RiggedModelNode` tree (`Name`, `Parent`, `Children`, `BindLocalTransformMg`, `LocalTransformMg`).
+2. `FlatListToAllNodes` (ALL nodes, depth-first) and `FlatListToBoneNodes`. Index 0 of the bone list is a **dummy "DummyBone0"** (`BoneShaderFinalTransformIndex = 0`); real bones get palette indices 1+. `ApplyModernPoseToNodes` forces `GlobalShaderMatrixs[0] = Identity`.
+3. Per real bone: `IsThisARealBone = true`, `OffsetMatrixMg` = glTF **inverse bind matrix** for that joint, `BoneShaderFinalTransformIndex` = its slot in `FlatListToBoneNodes`.
+4. `Meshes` (`RiggedModelMesh[]`): `VertexPositionTextureNormalTangentWeights[]` (Position/Normal/Tangent/BiTangent/TexCoord/Color + `BlendIndices`/`BlendWeights` as Vector4 = up to 4 influences), `Indices` (int[]), textures, `MaterialIndex`, `NodeRefContainingAnimatedTransform`, bounds (Min/Max/Centroid).
+5. `OriginalAnimations` (`RiggedAnimation`): per glTF animation, `AnimationName`, `DurationInSeconds`, and `AnimatedNodes` (`RiggedAnimationNodes` with `NodeRef` + raw `Position/PositionTime`, `Rotation/RotationTime`, `Scale/ScaleTime` keyframe lists). The modern path only consumes the raw keyframes; `SetAnimationFpsCreateFrames` (interpolated frames) is optional/legacy.
+6. `NumberOfBonesInUse`, `NumberOfNodesInUse`.
+7. Then `model.InitializeRuntimeAnimation()`.
+
+**Coordinate conventions (highest risk — R1):**
+- **Matrices: direct `System.Numerics.Matrix4x4` → XNA `Matrix` field copy (M11→M11 … M44→M44), NO transpose.** SharpGLTF/System.Numerics already use the XNA row-vector convention; the Assimp path's `ToMonoGameTransposed()` was only needed because Assimp uses column-vector matrices.
+- **Winding: reverse each triangle once** (the Assimp rigged path used `PostProcessSteps.FlipWindingOrder`). Use `primitive.GetTriangleIndices()` and emit `(A, C, B)`.
+- **UVs: no flip** (glTF top-left origin matches XNA), same as B1.
+- **Bind local transform** from `node.LocalMatrix` (direct copy); **inverse bind** from `skin.GetInverseBindMatrix(jointIndex)` (or `skin.GetJoint(i).InverseBindMatrix`).
+- **Skin joints → flat bone index**: build a map `glTF joint Node → FlatListToBoneNodes index` so vertex `JOINTS_0` (local joint indices) map to engine palette indices (offset by the dummy bone 0).
+
+**Vertex weights:** read `JOINTS_0` (Vector4 of joint indices) + `WEIGHTS_0` (Vector4) per vertex; map each joint index through the skin's joint list → node → flat bone palette index; pack up to 4 into `BlendIndices`/`BlendWeights`. Meshes without a skin → weight 1.0 on bone 0.
+
+**Open risks needing the user's runtime validation (cannot be checked headlessly):** matrix transpose decision, winding vs the engine's rasterizer state, bind-pose orientation, and root scale/orientation (e.g. Soldier.glb imported lying along Z at ~183 cm in the old path). Validate with `SkinnedMeshDemo`, `AnimationBlendDemo`, and the soldier locomotion demo after the cutover.
 - ⏳ **B3 — Rewire `ModelLoader`.** Replace Assimp usage in `ModelLoader.cs` with `GltfRiggedModelReader`; restrict `IsFileSupported` to `.gltf`/`.glb`. Commit.
 - ⏳ **B4 — Remove Assimp from runtime.** Delete/relocate Assimp usage in `RiggedModelLoader.cs` and `StaticModelImporter.cs`; remove `AssimpNet` `PackageReference` from `CasaEngine.csproj`. Move any still-needed Assimp conversion logic to the editor (Phase C). Build runtime without Assimp. Commit.
 
