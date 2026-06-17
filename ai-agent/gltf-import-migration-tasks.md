@@ -101,7 +101,7 @@ Two facts force a change to the original ordering:
 **Vertex weights:** read `JOINTS_0` (Vector4 of joint indices) + `WEIGHTS_0` (Vector4) per vertex; map each joint index through the skin's joint list → node → flat bone palette index; pack up to 4 into `BlendIndices`/`BlendWeights`. Meshes without a skin → weight 1.0 on bone 0.
 
 **Open risks needing the user's runtime validation (cannot be checked headlessly):** matrix transpose decision, winding vs the engine's rasterizer state, bind-pose orientation, and root scale/orientation (e.g. Soldier.glb imported lying along Z at ~183 cm in the old path). Validate with `SkinnedMeshDemo`, `AnimationBlendDemo`, and the soldier locomotion demo after the cutover.
-- ⏳ **B3 — Rewire `ModelLoader`.** Replace Assimp usage in `ModelLoader.cs` with `GltfRiggedModelReader`; restrict `IsFileSupported` to `.gltf`/`.glb`. Commit.
+- ✅ **B3 — Rewire `ModelLoader`.** `ModelLoader.cs` now uses `GltfRiggedModelReader` and `IsFileSupported` accepts only `.gltf`/`.glb`; the `Assimp` using and `AssimpContext` were removed. Runtime `LoadDirectly<RiggedModel>` of `.fbx` will no longer resolve (demos are repointed to `.glb` in Phase D).
 - ⏳ **B4 — Remove Assimp from runtime.** Delete/relocate Assimp usage in `RiggedModelLoader.cs` and `StaticModelImporter.cs`; remove `AssimpNet` `PackageReference` from `CasaEngine.csproj`. Move any still-needed Assimp conversion logic to the editor (Phase C). Build runtime without Assimp. Commit.
 
 ## Phase C — Editor conversion (AssimpNetter → glb)

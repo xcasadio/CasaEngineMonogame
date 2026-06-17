@@ -1,5 +1,4 @@
-﻿using Assimp;
-using CasaEngine.Core.Logging;
+﻿using CasaEngine.Core.Logging;
 using CasaEngine.Framework.Assets.Animations;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -7,11 +6,11 @@ namespace CasaEngine.Framework.Assets.Loaders;
 
 public class ModelLoader : IAssetLoader
 {
-    private readonly AssimpContext _assimpContext = new();
-
     public bool IsFileSupported(string fileName)
     {
-        return _assimpContext.GetSupportedImportFormats().Contains(Path.GetExtension(fileName).ToLower());
+        string extension = Path.GetExtension(fileName);
+        return extension.Equals(".gltf", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".glb", StringComparison.OrdinalIgnoreCase);
     }
 
     public object LoadAsset(string fileName, AssetContentManager assetContentManager)
@@ -19,8 +18,8 @@ public class ModelLoader : IAssetLoader
         try
         {
             Effect defaultEffect = null; //assetContentManager.LoadDirectly<Effect>("Shaders\\skinEffect.mgfxc");
-            var riggedModelLoader = new RiggedModelLoader(assetContentManager, defaultEffect);
-            return riggedModelLoader.LoadAsset(fileName, assetContentManager);
+            var riggedModelReader = new GltfRiggedModelReader(assetContentManager, defaultEffect);
+            return riggedModelReader.LoadAsset(fileName, assetContentManager);
         }
         catch (Exception e)
         {
