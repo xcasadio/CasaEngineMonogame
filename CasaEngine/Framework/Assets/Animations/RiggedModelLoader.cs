@@ -329,12 +329,25 @@ public class RiggedModelLoader
                 var ttype = textureSlots[j].TextureType.ToString();
                 var tfilepath = textureSlots[j].FilePath;
 
-                var tfilename = Path.Combine(Path.GetDirectoryName(fullFileName), Path.GetFileName(tfilepath));
-                var tfileexists = File.Exists(tfilename);
+                // External texture files (FBX-style) sit next to the model file; embedded
+                // GLB/GLTF textures have a null or "*N" reference path and must be read
+                // from the Assimp scene instead.
+                string tfilename = null;
+                bool tfileexists = false;
+                if (!string.IsNullOrEmpty(tfilepath))
+                {
+                    var modelDirectory = Path.GetDirectoryName(fullFileName);
+                    var textureFileName = Path.GetFileName(tfilepath);
+                    if (!string.IsNullOrEmpty(modelDirectory) && !string.IsNullOrEmpty(textureFileName))
+                    {
+                        tfilename = Path.Combine(modelDirectory, textureFileName);
+                        tfileexists = File.Exists(tfilename);
+                    }
+                }
 
                 if (StartupMaterialConsoleInfo)
                 {
-                    Logs.WriteTrace("      Texture[" + j + "] " + "   Index: " + tindex.ToString().PadRight(5) + "   Type: " + ttype.PadRight(15) + "   Filepath: " + tfilepath.PadRight(15) + " Name: " + tfilename.PadRight(15) + "  ExistsInContent: " + tfileexists);
+                    Logs.WriteTrace("      Texture[" + j + "] " + "   Index: " + tindex.ToString().PadRight(5) + "   Type: " + ttype.PadRight(15) + "   Filepath: " + (tfilepath ?? "<embedded>").PadRight(15) + " Name: " + (tfilename ?? "<embedded>").PadRight(15) + "  ExistsInContent: " + tfileexists);
                 }
 
                 Texture2D texture = null;
@@ -343,6 +356,15 @@ public class RiggedModelLoader
                 {
                     texture = _assetContentManager.LoadDirectly<Texture2D>(tfilename);
                     Logs.WriteTrace("      ...Texture loaded: ... " + tfilename);
+                }
+                else
+                {
+                    texture = TryLoadEmbeddedTexture(scene, textureSlots[j]);
+                    if (texture != null)
+                    {
+                        tfilename ??= string.IsNullOrEmpty(tfilepath) ? mesh.Name + "_embedded_" + j : tfilepath;
+                        Logs.WriteTrace("      ...Embedded texture loaded for slot " + j);
+                    }
                 }
 
                 // Treat Diffuse, BaseColor (PBR), Unknown, and Ambient as color/diffuse sources
@@ -423,6 +445,79 @@ public class RiggedModelLoader
             //}
         }
 
+    }
+
+    /// <summary>
+    /// Resolves an embedded texture (GLB/GLTF) referenced by a material texture slot.
+    /// Returns null when the slot is not embedded or the data cannot be decoded.
+    /// </summary>
+    private Texture2D TryLoadEmbeddedTexture(Assimp.Scene scene, TextureSlot slot)
+    {
+        var graphicsDevice = _assetContentManager?.GraphicsDevice;
+        if (graphicsDevice == null || scene == null || !scene.HasTextures)
+        {
+            return null;
+        }
+
+        EmbeddedTexture embeddedTexture = null;
+
+        // Assimp references embedded textures with a "*N" path, where N indexes scene.Textures.
+        if (!string.IsNullOrEmpty(slot.FilePath)
+            && slot.FilePath.StartsWith("*", StringComparison.Ordinal)
+            && int.TryParse(slot.FilePath.Substring(1), out var referenceIndex)
+            && referenceIndex >= 0 && referenceIndex < scene.TextureCount)
+        {
+            embeddedTexture = scene.Textures[referenceIndex];
+        }
+
+        // Single-texture GLB exports often leave the slot path empty; fall back to the
+        // first embedded texture, which is the base color for those models.
+        if (embeddedTexture == null && scene.TextureCount > 0)
+        {
+            embeddedTexture = scene.Textures[0];
+        }
+
+        if (embeddedTexture == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            if (embeddedTexture.HasCompressedData)
+            {
+                using var stream = new MemoryStream(embeddedTexture.CompressedData);
+                return Texture2D.FromStream(graphicsDevice, stream);
+            }
+
+            if (embeddedTexture.HasNonCompressedData)
+            {
+                var width = embeddedTexture.Width;
+                var height = embeddedTexture.Height;
+                if (width <= 0 || height <= 0)
+                {
+                    return null;
+                }
+
+                var texels = embeddedTexture.NonCompressedData;
+                var pixels = new Microsoft.Xna.Framework.Color[width * height];
+                var count = Math.Min(pixels.Length, texels.Length);
+                for (int i = 0; i < count; i++)
+                {
+                    pixels[i] = new Microsoft.Xna.Framework.Color(texels[i].R, texels[i].G, texels[i].B, texels[i].A);
+                }
+
+                var texture = new Texture2D(graphicsDevice, width, height);
+                texture.SetData(pixels);
+                return texture;
+            }
+        }
+        catch (Exception e)
+        {
+            Logs.WriteException(e);
+        }
+
+        return null;
     }
 
     /// <summary>  this isn't really necessary but i do it for debuging reasons. 
