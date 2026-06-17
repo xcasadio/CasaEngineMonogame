@@ -110,6 +110,8 @@ public class GameEditor : Game, IObservableUpdate
     private MGDockHost _dockHost;
     private MGMenuBar _menuBar;
     private EditorPanelRegistry _panelRegistry;
+    private ContextualToolPanelRegistry _contextualToolPanelRegistry;
+    private bool _isSyncingContextualToolPanels;
 
     // ── Editor panels ──────────────────────────────────────────────────
     private LoggerEditor _loggerEditor;
@@ -392,6 +394,7 @@ public class GameEditor : Game, IObservableUpdate
             {
                 _dockHost.ActivePanelChanged -= OnDockHostActivePanelChanged;
                 _dockHost.PanelRemoved -= OnDockHostPanelRemoved;
+                _editorContext.ActiveDocumentChanged -= OnActiveDocumentChangedSyncToolPanels;
             }
 
             foreach (var materialInspectorPanel in _materialInspectorPanels.Values)
@@ -891,7 +894,7 @@ public class GameEditor : Game, IObservableUpdate
             ResetDockLayoutToDefault();
         }
 
-        EnsureAnimation2dTimelineDockPanel();
+        SyncContextualToolPanels();
 
         _ = GetOrCreateWorldViewportContent();
         _ = GetOrCreateHierarchyContent();
@@ -1024,6 +1027,7 @@ public class GameEditor : Game, IObservableUpdate
         _dockHost.Name = "EditorDockHost";
         _dockHost.ActivePanelChanged += OnDockHostActivePanelChanged;
         _dockHost.PanelRemoved += OnDockHostPanelRemoved;
+        _editorContext.ActiveDocumentChanged += OnActiveDocumentChangedSyncToolPanels;
         _rootPanel.TryAddChild(_dockHost, Dock.Top);
         SetupInitialDockLayout();
     }
@@ -2027,16 +2031,15 @@ public class GameEditor : Game, IObservableUpdate
             ResetDockLayoutToDefault();
         }
 
-        EnsureAnimation2dTimelineDockPanel();
-
         SyncActiveEditorDocumentFromDockState();
+        SyncContextualToolPanels();
     }
 
     private void ResetDockLayout()
     {
         ResetDockLayoutToDefault();
-        EnsureAnimation2dTimelineDockPanel();
         SyncActiveEditorDocumentFromDockState();
+        SyncContextualToolPanels();
     }
 
     private Func<MGElement> GetPanelContentFactory(string panelId)
@@ -2551,16 +2554,68 @@ public class GameEditor : Game, IObservableUpdate
         };
     }
 
-    private void EnsureAnimation2dTimelineDockPanel()
+    private ContextualToolPanelRegistry GetContextualToolPanelRegistry()
+    {
+        if (_contextualToolPanelRegistry == null)
+        {
+            _contextualToolPanelRegistry = new ContextualToolPanelRegistry();
+            _contextualToolPanelRegistry.Register(EditorDocumentKind.Animation2d, EditorPanelIds.Animation2dTimeline);
+        }
+
+        return _contextualToolPanelRegistry;
+    }
+
+    private void OnActiveDocumentChangedSyncToolPanels(EditorDocumentContext document)
+    {
+        SyncContextualToolPanels();
+    }
+
+    /// <summary>
+    /// Adds or removes the specialized tool panels declared in
+    /// <see cref="ContextualToolPanelRegistry"/> so that only the panels relevant to the
+    /// active document kind remain in the dock. Panels become visible without stealing focus.
+    /// </summary>
+    private void SyncContextualToolPanels()
+    {
+        if (_dockHost?.LayoutModel == null || _isSyncingContextualToolPanels)
+        {
+            return;
+        }
+
+        _isSyncingContextualToolPanels = true;
+        try
+        {
+            var registry = GetContextualToolPanelRegistry();
+            var documentKind = _editorContext.ActiveDocument?.Kind ?? EditorDocumentKind.None;
+
+            foreach (var panelId in registry.ManagedPanelIds)
+            {
+                if (registry.IsPanelRelevant(documentKind, panelId))
+                {
+                    EnsureContextualToolPanelPresent(panelId);
+                }
+                else
+                {
+                    EnsureContextualToolPanelAbsent(panelId);
+                }
+            }
+        }
+        finally
+        {
+            _isSyncingContextualToolPanels = false;
+        }
+    }
+
+    private void EnsureContextualToolPanelPresent(string panelId)
     {
         if (_dockHost?.LayoutModel == null
-            || _dockHost.LayoutModel.FindPanelById(EditorPanelIds.Animation2dTimeline) != null)
+            || _dockHost.LayoutModel.FindPanelById(panelId) != null)
         {
             return;
         }
 
         _panelRegistry ??= CreatePanelRegistry();
-        var panelNode = CreateRegisteredToolPanelNode(EditorPanelIds.Animation2dTimeline);
+        var panelNode = CreateRegisteredToolPanelNode(panelId);
         if (panelNode == null)
         {
             return;
@@ -2576,7 +2631,41 @@ public class GameEditor : Game, IObservableUpdate
             return;
         }
 
-        DockOperation.DockAsTab(_dockHost.LayoutModel, panelNode, targetGroup);
+        // Add the panel without stealing focus: keep whichever tab was active in the target group.
+        var previousActivePanelId = targetGroup.ActivePanelId;
+        targetGroup.AddPanel(panelNode, -1);
+        if (!string.IsNullOrEmpty(previousActivePanelId)
+            && targetGroup.Panels.Any(panel => panel.Id == previousActivePanelId))
+        {
+            targetGroup.SetActivePanel(previousActivePanelId);
+        }
+
+        _dockHost.RebuildVisualTree();
+    }
+
+    private void EnsureContextualToolPanelAbsent(string panelId)
+    {
+        var panelNode = _dockHost?.LayoutModel?.FindPanelById(panelId);
+        if (panelNode == null)
+        {
+            return;
+        }
+
+        DockOperation.RemovePanel(_dockHost.LayoutModel, panelNode);
+        OnContextualToolPanelRemoved(panelId);
+        _dockHost.RebuildVisualTree();
+    }
+
+    /// <summary>
+    /// Detaches the data backing a specialized tool panel when it is removed from the dock,
+    /// so it cannot keep displaying or mutating obsolete data for an asset that is no longer active.
+    /// </summary>
+    private void OnContextualToolPanelRemoved(string panelId)
+    {
+        if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal))
+        {
+            _animation2dTimelinePanel?.SetInspectorPanel(null);
+        }
     }
 
     private bool TryGetUIScreenPreviewPanel(string panelId, out UIScreenPreviewPanel previewPanel)
@@ -5354,7 +5443,7 @@ public class GameEditor : Game, IObservableUpdate
 
         if (string.Equals(panelId, EditorPanelIds.Animation2dTimeline, StringComparison.Ordinal))
         {
-            EnsureAnimation2dTimelineDockPanel();
+            EnsureContextualToolPanelPresent(panelId);
         }
 
         if (!TryFindTabGroupByPanelId(panelId, out _))

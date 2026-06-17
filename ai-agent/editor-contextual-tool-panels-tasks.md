@@ -45,16 +45,16 @@ Dans l'éditeur CasaEngine, l'interface doit s'adapter au type d'asset ouvert :
 - ✅ **T2 — Registre générique** : créer
   `ContextualToolPanelRegistry` (mapping `EditorDocumentKind → panel ids`,
   données/policy réutilisables, sans dépendance UI).
-- ⏳ **T3 — Intégration GameEditor** : instancier et configurer le registre
+- ✅ **T3 — Intégration GameEditor** : instancier et configurer le registre
   (`Animation2d → Animation2dTimeline`) ; ajouter `SyncContextualToolPanels()`
   et les helpers `EnsureContextualToolPanelPresent/Absent(panelId)` en
   généralisant `EnsureAnimation2dTimelineDockPanel()` ; ajout **sans voler le
   focus** (préserver l'onglet actif du groupe cible).
-- ⏳ **T4 — Câblage** : remplacer les appels à
+- ✅ **T4 — Câblage** : remplacer les appels à
   `EnsureAnimation2dTimelineDockPanel()` par `SyncContextualToolPanels()`
   (load/reset) ; s'abonner à `EditorContextService.ActiveDocumentChanged` pour
   re-synchroniser à chaque changement d'asset.
-- ⏳ **T5 — Données obsolètes & ré-entrance** : détacher la vue spécialisée
+- 🧪 **T5 — Données obsolètes & ré-entrance** : détacher la vue spécialisée
   (`_animation2dTimelinePanel.SetInspectorPanel(null)`) quand le panneau est
   retiré ; garde de ré-entrance sur la synchro.
 - ⏳ **T6 — Build & vérification** : compiler la solution éditeur ; vérifier
