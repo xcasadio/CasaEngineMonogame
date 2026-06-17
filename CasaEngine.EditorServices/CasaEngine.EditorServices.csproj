@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AssimpNetter" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CasaEngine\CasaEngine.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Core\MGUI.Core.csproj" />
     <ProjectReference Include="..\MGUI\MGUI.Shared\MGUI.Shared.csproj" />

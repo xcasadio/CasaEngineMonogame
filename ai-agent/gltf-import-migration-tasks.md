@@ -28,6 +28,19 @@ Change the 3D model import/loading stack:
 - 🧪 Needs testing
 - ⚠️ Blocked
 
+## ⚠️ Sequencing correction (discovered during execution)
+
+Two facts force a change to the original ordering:
+
+1. **AssimpNetter is not a drop-in for AssimpNet 4.1.** AssimpNetter 6.0.4 replaced Assimp's own math types (`Vector3D`, `Matrix4x4`, `Quaternion`, `Color4D`) with `System.Numerics`. The existing runtime Assimp code (`RiggedModelLoader`, `StaticModelImporter`, `AssimpConverter`) does **not** compile against AssimpNetter without a rewrite — and that code is being deleted anyway, so it must not be adapted.
+2. **Only one Assimp package can be in a compilation.** AssimpNet and AssimpNetter both own the `Assimp` namespace, so any project that sees both (e.g. `CasaEngine.Tests`, which references runtime **and** editor-services) fails with CS0433.
+
+**Corrected order:**
+- Keep `AssimpNet` 4.1 in the **runtime** until the cutover (existing code keeps compiling).
+- Add the SharpGLTF readers **alongside** the existing Assimp code (solution stays green).
+- Introduce **AssimpNetter** only at the **cutover**, which is necessarily coupled: remove runtime Assimp (B4) **+** move importers to the editor on AssimpNetter (C) **+** migrate the Assimp-typed test (E1) land together so the solution never has both Assimp packages at once.
+- The cutover may need a small number of tightly-ordered commits rather than one-per-leaf-task; intermediate full-solution builds are kept green by doing the swap in the right micro-order.
+
 ## Working rules for the agent
 
 - **One commit per task** (atomic, buildable). Commit only the files touched by that task; never stage the pre-existing unrelated working-tree changes (MGUI submodule, `Projects/RPGDemo/*.dll/.pdb`, `artifacts/validation/*.png`, untracked `treejs/`).
@@ -58,11 +71,11 @@ Change the 3D model import/loading stack:
 
 - ✅ **A1 — Central package versions.** In `Directory.Packages.props`, added `SharpGLTF.Core` 1.0.6, `SharpGLTF.Toolkit` 1.0.6, and `AssimpNetter` 6.0.4. `AssimpNet` 4.1.0 kept temporarily (removed in E3).
 - ✅ **A2 — Runtime SharpGLTF reference.** Added `SharpGLTF.Core` + `SharpGLTF.Toolkit` `PackageReference` to `CasaEngine/CasaEngine.csproj`. Restore + build green.
-- ✅ **A3 — Editor AssimpNetter reference.** Added `AssimpNetter` 6.0.4 (`net6.0`, ships as `AssimpNetter.dll`) `PackageReference` to `CasaEngine.EditorServices`. Build green. SharpGLTF flows transitively via the `CasaEngine` project reference. Note: AssimpNetter keeps the `Assimp` namespace, so the transitive `AssimpNet` (4.1.0, `AssimpNet.dll`) must be removed in B4 **before** any direct `Assimp` usage is added in the editor (C1), otherwise `Assimp.*` types are ambiguous (CS0433). No file-name conflict (distinct DLL names).
+- ⏳ **A3 (DEFERRED to cutover) — Editor AssimpNetter reference.** Initially added `AssimpNetter` to `CasaEngine.EditorServices`, but this made `CasaEngine.Tests` see both Assimp packages (CS0433). Reverted; the editor AssimpNetter reference is now introduced at the cutover (with C), once the runtime is Assimp-free. `AssimpNetter` 6.0.4 version stays registered in central package management (A1).
 
 ## Phase B — Runtime SharpGLTF readers
 
-- ⏳ **B1 — Static glTF reader.** Add `GltfStaticModelReader` (SharpGLTF) under `CasaEngine/Framework/Assets/Loaders/` building `StaticModel` (geometry, node hierarchy, materials, texture paths). Match `StaticModelImporter` output (legacy `.X`/RacingGame effect metadata path documented; handled in C2 since it is a non-glTF source). Unit-test against a generated probe glb. Commit.
+- ✅ **B1 — Static glTF reader.** Added `GltfStaticModelReader` (SharpGLTF) at `CasaEngine/Framework/Assets/Loaders/GltfStaticModelReader.cs` building `StaticModel` (geometry, node hierarchy, PBR material metadata, external texture paths) with the same `StaticModelImportResult` contract. Triangle winding reversed to match the legacy `FlipWindingOrder`; glTF UVs kept (no flip). Unit tests in `GltfStaticModelReaderTests.cs` (3 passing). Lives alongside the legacy importer until the cutover. Legacy `.X`/RacingGame effect metadata is intentionally out of scope here (handled editor-side in C2).
 - ⏳ **B2 — Rigged glTF reader.** Add `GltfRiggedModelReader` (SharpGLTF) building `RiggedModel`: node tree, bind/offset matrices, skin/bones, vertex weights, animation clips, morph targets — feature parity with `RiggedModelLoader`, preserving `RiggedModel` structure and `SkeletonDefinition` / `AnimationClip` outputs. Commit.
 - ⏳ **B3 — Rewire `ModelLoader`.** Replace Assimp usage in `ModelLoader.cs` with `GltfRiggedModelReader`; restrict `IsFileSupported` to `.gltf`/`.glb`. Commit.
 - ⏳ **B4 — Remove Assimp from runtime.** Delete/relocate Assimp usage in `RiggedModelLoader.cs` and `StaticModelImporter.cs`; remove `AssimpNet` `PackageReference` from `CasaEngine.csproj`. Move any still-needed Assimp conversion logic to the editor (Phase C). Build runtime without Assimp. Commit.
@@ -96,4 +109,4 @@ Change the 3D model import/loading stack:
 - **R1** — SharpGLTF rigged-model parity (bind pose, offset matrices, winding/UV flips, morph targets) must match the current Assimp behavior used by existing animation assets/tests. Validate against `Soldier.glb`.
 - **R2** — Legacy `.X` / RacingGame effect metadata is a non-glTF concern; after migration it only flows through the editor convert path. Confirm those scenery assets still import.
 - **R3** — `dude.fbx` may be unused; confirm before converting/deleting.
-- **R4** — AssimpNetter (6.0.4) keeps the `Assimp` namespace, same as the legacy AssimpNet (4.1.0). While both are in the graph (A3 → B4 window) there is no compile error because no editor code references `Assimp.*` yet. The first direct `Assimp` usage (C1) must come **after** B4 removes AssimpNet from the runtime, else `Assimp.*` is ambiguous (CS0433). Verified at A3.
+- **R4** — AssimpNetter (6.0.4) keeps the `Assimp` namespace but switched math types to `System.Numerics`, so it is **not** a drop-in for the legacy AssimpNet 4.1 runtime code, and the two packages cannot coexist in one compilation (CS0433). Handled by the Sequencing correction above. Verified at A3/B1.
