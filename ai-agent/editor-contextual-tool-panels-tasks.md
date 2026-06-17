@@ -42,7 +42,7 @@ Dans l'éditeur CasaEngine, l'interface doit s'adapter au type d'asset ouvert :
 > Légende : ✅ Done · 🚧 In progress · ⏳ Todo · 🧪 Needs testing · ⚠️ Blocked
 
 - ✅ **T1 — Plan** : créer ce fichier de plan.
-- ⏳ **T2 — Registre générique** : créer
+- ✅ **T2 — Registre générique** : créer
   `ContextualToolPanelRegistry` (mapping `EditorDocumentKind → panel ids`,
   données/policy réutilisables, sans dépendance UI).
 - ⏳ **T3 — Intégration GameEditor** : instancier et configurer le registre
