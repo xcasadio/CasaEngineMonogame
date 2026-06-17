@@ -58,7 +58,7 @@ Change the 3D model import/loading stack:
 
 - ✅ **A1 — Central package versions.** In `Directory.Packages.props`, added `SharpGLTF.Core` 1.0.6, `SharpGLTF.Toolkit` 1.0.6, and `AssimpNetter` 6.0.4. `AssimpNet` 4.1.0 kept temporarily (removed in E3).
 - ✅ **A2 — Runtime SharpGLTF reference.** Added `SharpGLTF.Core` + `SharpGLTF.Toolkit` `PackageReference` to `CasaEngine/CasaEngine.csproj`. Restore + build green.
-- ⏳ **A3 — Editor AssimpNetter reference.** Add `AssimpNetter` (+ `SharpGLTF` if needed) `PackageReference` to `CasaEngine.EditorServices/CasaEngine.EditorServices.csproj`. Restore/build. Commit.
+- ✅ **A3 — Editor AssimpNetter reference.** Added `AssimpNetter` 6.0.4 (`net6.0`, ships as `AssimpNetter.dll`) `PackageReference` to `CasaEngine.EditorServices`. Build green. SharpGLTF flows transitively via the `CasaEngine` project reference. Note: AssimpNetter keeps the `Assimp` namespace, so the transitive `AssimpNet` (4.1.0, `AssimpNet.dll`) must be removed in B4 **before** any direct `Assimp` usage is added in the editor (C1), otherwise `Assimp.*` types are ambiguous (CS0433). No file-name conflict (distinct DLL names).
 
 ## Phase B — Runtime SharpGLTF readers
 
@@ -96,4 +96,4 @@ Change the 3D model import/loading stack:
 - **R1** — SharpGLTF rigged-model parity (bind pose, offset matrices, winding/UV flips, morph targets) must match the current Assimp behavior used by existing animation assets/tests. Validate against `Soldier.glb`.
 - **R2** — Legacy `.X` / RacingGame effect metadata is a non-glTF concern; after migration it only flows through the editor convert path. Confirm those scenery assets still import.
 - **R3** — `dude.fbx` may be unused; confirm before converting/deleting.
-- **R4** — AssimpNetter API compatibility with the existing `Assimp` namespace usage (will be validated at A3/C1).
+- **R4** — AssimpNetter (6.0.4) keeps the `Assimp` namespace, same as the legacy AssimpNet (4.1.0). While both are in the graph (A3 → B4 window) there is no compile error because no editor code references `Assimp.*` yet. The first direct `Assimp` usage (C1) must come **after** B4 removes AssimpNet from the runtime, else `Assimp.*` is ambiguous (CS0433). Verified at A3.
