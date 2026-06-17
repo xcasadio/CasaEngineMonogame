@@ -459,6 +459,49 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
   - Commit suggéré : `chore(demos): finalize skeletal animation blending demo`.
   - Validation : build solution complet + capture finale + revue rapide des hot paths.
 
+### Tâche 13 — Migration du modèle vers Soldier.glb
+
+- ✅ **Done** — Utiliser le vrai modèle `Soldier.glb` de three.js
+  - Objectif : faire fonctionner l'exemple avec l'asset original `Soldier.glb` (le modèle
+    « vanguard » mixamo utilisé par three.js), à la place du modèle « kid » provisoire.
+  - Asset : `Soldier.glb` copié depuis `treejs/examples/models/gltf/` vers
+    `CasaEngine.Demos/Content/SkinnedMesh/`.
+  - **Blocage Assimp** : le moteur embarque `AssimpNet 4.1.0` (assimp 2018) qui n'importe
+    **pas** le skinning/animation/textures glTF2 (`Soldier.glb` → bones=0, animations=0,
+    textures=0). Tenter `AssimpNet 5.0.0-beta1` lit bien le glb (bones=51, anims=4) mais
+    **casse le skinning de tous les FBX existants** (kid réduit à des points) car
+    `RiggedModelLoader` est couplé au comportement de transform d'assimp 4.1. `CCd.AssimpNet 6`
+    change les types math (double) et ne compile pas. Le moteur reste donc sur 4.1.0.
+  - **Solution** : conversion **offline** `Soldier.glb` → `Soldier.fbx` via un petit outil
+    jetable utilisant `AssimpNet 5.0` (import glb correct + export FBX avec textures
+    embarquées). Le moteur charge `Soldier.fbx` via le chemin FBX éprouvé d'assimp 4.1
+    (bones=51, animations=4 `Idle`/`Run`/`TPose`/`Walk`, textures=2).
+  - **Support moteur ajouté** : `RiggedModelLoader` ne gérait que les textures externes
+    (chemin disque) et plantait sur un chemin de texture nul (modèles glTF/GLB/FBX à
+    textures embarquées). Ajout d'un garde de chemin nul + extraction des textures
+    embarquées (`*N` ou fallback `scene.Textures[0]`, décode via `Texture2D.FromStream`).
+    Changement additif : ne s'active que si aucune texture disque n'existe → zéro impact
+    sur les modèles FBX existants (kid vérifié non régressé).
+  - **Demo** : `SoldierLocomotionModelFactory` charge `Soldier.fbx`, sélectionne les clips
+    idle/walk/run par nom (fallback ordre three.js 0/3/1) et les réordonne. Le personnage
+    est redressé (−90° X) puis tourné face caméra (180° Y), échelle 0.012 (mixamo cm → ~2 u),
+    `LocalPosition.Y = 2.2` pour poser les pieds au sol. Caméra et éclairage ajustés.
+    `KidLocomotionModelFactory` supprimé (devenu inutile).
+  - **Écart résiduel** : le Soldier apparaît plus sombre que three.js car CasaEngine éclaire
+    en diffus alors que three.js utilise du PBR métallique + une hemisphere light intense.
+    Géométrie, UV, textures, skinning et animation sont corrects (gros plan : bottes/genouières
+    tan avec spéculaire confirment le mapping UV).
+  - Fichiers : `CasaEngine/Framework/Assets/Animations/RiggedModelLoader.cs`,
+    `CasaEngine.Demos/Demos/SoldierLocomotionModelFactory.cs` (nouveau),
+    `CasaEngine.Demos/Demos/KidLocomotionModelFactory.cs` (supprimé),
+    `CasaEngine.Demos/Demos/SkeletalAnimationBlendingDemo.cs`,
+    `CasaEngine.Demos/Content/SkinnedMesh/Soldier.glb` + `Soldier.fbx`,
+    `CasaEngine.Demos/Content/Content.mgcb`.
+  - Commits : `feat(assets): support embedded glTF/GLB/FBX textures in RiggedModelLoader`,
+    `feat(demos): use three.js Soldier model in skeletal blending demo`.
+  - Validation : `dotnet build CasaEngine.MonoGame.sln` → 0 erreur ; capture finale
+    `artifacts/validation/blending-casaengine.png` + comparaison `blending-compare.png`.
+
 ---
 
 ## Suivi des commits
@@ -478,3 +521,4 @@ La fenêtre « example » à gauche de la page three.js n'est **pas** reproduite
 | 10 | ✅ Done | test(demos): validate skeletal blending demo visual parity |
 | 11 (optionnel) | ⚠ Différée | — (non réalisée, voir note) |
 | 12 | ✅ Done | chore(demos): finalize skeletal animation blending demo |
+| 13 | ✅ Done | feat(assets): support embedded glTF/GLB/FBX textures... + feat(demos): use three.js Soldier model... |

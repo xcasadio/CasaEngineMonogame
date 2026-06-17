@@ -88,6 +88,12 @@
 #begin SkinnedMesh/kid_walk.FBX
 /copy:SkinnedMesh/kid_walk.FBX
 
+#begin SkinnedMesh/Soldier.glb
+/copy:SkinnedMesh/Soldier.glb
+
+#begin SkinnedMesh/Soldier.fbx
+/copy:SkinnedMesh/Soldier.fbx
+
 #begin SkinnedMesh/KidBodyNormalMap.png
 /copy:SkinnedMesh/KidBodyNormalMap.png
 

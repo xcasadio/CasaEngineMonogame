@@ -19,9 +19,13 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 public class SkeletalAnimationBlendingDemo : Demo
 {
+    // Soldier.glb (mixamo) imports lying along Z at ~183-unit (cm) scale; stand it up with
+    // a -90deg rotation about X, then turn it 180deg about Y so it faces the camera, and
+    // scale it down to a ~2-unit tall character.
     private static readonly Quaternion CharacterFacingRotation =
-        Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
-    private const float CharacterScale = 0.1f;
+        Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi)
+        * Quaternion.CreateFromAxisAngle(Vector3.Right, -MathHelper.PiOver2);
+    private const float CharacterScale = 0.012f;
 
     private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
         0.15f,
@@ -91,8 +95,8 @@ public class SkeletalAnimationBlendingDemo : Demo
         environmentSettings.BackgroundCubemap = null;
         environmentSettings.SpecularEnvironmentCubemap = null;
         // Approximate three.js HemisphereLight( 0xffffff, 0x8d8d8d, 3 ) with bright ambient.
-        environmentSettings.AmbientColor = new Vector3(0.72f, 0.73f, 0.75f);
-        environmentSettings.AmbientIntensity = 1.25f;
+        environmentSettings.AmbientColor = new Vector3(0.85f, 0.86f, 0.88f);
+        environmentSettings.AmbientIntensity = 1.7f;
         environmentSettings.SpecularIntensity = 0.15f;
         // NOTE: Shadows are intentionally left disabled. Enabling world shadows on a
         // back-buffer view currently discards the SolidColor background clear (the
@@ -109,7 +113,7 @@ public class SkeletalAnimationBlendingDemo : Demo
             new Vector3(0.29f, -0.81f, 0.51f),
             new Color(255, 250, 244),
             Color.White,
-            1.7f,
+            2.4f,
             castShadows: true);
 
         // Soft fill from the camera side to lift the shadowed front.
@@ -124,10 +128,10 @@ public class SkeletalAnimationBlendingDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        // three.js-style front view (FOV 45, camera offset (1,2,-3) scaled to the kid so
-        // the character fills roughly two thirds of the frame). The character faces -Z,
-        // so the camera sits on the -Z side to see the front.
-        camera.SetPositionAndTarget(new Vector3(4.2f, 6.0f, -16.5f), new Vector3(0f, 2.6f, 0f));
+        // three.js-style front view (FOV 45, camera offset (1,2,-3) looking at (0,1,0)).
+        // The soldier faces +Z after the standing rotation, so the camera sits on the +Z
+        // side; the offset is scaled to the ~2-unit tall character.
+        camera.SetPositionAndTarget(new Vector3(1.9f, 1.9f, 5.8f), new Vector3(0f, 1.05f, 0f));
 
         var uiView = GetUIView();
         if (uiView != null && _controlsScreen == null)
@@ -165,7 +169,7 @@ public class SkeletalAnimationBlendingDemo : Demo
 
         CreateGround(world, game.GraphicsDevice);
 
-        var riggedModel = KidLocomotionModelFactory.Create(game);
+        var riggedModel = SoldierLocomotionModelFactory.Create(game);
         var skinnedMesh = new SkinnedMesh();
         skinnedMesh.SetRiggedModel(riggedModel);
 
