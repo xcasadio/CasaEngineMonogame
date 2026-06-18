@@ -99,29 +99,25 @@ public class SkeletalAnimationBlendingDemo : Demo
         environmentSettings.AmbientColor = new Vector3(0.85f, 0.86f, 0.88f);
         environmentSettings.AmbientIntensity = 1.7f;
         environmentSettings.SpecularIntensity = 0.15f;
-        // NOTE: Shadows are intentionally left disabled. Enabling world shadows on a
-        // back-buffer view currently discards the SolidColor background clear (the
-        // shadow pass switches render targets, and MonoGame discards the back-buffer
-        // contents when switching back), turning the gray three.js background black.
-        // The gray background is the dominant visual of this example, so it is kept;
-        // the character contact shadow is omitted as a known engine limitation.
+        environmentSettings.Shadows.Enabled = true;
         environmentSettings.MarkDirty();
 
-        // three.js: dirLight at (-3,10,-10) aiming at the origin → forward (3,-10,10).
+        // Key light from the camera/front side: source above and at +Z, direction toward -Z.
+        // (Soldier faces +Z so a negative-Z direction component lights the front.)
         AddDirectionalLight(
             world,
             "SkeletalBlendingKeyLight",
-            new Vector3(0.29f, -0.81f, 0.51f),
+            new Vector3(0.29f, -0.81f, -0.51f),
             new Color(255, 250, 244),
             Color.White,
             2.4f,
             castShadows: true);
 
-        // Soft fill from the camera side to lift the shadowed front.
+        // Soft fill from behind/above to separate the silhouette.
         AddDirectionalLight(
             world,
             "SkeletalBlendingFillLight",
-            new Vector3(-0.2f, -0.35f, -0.92f),
+            new Vector3(-0.2f, -0.35f, 0.92f),
             new Color(150, 158, 170),
             new Color(80, 86, 96),
             0.3f);
@@ -129,9 +125,8 @@ public class SkeletalAnimationBlendingDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        // three.js-style front view. Soldier faces +Z (after 180° Y rotation) toward the camera.
-        // Camera sits on the +Z side, looking at the character's midsection.
-        camera.SetPositionAndTarget(new Vector3(1.9f, 1.9f, 5.8f), new Vector3(0f, 0.8f, 0f));
+        // Soldier faces +Z (after 180° Y rotation). Camera on the +Z side, closer framing.
+        camera.SetPositionAndTarget(new Vector3(0f, 1.4f, 3.5f), new Vector3(0f, 0.8f, 0f));
 
         var uiView = GetUIView();
         if (uiView != null && _controlsScreen == null)
