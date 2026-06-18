@@ -19,6 +19,23 @@ Change the 3D model import/loading stack:
 | Source files after conversion | **Delete** originals from the repo |
 | Conversion trigger | **Automatic on editor import** (drop a non-glTF file → editor generates `.glb`; runtime loads `.glb`) |
 | Output format | **`.glb`** (binary, self-contained) |
+| Editor import flow (confirmed) | **Option B** — move `StaticModelImporter`/`RiggedModelLoader`/`AssimpConverter` into the editor on **AssimpNetter** and read non-glTF **directly** (no intermediate glTF). Runtime stays glTF-only via SharpGLTF. |
+| Legacy `.X` effect metadata | **Drop** on import (no longer parsed) |
+| Assimp-typed tests | **Delete** `RiggedModelMorphImportTests`; **rewrite** the `.X` importer tests against the moved editor importers |
+
+## Cutover plan (confirmed Option B)
+
+This replaces the original Phase C/B4 "convert→glTF" tasks. It is necessarily **one atomic change** (AssimpNet and AssimpNetter cannot coexist in any compilation — CS0433 — and `CasaEngine.Tests` references both runtime and editor-services):
+
+1. **Move** `CasaEngine/Framework/Assets/Loaders/StaticModelImporter.cs`, `CasaEngine/Framework/Assets/Animations/RiggedModelLoader.cs`, and `CasaEngine/Engine/Animations/AssimpConverter.cs` into `CasaEngine.EditorServices` (new editor-side namespace).
+2. **Adapt** them from AssimpNet 4.1 to AssimpNetter 6.0.4 (`System.Numerics`): `Node.Transform`/`Bone.OffsetMatrix` → `System.Numerics.Matrix4x4` (fields `M11..M44`, faithful map from old `A1..D4`); `Material.Color*` → `System.Numerics.Vector4` (`.X/.Y/.Z/.W` instead of `.R/.G/.B/.A`); `Mesh.Vertices/Normals/Tangents/BiTangents` → `List<System.Numerics.Vector3>`; `VectorKey.Value`/`QuaternionKey.Value` → `System.Numerics`. Strip the legacy `.X` `EffectInstance` parsing.
+3. Add `AssimpNetter` `PackageReference` to `CasaEngine.EditorServices`; **remove** `AssimpNet` from `CasaEngine` (runtime) and from `Directory.Packages.props`.
+4. Repoint `EditorAssetImportService` to the moved editor importers; route `.gltf`/`.glb` through the SharpGLTF readers (B1/B2), other formats through the moved Assimp importers.
+5. **Delete** `RiggedModelMorphImportTests`; **rewrite** `StaticModelImporterTests` + the `.X` cases of `EditorAssetImportServiceTests` against the moved editor importers (no `.X` effect-metadata assertions).
+
+**AssimpNetter API (verified):** `Assimp.Vector3D`/`Matrix4x4`/`Quaternion`/`Color4D` no longer exist — replaced by `System.Numerics`. The `ToMonoGame*` converters in `AssimpConverter.cs` are the main adaptation surface (map old `A1..D4` field access to `M11..M44`, keeping the same transpose so behaviour matches AssimpNet 4.1).
+
+**Open risk (needs runtime validation):** whether AssimpNetter delivers the node/bone matrices in the same orientation as AssimpNet 4.1 (i.e. the existing `ToMonoGameTransposed()` still applies unchanged). Validate the moved importers by importing `Soldier.fbx`/`kid_*.FBX` in the editor and checking the rig.
 
 ## Status legend
 
