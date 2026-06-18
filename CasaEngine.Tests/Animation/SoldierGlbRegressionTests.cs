@@ -6,8 +6,8 @@ namespace CasaEngine.Tests.Animation;
 
 /// <summary>
 /// Guards the multi-skin three.js Soldier asset (2 skins, 4 clips). Loading is via SharpGLTF,
-/// so the model must come in Y-up, standing, at its native ~1.83 unit scale (this is what the
-/// SkeletalAnimationBlendingDemo transform relies on).
+/// so the model must come in Y-up, standing, at its native ~1.83 unit scale. The model faces -Z
+/// in its source orientation (the demo applies a 180° Y rotation to point it toward the +Z camera).
 /// </summary>
 public class SoldierGlbRegressionTests
 {

@@ -19,10 +19,13 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 public class SkeletalAnimationBlendingDemo : Demo
 {
-    // Soldier.glb (three.js/mixamo) is loaded directly via SharpGLTF: it imports Y-up, standing,
-    // ~1.83 units (m) tall with its feet at the model origin, and natively faces +Z (toward the
-    // +Z camera). No standing rotation or unit rescale is needed; it is used at its native scale.
-    private static readonly Quaternion CharacterFacingRotation = Quaternion.Identity;
+    // Soldier.glb (three.js/mixamo) is loaded via SharpGLTF: Y-up, standing, ~1.83 units (m)
+    // tall, feet at model origin (joint AABB min.Y ≈ 0), facing -Z (back toward +Z camera).
+    // Rotate 180° around Y so it faces the camera at +Z.
+    // The ground is a BoxPrimitive(100,1,100) centred at world Y=-0.5 → top surface at Y=0.
+    // Place feet at Y=0.02 so mesh vertices (a few cm below the lowest joint) sit on the surface.
+    private static readonly Quaternion CharacterFacingRotation =
+        Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
     private const float CharacterScale = 1.0f;
 
     private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
@@ -126,10 +129,9 @@ public class SkeletalAnimationBlendingDemo : Demo
 
     public override void InitializeCamera(CameraComponent camera)
     {
-        // three.js-style front view (FOV 45, camera offset (1,2,-3) looking at (0,1,0)).
-        // The soldier faces +Z after the standing rotation, so the camera sits on the +Z
-        // side; the offset is scaled to the ~2-unit tall character.
-        camera.SetPositionAndTarget(new Vector3(1.9f, 1.9f, 5.8f), new Vector3(0f, 1.05f, 0f));
+        // three.js-style front view. Soldier faces +Z (after 180° Y rotation) toward the camera.
+        // Camera sits on the +Z side, looking at the character's midsection.
+        camera.SetPositionAndTarget(new Vector3(1.9f, 1.9f, 5.8f), new Vector3(0f, 0.8f, 0f));
 
         var uiView = GetUIView();
         if (uiView != null && _controlsScreen == null)
@@ -179,8 +181,9 @@ public class SkeletalAnimationBlendingDemo : Demo
             ReceiveShadows = true,
         };
         _characterEntity.RootComponent = _skinnedMeshComponent;
-        // Feet sit at the model origin; place them on the ground plane (y = -0.5).
-        _skinnedMeshComponent.LocalPosition = new Vector3(0f, -0.5f, 0f);
+        // Ground top surface = Y 0 (BoxPrimitive 1u tall centred at Y=-0.5).
+        // Tiny upward offset so foot mesh vertices (slightly below the lowest joint) don't clip.
+        _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, 0f);
         _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
 
