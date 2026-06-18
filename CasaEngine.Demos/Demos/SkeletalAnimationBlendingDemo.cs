@@ -19,13 +19,11 @@ namespace CasaEngine.Demos.Demos;
 /// </summary>
 public class SkeletalAnimationBlendingDemo : Demo
 {
-    // Soldier.glb (mixamo) imports lying along Z at ~183-unit (cm) scale; stand it up with
-    // a -90deg rotation about X, then turn it 180deg about Y so it faces the camera, and
-    // scale it down to a ~2-unit tall character.
-    private static readonly Quaternion CharacterFacingRotation =
-        Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi)
-        * Quaternion.CreateFromAxisAngle(Vector3.Right, -MathHelper.PiOver2);
-    private const float CharacterScale = 0.012f;
+    // Soldier.glb (three.js/mixamo) is loaded directly via SharpGLTF: it imports Y-up, standing,
+    // ~1.83 units (m) tall with its feet at the model origin, and natively faces +Z (toward the
+    // +Z camera). No standing rotation or unit rescale is needed; it is used at its native scale.
+    private static readonly Quaternion CharacterFacingRotation = Quaternion.Identity;
+    private const float CharacterScale = 1.0f;
 
     private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
         0.15f,
@@ -181,7 +179,8 @@ public class SkeletalAnimationBlendingDemo : Demo
             ReceiveShadows = true,
         };
         _characterEntity.RootComponent = _skinnedMeshComponent;
-        _skinnedMeshComponent.LocalPosition = new Vector3(0f, 2.2f, 0f);
+        // Feet sit at the model origin; place them on the ground plane (y = -0.5).
+        _skinnedMeshComponent.LocalPosition = new Vector3(0f, -0.5f, 0f);
         _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
 
