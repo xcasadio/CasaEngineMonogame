@@ -69,6 +69,14 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
     //  IRenderPipeline3D
     // -----------------------------------------------------------------------
 
+    /// <summary>
+    /// Optional callback invoked immediately after the shadow pass completes and before
+    /// any sky/opaque/transparent pass executes. Use this to inject additional shadow
+    /// casters (e.g. from the skinned-mesh renderer) so that all shadow geometry is in
+    /// the atlas before the opaque pass samples it.
+    /// </summary>
+    public Action<RenderContext>? PostShadowPassCallback { get; set; }
+
     /// <inheritdoc/>
     public void Initialize(GraphicsDevice device)
     {
@@ -85,6 +93,15 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
         RenderShaderSelector shaderSelector)
     {
         foreach (var pass in _passes)
+        {
             pass.Execute(context, items, stateCache, shaderCache, shaderSelector);
+
+            // After the shadow pass, let other renderers (e.g. skinned meshes) inject
+            // their shadow casters into the atlas before the opaque pass samples it.
+            if (pass.Type == RenderPassType.ShadowPass)
+            {
+                PostShadowPassCallback?.Invoke(context);
+            }
+        }
     }
 }

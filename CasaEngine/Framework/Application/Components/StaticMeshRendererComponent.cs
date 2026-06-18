@@ -46,6 +46,14 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
 
     public ForwardShadowResources ShadowResources => _shadowResources;
 
+    /// <summary>
+    /// Registers a callback that is invoked after the shadow pass but before the
+    /// opaque pass. Used by the skinned-mesh renderer to inject its shadow casters
+    /// into the atlas while static scene geometry has not yet been drawn.
+    /// </summary>
+    public void RegisterPostShadowCallback(Action<RenderContext> callback)
+        => _pipeline.PostShadowPassCallback = callback;
+
     public StaticMeshRendererComponent(Game game) : base(game)
     {
         game.Components.Add(this);
