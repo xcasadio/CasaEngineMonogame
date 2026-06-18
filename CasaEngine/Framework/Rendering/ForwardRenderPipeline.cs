@@ -85,25 +85,6 @@ public sealed class ForwardRenderPipeline : IRenderPipeline3D
         RenderShaderSelector shaderSelector)
     {
         foreach (var pass in _passes)
-        {
             pass.Execute(context, items, stateCache, shaderCache, shaderSelector);
-
-            // The shadow pass switches to a shadow-map render target and back. On D3D11 the
-            // back-buffer contents are discarded when the RT is restored, wiping the background
-            // clear that RenderPipeline issued before calling this pipeline. Re-clear here, after
-            // the shadow pass returns to the main surface but before any geometry is drawn.
-            if (pass.Type == RenderPassType.ShadowPass
-                && context.Shadows?.Settings.Enabled == true
-                && (context.Environment.BackgroundMode == Environment.EnvironmentBackgroundMode.SolidColor
-                    || context.Environment.BackgroundMode == Environment.EnvironmentBackgroundMode.LegacyClearColor))
-            {
-                context.Device.Clear(
-                    Microsoft.Xna.Framework.Graphics.ClearOptions.Target
-                    | Microsoft.Xna.Framework.Graphics.ClearOptions.DepthBuffer,
-                    context.Environment.BackgroundColor,
-                    1.0f,
-                    0);
-            }
-        }
     }
 }

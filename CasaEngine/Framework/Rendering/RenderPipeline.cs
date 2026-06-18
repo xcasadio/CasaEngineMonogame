@@ -32,6 +32,9 @@ public sealed class RenderPipeline
     private readonly SpriteBatch                          _spriteBatch;
     private readonly Texture2D                            _pixel;
     private readonly DefaultViewPipeline                  _defaultPipeline = DefaultViewPipeline.Instance;
+    // Scene render target used when shadows are active on a back-buffer view.
+    // Prevents D3D11 back-buffer discards caused by shadow-pass RT switches.
+    private RenderTarget2D _sceneRt;
 
     /// <summary>
     /// Optional debug overlay drawn on views that have <see cref="RenderView.ShowDebugOverlay"/> = true.
@@ -124,16 +127,39 @@ public sealed class RenderPipeline
 
             ApplyResolutionScale(view);
 
+            // Shadow settings are needed before surface setup to decide whether to redirect
+            // scene rendering through an intermediate RenderTarget2D (sceneRt).
+            // On D3D11 standalone builds, switching away from the swap-chain back buffer and
+            // back (as the shadow pass does) discards its contents. Rendering to a
+            // PreserveContents RenderTarget2D and blitting once at the end avoids this.
+            // WPF editor views already use a non-null initialRenderTarget (the D3D11Host
+            // texture), so that path is unaffected.
+            var shadowSettings = (view.EnvironmentOverride ?? view.World.EnvironmentSettings).Shadows;
+            bool useSceneRt = view.Surface.IsBackBuffer
+                && initialRenderTarget == null
+                && shadowSettings.Enabled
+                && view.ClearColorBuffer;
+
             using var guard = new GraphicsStateGuard(_graphicsDevice);
 
-            // 1. Restore the initial target for BB views; RT views set their own.
-            if (view.Surface.IsBackBuffer)
+            if (useSceneRt)
             {
-                _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                var vp = view.Surface.ViewportRect;
+                EnsureSceneRt(vp.Width, vp.Height);
+                _graphicsDevice.SetRenderTarget(_sceneRt);
+                _graphicsDevice.Viewport = new Viewport(0, 0, vp.Width, vp.Height);
             }
+            else
+            {
+                // 1. Restore the initial target for BB views; RT views set their own.
+                if (view.Surface.IsBackBuffer)
+                {
+                    _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                }
 
-            // 2. Apply surface (SetRenderTarget for RT, or Viewport-only for BB)
-            view.Surface.Apply(_graphicsDevice);
+                // 2. Apply surface (SetRenderTarget for RT, or Viewport-only for BB)
+                view.Surface.Apply(_graphicsDevice);
+            }
 
             var resolvedEnvironment = EnvironmentResolver.Resolve(view);
             WorldLightCollector.Collect(view.World, view.Lighting, in resolvedEnvironment, view.Camera.Position);
@@ -157,7 +183,14 @@ public sealed class RenderPipeline
             // independent textures, not shared with other views).
             long clearStartTimestamp = Stopwatch.GetTimestamp();
 
-            if (view.ClearColorBuffer && view.Surface.IsBackBuffer)
+            if (useSceneRt)
+            {
+                // sceneRt is a dedicated surface; Device.Clear is safe (no viewport restriction issue).
+                _graphicsDevice.Clear(
+                    ClearOptions.Target | ClearOptions.DepthBuffer,
+                    resolvedClearColor, 1.0f, 0);
+            }
+            else if (view.ClearColorBuffer && view.Surface.IsBackBuffer)
             {
                 var vp = view.Surface.ViewportRect;
                 _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
@@ -188,7 +221,6 @@ public sealed class RenderPipeline
             view.RenderStats.ClearCpuMilliseconds = GetElapsedMilliseconds(clearStartTimestamp);
 
             // 4. Build the camera frame for this view
-            var shadowSettings = (view.EnvironmentOverride ?? view.World.EnvironmentSettings).Shadows;
             var frame = RenderFrameFactory.From(view.Camera, view.Surface.ViewportRect, in resolvedEnvironment, view.Lighting, shadowSettings);
 
             // Reset per-view counters before renderer flushes aggregate into them.
@@ -206,6 +238,20 @@ public sealed class RenderPipeline
             pipeline.RenderView(_graphicsDevice, view, in frame, _renderers);
             view.RenderStats.RenderedThisFrame = true;
             view.RenderStats.TotalCpuMilliseconds += GetElapsedMilliseconds(pipelineStartTimestamp);
+
+            if (useSceneRt)
+            {
+                // Blit sceneRt to the swap-chain back buffer. This is the single write to the
+                // DXGI surface; all shadow-pass RT switches happened between non-back-buffer
+                // surfaces so no content was discarded.
+                _graphicsDevice.SetRenderTarget(initialRenderTarget);
+                view.Surface.Apply(_graphicsDevice);
+                var vp = view.Surface.ViewportRect;
+                _spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque,
+                    null, DepthStencilState.None, RasterizerState.CullNone);
+                _spriteBatch.Draw(_sceneRt, new Rectangle(0, 0, vp.Width, vp.Height), Color.White);
+                _spriteBatch.End();
+            }
 
             // 6. After an RT view, restore the initial render target so the next
             //    view (BB or another RT) starts from the expected surface.
@@ -334,6 +380,31 @@ public sealed class RenderPipeline
     private static double GetElapsedMilliseconds(long startTimestamp)
     {
         return (Stopwatch.GetTimestamp() - startTimestamp) * 1000.0 / Stopwatch.Frequency;
+    }
+
+    /// <summary>
+    /// Creates or resizes <see cref="_sceneRt"/> to cover <paramref name="width"/>×<paramref name="height"/>.
+    /// Uses <see cref="RenderTargetUsage.PreserveContents"/> so that switching to the shadow-map
+    /// atlas and back does not discard the scene content.
+    /// </summary>
+    private void EnsureSceneRt(int width, int height)
+    {
+        if (_sceneRt != null && !_sceneRt.IsDisposed
+            && _sceneRt.Width == width && _sceneRt.Height == height)
+        {
+            return;
+        }
+
+        _sceneRt?.Dispose();
+        _sceneRt = new RenderTarget2D(
+            _graphicsDevice,
+            width,
+            height,
+            false,
+            SurfaceFormat.Color,
+            DepthFormat.Depth24Stencil8,
+            0,
+            RenderTargetUsage.PreserveContents);
     }
 
 #if DEBUG
