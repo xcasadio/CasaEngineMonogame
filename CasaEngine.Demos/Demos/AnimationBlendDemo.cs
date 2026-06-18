@@ -284,10 +284,10 @@ public class AnimationBlendDemo : Demo
 
     private static RiggedModel CreateRiggedModel(CasaEngineGame game)
     {
-        var idleModel = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\kid_idle.FBX");
-        var rawModelLoader = new RiggedModelLoader();
-        var walkModel = rawModelLoader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_walk.FBX"));
-        var runModel = rawModelLoader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_run.FBX"));
+        var idleModel = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\kid_idle.glb");
+        var rawModelReader = new GltfRiggedModelReader();
+        var walkModel = rawModelReader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_walk.glb"));
+        var runModel = rawModelReader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_run.glb"));
 
         if (idleModel.SkeletonDefinition == null)
         {

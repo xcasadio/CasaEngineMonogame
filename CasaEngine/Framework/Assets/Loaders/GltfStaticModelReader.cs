@@ -44,7 +44,7 @@ public sealed class GltfStaticModelReader
         ModelRoot root;
         try
         {
-            root = ModelRoot.Load(filePath, new ReadSettings { Validation = SharpGLTF.Validation.ValidationMode.TryFix });
+            root = ModelRoot.Load(filePath, new ReadSettings { Validation = SharpGLTF.Validation.ValidationMode.Skip });
         }
         catch (Exception ex)
         {

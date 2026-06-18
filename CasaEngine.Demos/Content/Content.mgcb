@@ -40,9 +40,6 @@
 #begin paper_box_texture.jpg
 /copy:paper_box_texture.jpg
 
-#begin SkinnedMesh/dude.fbx
-/copy:SkinnedMesh/dude.fbx
-
 #begin SkinnedMesh/head.png
 /copy:SkinnedMesh/head.png
 
@@ -76,23 +73,20 @@
 #begin SkinnedMesh/Kid_Hair.texture
 /copy:SkinnedMesh/Kid_Hair.texture
 
-#begin SkinnedMesh/kid_idle.FBX
-/copy:SkinnedMesh/kid_idle.FBX
+#begin SkinnedMesh/kid_idle.glb
+/copy:SkinnedMesh/kid_idle.glb
 
 #begin SkinnedMesh/kid_idle.model
 /copy:SkinnedMesh/kid_idle.model
 
-#begin SkinnedMesh/kid_run.FBX
-/copy:SkinnedMesh/kid_run.FBX
+#begin SkinnedMesh/kid_run.glb
+/copy:SkinnedMesh/kid_run.glb
 
-#begin SkinnedMesh/kid_walk.FBX
-/copy:SkinnedMesh/kid_walk.FBX
+#begin SkinnedMesh/kid_walk.glb
+/copy:SkinnedMesh/kid_walk.glb
 
 #begin SkinnedMesh/Soldier.glb
 /copy:SkinnedMesh/Soldier.glb
-
-#begin SkinnedMesh/Soldier.fbx
-/copy:SkinnedMesh/Soldier.fbx
 
 #begin SkinnedMesh/KidBodyNormalMap.png
 /copy:SkinnedMesh/KidBodyNormalMap.png

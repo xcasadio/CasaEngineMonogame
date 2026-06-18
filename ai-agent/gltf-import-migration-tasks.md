@@ -23,7 +23,14 @@ Change the 3D model import/loading stack:
 | Legacy `.X` effect metadata | **Drop** on import (no longer parsed) |
 | Assimp-typed tests | **Delete** `RiggedModelMorphImportTests`; **rewrite** the `.X` importer tests against the moved editor importers |
 
-## Cutover plan (confirmed Option B)
+## Cutover plan (EXECUTED as Option A)
+
+**Note:** after de-risking, the user switched from Option B (adapt importers) to **Option A** (editor converts non-glTF → `.glb` via AssimpNetter, then the shared SharpGLTF readers build the assets; old importers deleted). This was lower-risk and matched the original request. Executed:
+- Deleted `StaticModelImporter.cs`, `RiggedModelLoader.cs`, `AssimpConverter.cs`; preserved `StaticModelImportResult`/`StaticModelImportedMaterial` in a new file; moved `DefaultTexture` to `RiggedModel`.
+- Added `CasaEngine.EditorServices/Import/AssimpToGltfConverter.cs` (AssimpNetter glb2 → SharpGLTF texture-embed → self-contained glb). Removed `AssimpNet` from runtime + central versions; added `AssimpNetter` to EditorServices.
+- Rewired `EditorAssetImportService` to convert non-glTF to a temp glb then read via the SharpGLTF readers.
+- Readers use `ValidationMode.Skip` (Assimp output is non-conformant but usable); `GltfRiggedModelReader` uses the single top-level node as root and has a `Content/`/`Assets/` path fallback.
+- Deleted `RiggedModelMorphImportTests` + `StaticModelImporterTests`; added a self-contained OBJ-based `AssimpToGltfConverterTests`.
 
 This replaces the original Phase C/B4 "convert→glTF" tasks. It is necessarily **one atomic change** (AssimpNet and AssimpNetter cannot coexist in any compilation — CS0433 — and `CasaEngine.Tests` references both runtime and editor-services):
 
@@ -129,12 +136,12 @@ Two facts force a change to the original ordering:
 
 ## Phase D — Convert & rewire demo assets
 
-- ⏳ **D1 — Convert kid + dude.** Using the editor converter (C1), produce `kid_idle.glb`, `kid_walk.glb`, `kid_run.glb`, `dude.glb` in `CasaEngine.Demos/Content/SkinnedMesh/`. (Verify `dude.fbx` usage; if unused, flag.) Commit generated `.glb` files.
-- ⏳ **D2 — Soldier → glb.** Repoint `SoldierLocomotionModelFactory` to existing `Soldier.glb`; validate skinning/animation parity through the SharpGLTF reader. Commit.
-- ⏳ **D3 — Regenerate `kid_idle.model`.** Inspect `kid_idle.model`; if it references the FBX, regenerate/repoint to `kid_idle.glb`. Commit.
-- ⏳ **D4 — Rewire demos.** Update `SoldierLocomotionModelFactory.cs`, `AnimationBlendDemo.cs`, `SkinnedMeshDemo.cs` (and XML docs mentioning Assimp 4.1/FBX) to load `.glb`. Commit.
-- ⏳ **D5 — Content includes.** Update `CasaEngine.Demos.csproj` content copy rules for the new `.glb` (and `.model`) assets. Commit.
-- ⏳ **D6 — Delete originals.** Remove `Soldier.fbx`, `kid_idle.FBX`, `kid_walk.FBX`, `kid_run.FBX`, `dude.fbx` from the repo. Commit.
+- ✅ **D1 — Convert kid.** Generated `kid_idle.glb`, `kid_walk.glb`, `kid_run.glb` in `CasaEngine.Demos/Content/SkinnedMesh/` via the AssimpNetter converter (textures embedded). `dude.fbx` was unused → deleted, not converted.
+- ✅ **D2 — Soldier → glb.** `SoldierLocomotionModelFactory` repointed to the existing `Soldier.glb`.
+- ✅ **D3 — kid_idle.model.** `AssetInfos.json` geometry GUID `e6a898ce…` repointed from `kid_idle.FBX` to `kid_idle.glb`; the `.model` wrapper is unchanged.
+- ✅ **D4 — Rewire demos.** `SoldierLocomotionModelFactory.cs`, `AnimationBlendDemo.cs` load `.glb`; `SkinnedMeshDemo` loads via the repointed catalog.
+- ✅ **D5 — Content includes.** `Content.mgcb` copies the kid `.glb` files; FBX copy entries removed.
+- ✅ **D6 — Delete originals.** Removed `kid_idle.FBX`, `kid_walk.FBX`, `kid_run.FBX`, `Soldier.fbx`, `dude.fbx`.
 
 ## Phase E — Tests, cleanup, validation
 

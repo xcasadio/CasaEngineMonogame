@@ -58,6 +58,12 @@ public class RiggedModel : IAssetable
     public readonly List<RiggedModelNode> FlatListToBoneNodes = new();
     public readonly List<RiggedModelNode> FlatListToAllNodes = new();
     public RiggedModelMesh[] Meshes;
+
+    /// <summary>
+    /// 1×1 white fallback texture used for skinned meshes that ship without a texture.
+    /// Provided by the renderer at content-load time.
+    /// </summary>
+    public static Texture2D DefaultTexture { get; set; }
     public RiggedModelNode RootNodeOfTree; // The actual model root node the base node of the model from here we can locate any node in the chain.
     public RiggedModelNode FirstRealBoneInTree; // unused as of yet. The actual first bone in the scene the basis of the users skeletal model he created.
                                                 //public RiggedModelNode globalPreTransformNode; // the accumulated orientations and scalars prior to the first bone acts as a scalar to the actual bone local transforms from assimp.

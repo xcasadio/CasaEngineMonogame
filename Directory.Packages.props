@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="Apos.Shapes" Version="0.6.8" />
-    <PackageVersion Include="AssimpNet" Version="4.1.0" />
     <PackageVersion Include="AssimpNetter" Version="6.0.4" />
     <PackageVersion Include="BepuPhysics" Version="2.4.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.2" />

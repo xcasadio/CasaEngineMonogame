@@ -6,6 +6,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Rendering.Models;
 using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.EditorServices.Import;
 using CasaEngine.EditorServices.Tiled;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -41,13 +42,13 @@ public static class EditorAssetImportService
             return true;
         }
 
-        var importer = new StaticModelImporter();
-        if (!importer.IsFileSupported(sourceFilePath))
+        var staticModelReader = new GltfStaticModelReader();
+        if (!staticModelReader.IsFileSupported(sourceFilePath) && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
         {
             return catalogChanged;
         }
 
-        var result = importer.ImportWithMetadata(sourceFilePath, legacyMaterialImportProfile);
+        var result = ReadStaticModelWithConversion(staticModelReader, sourceFilePath, legacyMaterialImportProfile);
         var model = result.Model;
         if (model.RootNode == null && model.Meshes.Count == 0)
         {
@@ -314,14 +315,24 @@ public static class EditorAssetImportService
 
     private static bool TryImportSeparatedAnimationAssets(string sourceFilePath, string destinationFilePath)
     {
-        var riggedModelLoader = new RiggedModelLoader(null, null);
+        var riggedModelReader = new GltfRiggedModelReader(null, null);
+        if (!riggedModelReader.IsFileSupported(sourceFilePath) && !AssimpToGltfConverter.RequiresConversion(sourceFilePath))
+        {
+            return false;
+        }
+
         RiggedModel riggedModel;
 
         try
         {
-            riggedModel = riggedModelLoader.LoadAsset(sourceFilePath);
+            riggedModel = ReadRiggedModelWithConversion(riggedModelReader, sourceFilePath);
         }
         catch
+        {
+            return false;
+        }
+
+        if (riggedModel == null)
         {
             return false;
         }
@@ -335,6 +346,75 @@ public static class EditorAssetImportService
 
         ImportSeparatedAnimationAssets(destinationFilePath, riggedModel);
         return true;
+    }
+
+    /// <summary>
+    /// Reads a static model, converting non-glTF sources to a temporary <c>.glb</c> first.
+    /// </summary>
+    private static StaticModelImportResult ReadStaticModelWithConversion(
+        GltfStaticModelReader reader,
+        string sourceFilePath,
+        ILegacyMaterialImportProfile? legacyMaterialImportProfile)
+    {
+        if (reader.IsFileSupported(sourceFilePath))
+        {
+            return reader.ReadWithMetadata(sourceFilePath, legacyMaterialImportProfile);
+        }
+
+        string temporaryGlbPath = CreateTemporaryGlbPath();
+        try
+        {
+            AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
+            return reader.ReadWithMetadata(temporaryGlbPath, legacyMaterialImportProfile);
+        }
+        finally
+        {
+            TryDeleteFile(temporaryGlbPath);
+        }
+    }
+
+    /// <summary>
+    /// Reads a rigged model, converting non-glTF sources to a temporary <c>.glb</c> first.
+    /// </summary>
+    private static RiggedModel ReadRiggedModelWithConversion(GltfRiggedModelReader reader, string sourceFilePath)
+    {
+        if (reader.IsFileSupported(sourceFilePath))
+        {
+            return reader.LoadAsset(sourceFilePath);
+        }
+
+        string temporaryGlbPath = CreateTemporaryGlbPath();
+        try
+        {
+            AssimpToGltfConverter.Convert(sourceFilePath, temporaryGlbPath);
+            return reader.LoadAsset(temporaryGlbPath);
+        }
+        finally
+        {
+            TryDeleteFile(temporaryGlbPath);
+        }
+    }
+
+    private static string CreateTemporaryGlbPath()
+    {
+        string temporaryDirectory = Path.Combine(Path.GetTempPath(), "CasaEngineImport");
+        Directory.CreateDirectory(temporaryDirectory);
+        return Path.Combine(temporaryDirectory, Guid.NewGuid().ToString("N") + ".glb");
+    }
+
+    private static void TryDeleteFile(string filePath)
+    {
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+            // Best-effort cleanup of the temporary conversion artifact.
+        }
     }
 
     private static void ImportSeparatedAnimationAssets(string destinationFilePath, RiggedModel riggedModel)

@@ -12,10 +12,8 @@ namespace CasaEngine.Demos.Demos;
 /// run. The model already embeds every animation on a single skeleton, so the clips are
 /// simply selected (by name, with the three.js index order as a fallback) and reordered.
 /// <para/>
-/// The source asset is <c>Soldier.glb</c> (copied from the three.js examples). The engine's
-/// bundled Assimp (AssimpNet 4.1) cannot import glTF2 skinning/animation, so the file is
-/// converted offline to <c>Soldier.fbx</c> (a format Assimp 4.1 loads with full skinning,
-/// embedded textures included) and that FBX is what is loaded at runtime.
+/// The source asset is <c>Soldier.glb</c> (copied from the three.js examples). The engine now
+/// loads glTF/GLB directly via SharpGLTF, so the original three.js binary glTF is used as-is.
 /// </summary>
 public static class SoldierLocomotionModelFactory
 {
@@ -32,15 +30,15 @@ public static class SoldierLocomotionModelFactory
     {
         ArgumentNullException.ThrowIfNull(game);
 
-        var model = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\Soldier.fbx");
+        var model = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\Soldier.glb");
 
         var skeleton = model.SkeletonDefinition
-            ?? throw new InvalidOperationException("Soldier.fbx did not expose a runtime skeleton.");
+            ?? throw new InvalidOperationException("Soldier.glb did not expose a runtime skeleton.");
 
         var sourceClips = model.AnimationClips;
         if (sourceClips.Count == 0)
         {
-            throw new InvalidOperationException("Soldier.fbx does not provide any runtime animation clip.");
+            throw new InvalidOperationException("Soldier.glb does not provide any runtime animation clip.");
         }
 
         var idleClip = ResolveClip(sourceClips, "idle", ThreeJsIdleIndex);

@@ -27,8 +27,8 @@ public class GltfRiggedModelReaderTests
 
             Assert.NotNull(model);
 
-            // Synthetic root + one mesh node => two flat nodes; dummy bone only.
-            Assert.Equal(2, model.FlatListToAllNodes.Count);
+            // Single top-level node ("MeshNode") becomes the model root directly; dummy bone only.
+            Assert.Single(model.FlatListToAllNodes);
             Assert.Single(model.FlatListToBoneNodes);
 
             // The runtime skeleton is built from the flat node list by InitializeRuntimeAnimation().

@@ -63,12 +63,14 @@ public sealed class GltfRiggedModelReader
 
     private RiggedModel LoadAssetInternal(string filePath, AssetContentManager content)
     {
+        filePath = ResolveModelPath(filePath);
+
         GltfModelRoot root;
         try
         {
             root = GltfModelRoot.Load(filePath, new SharpGLTF.Schema2.ReadSettings
             {
-                Validation = SharpGLTF.Validation.ValidationMode.TryFix
+                Validation = SharpGLTF.Validation.ValidationMode.Skip
             });
         }
         catch (Exception ex)
@@ -103,20 +105,30 @@ public sealed class GltfRiggedModelReader
         var nodeMap = new Dictionary<GltfNode, RiggedModel.RiggedModelNode>();
         var meshNodes = new List<(GltfNode GltfNode, RiggedModel.RiggedModelNode ModelNode)>();
 
-        // Synthetic root mirrors Assimp's synthesized scene root (non-bone, index 0 of FlatListToAllNodes).
         var scene = root.DefaultScene ?? (root.LogicalScenes.Count > 0 ? root.LogicalScenes[0] : null);
-        var rootNode = new RiggedModel.RiggedModelNode
-        {
-            Name = scene?.Name ?? "RootNode",
-            IsTheRootNode = true,
-        };
-        model.RootNodeOfTree = rootNode;
-        model.FlatListToAllNodes.Add(rootNode);
-        model.NumberOfNodesInUse++;
+        var topLevelNodes = scene != null ? scene.VisualChildren.ToList() : new List<GltfNode>();
 
-        if (scene != null)
+        if (topLevelNodes.Count == 1)
         {
-            foreach (var gltfNode in scene.VisualChildren)
+            // Use the single top-level node as the model root directly (Assimp wraps scenes in one
+            // "RootNode"); adding a synthetic wrapper would duplicate that node's name.
+            var rootNode = new RiggedModel.RiggedModelNode { IsTheRootNode = true };
+            model.RootNodeOfTree = rootNode;
+            BuildNodeRecursive(model, rootNode, topLevelNodes[0], inverseBindByJoint, nodeMap, meshNodes);
+        }
+        else
+        {
+            // Multiple top-level nodes: wrap them under a synthetic, uniquely-named root.
+            var rootNode = new RiggedModel.RiggedModelNode
+            {
+                Name = "__GltfRoot__",
+                IsTheRootNode = true,
+            };
+            model.RootNodeOfTree = rootNode;
+            model.FlatListToAllNodes.Add(rootNode);
+            model.NumberOfNodesInUse++;
+
+            foreach (var gltfNode in topLevelNodes)
             {
                 var childNode = new RiggedModel.RiggedModelNode { Parent = rootNode };
                 rootNode.Children.Add(childNode);
@@ -511,6 +523,34 @@ public sealed class GltfRiggedModelReader
         }
 
         return nodeAnim;
+    }
+
+    /// <summary>
+    /// Mirrors the legacy loader's lookup: tries the path as given, then under the working
+    /// directory's <c>Content</c>/<c>Assets</c> folders (the project asset path does not include
+    /// the <c>Content</c> prefix that the content pipeline copies assets into).
+    /// </summary>
+    private static string ResolveModelPath(string filePathOrFileName)
+    {
+        if (string.IsNullOrWhiteSpace(filePathOrFileName) || File.Exists(filePathOrFileName))
+        {
+            return filePathOrFileName;
+        }
+
+        string relativeName = filePathOrFileName
+            .Replace(Environment.CurrentDirectory, string.Empty)
+            .TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        foreach (var prefix in new[] { "Content", "Assets", Path.Combine("Content", "Assets") })
+        {
+            string candidate = Path.Combine(Environment.CurrentDirectory, prefix, relativeName);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return filePathOrFileName;
     }
 
     private static Matrix ToXna(System.Numerics.Matrix4x4 m)

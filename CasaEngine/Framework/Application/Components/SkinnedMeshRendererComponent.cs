@@ -94,11 +94,11 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
         _shaderSelector.RegisterShader(dualQuaternionShader.ShaderId, _shader);
 
         // Provide a 1×1 white fallback texture for skinned meshes without textures.
-        if (RiggedModelLoader.DefaultTexture == null)
+        if (RiggedModel.DefaultTexture == null)
         {
             var white = new Texture2D(Game.GraphicsDevice, 1, 1);
             white.SetData(new[] { Color.White });
-            RiggedModelLoader.DefaultTexture = white;
+            RiggedModel.DefaultTexture = white;
         }
 
         base.LoadContent();
