@@ -100,6 +100,10 @@ public class SkeletalAnimationBlendingDemo : Demo
         environmentSettings.AmbientIntensity = 1.7f;
         environmentSettings.SpecularIntensity = 0.15f;
         environmentSettings.Shadows.Enabled = true;
+        // Tight shadow frustum: camera is ~3.8 units from the soldier, MaxDistance=8 gives
+        // a 16x16 world-unit ortho projection → ~0.016 u/texel at 1024 resolution.
+        // The default MaxDistance=100 would produce a 200x200 frustum and blocky ~5-texel shadows.
+        environmentSettings.Shadows.MaxDistance = 8.0f;
         environmentSettings.MarkDirty();
 
         // Key light from the camera/front side: source above and at +Z, direction toward -Z.
