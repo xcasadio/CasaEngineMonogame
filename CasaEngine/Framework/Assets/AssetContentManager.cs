@@ -81,7 +81,6 @@ public class AssetContentManager
             _assetsDictionaryByCategory.Add(categoryName, categoryAssetList);
         }
 
-        //TODO entity can be cached ?
         if (typeof(T) != typeof(Entity) && categoryAssetList.Get(id, out var asset))
         {
             return (T)asset;
