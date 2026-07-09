@@ -91,14 +91,7 @@ public class SkinnedMeshRendererComponent : DrawableGameComponent, IViewFlushabl
             // Inject skinned shadow casters between the static shadow pass and the static
             // opaque pass so the ground samples the full atlas (containing the soldier).
             // Without this, the ground renders before the soldier is in the shadow atlas.
-            _staticMeshRendererComponent.RegisterPostShadowCallback(
-                context => DrawShadowCasters(in context));
-
-            // Inject skinned shadow casters between the static shadow pass and the static
-            // opaque pass so the ground samples the full atlas (containing the soldier).
-            // Without this, the ground renders before the soldier is in the shadow atlas.
-            _staticMeshRendererComponent.RegisterPostShadowCallback(
-                context => DrawShadowCasters(in context));
+            _staticMeshRendererComponent.RegisterPostShadowCallback(context => DrawShadowCasters(in context));
         }
 
         _shaderSelector = new RenderShaderSelector(_shader, _shaderManager, _variantLibrary);
