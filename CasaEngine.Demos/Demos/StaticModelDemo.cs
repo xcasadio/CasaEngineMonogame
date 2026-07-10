@@ -111,7 +111,7 @@ public class StaticModelDemo : Demo
         {
             groundMesh.Material = new LitDiffuseMaterial
             {
-                BasColor     = Texture2D.FromFile(gd, texturePath),
+                BasColor     = game.AssetContentManager.LoadFromFile<Texture2D>("checkboard.png"),
                 DiffuseColor = Color.White,
             };
         }

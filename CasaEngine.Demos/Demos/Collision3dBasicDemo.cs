@@ -7,7 +7,6 @@ using CasaEngine.Framework.Rendering.Models;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.IO;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -35,10 +34,9 @@ public class Collision3dBasicDemo : Demo
         physicsComponent.LocalScale = new Vector3(50, 1, 50);
         physicsComponent.PhysicsDefinition.Mass = 0.0f;
 
-        var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var groundMat = new LitDiffuseMaterial
         {
-            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = game.AssetContentManager.LoadFromFile<Texture2D>("checkboard.png"),
             DiffuseColor = Color.White,
         };
         meshComponent.StaticModel.Meshes[0].Material = groundMat;
@@ -54,11 +52,10 @@ public class Collision3dBasicDemo : Demo
             -(float)ArraySizeZ + (float)ArraySizeZ / 2f);
 
         var boxModel = StaticModel.CreateFromPrimitive(new BoxPrimitive());
-        fileName = Path.Combine(EngineEnvironment.ProjectPath, "paper_box_texture.jpg");
         boxModel.Meshes[0].Initialize(game.GraphicsDevice);
         var boxMat = new LitDiffuseMaterial
         {
-            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = game.AssetContentManager.LoadFromFile<Texture2D>("paper_box_texture.jpg"),
             DiffuseColor = Color.White,
         };
         boxModel.Meshes[0].Material = boxMat;

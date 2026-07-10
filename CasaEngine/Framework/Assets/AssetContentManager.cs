@@ -126,8 +126,16 @@ public class AssetContentManager
         return asset;
     }
 
-    [Obsolete("Used only for neoforce controls")]
-    public T LoadDirectly<T>(string assetFileName)
+    /// <summary>
+    /// Loads an asset from a file path relative to the active project root
+    /// (<see cref="EngineRuntimeContext.ProjectPath"/>), without going through the
+    /// project's asset catalog. Intended for demos, samples and tools that load
+    /// files which are not declared in an editor project.
+    /// The result is not cached and is not tracked for device reset: the caller
+    /// owns the returned object's lifetime. For catalogued assets, prefer
+    /// <see cref="Load{T}(Guid, string, bool)"/>.
+    /// </summary>
+    public T LoadFromFile<T>(string assetFileName)
     {
         var type = typeof(T);
 
@@ -139,7 +147,19 @@ public class AssetContentManager
         var fullFileName = ResolveAssetPath(assetFileName);
         Logs.WriteTrace($"Load asset {fullFileName}");
         var newAsset = (T)_assetLoaderByType[type].LoadAsset(fullFileName, this) ?? throw new InvalidOperationException($"IAssetLoader can't load {fullFileName}");
+
+        if (newAsset is ObjectBase gameObject && string.IsNullOrEmpty(gameObject.FileName))
+        {
+            gameObject.FileName = assetFileName;
+        }
+
         return newAsset;
+    }
+
+    [Obsolete("Use LoadFromFile<T> instead: same behavior, clearer contract (path-based loading outside the asset catalog).")]
+    public T LoadDirectly<T>(string assetFileName)
+    {
+        return LoadFromFile<T>(assetFileName);
     }
 
     private AssetInfo ResolveAssetInfo(Guid id)

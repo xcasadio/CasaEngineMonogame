@@ -48,7 +48,7 @@ public sealed class CutsceneNavigateToDemo : Demo
         world.AddEntity(CreateMarker(graphicsDevice, "CutsceneNavDestination", Destination, new Color(210, 182, 74)));
         world.AddEntity(CreateGround(graphicsDevice));
 
-        var assetInfo = AssetCatalog.GetByFileName(@"Content\Cutscenes\navigate_to_grid.cutscene")
+        var assetInfo = AssetCatalog.GetByFileName(@"Cutscenes\navigate_to_grid.cutscene")
             ?? throw new InvalidOperationException("Cutscene navigation demo asset is missing from AssetInfos.json.");
         _cutsceneAsset = game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id, cache: false);
         _autoPlayPending = true;

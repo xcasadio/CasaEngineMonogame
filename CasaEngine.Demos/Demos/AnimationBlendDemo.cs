@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Globalization;
 using System.Text;
 
@@ -284,10 +283,9 @@ public class AnimationBlendDemo : Demo
 
     private static RiggedModel CreateRiggedModel(CasaEngineGame game)
     {
-        var idleModel = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\kid_idle.glb");
-        var rawModelReader = new GltfRiggedModelReader();
-        var walkModel = rawModelReader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_walk.glb"));
-        var runModel = rawModelReader.LoadAsset(Path.Combine(Environment.CurrentDirectory, "Content", "SkinnedMesh", "kid_run.glb"));
+        var idleModel = game.AssetContentManager.LoadFromFile<RiggedModel>(@"SkinnedMesh\kid_idle.glb");
+        var walkModel = game.AssetContentManager.LoadFromFile<RiggedModel>(@"SkinnedMesh\kid_walk.glb");
+        var runModel = game.AssetContentManager.LoadFromFile<RiggedModel>(@"SkinnedMesh\kid_run.glb");
 
         if (idleModel.SkeletonDefinition == null)
         {

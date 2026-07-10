@@ -66,7 +66,7 @@ public class AnimationIkDemo : Demo
         entity.RootComponent = _skinnedMeshComponent;
         ResetCharacterTransform();
 
-        var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("Content\\SkinnedMesh\\kid_idle.model");
+        var skinnedMesh = game.AssetContentManager.LoadFromFile<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
         _skinnedMeshComponent.SkinnedMesh = skinnedMesh;
 

@@ -30,7 +30,7 @@ public static class SoldierLocomotionModelFactory
     {
         ArgumentNullException.ThrowIfNull(game);
 
-        var model = game.AssetContentManager.LoadDirectly<RiggedModel>(@"SkinnedMesh\Soldier.glb");
+        var model = game.AssetContentManager.LoadFromFile<RiggedModel>(@"SkinnedMesh\Soldier.glb");
 
         var skeleton = model.SkeletonDefinition
             ?? throw new InvalidOperationException("Soldier.glb did not expose a runtime skeleton.");

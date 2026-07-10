@@ -1,7 +1,5 @@
 using System.IO;
-using CasaEngine.Engine.Environment;
 using CasaEngine.Engine.Primitives.ThreeD;
-using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Dialogue.Assets;
 using CasaEngine.Framework.Dialogue.Runtime;
 using CasaEngine.Framework.Dialogue.UI;
@@ -245,9 +243,7 @@ public class UIOverlayDemo : Demo
             return null;
         }
 
-        string fileName = Path.Combine(EngineEnvironment.ProjectPath, "Dialogues", "greeting.dialogue");
-        var loader = new DialogueAssetLoader();
-        return loader.LoadAsset(fileName, _game.AssetContentManager) as DialogueAsset;
+        return _game.AssetContentManager.LoadFromFile<DialogueAsset>(Path.Combine("Dialogues", "greeting.dialogue"));
     }
 
     private IUIViewRuntime? GetUIView()

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using CasaEngine.Core.Logging;
 using CasaEngine.Demos.Demos;
-using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
@@ -33,6 +32,15 @@ public class DemosGame : CasaEngineGame
     private DemoHintOverlay? _demoHintOverlay;
     private bool             _demoInfoVisible = true;
 
+    // The demos content folder is a regular editor project (DemosGame.json + AssetInfos.json).
+    // Passing the project file to the base constructor lets CasaEngineGame.Initialize load it
+    // through ProjectSettingsHelper, which keeps RuntimeContext.ProjectPath and
+    // EngineEnvironment.ProjectPath synchronized and loads the asset catalog.
+    public DemosGame()
+        : base(Path.Combine(Environment.CurrentDirectory, "Content", "DemosGame.json"))
+    {
+    }
+
     protected override void Initialize()
     {
         Logs.AddLogger(new DebugLogger());
@@ -49,19 +57,13 @@ public class DemosGame : CasaEngineGame
         // its camera/UI setup must be finalized only after the world and views exist.
         GameManager.WorldLoaded += (_, _) => OnWorldLoaded();
 
-        EngineEnvironment.ProjectPath = Path.Combine(Environment.CurrentDirectory, "Content");
-        var projectSettings = GameSettings.ProjectSettings;
-        projectSettings.IsMouseVisible = true;
-        projectSettings.WindowTitle = "CasaEngine demos";
-        projectSettings.AllowUserResizing = true;
-
+        // Window title, mouse visibility, resizing, project path and the asset catalog
+        // all come from Content\DemosGame.json, loaded by the base class (see constructor).
         base.Initialize();
     }
 
     protected override void LoadContentPrivate()
     {
-        AssetCatalog.Load("Content\\AssetInfos.json");
-
         var world = new World();
         GameManager.SetWorldToLoad(world);
         this.GetGameComponent<PhysicsDebugViewRendererComponent>().DisplayPhysics = true;

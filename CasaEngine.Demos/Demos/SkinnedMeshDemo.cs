@@ -85,7 +85,7 @@ public class SkinnedMeshDemo : Demo
         _animationSwitchTimer = 0f;
         _nextAnimationIndex = 1;
 
-        var skinnedMesh = game.AssetContentManager.LoadDirectly<SkinnedMesh>("Content\\SkinnedMesh\\kid_idle.model");
+        var skinnedMesh = game.AssetContentManager.LoadFromFile<SkinnedMesh>("SkinnedMesh\\kid_idle.model");
         skinnedMesh.Initialize(game.AssetContentManager);
 
         CreateShadowValidationColumn(world, skinnedMesh, "ReceiveShadow", -9.0f, casterCastShadows: true, receiverReceiveShadows: true);

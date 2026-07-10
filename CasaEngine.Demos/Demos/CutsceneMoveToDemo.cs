@@ -43,7 +43,7 @@ public sealed class CutsceneMoveToDemo : Demo
         world.AddEntity(CreateMarker(graphicsDevice, "CutsceneDestination", Destination, new Color(210, 182, 74)));
         world.AddEntity(CreateGround(graphicsDevice));
 
-        var assetInfo = AssetCatalog.GetByFileName(@"Content\Cutscenes\move_to_direct.cutscene")
+        var assetInfo = AssetCatalog.GetByFileName(@"Cutscenes\move_to_direct.cutscene")
             ?? throw new InvalidOperationException("Cutscene demo asset is missing from AssetInfos.json.");
         _cutsceneAsset = game.AssetContentManager.Load<CutsceneAsset>(assetInfo.Id, cache: false);
         _autoPlayPending = true;

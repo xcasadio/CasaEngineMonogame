@@ -23,6 +23,9 @@
 	  <Folder Include="Content\bin\Windows\Content\Shaders\" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Update="Content\DemosGame.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Content\Cutscenes\**\*.cutscene">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>

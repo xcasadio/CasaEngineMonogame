@@ -9,6 +9,24 @@ The agent must act as a careful engine programmer:
 - never refactor unrelated code;
 - keep runtime performance in mind, especially in `Update`, `Draw`, layout, input, rendering and asset loading paths.
 
+## Pilotfish / Agent Orchestration
+
+For this repository, do not delegate by default.
+
+Delegate only when at least one of these conditions applies:
+- repository-wide exploration is required;
+- more than five files require repetitive mechanical changes;
+- the task can be specified without architectural ambiguity;
+- an independent verifier pass provides meaningful value.
+
+Keep architecture decisions, reverse-engineering conclusions, rendering decisions,
+engine/editor architecture, and small localized changes in the main session.
+
+For CasaEngine and MGUI:
+- use scout only for broad code discovery;
+- use mech-executor only for fully specified mechanical edits;
+- use executor only for implementation tasks with clear scope and done criteria;
+- use verifier for non-trivial completed changes before reporting them done.
 ---
 
 # Shell tools available

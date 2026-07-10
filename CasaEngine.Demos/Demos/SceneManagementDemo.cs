@@ -6,7 +6,6 @@ using CasaEngine.Framework.Rendering.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
-using System.IO;
 
 namespace CasaEngine.Demos.Demos;
 
@@ -23,10 +22,9 @@ public class SceneManagementDemo : Demo
     {
         var world = game.GameManager.CurrentWorld;
 
-        var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
         var checkMat = new LitDiffuseMaterial
         {
-            BasColor     = Texture2D.FromFile(game.GraphicsDevice, fileName),
+            BasColor     = game.AssetContentManager.LoadFromFile<Texture2D>("checkboard.png"),
             DiffuseColor = Color.White,
         };
 

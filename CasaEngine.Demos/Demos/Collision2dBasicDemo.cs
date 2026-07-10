@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
@@ -34,8 +33,7 @@ public class Collision2dBasicDemo : Demo
     {
         var world = game.GameManager.CurrentWorld;
 
-        var fileName = Path.Combine(EngineEnvironment.ProjectPath, "checkboard.png");
-        var checkTexture = Texture2D.FromFile(game.GraphicsDevice, fileName);
+        var checkTexture = game.AssetContentManager.LoadFromFile<Texture2D>("checkboard.png");
         var checkMat = new LitDiffuseMaterial { BasColor = checkTexture, DiffuseColor = Color.White };
 
         //============ Create ground ===============

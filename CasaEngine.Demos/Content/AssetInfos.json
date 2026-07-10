@@ -1134,22 +1134,22 @@
     },
     {
       "id": "7093fe82-182d-4e9a-b725-e54508ca1bb8",
-      "file_name": "Content\\Cutscenes\\move_to_direct.cutscene"
+      "file_name": "Cutscenes\\move_to_direct.cutscene"
     },
     {
       "id": "c61ab6e8-1c4f-44b2-a674-0c50fa526a5d",
-      "file_name": "Content\\Cutscenes\\navigate_to_grid.cutscene"
+      "file_name": "Cutscenes\\navigate_to_grid.cutscene"
     },
     {
       "id": "4668ca19-9ff1-4d91-9b4c-64522888d3f1",
       "name": "soft_particle",
-      "file_name": "Content\\Textures\\soft_particle.png",
+      "file_name": "Textures\\soft_particle.png",
       "asset_type": "png"
     },
     {
       "id": "2af8c1e7-8d4e-4a87-b146-8b84d888fff2",
       "name": "soft_particle",
-      "file_name": "Content\\Textures\\soft_particle.texture",
+      "file_name": "Textures\\soft_particle.texture",
       "asset_type": "texture"
     }
   ]
