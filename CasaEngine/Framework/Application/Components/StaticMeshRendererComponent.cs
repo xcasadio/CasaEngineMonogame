@@ -330,7 +330,8 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
             }
         }
 
-        // Sort opaque front-to-back, transparent back-to-front — the SortKey encodes this.
+        // Sort by state (queue/shader/material/mesh); for transparent items the SortKey
+        // also encodes reversed distance so they end up back-to-front within a state group.
         _renderItems.Sort(static (a, b) => a.SortKey.CompareTo(b.SortKey));
 
         // --- Phase 9: hardware-instanced draw for groups with ShaderFeature.Instanced ---

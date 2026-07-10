@@ -5,7 +5,8 @@ namespace CasaEngine.Framework.Rendering.Draw;
 
 /// <summary>
 /// Renders all opaque <see cref="RenderItem"/>s (those not in the Transparent queue).
-/// Items are expected to arrive pre-sorted front-to-back (by sort key).
+/// Items arrive pre-sorted by state (queue, shader, material, mesh) to minimise GPU
+/// state changes; depth is not encoded in the sort key for opaque items.
 /// </summary>
 public sealed class OpaquePass : RenderPass
 {
@@ -65,8 +66,9 @@ public sealed class TransparentPass : RenderPass
     {
         var stats = context.Stats;
 
-        // Collect transparent items sorted back-to-front (already encoded in sort key)
-        for (int i = items.Count - 1; i >= 0; i--)
+        // The sort key already encodes reversed distance (farthest first) for transparent
+        // items, so ascending iteration draws back-to-front as required by alpha blending.
+        for (int i = 0; i < items.Count; i++)
         {
             var item = items[i];
             if (item.Material.Queue < RenderQueue.Transparent)
