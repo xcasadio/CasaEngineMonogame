@@ -57,4 +57,31 @@ public class SortKeyGeneratorTests
 
         Assert.True(veryFarKey < nearKey);
     }
+
+    [Fact]
+    public void Transparent_DistanceDominatesStateHashes()
+    {
+        ulong farKey = SortKeyGenerator.Generate(RenderQueue.Transparent, 0xFFFF, 0xFFFF, 0xFFFF, distance: 100f);
+        ulong nearKey = SortKeyGenerator.Generate(RenderQueue.Transparent, 0, 0, 0, distance: 10f);
+
+        Assert.True(farKey < nearKey);
+    }
+
+    [Fact]
+    public void Transparent_SameQuantizedDistance_TieBreaksByState()
+    {
+        ulong lowerShaderKey = SortKeyGenerator.Generate(RenderQueue.Transparent, shaderHash: 1, materialHash: 0xFFFF, meshHash: 0, distance: 50f);
+        ulong higherShaderKey = SortKeyGenerator.Generate(RenderQueue.Transparent, shaderHash: 2, materialHash: 0, meshHash: 0, distance: 50f);
+
+        Assert.True(lowerShaderKey < higherShaderKey);
+    }
+
+    [Fact]
+    public void Overlay_SortsAfterTransparent()
+    {
+        ulong overlayKey = SortKeyGenerator.Generate(RenderQueue.Overlay, 0, 0, 0, distance: 400f);
+        ulong maxTransparentKey = SortKeyGenerator.Generate(RenderQueue.Transparent, 0xFFFF, 0xFFFF, 0xFFFF, distance: 0f);
+
+        Assert.True(overlayKey > maxTransparentKey);
+    }
 }
