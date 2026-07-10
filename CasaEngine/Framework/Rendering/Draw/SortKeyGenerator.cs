@@ -69,6 +69,12 @@ public static class SortKeyGenerator
         return key;
     }
 
+    /// <summary>
+    /// Returns the smallest key any item of the given queue can have. Usable to
+    /// partition a key-sorted list by queue via binary search.
+    /// </summary>
+    public static ulong MinKeyFor(RenderQueue queue) => QueueBits(queue) << 60;
+
     private static ulong QueueBits(RenderQueue queue) => queue switch
     {
         RenderQueue.Opaque      => 0,

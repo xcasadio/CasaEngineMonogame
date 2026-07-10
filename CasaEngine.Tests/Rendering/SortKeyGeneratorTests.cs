@@ -84,4 +84,14 @@ public class SortKeyGeneratorTests
 
         Assert.True(overlayKey > maxTransparentKey);
     }
+
+    [Fact]
+    public void MinKeyFor_Transparent_PartitionsOpaqueFromTransparentKeys()
+    {
+        ulong maxOpaqueKey = SortKeyGenerator.Generate(RenderQueue.AlphaTest, 0xFFFF, 0xFFFF, 0xFFFF);
+        ulong minTransparentKey = SortKeyGenerator.Generate(RenderQueue.Transparent, 0, 0, 0, distance: 10_000f);
+
+        Assert.True(maxOpaqueKey < SortKeyGenerator.MinKeyFor(RenderQueue.Transparent));
+        Assert.True(SortKeyGenerator.MinKeyFor(RenderQueue.Transparent) <= minTransparentKey);
+    }
 }
