@@ -34,6 +34,13 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
     // Phase 9 — hardware instancing
     private InstanceBatcher _instanceBatcher;
 
+    // Phase 9 — per-frame instancing containers, cached to avoid Draw-path allocations.
+    // Groups are keyed by object identity (VertexBuffer + Material + receive-shadows); the
+    // group lists are pooled and reused each frame instead of being reallocated.
+    private readonly Dictionary<(VertexBuffer, MaterialBase, bool), List<RenderItem>> _instanceGroups = new();
+    private readonly List<List<RenderItem>> _instanceListPool = new();
+    private int _instanceListPoolUsed;
+
     // Phase 10 — forward render pipeline
     private readonly ForwardRenderPipeline _pipeline = new();
     private readonly ForwardShadowResources _shadowResources = new();
@@ -338,8 +345,11 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
         // Items that go through instancing are removed from the regular draw list.
         if (_instanceBatcher is not null)
         {
-            // Group by (VertexBuffer ptr, SortKey of first element) — same mesh + material
-            var instanceGroups = new Dictionary<(IntPtr, ulong, bool), List<RenderItem>>();
+            // Group by object identity (VertexBuffer, Material, receive-shadows). Reference equality
+            // on the vertex buffer and material guarantees every item in a group shares the exact
+            // buffers and material that DrawInstancedGroup binds from items[0] for the whole batch.
+            _instanceGroups.Clear();
+            _instanceListPoolUsed = 0;
 
             for (int i = 0; i < _renderItems.Count; i++)
             {
@@ -349,17 +359,27 @@ public class StaticMeshRendererComponent : DrawableGameComponent, IViewFlushable
                     continue;
                 }
 
-                var groupKey = (item.Mesh.VertexBuffer!.Tag as IntPtr? ?? IntPtr.Zero, item.SortKey & ~0xFFFUL, item.EffectiveReceiveShadows);
-                if (!instanceGroups.TryGetValue(groupKey, out var list))
+                var groupKey = (item.Mesh.VertexBuffer, item.Material, item.EffectiveReceiveShadows);
+                if (!_instanceGroups.TryGetValue(groupKey, out var list))
                 {
-                    list = new List<RenderItem>();
-                    instanceGroups[groupKey] = list;
+                    if (_instanceListPoolUsed < _instanceListPool.Count)
+                    {
+                        list = _instanceListPool[_instanceListPoolUsed];
+                        list.Clear();
+                    }
+                    else
+                    {
+                        list = new List<RenderItem>();
+                        _instanceListPool.Add(list);
+                    }
+                    _instanceListPoolUsed++;
+                    _instanceGroups[groupKey] = list;
                 }
                 list.Add(item);
             }
 
             // Draw groups that exceed the threshold; put the rest back on the regular list
-            foreach (var group in instanceGroups.Values)
+            foreach (var group in _instanceGroups.Values)
             {
                 if (group.Count < _instanceBatcher.MinInstanceThreshold)
                 {
