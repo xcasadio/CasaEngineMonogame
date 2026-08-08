@@ -62,6 +62,11 @@ public sealed class DetailView : IContentView
             SelectionMode = GridSelectionMode.Row,
         };
 
+        //  Clicking an already-selected row must keep it selected, like the grid view does.
+        //  The default toggle behaviour clears the selection on the second click of a double-click,
+        //  which happens before the double-click handler runs and would leave it without an item to open.
+        _listView.DataGrid.CanDeselectByClickingSelectedCell = false;
+
         _emptyStateText = new MGTextBlock(window, "This folder is empty")
         {
             HorizontalAlignment = HorizontalAlignment.Center,
