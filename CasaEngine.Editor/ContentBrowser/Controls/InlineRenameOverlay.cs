@@ -27,6 +27,7 @@ public sealed class InlineRenameOverlay
     private ContentItem _item;
     private Func<ContentItem, string, bool> _commitRename;
     private Action _cancelRename;
+    private MGElement _focusAfterClose;
 
     public bool IsOpen => _popupWindow != null;
 
@@ -35,7 +36,9 @@ public sealed class InlineRenameOverlay
         _parentWindow = parentWindow ?? throw new ArgumentNullException(nameof(parentWindow));
     }
 
-    public void Show(ContentItem item, Rectangle anchorBounds, Func<ContentItem, string, bool> commitRename, Action cancelRename = null)
+    /// <param name="focusAfterClose">Element that regains keyboard focus once the rename popup closes.
+    /// Without it, focus stays on the destroyed popup text box and panel shortcuts such as F2 stop working.</param>
+    public void Show(ContentItem item, Rectangle anchorBounds, Func<ContentItem, string, bool> commitRename, Action cancelRename = null, MGElement focusAfterClose = null)
     {
         if (item == null)
         {
@@ -83,9 +86,37 @@ public sealed class InlineRenameOverlay
         _item = item;
         _commitRename = commitRename;
         _cancelRename = cancelRename;
+        _focusAfterClose = focusAfterClose;
 
         textBox.RequestFocus();
-        textBox.SelectAll();
+        SelectEditableNamePart(textBox, item);
+    }
+
+    /// <summary>Selects the whole name except its extension, so typing replaces only the editable part.</summary>
+    private static void SelectEditableNamePart(MGTextBox textBox, ContentItem item)
+    {
+        var name = textBox.Text;
+        if (string.IsNullOrEmpty(name))
+        {
+            textBox.CurrentSelection = null;
+            return;
+        }
+
+        var selectionEnd = name.Length;
+        if (!item.IsDirectory)
+        {
+            //  Index 0 is not an extension separator ('.gitignore' is entirely a name).
+            var extensionIndex = name.LastIndexOf('.');
+            if (extensionIndex > 0)
+            {
+                selectionEnd = extensionIndex;
+            }
+        }
+
+        //  MGTextBox.SelectAll() derives the selection from the rendered text, which has not been
+        //  laid out yet at this point, so it would only select the first character. Index-based
+        //  selection works off the raw text and is therefore layout-independent.
+        textBox.CurrentSelection = new MGTextBox.TextSelection(0, selectionEnd);
     }
 
     public void Cancel()
@@ -213,10 +244,14 @@ public sealed class InlineRenameOverlay
             _popupWindow.TryCloseWindow();
         }
 
+        //  Requested after the popup closed, otherwise the close would clear the queued focus request.
+        _focusAfterClose?.Focus();
+
         _popupWindow = null;
         _textBox = null;
         _item = null;
         _commitRename = null;
         _cancelRename = null;
+        _focusAfterClose = null;
     }
 }

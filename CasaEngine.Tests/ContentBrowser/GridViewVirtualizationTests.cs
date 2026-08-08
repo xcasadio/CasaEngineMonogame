@@ -49,6 +49,109 @@ public class GridViewVirtualizationTests
         Assert.False(lastElement.ActualLayoutBounds.IsEmpty);
     }
 
+    [Fact]
+    public void ContextMenuItemClick_DoesNotSelectCardUnderneath()
+    {
+        GridViewHarness harness = CreateHarness();
+
+        for (int index = 0; index < 40; index++)
+        {
+            harness.Items.Add(new ContentItem($@"D:\TestAssets\Spritesheets\Item{index:D4}.png", false));
+        }
+
+        harness.GridView.SetItems(harness.Items);
+
+        AdvanceFrame(harness.Runtime, harness.Desktop, 0, new Point(1, 1));
+        AdvanceFrame(harness.Runtime, harness.Desktop, 16, new Point(1, 1));
+
+        MGContextMenu? openedMenu = null;
+        int menuActionCount = 0;
+
+        //  Same wiring as ContentBrowserPanel.ConfigureContentViewInteractions/OnAssetListRightClick
+        harness.GridView.RootElement.MouseHandler.RMBReleasedInside += (_, e) =>
+        {
+            MGContextMenu menu = new(harness.Window, null);
+            menu.AddButton("Open", _ => menuActionCount++);
+            menu.AddButton("Rename", _ => menuActionCount++);
+            menu.AddButton("Delete", _ => menuActionCount++);
+            openedMenu = menu;
+            harness.Desktop.TryOpenContextMenu(menu, e.Position);
+        };
+
+        VirtualizingWrapPanel itemsPanel = GetRequiredPrivateField<VirtualizingWrapPanel>(harness.GridView, "_itemsPanel");
+        Assert.True(itemsPanel.TryGetRealizedElement(0, out MGElement? firstCard));
+        Point cardCenter = firstCard!.ActualLayoutBounds.Center;
+
+        //  Right-click the first card: selects it and opens the menu
+        AdvanceFrame(harness.Runtime, harness.Desktop, 32, cardCenter);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 48, cardCenter, MGUI.Shared.Input.Mouse.MouseButton.Right);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 64, cardCenter);
+
+        Assert.NotNull(openedMenu);
+        Assert.Same(openedMenu, harness.Desktop.ActiveContextMenu);
+
+        AdvanceFrame(harness.Runtime, harness.Desktop, 80, cardCenter);
+
+        Point itemCenter = openedMenu!.Items[1].ActualLayoutBounds.Center;
+        Assert.False(openedMenu.Items[1].ActualLayoutBounds.IsEmpty);
+
+        int selectionChangedCount = 0;
+        harness.GridView.SelectionChanged += _ => selectionChangedCount++;
+        IReadOnlyList<ContentItem> selectionBefore = harness.GridView.SelectedItems;
+        Assert.Single(selectionBefore);
+
+        //  Left-click a menu item
+        AdvanceFrame(harness.Runtime, harness.Desktop, 96, itemCenter);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 112, itemCenter, MGUI.Shared.Input.Mouse.MouseButton.Left);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 128, itemCenter);
+
+        Assert.Equal(1, menuActionCount);
+        Assert.Equal(0, selectionChangedCount);
+        Assert.Equal(selectionBefore[0].FullPath, Assert.Single(harness.GridView.SelectedItems).FullPath);
+    }
+
+    [Fact]
+    public void CardPress_MovesKeyboardFocusToTheGridView()
+    {
+        GridViewHarness harness = CreateHarness();
+
+        for (int index = 0; index < 10; index++)
+        {
+            harness.Items.Add(new ContentItem($@"D:\TestAssets\Spritesheets\Item{index:D4}.png", false));
+        }
+
+        harness.GridView.SetItems(harness.Items);
+
+        AdvanceFrame(harness.Runtime, harness.Desktop, 0, new Point(1, 1));
+        AdvanceFrame(harness.Runtime, harness.Desktop, 16, new Point(1, 1));
+
+        VirtualizingWrapPanel itemsPanel = GetRequiredPrivateField<VirtualizingWrapPanel>(harness.GridView, "_itemsPanel");
+        Assert.True(itemsPanel.TryGetRealizedElement(0, out MGElement? firstCard));
+        Point cardCenter = firstCard!.ActualLayoutBounds.Center;
+
+        //  Same wiring as ContentBrowserPanel.ConfigureContentViewInteractions
+        int renameShortcutCount = 0;
+        harness.GridView.KeyboardFocusElement.KeyboardHandler.Pressed += (_, e) =>
+        {
+            if (e.Key == Keys.F2)
+            {
+                renameShortcutCount++;
+            }
+        };
+
+        AdvanceFrame(harness.Runtime, harness.Desktop, 32, cardCenter);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 48, cardCenter, MGUI.Shared.Input.Mouse.MouseButton.Left);
+        AdvanceFrame(harness.Runtime, harness.Desktop, 64, cardCenter);
+
+        //  Keyboard events are only delivered to the focused element, so panel shortcuts such as F2
+        //  reach the content view only when pressing a card moves the focus onto it.
+        Assert.Same(harness.GridView.KeyboardFocusElement, harness.Desktop.FocusedKeyboardHandler);
+
+        AdvanceFrame(harness.Runtime, harness.Desktop, 80, cardCenter, pressedKeys: new[] { Keys.F2 });
+
+        Assert.Equal(1, renameShortcutCount);
+    }
+
     private static GridViewHarness CreateHarness()
     {
         GridViewTestRuntime runtime = new(new Rectangle(0, 0, 640, 480));
@@ -77,6 +180,24 @@ public class GridViewVirtualizationTests
             TimeSpan.FromMilliseconds(16),
             new MouseState(),
             new KeyboardState()));
+        desktop.Update();
+    }
+
+    private static void AdvanceFrame(GridViewTestRuntime runtime, MGDesktop desktop, int totalElapsedMs, Point position, MGUI.Shared.Input.Mouse.MouseButton? pressedButton = null, Keys[]? pressedKeys = null)
+    {
+        runtime.ApplyFrame(new UpdateBaseArgs(
+            TimeSpan.FromMilliseconds(totalElapsedMs),
+            TimeSpan.FromMilliseconds(16),
+            new MouseState(
+                position.X,
+                position.Y,
+                0,
+                pressedButton == MGUI.Shared.Input.Mouse.MouseButton.Left ? ButtonState.Pressed : ButtonState.Released,
+                pressedButton == MGUI.Shared.Input.Mouse.MouseButton.Middle ? ButtonState.Pressed : ButtonState.Released,
+                pressedButton == MGUI.Shared.Input.Mouse.MouseButton.Right ? ButtonState.Pressed : ButtonState.Released,
+                ButtonState.Released,
+                ButtonState.Released),
+            pressedKeys == null ? new KeyboardState() : new KeyboardState(pressedKeys)));
         desktop.Update();
     }
 

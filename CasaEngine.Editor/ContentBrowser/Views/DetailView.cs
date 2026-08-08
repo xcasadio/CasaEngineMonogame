@@ -24,6 +24,8 @@ public sealed class DetailView : IContentView
 
     public MGElement RootElement => _root;
 
+    public MGElement KeyboardFocusElement => _listView;
+
     public MGListView<ContentItem> ListView => _listView;
 
     public IReadOnlyList<ContentItem> SelectedItems

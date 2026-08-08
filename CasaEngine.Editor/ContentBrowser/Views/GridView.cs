@@ -99,6 +99,8 @@ public sealed class GridView : IContentView
 
     public MGElement RootElement => _root;
 
+    public MGElement KeyboardFocusElement => _root;
+
     public ContentItem PressedItem { get; private set; }
 
     public IReadOnlyList<ContentItem> SelectedItems => GetSelectedItems();
@@ -153,6 +155,9 @@ public sealed class GridView : IContentView
         {
             HorizontalAlignment = HorizontalAlignment.Stretch,
             VerticalAlignment = VerticalAlignment.Stretch,
+            //  Keyboard events are only delivered to the focused element, and the content browser
+            //  subscribes its shortcuts (F2, Delete, Enter, Backspace) on this root element.
+            IsFocusable = true,
         };
         _root.AddRow(GridLength.CreateWeightedLength(1));
         _root.AddColumn(GridLength.CreateWeightedLength(1));
@@ -478,7 +483,8 @@ public sealed class GridView : IContentView
     private void OnCardPressed(ContentItem item)
     {
         PressedItem = item;
-        _scrollViewer.Focus();
+        //  Moves keyboard focus away from the folder tree so shortcuts apply to the selected item.
+        _root.Focus(KeyboardFocusSource.Pointer);
 
         bool isControlDown = IsControlDown();
         if (isControlDown)

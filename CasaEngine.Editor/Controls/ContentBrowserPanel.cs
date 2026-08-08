@@ -1038,13 +1038,13 @@ public class ContentBrowserPanel
             return;
         }
 
-        if (!TryGetRenameAnchorBounds(item, out var anchorBounds))
+        if (!TryGetRenameAnchorBounds(item, out var anchorBounds, out var focusAfterRename))
         {
             Debug.WriteLine($"[ContentBrowser] Cannot start rename without a valid anchor: {item.FullPath}");
             return;
         }
 
-        _inlineRenameOverlay.Show(item, anchorBounds, TryCommitInlineRename);
+        _inlineRenameOverlay.Show(item, anchorBounds, TryCommitInlineRename, focusAfterClose: focusAfterRename);
     }
 
     private void OnDeleteItemRequested(ContentItem item)
@@ -2353,12 +2353,15 @@ public class ContentBrowserPanel
         return true;
     }
 
-    private bool TryGetRenameAnchorBounds(ContentItem item, out Rectangle anchorBounds)
+    /// <param name="focusAfterRename">Element that must regain keyboard focus once the rename popup closes,
+    /// so that shortcuts keep targeting the pane the rename was started from.</param>
+    private bool TryGetRenameAnchorBounds(ContentItem item, out Rectangle anchorBounds, out MGElement focusAfterRename)
     {
         var selectedFromView = GetSelectedItem();
         if (selectedFromView != null && string.Equals(selectedFromView.FullPath, item.FullPath, StringComparison.OrdinalIgnoreCase)
             && _activeContentView.TryGetPrimarySelectionBounds(out anchorBounds))
         {
+            focusAfterRename = _activeContentView.KeyboardFocusElement;
             return true;
         }
 
@@ -2370,11 +2373,13 @@ public class ContentBrowserPanel
             if (!headerBounds.IsEmpty)
             {
                 anchorBounds = headerBounds;
+                focusAfterRename = _treeView;
                 return true;
             }
         }
 
         anchorBounds = Rectangle.Empty;
+        focusAfterRename = null;
         return false;
     }
 

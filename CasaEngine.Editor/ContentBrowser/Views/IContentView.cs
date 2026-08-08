@@ -10,6 +10,10 @@ public interface IContentView
 {
     MGElement RootElement { get; }
 
+    /// <summary>Element that holds the keyboard focus for this view. Keyboard events are only delivered
+    /// to the focused element, so panel shortcuts must be subscribed on it and focus restored to it.</summary>
+    MGElement KeyboardFocusElement { get; }
+
     IReadOnlyList<ContentItem> SelectedItems { get; }
 
     event Action<IReadOnlyList<ContentItem>> SelectionChanged;
