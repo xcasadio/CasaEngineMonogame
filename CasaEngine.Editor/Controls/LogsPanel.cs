@@ -1,5 +1,6 @@
 using System;
-using System.Linq;
+using System.Collections.ObjectModel;
+using System.Text;
 using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Log;
 using MGUI.Core.UI;
@@ -41,6 +42,11 @@ public class LogsPanel
 
     private readonly MGWindow _window;
     private readonly LoggerEditor _logger;
+
+    /// <summary>The filtered view of <see cref="LoggerEditor.Entries"/> bound to <see cref="_listBox"/>.
+    /// Assigned as the items source once, then mutated in place: a new entry costs one <see cref="ObservableCollection{T}.Add"/>,
+    /// not a re-projection of the whole history.</summary>
+    private readonly ObservableCollection<LogEntry> _visibleEntries = new();
 
     private MGListBox<LogEntry> _listBox = null!;
     private MGComboBox<string> _filterCombo = null!;
@@ -142,6 +148,7 @@ public class LogsPanel
         _listBox.ScrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
         _listBox.ScrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
         _listBox.MouseHandler.RMBReleasedInside += OnListBoxRightClick;
+        _listBox.SetItemsSource(_visibleEntries);
 
         // ── Outer layout ──────────────────────────────────────────────────
         var panel = new MGDockPanel(_window);
@@ -153,6 +160,7 @@ public class LogsPanel
         if (!_isSubscribed)
         {
             _logger.EntryAdded += OnEntryAdded;
+            _logger.EntriesTrimmed += OnEntriesTrimmed;
             _isSubscribed = true;
         }
 
@@ -226,6 +234,14 @@ public class LogsPanel
         }
     }
 
+    /// <summary>The oldest entries were discarded, so the filtered view can no longer be maintained incrementally.
+    /// Re-projecting is O(<see cref="LoggerEditor.MaxEntries"/>) and the logger trims in batches, which keeps the
+    /// amortized cost per log line constant.</summary>
+    private void OnEntriesTrimmed(object sender, int removedCount)
+    {
+        RefreshList();
+    }
+
     private void OnFilterChanged(object sender, EventArgs<string> e)
     {
         _activeFilter = _filterCombo.SelectedItem == FilterAll
@@ -255,39 +271,59 @@ public class LogsPanel
 
     private void ClearLogs()
     {
+        //  Clear raises EntriesTrimmed, which refreshes the list and the toolbar.
         _logger.Clear();
-        _listBox.SetItemsSource(Array.Empty<LogEntry>());
-        UpdateToolbarState();
     }
 
     private void CopyVisibleLogsToClipboard()
     {
-        var visibleEntries = GetVisibleEntries();
-        if (visibleEntries.Length == 0)
+        if (_visibleEntries.Count == 0)
         {
             return;
         }
 
-        CopyToClipboard(string.Join(Environment.NewLine, visibleEntries.Select(FormatClipboardEntry)));
+        var builder = new StringBuilder();
+        for (int i = 0; i < _visibleEntries.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(Environment.NewLine);
+            }
+
+            builder.Append(FormatClipboardEntry(_visibleEntries[i]));
+        }
+
+        CopyToClipboard(builder.ToString());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // List management
     // ─────────────────────────────────────────────────────────────────────────
 
+    /// <summary>Re-applies the active filter over the whole log history.
+    /// Only needed when the filter changes or when the panel is first populated: individual entries are appended
+    /// incrementally by <see cref="OnEntryAdded"/>.</summary>
     private void RefreshList()
     {
-        var filtered = GetVisibleEntries();
-        _listBox.SetItemsSource(filtered);
+        _visibleEntries.Clear();
+
+        var entries = _logger.Entries;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var entry = entries[i];
+            if (PassesFilter(entry))
+            {
+                _visibleEntries.Add(entry);
+            }
+        }
+
         UpdateToolbarState();
         ScrollToBottom();
     }
 
     private void AppendEntry(LogEntry entry)
     {
-        // Rebuild source (light-weight since log count is typically moderate)
-        var filtered = GetVisibleEntries();
-        _listBox.SetItemsSource(filtered);
+        _visibleEntries.Add(entry);
         UpdateToolbarState();
         ScrollToBottom();
     }
@@ -300,10 +336,8 @@ public class LogsPanel
 
     private void UpdateToolbarState()
     {
-        _copyAllButton.IsEnabled = GetVisibleEntries().Length > 0;
+        _copyAllButton.IsEnabled = _visibleEntries.Count > 0;
     }
-
-    private LogEntry[] GetVisibleEntries() => _logger.Entries.Where(PassesFilter).ToArray();
 
     private bool TryGetEntryAtPosition(Point screenPosition, out LogEntry entry)
     {
