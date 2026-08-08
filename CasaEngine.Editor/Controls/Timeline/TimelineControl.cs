@@ -242,6 +242,42 @@ internal class TimelineControl : MGGrid
         }
     }
 
+    /// <summary>Fait defiler horizontalement le minimum necessaire pour que <paramref name="timeSeconds"/>
+    /// reste visible dans la zone temporelle (utilise pour que la vue suive la tete de lecture).</summary>
+    public void EnsureTimeVisible(float timeSeconds)
+    {
+        float viewportWidth = _viewport.GetVisibleTimeAreaWidth();
+        if (viewportWidth <= 0f)
+        {
+            return;
+        }
+
+        float timelineEndSeconds = GetTimelineEndSeconds();
+        float contentX = ViewTransform.TimeToContentX(Math.Clamp(timeSeconds, 0f, timelineEndSeconds));
+        float margin = Math.Min(TimelineControlMetrics.PlayheadFollowMargin, viewportWidth * 0.5f);
+        float desiredScrollX = ViewState.ScrollX;
+
+        if (contentX < ViewState.ScrollX + margin)
+        {
+            desiredScrollX = contentX - margin;
+        }
+        else if (contentX > ViewState.ScrollX + viewportWidth - margin)
+        {
+            desiredScrollX = contentX - viewportWidth + margin;
+        }
+
+        desiredScrollX = ViewTransform.ClampScrollX(desiredScrollX, timelineEndSeconds, viewportWidth);
+        if (Math.Abs(ViewState.ScrollX - desiredScrollX) < TimelineControlMetrics.Epsilon)
+        {
+            return;
+        }
+
+        ViewState.ScrollX = desiredScrollX;
+        SyncTransformFromViewState();
+        UpdateHorizontalScrollBarState();
+        InvalidateViewPresentation();
+    }
+
     public void SetSelectedItemId(Guid? selectedEventId)
     {
         SetSelectedItemId(selectedEventId, true);

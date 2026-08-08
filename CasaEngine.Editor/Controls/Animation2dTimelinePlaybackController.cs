@@ -43,7 +43,7 @@ internal sealed class Animation2dTimelinePlaybackController : ITimelinePlaybackC
 
     public void Update(float deltaTime)
     {
-        // La preview Animation2D est pilotee par le sprite component du preview, pas par ce
+        // La preview Animation2D avance dans Animation2dAssetInspectorPanel.Update, pas dans ce
         // controleur : le temps courant est lu via CurrentTime. Aucune avance manuelle ici.
     }
 }

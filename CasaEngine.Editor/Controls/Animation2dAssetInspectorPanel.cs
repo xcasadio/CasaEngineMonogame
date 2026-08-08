@@ -49,7 +49,12 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private MGTextBlock _sourceText;
     private MGTextBlock _statusText;
     private MGTextBlock _timelineText;
+    private MGTextBlock _timelineZoomText;
     private Animation2dTimelineControl _timelineControl;
+    private Animation2dTimelinePlaybackController _timelinePlaybackController;
+    private MGButton _timelinePlayButton;
+    private MGButton _timelinePauseButton;
+    private MGButton _timelineStopButton;
     private MGStackPanel _contentStack;
 
     private Animation2dData _animationData;
@@ -62,14 +67,19 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private int _selectedEventIndex = -1;
     private TimelineClipboardItem _copiedTimelineItem;
     private bool _isDirty;
-    private bool _isPreviewPlaying = true;
+    private bool _isPreviewPlaying;
+    private bool _isPreviewLooping;
     private bool _isApplyingHistorySnapshot;
     private bool _suppressControlCallbacks;
+    private bool _isTimelineTimeTextWidthApplied;
     private bool _disposed;
 
     private const float TimelineMinimumZoomFactor = 0.5f;
     private const float TimelineMaximumZoomFactor = 5.0f;
     private const float TimelineBasePixelsPerSecond = 96f;
+    // Largeur reservee a l'affichage du temps : "xxx.xxxs/xxx.xxxs".
+    private const int TimelineTimeTextLength = 8;
+    private const string TimelineTimeTextTemplate = "000.000s/000.000s";
 
     private enum TimelineDisplayEventSourceKind
     {
@@ -413,7 +423,13 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         _previewWorldDriver.Tick(gameTime);
 
-        if (_previewSpriteComponent != null)
+        // Le monde de preview tourne sous GameplayExecutionPolicies.EditorPreview : les
+        // AnimatedSpriteComponent ne s'auto-avancent pas. La lecture est donc pilotee ici.
+        if (_isPreviewPlaying)
+        {
+            AdvancePreviewTime((float)gameTime.ElapsedGameTime.TotalSeconds);
+        }
+        else if (_previewSpriteComponent != null)
         {
             _previewTimeSeconds = _previewSpriteComponent.CurrentAnimationTimeSeconds;
         }
@@ -1382,6 +1398,99 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         }
     }
 
+    private MGButton CreateTimelinePlaybackButton(string label, Action onClick)
+    {
+        var button = new MGButton(_window, _ => onClick())
+        {
+            Padding = new Thickness(6, 2, 6, 2),
+        };
+        button.SetContent(new MGTextBlock(_window, label)
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        });
+        return button;
+    }
+
+    private void PlayPreview()
+    {
+        if (_animationData == null || _previewDurationSeconds <= 0f)
+        {
+            return;
+        }
+
+        // Une animation non bouclee arretee en fin de piste ne repart pas : on repositionne le
+        // curseur au debut avant de relancer la lecture.
+        if (!_isPreviewLooping && _previewTimeSeconds >= _previewDurationSeconds)
+        {
+            SeekPreviewTime(0f);
+        }
+
+        SetPreviewPlaying(true);
+    }
+
+    private void PausePreview()
+    {
+        SetPreviewPlaying(false);
+    }
+
+    private void StopPreview()
+    {
+        SetPreviewPlaying(false);
+        SeekPreviewTime(0f);
+        _timelineControl?.EnsureTimeVisible(0f);
+    }
+
+    private void AdvancePreviewTime(float elapsedSeconds)
+    {
+        if (_previewSpriteComponent == null || _previewDurationSeconds <= 0f)
+        {
+            SetPreviewPlaying(false);
+            return;
+        }
+
+        float nextTimeSeconds = _previewTimeSeconds + Math.Max(0f, elapsedSeconds);
+        if (nextTimeSeconds >= _previewDurationSeconds)
+        {
+            if (_isPreviewLooping)
+            {
+                nextTimeSeconds %= _previewDurationSeconds;
+            }
+            else
+            {
+                nextTimeSeconds = _previewDurationSeconds;
+                SetPreviewPlaying(false);
+            }
+        }
+
+        ApplyPreviewTime(nextTimeSeconds);
+    }
+
+    private void SetPreviewPlaying(bool isPlaying)
+    {
+        _isPreviewPlaying = isPlaying;
+        SyncTimelinePlaybackController();
+        ApplyPreviewPlaybackState();
+        RefreshTimelineControls();
+    }
+
+    private void SyncTimelinePlaybackController()
+    {
+        if (_timelinePlaybackController == null)
+        {
+            return;
+        }
+
+        if (_isPreviewPlaying)
+        {
+            _timelinePlaybackController.Play();
+        }
+        else
+        {
+            _timelinePlaybackController.Pause();
+        }
+    }
+
     private MGElement CreateTimelinePanel()
     {
         var stack = new MGStackPanel(_window, Orientation.Vertical)
@@ -1391,12 +1500,36 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             HorizontalAlignment = HorizontalAlignment.Stretch,
         };
 
-        _timelineText = new MGTextBlock(_window, "No animation loaded.")
+        var playbackRow = new MGStackPanel(_window, Orientation.Horizontal)
         {
+            Spacing = 4,
+        };
+        _timelinePlayButton = CreateTimelinePlaybackButton("Play", PlayPreview);
+        _timelinePauseButton = CreateTimelinePlaybackButton("Pause", PausePreview);
+        _timelineStopButton = CreateTimelinePlaybackButton("Stop", StopPreview);
+        playbackRow.TryAddChild(_timelinePlayButton);
+        playbackRow.TryAddChild(_timelinePauseButton);
+        playbackRow.TryAddChild(_timelineStopButton);
+
+        // Largeur fixe : le texte du temps change a chaque frame, il ne doit pas decaler ce qui suit.
+        _timelineText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            Opacity = EditorThemePalette.SecondaryTextOpacity,
+            WrapText = false,
+            ScaleDimensionsWithResponsive = false,
+        };
+        _timelineZoomText = new MGTextBlock(_window, string.Empty)
+        {
+            Margin = new Thickness(8, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
             Opacity = EditorThemePalette.SecondaryTextOpacity,
             WrapText = true,
         };
-        stack.TryAddChild(_timelineText);
+        playbackRow.TryAddChild(_timelineText);
+        playbackRow.TryAddChild(_timelineZoomText);
+        stack.TryAddChild(playbackRow);
 
         _timelineControl = new Animation2dTimelineControl(_window)
         {
@@ -1408,8 +1541,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
         _timelineControl.EditPolicy = new Animation2dTimelineEditPolicy();
         // Snapping reste desactive par defaut pour conserver le comportement time-based actuel.
         _timelineControl.SnapSettings.IsEnabled = false;
-        // La preview est pilotee par le sprite component ; le controleur expose seek/etat de lecture.
-        _timelineControl.PlaybackController = new Animation2dTimelinePlaybackController(() => _previewTimeSeconds, SeekPreviewTime);
+        // La preview avance dans Update() de ce panneau ; le controleur expose seek/etat de lecture.
+        _timelinePlaybackController = new Animation2dTimelinePlaybackController(() => _previewTimeSeconds, SeekPreviewTime);
+        SyncTimelinePlaybackController();
+        _timelineControl.PlaybackController = _timelinePlaybackController;
         _timelineControl.ItemSelected += SelectEvent;
         _timelineControl.TrackSelected += SelectLane;
         _timelineControl.TrackLabelEdited += OnTimelineLaneLabelEdited;
@@ -1456,6 +1591,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
     private void RebuildPreviewState()
     {
         _previewDurationSeconds = 0f;
+        _isPreviewLooping = false;
         _spriteDataById.Clear();
         _spriteIdsToResolve.Clear();
 
@@ -1483,6 +1619,7 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
         var composition = Animation2dCompositionAdapter.Create(_animationData);
         _previewDurationSeconds = composition.DurationSeconds;
+        _isPreviewLooping = composition.IsLooping;
 
         var unresolvedSpriteCount = 0;
         Animation2dSpriteReferenceCollector.Collect(_animationData, _spriteIdsToResolve);
@@ -1592,13 +1729,45 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
             return;
         }
 
+        ApplyTimelineTimeTextWidth();
+
         if (_animationData == null)
         {
-            _timelineText.Text = "No animation loaded.";
+            _timelineText.Text = $"{FormatTimelineSeconds(0f)}/{FormatTimelineSeconds(0f)}";
+            if (_timelineZoomText != null)
+            {
+                _timelineZoomText.Text = "No animation loaded.";
+            }
+
             return;
         }
 
-        _timelineText.Text = $"{FormatSeconds(_previewTimeSeconds)}/{FormatSeconds(_previewDurationSeconds)} Zoom:{FormatZoomPercentage(_timelineZoomFactor)}";
+        _timelineText.Text = $"{FormatTimelineSeconds(_previewTimeSeconds)}/{FormatTimelineSeconds(_previewDurationSeconds)}";
+        if (_timelineZoomText != null)
+        {
+            _timelineZoomText.Text = $"Zoom:{FormatZoomPercentage(_timelineZoomFactor)}";
+        }
+    }
+
+    /// <summary>Reserve une largeur fixe pour l'affichage du temps afin que le reste de la barre ne
+    /// bouge pas a chaque frame. La mesure est faite une seule fois, des que la police est resolue.</summary>
+    private void ApplyTimelineTimeTextWidth()
+    {
+        if (_timelineText == null || _isTimelineTimeTextWidthApplied)
+        {
+            return;
+        }
+
+        Vector2 textSize = _timelineText.MeasureText(TimelineTimeTextTemplate, false, false);
+        if (textSize.X <= 0f)
+        {
+            return;
+        }
+
+        int width = (int)MathF.Ceiling(textSize.X);
+        _timelineText.MinWidth = width;
+        _timelineText.PreferredWidth = width;
+        _isTimelineTimeTextWidthApplied = true;
     }
 
     private bool IsTimelinePresentationAttached()
@@ -1659,7 +1828,16 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private void RefreshTimelinePlaybackState()
     {
-        _timelineControl?.SetPlaybackState(_previewTimeSeconds, _selectedEventIndex, _selectedLaneIndex);
+        if (_timelineControl == null)
+        {
+            return;
+        }
+
+        _timelineControl.SetPlaybackState(_previewTimeSeconds, _selectedEventIndex, _selectedLaneIndex);
+        if (_isPreviewPlaying)
+        {
+            _timelineControl.EnsureTimeVisible(_previewTimeSeconds);
+        }
     }
 
     private void SelectEvent(int eventIndex)
@@ -3324,16 +3502,39 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private void SeekPreviewTime(float timeSeconds)
     {
-        _previewTimeSeconds = Math.Clamp(timeSeconds, 0f, Math.Max(0f, _previewDurationSeconds));
-        _previewSpriteComponent?.SeekCurrentAnimation(_previewTimeSeconds);
+        ApplyPreviewTime(timeSeconds);
         RefreshTimelineText();
         RefreshTimelineControls();
         RefreshTimelinePlaybackState();
     }
 
+    private void ApplyPreviewTime(float timeSeconds)
+    {
+        _previewTimeSeconds = Math.Clamp(timeSeconds, 0f, Math.Max(0f, _previewDurationSeconds));
+        _previewSpriteComponent?.SeekCurrentAnimation(_previewTimeSeconds);
+    }
+
     private void RefreshTimelineControls()
     {
         _suppressControlCallbacks = true;
+
+        bool canPlay = _animationData != null && _previewDurationSeconds > 0f;
+        if (_timelinePlayButton != null)
+        {
+            _timelinePlayButton.IsEnabled = canPlay && !_isPreviewPlaying;
+        }
+
+        if (_timelinePauseButton != null)
+        {
+            _timelinePauseButton.IsEnabled = canPlay && _isPreviewPlaying;
+        }
+
+        if (_timelineStopButton != null)
+        {
+            // Stop n'a de sens que si la lecture est en cours ou si le curseur a quitte le debut.
+            _timelineStopButton.IsEnabled = canPlay && (_isPreviewPlaying || _previewTimeSeconds > 0f);
+        }
+
         _suppressControlCallbacks = false;
     }
 
@@ -4514,6 +4715,10 @@ internal sealed class Animation2dAssetInspectorPanel : IDisposable
 
     private static string FormatSeconds(float value)
         => value.ToString("0.###", CultureInfo.InvariantCulture) + "s";
+
+    /// <summary>Format a largeur constante (jusqu'a "999.999s") pour l'entete de la timeline.</summary>
+    private static string FormatTimelineSeconds(float value)
+        => (value.ToString("0.000", CultureInfo.InvariantCulture) + "s").PadLeft(TimelineTimeTextLength);
 
     private static string FormatFloat(float value)
         => value.ToString("0.###", CultureInfo.InvariantCulture);

@@ -18,5 +18,6 @@ internal static class TimelineControlMetrics
     public const float ResizeHandleWidth = 5f;
     public const float MinimumItemDurationSeconds = 0.01f;
     public const float MouseWheelZoomMultiplier = 1.12f;
+    public const float PlayheadFollowMargin = 32f;
     public const float Epsilon = 0.0001f;
 }
