@@ -50,8 +50,8 @@
         "name": "camera",
         "root_component": {
           "id": "00000000-0000-0000-0000-000000000000",
-          "name": "Camera3dIn2dAxisComponent",
-          "type": "Camera3dIn2dAxisComponent",
+          "name": "Camera2dComponent",
+          "type": "Camera2dComponent",
           "coordinates": {
             "position": {
               "x": 3.0748892,
@@ -80,7 +80,13 @@
             "min_depth": 1.0,
             "max_depth": 1000.0
           },
-          "fieldOfView": 0.7199188
+          "target": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "zoom": 1.0,
+          "pixel_snap": false
         },
         "components": [],
         "script_class_name": null,

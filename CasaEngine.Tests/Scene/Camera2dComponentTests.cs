@@ -128,12 +128,13 @@ public sealed class Camera2dComponentTests
         Assert.Equal(new Vector3(12f, 34f, 0f), camera.Target);
     }
 
-    // Camera3dIn2dAxisComponent cannot be instantiated outside a world (its ComputeViewMatrix reads
-    // Owner.World.Game.ScreenSizeHeight, and tests cannot create a GraphicsDevice). The reference is
-    // therefore rebuilt here from the exact same formulas: field of view from
-    // Camera3dComponent.ComputeFieldOfView, camera distance z = (height / 2) / tan(fov / 2).
+    // Equivalence with the perspective trick this component replaced (the former
+    // Camera3dIn2dAxisComponent, since removed): a camera pushed back to
+    // z = (height / 2) / tan(fov / 2) frames the target plane exactly like an orthographic camera of
+    // the viewport size. The reference is rebuilt here from that formula, with the field of view
+    // Camera3dComponent.ComputeFieldOfView derives from the aspect ratio.
     [Fact]
-    public void TargetPlanePointsProjectLikeCamera3dIn2dAxisAtZoomOne()
+    public void TargetPlanePointsProjectLikeThePerspectiveTrickAtZoomOne()
     {
         const int width = 1920;
         const int height = 1080;

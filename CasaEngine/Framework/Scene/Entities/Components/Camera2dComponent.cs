@@ -9,9 +9,10 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// <summary>
 /// Orthographic scene camera for world-space 2d rendering.
 /// World units are pixels (+Y up), the camera looks along -Z at <see cref="Target"/>.
-/// At <see cref="Zoom"/> = 1 a point of the plane Z = Target.Z projects to the same screen
-/// pixel as with <see cref="Camera3dIn2dAxisComponent"/>, without perspective distortion on
-/// the layers placed at a different Z.
+/// At <see cref="Zoom"/> = 1 a point of the plane Z = Target.Z projects to the same screen pixel as
+/// with the perspective trick this component replaces (a camera pushed back to
+/// z = (viewport height / 2) / tan(fov / 2)), but without perspective distortion on the layers
+/// placed at a different Z.
 /// </summary>
 [DisplayName("Camera 2d")]
 public class Camera2dComponent : CameraComponent
