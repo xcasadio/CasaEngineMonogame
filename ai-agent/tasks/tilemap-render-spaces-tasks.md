@@ -93,6 +93,11 @@ Dans `TileMapComponent.Draw` ([TileMapComponent.cs:218](../../CasaEngine/Framewo
 
 Done : build + tests TileMap existants verts ; nouveaux tests sur la construction de matrice si extractible.
 
+**Notes de sémantique (différences assumées entre les deux chemins)** :
+
+- **`zOffset` de layer** : le chemin identité l'ajoute en **Z monde non scalé** (`worldZ = translation.Z + layerZ`), alors que le chemin rotation l'applique en **espace local**, donc multiplié par l'échelle du composant. Même asset, séparation de layers différente selon le chemin : à `LocalScale = 0.05` (cas de `TileMap3dDemo`), un `zOffset` de 1 ne sépare plus les layers que de 0.05 unité monde — risque de z-fighting entre layers sur une map fortement réduite. Contourner en augmentant les `zOffset` de l'asset ou l'échelle, si le cas se présente.
+- **Tri des sprites dynamiques** : `SpriteRendererComponent.CompareSpriteDisplayData` trie par `WorldMatrix.Translation.Z` monde, ce qui n'est pas corrélé à la profondeur caméra dès que la map est tournée (une map au sol a tous ses quads à Z monde quasi constant, une map murale trie selon un axe orthogonal à la vue). Sans conséquence en opaque — le depth buffer tranche (`DepthBufferWriteEnable = true`, `ColorDestinationBlend = Zero`) — mais des artefacts d'ordre sont possibles sur des tiles dynamiques réellement alpha-blended. Le chemin statique (batches indexés) n'est pas concerné.
+
 Réalisé : `TileMapComponent.Draw` teste **une fois par draw** si `WorldMatrixWithScale` est une pure échelle+translation (`IsAxisAlignedWorldMatrix`, 6 comparaisons sur les termes hors-diagonale) ; si oui le chemin existant est exécuté à l'identique. Sinon `DrawWithWorldMatrix` dessine les quads en espace local transformés par la matrice monde complète (`Tile.Draw(..., in Matrix)` + surcharge additive `SpriteRendererComponent.DrawSprite(..., in Matrix worldTransform)`). Le chemin statique reçoit désormais sa matrice monde du dispatcher (calculée une fois par layer au lieu d'une fois par chunk).
 
 ### ✅ C2 — Culling fallback par chunk quand rotation ≠ identité

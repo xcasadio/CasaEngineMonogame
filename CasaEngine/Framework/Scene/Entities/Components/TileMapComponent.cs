@@ -436,7 +436,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var scaleMagnitude = Math.Max(
             Math.Abs(world.M11),
             Math.Max(Math.Abs(world.M22), Math.Abs(world.M33)));
-        var epsilon = AxisAlignedWorldMatrixEpsilon * Math.Max(1f, scaleMagnitude);
+        // The epsilon stays relative to the matrix scale: an absolute floor would classify a real
+        // rotation as axis-aligned on a small scaled map and silently drop it from the render.
+        var epsilon = AxisAlignedWorldMatrixEpsilon * Math.Max(1e-6f, scaleMagnitude);
 
         return Math.Abs(world.M12) <= epsilon
             && Math.Abs(world.M13) <= epsilon

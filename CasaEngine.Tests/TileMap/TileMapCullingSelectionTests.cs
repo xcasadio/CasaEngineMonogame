@@ -31,6 +31,16 @@ public class TileMapCullingSelectionTests
     }
 
     [Fact]
+    public void IsAxisAlignedWorldMatrix_RejectsSmallRotationsOnSmallScaleMaps()
+    {
+        // A 3 degrees rotation on a map scaled down to 0.001 leaves off-diagonal terms around 5e-5:
+        // an absolute epsilon would accept it and the rotation would be dropped from the render.
+        var world = Matrix.CreateRotationZ(MathHelper.ToRadians(3f)) * Matrix.CreateScale(0.001f);
+
+        Assert.False(TileMapComponent.IsAxisAlignedWorldMatrix(world));
+    }
+
+    [Fact]
     public void IsAxisAlignedWorldMatrix_ToleratesFloatingPointNoise()
     {
         var world = Matrix.CreateScale(4f);

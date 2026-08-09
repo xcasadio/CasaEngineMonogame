@@ -75,10 +75,12 @@ public class TileMapComponentDrawCountersTests
 
         component.Draw(0f);
 
-        // The map now lies flat in the XZ plane: it is edge-on for a camera looking down -Z,
-        // so only the chunks crossing the view window survive the frustum test.
-        Assert.True(component.LastVisitedChunkCount < (MapSize / ChunkSize) * (MapSize / ChunkSize));
-        Assert.True(component.LastVisitedChunkCount > 0);
+        // The map now lies flat in the XZ plane. Each chunk covers world x [32cx, 32cx + 32] and
+        // z [32cy, 32cy + 32]; the view window spans x [0, 16] and z [-90, 9.9], so only the chunk
+        // (0, 0) survives the frustum test, with its 2 x 2 tiles.
+        Assert.Equal(1, component.LastVisitedChunkCount);
+        Assert.Equal(ChunkSize * ChunkSize, component.LastVisitedTileCount);
+        Assert.Equal(ChunkSize * ChunkSize, component.LastDrawnTileCount);
     }
 
     private static TileMapComponent CreateTileMapComponent(out World world)
