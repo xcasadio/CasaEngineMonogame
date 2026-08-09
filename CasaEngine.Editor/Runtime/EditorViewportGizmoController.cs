@@ -101,7 +101,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     public event Action<GizmoMode> ActiveModeChanged;
     public event Action<TransformSpace> ActiveSpaceChanged;
 
-    public void EnsureInitialized(RenderView renderView, ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
+    public void EnsureInitialized(RenderView renderView, CameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (renderView == null || camera == null || surface == null)
         {
@@ -131,7 +131,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         renderView.Pipeline = overlayPipeline;
     }
 
-    public void Synchronize(ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
+    public void Synchronize(CameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (_gizmo == null)
         {
@@ -215,7 +215,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
-        ArcBallCameraComponent camera,
+        CameraComponent camera,
         RenderTargetSurface surface,
         World world)
     {

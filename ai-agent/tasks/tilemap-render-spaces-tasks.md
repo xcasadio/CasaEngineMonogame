@@ -195,11 +195,15 @@ Done : build éditeur vert ; tests unitaires du contrôleur sur le modèle d'`Ed
 
 Réalisé : `CasaEngine.Editor/Runtime/EditorViewport2dCameraController.cs` (+ `EditorViewport2dCameraState`), strictement parallèle au contrôleur ArcBall qui n'est pas touché. Zoom par crans entiers : `ZoomFromStep(step)` → `step >= 0` donne ×1, ×2, ×3… et `step < 0` donne ½, ⅓, ¼… ; crans bornés à `[-7, 31]` (1/8 → ×32). `ZoomAtCursor` conserve le point monde sous le curseur (`Target += offsetVue * (1/zoomAvant − 1/zoomAprès)`, Y écran inversé). Pan au drag clic milieu (`Target -= delta / Zoom`, Y inversé) ; le delta n'est appliqué qu'à partir de la deuxième frame du drag pour éviter un saut au clic. `CaptureState`/`RestoreState`/`SetState`/`Focus` comme l'ArcBall. Tests : `CasaEngine.Tests/Editor/EditorViewport2dCameraControllerTests.cs` (16 cas : table des crans, bornes, invariance du point sous le curseur, pan, aller-retour capture/restore, conversion delta molette → crans), sans GraphicsDevice.
 
-### ⏳ E2 — Bascule 2D/3D par viewport
+### 🧪 E2 — Bascule 2D/3D par viewport
 
 Dans le viewport scène de l'éditeur (repérer `EditorViewContext` et la création des vues) : une bascule 2D/3D qui échange caméra + contrôleur, en préservant l'état de l'autre mode. UI minimale (bouton/raccourci dans la barre du viewport, suivre les patterns existants).
 
 Done : build éditeur vert. 🧪 restant : bascule aller-retour sans perte d'état, rendu 2D correct.
+
+Réalisé : `WorldViewportPanel` porte désormais deux caméras et deux contrôleurs indépendants — `ArcBallCameraComponent` + `EditorViewportCameraController` (inchangés) et `Camera2dComponent` + `EditorViewport2dCameraController`. La bascule passe par `WorldViewportPanel.Is2dViewMode` / `SetViewMode(bool)` : elle crée la caméra 2D à la demande (entité cachée `EditorViewport2dCamera`, parallèle à `EditorViewportCamera`), réaffecte `RenderView.Camera` et invalide la vue. **La préservation de l'état de l'autre mode est structurelle** : chaque contrôleur garde son propre état, il n'y a donc rien à capturer/restaurer au moment de la bascule (`CaptureState`/`RestoreState` restent utilisés pour la persistance E4 et le mode preview existant). UI : bouton bascule « 2D » ajouté à la barre d'outils de viewport existante (`BuildGizmoToolbar`, après un séparateur), donc visible uniquement là où `ShowGizmoToolbar` est actif, c'est-à-dire le viewport monde de l'éditeur.
+
+Points intégrés au passage : `EditorViewportGizmoController.EnsureInitialized`/`Synchronize`/`Update` acceptent maintenant `CameraComponent` au lieu du type concret `ArcBallCameraComponent` (élargissement, aucun appelant cassé — le gizmo ne lisait déjà que `ViewMatrix`/`ProjectionMatrix`/`Position`) ; le resize, le changement de monde et `FocusBounds` pilotent la caméra du mode actif ; le délégué de relâchement d'input est mis en cache dans un champ au lieu d'être alloué à chaque frame.
 
 ### ⏳ E3 — Grille 2D et contrainte gizmo XY
 
@@ -236,5 +240,5 @@ Done : doc écrite, index à jour, commit.
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| E — Viewport 2D éditeur | 🚧 | E1 ✅ (`EditorViewport2dCameraController` + tests). |
+| E — Viewport 2D éditeur | 🚧 | E1 ✅. E2 : bascule 2D/3D en place (bouton « 2D » de la barre de viewport), reste la validation visuelle. |
 | F — Documentation | ⏳ | |
