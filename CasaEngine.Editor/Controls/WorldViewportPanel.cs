@@ -353,7 +353,7 @@ public class WorldViewportPanel : IDisposable
             && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();
 
-        if (_is2dViewMode)
+        if (UsesCamera2d)
         {
             if (_camera2d != null)
             {
@@ -534,6 +534,24 @@ public class WorldViewportPanel : IDisposable
             _cameraController.ApplyTo(_camera);
         }
 
+        if (UsesCamera2d)
+        {
+            Ensure2dCameraCreated();
+        }
+
+        _gizmoController.ConstrainToXYPlane = UsesCamera2d;
+
+        if (_renderView != null)
+        {
+            // Entering an override binds the perspective camera, releasing it gives the view back
+            // to the camera of the current panel mode.
+            var viewCamera = ActiveCamera;
+            if (viewCamera != null)
+            {
+                _renderView.Camera = viewCamera;
+            }
+        }
+
         SynchronizeRenderViewWorld();
         _renderView?.Invalidate();
     }
@@ -557,7 +575,7 @@ public class WorldViewportPanel : IDisposable
 
         var focusTarget = (bounds.Min + bounds.Max) * 0.5f;
 
-        if (_is2dViewMode)
+        if (UsesCamera2d)
         {
             _camera2dController.Focus(focusTarget);
             _camera2dController.ApplyTo(_camera2d);
@@ -1108,7 +1126,7 @@ public class WorldViewportPanel : IDisposable
 
         _renderView = renderView;
 
-        if (_is2dViewMode)
+        if (UsesCamera2d)
         {
             Ensure2dCameraCreated();
             _renderView.Camera = _camera2d;
@@ -1553,7 +1571,7 @@ public class WorldViewportPanel : IDisposable
 
     private void SynchronizeCamera()
     {
-        if (_is2dViewMode)
+        if (UsesCamera2d)
         {
             if (_camera2d != null)
             {
@@ -1572,10 +1590,16 @@ public class WorldViewportPanel : IDisposable
     }
 
     /// <summary>
+    /// True when the orthographic camera actually drives the view. A preview world override is a
+    /// runtime-like view and always renders through the perspective camera, whatever the panel mode.
+    /// </summary>
+    private bool UsesCamera2d => _is2dViewMode && !HasWorldOverride;
+
+    /// <summary>
     /// Camera currently driving the view: the orthographic 2d camera in 2d mode,
     /// the arcball camera otherwise.
     /// </summary>
-    private CameraComponent ActiveCamera => _is2dViewMode && _camera2d != null ? _camera2d : _camera;
+    private CameraComponent ActiveCamera => UsesCamera2d && _camera2d != null ? _camera2d : _camera;
 
     private void SetViewMode(bool use2d)
     {
@@ -1593,6 +1617,8 @@ public class WorldViewportPanel : IDisposable
 
         if (_renderView != null)
         {
+            // ActiveCamera keeps the perspective camera bound while a preview override owns the
+            // view; the new mode takes effect when the override is released.
             var activeCamera = ActiveCamera;
             if (activeCamera != null)
             {
@@ -1604,7 +1630,7 @@ public class WorldViewportPanel : IDisposable
 
         SynchronizeCamera();
         SynchronizeViewModeToolbarState();
-        _gizmoController.ConstrainToXYPlane = _is2dViewMode;
+        _gizmoController.ConstrainToXYPlane = UsesCamera2d;
 
         if (ShouldSynchronizeGizmo())
         {
@@ -1746,7 +1772,7 @@ public class WorldViewportPanel : IDisposable
             return;
         }
 
-        if (_is2dViewMode)
+        if (UsesCamera2d)
         {
             _grid.DrawForView2d(graphicsDevice, in frame);
         }

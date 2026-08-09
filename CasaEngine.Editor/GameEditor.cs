@@ -389,6 +389,8 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (disposing)
         {
+            // Companion viewport state only: the docking layout keeps its explicit save command.
+            SavePersistedViewportViewState();
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             _shaderSourceHotReloadService?.Dispose();
