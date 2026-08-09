@@ -55,7 +55,7 @@ Cas à couvrir :
 
 Done : `rtk dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` vert (nouveaux tests inclus).
 
-### ⏳ A3 — Basculer `TileMapDemo` sur `Camera2dComponent`
+### 🧪 A3 — Basculer `TileMapDemo` sur `Camera2dComponent`
 
 Dans `CasaEngine.Demos/Demos/TileMapDemo.cs` : remplacer `Camera3dIn2dAxisComponent` par `Camera2dComponent` (même cible). Ne toucher à aucune autre démo.
 
@@ -195,7 +195,7 @@ Done : doc écrite, index à jour, commit.
 
 | Phase | Statut | Notes |
 | --- | --- | --- |
-| A — Camera2dComponent | 🚧 | A1 + A2 faits (composant, sérialisation éditeur, 9 tests unitaires). |
+| A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | ⏳ | |
 | C — TileMap 3D | ⏳ | |
 | D — TileMapSurfaceComponent | ⏳ | |
