@@ -21,7 +21,6 @@ public class AnimationIkDemo : Demo
     private const float TargetMoveSpeedFactor = 1.1f;
     private const float WeightAdjustSpeed = 0.75f;
     private const float AutoOrbitSpeed = 1.4f;
-    private static readonly Quaternion CharacterFacingRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
     private static readonly Color ChainColor = new(80, 220, 156);
     private static readonly Color TargetColor = new(255, 204, 96);
     private static readonly Color PoleColor = new(96, 196, 255);
@@ -345,8 +344,8 @@ public class AnimationIkDemo : Demo
             return;
         }
 
+        // Left at the identity orientation: the model faces +Z, which is where the camera stands.
         _skinnedMeshComponent.LocalPosition = Vector3.Zero;
-        _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
     }
 

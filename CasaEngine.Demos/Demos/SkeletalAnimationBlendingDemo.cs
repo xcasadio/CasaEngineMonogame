@@ -24,8 +24,6 @@ public class SkeletalAnimationBlendingDemo : Demo
     // Rotate 180° around Y so it faces the camera at +Z.
     // The ground is a BoxPrimitive(100,1,100) centred at world Y=-0.5 → top surface at Y=0.
     // Place feet at Y=0.02 so mesh vertices (a few cm below the lowest joint) sit on the surface.
-    private static readonly Quaternion CharacterFacingRotation =
-        Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.Pi);
     private const float CharacterScale = 1.0f;
 
     private static readonly SkeletonDebugDrawOptions SkeletonDebugOptions = new(
@@ -182,8 +180,9 @@ public class SkeletalAnimationBlendingDemo : Demo
         _characterEntity.RootComponent = _skinnedMeshComponent;
         // Ground top surface = Y 0 (BoxPrimitive 1u tall centred at Y=-0.5).
         // Tiny upward offset so foot mesh vertices (slightly below the lowest joint) don't clip.
+        // Left at the identity orientation: the soldier faces +Z, which is both where the camera
+        // stands and what the key light setup above assumes.
         _skinnedMeshComponent.LocalPosition = new Vector3(0f, 0.02f, 0f);
-        _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
 
         BuildBlendGraph();
