@@ -275,7 +275,7 @@ persistance `viewport.editor.json`). Index `docs/README.md` mis à jour dans les
 
 - `TileMap3dDemo` : le mur est tourné de **+90°** autour de Y (et non −90° comme noté en C3) — les
   quads de tiles sont simple face, l'autre sens laisserait le mur back-face culled.
-- **Défaut préexistant de `ArcBallCameraComponent.SetCamera`** (hors périmètre, signalé, non corrigé) :
+- **Défaut de `ArcBallCameraComponent.SetCamera`** (préexistant — ✅ **corrigé depuis**, voir la branche `fix-arcball-setcamera` : `Target = target` et `Yaw = Atan2(zAxis.X, -zAxis.Z)`, contrat verrouillé par `CasaEngine.Tests/Scene/ArcBallCameraComponentTests.cs`. Les deux démos tilemap sont revenues à `SetCamera`, leur cadrage étant identique) :
   la méthode stocke `Target = -target` et `Distance = -|position - target|` ; avec
   `ComputeViewMatrix` (`position = Target - Direction * Distance`) la caméra obtenue regarde `-target`
   et se retrouve **en miroir sur Z** par rapport à la position demandée
