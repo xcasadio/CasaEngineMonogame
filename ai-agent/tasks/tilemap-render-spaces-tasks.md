@@ -205,7 +205,7 @@ Réalisé : `WorldViewportPanel` porte désormais deux caméras et deux contrôl
 
 Points intégrés au passage : `EditorViewportGizmoController.EnsureInitialized`/`Synchronize`/`Update` acceptent maintenant `CameraComponent` au lieu du type concret `ArcBallCameraComponent` (élargissement, aucun appelant cassé — le gizmo ne lisait déjà que `ViewMatrix`/`ProjectionMatrix`/`Position`) ; le resize, le changement de monde et `FocusBounds` pilotent la caméra du mode actif ; le délégué de relâchement d'input est mis en cache dans un champ au lieu d'être alloué à chaque frame.
 
-### ⏳ E3 — Grille 2D et contrainte gizmo XY
+### 🧪 E3 — Grille 2D et contrainte gizmo XY
 
 - En mode 2D : grille graduée en tiles/pixels (adapter le rendu de grille existant, version minimale acceptable) ;
 - gizmos de translation contraints au plan XY en mode 2D.
@@ -213,6 +213,13 @@ Points intégrés au passage : `EditorViewportGizmoController.EnsureInitialized`
 Version minimale acceptable ; si le système de grille/gizmo résiste, marquer ⚠️ avec le point de blocage précis et ne pas forcer un refactor.
 
 Done : build éditeur vert. 🧪 restant : vérification visuelle.
+
+Réalisé :
+
+- **Grille** : `GridComponent.DrawForView2d(gd, in frame, tileSizeInPixels = 32)` (ajout additif, la grille 3D `DrawForView` est inchangée — les deux passent par le même `DrawLines` privé). Grille dans le plan XY graduée en tuiles (32 px par défaut, une ligne accentuée toutes les 8 tuiles, axes X rouge / Y vert), même nombre de lignes que la grille 3D (±50 tuiles, soit ±1600 px). Le tableau de sommets 2D est construit une seule fois (reconstruit uniquement si la taille de tuile change), aucune allocation par frame. `WorldViewportPanel.RenderEditorGrid` (groupe de méthodes, plus de closure) choisit la grille selon le mode du viewport.
+- **Gizmo XY** : `Gizmo.ConstrainToXYPlane` (nouvelle propriété opt-in, défaut `false` → comportement 3D strictement inchangé) fait ignorer à `SelectAxis` l'axe Z, la sphère Z et les plans ZX/YZ ; seules les poignées X, Y et XY restent sélectionnables, donc toute manipulation reste dans le plan XY. Exposée via `EditorViewportGizmoController.ConstrainToXYPlane`, activée par `WorldViewportPanel.SetViewMode`.
+
+À valider visuellement : lisibilité de la grille en tuiles aux différents crans de zoom, et poignée Z effectivement inaccessible en mode 2D. Limite connue : le gizmo se dimensionne sur la distance caméra (`_screenScale = |cameraPos − gizmoPos| / SCREEN_SCALE_FACTOR`) ; en ortho cette distance est constante (500), le gizmo a donc une taille monde fixe et sa taille écran varie avec le zoom au lieu de rester constante. Corriger cela demanderait de modifier la logique d'échelle de `GizmoTool` — hors périmètre, non entrepris.
 
 ### ⏳ E4 — Persistance de l'état de vue 2D
 
@@ -240,5 +247,5 @@ Done : doc écrite, index à jour, commit.
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| E — Viewport 2D éditeur | 🚧 | E1 ✅. E2 : bascule 2D/3D en place (bouton « 2D » de la barre de viewport), reste la validation visuelle. |
+| E — Viewport 2D éditeur | 🚧 | E1 ✅. E2, E3 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles et gizmo contraint XY en place, reste la validation visuelle. |
 | F — Documentation | ⏳ | |

@@ -74,6 +74,12 @@ public class Gizmo : IDisposable
 
     public GizmoAxis ActiveAxis { get; set; } = GizmoAxis.None;
 
+    /// <summary>
+    /// When enabled the gizmo only exposes the X, Y and XY handles, which keeps
+    /// manipulations inside the XY plane. Used by 2d editor viewports.
+    /// </summary>
+    public bool ConstrainToXYPlane { get; set; }
+
     public GizmoMode ActiveMode
     {
         get => _activeMode;
@@ -912,11 +918,14 @@ public class Gizmo : IDisposable
             ActiveAxis = GizmoAxis.Y;
             closestintersection = intersection.Value;
         }
-        intersection = ZAxisBox.Intersects(ray);
-        if (intersection < closestintersection)
+        if (!ConstrainToXYPlane)
         {
-            ActiveAxis = GizmoAxis.Z;
-            closestintersection = intersection.Value;
+            intersection = ZAxisBox.Intersects(ray);
+            if (intersection < closestintersection)
+            {
+                ActiveAxis = GizmoAxis.Z;
+                closestintersection = intersection.Value;
+            }
         }
         #endregion
 
@@ -939,11 +948,14 @@ public class Gizmo : IDisposable
                 closestintersection = intersection.Value;
             }
 
-            intersection = ZSphere.Intersects(ray);
-            if (intersection < closestintersection)
+            if (!ConstrainToXYPlane)
             {
-                ActiveAxis = GizmoAxis.Z;
-                closestintersection = intersection.Value;
+                intersection = ZSphere.Intersects(ray);
+                if (intersection < closestintersection)
+                {
+                    ActiveAxis = GizmoAxis.Z;
+                    closestintersection = intersection.Value;
+                }
             }
 
             #endregion
@@ -966,18 +978,21 @@ public class Gizmo : IDisposable
                 closestintersection = intersection.Value;
             }
 
-            intersection = XZAxisBox.Intersects(ray);
-            if (intersection > closestintersection)
+            if (!ConstrainToXYPlane)
             {
-                ActiveAxis = GizmoAxis.ZX;
-                closestintersection = intersection.Value;
-            }
+                intersection = XZAxisBox.Intersects(ray);
+                if (intersection > closestintersection)
+                {
+                    ActiveAxis = GizmoAxis.ZX;
+                    closestintersection = intersection.Value;
+                }
 
-            intersection = YZBox.Intersects(ray);
-            if (intersection > closestintersection)
-            {
-                ActiveAxis = GizmoAxis.YZ;
-                closestintersection = intersection.Value;
+                intersection = YZBox.Intersects(ray);
+                if (intersection > closestintersection)
+                {
+                    ActiveAxis = GizmoAxis.YZ;
+                    closestintersection = intersection.Value;
+                }
             }
 
             #endregion

@@ -50,6 +50,25 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _editorRuntime = editorRuntime;
     }
 
+    private bool _constrainToXYPlane;
+
+    /// <summary>
+    /// Restricts the gizmo handles to the XY plane, used when the viewport runs in 2d mode.
+    /// </summary>
+    public bool ConstrainToXYPlane
+    {
+        get => _constrainToXYPlane;
+        set
+        {
+            _constrainToXYPlane = value;
+
+            if (_gizmo != null)
+            {
+                _gizmo.Gizmo.ConstrainToXYPlane = value;
+            }
+        }
+    }
+
     public bool AllowSelectionPicking { get; set; } = true;
 
     public bool AllowDeleteSelection { get; set; } = true;
@@ -124,6 +143,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _gizmo.IsActiveViewport = true;
         _gizmo.Gizmo.ActiveMode = _activeMode;
         _gizmo.Gizmo.ActiveSpace = _activeSpace;
+        _gizmo.Gizmo.ConstrainToXYPlane = _constrainToXYPlane;
         _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
 
         var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();

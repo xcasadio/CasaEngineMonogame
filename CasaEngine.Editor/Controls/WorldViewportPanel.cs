@@ -1604,6 +1604,7 @@ public class WorldViewportPanel : IDisposable
 
         SynchronizeCamera();
         SynchronizeViewModeToolbarState();
+        _gizmoController.ConstrainToXYPlane = _is2dViewMode;
 
         if (ShouldSynchronizeGizmo())
         {
@@ -1698,7 +1699,7 @@ public class WorldViewportPanel : IDisposable
         _particleWireOverlayRenderer ??= new EditorParticleWireOverlayRenderer(_editorRuntime.Content);
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
-        overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
+        overlayPipeline.RenderGridAction = RenderEditorGrid;
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
         if (overlayPipeline.RenderVectorOverlayAction != RenderEditorVectorOverlay)
         {
@@ -1713,6 +1714,23 @@ public class WorldViewportPanel : IDisposable
         }
         
         _renderView.Pipeline = overlayPipeline;
+    }
+
+    private void RenderEditorGrid(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        if (_grid == null)
+        {
+            return;
+        }
+
+        if (_is2dViewMode)
+        {
+            _grid.DrawForView2d(graphicsDevice, in frame);
+        }
+        else
+        {
+            _grid.DrawForView(graphicsDevice, in frame);
+        }
     }
 
     private void RenderEditorVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
