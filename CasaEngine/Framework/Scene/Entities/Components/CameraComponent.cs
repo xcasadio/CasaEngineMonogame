@@ -79,8 +79,8 @@ public abstract class CameraComponent : SceneComponent
         _needToComputeProjectionMatrix = true;
         _needToComputeViewMatrix = true;
 
-        other._viewport = _viewport;
-        other._viewDistance = _viewDistance;
+        _viewport = other._viewport;
+        _viewDistance = other._viewDistance;
     }
 
     protected override void InitializePrivate()
