@@ -42,7 +42,7 @@ Nouveau fichier `CasaEngine/Framework/Scene/Entities/Components/Camera2dComponen
 
 Done : build vert ; le composant est créable, clonable, sérialisable.
 
-### ⏳ A2 — Tests unitaires `Camera2dComponent`
+### ✅ A2 — Tests unitaires `Camera2dComponent`
 
 Nouveau fichier dans `CasaEngine.Tests` (suivre l'arborescence existante, ex. `CasaEngine.Tests/Scene/Camera2dComponentTests.cs` ou dossier équivalent existant).
 
@@ -195,7 +195,7 @@ Done : doc écrite, index à jour, commit.
 
 | Phase | Statut | Notes |
 | --- | --- | --- |
-| A — Camera2dComponent | 🚧 | A1 fait (composant + sérialisation éditeur). |
+| A — Camera2dComponent | 🚧 | A1 + A2 faits (composant, sérialisation éditeur, 9 tests unitaires). |
 | B — Politique pixel-perfect | ⏳ | |
 | C — TileMap 3D | ⏳ | |
 | D — TileMapSurfaceComponent | ⏳ | |
