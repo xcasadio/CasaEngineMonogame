@@ -128,6 +128,26 @@ public class AutoTile : Tile
         }
     }
 
+    public override void Draw(float x, float y, float z, Vector2 scale, TileCellFlags flags, in Matrix worldTransform)
+    {
+        for (var index = 0; index < _drawingInfos.Length; index++)
+        {
+            var drawingInfo = _drawingInfos[index];
+            if (drawingInfo.TileIndex != -1)
+            {
+                Draw(_texture2d,
+                    _autoTileData.Locations[drawingInfo.TileIndex],
+                    x + drawingInfo.XOffset * scale.X,
+                    y + drawingInfo.YOffset * scale.Y,
+                    z + drawingInfo.ZOffset,
+                    drawingInfo.PosInTexture,
+                    scale,
+                    SpriteEffects.None,
+                    in worldTransform);
+            }
+        }
+    }
+
     public void SetTileInfo(Size tileSize, Size mapSize, TileMapLayerData layer, int tileSourceIndex, int x, int y)
     {
         _tileSize = tileSize;

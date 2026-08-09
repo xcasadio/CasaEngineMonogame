@@ -91,7 +91,7 @@ public class TileMapDemo : Demo
     public override CameraComponent CreateCamera(CasaEngineGame game)
     {
         var entity = new Entity();
-        var camera = new Camera3dIn2dAxisComponent();
+        var camera = new Camera2dComponent();
         camera.Target = new Vector3(game.Window.ClientBounds.Size.X / 2f, game.Window.ClientBounds.Size.Y / 2f, 0.0f);
         entity.AddComponent(camera);
         entity.Initialize();

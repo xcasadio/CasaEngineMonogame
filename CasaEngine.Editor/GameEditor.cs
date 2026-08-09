@@ -49,6 +49,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CasaEngine.Editor.Runtime.Rendering.Environment;
+using Newtonsoft.Json.Linq;
 using Thickness = MonoGame.Extended.Thickness;
 
 namespace CasaEngine.Editor;
@@ -96,6 +97,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private const string EditorLayoutDirectoryName = ".casaeditor";
     private const string EditorLayoutFileName = "layout.editor.json";
+    private const string EditorViewportStateFileName = "viewport.editor.json";
 
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
@@ -122,6 +124,7 @@ public class GameEditor : Game, IObservableUpdate
     private HostedEditorGameAdapter _editorRuntime;
     private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private WorldViewportPanel _worldViewportPanel;
+    private EditorViewportViewState? _pendingWorldViewportViewState;
     private MGElement _worldViewportContent;
     private ContextualDockPanelHost _hierarchyPanelHost;
     private MGElement _hierarchyContent;
@@ -386,6 +389,8 @@ public class GameEditor : Game, IObservableUpdate
     {
         if (disposing)
         {
+            // Companion viewport state only: the docking layout keeps its explicit save command.
+            SavePersistedViewportViewState();
             RestoreAutomationEditedFilesIfNeeded();
             EditorAssetWriterService.AssetSaved -= OnEditorAssetSaved;
             _shaderSourceHotReloadService?.Dispose();
@@ -1058,6 +1063,13 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         _worldViewportContent ??= _worldViewportPanel.CreateContent();
+
+        if (_pendingWorldViewportViewState.HasValue)
+        {
+            _worldViewportPanel.RestoreViewState(_pendingWorldViewportViewState.Value);
+            _pendingWorldViewportViewState = null;
+        }
+
         RefreshWorldSelectionViews();
         return _worldViewportContent;
     }
@@ -2135,7 +2147,80 @@ public class GameEditor : Game, IObservableUpdate
         }
 
         File.WriteAllText(layoutPath, _dockHost.SaveLayoutToJson(indented: true));
+        SavePersistedViewportViewState();
         Logs.WriteInfo($"Editor layout saved: {layoutPath}");
+    }
+
+    private string GetPersistedViewportStatePath()
+    {
+        var projectDirectory = GetCurrentProjectDirectory();
+        if (string.IsNullOrWhiteSpace(projectDirectory) || !Directory.Exists(projectDirectory))
+        {
+            return null;
+        }
+
+        return Path.Combine(projectDirectory, EditorLayoutDirectoryName, EditorViewportStateFileName);
+    }
+
+    private void SavePersistedViewportViewState()
+    {
+        var statePath = GetPersistedViewportStatePath();
+        if (string.IsNullOrWhiteSpace(statePath))
+        {
+            return;
+        }
+
+        var viewState = _worldViewportPanel?.CaptureViewState() ?? _pendingWorldViewportViewState;
+        if (!viewState.HasValue)
+        {
+            return;
+        }
+
+        try
+        {
+            var stateDirectory = Path.GetDirectoryName(statePath);
+            if (!string.IsNullOrWhiteSpace(stateDirectory))
+            {
+                Directory.CreateDirectory(stateDirectory);
+            }
+
+            File.WriteAllText(statePath, EditorViewportViewStateSerializer.Save(viewState.Value).ToString());
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"Failed to save the viewport view state '{statePath}': {ex.Message}");
+        }
+    }
+
+    private void LoadPersistedViewportViewState()
+    {
+        var statePath = GetPersistedViewportStatePath();
+        if (string.IsNullOrWhiteSpace(statePath) || !File.Exists(statePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var json = JObject.Parse(File.ReadAllText(statePath));
+            if (!EditorViewportViewStateSerializer.TryLoad(json, out var viewState))
+            {
+                return;
+            }
+
+            if (_worldViewportPanel != null)
+            {
+                _worldViewportPanel.RestoreViewState(viewState);
+            }
+            else
+            {
+                _pendingWorldViewportViewState = viewState;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"Failed to load the viewport view state '{statePath}': {ex.Message}");
+        }
     }
 
     private bool TryLoadPersistedDockLayout(bool logOutcome)
@@ -2161,6 +2246,7 @@ public class GameEditor : Game, IObservableUpdate
             var json = File.ReadAllText(layoutPath);
             _dockHost.LoadLayoutFromJson(json, GetPanelContentFactory);
             _ = GetOrCreateLogsContent();
+            LoadPersistedViewportViewState();
 
             if (logOutcome)
             {

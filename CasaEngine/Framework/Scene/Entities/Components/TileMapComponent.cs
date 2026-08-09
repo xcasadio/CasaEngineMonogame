@@ -19,6 +19,8 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
+    private const float AxisAlignedWorldMatrixEpsilon = 1e-4f;
+
     private List<PhysicsBody> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
     private readonly List<AnimatedTile> _animatedTiles = new();
@@ -33,6 +35,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private IPhysicsWorld _physicsWorldContext;
     private SpriteRendererComponent _spriteRendererComponent;
     private Texture2D _tileSetTexture;
+    private BoundingFrustum _cullingFrustum;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -44,6 +47,30 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public int LastVisitedChunkCount { get; private set; }
     public int LastStaticBatchCount { get; private set; }
     public int LastStaticBatchTileCount { get; private set; }
+
+    /// <summary>
+    /// When true the component is skipped by the regular world draw pass. Set it when the tile map is
+    /// routed to a <see cref="Rendering.TileMapSurfaceComponent"/> so that it is only painted offscreen.
+    /// Runtime only: the flag is not serialized with the component.
+    ///
+    /// While it is set, <see cref="Draw"/> returns immediately without touching the draw counters, so
+    /// <see cref="LastVisitedTileCount"/> and friends describe the last offscreen surface pass instead
+    /// of the world pass — on a static map they simply stay at the values of that pass.
+    /// </summary>
+    public bool SkipMainPassDraw { get; set; }
+
+    /// <summary>
+    /// Counter incremented every time the visual content of the map changes (tile or flag mutation,
+    /// auto tile refresh, reload). Consumers cache the last value they rendered and compare it to know
+    /// whether they must redraw; a static map keeps the same value forever.
+    /// </summary>
+    public uint TileRevision { get; private set; }
+
+    /// <summary>True when the map holds at least one animated tile, i.e. its visual changes every tick.</summary>
+    public bool HasAnimatedTiles => _hasAnimatedTiles;
+
+    /// <summary>True when auto tiles are waiting for a refresh in the next update.</summary>
+    public bool HasDirtyAutoTiles => _dirtyAutoTiles.Count > 0;
 
     public int ChunkTileSize
     {
@@ -69,6 +96,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         TileMapData = other.TileMapData;
         TileSetData = other.TileSetData;
         TileMapDataAssetId = other.TileMapDataAssetId;
+        SkipMainPassDraw = other.SkipMainPassDraw;
     }
 
     public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)
@@ -128,6 +156,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _hasAnimatedTiles = _animatedTiles.Count > 0;
 
         IsBoundingBoxDirty = true;
+        TileRevision++;
 
         if (_needsAutoTileRefresh)
         {
@@ -165,6 +194,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
             _dirtyAutoTiles.Clear();
             _dirtyAutoTileSet.Clear();
+            TileRevision++;
         }
 
         _needsAutoTileRefresh = false;
@@ -217,6 +247,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
     public override void Draw(float elapsedTime)
     {
+        if (SkipMainPassDraw)
+        {
+            return;
+        }
+
+        DrawTileMap();
+    }
+
+    /// <summary>
+    /// Draws the tile map with the render frame currently set on the world, ignoring
+    /// <see cref="SkipMainPassDraw"/>. Used by the offscreen tile map surface pass.
+    /// </summary>
+    internal void DrawTileMap()
+    {
         LastVisitedTileCount = 0;
         LastDrawnTileCount = 0;
         LastVisitedChunkCount = 0;
@@ -225,6 +269,15 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         if (TileMapData == null)
         {
+            return;
+        }
+
+        // The rotation test is done once per draw, never per tile: when the world matrix carries no
+        // rotation (the 2D case) the axis-aligned fast path below runs exactly as before.
+        var worldMatrix = WorldMatrixWithScale;
+        if (!IsAxisAlignedWorldMatrix(in worldMatrix))
+        {
+            DrawWithWorldMatrix(in worldMatrix);
             return;
         }
 
@@ -272,6 +325,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
             var layerZ = layer.TileMapLayerData.zOffset;
             var worldZ = translation.Z + layerZ;
+            var staticBatchWorld = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
 
             for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
             {
@@ -284,7 +338,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 LastVisitedChunkCount++;
                 chunk.UpdateWorldBounds(mapPosX, mapPosY, tileWidth, tileHeight, worldZ, worldZ);
 
-                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, translation, scale, worldZ);
+                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, in staticBatchWorld);
                 if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
                 {
                     chunk.MarkVisualClean();
@@ -324,6 +378,118 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 chunk.MarkVisualClean();
             }
         }
+    }
+
+    /// <summary>
+    /// Draw path used when the component world matrix carries a rotation: tile quads and chunk
+    /// geometry stay in tile map local space and are transformed by the full world matrix.
+    /// </summary>
+    private void DrawWithWorldMatrix(in Matrix worldMatrix)
+    {
+        var mapWidth = TileMapData.MapSize.Width;
+        var mapHeight = TileMapData.MapSize.Height;
+
+        if (mapWidth <= 0 || mapHeight <= 0)
+        {
+            return;
+        }
+
+        var tileWidth = (float)TileSetData.TileSize.Width;
+        var tileHeight = (float)TileSetData.TileSize.Height;
+
+        // The plane based visible tile range is only valid for an axis-aligned map: with a rotation
+        // the map is culled chunk by chunk against the view frustum, built once per draw.
+        var currentRenderFrame = Owner.World.CurrentRenderFrame;
+        BoundingFrustum cullingFrustum = null;
+        if (currentRenderFrame.HasValue)
+        {
+            _cullingFrustum ??= new BoundingFrustum(Matrix.Identity);
+            _cullingFrustum.Matrix = currentRenderFrame.Value.ViewProjection;
+            cullingFrustum = _cullingFrustum;
+        }
+
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
+        {
+            var layer = Layers[layerIndex];
+            if (!layer.TileMapLayerData.Depth.ShouldRenderTiles)
+            {
+                continue;
+            }
+
+            var layerZ = layer.TileMapLayerData.zOffset;
+            var staticBatchWorld = Matrix.CreateTranslation(0f, 0f, layerZ) * worldMatrix;
+
+            for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
+            {
+                var chunk = layer.Chunks[chunkIndex];
+                chunk.UpdateWorldBounds(0f, 0f, tileWidth, tileHeight, layerZ, layerZ, in worldMatrix);
+
+                if (cullingFrustum != null && !cullingFrustum.Intersects(chunk.WorldBounds))
+                {
+                    continue;
+                }
+
+                LastVisitedChunkCount++;
+
+                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, in staticBatchWorld);
+                if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
+                {
+                    chunk.MarkVisualClean();
+                    continue;
+                }
+
+                for (var y = chunk.TileBounds.Top; y < chunk.TileBounds.Bottom; y++)
+                {
+                    var rowOffset = y * mapWidth;
+
+                    for (var x = chunk.TileBounds.Left; x < chunk.TileBounds.Right; x++)
+                    {
+                        var tileIndex = rowOffset + x;
+                        LastVisitedTileCount++;
+
+                        if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                        {
+                            continue;
+                        }
+
+                        if (staticBatchDrawn && IsStaticTile(layer.TileMapLayerData, tileIndex))
+                        {
+                            continue;
+                        }
+
+                        LastDrawnTileCount++;
+                        var flags = layer.TileMapLayerData.GetTileFlags(tileIndex);
+                        layer.Tiles[tileIndex].Draw(tileWidth * x, -tileHeight * y, layerZ, Vector2.One, flags, in worldMatrix);
+                    }
+                }
+
+                chunk.MarkVisualClean();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns true when the world matrix is a pure scale + translation (no rotation, no shear),
+    /// which is the condition for the axis-aligned tile map draw and culling fast path.
+    /// </summary>
+    internal static bool IsAxisAlignedWorldMatrix(in Matrix world)
+    {
+        var scaleMagnitude = Math.Max(
+            Math.Abs(world.M11),
+            Math.Max(Math.Abs(world.M22), Math.Abs(world.M33)));
+        // The epsilon stays relative to the matrix scale: an absolute floor would classify a real
+        // rotation as axis-aligned on a small scaled map and silently drop it from the render.
+        var epsilon = AxisAlignedWorldMatrixEpsilon * Math.Max(1e-6f, scaleMagnitude);
+
+        return Math.Abs(world.M12) <= epsilon
+            && Math.Abs(world.M13) <= epsilon
+            && Math.Abs(world.M21) <= epsilon
+            && Math.Abs(world.M23) <= epsilon
+            && Math.Abs(world.M31) <= epsilon
+            && Math.Abs(world.M32) <= epsilon
+            && world.M11 > 0f
+            && world.M22 > 0f
+            && world.M33 > 0f;
     }
 
     public void RemoveTile(int layer, int x, int y)
@@ -413,6 +579,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         MarkAffectedChunksDirty(layerIndex, x, y);
 
         IsBoundingBoxDirty = true;
+        TileRevision++;
     }
 
     public void SetTileFlags(int layerIndex, int x, int y, TileCellFlags flags)
@@ -572,6 +739,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return tile;
     }
 
+    /// <summary>
+    /// Computes the world position of a tile collision body. The tile rectangle is expressed in map local
+    /// pixels (<paramref name="left"/>/<paramref name="top"/> being its top left corner), so its centre must go
+    /// through the full world transform, scale included, to stay aligned with the rendered map.
+    /// </summary>
+    internal static Vector3 ComputeCollisionWorldPosition(ref Matrix worldMatrixWithScale, float left, float top, float width, float height)
+    {
+        var localCenter = new Vector3(left + width / 2f, -top - height / 2f, 0f);
+        return Vector3.Transform(localCenter, worldMatrixWithScale);
+    }
+
     private PhysicsBody CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
@@ -582,11 +760,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var tileSize = TileSetData.TileSize;
         var width = tileBounds.Width * tileSize.Width;
         var height = tileBounds.Height * tileSize.Height;
+        var worldMatrixWithScale = WorldMatrixWithScale;
         var worldMatrix = WorldMatrixNoScale;
-        worldMatrix.Translation += new Vector3(
-            tileBounds.X * tileSize.Width + width / 2f,
-            -tileBounds.Y * tileSize.Height - height / 2f,
-            0f);
+        worldMatrix.Translation = ComputeCollisionWorldPosition(
+            ref worldMatrixWithScale,
+            tileBounds.X * tileSize.Width,
+            tileBounds.Y * tileSize.Height,
+            width,
+            height);
         var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
         box.LocalScaling = LocalScale;
 
@@ -622,11 +803,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return null;
         }
 
+        var worldMatrixWithScale = WorldMatrixWithScale;
         var worldMatrix = WorldMatrixNoScale;
-        worldMatrix.Translation += new Vector3(
-            tileX * tileSize.Width + rectangle.Position.X + width / 2f,
-            -tileY * tileSize.Height - rectangle.Position.Y - height / 2f,
-            0f);
+        worldMatrix.Translation = ComputeCollisionWorldPosition(
+            ref worldMatrixWithScale,
+            tileX * tileSize.Width + rectangle.Position.X,
+            tileY * tileSize.Height + rectangle.Position.Y,
+            width,
+            height);
         var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
         box.LocalScaling = LocalScale;
 
@@ -863,7 +1047,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
     }
 
-    private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, Vector3 translation, Vector2 scale, float worldZ)
+    private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, in Matrix world)
     {
         var currentFrame = Owner.World.CurrentRenderFrame;
         if (!currentFrame.HasValue || _spriteRendererComponent == null || _tileSetTextures.Count == 0)
@@ -904,7 +1088,6 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             }
         }
 
-        var world = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
         var drawnBatchCount = 0;
         var drawnTileCount = 0;
         for (var batchIndex = 0; batchIndex < chunk.StaticBatches.Count; batchIndex++)

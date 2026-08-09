@@ -22,6 +22,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [light-component.md](engine/light-component.md) — `LightComponent`.
 - [environment-system-v1.md](engine/environment-system-v1.md) — système d'environnement V1.
 - [render-stats-demo-workflow.md](engine/render-stats-demo-workflow.md) — workflow de la démo de render stats.
+- [rendering-2d-3d-spaces.md](engine/rendering-2d-3d-spaces.md) — espaces de rendu 2D/3D (caméra ortho, tilemap 3D, render-to-texture, pixel-perfect).
 
 ### Systèmes 2D
 
@@ -49,6 +50,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-workspace-layouts.md](editor/editor-workspace-layouts.md) — shell MGUI, panneaux dockables et layout par défaut.
 - [editor-history.md](editor/editor-history.md) — undo/redo global (un historique par contexte d'édition).
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
+- [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
 - [timeline_control_architecture.md](editor/timeline_control_architecture.md) — architecture du contrôle Timeline V1.
 - [timeline-generic.md](editor/timeline-generic.md) — base générique réutilisable pour les timelines.
 - [animation2d_editor_casaengine.md](editor/animation2d_editor_casaengine.md) — éditeur d'animations 2D (direction produit et contraintes).

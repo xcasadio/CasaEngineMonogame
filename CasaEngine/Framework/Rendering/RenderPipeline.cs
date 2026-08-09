@@ -103,6 +103,7 @@ public sealed class RenderPipeline
         foreach (var world in views.Select(static view => view.World).Distinct())
         {
             world.DrawWorldUIToTextures();
+            world.DrawTileMapSurfacesToTextures();
         }
 
         // Capture the render target that is active when Render() is entered.
@@ -126,6 +127,7 @@ public sealed class RenderPipeline
             }
 
             ApplyResolutionScale(view);
+            PixelPerfectDiagnostics.WarnOnce(view);
 
             // Shadow settings are needed before surface setup to decide whether to redirect
             // scene rendering through an intermediate RenderTarget2D (sceneRt).

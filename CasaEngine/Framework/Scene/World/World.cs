@@ -26,6 +26,7 @@ public sealed class World : ObjectBase
     private readonly List<Entity> _entities = [];
     private readonly List<Entity> _baseObjectsToAdd = [];
     private readonly List<WorldUIComponent> _worldUiComponents = [];
+    private readonly List<TileMapSurfaceComponent> _tileMapSurfaces = [];
     private readonly HashSet<Entity> _observedEntities = [];
     private readonly HashSet<Guid> _warnedPolicyEntities = [];
 
@@ -95,6 +96,13 @@ public sealed class World : ObjectBase
         }
 
         _worldUiComponents.Clear();
+
+        foreach (var tileMapSurface in _tileMapSurfaces)
+        {
+            tileMapSurface.Dispose();
+        }
+
+        _tileMapSurfaces.Clear();
 
         ClearEntities(true);
         DisposePhysicsWorldContext();
@@ -677,6 +685,46 @@ public sealed class World : ObjectBase
         {
             worldUiComponent.DrawToTexture();
         }
+    }
+
+    /// <summary>Registers a tile map surface so that its offscreen pass runs before the world draw.</summary>
+    public void RegisterTileMapSurface(TileMapSurfaceComponent tileMapSurface)
+    {
+        ArgumentNullException.ThrowIfNull(tileMapSurface);
+
+        if (!_tileMapSurfaces.Contains(tileMapSurface))
+        {
+            _tileMapSurfaces.Add(tileMapSurface);
+        }
+    }
+
+    public void UnregisterTileMapSurface(TileMapSurfaceComponent tileMapSurface)
+    {
+        ArgumentNullException.ThrowIfNull(tileMapSurface);
+        _tileMapSurfaces.Remove(tileMapSurface);
+    }
+
+    /// <summary>
+    /// Runs the offscreen tile map passes. Called once per frame before the world is drawn so the
+    /// produced textures are up to date when the quads consuming them are rendered.
+    /// </summary>
+    public void DrawTileMapSurfacesToTextures()
+    {
+        for (var index = 0; index < _tileMapSurfaces.Count; index++)
+        {
+            _tileMapSurfaces[index].DrawToTexture();
+        }
+    }
+
+    /// <summary>
+    /// Replaces the render frame seen by components during their draw and returns the previous value,
+    /// so that an offscreen pass can install its own frame and restore the caller's one afterwards.
+    /// </summary>
+    internal RenderFrame? SetCurrentRenderFrame(RenderFrame? frame)
+    {
+        var previousFrame = CurrentRenderFrame;
+        CurrentRenderFrame = frame;
+        return previousFrame;
     }
 
     public void UpdateWorldUI(GameTime gameTime)

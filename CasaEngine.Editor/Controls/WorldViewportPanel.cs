@@ -56,6 +56,16 @@ public class WorldViewportPanel : IDisposable
 
     public bool ShowGizmoToolbar { get; set; }
 
+    /// <summary>
+    /// Switches the viewport between the perspective 3d camera and the orthographic 2d camera.
+    /// Both modes keep their own camera controller, so toggling back restores the previous framing.
+    /// </summary>
+    public bool Is2dViewMode
+    {
+        get => _is2dViewMode;
+        set => SetViewMode(value);
+    }
+
     public EditorHistoryContext GizmoHistoryContext
     {
         get => _gizmoController.HistoryContext;
@@ -166,8 +176,14 @@ public class WorldViewportPanel : IDisposable
     private EntityComponent _selectedComponent;
     private ITransformableObject _selectedTransformable;
     private ArcBallCameraComponent _camera;
+    private Camera2dComponent _camera2d;
+    private Entity _camera2dEntity;
+    private bool _is2dViewMode;
+    private MGToggleButton _view2dToggleButton;
     private readonly EditorViewportCameraController _cameraController = new();
+    private readonly EditorViewport2dCameraController _camera2dController = new();
     private readonly EditorViewportGizmoController _gizmoController;
+    private readonly Action _releaseViewInputAction;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
     private BoundingBox? _front2dFocusedBounds;
     private float _front2dPixelsPerWorldUnit;
@@ -184,6 +200,7 @@ public class WorldViewportPanel : IDisposable
         _editorRuntime = editorRuntime;
         _windowInputSource = windowInputSource;
         _gizmoController = new EditorViewportGizmoController(editorRuntime);
+        _releaseViewInputAction = () => _editorRuntime.GameManager.ViewManager.ReleaseInput();
         _gizmoController.SelectedEntityChanged += OnGizmoSelectedEntityChanged;
         _gizmoController.DeleteEntitiesRequested += OnGizmoDeleteEntitiesRequested;
         _gizmoController.ActiveModeChanged += OnGizmoActiveModeChanged;
@@ -256,6 +273,7 @@ public class WorldViewportPanel : IDisposable
 
         _root.TryAddChild(_viewportHost, Dock.Top);
         SynchronizeGizmoToolbarState();
+        SynchronizeViewModeToolbarState();
 
         return _root;
     }
@@ -335,7 +353,23 @@ public class WorldViewportPanel : IDisposable
             && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();
 
-        if (_camera != null)
+        if (UsesCamera2d)
+        {
+            if (_camera2d != null)
+            {
+                _camera2dController.Update(
+                    gameTime,
+                    _camera2d,
+                    inputContext,
+                    receivesInput,
+                    isKeyboardFocused,
+                    !UseFront2dCamera,
+                    !editorShellCapturesKeyboard,
+                    ActivateThisView,
+                    _releaseViewInputAction);
+            }
+        }
+        else if (_camera != null)
         {
             _cameraController.Update(
                 gameTime,
@@ -346,7 +380,7 @@ public class WorldViewportPanel : IDisposable
                 !UseFront2dCamera,
                 !editorShellCapturesKeyboard,
                 ActivateThisView,
-                () => _editorRuntime.GameManager.ViewManager.ReleaseInput());
+                _releaseViewInputAction);
         }
 
         if (!HasWorldOverride)
@@ -500,6 +534,24 @@ public class WorldViewportPanel : IDisposable
             _cameraController.ApplyTo(_camera);
         }
 
+        if (UsesCamera2d)
+        {
+            Ensure2dCameraCreated();
+        }
+
+        _gizmoController.ConstrainToXYPlane = UsesCamera2d;
+
+        if (_renderView != null)
+        {
+            // Entering an override binds the perspective camera, releasing it gives the view back
+            // to the camera of the current panel mode.
+            var viewCamera = ActiveCamera;
+            if (viewCamera != null)
+            {
+                _renderView.Camera = viewCamera;
+            }
+        }
+
         SynchronizeRenderViewWorld();
         _renderView?.Invalidate();
     }
@@ -522,6 +574,14 @@ public class WorldViewportPanel : IDisposable
         }
 
         var focusTarget = (bounds.Min + bounds.Max) * 0.5f;
+
+        if (UsesCamera2d)
+        {
+            _camera2dController.Focus(focusTarget);
+            _camera2dController.ApplyTo(_camera2d);
+            _renderView?.Invalidate();
+            return;
+        }
 
         if (UseFront2dCamera)
         {
@@ -656,6 +716,7 @@ public class WorldViewportPanel : IDisposable
 
         _surface?.RequestResize(width, height);
         _camera?.OnScreenResized(width, height);
+        _camera2d?.OnScreenResized(width, height);
         if (UseFront2dCamera)
         {
             ApplyFront2dFocus();
@@ -1002,7 +1063,9 @@ public class WorldViewportPanel : IDisposable
 
     private Vector3 GetDropSpawnPosition(int dropIndex)
     {
-        Vector3 basePosition = _camera?.Target ?? _cameraController.Target;
+        Vector3 basePosition = _is2dViewMode
+            ? _camera2dController.Target
+            : _camera?.Target ?? _cameraController.Target;
         Vector3 right = _camera?.Right ?? Vector3.Right;
 
         if (right.LengthSquared() <= 0.0001f)
@@ -1062,6 +1125,13 @@ public class WorldViewportPanel : IDisposable
         }
 
         _renderView = renderView;
+
+        if (UsesCamera2d)
+        {
+            Ensure2dCameraCreated();
+            _renderView.Camera = _camera2d;
+        }
+
         // Only report real bounds when the element is in the visual tree (active dock tab).
         // When the viewport is a background tab, SetParent(null) detaches it but LayoutBounds
         // retains its last value → ScreenToView would incorrectly route input to this view.
@@ -1196,8 +1266,15 @@ public class WorldViewportPanel : IDisposable
         {
             Margin = new Thickness(4, 2, 4, 2),
         });
+        _view2dToggleButton = CreateGizmoToggleButton(null, "2D", isChecked => SetViewMode(isChecked));
+
         toolbar.TryAddChild(_worldSpaceToggleButton);
         toolbar.TryAddChild(_localSpaceToggleButton);
+        toolbar.TryAddChild(new MGSeparator(_window, Orientation.Vertical)
+        {
+            Margin = new Thickness(4, 2, 4, 2),
+        });
+        toolbar.TryAddChild(_view2dToggleButton);
 
         var surface = new MGBorder(
             _window,
@@ -1253,6 +1330,24 @@ public class WorldViewportPanel : IDisposable
             onToggled(args.NewValue);
         };
         return button;
+    }
+
+    private void SynchronizeViewModeToolbarState()
+    {
+        if (!ShowGizmoToolbar || _view2dToggleButton == null)
+        {
+            return;
+        }
+
+        _suspendToolbarCallbacks = true;
+        try
+        {
+            _view2dToggleButton.IsChecked = _is2dViewMode;
+        }
+        finally
+        {
+            _suspendToolbarCallbacks = false;
+        }
     }
 
     private void SynchronizeGizmoToolbarState()
@@ -1367,6 +1462,8 @@ public class WorldViewportPanel : IDisposable
         _renderView.World = desiredWorld;
         _cameraEntity?.InitializeWithWorld(desiredWorld);
         _camera?.OnScreenResized(_rtWidth, _rtHeight);
+        _camera2dEntity?.InitializeWithWorld(desiredWorld);
+        _camera2d?.OnScreenResized(_rtWidth, _rtHeight);
 
         _gizmoController.ResetWorld(desiredWorld);
         if (_selectedEntity?.World != desiredWorld)
@@ -1474,12 +1571,117 @@ public class WorldViewportPanel : IDisposable
 
     private void SynchronizeCamera()
     {
+        if (UsesCamera2d)
+        {
+            if (_camera2d != null)
+            {
+                _camera2dController.ApplyTo(_camera2d);
+            }
+
+            return;
+        }
+
         if (_camera == null)
         {
             return;
         }
 
         _cameraController.ApplyTo(_camera);
+    }
+
+    /// <summary>
+    /// True when the orthographic camera actually drives the view. A preview world override is a
+    /// runtime-like view and always renders through the perspective camera, whatever the panel mode.
+    /// </summary>
+    private bool UsesCamera2d => _is2dViewMode && !HasWorldOverride;
+
+    /// <summary>
+    /// Camera currently driving the view: the orthographic 2d camera in 2d mode,
+    /// the arcball camera otherwise.
+    /// </summary>
+    private CameraComponent ActiveCamera => UsesCamera2d && _camera2d != null ? _camera2d : _camera;
+
+    private void SetViewMode(bool use2d)
+    {
+        if (_is2dViewMode == use2d)
+        {
+            return;
+        }
+
+        _is2dViewMode = use2d;
+
+        if (use2d)
+        {
+            Ensure2dCameraCreated();
+        }
+
+        if (_renderView != null)
+        {
+            // ActiveCamera keeps the perspective camera bound while a preview override owns the
+            // view; the new mode takes effect when the override is released.
+            var activeCamera = ActiveCamera;
+            if (activeCamera != null)
+            {
+                _renderView.Camera = activeCamera;
+            }
+
+            _renderView.Invalidate();
+        }
+
+        SynchronizeCamera();
+        SynchronizeViewModeToolbarState();
+        _gizmoController.ConstrainToXYPlane = UsesCamera2d;
+
+        if (ShouldSynchronizeGizmo())
+        {
+            SynchronizeGizmo();
+        }
+    }
+
+    /// <summary>
+    /// Captures the persistable view state of this viewport (projection mode + 2d framing).
+    /// </summary>
+    internal EditorViewportViewState CaptureViewState()
+    {
+        return new EditorViewportViewState(_is2dViewMode, _camera2dController.CaptureState());
+    }
+
+    /// <summary>
+    /// Restores a view state previously captured by <see cref="CaptureViewState"/>.
+    /// </summary>
+    internal void RestoreViewState(in EditorViewportViewState state)
+    {
+        _camera2dController.RestoreState(state.Camera2dState);
+
+        if (_camera2d != null)
+        {
+            _camera2dController.ApplyTo(_camera2d);
+        }
+
+        SetViewMode(state.Is2dViewMode);
+    }
+
+    private void Ensure2dCameraCreated()
+    {
+        if (_camera2d != null)
+        {
+            return;
+        }
+
+        var world = _renderView?.World ?? GetRenderWorld();
+
+        _camera2dEntity = new Entity
+        {
+            Name = "EditorViewport2dCamera",
+            IsVisible = false,
+        };
+
+        _camera2d = _camera2dController.CreateCameraComponent();
+        _camera2dEntity.AddComponent(_camera2d);
+        _camera2dEntity.Initialize();
+        _camera2dEntity.InitializeWithWorld(world);
+        _camera2d.OnScreenResized(_rtWidth, _rtHeight);
+        _camera2dController.ApplyTo(_camera2d);
     }
 
     private void RefreshTextureBinding()
@@ -1529,7 +1731,7 @@ public class WorldViewportPanel : IDisposable
 
     private void EnsureEditorGizmo(World world)
     {
-        _gizmoController.EnsureInitialized(_renderView, _camera, _surface, world);
+        _gizmoController.EnsureInitialized(_renderView, ActiveCamera, _surface, world);
     }
 
     private void EnsureEditorOverlays(World world)
@@ -1546,7 +1748,7 @@ public class WorldViewportPanel : IDisposable
         _particleWireOverlayRenderer ??= new EditorParticleWireOverlayRenderer(_editorRuntime.Content);
 
         var overlayPipeline = _renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
-        overlayPipeline.RenderGridAction = (graphicsDevice, _, frame) => _grid?.DrawForView(graphicsDevice, in frame);
+        overlayPipeline.RenderGridAction = RenderEditorGrid;
         overlayPipeline.RenderAxisAction = (graphicsDevice, _, frame) => _axis?.DrawForView(graphicsDevice, in frame);
         if (overlayPipeline.RenderVectorOverlayAction != RenderEditorVectorOverlay)
         {
@@ -1561,6 +1763,23 @@ public class WorldViewportPanel : IDisposable
         }
         
         _renderView.Pipeline = overlayPipeline;
+    }
+
+    private void RenderEditorGrid(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
+    {
+        if (_grid == null)
+        {
+            return;
+        }
+
+        if (UsesCamera2d)
+        {
+            _grid.DrawForView2d(graphicsDevice, in frame);
+        }
+        else
+        {
+            _grid.DrawForView(graphicsDevice, in frame);
+        }
     }
 
     private void RenderEditorVectorOverlay(GraphicsDevice graphicsDevice, RenderView view, RenderFrame frame)
@@ -1618,12 +1837,12 @@ public class WorldViewportPanel : IDisposable
     {
         _gizmoController.AllowSelectionPicking = !HasWorldOverride;
         _gizmoController.AllowDeleteSelection = !HasWorldOverride;
-        _gizmoController.Synchronize(_camera, _surface, _renderView?.World);
+        _gizmoController.Synchronize(ActiveCamera, _surface, _renderView?.World);
     }
 
     private void UpdateGizmoInput(GameTime gameTime, ViewInputContext inputContext, bool receivesInput, bool isKeyboardFocused)
     {
-        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, _camera, _surface, _renderView?.World);
+        _gizmoController.Update(gameTime, inputContext, receivesInput, isKeyboardFocused, ActiveCamera, _surface, _renderView?.World);
     }
 
     private bool ShouldSynchronizeGizmo()

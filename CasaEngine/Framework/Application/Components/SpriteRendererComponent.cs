@@ -463,9 +463,23 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, scissorRectangle, drawDebug, false, RenderSortKey2D.Default);
     }
 
+    /// <summary>
+    /// Draws a sprite whose quad is expressed in a local space, then transformed by <paramref name="worldTransform"/>.
+    /// Used by world-space objects (tile maps) that carry a full world matrix including rotation.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, SpriteEffects effects, in Matrix worldTransform)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            GraphicsDevice.ScissorRectangle, drawDebug: false, hasSortKey: false, RenderSortKey2D.Default,
+            hasWorldTransform: true, in worldTransform);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
-        Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey)
+        Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
+        bool hasWorldTransform = false, in Matrix worldTransform = default)
     {
         if (texture2d == null)
         {
@@ -505,6 +519,11 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
                 position.X - origin.X * scale.X + (sourceInTexture.Width / 2f) * scale.X,
                 position.Y + origin.Y * scale.Y - (sourceInTexture.Height / 2f) * scale.Y,
                 z));
+        if (hasWorldTransform)
+        {
+            spriteDisplayData.WorldMatrix *= worldTransform;
+        }
+
         spriteDisplayData.ScissorRectangle = scissorRectangle;
             spriteDisplayData.SortKey = sortKey;
             spriteDisplayData.HasSortKey = hasSortKey;

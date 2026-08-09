@@ -50,6 +50,25 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _editorRuntime = editorRuntime;
     }
 
+    private bool _constrainToXYPlane;
+
+    /// <summary>
+    /// Restricts the gizmo handles to the XY plane, used when the viewport runs in 2d mode.
+    /// </summary>
+    public bool ConstrainToXYPlane
+    {
+        get => _constrainToXYPlane;
+        set
+        {
+            _constrainToXYPlane = value;
+
+            if (_gizmo != null)
+            {
+                _gizmo.Gizmo.ConstrainToXYPlane = value;
+            }
+        }
+    }
+
     public bool AllowSelectionPicking { get; set; } = true;
 
     public bool AllowDeleteSelection { get; set; } = true;
@@ -101,7 +120,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
     public event Action<GizmoMode> ActiveModeChanged;
     public event Action<TransformSpace> ActiveSpaceChanged;
 
-    public void EnsureInitialized(RenderView renderView, ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
+    public void EnsureInitialized(RenderView renderView, CameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (renderView == null || camera == null || surface == null)
         {
@@ -124,6 +143,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         _gizmo.IsActiveViewport = true;
         _gizmo.Gizmo.ActiveMode = _activeMode;
         _gizmo.Gizmo.ActiveSpace = _activeSpace;
+        _gizmo.Gizmo.ConstrainToXYPlane = _constrainToXYPlane;
         _gizmo.SetSelectionPool(GetViewportSelectableObjects(world));
 
         var overlayPipeline = renderView.Pipeline as OverlayViewPipeline ?? new OverlayViewPipeline();
@@ -131,7 +151,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         renderView.Pipeline = overlayPipeline;
     }
 
-    public void Synchronize(ArcBallCameraComponent camera, RenderTargetSurface surface, World world)
+    public void Synchronize(CameraComponent camera, RenderTargetSurface surface, World world)
     {
         if (_gizmo == null)
         {
@@ -215,7 +235,7 @@ internal sealed class EditorViewportGizmoController : IDisposable
         ViewInputContext inputContext,
         bool receivesInput,
         bool isKeyboardFocused,
-        ArcBallCameraComponent camera,
+        CameraComponent camera,
         RenderTargetSurface surface,
         World world)
     {

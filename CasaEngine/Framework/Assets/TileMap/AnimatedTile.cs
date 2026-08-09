@@ -84,6 +84,20 @@ public class AnimatedTile : Tile
         base.Draw(_texture, sourceRectangle, x, y, z, uvOffset, scale, GetSpriteEffects(flags));
     }
 
+    public override void Draw(float x, float y, float z, Vector2 scale, TileCellFlags flags, in Matrix worldTransform)
+    {
+        if (_texture == null || _frameSources.Length == 0)
+        {
+            return;
+        }
+
+        var sourceRectangle = _frameSources[_currentFrameIndex];
+        var uvOffset = sourceRectangle;
+        uvOffset.X = 0;
+        uvOffset.Y = 0;
+        base.Draw(_texture, sourceRectangle, x, y, z, uvOffset, scale, GetSpriteEffects(flags), in worldTransform);
+    }
+
     public override void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         if (_texture == null || _frameSources.Length == 0)

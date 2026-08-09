@@ -174,6 +174,12 @@ public sealed class RenderView
     public bool ShowDebugOverlay { get; set; }
 
     /// <summary>
+    /// Set once <see cref="PixelPerfectDiagnostics"/> has reported a degraded pixel-perfect
+    /// contract for this view, so the warning is logged only once instead of every frame.
+    /// </summary>
+    internal bool PixelPerfectWarningLogged { get; set; }
+
+    /// <summary>
     /// Aggregated render statistics for the last completed render of this view.
     /// Reset by <see cref="RenderPipeline"/> before each rendered frame.
     /// </summary>

@@ -30,6 +30,15 @@ public abstract class Tile
         Draw(x, y, z, scale);
     }
 
+    /// <summary>
+    /// Draws the tile with local coordinates transformed by <paramref name="worldTransform"/>.
+    /// Used when the owning tile map carries a rotation and cannot use the axis-aligned fast path.
+    /// </summary>
+    public virtual void Draw(float x, float y, float z, Vector2 scale, TileCellFlags flags, in Matrix worldTransform)
+    {
+        Draw(x, y, z, scale, flags);
+    }
+
     protected void Draw(Texture2D texture, Rectangle positionInTexture, float x, float y, float z, Rectangle uvOffset, Vector2 scale)
     {
         Draw(texture, positionInTexture, x, y, z, uvOffset, scale, SpriteEffects.None);
@@ -53,5 +62,26 @@ public abstract class Tile
             Color.White,
             z,
             effects);
+    }
+
+    protected void Draw(Texture2D texture, Rectangle positionInTexture, float x, float y, float z, Rectangle uvOffset, Vector2 scale, SpriteEffects effects, in Matrix worldTransform)
+    {
+        Rectangle texUV = new Rectangle(
+            positionInTexture.Left + uvOffset.Left,
+            positionInTexture.Top + uvOffset.Top,
+            uvOffset.Width,
+            uvOffset.Height);
+
+        _spriteRendererComponent.DrawSprite(
+            texture,
+            texUV,
+            Point.Zero,
+            new Vector2(x, y),
+            0.0f,
+            scale,
+            Color.White,
+            z,
+            effects,
+            in worldTransform);
     }
 }

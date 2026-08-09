@@ -77,6 +77,8 @@ public class DemosGame : CasaEngineGame
         _demos.Add(new ParticleSystemDemo());
         _demos.Add(new EnvironmentShowcaseDemo());
         //_demos.Add(new TileMapDemo());
+        _demos.Add(new TileMap3dDemo());
+        _demos.Add(new TileMapSurfaceScreenDemo());
         _demos.Add(new SkinnedMeshDemo());
         _demos.Add(new StaticShadowValidationDemo());
         _demos.Add(new AnimationBlendDemo());

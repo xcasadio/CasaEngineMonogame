@@ -123,6 +123,39 @@ public sealed class TileMapChunk
             new Vector3(Math.Max(left, right), Math.Max(top, bottom), Math.Max(minZ, maxZ)));
     }
 
+    /// <summary>
+    /// Updates <see cref="WorldBounds"/> from chunk-local bounds transformed by <paramref name="world"/>.
+    /// Used when the tile map carries a rotation and the axis-aligned bounds are not valid anymore.
+    /// </summary>
+    public void UpdateWorldBounds(float mapPosX, float mapPosY, float tileWidth, float tileHeight, float minZ, float maxZ, in Matrix world)
+    {
+        var left = mapPosX + tileWidth * TileBounds.Left;
+        var right = mapPosX + tileWidth * TileBounds.Right;
+        var top = mapPosY - tileHeight * TileBounds.Top;
+        var bottom = mapPosY - tileHeight * TileBounds.Bottom;
+
+        var localMin = new Vector3(Math.Min(left, right), Math.Min(top, bottom), Math.Min(minZ, maxZ));
+        var localMax = new Vector3(Math.Max(left, right), Math.Max(top, bottom), Math.Max(minZ, maxZ));
+
+        var worldMin = new Vector3(float.MaxValue);
+        var worldMax = new Vector3(float.MinValue);
+        var worldMatrix = world;
+
+        for (var cornerIndex = 0; cornerIndex < 8; cornerIndex++)
+        {
+            var corner = new Vector3(
+                (cornerIndex & 1) != 0 ? localMax.X : localMin.X,
+                (cornerIndex & 2) != 0 ? localMax.Y : localMin.Y,
+                (cornerIndex & 4) != 0 ? localMax.Z : localMin.Z);
+
+            Vector3.Transform(ref corner, ref worldMatrix, out var transformed);
+            worldMin = Vector3.Min(worldMin, transformed);
+            worldMax = Vector3.Max(worldMax, transformed);
+        }
+
+        WorldBounds = new BoundingBox(worldMin, worldMax);
+    }
+
     public void MarkDirty(bool visual = true, bool collision = true)
     {
         DirtyVisual |= visual;

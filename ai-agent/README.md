@@ -13,8 +13,10 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 
 | Fichier | Sujet | Reste à faire |
 | --- | --- | --- |
+| [pbr-rendering-implementation-plan.md](tasks/pbr-rendering-implementation-plan.md) | Rendu PBR metallic-roughness (+ pipeline linéaire/HDR/tonemap, IBL, import glTF) | Plan entier ⏳ (phases 0–6, rédigé le 2026-08-09). |
 | [ui-integration.md](tasks/ui-integration.md) | UI Root, screen stack, overlay/world, game states | Plan quasi entier : 77 cases non cochées. |
 | [tilemap-modernization-tasks.md](tasks/tilemap-modernization-tasks.md) | Modernisation TileMap + import Tiled | Validations 🧪 sur les phases 1–9 ; phase 10 (streaming) ⏳ ; outils éditeur (palette, paint, undo, overlays) ⏳. |
+| [tilemap-render-spaces-tasks.md](tasks/tilemap-render-spaces-tasks.md) | Espaces de rendu TileMap (Camera2d ortho, pixel-perfect, tilemap 3D, RT→quad, viewport 2D éditeur) | Phases A–F livrées sur la branche `tilemap-render-spaces` ; restent les validations visuelles 🧪 (démos, overlay debug, viewport 2D de l'éditeur). |
 | [editor-undo-redo-tasks.md](tasks/editor-undo-redo-tasks.md) | Undo/redo global de l'éditeur | Phases 3–7 en 🚧/🧪 : screen editor, world editor, material editor, content browser, stabilisation. |
 | [gltf-import-migration-tasks.md](tasks/gltf-import-migration-tasks.md) | Migration import glTF (SharpGLTF/AssimpNetter) | B4 (retrait Assimp runtime), C1–C3 (convertisseur éditeur), E1–E4 (tests, retrait AssimpNet, validation). |
 | [yarn-spinner-integration-agent-plan.md](tasks/yarn-spinner-integration-agent-plan.md) | Intégration Yarn Spinner | Tâches 12–18 ⏳ (lignes multiples, choix, variables, commandes, cutscenes, doc) ; tâches 2/4/5/6 en 🧪. |
@@ -60,6 +62,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 - [animation-example-analysis-report.md](audits/animation-example-analysis-report.md) — analyse DigitalRune / GameAnimationProgramming.
 - [animation2d-editor-surface-notes.md](audits/animation2d-editor-surface-notes.md) — surface éditeur Animation2D vérifiée.
 - [analysis_tilemaps_casaengine.md](audits/analysis_tilemaps_casaengine.md) — analyse de la gestion des TileMaps (source du plan de modernisation).
+- [analysis-tilemap-render-spaces.md](audits/analysis-tilemap-render-spaces.md) — espaces de rendu des TileMaps (2D pixel-perfect vs monde 3D) : caméra ortho, pixel-perfect, RT→quad, viewport 2D éditeur.
 
 ### Démos et assets
 
