@@ -161,6 +161,10 @@ Done : test unitaire du dirty-tracking (mutation → re-rendu au frame suivant ;
 
 Réalisé : `TileMapComponent.TileRevision` (compteur `uint` additif) est incrémenté par `SetTileReference` (uniquement quand la tuile ou ses flags changent réellement), par le rafraîchissement des autotiles dans `Update` et par `InitializeWithWorld`. `TileMapComponent.HasAnimatedTiles` / `HasDirtyAutoTiles` exposent l'état des tuiles animées et des autotiles sales. Le prédicat `TileMapSurfaceComponent.ShouldRedraw(neverRendered, invalidated, hasAnimatedTiles, hasDirtyAutoTiles, tileRevision, lastRenderedTileRevision)` est `internal static` et sans dépendance graphique ; une map statique déjà rendue coûte une comparaison d'entiers par frame et zéro travail GPU. Tests : `CasaEngine.Tests/TileMap/TileMapSurfaceInvalidationTests.cs` (6 cas sur le prédicat, mutation vs no-op sur `TileRevision`, `Draw` ne bouge pas la révision, `SkipMainPassDraw`, calcul de la taille de surface).
 
+Note d'historique : le code de D2 (`TileRevision`, `HasAnimatedTiles`, `HasDirtyAutoTiles`, `ShouldRedraw`) a été livré dans le commit D1 `Add TileMapSurfaceComponent offscreen tilemap rendering (D1)` — la passe offscreen ne pouvait pas compiler sans son prédicat de redraw. Le commit D2 n'apporte donc que les tests.
+
+Limitation : seules les mutations passant par `TileMapComponent.SetTileReference` / `SetTileFlags` / `RemoveTile` bumpent `TileRevision`. Une écriture directe sur l'asset (`TileMapData.SetTile*`) contourne le composant : les chunks ne sont pas invalidés et la surface reste sur son dernier rendu. Appeler `TileMapSurfaceComponent.Invalidate()` explicitement dans ce cas.
+
 Note : `Update` vide `_dirtyAutoTiles` avant la phase de dessin, donc `HasDirtyAutoTiles` est presque toujours faux au moment de la passe offscreen — c'est l'incrément de `TileRevision` fait dans `Update` qui déclenche réellement le re-rendu après un refresh d'autotiles. Le paramètre est conservé dans le prédicat pour couvrir un appel de passe avant `Update`.
 
 ### 🧪 D3 — Démo écran/minimap
@@ -170,6 +174,8 @@ Démo : un quad 3D dans une scène perspective (type écran d'arcade ou minimap)
 Done : build vert. 🧪 restant : validation visuelle (netteté du RT quelle que soit la caméra 3D).
 
 Réalisé : `CasaEngine.Demos/Demos/TileMapSurfaceScreenDemo.cs`, enregistrée dans `DemosGame.LoadContentPrivate` juste après `TileMap3dDemo`. `map_1_1` (30 × 11 tuiles de 32 px) est posée dans le monde avec `SkipMainPassDraw = true`, rendue offscreen par un `TileMapSurfaceComponent` (clear noir, zoom 1 → RT de 960 × 352), et sa texture est affichée sur un quad `PlanePrimitive` de ratio identique porté par un `UnlitTextureMaterial` avec `SamplerState = SamplerState.PointClamp`. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent (même blocage que C3 : `FileNotFoundException: FontStashSharp.MonoGame` au lancement de `CasaEngine.Demos`). À vérifier : la map apparaît nette et à l'endroit sur l'écran, aucune tuile n'est dessinée dans la scène 3D elle-même, et l'orientation UV du quad ne retourne pas l'image.
+
+Note : l'entité tilemap est placée en `(0, -5000, 0)`. Elle reste un objet de scène à l'échelle pixel et génère ses corps de collision ; à l'origine elle remplissait la zone jouable de 960 × 352 unités de colliders invisibles. Le cadrage de la passe offscreen étant relatif à la position de la map, le rendu du RT est identique. Un mode « tilemap purement offscreen » sans génération de collisions serait la vraie solution — hors périmètre de cette phase.
 
 ---
 

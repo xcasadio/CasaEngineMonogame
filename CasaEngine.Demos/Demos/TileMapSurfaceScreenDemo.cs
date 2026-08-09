@@ -29,6 +29,11 @@ public sealed class TileMapSurfaceScreenDemo : Demo
 
     private static readonly Vector3 InitialCameraTarget = new(0.0f, 3.5f, 0.0f);
 
+    // The tile map lives in the world at pixel scale: it still generates its collision bodies, which
+    // would fill the playable area with 960 x 352 units of invisible colliders. Park it far below the
+    // scene — the offscreen frame is built relative to the map position, so the rendering is identical.
+    private static readonly Vector3 OffscreenTileMapPosition = new(0.0f, -5000.0f, 0.0f);
+
     private CasaEngineGame? _game;
     private TileMapSurfaceComponent? _tileMapSurface;
 
@@ -59,6 +64,7 @@ public sealed class TileMapSurfaceScreenDemo : Demo
             TileMapData = tileMapData,
             SkipMainPassDraw = true,
         };
+        tileMapComponent.LocalPosition = OffscreenTileMapPosition;
         tileMapEntity.RootComponent = tileMapComponent;
         world.AddEntity(tileMapEntity);
 
