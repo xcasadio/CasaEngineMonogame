@@ -114,11 +114,13 @@ Done : build vert. 🧪 restant : validation visuelle (culling correct en orbita
 
 Réalisé : `CasaEngine.Demos/Demos/TileMap3dDemo.cs` (`map_1_1` posée deux fois : sol rotation −90° X, mur rotation −90° Y, échelle 0.05 pour rester à l'échelle métrique des démos 3D), enregistrée dans `DemosGame.LoadContentPrivate`, caméra `ArcBallCameraComponent` par défaut. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent : le lancement de `CasaEngine.Demos` échoue avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0` (problème d'environnement préexistant, indépendant de ce chantier). À vérifier en orbitant : sol et mur correctement orientés, pas de tiles manquantes en bordure de frustum. Note : les collisions tilemap sont toujours générées en XY sans tenir compte de la rotation (comportement préexistant, hors périmètre) — le debug physique de la démo peut donc afficher des boîtes non alignées avec le rendu.
 
-### ⏳ C4 — Vérification perf du fast path
+### ✅ C4 — Vérification perf du fast path
 
 Vérifier par test (compteurs `LastVisitedChunkCount` / `LastDrawnTileCount` / `LastStaticBatchCount` sur une map de test, rotation identité) que le comportement de culling/batching est inchangé par rapport à avant C1/C2.
 
 Done : test vert prouvant l'iso-comportement du chemin identité.
+
+Réalisé : `CasaEngine.Tests/TileMap/TileMapComponentDrawCountersTests.cs` construit un `TileMapComponent` sans GraphicsDevice (world/game non initialisés par réflexion, tiles remplacées par des stubs, `BuildChunks` appelé par réflexion) et vérifie sur une map 8×8 en chunks de 2 : rotation identité sans `RenderFrame` → tous les chunks/tiles visités ; rotation identité avec `RenderFrame` ortho → la plage plane restreint bien le rendu (marge d'une tile) ; rotation ≠ identité → mêmes compteurs quand rien n'est cullé, et culling effectif par frustum quand la map devient vue par la tranche. Limite documentée : sans GraphicsDevice aucun batch statique ne peut être émis, `LastStaticBatchCount` reste donc à 0 dans ces tests.
 
 ---
 
@@ -204,7 +206,7 @@ Done : doc écrite, index à jour, commit.
 | --- | --- | --- |
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
-| C — TileMap 3D | ⏳ | |
+| C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | ⏳ | |
 | E — Viewport 2D éditeur | ⏳ | |
 | F — Documentation | ⏳ | |
