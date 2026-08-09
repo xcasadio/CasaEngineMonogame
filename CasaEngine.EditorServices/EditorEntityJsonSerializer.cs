@@ -183,6 +183,10 @@ internal static class EditorEntityJsonSerializer
                 SaveBoxCollisionComponent(boxCollisionComponent, node);
                 return;
 
+            case Camera2dComponent camera2dComponent:
+                SaveCamera2dComponent(camera2dComponent, node);
+                return;
+
             case Camera3dComponent camera3dComponent:
                 SaveCamera3dComponent(camera3dComponent, node);
                 return;
@@ -284,6 +288,17 @@ internal static class EditorEntityJsonSerializer
         var viewportNode = new JObject();
         component.Viewport.Save(viewportNode);
         node.Add("viewport", viewportNode);
+    }
+
+    private static void SaveCamera2dComponent(Camera2dComponent component, JObject node)
+    {
+        SaveCameraComponent(component, node);
+
+        var targetNode = new JObject();
+        component.Target.Save(targetNode);
+        node.Add("target", targetNode);
+        node.Add("zoom", component.Zoom);
+        node.Add("pixel_snap", component.PixelSnap);
     }
 
     private static void SaveCamera3dComponent(Camera3dComponent component, JObject node)

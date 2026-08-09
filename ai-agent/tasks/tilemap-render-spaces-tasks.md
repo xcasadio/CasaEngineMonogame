@@ -26,7 +26,7 @@ Légende : ⏳ Todo · 🚧 In progress · 🧪 Needs testing (validation visuel
 
 ## Phase A — `Camera2dComponent` (caméra orthographique de scène)
 
-### ⏳ A1 — Créer `Camera2dComponent`
+### ✅ A1 — Créer `Camera2dComponent`
 
 Nouveau fichier `CasaEngine/Framework/Scene/Entities/Components/Camera2dComponent.cs`.
 
@@ -195,7 +195,7 @@ Done : doc écrite, index à jour, commit.
 
 | Phase | Statut | Notes |
 | --- | --- | --- |
-| A — Camera2dComponent | ⏳ | |
+| A — Camera2dComponent | 🚧 | A1 fait (composant + sérialisation éditeur). |
 | B — Politique pixel-perfect | ⏳ | |
 | C — TileMap 3D | ⏳ | |
 | D — TileMapSurfaceComponent | ⏳ | |
