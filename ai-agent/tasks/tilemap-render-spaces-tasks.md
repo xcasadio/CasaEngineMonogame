@@ -119,6 +119,8 @@ Done : build vert. 🧪 restant : validation visuelle (culling correct en orbita
 
 Réalisé : `CasaEngine.Demos/Demos/TileMap3dDemo.cs` (`map_1_1` posée deux fois : sol rotation −90° X, mur rotation −90° Y, échelle 0.05 pour rester à l'échelle métrique des démos 3D), enregistrée dans `DemosGame.LoadContentPrivate`, caméra `ArcBallCameraComponent` par défaut. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent : le lancement de `CasaEngine.Demos` échoue avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0` (problème d'environnement préexistant, indépendant de ce chantier). À vérifier en orbitant : sol et mur correctement orientés, pas de tiles manquantes en bordure de frustum. Note : les collisions tilemap sont toujours générées en XY sans tenir compte de la rotation (comportement préexistant, hors périmètre) — le debug physique de la démo peut donc afficher des boîtes non alignées avec le rendu. **Corrigé depuis par C5.**
 
+Cadrage (correctif) : la première version cadrait la scène avec `ArcBallCameraComponent.SetCamera(position, target, up)` et la map apparaissait décalée en haut à gauche, mur invisible. Cause : `SetCamera` ne respecte pas son contrat — il stocke `Target = -target` et `Distance = -|position - target|`, ce qui, combiné à `ComputeViewMatrix` (`position = Target - Direction * Distance`), place la caméra en miroir sur Z dès que la cible n'est pas l'origine (voir le point « défaut préexistant de `SetCamera` » du Suivi). Défaut **préexistant** et **hors périmètre** : le corriger changerait le cadrage de la quinzaine d'appelants existants (démos et previews de l'éditeur), qui vivent avec parce qu'ils passent tous une cible nulle. La démo passe donc désormais par les **paramètres d'orbite explicites** (`Target` / `Yaw` / `Pitch` / `Distance`), dont la sémantique est sans ambiguïté, et le sol comme le mur sont recentrés sur l'origine (sol `LocalPosition = (-W/2, 0, -H/2)`, mur `(-W/2, H, W/2)`). Valeurs retenues : `Target = (0, MapHeight/2, 0)`, `Yaw = -0.6`, `Pitch = -0.5`, `Distance = 70`. Vérifié numériquement (sonde jetable, 1920 × 1080) : position réelle de la caméra `(34.686, 42.360, 50.701)`, `dot(normale, centre→caméra)` = 0.568 pour le sol et 0.694 pour le mur (donc aucun back-face culling), `BoundingFrustum.Contains` = `Contains` pour les deux maps, et les 8 coins de chaque map se projettent dans `[0,1920] × [0,1080]`. Statut 🧪 conservé : revalidation visuelle utilisateur nécessaire.
+
 ### ✅ C4 — Vérification perf du fast path
 
 Vérifier par test (compteurs `LastVisitedChunkCount` / `LastDrawnTileCount` / `LastStaticBatchCount` sur une map de test, rotation identité) que le comportement de culling/batching est inchangé par rapport à avant C1/C2.
@@ -271,6 +273,17 @@ persistance `viewport.editor.json`). Index `docs/README.md` mis à jour dans les
 
 - `TileMap3dDemo` : le mur est tourné de **+90°** autour de Y (et non −90° comme noté en C3) — les
   quads de tiles sont simple face, l'autre sens laisserait le mur back-face culled.
+- **Défaut préexistant de `ArcBallCameraComponent.SetCamera`** (hors périmètre, signalé, non corrigé) :
+  la méthode stocke `Target = -target` et `Distance = -|position - target|` ; avec
+  `ComputeViewMatrix` (`position = Target - Direction * Distance`) la caméra obtenue regarde `-target`
+  et se retrouve **en miroir sur Z** par rapport à la position demandée
+  (`SetCamera((0,12,15), Vector3.Zero, Up)` → caméra réellement en `(0,12,-15)`). L'anomalie est
+  invisible quand la cible est nulle (`-0 == 0`), ce qui explique que la quinzaine d'appelants
+  existants (démos, previews de l'éditeur) vivent avec. Corriger la méthode changerait le cadrage de
+  tous ces appelants : `TileMap3dDemo` (C3) et `TileMapSurfaceScreenDemo` (D3), qui sont les premières
+  à vouloir une cible non nulle, contournent le défaut en passant par les paramètres d'orbite
+  explicites (`Target` / `Yaw` / `Pitch` / `Distance`). `SetPositionAndTarget` délègue à `SetCamera` et
+  est donc affecté de la même façon.
 - `Camera2dComponent` utilise `Matrix.CreateOrthographic` (l'analyse mentionnait
   `CreateOrthographicOffCenter`) ; le cadrage est centré sur `Target`, le résultat est équivalent.
 - `DebugOverlay` affiche la ligne `PixelPerfect:` dès que la caméra est une `Camera2dComponent`,
