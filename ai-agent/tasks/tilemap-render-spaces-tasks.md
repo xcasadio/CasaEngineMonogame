@@ -245,11 +245,31 @@ L'état ArcBall 3D n'est volontairement pas persisté : hors périmètre de la t
 
 ## Phase F — Documentation
 
-### ⏳ F1 — Page « Espaces de rendu 2D/3D »
+### ✅ F1 — Page « Espaces de rendu 2D/3D »
 
 Dans `docs/engine/` (suivre le nommage des pages existantes) : les 4 modes de rendu, la règle de projection (« l'espace d'affichage est une propriété de la vue, jamais de la donnée tilemap »), la checklist pixel-perfect (ortho, zoom entier, snap, PointClamp, ResolutionScale = 1), `Camera3dIn2dAxisComponent` documentée comme legacy, snippets d'usage (`Camera2dComponent`, `TileMapSurfaceComponent`). Mettre à jour l'index `docs/README.md`.
 
 Done : doc écrite, index à jour, commit.
+
+Réalisé : [docs/engine/rendering-2d-3d-spaces.md](../../docs/engine/rendering-2d-3d-spaces.md)
+(règle de projection, les 4 modes avec snippets tirés des démos, sémantique du `zOffset` par chemin
+de rendu, tri des tiles dynamiques, `SkipMainPassDraw` et compteurs, invalidation par `TileRevision`,
+checklist pixel-perfect + diagnostics, `Camera3dIn2dAxisComponent` documentée comme legacy sans
+dépréciation dans le code) et [docs/editor/editor-2d-viewport.md](../../docs/editor/editor-2d-viewport.md)
+(bascule 2D/3D, pan/zoom, compromis `PixelSnap`, grille 2D, gizmo XY et sa limite d'échelle en ortho,
+persistance `viewport.editor.json`). Index `docs/README.md` mis à jour dans les deux sections.
+
+Écarts constatés entre les notes des phases A–E et le code (le code fait foi, la doc suit le code) :
+
+- `TileMap3dDemo` : le mur est tourné de **+90°** autour de Y (et non −90° comme noté en C3) — les
+  quads de tiles sont simple face, l'autre sens laisserait le mur back-face culled.
+- `Camera2dComponent` utilise `Matrix.CreateOrthographic` (l'analyse mentionnait
+  `CreateOrthographicOffCenter`) ; le cadrage est centré sur `Target`, le résultat est équivalent.
+- `DebugOverlay` affiche la ligne `PixelPerfect:` dès que la caméra est une `Camera2dComponent`,
+  mais `PixelPerfectDiagnostics.Evaluate` ne renvoie une dégradation que si `PixelSnap` est actif :
+  une caméra 2D sans snap affiche donc `PixelPerfect: OK`. Documenté tel quel.
+- `PixelSnap` du viewport éditeur n'a aucun contrôle d'UI : il se règle par code ou via le champ
+  `pixel_snap` de `viewport.editor.json`.
 
 ---
 
@@ -257,9 +277,33 @@ Done : doc écrite, index à jour, commit.
 
 | Phase | Statut | Notes |
 | --- | --- | --- |
-| A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
-| B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
-| C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| E — Viewport 2D éditeur | 🧪 | E1 ✅. E2, E3, E4 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles, gizmo contraint XY et persistance du mode + cadrage 2D (`viewport.editor.json`) en place ; reste la validation visuelle dans l'éditeur. |
-| F — Documentation | ⏳ | |
+| A — Camera2dComponent | ✅ | A1 + A2 ✅. A3 🧪 : code en place, reste la validation visuelle de `TileMapDemo`. |
+| B — Politique pixel-perfect | ✅ | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 🧪 : ligne overlay en place, reste la vérification visuelle. |
+| C — TileMap 3D | ✅ | C1, C2, C4 ✅. C3 🧪 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
+| D — TileMapSurfaceComponent | ✅ | D1, D2 ✅. D3 🧪 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
+| E — Viewport 2D éditeur | ✅ | E1 ✅. E2, E3, E4 🧪 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles, gizmo contraint XY et persistance du mode + cadrage 2D (`viewport.editor.json`) en place ; reste la validation visuelle dans l'éditeur. |
+| F — Documentation | ✅ | F1 ✅ : `docs/engine/rendering-2d-3d-spaces.md`, `docs/editor/editor-2d-viewport.md`, index `docs/README.md`. |
+
+Toutes les phases sont livrées : code, tests et documentation. Il ne reste que la validation
+visuelle ci-dessous, non automatisable.
+
+---
+
+## Validation visuelle restante
+
+Six points 🧪 à vérifier à la main. Aucun n'est un blocage de livraison : le code est en place,
+buildé et couvert par les tests automatisables.
+
+| # | Tâche | À vérifier |
+| --- | --- | --- |
+| 1 | A3 | `TileMapDemo` : rendu identique à l'ancien mode `Camera3dIn2dAxisComponent`, stable au resize, aucun contenu clippé en Z (fenêtre ortho `[Target.Z − 500, Target.Z + 499]`). |
+| 2 | B2 | Overlay debug : la ligne `PixelPerfect: …` n'apparaît que sur une vue à `Camera2dComponent`, et le texte suit la dégradation (zoom non entier, `ResolutionScale != 1`). |
+| 3 | C3 | `TileMap3dDemo` : sol et mur correctement orientés, culling correct en orbitant (pas de tiles manquantes ni fantômes en bordure de frustum). Rappel : les collisions tilemap restent générées en XY, le debug physique peut donc ne pas coïncider avec le rendu. |
+| 4 | D3 | `TileMapSurfaceScreenDemo` : map nette (PointClamp) et à l'endroit sur le quad quelle que soit la caméra 3D, aucune tuile dessinée dans la scène elle-même, UV du quad non retournées. |
+| 5 | E2 | Éditeur : bouton « 2D » de la barre de viewport, bascule aller-retour sans perte de cadrage dans les deux modes, préview toujours en perspective. |
+| 6 | E3 / E4 | Éditeur : lisibilité de la grille en tuiles aux différents crans de zoom, poignée Z inaccessible en mode 2D, et fermer/rouvrir l'éditeur conserve le mode et le cadrage (`viewport.editor.json`). |
+
+**Blocage environnement (préexistant, hors périmètre)** : le lancement de `CasaEngine.Demos` échoue
+avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0`. Les points 1
+à 4 n'ont donc pas pu être validés dans l'environnement de l'agent. Résoudre cette dépendance est un
+préalable à la validation visuelle des démos.
