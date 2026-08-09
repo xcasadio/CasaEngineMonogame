@@ -20,6 +20,7 @@ Légende : ⏳ Todo · 🚧 In progress · 🧪 Needs testing (validation visuel
 6. **Périmètre strict** : ne pas refactorer l'existant. Ne pas modifier `Camera3dIn2dAxisComponent`, `EditorViewportCameraController`, ni les formats d'assets sérialisés. Tous les ajouts sont additifs.
 7. **Hot paths** (`Update`, `Draw`, flush, culling) : pas de LINQ, pas d'allocations par frame, pas de closures — cf. règles du dépôt.
 8. Suivre le style des fichiers voisins (nommage, XML doc sur les API publiques, pas de commentaires superflus).
+9. **Baseline tests (constatée le 2026-08-09, avant ce chantier)** : 19 échecs préexistants sur 783 (`CasaMguiBackendOwnershipTests` ×5, `EditorControlTemplateAssetLoadingTests` ×8, `CutsceneDirectorTests.Play_MoveToActionAdvancesPositionInRuntimeUpdateOrder`, `LightOverlayTests.LightOverlayIcons_AreExposedAndLoadedByEditorIcons`, `EditorAssetWriterServiceTests.SaveAsset_WithEntitySceneTransforms_PersistsRootAndChildCoordinates`, `MaterialDefinitionEditorRegistryTests.GetDescriptors_LitDiffuseDefinition_UsesSemanticGroupsAndControlHints`, `MonoGameBasicEffectUsageTests.RuntimeAndToolingSources_DoNotReferenceMonoGameBasicEffect`). **Ne pas les corriger, ne pas les compter comme régressions.** Critère : aucun échec *nouveau* par rapport à cette liste.
 
 ---
 
