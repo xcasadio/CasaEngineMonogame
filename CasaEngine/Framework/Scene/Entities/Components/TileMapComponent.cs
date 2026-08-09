@@ -48,6 +48,26 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     public int LastStaticBatchCount { get; private set; }
     public int LastStaticBatchTileCount { get; private set; }
 
+    /// <summary>
+    /// When true the component is skipped by the regular world draw pass. Set it when the tile map is
+    /// routed to a <see cref="Rendering.TileMapSurfaceComponent"/> so that it is only painted offscreen.
+    /// Runtime only: the flag is not serialized with the component.
+    /// </summary>
+    public bool SkipMainPassDraw { get; set; }
+
+    /// <summary>
+    /// Counter incremented every time the visual content of the map changes (tile or flag mutation,
+    /// auto tile refresh, reload). Consumers cache the last value they rendered and compare it to know
+    /// whether they must redraw; a static map keeps the same value forever.
+    /// </summary>
+    public uint TileRevision { get; private set; }
+
+    /// <summary>True when the map holds at least one animated tile, i.e. its visual changes every tick.</summary>
+    public bool HasAnimatedTiles => _hasAnimatedTiles;
+
+    /// <summary>True when auto tiles are waiting for a refresh in the next update.</summary>
+    public bool HasDirtyAutoTiles => _dirtyAutoTiles.Count > 0;
+
     public int ChunkTileSize
     {
         get => _chunkTileSize;
@@ -131,6 +151,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _hasAnimatedTiles = _animatedTiles.Count > 0;
 
         IsBoundingBoxDirty = true;
+        TileRevision++;
 
         if (_needsAutoTileRefresh)
         {
@@ -168,6 +189,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
             _dirtyAutoTiles.Clear();
             _dirtyAutoTileSet.Clear();
+            TileRevision++;
         }
 
         _needsAutoTileRefresh = false;
@@ -219,6 +241,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     }
 
     public override void Draw(float elapsedTime)
+    {
+        if (SkipMainPassDraw)
+        {
+            return;
+        }
+
+        DrawTileMap();
+    }
+
+    /// <summary>
+    /// Draws the tile map with the render frame currently set on the world, ignoring
+    /// <see cref="SkipMainPassDraw"/>. Used by the offscreen tile map surface pass.
+    /// </summary>
+    internal void DrawTileMap()
     {
         LastVisitedTileCount = 0;
         LastDrawnTileCount = 0;
@@ -538,6 +574,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         MarkAffectedChunksDirty(layerIndex, x, y);
 
         IsBoundingBoxDirty = true;
+        TileRevision++;
     }
 
     public void SetTileFlags(int layerIndex, int x, int y, TileCellFlags flags)

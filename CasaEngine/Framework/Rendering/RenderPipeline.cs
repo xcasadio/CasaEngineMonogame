@@ -103,6 +103,7 @@ public sealed class RenderPipeline
         foreach (var world in views.Select(static view => view.World).Distinct())
         {
             world.DrawWorldUIToTextures();
+            world.DrawTileMapSurfacesToTextures();
         }
 
         // Capture the render target that is active when Render() is entered.

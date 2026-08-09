@@ -131,7 +131,7 @@ Réalisé : `CasaEngine.Tests/TileMap/TileMapComponentDrawCountersTests.cs` cons
 
 ## Phase D — `TileMapSurfaceComponent` (RT → quad 3D)
 
-### ⏳ D1 — Composant de rendu offscreen
+### ✅ D1 — Composant de rendu offscreen
 
 Nouveau `CasaEngine/Framework/.../TileMapSurfaceComponent.cs` sur le **modèle exact de `WorldUIComponent`** ([WorldUIComponent.cs](../../CasaEngine/Framework/UI/WorldUIComponent.cs)) :
 
@@ -143,6 +143,8 @@ Nouveau `CasaEngine/Framework/.../TileMapSurfaceComponent.cs` sur le **modèle e
 - ne pas dessiner la tilemap dans la passe monde principale quand elle est routée vers la surface (flag explicite sur le composant tilemap visé, opt-in).
 
 Done : build + tests verts.
+
+Réalisé : `CasaEngine/Framework/Rendering/TileMapSurfaceComponent.cs`, objet possédé `IDisposable` (pas un `SceneComponent`) exactement comme `WorldUIComponent` — il n'est ni attaché à une entité ni sérialisé, il est enregistré sur le monde (`World.RegisterTileMapSurface` / `UnregisterTileMapSurface`) et sa passe est déclenchée par `World.DrawTileMapSurfacesToTextures()`, appelée dans `RenderPipeline.Render` juste à côté de `DrawWorldUIToTextures()`. Placé dans `Framework/Rendering` (c'est un aide de passe de rendu, pas un composant de scène). La frame ortho est construite directement (`CreateLookAt` + `CreateOrthographic`, mêmes conventions d'axes que `Camera2dComponent`, distance caméra 500, near/far 1/1000) et cadre exactement la map en espace monde ; la taille du RT vaut la taille de la map en pixels × `Zoom`, réduite uniformément au-delà de 4096. Pendant la passe : `GraphicsStateGuard` (qui restaure aussi render target et viewport) + `World.SetCurrentRenderFrame` (nouvelle méthode `internal` renvoyant la frame précédente) + `TileMapComponent.DrawTileMap()` + `SpriteRendererComponent.Flush(in frame)` qui vide les files pour ne pas empoisonner la passe monde. Opt-in via `TileMapComponent.SkipMainPassDraw` (bool additif, runtime only, non sérialisé) : `Draw` sort immédiatement, la surface appelle `DrawTileMap()` qui ignore le flag.
 
 ### ⏳ D2 — Invalidation à la demande
 
@@ -212,6 +214,6 @@ Done : doc écrite, index à jour, commit.
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| D — TileMapSurfaceComponent | ⏳ | |
+| D — TileMapSurfaceComponent | 🚧 | D1 ✅ (`TileMapSurfaceComponent` + hook `World`/`RenderPipeline` + `SkipMainPassDraw`). |
 | E — Viewport 2D éditeur | ⏳ | |
 | F — Documentation | ⏳ | |
