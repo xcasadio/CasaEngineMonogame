@@ -33,21 +33,59 @@ public sealed class EditorViewport2dCameraControllerTests
     }
 
     [Fact]
-    public void ZoomAtCursor_KeepsTheWorldPointUnderTheCursorFixed()
+    public void PixelSnap_IsDisabledByDefaultSoThatNavigationStaysExact()
+    {
+        Assert.False(new EditorViewport2dCameraController().PixelSnap);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(-1)]
+    [InlineData(-3)]
+    public void ZoomAtCursor_KeepsTheWorldPointUnderTheCursorFixed_MeasuredOnTheCameraMatrices(int steps)
     {
         var controller = new EditorViewport2dCameraController();
         var bounds = new Rectangle(0, 0, 640, 480);
         var cursor = new Point(500, 100);
 
-        controller.SetState(new Vector3(120f, -40f, 0f), 0);
-        var before = ProjectCursorToWorld(controller, cursor, bounds);
+        controller.SetState(new Vector3(123.5f, -47.25f, 0f), 0);
+        var camera = CreateCameraFor(controller, bounds);
+
+        // World point currently under the cursor, obtained from the real view/projection matrices.
+        var worldUnderCursor = UnprojectCursor(camera, cursor);
+
+        controller.ZoomAtCursor(steps, cursor, bounds);
+        controller.ApplyTo(camera);
+
+        var reprojected = ProjectToScreen(camera, worldUnderCursor);
+        Assert.Equal(cursor.X, reprojected.X, 2);
+        Assert.Equal(cursor.Y, reprojected.Y, 2);
+    }
+
+    [Fact]
+    public void ZoomAtCursor_WithPixelSnap_DriftsByAtMostOneTexel()
+    {
+        // Documented behaviour, not a bug: texel snapping quantizes the camera, so the point under
+        // the cursor can move by up to one texel (1 / Zoom world units) per zoom notch.
+        var controller = new EditorViewport2dCameraController { PixelSnap = true };
+        var bounds = new Rectangle(0, 0, 640, 480);
+        var cursor = new Point(500, 100);
+
+        controller.SetState(new Vector3(123.5f, -47.25f, 0f), 0);
+        var camera = CreateCameraFor(controller, bounds);
+
+        var worldUnderCursor = UnprojectCursor(camera, cursor);
 
         controller.ZoomAtCursor(2, cursor, bounds);
+        controller.ApplyTo(camera);
 
-        var after = ProjectCursorToWorld(controller, cursor, bounds);
-        Assert.Equal(3f, controller.Zoom, 5);
-        Assert.Equal(before.X, after.X, 3);
-        Assert.Equal(before.Y, after.Y, 3);
+        var reprojected = ProjectToScreen(camera, worldUnderCursor);
+        // Snapping rounds the camera to half a texel before and after the change, so the drift in
+        // screen pixels is bounded by 0.5 * newZoom / oldZoom + 0.5 — here 2 pixels for 1x -> 3x.
+        const float toleranceInPixels = 3f;
+        Assert.InRange(reprojected.X, cursor.X - toleranceInPixels, cursor.X + toleranceInPixels);
+        Assert.InRange(reprojected.Y, cursor.Y - toleranceInPixels, cursor.Y + toleranceInPixels);
     }
 
     [Fact]
@@ -127,13 +165,44 @@ public sealed class EditorViewport2dCameraControllerTests
         Assert.Equal(expectedSteps, EditorViewport2dCameraController.WheelDeltaToSteps(delta));
     }
 
-    private static Vector2 ProjectCursorToWorld(EditorViewport2dCameraController controller, Point cursor, Rectangle bounds)
+    private static Framework.Scene.Entities.Components.Camera2dComponent CreateCameraFor(
+        EditorViewport2dCameraController controller,
+        Rectangle bounds)
     {
-        float zoom = controller.Zoom;
-        return new Vector2(
-            controller.Target.X + (cursor.X - bounds.Width * 0.5f) / zoom,
-            controller.Target.Y - (cursor.Y - bounds.Height * 0.5f) / zoom);
+        var camera = controller.CreateCameraComponent();
+        camera.OnScreenResized(bounds.Width, bounds.Height);
+        camera.FarPlane = 1000.0f;
+        camera.NearPlane = 1.0f;
+        controller.ApplyTo(camera);
+        return camera;
     }
+
+    private static Vector3 UnprojectCursor(
+        Framework.Scene.Entities.Components.Camera2dComponent camera,
+        Point cursor)
+    {
+        // Depth of the target plane, so that the unprojected point lies on the plane being edited.
+        float depth = camera.Viewport.Project(
+            camera.Target,
+            camera.ProjectionMatrix,
+            camera.ViewMatrix,
+            Matrix.Identity).Z;
+
+        return camera.Viewport.Unproject(
+            new Vector3(cursor.X, cursor.Y, depth),
+            camera.ProjectionMatrix,
+            camera.ViewMatrix,
+            Matrix.Identity);
+    }
+
+    private static Vector3 ProjectToScreen(
+        Framework.Scene.Entities.Components.Camera2dComponent camera,
+        Vector3 worldPosition)
+        => camera.Viewport.Project(
+            worldPosition,
+            camera.ProjectionMatrix,
+            camera.ViewMatrix,
+            Matrix.Identity);
 
     private static void Update(
         EditorViewport2dCameraController controller,

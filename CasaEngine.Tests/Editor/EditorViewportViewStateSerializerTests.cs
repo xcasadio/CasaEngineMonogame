@@ -59,6 +59,6 @@ public sealed class EditorViewportViewStateSerializerTests
         Assert.False(restored.Is2dViewMode);
         Assert.Equal(Vector3.Zero, restored.Camera2dState.Target);
         Assert.Equal(0, restored.Camera2dState.ZoomStep);
-        Assert.True(restored.Camera2dState.PixelSnap);
+        Assert.False(restored.Camera2dState.PixelSnap);
     }
 }

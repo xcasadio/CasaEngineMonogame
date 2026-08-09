@@ -63,7 +63,7 @@ internal static class EditorViewportViewStateSerializer
         var cameraState = new EditorViewport2dCameraState(
             target,
             viewport["zoom_step"]?.Value<int>() ?? 0,
-            viewport["pixel_snap"]?.Value<bool>() ?? true);
+            viewport["pixel_snap"]?.Value<bool>() ?? false);
 
         state = new EditorViewportViewState(
             viewport["is_2d_view_mode"]?.Value<bool>() ?? false,

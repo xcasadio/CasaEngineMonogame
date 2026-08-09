@@ -45,7 +45,13 @@ internal sealed class EditorViewport2dCameraController
 
     public int ZoomStep { get; private set; }
 
-    public bool PixelSnap { get; set; } = true;
+    /// <summary>
+    /// Forwards texel snapping to the camera. Off by default: snapping quantizes the camera to
+    /// the texel grid, which makes cursor centred zoom drift by up to one texel (1 / <see cref="Zoom"/>)
+    /// per notch — acceptable when previewing the pixel perfect runtime look, but not for editing
+    /// navigation, which must be exact. Turn it on explicitly to preview that look.
+    /// </summary>
+    public bool PixelSnap { get; set; }
 
     /// <summary>Magnification applied by the camera, derived from <see cref="ZoomStep"/>.</summary>
     public float Zoom => ZoomFromStep(ZoomStep);
