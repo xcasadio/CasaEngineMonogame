@@ -27,7 +27,8 @@ public sealed class TileMapSurfaceScreenDemo : Demo
     private const float ScreenWidth = 9.0f;
     private const float ScreenHeight = ScreenWidth * MapPixelHeight / MapPixelWidth;
 
-    private static readonly Vector3 InitialCameraTarget = new(0.0f, 3.5f, 0.0f);
+    // The arcade screen is centered on the camera target so that it sits in the middle of the image.
+    private static readonly Vector3 ScreenCenter = new(0.0f, ScreenHeight / 2f + 1.0f, 0.0f);
 
     // The tile map lives in the world at pixel scale: it still generates its collision bodies, which
     // would fill the playable area with 960 x 352 units of invisible colliders. Park it far below the
@@ -85,7 +86,7 @@ public sealed class TileMapSurfaceScreenDemo : Demo
         };
 
         screenMesh.StaticModel.Meshes[0].Material = screenMaterial;
-        screenMesh.LocalPosition = new Vector3(0, ScreenHeight / 2f + 1.0f, 0);
+        screenMesh.LocalPosition = ScreenCenter;
         screenMesh.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.Right, MathHelper.PiOver2);
         world.AddEntity(screenEntity);
 
@@ -97,9 +98,25 @@ public sealed class TileMapSurfaceScreenDemo : Demo
         world.RegisterTileMapSurface(_tileMapSurface);
     }
 
+    // The framing is expressed through the explicit arc ball orbit parameters instead of
+    // SetPositionAndTarget (which delegates to ArcBallCameraComponent.SetCamera): SetCamera negates the
+    // requested target and stores a negative distance, which mirrors the resulting camera in Z whenever
+    // the target is not the origin — the screen quad then ends up out of frame. With
+    // Target / Yaw / Pitch / Distance the placement is unambiguous:
+    //   position = Target + (-sin(Yaw) * cos(Pitch), -sin(Pitch), cos(Yaw) * cos(Pitch)) * Distance
+    // Values below verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
+    //   real camera position = (0, 5.487, 12.687)
+    //   screen: normal (0,0,1), dot(normal, center->camera) = 0.976, frustum = Contains,
+    //           corners projecting inside x in [496, 1425] and y in [374, 698] px
+    //   ground: normal (0,1,0), dot(normal, center->camera) = 0.427, center at (960, 833) px
+    //           (the 24 x 24 ground is wider than the frustum, so it only intersects it)
     public override void InitializeCamera(CameraComponent camera)
     {
-        camera.SetPositionAndTarget(new Vector3(0, 5, 14), InitialCameraTarget);
+        var arcBall = (ArcBallCameraComponent)camera;
+        arcBall.Target = ScreenCenter;
+        arcBall.Yaw = 0.0f;
+        arcBall.Pitch = -0.22f;
+        arcBall.Distance = 13.0f;
     }
 
     public override void Update(GameTime gameTime)
