@@ -20,7 +20,7 @@ Légende : ⏳ Todo · 🚧 In progress · 🧪 Needs testing (validation visuel
 6. **Périmètre strict** : ne pas refactorer l'existant. Ne pas modifier `Camera3dIn2dAxisComponent`, `EditorViewportCameraController`, ni les formats d'assets sérialisés. Tous les ajouts sont additifs.
 7. **Hot paths** (`Update`, `Draw`, flush, culling) : pas de LINQ, pas d'allocations par frame, pas de closures — cf. règles du dépôt.
 8. Suivre le style des fichiers voisins (nommage, XML doc sur les API publiques, pas de commentaires superflus).
-9. **Baseline tests (constatée le 2026-08-09, avant ce chantier)** : 19 échecs préexistants sur 783 (`CasaMguiBackendOwnershipTests` ×5, `EditorControlTemplateAssetLoadingTests` ×8, `CutsceneDirectorTests.Play_MoveToActionAdvancesPositionInRuntimeUpdateOrder`, `LightOverlayTests.LightOverlayIcons_AreExposedAndLoadedByEditorIcons`, `EditorAssetWriterServiceTests.SaveAsset_WithEntitySceneTransforms_PersistsRootAndChildCoordinates`, `MaterialDefinitionEditorRegistryTests.GetDescriptors_LitDiffuseDefinition_UsesSemanticGroupsAndControlHints`, `MonoGameBasicEffectUsageTests.RuntimeAndToolingSources_DoNotReferenceMonoGameBasicEffect`). **Ne pas les corriger, ne pas les compter comme régressions.** Critère : aucun échec *nouveau* par rapport à cette liste.
+9. **Baseline tests (constatée le 2026-08-09, avant ce chantier ; corrigée après vérification : 18 échecs uniques, pas 19)** : 18 échecs préexistants sur 783 (`CasaMguiBackendOwnershipTests` ×5, `EditorControlTemplateAssetLoadingTests` ×8, `CutsceneDirectorTests.Play_MoveToActionAdvancesPositionInRuntimeUpdateOrder`, `LightOverlayTests.LightOverlayIcons_AreExposedAndLoadedByEditorIcons`, `EditorAssetWriterServiceTests.SaveAsset_WithEntitySceneTransforms_PersistsRootAndChildCoordinates`, `MaterialDefinitionEditorRegistryTests.GetDescriptors_LitDiffuseDefinition_UsesSemanticGroupsAndControlHints`, `MonoGameBasicEffectUsageTests.RuntimeAndToolingSources_DoNotReferenceMonoGameBasicEffect`, `EditorControlTemplateAssetLoadingTests` = 7 échecs et non 8). **Ne pas les corriger, ne pas les compter comme régressions.** Critère : aucun échec *nouveau* par rapport à cette liste. Test flaky connu (échoue parfois en suite complète, passe isolé) : `ParticleEffectAssetJsonSerializerTests.SampleProjectParticleAssets_LoadThroughAssetContentManager` — relancer avant de conclure à une régression.
 
 ---
 
@@ -60,6 +60,7 @@ Done : `rtk dotnet test CasaEngine.Tests/CasaEngine.Tests.csproj` vert (nouveaux
 Dans `CasaEngine.Demos/Demos/TileMapDemo.cs` : remplacer `Camera3dIn2dAxisComponent` par `Camera2dComponent` (même cible). Ne toucher à aucune autre démo.
 
 Done : build `CasaEngine.MonoGame.sln` vert. 🧪 restant : lancer la démo et vérifier un rendu identique à l'ancien mode, stable en resize.
+Point de vigilance (verifier) : le cadrage X/Y est équivalent mais la fenêtre de profondeur change — ortho = [Target.Z−500, Target.Z+499] (distance interne fixe 500) vs la fenêtre perspective legacy. Vérifier aussi qu'aucun contenu en Z n'est clippé ; un `FarPlane` < 500 clipperait le plan cible.
 
 ---
 
