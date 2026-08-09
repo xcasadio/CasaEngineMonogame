@@ -57,8 +57,8 @@ public class ScriptWorld : GameplayProxy
     public override void OnBeginPlay(World world)
     {
         var camera = world.Entities.First(x => x.Name == "camera");
-        var camera3dIn2dAxisComponent = camera.GetComponent<Camera3dIn2dAxisComponent>();
-        camera3dIn2dAxisComponent.Target = new Vector3(
+        var camera2dComponent = camera.GetComponent<Camera2dComponent>();
+        camera2dComponent.Target = new Vector3(
             world.Game.Window.ClientBounds.Size.X / 2f,
             world.Game.Window.ClientBounds.Size.Y / 2f,
             0.0f);

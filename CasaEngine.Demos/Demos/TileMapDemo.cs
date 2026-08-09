@@ -101,7 +101,7 @@ public class TileMapDemo : Demo
     }
     public override void InitializeCamera(CameraComponent camera)
     {
-        //((Camera3dIn2dAxisComponent)camera).SetCamera(Vector3.Backward * 15 + Vector3.Up * 12, Vector3.Zero, Vector3.Up);
+        // The camera is already framed on the map centre by CreateCamera.
     }
 
     public override void Update(GameTime gameTime)

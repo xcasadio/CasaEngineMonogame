@@ -10,7 +10,7 @@ public sealed class PixelPerfectDiagnosticsTests
     public void RequiresPixelPerfect_OnlyForPixelSnappedCamera2d()
     {
         Assert.False(PixelPerfectDiagnostics.RequiresPixelPerfect(null));
-        Assert.False(PixelPerfectDiagnostics.RequiresPixelPerfect(new Camera3dIn2dAxisComponent()));
+        Assert.False(PixelPerfectDiagnostics.RequiresPixelPerfect(new ArcBallCameraComponent()));
         Assert.False(PixelPerfectDiagnostics.RequiresPixelPerfect(new Camera2dComponent { PixelSnap = false }));
         Assert.True(PixelPerfectDiagnostics.RequiresPixelPerfect(new Camera2dComponent { PixelSnap = true }));
     }
@@ -72,7 +72,7 @@ public sealed class PixelPerfectDiagnosticsTests
     [Fact]
     public void Evaluate_NonCamera2d_IsNeverDegraded()
     {
-        Assert.Equal(PixelPerfectDegradation.None, PixelPerfectDiagnostics.Evaluate(new Camera3dIn2dAxisComponent(), 0.5f));
+        Assert.Equal(PixelPerfectDegradation.None, PixelPerfectDiagnostics.Evaluate(new ArcBallCameraComponent(), 0.5f));
         Assert.Equal(PixelPerfectDegradation.None, PixelPerfectDiagnostics.Evaluate(null, 0.5f));
     }
 

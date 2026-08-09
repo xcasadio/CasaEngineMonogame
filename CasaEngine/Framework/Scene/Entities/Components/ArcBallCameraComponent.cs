@@ -236,35 +236,35 @@ public class ArcBallCameraComponent : Camera3dComponent
         _needToComputeViewMatrix = true;
     }
 
+    /// <summary>
+    /// Places the camera at <paramref name="position"/> looking at <paramref name="target"/>, so that
+    /// <see cref="CameraComponent.ViewMatrix"/> matches <c>Matrix.CreateLookAt(position, target, up)</c>.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="up"/> is not used: an arc ball is defined by a yaw and a pitch only and carries no
+    /// roll, so its up vector always stays in the vertical plane holding the view direction. The parameter
+    /// is kept for source compatibility.
+    /// </remarks>
     public void SetCamera(Vector3 position, Vector3 target, Vector3 up)
     {
         Vector3 dir = position - target;
-        Target = -target;
+        Target = target;
+
+        //negative by convention: ComputeViewMatrix does Target - Direction * Distance and Direction
+        //points from the target towards the camera. OrbitUp reads its direction from that sign, so
+        //every caller has to store it the same way.
         Distance = -dir.Length();
 
         Vector3 zAxis = dir;
         zAxis.Normalize();
-        up.Normalize();
-        Vector3 xAxis = (Vector3.Cross(zAxis, up));
-        xAxis.Normalize();
-        Vector3 yAxis = (Vector3.Cross(xAxis, zAxis));
-        yAxis.Normalize();
-        xAxis = (Vector3.Cross(zAxis, yAxis));
-        xAxis.Normalize();
 
-        //Matrix m = Matrix.Identity;
-        //m.Right = xAxis;
-        //m.Forward = zAxis;
-        //m.Up = yAxis;
-        //m = Matrix.Transpose(m);
+        //Direction(Yaw, Pitch) is (sin Yaw cos Pitch, sin Pitch, -cos Yaw cos Pitch), so the yaw putting
+        //the camera on zAxis is read back with Atan2. Atan2 keeps the whole 360 degrees, including the
+        //x == 0 case where a Math.Sign based reconstruction collapses to zero and mirrors the camera in Z.
+        Yaw = MathF.Atan2(zAxis.X, -zAxis.Z);
 
-        //find the yaw of the direction on the x/z plane
-        //and use the sign of the x-component since we have 360 degrees
-        //of freedom
-        Yaw = (float)(Math.Acos(-zAxis.Z) * Math.Sign(zAxis.X));
-
-        //Get the pitch from the angle formed by the Up vector and the 
-        //the forward direction, then subtracting PI / 2, since 
+        //Get the pitch from the angle formed by the Up vector and the
+        //the forward direction, then subtracting PI / 2, since
         //we pitch is zero at Forward, not Up.
         Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
     }

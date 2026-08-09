@@ -60,27 +60,15 @@ public class TileMap3dDemo : Demo
         world.AddEntity(wallEntity);
     }
 
-    // The framing is expressed through the explicit arc ball orbit parameters instead of SetCamera /
-    // SetPositionAndTarget: ArcBallCameraComponent.SetCamera negates the requested target and stores a
-    // negative distance, which mirrors the resulting camera in Z whenever the target is not the origin.
-    // With Target / Yaw / Pitch / Distance the placement is unambiguous:
-    //   position = Target + (-sin(Yaw) * cos(Pitch), -sin(Pitch), cos(Yaw) * cos(Pitch)) * Distance
-    // Distance must stay negative: that is the sign SetCamera stores everywhere else in the engine, and
-    // OrbitUp derives the vertical motion from it, so a positive distance inverts the vertical orbit
-    // control compared to every other demo (the horizontal one is unaffected).
-    // Values below verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
-    //   real camera position = (34.686, 42.360, 50.701)
+    // Framing verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
     //   ground: normal (0,1,0), dot(normal, center->camera) = 0.568, frustum = Contains, center at (960, 676) px
     //   wall  : normal (1,0,0), dot(normal, center->camera) = 0.694, frustum = Contains, center at (645, 437) px
-    //   every corner of both maps projects inside [0,1920]x[0,1080];
-    //   OrbitUp(+0.1) lowers the camera by 6.30 units, same direction as a SetCamera configured demo.
+    //   every corner of both maps projects inside [0,1920]x[0,1080].
+    // Tile quads are single sided, so a camera on the wrong side of either map would silently cull it.
     public override void InitializeCamera(CameraComponent camera)
     {
-        var arcBall = (ArcBallCameraComponent)camera;
-        arcBall.Target = new Vector3(0f, MapHeight / 2f, 0f);
-        arcBall.Yaw = MathHelper.Pi - 0.6f;
-        arcBall.Pitch = 0.5f;
-        arcBall.Distance = -70f;
+        var target = new Vector3(0f, MapHeight / 2f, 0f);
+        ((ArcBallCameraComponent)camera).SetCamera(new Vector3(34.686f, 42.360f, 50.701f), target, Vector3.Up);
     }
 
     public override void Update(GameTime gameTime)

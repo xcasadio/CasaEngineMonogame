@@ -53,9 +53,9 @@ viewport.MinDepth, viewport.MaxDepth)`, recalculée au resize. Avec les valeurs 
 500, la fenêtre de profondeur utile est **`[Target.Z − 500, Target.Z + 499]`**. Les `zOffset` de
 layers d'une map en pixels y tiennent largement ; du contenu hors de cette plage est clippé.
 
-À `Zoom = 1`, un point du plan `Z = Target.Z` se projette au même pixel qu'avec
-`Camera3dIn2dAxisComponent` — mais **sans déformation perspective** sur les layers placés à un autre
-Z, ce qui est l'intérêt décisif du mode.
+À `Zoom = 1`, un point du plan `Z = Target.Z` se projette au même pixel qu'avec l'ancienne astuce
+perspective (caméra reculée à `z = (hauteur de vue / 2) / tan(FOV / 2)`) — mais **sans déformation
+perspective** sur les layers placés à un autre Z, ce qui est l'intérêt décisif du mode.
 
 ```csharp
 // CasaEngine.Demos/Demos/TileMapDemo.cs
@@ -104,10 +104,12 @@ quads à Z monde quasi constant). Sans conséquence en opaque — le depth buffe
 artefacts d'ordre sont possibles sur des tiles réellement alpha-blended. Le chemin statique (batches
 indexés) n'est pas concerné.
 
-### Limitation
+### Collisions
 
-Les collisions de tilemap sont générées en XY sans tenir compte de la rotation du composant
-(comportement préexistant) : sur une map tournée, le debug physique ne coïncide pas avec le rendu.
+Les corps de collision suivent la transformation monde complète : le centre de la tuile, exprimé en
+pixels locaux, est transformé par `WorldMatrixWithScale`, l'orientation venant de
+`WorldMatrixNoScale`. Le debug physique coïncide donc avec le rendu, map tournée ou mise à l'échelle
+comprise.
 
 ```csharp
 // CasaEngine.Demos/Demos/TileMap3dDemo.cs — la même map posée au sol puis dressée en mur
@@ -235,24 +237,32 @@ Pour qu'un texel de tileset couvre exactement un pixel écran :
 
 ---
 
-## `Camera3dIn2dAxisComponent` — legacy
+## `Camera3dIn2dAxisComponent` — supprimée
 
-`Camera3dIn2dAxisComponent` place une caméra **perspective** à la distance qui rend le plan cible à
-l'échelle 1:1 : `z = (Game.ScreenSizeHeight * 0.5f) / tan(FieldOfView * 0.5f)`.
+Cette classe plaçait une caméra **perspective** à la distance qui rend le plan cible à l'échelle 1:1
+(`z = (Game.ScreenSizeHeight * 0.5f) / tan(FieldOfView * 0.5f)`). Elle a été **retirée du moteur** au
+profit de `Camera2dComponent`, qui rend le même cadrage sans ses fragilités :
 
-Elle reste supportée pour compatibilité des scènes existantes, mais **ne doit plus être choisie pour
-un nouveau rendu 2D**. Ses fragilités :
+- son FOV était recalculé à chaque resize (`PiOver4 * 1.7777 / AspectRatio`), donc la distance caméra
+  changeait avec la fenêtre ;
+- cette distance dépendait de `Game.ScreenSizeHeight`, la **taille écran globale** et non celle de la
+  vue : une vue à viewport partiel n'était pas cadrée correctement ;
+- la projection restait perspective : seul le plan cible était à l'échelle 1:1, tout layer à un autre
+  Z était mis à l'échelle et translaté ;
+- ni zoom ni snap texel, donc aucun contrat pixel-perfect possible.
 
-- le FOV est recalculé à chaque resize (`ComputeFieldOfView` : `PiOver4 * 1.7777 / AspectRatio`),
-  donc la distance caméra change avec la fenêtre ;
-- la distance dépend de `Game.ScreenSizeHeight`, la **taille écran globale**, pas de la taille de la
-  vue : une vue à viewport partiel n'est pas cadrée correctement ;
-- la projection reste perspective : seul le plan cible est à l'échelle 1:1, tout layer à un autre Z
-  est mis à l'échelle et translaté ;
-- pas de notion de zoom ni de snap texel, donc pas de contrat pixel-perfect possible.
+Si un monde sérialisé porte encore `"type": "Camera3dIn2dAxisComponent"`, il faut le migrer à la main
+— `ElementFactory` résout les composants par nom de type et échouerait au chargement. Remplacer le
+`type` et le `name` par `Camera2dComponent`, retirer `fieldOfView`, et ajouter les champs que lit
+`Camera2dComponent.Load` :
 
-Migration : remplacer le composant par `Camera2dComponent` avec la même `Target`. Le cadrage X/Y est
-équivalent à `Zoom = 1` ; seule la fenêtre de profondeur change (voir mode 2).
+```json
+"target": { "x": 0.0, "y": 0.0, "z": 0.0 },
+"zoom": 1.0,
+"pixel_snap": false
+```
+
+Le cadrage X/Y est équivalent à `Zoom = 1` ; seule la fenêtre de profondeur change (voir mode 2).
 
 ---
 

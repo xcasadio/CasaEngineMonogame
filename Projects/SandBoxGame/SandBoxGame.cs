@@ -49,8 +49,6 @@ namespace SandBoxGame
             //============ Camera ===============
             var entity = new Entity(); // { Name = "camera" };
             var camera = new ArcBallCameraComponent();
-            //var camera = new Camera3dIn2dAxisComponent(entity);
-            //camera.Target = new Vector3(Window.ClientBounds.Size.X / 2f, Window.ClientBounds.Size.Y / 2f, 0.0f);
             entity.AddComponent(camera);
             entity.GameplayProxyClassName = nameof(ScriptArcBallCamera);
             world.AddEntity(entity);

@@ -44,7 +44,6 @@ public class AnimationBlendDemo : Demo
     private const int AdditiveLayerIndex = 0;
     private const int RootMotionLayerIndex = 1;
     private const float RootMotionTrailSpacing = 0.2f;
-    private static readonly Quaternion CharacterFacingRotation = Quaternion.CreateFromAxisAngle(Vector3.Up, MathHelper.ToRadians(180f));
     private static readonly Color RootMotionTrailColor = new(255, 204, 64);
     private static readonly Color RootMotionVectorColor = new(96, 220, 255);
 
@@ -662,8 +661,10 @@ public class AnimationBlendDemo : Demo
             return;
         }
 
+        // Identity, not a half turn: the model faces +Z, which is where the camera stands. Root motion
+        // accumulates on top of this orientation, so the reset has to clear it explicitly.
         _skinnedMeshComponent.LocalPosition = Vector3.Zero;
-        _skinnedMeshComponent.LocalOrientation = CharacterFacingRotation;
+        _skinnedMeshComponent.LocalOrientation = Quaternion.Identity;
         _skinnedMeshComponent.LocalScale = new Vector3(CharacterScale);
         _rootMotionTrailPoints.Clear();
         AppendTrailPoint(_skinnedMeshComponent.Position, force: true);

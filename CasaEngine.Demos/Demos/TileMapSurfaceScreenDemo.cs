@@ -98,28 +98,14 @@ public sealed class TileMapSurfaceScreenDemo : Demo
         world.RegisterTileMapSurface(_tileMapSurface);
     }
 
-    // The framing is expressed through the explicit arc ball orbit parameters instead of
-    // SetPositionAndTarget (which delegates to ArcBallCameraComponent.SetCamera): SetCamera negates the
-    // requested target and stores a negative distance, which mirrors the resulting camera in Z whenever
-    // the target is not the origin — the screen quad then ends up out of frame. With
-    // Target / Yaw / Pitch / Distance the placement is unambiguous:
-    //   position = Target + (-sin(Yaw) * cos(Pitch), -sin(Pitch), cos(Yaw) * cos(Pitch)) * Distance
-    // Distance must stay negative: that is the sign SetCamera stores everywhere else in the engine, and
-    // OrbitUp derives the vertical motion from it, so a positive distance inverts the vertical orbit
-    // control compared to every other demo (the horizontal one is unaffected).
-    // Values below verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
-    //   real camera position = (0, 5.487, 12.687)
+    // Framing verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
     //   screen: normal (0,0,1), dot(normal, center->camera) = 0.976, frustum = Contains,
     //           corners projecting inside x in [496, 1425] and y in [374, 698] px
     //   ground: normal (0,1,0), dot(normal, center->camera) = 0.427, center at (960, 833) px
     //           (the 24 x 24 ground is wider than the frustum, so it only intersects it)
     public override void InitializeCamera(CameraComponent camera)
     {
-        var arcBall = (ArcBallCameraComponent)camera;
-        arcBall.Target = ScreenCenter;
-        arcBall.Yaw = MathHelper.Pi;
-        arcBall.Pitch = 0.22f;
-        arcBall.Distance = -13.0f;
+        camera.SetPositionAndTarget(new Vector3(0f, 5.487f, 12.687f), ScreenCenter);
     }
 
     public override void Update(GameTime gameTime)
