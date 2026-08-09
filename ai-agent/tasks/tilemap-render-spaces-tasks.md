@@ -82,7 +82,7 @@ Done : build vert. 🧪 restant : vérification visuelle de l'overlay sur une d�
 
 ## Phase C — TileMap objet 3D complet
 
-### ⏳ C1 — Matrice monde complète (rotation) dans les deux chemins de rendu
+### ✅ C1 — Matrice monde complète (rotation) dans les deux chemins de rendu
 
 Dans `TileMapComponent.Draw` ([TileMapComponent.cs:218](../../CasaEngine/Framework/Scene/Entities/Components/TileMapComponent.cs)) :
 
@@ -92,6 +92,8 @@ Dans `TileMapComponent.Draw` ([TileMapComponent.cs:218](../../CasaEngine/Framewo
 - La bounding box (`GetBoundingBox`) utilise déjà `WorldMatrixWithScale` : vérifier la cohérence rendu/bounds avec rotation.
 
 Done : build + tests TileMap existants verts ; nouveaux tests sur la construction de matrice si extractible.
+
+Réalisé : `TileMapComponent.Draw` teste **une fois par draw** si `WorldMatrixWithScale` est une pure échelle+translation (`IsAxisAlignedWorldMatrix`, 6 comparaisons sur les termes hors-diagonale) ; si oui le chemin existant est exécuté à l'identique. Sinon `DrawWithWorldMatrix` dessine les quads en espace local transformés par la matrice monde complète (`Tile.Draw(..., in Matrix)` + surcharge additive `SpriteRendererComponent.DrawSprite(..., in Matrix worldTransform)`). Le chemin statique reçoit désormais sa matrice monde du dispatcher (calculée une fois par layer au lieu d'une fois par chunk).
 
 ### ⏳ C2 — Culling fallback par chunk quand rotation ≠ identité
 

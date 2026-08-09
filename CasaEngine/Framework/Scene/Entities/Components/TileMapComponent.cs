@@ -19,6 +19,8 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
+    private const float AxisAlignedWorldMatrixEpsilon = 1e-4f;
+
     private List<PhysicsBody> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
     private readonly List<AnimatedTile> _animatedTiles = new();
@@ -228,6 +230,15 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return;
         }
 
+        // The rotation test is done once per draw, never per tile: when the world matrix carries no
+        // rotation (the 2D case) the axis-aligned fast path below runs exactly as before.
+        var worldMatrix = WorldMatrixWithScale;
+        if (!IsAxisAlignedWorldMatrix(in worldMatrix))
+        {
+            DrawWithWorldMatrix(in worldMatrix);
+            return;
+        }
+
         var translation = Position;
         var scale = Scale.ToVector2();
 
@@ -272,6 +283,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
             var layerZ = layer.TileMapLayerData.zOffset;
             var worldZ = translation.Z + layerZ;
+            var staticBatchWorld = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
 
             for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
             {
@@ -284,7 +296,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 LastVisitedChunkCount++;
                 chunk.UpdateWorldBounds(mapPosX, mapPosY, tileWidth, tileHeight, worldZ, worldZ);
 
-                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, translation, scale, worldZ);
+                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, in staticBatchWorld);
                 if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
                 {
                     chunk.MarkVisualClean();
@@ -324,6 +336,100 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 chunk.MarkVisualClean();
             }
         }
+    }
+
+    /// <summary>
+    /// Draw path used when the component world matrix carries a rotation: tile quads and chunk
+    /// geometry stay in tile map local space and are transformed by the full world matrix.
+    /// </summary>
+    private void DrawWithWorldMatrix(in Matrix worldMatrix)
+    {
+        var mapWidth = TileMapData.MapSize.Width;
+        var mapHeight = TileMapData.MapSize.Height;
+
+        if (mapWidth <= 0 || mapHeight <= 0)
+        {
+            return;
+        }
+
+        var tileWidth = (float)TileSetData.TileSize.Width;
+        var tileHeight = (float)TileSetData.TileSize.Height;
+
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
+        {
+            var layer = Layers[layerIndex];
+            if (!layer.TileMapLayerData.Depth.ShouldRenderTiles)
+            {
+                continue;
+            }
+
+            var layerZ = layer.TileMapLayerData.zOffset;
+            var staticBatchWorld = Matrix.CreateTranslation(0f, 0f, layerZ) * worldMatrix;
+
+            for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
+            {
+                var chunk = layer.Chunks[chunkIndex];
+
+                LastVisitedChunkCount++;
+                chunk.UpdateWorldBounds(0f, 0f, tileWidth, tileHeight, layerZ, layerZ, in worldMatrix);
+
+                var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, in staticBatchWorld);
+                if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
+                {
+                    chunk.MarkVisualClean();
+                    continue;
+                }
+
+                for (var y = chunk.TileBounds.Top; y < chunk.TileBounds.Bottom; y++)
+                {
+                    var rowOffset = y * mapWidth;
+
+                    for (var x = chunk.TileBounds.Left; x < chunk.TileBounds.Right; x++)
+                    {
+                        var tileIndex = rowOffset + x;
+                        LastVisitedTileCount++;
+
+                        if (layer.TileMapLayerData.tiles[tileIndex] == TileMapData.EmptyTileId)
+                        {
+                            continue;
+                        }
+
+                        if (staticBatchDrawn && IsStaticTile(layer.TileMapLayerData, tileIndex))
+                        {
+                            continue;
+                        }
+
+                        LastDrawnTileCount++;
+                        var flags = layer.TileMapLayerData.GetTileFlags(tileIndex);
+                        layer.Tiles[tileIndex].Draw(tileWidth * x, -tileHeight * y, layerZ, Vector2.One, flags, in worldMatrix);
+                    }
+                }
+
+                chunk.MarkVisualClean();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns true when the world matrix is a pure scale + translation (no rotation, no shear),
+    /// which is the condition for the axis-aligned tile map draw and culling fast path.
+    /// </summary>
+    private static bool IsAxisAlignedWorldMatrix(in Matrix world)
+    {
+        var scaleMagnitude = Math.Max(
+            Math.Abs(world.M11),
+            Math.Max(Math.Abs(world.M22), Math.Abs(world.M33)));
+        var epsilon = AxisAlignedWorldMatrixEpsilon * Math.Max(1f, scaleMagnitude);
+
+        return Math.Abs(world.M12) <= epsilon
+            && Math.Abs(world.M13) <= epsilon
+            && Math.Abs(world.M21) <= epsilon
+            && Math.Abs(world.M23) <= epsilon
+            && Math.Abs(world.M31) <= epsilon
+            && Math.Abs(world.M32) <= epsilon
+            && world.M11 > 0f
+            && world.M22 > 0f
+            && world.M33 > 0f;
     }
 
     public void RemoveTile(int layer, int x, int y)
@@ -863,7 +969,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
     }
 
-    private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, Vector3 translation, Vector2 scale, float worldZ)
+    private bool TryDrawStaticChunkBatch(TileMapLayer layer, TileMapChunk chunk, in Matrix world)
     {
         var currentFrame = Owner.World.CurrentRenderFrame;
         if (!currentFrame.HasValue || _spriteRendererComponent == null || _tileSetTextures.Count == 0)
@@ -904,7 +1010,6 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             }
         }
 
-        var world = Matrix.CreateScale(scale.X, scale.Y, 1f) * Matrix.CreateTranslation(translation.X, translation.Y, worldZ);
         var drawnBatchCount = 0;
         var drawnTileCount = 0;
         for (var batchIndex = 0; batchIndex < chunk.StaticBatches.Count; batchIndex++)
