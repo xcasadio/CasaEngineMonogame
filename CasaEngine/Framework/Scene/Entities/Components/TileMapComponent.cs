@@ -52,6 +52,10 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// When true the component is skipped by the regular world draw pass. Set it when the tile map is
     /// routed to a <see cref="Rendering.TileMapSurfaceComponent"/> so that it is only painted offscreen.
     /// Runtime only: the flag is not serialized with the component.
+    ///
+    /// While it is set, <see cref="Draw"/> returns immediately without touching the draw counters, so
+    /// <see cref="LastVisitedTileCount"/> and friends describe the last offscreen surface pass instead
+    /// of the world pass — on a static map they simply stay at the values of that pass.
     /// </summary>
     public bool SkipMainPassDraw { get; set; }
 
@@ -92,6 +96,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         TileMapData = other.TileMapData;
         TileSetData = other.TileSetData;
         TileMapDataAssetId = other.TileMapDataAssetId;
+        SkipMainPassDraw = other.SkipMainPassDraw;
     }
 
     public override void InitializeWithWorld(CasaEngine.Framework.Scene.World.World world)

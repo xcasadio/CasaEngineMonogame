@@ -97,6 +97,13 @@ public sealed class World : ObjectBase
 
         _worldUiComponents.Clear();
 
+        foreach (var tileMapSurface in _tileMapSurfaces)
+        {
+            tileMapSurface.Dispose();
+        }
+
+        _tileMapSurfaces.Clear();
+
         ClearEntities(true);
         DisposePhysicsWorldContext();
     }

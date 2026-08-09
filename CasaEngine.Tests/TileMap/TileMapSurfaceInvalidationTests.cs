@@ -145,6 +145,17 @@ public class TileMapSurfaceInvalidationTests
     }
 
     [Fact]
+    public void SkipMainPassDraw_IsPreservedByTheCopyConstructor()
+    {
+        var component = CreateTileMapComponent();
+        component.SkipMainPassDraw = true;
+
+        var clone = component.Clone();
+
+        Assert.True(clone.SkipMainPassDraw);
+    }
+
+    [Fact]
     public void TryGetSurfaceSize_DefaultsToTheMapSizeInPixels()
     {
         var component = CreateTileMapComponent();

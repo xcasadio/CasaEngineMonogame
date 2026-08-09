@@ -19,6 +19,11 @@ namespace CasaEngine.Framework.Rendering;
 /// Consumers should set <see cref="Materials.MaterialBase.SamplerState"/> to
 /// <see cref="SamplerState.PointClamp"/> on the material displaying <see cref="Texture"/> to keep the
 /// tiles crisp.
+///
+/// Limitation: the internal orthographic frame is built from the map position and scale only, so the
+/// routed <see cref="TileMapComponent"/> must be axis-aligned (identity rotation). A rotated map would
+/// be framed incorrectly and render skewed or empty in the surface — rotate the 3d quad displaying the
+/// texture instead of the map itself.
 /// </summary>
 public sealed class TileMapSurfaceComponent : IDisposable
 {
@@ -36,6 +41,8 @@ public sealed class TileMapSurfaceComponent : IDisposable
     private readonly List<Action<Texture2D>> _textureBindings = [];
 
     private TileMapComponent _tileMap;
+    private SpriteRendererComponent _spriteRendererComponent;
+    private CasaEngineGame _spriteRendererGame;
     private int _zoom = 1;
     private bool _invalidated = true;
     private bool _neverRendered = true;
@@ -181,7 +188,7 @@ public sealed class TileMapSurfaceComponent : IDisposable
         EnsureSurfaceSize(width, height);
 
         var frame = BuildRenderFrame(tileMap, width, height);
-        var spriteRenderer = world.Game?.GetGameComponent<SpriteRendererComponent>();
+        var spriteRenderer = ResolveSpriteRenderer(world.Game);
 
         using var guard = new GraphicsStateGuard(_graphicsDevice);
 
@@ -206,6 +213,27 @@ public sealed class TileMapSurfaceComponent : IDisposable
         _neverRendered = false;
         _invalidated = false;
         _lastRenderedTileRevision = tileMap.TileRevision;
+    }
+
+    /// <summary>
+    /// Caches the sprite renderer instead of walking the game component list on every redraw: an
+    /// animated map would otherwise pay that lookup each frame. The cache is keyed on the game so a
+    /// world reset pointing at another game instance re-resolves it.
+    /// </summary>
+    private SpriteRendererComponent ResolveSpriteRenderer(CasaEngineGame game)
+    {
+        if (game == null)
+        {
+            return null;
+        }
+
+        if (!ReferenceEquals(game, _spriteRendererGame))
+        {
+            _spriteRendererGame = game;
+            _spriteRendererComponent = game.GetGameComponent<SpriteRendererComponent>();
+        }
+
+        return _spriteRendererComponent;
     }
 
     /// <summary>
