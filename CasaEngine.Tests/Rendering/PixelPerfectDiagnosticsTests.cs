@@ -77,6 +77,23 @@ public sealed class PixelPerfectDiagnosticsTests
     }
 
     [Fact]
+    public void DescribeOverlayLine_UsesCachedStringsForEveryDegradation()
+    {
+        Assert.Equal("PixelPerfect: OK", PixelPerfectDiagnostics.DescribeOverlayLine(PixelPerfectDegradation.None));
+        Assert.Same(
+            PixelPerfectDiagnostics.DescribeOverlayLine(PixelPerfectDegradation.ResolutionScale),
+            PixelPerfectDiagnostics.DescribeOverlayLine(PixelPerfectDegradation.ResolutionScale));
+
+        Assert.StartsWith("PixelPerfect: degraded (",
+            PixelPerfectDiagnostics.DescribeOverlayLine(PixelPerfectDegradation.ResolutionScale));
+        Assert.StartsWith("PixelPerfect: degraded (",
+            PixelPerfectDiagnostics.DescribeOverlayLine(PixelPerfectDegradation.NonIntegerZoom));
+        Assert.StartsWith("PixelPerfect: degraded (",
+            PixelPerfectDiagnostics.DescribeOverlayLine(
+                PixelPerfectDegradation.ResolutionScale | PixelPerfectDegradation.NonIntegerZoom));
+    }
+
+    [Fact]
     public void DescribeReason_ReturnsCachedInstances()
     {
         var both = PixelPerfectDegradation.ResolutionScale | PixelPerfectDegradation.NonIntegerZoom;

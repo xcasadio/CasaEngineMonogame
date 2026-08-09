@@ -33,6 +33,11 @@ public static class PixelPerfectDiagnostics
     private const string ReasonBoth = "ResolutionScale != 1, Zoom is not an integer";
     private const string ReasonNone = "none";
 
+    private const string OverlayOk = "PixelPerfect: OK";
+    private const string OverlayDegradedResolutionScale = "PixelPerfect: degraded (" + ReasonResolutionScale + ")";
+    private const string OverlayDegradedNonIntegerZoom = "PixelPerfect: degraded (" + ReasonNonIntegerZoom + ")";
+    private const string OverlayDegradedBoth = "PixelPerfect: degraded (" + ReasonBoth + ")";
+
     /// <summary>
     /// True when <paramref name="camera"/> asks for a pixel-perfect image, i.e. it is a
     /// <see cref="Camera2dComponent"/> with <see cref="Camera2dComponent.PixelSnap"/> enabled.
@@ -85,6 +90,20 @@ public static class PixelPerfectDiagnostics
             PixelPerfectDegradation.NonIntegerZoom => ReasonNonIntegerZoom,
             PixelPerfectDegradation.ResolutionScale | PixelPerfectDegradation.NonIntegerZoom => ReasonBoth,
             _ => ReasonNone,
+        };
+    }
+
+    /// <summary>
+    /// Returns the cached debug overlay line for the given degradation (no allocation).
+    /// </summary>
+    public static string DescribeOverlayLine(PixelPerfectDegradation degradation)
+    {
+        return degradation switch
+        {
+            PixelPerfectDegradation.ResolutionScale => OverlayDegradedResolutionScale,
+            PixelPerfectDegradation.NonIntegerZoom => OverlayDegradedNonIntegerZoom,
+            PixelPerfectDegradation.ResolutionScale | PixelPerfectDegradation.NonIntegerZoom => OverlayDegradedBoth,
+            _ => OverlayOk,
         };
     }
 

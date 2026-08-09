@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CasaEngine.Framework.Scene.Entities.Components;
 using FontStashSharp;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -89,7 +90,7 @@ public sealed class DebugOverlay
         var stats     = view.RenderStats;
         var policies  = view.World.PolicyDiagnostics;
         var viewName  = string.IsNullOrEmpty(view.Name) ? "unnamed" : view.Name;
-        var lines     = new List<string>(11)
+        var lines     = new List<string>(13)
         {
             $"View: {viewName}",
             $"FPS: {_fps:F1}  Mode: {view.UpdateMode}",
@@ -104,6 +105,12 @@ public sealed class DebugOverlay
             $"Tick N/C/E {policies.TickNeverEntities}/{policies.TickConditionalEntities}/{policies.TickEveryFrameEntities}  Spatial S/D {policies.SpatialStaticEntities}/{policies.SpatialDynamicEntities}",
             $"Render S/M/G {policies.RenderStaticEntities}/{policies.RenderMaterialAnimatedEntities}/{policies.RenderGeometryAnimatedEntities}  Mobility S/M {policies.MobilityStaticEntities}/{policies.MobilityMovableEntities}  Warn {policies.SuspectCombinationCount}",
         };
+
+        if (cam is Camera2dComponent)
+        {
+            lines.Add(PixelPerfectDiagnostics.DescribeOverlayLine(
+                PixelPerfectDiagnostics.Evaluate(cam, view.ResolutionScale)));
+        }
 
         if (pool != null)
         {

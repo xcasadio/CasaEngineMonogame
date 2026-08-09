@@ -72,11 +72,11 @@ Quand une `RenderView` utilise une `Camera2dComponent` avec `PixelSnap` actif **
 
 Done : build + tests verts ; test unitaire du prédicat de dégradation si extractible en logique pure.
 
-### ⏳ B2 — Indicateur `DebugOverlay`
+### 🧪 B2 — Indicateur `DebugOverlay`
 
 Dans `DebugOverlay` : si la caméra de la vue est une `Camera2dComponent`, afficher une ligne `PixelPerfect: OK` / `PixelPerfect: degraded (raison)` en réutilisant le prédicat de B1. Aucune allocation par frame (précomposer les chaînes).
 
-Done : build vert. 🧪 restant : vérification visuelle de l'overlay sur une démo.
+Done : build vert. 🧪 restant : vérification visuelle de l'overlay sur une démo (ligne affichée uniquement quand la caméra de la vue est une `Camera2dComponent`, chaînes issues de `PixelPerfectDiagnostics.DescribeOverlayLine`).
 
 ---
 
@@ -197,7 +197,7 @@ Done : doc écrite, index à jour, commit.
 | Phase | Statut | Notes |
 | --- | --- | --- |
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
-| B — Politique pixel-perfect | 🚧 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 à faire. |
+| B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | ⏳ | |
 | D — TileMapSurfaceComponent | ⏳ | |
 | E — Viewport 2D éditeur | ⏳ | |
