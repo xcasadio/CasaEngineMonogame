@@ -117,7 +117,7 @@ Nouvelle démo dans `CasaEngine.Demos` (suivre le modèle des démos existantes,
 
 Done : build vert. 🧪 restant : validation visuelle (culling correct en orbitant, pas de tiles manquantes/fantômes).
 
-Réalisé : `CasaEngine.Demos/Demos/TileMap3dDemo.cs` (`map_1_1` posée deux fois : sol rotation −90° X, mur rotation −90° Y, échelle 0.05 pour rester à l'échelle métrique des démos 3D), enregistrée dans `DemosGame.LoadContentPrivate`, caméra `ArcBallCameraComponent` par défaut. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent : le lancement de `CasaEngine.Demos` échoue avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0` (problème d'environnement préexistant, indépendant de ce chantier). À vérifier en orbitant : sol et mur correctement orientés, pas de tiles manquantes en bordure de frustum. Note : les collisions tilemap sont toujours générées en XY sans tenir compte de la rotation (comportement préexistant, hors périmètre) — le debug physique de la démo peut donc afficher des boîtes non alignées avec le rendu.
+Réalisé : `CasaEngine.Demos/Demos/TileMap3dDemo.cs` (`map_1_1` posée deux fois : sol rotation −90° X, mur rotation −90° Y, échelle 0.05 pour rester à l'échelle métrique des démos 3D), enregistrée dans `DemosGame.LoadContentPrivate`, caméra `ArcBallCameraComponent` par défaut. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent : le lancement de `CasaEngine.Demos` échoue avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0` (problème d'environnement préexistant, indépendant de ce chantier). À vérifier en orbitant : sol et mur correctement orientés, pas de tiles manquantes en bordure de frustum. Note : les collisions tilemap sont toujours générées en XY sans tenir compte de la rotation (comportement préexistant, hors périmètre) — le debug physique de la démo peut donc afficher des boîtes non alignées avec le rendu. **Corrigé depuis par C5.**
 
 ### ✅ C4 — Vérification perf du fast path
 
@@ -126,6 +126,14 @@ Vérifier par test (compteurs `LastVisitedChunkCount` / `LastDrawnTileCount` / `
 Done : test vert prouvant l'iso-comportement du chemin identité.
 
 Réalisé : `CasaEngine.Tests/TileMap/TileMapComponentDrawCountersTests.cs` construit un `TileMapComponent` sans GraphicsDevice (world/game non initialisés par réflexion, tiles remplacées par des stubs, `BuildChunks` appelé par réflexion) et vérifie sur une map 8×8 en chunks de 2 : rotation identité sans `RenderFrame` → tous les chunks/tiles visités ; rotation identité avec `RenderFrame` ortho → la plage plane restreint bien le rendu (marge d'une tile) ; rotation ≠ identité → mêmes compteurs quand rien n'est cullé, et culling effectif par frustum quand la map devient vue par la tranche. Limite documentée : sans GraphicsDevice aucun batch statique ne peut être émis, `LastStaticBatchCount` reste donc à 0 dans ces tests.
+
+### ✅ C5 — Placement des corps de collision via la transformation monde complète
+
+Défaut **préexistant** révélé par la validation visuelle de C3 : sur `TileMap3dDemo` (sol tourné de −90° sur X, échelle 0.05), le debug physique montrait les AABB de la tilemap éparpillées loin de la map, dans un plan vertical. Les deux surcharges de `CreateCollisionObject` ajoutaient l'offset de la tuile — exprimé en **pixels, espace local** — directement à la translation **monde** (`worldMatrix.Translation += ...` sur `WorldMatrixNoScale`), sans lui appliquer ni la rotation ni l'échelle du composant, alors que les demi-extents de la boîte étaient bien mis à l'échelle via `box.LocalScaling = LocalScale`. Le rendu, lui, était correct.
+
+Done : le centre local de la tuile passe par `WorldMatrixWithScale`, l'orientation reste celle de `WorldMatrixNoScale` (ce qu'attend le backend physique), `box.LocalScaling` inchangé ; le chemin historique (identité + échelle 1, `TileMapDemo` et RPGDemo) donne exactement les mêmes positions qu'avant.
+
+Réalisé : `TileMapComponent.ComputeCollisionWorldPosition(ref Matrix, float left, float top, float width, float height)` (`internal static`, sans allocation) centralise le calcul et est appelée par les deux surcharges de `CreateCollisionObject` ; le calcul a été extrait en méthode statique testable parce que l'instanciation d'un `TileMapComponent` avec un `IPhysicsWorld` réel n'est pas praticable en test unitaire. Tests : `CasaEngine.Tests/TileMap/TileMapCollisionPlacementTests.cs` (identité et translation seule → valeurs historiques codées en dur ; échelle uniforme ≠ 1 → offsets mis à l'échelle ; rotation −90° X → Y monde constant sur une ligne et Z variant avec l'index de ligne ; rotation + échelle combinées).
 
 ---
 
@@ -279,7 +287,7 @@ persistance `viewport.editor.json`). Index `docs/README.md` mis à jour dans les
 | --- | --- | --- |
 | A — Camera2dComponent | ✅ | A1 + A2 ✅. A3 🧪 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | ✅ | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 🧪 : ligne overlay en place, reste la vérification visuelle. |
-| C — TileMap 3D | ✅ | C1, C2, C4 ✅. C3 🧪 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
+| C — TileMap 3D | ✅ | C1, C2, C4, C5 ✅. C5 corrige le placement des corps de collision (défaut préexistant révélé par la validation visuelle de C3). C3 🧪 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | ✅ | D1, D2 ✅. D3 🧪 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | E — Viewport 2D éditeur | ✅ | E1 ✅. E2, E3, E4 🧪 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles, gizmo contraint XY et persistance du mode + cadrage 2D (`viewport.editor.json`) en place ; reste la validation visuelle dans l'éditeur. |
 | F — Documentation | ✅ | F1 ✅ : `docs/engine/rendering-2d-3d-spaces.md`, `docs/editor/editor-2d-viewport.md`, index `docs/README.md`. |
@@ -298,7 +306,7 @@ buildé et couvert par les tests automatisables.
 | --- | --- | --- |
 | 1 | A3 | `TileMapDemo` : rendu identique à l'ancien mode `Camera3dIn2dAxisComponent`, stable au resize, aucun contenu clippé en Z (fenêtre ortho `[Target.Z − 500, Target.Z + 499]`). |
 | 2 | B2 | Overlay debug : la ligne `PixelPerfect: …` n'apparaît que sur une vue à `Camera2dComponent`, et le texte suit la dégradation (zoom non entier, `ResolutionScale != 1`). |
-| 3 | C3 | `TileMap3dDemo` : sol et mur correctement orientés, culling correct en orbitant (pas de tiles manquantes ni fantômes en bordure de frustum). Rappel : les collisions tilemap restent générées en XY, le debug physique peut donc ne pas coïncider avec le rendu. |
+| 3 | C3 | `TileMap3dDemo` : sol et mur correctement orientés, culling correct en orbitant (pas de tiles manquantes ni fantômes en bordure de frustum). Rappel : depuis C5, les colliders de la tilemap suivent la transformation monde complète — le debug physique doit coïncider avec le rendu (sol et mur). |
 | 4 | D3 | `TileMapSurfaceScreenDemo` : map nette (PointClamp) et à l'endroit sur le quad quelle que soit la caméra 3D, aucune tuile dessinée dans la scène elle-même, UV du quad non retournées. |
 | 5 | E2 | Éditeur : bouton « 2D » de la barre de viewport, bascule aller-retour sans perte de cadrage dans les deux modes, préview toujours en perspective. |
 | 6 | E3 / E4 | Éditeur : lisibilité de la grille en tuiles aux différents crans de zoom, poignée Z inaccessible en mode 2D, et fermer/rouvrir l'éditeur conserve le mode et le cadrage (`viewport.editor.json`). |

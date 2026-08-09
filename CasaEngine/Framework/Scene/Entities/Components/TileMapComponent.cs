@@ -739,6 +739,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return tile;
     }
 
+    /// <summary>
+    /// Computes the world position of a tile collision body. The tile rectangle is expressed in map local
+    /// pixels (<paramref name="left"/>/<paramref name="top"/> being its top left corner), so its centre must go
+    /// through the full world transform, scale included, to stay aligned with the rendered map.
+    /// </summary>
+    internal static Vector3 ComputeCollisionWorldPosition(ref Matrix worldMatrixWithScale, float left, float top, float width, float height)
+    {
+        var localCenter = new Vector3(left + width / 2f, -top - height / 2f, 0f);
+        return Vector3.Transform(localCenter, worldMatrixWithScale);
+    }
+
     private PhysicsBody CreateCollisionObject(int layerIndex, Rectangle tileBounds, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
@@ -749,11 +760,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var tileSize = TileSetData.TileSize;
         var width = tileBounds.Width * tileSize.Width;
         var height = tileBounds.Height * tileSize.Height;
+        var worldMatrixWithScale = WorldMatrixWithScale;
         var worldMatrix = WorldMatrixNoScale;
-        worldMatrix.Translation += new Vector3(
-            tileBounds.X * tileSize.Width + width / 2f,
-            -tileBounds.Y * tileSize.Height - height / 2f,
-            0f);
+        worldMatrix.Translation = ComputeCollisionWorldPosition(
+            ref worldMatrixWithScale,
+            tileBounds.X * tileSize.Width,
+            tileBounds.Y * tileSize.Height,
+            width,
+            height);
         var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
         box.LocalScaling = LocalScale;
 
@@ -789,11 +803,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return null;
         }
 
+        var worldMatrixWithScale = WorldMatrixWithScale;
         var worldMatrix = WorldMatrixNoScale;
-        worldMatrix.Translation += new Vector3(
-            tileX * tileSize.Width + rectangle.Position.X + width / 2f,
-            -tileY * tileSize.Height - rectangle.Position.Y - height / 2f,
-            0f);
+        worldMatrix.Translation = ComputeCollisionWorldPosition(
+            ref worldMatrixWithScale,
+            tileX * tileSize.Width + rectangle.Position.X,
+            tileY * tileSize.Height + rectangle.Position.Y,
+            width,
+            height);
         var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
         box.LocalScaling = LocalScale;
 
