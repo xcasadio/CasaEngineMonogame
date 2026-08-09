@@ -1612,6 +1612,29 @@ public class WorldViewportPanel : IDisposable
         }
     }
 
+    /// <summary>
+    /// Captures the persistable view state of this viewport (projection mode + 2d framing).
+    /// </summary>
+    internal EditorViewportViewState CaptureViewState()
+    {
+        return new EditorViewportViewState(_is2dViewMode, _camera2dController.CaptureState());
+    }
+
+    /// <summary>
+    /// Restores a view state previously captured by <see cref="CaptureViewState"/>.
+    /// </summary>
+    internal void RestoreViewState(in EditorViewportViewState state)
+    {
+        _camera2dController.RestoreState(state.Camera2dState);
+
+        if (_camera2d != null)
+        {
+            _camera2dController.ApplyTo(_camera2d);
+        }
+
+        SetViewMode(state.Is2dViewMode);
+    }
+
     private void Ensure2dCameraCreated()
     {
         if (_camera2d != null)

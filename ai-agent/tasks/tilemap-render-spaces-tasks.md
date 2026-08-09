@@ -221,11 +221,17 @@ Réalisé :
 
 À valider visuellement : lisibilité de la grille en tuiles aux différents crans de zoom, et poignée Z effectivement inaccessible en mode 2D. Limite connue : le gizmo se dimensionne sur la distance caméra (`_screenScale = |cameraPos − gizmoPos| / SCREEN_SCALE_FACTOR`) ; en ortho cette distance est constante (500), le gizmo a donc une taille monde fixe et sa taille écran varie avec le zoom au lieu de rester constante. Corriger cela demanderait de modifier la logique d'échelle de `GizmoTool` — hors périmètre, non entrepris.
 
-### ⏳ E4 — Persistance de l'état de vue 2D
+### 🧪 E4 — Persistance de l'état de vue 2D
 
 Sauvegarder mode (2D/3D) + état caméra 2D avec le layout éditeur, comme l'état ArcBall existant.
 
 Done : build éditeur vert. 🧪 restant : fermer/rouvrir l'éditeur conserve le mode et le cadrage.
+
+Découverte d'architecture : **l'état ArcBall n'est en fait persisté nulle part**. `MGDockHostExtensions.SaveLayoutToJson` ne sérialise que l'arbre de docking (`DockLayoutModel` n'a aucun emplacement d'état par panneau), et `_savedPrimaryWorldCameraState` de `WorldViewportPanel` est purement en mémoire (bascule preview ↔ monde). Il n'y avait donc aucun mécanisme existant à réutiliser pour E4.
+
+Réalisé : fichier compagnon `viewport.editor.json`, écrit dans le même dossier `.casaeditor/` que `layout.editor.json` et piloté aux mêmes moments (écrit par `SavePersistedDockLayout`, relu par `TryLoadPersistedDockLayout`, donc par les commandes « Save/Load layout » et au chargement de projet). Contenu : mode 2D/3D + cible, cran de zoom et `PixelSnap` de la caméra 2D. `EditorViewportViewStateSerializer` (`CasaEngine.Editor/Runtime/EditorViewportViewStateSerializer.cs`) est une sérialisation JSON pure, sans dépendance fichier ni graphique, donc testable : `CasaEngine.Tests/Editor/EditorViewportViewStateSerializerTests.cs` (aller-retour, passage par le texte, json étranger, champs manquants → valeurs par défaut). `WorldViewportPanel.CaptureViewState`/`RestoreViewState` font le pont ; comme le panneau de viewport est créé paresseusement, un état lu avant sa création est mémorisé (`_pendingWorldViewportViewState`) puis appliqué à la création. Les erreurs d'E/S ou de parsing sont journalisées en warning et n'empêchent jamais le chargement du layout.
+
+L'état ArcBall 3D n'est volontairement pas persisté : hors périmètre de la tâche (« mode + état caméra 2D ») et il faudrait décider du comportement au changement de projet/scène.
 
 ---
 
@@ -247,5 +253,5 @@ Done : doc écrite, index à jour, commit.
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| E — Viewport 2D éditeur | 🚧 | E1 ✅. E2, E3 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles et gizmo contraint XY en place, reste la validation visuelle. |
+| E — Viewport 2D éditeur | 🧪 | E1 ✅. E2, E3, E4 : bascule 2D/3D (bouton « 2D » de la barre de viewport), grille en tuiles, gizmo contraint XY et persistance du mode + cadrage 2D (`viewport.editor.json`) en place ; reste la validation visuelle dans l'éditeur. |
 | F — Documentation | ⏳ | |
