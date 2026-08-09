@@ -146,11 +146,15 @@ Done : build + tests verts.
 
 Réalisé : `CasaEngine/Framework/Rendering/TileMapSurfaceComponent.cs`, objet possédé `IDisposable` (pas un `SceneComponent`) exactement comme `WorldUIComponent` — il n'est ni attaché à une entité ni sérialisé, il est enregistré sur le monde (`World.RegisterTileMapSurface` / `UnregisterTileMapSurface`) et sa passe est déclenchée par `World.DrawTileMapSurfacesToTextures()`, appelée dans `RenderPipeline.Render` juste à côté de `DrawWorldUIToTextures()`. Placé dans `Framework/Rendering` (c'est un aide de passe de rendu, pas un composant de scène). La frame ortho est construite directement (`CreateLookAt` + `CreateOrthographic`, mêmes conventions d'axes que `Camera2dComponent`, distance caméra 500, near/far 1/1000) et cadre exactement la map en espace monde ; la taille du RT vaut la taille de la map en pixels × `Zoom`, réduite uniformément au-delà de 4096. Pendant la passe : `GraphicsStateGuard` (qui restaure aussi render target et viewport) + `World.SetCurrentRenderFrame` (nouvelle méthode `internal` renvoyant la frame précédente) + `TileMapComponent.DrawTileMap()` + `SpriteRendererComponent.Flush(in frame)` qui vide les files pour ne pas empoisonner la passe monde. Opt-in via `TileMapComponent.SkipMainPassDraw` (bool additif, runtime only, non sérialisé) : `Draw` sort immédiatement, la surface appelle `DrawTileMap()` qui ignore le flag.
 
-### ⏳ D2 — Invalidation à la demande
+### ✅ D2 — Invalidation à la demande
 
 La surface ne se re-rend que si : mutation de tiles (`SetTileReference` et compagnie), tiles animées présentes (tick → re-rendu), autotiles dirty, ou `Invalidate()` explicite. Map statique = zéro re-rendu par frame.
 
 Done : test unitaire du dirty-tracking (mutation → re-rendu au frame suivant ; rien → pas de re-rendu).
+
+Réalisé : `TileMapComponent.TileRevision` (compteur `uint` additif) est incrémenté par `SetTileReference` (uniquement quand la tuile ou ses flags changent réellement), par le rafraîchissement des autotiles dans `Update` et par `InitializeWithWorld`. `TileMapComponent.HasAnimatedTiles` / `HasDirtyAutoTiles` exposent l'état des tuiles animées et des autotiles sales. Le prédicat `TileMapSurfaceComponent.ShouldRedraw(neverRendered, invalidated, hasAnimatedTiles, hasDirtyAutoTiles, tileRevision, lastRenderedTileRevision)` est `internal static` et sans dépendance graphique ; une map statique déjà rendue coûte une comparaison d'entiers par frame et zéro travail GPU. Tests : `CasaEngine.Tests/TileMap/TileMapSurfaceInvalidationTests.cs` (6 cas sur le prédicat, mutation vs no-op sur `TileRevision`, `Draw` ne bouge pas la révision, `SkipMainPassDraw`, calcul de la taille de surface).
+
+Note : `Update` vide `_dirtyAutoTiles` avant la phase de dessin, donc `HasDirtyAutoTiles` est presque toujours faux au moment de la passe offscreen — c'est l'incrément de `TileRevision` fait dans `Update` qui déclenche réellement le re-rendu après un refresh d'autotiles. Le paramètre est conservé dans le prédicat pour couvrir un appel de passe avant `Update`.
 
 ### ⏳ D3 — Démo écran/minimap
 
@@ -214,6 +218,6 @@ Done : doc écrite, index à jour, commit.
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| D — TileMapSurfaceComponent | 🚧 | D1 ✅ (`TileMapSurfaceComponent` + hook `World`/`RenderPipeline` + `SkipMainPassDraw`). |
+| D — TileMapSurfaceComponent | 🚧 | D1 ✅ (`TileMapSurfaceComponent` + hook `World`/`RenderPipeline` + `SkipMainPassDraw`). D2 ✅ (`TileRevision` + prédicat `ShouldRedraw` + tests). |
 | E — Viewport 2D éditeur | ⏳ | |
 | F — Documentation | ⏳ | |
