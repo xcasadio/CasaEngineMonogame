@@ -40,13 +40,16 @@ public class TileMap3dDemo : Demo
         groundTileMap.LocalPosition = Vector3.Zero;
         world.AddEntity(groundEntity);
 
-        //============ wall tile map (rotated -90 degrees around Y, standing on the ground) ===============
+        //============ wall tile map (rotated +90 degrees around Y, standing on the ground) ===============
+        // Tile quads are single sided (front face towards local +Z, CullCounterClockwise). A +90 degrees
+        // rotation around Y turns that normal towards world +X, which faces the default camera placed at
+        // positive X in InitializeCamera; the opposite rotation would leave the wall back-face culled.
         var wallEntity = new Entity { Name = "TileMapWall" };
         var wallTileMap = new TileMapComponent();
         wallEntity.RootComponent = wallTileMap;
         wallTileMap.TileMapData = tileMapData;
         wallTileMap.LocalScale = new Vector3(MapScale);
-        wallTileMap.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, -MathHelper.PiOver2);
+        wallTileMap.LocalOrientation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, MathHelper.PiOver2);
         wallTileMap.LocalPosition = new Vector3(0f, MapHeight, 0f);
         world.AddEntity(wallEntity);
     }
