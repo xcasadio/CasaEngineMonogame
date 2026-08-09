@@ -156,11 +156,13 @@ Réalisé : `TileMapComponent.TileRevision` (compteur `uint` additif) est incré
 
 Note : `Update` vide `_dirtyAutoTiles` avant la phase de dessin, donc `HasDirtyAutoTiles` est presque toujours faux au moment de la passe offscreen — c'est l'incrément de `TileRevision` fait dans `Update` qui déclenche réellement le re-rendu après un refresh d'autotiles. Le paramètre est conservé dans le prédicat pour couvrir un appel de passe avant `Update`.
 
-### ⏳ D3 — Démo écran/minimap
+### 🧪 D3 — Démo écran/minimap
 
 Démo : un quad 3D dans une scène perspective (type écran d'arcade ou minimap) affichant la texture de la surface tilemap, avec `SamplerState.PointClamp` sur le matériau.
 
 Done : build vert. 🧪 restant : validation visuelle (netteté du RT quelle que soit la caméra 3D).
+
+Réalisé : `CasaEngine.Demos/Demos/TileMapSurfaceScreenDemo.cs`, enregistrée dans `DemosGame.LoadContentPrivate` juste après `TileMap3dDemo`. `map_1_1` (30 × 11 tuiles de 32 px) est posée dans le monde avec `SkipMainPassDraw = true`, rendue offscreen par un `TileMapSurfaceComponent` (clear noir, zoom 1 → RT de 960 × 352), et sa texture est affichée sur un quad `PlanePrimitive` de ratio identique porté par un `UnlitTextureMaterial` avec `SamplerState = SamplerState.PointClamp`. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent (même blocage que C3 : `FileNotFoundException: FontStashSharp.MonoGame` au lancement de `CasaEngine.Demos`). À vérifier : la map apparaît nette et à l'endroit sur l'écran, aucune tuile n'est dessinée dans la scène 3D elle-même, et l'orientation UV du quad ne retourne pas l'image.
 
 ---
 
@@ -218,6 +220,6 @@ Done : doc écrite, index à jour, commit.
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| D — TileMapSurfaceComponent | 🚧 | D1 ✅ (`TileMapSurfaceComponent` + hook `World`/`RenderPipeline` + `SkipMainPassDraw`). D2 ✅ (`TileRevision` + prédicat `ShouldRedraw` + tests). |
+| D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | E — Viewport 2D éditeur | ⏳ | |
 | F — Documentation | ⏳ | |
