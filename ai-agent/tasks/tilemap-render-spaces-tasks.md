@@ -183,7 +183,7 @@ Note : l'entité tilemap est placée en `(0, -5000, 0)`. Elle reste un objet de 
 
 Build de référence pour cette phase : `dotnet build CasaEngine.Editor.MonoGame.sln`.
 
-### ⏳ E1 — `EditorViewport2dCameraController`
+### ✅ E1 — `EditorViewport2dCameraController`
 
 Nouveau contrôleur dans `CasaEngine.Editor/Runtime/` (parallèle à `EditorViewportCameraController`, **sans le modifier**) :
 
@@ -192,6 +192,8 @@ Nouveau contrôleur dans `CasaEngine.Editor/Runtime/` (parallèle à `EditorView
 - état capturable/restaurable (`CaptureState`/`RestoreState`) comme le contrôleur ArcBall.
 
 Done : build éditeur vert ; tests unitaires du contrôleur sur le modèle d'`EditorViewportCameraControllerTests`.
+
+Réalisé : `CasaEngine.Editor/Runtime/EditorViewport2dCameraController.cs` (+ `EditorViewport2dCameraState`), strictement parallèle au contrôleur ArcBall qui n'est pas touché. Zoom par crans entiers : `ZoomFromStep(step)` → `step >= 0` donne ×1, ×2, ×3… et `step < 0` donne ½, ⅓, ¼… ; crans bornés à `[-7, 31]` (1/8 → ×32). `ZoomAtCursor` conserve le point monde sous le curseur (`Target += offsetVue * (1/zoomAvant − 1/zoomAprès)`, Y écran inversé). Pan au drag clic milieu (`Target -= delta / Zoom`, Y inversé) ; le delta n'est appliqué qu'à partir de la deuxième frame du drag pour éviter un saut au clic. `CaptureState`/`RestoreState`/`SetState`/`Focus` comme l'ArcBall. Tests : `CasaEngine.Tests/Editor/EditorViewport2dCameraControllerTests.cs` (16 cas : table des crans, bornes, invariance du point sous le curseur, pan, aller-retour capture/restore, conversion delta molette → crans), sans GraphicsDevice.
 
 ### ⏳ E2 — Bascule 2D/3D par viewport
 
@@ -234,5 +236,5 @@ Done : doc écrite, index à jour, commit.
 | B — Politique pixel-perfect | 🧪 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 : ligne overlay en place, reste la vérification visuelle. |
 | C — TileMap 3D | 🧪 | C1, C2, C4 ✅. C3 : démo `TileMap3dDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
 | D — TileMapSurfaceComponent | 🧪 | D1, D2 ✅. D3 : démo `TileMapSurfaceScreenDemo` en place et enregistrée, reste la validation visuelle (lancement des démos impossible dans l'environnement de l'agent). |
-| E — Viewport 2D éditeur | ⏳ | |
+| E — Viewport 2D éditeur | 🚧 | E1 ✅ (`EditorViewport2dCameraController` + tests). |
 | F — Documentation | ⏳ | |
