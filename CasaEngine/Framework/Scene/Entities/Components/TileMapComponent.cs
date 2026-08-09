@@ -35,6 +35,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private IPhysicsWorld _physicsWorldContext;
     private SpriteRendererComponent _spriteRendererComponent;
     private Texture2D _tileSetTexture;
+    private BoundingFrustum _cullingFrustum;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -355,6 +356,17 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var tileWidth = (float)TileSetData.TileSize.Width;
         var tileHeight = (float)TileSetData.TileSize.Height;
 
+        // The plane based visible tile range is only valid for an axis-aligned map: with a rotation
+        // the map is culled chunk by chunk against the view frustum, built once per draw.
+        var currentRenderFrame = Owner.World.CurrentRenderFrame;
+        BoundingFrustum cullingFrustum = null;
+        if (currentRenderFrame.HasValue)
+        {
+            _cullingFrustum ??= new BoundingFrustum(Matrix.Identity);
+            _cullingFrustum.Matrix = currentRenderFrame.Value.ViewProjection;
+            cullingFrustum = _cullingFrustum;
+        }
+
         for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
         {
             var layer = Layers[layerIndex];
@@ -369,9 +381,14 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             for (var chunkIndex = 0; chunkIndex < layer.Chunks.Count; chunkIndex++)
             {
                 var chunk = layer.Chunks[chunkIndex];
+                chunk.UpdateWorldBounds(0f, 0f, tileWidth, tileHeight, layerZ, layerZ, in worldMatrix);
+
+                if (cullingFrustum != null && !cullingFrustum.Intersects(chunk.WorldBounds))
+                {
+                    continue;
+                }
 
                 LastVisitedChunkCount++;
-                chunk.UpdateWorldBounds(0f, 0f, tileWidth, tileHeight, layerZ, layerZ, in worldMatrix);
 
                 var staticBatchDrawn = TryDrawStaticChunkBatch(layer, chunk, in staticBatchWorld);
                 if (staticBatchDrawn && !chunk.ContainsDynamicTiles)
@@ -414,7 +431,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// Returns true when the world matrix is a pure scale + translation (no rotation, no shear),
     /// which is the condition for the axis-aligned tile map draw and culling fast path.
     /// </summary>
-    private static bool IsAxisAlignedWorldMatrix(in Matrix world)
+    internal static bool IsAxisAlignedWorldMatrix(in Matrix world)
     {
         var scaleMagnitude = Math.Max(
             Math.Abs(world.M11),

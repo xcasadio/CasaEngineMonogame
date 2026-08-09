@@ -95,7 +95,7 @@ Done : build + tests TileMap existants verts ; nouveaux tests sur la constructio
 
 Réalisé : `TileMapComponent.Draw` teste **une fois par draw** si `WorldMatrixWithScale` est une pure échelle+translation (`IsAxisAlignedWorldMatrix`, 6 comparaisons sur les termes hors-diagonale) ; si oui le chemin existant est exécuté à l'identique. Sinon `DrawWithWorldMatrix` dessine les quads en espace local transformés par la matrice monde complète (`Tile.Draw(..., in Matrix)` + surcharge additive `SpriteRendererComponent.DrawSprite(..., in Matrix worldTransform)`). Le chemin statique reçoit désormais sa matrice monde du dispatcher (calculée une fois par layer au lieu d'une fois par chunk).
 
-### ⏳ C2 — Culling fallback par chunk quand rotation ≠ identité
+### ✅ C2 — Culling fallback par chunk quand rotation ≠ identité
 
 `TryGetVisibleTileRange` (unproject vers plan Z) n'est valide que sans rotation :
 
@@ -103,6 +103,8 @@ Réalisé : `TileMapComponent.Draw` teste **une fois par draw** si `WorldMatrixW
 - rotation ≠ identité → ne pas utiliser la plage plane ; culler chunk par chunk via leur `BoundingBox` monde (transformée par la matrice complète) contre `BoundingFrustum(frame.ViewProjection)`. Réutiliser/étendre `chunk.UpdateWorldBounds` ; le `BoundingFrustum` doit être mis en cache par draw (pas d'allocation par chunk).
 
 Done : build + tests verts ; test unitaire de la logique de sélection (identité → plage plane, rotation → frustum).
+
+Réalisé : `TileMapChunk.UpdateWorldBounds(..., in Matrix world)` (surcharge additive, bounds locales transformées par les 8 coins, sans allocation) ; `TileMapComponent` garde une instance `BoundingFrustum` réutilisée dont la `Matrix` est réaffectée une fois par draw. Tests : `CasaEngine.Tests/TileMap/TileMapCullingSelectionTests.cs`.
 
 ### ⏳ C3 — Démo `TileMap3dDemo`
 
