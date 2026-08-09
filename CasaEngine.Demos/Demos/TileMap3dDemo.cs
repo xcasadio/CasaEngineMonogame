@@ -65,18 +65,22 @@ public class TileMap3dDemo : Demo
     // negative distance, which mirrors the resulting camera in Z whenever the target is not the origin.
     // With Target / Yaw / Pitch / Distance the placement is unambiguous:
     //   position = Target + (-sin(Yaw) * cos(Pitch), -sin(Pitch), cos(Yaw) * cos(Pitch)) * Distance
+    // Distance must stay negative: that is the sign SetCamera stores everywhere else in the engine, and
+    // OrbitUp derives the vertical motion from it, so a positive distance inverts the vertical orbit
+    // control compared to every other demo (the horizontal one is unaffected).
     // Values below verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
     //   real camera position = (34.686, 42.360, 50.701)
     //   ground: normal (0,1,0), dot(normal, center->camera) = 0.568, frustum = Contains, center at (960, 676) px
     //   wall  : normal (1,0,0), dot(normal, center->camera) = 0.694, frustum = Contains, center at (645, 437) px
-    //   every corner of both maps projects inside [0,1920]x[0,1080].
+    //   every corner of both maps projects inside [0,1920]x[0,1080];
+    //   OrbitUp(+0.1) lowers the camera by 6.30 units, same direction as a SetCamera configured demo.
     public override void InitializeCamera(CameraComponent camera)
     {
         var arcBall = (ArcBallCameraComponent)camera;
         arcBall.Target = new Vector3(0f, MapHeight / 2f, 0f);
-        arcBall.Yaw = -0.6f;
-        arcBall.Pitch = -0.5f;
-        arcBall.Distance = 70f;
+        arcBall.Yaw = MathHelper.Pi - 0.6f;
+        arcBall.Pitch = 0.5f;
+        arcBall.Distance = -70f;
     }
 
     public override void Update(GameTime gameTime)

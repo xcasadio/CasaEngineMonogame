@@ -104,6 +104,9 @@ public sealed class TileMapSurfaceScreenDemo : Demo
     // the target is not the origin — the screen quad then ends up out of frame. With
     // Target / Yaw / Pitch / Distance the placement is unambiguous:
     //   position = Target + (-sin(Yaw) * cos(Pitch), -sin(Pitch), cos(Yaw) * cos(Pitch)) * Distance
+    // Distance must stay negative: that is the sign SetCamera stores everywhere else in the engine, and
+    // OrbitUp derives the vertical motion from it, so a positive distance inverts the vertical orbit
+    // control compared to every other demo (the horizontal one is unaffected).
     // Values below verified numerically at 1920x1080 (FOV = PI/4, near 1, far 1000):
     //   real camera position = (0, 5.487, 12.687)
     //   screen: normal (0,0,1), dot(normal, center->camera) = 0.976, frustum = Contains,
@@ -114,9 +117,9 @@ public sealed class TileMapSurfaceScreenDemo : Demo
     {
         var arcBall = (ArcBallCameraComponent)camera;
         arcBall.Target = ScreenCenter;
-        arcBall.Yaw = 0.0f;
-        arcBall.Pitch = -0.22f;
-        arcBall.Distance = 13.0f;
+        arcBall.Yaw = MathHelper.Pi;
+        arcBall.Pitch = 0.22f;
+        arcBall.Distance = -13.0f;
     }
 
     public override void Update(GameTime gameTime)
