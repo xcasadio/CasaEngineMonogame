@@ -106,11 +106,13 @@ Done : build + tests verts ; test unitaire de la logique de sélection (identit�
 
 Réalisé : `TileMapChunk.UpdateWorldBounds(..., in Matrix world)` (surcharge additive, bounds locales transformées par les 8 coins, sans allocation) ; `TileMapComponent` garde une instance `BoundingFrustum` réutilisée dont la `Matrix` est réaffectée une fois par draw. Tests : `CasaEngine.Tests/TileMap/TileMapCullingSelectionTests.cs`.
 
-### ⏳ C3 — Démo `TileMap3dDemo`
+### 🧪 C3 — Démo `TileMap3dDemo`
 
 Nouvelle démo dans `CasaEngine.Demos` (suivre le modèle des démos existantes, l'enregistrer là où les démos sont listées) : une tilemap au sol (rotation −90° sur X), une tilemap murale verticale, caméra perspective libre (`ArcBallCameraComponent` ou équivalent utilisé par les démos 3D).
 
 Done : build vert. 🧪 restant : validation visuelle (culling correct en orbitant, pas de tiles manquantes/fantômes).
+
+Réalisé : `CasaEngine.Demos/Demos/TileMap3dDemo.cs` (`map_1_1` posée deux fois : sol rotation −90° X, mur rotation −90° Y, échelle 0.05 pour rester à l'échelle métrique des démos 3D), enregistrée dans `DemosGame.LoadContentPrivate`, caméra `ArcBallCameraComponent` par défaut. La validation visuelle n'a pas pu être faite dans l'environnement de l'agent : le lancement de `CasaEngine.Demos` échoue avant tout rendu sur `FileNotFoundException: FontStashSharp.MonoGame, Version=1.5.6.0` (problème d'environnement préexistant, indépendant de ce chantier). À vérifier en orbitant : sol et mur correctement orientés, pas de tiles manquantes en bordure de frustum. Note : les collisions tilemap sont toujours générées en XY sans tenir compte de la rotation (comportement préexistant, hors périmètre) — le debug physique de la démo peut donc afficher des boîtes non alignées avec le rendu.
 
 ### ⏳ C4 — Vérification perf du fast path
 
