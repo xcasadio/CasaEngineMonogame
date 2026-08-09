@@ -66,7 +66,7 @@ Point de vigilance (verifier) : le cadrage X/Y est équivalent mais la fenêtre 
 
 ## Phase B — Politique pixel-perfect
 
-### ⏳ B1 — Diagnostic de dégradation pixel-perfect
+### ✅ B1 — Diagnostic de dégradation pixel-perfect
 
 Quand une `RenderView` utilise une `Camera2dComponent` avec `PixelSnap` actif **et** que `ResolutionScale != 1` ou que `Zoom` n'est pas entier : logger un avertissement **une seule fois par vue** (pas par frame — garder un flag sur la vue ou un HashSet côté diagnostic). Emplacement suggéré : `RenderPipeline` au moment d'`ApplyResolutionScale`, ou `RenderFrameFactory`.
 
@@ -197,7 +197,7 @@ Done : doc écrite, index à jour, commit.
 | Phase | Statut | Notes |
 | --- | --- | --- |
 | A — Camera2dComponent | 🧪 | A1 + A2 ✅. A3 : code en place, reste la validation visuelle de `TileMapDemo`. |
-| B — Politique pixel-perfect | ⏳ | |
+| B — Politique pixel-perfect | 🚧 | B1 ✅ (`PixelPerfectDiagnostics` + avertissement une fois par vue + tests). B2 à faire. |
 | C — TileMap 3D | ⏳ | |
 | D — TileMapSurfaceComponent | ⏳ | |
 | E — Viewport 2D éditeur | ⏳ | |

@@ -126,6 +126,7 @@ public sealed class RenderPipeline
             }
 
             ApplyResolutionScale(view);
+            PixelPerfectDiagnostics.WarnOnce(view);
 
             // Shadow settings are needed before surface setup to decide whether to redirect
             // scene rendering through an intermediate RenderTarget2D (sceneRt).
