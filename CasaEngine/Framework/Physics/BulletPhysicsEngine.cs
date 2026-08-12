@@ -8,7 +8,12 @@ namespace CasaEngine.Framework.Physics;
 
 public class BulletPhysicsEngine
 {
-    const CollisionFilterGroups DefaultGroup = CollisionFilterGroups.DefaultFilter;
+    /// <summary>
+    /// Filter group of a world query: a query belongs to every channel, only its mask selects what it hits.
+    /// </summary>
+    const CollisionFilterGroups QueryGroup = (CollisionFilterGroups)unchecked((int)ChannelMask.All);
+
+    private readonly CollisionProfileTable _collisionProfiles;
 
     private DiscreteDynamicsWorld World { get; }
 
@@ -126,6 +131,7 @@ public class BulletPhysicsEngine
     {
         MaxSubSteps = configuration.MaxSubSteps;
         FixedTimeStep = configuration.FixedTimeStep;
+        _collisionProfiles = configuration.CollisionProfiles;
 
         _collisionConfiguration = new DefaultCollisionConfiguration();
         _dispatcher = new CollisionDispatcher(_collisionConfiguration);
@@ -188,14 +194,14 @@ public class BulletPhysicsEngine
         }
     }
 
-    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
     {
-        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
+        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, collisionProfileId, color);
         AddCollisionObject(physicsBody);
         return physicsBody;
     }
 
-    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, Color? color = null)
+    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, int collisionProfileId, Color? color = null)
     {
         var nativeShape = CreateCollisionShape(collisionShape, collisionShape.LocalScaling);
         var ghostObject = new PairCachingGhostObject
@@ -204,6 +210,8 @@ public class BulletPhysicsEngine
             UserObject = collideableComponent,
             WorldTransform = worldMatrix
         };
+
+        //A ghost object never pushes anything back, whatever its profile blocks.
         ghostObject.CollisionFlags |= CollisionFlags.NoContactResponse;
 
         if (color.HasValue)
@@ -211,7 +219,7 @@ public class BulletPhysicsEngine
             ghostObject.SetCustomDebugColor(color.Value.ToVector3());
         }
 
-        return new PhysicsBody(new BulletPhysicsBodyBackend(this, ghostObject, nativeShape));
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, ghostObject, nativeShape), _collisionProfiles.GetResolved(collisionProfileId));
     }
 
     public PhysicsBody AddRigidBody(PhysicsShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, bool useExternalViewManagement)
@@ -252,19 +260,25 @@ public class BulletPhysicsEngine
             body.CollisionFlags |= CollisionFlags.StaticObject;
         }
 
+        var collisionProfile = _collisionProfiles.GetResolved(_collisionProfiles.ResolveProfileId(physicsDefinition));
+        if (collisionProfile.IsSensor)
+        {
+            body.CollisionFlags |= CollisionFlags.NoContactResponse;
+        }
+
         if (physicsDefinition.DebugColor.HasValue)
         {
             body.SetCustomDebugColor(physicsDefinition.DebugColor.Value.ToVector3());
         }
 
-        World?.AddRigidBody(body);
+        World?.AddRigidBody(body, ToBulletFilter(collisionProfile.GroupBit), ToBulletFilter(collisionProfile.BroadphaseMask));
 
         if (physicsDefinition.ApplyGravity is false)
         {
             body.Gravity = Vector3.Zero;
         }
 
-        return new PhysicsBody(new BulletPhysicsBodyBackend(this, body, nativeShape));
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, body, nativeShape), collisionProfile);
     }
 
     public void AddCollisionObject(PhysicsBody physicsBody)
@@ -272,7 +286,8 @@ public class BulletPhysicsEngine
         var collisionObject = GetCollisionObject(physicsBody);
         if (!_collisionWorld.CollisionObjectArray.Contains(collisionObject))
         {
-            _collisionWorld.AddCollisionObject(collisionObject);
+            var collisionProfile = physicsBody.CollisionProfile;
+            _collisionWorld.AddCollisionObject(collisionObject, ToBulletFilter(collisionProfile.GroupBit), ToBulletFilter(collisionProfile.BroadphaseMask));
         }
     }
 
@@ -289,7 +304,8 @@ public class BulletPhysicsEngine
     {
         if (GetCollisionObject(physicsBody) is RigidBody rigidBody)
         {
-            World?.AddRigidBody(rigidBody);
+            var collisionProfile = physicsBody.CollisionProfile;
+            World?.AddRigidBody(rigidBody, ToBulletFilter(collisionProfile.GroupBit), ToBulletFilter(collisionProfile.BroadphaseMask));
         }
     }
 
@@ -324,9 +340,9 @@ public class BulletPhysicsEngine
         World.DebugDrawWorld();
     }
 
-    private static CollisionFilterGroups ToBulletFilter(PhysicsCollisionFilterGroups filterGroups)
+    private static CollisionFilterGroups ToBulletFilter(uint channelMask)
     {
-        return (CollisionFilterGroups)(int)filterGroups;
+        return (CollisionFilterGroups)unchecked((int)channelMask);
     }
 
     private static CollisionShape CreateCollisionShape(PhysicsShape shape, Vector3 localScaling)
@@ -974,13 +990,12 @@ public class BulletPhysicsEngine
     /// </summary>
     /// <param name="from">The starting point of this raycast</param>
     /// <param name="to">The end point of this raycast</param>
-    /// <param name="filterGroup">The collision group of this raycast</param>
-    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="channelMask">The collision channels this raycast can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <returns>The result of this test</returns>
-    public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    public HitResult Raycast(Vector3 from, Vector3 to, uint channelMask = ChannelMask.All, bool hitTriggers = false)
     {
-        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, channelMask);
         _collisionWorld.RayTest(from, to, callback);
         return callback.Result;
     }
@@ -991,13 +1006,12 @@ public class BulletPhysicsEngine
     /// <param name="from">The starting point of this raycast</param>
     /// <param name="to">The end point of this raycast</param>
     /// <param name="result">Information about this test</param>
-    /// <param name="filterGroup">The collision group of this raycast</param>
-    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="channelMask">The collision channels this raycast can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <returns>True if the test collided with an object in the simulation</returns>
-    public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    public bool Raycast(Vector3 from, Vector3 to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false)
     {
-        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, filterGroup, filterFlags);
+        var callback = StrideClosestRayResultCallback.Shared(ref from, ref to, hitTriggers, channelMask);
         _collisionWorld.RayTest(from, to, callback);
         result = callback.Result;
         return result.Succeeded;
@@ -1005,17 +1019,16 @@ public class BulletPhysicsEngine
 
     /// <summary>
     /// Raycasts penetrating any shape the ray encounters.
-    /// Filtering by CollisionGroup
+    /// Filtering by collision channel
     /// </summary>
     /// <param name="from">The starting point of this raycast</param>
     /// <param name="to">The end point of this raycast</param>
     /// <param name="resultsOutput">The collection to add intersections to</param>
-    /// <param name="filterGroup">The collision group of this raycast</param>
-    /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+    /// <param name="channelMask">The collision channels this raycast can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
-    public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterFlags = DefaultGroup, bool hitTriggers = false)
+    public void RaycastPenetrating(Vector3 from, Vector3 to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false)
     {
-        var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, filterGroup, filterFlags);
+        var callback = StrideAllHitsRayResultCallback.Shared(ref from, ref to, hitTriggers, resultsOutput, channelMask);
         _collisionWorld.RayTest(from, to, callback);
     }
 
@@ -1025,12 +1038,11 @@ public class BulletPhysicsEngine
     /// <param name="shape">The shape used when testing collisions with colliders in the simulation</param>
     /// <param name="from">The starting point of this sweep</param>
     /// <param name="to">The end point of this sweep</param>
-    /// <param name="filterGroup">The collision group of this shape sweep</param>
-    /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
+    /// <param name="channelMask">The collision channels this shape sweep can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
     /// <returns>The result of this test</returns>
-    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
 
@@ -1040,14 +1052,14 @@ public class BulletPhysicsEngine
             throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
         }
 
-        var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, ToBulletFilter(filterGroup), ToBulletFilter(filterFlags), ignoredComponent);
+        var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, channelMask, ignoredComponent);
         _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
         return callback.Result;
     }
 
-    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
-        result = ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        result = ShapeSweep(shape, from, to, channelMask, hitTriggers, ignoredComponent);
         return result.Succeeded;
     }
 
@@ -1058,11 +1070,10 @@ public class BulletPhysicsEngine
     /// <param name="from">The starting point of this sweep</param>
     /// <param name="to">The end point of this sweep</param>
     /// <param name="resultsOutput">The collection to add hit results to</param>
-    /// <param name="filterGroup">The collision group of this shape sweep</param>
-    /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
+    /// <param name="channelMask">The collision channels this shape sweep can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
         ArgumentNullException.ThrowIfNull(resultsOutput);
@@ -1073,7 +1084,7 @@ public class BulletPhysicsEngine
             throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
         }
 
-        var callback = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, ToBulletFilter(filterGroup), ToBulletFilter(filterFlags), ignoredComponent);
+        var callback = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, channelMask, ignoredComponent);
         _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
     }
 
@@ -1179,11 +1190,11 @@ public class BulletPhysicsEngine
             return convexResult.HitFraction;
         }
 
-        public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
+        public static StrideAllHitsConvexResultCallback Shared(ICollection<HitResult> buffer, bool hitTriggers, uint channelMask, ICollideableComponent ignoredComponent = null)
         {
             _shared ??= new StrideAllHitsConvexResultCallback();
             _shared._resultsList = buffer;
-            _shared.Recycle(hitTriggers, filterGroup, filterMask, ignoredComponent);
+            _shared.Recycle(hitTriggers, channelMask, ignoredComponent);
             return _shared;
         }
     }
@@ -1215,16 +1226,16 @@ public class BulletPhysicsEngine
             return fraction;
         }
 
-        protected override void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroups filterMask = (CollisionFilterGroups)(-1), ICollideableComponent ignoredComponent = null)
+        protected override void Recycle(bool hitNoContResp, uint channelMask, ICollideableComponent ignoredComponent = null)
         {
-            base.Recycle(hitNoContResp, filterGroup, filterMask, ignoredComponent);
+            base.Recycle(hitNoContResp, channelMask, ignoredComponent);
             _closestHit = default;
         }
 
-        public static StrideClosestConvexResultCallback Shared(bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
+        public static StrideClosestConvexResultCallback Shared(bool hitTriggers, uint channelMask, ICollideableComponent ignoredComponent = null)
         {
             _shared ??= new StrideClosestConvexResultCallback();
-            _shared.Recycle(hitTriggers, filterGroup, filterMask, ignoredComponent);
+            _shared.Recycle(hitTriggers, channelMask, ignoredComponent);
             return _shared;
         }
     }
@@ -1242,11 +1253,11 @@ public class BulletPhysicsEngine
             return rayResult.HitFraction;
         }
 
-        public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        public static StrideAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, ICollection<HitResult> buffer, uint channelMask)
         {
             _shared ??= new StrideAllHitsRayResultCallback();
             _shared._resultsList = buffer;
-            _shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            _shared.Recycle(ref from, ref to, hitTriggers, channelMask);
             return _shared;
         }
     }
@@ -1276,16 +1287,16 @@ public class BulletPhysicsEngine
             return fraction;
         }
 
-        protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        protected override void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, uint channelMask)
         {
-            base.Recycle(ref from, ref to, hitNoContResp, filterGroup, filterMask);
+            base.Recycle(ref from, ref to, hitNoContResp, channelMask);
             _closestHit = default;
         }
 
-        public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        public static StrideClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, bool hitTriggers, uint channelMask)
         {
             _shared ??= new StrideClosestRayResultCallback();
-            _shared.Recycle(ref from, ref to, hitTriggers, filterGroup, filterMask);
+            _shared.Recycle(ref from, ref to, hitTriggers, channelMask);
             return _shared;
         }
     }
@@ -1326,14 +1337,14 @@ public class BulletPhysicsEngine
             };
         }
 
-        protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup)
+        protected virtual void Recycle(ref Vector3 from, ref Vector3 to, bool hitNoContResp, uint channelMask)
         {
             _rayFromWorld = from;
             _rayToWorld = to;
             ClosestHitFraction = float.PositiveInfinity;
             Flags = 0;
-            CollisionFilterGroup = filterGroup;
-            CollisionFilterMask = filterMask;
+            CollisionFilterGroup = QueryGroup;
+            CollisionFilterMask = ToBulletFilter(channelMask);
             _hitNoContactResponseObjects = hitNoContResp;
         }
 
@@ -1385,11 +1396,11 @@ public class BulletPhysicsEngine
             };
         }
 
-        protected virtual void Recycle(bool hitNoContResp, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroups filterMask = DefaultGroup, ICollideableComponent ignoredComponent = null)
+        protected virtual void Recycle(bool hitNoContResp, uint channelMask, ICollideableComponent ignoredComponent = null)
         {
             ClosestHitFraction = float.PositiveInfinity;
-            CollisionFilterGroup = filterGroup;
-            CollisionFilterMask = filterMask;
+            CollisionFilterGroup = QueryGroup;
+            CollisionFilterMask = ToBulletFilter(channelMask);
             _hitNoContactResponseObjects = hitNoContResp;
             _ignoredComponent = ignoredComponent;
         }
@@ -1445,6 +1456,8 @@ public class BulletPhysicsEngine
         public CollisionObject CollisionObject { get; }
 
         public bool IsRigidBody => CollisionObject is RigidBody;
+
+        public bool HasContactResponse => (CollisionObject.CollisionFlags & CollisionFlags.NoContactResponse) == 0;
 
         public Matrix WorldTransform
         {

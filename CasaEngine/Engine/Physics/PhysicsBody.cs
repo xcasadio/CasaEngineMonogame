@@ -6,14 +6,25 @@ public sealed class PhysicsBody : IDisposable
 {
     private IPhysicsBodyBackend _backend;
 
-    internal PhysicsBody(IPhysicsBodyBackend backend)
+    internal PhysicsBody(IPhysicsBodyBackend backend, ResolvedCollisionProfile collisionProfile)
     {
         _backend = backend;
+        CollisionProfile = collisionProfile;
     }
 
     internal IPhysicsBodyBackend Backend => _backend ?? throw new ObjectDisposedException(nameof(PhysicsBody));
 
     public bool IsRigidBody => _backend?.IsRigidBody == true;
+
+    /// <summary>
+    /// Filtering data of this body, resolved from its collision profile when the body was created.
+    /// </summary>
+    public ResolvedCollisionProfile CollisionProfile { get; }
+
+    /// <summary>
+    /// False when the body only raises overlap events instead of pushing other bodies.
+    /// </summary>
+    public bool HasContactResponse => Backend.HasContactResponse;
 
     public Matrix WorldTransform
     {
@@ -47,6 +58,8 @@ public sealed class PhysicsBody : IDisposable
 internal interface IPhysicsBodyBackend : IDisposable
 {
     bool IsRigidBody { get; }
+
+    bool HasContactResponse { get; }
 
     Matrix WorldTransform { get; set; }
 

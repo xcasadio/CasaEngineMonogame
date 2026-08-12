@@ -27,7 +27,7 @@ public class PhysicsShapeSweepTests
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result);
 
         Assert.True(hit);
         Assert.True(result.Succeeded);
@@ -52,7 +52,7 @@ public class PhysicsShapeSweepTests
         Matrix from = Matrix.CreateTranslation(-3f, 3f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 3f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result);
 
         Assert.False(hit);
         Assert.False(result.Succeeded);
@@ -65,7 +65,7 @@ public class PhysicsShapeSweepTests
         using var triggerShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
         var triggerComponent = new TestCollideableComponent(PhysicsType.Kinetic);
         Matrix triggerTransform = Matrix.Identity;
-        using var triggerBody = physicsWorldContext.AddGhostObject(triggerShape, ref triggerTransform, triggerComponent);
+        using var triggerBody = physicsWorldContext.AddGhostObject(triggerShape, ref triggerTransform, triggerComponent, CollisionProfileIds.Trigger);
         using var sweepShape = PhysicsShape.CreateSphere(0.25f);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
@@ -98,7 +98,7 @@ public class PhysicsShapeSweepTests
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
 
-        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter, ignoredComponent: ignoredComponent);
+        bool hit = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, ignoredComponent: ignoredComponent);
 
         Assert.False(hit);
         Assert.False(result.Succeeded);

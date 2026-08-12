@@ -26,14 +26,14 @@ public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
         _physicsEngine.SendEvents();
     }
 
-    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
     {
-        return _physicsEngine.AddGhostObject(collisionShape, ref worldMatrix, collideableComponent, color);
+        return _physicsEngine.AddGhostObject(collisionShape, ref worldMatrix, collideableComponent, collisionProfileId, color);
     }
 
-    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, Color? color = null)
+    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, int collisionProfileId, Color? color = null)
     {
-        return _physicsEngine.CreateGhostObject(worldMatrix, collideableComponent, collisionShape, color);
+        return _physicsEngine.CreateGhostObject(worldMatrix, collideableComponent, collisionShape, collisionProfileId, color);
     }
 
     public PhysicsBody AddStaticObject(PhysicsShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
@@ -78,19 +78,19 @@ public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
         _physicsEngine.ClearCollisionDataOf(component);
     }
 
-    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
-        return _physicsEngine.ShapeSweep(shape, from, to, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        return _physicsEngine.ShapeSweep(shape, from, to, channelMask, hitTriggers, ignoredComponent);
     }
 
-    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
-        return _physicsEngine.ShapeSweep(shape, from, to, out result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        return _physicsEngine.ShapeSweep(shape, from, to, out result, channelMask, hitTriggers, ignoredComponent);
     }
 
-    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
-        _physicsEngine.ShapeSweepPenetrating(shape, from, to, resultsOutput, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+        _physicsEngine.ShapeSweepPenetrating(shape, from, to, resultsOutput, channelMask, hitTriggers, ignoredComponent);
     }
 
     public bool WorldRayCast(ref Vector3 start, ref Vector3 end, Vector3 dir)

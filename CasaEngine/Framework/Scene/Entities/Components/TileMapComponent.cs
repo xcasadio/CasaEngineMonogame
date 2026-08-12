@@ -776,7 +776,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
+            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
         }
         else
         {
@@ -819,7 +819,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager);
+            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
         }
         else
         {

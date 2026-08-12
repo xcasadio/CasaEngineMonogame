@@ -890,8 +890,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             from,
             to,
             out hitResult,
-            _settings.CollisionGroup,
-            _settings.CollisionMask,
+            _settings.GetSweepChannelMask(),
             _settings.HitTriggers,
             capsuleCollisionComponent);
     }

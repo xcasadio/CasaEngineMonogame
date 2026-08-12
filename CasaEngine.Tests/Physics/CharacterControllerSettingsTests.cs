@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -15,8 +16,10 @@ public class CharacterControllerSettingsTests
 
         settings.Validate();
 
-        Assert.Equal(PhysicsCollisionFilterGroups.DefaultFilter, settings.CollisionGroup);
-        Assert.Equal(PhysicsCollisionFilterGroups.AllFilter, settings.CollisionMask);
+        Assert.Equal(CollisionProfileNames.Pawn, settings.ProfileName);
+        Assert.Equal(
+            GameSettings.PhysicsEngineSettings.CollisionProfiles.GetResolved(CollisionProfileNames.Pawn).BlockMask,
+            settings.GetSweepChannelMask());
     }
 
     [Fact]
@@ -34,7 +37,7 @@ public class CharacterControllerSettingsTests
             ["dash_speed"] = 12f,
             ["dash_duration_seconds"] = 0.2f,
             ["dash_cooldown_seconds"] = 0.4f,
-            ["collision_mask"] = nameof(PhysicsCollisionFilterGroups.StaticFilter),
+            ["collision_profile"] = CollisionProfileNames.WorldDynamic,
             ["hit_triggers"] = true,
         };
 
@@ -50,7 +53,7 @@ public class CharacterControllerSettingsTests
         Assert.Equal(0.2f, settings.DashDurationSeconds);
         Assert.Equal(0.4f, settings.DashCooldownSeconds);
         Assert.Equal(30f, settings.Acceleration);
-        Assert.Equal(PhysicsCollisionFilterGroups.StaticFilter, settings.CollisionMask);
+        Assert.Equal(CollisionProfileNames.WorldDynamic, settings.ProfileName);
         Assert.True(settings.HitTriggers);
     }
 

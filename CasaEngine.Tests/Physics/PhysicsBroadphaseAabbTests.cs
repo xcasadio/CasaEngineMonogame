@@ -33,9 +33,9 @@ public class PhysicsBroadphaseAabbTests
         Matrix from = Matrix.CreateTranslation(8f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(12f, 0f, 0f);
 
-        bool hitBeforeRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out _, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
+        bool hitBeforeRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out _);
         physicsWorldContext.RefreshBodyAabb(rigidBody);
-        bool hitAfterRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result, filterFlags: PhysicsCollisionFilterGroups.AllFilter);
+        bool hitAfterRefresh = physicsWorldContext.ShapeSweep(sweepShape, from, to, out HitResult result);
 
         Assert.False(hitBeforeRefresh);
         Assert.True(hitAfterRefresh);

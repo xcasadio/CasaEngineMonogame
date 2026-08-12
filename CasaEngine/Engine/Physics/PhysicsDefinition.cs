@@ -27,6 +27,9 @@ public class PhysicsDefinition
     public bool ApplyGravity { get; set; } = true;
     public Color? DebugColor { get; set; }
 
+    /// Name of the collision profile of this body. When empty the profile is derived from <see cref="PhysicsType"/>.
+    public string ProfileName { get; set; }
+
     public PhysicsDefinition()
     {
 
@@ -53,6 +56,7 @@ public class PhysicsDefinition
         RollingFriction = other.RollingFriction;
         ApplyGravity = other.ApplyGravity;
         DebugColor = other.DebugColor;
+        ProfileName = other.ProfileName;
     }
 
     public void Load(JObject element)
@@ -75,6 +79,7 @@ public class PhysicsDefinition
         Restitution = element["restitution"].GetSingle();
         RollingFriction = element["rolling_friction"].GetSingle();
         ApplyGravity = element["apply_gravity"].GetBoolean();
+        ProfileName = element["collision_profile"]?.Value<string>();
 
         var debugColorElement = element["debug_color"];
         if (debugColorElement.GetString() != "null")

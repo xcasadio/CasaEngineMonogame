@@ -21,7 +21,7 @@ public static class Physics2dHelper
                 var rectangle = collisionShape.Shape as ShapeRectangle;
                 var box = PhysicsShape.CreateBox(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
                 box.LocalScaling = localScale;
-                return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, color);
+                return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, CollisionProfileIds.Trigger, color);
             //case Shape2dType.Circle:
             //    break;
             //case Shape2dType.Line:

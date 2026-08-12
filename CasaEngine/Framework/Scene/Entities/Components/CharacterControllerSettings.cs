@@ -1,10 +1,14 @@
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
 
 public sealed class CharacterControllerSettings
 {
+    private string _resolvedProfileName;
+    private uint _sweepChannelMask;
+
     public CharacterControllerSettings()
     {
     }
@@ -29,8 +33,7 @@ public sealed class CharacterControllerSettings
         MaxSlopeAngle = other.MaxSlopeAngle;
         GroundSnapDistance = other.GroundSnapDistance;
         StepHeight = other.StepHeight;
-        CollisionGroup = other.CollisionGroup;
-        CollisionMask = other.CollisionMask;
+        ProfileName = other.ProfileName;
         HitTriggers = other.HitTriggers;
     }
 
@@ -66,11 +69,25 @@ public sealed class CharacterControllerSettings
 
     public float StepHeight { get; set; }
 
-    public PhysicsCollisionFilterGroups CollisionGroup { get; set; } = PhysicsCollisionFilterGroups.DefaultFilter;
-
-    public PhysicsCollisionFilterGroups CollisionMask { get; set; } = PhysicsCollisionFilterGroups.AllFilter;
+    /// Collision profile of the character. Its blocked channels drive the ground and step sweeps.
+    public string ProfileName { get; set; } = CollisionProfileNames.Pawn;
 
     public bool HitTriggers { get; set; }
+
+    /// <summary>
+    /// Channels the character sweeps against: what its own collision profile blocks.
+    /// Resolved once per profile name, never looked up again while the name does not change.
+    /// </summary>
+    public uint GetSweepChannelMask()
+    {
+        if (!ReferenceEquals(_resolvedProfileName, ProfileName))
+        {
+            _sweepChannelMask = GameSettings.PhysicsEngineSettings.CollisionProfiles.GetResolved(ProfileName).BlockMask;
+            _resolvedProfileName = ProfileName;
+        }
+
+        return _sweepChannelMask;
+    }
 
     public CharacterControllerSettings Clone()
     {
@@ -97,8 +114,7 @@ public sealed class CharacterControllerSettings
         MaxSlopeAngle = ReadSingle(element, "max_slope_angle", MaxSlopeAngle);
         GroundSnapDistance = ReadSingle(element, "ground_snap_distance", GroundSnapDistance);
         StepHeight = ReadSingle(element, "step_height", StepHeight);
-        CollisionGroup = ReadEnum(element, "collision_group", CollisionGroup);
-        CollisionMask = ReadEnum(element, "collision_mask", CollisionMask);
+        ProfileName = element["collision_profile"]?.Value<string>() ?? ProfileName;
         HitTriggers = ReadBoolean(element, "hit_triggers", HitTriggers);
 
         Validate();
@@ -160,6 +176,11 @@ public sealed class CharacterControllerSettings
         {
             throw new InvalidOperationException("Character controller step height cannot be negative.");
         }
+
+        if (string.IsNullOrEmpty(ProfileName))
+        {
+            throw new InvalidOperationException("Character controller collision profile name cannot be empty.");
+        }
     }
 
     private static float ReadSingle(JObject element, string propertyName, float defaultValue)
@@ -170,11 +191,5 @@ public sealed class CharacterControllerSettings
     private static bool ReadBoolean(JObject element, string propertyName, bool defaultValue)
     {
         return element[propertyName]?.Value<bool>() ?? defaultValue;
-    }
-
-    private static T ReadEnum<T>(JObject element, string propertyName, T defaultValue) where T : struct
-    {
-        var token = element[propertyName];
-        return token == null ? defaultValue : Enum.Parse<T>(token.Value<string>()!, ignoreCase: true);
     }
 }

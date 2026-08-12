@@ -519,9 +519,10 @@ internal static class EditorEntityJsonSerializer
         node.Add("skinned_mesh_id", component.SkinnedMesh?.RiggedModelAssetId ?? Guid.Empty);
     }
 
-    private static void SavePhysicsDefinition(PhysicsDefinition definition, JObject node)
+    internal static void SavePhysicsDefinition(PhysicsDefinition definition, JObject node)
     {
         node.Add("physics_type", definition.PhysicsType.ConvertToString());
+        node.Add("collision_profile", definition.ProfileName);
         node.Add("additional_angular_damping_factor", definition.AdditionalAngularDampingFactor);
         node.Add("additional_angular_damping_threshold_sqr", definition.AdditionalAngularDampingThresholdSqr);
         node.Add("additional_damping", definition.AdditionalDamping);

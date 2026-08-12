@@ -1,4 +1,5 @@
 using CasaEngine.Engine.Physics;
+using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
@@ -191,7 +192,8 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
                 _collisionObject = PhysicsWorld.AddStaticObject(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
                 break;
             case PhysicsType.Kinetic:
-                _collisionObject = PhysicsWorld.AddGhostObject(collisionShape, ref worldMatrix, this);
+                var collisionProfileId = GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(PhysicsDefinition);
+                _collisionObject = PhysicsWorld.AddGhostObject(collisionShape, ref worldMatrix, this, collisionProfileId);
                 break;
             default:
                 _rigidBody = PhysicsWorld.AddRigidBody(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);

@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -744,12 +744,12 @@ public class CharacterControllerComponentTests
         {
         }
 
-        public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, Color? color = null)
+        public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, Color? color = null)
+        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, int collisionProfileId, Color? color = null)
         {
             throw new NotSupportedException();
         }
@@ -794,13 +794,13 @@ public class CharacterControllerComponentTests
             throw new NotSupportedException();
         }
 
-        public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
-            ShapeSweep(shape, from, to, out var result, filterGroup, filterFlags, hitTriggers, ignoredComponent);
+            ShapeSweep(shape, from, to, out var result, channelMask, hitTriggers, ignoredComponent);
             return result;
         }
 
-        public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             if (ShapeSweepHandler != null)
             {
@@ -832,7 +832,7 @@ public class CharacterControllerComponentTests
             return false;
         }
 
-        public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, PhysicsCollisionFilterGroups filterGroup = PhysicsCollisionFilterGroups.DefaultFilter, PhysicsCollisionFilterGroups filterFlags = PhysicsCollisionFilterGroups.DefaultFilter, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             throw new NotSupportedException();
         }
