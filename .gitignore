@@ -52,3 +52,6 @@ Thumbs.db
 ######################################################################
 Projects/RPGDemo/*.dll
 Projects/RPGDemo/*.pdb
+
+# Test results
+CasaEngine.Tests/TestResults/
