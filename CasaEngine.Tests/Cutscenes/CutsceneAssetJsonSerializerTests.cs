@@ -11,6 +11,7 @@ using Xunit;
 
 namespace CasaEngine.Tests.Cutscenes;
 
+[Collection(ProjectEnvironmentCollection.Name)]
 public sealed class CutsceneAssetJsonSerializerTests
 {
     [Fact]

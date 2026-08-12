@@ -11,6 +11,7 @@ using Xunit;
 
 namespace CasaEngine.Tests.Dialogue;
 
+[Collection(ProjectEnvironmentCollection.Name)]
 public sealed class DialogueAssetJsonSerializerTests
 {
     [Fact]

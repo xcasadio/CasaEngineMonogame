@@ -12,6 +12,7 @@ using Xunit;
 
 namespace CasaEngine.Tests.Particles;
 
+[Collection(ProjectEnvironmentCollection.Name)]
 public class ParticleEffectAssetJsonSerializerTests
 {
     private static readonly Guid SampleProjectSmokePuffAssetId = Guid.Parse("4cbd68f9-ad8e-4f5f-9ad7-8a0c85a1da61");
