@@ -426,7 +426,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
                 break;
             case Shape2dType.Rectangle:
                 var rectangle = collision2d.Shape as ShapeRectangle;
-                DrawRectangle(position.X + collision2d.LocalPosition.X * scale.X, position.Y + collision2d.LocalPosition.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
+                DrawRectangle(position.X + collision2d.LocalPosition.X * scale.X, position.Y + collision2d.LocalPosition.Y * scale.Y, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
                 break;
             case Shape2dType.Circle:
                 break;
