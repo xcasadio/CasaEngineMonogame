@@ -51,7 +51,7 @@ public class Character
     private Weapon _weapon;
     private float _delayBeforeNewAttack;
 
-    private Physics2dComponent _physics2dComponent;
+    private CollisionComponent _collisionComponent;
 
     public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
@@ -92,7 +92,7 @@ public class Character
 
     public void Initialize(World world)
     {
-        _physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        _collisionComponent = Owner.GetComponent<CollisionComponent>();
         AnimatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
     }
 
@@ -132,19 +132,19 @@ public class Character
         {
             //always when Vector2.Zero to stop movement
             //else if contact the character will continue to move
-            _physics2dComponent.Velocity = dir.ToVector3();
+            _collisionComponent.Velocity = dir.ToVector3();
             return;
         }
 
         var maxVelocity = 120f;
-        _physics2dComponent.Velocity = dir.ToVector3() * maxVelocity;
-        //_physics2dComponent.ApplyImpulse(dir.ToVector3() * maxVelocity, Vector3.Zero);
+        _collisionComponent.Velocity = dir.ToVector3() * maxVelocity;
+        //_collisionComponent.ApplyImpulse(dir.ToVector3() * maxVelocity, Vector3.Zero);
         //
-        //if (_physics2dComponent.Velocity.Length() > 120.0f)
+        //if (_collisionComponent.Velocity.Length() > 120.0f)
         //{
-        //    var velocity = _physics2dComponent.Velocity;
+        //    var velocity = _collisionComponent.Velocity;
         //    velocity.Normalize();
-        //    _physics2dComponent.Velocity = velocity * maxVelocity;
+        //    _collisionComponent.Velocity = velocity * maxVelocity;
         //}
 
         //m_MovementDirection = dir_ * m_Spd * 10f;
@@ -153,7 +153,7 @@ public class Character
     private void MoveCharacter(float elapsedTime)
     {
         //m_MovementDirection = m_MovementDirection * elapsedTime_;
-        //_physics2dComponent.ApplyImpulse(ref m_MovementDirection);
+        //_collisionComponent.ApplyImpulse(ref m_MovementDirection);
     }
 
     public void SetAnimationParameters(int numberOfDirectionAnimation, int animationDirectionMask)
@@ -225,9 +225,9 @@ public class Character
             if (opponentGamePlayComponent.GameplayProxy is IScriptCharacter opponentScriptCharacter
                 && !IsDead)
             {
-                var physics2dComponent = opponentScriptCharacter.Character.Owner.GetComponent<Physics2dComponent>();
+                var collisionComponent = opponentScriptCharacter.Character.Owner.GetComponent<CollisionComponent>();
                 var impulse = Vector3.UnitX * 300f; //Vector3.Normalize(hitParameters.Entity.Coordinates.WorldMatrix.Forward) * -100f;
-                physics2dComponent.ApplyImpulse(impulse, Vector3.Zero);
+                collisionComponent.ApplyImpulse(impulse, Vector3.Zero);
 
                 int attackValue = opponentScriptCharacter.Character.Strength - Defense;
                 attackValue = attackValue < 0 ? 0 : attackValue;

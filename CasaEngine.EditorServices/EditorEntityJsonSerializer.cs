@@ -1,10 +1,10 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.ComponentModel;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
@@ -175,14 +175,6 @@ internal static class EditorEntityJsonSerializer
                 SaveAnimatedSpriteComponent(animatedSpriteComponent, node);
                 return;
 
-            case Box2dCollisionComponent box2dCollisionComponent:
-                SaveBox2dCollisionComponent(box2dCollisionComponent, node);
-                return;
-
-            case BoxCollisionComponent boxCollisionComponent:
-                SaveBoxCollisionComponent(boxCollisionComponent, node);
-                return;
-
             case Camera2dComponent camera2dComponent:
                 SaveCamera2dComponent(camera2dComponent, node);
                 return;
@@ -195,16 +187,8 @@ internal static class EditorEntityJsonSerializer
                 SaveCameraComponent(cameraComponent, node);
                 return;
 
-            case CapsuleCollisionComponent capsuleCollisionComponent:
-                SaveCapsuleCollisionComponent(capsuleCollisionComponent, node);
-                return;
-
-            case CircleCollisionComponent circleCollisionComponent:
-                SaveCircleCollisionComponent(circleCollisionComponent, node);
-                return;
-
-            case CylinderCollisionComponent cylinderCollisionComponent:
-                SaveCylinderCollisionComponent(cylinderCollisionComponent, node);
+            case CollisionComponent collisionComponent:
+                SaveCollisionComponent(collisionComponent, node);
                 return;
 
             case LightComponent lightComponent:
@@ -213,10 +197,6 @@ internal static class EditorEntityJsonSerializer
 
             case SkinnedMeshComponent skinnedMeshComponent:
                 SaveSkinnedMeshComponent(skinnedMeshComponent, node);
-                return;
-
-            case SphereCollisionComponent sphereCollisionComponent:
-                SaveSphereCollisionComponent(sphereCollisionComponent, node);
                 return;
 
             case PhysicsBaseComponent physicsBaseComponent:
@@ -406,58 +386,28 @@ internal static class EditorEntityJsonSerializer
         return component.GetType().GetCustomAttribute<BrowsableAttribute>()?.Browsable != false;
     }
 
-    private static void SaveBoxCollisionComponent(BoxCollisionComponent component, JObject node)
+    private static void SaveCollisionComponent(CollisionComponent component, JObject node)
     {
         SavePhysicsBaseComponent(component, node);
-
-        var boxNode = new JObject();
-        SaveShape3d(component.Box, boxNode);
-        node.Add("box", boxNode);
+        node.AddArray("fixtures", component.Fixtures, SaveColliderFixture);
     }
 
-    private static void SaveBox2dCollisionComponent(Box2dCollisionComponent component, JObject node)
+    internal static void SaveColliderFixture(ColliderFixture fixture, JObject node)
     {
-        SavePhysicsBaseComponent(component, node);
+        var shapeNode = new JObject();
+        SaveShape3d(fixture.Shape, shapeNode);
+        node.Add("shape", shapeNode);
 
-        var rectangleNode = new JObject();
-        SaveShape2d(component.Rectangle, rectangleNode);
-        node.Add("rectangle", rectangleNode);
-    }
+        var localPositionNode = new JObject();
+        fixture.LocalPosition.Save(localPositionNode);
+        node.Add("local_position", localPositionNode);
 
-    private static void SaveCapsuleCollisionComponent(CapsuleCollisionComponent component, JObject node)
-    {
-        SavePhysicsBaseComponent(component, node);
+        var localRotationNode = new JObject();
+        fixture.LocalRotation.Save(localRotationNode);
+        node.Add("local_rotation", localRotationNode);
 
-        var capsuleNode = new JObject();
-        SaveShape3d(component.Capsule, capsuleNode);
-        node.Add("capsule", capsuleNode);
-    }
-
-    private static void SaveCircleCollisionComponent(CircleCollisionComponent component, JObject node)
-    {
-        SavePhysicsBaseComponent(component, node);
-
-        var circleNode = new JObject();
-        SaveShape2d(component.Circle, circleNode);
-        node.Add("circle", circleNode);
-    }
-
-    private static void SaveCylinderCollisionComponent(CylinderCollisionComponent component, JObject node)
-    {
-        SavePhysicsBaseComponent(component, node);
-
-        var cylinderNode = new JObject();
-        SaveShape3d(component.Cylinder, cylinderNode);
-        node.Add("cylinder", cylinderNode);
-    }
-
-    private static void SaveSphereCollisionComponent(SphereCollisionComponent component, JObject node)
-    {
-        SavePhysicsBaseComponent(component, node);
-
-        var sphereNode = new JObject();
-        SaveShape3d(component.Sphere, sphereNode);
-        node.Add("sphere", sphereNode);
+        node.Add("collision_profile", fixture.ProfileName);
+        node.Add("tag", fixture.Tag);
     }
 
     private static void SaveStaticModelComponent(StaticModelComponent component, JObject node)

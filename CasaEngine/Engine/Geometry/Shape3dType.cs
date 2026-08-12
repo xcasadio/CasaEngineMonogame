@@ -1,4 +1,4 @@
-﻿namespace CasaEngine.Framework.Rendering.Geometry;
+﻿namespace CasaEngine.Engine.Geometry;
 
 public enum Shape3dType
 {

@@ -11,7 +11,7 @@ namespace CasaEngine.Demos;
 [DisplayName("PlayerComponent")]
 public class PlayerComponent : EntityComponent
 {
-    private Physics2dComponent _physics2dComponent;
+    private CollisionComponent _collisionComponent;
     private AnimatedSpriteComponent _animatedSpriteComponent;
 
     int index = 0;
@@ -20,7 +20,7 @@ public class PlayerComponent : EntityComponent
     {
         base.InitializePrivate();
 
-        _physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        _collisionComponent = Owner.GetComponent<CollisionComponent>();
         _animatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
     }
 
@@ -66,7 +66,7 @@ public class PlayerComponent : EntityComponent
             animationName = "swordman_walk_left";
         }
 
-        _physics2dComponent.Velocity = new Vector3(velocityX, velocityY, 0f);
+        _collisionComponent.Velocity = new Vector3(velocityX, velocityY, 0f);
 
         if (!string.IsNullOrWhiteSpace(animationName) && !animationName.Equals(_animatedSpriteComponent.CurrentAnimation.Animation2dData.Name))
         {

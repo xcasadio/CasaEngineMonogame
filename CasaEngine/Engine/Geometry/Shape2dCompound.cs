@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.Xna.Framework;
 
-namespace CasaEngine.Framework.Rendering.Geometry;
+namespace CasaEngine.Engine.Geometry;
 
 public class Shape2dCompound : Shape2d, IEquatable<Shape2dCompound>
 {

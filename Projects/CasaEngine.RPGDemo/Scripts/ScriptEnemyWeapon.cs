@@ -14,10 +14,10 @@ public class ScriptEnemyWeapon : GameplayProxy
 
     public override void InitializeWithWorld(World world)
     {
-        var physics2dComponent = Owner.GetComponent<Physics2dComponent>();
+        var collisionComponent = Owner.GetComponent<CollisionComponent>();
         var animatedSpriteComponent = Owner.GetComponent<AnimatedSpriteComponent>();
 
-        physics2dComponent.Velocity = InitialVelocity;
+        collisionComponent.Velocity = InitialVelocity;
         animatedSpriteComponent.SetCurrentAnimation("rock", true);
     }
 

@@ -1,3 +1,4 @@
+﻿using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -11,7 +12,7 @@ public sealed class CharacterControllerRagdollBridgeTests
     [Fact]
     public void EnterRagdoll_DisablesControllerAndTransfersVelocityToBodies()
     {
-        Entity entity = CreateEntity(out CharacterControllerComponent controller, out BoxCollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
+        Entity entity = CreateEntity(out CharacterControllerComponent controller, out CollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
         controller.SetControlMode(CharacterControlMode.AI);
         controller.RestoreStateSnapshot(controller.CaptureStateSnapshot() with { Velocity = new Vector3(3f, 0f, 4f) });
         bridge.RegisterRagdollBody(body);
@@ -29,7 +30,7 @@ public sealed class CharacterControllerRagdollBridgeTests
     [Fact]
     public void ExitRagdoll_RestoresControlAndCopiesReferenceBodyTransform()
     {
-        Entity entity = CreateEntity(out CharacterControllerComponent controller, out BoxCollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
+        Entity entity = CreateEntity(out CharacterControllerComponent controller, out CollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
         entity.RootComponent!.Position = new Vector3(1f, 0f, 2f);
         controller.SetControlMode(CharacterControlMode.AI);
         controller.RestoreStateSnapshot(controller.CaptureStateSnapshot() with { Velocity = new Vector3(2f, 0f, 0f) });
@@ -50,7 +51,7 @@ public sealed class CharacterControllerRagdollBridgeTests
     [Fact]
     public void ExitRagdoll_CanRestoreVelocityFromReferenceBody()
     {
-        Entity entity = CreateEntity(out CharacterControllerComponent controller, out BoxCollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
+        Entity entity = CreateEntity(out CharacterControllerComponent controller, out CollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
         bridge.RestoreVelocityFromReferenceBodyOnExit = true;
         bridge.RegisterRagdollBody(body);
         bridge.EnterRagdoll();
@@ -65,7 +66,7 @@ public sealed class CharacterControllerRagdollBridgeTests
     [Fact]
     public void RegisterRagdollBody_IgnoresDuplicates()
     {
-        CreateEntity(out _, out BoxCollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
+        CreateEntity(out _, out CollisionComponent body, out CharacterControllerRagdollBridgeComponent bridge);
 
         bridge.RegisterRagdollBody(body);
         bridge.RegisterRagdollBody(body);
@@ -75,7 +76,7 @@ public sealed class CharacterControllerRagdollBridgeTests
 
     private static Entity CreateEntity(
         out CharacterControllerComponent controller,
-        out BoxCollisionComponent body,
+        out CollisionComponent body,
         out CharacterControllerRagdollBridgeComponent bridge)
     {
         var entity = new Entity
@@ -84,7 +85,8 @@ public sealed class CharacterControllerRagdollBridgeTests
         };
 
         controller = new CharacterControllerComponent();
-        body = new BoxCollisionComponent();
+        body = new CollisionComponent();
+        body.Fixtures.Add(new ColliderFixture(new Box()));
         body.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
         bridge = new CharacterControllerRagdollBridgeComponent();
 

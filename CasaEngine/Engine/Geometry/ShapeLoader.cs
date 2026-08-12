@@ -1,7 +1,7 @@
 ﻿using CasaEngine.Core.Serialization;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Rendering.Geometry;
+namespace CasaEngine.Engine.Geometry;
 
 public class ShapeLoader
 {

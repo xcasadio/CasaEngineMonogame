@@ -1,4 +1,6 @@
-using System.Reflection;
+﻿using System.Reflection;
+using CasaEngine.Engine.Geometry;
+using CasaEngine.Engine.Physics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities;
@@ -26,7 +28,9 @@ public class PhysicsComponentBoundingBoxUpdateTests
         entity.RootComponent = root;
 
         root.AddChildComponent(new TestSceneComponent());
-        root.AddChildComponent(new BoxCollisionComponent());
+        var collisionComponent = new CollisionComponent();
+        collisionComponent.Fixtures.Add(new ColliderFixture(new Box()));
+        root.AddChildComponent(collisionComponent);
 
         var initialBounds = root.BoundingBox;
         Assert.InRange(initialBounds.Min.X, -0.6f, -0.4f);

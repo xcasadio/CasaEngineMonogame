@@ -18,10 +18,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
     private float _maxSpeed;
     private float _maxForce;
     private float _maxTurnRate;
-    protected PhysicsBody _rigidBody;
 
-    //static object
-    protected PhysicsBody _collisionObject;
+    //One body per collision profile used by the fixtures of this component.
+    protected readonly List<PhysicsBody> _bodies = new();
+    private readonly List<FixtureGroup> _fixtureGroups = new();
+
+    public IReadOnlyList<PhysicsBody> Bodies => _bodies;
 
     public HashSet<Collision> Collisions { get; } = new();
     public PhysicsType PhysicsType => PhysicsDefinition.PhysicsType;
@@ -29,22 +31,29 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public bool SimulatePhysics { get; set; } = true;
 
+    /// <summary>
+    /// The single body of a dynamic component, the only one physics may write back to the scene.
+    /// </summary>
+    protected PhysicsBody DynamicBody => PhysicsType == PhysicsType.Dynamic && _bodies.Count > 0 ? _bodies[0] : null;
+
     public Vector3 Velocity
     {
         get
         {
-            if (_rigidBody != null)
+            var dynamicBody = DynamicBody;
+            if (dynamicBody != null)
             {
-                return _rigidBody.LinearVelocity;
+                return dynamicBody.LinearVelocity;
             }
 
             return PhysicsType == PhysicsType.Kinetic ? _velocity : Vector3.Zero;
         }
         set
         {
-            if (_rigidBody != null)
+            var dynamicBody = DynamicBody;
+            if (dynamicBody != null)
             {
-                _rigidBody.LinearVelocity = value;
+                dynamicBody.LinearVelocity = value;
                 return;
             }
 
@@ -137,11 +146,12 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
-        PhysicsBody collisionObject = _collisionObject ?? _rigidBody;
+        //Only a dynamic body drives the scene: static and kinetic components are driven by gameplay.
+        var dynamicBody = DynamicBody;
 
-        if (collisionObject != null && Parent != null)
+        if (dynamicBody != null && Parent != null)
         {
-            collisionObject.WorldTransform.Decompose(out var scale, out var rotation, out var position);
+            dynamicBody.WorldTransform.Decompose(out var scale, out var rotation, out var position);
             //Set only the owner
             //Test how to set all the hierarchy, but how we do with several physic component ?
             //TODO bug : use localMatrix + Actor matrix to calculated the right position of the root component
@@ -181,27 +191,98 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
+        var fixtures = GetFixtures();
+        if (fixtures == null || fixtures.Count == 0)
+        {
+            return;
+        }
+
+        BuildFixtureGroups(fixtures);
+
+        if (PhysicsType == PhysicsType.Dynamic && _fixtureGroups.Count > 1)
+        {
+            int profileCount = _fixtureGroups.Count;
+            _fixtureGroups.Clear();
+            throw new InvalidOperationException(
+                $"A dynamic collision component must use a single collision profile, this one uses {profileCount} of them.");
+        }
+
         var worldMatrix = WorldMatrixNoScale;
 
-        var collisionShape = ConvertToCollisionShape();
-        collisionShape.LocalScaling = LocalScale;
+        for (int i = 0; i < _fixtureGroups.Count; i++)
+        {
+            var group = _fixtureGroups[i];
+            _bodies.Add(CreateBody(group, ref worldMatrix));
+        }
+    }
+
+    private PhysicsBody CreateBody(FixtureGroup group, ref Matrix worldMatrix)
+    {
+        var fixtures = group.Fixtures;
+        var singleFixture = fixtures.Count == 1 && fixtures[0].HasIdentityPose ? fixtures[0] : null;
 
         switch (PhysicsType)
         {
             case PhysicsType.Static:
-                _collisionObject = PhysicsWorld.AddStaticObject(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
-                break;
+                return singleFixture != null
+                    ? PhysicsWorld.AddStaticObject(singleFixture.Shape, LocalScale, ref worldMatrix, this, PhysicsDefinition, group.ProfileId, singleFixture.Tag)
+                    : PhysicsWorld.AddStaticObject(fixtures, LocalScale, ref worldMatrix, this, PhysicsDefinition, group.ProfileId);
+
             case PhysicsType.Kinetic:
-                var collisionProfileId = GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(PhysicsDefinition);
-                _collisionObject = PhysicsWorld.AddGhostObject(collisionShape, ref worldMatrix, this, collisionProfileId);
-                break;
+                return singleFixture != null
+                    ? PhysicsWorld.AddGhostObject(singleFixture.Shape, LocalScale, ref worldMatrix, this, group.ProfileId, singleFixture.Tag)
+                    : PhysicsWorld.AddGhostObject(fixtures, LocalScale, ref worldMatrix, this, group.ProfileId);
+
             default:
-                _rigidBody = PhysicsWorld.AddRigidBody(collisionShape, LocalScale, ref worldMatrix, this, PhysicsDefinition);
-                break;
+                return singleFixture != null
+                    ? PhysicsWorld.AddRigidBody(singleFixture.Shape, LocalScale, ref worldMatrix, this, PhysicsDefinition, group.ProfileId, singleFixture.Tag)
+                    : PhysicsWorld.AddRigidBody(fixtures, LocalScale, ref worldMatrix, this, PhysicsDefinition, group.ProfileId);
         }
     }
 
-    protected abstract PhysicsShape ConvertToCollisionShape();
+    /// <summary>
+    /// Splits the fixtures per resolved collision profile, keeping the fixture order inside each group.
+    /// </summary>
+    private void BuildFixtureGroups(IReadOnlyList<ColliderFixture> fixtures)
+    {
+        _fixtureGroups.Clear();
+
+        var collisionProfiles = GameSettings.PhysicsEngineSettings.CollisionProfiles;
+        int componentProfileId = collisionProfiles.ResolveProfileId(PhysicsDefinition);
+
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            var fixture = fixtures[i];
+            if (fixture.Shape == null)
+            {
+                throw new InvalidOperationException($"Collider fixture {i} of this collision component has no shape.");
+            }
+
+            int profileId = string.IsNullOrEmpty(fixture.ProfileName)
+                ? componentProfileId
+                : collisionProfiles.GetProfileId(fixture.ProfileName);
+
+            FixtureGroup group = null;
+            for (int groupIndex = 0; groupIndex < _fixtureGroups.Count; groupIndex++)
+            {
+                if (_fixtureGroups[groupIndex].ProfileId == profileId)
+                {
+                    group = _fixtureGroups[groupIndex];
+                    break;
+                }
+            }
+
+            if (group == null)
+            {
+                group = new FixtureGroup(profileId);
+                _fixtureGroups.Add(group);
+            }
+
+            group.Fixtures.Add(fixture);
+        }
+    }
+
+    protected abstract IReadOnlyList<ColliderFixture> GetFixtures();
 
     private void DestroyPhysicsObject()
     {
@@ -210,27 +291,31 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
             return;
         }
 
-        if (_collisionObject != null)
+        for (int i = 0; i < _bodies.Count; i++)
         {
-            PhysicsWorld.RemoveCollisionObject(_collisionObject);
-            _collisionObject.Dispose();
-            _collisionObject = null;
+            var body = _bodies[i];
+            if (body.IsRigidBody)
+            {
+                PhysicsWorld.RemoveRigidBody(body);
+            }
+            else
+            {
+                PhysicsWorld.RemoveCollisionObject(body);
+            }
+
+            body.Dispose();
         }
 
-        if (_rigidBody != null)
-        {
-            PhysicsWorld.RemoveRigidBody(_rigidBody);
-            _rigidBody.Dispose();
-            _rigidBody = null;
-        }
+        _bodies.Clear();
+        _fixtureGroups.Clear();
 
         PhysicsWorld.ClearCollisionDataFrom(this);
     }
 
     public void ApplyImpulse(Vector3 impulse, Vector3 relativePosition)
     {
-        //do nothing with _collisionObject
-        _rigidBody?.ApplyImpulse(impulse, relativePosition);
+        //Only a dynamic body answers impulses.
+        DynamicBody?.ApplyImpulse(impulse, relativePosition);
     }
 
     public void AdvanceKinematic(float elapsedTime)
@@ -246,7 +331,7 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     public void SyncTransformFromScene()
     {
-        if (_collisionObject == null && _rigidBody == null)
+        if (_bodies.Count == 0)
         {
             return;
         }
@@ -299,23 +384,30 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
 
     private void ApplyPhysicsWorldTransform()
     {
-        if (_collisionObject == null && _rigidBody == null)
+        if (_bodies.Count == 0)
         {
             return;
         }
 
         Matrix worldTransform = WorldMatrixNoScale;
 
-        if (_collisionObject != null)
+        for (int i = 0; i < _bodies.Count; i++)
         {
-            _collisionObject.WorldTransform = worldTransform;
-            PhysicsWorld?.RefreshBodyAabb(_collisionObject);
+            var body = _bodies[i];
+            body.WorldTransform = worldTransform;
+            PhysicsWorld?.RefreshBodyAabb(body);
+        }
+    }
+
+    private sealed class FixtureGroup
+    {
+        public FixtureGroup(int profileId)
+        {
+            ProfileId = profileId;
         }
 
-        if (_rigidBody != null)
-        {
-            _rigidBody.WorldTransform = worldTransform;
-            PhysicsWorld?.RefreshBodyAabb(_rigidBody);
-        }
+        public int ProfileId { get; }
+
+        public List<ColliderFixture> Fixtures { get; } = new();
     }
 }

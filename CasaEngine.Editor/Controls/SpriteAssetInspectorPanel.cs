@@ -11,7 +11,7 @@ using CasaEngine.EditorServices.History;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Configuration;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using MGUI.Core.UI;
 using MGUI.Core.UI.Containers;
 using Microsoft.Xna.Framework;

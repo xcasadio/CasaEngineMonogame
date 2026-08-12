@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using Microsoft.Xna.Framework;
 using Xunit;
 

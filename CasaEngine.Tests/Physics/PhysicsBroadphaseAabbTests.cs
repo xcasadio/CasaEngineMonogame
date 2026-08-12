@@ -1,3 +1,4 @@
+﻿using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -12,7 +13,7 @@ public class PhysicsBroadphaseAabbTests
     public void UpdateSingleAabb_RefreshesMovedRigidBodyBroadphaseBounds()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var collisionShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var collisionShape = new Box();
 
         Matrix worldMatrix = Matrix.Identity;
         var physicsDefinition = new PhysicsDefinition
@@ -26,10 +27,11 @@ public class PhysicsBroadphaseAabbTests
             Vector3.One,
             ref worldMatrix,
             new object(),
-            physicsDefinition);
+            physicsDefinition,
+            CollisionProfileIds.WorldStatic);
 
         rigidBody.WorldTransform = Matrix.CreateTranslation(10f, 0f, 0f);
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
         Matrix from = Matrix.CreateTranslation(8f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(12f, 0f, 0f);
 

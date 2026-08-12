@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets;
 using CasaEngine.Framework.Assets.Animations;
@@ -48,9 +49,12 @@ public class TileMapDemo : Demo
             animatedSprite.AddAnimation(new Animation2d(animation));
         }
         //===
-        var physicsComponent = new CircleCollisionComponent();
+        var physicsComponent = new CollisionComponent();
+        physicsComponent.Fixtures.Add(new ColliderFixture(new Sphere()));
         entity.AddComponent(physicsComponent);
         physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+        physicsComponent.PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
+        physicsComponent.PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
         physicsComponent.PhysicsDefinition.Mass = 1.0f;
         physicsComponent.Scale = new Vector3(25);
         physicsComponent.PhysicsDefinition.ApplyGravity = false;

@@ -5,7 +5,7 @@ using CasaEngine.Editor.Runtime.Overlays;
 using CasaEngine.Editor.Styling;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Core.UI;

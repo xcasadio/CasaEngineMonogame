@@ -5,7 +5,7 @@ using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Rendering.Geometry;
+namespace CasaEngine.Engine.Geometry;
 
 public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
 {

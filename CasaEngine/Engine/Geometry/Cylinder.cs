@@ -2,27 +2,31 @@
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Rendering.Geometry;
+namespace CasaEngine.Engine.Geometry;
 
-public class Box : Shape3d, IEquatable<Box>
+public class Cylinder : Shape3d, IEquatable<Cylinder>
 {
-    public Vector3 Size { get; set; }
+    private float _length;
+
+    public float Radius { get; set; }
+    public float Length { get; set; }
 
     public override BoundingBox BoundingBox
     {
         get
         {
-            var halfSize = Size / 2f;
+            var halfSize = new Vector3(Length / 2f, Radius, Radius); // X oriented
             return new BoundingBox(-halfSize, halfSize);
         }
     }
 
-    public Box() : base(Shape3dType.Box)
+    public Cylinder() : base(Shape3dType.Cylinder)
     {
-        Size = Vector3.One;
+        Radius = 0.5f;
+        Length = 1f;
     }
 
-    public bool Equals(Box other)
+    public bool Equals(Cylinder other)
     {
         if (ReferenceEquals(null, other))
         {
@@ -34,7 +38,7 @@ public class Box : Shape3d, IEquatable<Box>
             return true;
         }
 
-        return Type == other.Type && Size.Equals(other.Size);
+        return Type == other.Type && Radius.Equals(other.Radius) && Length.Equals(other.Length);
     }
 
     public override bool Equals(object obj)
@@ -54,24 +58,21 @@ public class Box : Shape3d, IEquatable<Box>
             return false;
         }
 
-        return Equals((Box)obj);
+        return Equals((Cylinder)obj);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int)Type, Size);
+        return HashCode.Combine((int)Type, Radius, Length);
     }
 
-    public override string ToString() => $"{Enum.GetName(Type)} {{Width: {Size.X} Height:{Size.Y} Length:{Size}}}";
+    public override string ToString() => $"{Enum.GetName(Type)} {{Radius: {Radius} Length:{Length}}}";
 
     public override void Load(JObject element)
     {
         base.Load(element);
-        var w = element["w"].GetSingle();
-        var h = element["h"].GetSingle();
-        var l = element["l"].GetSingle();
-
-        Size = new Vector3(w, h, l);
+        Radius = element["radius"].GetSingle();
+        _length = element["length"].GetSingle();
     }
 
 }

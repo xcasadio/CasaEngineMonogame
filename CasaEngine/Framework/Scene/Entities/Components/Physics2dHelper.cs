@@ -1,7 +1,7 @@
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Application.Components.Physics;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Scene.Entities.Components;
@@ -19,9 +19,8 @@ public static class Physics2dHelper
             //    break;
             case Shape2dType.Rectangle:
                 var rectangle = collisionShape.Shape as ShapeRectangle;
-                var box = PhysicsShape.CreateBox(rectangle.Width / 2f, rectangle.Height / 2f, 0.5f);
-                box.LocalScaling = localScale;
-                return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, CollisionProfileIds.Trigger, color);
+                var box = new Box { Size = new Vector3(rectangle.Width, rectangle.Height, 1f) };
+                return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, box, localScale, CollisionProfileIds.Trigger, color: color);
             //case Shape2dType.Circle:
             //    break;
             //case Shape2dType.Line:

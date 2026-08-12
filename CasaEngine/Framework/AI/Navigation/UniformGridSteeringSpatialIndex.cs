@@ -1,4 +1,4 @@
-using CasaEngine.Framework.Scene.Entities;
+﻿using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using GameWorld = CasaEngine.Framework.Scene.World.World;
 using Microsoft.Xna.Framework;
@@ -168,10 +168,7 @@ public sealed class UniformGridSteeringSpatialIndex : ISteeringSpatialIndex2D
             }
 
             float collisionRadius = 0.0f;
-            if (entity.GetComponent<CircleCollisionComponent>() is CircleCollisionComponent circleCollisionComponent)
-            {
-                collisionRadius = circleCollisionComponent.Circle.Radius;
-            }
+            SteeringAgentComponent.TryGetCollisionRadius(entity.GetComponent<CollisionComponent>(), out collisionRadius);
 
             SteeringNeighborSnapshot snapshot = hasPreciseKinematics
                 ? new SteeringNeighborSnapshot(entity, position, velocity, forward, precisePosition, preciseVelocity, preciseHeading, collisionRadius)

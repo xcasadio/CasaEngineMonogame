@@ -1,6 +1,6 @@
 ﻿
 using CasaEngine.Core.Serialization;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using Newtonsoft.Json.Linq;
 
 namespace CasaEngine.Framework.Assets.Sprites;

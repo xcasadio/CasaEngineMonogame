@@ -35,18 +35,20 @@ Cette section décrit uniquement ce qui est observable dans le dépôt au moment
 
 ### Trois vocabulaires de formes, aucun pivot
 
-- [Shape2d](../../CasaEngine/Framework/Rendering/Geometry/Shape2d.cs) (Compound, Polygone,
+- [Shape2d](../../CasaEngine/Engine/Geometry/Shape2d.cs) (Compound, Polygone,
   Rectangle, Circle, Line) porte une pose (`Position` Vector2 + `Rotation`). Consommé par
   `Collision2d` (sprites), `TileData.CollisionShape` (tiles), `Box2dCollisionComponent`.
-- [Shape3d](../../CasaEngine/Framework/Rendering/Geometry/Shape3d.cs) (Compound, Box, Capsule,
+- [Shape3d](../../CasaEngine/Engine/Geometry/Shape3d.cs) (Compound, Box, Capsule,
   Cylinder, Sphere, Cone) ne porte **pas** de pose. Consommé par `BoxCollisionComponent`.
-- [PhysicsShape](../../CasaEngine/Engine/Physics/PhysicsShape.cs) (Box, Sphere, Capsule, Cylinder)
-  est un troisième vocabulaire, public, avec un handle backend interne. C'est lui que consomme
-  [IPhysicsWorld](../../CasaEngine/Framework/Application/Components/Physics/IPhysicsWorld.cs).
+- `PhysicsShape` (Box, Sphere, Capsule, Cylinder) était un troisième vocabulaire, public, avec un
+  handle backend interne. **Supprimé en phase B** :
+  [IPhysicsWorld](../../CasaEngine/Framework/Application/Components/Physics/IPhysicsWorld.cs)
+  consomme désormais `Shape3d` directement, et les sweeps prennent un handle
+  [PhysicsQueryShape](../../CasaEngine/Engine/Physics/PhysicsQueryShape.cs) créé par le monde.
 
-Les deux premiers vivent sous `Framework/Rendering/Geometry` alors qu'ils décrivent de la
-collision — habitat erroné, corrigé par la migration (déménagement vers un namespace de géométrie
-dédié, phase B).
+Les deux premiers vivaient sous `Framework/Rendering/Geometry` alors qu'ils décrivent de la
+collision — habitat erroné, corrigé en phase B : ils vivent maintenant sous
+`CasaEngine/Engine/Geometry` (namespace `CasaEngine.Engine.Geometry`).
 
 ### L'abaissement 2D → physique est codé en dur
 
@@ -381,6 +383,21 @@ B  Fixtures et compounds  ColliderFixture ; corps multi-formes (btCompoundShape)
                           collision générique remplaçant les six composants typés ; identité de
                           fixture dans les contacts ; formes déménagées hors de Rendering/Geometry ;
                           PhysicsShape SUPPRIMÉ (le backend consomme Shape3d).
+                          FAIT (2026-08). Changements assumés : un composant crée un corps par
+                          profil de collision (un Dynamic n'a droit qu'à un seul profil, erreur de
+                          validation sinon) ; seul un corps Dynamic réécrit la transformation de
+                          l'entité (Static et Kinetic ne la touchent plus) ; les fixtures sont
+                          sérialisées dans un tableau `fixtures` sur le nœud du composant et les
+                          assets livrés ont été migrés à la main.
+                          Autres limites connues : le LocalScaling d'un compound (échelle non
+                          unitaire) n'est exercé par aucune scène réelle — appliqué au compound
+                          après AddChildShape, enfants non scalés ; et un composant 2D créé à la
+                          main doit poser LinearFactor/AngularFactor explicitement tant que la
+                          politique Planar2d (phase D) ne fournit pas les défauts de monde.
+                          Limite connue : le BulletSharp vendorisé ne remplit pas LocalShapeInfo
+                          pour les enfants d'un compound lors d'un sweep/raycast — HitResult.Tag
+                          n'est donc renseigné que pour les corps à fixture unique. Les contacts,
+                          eux, portent bien l'enfant touché (ManifoldPoint.Index0/Index1).
 C  Abaissement            ISimulationSpacePolicy.Lower ; Shape2d perd sa pose (migrée dans
                           Collision2d, qui gagne ProfileName + Tag) ; extrusion paramétrée ;
                           Physics2dHelper, branche Physics2dComponent, CollisionHitType et

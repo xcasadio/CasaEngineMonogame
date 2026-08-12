@@ -14,4 +14,9 @@ public struct HitResult
     public bool Succeeded;
 
     public PhysicsBaseComponent Collider;
+
+    /// <summary>
+    /// Tag of the collider fixture that was hit, when the backend reports which one it was.
+    /// </summary>
+    public string Tag;
 }

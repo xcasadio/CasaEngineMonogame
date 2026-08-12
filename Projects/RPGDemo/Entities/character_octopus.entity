@@ -26,8 +26,8 @@
     "children_component": [
       {
         "id": "00000000-0000-0000-0000-000000000000",
-        "name": "CircleCollisionComponent",
-        "type": "CircleCollisionComponent",
+        "name": "CollisionComponent",
+        "type": "CollisionComponent",
         "coordinates": {
           "position": {
             "x": 0.0,
@@ -79,7 +79,30 @@
           "rolling_friction": 0.0,
           "apply_gravity": false,
           "debug_color": "null"
-        }
+        },
+        "fixtures": [
+          {
+            "shape": {
+              "id": "df8b4c25-d5f7-50a1-be0b-a3b3b1919c2e",
+              "name": "Object df8b4c25-d5f7-50a1-be0b-a3b3b1919c2e",
+              "shape_type": "Sphere",
+              "radius": 1.0
+            },
+            "local_position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "local_rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "collision_profile": null,
+            "tag": null
+          }
+        ]
       }
     ],
     "color": {

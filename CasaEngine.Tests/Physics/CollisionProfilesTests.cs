@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using CasaEngine.EditorServices;
 using CasaEngine.Engine.Physics;
@@ -6,7 +6,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Physics;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -74,15 +74,16 @@ public class CollisionProfilesTests
     public void ShapeSweep_WithDefaultChannelMask_HitsStaticBody()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var obstacleShape = new Box();
         Matrix obstacleTransform = Matrix.Identity;
         using PhysicsBody staticBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             new object(),
-            new PhysicsDefinition { Mass = 0f, PhysicsType = PhysicsType.Static });
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+            new PhysicsDefinition { Mass = 0f, PhysicsType = PhysicsType.Static },
+            CollisionProfileIds.WorldStatic);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
 
         bool hit = physicsWorldContext.ShapeSweep(
             sweepShape,
@@ -99,7 +100,7 @@ public class CollisionProfilesTests
     public void RigidBody_WithSensorProfile_HasNoContactResponse()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var shape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var shape = new Box();
         Matrix transform = Matrix.Identity;
 
         using PhysicsBody sensorBody = physicsWorldContext.AddStaticObject(
@@ -107,7 +108,8 @@ public class CollisionProfilesTests
             Vector3.One,
             ref transform,
             new object(),
-            new PhysicsDefinition { PhysicsType = PhysicsType.Static, ProfileName = CollisionProfileNames.Trigger });
+            new PhysicsDefinition { PhysicsType = PhysicsType.Static, ProfileName = CollisionProfileNames.Trigger },
+            CollisionProfileIds.Trigger);
 
         Assert.True(sensorBody.CollisionProfile.IsSensor);
         Assert.False(sensorBody.HasContactResponse);
@@ -138,7 +140,7 @@ public class CollisionProfilesTests
         //A ghost never answers contacts, whatever its profile blocks.
         Assert.False(ghost.HasContactResponse);
 
-        using var sweepShape = PhysicsShape.CreateSphere(0.1f);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.1f }, Vector3.One);
         bool hit = physicsWorldContext.ShapeSweep(
             sweepShape,
             Matrix.CreateTranslation(-3f, 0f, 0f),
@@ -188,9 +190,6 @@ public class CollisionProfilesTests
 
         Assert.NotEmpty(componentA.Collisions);
         Assert.NotEmpty(componentB.Collisions);
-
-        physicsWorldContext.RemoveCollisionObject(bodyA);
-        physicsWorldContext.RemoveCollisionObject(bodyB);
     }
 
     [Fact]
@@ -201,13 +200,13 @@ public class CollisionProfilesTests
         var tileComponent = new TestCollideableComponent(PhysicsType.Kinetic);
         var pawnComponent = new TestCollideableComponent(PhysicsType.Kinetic);
 
-        using var tileShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var tileShape = new Box();
         Matrix tileTransform = Matrix.Identity;
-        using var tileBody = physicsWorldContext.AddGhostObject(tileShape, ref tileTransform, tileComponent, CollisionProfileIds.Trigger);
+        using var tileBody = physicsWorldContext.AddGhostObject(tileShape, Vector3.One, ref tileTransform, tileComponent, CollisionProfileIds.Trigger);
 
-        using var pawnShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var pawnShape = new Box();
         Matrix pawnTransform = Matrix.CreateTranslation(0.5f, 0f, 0f);
-        using var pawnBody = physicsWorldContext.AddGhostObject(pawnShape, ref pawnTransform, pawnComponent, CollisionProfileIds.Pawn);
+        using var pawnBody = physicsWorldContext.AddGhostObject(pawnShape, Vector3.One, ref pawnTransform, pawnComponent, CollisionProfileIds.Pawn);
 
         Assert.Equal(Profiles.GetResolved(CollisionProfileIds.Trigger).GroupBit, tileBody.CollisionProfile.GroupBit);
         Assert.Equal(Profiles.GetResolved(CollisionProfileIds.Pawn).GroupBit, pawnBody.CollisionProfile.GroupBit);
@@ -216,9 +215,6 @@ public class CollisionProfilesTests
 
         Assert.NotEmpty(tileComponent.Collisions);
         Assert.NotEmpty(pawnComponent.Collisions);
-
-        physicsWorldContext.RemoveCollisionObject(tileBody);
-        physicsWorldContext.RemoveCollisionObject(pawnBody);
     }
 
     private static PhysicsBody CreateSpriteTriggerVolume(IPhysicsWorld physicsWorldContext, ICollideableComponent component, Matrix worldMatrix)
@@ -246,9 +242,14 @@ public class CollisionProfilesTests
         property!.SetValue(target, value);
     }
 
-    private sealed class KineticBoxComponent : BoxCollisionComponent
+    private sealed class KineticBoxComponent : CollisionComponent
     {
-        public PhysicsBody? CollisionObject => _collisionObject;
+        public KineticBoxComponent()
+        {
+            Fixtures.Add(new ColliderFixture(new Box()));
+        }
+
+        public PhysicsBody? CollisionObject => _bodies.Count == 0 ? null : _bodies[0];
     }
 
     private sealed class TestCollideableComponent : ICollideableComponent

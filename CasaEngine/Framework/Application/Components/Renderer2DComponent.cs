@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Rendering.Draw2D;
 using CasaEngine.Framework.Rendering;
 using Microsoft.Xna.Framework;

@@ -1,3 +1,4 @@
+﻿using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -14,15 +15,16 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_ReturnsClosestHit_WhenConvexShapeReachesStaticBody()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var obstacleShape = new Box();
         Matrix obstacleTransform = Matrix.Identity;
         using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             new object(),
-            CreateStaticPhysicsDefinition());
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+            CreateStaticPhysicsDefinition(),
+            CollisionProfileIds.WorldStatic);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
@@ -39,15 +41,16 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_ReturnsNoHit_WhenPathMissesStaticBody()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var obstacleShape = new Box();
         Matrix obstacleTransform = Matrix.Identity;
         using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
             obstacleShape,
             Vector3.One,
             ref obstacleTransform,
             new object(),
-            CreateStaticPhysicsDefinition());
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+            CreateStaticPhysicsDefinition(),
+            CollisionProfileIds.WorldStatic);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
 
         Matrix from = Matrix.CreateTranslation(-3f, 3f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 3f, 0f);
@@ -62,11 +65,11 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_RespectsTriggerFiltering()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var triggerShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var triggerShape = new Box();
         var triggerComponent = new TestCollideableComponent(PhysicsType.Kinetic);
         Matrix triggerTransform = Matrix.Identity;
-        using var triggerBody = physicsWorldContext.AddGhostObject(triggerShape, ref triggerTransform, triggerComponent, CollisionProfileIds.Trigger);
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+        using var triggerBody = physicsWorldContext.AddGhostObject(triggerShape, Vector3.One, ref triggerTransform, triggerComponent, CollisionProfileIds.Trigger);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);
@@ -84,7 +87,7 @@ public class PhysicsShapeSweepTests
     public void ShapeSweep_IgnoresRequestedComponent()
     {
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
-        using var obstacleShape = PhysicsShape.CreateBox(0.5f, 0.5f, 0.5f);
+        var obstacleShape = new Box();
         var ignoredComponent = new TestCollideableComponent(PhysicsType.Static);
         Matrix obstacleTransform = Matrix.Identity;
         using PhysicsBody rigidBody = physicsWorldContext.AddStaticObject(
@@ -92,8 +95,9 @@ public class PhysicsShapeSweepTests
             Vector3.One,
             ref obstacleTransform,
             ignoredComponent,
-            CreateStaticPhysicsDefinition());
-        using var sweepShape = PhysicsShape.CreateSphere(0.25f);
+            CreateStaticPhysicsDefinition(),
+            CollisionProfileIds.WorldStatic);
+        using var sweepShape = physicsWorldContext.CreateQueryShape(new Sphere { Radius = 0.25f }, Vector3.One);
 
         Matrix from = Matrix.CreateTranslation(-3f, 0f, 0f);
         Matrix to = Matrix.CreateTranslation(3f, 0f, 0f);

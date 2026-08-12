@@ -5,7 +5,7 @@ using CasaEngine.Framework.Assets.Loaders;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Rendering.Models;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.EditorServices.Import;
 using CasaEngine.EditorServices.Tiled;
 using Microsoft.Xna.Framework;

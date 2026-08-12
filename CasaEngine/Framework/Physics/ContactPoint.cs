@@ -12,6 +12,12 @@ public struct ContactPoint : IEquatable<ContactPoint>
     public Vector3 PositionOnA;
     public Vector3 PositionOnB;
 
+    /// <summary>Tag of the fixture of <see cref="ColliderA"/> involved in this contact, when known.</summary>
+    public string FixtureTagA;
+
+    /// <summary>Tag of the fixture of <see cref="ColliderB"/> involved in this contact, when known.</summary>
+    public string FixtureTagB;
+
     public bool Equals(ContactPoint other)
     {
         return ((ColliderA == other.ColliderA && ColliderB == other.ColliderB)
@@ -19,7 +25,9 @@ public struct ContactPoint : IEquatable<ContactPoint>
                && Distance == other.Distance
                && Normal == other.Normal
                && PositionOnA == other.PositionOnA
-               && PositionOnB == other.PositionOnB;
+               && PositionOnB == other.PositionOnB
+               && FixtureTagA == other.FixtureTagA
+               && FixtureTagB == other.FixtureTagB;
     }
 
     public override bool Equals(object obj) => obj is ContactPoint other && Equals(other);

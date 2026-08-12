@@ -16,6 +16,18 @@ public sealed class PhysicsBody : IDisposable
 
     public bool IsRigidBody => _backend?.IsRigidBody == true;
 
+    /// <summary>True when this body lowered several fixtures into a compound shape.</summary>
+    public bool IsCompound => Backend.IsCompound;
+
+    /// <summary>Number of fixtures this body was created from, in fixture order.</summary>
+    public int FixtureCount => Backend.FixtureCount;
+
+    /// <summary>Local transform of a fixture inside this body, identity for a single fixture body.</summary>
+    public Matrix GetFixtureLocalTransform(int index) => Backend.GetFixtureLocalTransform(index);
+
+    /// <summary>Tag of a fixture of this body.</summary>
+    public string GetFixtureTag(int index) => Backend.GetFixtureTag(index);
+
     /// <summary>
     /// Filtering data of this body, resolved from its collision profile when the body was created.
     /// </summary>
@@ -58,6 +70,14 @@ public sealed class PhysicsBody : IDisposable
 internal interface IPhysicsBodyBackend : IDisposable
 {
     bool IsRigidBody { get; }
+
+    bool IsCompound { get; }
+
+    int FixtureCount { get; }
+
+    Matrix GetFixtureLocalTransform(int index);
+
+    string GetFixtureTag(int index);
 
     bool HasContactResponse { get; }
 

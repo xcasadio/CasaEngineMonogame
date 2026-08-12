@@ -1,5 +1,6 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using CasaEngine.Core.Serialization;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -31,7 +32,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
     private bool _hasStepSupportHit;
     private Vector3 _lastRequestedDisplacement;
     private Vector3 _lastActualDisplacement;
-    private PhysicsShape _sweepShape;
+    private PhysicsQueryShape _sweepShape;
     private float _sweepShapeRadius;
     private float _sweepShapeCylinderHeight;
 
@@ -236,9 +237,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             throw new InvalidOperationException("Character controller requires an owner root component.");
         }
 
-        if (owner.GetComponent<CapsuleCollisionComponent>() == null)
+        var collisionComponent = owner.GetComponent<CollisionComponent>();
+        if (collisionComponent == null || FindCapsuleFixture(collisionComponent) == null)
         {
-            throw new InvalidOperationException("Character controller requires a CapsuleCollisionComponent on the owner entity.");
+            throw new InvalidOperationException("Character controller requires a CollisionComponent with a capsule fixture on the owner entity.");
         }
 
         if (owner.World == null)
@@ -673,7 +675,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         _stepSupportHit = default;
 
         if (requestedDisplacement.LengthSquared() <= MinMoveDistanceSquared
-            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var capsuleCollisionComponent))
+            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent))
         {
             rootComponent.Position += requestedDisplacement;
             return requestedDisplacement;
@@ -682,7 +684,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         var startPosition = rootComponent.Position;
         var currentPosition = startPosition;
         var remainingDisplacement = requestedDisplacement;
-        var sweepShape = GetSweepShape();
+        var sweepShape = GetSweepShape(physicsWorldContext);
 
         for (var iteration = 0; iteration < MaxSweepIterations; iteration++)
         {
@@ -692,7 +694,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             }
 
             var targetPosition = currentPosition + remainingDisplacement;
-            if (!Sweep(physicsWorldContext, sweepShape, currentPosition, targetPosition, capsuleCollisionComponent, out var hitResult))
+            if (!Sweep(physicsWorldContext, sweepShape, currentPosition, targetPosition, collisionComponent, out var hitResult))
             {
                 currentPosition = targetPosition;
                 break;
@@ -700,7 +702,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
             _lastCollisionHit = hitResult;
 
-            if (TryStepMove(physicsWorldContext, capsuleCollisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, out var steppedPosition, out var stepSupportHit))
+            if (TryStepMove(physicsWorldContext, collisionComponent, sweepShape, currentPosition, remainingDisplacement, hitResult, out var steppedPosition, out var stepSupportHit))
             {
                 currentPosition = steppedPosition;
                 _hasStepSupportHit = true;
@@ -730,8 +732,8 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     private bool TryStepMove(
         IPhysicsWorld physicsWorldContext,
-        CapsuleCollisionComponent capsuleCollisionComponent,
-        PhysicsShape sweepShape,
+        CollisionComponent collisionComponent,
+        PhysicsQueryShape sweepShape,
         Vector3 currentPosition,
         Vector3 remainingDisplacement,
         HitResult blockingHit,
@@ -758,20 +760,20 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         var raisedPosition = currentPosition + Vector3.Up * _settings.StepHeight;
-        if (Sweep(physicsWorldContext, sweepShape, currentPosition, raisedPosition, capsuleCollisionComponent, out _))
+        if (Sweep(physicsWorldContext, sweepShape, currentPosition, raisedPosition, collisionComponent, out _))
         {
             return false;
         }
 
         var forwardPosition = raisedPosition + horizontalDisplacement;
-        if (Sweep(physicsWorldContext, sweepShape, raisedPosition, forwardPosition, capsuleCollisionComponent, out _))
+        if (Sweep(physicsWorldContext, sweepShape, raisedPosition, forwardPosition, collisionComponent, out _))
         {
             return false;
         }
 
         var stepDownDistance = _settings.StepHeight + Math.Max(_settings.GroundSnapDistance, _settings.SkinWidth);
         var downTarget = forwardPosition - Vector3.Up * stepDownDistance;
-        if (!Sweep(physicsWorldContext, sweepShape, forwardPosition, downTarget, capsuleCollisionComponent, out stepSupportHit)
+        if (!Sweep(physicsWorldContext, sweepShape, forwardPosition, downTarget, collisionComponent, out stepSupportHit)
             || !TryGetWalkableGround(stepSupportHit.Normal, out _))
         {
             stepSupportHit = default;
@@ -803,16 +805,16 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         }
 
         if (_settings.GroundSnapDistance <= 0f
-            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var capsuleCollisionComponent))
+            || !TryResolveCollisionDependencies(out var physicsWorldContext, out var collisionComponent))
         {
             return;
         }
 
-        var sweepShape = GetSweepShape();
+        var sweepShape = GetSweepShape(physicsWorldContext);
         var startPosition = rootComponent.Position;
         var targetPosition = startPosition - Vector3.Up * _settings.GroundSnapDistance;
 
-        if (!Sweep(physicsWorldContext, sweepShape, startPosition, targetPosition, capsuleCollisionComponent, out var hitResult)
+        if (!Sweep(physicsWorldContext, sweepShape, startPosition, targetPosition, collisionComponent, out var hitResult)
             || !TryGetWalkableGround(hitResult.Normal, out var slopeAngle))
         {
             SetGroundInfo(CharacterControllerGroundInfo.None);
@@ -838,10 +840,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         SetGroundInfo(new CharacterControllerGroundInfo(true, hitResult.Normal, hitResult.Collider, slopeAngle));
     }
 
-    private bool TryResolveCollisionDependencies(out IPhysicsWorld physicsWorldContext, out CapsuleCollisionComponent capsuleCollisionComponent)
+    private bool TryResolveCollisionDependencies(out IPhysicsWorld physicsWorldContext, out CollisionComponent collisionComponent)
     {
         physicsWorldContext = null;
-        capsuleCollisionComponent = null;
+        collisionComponent = null;
 
         var owner = Owner;
         if (owner?.World?.PhysicsWorld == null)
@@ -849,9 +851,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             return false;
         }
 
-        capsuleCollisionComponent = owner.GetComponent<CapsuleCollisionComponent>();
-        if (capsuleCollisionComponent == null)
+        collisionComponent = owner.GetComponent<CollisionComponent>();
+        if (collisionComponent == null || FindCapsuleFixture(collisionComponent) == null)
         {
+            collisionComponent = null;
             return false;
         }
 
@@ -859,7 +862,21 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         return true;
     }
 
-    private PhysicsShape GetSweepShape()
+    private static Capsule FindCapsuleFixture(CollisionComponent collisionComponent)
+    {
+        var fixtures = collisionComponent.Fixtures;
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            if (fixtures[i].Shape is Capsule capsule)
+            {
+                return capsule;
+            }
+        }
+
+        return null;
+    }
+
+    private PhysicsQueryShape GetSweepShape(IPhysicsWorld physicsWorldContext)
     {
         var radius = Math.Max(MinSweepShapeSize, _settings.Radius - _settings.SkinWidth);
         var cylinderHeight = Math.Max(MinSweepShapeSize, _settings.Height - _settings.Radius * 2f);
@@ -867,7 +884,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
         if (_sweepShape == null || radius != _sweepShapeRadius || cylinderHeight != _sweepShapeCylinderHeight)
         {
             _sweepShape?.Dispose();
-            _sweepShape = PhysicsShape.CreateCapsule(radius, cylinderHeight);
+            _sweepShape = physicsWorldContext.CreateQueryShape(new Capsule { Radius = radius, Length = cylinderHeight }, Vector3.One);
             _sweepShapeRadius = radius;
             _sweepShapeCylinderHeight = cylinderHeight;
         }
@@ -877,10 +894,10 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
 
     private bool Sweep(
         IPhysicsWorld physicsWorldContext,
-        PhysicsShape sweepShape,
+        PhysicsQueryShape sweepShape,
         Vector3 startPosition,
         Vector3 targetPosition,
-        CapsuleCollisionComponent capsuleCollisionComponent,
+        CollisionComponent collisionComponent,
         out HitResult hitResult)
     {
         var from = Matrix.CreateTranslation(startPosition);
@@ -892,7 +909,7 @@ public class CharacterControllerComponent : EntityComponent, IEntityPolicyDefaul
             out hitResult,
             _settings.GetSweepChannelMask(),
             _settings.HitTriggers,
-            capsuleCollisionComponent);
+            collisionComponent);
     }
 
     private bool TryGetWalkableGround(Vector3 normal, out float slopeAngle)

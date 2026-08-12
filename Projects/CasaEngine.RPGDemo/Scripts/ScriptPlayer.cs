@@ -83,8 +83,8 @@ public class ScriptPlayer : GameplayProxy, IScriptCharacter
 
     public void Dying()
     {
-        var physics2dComponent = Character.Owner.GetComponent<Physics2dComponent>();
-        physics2dComponent.DisablePhysics();
+        var collisionComponent = Character.Owner.GetComponent<CollisionComponent>();
+        collisionComponent.DisablePhysics();
 
         Controller.StateMachine.Transition(Controller.GetState((int)PlayerControllerState.Dying));
     }

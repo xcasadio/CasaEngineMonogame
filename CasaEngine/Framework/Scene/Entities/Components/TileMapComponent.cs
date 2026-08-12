@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
@@ -8,7 +8,7 @@ using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Rendering;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json.Linq;
@@ -768,20 +768,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             tileBounds.Y * tileSize.Height,
             width,
             height);
-        var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
-        box.LocalScaling = LocalScale;
+        var box = new Box { Size = new Vector3(width, height, 1f) };
 
         var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileBounds.X, tileBounds.Y);
 
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
+            collisionObject = _physicsWorldContext.AddGhostObject(box, LocalScale, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
         }
         else
         {
+            var physicsDefinition = new PhysicsDefinition { Friction = 0f };
             collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
-                new PhysicsDefinition { Friction = 0f });
+                physicsDefinition, GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(physicsDefinition));
         }
 
         _collisionObjects.Add(collisionObject);
@@ -811,20 +811,20 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             tileY * tileSize.Height + rectangle.Position.Y,
             width,
             height);
-        var box = PhysicsShape.CreateBox(width / 2f, height / 2f, 0.5f);
-        box.LocalScaling = LocalScale;
+        var box = new Box { Size = new Vector3(width, height, 1f) };
 
         var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileX, tileY);
 
         PhysicsBody collisionObject;
         if (collisionType == TileCollisionType.NoContactResponse)
         {
-            collisionObject = _physicsWorldContext.AddGhostObject(box, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
+            collisionObject = _physicsWorldContext.AddGhostObject(box, LocalScale, ref worldMatrix, tileCollisionManager, CollisionProfileIds.Trigger);
         }
         else
         {
+            var physicsDefinition = new PhysicsDefinition { Friction = 0f };
             collisionObject = _physicsWorldContext.AddStaticObject(box, LocalScale, ref worldMatrix, tileCollisionManager,
-                new PhysicsDefinition { Friction = 0f });
+                physicsDefinition, GameSettings.PhysicsEngineSettings.CollisionProfiles.ResolveProfileId(physicsDefinition));
         }
 
         _collisionObjects.Add(collisionObject);

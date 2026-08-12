@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Physics;
@@ -46,7 +47,7 @@ public class CharacterControllerComponentTests
         using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: false);
         var entity = CreateEntityWithRoot();
         SetWorld(entity, CreateWorld(physicsWorldContext));
-        entity.AddComponent(new CapsuleCollisionComponent());
+        entity.AddComponent(CreateCapsuleCollision());
         var component = new CharacterControllerComponent();
         entity.AddComponent(component);
 
@@ -591,7 +592,7 @@ public class CharacterControllerComponentTests
     [Fact]
     public void Update_InheritsTranslationFromMovingGround()
     {
-        var groundCollider = new BoxCollisionComponent();
+        var groundCollider = CreateBoxCollision();
         groundCollider.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
         groundCollider.Velocity = new Vector3(2f, 0f, 0f);
         var physicsWorldContext = new FakePhysicsWorldContext
@@ -613,7 +614,7 @@ public class CharacterControllerComponentTests
     [Fact]
     public void Update_InheritsVerticalTranslationFromMovingGround()
     {
-        var groundCollider = new BoxCollisionComponent();
+        var groundCollider = CreateBoxCollision();
         groundCollider.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
         groundCollider.Velocity = new Vector3(0f, 1f, 0f);
         var entity = CreateEntityWithRoot();
@@ -632,7 +633,7 @@ public class CharacterControllerComponentTests
     [Fact]
     public void RequestJump_FromMovingGround_DoesNotInheritGroundTranslationAfterDetach()
     {
-        var groundCollider = new BoxCollisionComponent();
+        var groundCollider = CreateBoxCollision();
         groundCollider.PhysicsDefinition.PhysicsType = PhysicsType.Kinetic;
         groundCollider.Velocity = new Vector3(2f, 0f, 0f);
         var entity = CreateEntityWithRoot();
@@ -650,6 +651,32 @@ public class CharacterControllerComponentTests
         Assert.False(component.IsGrounded);
     }
 
+    [Fact]
+    public void SweepShape_IsRebuiltOnlyWhenCapsuleDimensionsChange()
+    {
+        var physicsWorldContext = new FakePhysicsWorldContext
+        {
+            GroundHit = CreateHit(Vector3.Up, 0.5f),
+        };
+        var entity = CreateControllerEntity(physicsWorldContext, out var component);
+        component.Settings.Gravity = 0f;
+        component.Settings.GroundSnapDistance = 0.5f;
+
+        component.Update(0.1f);
+        Assert.Single(physicsWorldContext.CreatedQueryShapes);
+
+        component.Update(0.1f);
+        Assert.Single(physicsWorldContext.CreatedQueryShapes);
+
+        component.Settings.Radius += 0.5f;
+        component.Settings.Height += 1f;
+        component.Update(0.1f);
+
+        Assert.Equal(2, physicsWorldContext.CreatedQueryShapes.Count);
+        Assert.NotEqual(physicsWorldContext.CreatedQueryShapes[0], physicsWorldContext.CreatedQueryShapes[1]);
+        Assert.NotNull(entity);
+    }
+
     private static Entity CreateEntityWithRoot()
     {
         return new Entity
@@ -658,11 +685,25 @@ public class CharacterControllerComponentTests
         };
     }
 
+    private static CollisionComponent CreateCapsuleCollision()
+    {
+        var component = new CollisionComponent();
+        component.Fixtures.Add(new ColliderFixture(new Capsule()));
+        return component;
+    }
+
+    private static CollisionComponent CreateBoxCollision()
+    {
+        var component = new CollisionComponent();
+        component.Fixtures.Add(new ColliderFixture(new Box()));
+        return component;
+    }
+
     private static Entity CreateControllerEntity(IPhysicsWorld physicsWorldContext, out TestCharacterControllerComponent component)
     {
         var entity = CreateEntityWithRoot();
         SetWorld(entity, CreateWorld(physicsWorldContext));
-        entity.AddComponent(new CapsuleCollisionComponent());
+        entity.AddComponent(CreateCapsuleCollision());
         component = new TestCharacterControllerComponent();
         entity.AddComponent(component);
         return entity;
@@ -738,33 +779,51 @@ public class CharacterControllerComponentTests
         public HitResult GroundHit;
         public Func<Matrix, Matrix, HitResult?>? ShapeSweepHandler;
 
+        /// <summary>Dimensions of every query shape this world was asked to build, in creation order.</summary>
+        public List<(float Radius, float Length)> CreatedQueryShapes { get; } = [];
+
         public int CollisionObjectCount => 0;
 
         public void Update(float elapsedTime)
         {
         }
 
-        public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
+        public PhysicsBody AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, string? fixtureTag = null, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, int collisionProfileId, Color? color = null)
+        public PhysicsBody AddGhostObject(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PhysicsBody AddStaticObject(PhysicsShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, Shape3d shape, Vector3 localScale, int collisionProfileId, string? fixtureTag = null, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PhysicsBody AddRigidBody(PhysicsShape collisionShape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition)
+        public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, int collisionProfileId, Color? color = null)
         {
             throw new NotSupportedException();
         }
 
-        public PhysicsBody AddRigidBody(PhysicsShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition)
+        public PhysicsBody AddStaticObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition, int collisionProfileId, string? fixtureTag = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public PhysicsBody AddStaticObject(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition, int collisionProfileId)
+        {
+            throw new NotSupportedException();
+        }
+
+        public PhysicsBody AddRigidBody(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition, int collisionProfileId, string? fixtureTag = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public PhysicsBody AddRigidBody(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, object component, PhysicsDefinition physicsDefinition, int collisionProfileId)
         {
             throw new NotSupportedException();
         }
@@ -791,16 +850,27 @@ public class CharacterControllerComponentTests
 
         public void ClearCollisionDataFrom(ICollideableComponent component)
         {
+        }
+
+        public IReadOnlyCollection<ContactPoint> GetContactPoints(Collision collision)
+        {
             throw new NotSupportedException();
         }
 
-        public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public PhysicsQueryShape CreateQueryShape(Shape3d shape, Vector3 localScale)
+        {
+            var capsule = Assert.IsType<Capsule>(shape);
+            CreatedQueryShapes.Add((capsule.Radius, capsule.Length));
+            return new PhysicsQueryShape(new FakeQueryShapeBackend());
+        }
+
+        public HitResult ShapeSweep(PhysicsQueryShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             ShapeSweep(shape, from, to, out var result, channelMask, hitTriggers, ignoredComponent);
             return result;
         }
 
-        public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public bool ShapeSweep(PhysicsQueryShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             if (ShapeSweepHandler != null)
             {
@@ -832,7 +902,22 @@ public class CharacterControllerComponentTests
             return false;
         }
 
-        public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        public HitResult ShapeSweep(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool ShapeSweep(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void ShapeSweepPenetrating(PhysicsQueryShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
+        {
+            throw new NotSupportedException();
+        }
+
+        public void ShapeSweepPenetrating(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent? ignoredComponent = null)
         {
             throw new NotSupportedException();
         }
@@ -855,6 +940,13 @@ public class CharacterControllerComponentTests
         public void DrawDebugWorld(IPhysicsDebugDrawer debugDrawer)
         {
             throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeQueryShapeBackend : IPhysicsQueryShapeBackend
+    {
+        public void Dispose()
+        {
         }
     }
 }

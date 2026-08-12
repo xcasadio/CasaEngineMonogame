@@ -1,4 +1,4 @@
-
+﻿using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
@@ -406,12 +406,39 @@ public sealed class SteeringAgentComponent : EntityComponent, IWorldSystemDriven
 
     public bool TryGetCollisionRadius(Entity entity, out float radius)
     {
+        return TryGetCollisionRadius(entity.GetComponent<CollisionComponent>(), out radius);
+    }
+
+    /// <summary>
+    /// Radius of the first round fixture of a collision component: a sphere first, then a capsule.
+    /// </summary>
+    internal static bool TryGetCollisionRadius(CollisionComponent collisionComponent, out float radius)
+    {
         radius = 0.0f;
-        CircleCollisionComponent circle = entity.GetComponent<CircleCollisionComponent>();
-        if (circle != null)
+
+        if (collisionComponent == null)
         {
-            radius = circle.Circle.Radius;
-            return true;
+            return false;
+        }
+
+        var fixtures = collisionComponent.Fixtures;
+
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            if (fixtures[i].Shape is Sphere sphere)
+            {
+                radius = sphere.Radius;
+                return true;
+            }
+        }
+
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            if (fixtures[i].Shape is Capsule capsule)
+            {
+                radius = capsule.Radius;
+                return true;
+            }
         }
 
         return false;

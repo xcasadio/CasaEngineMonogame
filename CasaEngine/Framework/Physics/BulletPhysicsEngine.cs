@@ -1,4 +1,5 @@
 ﻿using BulletSharp;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -29,6 +30,8 @@ public class BulletPhysicsEngine
     private readonly DispatcherInfo _dispatchInfo;
 
     internal readonly bool CanCcd;
+
+    private bool _disposed;
 
     public bool ContinuousCollisionDetection
     {
@@ -194,19 +197,35 @@ public class BulletPhysicsEngine
         }
     }
 
-    public PhysicsBody AddGhostObject(PhysicsShape collisionShape, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
+    public PhysicsBody AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, string fixtureTag = null, Color? color = null)
     {
-        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, collisionShape, collisionProfileId, color);
+        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, shape, localScale, collisionProfileId, fixtureTag, color);
         AddCollisionObject(physicsBody);
         return physicsBody;
     }
 
-    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, PhysicsShape collisionShape, int collisionProfileId, Color? color = null)
+    public PhysicsBody AddGhostObject(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, Color? color = null)
     {
-        var nativeShape = CreateCollisionShape(collisionShape, collisionShape.LocalScaling);
+        var physicsBody = CreateGhostObject(worldMatrix, collideableComponent, fixtures, localScale, collisionProfileId, color);
+        AddCollisionObject(physicsBody);
+        return physicsBody;
+    }
+
+    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, Shape3d shape, Vector3 localScale, int collisionProfileId, string fixtureTag = null, Color? color = null)
+    {
+        return CreateGhostObject(worldMatrix, collideableComponent, CreateBodyShape(shape, localScale, fixtureTag), collisionProfileId, color);
+    }
+
+    public PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, int collisionProfileId, Color? color = null)
+    {
+        return CreateGhostObject(worldMatrix, collideableComponent, CreateBodyShape(fixtures, localScale), collisionProfileId, color);
+    }
+
+    private PhysicsBody CreateGhostObject(Matrix worldMatrix, ICollideableComponent collideableComponent, NativeBodyShape bodyShape, int collisionProfileId, Color? color)
+    {
         var ghostObject = new PairCachingGhostObject
         {
-            CollisionShape = nativeShape,
+            CollisionShape = bodyShape.Shape,
             UserObject = collideableComponent,
             WorldTransform = worldMatrix
         };
@@ -219,12 +238,22 @@ public class BulletPhysicsEngine
             ghostObject.SetCustomDebugColor(color.Value.ToVector3());
         }
 
-        return new PhysicsBody(new BulletPhysicsBodyBackend(this, ghostObject, nativeShape), _collisionProfiles.GetResolved(collisionProfileId));
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, ghostObject, bodyShape), _collisionProfiles.GetResolved(collisionProfileId));
     }
 
-    public PhysicsBody AddRigidBody(PhysicsShape collisionShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, bool useExternalViewManagement)
+    public PhysicsBody AddRigidBody(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId, bool useExternalViewManagement, string fixtureTag = null)
     {
-        var nativeShape = CreateCollisionShape(collisionShape, collisionShape.LocalScaling);
+        return AddRigidBody(CreateBodyShape(shape, localScale, fixtureTag), ref worldMatrix, userObject, physicsDefinition, collisionProfileId, useExternalViewManagement);
+    }
+
+    public PhysicsBody AddRigidBody(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScale, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId, bool useExternalViewManagement)
+    {
+        return AddRigidBody(CreateBodyShape(fixtures, localScale), ref worldMatrix, userObject, physicsDefinition, collisionProfileId, useExternalViewManagement);
+    }
+
+    private PhysicsBody AddRigidBody(NativeBodyShape bodyShape, ref Matrix worldMatrix, object userObject, PhysicsDefinition physicsDefinition, int collisionProfileId, bool useExternalViewManagement)
+    {
+        var nativeShape = bodyShape.Shape;
         using var rbInfo = new RigidBodyConstructionInfo(physicsDefinition.Mass, null, nativeShape);
         rbInfo.AdditionalAngularDampingFactor = physicsDefinition.AdditionalAngularDampingFactor;
         rbInfo.AdditionalAngularDampingThresholdSqr = physicsDefinition.AdditionalAngularDampingThresholdSqr;
@@ -260,7 +289,7 @@ public class BulletPhysicsEngine
             body.CollisionFlags |= CollisionFlags.StaticObject;
         }
 
-        var collisionProfile = _collisionProfiles.GetResolved(_collisionProfiles.ResolveProfileId(physicsDefinition));
+        var collisionProfile = _collisionProfiles.GetResolved(collisionProfileId);
         if (collisionProfile.IsSensor)
         {
             body.CollisionFlags |= CollisionFlags.NoContactResponse;
@@ -278,7 +307,7 @@ public class BulletPhysicsEngine
             body.Gravity = Vector3.Zero;
         }
 
-        return new PhysicsBody(new BulletPhysicsBodyBackend(this, body, nativeShape), collisionProfile);
+        return new PhysicsBody(new BulletPhysicsBodyBackend(this, body, bodyShape), collisionProfile);
     }
 
     public void AddCollisionObject(PhysicsBody physicsBody)
@@ -345,40 +374,102 @@ public class BulletPhysicsEngine
         return (CollisionFilterGroups)unchecked((int)channelMask);
     }
 
-    private static CollisionShape CreateCollisionShape(PhysicsShape shape, Vector3 localScaling)
+    /// <summary>
+    /// Lowers an engine shape to its Bullet counterpart. The caller owns the returned shape.
+    /// </summary>
+    public static CollisionShape CreateCollisionShape(Shape3d shape, Vector3 localScaling)
     {
         ArgumentNullException.ThrowIfNull(shape);
 
-        CollisionShape collisionShape = shape.Type switch
+        CollisionShape collisionShape = shape switch
         {
-            PhysicsShapeType.Box => new BoxShape(shape.HalfExtents.X, shape.HalfExtents.Y, shape.HalfExtents.Z),
-            PhysicsShapeType.Sphere => new SphereShape(shape.Radius),
-            PhysicsShapeType.Capsule => new CapsuleShape(shape.Radius, shape.Height),
-            PhysicsShapeType.Cylinder => new CylinderShape(shape.Radius),
-            _ => throw new ArgumentOutOfRangeException(nameof(shape))
+            Box box => new BoxShape(box.Size.X / 2f, box.Size.Y / 2f, box.Size.Z / 2f),
+            Sphere sphere => new SphereShape(sphere.Radius),
+            Capsule capsule => new CapsuleShape(capsule.Radius, capsule.Length),
+            Cylinder cylinder => new CylinderShape(cylinder.Radius),
+            _ => throw new ArgumentOutOfRangeException(nameof(shape), shape.Type, "This kind of shape cannot be lowered to a collision shape.")
         };
 
         collisionShape.LocalScaling = localScaling;
         return collisionShape;
     }
 
-    private static CollisionShape GetOrCreateSweepShape(PhysicsShape shape)
+    public PhysicsQueryShape CreateQueryShape(Shape3d shape, Vector3 localScaling)
     {
-        ArgumentNullException.ThrowIfNull(shape);
-
-        if (shape.Backend is BulletPhysicsShapeBackend backend)
+        var nativeShape = CreateCollisionShape(shape, localScaling);
+        if (nativeShape is not ConvexShape)
         {
-            return backend.Shape;
+            nativeShape.Dispose();
+            throw new ArgumentException("This kind of shape cannot be used for a world query.", nameof(shape));
         }
 
-        if (shape.Backend != null)
+        return new PhysicsQueryShape(new BulletPhysicsQueryShapeBackend(nativeShape));
+    }
+
+    private static NativeBodyShape CreateBodyShape(Shape3d shape, Vector3 localScaling, string fixtureTag)
+    {
+        var nativeShape = CreateCollisionShape(shape, localScaling);
+        nativeShape.UserObject = new[] { fixtureTag };
+        return new NativeBodyShape(nativeShape, null);
+    }
+
+    private static NativeBodyShape CreateBodyShape(IReadOnlyList<ColliderFixture> fixtures, Vector3 localScaling)
+    {
+        ArgumentNullException.ThrowIfNull(fixtures);
+
+        if (fixtures.Count == 0)
         {
-            throw new InvalidOperationException("Physics shape belongs to another physics backend.");
+            throw new ArgumentException("A body requires at least one collider fixture.", nameof(fixtures));
         }
 
-        var nativeShape = CreateCollisionShape(shape, shape.LocalScaling);
-        shape.Backend = new BulletPhysicsShapeBackend(nativeShape);
-        return nativeShape;
+        if (fixtures.Count == 1 && fixtures[0].HasIdentityPose)
+        {
+            return CreateBodyShape(fixtures[0].Shape, localScaling, fixtures[0].Tag);
+        }
+
+        var compound = new CompoundShape();
+        var childShapes = new CollisionShape[fixtures.Count];
+        var tags = new string[fixtures.Count];
+
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            var fixture = fixtures[i];
+            //Children stay unscaled: setting the scaling on the compound propagates it to them and to their offsets.
+            var childShape = CreateCollisionShape(fixture.Shape, Vector3.One);
+            childShapes[i] = childShape;
+            tags[i] = fixture.Tag;
+            compound.AddChildShape(fixture.GetLocalMatrix(), childShape);
+        }
+
+        compound.LocalScaling = localScaling;
+        compound.UserObject = tags;
+        return new NativeBodyShape(compound, childShapes);
+    }
+
+    /// <summary>
+    /// Tag of the fixture a contact or a query result belongs to.
+    /// <paramref name="childIndex"/> is the compound child index, or a negative value when the backend
+    /// did not report one.
+    /// </summary>
+    private static string GetFixtureTag(CollisionObject collisionObject, int childIndex)
+    {
+        if (collisionObject?.CollisionShape?.UserObject is not string[] tags)
+        {
+            return null;
+        }
+
+        //A body built from a single fixture is always attributable, whatever the backend reported.
+        if (tags.Length == 1)
+        {
+            return tags[0];
+        }
+
+        return childIndex >= 0 && childIndex < tags.Length ? tags[childIndex] : null;
+    }
+
+    private static int GetChildIndex(LocalShapeInfo shapeInfo)
+    {
+        return shapeInfo?.TriangleIndex ?? -1;
     }
 
     private static BulletPhysicsBodyBackend GetBodyBackend(PhysicsBody physicsBody)
@@ -652,7 +743,7 @@ public class BulletPhysicsEngine
 
             // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
             // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
-            var collA = collisionObjectB.UserObject as PhysicsBaseComponent;
+            var collA = collisionObjectA.UserObject as PhysicsBaseComponent;
             var collB = collisionObjectB.UserObject as PhysicsBaseComponent;
 
             if (false == (coll.ColliderA == collA && coll.ColliderB == collB
@@ -672,6 +763,8 @@ public class BulletPhysicsEngine
                     Normal = point.NormalWorldOnB,
                     PositionOnA = point.PositionWorldOnA,
                     PositionOnB = point.PositionWorldOnB,
+                    FixtureTagA = GetFixtureTag(collisionObjectA, point.Index0),
+                    FixtureTagB = GetFixtureTag(collisionObjectB, point.Index1),
                 });
             }
         }
@@ -700,6 +793,8 @@ public class BulletPhysicsEngine
     /// </summary>
     public void Dispose()
     {
+        _disposed = true;
+
         //if (mSoftRigidDynamicsWorld != null) mSoftRigidDynamicsWorld.Dispose();
         World?.Dispose();
         _collisionWorld?.Dispose();
@@ -1042,25 +1137,35 @@ public class BulletPhysicsEngine
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
     /// <returns>The result of this test</returns>
-    public HitResult ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public HitResult ShapeSweep(PhysicsQueryShape shape, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
 
-        var nativeShape = GetOrCreateSweepShape(shape);
-        if (nativeShape is not ConvexShape convexShape)
-        {
-            throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
-        }
-
+        var convexShape = GetQueryShape(shape);
         var callback = StrideClosestConvexResultCallback.Shared(hitTriggers, channelMask, ignoredComponent);
         _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
         return callback.Result;
     }
 
-    public bool ShapeSweep(PhysicsShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public bool ShapeSweep(PhysicsQueryShape shape, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         result = ShapeSweep(shape, from, to, channelMask, hitTriggers, ignoredComponent);
         return result.Succeeded;
+    }
+
+    /// <summary>
+    /// One-off sweep: creates and releases its own query shape. Keep a <see cref="PhysicsQueryShape"/> when sweeping repeatedly.
+    /// </summary>
+    public HitResult ShapeSweep(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    {
+        using var queryShape = CreateQueryShape(shape, localScale);
+        return ShapeSweep(queryShape, from, to, channelMask, hitTriggers, ignoredComponent);
+    }
+
+    public bool ShapeSweep(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, out HitResult result, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    {
+        using var queryShape = CreateQueryShape(shape, localScale);
+        return ShapeSweep(queryShape, from, to, out result, channelMask, hitTriggers, ignoredComponent);
     }
 
     /// <summary>
@@ -1073,19 +1178,33 @@ public class BulletPhysicsEngine
     /// <param name="channelMask">The collision channels this shape sweep can hit</param>
     /// <param name="hitTriggers">Whether this test should collide with <see cref="PhysicsTriggerComponentBase"/></param>
     /// <exception cref="System.ArgumentException">This kind of shape cannot be used for a ShapeSweep.</exception>
-    public void ShapeSweepPenetrating(PhysicsShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    public void ShapeSweepPenetrating(PhysicsQueryShape shape, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
     {
         ArgumentNullException.ThrowIfNull(shape);
         ArgumentNullException.ThrowIfNull(resultsOutput);
 
-        var nativeShape = GetOrCreateSweepShape(shape);
-        if (nativeShape is not ConvexShape convexShape)
-        {
-            throw new ArgumentException("This kind of shape cannot be used for a ShapeSweep.", nameof(shape));
-        }
-
+        var convexShape = GetQueryShape(shape);
         var callback = StrideAllHitsConvexResultCallback.Shared(resultsOutput, hitTriggers, channelMask, ignoredComponent);
         _collisionWorld.ConvexSweepTest(convexShape, from, to, callback);
+    }
+
+    /// <summary>
+    /// One-off penetrating sweep: creates and releases its own query shape.
+    /// </summary>
+    public void ShapeSweepPenetrating(Shape3d shape, Vector3 localScale, Matrix from, Matrix to, ICollection<HitResult> resultsOutput, uint channelMask = ChannelMask.All, bool hitTriggers = false, ICollideableComponent ignoredComponent = null)
+    {
+        using var queryShape = CreateQueryShape(shape, localScale);
+        ShapeSweepPenetrating(queryShape, from, to, resultsOutput, channelMask, hitTriggers, ignoredComponent);
+    }
+
+    private static ConvexShape GetQueryShape(PhysicsQueryShape shape)
+    {
+        if (shape.Backend is not BulletPhysicsQueryShapeBackend backend)
+        {
+            throw new InvalidOperationException("Physics query shape belongs to another physics backend.");
+        }
+
+        return backend.Shape;
     }
 
     public void ClearForces()
@@ -1334,6 +1453,7 @@ public class BulletPhysicsEngine
                 Point = Vector3.Lerp(_rayFromWorld, _rayToWorld, rayResult.HitFraction),
                 Normal = normal,
                 HitFraction = rayResult.HitFraction,
+                Tag = GetFixtureTag(obj, GetChildIndex(rayResult.LocalShapeInfo)),
             };
         }
 
@@ -1393,6 +1513,7 @@ public class BulletPhysicsEngine
                 Point = convexResult.HitPointLocal,
                 Normal = normal,
                 HitFraction = convexResult.HitFraction,
+                Tag = GetFixtureTag(obj, GetChildIndex(convexResult.LocalShapeInfo)),
             };
         }
 
@@ -1425,14 +1546,31 @@ public class BulletPhysicsEngine
         }
     }
 
-    private sealed class BulletPhysicsShapeBackend : IPhysicsShapeBackend
+    /// <summary>
+    /// Native shape of a body: either a plain shape, or a compound and the children it references.
+    /// </summary>
+    private readonly struct NativeBodyShape
     {
-        public BulletPhysicsShapeBackend(CollisionShape shape)
+        public NativeBodyShape(CollisionShape shape, CollisionShape[] childShapes)
         {
             Shape = shape;
+            ChildShapes = childShapes;
         }
 
-        public CollisionShape Shape { get; }
+        public readonly CollisionShape Shape;
+
+        /// <summary>Children of a compound shape, null when the body uses a plain shape.</summary>
+        public readonly CollisionShape[] ChildShapes;
+    }
+
+    private sealed class BulletPhysicsQueryShapeBackend : IPhysicsQueryShapeBackend
+    {
+        public BulletPhysicsQueryShapeBackend(CollisionShape shape)
+        {
+            Shape = (ConvexShape)shape;
+        }
+
+        public ConvexShape Shape { get; }
 
         public void Dispose()
         {
@@ -1443,19 +1581,33 @@ public class BulletPhysicsEngine
     private sealed class BulletPhysicsBodyBackend : IPhysicsBodyBackend
     {
         private readonly BulletPhysicsEngine _engine;
-        private readonly CollisionShape _shape;
+        private readonly NativeBodyShape _bodyShape;
         private bool _disposed;
 
-        public BulletPhysicsBodyBackend(BulletPhysicsEngine engine, CollisionObject collisionObject, CollisionShape shape)
+        public BulletPhysicsBodyBackend(BulletPhysicsEngine engine, CollisionObject collisionObject, NativeBodyShape bodyShape)
         {
             _engine = engine;
             CollisionObject = collisionObject;
-            _shape = shape;
+            _bodyShape = bodyShape;
         }
 
         public CollisionObject CollisionObject { get; }
 
         public bool IsRigidBody => CollisionObject is RigidBody;
+
+        public bool IsCompound => _bodyShape.ChildShapes != null;
+
+        public int FixtureCount => _bodyShape.ChildShapes?.Length ?? 1;
+
+        public Matrix GetFixtureLocalTransform(int index)
+        {
+            return _bodyShape.Shape is CompoundShape compound ? compound.GetChildTransform(index) : Matrix.Identity;
+        }
+
+        public string GetFixtureTag(int index)
+        {
+            return _bodyShape.Shape.UserObject is string[] tags && index >= 0 && index < tags.Length ? tags[index] : null;
+        }
 
         public bool HasContactResponse => (CollisionObject.CollisionFlags & CollisionFlags.NoContactResponse) == 0;
 
@@ -1497,8 +1649,32 @@ public class BulletPhysicsEngine
                 return;
             }
 
+            // The world keeps a native pointer to registered bodies: a body still registered
+            // when freed leaves a dangling pointer behind (native access violation).
+            if (!_engine._disposed && _engine._collisionWorld.CollisionObjectArray.Contains(CollisionObject))
+            {
+                if (_engine.World != null && CollisionObject is RigidBody rigidBody)
+                {
+                    _engine.World.RemoveRigidBody(rigidBody);
+                }
+                else
+                {
+                    _engine._collisionWorld.RemoveCollisionObject(CollisionObject);
+                }
+            }
+
             CollisionObject.Dispose();
-            _shape.Dispose();
+
+            //The compound only references its children: it must go first, then every child it referenced.
+            _bodyShape.Shape.Dispose();
+            if (_bodyShape.ChildShapes != null)
+            {
+                for (int i = 0; i < _bodyShape.ChildShapes.Length; i++)
+                {
+                    _bodyShape.ChildShapes[i].Dispose();
+                }
+            }
+
             _disposed = true;
         }
     }

@@ -9,7 +9,7 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Rendering.Depth;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

@@ -37,8 +37,8 @@
           "children_component": [
             {
               "id": "fc007d02-51ce-4281-bca8-1510d295f1f7",
-              "name": "BoxCollisionComponent",
-              "type": "BoxCollisionComponent",
+              "name": "CollisionComponent",
+              "type": "CollisionComponent",
               "local_transform": {
                 "position": {
                   "x": 0.0,
@@ -91,14 +91,31 @@
                 "apply_gravity": true,
                 "debug_color": "null"
               },
-              "box": {
-                "id": "08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
-                "name": "Object 08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
-                "shape_type": "Box",
-                "w": 1.0,
-                "h": 1.0,
-                "l": 1.0
-              }
+              "fixtures": [
+                {
+                  "shape": {
+                    "id": "08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
+                    "name": "Object 08bf6e0a-8f8d-460a-b0a3-4bdba4a189d4",
+                    "shape_type": "Box",
+                    "w": 1.0,
+                    "h": 1.0,
+                    "l": 1.0
+                  },
+                  "local_position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "local_rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0
+                  },
+                  "collision_profile": null,
+                  "tag": null
+                }
+              ]
             }
           ],
           "static_model_asset_id": "7a7025d0-c59a-47ab-96c4-b90b7ac511da",

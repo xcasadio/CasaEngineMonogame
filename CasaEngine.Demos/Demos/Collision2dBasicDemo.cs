@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CasaEngine.Engine.Geometry;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Application;
@@ -47,9 +48,12 @@ public class Collision2dBasicDemo : Demo
         meshComponent.StaticModel.Meshes[0].Material = checkMat;
         entity.RootComponent.Position = new Vector3(0, 0, 0);
         //====
-        var box2dCollisionComponent = new Box2dCollisionComponent();
+        var box2dCollisionComponent = new CollisionComponent();
+        box2dCollisionComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(1f, 1f, 1f) }));
         meshComponent.AddChildComponent(box2dCollisionComponent);
         box2dCollisionComponent.PhysicsDefinition.PhysicsType = PhysicsType.Static;
+        box2dCollisionComponent.PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
+        box2dCollisionComponent.PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
         box2dCollisionComponent.Scale = new Vector3((int)size.X, (int)size.Y, 1f);
         box2dCollisionComponent.PhysicsDefinition.Mass = 0.0f;
 
@@ -92,17 +96,17 @@ public class Collision2dBasicDemo : Demo
                 entity.RootComponent = meshComponent;
                 meshComponent.Position = new Vector3(i + boxSize + 1, 8 + j * boxSize, 0);
                 //====
-                Physics2dComponent physics2dComponent = null;
+                CollisionComponent physics2dComponent = new CollisionComponent();
                 switch (j % 2)
                 {
                     case 0:
-                        physics2dComponent = new Box2dCollisionComponent();
+                        physics2dComponent.Fixtures.Add(new ColliderFixture(new Box { Size = new Vector3(1f, 1f, 1f) }));
                         physics2dComponent.Scale = new Vector3(boxSize, boxSize, 1f);
                         meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new BoxPrimitive(boxSize, boxSize, 1.0f));
                         break;
 
                     case 1:
-                        physics2dComponent = new CircleCollisionComponent();
+                        physics2dComponent.Fixtures.Add(new ColliderFixture(new Sphere()));
                         physics2dComponent.Scale = new Vector3(boxSize / 2f, boxSize / 2f, boxSize / 2f);
                         meshComponent.StaticModel = StaticModel.CreateFromPrimitive(new SpherePrimitive(boxSize));
                         break;
@@ -110,6 +114,8 @@ public class Collision2dBasicDemo : Demo
 
                 meshComponent.AddChildComponent(physics2dComponent);
                 physics2dComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
+                physics2dComponent.PhysicsDefinition.LinearFactor = new Vector3(1, 1, 0);
+                physics2dComponent.PhysicsDefinition.AngularFactor = new Vector3(0, 0, 1);
                 physics2dComponent.PhysicsDefinition.Mass = mass;
 
                 meshComponent.StaticModel.Meshes[0].Initialize(game.GraphicsDevice);

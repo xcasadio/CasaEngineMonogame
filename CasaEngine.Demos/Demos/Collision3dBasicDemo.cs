@@ -1,4 +1,5 @@
-﻿using CasaEngine.Engine.Physics;
+﻿using CasaEngine.Engine.Geometry;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Engine.Primitives.ThreeD;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -22,7 +23,8 @@ public class Collision3dBasicDemo : Demo
         //============ Create ground ===============
         var entity = new Entity { Name = "ground" };
         //===
-        var physicsComponent = new BoxCollisionComponent();
+        var physicsComponent = new CollisionComponent();
+        physicsComponent.Fixtures.Add(new ColliderFixture(new Box()));
         entity.AddComponent(physicsComponent);
         //===
         var meshComponent = new StaticModelComponent();
@@ -73,7 +75,8 @@ public class Collision3dBasicDemo : Demo
                     meshComponent.Position = start + new Vector3(i, k, j);
                     meshComponent.StaticModel = boxModel;
                     //===
-                    physicsComponent = new BoxCollisionComponent();
+                    physicsComponent = new CollisionComponent();
+                    physicsComponent.Fixtures.Add(new ColliderFixture(new Box()));
                     meshComponent.AddChildComponent(physicsComponent);
                     physicsComponent.PhysicsDefinition.PhysicsType = PhysicsType.Dynamic;
                     physicsComponent.PhysicsDefinition.Mass = mass;

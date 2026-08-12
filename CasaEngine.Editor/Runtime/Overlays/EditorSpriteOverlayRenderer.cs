@@ -1,6 +1,6 @@
 using System;
 using CasaEngine.Framework.Assets.Sprites;
-using CasaEngine.Framework.Rendering.Geometry;
+using CasaEngine.Engine.Geometry;
 using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;

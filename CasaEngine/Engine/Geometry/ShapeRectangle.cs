@@ -3,7 +3,7 @@ using CasaEngine.Core.Serialization;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json.Linq;
 
-namespace CasaEngine.Framework.Rendering.Geometry;
+namespace CasaEngine.Engine.Geometry;
 
 public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
 {

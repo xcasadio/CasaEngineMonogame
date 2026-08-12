@@ -107,7 +107,7 @@
         "root_component": {
           "id": "e57b51ac-2c8f-431a-bf50-4350afd002d8",
           "name": "Object e57b51ac-2c8f-431a-bf50-4350afd002d8",
-          "type": "BoxCollisionComponent",
+          "type": "CollisionComponent",
           "coordinates": {
             "position": {
               "x": 944.0,
@@ -159,7 +159,32 @@
             "rolling_friction": 0.0,
             "apply_gravity": false,
             "debug_color": "null"
-          }
+          },
+          "fixtures": [
+            {
+              "shape": {
+                "id": "0374a227-26dc-573a-ae45-f38732b94987",
+                "name": "Object 0374a227-26dc-573a-ae45-f38732b94987",
+                "shape_type": "Box",
+                "w": 1.0,
+                "h": 1.0,
+                "l": 1.0
+              },
+              "local_position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "local_rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "collision_profile": null,
+              "tag": null
+            }
+          ]
         },
         "components": [],
         "script_class_name": "ScriptSign",
@@ -220,7 +245,7 @@
         "root_component": {
           "id": "ff5b2b9b-9b48-44fe-a9ed-7b060fd6c180",
           "name": "Object ff5b2b9b-9b48-44fe-a9ed-7b060fd6c180",
-          "type": "BoxCollisionComponent",
+          "type": "CollisionComponent",
           "coordinates": {
             "position": {
               "x": 600.0,
@@ -272,7 +297,32 @@
             "rolling_friction": 0.0,
             "apply_gravity": false,
             "debug_color": "null"
-          }
+          },
+          "fixtures": [
+            {
+              "shape": {
+                "id": "c195fe23-1803-56d7-81af-af6272369545",
+                "name": "Object c195fe23-1803-56d7-81af-af6272369545",
+                "shape_type": "Box",
+                "w": 1.0,
+                "h": 1.0,
+                "l": 1.0
+              },
+              "local_position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "local_rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0
+              },
+              "collision_profile": null,
+              "tag": null
+            }
+          ]
         },
         "components": [],
         "script_class_name": "ScriptEnemySpawner",

@@ -27,7 +27,7 @@
       {
         "id": "ca9a6b74-76f2-4710-8724-33bad1ca77c2",
         "name": "unknown",
-        "type": "BoxCollisionComponent",
+        "type": "CollisionComponent",
         "coordinates": {
           "position": {
             "x": 0.0,
@@ -79,7 +79,32 @@
           "rolling_friction": 0.0,
           "apply_gravity": true,
           "debug_color": "null"
-        }
+        },
+        "fixtures": [
+          {
+            "shape": {
+              "id": "721d4cd0-0afe-58fe-8466-8dd45a08f85e",
+              "name": "Object 721d4cd0-0afe-58fe-8466-8dd45a08f85e",
+              "shape_type": "Box",
+              "w": 1.0,
+              "h": 1.0,
+              "l": 1.0
+            },
+            "local_position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0
+            },
+            "local_rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0
+            },
+            "collision_profile": null,
+            "tag": null
+          }
+        ]
       }
     ],
     "static_model_asset_id": "6a220bb5-1903-4943-a7ff-297fc87f4201",

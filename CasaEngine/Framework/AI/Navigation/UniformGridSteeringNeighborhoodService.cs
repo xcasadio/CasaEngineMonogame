@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
@@ -152,10 +152,7 @@ public sealed class UniformGridSteeringNeighborhoodService : ISteeringNeighborho
             }
 
             float collisionRadius = 0.0f;
-            if (entity.GetComponent<CircleCollisionComponent>() is CircleCollisionComponent circleCollisionComponent)
-            {
-                collisionRadius = circleCollisionComponent.Circle.Radius;
-            }
+            SteeringAgentComponent.TryGetCollisionRadius(entity.GetComponent<CollisionComponent>(), out collisionRadius);
 
             _frame.AddParticipant(
                 steeringAgent,
