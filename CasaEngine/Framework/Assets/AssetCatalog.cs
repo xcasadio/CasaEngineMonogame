@@ -1,5 +1,6 @@
-﻿using CasaEngine.Core.Logging;
-using Newtonsoft.Json.Linq;
+﻿using System.Text;
+using System.Text.Json;
+using CasaEngine.Core.Logging;
 
 namespace CasaEngine.Framework.Assets;
 
@@ -15,12 +16,17 @@ public static class AssetCatalog
 
     internal static void AddInternal(AssetInfo assetInfo)
     {
+        AddEntry(assetInfo);
+
+        Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
+    }
+
+    private static void AddEntry(AssetInfo assetInfo)
+    {
         NormalizeAssetInfo(assetInfo);
         _assetInfos.Add(assetInfo.Id, assetInfo);
         _assetInfosByName[assetInfo.Name] = assetInfo;
         _assetInfosByFileName[assetInfo.FileName] = assetInfo;
-
-        Logs.WriteTrace($"Add asset Id:{assetInfo.Id}, Name:{assetInfo.Name}, FileName:{assetInfo.FileName}");
     }
 
     public static AssetInfo Get(Guid guid)
@@ -45,23 +51,119 @@ public static class AssetCatalog
     {
         ClearInternal();
 
-        var rootElement = JObject.Parse(File.ReadAllText(fileName));
-
-        var assetInfosNode = rootElement["asset_infos"] as JArray;
-        if (assetInfosNode == null)
-        {
-            IsLoaded = true;
-            return;
-        }
-
-        foreach (var assetInfoNode in assetInfosNode)
-        {
-            var assetInfo = new AssetInfo();
-            assetInfo.Load((JObject)assetInfoNode);
-            AddInternal(assetInfo);
-        }
+        var count = ParseAssetInfos(File.ReadAllBytes(fileName), fileName);
 
         IsLoaded = true;
+        Logs.WriteInfo($"Asset catalog loaded: {count} assets from {fileName}");
+    }
+
+    private static int ParseAssetInfos(byte[] fileBytes, string fileName)
+    {
+        var jsonBytes = fileBytes.AsSpan();
+        if (jsonBytes.StartsWith(Encoding.UTF8.Preamble))
+        {
+            jsonBytes = jsonBytes[Encoding.UTF8.Preamble.Length..];
+        }
+
+        var readerOptions = new JsonReaderOptions
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        };
+        var reader = new Utf8JsonReader(jsonBytes, readerOptions);
+
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new InvalidDataException($"Asset catalog root must be a JSON object: {fileName}");
+        }
+
+        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
+        {
+            if (!reader.ValueTextEquals("asset_infos"u8))
+            {
+                reader.Skip();
+                continue;
+            }
+
+            reader.Read();
+            if (reader.TokenType != JsonTokenType.StartArray)
+            {
+                return 0;
+            }
+
+            return ReadAssetInfoArray(ref reader, fileName);
+        }
+
+        return 0;
+    }
+
+    private static int ReadAssetInfoArray(ref Utf8JsonReader reader, string fileName)
+    {
+        var count = 0;
+
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+        {
+            if (reader.TokenType != JsonTokenType.StartObject)
+            {
+                reader.Skip();
+                continue;
+            }
+
+            AddEntry(ReadAssetInfo(ref reader, fileName));
+            count++;
+        }
+
+        return count;
+    }
+
+    private static AssetInfo ReadAssetInfo(ref Utf8JsonReader reader, string fileName)
+    {
+        var id = Guid.Empty;
+        var hasId = false;
+        string name = null;
+        string assetFileName = null;
+        string assetType = null;
+
+        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
+        {
+            if (reader.ValueTextEquals("id"u8))
+            {
+                reader.Read();
+                id = Guid.Parse(reader.GetString() ?? string.Empty);
+                hasId = true;
+            }
+            else if (reader.ValueTextEquals("name"u8))
+            {
+                reader.Read();
+                name = reader.GetString();
+            }
+            else if (reader.ValueTextEquals("file_name"u8))
+            {
+                reader.Read();
+                assetFileName = reader.GetString();
+            }
+            else if (reader.ValueTextEquals("asset_type"u8))
+            {
+                reader.Read();
+                assetType = reader.GetString();
+            }
+            else
+            {
+                reader.Skip();
+            }
+        }
+
+        if (!hasId)
+        {
+            throw new InvalidDataException($"Asset info without 'id' in catalog: {fileName}");
+        }
+
+        return new AssetInfo(id)
+        {
+            Name = name ?? string.Empty,
+            FileName = assetFileName ?? string.Empty,
+            AssetType = assetType ?? string.Empty,
+        };
     }
 
     internal static void AddInternal(Guid id, string name, string fileName)
