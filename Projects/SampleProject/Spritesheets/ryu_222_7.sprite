@@ -14,7 +14,7 @@
   },
   "collisions": [
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 27.0,
@@ -25,7 +25,7 @@
       "h": 57
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 8.0,

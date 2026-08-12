@@ -14,7 +14,7 @@
   },
   "collisions": [
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 48.0,
@@ -25,7 +25,7 @@
       "h": 26
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 20.0,
@@ -36,7 +36,7 @@
       "h": 34
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 75.0,
@@ -47,7 +47,7 @@
       "h": 44
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 51.0,

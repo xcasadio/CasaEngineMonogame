@@ -14,7 +14,7 @@
   },
   "collisions": [
     {
-      "collision_type": "Attack",
+      "collision_profile": "AttackVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 71.0,
@@ -25,7 +25,7 @@
       "h": 28
     },
     {
-      "collision_type": "Attack",
+      "collision_profile": "AttackVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 47.0,
@@ -36,7 +36,7 @@
       "h": 28
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 47.0,
@@ -47,7 +47,7 @@
       "h": 50
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 8.0,
@@ -58,7 +58,7 @@
       "h": 21
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 21.0,
@@ -69,7 +69,7 @@
       "h": 28
     },
     {
-      "collision_type": "Defense",
+      "collision_profile": "DamageableVolume",
       "shape_type": "Rectangle",
       "location": {
         "x": 71.0,

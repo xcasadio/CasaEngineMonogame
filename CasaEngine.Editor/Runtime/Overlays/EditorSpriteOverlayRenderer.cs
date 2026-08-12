@@ -1,6 +1,7 @@
 using System;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Engine.Geometry;
+using CasaEngine.Framework.Scene.Entities.Components;
 using MGUI.Shared.Rendering;
 using Microsoft.Xna.Framework;
 using MonoGame.Extended;
@@ -62,16 +63,16 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
         for (int collisionIndex = 0; collisionIndex < spriteData.CollisionShapes.Count; collisionIndex++)
         {
             Collision2d collision = spriteData.CollisionShapes[collisionIndex];
-            Color collisionColor = collision.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+            Color collisionColor = SpriteCollisionHelper.GetDebugColor(collision);
             Color strokeColor = collisionColor * opacity;
             switch (collision.Shape)
             {
                 case ShapeRectangle rectangle:
-                    DrawRectangle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, rectangle, strokeColor);
+                    DrawRectangle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, collision.LocalPosition, rectangle, strokeColor);
                     break;
 
                 case ShapeCircle circle:
-                    DrawCircle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, circle, strokeColor);
+                    DrawCircle(drawContext, in mapper, spritePosition, spriteScale, spriteData.Origin, collision.LocalPosition, circle, strokeColor);
                     break;
             }
         }
@@ -107,11 +108,12 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
         Vector3 spritePosition,
         Vector2 spriteScale,
         Point origin,
+        Vector2 localPosition,
         ShapeRectangle rectangle,
         Color color)
     {
-        float x = spritePosition.X + (rectangle.Position.X - origin.X) * spriteScale.X;
-        float y = spritePosition.Y - (rectangle.Position.Y - origin.Y + rectangle.Height) * spriteScale.Y;
+        float x = spritePosition.X + (localPosition.X - origin.X) * spriteScale.X;
+        float y = spritePosition.Y - (localPosition.Y - origin.Y + rectangle.Height) * spriteScale.Y;
         float width = rectangle.Width * spriteScale.X;
         float height = rectangle.Height * spriteScale.Y;
 
@@ -134,6 +136,7 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
         Vector3 spritePosition,
         Vector2 spriteScale,
         Point origin,
+        Vector2 localPosition,
         ShapeCircle circle,
         Color color)
     {
@@ -145,8 +148,8 @@ internal sealed class EditorSpriteOverlayRenderer : IDisposable
         }
 
         Vector2 center = mapper.WorldToScreen(new Vector2(
-            spritePosition.X + (circle.Position.X - origin.X) * spriteScale.X,
-            spritePosition.Y - (circle.Position.Y - origin.Y) * spriteScale.Y));
+            spritePosition.X + (localPosition.X - origin.X) * spriteScale.X,
+            spritePosition.Y - (localPosition.Y - origin.Y) * spriteScale.Y));
         float strokeThickness = Math.Max(1f, MathF.Max(mapper.PixelWidth, mapper.PixelHeight));
 
         for (int index = 0; index < CircleSegments; index++)

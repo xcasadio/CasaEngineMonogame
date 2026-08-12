@@ -5,6 +5,7 @@ using CasaEngine.Framework.Application.Components;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Rendering;
@@ -788,13 +789,29 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return collisionObject;
     }
 
-    private PhysicsBody CreateCollisionObject(int layerIndex, int tileX, int tileY, ShapeRectangle rectangle, TileCollisionType collisionType)
+    /// <summary>
+    /// World position of the collision body of a tile carrying its own collision volume: the tile origin
+    /// offset by the local pose of the volume, both expressed in map local pixels.
+    /// </summary>
+    internal static Vector3 ComputeTileCollisionWorldPosition(ref Matrix worldMatrixWithScale, Collision2d collision2d, int tileX, int tileY, CasaEngine.Core.Math.Size tileSize)
+    {
+        var rectangle = (ShapeRectangle)collision2d.Shape;
+        return ComputeCollisionWorldPosition(
+            ref worldMatrixWithScale,
+            tileX * tileSize.Width + collision2d.LocalPosition.X,
+            tileY * tileSize.Height + collision2d.LocalPosition.Y,
+            rectangle.Width,
+            rectangle.Height);
+    }
+
+    private PhysicsBody CreateCollisionObject(int layerIndex, int tileX, int tileY, Collision2d collision2d, TileCollisionType collisionType)
     {
         if (_physicsWorldContext == null)
         {
             return null;
         }
 
+        var rectangle = (ShapeRectangle)collision2d.Shape;
         var tileSize = TileSetData.TileSize;
         var width = rectangle.Width;
         var height = rectangle.Height;
@@ -805,12 +822,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         var worldMatrixWithScale = WorldMatrixWithScale;
         var worldMatrix = WorldMatrixNoScale;
-        worldMatrix.Translation = ComputeCollisionWorldPosition(
-            ref worldMatrixWithScale,
-            tileX * tileSize.Width + rectangle.Position.X,
-            tileY * tileSize.Height + rectangle.Position.Y,
-            width,
-            height);
+        worldMatrix.Translation = ComputeTileCollisionWorldPosition(ref worldMatrixWithScale, collision2d, tileX, tileY, tileSize);
         var box = new Box { Size = new Vector3(width, height, 1f) };
 
         var tileCollisionManager = new TileCollisionManager(this, layerIndex, tileX, tileY);
@@ -1020,9 +1032,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
                 if (TryGetTileData(layer.TileMapLayerData, rowOffset + mapX, out var tileData) && tileData?.CollisionType == collisionType)
                 {
-                    if (tileData.CollisionShape?.Shape is ShapeRectangle rectangle)
+                    if (tileData.CollisionShape?.Shape is ShapeRectangle)
                     {
-                        var collisionObject = CreateCollisionObject(collisionChunk.LayerIndex, mapX, mapY, rectangle, collisionType);
+                        var collisionObject = CreateCollisionObject(collisionChunk.LayerIndex, mapX, mapY, tileData.CollisionShape, collisionType);
                         if (collisionObject != null)
                         {
                             collisionChunk.CollisionObjects.Add(collisionObject);

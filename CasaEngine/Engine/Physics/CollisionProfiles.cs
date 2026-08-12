@@ -35,8 +35,10 @@ public static class CollisionChannels
     public const int WorldDynamic = 1;
     public const int Pawn = 2;
     public const int Trigger = 3;
+    public const int AttackVolume = 4;
+    public const int DamageableVolume = 5;
 
-    public const int ReservedCount = 4;
+    public const int ReservedCount = 6;
     public const int MaxCount = 32;
 }
 
@@ -49,6 +51,8 @@ public static class CollisionProfileIds
     public const int WorldDynamic = 1;
     public const int Pawn = 2;
     public const int Trigger = 3;
+    public const int AttackVolume = 4;
+    public const int DamageableVolume = 5;
 }
 
 /// <summary>
@@ -60,6 +64,8 @@ public static class CollisionProfileNames
     public const string WorldDynamic = "WorldDynamic";
     public const string Pawn = "Pawn";
     public const string Trigger = "Trigger";
+    public const string AttackVolume = "AttackVolume";
+    public const string DamageableVolume = "DamageableVolume";
 }
 
 /// <summary>
@@ -235,6 +241,11 @@ public sealed class CollisionProfileTable
         }
 
         return id;
+    }
+
+    public bool TryGetProfileId(string name, out int id)
+    {
+        return _profileIdsByName.TryGetValue(name, out id);
     }
 
     public CollisionProfile GetProfile(int id)

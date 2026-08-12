@@ -14,8 +14,9 @@ public class ShapeLine : Shape2d, IEquatable<ShapeLine>
     {
         get
         {
-            var position = Position.ToVector3();
-            return new BoundingBox(position - new Vector3(Start.X, Start.Y, 0f), position + new Vector3(End.X, End.Y, 0.1f));
+            var start = new Vector3(Start.X, Start.Y, 0f);
+            var end = new Vector3(End.X, End.Y, 0f);
+            return new BoundingBox(Vector3.Min(start, end), Vector3.Max(start, end));
         }
     }
 

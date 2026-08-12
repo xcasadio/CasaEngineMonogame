@@ -152,7 +152,9 @@ public class EditorAssetImportServiceTests
             Assert.Equal(16, thirdTileLocation["h"]!.Value<int>());
 
             var collision = Assert.IsType<JObject>(thirdTile["collision"]);
-            Assert.Equal("Defense", (string?)collision["collision_type"]);
+            //The tile runtime applies its own profile: the imported volume names none.
+            Assert.Equal(string.Empty, (string?)collision["collision_profile"]);
+            Assert.Null(collision["collision_type"]);
             Assert.Equal("Rectangle", (string?)collision["shape_type"]);
             Assert.Equal(10f, collision["w"]!.Value<float>());
             Assert.Equal(11f, collision["h"]!.Value<float>());

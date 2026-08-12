@@ -201,8 +201,10 @@ public static class EditorAssetImportService
                 tileData.CollisionType = TileCollisionType.Blocked;
                 tileData.CollisionShape = new Collision2d
                 {
-                    CollisionHitType = CollisionHitType.Defense,
-                    Shape = new ShapeRectangle(collision.X, collision.Y, collision.Width, collision.Height),
+                    //The tile runtime picks its own profile from the tile collision type.
+                    ProfileName = string.Empty,
+                    LocalPosition = new Vector2(collision.X, collision.Y),
+                    Shape = new ShapeRectangle(collision.Width, collision.Height),
                 };
             }
 

@@ -36,8 +36,9 @@ Cette section décrit uniquement ce qui est observable dans le dépôt au moment
 ### Trois vocabulaires de formes, aucun pivot
 
 - [Shape2d](../../CasaEngine/Engine/Geometry/Shape2d.cs) (Compound, Polygone,
-  Rectangle, Circle, Line) porte une pose (`Position` Vector2 + `Rotation`). Consommé par
-  `Collision2d` (sprites), `TileData.CollisionShape` (tiles), `Box2dCollisionComponent`.
+  Rectangle, Circle, Line) portait une pose (`Position` Vector2 + `Rotation`) — **supprimée en
+  phase C** : la pose vit désormais sur `Collision2d` (`LocalPosition` + `Rotation`), l'attache
+  d'authoring commune aux sprites et aux tuiles (`TileData.CollisionShape`).
 - [Shape3d](../../CasaEngine/Engine/Geometry/Shape3d.cs) (Compound, Box, Capsule,
   Cylinder, Sphere, Cone) ne porte **pas** de pose. Consommé par `BoxCollisionComponent`.
 - `PhysicsShape` (Box, Sphere, Capsule, Cylinder) était un troisième vocabulaire, public, avec un
@@ -52,11 +53,14 @@ collision — habitat erroné, corrigé en phase B : ils vivent maintenant sous
 
 ### L'abaissement 2D → physique est codé en dur
 
-[Physics2dHelper.CreateCollisionsFromSprite](../../CasaEngine/Framework/Scene/Entities/Components/Physics2dHelper.cs)
-convertit `ShapeRectangle → PhysicsShape.CreateBox(w/2, h/2, 0.5f)` — demi-profondeur `0.5f` en
-dur — et jette `ArgumentOutOfRangeException` pour Circle, Line, Polygone, Compound. Le fait
-important : **le moteur crée déjà des volumes 3D pour ses jeux 2D**. Il le fait juste sans le dire
-et sans paramètre.
+`Physics2dHelper.CreateCollisionsFromSprite` convertissait `ShapeRectangle → PhysicsShape.CreateBox(w/2, h/2, 0.5f)`
+— demi-profondeur `0.5f` en dur — et jetait `ArgumentOutOfRangeException` pour Circle, Line,
+Polygone, Compound. Le fait important : **le moteur crée déjà des volumes 3D pour ses jeux 2D**.
+**Supprimé en phase C** : l'abaissement appartient à
+[SimulationSpacePolicy.Lower](../../CasaEngine/Engine/Physics/SimulationSpacePolicy.cs), avec une
+extrusion paramétrée, et
+[SpriteCollisionHelper](../../CasaEngine/Framework/Scene/Entities/Components/SpriteCollisionHelper.cs)
+crée les corps des volumes de sprite.
 
 ### Un corps = une forme
 
@@ -69,9 +73,10 @@ pose locale : un offset de forme par rapport à l'entité n'a aujourd'hui **null
 [CollisionProfiles.cs](../../CasaEngine/Engine/Physics/CollisionProfiles.cs))
 recopiait les groupes par défaut de Bullet (`DefaultFilter`, `StaticFilter`, `DebrisFilter`…), sans
 signification gameplay, et fuit dans la signature publique des sweeps d'`IPhysicsWorld`. La seule
-sémantique gameplay existante,
-[CollisionHitType](../../CasaEngine/Framework/Assets/Sprites/CollisionHitType.cs)
-(`Unknown`/`Attack`/`Defense`), vit dans un asset sprite et ne pilote… qu'une couleur de debug draw.
+sémantique gameplay existante, `CollisionHitType` (`Unknown`/`Attack`/`Defense`), vivait dans un
+asset sprite et ne pilotait… qu'une couleur de debug draw. **Supprimé en phase C** : un volume de
+sprite nomme un profil (`Collision2d.ProfileName`, profils réservés `AttackVolume` et
+`DamageableVolume`), qui pilote à la fois le filtrage et la couleur de debug.
 
 ### Les événements ignorent la forme
 
@@ -98,12 +103,12 @@ pas une donnée de sprite (un sprite est partageable entre animations).
 
 ### Divers
 
-- `IsPhysics2dActivated` enregistre le pipeline `Convex2DShape`/`Box2DShape` de Bullet, mais aucun
-  code ne crée jamais ces shapes : vestige mort.
-- Le verrouillage de plan existe déjà, mais **par branche de classes** :
-  [Physics2dComponent](../../CasaEngine/Framework/Scene/Entities/Components/Physics2dComponent.cs)
-  n'existe que pour poser `LinearFactor = (1,1,0)` et `AngularFactor = (0,0,1)` dans son
-  constructeur — exactement la future politique `Planar2d`, codée en héritage.
+- `IsPhysics2dActivated` enregistrait le pipeline `Convex2DShape`/`Box2DShape` de Bullet, mais aucun
+  code ne créait jamais ces shapes : vestige mort, **supprimé en phase C**.
+- Le verrouillage de plan existait **par branche de classes** : `Physics2dComponent` n'existait que
+  pour poser `LinearFactor = (1,1,0)` et `AngularFactor = (0,0,1)` dans son constructeur —
+  exactement la future politique `Planar2d`, codée en héritage. Composant supprimé depuis ; les
+  défauts de verrouillage restent à fournir par la politique (phase D).
 - L'abaissement est incohérent entre composants : `Box2dCollisionComponent` extrude son rectangle
   à une profondeur de 1 (`0.5f` en demi-étendue), `CircleCollisionComponent` abaisse son cercle en
   **sphère** (profondeur `2r`). Deux colliders 2D d'une même scène n'ont pas la même épaisseur.
@@ -402,6 +407,25 @@ C  Abaissement            ISimulationSpacePolicy.Lower ; Shape2d perd sa pose (m
                           Collision2d, qui gagne ProfileName + Tag) ; extrusion paramétrée ;
                           Physics2dHelper, branche Physics2dComponent, CollisionHitType et
                           IsPhysics2dActivated SUPPRIMÉS.
+                          FAIT (2026-08). La politique vit dans SimulationSpacePolicy
+                          (Identity3d par défaut dans PhysicsEngineSettings.SpacePolicy) et
+                          n'expose que Lower : ApplyDefaultConstraints est reporté en phase D.
+                          Abaissement retenu : rectangle → Box (w, h, ExtrusionDepth),
+                          cercle → Sphere ; l'abaissement en disque est reporté. Ligne, polygone
+                          et compound lèvent NotSupportedException, comme avant.
+                          Limite connue : un volume cercle sur un sprite est créé (Sphere) mais
+                          UpdateBodyTransformation ne gère que les rectangles — cast invalide au
+                          premier update. Les cercles étaient déjà inutilisables avant (rejet à
+                          la création) et aucun asset n'en porte ; à régler avec la refonte du
+                          chemin sprite en phase E.
+                          Changements assumés : deux profils réservés ajoutés, AttackVolume
+                          (canal 4, debug rouge) et DamageableVolume (canal 5, debug vert), tous
+                          deux capteurs — ils remplacent l'ancien CollisionHitType des sprites ;
+                          la couleur de debug des quatre chemins de dessin vient désormais du
+                          profil résolu (nom vide ou inconnu → Trigger). Les assets *.sprite
+                          livrés ont été migrés par script ("collision_type" → "collision_profile").
+                          Le TileCollisionType au niveau des tuiles et sa clé "collision_type"
+                          sur les nœuds de tuile sont un concept distinct, laissés intacts.
 D  Espace de simulation   politique complète par monde ; pose logique vs pose de rendu ;
                           Identity3d par défaut. Le chantier structurel.
 E  Timelines de fixtures  keyframes de collision sur les assets d'animation ; composant runtime

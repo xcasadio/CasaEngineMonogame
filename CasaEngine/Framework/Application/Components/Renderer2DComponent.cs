@@ -3,6 +3,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Rendering.Draw2D;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -415,7 +416,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
 
     public void DrawCollision(Collision2d collision2d, Vector2 position, Vector2 scale, float z)
     {
-        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+        var color = SpriteCollisionHelper.GetDebugColor(collision2d);
 
         switch (collision2d.Shape.Type)
         {
@@ -425,7 +426,7 @@ public class Renderer2DComponent : DrawableGameComponent, IViewFlushableRenderer
                 break;
             case Shape2dType.Rectangle:
                 var rectangle = collision2d.Shape as ShapeRectangle;
-                DrawRectangle(position.X + rectangle.Position.X * scale.X, position.Y + rectangle.Position.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
+                DrawRectangle(position.X + collision2d.LocalPosition.X * scale.X, position.Y + collision2d.LocalPosition.Y * scale.X, rectangle.Width * scale.X, rectangle.Height * scale.Y, color, z);
                 break;
             case Shape2dType.Circle:
                 break;

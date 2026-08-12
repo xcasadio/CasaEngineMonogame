@@ -679,8 +679,8 @@ internal sealed class TileMapEditorPanel : IDisposable
         if (tileData.CollisionShape?.Shape is ShapeRectangle rectangle && rectangle.Width > 0f && rectangle.Height > 0f)
         {
             return new Rectangle(
-                tileX * tileWidth + (int)MathF.Round(rectangle.Position.X),
-                tileY * tileHeight + (int)MathF.Round(rectangle.Position.Y),
+                tileX * tileWidth + (int)MathF.Round(tileData.CollisionShape.LocalPosition.X),
+                tileY * tileHeight + (int)MathF.Round(tileData.CollisionShape.LocalPosition.Y),
                 (int)MathF.Round(rectangle.Width),
                 (int)MathF.Round(rectangle.Height));
         }

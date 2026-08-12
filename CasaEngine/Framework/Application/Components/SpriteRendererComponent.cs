@@ -4,6 +4,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Rendering.Depth;
+using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Rendering.Shaders;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -403,7 +404,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawCollision(Collision2d collision2d, Vector2 position, float z, Point origin, Vector2 scale)
     {
-        var color = collision2d.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
+        var color = SpriteCollisionHelper.GetDebugColor(collision2d);
 
         switch (collision2d.Shape.Type)
         {
@@ -414,8 +415,8 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             case Shape2dType.Rectangle:
                 var rectangle = collision2d.Shape as ShapeRectangle;
                 _line3dRendererComponent.DrawRectangle(
-                    position.X + (rectangle.Position.X - origin.X) * scale.X,
-                    position.Y - (rectangle.Position.Y - origin.Y + rectangle.Height) * scale.Y,
+                    position.X + (collision2d.LocalPosition.X - origin.X) * scale.X,
+                    position.Y - (collision2d.LocalPosition.Y - origin.Y + rectangle.Height) * scale.Y,
                     rectangle.Width * scale.X,
                     rectangle.Height * scale.Y,
                     color,

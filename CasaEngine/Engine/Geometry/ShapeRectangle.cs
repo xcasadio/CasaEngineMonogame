@@ -14,9 +14,8 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
     {
         get
         {
-            var position = Position.ToVector3();
             var halfSize = new Vector3(Width / 2f, Height / 2f, 0f);
-            return new BoundingBox(position - halfSize, position + halfSize);
+            return new BoundingBox(-halfSize, halfSize);
         }
     }
 
@@ -24,12 +23,6 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
     {
         Width = width;
         Height = height;
-    }
-
-    public ShapeRectangle(float x, float y, float w, float h)
-        : this(w, h)
-    {
-        Position = new Vector2(x, y);
     }
 
     public bool Equals(ShapeRectangle other)
@@ -79,5 +72,5 @@ public class ShapeRectangle : Shape2d, IEquatable<ShapeRectangle>
         Height = element["h"].GetSingle();
     }
 
-    public override string ToString() => $"{Enum.GetName(Type)} {{X: {Position.X} Y:{Position.Y} Width:{Width} Height:{Height}}}";
+    public override string ToString() => $"{Enum.GetName(Type)} {{Width: {Width} Height:{Height}}}";
 }

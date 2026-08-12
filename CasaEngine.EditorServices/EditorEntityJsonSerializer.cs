@@ -83,18 +83,20 @@ internal static class EditorEntityJsonSerializer
 
     internal static void SaveCollision2d(Collision2d collision2d, JObject node)
     {
-        node.Add("collision_type", collision2d.CollisionHitType.ConvertToString());
+        node.Add("collision_profile", collision2d.ProfileName ?? string.Empty);
+        node.Add("tag", collision2d.Tag ?? string.Empty);
+
+        var locationNode = new JObject();
+        collision2d.LocalPosition.Save(locationNode);
+        node.Add("location", locationNode);
+        node.Add("orientation", collision2d.Rotation);
+
         SaveShape2d(collision2d.Shape, node);
     }
 
     internal static void SaveShape2d(Shape2d shape, JObject node)
     {
         node.Add("shape_type", shape.Type.ConvertToString());
-
-        var locationNode = new JObject();
-        shape.Position.Save(locationNode);
-        node.Add("location", locationNode);
-        node.Add("orientation", shape.Rotation);
 
         switch (shape)
         {

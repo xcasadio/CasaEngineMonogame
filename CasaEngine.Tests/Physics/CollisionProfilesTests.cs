@@ -220,7 +220,7 @@ public class CollisionProfilesTests
     private static PhysicsBody CreateSpriteTriggerVolume(IPhysicsWorld physicsWorldContext, ICollideableComponent component, Matrix worldMatrix)
     {
         var collision2d = new Collision2d { Shape = new ShapeRectangle(1f, 1f) };
-        var body = Physics2dHelper.CreateCollisionsFromSprite(collision2d, Vector3.One, worldMatrix, physicsWorldContext, component, Color.Green);
+        var body = SpriteCollisionHelper.CreateCollisionBody(collision2d, Vector3.One, worldMatrix, physicsWorldContext, component);
         physicsWorldContext.AddCollisionObject(body);
         return body;
     }

@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using CasaEngine.Core.Serialization;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
@@ -20,7 +20,7 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     private SpriteData _spriteData;
     private SpriteRendererComponent _spriteRendererComponent;
     private DepthSortable2DComponent _depthSortable2DComponent;
-    private readonly List<(Shape2d, PhysicsBody)> _collisionObjects = new();
+    private readonly List<(Collision2d, PhysicsBody)> _collisionObjects = new();
     private IPhysicsWorld _physicsWorldContext;
 
     public PhysicsType PhysicsType { get; }
@@ -80,10 +80,10 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
 
     public override void Update(float elapsedTime)
     {
-        foreach (var (shape2d, collisionObject) in _collisionObjects)
+        foreach (var (collision2d, collisionObject) in _collisionObjects)
         {
-            Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
-                collisionObject, shape2d, _spriteData.Origin, _spriteData.PositionInTexture);
+            SpriteCollisionHelper.UpdateBodyTransformation(Position, Orientation, Scale,
+                collisionObject, collision2d, _spriteData.Origin, _spriteData.PositionInTexture);
         }
 
         base.Update(elapsedTime);
@@ -200,21 +200,20 @@ public class StaticSpriteComponent : SceneComponent, ICollideableComponent, ICom
     {
         foreach (var collisionShape in _spriteData.CollisionShapes)
         {
-            var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
+            var collisionObject = SpriteCollisionHelper.CreateCollisionBody(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this);
             if (collisionObject != null)
             {
-                Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
-                    collisionObject, collisionShape.Shape, _spriteData.Origin, _spriteData.PositionInTexture);
+                SpriteCollisionHelper.UpdateBodyTransformation(Position, Orientation, Scale,
+                    collisionObject, collisionShape, _spriteData.Origin, _spriteData.PositionInTexture);
                 _physicsWorldContext.AddCollisionObject(collisionObject);
-                _collisionObjects.Add(new(collisionShape.Shape, collisionObject));
+                _collisionObjects.Add(new(collisionShape, collisionObject));
             }
         }
     }
 
     public void RemoveCollisions()
     {
-        foreach (var (shape2d, collisionObject) in _collisionObjects)
+        foreach (var (_, collisionObject) in _collisionObjects)
         {
             _physicsWorldContext.RemoveCollisionObject(collisionObject);
             _physicsWorldContext.ClearCollisionDataFrom(this);

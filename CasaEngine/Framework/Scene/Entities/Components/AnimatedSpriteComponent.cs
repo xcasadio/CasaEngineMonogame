@@ -23,7 +23,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public event EventHandler<Animation2d> AnimationFinished;
     public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
-    private readonly Dictionary<Guid, List<(Shape2d, PhysicsBody)>> _collisionObjectsBySpriteId = new();
+    private readonly Dictionary<Guid, List<(Collision2d, PhysicsBody)>> _collisionObjectsBySpriteId = new();
     private readonly List<Guid> _animationAssetIds = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
@@ -379,15 +379,14 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             return;
         }
 
-        _collisionObjectsBySpriteId.Add(spriteId, new List<(Shape2d, PhysicsBody)>(spriteData.CollisionShapes.Count));
+        _collisionObjectsBySpriteId.Add(spriteId, new List<(Collision2d, PhysicsBody)>(spriteData.CollisionShapes.Count));
 
         foreach (var collisionShape in spriteData.CollisionShapes)
         {
-            var color = collisionShape.CollisionHitType == CollisionHitType.Attack ? Color.Red : Color.Green;
-            var collisionObject = Physics2dHelper.CreateCollisionsFromSprite(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this, color);
+            var collisionObject = SpriteCollisionHelper.CreateCollisionBody(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this);
             if (collisionObject != null)
             {
-                _collisionObjectsBySpriteId[spriteId].Add(new(collisionShape.Shape, collisionObject));
+                _collisionObjectsBySpriteId[spriteId].Add(new(collisionShape, collisionObject));
             }
         }
     }
@@ -456,10 +455,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         var spriteData = _assetContentManager.GetAsset<SpriteData>(spriteId);
 
-        foreach (var (shape2d, collisionObject) in collisionObjects)
+        foreach (var (collision2d, collisionObject) in collisionObjects)
         {
-            Physics2dHelper.UpdateBodyTransformation(Position, Orientation, Scale,
-                collisionObject, shape2d, spriteData.Origin, spriteData.PositionInTexture);
+            SpriteCollisionHelper.UpdateBodyTransformation(Position, Orientation, Scale,
+                collisionObject, collision2d, spriteData.Origin, spriteData.PositionInTexture);
             if (addCollision)
             {
                 _physicsWorldContext.AddCollisionObject(collisionObject);

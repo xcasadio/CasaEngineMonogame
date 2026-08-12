@@ -143,19 +143,6 @@ public class BulletPhysicsEngine
         //this allows characters to have proper physics behavior
         _broadphase.OverlappingPairCache.SetInternalGhostPairCallback(new GhostPairCallback());
 
-        //2D pipeline
-        if (configuration.IsPhysics2dActivated)
-        {
-            var simplex = new VoronoiSimplexSolver();
-            var pdSolver = new MinkowskiPenetrationDepthSolver();
-            var convexAlgo = new Convex2DConvex2DAlgorithm.CreateFunc(simplex, pdSolver);
-
-            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
-            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Box2DShape, BroadphaseNativeType.Convex2DShape, convexAlgo);
-            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Convex2DShape, BroadphaseNativeType.Box2DShape, convexAlgo);
-            _dispatcher.RegisterCollisionCreateFunc(BroadphaseNativeType.Box2DShape, BroadphaseNativeType.Box2DShape, new Box2DBox2DCollisionAlgorithm.CreateFunc());
-        }
-
         //default solver
         var solver = new SequentialImpulseConstraintSolver();
 

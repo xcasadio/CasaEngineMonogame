@@ -23,17 +23,21 @@ public class ShapePolygone : Shape2d, IEquatable<ShapePolygone>
     {
         get
         {
-            var position = Position.ToVector3();
+            if (_points.Count == 0)
+            {
+                return new BoundingBox(Vector3.Zero, Vector3.Zero);
+            }
+
             Vector2 min = new Vector2(float.MaxValue);
             Vector2 max = new Vector2(float.MinValue);
 
-            foreach (var point in _points)
+            for (int index = 0; index < _points.Count; index++)
             {
-                min = Vector2.Min(min, point);
-                max = Vector2.Max(max, point);
+                min = Vector2.Min(min, _points[index]);
+                max = Vector2.Max(max, _points[index]);
             }
 
-            return new BoundingBox(position - min.ToVector3(), position + max.ToVector3());
+            return new BoundingBox(min.ToVector3(), max.ToVector3());
         }
     }
 

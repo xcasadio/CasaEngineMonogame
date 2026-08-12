@@ -13,9 +13,8 @@ public class ShapeCircle : Shape2d, IEquatable<ShapeCircle>
     {
         get
         {
-            var position = Position.ToVector3();
             var radiusVector = new Vector3(Radius);
-            return new BoundingBox(position - radiusVector, position + radiusVector);
+            return new BoundingBox(-radiusVector, radiusVector);
         }
     }
 
