@@ -100,6 +100,9 @@ crée des corps par **sprite id** (`_collisionObjectsBySpriteId`), choisis via
 `GetPrimarySpriteId()` (premier part visible), sous l'opt-in `CreatePhysicsForEachFrame`. Or une
 hitbox de gameplay est une donnée de **frame d'animation** (elle change au cours d'une attaque),
 pas une donnée de sprite (un sprite est partageable entre animations).
+**Supprimé en phase E** : les volumes d'un sprite animé viennent désormais de la timeline de
+fixtures de l'asset d'animation ; `CreatePhysicsForEachFrame` garde son sens (opt-in des volumes
+pilotés par l'animation).
 
 ### Divers
 
@@ -362,7 +365,7 @@ données, pas du code :
 | Branche `Physics2dComponent` (`Box2dCollisionComponent`, `CircleCollisionComponent`) | verrouillage de plan par héritage + abaissement en dur | **supprimée** — politique `Planar2d` (défauts par monde, override par composant via `PhysicsDefinition`) + composant générique ; `Collision2dBasicDemo` réécrite sur la nouvelle API |
 | `CharacterControllerSettings.CollisionGroup/Mask` | groupes Bullet bruts sérialisés | remplacés par un `ProfileName` / masque de canaux |
 | `Collision` / `ContactPoint` / `HitResult` | paire de composants | + identité de fixture (`Tag`) via child shape index |
-| `AnimatedSpriteComponent` (corps par sprite id) | granularité sprite | **supprimé** → timeline de fixtures (D6) |
+| `AnimatedSpriteComponent` (corps par sprite id) | granularité sprite | **supprimé** (phase E) → timeline de fixtures (D6) |
 | `TileCollisionManager` | `ICollideableComponent` par tile | implémentation d'un `ICollisionField` |
 | `IsPhysics2dActivated` | pipeline Convex2D mort | **supprimé** — absorbé par `Planar2d` |
 
@@ -414,11 +417,10 @@ C  Abaissement            ISimulationSpacePolicy.Lower ; Shape2d perd sa pose (m
                           Abaissement retenu : rectangle → Box (w, h, ExtrusionDepth),
                           cercle → Sphere ; l'abaissement en disque est reporté. Ligne, polygone
                           et compound lèvent NotSupportedException, comme avant.
-                          Limite connue : un volume cercle sur un sprite est créé (Sphere) mais
-                          UpdateBodyTransformation ne gère que les rectangles — cast invalide au
-                          premier update. Les cercles étaient déjà inutilisables avant (rejet à
-                          la création) et aucun asset n'en porte ; à régler avec la refonte du
-                          chemin sprite en phase E.
+                          Limite levée en phase E : un volume cercle sur un sprite était créé
+                          (Sphere) mais UpdateBodyTransformation ne gérait que les rectangles —
+                          cast invalide au premier update. Le placement gère désormais le cercle
+                          (même math d'origine, centrage par le rayon).
                           Changements assumés : deux profils réservés ajoutés, AttackVolume
                           (canal 4, debug rouge) et DamageableVolume (canal 5, debug vert), tous
                           deux capteurs — ils remplacent l'ancien CollisionHitType des sprites ;
@@ -451,13 +453,13 @@ D  Espace de simulation   politique complète par monde ; pose logique vs pose d
                           sont écrites dans la PhysicsDefinition du composant, donc une entité
                           réinitialisée d'un monde Planar2d vers un monde Identity3d conserve ses
                           facteurs verrouillés (l'écriture n'est pas réversible).
-                          Limite connue (non-objectif de la phase) : un sprite portant des volumes
-                          de collision authorés ne doit pas être placé sous un
-                          RenderProjectionComponent. Les composants sprite calculent la pose de
-                          leurs corps depuis leur propre transformation monde, donc ces volumes
-                          atterriraient dans l'espace de rendu au lieu de l'espace logique. Résolu
-                          par la phase E (timelines de fixtures) ; la démo ne contient aucun sprite
-                          à volumes authorés.
+                          Limite levée en phase E pour les sprites animés : un
+                          AnimatedSpriteComponent place les corps de sa timeline sur la pose
+                          logique de la racine de l'entité, il peut donc vivre sous un
+                          RenderProjectionComponent. StaticSpriteComponent, lui, calcule toujours
+                          la pose de ses volumes Collision2d depuis sa propre transformation
+                          monde : un sprite statique à volumes authorés ne doit toujours pas être
+                          placé sous une projection.
                           Ordre de mise à jour : aucune contrainte nouvelle. Les transformations
                           monde sont lues paresseusement en remontant les parents
                           (SceneComponent.WorldMatrixNoScale), et le composant projette avant de
@@ -466,6 +468,31 @@ D  Espace de simulation   politique complète par monde ; pose logique vs pose d
                           descendant de la racine de l'entité, pas la racine elle-même.
 E  Timelines de fixtures  keyframes de collision sur les assets d'animation ; composant runtime
                           poolé ; chemin par sprite id d'AnimatedSpriteComponent SUPPRIMÉ.
+                          FAIT (2026-08). Un asset d'animation 2d porte une liste optionnelle
+                          `collision_keyframes` (clé additive, triée au chargement) de sets de
+                          ColliderFixture au schéma de la phase B ; elle entre dans
+                          GetDurationSeconds, est recopiée dans le snapshot de composition et
+                          échantillonnée en Step par Animation2dCompositionSampler
+                          (CurrentCollisionKeyframeIndex, -1 avant le premier keyframe, mis à jour
+                          en Update, Seek et au bouclage). AnimatedSpriteComponent crée les corps
+                          d'un set à sa première activation — un ghost par profil résolu, fixture
+                          sans profil = Trigger — les garde en cache par (animation, index de
+                          keyframe) et se contente de retirer/rajouter au changement : régime
+                          permanent sans allocation. Les corps sont posés sur
+                          Owner.RootComponent.WorldMatrixNoScale, jamais sur la transformation du
+                          composant sprite : c'est ce qui rend les volumes corrects sous une
+                          projection de rendu. Désactivation et Detach détruisent les corps poolés.
+                          Règle d'authoring : l'échantillonnage Step ne rend rien actif avant le
+                          premier keyframe, y compris juste après un bouclage — un volume qui doit
+                          être vivant dès le début d'une boucle a besoin d'un keyframe à t = 0.
+                          Changements assumés : un sprite animé ne consomme plus
+                          SpriteData.CollisionShapes (la timeline les remplace) — StaticSpriteComponent
+                          continue de porter ses volumes Collision2d, inchangé ; ContactPoint.ColliderA/B
+                          passent de PhysicsBaseComponent à ICollideableComponent, sans quoi les
+                          contacts d'un corps porté par un composant non physique (le sprite animé)
+                          ne remontaient aucun point de contact.
+                          Non-objectif conservé : l'éditeur ne propose pas encore d'UI de timeline
+                          pour ces keyframes (sérialisation seulement).
 F  Champs et mover        ICollisionField ; intégration au character controller (doc dédié).
 ```
 

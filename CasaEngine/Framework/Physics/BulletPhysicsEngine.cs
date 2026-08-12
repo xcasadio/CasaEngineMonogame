@@ -730,8 +730,8 @@ public class BulletPhysicsEngine
 
             // Distinct bullet pointer can map to the same PhysicsComponent through CompoundColliderShapes
             // We're retrieving all contacts for a pair of PhysicsComponent here, not for a unique collider
-            var collA = collisionObjectA.UserObject as PhysicsBaseComponent;
-            var collB = collisionObjectB.UserObject as PhysicsBaseComponent;
+            var collA = collisionObjectA.UserObject as ICollideableComponent;
+            var collB = collisionObjectB.UserObject as ICollideableComponent;
 
             if (false == (coll.ColliderA == collA && coll.ColliderB == collB
                           || coll.ColliderA == collB && coll.ColliderB == collA))

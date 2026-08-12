@@ -191,6 +191,34 @@ internal static class EditorAssetJsonSerializer
         {
             node.Add("events", persistedEvents);
         }
+
+        if (animation2dData.CollisionKeyframes.Count > 0)
+        {
+            var collisionKeyframesArrayNode = new JArray();
+            foreach (var collisionKeyframe in animation2dData.CollisionKeyframes)
+            {
+                collisionKeyframesArrayNode.Add(SaveAnimation2dCollisionKeyframeData(collisionKeyframe));
+            }
+
+            node.Add("collision_keyframes", collisionKeyframesArrayNode);
+        }
+    }
+
+    private static JObject SaveAnimation2dCollisionKeyframeData(Animation2dCollisionKeyframeData collisionKeyframe)
+    {
+        var fixturesArrayNode = new JArray();
+        foreach (var fixture in collisionKeyframe.Fixtures)
+        {
+            var fixtureNode = new JObject();
+            EditorEntityJsonSerializer.SaveColliderFixture(fixture, fixtureNode);
+            fixturesArrayNode.Add(fixtureNode);
+        }
+
+        return new JObject
+        {
+            ["time_seconds"] = collisionKeyframe.TimeSeconds,
+            ["fixtures"] = fixturesArrayNode,
+        };
     }
 
     private static JObject SaveAnimation2dPartData(Animation2dPartData part)

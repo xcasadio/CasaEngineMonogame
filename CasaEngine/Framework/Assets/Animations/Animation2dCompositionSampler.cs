@@ -12,6 +12,15 @@ public sealed class Animation2dCompositionSampler
 
     public bool IsFinished { get; private set; }
 
+    /// <summary>
+    /// Index in <see cref="CollisionKeyframes"/> of the fixture set active at <see cref="CurrentTime"/>,
+    /// or -1 before the first keyframe. Step semantics: the last keyframe whose time is at or before
+    /// the current time.
+    /// </summary>
+    public int CurrentCollisionKeyframeIndex { get; private set; } = -1;
+
+    public IReadOnlyList<Animation2dCollisionKeyframeData> CollisionKeyframes => _composition.CollisionKeyframes;
+
     public Animation2dCompositionSampler(Animation2dCompositionData composition)
     {
         _composition = composition ?? throw new ArgumentNullException(nameof(composition));
@@ -148,6 +157,7 @@ public sealed class Animation2dCompositionSampler
 
     private void ApplyTracks(float sampleTime)
     {
+        CurrentCollisionKeyframeIndex = EvaluateCollisionKeyframeIndex(sampleTime);
         RuntimeState.ApplyDefaults(_composition);
 
         foreach (var track in _composition.Tracks)
@@ -161,6 +171,24 @@ public sealed class Animation2dCompositionSampler
         }
 
         RuntimeState.UpdateDrawOrder();
+    }
+
+    private int EvaluateCollisionKeyframeIndex(float sampleTime)
+    {
+        var collisionKeyframes = _composition.CollisionKeyframes;
+        int activeIndex = -1;
+
+        for (var index = 0; index < collisionKeyframes.Count; index++)
+        {
+            if (collisionKeyframes[index].TimeSeconds > sampleTime)
+            {
+                break;
+            }
+
+            activeIndex = index;
+        }
+
+        return activeIndex;
     }
 
     private static void ApplyTrack(Animation2dTrackData track, Animation2dPartRuntimeState part, float sampleTime)

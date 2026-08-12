@@ -1,3 +1,5 @@
+using CasaEngine.Engine.Physics;
+
 namespace CasaEngine.Framework.Assets.Animations;
 
 public static class Animation2dCompositionAdapter
@@ -13,7 +15,35 @@ public static class Animation2dCompositionAdapter
             animationData.AnimationType,
             CopyParts(animationData.Parts),
             CopyTracks(animationData.Tracks),
-            copiedEvents);
+            copiedEvents,
+            CopyCollisionKeyframes(animationData.CollisionKeyframes));
+    }
+
+    private static List<Animation2dCollisionKeyframeData> CopyCollisionKeyframes(List<Animation2dCollisionKeyframeData> collisionKeyframes)
+    {
+        var copy = new List<Animation2dCollisionKeyframeData>(collisionKeyframes.Count);
+        foreach (var collisionKeyframe in collisionKeyframes)
+        {
+            copy.Add(CloneCollisionKeyframe(collisionKeyframe));
+        }
+
+        copy.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
+        return copy;
+    }
+
+    private static Animation2dCollisionKeyframeData CloneCollisionKeyframe(Animation2dCollisionKeyframeData collisionKeyframe)
+    {
+        var clone = new Animation2dCollisionKeyframeData
+        {
+            TimeSeconds = collisionKeyframe.TimeSeconds,
+        };
+
+        foreach (var fixture in collisionKeyframe.Fixtures)
+        {
+            clone.Fixtures.Add(new ColliderFixture(fixture));
+        }
+
+        return clone;
     }
 
     private static List<Animation2dPartData> CopyParts(List<Animation2dPartData> parts)

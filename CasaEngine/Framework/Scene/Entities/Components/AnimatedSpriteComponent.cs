@@ -9,7 +9,6 @@ using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components;
 using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Framework.Rendering.Depth;
-using CasaEngine.Engine.Geometry;
 using CasaEngine.Framework.Physics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -23,7 +22,15 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     public event EventHandler<Animation2d> AnimationFinished;
     public event EventHandler<AnimationEventAsset> AnimationEventTriggered;
 
-    private readonly Dictionary<Guid, List<(Collision2d, PhysicsBody)>> _collisionObjectsBySpriteId = new();
+    //Ghost bodies of the collision timeline, built once per (animation, collision keyframe) and pooled:
+    //a keyframe change only removes the outgoing bodies and re-adds the incoming ones.
+    private readonly Dictionary<Animation2dCompositionSampler, List<PhysicsBody>[]> _collisionBodiesBySampler = new();
+    private readonly List<int> _fixtureGroupProfileIds = new();
+    private readonly List<List<ColliderFixture>> _fixtureGroups = new();
+    private Animation2dCompositionSampler _activeCollisionSampler;
+    private List<PhysicsBody> _activeCollisionBodies;
+    private int _activeCollisionKeyframeIndex = -1;
+
     private readonly List<Guid> _animationAssetIds = new();
     private readonly Dictionary<Guid, Sprite> _spriteById = new();
     private readonly Dictionary<Guid, SpriteData> _spriteDataById = new();
@@ -51,6 +58,10 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     [Browsable(false)]
     public HashSet<Collision> Collisions { get; } = new();
 
+    /// <summary>
+    /// Opt-in of the animation driven physics volumes: when false this component activates no collision
+    /// fixture set of the timeline of its animations.
+    /// </summary>
     public bool CreatePhysicsForEachFrame { get; set; } = true;
 
     public AnimatedSpriteComponent()
@@ -76,15 +87,11 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             {
                 CurrentAnimation.Reset();
                 _currentCompositionSampler?.Reset();
-                UpdateCurrentSprite(true);
+                UpdateCurrentSprite();
+                UpdateCollisionTimeline();
             }
 
             return;
-        }
-
-        if (CurrentAnimation != null)
-        {
-            RemoveCollisionsFromSprite(_currentSpriteId);
         }
 
         CurrentAnimation = anim;
@@ -93,7 +100,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _currentCompositionSampler?.Reset();
 
         _currentSpriteId = Guid.Empty;
-        UpdateCurrentSprite(true);
+        UpdateCurrentSprite();
+        UpdateCollisionTimeline();
     }
 
     public void SetCurrentAnimation(int index, bool forceReset)
@@ -127,6 +135,9 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _spriteRenderer = Owner.World.Game.GetGameComponent<SpriteRendererComponent>();
         _depthSortable2DComponent = Owner.GetComponent<DepthSortable2DComponent>();
         _assetContentManager = Owner.World.Game.AssetContentManager;
+
+        //The pooled bodies belong to the world this component leaves, so they go before the new context.
+        DestroyCollisionBodies();
         _physicsWorldContext = Owner.World.PhysicsWorld;
 
         Animations.Clear();
@@ -135,7 +146,6 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         _currentSpriteId = Guid.Empty;
         _spriteById.Clear();
         _spriteDataById.Clear();
-        _collisionObjectsBySpriteId.Clear();
 
         foreach (var assetId in _animationAssetIds)
         {
@@ -176,8 +186,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
             var wasFinished = _currentCompositionSampler?.IsFinished == true;
             var isFinished = _currentCompositionSampler?.Update(elapsedTime) == true;
             IsBoundingBoxDirty = true;
-            UpdateCurrentSprite(true);
-            UpdateCollisionFromSprite(_currentSpriteId);
+            UpdateCurrentSprite();
+            UpdateCollisionTimeline();
 
             if (!wasFinished && isFinished)
             {
@@ -197,8 +207,8 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
         _currentCompositionSampler.Seek(timeSeconds);
         IsBoundingBoxDirty = true;
-        UpdateCurrentSprite(true);
-        UpdateCollisionFromSprite(_currentSpriteId);
+        UpdateCurrentSprite();
+        UpdateCollisionTimeline();
         return true;
     }
 
@@ -236,17 +246,14 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
 
         bool wasCurrentSprite = _currentSpriteId == spriteAssetId;
-        ClearCollisionObjectsForSprite(spriteAssetId);
 
         _spriteDataById[spriteAssetId] = spriteData;
         _spriteById[spriteAssetId] = Sprite.Create(spriteData, _assetContentManager);
-        CreateCollisionObjectsForSprite(spriteAssetId, spriteData);
 
         IsBoundingBoxDirty = true;
         if (wasCurrentSprite)
         {
-            UpdateCurrentSprite(true);
-            UpdateCollisionFromSprite(spriteAssetId);
+            UpdateCurrentSprite();
         }
 
         return true;
@@ -366,137 +373,251 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         sprite = Sprite.Create(spriteData, _assetContentManager);
         _spriteById.Add(spriteId, sprite);
         _spriteDataById[spriteId] = spriteData;
-        CreateCollisionObjectsForSprite(spriteId, spriteData);
         return sprite;
     }
 
-    private void CreateCollisionObjectsForSprite(Guid spriteId, SpriteData spriteData)
+    /// <summary>
+    /// Tracks the sprite drawn first by the current animation. It drives the bounding box only:
+    /// collision volumes come from the collision timeline of the animation, never from the sprite.
+    /// </summary>
+    private void UpdateCurrentSprite()
     {
-        if (_physicsWorldContext == null
-            || spriteData.CollisionShapes.Count == 0
-            || _collisionObjectsBySpriteId.ContainsKey(spriteId))
-        {
-            return;
-        }
+        var spriteId = Guid.Empty;
+        var runtimeState = _currentCompositionSampler?.RuntimeState;
 
-        _collisionObjectsBySpriteId.Add(spriteId, new List<(Collision2d, PhysicsBody)>(spriteData.CollisionShapes.Count));
-
-        foreach (var collisionShape in spriteData.CollisionShapes)
+        if (runtimeState != null)
         {
-            var collisionObject = SpriteCollisionHelper.CreateCollisionBody(collisionShape, LocalScale, WorldMatrixNoScale, _physicsWorldContext, this);
-            if (collisionObject != null)
+            for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
             {
-                _collisionObjectsBySpriteId[spriteId].Add(new(collisionShape, collisionObject));
+                var part = runtimeState.Parts[runtimeState.DrawPartIndices[drawIndex]];
+                if (part.Visible && part.SpriteId != Guid.Empty)
+                {
+                    spriteId = part.SpriteId;
+                    break;
+                }
             }
         }
-    }
 
-    private void UpdateCurrentSprite(bool addCollision)
-    {
-        var spriteId = GetPrimarySpriteId();
         if (_currentSpriteId == spriteId)
         {
-            if (addCollision)
-            {
-                AddOrUpdateCollisionFromSprite(_currentSpriteId, true);
-            }
-
             return;
-        }
-
-        var previousSpriteId = _currentSpriteId;
-        if (previousSpriteId != Guid.Empty)
-        {
-            RemoveCollisionsFromSprite(previousSpriteId);
         }
 
         _currentSpriteId = spriteId;
         IsBoundingBoxDirty = true;
-
-        if (_currentSpriteId != Guid.Empty)
-        {
-            AddOrUpdateCollisionFromSprite(_currentSpriteId, addCollision);
-        }
     }
 
-    private Guid GetPrimarySpriteId()
+    /// <summary>
+    /// Activates the collision fixture set of the current animation time. The bodies of a set are built
+    /// once and pooled: a keyframe change removes the outgoing bodies from the world and re-adds the
+    /// incoming ones, so the steady state allocates nothing.
+    /// </summary>
+    private void UpdateCollisionTimeline()
     {
-        var runtimeState = _currentCompositionSampler?.RuntimeState;
-        if (runtimeState == null)
+        if (_physicsWorldContext == null)
         {
-            return Guid.Empty;
+            return;
         }
 
-        for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
+        var sampler = CreatePhysicsForEachFrame ? _currentCompositionSampler : null;
+        int keyframeIndex = sampler?.CurrentCollisionKeyframeIndex ?? -1;
+
+        if (ReferenceEquals(sampler, _activeCollisionSampler) && keyframeIndex == _activeCollisionKeyframeIndex)
         {
-            var part = runtimeState.Parts[runtimeState.DrawPartIndices[drawIndex]];
-            if (part.Visible && part.SpriteId != Guid.Empty)
+            UpdateActiveCollisionBodyTransforms(refreshAabb: true);
+            return;
+        }
+
+        RemoveActiveCollisionBodies();
+
+        _activeCollisionSampler = sampler;
+        _activeCollisionKeyframeIndex = keyframeIndex;
+        _activeCollisionBodies = sampler != null && keyframeIndex >= 0
+            ? GetOrCreateCollisionBodies(sampler, keyframeIndex)
+            : null;
+
+        UpdateActiveCollisionBodyTransforms(refreshAabb: false);
+        AddActiveCollisionBodies();
+    }
+
+    /// <summary>
+    /// Places the active bodies on the logical pose of the entity root. The volumes of a fixture set live
+    /// in the space the world simulates, never in the space this component renders in, so an animated
+    /// sprite may sit under a <see cref="RenderProjectionComponent"/> without displacing its volumes.
+    /// </summary>
+    private void UpdateActiveCollisionBodyTransforms(bool refreshAabb)
+    {
+        if (_activeCollisionBodies == null || _activeCollisionBodies.Count == 0)
+        {
+            return;
+        }
+
+        var worldMatrix = GetLogicalWorldMatrix();
+
+        for (int i = 0; i < _activeCollisionBodies.Count; i++)
+        {
+            var body = _activeCollisionBodies[i];
+            body.WorldTransform = worldMatrix;
+
+            if (refreshAabb)
             {
-                return part.SpriteId;
+                _physicsWorldContext.RefreshBodyAabb(body);
             }
         }
-
-        return Guid.Empty;
     }
 
-    private void UpdateCollisionFromSprite(Guid spriteId)
+    private void AddActiveCollisionBodies()
     {
-        AddOrUpdateCollisionFromSprite(spriteId, false);
-    }
-
-    private void AddOrUpdateCollisionFromSprite(Guid spriteId, bool addCollision)
-    {
-        if (spriteId == Guid.Empty
-            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects)
-            || !CreatePhysicsForEachFrame)
+        if (_activeCollisionBodies == null)
         {
             return;
         }
 
-        var spriteData = _assetContentManager.GetAsset<SpriteData>(spriteId);
-
-        foreach (var (collision2d, collisionObject) in collisionObjects)
+        for (int i = 0; i < _activeCollisionBodies.Count; i++)
         {
-            SpriteCollisionHelper.UpdateBodyTransformation(Position, Orientation, Scale,
-                collisionObject, collision2d, spriteData.Origin, spriteData.PositionInTexture);
-            if (addCollision)
+            _physicsWorldContext.AddCollisionObject(_activeCollisionBodies[i]);
+        }
+    }
+
+    private void RemoveActiveCollisionBodies()
+    {
+        if (_activeCollisionBodies == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < _activeCollisionBodies.Count; i++)
+        {
+            _physicsWorldContext.RemoveCollisionObject(_activeCollisionBodies[i]);
+        }
+
+        _physicsWorldContext.ClearCollisionDataFrom(this);
+        _activeCollisionBodies = null;
+    }
+
+    private List<PhysicsBody> GetOrCreateCollisionBodies(Animation2dCompositionSampler sampler, int keyframeIndex)
+    {
+        if (!_collisionBodiesBySampler.TryGetValue(sampler, out var bodiesByKeyframe))
+        {
+            bodiesByKeyframe = new List<PhysicsBody>[sampler.CollisionKeyframes.Count];
+            _collisionBodiesBySampler.Add(sampler, bodiesByKeyframe);
+        }
+
+        var bodies = bodiesByKeyframe[keyframeIndex];
+        if (bodies == null)
+        {
+            bodies = CreateCollisionBodies(sampler.CollisionKeyframes[keyframeIndex]);
+            bodiesByKeyframe[keyframeIndex] = bodies;
+        }
+
+        return bodies;
+    }
+
+    private List<PhysicsBody> CreateCollisionBodies(Animation2dCollisionKeyframeData collisionKeyframe)
+    {
+        BuildFixtureGroups(collisionKeyframe.Fixtures);
+
+        var collisionProfiles = GameSettings.PhysicsEngineSettings.CollisionProfiles;
+        var worldMatrix = GetLogicalWorldMatrix();
+        var localScale = GetLogicalLocalScale();
+        var bodies = new List<PhysicsBody>(_fixtureGroupProfileIds.Count);
+
+        for (int i = 0; i < _fixtureGroupProfileIds.Count; i++)
+        {
+            int profileId = _fixtureGroupProfileIds[i];
+            bodies.Add(_physicsWorldContext.CreateGhostObject(worldMatrix, this, _fixtureGroups[i], localScale,
+                profileId, collisionProfiles.GetProfile(profileId).DebugColor));
+        }
+
+        return bodies;
+    }
+
+    /// <summary>
+    /// Splits the fixtures of a keyframe per resolved collision profile, keeping the fixture order inside
+    /// each group. A fixture naming no profile is a trigger, like an authored sprite volume.
+    /// </summary>
+    private void BuildFixtureGroups(List<ColliderFixture> fixtures)
+    {
+        for (int i = 0; i < _fixtureGroups.Count; i++)
+        {
+            _fixtureGroups[i].Clear();
+        }
+
+        _fixtureGroupProfileIds.Clear();
+
+        var collisionProfiles = GameSettings.PhysicsEngineSettings.CollisionProfiles;
+
+        for (int i = 0; i < fixtures.Count; i++)
+        {
+            var fixture = fixtures[i];
+            if (fixture.Shape == null)
             {
-                _physicsWorldContext.AddCollisionObject(collisionObject);
+                throw new InvalidOperationException(
+                    $"Collider fixture {i} of a collision keyframe of '{CurrentAnimation?.Animation2dData?.Name}' has no shape.");
             }
+
+            int profileId = string.IsNullOrEmpty(fixture.ProfileName)
+                ? CollisionProfileIds.Trigger
+                : collisionProfiles.GetProfileId(fixture.ProfileName);
+
+            int groupIndex = _fixtureGroupProfileIds.IndexOf(profileId);
+            if (groupIndex < 0)
+            {
+                groupIndex = _fixtureGroupProfileIds.Count;
+                _fixtureGroupProfileIds.Add(profileId);
+
+                if (_fixtureGroups.Count <= groupIndex)
+                {
+                    _fixtureGroups.Add(new List<ColliderFixture>());
+                }
+            }
+
+            _fixtureGroups[groupIndex].Add(fixture);
         }
     }
 
-    public void RemoveCollisionsFromSprite(Guid spriteId)
+    private void DestroyCollisionBodies()
     {
-        if (spriteId == Guid.Empty
-            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects))
+        if (_physicsWorldContext != null)
         {
-            return;
-        }
+            foreach (var bodiesByKeyframe in _collisionBodiesBySampler.Values)
+            {
+                for (int i = 0; i < bodiesByKeyframe.Length; i++)
+                {
+                    var bodies = bodiesByKeyframe[i];
+                    if (bodies == null)
+                    {
+                        continue;
+                    }
 
-        foreach (var (_, collisionObject) in collisionObjects)
-        {
-            _physicsWorldContext.RemoveCollisionObject(collisionObject);
+                    for (int bodyIndex = 0; bodyIndex < bodies.Count; bodyIndex++)
+                    {
+                        _physicsWorldContext.RemoveCollisionObject(bodies[bodyIndex]);
+                        bodies[bodyIndex].Dispose();
+                    }
+                }
+            }
+
             _physicsWorldContext.ClearCollisionDataFrom(this);
         }
+
+        _collisionBodiesBySampler.Clear();
+        _activeCollisionBodies = null;
+        _activeCollisionSampler = null;
+        _activeCollisionKeyframeIndex = -1;
     }
 
-    private void ClearCollisionObjectsForSprite(Guid spriteId)
+    /// <summary>Logical pose of the entity: the pose the simulation uses, taken from the entity root.</summary>
+    private Matrix GetLogicalWorldMatrix()
     {
-        if (spriteId == Guid.Empty
-            || !_collisionObjectsBySpriteId.TryGetValue(spriteId, out var collisionObjects))
-        {
-            return;
-        }
+        var root = Owner?.RootComponent;
+        return root != null ? root.WorldMatrixNoScale : WorldMatrixNoScale;
+    }
 
-        for (int collisionIndex = 0; collisionIndex < collisionObjects.Count; collisionIndex++)
-        {
-            var collisionObject = collisionObjects[collisionIndex].Item2;
-            _physicsWorldContext.RemoveCollisionObject(collisionObject);
-            _physicsWorldContext.ClearCollisionDataFrom(this);
-        }
-
-        _collisionObjectsBySpriteId.Remove(spriteId);
+    private Vector3 GetLogicalLocalScale()
+    {
+        var root = Owner?.RootComponent;
+        return root != null ? root.LocalScale : LocalScale;
     }
 
     private void OnAnimationEventTriggered(AnimationEventAsset animationEvent)
@@ -508,17 +629,20 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
     {
         base.OnEnabledValueChange();
 
-        if (CurrentAnimation != null)
+        if (Owner.IsEnabled)
         {
-            if (Owner.IsEnabled)
-            {
-                AddOrUpdateCollisionFromSprite(_currentSpriteId, true);
-            }
-            else
-            {
-                RemoveCollisionsFromSprite(_currentSpriteId);
-            }
+            UpdateCollisionTimeline();
         }
+        else
+        {
+            DestroyCollisionBodies();
+        }
+    }
+
+    public override void Detach()
+    {
+        DestroyCollisionBodies();
+        base.Detach();
     }
 
     public override BoundingBox GetBoundingBox()

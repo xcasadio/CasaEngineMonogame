@@ -13,6 +13,12 @@ public class Animation2dData : ObjectBase
     public List<Animation2dTrackData> Tracks { get; } = new();
     public List<AnimationEventAsset> Events { get; } = new();
 
+    /// <summary>
+    /// Timeline of collision fixture sets, sorted by time. Step sampled: a keyframe stays active until
+    /// the next one, and nothing is active before the first keyframe.
+    /// </summary>
+    public List<Animation2dCollisionKeyframeData> CollisionKeyframes { get; } = new();
+
     public string GetTrackName(int trackIndex)
     {
         if (trackIndex < 0 || trackIndex >= Tracks.Count)
@@ -77,6 +83,11 @@ public class Animation2dData : ObjectBase
         foreach (var animationEvent in Events)
         {
             durationSeconds = MathF.Max(durationSeconds, animationEvent.TimeSeconds);
+        }
+
+        foreach (var collisionKeyframe in CollisionKeyframes)
+        {
+            durationSeconds = MathF.Max(durationSeconds, collisionKeyframe.TimeSeconds);
         }
 
         return durationSeconds;
@@ -226,6 +237,7 @@ public class Animation2dData : ObjectBase
         Parts.Clear();
         Tracks.Clear();
         Events.Clear();
+        CollisionKeyframes.Clear();
 
         if (element["parts"] is JArray partsNode)
         {
@@ -247,6 +259,19 @@ public class Animation2dData : ObjectBase
                     Tracks.Add(Animation2dTrackData.Load(trackObject));
                 }
             }
+        }
+
+        if (element["collision_keyframes"] is JArray collisionKeyframesNode)
+        {
+            foreach (var collisionKeyframeNode in collisionKeyframesNode)
+            {
+                if (collisionKeyframeNode is JObject collisionKeyframeObject)
+                {
+                    CollisionKeyframes.Add(Animation2dCollisionKeyframeData.Load(collisionKeyframeObject));
+                }
+            }
+
+            SortCollisionKeyframesByTime();
         }
 
         if (element["events"] is not JArray eventsNode)
@@ -304,6 +329,11 @@ public class Animation2dData : ObjectBase
     private static float GetLastFloatKeyframeTime(List<Animation2dFloatKeyframeData> keyframes)
     {
         return keyframes.Count == 0 ? 0f : keyframes[^1].TimeSeconds;
+    }
+
+    public void SortCollisionKeyframesByTime()
+    {
+        CollisionKeyframes.Sort(static (left, right) => left.TimeSeconds.CompareTo(right.TimeSeconds));
     }
 
     public void SortEventsByLaneAndTime()

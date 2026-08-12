@@ -225,6 +225,37 @@ public class SimulationSpaceLoweringTests
             body.CollisionProfile.GroupBit);
     }
 
+    /// <summary>
+    /// A circle volume used to be created as a sphere and then crash on the first transform update,
+    /// which only handled rectangles. This is the path <see cref="StaticSpriteComponent"/> runs every frame.
+    /// </summary>
+    [Fact]
+    public void SpriteCircleVolume_IsCreatedAndPlacedByItsRadius()
+    {
+        using var physicsWorldContext = new PhysicsWorld(useExternalViewManagement: true);
+        var component = new TestCollideableComponent();
+        var collision2d = new Collision2d
+        {
+            LocalPosition = new Vector2(9f, 6f),
+            Shape = new ShapeCircle { Radius = 12f }
+        };
+
+        using var body = SpriteCollisionHelper.CreateCollisionBody(
+            collision2d, Vector3.One, Matrix.Identity, physicsWorldContext, component);
+        Assert.NotNull(body);
+
+        var origin = new Point(23, 35);
+        var position = new Vector3(4f, -2f, 3f);
+        var scale = new Vector3(2f, 3f, 1f);
+        SpriteCollisionHelper.UpdateBodyTransformation(position, Quaternion.Identity, scale, body, collision2d, origin, Rectangle.Empty);
+
+        //Same origin math as a rectangle, with the radius standing in for the half size.
+        var translation = body.WorldTransform.Translation;
+        Assert.Equal(position.X + (9f - origin.X + 12f) * scale.X, translation.X, 3);
+        Assert.Equal(position.Y - (6f - origin.Y + 12f) * scale.Y, translation.Y, 3);
+        Assert.Equal(position.Z, translation.Z, 3);
+    }
+
     [Theory]
     [InlineData(0f, 0f, 8f, -8f)]
     [InlineData(2f, 3f, 10f, -11f)]

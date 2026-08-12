@@ -17,9 +17,10 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 /// and this component projects before it updates its children, so it always publishes the position of the
 /// root of the same frame. The only placement constraint is the natural one: it must be a descendant of
 /// the entity root, not the root itself.
-/// Known limitation: a sprite carrying authored collision volumes must not be placed under this component.
-/// Sprite components build their bodies from their own world transform, so those volumes would land in
-/// render space instead of the logical space of the simulation.
+/// An <see cref="AnimatedSpriteComponent"/> is safe here: it places the bodies of its collision timeline
+/// on the logical pose of the entity root. A <see cref="StaticSpriteComponent"/> carrying authored
+/// collision volumes is not: it builds its bodies from its own world transform, so those volumes would
+/// land in render space instead of the logical space of the simulation.
 /// </remarks>
 [DisplayName("Render Projection")]
 public class RenderProjectionComponent : SceneComponent

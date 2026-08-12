@@ -29,12 +29,37 @@ public static class SpriteCollisionHelper
     public static void UpdateBodyTransformation(Vector3 position, Quaternion rotation, Vector3 scale,
         PhysicsBody collisionObject, Collision2d collision2d, Point origin, Rectangle spriteBounds)
     {
-        var rectangle = (ShapeRectangle)collision2d.Shape;
+        GetShapeHalfExtents(collision2d.Shape, out float halfWidth, out float halfHeight);
+
         var translation = new Vector3(
-            position.X + (collision2d.LocalPosition.X - origin.X + rectangle.Width / 2f) * scale.X,
-            position.Y - (collision2d.LocalPosition.Y - origin.Y + rectangle.Height / 2f) * scale.Y,
+            position.X + (collision2d.LocalPosition.X - origin.X + halfWidth) * scale.X,
+            position.Y - (collision2d.LocalPosition.Y - origin.Y + halfHeight) * scale.Y,
             position.Z);
         collisionObject.WorldTransform = MatrixExtensions.Transformation(scale, rotation, translation);
+    }
+
+    /// <summary>
+    /// Half extents used to center a lowered volume on the authored top-left corner of the shape.
+    /// A circle is placed by its radius, exactly like a rectangle is placed by its half size.
+    /// </summary>
+    private static void GetShapeHalfExtents(Shape2d shape, out float halfWidth, out float halfHeight)
+    {
+        switch (shape)
+        {
+            case ShapeRectangle rectangle:
+                halfWidth = rectangle.Width / 2f;
+                halfHeight = rectangle.Height / 2f;
+                break;
+
+            case ShapeCircle circle:
+                halfWidth = circle.Radius;
+                halfHeight = circle.Radius;
+                break;
+
+            default:
+                throw new NotSupportedException(
+                    $"A sprite collision volume of type '{shape?.Type}' cannot be placed in the world.");
+        }
     }
 
     /// <summary>Profile of a collision volume: the profile it names, the reserved Trigger when it names none.</summary>
