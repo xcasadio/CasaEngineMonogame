@@ -299,19 +299,31 @@ résolvent le mouvement contre une grille par lookup O(1), pas contre des millie
 statiques. Baker une map de 3 000+ cellules en corps Bullet serait à la fois lent et **faux** (les
 pentes et le step-up ne sont pas de la géométrie, ce sont des règles).
 
+Forme livrée (phase F, 2026-08) :
+
 ```csharp
-// nom possible : ICollisionField — forme conceptuelle, volontairement minimale
 public interface ICollisionField
 {
-    bool TryGetGround(in Vector3 logicalPosition, out GroundSample sample);
-    // GroundSample : hauteur du sol, pente, marchabilité, matériau/propriété
+    bool TrySampleGround(in Vector3 worldPosition, float maxDropDistance, out GroundSample sample);
 }
+
+// GroundSample : HasGround, GroundHeight (Y monde), Normal, IsWalkable, SurfaceTag.
+// Axes : Y up, X/Z horizontaux — la convention du mover. L'appelant choisit la position
+// d'échantillonnage et possède tout décalage pied/centre.
 ```
+
+Implémentation concrète livrée : `HeightGridCollisionField`, une grille régulière sur le plan XZ
+dont toutes les données (hauteurs, marchabilité, tags de surface) sont fournies par l'appelant.
+Un monde porte au plus un champ (`World.CollisionField`, nullable, non sérialisé).
 
 Le consommateur naturel est le character mover du chantier
 [character-controller-features.md](character-controller-features.md) : champs pour le terrain,
 sweeps pour les volumes. `TileCollisionManager` devient un détail d'implémentation d'un champ
 adossé à la TileMap.
+
+**État de D5** : la famille « champs » existe et est close ; son premier consommateur — la
+résolution du sol du mover — est reporté au chantier character-controller, avec les trois prérequis
+relevés consignés dans son doc.
 
 ### D6 — Les fixtures sont animables par la timeline
 
@@ -494,7 +506,47 @@ E  Timelines de fixtures  keyframes de collision sur les assets d'animation ; co
                           Non-objectif conservé : l'éditeur ne propose pas encore d'UI de timeline
                           pour ces keyframes (sérialisation seulement).
 F  Champs et mover        ICollisionField ; intégration au character controller (doc dédié).
+                          FAIT (2026-08) pour la famille de colliders, PAS pour le consommateur.
+                          Forme livrée : le contrat ICollisionField
+                          (TrySampleGround(in Vector3, float maxDropDistance, out GroundSample))
+                          et son GroundSample (HasGround, GroundHeight, Normal, IsWalkable,
+                          SurfaceTag), une implémentation concrète HeightGridCollisionField (grille
+                          régulière sur le plan XZ, données fournies par l'appelant), et un slot par
+                          monde (World.CollisionField, nullable, non sérialisé). Aucun câblage
+                          consommateur.
+                          Contrat d'axes assumé : ICollisionField et GroundSample sont définis
+                          Y up, X/Z horizontaux — la convention du mover. GroundHeight est un Y
+                          monde. Adapter un champ à une politique dont l'élévation est un autre axe
+                          (TopDownElevation, élévation Z) est un non-objectif explicite de cette
+                          version.
+                          Intervalle d'acceptation pinné : delta = position.Y - hauteur de cellule ;
+                          sol trouvé ssi 0 <= delta <= maxDropDistance. delta == 0 EST du sol ; un
+                          sol strictement au-dessus du point d'échantillonnage (delta < 0) ne l'est
+                          pas (pas de tolérance vers le haut dans cette version). Une cellule non
+                          marchable dans l'intervalle rapporte quand même HasGround = true avec
+                          IsWalkable = false : présence et marchabilité sont deux faits distincts.
+                          Propriété du reset : World.Clear() remet le champ à null (démontage
+                          complet), World.ClearEntities() n'y touche pas — charger un monde ne doit
+                          pas jeter silencieusement un champ posé depuis le code.
+                          Points d'extension documentés, non livrés : normales de pente par cellule
+                          (toute normale vaut Vector3.Up), tolérance vers le haut dans l'intervalle.
+                          Non dérivable, hors périmètre : un champ issu des tuiles. Les données de
+                          tuiles ne portent AUCUNE hauteur de sol par cellule
+                          (TileMapLayerData.zOffset est une profondeur de rendu dans le plan XY
+                          d'authoring, non appliquée à la collision ; les corps de tuiles sont à
+                          z = 0 local). Toutes les données d'un champ viennent de l'appelant.
+                          RESTE À FAIRE — le premier consommateur : la résolution du sol du mover
+                          est reportée au chantier character-controller, qui doit d'abord régler
+                          trois prérequis relevés et consignés dans
+                          character-controller-features.md (axes du mover vs politique projetée,
+                          référence centre-de-capsule de rootComponent.Position, annulation du
+                          SkinWidth dans le snap au sol).
 ```
+
+D5 est donc clos côté famille de colliders : la seconde famille existe (champs à côté des volumes),
+avec un contrat, une implémentation et un porteur par monde. Son premier consommateur — la
+résolution du sol du character mover — est explicitement reporté au chantier
+[character-controller-features.md](character-controller-features.md).
 
 Dépendances : A et B sont fondatrices et indépendantes ; C dépend de B ; E dépend de B (et de D
 pour les genres projetés) ; F rejoint le chantier character-controller. D peut avancer en parallèle.

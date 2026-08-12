@@ -300,6 +300,49 @@ Une cutscene peut ensuite prendre l'autorite, envoyer des intentions ou teleport
 - Les tests couvrent au moins sol, mur, pente et saut. La penetration initiale reste une limite V1 documentee tant qu'une depenetration dediee n'est pas ajoutee.
 - La resolution de mouvement respecte les regles de performance du repo : pas de LINQ, pas de closures, pas d'allocations evitables dans l'update.
 
+## Champs de collision : prerequis releves avant integration au mover
+
+La phase F du doc [collision-2d-3d-architecture.md](collision-2d-3d-architecture.md) a livre la
+famille de colliders « champs » — `ICollisionField`, `GroundSample`, `HeightGridCollisionField` et
+le slot `World.CollisionField` — mais **sans aucun cablage consommateur**. La resolution du sol par
+champ appartient a ce chantier. Trois constats verifies sur `CharacterControllerComponent` doivent
+etre traites avant, sinon l'integration sera fausse. Ils sont consignes ici pour que le suivi
+demarre informe au lieu de les redecouvrir.
+
+### 1. Prerequis d'axes
+
+Le mover est Y up, X/Z horizontaux : la gravite (`CharacterControllerComponent` :580) et le snap au
+sol (:815) travaillent sur `Vector3.Up`, et l'intention horizontale est mappee sur X/Z
+(`GetDesiredHorizontalVelocity`, :946-949). La politique `TopDownElevation`, elle, definit Z comme
+l'elevation (`SimulationSpacePolicy` :123-138). `ICollisionField` et `GroundSample` sont definis
+dans la convention du mover (Y up). Un monde projete a donc besoin d'un **mover conscient de la
+politique** avant de pouvoir consommer un champ ; adapter le champ n'est pas la bonne extremite.
+
+### 2. `rootComponent.Position` est le CENTRE de la capsule
+
+La forme de requete est translatee par la position brute de la racine (:903-913) et la
+`CapsuleShape` Bullet est centree sur son origine (`BulletPhysicsEngine.cs`:375). Aucun helper
+pied / demi-hauteur n'existe, ni sur le composant ni dans les settings. Un appelant de champ
+choisit lui-meme sa position d'echantillonnage et possede ce decalage centre/pied : c'est
+exactement la convention que l'integration doit fixer.
+
+### 3. Le `- SkinWidth` du snap annule le retrecissement de la capsule
+
+La capsule de requete est retrecie de `SkinWidth` sur les deux axes : rayon
+`Radius - SkinWidth` (:881) et longueur de cylindre `Height - 2 * Radius` (:882). Sa demi-hauteur
+vaut donc `Height / 2 - SkinWidth`. Le snap retire ensuite `SkinWidth` de la distance parcourue
+(:829-833), ce qui **annule** ce retrecissement. Consequences a reproduire par tout placement base
+sur un champ :
+
+- Y d'equilibre de la racine au repos : `groundY + Height / 2` (exactement).
+- Reference de sonde du sweep : `Position.Y - (Height / 2 - SkinWidth)`.
+
+Mise en garde : ces deux egalites ne valent que **hors des clamps `MinSweepShapeSize`** appliques au
+rayon et a la longueur de cylindre de la forme de requete. `CharacterControllerSettings.Validate`
+(:125-138) verifie `Radius > 0`, `Height >= 2 * Radius` et `SkinWidth < Radius` ; aucune de ces
+regles n'empeche une capsule assez
+petite pour tomber dans ces clamps, auquel cas le calcul ci-dessus ne tient plus.
+
 ## Resume
 
 Le bon point de depart pour CasaEngine est un `CharacterControllerComponent` cinematique, base sur les composants existants, pilote par intentions et resolu par la physique.

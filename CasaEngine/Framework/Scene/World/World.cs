@@ -6,6 +6,7 @@ using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
 using CasaEngine.Framework.Application;
 using CasaEngine.Framework.Application.Components.Physics;
+using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Rendering.Environment;
@@ -45,6 +46,17 @@ public sealed class World : ObjectBase
     /// <see cref="LoadContent(CasaEngineGame)"/> runs.
     /// </summary>
     public string SpacePolicyName { get; set; } = string.Empty;
+    /// <summary>
+    /// Collision field of this world, or null when it has none. A field carries dense environment
+    /// data (ground height, walkability, surface tag) sampled analytically; it is never expressed as
+    /// collision geometry and never inserted into <see cref="PhysicsWorld"/>.
+    /// It is NOT serialized: a field comes from code or from converted data, never from the world file.
+    /// Ownership of the reset follows the two clearing paths: <see cref="Clear"/> drops it as part of
+    /// the full teardown, while <see cref="ClearEntities"/> leaves it untouched, so loading a world
+    /// does not silently discard a field assigned from code.
+    /// </summary>
+    public ICollisionField CollisionField { get; set; }
+
     public GameplayProxy GameplayProxy { get; private set; }
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
@@ -112,6 +124,7 @@ public sealed class World : ObjectBase
         _tileMapSurfaces.Clear();
 
         ClearEntities(true);
+        CollisionField = null;
         DisposePhysicsWorldContext();
     }
 
