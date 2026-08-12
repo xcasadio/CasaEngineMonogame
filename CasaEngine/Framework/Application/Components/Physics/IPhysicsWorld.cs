@@ -11,6 +11,9 @@ public interface IPhysicsWorld
 {
     int CollisionObjectCount { get; }
 
+    /// <summary>Simulation space of this world: shape lowering, body constraints and render mapping.</summary>
+    SimulationSpacePolicy SpacePolicy { get; }
+
     void Update(float elapsedTime);
 
     PhysicsBody AddGhostObject(Shape3d shape, Vector3 localScale, ref Matrix worldMatrix, ICollideableComponent collideableComponent, int collisionProfileId, string fixtureTag = null, Color? color = null);

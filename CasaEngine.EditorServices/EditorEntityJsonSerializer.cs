@@ -36,6 +36,7 @@ internal static class EditorEntityJsonSerializer
 
         node.Add("entity_references", entityReferencesArray);
         node.Add("script_class_name", world.GameplayProxyClassName);
+        node.Add("space_policy", world.SpacePolicyName);
         node.Add("player_startup_settings_asset_id", world.PlayerStartupSettingsAssetId);
         node.Add("gameplay_mode_asset_id", world.GameplayModeAssetId);
 

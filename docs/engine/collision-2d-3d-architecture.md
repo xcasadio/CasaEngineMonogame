@@ -108,7 +108,8 @@ pas une donnée de sprite (un sprite est partageable entre animations).
 - Le verrouillage de plan existait **par branche de classes** : `Physics2dComponent` n'existait que
   pour poser `LinearFactor = (1,1,0)` et `AngularFactor = (0,0,1)` dans son constructeur —
   exactement la future politique `Planar2d`, codée en héritage. Composant supprimé depuis ; les
-  défauts de verrouillage restent à fournir par la politique (phase D).
+  défauts de verrouillage sont fournis par `Planar2dSimulationSpacePolicy.ApplyDefaultConstraints`
+  depuis la phase D.
 - L'abaissement est incohérent entre composants : `Box2dCollisionComponent` extrude son rectangle
   à une profondeur de 1 (`0.5f` en demi-étendue), `CircleCollisionComponent` abaisse son cercle en
   **sphère** (profondeur `2r`). Deux colliders 2D d'une même scène n'ont pas la même épaisseur.
@@ -428,6 +429,41 @@ C  Abaissement            ISimulationSpacePolicy.Lower ; Shape2d perd sa pose (m
                           sur les nœuds de tuile sont un concept distinct, laissés intacts.
 D  Espace de simulation   politique complète par monde ; pose logique vs pose de rendu ;
                           Identity3d par défaut. Le chantier structurel.
+                          FAIT (2026-08). Un monde nomme sa politique (World.SpacePolicyName,
+                          clé "space_policy", vide = défaut projet) ; elle est résolue au seul
+                          endroit où un contexte physique est construit,
+                          PhysicsSystemComponent.GetOrCreateContext, et portée par
+                          PhysicsWorld.SpacePolicy (SpriteCollisionHelper abaisse désormais via le
+                          monde, plus via le global). SimulationSpacePolicy gagne Name,
+                          ApplyDefaultConstraints, DeriveRenderPosition et CreateByName ;
+                          TopDownElevation est ajoutée (X est, Y profondeur au sol, Z élévation ;
+                          rendu = (X, -(Y - Z), 0)). PhysicsBaseComponent applique les contraintes
+                          du monde à la PhysicsDefinition avant de créer le corps. Les visuels purs
+                          d'un monde projeté s'attachent sous un RenderProjectionComponent, qui se
+                          place chaque frame à la position de rendu dérivée de la position logique
+                          de la racine de l'entité. Démo TopDownElevationDemo.
+                          Heuristique assumée (Planar2d) : un facteur laissé à Vector3.One est un
+                          facteur non exprimé, que le monde remplit (linéaire (1,1,0), angulaire
+                          (0,0,1)) ; toute autre valeur est un override d'authoring conservé tel
+                          quel. Limite : un corps volontairement non contraint dans un monde
+                          planaire n'est pas exprimable, ses facteurs libres étant exactement ceux
+                          que la politique lit comme non exprimés. Autre limite : les contraintes
+                          sont écrites dans la PhysicsDefinition du composant, donc une entité
+                          réinitialisée d'un monde Planar2d vers un monde Identity3d conserve ses
+                          facteurs verrouillés (l'écriture n'est pas réversible).
+                          Limite connue (non-objectif de la phase) : un sprite portant des volumes
+                          de collision authorés ne doit pas être placé sous un
+                          RenderProjectionComponent. Les composants sprite calculent la pose de
+                          leurs corps depuis leur propre transformation monde, donc ces volumes
+                          atterriraient dans l'espace de rendu au lieu de l'espace logique. Résolu
+                          par la phase E (timelines de fixtures) ; la démo ne contient aucun sprite
+                          à volumes authorés.
+                          Ordre de mise à jour : aucune contrainte nouvelle. Les transformations
+                          monde sont lues paresseusement en remontant les parents
+                          (SceneComponent.WorldMatrixNoScale), et le composant projette avant de
+                          mettre à jour ses enfants ; il publie donc toujours la position de la
+                          racine de la même frame. Seule contrainte de placement : être un
+                          descendant de la racine de l'entité, pas la racine elle-même.
 E  Timelines de fixtures  keyframes de collision sur les assets d'animation ; composant runtime
                           poolé ; chemin par sprite id d'AnimatedSpriteComponent SUPPRIMÉ.
 F  Champs et mover        ICollisionField ; intégration au character controller (doc dédié).

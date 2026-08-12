@@ -1,3 +1,4 @@
+using CasaEngine.Engine.Physics;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Application.Components.Physics;
@@ -24,9 +25,22 @@ public class PhysicsSystemComponent : GameComponent
             return context;
         }
 
-        context = new PhysicsWorld(_casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true);
+        context = new PhysicsWorld(
+            _casaEngineGame?.ExecutionPolicy.UseExternalViewManagement == true,
+            ResolveSpacePolicy(world));
         _physicsWorldContexts.Add(world, context);
         return context;
+    }
+
+    /// <summary>
+    /// Simulation space of a world: the one it names, or the project default when it names none.
+    /// This is the single place a physics context is built, so it is the single place the policy is resolved.
+    /// </summary>
+    private static SimulationSpacePolicy ResolveSpacePolicy(Scene.World.World world)
+    {
+        return string.IsNullOrEmpty(world.SpacePolicyName)
+            ? GameSettings.PhysicsEngineSettings.SpacePolicy
+            : SimulationSpacePolicy.CreateByName(world.SpacePolicyName);
     }
 
     public void ReleaseContext(Scene.World.World world)

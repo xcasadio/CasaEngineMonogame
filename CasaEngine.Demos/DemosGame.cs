@@ -72,6 +72,7 @@ public class DemosGame : CasaEngineGame
     _demos.Add(new CutsceneNavigateToDemo());
         _demos.Add(new Collision3dBasicDemo());
         _demos.Add(new Collision2dBasicDemo());
+        _demos.Add(new TopDownElevationDemo());
         _demos.Add(new StaticModelDemo());
         _demos.Add(new MaterialDemo());
         _demos.Add(new ParticleSystemDemo());

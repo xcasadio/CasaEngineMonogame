@@ -784,6 +784,8 @@ public class CharacterControllerComponentTests
 
         public int CollisionObjectCount => 0;
 
+        public SimulationSpacePolicy SpacePolicy { get; } = new Identity3dSimulationSpacePolicy();
+
         public void Update(float elapsedTime)
         {
         }

@@ -19,7 +19,7 @@ public static class SpriteCollisionHelper
     {
         ArgumentNullException.ThrowIfNull(collision2d);
 
-        var shape = GameSettings.PhysicsEngineSettings.SpacePolicy.Lower(collision2d.Shape);
+        var shape = physicsWorldContext.SpacePolicy.Lower(collision2d.Shape);
         int profileId = ResolveProfileId(collision2d);
 
         return physicsWorldContext.CreateGhostObject(worldMatrix, collideableComponent, shape, localScale, profileId,

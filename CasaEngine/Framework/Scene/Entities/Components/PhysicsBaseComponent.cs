@@ -93,6 +93,9 @@ public abstract class PhysicsBaseComponent : SceneComponent, ICollideableCompone
         DestroyPhysicsObject();
     }
 
+        //The world constrains its bodies before they are built: the definition is consumed at creation.
+        PhysicsWorld?.SpacePolicy?.ApplyDefaultConstraints(PhysicsDefinition);
+
         CreatePhysicsObject();
     }
 

@@ -14,9 +14,12 @@ public sealed class PhysicsWorld : IPhysicsWorld, IDisposable
 
     public int CollisionObjectCount => _physicsEngine.CollisionObjectCount;
 
-    public PhysicsWorld(bool useExternalViewManagement)
+    public SimulationSpacePolicy SpacePolicy { get; }
+
+    public PhysicsWorld(bool useExternalViewManagement, SimulationSpacePolicy spacePolicy = null)
     {
         _useExternalViewManagement = useExternalViewManagement;
+        SpacePolicy = spacePolicy ?? GameSettings.PhysicsEngineSettings.SpacePolicy;
         _physicsEngine = new BulletPhysicsEngine(GameSettings.PhysicsEngineSettings);
     }
 

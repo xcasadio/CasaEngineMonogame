@@ -38,6 +38,13 @@ public sealed class World : ObjectBase
     public IPhysicsWorld PhysicsWorld { get; private set; } = null!;
     public IList<Entity> Entities => _entities;
     public string GameplayProxyClassName { get; set; }
+
+    /// <summary>
+    /// Simulation space policy this world declares, by name. Empty means the project default.
+    /// It is resolved when the physics context of the world is created, so it must be set before
+    /// <see cref="LoadContent(CasaEngineGame)"/> runs.
+    /// </summary>
+    public string SpacePolicyName { get; set; } = string.Empty;
     public GameplayProxy GameplayProxy { get; private set; }
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
@@ -757,6 +764,8 @@ public sealed class World : ObjectBase
         }
 
         GameplayProxyClassName = element["script_class_name"].GetString();
+
+        SpacePolicyName = element["space_policy"]?.Value<string>() ?? string.Empty;
 
         if (element.ContainsKey("game_mode_asset_id"))
         {
