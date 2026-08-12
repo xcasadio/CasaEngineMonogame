@@ -14,11 +14,14 @@ public static class Program
         Logs.AddLogger(new FileLogger("log.txt"));
         Logs.Verbosity = LogVerbosity.Trace;
 
-        EngineEnvironment.ProjectPath = Path.GetFullPath(Path.GetDirectoryName(args[0]));
+        //var projectFileName = @"D:\development\repo\alundra-casaengine-project-converter\alundra-project\AlundraGame.json";//args[0];
+        var projectFileName = args[0];
+
+        EngineEnvironment.ProjectPath = Path.GetFullPath(Path.GetDirectoryName(projectFileName));
         var runtimeContext = GameSettings.CreateRuntimeContext();
         runtimeContext.UIViewRuntimeFactory = new MguiViewRuntimeFactory();
 
-        using var game = new CasaEngineGame(args[0], runtimeContext: runtimeContext);
+        using var game = new CasaEngineGame(projectFileName, runtimeContext: runtimeContext);
         game.Run();
     }
 }
