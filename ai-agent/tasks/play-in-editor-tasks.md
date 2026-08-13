@@ -118,7 +118,7 @@ Règles d'exécution pour les agents :
   effectif, et le rechargement d'une v2.
   _Commit : `play-in-editor: collectible script assembly host`_
 
-- ⏳ T3.2 — `ElementFactory` rechargeable : API `RegisterAssembly`/`UnregisterAssembly`
+- ✅ T3.2 — `ElementFactory` rechargeable : API `RegisterAssembly`/`UnregisterAssembly`
   (ou invalidation par ALC), exclusion des assemblies collectibles déchargées du scan
   AppDomain, rebuild du cache après unload ; comportement existant inchangé pour le
   runtime standalone. Tests : un type d'une assembly déchargée n'est plus résolu ;
