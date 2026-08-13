@@ -447,6 +447,8 @@ public class GameEditor : Game, IObservableUpdate
             item.Submenu.AddSeparator();
             item.Submenu.AddButton("Save", _ => SaveCurrentProject());
             item.Submenu.AddSeparator();
+            item.Submenu.AddButton("Build Scripts", _ => RebuildScriptsNow());
+            item.Submenu.AddSeparator();
             item.Submenu.AddButton("Exit", _ => Exit());
         });
 
@@ -1041,10 +1043,69 @@ public class GameEditor : Game, IObservableUpdate
         _worldViewportPanel?.ExitPlayMode();
     }
 
+    private bool EnsureScriptsUpToDateForPlay()
+    {
+        if (!EditorScriptReloadCoordinator.IsRebuildConfigured
+            || !EditorScriptReloadCoordinator.AreScriptsOutOfDate())
+        {
+            return true;
+        }
+
+        Logs.WriteInfo("Gameplay scripts changed: rebuilding before play...");
+        return RebuildScriptsNow();
+    }
+
+    private bool RebuildScriptsNow()
+    {
+        if (_playModeService?.IsPlaySessionActive == true)
+        {
+            Logs.WriteWarning("Stop the play session before rebuilding the gameplay scripts.");
+            return false;
+        }
+
+        bool reloaded = EditorScriptReloadCoordinator.TryRebuildAndReload(PrepareWorldsForScriptReload);
+        if (reloaded)
+        {
+            // Materialize the reloaded edit world right away so a play session that
+            // starts in the same action snapshots a fully loaded world.
+            _editorRuntime?.GameManager.UpdateWorld(new GameTime());
+        }
+
+        return reloaded;
+    }
+
+    private void PrepareWorldsForScriptReload()
+    {
+        var gameManager = _editorRuntime?.GameManager;
+        var world = gameManager?.CurrentWorld;
+        if (gameManager == null || world == null)
+        {
+            return;
+        }
+
+        var snapshot = EditorWorldPlaySnapshot.Capture(world);
+        string worldFileName = world.FileName;
+
+        // Undo entries reference entities of the old world (and their script proxies):
+        // they must not survive the assembly swap.
+        _editorHistory.Clear(new EditorHistoryContext(EditorHistoryContextKind.World, EditorPanelIds.WorldViewport));
+
+        world.Clear();
+
+        var reloadedWorld = EditorWorldPlaySnapshot.CreatePlayWorld(snapshot, worldFileName);
+        gameManager.SetWorldToLoad(reloadedWorld);
+    }
+
     private void StartPlayMode()
     {
         try
         {
+            if (!EnsureScriptsUpToDateForPlay())
+            {
+                Logs.WriteError("Play mode canceled: gameplay scripts are not buildable.");
+                return;
+            }
+
             PlayModeService.TryStartPlay();
         }
         catch (Exception ex)

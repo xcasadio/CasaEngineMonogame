@@ -146,7 +146,7 @@ Règles d'exécution pour les agents :
   de dev), erreur de syntaxe → diagnostics remontés.
   _Commit : `play-in-editor: out-of-process script build service`_
 
-- ⏳ T3.6 — Orchestration reload complète : coordinateur éditeur qui, au Play (ou via
+- 🧪 T3.6 — Orchestration reload complète : coordinateur éditeur qui, au Play (ou via
   menu « Build Scripts ») quand `GameplayCsprojName` est configuré et que des sources
   `*.cs` sont plus récentes que le DLL chargé : build → si échec stop (erreurs logs) ;
   si succès : teardown (Clear du monde de play éventuel, monde d'édition rechargé depuis
