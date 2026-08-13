@@ -86,7 +86,7 @@ Règles d'exécution pour les agents :
   `Logs.WriteError`. Raccourcis F5 (Play/Stop) sans UI dédiée à ce stade.
   _Commit : `play-in-editor: editor play/stop orchestration`_
 
-- ⏳ T2.2 — Caméra + input de jeu dans `WorldViewportPanel` : mode Play (flag posé par
+- 🧪 T2.2 — Caméra + input de jeu dans `WorldViewportPanel` : mode Play (flag posé par
   `GameEditor`) — bind de la caméra du monde joué sur `_renderView.Camera`
   (première `CameraComponent`, sinon défaut), bypass du `SynchronizeCamera`/gizmo/
   contrôleur caméra éditeur pendant le Play, restauration au Stop ; assignation

@@ -991,11 +991,44 @@ public class GameEditor : Game, IObservableUpdate
             if (_playModeService == null)
             {
                 _playSessionController = new EditorPlaySessionController(() => _editorRuntime);
+                _playSessionController.SessionStarted += OnPlaySessionStarted;
+                _playSessionController.SessionStopped += OnPlaySessionStopped;
                 _playModeService = new EditorPlayModeService(_playSessionController);
             }
 
             return _playModeService;
         }
+    }
+
+    private void OnPlaySessionStarted()
+    {
+        _worldViewportPanel?.EnterPlayMode();
+
+        if (_editorRuntime != null)
+        {
+            // The play world loads on the next hosted update; bind its camera then.
+            _editorRuntime.GameManager.WorldLoaded += OnPlayWorldLoaded;
+        }
+    }
+
+    private void OnPlayWorldLoaded(object sender, EventArgs e)
+    {
+        if (_editorRuntime != null)
+        {
+            _editorRuntime.GameManager.WorldLoaded -= OnPlayWorldLoaded;
+        }
+
+        _worldViewportPanel?.BindPlayWorldCamera();
+    }
+
+    private void OnPlaySessionStopped()
+    {
+        if (_editorRuntime != null)
+        {
+            _editorRuntime.GameManager.WorldLoaded -= OnPlayWorldLoaded;
+        }
+
+        _worldViewportPanel?.ExitPlayMode();
     }
 
     private void StartPlayMode()

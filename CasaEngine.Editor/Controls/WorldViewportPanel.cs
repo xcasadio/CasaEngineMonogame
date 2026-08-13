@@ -28,6 +28,7 @@ using MGUI.Core.UI.DragDrop;
 using MGUI.Shared.Helpers;
 using MGUI.Shared.Input.Mouse;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended;
 using HorizontalAlignment = MGUI.Core.UI.HorizontalAlignment;
@@ -185,6 +186,9 @@ public class WorldViewportPanel : IDisposable
     private readonly EditorViewportGizmoController _gizmoController;
     private readonly Action _releaseViewInputAction;
     private EditorViewportCameraState? _savedPrimaryWorldCameraState;
+    private EditorViewportCameraState? _savedPlayModeCameraState;
+    private CameraComponent _playModeCamera;
+    private bool _isPlayModeActive;
     private BoundingBox? _front2dFocusedBounds;
     private float _front2dPixelsPerWorldUnit;
     private int _rtWidth = 16;
@@ -281,6 +285,22 @@ public class WorldViewportPanel : IDisposable
     public void DrawViewport(GameTime gameTime)
     {
         SynchronizeRenderViewWorld();
+
+        if (_isPlayModeActive)
+        {
+            // The game camera drives the view during play; the editor camera,
+            // gizmo and camera controller stay out of the way until Stop.
+            if (_playModeCamera != null && _renderView != null
+                && !ReferenceEquals(_renderView.Camera, _playModeCamera))
+            {
+                _renderView.Camera = _playModeCamera;
+            }
+
+            _gizmoController.Deactivate();
+            RefreshTextureBinding();
+            return;
+        }
+
         SynchronizeCamera();
         if (!ShouldSynchronizeGizmo())
         {
@@ -292,6 +312,109 @@ public class WorldViewportPanel : IDisposable
         }
 
         RefreshTextureBinding();
+    }
+
+    /// <summary>True while a play-in-editor session drives this viewport.</summary>
+    public bool IsPlayModeActive => _isPlayModeActive;
+
+    /// <summary>
+    /// Enters play mode: the editor camera state is saved, the player is routed to this
+    /// view and the gizmo is deactivated. The game camera is bound later, once the play
+    /// world finished loading (<see cref="BindPlayWorldCamera"/>).
+    /// </summary>
+    public void EnterPlayMode()
+    {
+        if (_isPlayModeActive)
+        {
+            return;
+        }
+
+        _isPlayModeActive = true;
+        _playModeCamera = null;
+        _savedPlayModeCameraState = _cameraController.CaptureState();
+        _gizmoController.Deactivate();
+
+        if (_renderView != null)
+        {
+            var router = _editorRuntime.InputComponent.InputRouter;
+            router?.AssignPlayer(PlayerIndex.One, _renderView.Id);
+            router?.SetKeyboardFocus(_renderView.Id);
+            _editorRuntime.GameManager.ViewManager.SetActive(_renderView);
+        }
+    }
+
+    /// <summary>
+    /// Binds the play world camera to the view: first CameraComponent found in the world
+    /// entities (same rule as the runtime view bootstrapper), or a default camera.
+    /// Call it once the play world finished loading.
+    /// </summary>
+    public void BindPlayWorldCamera()
+    {
+        if (!_isPlayModeActive || _renderView == null)
+        {
+            return;
+        }
+
+        var world = _editorRuntime.GameManager.CurrentWorld;
+        if (world == null)
+        {
+            return;
+        }
+
+        CameraComponent gameCamera = null;
+        var entities = world.Entities;
+        for (int i = 0; i < entities.Count; i++)
+        {
+            gameCamera = entities[i].GetComponent<CameraComponent>();
+            if (gameCamera != null)
+            {
+                break;
+            }
+        }
+
+        gameCamera ??= world.CreateDefaultCamera();
+
+        _playModeCamera = gameCamera;
+        _renderView.Camera = gameCamera;
+        gameCamera.OnScreenResized(_rtWidth, _rtHeight);
+        _renderView.Invalidate();
+    }
+
+    /// <summary>Leaves play mode and restores the editor camera exactly as saved.</summary>
+    public void ExitPlayMode()
+    {
+        if (!_isPlayModeActive)
+        {
+            return;
+        }
+
+        _isPlayModeActive = false;
+        _playModeCamera = null;
+
+        if (_renderView != null)
+        {
+            _editorRuntime.InputComponent.InputRouter?.UnassignPlayer(PlayerIndex.One);
+
+            var viewCamera = ActiveCamera;
+            if (viewCamera != null)
+            {
+                _renderView.Camera = viewCamera;
+                viewCamera.OnScreenResized(_rtWidth, _rtHeight);
+            }
+        }
+
+        if (_savedPlayModeCameraState.HasValue)
+        {
+            _cameraController.RestoreState(_savedPlayModeCameraState.Value);
+            _savedPlayModeCameraState = null;
+
+            if (_camera != null)
+            {
+                _cameraController.ApplyTo(_camera);
+            }
+        }
+
+        _renderView?.Invalidate();
     }
 
     public IReadOnlyList<string> GetAutomationStateSnapshot()
@@ -352,6 +475,18 @@ public class WorldViewportPanel : IDisposable
             && _renderView != null
             && IsPointerInputRoutedToView(inputContext, _renderView.Id);
         _gizmoController.Deactivate();
+
+        if (_isPlayModeActive)
+        {
+            // During play the game consumes the routed input; the editor only turns a
+            // click in the viewport into view activation + keyboard focus for gameplay.
+            if (receivesInput && inputContext.MouseState.LeftButton == ButtonState.Pressed)
+            {
+                ActivateThisView(false);
+            }
+
+            return;
+        }
 
         if (UsesCamera2d)
         {
