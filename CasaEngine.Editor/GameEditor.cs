@@ -15,6 +15,7 @@ using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Editor.Log;
 using CasaEngine.Editor.PlayMode;
 using CasaEngine.EditorServices.PlayMode;
+using CasaEngine.EditorServices.Scripting;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
@@ -264,6 +265,11 @@ public class GameEditor : Game, IObservableUpdate
     public GameEditor(EditorAutomationOptions automationOptions = null)
     {
         _automationOptions = automationOptions ?? new EditorAutomationOptions();
+
+        // The editor must never lock the gameplay dll on disk: load it through a
+        // shadow copy in a collectible context so it can be rebuilt and reloaded.
+        GameSettings.AssemblyManager.AssemblyLoader = EditorScriptAssemblyService.LoadShadowCopy;
+
         _editorHistory.HistoryChanged += OnEditorHistoryChanged;
         _graphics = new GraphicsDeviceManager(this);
         _graphics.GraphicsProfile = GraphicsAdapter.DefaultAdapter.IsProfileSupported(GraphicsProfile.HiDef)

@@ -125,7 +125,7 @@ Règles d'exécution pour les agents :
   un type de la v2 rechargée est résolu.
   _Commit : `play-in-editor: reloadable ElementFactory`_
 
-- ⏳ T3.3 — Chemin éditeur sans verrou de fichier : hook injectable pour le chargement du
+- ✅ T3.3 — Chemin éditeur sans verrou de fichier : hook injectable pour le chargement du
   DLL gameplay (`ProjectSettingsHelper` n'appelle plus `Assembly.LoadFile` en dur) ;
   l'éditeur fournit un chargeur basé `ScriptAssemblyHost` avec shadow-copy du DLL ;
   le runtime standalone garde le comportement actuel par défaut. Test : ouverture d'un
