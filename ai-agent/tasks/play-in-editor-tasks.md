@@ -132,7 +132,7 @@ Règles d'exécution pour les agents :
   projet avec DLL via le hook → fichier d'origine non verrouillé (supprimable).
   _Commit : `play-in-editor: unlockable gameplay dll loading in editor`_
 
-- ⏳ T3.4 — `ProjectSettings.GameplayCsprojName` (additif) : lecture optionnelle
+- ✅ T3.4 — `ProjectSettings.GameplayCsprojName` (additif) : lecture optionnelle
   (`rootElement["GameplayCsprojName"]?`), écriture seulement si non vide ; exposé dans
   les settings projet. Test de sérialisation additive (ancien JSON sans le champ charge
   sans erreur).

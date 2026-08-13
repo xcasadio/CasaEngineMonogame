@@ -28,6 +28,13 @@ public class ProjectSettings
     [Category("Gameplay")]
     public string GameplayDllName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional path (relative to the project directory) of the gameplay scripts
+    /// csproj. When set, the editor can rebuild the gameplay dll on Play.
+    /// </summary>
+    [Category("Gameplay")]
+    public string GameplayCsprojName { get; set; } = string.Empty;
+
 #if !FINAL
 
     [Category("Debug")]

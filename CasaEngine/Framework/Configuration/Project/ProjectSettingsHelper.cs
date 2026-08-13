@@ -25,6 +25,7 @@ public static class ProjectSettingsHelper
 
         projectSettings.FirstWorldLoaded = rootElement["FirstWorldLoaded"].GetString();
         projectSettings.GameplayDllName = rootElement["GameplayDllName"].GetString();
+        projectSettings.GameplayCsprojName = rootElement["GameplayCsprojName"]?.GetString() ?? string.Empty;
         projectSettings.ExternalToolsDirectory = rootElement["ExternalToolsDirectory"]?.GetString() ?? projectSettings.ExternalToolsDirectory;
 
 #if !FINAL
@@ -69,6 +70,11 @@ public static class ProjectSettingsHelper
             ["GameplayDllName"] = settings.GameplayDllName,
             ["ExternalToolsDirectory"] = settings.ExternalToolsDirectory,
         };
+
+        if (!string.IsNullOrWhiteSpace(settings.GameplayCsprojName))
+        {
+            rootElement["GameplayCsprojName"] = settings.GameplayCsprojName;
+        }
 
 #if !FINAL
         rootElement["DebugIsFullScreen"] = settings.DebugIsFullScreen;
