@@ -13,6 +13,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 
 | Fichier | Sujet | Reste à faire |
 | --- | --- | --- |
+| [play-in-editor-tasks.md](tasks/play-in-editor-tasks.md) | Play-in-Editor (Play/Pause/Stop dans le viewport + scripts compilés/rechargés à la volée) | Implémentation livrée sur la branche `play-in-editor` ; restent les validations visuelles 🧪 (T2.2 caméra/input, T2.3 toolbar, T3.6 reload sur projet réel). |
 | [pbr-rendering-implementation-plan.md](tasks/pbr-rendering-implementation-plan.md) | Rendu PBR metallic-roughness (+ pipeline linéaire/HDR/tonemap, IBL, import glTF) | Plan entier ⏳ (phases 0–6, rédigé le 2026-08-09). |
 | [ui-integration.md](tasks/ui-integration.md) | UI Root, screen stack, overlay/world, game states | Plan quasi entier : 77 cases non cochées. |
 | [tilemap-modernization-tasks.md](tasks/tilemap-modernization-tasks.md) | Modernisation TileMap + import Tiled | Validations 🧪 sur les phases 1–9 ; phase 10 (streaming) ⏳ ; outils éditeur (palette, paint, undo, overlays) ⏳. |

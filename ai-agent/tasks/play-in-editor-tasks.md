@@ -157,7 +157,7 @@ Règles d'exécution pour les agents :
 
 ## Phase 4 — Finition
 
-- ⏳ T4.1 — Documentation : `docs/editor/play-in-editor.md` (fonctionnement, limites,
+- ✅ T4.1 — Documentation : `docs/editor/play-in-editor.md` (fonctionnement, limites,
   procédure scripts), index `docs/README.md`, table des tâches `ai-agent/README.md`,
   renvoi depuis l'audit.
   _Commit : `play-in-editor: documentation`_
