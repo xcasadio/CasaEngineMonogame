@@ -70,7 +70,7 @@ Règles d'exécution pour les agents :
   `space_policy`, environnement ; le monde source n'est pas modifié.
   _Commit : `play-in-editor: world play snapshot service`_
 
-- ⏳ T1.3 — `GameManager.RestoreWorld(World)` (runtime, additif) : réinstalle un monde
+- ✅ T1.3 — `GameManager.RestoreWorld(World)` (runtime, additif) : réinstalle un monde
   déjà chargé comme `CurrentWorld` sans repasser par `LoadContent`/`BeginPlay`, annule un
   `_worldToLoad`/`_isNewWorld` en attente, notifie `WorldChanged`. Test unitaire (le monde
   restauré ne subit ni `Clear` ni re-`LoadContent` — vérifiable par compteur d'entités et

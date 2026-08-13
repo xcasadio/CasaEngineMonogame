@@ -128,6 +128,24 @@ public class GameManager
     }
 
     /// <summary>
+    /// Reinstalls an already-loaded world as the current world without running
+    /// LoadContent/BeginPlay again. Used by the editor to bring the edit world back
+    /// after a play-in-editor session: that world was set aside fully loaded, so the
+    /// normal load path would duplicate its entities.
+    /// </summary>
+    public void RestoreWorld(Scene.World.World world)
+    {
+        ArgumentNullException.ThrowIfNull(world);
+
+        _worldToLoad = null;
+        _isNewWorld = false;
+        _currentWorld = world;
+        OnWorldChange();
+    }
+
+    internal bool HasPendingWorldLoad => _isNewWorld || !string.IsNullOrEmpty(_worldToLoad);
+
+    /// <summary>
     /// Fired (on all configurations) when a world finishes loading and its views are ready.
     /// Subscribe to push UI screens that depend on a live hosted UI runtime.
     /// </summary>
