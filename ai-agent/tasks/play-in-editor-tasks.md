@@ -56,7 +56,7 @@ Règles d'exécution pour les agents :
 
 ## Phase 1 — Fondations services (testables sans UI)
 
-- ⏳ T1.1 — `EditorPlayModeService` (nouveau, `CasaEngine.EditorServices/PlayMode/`) :
+- ✅ T1.1 — `EditorPlayModeService` (nouveau, `CasaEngine.EditorServices/PlayMode/`) :
   machine à états `Editing → Starting → Playing ⇄ Paused → Stopping → Editing`,
   événements `StateChanged`, garde-fous (Play impossible si déjà en play, Stop idempotent),
   callbacks injectés (`onStart`, `onStop`, `onPause`) pour découpler de l'éditeur.
