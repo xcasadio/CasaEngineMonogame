@@ -98,8 +98,16 @@ public static class ElementFactory
             return null;
         }
 
-        _typeCache ??= BuildTypeCache();
-        _typeCache.TryGetValue(typeName, out var type);
+        // Local copy: InvalidateCaches can null the field from an AssemblyLoad event
+        // while another thread resolves a type.
+        var cache = _typeCache;
+        if (cache == null)
+        {
+            cache = BuildTypeCache();
+            _typeCache = cache;
+        }
+
+        cache.TryGetValue(typeName, out var type);
         return type;
     }
 
@@ -115,10 +123,11 @@ public static class ElementFactory
     public static IEnumerable<Type> GetDerivedTypesFrom<T>() where T : class
     {
         var type = typeof(T);
-        if (!_derivedTypesCache.TryGetValue(type, out var derived))
+        var cache = _derivedTypesCache;
+        if (!cache.TryGetValue(type, out var derived))
         {
             derived = BuildDerivedTypes(type);
-            _derivedTypesCache[type] = derived;
+            cache[type] = derived;
         }
         return derived;
     }

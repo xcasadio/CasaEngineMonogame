@@ -81,9 +81,9 @@ public sealed class ScriptAssemblyHost
 
         var weakContext = StartUnload();
 
-        for (int i = 0; weakContext.IsAlive && i < 10; i++)
+        for (int i = 0; weakContext.IsAlive && i < 20; i++)
         {
-            GC.Collect();
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
             GC.WaitForPendingFinalizers();
         }
 
@@ -100,7 +100,7 @@ public sealed class ScriptAssemblyHost
     [MethodImpl(MethodImplOptions.NoInlining)]
     private WeakReference StartUnload()
     {
-        var weakContext = new WeakReference(_context, trackResurrection: true);
+        var weakContext = new WeakReference(_context);
         LoadedAssembly = null;
         LoadedAssemblyPath = null;
         _context.Unload();

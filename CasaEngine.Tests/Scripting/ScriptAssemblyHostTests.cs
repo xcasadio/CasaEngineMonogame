@@ -6,6 +6,10 @@ using Xunit;
 
 namespace CasaEngine.Tests.Scripting;
 
+// Unload verification needs a quiet process: a concurrent xunit thread whose stack
+// still holds a stale reference can transiently pin the collectible context. The
+// ProjectEnvironment collection runs alone, without parallel tests.
+[Collection(ProjectEnvironmentCollection.Name)]
 public class ScriptAssemblyHostTests
 {
     // In Debug builds every local of a live frame keeps its target alive, so any code
