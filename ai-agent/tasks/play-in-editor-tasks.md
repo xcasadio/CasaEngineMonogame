@@ -162,11 +162,30 @@ Règles d'exécution pour les agents :
   renvoi depuis l'audit.
   _Commit : `play-in-editor: documentation`_
 
-- ⏳ T4.2 — Vérification finale : build solution complet, suite de tests complète
+- ✅ T4.2 — Vérification finale : build solution complet, suite de tests complète
   comparée à la baseline (18 échecs préexistants), correction des régressions
   éventuelles, passe de vérification indépendante, mise à jour des statuts de ce plan,
   rapport final (fichiers changés / validations / risques / suites).
   _Commit : `play-in-editor: final verification`_
+
+## Résultat de la vérification finale (2026-08-13)
+
+- Build `CasaEngine.Editor.MonoGame.sln` : 0 erreur (rebuild complet confirmé).
+- Suite de tests : 5 exécutions consécutives stables à **18 échecs / 1005 réussites /
+  1023 tests** — exactement la baseline préexistante de `main`, aucune régression ;
+  les 37 nouveaux tests passent. Une instabilité initiale (vérification GC de
+  l'unload sous exécution parallèle + fenêtre de NRE dans `ElementFactory.
+  InvalidateCaches`) a été corrigée (commit `stabilize unload verification`).
+- Passe de vérification indépendante : **CONFIRMED** (build, suite complète 2×,
+  9 classes de tests en isolation, inspection des 6 garanties comportementales,
+  compatibilité de sérialisation additive).
+- Avis différés (non bloquants, hors périmètre du claim) :
+  - **P3** : les dossiers shadow-copy `%TEMP%/casaeditor-scripts/<guid>/` ne sont
+    jamais nettoyés (un par Play/reload) — follow-up à faire dans
+    `EditorScriptAssemblyService.Unload()` + purge au démarrage ;
+  - **P4** : `ElementFactory._scriptAssemblies` (List) non thread-safe si un
+    `AssemblyLoad` concurrent survient pendant un rebuild de cache — moteur
+    mono-thread par design, à durcir si un usage multi-thread apparaît.
 
 ## Hors périmètre (backlog, ne pas implémenter ici)
 
