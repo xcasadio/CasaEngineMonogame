@@ -138,7 +138,7 @@ Règles d'exécution pour les agents :
   sans erreur).
   _Commit : `play-in-editor: gameplay csproj project setting`_
 
-- ⏳ T3.5 — `EditorScriptBuildService` (EditorServices) : `dotnet build <csproj>
+- ✅ T3.5 — `EditorScriptBuildService` (EditorServices) : `dotnet build <csproj>
   -c Debug -o <projet>/.casaeditor/script-build/<timestamp>/` hors-process, capture
   stdout/stderr, parsing des erreurs MSBuild (`fichier(ligne,col): error CODE: message`)
   vers `Logs.WriteError`, résultat typé (succès + chemin DLL / échec + diagnostics).
