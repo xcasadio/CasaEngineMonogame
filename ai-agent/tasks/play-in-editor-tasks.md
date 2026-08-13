@@ -108,7 +108,7 @@ Règles d'exécution pour les agents :
 
 ## Phase 3 — Pipeline scripts (DLL à la volée)
 
-- ⏳ T3.1 — `ScriptAssemblyHost` (nouveau, `CasaEngine/Engine/Plugins/`) : ALC
+- ✅ T3.1 — `ScriptAssemblyHost` (nouveau, `CasaEngine/Engine/Plugins/`) : ALC
   `isCollectible: true` + `AssemblyDependencyResolver`, règle de résolution « tout
   `CasaEngine.*`/MonoGame/déjà chargé dans l'ALC défaut → défaut », `Load(dllPath)`,
   `Unload()` avec vérification `WeakReference` + GC (diagnostic si l'ALC survit),
