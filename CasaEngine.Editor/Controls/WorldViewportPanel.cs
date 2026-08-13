@@ -47,6 +47,10 @@ public class WorldViewportPanel : IDisposable
 
     public event Action<Entity> SelectedEntityChanged;
 
+    public event Action PlayRequested;
+    public event Action StopRequested;
+    public event Action PauseToggleRequested;
+
     public bool EnablePreviewSelection { get; set; }
 
     public bool EnablePreviewGizmo { get; set; }
@@ -181,6 +185,9 @@ public class WorldViewportPanel : IDisposable
     private Entity _camera2dEntity;
     private bool _is2dViewMode;
     private MGToggleButton _view2dToggleButton;
+    private MGToggleButton _playToggleButton;
+    private MGToggleButton _pauseToggleButton;
+    private MGBorder _playModeBorder;
     private readonly EditorViewportCameraController _cameraController = new();
     private readonly EditorViewport2dCameraController _camera2dController = new();
     private readonly EditorViewportGizmoController _gizmoController;
@@ -275,7 +282,17 @@ public class WorldViewportPanel : IDisposable
 
         _viewportHost.TryAddChild(_viewportImage, Dock.Top);
 
-        _root.TryAddChild(_viewportHost, Dock.Top);
+        _playModeBorder = new MGBorder(
+            _window,
+            new Thickness(2),
+            new MGUniformBorderBrush(new MGSolidFillBrush(Color.Transparent)))
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Stretch,
+        };
+        _playModeBorder.SetContent(_viewportHost);
+
+        _root.TryAddChild(_playModeBorder, Dock.Top);
         SynchronizeGizmoToolbarState();
         SynchronizeViewModeToolbarState();
 
@@ -333,6 +350,7 @@ public class WorldViewportPanel : IDisposable
         _playModeCamera = null;
         _savedPlayModeCameraState = _cameraController.CaptureState();
         _gizmoController.Deactivate();
+        SetPlayModeBorderVisible(true);
 
         if (_renderView != null)
         {
@@ -390,6 +408,7 @@ public class WorldViewportPanel : IDisposable
 
         _isPlayModeActive = false;
         _playModeCamera = null;
+        SetPlayModeBorderVisible(false);
 
         if (_renderView != null)
         {
@@ -1371,6 +1390,22 @@ public class WorldViewportPanel : IDisposable
                 SynchronizeGizmoToolbarState();
             }
         });
+        _playToggleButton = CreateGizmoToggleButton(EditorIcons.Play, "Play", isChecked =>
+        {
+            if (isChecked)
+            {
+                PlayRequested?.Invoke();
+            }
+            else
+            {
+                StopRequested?.Invoke();
+            }
+        });
+        _pauseToggleButton = CreateGizmoToggleButton(EditorIcons.Pause, "Pause", _ =>
+        {
+            PauseToggleRequested?.Invoke();
+        });
+
         _worldSpaceToggleButton = CreateGizmoToggleButton(EditorIcons.Globe, "World", isChecked =>
         {
             if (isChecked)
@@ -1410,6 +1445,12 @@ public class WorldViewportPanel : IDisposable
             Margin = new Thickness(4, 2, 4, 2),
         });
         toolbar.TryAddChild(_view2dToggleButton);
+        toolbar.TryAddChild(new MGSeparator(_window, Orientation.Vertical)
+        {
+            Margin = new Thickness(4, 2, 4, 2),
+        });
+        toolbar.TryAddChild(_playToggleButton);
+        toolbar.TryAddChild(_pauseToggleButton);
 
         var surface = new MGBorder(
             _window,
@@ -1465,6 +1506,42 @@ public class WorldViewportPanel : IDisposable
             onToggled(args.NewValue);
         };
         return button;
+    }
+
+    private static readonly Color PlayModeBorderColor = new(230, 140, 0);
+
+    private void SetPlayModeBorderVisible(bool visible)
+    {
+        if (_playModeBorder == null)
+        {
+            return;
+        }
+
+        _playModeBorder.BorderBrush = new MGUniformBorderBrush(
+            visible ? new MGSolidFillBrush(PlayModeBorderColor) : new MGSolidFillBrush(Color.Transparent));
+    }
+
+    /// <summary>
+    /// Reflects the play mode state on the toolbar toggles without re-triggering
+    /// their callbacks.
+    /// </summary>
+    public void SynchronizePlayToolbarState(bool isSessionActive, bool isPaused)
+    {
+        if (!ShowGizmoToolbar || _playToggleButton == null)
+        {
+            return;
+        }
+
+        _suspendToolbarCallbacks = true;
+        try
+        {
+            _playToggleButton.IsChecked = isSessionActive;
+            _pauseToggleButton.IsChecked = isPaused;
+        }
+        finally
+        {
+            _suspendToolbarCallbacks = false;
+        }
     }
 
     private void SynchronizeViewModeToolbarState()

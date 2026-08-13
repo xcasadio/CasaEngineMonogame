@@ -94,7 +94,7 @@ Règles d'exécution pour les agents :
   au démarrage du Play. 🧪 validation visuelle manuelle (procédure en fin de fichier).
   _Commit : `play-in-editor: viewport game camera and input`_
 
-- ⏳ T2.3 — Toolbar Play/Pause/Stop : boutons dans la zone du viewport monde
+- 🧪 T2.3 — Toolbar Play/Pause/Stop : boutons dans la zone du viewport monde
   (états selon `EditorPlayModeService.State`), Pause via `GameManager.TimeScale = 0`
   (restauré au Resume/Stop), liseré coloré du viewport pendant le Play.
   🧪 validation visuelle manuelle.

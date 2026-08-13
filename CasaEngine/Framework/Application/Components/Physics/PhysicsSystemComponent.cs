@@ -60,7 +60,15 @@ public class PhysicsSystemComponent : GameComponent
             return;
         }
 
-        float elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime);
+        // Physics follows the gameplay time scale so pause (TimeScale = 0) and
+        // slow motion stay coherent with scripts and animations.
+        float timeScale = _casaEngineGame?.GameManager.TimeScale ?? 1f;
+        float elapsedTime = GameTimeHelper.ConvertElapsedTimeToSeconds(gameTime) * timeScale;
+        if (elapsedTime <= 0f)
+        {
+            return;
+        }
+
         _worldsToUpdate.Clear();
 
         if (_casaEngineGame != null)

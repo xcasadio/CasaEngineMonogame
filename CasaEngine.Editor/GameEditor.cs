@@ -994,6 +994,7 @@ public class GameEditor : Game, IObservableUpdate
                 _playSessionController.SessionStarted += OnPlaySessionStarted;
                 _playSessionController.SessionStopped += OnPlaySessionStopped;
                 _playModeService = new EditorPlayModeService(_playSessionController);
+                _playModeService.StateChanged += (_, _) => SynchronizePlayToolbar();
             }
 
             return _playModeService;
@@ -1041,6 +1042,10 @@ public class GameEditor : Game, IObservableUpdate
         {
             Logs.WriteError($"Play mode failed to start: {ex}");
         }
+        finally
+        {
+            SynchronizePlayToolbar();
+        }
     }
 
     private void StopPlayMode()
@@ -1053,6 +1058,33 @@ public class GameEditor : Game, IObservableUpdate
         {
             Logs.WriteError($"Play mode stop reported an error: {ex}");
         }
+        finally
+        {
+            SynchronizePlayToolbar();
+        }
+    }
+
+    private void TogglePlayModePause()
+    {
+        try
+        {
+            PlayModeService.TogglePause();
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteError($"Play mode pause reported an error: {ex}");
+        }
+        finally
+        {
+            SynchronizePlayToolbar();
+        }
+    }
+
+    private void SynchronizePlayToolbar()
+    {
+        _worldViewportPanel?.SynchronizePlayToolbarState(
+            _playModeService?.IsPlaySessionActive == true,
+            _playModeService?.State == EditorPlayModeState.Paused);
     }
 
     private void ApplyAutomationProjectDirectory()
@@ -1135,6 +1167,9 @@ public class GameEditor : Game, IObservableUpdate
             _worldViewportPanel = new WorldViewportPanel(_mainWindow, GraphicsDevice, _editorRuntime, _windowInputSource);
             _worldViewportPanel.ShowGizmoToolbar = true;
             _worldViewportPanel.SelectedEntityChanged += OnViewportSelectedEntityChanged;
+            _worldViewportPanel.PlayRequested += StartPlayMode;
+            _worldViewportPanel.StopRequested += StopPlayMode;
+            _worldViewportPanel.PauseToggleRequested += TogglePlayModePause;
         }
 
         _worldViewportContent ??= _worldViewportPanel.CreateContent();
