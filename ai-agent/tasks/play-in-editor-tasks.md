@@ -63,7 +63,7 @@ Règles d'exécution pour les agents :
   Tests unitaires des transitions et des refus.
   _Commit : `play-in-editor: play mode state machine`_
 
-- ⏳ T1.2 — Snapshot/copie de monde : `EditorWorldPlaySnapshot` (EditorServices) —
+- ✅ T1.2 — Snapshot/copie de monde : `EditorWorldPlaySnapshot` (EditorServices) —
   `Capture(World) : JObject` (via `EditorEntityJsonSerializer.SaveWorld`) et
   `CreatePlayWorld(JObject) : World` (`new World()` + `Load`, copie `Name`/`FileName`).
   Tests : round-trip d'un monde avec entité inline (AssetId vide), `script_class_name`,
