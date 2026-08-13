@@ -79,7 +79,7 @@ Règles d'exécution pour les agents :
 
 ## Phase 2 — Intégration éditeur
 
-- ⏳ T2.1 — Orchestration Play/Stop dans `GameEditor` : instancie
+- ✅ T2.1 — Orchestration Play/Stop dans `GameEditor` : instancie
   `EditorPlayModeService` ; Start = snapshot → policy `EditorSimulation` →
   `SetWorldToLoad(playWorld)` ; Stop = `playWorld.Clear()` → policy `EditorPreview` →
   `RestoreWorld(editWorld)` ; exceptions pendant `UpdateHost` en Play → Stop propre +

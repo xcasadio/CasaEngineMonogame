@@ -13,6 +13,8 @@ using CasaEngine.EditorServices.ScreenEditor.Commands;
 using CasaEngine.EditorServices.ScreenEditor.DocumentModel;
 using CasaEngine.EditorServices.ScreenEditor.Xaml;
 using CasaEngine.Editor.Log;
+using CasaEngine.Editor.PlayMode;
+using CasaEngine.EditorServices.PlayMode;
 using CasaEngine.Editor.ProjectLauncher;
 using CasaEngine.Editor.Workspaces;
 using CasaEngine.Framework.Assets;
@@ -122,6 +124,8 @@ public class GameEditor : Game, IObservableUpdate
     private readonly EditorHistoryService _editorHistory = EditorHistoryService.Current;
     private readonly EditorDirtyStateService _editorDirtyState = EditorDirtyStateService.Current;
     private HostedEditorGameAdapter _editorRuntime;
+    private EditorPlayModeService _playModeService;
+    private EditorPlaySessionController _playSessionController;
     private EditorShaderSourceHotReloadService _shaderSourceHotReloadService;
     private WorldViewportPanel _worldViewportPanel;
     private EditorViewportViewState? _pendingWorldViewportViewState;
@@ -978,6 +982,44 @@ public class GameEditor : Game, IObservableUpdate
 
         _editorRuntime.InitializeHost();
         _editorRuntime.LoadContentHost();
+    }
+
+    internal EditorPlayModeService PlayModeService
+    {
+        get
+        {
+            if (_playModeService == null)
+            {
+                _playSessionController = new EditorPlaySessionController(() => _editorRuntime);
+                _playModeService = new EditorPlayModeService(_playSessionController);
+            }
+
+            return _playModeService;
+        }
+    }
+
+    private void StartPlayMode()
+    {
+        try
+        {
+            PlayModeService.TryStartPlay();
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteError($"Play mode failed to start: {ex}");
+        }
+    }
+
+    private void StopPlayMode()
+    {
+        try
+        {
+            PlayModeService.TryStopPlay();
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteError($"Play mode stop reported an error: {ex}");
+        }
     }
 
     private void ApplyAutomationProjectDirectory()
@@ -5006,7 +5048,18 @@ public class GameEditor : Game, IObservableUpdate
                         || kb.IsKeyDown(Keys.RightControl);
             bool shift = kb.IsKeyDown(Keys.LeftShift)
                          || kb.IsKeyDown(Keys.RightShift);
-            if (ctrl && shift && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
+            if (IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.F5))
+            {
+                if (shift)
+                {
+                    StopPlayMode();
+                }
+                else
+                {
+                    StartPlayMode();
+                }
+            }
+            else if (ctrl && shift && IsShortcutJustPressed(kb, _previousShortcutKeyboardState, Keys.Z))
             {
                 ExecuteRedo();
             }
@@ -5096,7 +5149,17 @@ public class GameEditor : Game, IObservableUpdate
 
         using (EditorPerformanceProbe.BeginPhase("EditorRuntime.UpdateHost"))
         {
-            _editorRuntime?.UpdateHost(gameTime);
+            try
+            {
+                _editorRuntime?.UpdateHost(gameTime);
+            }
+            catch (Exception ex) when (_playModeService?.IsPlaySessionActive == true)
+            {
+                // Fail-stop: an unhandled gameplay exception ends the play session
+                // instead of killing the editor.
+                Logs.WriteError($"Play mode stopped by an unhandled gameplay exception: {ex}");
+                StopPlayMode();
+            }
         }
 
         using (EditorPerformanceProbe.BeginPhase("EntitiesPanel.Update"))
@@ -7118,7 +7181,16 @@ public class GameEditor : Game, IObservableUpdate
 
         using (EditorPerformanceProbe.BeginPhase("EditorRuntime.DrawHost"))
         {
-            _editorRuntime?.DrawHost(gameTime);
+            try
+            {
+                _editorRuntime?.DrawHost(gameTime);
+            }
+            catch (Exception ex) when (_playModeService?.IsPlaySessionActive == true)
+            {
+                // Fail-stop: gameplay scripts can also throw from their Draw callback.
+                Logs.WriteError($"Play mode stopped by an unhandled gameplay draw exception: {ex}");
+                StopPlayMode();
+            }
         }
 
         // Refresh the viewport binding after the hosted runtime rendered its view.
