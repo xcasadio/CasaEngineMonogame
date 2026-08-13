@@ -100,7 +100,7 @@ Règles d'exécution pour les agents :
   🧪 validation visuelle manuelle.
   _Commit : `play-in-editor: play toolbar and viewport tint`_
 
-- ⏳ T2.4 — Verrous d'édition pendant le Play : sauvegarde projet/monde refusée avec
+- ✅ T2.4 — Verrous d'édition pendant le Play : sauvegarde projet/monde refusée avec
   message clair, enregistrement d'historique undo/redo suspendu, fermeture/changement de
   projet bloqués ; panneaux entités/inspecteur restent consultables (lecture de la
   hiérarchie runtime, comportement standard des moteurs modernes).

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CasaEngine.Core.Logging;
 using CasaEngine.EditorServices.History;
 
 namespace CasaEngine.Editor.History;
@@ -101,9 +102,22 @@ public sealed class EditorHistoryService
         ActiveHistoryChanged?.Invoke();
     }
 
+    /// <summary>
+    /// While suspended (play-in-editor session), commands are refused instead of being
+    /// executed: runtime state must not enter the undo stacks nor mutate the documents.
+    /// </summary>
+    public bool IsSuspended { get; set; }
+
     public void Execute(EditorHistoryContext context, IEditorCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
+
+        if (IsSuspended)
+        {
+            Logs.WriteWarning($"Edit command '{command.Description}' ignored: the editor history is suspended during a play session.");
+            return;
+        }
+
         GetOrCreate(context).Execute(command);
     }
 
@@ -131,7 +145,7 @@ public sealed class EditorHistoryService
 
     public bool Undo()
     {
-        if (_activeStack?.CanUndo != true)
+        if (IsSuspended || _activeStack?.CanUndo != true)
         {
             return false;
         }
@@ -142,7 +156,7 @@ public sealed class EditorHistoryService
 
     public bool Redo()
     {
-        if (_activeStack?.CanRedo != true)
+        if (IsSuspended || _activeStack?.CanRedo != true)
         {
             return false;
         }

@@ -1003,6 +1003,7 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnPlaySessionStarted()
     {
+        _editorHistory.IsSuspended = true;
         _worldViewportPanel?.EnterPlayMode();
 
         if (_editorRuntime != null)
@@ -1024,6 +1025,8 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OnPlaySessionStopped()
     {
+        _editorHistory.IsSuspended = false;
+
         if (_editorRuntime != null)
         {
             _editorRuntime.GameManager.WorldLoaded -= OnPlayWorldLoaded;
@@ -2025,6 +2028,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void OpenProjectLauncher()
     {
+        if (_playModeService?.IsPlaySessionActive == true)
+        {
+            Logs.WriteWarning("Play mode is active: stop the play session before switching project.");
+            return;
+        }
+
         ShowProjectLauncher();
     }
 
@@ -2100,6 +2109,12 @@ public class GameEditor : Game, IObservableUpdate
 
     private void SaveCurrentProject()
     {
+        if (_playModeService?.IsPlaySessionActive == true)
+        {
+            Logs.WriteWarning("Play mode is active: stop the play session before saving the project.");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(EditorProjectSession.CurrentProjectFilePath))
         {
             Logs.WriteWarning("No project is currently loaded.");
