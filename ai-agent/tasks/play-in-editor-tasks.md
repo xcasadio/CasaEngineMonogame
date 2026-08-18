@@ -234,6 +234,9 @@ détruit par `World.Clear()` au Stop (`PhysicsWorld == null`). Corrections :
 Le scénario `--play-smoke` déclenche désormais Play/Pause/Stop au même point de frame
 qu'un clic toolbar ou F5 (avant `UpdateHost`), pour coller au timing réel de l'input.
 Rejoué après correctif : Alundra, SampleProject et RPGDemo à 15/15 PASS.
+Le crash n'était pas reproductible via l'automation ; sa disparition a été **confirmée
+par l'utilisateur** le 2026-08-18 en rejouant le Play sur `Ship Klark (beginning)-389`
+avec un build à jour de la branche.
 
 ## Hors périmètre (backlog, ne pas implémenter ici)
 
