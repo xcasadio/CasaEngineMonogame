@@ -441,6 +441,8 @@ public class WorldViewportPanel : IDisposable
         var result = new List<string>(6)
         {
             $"View world: {_renderView?.World.Name ?? "<none>"}",
+            $"Play mode: {_isPlayModeActive}",
+            $"View camera: {DescribeViewCameraForAutomation()}",
             $"World override: {_renderWorldOverride?.Name ?? "<none>"}",
             $"Environment override: {_renderView?.EnvironmentOverride?.BackgroundMode.ToString() ?? "<none>"}",
             $"Texture: {DescribeBoundTexture()}",
@@ -465,6 +467,17 @@ public class WorldViewportPanel : IDisposable
         }
 
         return result;
+    }
+
+    internal string DescribeViewCameraForAutomation()
+    {
+        var camera = _renderView?.Camera;
+        if (camera == null)
+        {
+            return "<none>";
+        }
+
+        return $"{camera.GetType().Name} owner={camera.Owner?.Name ?? "<none>"}";
     }
 
     public void UpdateInput(GameTime gameTime, bool editorShellCapturesKeyboard = false, bool editorShellBlocksPointer = false)
@@ -1665,6 +1678,15 @@ public class WorldViewportPanel : IDisposable
         }
 
         var desiredWorld = _renderWorldOverride ?? _editorRuntime.GameManager.CurrentWorld ?? _fallbackWorld ?? CreateFallbackWorld();
+
+        if (desiredWorld.Game == null)
+        {
+            // A pending world swap (play session start/stop) has not gone through
+            // LoadContent yet: keep rendering the previous world for this frame,
+            // initializing cameras against an unloaded world would crash.
+            return;
+        }
+
         AttachWorld(desiredWorld);
         if (ReferenceEquals(_renderView.World, desiredWorld))
         {
