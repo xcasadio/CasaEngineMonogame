@@ -31,6 +31,11 @@ public class PhysicsDebugDrawComponent : IPhysicsDebugDrawer
 
     public void DrawDebugWorld(IPhysicsWorld physicsWorld)
     {
+        if (physicsWorld == null)
+        {
+            return;
+        }
+
         physicsWorld.DrawDebugWorld(this);
     }
 

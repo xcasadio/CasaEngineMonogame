@@ -1,4 +1,4 @@
-using CasaEngine.Core.Logging;
+﻿using CasaEngine.Core.Logging;
 using CasaEngine.Editor.Controls;
 using CasaEngine.Editor.Controls.ContextualPanels;
 using CasaEngine.Editor.ContentBrowser.Models;
@@ -5241,6 +5241,15 @@ public class GameEditor : Game, IObservableUpdate
 
         _previousShortcutKeyboardState = kb;
 
+        // Play smoke actions run here, at the same point in the frame as a real
+        // toolbar click or F5 shortcut (before the hosted runtime update).
+        if (_pendingPlaySmokeAction != null)
+        {
+            var pendingPlaySmokeAction = _pendingPlaySmokeAction;
+            _pendingPlaySmokeAction = null;
+            pendingPlaySmokeAction();
+        }
+
         foreach (var previewPanel in _screenPreviewPanels.Values)
         {
             previewPanel.Update();
@@ -5539,6 +5548,7 @@ public class GameEditor : Game, IObservableUpdate
     private TimeSpan _automationPlaySmokeCompletedAt;
     private int _automationPlaySmokePhase;
     private TimeSpan _automationPlaySmokePhaseAt;
+    private Action _pendingPlaySmokeAction;
     private CasaEngine.Framework.Scene.World.World _automationPlaySmokeEditWorld;
     private int _automationPlaySmokeEditEntityCount;
     private readonly List<string> _automationPlaySmokeResults = new();
@@ -5574,7 +5584,7 @@ public class GameEditor : Game, IObservableUpdate
                 RecordPlaySmoke($"baseline: world='{_automationPlaySmokeEditWorld.Name}' entities={_automationPlaySmokeEditEntityCount} camera={_worldViewportPanel?.DescribeViewCameraForAutomation()}");
                 RecordPlaySmoke($"baseline scripts: {EditorScriptAssemblyService.LoadedSourcePath ?? "<none>"}");
                 CaptureAutomationScreenshot("1-edit");
-                StartPlayMode();
+                _pendingPlaySmokeAction = StartPlayMode;
                 AdvancePlaySmokePhase(1, totalGameTime);
                 return;
             }
@@ -5611,7 +5621,7 @@ public class GameEditor : Game, IObservableUpdate
                     RecordPlaySmoke($"play scripts: {EditorScriptAssemblyService.LoadedSourcePath ?? "<none>"}");
                     RecordPlaySmoke($"play world proxy: {currentWorld.GameplayProxy?.GetType().Name ?? "<none>"}");
                     CaptureAutomationScreenshot("2-play");
-                    TogglePlayModePause();
+                    _pendingPlaySmokeAction = TogglePlayModePause;
                     AdvancePlaySmokePhase(2, totalGameTime);
                 }
                 else if (phaseElapsed > TimeSpan.FromSeconds(15))
@@ -5633,7 +5643,7 @@ public class GameEditor : Game, IObservableUpdate
 
                 RecordPlaySmokeCheck("paused state reached", _playModeService?.State == EditorPlayModeState.Paused);
                 RecordPlaySmokeCheck("timescale is 0 while paused", gameManager.TimeScale == 0f);
-                TogglePlayModePause();
+                _pendingPlaySmokeAction = TogglePlayModePause;
                 AdvancePlaySmokePhase(3, totalGameTime);
                 return;
             }
@@ -5647,7 +5657,7 @@ public class GameEditor : Game, IObservableUpdate
 
                 RecordPlaySmokeCheck("resumed state reached", _playModeService?.State == EditorPlayModeState.Playing);
                 RecordPlaySmokeCheck("timescale restored on resume", gameManager.TimeScale == 1f);
-                StopPlayMode();
+                _pendingPlaySmokeAction = StopPlayMode;
                 AdvancePlaySmokePhase(4, totalGameTime);
                 return;
             }
@@ -7569,6 +7579,12 @@ public class GameEditor : Game, IObservableUpdate
         if (EditorPerformanceProbe.IsEnabled)
         {
             EditorPerformanceProbe.SetContext(CreateEditorPerformanceContext());
+        }
+
+        using (EditorPerformanceProbe.BeginPhase("ViewportPanels.PrepareForHostDraw"))
+        {
+            // Rebind views to the current world before the runtime renders them.
+            _worldViewportPanel?.PrepareForHostDraw();
         }
 
         using (EditorPerformanceProbe.BeginPhase("EditorRuntime.DrawHost"))

@@ -90,6 +90,17 @@ SampleProject et RPGDemo (rebuild, no-rebuild et échec de build).
   utilisait `TimeScale` en s'attendant à une physique non ralentie doit être adapté.
 - Un seul monde de play à la fois (état moteur global).
 
+## Ordre de rendu (contrainte à respecter)
+
+Le runtime hébergé rend ses vues pendant `DrawHost`, **avant** que les panneaux de
+viewport ne se rafraîchissent. Toute `RenderView` de l'éditeur doit donc être rebindée
+sur le monde courant *avant* `DrawHost` — c'est le rôle de
+`WorldViewportPanel.PrepareForHostDraw()`. Sans cela, une vue rend pendant une frame le
+monde précédent, qui peut déjà être détruit après un Stop (`World.Clear()` libère le
+contexte physique) : c'était la cause d'un crash `NullReferenceException` dans le rendu
+de debug physique. En défense en profondeur, ce rendu ignore désormais un monde sans
+contexte physique au lieu de faire tomber l'éditeur.
+
 ## Points d'entrée dans le code
 
 | Élément | Fichier |

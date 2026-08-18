@@ -33,7 +33,15 @@ public class PhysicsDebugViewRendererComponent : DrawableGameComponent
             return;
         }
 
-        var physicsWorld = view.World.PhysicsWorld;
+        // A view can briefly reference a world with no physics context: one that was
+        // cleared (world swap, play session stop) or not loaded yet. Debug rendering
+        // must never fault on that transient state.
+        var physicsWorld = view.World?.PhysicsWorld;
+        if (physicsWorld == null)
+        {
+            return;
+        }
+
         _physicsDebugRenderer.DrawDebugWorld(physicsWorld);
         _lastPhysicsWorldNamesByViewId[view.Id] = view.World.Name;
         _lastPhysicsObjectCountsByViewId[view.Id] = physicsWorld.CollisionObjectCount;

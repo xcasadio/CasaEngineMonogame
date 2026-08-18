@@ -331,6 +331,17 @@ public class WorldViewportPanel : IDisposable
         RefreshTextureBinding();
     }
 
+    /// <summary>
+    /// Binds the view to the world it must render, before the hosted runtime draws.
+    /// The runtime renders views during DrawHost, which runs before <see cref="DrawViewport"/>:
+    /// without this the view would render the previous world for one frame after a swap —
+    /// and that world may already be cleared (play session stop).
+    /// </summary>
+    public void PrepareForHostDraw()
+    {
+        SynchronizeRenderViewWorld();
+    }
+
     /// <summary>True while a play-in-editor session drives this viewport.</summary>
     public bool IsPlayModeActive => _isPlayModeActive;
 

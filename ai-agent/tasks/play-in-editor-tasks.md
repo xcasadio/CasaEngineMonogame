@@ -216,6 +216,25 @@ CasaEngine.Editor.exe --project <projet.json> --play-smoke --capture-delay 2 \
   - recopie du DLL fraîchement compilé vers le DLL canonique (`GameplayDllName`).
 - Reste purement humain : le ressenti des contrôles clavier/manette en jeu.
 
+### Correctif suite au crash remonté sur le projet Alundra (2026-08-18)
+
+`NullReferenceException` dans `PhysicsDebugDrawComponent.DrawDebugWorld` en utilisant le
+Play sur `Ship Klark (beginning)-389.world`. Cause : les `RenderView` de l'éditeur ne sont
+rebindées sur le monde courant que dans `WorldViewportPanel.DrawViewport`, qui s'exécute
+**après** `DrawHost` — la vue rendait donc pendant une frame un monde échangé, voire
+détruit par `World.Clear()` au Stop (`PhysicsWorld == null`). Corrections :
+
+- `WorldViewportPanel.PrepareForHostDraw()` appelé avant `DrawHost` : la vue est toujours
+  bindée au bon monde avant que le runtime ne la rende (cause racine) ;
+- `PhysicsDebugViewRendererComponent.RenderForView` et
+  `PhysicsDebugDrawComponent.DrawDebugWorld` ignorent un monde sans contexte physique :
+  un overlay de debug ne doit jamais faire tomber l'éditeur (défense en profondeur,
+  couverte par `PhysicsDebugDrawNullWorldTests`).
+
+Le scénario `--play-smoke` déclenche désormais Play/Pause/Stop au même point de frame
+qu'un clic toolbar ou F5 (avant `UpdateHost`), pour coller au timing réel de l'input.
+Rejoué après correctif : Alundra, SampleProject et RPGDemo à 15/15 PASS.
+
 ## Hors périmètre (backlog, ne pas implémenter ici)
 
 - Frame-step (avance image par image), caméra « eject » pendant le Play.
