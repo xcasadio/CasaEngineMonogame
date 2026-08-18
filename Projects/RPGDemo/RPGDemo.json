@@ -10,5 +10,6 @@
   "DebugIsFullScreen": false,
   "DebugWidth": 1024,
   "DebugHeight": 768,
-  "ExternalToolsDirectory": "ExternalTools"
+  "ExternalToolsDirectory": "ExternalTools",
+  "GameplayCsprojName": "../CasaEngine.RPGDemo/CasaEngine.RPGDemo.csproj"
 }

@@ -20,6 +20,9 @@ internal sealed class EditorPlaySessionController : IEditorPlaySessionController
 
     public World PlayWorld => _playWorld;
 
+    /// <summary>Edit world set aside while the session runs; restored on stop.</summary>
+    internal World HeldEditWorld => _editWorld;
+
     public event Action SessionStarted;
     public event Action SessionStopped;
 

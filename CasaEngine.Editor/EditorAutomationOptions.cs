@@ -26,6 +26,8 @@ public sealed class EditorAutomationOptions
     public int EntityIndex { get; private set; }
     public string ComponentName { get; private set; }
     public string DiagnosticsOutputPath { get; private set; }
+    public bool PlaySmoke { get; private set; }
+    public string ScreenshotOutputPath { get; private set; }
     public double CaptureDelaySeconds { get; private set; } = DefaultCaptureDelaySeconds;
     public bool ExitAfterCapture { get; private set; } = true;
     private bool EntityIndexSpecified { get; set; }
@@ -47,6 +49,8 @@ public sealed class EditorAutomationOptions
         || ParticleUndoRedoSmoke
         || !string.IsNullOrWhiteSpace(SetMaterialPropertyKey)
         || !string.IsNullOrWhiteSpace(DiagnosticsOutputPath)
+        || PlaySmoke
+        || !string.IsNullOrWhiteSpace(ScreenshotOutputPath)
         || CaptureDelaySpecified;
 
     public static EditorAutomationOptions Parse(string[] args)
@@ -158,6 +162,15 @@ public sealed class EditorAutomationOptions
 
                 case "--diagnostics-out":
                     options.DiagnosticsOutputPath = next;
+                    index++;
+                    break;
+
+                case "--play-smoke":
+                    options.PlaySmoke = true;
+                    break;
+
+                case "--screenshot-out":
+                    options.ScreenshotOutputPath = next;
                     index++;
                     break;
 

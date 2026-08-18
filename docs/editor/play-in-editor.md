@@ -60,12 +60,30 @@ Comportement éditeur :
 Le runtime standalone (Launcher) garde le chargement direct (`Assembly.LoadFile`) :
 pas de rechargement en jeu final.
 
+## Validation automatisée
+
+L'éditeur embarque un scénario d'automation qui déroule une session complète
+(Play → Pause → Resume → Stop) et vérifie chaque invariant (swap de monde, policy,
+caméra, TimeScale, restauration à l'instance près), avec captures d'écran :
+
+```text
+CasaEngine.Editor.exe --project <projet.json> --play-smoke --capture-delay 2 ^
+  --diagnostics-out diag.txt --screenshot-out shot.png
+```
+
+Le rapport (`Play smoke:` dans le fichier de diagnostics) liste les PASS/FAIL et le
+chemin de l'assembly de scripts active (preuve du rechargement). Validé sur
+SampleProject et RPGDemo (rebuild, no-rebuild et échec de build).
+
 ## Limites connues
 
 - La copie de play suit la **sémantique de sauvegarde** : les entités issues d'assets
   (`EntityReference` avec `AssetId`) rechargent le `.entity` depuis le disque — des
   modifications d'asset non sauvegardées ne sont pas visibles en Play.
-- Le HUD / les UI screens du jeu ne sont pas encore rendus dans la vue du viewport.
+- Les UI screens MGUI du jeu ne sont pas encore hébergés dans la vue du viewport ;
+  le rendu direct des scripts (ex. barre de vie dessinée en `Draw`) fonctionne.
+- Après un build réussi, le DLL fraîchement compilé est recopié sur le DLL canonique
+  du projet (`GameplayDllName`) — jamais verrouillé grâce à la copie shadow.
 - Pas de frame-step ni de caméra libre (« eject ») pendant le Play.
 - Le rechargement de scripts vide l'historique undo du monde.
 - `TimeScale` s'applique désormais aussi à la physique (pause cohérente) ; un jeu qui

@@ -86,7 +86,7 @@ Règles d'exécution pour les agents :
   `Logs.WriteError`. Raccourcis F5 (Play/Stop) sans UI dédiée à ce stade.
   _Commit : `play-in-editor: editor play/stop orchestration`_
 
-- 🧪 T2.2 — Caméra + input de jeu dans `WorldViewportPanel` : mode Play (flag posé par
+- ✅ T2.2 — Caméra + input de jeu dans `WorldViewportPanel` : mode Play (flag posé par
   `GameEditor`) — bind de la caméra du monde joué sur `_renderView.Camera`
   (première `CameraComponent`, sinon défaut), bypass du `SynchronizeCamera`/gizmo/
   contrôleur caméra éditeur pendant le Play, restauration au Stop ; assignation
@@ -94,7 +94,7 @@ Règles d'exécution pour les agents :
   au démarrage du Play. 🧪 validation visuelle manuelle (procédure en fin de fichier).
   _Commit : `play-in-editor: viewport game camera and input`_
 
-- 🧪 T2.3 — Toolbar Play/Pause/Stop : boutons dans la zone du viewport monde
+- ✅ T2.3 — Toolbar Play/Pause/Stop : boutons dans la zone du viewport monde
   (états selon `EditorPlayModeService.State`), Pause via `GameManager.TimeScale = 0`
   (restauré au Resume/Stop), liseré coloré du viewport pendant le Play.
   🧪 validation visuelle manuelle.
@@ -146,7 +146,7 @@ Règles d'exécution pour les agents :
   de dev), erreur de syntaxe → diagnostics remontés.
   _Commit : `play-in-editor: out-of-process script build service`_
 
-- 🧪 T3.6 — Orchestration reload complète : coordinateur éditeur qui, au Play (ou via
+- ✅ T3.6 — Orchestration reload complète : coordinateur éditeur qui, au Play (ou via
   menu « Build Scripts ») quand `GameplayCsprojName` est configuré et que des sources
   `*.cs` sont plus récentes que le DLL chargé : build → si échec stop (erreurs logs) ;
   si succès : teardown (Clear du monde de play éventuel, monde d'édition rechargé depuis
@@ -186,6 +186,35 @@ Règles d'exécution pour les agents :
   - **P4** : `ElementFactory._scriptAssemblies` (List) non thread-safe si un
     `AssemblyLoad` concurrent survient pendant un rebuild de cache — moteur
     mono-thread par design, à durcir si un usage multi-thread apparaît.
+
+## Validation des tâches 🧪 exécutée (2026-08-18)
+
+Réalisée via la nouvelle automation de l'éditeur (`--play-smoke`, `--screenshot-out`,
+rapport dans `--diagnostics-out`) :
+
+```
+CasaEngine.Editor.exe --project <projet.json> --play-smoke --capture-delay 2 \
+  --diagnostics-out diag.txt --screenshot-out shot.png
+```
+
+- **SampleProject** : 15/15 PASS — swap monde/copie, caméra de jeu (`owner=camera` vs
+  `EditorViewportCamera` en édition), policy `EditorSimulation`, pause `TimeScale=0`,
+  reprise, restauration **à l'instance près** ; captures avant/pendant/après (liseré
+  orange, boutons ▶ coché/⏸, vue caméra de jeu, hiérarchie runtime).
+- **RPGDemo** (`DefaultWorld`, `GameplayCsprojName` configuré dans `RPGDemo.json`) :
+  - sources modifiées → rebuild `dotnet build` + unload/reload au Play : l'assembly
+    active passe de `CasaEngine.RPGDemo.dll` à
+    `.casaeditor/script-build/<timestamp>/CasaEngine.RPGDemo.dll`, proxy monde
+    `ScriptWorld` actif, 5→9 entités spawnées par les scripts, 15/15 PASS ;
+    à l'écran : tilemap, personnage animé, HUD HP dessiné par les scripts ;
+  - sans modification → aucun rebuild (le DLL canonique du projet est rafraîchi après
+    chaque build réussi, la détection « à jour » tient entre sessions) ;
+  - source invalide → build en échec, Play refusé, éditeur intact en mode édition.
+- Deux corrections issues de cette validation :
+  - garde dans `WorldViewportPanel.SynchronizeRenderViewWorld` contre un monde en
+    attente de chargement (`Game == null`) — crash NRE pendant le swap de Play ;
+  - recopie du DLL fraîchement compilé vers le DLL canonique (`GameplayDllName`).
+- Reste purement humain : le ressenti des contrôles clavier/manette en jeu.
 
 ## Hors périmètre (backlog, ne pas implémenter ici)
 

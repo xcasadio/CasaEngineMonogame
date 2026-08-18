@@ -5530,10 +5530,237 @@ public class GameEditor : Game, IObservableUpdate
         _automationWorldLoaded = true;
     }
 
+    // ── Play mode smoke automation (--play-smoke) ─────────────────────
+    // Drives a full play session on the loaded world and records PASS/FAIL
+    // checks in the diagnostics dump: start, world swap, pause, resume,
+    // stop, and exact restoration of the edit world.
+
+    private bool _automationPlaySmokeCompleted;
+    private TimeSpan _automationPlaySmokeCompletedAt;
+    private int _automationPlaySmokePhase;
+    private TimeSpan _automationPlaySmokePhaseAt;
+    private CasaEngine.Framework.Scene.World.World _automationPlaySmokeEditWorld;
+    private int _automationPlaySmokeEditEntityCount;
+    private readonly List<string> _automationPlaySmokeResults = new();
+
+    private void ProcessAutomationPlaySmoke(TimeSpan totalGameTime)
+    {
+        var gameManager = _editorRuntime?.GameManager;
+        if (gameManager?.CurrentWorld == null)
+        {
+            return;
+        }
+
+        if (_automationPlaySmokePhaseAt == TimeSpan.Zero)
+        {
+            // First tick: start the clock so phase 0 waits for a fully drawn editor.
+            _automationPlaySmokePhaseAt = totalGameTime;
+            return;
+        }
+
+        TimeSpan phaseElapsed = totalGameTime - _automationPlaySmokePhaseAt;
+
+        switch (_automationPlaySmokePhase)
+        {
+            case 0:
+            {
+                if (phaseElapsed < TimeSpan.FromSeconds(2))
+                {
+                    return;
+                }
+
+                _automationPlaySmokeEditWorld = gameManager.CurrentWorld;
+                _automationPlaySmokeEditEntityCount = gameManager.CurrentWorld.Entities.Count;
+                RecordPlaySmoke($"baseline: world='{_automationPlaySmokeEditWorld.Name}' entities={_automationPlaySmokeEditEntityCount} camera={_worldViewportPanel?.DescribeViewCameraForAutomation()}");
+                RecordPlaySmoke($"baseline scripts: {EditorScriptAssemblyService.LoadedSourcePath ?? "<none>"}");
+                CaptureAutomationScreenshot("1-edit");
+                StartPlayMode();
+                AdvancePlaySmokePhase(1, totalGameTime);
+                return;
+            }
+
+            case 1:
+            {
+                var currentWorld = gameManager.CurrentWorld;
+                bool playing = _playModeService?.State == EditorPlayModeState.Playing;
+                bool worldSwapped = !ReferenceEquals(currentWorld, _automationPlaySmokeEditWorld);
+
+                // An empty edit world stays empty in play; only require materialization
+                // when the source world actually had entities.
+                bool materialized = currentWorld != null
+                    && (_automationPlaySmokeEditEntityCount == 0 || currentWorld.Entities.Count > 0);
+
+                if (playing && worldSwapped && materialized && phaseElapsed > TimeSpan.FromSeconds(1.5))
+                {
+                    // A script rebuild reloads the edit world before the session starts:
+                    // the restore expectation is the world the session actually set aside.
+                    var heldEditWorld = _playSessionController?.HeldEditWorld;
+                    if (heldEditWorld != null && !ReferenceEquals(heldEditWorld, _automationPlaySmokeEditWorld))
+                    {
+                        RecordPlaySmoke("note: edit world reloaded by the script rebuild; restore expectations rebased");
+                        _automationPlaySmokeEditWorld = heldEditWorld;
+                        _automationPlaySmokeEditEntityCount = heldEditWorld.Entities.Count;
+                    }
+
+                    RecordPlaySmokeCheck("play session started", playing);
+                    RecordPlaySmokeCheck("world swapped to play copy", worldSwapped);
+                    RecordPlaySmokeCheck("play world materialized", materialized);
+                    RecordPlaySmokeCheck("policy is EditorSimulation", ReferenceEquals(_editorRuntime.ExecutionPolicy, GameplayExecutionPolicies.EditorSimulation));
+                    RecordPlaySmokeCheck("viewport in play mode", _worldViewportPanel?.IsPlayModeActive == true);
+                    RecordPlaySmoke($"play: entities={currentWorld.Entities.Count} camera={_worldViewportPanel?.DescribeViewCameraForAutomation()}");
+                    RecordPlaySmoke($"play scripts: {EditorScriptAssemblyService.LoadedSourcePath ?? "<none>"}");
+                    RecordPlaySmoke($"play world proxy: {currentWorld.GameplayProxy?.GetType().Name ?? "<none>"}");
+                    CaptureAutomationScreenshot("2-play");
+                    TogglePlayModePause();
+                    AdvancePlaySmokePhase(2, totalGameTime);
+                }
+                else if (phaseElapsed > TimeSpan.FromSeconds(15))
+                {
+                    RecordPlaySmoke($"FAIL - play never reached running state (state={_playModeService?.State} swapped={worldSwapped} entities={currentWorld?.Entities.Count ?? -1})");
+                    StopPlayMode();
+                    CompletePlaySmoke(totalGameTime);
+                }
+
+                return;
+            }
+
+            case 2:
+            {
+                if (phaseElapsed < TimeSpan.FromSeconds(0.5))
+                {
+                    return;
+                }
+
+                RecordPlaySmokeCheck("paused state reached", _playModeService?.State == EditorPlayModeState.Paused);
+                RecordPlaySmokeCheck("timescale is 0 while paused", gameManager.TimeScale == 0f);
+                TogglePlayModePause();
+                AdvancePlaySmokePhase(3, totalGameTime);
+                return;
+            }
+
+            case 3:
+            {
+                if (phaseElapsed < TimeSpan.FromSeconds(0.5))
+                {
+                    return;
+                }
+
+                RecordPlaySmokeCheck("resumed state reached", _playModeService?.State == EditorPlayModeState.Playing);
+                RecordPlaySmokeCheck("timescale restored on resume", gameManager.TimeScale == 1f);
+                StopPlayMode();
+                AdvancePlaySmokePhase(4, totalGameTime);
+                return;
+            }
+
+            case 4:
+            {
+                if (phaseElapsed < TimeSpan.FromSeconds(0.5))
+                {
+                    return;
+                }
+
+                var currentWorld = gameManager.CurrentWorld;
+                RecordPlaySmokeCheck("editing state after stop", _playModeService?.State == EditorPlayModeState.Editing);
+                RecordPlaySmokeCheck("edit world restored (same instance)", ReferenceEquals(currentWorld, _automationPlaySmokeEditWorld));
+                RecordPlaySmokeCheck("edit entities intact", currentWorld != null && currentWorld.Entities.Count == _automationPlaySmokeEditEntityCount);
+                RecordPlaySmokeCheck("policy back to EditorPreview", ReferenceEquals(_editorRuntime.ExecutionPolicy, GameplayExecutionPolicies.EditorPreview));
+                RecordPlaySmokeCheck("timescale restored after stop", gameManager.TimeScale == 1f);
+                RecordPlaySmokeCheck("viewport left play mode", _worldViewportPanel?.IsPlayModeActive != true);
+                RecordPlaySmoke($"restored: camera={_worldViewportPanel?.DescribeViewCameraForAutomation()}");
+                CaptureAutomationScreenshot("3-restored");
+                CompletePlaySmoke(totalGameTime);
+                return;
+            }
+        }
+    }
+
+    private void AdvancePlaySmokePhase(int phase, TimeSpan totalGameTime)
+    {
+        _automationPlaySmokePhase = phase;
+        _automationPlaySmokePhaseAt = totalGameTime;
+    }
+
+    private void CompletePlaySmoke(TimeSpan totalGameTime)
+    {
+        _automationPlaySmokeCompleted = true;
+        _automationPlaySmokeCompletedAt = totalGameTime;
+    }
+
+    private void RecordPlaySmoke(string message)
+    {
+        _automationPlaySmokeResults.Add(message);
+        EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[PlaySmoke] {message}");
+    }
+
+    private void RecordPlaySmokeCheck(string description, bool passed)
+    {
+        RecordPlaySmoke($"{(passed ? "PASS" : "FAIL")} - {description}");
+    }
+
+    private void CaptureAutomationScreenshot(string suffix)
+    {
+        if (string.IsNullOrWhiteSpace(_automationOptions.ScreenshotOutputPath))
+        {
+            return;
+        }
+
+        try
+        {
+            string basePath = Path.GetFullPath(_automationOptions.ScreenshotOutputPath);
+            string directory = Path.GetDirectoryName(basePath) ?? ".";
+            Directory.CreateDirectory(directory);
+            string path = Path.Combine(directory, $"{Path.GetFileNameWithoutExtension(basePath)}-{suffix}.png");
+
+            int width = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferWidth);
+            int height = Math.Max(1, GraphicsDevice.PresentationParameters.BackBufferHeight);
+
+            using var renderTarget = new RenderTarget2D(GraphicsDevice, width, height, false, SurfaceFormat.Color, DepthFormat.None);
+            var previousTargets = GraphicsDevice.GetRenderTargets();
+            GraphicsDevice.SetRenderTarget(renderTarget);
+            GraphicsDevice.Clear(Color.Transparent);
+            _desktop?.Draw();
+            GraphicsDevice.SetRenderTargets(previousTargets);
+
+            using var fileStream = File.OpenWrite(path);
+            renderTarget.SaveAsPng(fileStream, width, height);
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Info, $"[Automation] Screenshot saved to '{path}'");
+        }
+        catch (Exception ex)
+        {
+            EditorDiagnosticsBuffer.Append(LogVerbosity.Warning, $"[Automation] Screenshot capture failed: {ex.Message}");
+        }
+    }
+
     private void RunAutomation(TimeSpan totalGameTime)
     {
         if (!_automationOptions.HasAutomation || _automationDiagnosticsCaptured || !_automationWorldLoaded)
         {
+            return;
+        }
+
+        if (_automationOptions.PlaySmoke)
+        {
+            // Self-contained scenario: it never depends on the selection/panel stages
+            // of the generic pipeline, which assume a stable editable world.
+            if (!_automationPlaySmokeCompleted)
+            {
+                ProcessAutomationPlaySmoke(totalGameTime);
+                return;
+            }
+
+            if (totalGameTime - _automationPlaySmokeCompletedAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
+            {
+                return;
+            }
+
+            CaptureAutomationDiagnostics();
+            _automationDiagnosticsCaptured = true;
+
+            if (_automationOptions.ExitAfterCapture)
+            {
+                Exit();
+            }
+
             return;
         }
 
@@ -5689,6 +5916,11 @@ public class GameEditor : Game, IObservableUpdate
         if (_automationParticleDropped && _automationParticleDroppedAt > readyAt)
         {
             readyAt = _automationParticleDroppedAt;
+        }
+
+        if (_automationPlaySmokeCompleted && _automationPlaySmokeCompletedAt > readyAt)
+        {
+            readyAt = _automationPlaySmokeCompletedAt;
         }
 
         if (totalGameTime - readyAt < TimeSpan.FromSeconds(_automationOptions.CaptureDelaySeconds))
@@ -6890,6 +7122,16 @@ public class GameEditor : Game, IObservableUpdate
         builder.AppendLine($"Active document panel: {activeDocumentPanelId ?? "<none>"}");
         builder.AppendLine($"Open document panels: {FormatDocumentPanelIds(openDocumentPanelIds)}");
         AppendWorldViewportDiagnostics(builder);
+
+        if (_automationOptions.PlaySmoke)
+        {
+            builder.AppendLine("Play smoke:");
+            foreach (var result in _automationPlaySmokeResults)
+            {
+                builder.AppendLine($"  - {result}");
+            }
+        }
+
         AppendContentBrowserDiagnostics(builder);
         AppendParticleInspectorDiagnostics(builder, activeDocumentPanelId);
         AppendSpriteInspectorDiagnostics(builder, activeDocumentPanelId);
