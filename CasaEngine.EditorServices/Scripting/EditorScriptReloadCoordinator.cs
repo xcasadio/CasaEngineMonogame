@@ -93,6 +93,8 @@ public static class EditorScriptReloadCoordinator
 
         prepareWorldsForReload?.Invoke();
 
+        RefreshCanonicalGameplayDll(result.OutputAssemblyPath!);
+
         // Routed through the pluggable loader: in the editor this unloads the previous
         // collectible context and loads the fresh build (shadow-copied), then runs the
         // IPlugin initialization like any project open.
@@ -100,6 +102,44 @@ public static class EditorScriptReloadCoordinator
 
         Logs.WriteInfo("Gameplay scripts reloaded.");
         return true;
+    }
+
+    /// <summary>
+    /// Copies the fresh build over the project's canonical gameplay dll (GameplayDllName).
+    /// The canonical file is never locked (the editor loads shadow copies), so the next
+    /// editor session and the standalone runtime pick up the rebuilt scripts, and the
+    /// out-of-date detection stays accurate across sessions. Best effort.
+    /// </summary>
+    private static void RefreshCanonicalGameplayDll(string builtAssemblyPath)
+    {
+        string dllName = GameSettings.ProjectSettings.GameplayDllName;
+        if (string.IsNullOrWhiteSpace(dllName))
+        {
+            return;
+        }
+
+        try
+        {
+            string canonicalPath = Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, dllName));
+            if (string.Equals(canonicalPath, Path.GetFullPath(builtAssemblyPath), StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            File.Copy(builtAssemblyPath, canonicalPath, overwrite: true);
+
+            string builtPdb = Path.ChangeExtension(builtAssemblyPath, ".pdb");
+            if (File.Exists(builtPdb))
+            {
+                File.Copy(builtPdb, Path.ChangeExtension(canonicalPath, ".pdb"), overwrite: true);
+            }
+
+            Logs.WriteInfo($"Gameplay dll refreshed: {canonicalPath}");
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"Could not refresh the canonical gameplay dll: {ex.Message}");
+        }
     }
 
     private static string ResolveCsprojPath()
