@@ -282,6 +282,21 @@ Un packing en `long` peut etre ajoute plus tard si un profiling le justifie. Dan
 
 ---
 
+## Overlay runtime de tuiles triees (implemente)
+
+`TileMapComponent` expose un overlay additif, runtime seulement : `AddSortedOverlayTile(TileMapTileReference, gridX, gridY, in RenderSortKey2D)` et `ClearSortedOverlayTiles()`. Il permet au gameplay (typiquement un world proxy, au chargement) de retirer visuellement une tuile du rendu plat du layer et de la resoumettre avec une `RenderSortKey2D` explicite, afin qu'elle se trie avec les entities Y-sorted au lieu de toujours dessiner a plat avec le reste de la map — le cas typique etant des murs PSX qui doivent s'intercaler avec les personnages.
+
+Points cles :
+
+- **Runtime seulement** : les entrees de l'overlay ne sont jamais ecrites par `TileMapComponent.Load` ni par le serializer editeur (`EditorEntityJsonSerializer`) ; elles ne survivent pas a une sauvegarde et sont videes a chaque `InitializeWithWorld`.
+- **Politique de Z** : chaque tuile de l'overlay est soumise au Z monde du composant TileMap (`translation.Z`), jamais au `zOffset` d'un layer. Tous les participants tries (tuiles de l'overlay et sprites d'entities Y-sorted) partagent ce meme Z coplanaire, de sorte que le test de profondeur `LessEqual` ne puisse jamais l'emporter sur l'ordre de la cle.
+- **Chemin de rendu** : chaque tuile passe par le chemin sprite existant via `SpriteRendererComponent.DrawSprite(..., in RenderSortKey2D, ...)`, en reutilisant la resolution tileset/texture existante (`TileSetData.TryGetTileSourceRectangle`).
+- **Culling** : reutilise la plage de tuiles visibles deja calculee par le chemin de dessin axis-aligned (pas de logique de culling dupliquee). Uniquement disponible depuis ce chemin ; le chemin avec rotation (`DrawWithWorldMatrix`) ne dessine pas l'overlay.
+
+Cette brique est une premiere tranche du modele cible decrit plus haut : elle ne remplace pas encore une vraie `RenderQueue2D` par vue, mais donne au gameplay un moyen immediat de faire cohabiter des tuiles individuelles avec le tri Y des entities.
+
+---
+
 ## Integration des entities
 
 L'integration facile des personnages dans une TileMap doit se faire par contrat de rendu, pas par dependance speciale a `TileMapComponent`.

@@ -9,6 +9,7 @@ using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Assets.TileMap;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Rendering.Depth;
 using CasaEngine.Engine.Geometry;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,6 +21,26 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 [DisplayName("Tile Map")]
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
+    /// <summary>
+    /// One entry of the runtime-only sorted tile overlay (see <see cref="AddSortedOverlayTile"/>).
+    /// Never serialized: it only ever lives in <see cref="_sortedOverlayTiles"/>.
+    /// </summary>
+    private readonly struct SortedOverlayTile
+    {
+        public SortedOverlayTile(TileMapTileReference tileReference, int gridX, int gridY, in RenderSortKey2D sortKey)
+        {
+            TileReference = tileReference;
+            GridX = gridX;
+            GridY = gridY;
+            SortKey = sortKey;
+        }
+
+        public readonly TileMapTileReference TileReference;
+        public readonly int GridX;
+        public readonly int GridY;
+        public readonly RenderSortKey2D SortKey;
+    }
+
     private const float AxisAlignedWorldMatrixEpsilon = 1e-4f;
     private const float SlabClipEpsilon = 1e-6f;
 
@@ -42,6 +63,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private readonly HashSet<AutoTile> _dirtyAutoTileSet = new();
     private readonly List<TileSetData> _tileSets = new();
     private readonly List<Texture2D> _tileSetTextures = new();
+    private readonly List<SortedOverlayTile> _sortedOverlayTiles = new();
     private List<TileMapLayer> Layers { get; } = new();
     private int _chunkTileSize = 16;
     private bool _hasAnimatedTiles;
@@ -87,6 +109,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// <summary>True when auto tiles are waiting for a refresh in the next update.</summary>
     public bool HasDirtyAutoTiles => _dirtyAutoTiles.Count > 0;
 
+    /// <summary>Number of tiles currently queued in the runtime sorted overlay. Exposed for tests and diagnostics.</summary>
+    public int SortedOverlayTileCount => _sortedOverlayTiles.Count;
+
     public int ChunkTileSize
     {
         get => _chunkTileSize;
@@ -128,6 +153,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         _collisionObjects.Clear();
         _tileSets.Clear();
         _tileSetTextures.Clear();
+        _sortedOverlayTiles.Clear();
         _hasAnimatedTiles = false;
         _needsAutoTileRefresh = false;
         _physicsWorldContext = Owner.World.PhysicsWorld;
@@ -395,6 +421,96 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 chunk.MarkVisualClean();
             }
         }
+
+        DrawSortedOverlayTiles(mapPosX, mapPosY, tileWidth, tileHeight, translation.Z, scale, minTileX, maxTileX, minTileY, maxTileY);
+    }
+
+    /// <summary>
+    /// Draws every tile queued in the runtime sorted overlay (see <see cref="AddSortedOverlayTile"/>)
+    /// through the keyed sprite path. Only reachable from the axis-aligned draw path: overlay tiles are
+    /// meant for standard 2D top-down tile maps, the case the sorted-tile-vs-entity interleaving problem
+    /// targets, so the rotated <see cref="DrawWithWorldMatrix"/> path does not draw them.
+    /// </summary>
+    private void DrawSortedOverlayTiles(
+        float mapPosX,
+        float mapPosY,
+        float tileWidth,
+        float tileHeight,
+        float worldZ,
+        Vector2 scale,
+        int minTileX,
+        int maxTileX,
+        int minTileY,
+        int maxTileY)
+    {
+        if (_sortedOverlayTiles.Count == 0 || _spriteRendererComponent == null)
+        {
+            return;
+        }
+
+        for (var index = 0; index < _sortedOverlayTiles.Count; index++)
+        {
+            var overlayTile = _sortedOverlayTiles[index];
+
+            // Culled consistently with the regular tile grid: an overlay tile outside the range visible
+            // this frame is skipped exactly like a normal tile at the same grid cell would be, reusing
+            // the plane based visible tile range already computed above instead of duplicating it.
+            if (overlayTile.GridX < minTileX || overlayTile.GridX > maxTileX
+                || overlayTile.GridY < minTileY || overlayTile.GridY > maxTileY)
+            {
+                continue;
+            }
+
+            if (!TryGetOverlayTileSprite(overlayTile.TileReference, out var texture, out var sourceRectangle))
+            {
+                continue;
+            }
+
+            var worldX = mapPosX + tileWidth * overlayTile.GridX;
+            var worldY = mapPosY - tileHeight * overlayTile.GridY;
+
+            // Z POLICY: every overlay tile is submitted at the tile map entity's world Z (translation.Z),
+            // never at a layer's zOffset. Every sorted participant (overlay tiles and Y-sorted entity
+            // sprites alike) is expected to share that same coplanar Z, so the LessEqual depth test can
+            // never override the RenderSortKey2D ordering between them.
+            //
+            // Scissor rectangle: an empty rectangle, not the device's current one. The sprite renderer's
+            // fixed rasterizer state (RasterizerState.CullCounterClockwise) never enables scissor testing,
+            // so the stored value is inert; skipping the GraphicsDevice read keeps this hot loop from
+            // touching the device once per overlay tile.
+            _spriteRendererComponent.DrawSprite(
+                texture,
+                sourceRectangle,
+                Point.Zero,
+                new Vector2(worldX, worldY),
+                0.0f,
+                scale,
+                Color.White,
+                worldZ,
+                in overlayTile.SortKey,
+                SpriteEffects.None,
+                Rectangle.Empty);
+        }
+    }
+
+    private bool TryGetOverlayTileSprite(TileMapTileReference tileReference, out Texture2D texture, out Rectangle sourceRectangle)
+    {
+        var tileSetIndex = tileReference.TileSetIndex;
+        if (tileSetIndex < 0 || tileSetIndex >= _tileSets.Count || tileSetIndex >= _tileSetTextures.Count)
+        {
+            texture = null;
+            sourceRectangle = Rectangle.Empty;
+            return false;
+        }
+
+        if (!_tileSets[tileSetIndex].TryGetTileSourceRectangle(tileReference.TileId, out sourceRectangle))
+        {
+            texture = null;
+            return false;
+        }
+
+        texture = _tileSetTextures[tileSetIndex];
+        return true;
     }
 
     /// <summary>
@@ -605,6 +721,41 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         var tileReference = TileMapData.GetTileReference(layerIndex, x, y);
         SetTileReference(layerIndex, x, y, tileReference, flags);
+    }
+
+    /// <summary>
+    /// Adds a tile to the runtime-only sorted overlay. Overlay tiles are not part of any
+    /// <see cref="TileMapLayer"/>: they are meant for cases where a normal layer tile (typically a wall
+    /// tile) must interleave, draw order wise, with Y-sorted entity sprites instead of always drawing
+    /// flat with the rest of the map. Each call queues one tile at grid cell
+    /// (<paramref name="gridX"/>, <paramref name="gridY"/>) — the same grid the tile map layers use —
+    /// drawn every frame at that cell's world position through the keyed sprite path, ordered against
+    /// every other keyed sprite (other overlay tiles and Y-sorted entities alike) by
+    /// <paramref name="sortKey"/>.
+    ///
+    /// Overlay entries are runtime-only: they are never written by <see cref="Load"/> or by the editor
+    /// serializer, and <see cref="ClearSortedOverlayTiles"/> is the only way to remove them. Gameplay
+    /// code (e.g. a world proxy) is expected to populate the overlay once at load time and to call
+    /// <see cref="ClearSortedOverlayTiles"/> before repopulating it.
+    /// </summary>
+    public void AddSortedOverlayTile(TileMapTileReference tileReference, int gridX, int gridY, in RenderSortKey2D sortKey)
+    {
+        EnsureTileMapLoaded();
+
+        if (tileReference.IsEmpty)
+        {
+            throw new ArgumentException("An overlay tile cannot reference the empty tile.", nameof(tileReference));
+        }
+
+        EnsureValidTileReference(tileReference);
+
+        _sortedOverlayTiles.Add(new SortedOverlayTile(tileReference, gridX, gridY, in sortKey));
+    }
+
+    /// <summary>Removes every tile previously queued with <see cref="AddSortedOverlayTile"/>.</summary>
+    public void ClearSortedOverlayTiles()
+    {
+        _sortedOverlayTiles.Clear();
     }
 
     public override void Load(JObject element)

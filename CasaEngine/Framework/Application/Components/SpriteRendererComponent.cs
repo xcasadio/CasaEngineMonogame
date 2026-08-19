@@ -457,6 +457,33 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects, scissorRectangle, true);
     }
 
+    /// <summary>
+    /// Draws a raw texture sprite with an explicit <see cref="RenderSortKey2D"/>, sorting it against
+    /// every other keyed sprite in the scene instead of by depth. Used by non-<see cref="Sprite"/> asset
+    /// sources (e.g. the tile map sorted overlay) that need the keyed sprite path.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            GraphicsDevice.ScissorRectangle, drawDebug: false, hasSortKey: true, in sortKey);
+    }
+
+    /// <summary>
+    /// Same as <see cref="DrawSprite(Texture2D,Rectangle,Point,Vector2,float,Vector2,Color,float,in RenderSortKey2D,SpriteEffects)"/>
+    /// but with an explicit scissor rectangle instead of the device's current one, so callers that
+    /// submit many sprites per frame (e.g. the tile map sorted overlay) do not have to read
+    /// <see cref="GraphicsDevice"/> once per sprite.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            scissorRectangle, drawDebug: false, hasSortKey: true, in sortKey);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug)
