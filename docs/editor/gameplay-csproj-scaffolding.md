@@ -266,6 +266,16 @@ EditorServices (testables sans UI).
   `dll` + `pdb` : le Launcher ne les verrait pas à la racine du projet. Point à
   traiter quand le besoin apparaîtra (copier les dépendances non-moteur à côté de la
   DLL canonique).
+- **Templates texte vs API MSBuild** : la génération actuelle par templates string
+  est volontaire (contenu fixe généré une fois, déterministe, zéro dépendance —
+  `Microsoft.Build.Construction.SolutionFile` ne sait d'ailleurs que *lire* les
+  `.sln`). Critères de bascule : si l'éditeur doit un jour **modifier le csproj de
+  l'utilisateur** (ajouter une référence/un package depuis l'UI), passer à
+  `Microsoft.Build.Construction.ProjectRootElement` (+ `Microsoft.Build.Locator`
+  pour se lier au MSBuild du SDK installé) — jamais de manipulation de texte sur un
+  fichier possédé par l'utilisateur ; si le `.sln` généré doit accueillir
+  **plusieurs projets**, utiliser `Microsoft.VisualStudio.SolutionPersistence`
+  (l'API d'écriture `.sln`/`.slnx` qui motorise `dotnet sln` depuis .NET 9).
 - **Chemin `buildGameplayProject: true` non couvert par un test** : les tests de
   `CreateProject` sautent la compilation initiale (~10-30 s) ; le fail-soft du premier
   build est vérifié par inspection, pas par exécution. Un test dédié (source invalide
