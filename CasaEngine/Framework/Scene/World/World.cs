@@ -58,6 +58,11 @@ public sealed class World : ObjectBase
     public ICollisionField CollisionField { get; set; }
 
     public GameplayProxy GameplayProxy { get; private set; }
+
+    //state loaded for the proxy, applied when the proxy is created; kept afterwards so
+    //a world saved before its content is loaded does not lose it
+    internal JObject GameplayProxyState => _gameplayProxyState;
+    private JObject _gameplayProxyState;
     public Guid PlayerStartupSettingsAssetId { get; set; } = Guid.Empty;
     public PlayerStartupSettings PlayerStartupSettings { get; private set; } = new();
     public Guid GameplayModeAssetId { get; set; } = Guid.Empty;
@@ -232,10 +237,7 @@ public sealed class World : ObjectBase
             InitializePlayerControllers();
         }
 
-        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
-        {
-            GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
-        }
+        CreateGameplayProxy();
 
         if (Game.ExecutionPolicy.InitializeGameplayOnLoad)
         {
@@ -246,6 +248,22 @@ public sealed class World : ObjectBase
         //Maybe GameplayProxy.InitializeWithWorld() will add some entities
         //TODO : check if we have to do it only once just here
         InternalAddEntities();
+    }
+
+    //internal so tests can drive proxy creation without a full game behind the world
+    internal void CreateGameplayProxy()
+    {
+        if (string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        {
+            return;
+        }
+
+        GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+
+        if (GameplayProxy != null && _gameplayProxyState != null)
+        {
+            GameplayProxy.Load(_gameplayProxyState);
+        }
     }
 
     private void LoadPlayerStartupSettings()
@@ -777,6 +795,7 @@ public sealed class World : ObjectBase
         }
 
         GameplayProxyClassName = element["script_class_name"].GetString();
+        _gameplayProxyState = element["script"] as JObject;
 
         SpacePolicyName = element["space_policy"]?.Value<string>() ?? string.Empty;
 

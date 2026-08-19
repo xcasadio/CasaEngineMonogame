@@ -88,6 +88,11 @@ public class Entity : ObjectBase
     public string GameplayProxyClassName { get; set; }
     public IGameplayProxy GameplayProxy { get; private set; }
 
+    //state loaded for the proxy, applied when the proxy is created; kept afterwards so
+    //an entity saved before being initialized does not lose it
+    internal JObject GameplayProxyState => _gameplayProxyState;
+    private JObject _gameplayProxyState;
+
     public bool IsEnabled
     {
         get => _isEnabled;
@@ -161,6 +166,7 @@ public class Entity : ObjectBase
         RootComponent = entity.RootComponent?.Clone() as SceneComponent;
         GameplayProxyClassName = entity.GameplayProxyClassName;
         GameplayProxy = entity.GameplayProxy?.Clone();
+        _gameplayProxyState = entity._gameplayProxyState;
 
         foreach (var component in entity._components)
         {
@@ -194,9 +200,18 @@ public class Entity : ObjectBase
             _children[i].Initialize();
         }
 
-        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName))
+        //a proxy cloned or already carrying state must survive; recreate only when missing
+        //or when the class name no longer matches (editor changed the script class)
+        if (!string.IsNullOrWhiteSpace(GameplayProxyClassName)
+            && (GameplayProxy == null
+                || !string.Equals(GameplayProxy.GetType().Name, GameplayProxyClassName, StringComparison.InvariantCultureIgnoreCase)))
         {
             GameplayProxy = ElementFactory.Create<GameplayProxy>(GameplayProxyClassName);
+
+            if (GameplayProxy != null && _gameplayProxyState != null)
+            {
+                GameplayProxy.Load(_gameplayProxyState);
+            }
         }
 
         GameplayProxy?.Initialize(this);
@@ -561,6 +576,7 @@ public class Entity : ObjectBase
         }
 
         GameplayProxyClassName = element["script_class_name"].GetString();
+        _gameplayProxyState = element["script"] as JObject;
 
         var node = element["root_component"];
         if (node.Type == JTokenType.Object)

@@ -4,6 +4,7 @@ using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Assets.Sprites;
 using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
+using CasaEngine.Framework.Scripting;
 using CasaEngine.Engine.Geometry;
 
 using Microsoft.Xna.Framework;
@@ -36,6 +37,7 @@ internal static class EditorEntityJsonSerializer
 
         node.Add("entity_references", entityReferencesArray);
         node.Add("script_class_name", world.GameplayProxyClassName);
+        AddGameplayProxyState(world.GameplayProxy, world.GameplayProxyState, node);
         node.Add("space_policy", world.SpacePolicyName);
         node.Add("player_startup_settings_asset_id", world.PlayerStartupSettingsAssetId);
         node.Add("gameplay_mode_asset_id", world.GameplayModeAssetId);
@@ -80,6 +82,22 @@ internal static class EditorEntityJsonSerializer
 
         node.Add("components", componentsArray);
         node.Add("script_class_name", entity.GameplayProxyClassName);
+        AddGameplayProxyState(entity.GameplayProxy, entity.GameplayProxyState, node);
+    }
+
+    private static void AddGameplayProxyState(IGameplayProxy? proxy, JObject? pendingState, JObject node)
+    {
+        if (proxy != null)
+        {
+            var scriptNode = new JObject();
+            proxy.Save(scriptNode);
+            node.Add("script", scriptNode);
+        }
+        else if (pendingState != null)
+        {
+            //loaded but never initialized: the proxy does not exist yet, keep its stored state
+            node.Add("script", pendingState.DeepClone());
+        }
     }
 
     internal static void SaveCollision2d(Collision2d collision2d, JObject node)
