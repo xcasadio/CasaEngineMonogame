@@ -1,7 +1,7 @@
 using System;
-using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.World;
 
 namespace CasaEngine.RPGDemo.Scripts;
@@ -34,7 +34,7 @@ public class ScriptEnemySpawner : GameplayProxy
     public override void OnBeginPlay(World world)
     {
         _world = world;
-        var spawnEntity = world.SpawnEntity<Pawn>(Guid.Parse("afd86c38-7a42-40e6-92b8-58b0d2def9d7")); //"Entities\\character_octopus");
+        var spawnEntity = world.SpawnEntity<Entity>(Guid.Parse("afd86c38-7a42-40e6-92b8-58b0d2def9d7")); //"Entities\\character_octopus");
 
         spawnEntity.RootComponent.LocalTransform.Position = Owner.RootComponent.Position;
         spawnEntity.RootComponent.LocalTransform.Orientation = Owner.RootComponent.Orientation;

@@ -2,7 +2,6 @@ using System.Linq;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.AI.Messaging;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Physics;
 using CasaEngine.Framework.Scripting;
 using CasaEngine.Framework.Scene.World;
@@ -22,7 +21,7 @@ public class ScriptEnemy : GameplayProxy, IScriptCharacter
     {
         base.InitializePrivate();
 
-        Character = new Character((Pawn)Owner);
+        Character = new Character(Owner);
         Controller = new EnemyController(Character);
     }
 

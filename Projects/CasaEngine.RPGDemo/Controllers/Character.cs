@@ -4,8 +4,8 @@ using System.Text.Json;
 
 using CasaEngine.Core.Logging;
 using CasaEngine.Framework.AI.Messaging;
+using CasaEngine.Framework.Scene.Entities;
 using CasaEngine.Framework.Scene.Entities.Components;
-using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Scripts;
 using CasaEngine.RPGDemo.Weapons;
@@ -56,7 +56,7 @@ public class Character
     public AnimatedSpriteComponent AnimatedSpriteComponent { get; private set; }
 
     public Character2dDirection CurrentDirection { get; set; } = Character2dDirection.Right;
-    public Pawn Owner { get; }
+    public Entity Owner { get; }
     public CharacterType Type { get; set; }
     public int ComboNumber { get; set; }
     public Vector3 Position => Owner.RootComponent?.Position ?? Vector3.Zero;
@@ -75,9 +75,9 @@ public class Character
     public int ExperienceBeforeNextLevel { get; set; } = 10;
 
 
-    public Character(Pawn pawn)
+    public Character(Entity owner)
     {
-        Owner = pawn;
+        Owner = owner;
 
         SetAnimationDirectionOffset(Character2dDirection.Down, (int)AnimationDirectionOffset.Down);
         //SetAnimationDirectionOffset(Character2dDirection.DownLeft, (int)AnimationDirectionOffset.DownLeft);
