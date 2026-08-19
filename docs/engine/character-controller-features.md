@@ -21,7 +21,7 @@ Le document cible d'abord un controleur 3D a capsule, car le moteur contient dej
 
 ### Gameplay
 
-- `Pawn`, `Controller` et `PlayerController` existent dans `CasaEngine.Framework.Gameplay`.
+- `Controller` et `PlayerController` existent dans `CasaEngine.Framework.Gameplay` ; la classe `Pawn` a ete supprimee, un controller possede directement une `Entity`.
 - `Controller` possede une reference `Pawn` de type `Entity`, posee via `Possess`/`UnPossess` ; la possession pilote `CharacterControlMode` sur le `CharacterControllerComponent` de l'entite possedee, quand il existe.
 - `PlayerController` porte le `PlayerInput` (facade d'input filtree), l'affectation de vue et l'integration UI.
 - Aucun `CharacterControllerComponent` n'a ete trouve dans le code actuel.
@@ -167,13 +167,15 @@ Ne pas utiliser `LayerMask` dans cette V1 : aucun type portant ce nom n'a ete co
 
 ### Commandes publiques V1
 
-Ces commandes sont a creer sur le controller. Elles decrivent le contrat attendu, pas une API deja presente.
+Ces commandes existent desormais sur le controller :
 
 | Commande | Role |
 | --- | --- |
 | `SetMoveIntent(Vector2 direction)` | Definit l'intention horizontale normalisee ou clampee. |
 | `RequestJump()` | Demande un saut pour la prochaine resolution possible. |
+| `RequestDash(Vector2 direction)` | Demande un dash horizontal ; retombe sur l'intention courante puis la velocite si la direction est nulle. Refuse si le dash est desactive ou en cooldown. |
 | `Stop()` | Annule l'intention et remet la vitesse horizontale a zero. |
+| `Move(Vector3 requestedDisplacement)` | Deplace le personnage a travers le solveur de collision et retourne le deplacement reellement applique ; utilise par le bridge root motion. |
 | `Teleport(Vector3 position)` | Place le personnage sans sweep, puis force une resynchronisation physique. |
 | `SetControlMode(CharacterControlMode mode)` | Change la source autorisee a commander le personnage. |
 
@@ -274,14 +276,15 @@ Pour le root motion, la regle est stricte : un delta venant de `SkinnedMeshCompo
 
 Les cutscenes ne doivent pas contourner le controller quand elles deplacent un personnage.
 
-La V1 doit seulement fournir un mode de controle explicite :
+La V1 doit seulement fournir un mode de controle explicite. `CharacterControlMode` expose :
 
 - `Player` ;
 - `AI` ;
-- `Script` ou `Cutscene` ;
+- `Script` ;
+- `Cutscene` ;
 - `Disabled`.
 
-Une cutscene peut ensuite prendre l'autorite, envoyer des intentions ou teleporter le personnage via l'API publique, puis rendre l'autorite. Les actions de cutscene dediees au personnage restent a creer plus tard ; elles ne sont pas considerees comme existantes dans ce document.
+Une cutscene peut prendre l'autorite, envoyer des intentions ou teleporter le personnage via l'API publique, puis rendre l'autorite. Les actions de cutscene dediees au personnage existent desormais dans `CutsceneActionCoroutineFactory` : MoveTo, resolu par le service de motion et le `CharacterControllerComponent`, et NavigateTo, resolu par `NavigationAgentComponent` et `CharacterControllerNavigationDriverComponent`.
 
 ## Ordre d'implementation recommande
 
