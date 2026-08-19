@@ -40,6 +40,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [yarn_spinner_integration.md](engine/yarn_spinner_integration.md) — intégration de Yarn Spinner (dialogues).
 - [world-message-bus-migration-notes.md](engine/world-message-bus-migration-notes.md) — bus de messages scopé au `World` (pattern recommandé).
 - [player-input.md](engine/player-input.md) — façade `PlayerInput` par joueur (gates input enable / routage par vue / capture UI).
+- [gameplay-possession.md](engine/gameplay-possession.md) — possession `Controller`/`Entity` (`Possess`/`UnPossess`, pilotage de `CharacterControlMode`) et multi-joueur local.
 
 ### UI runtime (MGUI)
 

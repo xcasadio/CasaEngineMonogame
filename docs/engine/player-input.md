@@ -67,7 +67,6 @@ if (playerInput != null && playerInput.IsInputEnabled)
 ## Limitations
 
 - **Mapping mixte clavier+gamepad (V1)** : `GetButtonState(name)` ne renvoie un état neutre que si le clavier est indisponible **et** qu'aucun gamepad n'est connecté pour ce joueur. Un mapping mixte peut donc encore lire son côté gamepad alors que le clavier est capturé par l'UI.
-- **`Pawn.InputEnabled` non unifié** : ce flag existe toujours séparément de `PlayerController.IsInputEnable` ; la façade n'applique que ce dernier.
 - **Contrôleurs créés manuellement** : un `PlayerController` instancié en dehors de `World.InitializePlayerControllers()` n'a pas de `Input` câblé automatiquement ; l'appelant doit construire `PlayerInput` lui-même.
 
 ## Tests
@@ -76,8 +75,8 @@ Voir [`CasaEngine.Tests/Input/PlayerInputTests.cs`](../../CasaEngine.Tests/Input
 
 ## Prochaines étapes
 
-- Unifier `Pawn.InputEnabled` avec `PlayerController.IsInputEnable` en un seul gate.
-- Ajouter une API `Possess`/`UnPossess` reliant `PlayerController` ↔ `Entity` et pilotant `CharacterControllerComponent.SetControlMode`.
-- Câbler le multi-joueur local de bout en bout (plusieurs `LocalPlayer`/`PlayerStart`).
+- ~~Unifier `Pawn.InputEnabled` avec `PlayerController.IsInputEnable` en un seul gate.~~ Fait : `Pawn.InputEnabled` a été supprimé, `PlayerController.IsInputEnable` est l'unique gate.
+- ~~Ajouter une API `Possess`/`UnPossess` reliant `PlayerController` ↔ `Entity` et pilotant `CharacterControllerComponent.SetControlMode`.~~ Fait, voir [gameplay-possession.md](gameplay-possession.md).
+- ~~Câbler le multi-joueur local de bout en bout (plusieurs `LocalPlayer`/`PlayerStart`).~~ Fait côté spawn/contrôleurs, voir [gameplay-possession.md](gameplay-possession.md) ; restent le join/leave à chaud et l'appairage des devices.
 
 Origine : [ai-agent/audits/analysis-possession-gameplay-framework.md](../../ai-agent/audits/analysis-possession-gameplay-framework.md), point 3 des recommandations.
