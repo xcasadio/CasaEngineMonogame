@@ -52,6 +52,13 @@ public class EntityReference
         else
         {
             Entity = assetContentManager.Load<Entity>(AssetId).Clone();
+
+            //the reference name identifies this instance in the world; an empty reference name keeps the asset name
+            if (!string.IsNullOrEmpty(Name))
+            {
+                Entity.Name = Name;
+            }
+
             Entity.RootComponent?.CopyLocalTransformFrom(InitialLocalTransform);
         }
     }
