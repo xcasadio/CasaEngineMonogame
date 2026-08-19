@@ -54,6 +54,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [editor-input-routing-architecture.md](editor/editor-input-routing-architecture.md) — architecture du routage des inputs (vues, viewports, MGUI).
 - [editor-2d-viewport.md](editor/editor-2d-viewport.md) — mode 2D du viewport monde (bascule, navigation, grille, gizmo XY, persistance).
 - [play-in-editor.md](editor/play-in-editor.md) — mode Play (tester le niveau dans le viewport, scripts rechargeables à la volée).
+- [gameplay-csproj-scaffolding.md](editor/gameplay-csproj-scaffolding.md) — conception du scaffolding du projet C# gameplay à `CreateProject` (csproj/sln générés, Phase 1 DLL éditeur → Phase 2 NuGet).
 - [timeline_control_architecture.md](editor/timeline_control_architecture.md) — architecture du contrôle Timeline V1.
 - [timeline-generic.md](editor/timeline-generic.md) — base générique réutilisable pour les timelines.
 - [animation2d_editor_casaengine.md](editor/animation2d_editor_casaengine.md) — éditeur d'animations 2D (direction produit et contraintes).
