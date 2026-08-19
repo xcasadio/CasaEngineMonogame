@@ -228,6 +228,14 @@ Prérequis à instruire avant de lancer la phase :
 
 ## Découpage en tâches (Phase 1)
 
+> **État (2026-08-19)** : tâches 1 à 3 implémentées et vérifiées (25 tests ciblés
+> verts, dont la compilation réelle d'un projet scaffoldé contre les DLL de
+> l'installation ; aucune régression sur la suite complète). La compilation initiale
+> de `CreateProject` passe par `EditorScriptReloadCoordinator.TryBuildCanonicalDll`
+> (build + refresh de la DLL canonique **sans** chargement d'assembly, pour ne jamais
+> verrouiller le fichier via le loader par défaut). Reste la tâche 4 manuelle (VS +
+> Play + Launcher sur un projet hors repo).
+
 1. **Service de scaffolding** (`CasaEngine.EditorServices`, par ex.
    `EditorGameplayProjectScaffolder`) : génération csproj / props / sln / sources /
    .gitignore à partir de templates ; tests avec golden files (mêmes patterns que
@@ -258,6 +266,10 @@ EditorServices (testables sans UI).
   `dll` + `pdb` : le Launcher ne les verrait pas à la racine du projet. Point à
   traiter quand le besoin apparaîtra (copier les dépendances non-moteur à côté de la
   DLL canonique).
+- **Chemin `buildGameplayProject: true` non couvert par un test** : les tests de
+  `CreateProject` sautent la compilation initiale (~10-30 s) ; le fail-soft du premier
+  build est vérifié par inspection, pas par exécution. Un test dédié (source invalide
+  volontaire, assertion d'absence d'exception) reste à écrire si le besoin se présente.
 - **SDK .NET requis** sur la machine utilisateur : prérequis déjà existant
   (`EditorScriptBuildService`), à documenter côté installation.
 - **TFM figé Windows** (`net9.0-windows`, x64) : assumé tant que le moteur est
