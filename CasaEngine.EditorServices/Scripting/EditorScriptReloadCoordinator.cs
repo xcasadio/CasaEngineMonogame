@@ -73,20 +73,8 @@ public static class EditorScriptReloadCoordinator
     /// </summary>
     public static bool TryRebuildAndReload(Action? prepareWorldsForReload)
     {
-        if (!IsRebuildConfigured)
-        {
-            Logs.WriteWarning("No gameplay csproj is configured (GameplayCsprojName); nothing to build.");
-            return false;
-        }
-
-        string csprojPath = ResolveCsprojPath();
-        string outputRoot = Path.Combine(EngineEnvironment.ProjectPath, ".casaeditor", "script-build");
-        string? expectedAssemblyFileName = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName)
-            ? null
-            : Path.GetFileName(GameSettings.ProjectSettings.GameplayDllName);
-
-        var result = EditorScriptBuildService.Build(csprojPath, outputRoot, expectedAssemblyFileName);
-        if (!result.Success)
+        var result = BuildForCanonicalDll();
+        if (result == null)
         {
             return false;
         }
@@ -102,6 +90,47 @@ public static class EditorScriptReloadCoordinator
 
         Logs.WriteInfo("Gameplay scripts reloaded.");
         return true;
+    }
+
+    /// <summary>
+    /// Builds the gameplay scripts and refreshes the canonical gameplay dll on disk, without
+    /// loading the assembly into the running process. Used right after project creation, when
+    /// the editor's shadow-copy <c>AssemblyManager.AssemblyLoader</c> is not guaranteed to be
+    /// wired yet (and never is for callers outside a running <c>GameEditor</c>, e.g. tests or
+    /// tooling): loading through the default <c>Assembly.LoadFile</c> loader would lock the
+    /// canonical dll on disk. Fail-soft: returns false and logs on build failure, same as
+    /// <see cref="TryRebuildAndReload"/>.
+    /// </summary>
+    public static bool TryBuildCanonicalDll()
+    {
+        var result = BuildForCanonicalDll();
+        if (result == null)
+        {
+            return false;
+        }
+
+        RefreshCanonicalGameplayDll(result.OutputAssemblyPath!);
+
+        Logs.WriteInfo("Gameplay scripts built (canonical dll refreshed, not loaded).");
+        return true;
+    }
+
+    private static ScriptBuildResult? BuildForCanonicalDll()
+    {
+        if (!IsRebuildConfigured)
+        {
+            Logs.WriteWarning("No gameplay csproj is configured (GameplayCsprojName); nothing to build.");
+            return null;
+        }
+
+        string csprojPath = ResolveCsprojPath();
+        string outputRoot = Path.Combine(EngineEnvironment.ProjectPath, ".casaeditor", "script-build");
+        string? expectedAssemblyFileName = string.IsNullOrWhiteSpace(GameSettings.ProjectSettings.GameplayDllName)
+            ? null
+            : Path.GetFileName(GameSettings.ProjectSettings.GameplayDllName);
+
+        var result = EditorScriptBuildService.Build(csprojPath, outputRoot, expectedAssemblyFileName);
+        return result.Success ? result : null;
     }
 
     /// <summary>

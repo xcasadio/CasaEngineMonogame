@@ -511,6 +511,94 @@ public class EditorProjectAuthoringServiceTests
         }
     }
 
+    [Fact]
+    public void CreateProject_WithoutBuild_ScaffoldsGameplayProjectAndWiresSettings()
+    {
+        string tempDirectory = CreateTempDirectory();
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+        string previousCsproj = GameSettings.ProjectSettings.GameplayCsprojName;
+
+        try
+        {
+            EditorProjectAuthoringService.CreateProject("SampleProject", tempDirectory, buildGameplayProject: false);
+
+            string gameplayDirectory = Path.Combine(tempDirectory, "Gameplay");
+            Assert.True(File.Exists(Path.Combine(gameplayDirectory, "SampleProject.Gameplay.csproj")));
+            Assert.True(File.Exists(Path.Combine(gameplayDirectory, "CasaEngine.EnginePath.props")));
+            Assert.True(File.Exists(Path.Combine(gameplayDirectory, "GamePlugin.cs")));
+            Assert.True(File.Exists(Path.Combine(gameplayDirectory, "Scripts", "SampleProxy.cs")));
+            Assert.True(File.Exists(Path.Combine(tempDirectory, "SampleProject.sln")));
+
+            Assert.Equal("Gameplay/SampleProject.Gameplay.csproj", GameSettings.ProjectSettings.GameplayCsprojName);
+            Assert.Equal("SampleProject.Gameplay.dll", GameSettings.ProjectSettings.GameplayDllName);
+
+            string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+            Assert.True(File.Exists(projectFilePath));
+
+            var projectDocument = JObject.Parse(File.ReadAllText(projectFilePath));
+            Assert.Equal("Gameplay/SampleProject.Gameplay.csproj", (string?)projectDocument["GameplayCsprojName"]);
+            Assert.Equal("SampleProject.Gameplay.dll", (string?)projectDocument["GameplayDllName"]);
+
+            // No build was requested: no canonical dll at the project root.
+            Assert.False(File.Exists(Path.Combine(tempDirectory, "SampleProject.Gameplay.dll")));
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            GameSettings.ProjectSettings.GameplayCsprojName = previousCsproj;
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void CreateProject_WhenGameplayCsprojAlreadyExists_DoesNotOverwriteAndKeepsSettingsWired()
+    {
+        string tempDirectory = CreateTempDirectory();
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+        string previousCsproj = GameSettings.ProjectSettings.GameplayCsprojName;
+
+        try
+        {
+            string gameplayDirectory = Path.Combine(tempDirectory, "Gameplay");
+            Directory.CreateDirectory(gameplayDirectory);
+            string csprojPath = Path.Combine(gameplayDirectory, "SampleProject.Gameplay.csproj");
+            const string userOwnedContent = "<!-- user-edited, must not be overwritten -->";
+            File.WriteAllText(csprojPath, userOwnedContent);
+
+            EditorProjectAuthoringService.CreateProject("SampleProject", tempDirectory, buildGameplayProject: false);
+
+            Assert.Equal(userOwnedContent, File.ReadAllText(csprojPath));
+            Assert.False(File.Exists(Path.Combine(gameplayDirectory, "GamePlugin.cs")));
+            Assert.False(File.Exists(Path.Combine(tempDirectory, "SampleProject.sln")));
+
+            Assert.Equal("Gameplay/SampleProject.Gameplay.csproj", GameSettings.ProjectSettings.GameplayCsprojName);
+            Assert.Equal("SampleProject.Gameplay.dll", GameSettings.ProjectSettings.GameplayDllName);
+
+            string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+            var projectDocument = JObject.Parse(File.ReadAllText(projectFilePath));
+            Assert.Equal("Gameplay/SampleProject.Gameplay.csproj", (string?)projectDocument["GameplayCsprojName"]);
+            Assert.Equal("SampleProject.Gameplay.dll", (string?)projectDocument["GameplayDllName"]);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            GameSettings.ProjectSettings.GameplayCsprojName = previousCsproj;
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     private static void ConfigureProjectSettings(string projectFilePath)
     {
         string projectDirectory = Path.GetDirectoryName(projectFilePath)!;
