@@ -39,6 +39,7 @@ Les audits, analyses et listes de tâches vivent dans [`ai-agent/`](../ai-agent/
 - [cutscene_commandes_sequentielles_async_coroutine.md](engine/cutscene_commandes_sequentielles_async_coroutine.md) — séquences scriptées avec commandes séquentielles async/coroutine.
 - [yarn_spinner_integration.md](engine/yarn_spinner_integration.md) — intégration de Yarn Spinner (dialogues).
 - [world-message-bus-migration-notes.md](engine/world-message-bus-migration-notes.md) — bus de messages scopé au `World` (pattern recommandé).
+- [player-input.md](engine/player-input.md) — façade `PlayerInput` par joueur (gates input enable / routage par vue / capture UI).
 
 ### UI runtime (MGUI)
 

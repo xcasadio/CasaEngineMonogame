@@ -52,6 +52,7 @@ La documentation du moteur et de l'éditeur vit dans [`docs/`](../docs/README.md
 - [structure-analyze-tasks.md](audits/structure-analyze-tasks.md) — analyse détaillée structure & architecture (constats ⚠️ encore exploitables).
 - [editor-runtime-separation-audit-report.md](audits/editor-runtime-separation-audit-report.md) — audit de la séparation éditeur/runtime.
 - [runtime-editor-separation-reliquats-audit.md](audits/runtime-editor-separation-reliquats-audit.md) — reliquats de séparation runtime/éditeur (dernière passe).
+- [analysis-possession-gameplay-framework.md](audits/analysis-possession-gameplay-framework.md) — état de la possession (Pawn/Controller/PlayerController) et comparaison Unreal/Unity/Godot.
 
 ### Rendu et materials
 
