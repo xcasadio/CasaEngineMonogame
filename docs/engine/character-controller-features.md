@@ -140,7 +140,7 @@ Les methodes commentees `ShapeSweep` dans `PhysicsEngine` peuvent servir d'indic
 
 ### Reglages V1
 
-Les reglages doivent rester petits et testables :
+Les reglages doivent rester petits et testables. Le tableau reflete le contenu reel de `CharacterControllerSettings` :
 
 | Reglage | Role |
 | --- | --- |
@@ -152,10 +152,15 @@ Les reglages doivent rester petits et testables :
 | `Deceleration` | Ralentissement sans input. |
 | `Gravity` | Gravite appliquee par le controller. |
 | `JumpSpeed` | Vitesse verticale initiale du saut. |
+| `CoyoteTimeSeconds` | Fenetre de saut conservee apres avoir quitte le sol. Zero desactive l'assistance. |
+| `JumpBufferSeconds` | Duree de memorisation d'une demande de saut avant le retour au sol. Zero desactive le buffer. |
+| `DashSpeed` | Vitesse horizontale imposee pendant un dash. Zero desactive le dash. |
+| `DashDurationSeconds` | Duree d'un dash. |
+| `DashCooldownSeconds` | Delai avant de pouvoir relancer un dash. |
 | `MaxSlopeAngle` | Angle maximum considere marchable. |
 | `GroundSnapDistance` | Distance maximale de raccrochage au sol. |
-| `CollisionGroup` | Groupe Bullet/CasaEngine du personnage. |
-| `CollisionMask` | Masque des objets solides testes par le personnage. |
+| `StepHeight` | Hauteur maximale de marche franchissable au sol. Zero desactive le step offset. |
+| `ProfileName` | Profil de collision du personnage, `CollisionProfileNames.Pawn` par defaut. Ses canaux bloques donnent le masque des sweeps via `GetSweepChannelMask()`. |
 | `HitTriggers` | Indique si les triggers doivent etre inclus dans les requetes. |
 
 Ne pas utiliser `LayerMask` dans cette V1 : aucun type portant ce nom n'a ete constate. Si une abstraction de masque CasaEngine est creee plus tard, elle devra mapper proprement vers le filtrage physique existant.
@@ -214,20 +219,18 @@ Contraintes moteur : pas de LINQ, pas de closures et pas d'allocations evitables
 
 ### Exclu de la V1
 
-- Dash.
+Exclusions d'origine implementees depuis : dash, coyote time, jump buffer, heritage de la vitesse lineaire du sol (plateformes mobiles simples), root motion avec collision (`CharacterControllerRootMotionBridgeComponent`), navigation par agent (`NavigationAgentComponent`, `CharacterControllerNavigationDriverComponent`) et transition ragdoll (`CharacterControllerRagdollBridgeComponent`). Voir « Etat V1 implemente ».
+
+Restent exclus :
+
 - Crouch/prone.
-- Coyote time.
-- Jump buffer.
-- Moving platforms completes.
-- Root motion avec collision.
-- IK pieds.
-- Navmesh agent.
+- Moving platforms completes : rotation et attache ne sont pas suivies, seule la vitesse lineaire du sol est heritee.
+- IK pieds integre au controller ; un solveur IK deux os existe cote animation (`IkSolverTwoBone`).
 - Ladders, ledge grab, wall jump, swimming, flying.
 - Prediction reseau.
 - Replay deterministe.
-- Ragdoll transition.
 
-Ces sujets peuvent etre ajoutes en V2/V3 une fois les requetes physiques et le solveur de base valides.
+Ces sujets restants peuvent etre ajoutes ensuite ; les requetes physiques et le solveur de base sont en place.
 
 ## Etat V1 implemente
 
@@ -236,14 +239,15 @@ La V1 ajoute maintenant les pieces suivantes dans le code :
 - `PhysicsEngine.ShapeSweep` et `ShapeSweepPenetrating`, exposes aussi via `IPhysicsWorldContext`, `PhysicsWorldContext` et `PhysicsEngineComponent` ;
 - `CharacterControllerSettings`, `CharacterControlMode`, `CharacterMovementState`, `CharacterControllerGroundInfo` et `CharacterControllerDebugSnapshot` ;
 - `CharacterControllerComponent : EntityComponent` avec validation de `Owner`, `RootComponent`, `CapsuleCollisionComponent` et `World.PhysicsWorldContext` ;
-- commandes publiques `SetMoveIntent`, `RequestJump`, `Stop`, `Teleport` et `SetControlMode` ;
-- locomotion V1 : acceleration, deceleration, gravite, saut, sweep capsule, slide, detection sol, limite de pente et snap au sol ;
-- donnees inspectables : `Velocity`, `IsGrounded`, `GroundNormal`, `GroundCollider`, `GroundSlopeAngle`, `LastCollisionHit`, `LastRequestedDisplacement`, `LastActualDisplacement` et `DebugSnapshot`.
+- commandes publiques `SetMoveIntent`, `RequestJump`, `RequestDash`, `Move`, `Stop`, `Teleport` et `SetControlMode` ;
+- locomotion : acceleration, deceleration, gravite, saut, sweep capsule, slide, detection sol, limite de pente et snap au sol, completee depuis par step offset (`StepHeight`), coyote time, jump buffer, dash et heritage de la vitesse lineaire du sol ;
+- donnees inspectables : `Velocity`, `IsGrounded`, `GroundNormal`, `GroundCollider`, `GroundVelocity`, `GroundSlopeAngle`, `LastCollisionHit`, `LastRequestedDisplacement`, `LastActualDisplacement`, `DebugSnapshot` et les timers restants de coyote time, jump buffer et dash ;
+- composants compagnons livres depuis : bridge animation (`CharacterControllerAnimationBridgeComponent`, donnees de locomotion pour l'animation), root motion resolu par le solveur (`CharacterControllerRootMotionBridgeComponent`), bridge ragdoll (`CharacterControllerRagdollBridgeComponent`), drivers de deplacement et de navigation (`CharacterControllerMoveToDriverComponent`, `CharacterControllerNavigationDriverComponent`) et actions cutscene MoveTo/NavigateTo.
 
 Limites connues de cette V1 :
 
 - pas de depenetration initiale dediee au controller ; l'API multi-hit existe, mais la recuperation d'un depart deja en collision reste a traiter ;
-- pas de step offset, plateformes mobiles, crouch, coyote time, jump buffer, root motion avec collision, bridge animation ou bridge cutscene ;
+- pas de crouch ; le portage par plateforme mobile reste limite a l'heritage de la vitesse lineaire du sol, sans suivi de rotation ni attache ;
 - pas de rendu debug specifique au character controller ; les donnees sont exposees pour l'inspecteur, les tests ou un futur overlay ;
 - les tests du solveur controller utilisent un `IPhysicsWorldContext` controle pour verifier les cas sol, mur et pente ; les tests Bullet natifs couvrent separement les sweeps convexes publics.
 
