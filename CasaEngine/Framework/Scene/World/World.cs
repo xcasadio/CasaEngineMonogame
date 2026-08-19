@@ -289,7 +289,7 @@ public sealed class World : ObjectBase
         var playerIndices = CollectLocalPlayerIndices(_entities);
         foreach (var playerIndex in playerIndices)
         {
-            var pawn = SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId);
+            var pawn = SpawnEntity<Entity>(PlayerStartupSettings.DefaultPawnAssetId);
             CreateLocalPlayerController(playerIndex, pawn, FindPlayerStart(_entities, playerIndex));
         }
 

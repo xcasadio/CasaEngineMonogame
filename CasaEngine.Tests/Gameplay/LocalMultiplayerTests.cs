@@ -130,9 +130,9 @@ public class LocalMultiplayerTests
     }
 
     [Fact]
-    public void Clone_Pawn_GetsFreshId()
+    public void Clone_Entity_GetsFreshId()
     {
-        var pawn = new Pawn();
+        var pawn = new Entity();
 
         Assert.NotEqual(pawn.Id, pawn.Clone().Id);
     }
