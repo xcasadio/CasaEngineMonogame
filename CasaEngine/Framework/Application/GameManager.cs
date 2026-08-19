@@ -199,12 +199,7 @@ public class GameManager
 
     private static PlayerIndex ResolvePlayerIndex(PlayerController playerController)
     {
-        if (playerController.Player is LocalPlayer localPlayer)
-        {
-            return localPlayer.ControllerId;
-        }
-
-        return PlayerIndex.One;
+        return playerController.PlayerIndex;
     }
 
     private RenderView ResolveAssignedView(

@@ -9,6 +9,7 @@ using CasaEngine.Framework.Application.Components.Physics;
 using CasaEngine.Engine.Physics;
 using CasaEngine.Framework.Cutscenes;
 using CasaEngine.Framework.Gameplay;
+using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Rendering.Environment;
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
@@ -289,6 +290,10 @@ public sealed class World : ObjectBase
         var playerController = ElementFactory.Create<PlayerController>(PlayerStartupSettings.PlayerControllerClass);
         playerController.Pawn = pawn;
         playerController.Player = new LocalPlayer(); // TODO
+        if (Game?.InputComponent != null)
+        {
+            playerController.Input = new PlayerInput(playerController, Game.InputComponent);
+        }
         _playerControllers.Add(playerController);
 
         var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);

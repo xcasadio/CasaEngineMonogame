@@ -1,5 +1,7 @@
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
+using CasaEngine.Framework.Input;
+using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Gameplay;
 
@@ -18,7 +20,21 @@ namespace CasaEngine.Framework.Gameplay;
 public class PlayerController : Controller
 {
     public Player Player { get; set; }
-    public bool IsInputEnable { get; set; }
+    public bool IsInputEnable { get; set; } = true;
+
+    /// <summary>
+    /// The <see cref="PlayerIndex"/> this controller acts for, resolved from
+    /// <see cref="Player"/> when it is a <see cref="LocalPlayer"/>, otherwise
+    /// <see cref="PlayerIndex.One"/>.
+    /// </summary>
+    public PlayerIndex PlayerIndex => Player is LocalPlayer localPlayer ? localPlayer.ControllerId : PlayerIndex.One;
+
+    /// <summary>
+    /// Per-player input facade, filtered by input-enable state, per-view routing and
+    /// UI-first arbitration. Wired by the engine when the controller is created; may be
+    /// null in headless or editor-preview contexts.
+    /// </summary>
+    public PlayerInput Input { get; internal set; }
 
     // ---- View assignment ----
 
