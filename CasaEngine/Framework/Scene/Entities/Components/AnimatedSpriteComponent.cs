@@ -278,9 +278,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         // All parts of a composed animation share the entity's own sort coordinate (built once
         // here, from the component's world position, not from any per-part position); DrawOrder
         // (via BuildPartSortKey's LocalSortOffset) is what arbitrates draw order within the entity.
-        var baseSortKey = _depthSortable2DComponent != null
-            ? _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame)
-            : default;
+        var baseSortKey = BuildComposedAnimationBaseSortKey();
 
         for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
         {
@@ -313,6 +311,19 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         }
     }
 
+    /// <summary>
+    /// The single sort key every part of the current composed animation is derived from, built once
+    /// per draw call from the component's own world <see cref="Position"/> (never from a per-part
+    /// position). Internal (rather than private) so <c>CasaEngine.Tests</c> can exercise this exact
+    /// production computation instead of re-implementing it.
+    /// </summary>
+    internal RenderSortKey2D BuildComposedAnimationBaseSortKey()
+    {
+        return _depthSortable2DComponent != null
+            ? _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame)
+            : default;
+    }
+
     private SpriteEffects GetPartSpriteEffects(Animation2dPartRuntimeState part)
     {
         var spriteEffects = SpriteEffect;
@@ -329,7 +340,13 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         return spriteEffects;
     }
 
-    private static RenderSortKey2D BuildPartSortKey(RenderSortKey2D baseSortKey, Animation2dPartRuntimeState part)
+    /// <summary>
+    /// Derives one part's sort key from the shared <see cref="BuildComposedAnimationBaseSortKey"/> key:
+    /// same <see cref="RenderSortKey2D.SortCoordinate"/> for every part of the entity, <c>DrawOrder</c>
+    /// (via <see cref="RenderSortKey2D.LocalSortOffset"/>) and <c>SourceIndex</c> arbitrate within it.
+    /// Internal so <c>CasaEngine.Tests</c> can call it directly instead of reflecting into it.
+    /// </summary>
+    internal static RenderSortKey2D BuildPartSortKey(RenderSortKey2D baseSortKey, Animation2dPartRuntimeState part)
     {
         return new RenderSortKey2D(
             baseSortKey.RenderPass,
