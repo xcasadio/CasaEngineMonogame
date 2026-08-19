@@ -4,7 +4,7 @@ Lien explicite `Controller` ↔ `Entity` qui pilote l'autorité de mouvement (`C
 
 ## Vue d'ensemble
 
-La possession relie un [`PlayerController`](../../CasaEngine/Framework/Gameplay/PlayerController.cs) ou un [`AIController`](../../CasaEngine/Framework/Gameplay/AIController.cs) à une `Entity` quelconque — pas seulement un `Pawn` — via `Controller.Possess(Entity)` / `Controller.UnPossess()`. Quand l'entité possédée porte un `CharacterControllerComponent`, la possession capture le `ControlMode` courant du composant, applique le mode propre au controller, puis restaure le mode capturé à la libération :
+La possession relie un [`PlayerController`](../../CasaEngine/Framework/Gameplay/PlayerController.cs) ou un [`AIController`](../../CasaEngine/Framework/Gameplay/AIController.cs) à une `Entity` quelconque via `Controller.Possess(Entity)` / `Controller.UnPossess()`. La classe `Pawn` n'existe plus (supprimée le 2026-08-19) : la possession s'applique à n'importe quelle `Entity`. Quand l'entité possédée porte un `CharacterControllerComponent`, la possession capture le `ControlMode` courant du composant, applique le mode propre au controller, puis restaure le mode capturé à la libération :
 
 - `PlayerController` impose `CharacterControlMode.Player` ;
 - `AIController` impose `CharacterControlMode.AI` ;
@@ -22,7 +22,7 @@ controller.Possess(pawn); // capture pawn.ControlMode, applique CharacterControl
 controller.UnPossess(); // restaure le ControlMode capturé, controller.Pawn redevient null
 ```
 
-- `Controller.Pawn` est de type `Entity` (setter privé) : n'importe quelle entité possédant un `CharacterControllerComponent` est possédable, sans dépendre de la classe `Pawn`.
+- `Controller.Pawn` est de type `Entity` (setter privé) : n'importe quelle entité possédant un `CharacterControllerComponent` est possédable. La classe `Pawn` a été supprimée ; la propriété `Controller.Pawn` garde son nom, typée `Entity`.
 - Reposséder l'entité déjà possédée est un no-op ; posséder une nouvelle entité alors qu'une autre l'est déjà appelle d'abord `UnPossess()` sur l'ancienne.
 - Les hooks protégés `OnPossess(Entity)` / `OnUnPossess(Entity)` permettent aux controllers dérivés de réagir (câblage d'input, changement d'état FSM, etc.) sans dupliquer la logique de capture/restauration du `ControlMode`.
 - Si l'entité n'a pas de `CharacterControllerComponent`, la possession pose simplement `Controller.Pawn` sans toucher à aucun composant.
@@ -32,7 +32,7 @@ controller.UnPossess(); // restaure le ControlMode capturé, controller.Pawn red
 `World.InitializePlayerControllers()` boucle désormais sur les index de joueur déclarés par les [`PlayerStartComponent`](../../CasaEngine/Framework/Scene/Entities/Components/PlayerStartComponent.cs) du monde (`PlayerStartComponent.PlayerIndex`, sérialisé sous la clé JSON `player_index`) :
 
 1. `CollectLocalPlayerIndices` récupère les `PlayerIndex` distincts parmi les `PlayerStartComponent` du monde, triés, ou `[PlayerIndex.One]` si aucun `PlayerStartComponent` n'en déclare (repli mono-joueur, comportement inchangé) ;
-2. pour chaque index, un pawn est spawné (`SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId)`) puis un `PlayerController` est créé et lui est associé via `CreateLocalPlayerController` ;
+2. pour chaque index, un pawn est spawné (`SpawnEntity<Entity>(PlayerStartupSettings.DefaultPawnAssetId)`) puis un `PlayerController` est créé et lui est associé via `CreateLocalPlayerController` ;
 3. `CreateLocalPlayerController` crée le `PlayerController`, pose `Player = new LocalPlayer { ControllerId = playerIndex }`, appelle `Possess(pawn)`, câble `PlayerInput` quand un `Game.InputComponent` existe, puis place le pawn sur le `PlayerStartComponent` correspondant à l'index (`FindPlayerStart`) s'il existe.
 
 Chaque pawn spawné a désormais un `Entity.Id` propre : `World.SpawnEntity<T>(Guid)` clone l'asset avec `cache: false`, donc plusieurs joueurs spawnés depuis le même `DefaultPawnAssetId` ne partagent plus l'`Id` de l'asset source.
@@ -47,6 +47,7 @@ L'affectation vue/UI par joueur (`GameManager.SyncPlayerViewAssignments`, `Playe
 
 - **`Controller.Pawn` : `Pawn` → `Entity`, setter devenu privé.** La possession ne dépend plus de la classe `Pawn` ; le champ ne s'assigne plus que via `Possess`/`UnPossess`.
 - **`Pawn.InputEnabled` et `Pawn.Controller` supprimés.** Le gate d'input est désormais uniquement `PlayerController.IsInputEnable` (via `PlayerInput`, voir [player-input.md](player-input.md)) ; la back-référence `Controller` sur `Pawn` n'était jamais assignée et a été retirée.
+- **Classe `Pawn` supprimée.** C'était une coquille vide (`Entity` sans membre propre après le nettoyage ci-dessus) sans empreinte de sérialisation : le type runtime des assets vient du call site générique (`AssetLoader<T>`), aucun fichier d'asset ne référence le nom `Pawn`. Les assets « pawn » se chargent désormais en `Entity`. `PlayerStartupSettings.DefaultPawnAssetId` (clé JSON `default_pawn_asset_id`) et le profil de collision `"Pawn"` restent inchangés.
 - **`World.SpawnEntity<T>(Guid)` retourne un clone à `Id` neuf.** Avant, l'entité spawnée gardait l'`Id` de l'asset source ; plusieurs entités spawnées depuis le même asset partageaient donc le même `Id`. Ce n'est plus le cas — nécessaire pour que le spawn multi-joueur produise des pawns distincts.
 
 ## Tests
