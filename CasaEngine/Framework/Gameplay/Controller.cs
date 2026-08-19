@@ -1,23 +1,100 @@
+using CasaEngine.Framework.Scene.Entities;
+using CasaEngine.Framework.Scene.Entities.Components;
+
 namespace CasaEngine.Framework.Gameplay;
 
-/**
- * Controllers are non-physical actors that can possess a Pawn to control
- * its actions.  PlayerControllers are used by human players to control pawns, while
- * AIControllers implement the artificial intelligence for the pawns they control.
- * Controllers take control of a pawn using their Possess() method, and relinquish
- * control of the pawn by calling UnPossess().
- *
- * Controllers receive notifications for many of the events occurring for the Pawn they
- * are controlling.  This gives the controller the opportunity to implement the behavior
- * in response to this event, intercepting the event and superseding the Pawn's default
- * behavior.
- *
- * ControlRotation (accessed via GetControlRotation()), determines the viewing/aiming
- * direction of the controlled Pawn and is affected by input such as from a mouse or gamepad.
- *
- * @see https://docs.unrealengine.com/latest/INT/Gameplay/Framework/Controller/
- */
-public class Controller : ObjectBase //Entity
+/// <summary>
+/// Controllers are non-physical objects that can possess an <see cref="Entity"/> to control
+/// its actions. <see cref="PlayerController"/> is used by human players, while
+/// <see cref="AIController"/> implements artificial intelligence for the entities it controls.
+/// A controller takes control of an entity via <see cref="Possess"/> and relinquishes it via
+/// <see cref="UnPossess"/>. When the possessed entity has a <see cref="CharacterControllerComponent"/>,
+/// possession captures the component's current <see cref="CharacterControlMode"/>, applies the
+/// controller's own mode, and restores the captured mode on release.
+/// </summary>
+public class Controller : ObjectBase
 {
-    public Pawn Pawn { get; set; }
+    private CharacterControlMode _previousControlMode;
+    private bool _hasPreviousControlMode;
+
+    public Entity Pawn { get; private set; }
+
+    /// <summary>
+    /// The <see cref="CharacterControlMode"/> this controller imposes on a possessed entity's
+    /// <see cref="CharacterControllerComponent"/>, if any. Null means possession does not
+    /// touch the component's control mode.
+    /// </summary>
+    protected virtual CharacterControlMode? PossessedControlMode => null;
+
+    /// <summary>
+    /// Takes control of <paramref name="entity"/>. If this controller already possesses another
+    /// entity, it is released first. If the entity has a <see cref="CharacterControllerComponent"/>
+    /// and <see cref="PossessedControlMode"/> is set, its current control mode is captured and
+    /// replaced with <see cref="PossessedControlMode"/>.
+    /// </summary>
+    public void Possess(Entity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+
+        if (Pawn == entity)
+        {
+            return;
+        }
+
+        if (Pawn != null)
+        {
+            UnPossess();
+        }
+
+        Pawn = entity;
+
+        if (PossessedControlMode.HasValue)
+        {
+            var component = entity.GetComponent<CharacterControllerComponent>();
+            if (component != null)
+            {
+                _previousControlMode = component.ControlMode;
+                _hasPreviousControlMode = true;
+                component.SetControlMode(PossessedControlMode.Value);
+            }
+        }
+
+        OnPossess(entity);
+    }
+
+    /// <summary>
+    /// Releases control of the currently possessed entity, restoring the
+    /// <see cref="CharacterControllerComponent"/> control mode captured by <see cref="Possess"/>,
+    /// if any. No-op when nothing is possessed.
+    /// </summary>
+    public void UnPossess()
+    {
+        if (Pawn == null)
+        {
+            return;
+        }
+
+        var releasedPawn = Pawn;
+
+        if (_hasPreviousControlMode)
+        {
+            var component = releasedPawn.GetComponent<CharacterControllerComponent>();
+            component?.SetControlMode(_previousControlMode);
+            _hasPreviousControlMode = false;
+        }
+
+        Pawn = null;
+
+        OnUnPossess(releasedPawn);
+    }
+
+    /// <summary>Called after this controller starts possessing <paramref name="entity"/>.</summary>
+    protected virtual void OnPossess(Entity entity)
+    {
+    }
+
+    /// <summary>Called after this controller releases <paramref name="entity"/>.</summary>
+    protected virtual void OnUnPossess(Entity entity)
+    {
+    }
 }

@@ -288,7 +288,7 @@ public sealed class World : ObjectBase
 
         var pawn = SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId);
         var playerController = ElementFactory.Create<PlayerController>(PlayerStartupSettings.PlayerControllerClass);
-        playerController.Pawn = pawn;
+        playerController.Possess(pawn);
         playerController.Player = new LocalPlayer(); // TODO
         if (Game?.InputComponent != null)
         {

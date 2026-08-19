@@ -1,6 +1,7 @@
 using CasaEngine.Framework.UI;
 using CasaEngine.Framework.Rendering;
 using CasaEngine.Framework.Input;
+using CasaEngine.Framework.Scene.Entities.Components;
 using Microsoft.Xna.Framework;
 
 namespace CasaEngine.Framework.Gameplay;
@@ -19,6 +20,8 @@ namespace CasaEngine.Framework.Gameplay;
  */
 public class PlayerController : Controller
 {
+    protected override CharacterControlMode? PossessedControlMode => CharacterControlMode.Player;
+
     public Player Player { get; set; }
     public bool IsInputEnable { get; set; } = true;
 

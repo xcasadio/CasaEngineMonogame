@@ -27,9 +27,9 @@ public class HumanPlayerController : Controller
         {
             var playerController = new PlayerController
             {
-                Pawn = Character.Owner,
                 Player = new LocalPlayer { ControllerId = _playerIndex },
             };
+            playerController.Possess(Character.Owner);
             _playerInput = new PlayerInput(playerController, world.Game.GetGameComponent<InputComponent>());
         }
 
