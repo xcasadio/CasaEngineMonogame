@@ -240,6 +240,10 @@ internal static class EditorEntityJsonSerializer
                 SaveTileMapComponent(tileMapComponent, node);
                 return;
 
+            case PlayerStartComponent playerStartComponent:
+                SavePlayerStartComponent(playerStartComponent, node);
+                return;
+
             case SceneComponent sceneComponent:
                 SaveSceneComponent(sceneComponent, node);
                 return;
@@ -278,6 +282,12 @@ internal static class EditorEntityJsonSerializer
         }
 
         node.Add("children_component", childrenArray);
+    }
+
+    private static void SavePlayerStartComponent(PlayerStartComponent component, JObject node)
+    {
+        SaveSceneComponent(component, node);
+        node.Add("player_index", (int)component.PlayerIndex);
     }
 
     private static void SaveCameraComponent(CameraComponent component, JObject node)

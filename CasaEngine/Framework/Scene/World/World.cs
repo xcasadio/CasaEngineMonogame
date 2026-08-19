@@ -144,9 +144,9 @@ public sealed class World : ObjectBase
 
     public T SpawnEntity<T>(Guid id) where T : Entity
     {
-        var entity = Game.AssetContentManager.Load<T>(id, cache: false);
+        var entity = (T)Game.AssetContentManager.Load<T>(id, cache: false).Clone();
         AddEntity(entity);
-        return (T)entity;
+        return entity;
     }
 
     public void AddEntity(Entity entity)
@@ -286,23 +286,84 @@ public sealed class World : ObjectBase
             return;
         }
 
-        var pawn = SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId);
+        var playerIndices = CollectLocalPlayerIndices(_entities);
+        foreach (var playerIndex in playerIndices)
+        {
+            var pawn = SpawnEntity<Pawn>(PlayerStartupSettings.DefaultPawnAssetId);
+            CreateLocalPlayerController(playerIndex, pawn, FindPlayerStart(_entities, playerIndex));
+        }
+
+        InternalAddEntities();
+    }
+
+    /// <summary>
+    /// Collects the distinct <see cref="PlayerIndex"/> values declared by the
+    /// <see cref="PlayerStartComponent"/>s among <paramref name="entities"/>, sorted ascending.
+    /// Returns a list containing only <see cref="PlayerIndex.One"/> when none are found.
+    /// </summary>
+    internal static IReadOnlyList<PlayerIndex> CollectLocalPlayerIndices(IReadOnlyList<Entity> entities)
+    {
+        var playerIndices = new List<PlayerIndex>();
+
+        for (int i = 0; i < entities.Count; i++)
+        {
+            var playerStartComponent = entities[i].GetComponent<PlayerStartComponent>();
+            if (playerStartComponent == null)
+            {
+                continue;
+            }
+
+            if (!playerIndices.Contains(playerStartComponent.PlayerIndex))
+            {
+                playerIndices.Add(playerStartComponent.PlayerIndex);
+            }
+        }
+
+        if (playerIndices.Count == 0)
+        {
+            playerIndices.Add(PlayerIndex.One);
+            return playerIndices;
+        }
+
+        playerIndices.Sort((a, b) => ((int)a).CompareTo((int)b));
+        return playerIndices;
+    }
+
+    /// <summary>
+    /// Finds the first <see cref="PlayerStartComponent"/> among <paramref name="entities"/> whose
+    /// <see cref="PlayerStartComponent.PlayerIndex"/> matches <paramref name="playerIndex"/>, or null.
+    /// </summary>
+    internal static PlayerStartComponent FindPlayerStart(IReadOnlyList<Entity> entities, PlayerIndex playerIndex)
+    {
+        for (int i = 0; i < entities.Count; i++)
+        {
+            var playerStartComponent = entities[i].GetComponent<PlayerStartComponent>();
+            if (playerStartComponent != null && playerStartComponent.PlayerIndex == playerIndex)
+            {
+                return playerStartComponent;
+            }
+        }
+
+        return null;
+    }
+
+    internal PlayerController CreateLocalPlayerController(PlayerIndex playerIndex, Entity pawn, PlayerStartComponent playerStart)
+    {
         var playerController = ElementFactory.Create<PlayerController>(PlayerStartupSettings.PlayerControllerClass);
+        playerController.Player = new LocalPlayer { ControllerId = playerIndex };
         playerController.Possess(pawn);
-        playerController.Player = new LocalPlayer(); // TODO
         if (Game?.InputComponent != null)
         {
             playerController.Input = new PlayerInput(playerController, Game.InputComponent);
         }
         _playerControllers.Add(playerController);
 
-        var playerStartComponent = GetPlayerStart((int)PlayerIndex.One);
-        if (playerStartComponent != null)
+        if (playerStart != null)
         {
-            pawn.RootComponent?.LocalTransform.CopyFrom(playerStartComponent.LocalTransform);
+            pawn.RootComponent?.LocalTransform.CopyFrom(playerStart.LocalTransform);
         }
 
-        InternalAddEntities();
+        return playerController;
     }
 
     public CameraComponent CreateDefaultCamera()
@@ -356,24 +417,6 @@ public sealed class World : ObjectBase
         {
             SetGameplayMode(mode);
         }
-    }
-
-    private PlayerStartComponent GetPlayerStart(int playerIndex)
-    {
-        PlayerStartComponent playerStartComponent = null;
-
-        foreach (var entity in _entities)
-        {
-            playerStartComponent = entity.GetComponent<PlayerStartComponent>();
-
-            if (playerStartComponent != null)
-            {
-                //TODO : check player index
-                return playerStartComponent;
-            }
-        }
-
-        return playerStartComponent;
     }
 
     public void Update(float elapsedTime)
