@@ -21,6 +21,19 @@ namespace CasaEngine.Framework.Scene.Entities.Components;
 public class TileMapComponent : SceneComponent, ICollideableComponent, IConditionalEntityUpdateSource
 {
     private const float AxisAlignedWorldMatrixEpsilon = 1e-4f;
+    private const float SlabClipEpsilon = 1e-6f;
+
+    /// <summary>
+    /// The twelve frustum edges as pairs of corner indices, in
+    /// <see cref="BoundingFrustum.GetCorners(Vector3[])"/> order: near quad, far quad, then the
+    /// four near/far connections.
+    /// </summary>
+    private static readonly int[] FrustumEdgeCornerIndices =
+    {
+        0, 1, 1, 2, 2, 3, 3, 0,
+        4, 5, 5, 6, 6, 7, 7, 4,
+        0, 4, 1, 5, 2, 6, 3, 7,
+    };
 
     private List<PhysicsBody> _collisionObjects = new();
     private readonly List<AutoTile> _autoTiles = new();
@@ -37,6 +50,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     private SpriteRendererComponent _spriteRendererComponent;
     private Texture2D _tileSetTexture;
     private BoundingFrustum _cullingFrustum;
+    private Vector3[] _frustumCorners;
 
     public Guid TileMapDataAssetId { get; set; } = Guid.Empty;
     public TileMapData TileMapData { get; set; }
@@ -302,7 +316,9 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         var minTileY = 0;
         var maxTileY = mapHeight - 1;
 
-        if (TryGetVisibleTileRange(tileWidth, tileHeight, mapPosX, mapPosY, mapWidth, mapHeight,
+        GetRenderedLayerWorldZRange(translation.Z, out var minPlaneZ, out var maxPlaneZ);
+
+        if (TryGetVisibleTileRange(tileWidth, tileHeight, mapPosX, mapPosY, mapWidth, mapHeight, minPlaneZ, maxPlaneZ,
                 out var visibleMinTileX, out var visibleMaxTileX, out var visibleMinTileY, out var visibleMaxTileY))
         {
             if (visibleMinTileX > visibleMaxTileX || visibleMinTileY > visibleMaxTileY)
@@ -1255,6 +1271,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         float mapPosY,
         int mapWidth,
         int mapHeight,
+        float minPlaneZ,
+        float maxPlaneZ,
         out int minTileX,
         out int maxTileX,
         out int minTileY,
@@ -1276,7 +1294,7 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
             return false;
         }
 
-        if (!TryGetWorldViewBounds(currentRenderFrame.Value, Position.Z, out var viewMinX, out var viewMaxX, out var viewMinY, out var viewMaxY))
+        if (!TryGetWorldViewBounds(currentRenderFrame.Value, minPlaneZ, maxPlaneZ, out var viewMinX, out var viewMaxX, out var viewMinY, out var viewMaxY))
         {
             return false;
         }
@@ -1302,65 +1320,168 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         return true;
     }
 
-    private static bool TryGetWorldViewBounds(
+    /// <summary>
+    /// World space Z range covered by the rendered layers, used as the plane slab the visible tile
+    /// range is computed on. The component position is always part of the range so the slab stays
+    /// valid when no layer renders tiles.
+    /// </summary>
+    private void GetRenderedLayerWorldZRange(float translationZ, out float minZ, out float maxZ)
+    {
+        minZ = translationZ;
+        maxZ = translationZ;
+
+        for (var layerIndex = 0; layerIndex < Layers.Count; layerIndex++)
+        {
+            var layer = Layers[layerIndex];
+            if (!layer.TileMapLayerData.Depth.ShouldRenderTiles)
+            {
+                continue;
+            }
+
+            var worldZ = translationZ + layer.TileMapLayerData.zOffset;
+
+            if (worldZ < minZ)
+            {
+                minZ = worldZ;
+            }
+
+            if (worldZ > maxZ)
+            {
+                maxZ = worldZ;
+            }
+        }
+    }
+
+    /// <summary>
+    /// World space X/Y extent covered by the view frustum on the tile map plane slab
+    /// [<paramref name="minPlaneZ"/>, <paramref name="maxPlaneZ"/>].
+    ///
+    /// The extent comes from the frustum edges clipped to the slab, never from the four viewport
+    /// corner rays: as soon as the camera pitches towards the horizon, corner rays either stop
+    /// crossing the plane in front of the camera or cross it arbitrarily far away, and the quad they
+    /// describe no longer contains the visible part of the map. The frustum is bounded by its far
+    /// plane, so clipping its edges always yields a finite and conservative extent.
+    ///
+    /// Returns false when the frustum does not reach the slab at all; the caller then keeps the full
+    /// tile range, entity level frustum culling already discarding a fully offscreen tile map.
+    /// </summary>
+    private bool TryGetWorldViewBounds(
         in RenderFrame frame,
-        float planeZ,
+        float minPlaneZ,
+        float maxPlaneZ,
         out float minX,
         out float maxX,
         out float minY,
         out float maxY)
     {
-        var viewportRect = frame.ViewportRect;
+        _cullingFrustum ??= new BoundingFrustum(Matrix.Identity);
+        _cullingFrustum.Matrix = frame.ViewProjection;
+
+        _frustumCorners ??= new Vector3[BoundingFrustum.CornerCount];
+        _cullingFrustum.GetCorners(_frustumCorners);
+
+        return TryGetFrustumSlabBounds(_frustumCorners, minPlaneZ, maxPlaneZ, out minX, out maxX, out minY, out maxY);
+    }
+
+    /// <summary>
+    /// Axis aligned X/Y bounds of the intersection between a frustum, given by its eight corners in
+    /// <see cref="BoundingFrustum.GetCorners(Vector3[])"/> order, and the Z slab
+    /// [<paramref name="minPlaneZ"/>, <paramref name="maxPlaneZ"/>].
+    ///
+    /// That intersection is a bounded convex polytope whose vertices are either frustum corners
+    /// inside the slab or crossings between a frustum edge and a slab plane, so clipping the twelve
+    /// edges to the slab gives the exact bounds.
+    /// </summary>
+    internal static bool TryGetFrustumSlabBounds(
+        Vector3[] frustumCorners,
+        float minPlaneZ,
+        float maxPlaneZ,
+        out float minX,
+        out float maxX,
+        out float minY,
+        out float maxY)
+    {
         minX = float.MaxValue;
         maxX = float.MinValue;
         minY = float.MaxValue;
         maxY = float.MinValue;
 
-        if (viewportRect.Width <= 0 || viewportRect.Height <= 0)
+        if (frustumCorners == null || frustumCorners.Length < BoundingFrustum.CornerCount)
         {
             return false;
         }
 
-        var viewport = new Viewport(viewportRect.X, viewportRect.Y, viewportRect.Width, viewportRect.Height)
+        if (minPlaneZ > maxPlaneZ)
         {
-            MinDepth = 0f,
-            MaxDepth = 1f,
-        };
+            (minPlaneZ, maxPlaneZ) = (maxPlaneZ, minPlaneZ);
+        }
 
-        return IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Left, viewportRect.Top, planeZ, ref minX, ref maxX, ref minY, ref maxY)
-            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Right, viewportRect.Top, planeZ, ref minX, ref maxX, ref minY, ref maxY)
-            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Left, viewportRect.Bottom, planeZ, ref minX, ref maxX, ref minY, ref maxY)
-            && IncludeViewportCorner(viewport, frame.View, frame.Projection, viewportRect.Right, viewportRect.Bottom, planeZ, ref minX, ref maxX, ref minY, ref maxY);
+        var found = false;
+
+        for (var index = 0; index < FrustumEdgeCornerIndices.Length; index += 2)
+        {
+            var start = frustumCorners[FrustumEdgeCornerIndices[index]];
+            var end = frustumCorners[FrustumEdgeCornerIndices[index + 1]];
+
+            if (!TryClipSegmentToSlab(in start, in end, minPlaneZ, maxPlaneZ, out var clippedStart, out var clippedEnd))
+            {
+                continue;
+            }
+
+            minX = Math.Min(minX, Math.Min(clippedStart.X, clippedEnd.X));
+            maxX = Math.Max(maxX, Math.Max(clippedStart.X, clippedEnd.X));
+            minY = Math.Min(minY, Math.Min(clippedStart.Y, clippedEnd.Y));
+            maxY = Math.Max(maxY, Math.Max(clippedStart.Y, clippedEnd.Y));
+            found = true;
+        }
+
+        return found && minX <= maxX && minY <= maxY;
     }
 
-    private static bool IncludeViewportCorner(
-        Viewport viewport,
-        Matrix view,
-        Matrix projection,
-        float screenX,
-        float screenY,
-        float planeZ,
-        ref float minX,
-        ref float maxX,
-        ref float minY,
-        ref float maxY)
+    private static bool TryClipSegmentToSlab(
+        in Vector3 start,
+        in Vector3 end,
+        float minZ,
+        float maxZ,
+        out Vector3 clippedStart,
+        out Vector3 clippedEnd)
     {
-        var nearPoint = viewport.Unproject(new Vector3(screenX, screenY, 0f), projection, view, Matrix.Identity);
-        var farPoint = viewport.Unproject(new Vector3(screenX, screenY, 1f), projection, view, Matrix.Identity);
-        var direction = farPoint - nearPoint;
+        clippedStart = start;
+        clippedEnd = end;
 
-        if (Math.Abs(direction.Z) < 0.0001f)
+        var deltaZ = end.Z - start.Z;
+        var enter = 0f;
+        var exit = 1f;
+
+        if (Math.Abs(deltaZ) < SlabClipEpsilon)
         {
-            return false;
+            if (!(start.Z >= minZ) || !(start.Z <= maxZ))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            var enterCandidate = (minZ - start.Z) / deltaZ;
+            var exitCandidate = (maxZ - start.Z) / deltaZ;
+
+            if (enterCandidate > exitCandidate)
+            {
+                (enterCandidate, exitCandidate) = (exitCandidate, enterCandidate);
+            }
+
+            enter = Math.Max(enter, enterCandidate);
+            exit = Math.Min(exit, exitCandidate);
+
+            if (!(enter <= exit))
+            {
+                return false;
+            }
         }
 
-        var distance = (planeZ - nearPoint.Z) / direction.Z;
-        var worldPoint = nearPoint + direction * distance;
-
-        minX = Math.Min(minX, worldPoint.X);
-        maxX = Math.Max(maxX, worldPoint.X);
-        minY = Math.Min(minY, worldPoint.Y);
-        maxY = Math.Max(maxY, worldPoint.Y);
+        var direction = end - start;
+        clippedStart = start + direction * enter;
+        clippedEnd = start + direction * exit;
         return true;
     }
 
