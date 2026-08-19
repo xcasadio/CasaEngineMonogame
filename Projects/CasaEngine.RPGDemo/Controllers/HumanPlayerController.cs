@@ -1,4 +1,5 @@
 ﻿using CasaEngine.Framework.Application;
+using CasaEngine.Framework.Gameplay;
 using CasaEngine.Framework.Input;
 using CasaEngine.Framework.Scene.World;
 using CasaEngine.RPGDemo.Controllers.PlayerState;
@@ -9,7 +10,7 @@ namespace CasaEngine.RPGDemo.Controllers;
 
 public class HumanPlayerController : Controller
 {
-    private InputComponent _inputComponent;
+    private PlayerInput _playerInput;
     private readonly PlayerIndex _playerIndex;
 
     public HumanPlayerController(Character character, PlayerIndex index)
@@ -21,7 +22,16 @@ public class HumanPlayerController : Controller
 
     public override void InitializePrivate(World world)
     {
-        _inputComponent = world.Game.GetGameComponent<InputComponent>();
+        _playerInput = world.GetPlayerController(Character.Owner)?.Input;
+        if (_playerInput == null)
+        {
+            var playerController = new PlayerController
+            {
+                Pawn = Character.Owner,
+                Player = new LocalPlayer { ControllerId = _playerIndex },
+            };
+            _playerInput = new PlayerInput(playerController, world.Game.GetGameComponent<InputComponent>());
+        }
 
         StateMachine.GlobalState = new PlayerGlobalStateState();
         AddState((int)PlayerControllerState.Idle, new PlayerIdleState());
@@ -40,9 +50,9 @@ public class HumanPlayerController : Controller
         base.Update(elapsedTime);
 
         //check button/action mapping
-        if (Character.Owner.InputEnabled)
+        if (_playerInput != null && _playerInput.IsInputEnabled)
         {
-            //_inputComponent.InputMappingManager.GetButtonState("");
+            //_playerInput.GetButtonState("...");
         }
     }
 
@@ -50,28 +60,28 @@ public class HumanPlayerController : Controller
     {
         direction = Vector2.Zero;
 
-        if (_inputComponent.GamePadManager.IsGamePadConnected(_playerIndex))
+        if (_playerInput.IsGamePadConnected)
         {
-            direction = _inputComponent.GamePadManager.GetGamePad(_playerIndex).CurrentState.ThumbSticks.Left;
+            direction = _playerInput.ThumbStickLeft;
             ClampDirection(ref direction);
             direction.Y = -direction.Y;
         }
         else
         {
-            if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Up))
+            if (_playerInput.IsKeyPressed(Keys.Up))
             {
                 direction.Y = -1.0f;
             }
-            else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Down))
+            else if (_playerInput.IsKeyPressed(Keys.Down))
             {
                 direction.Y = 1.0f;
             }
 
-            if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Right))
+            if (_playerInput.IsKeyPressed(Keys.Right))
             {
                 direction.X = 1.0f;
             }
-            else if (_inputComponent.KeyboardManager.IsKeyPressed(Keys.Left))
+            else if (_playerInput.IsKeyPressed(Keys.Left))
             {
                 direction.X = -1.0f;
             }
@@ -117,11 +127,8 @@ public class HumanPlayerController : Controller
 
     public bool IsAttackButtonPressed()
     {
-        if (_inputComponent.GamePadManager.IsGamePadConnected(_playerIndex))
-        {
-            return _inputComponent.GamePadManager.GetGamePad(_playerIndex).ButtonJustPressed(Buttons.A);
-        }
-
-        return _inputComponent.KeyboardManager.IsKeyJustPressed(Keys.Space);
+        return _playerInput.IsGamePadConnected
+            ? _playerInput.IsButtonJustPressed(Buttons.A)
+            : _playerInput.IsKeyJustPressed(Keys.Space);
     }
 }

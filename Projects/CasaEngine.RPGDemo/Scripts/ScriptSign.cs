@@ -68,10 +68,14 @@ public class ScriptSign : GameplayProxy
 
         if (playerController != null)
         {
-            if (_inputComponent.InputMappingManager.GetButtonState("Action").IsKeyPressed)
+            var actionPressed = playerController.Input != null
+                ? playerController.Input.GetButtonState("Action").IsKeyPressed
+                : _inputComponent.InputMappingManager.GetButtonState("Action").IsKeyPressed;
+
+            if (actionPressed)
             {
                 //create widget
-                playerController.IsInputEnable = false;
+                // TODO: when the sign widget exists, disable input here (playerController.IsInputEnable = false) and re-enable it when the widget closes. Disabling without a widget would freeze the player permanently now that PlayerInput enforces the gate.
                 System.Diagnostics.Debug.WriteLine("Read sign");
             }
         }
