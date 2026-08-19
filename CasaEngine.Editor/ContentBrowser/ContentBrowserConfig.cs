@@ -16,7 +16,7 @@ public sealed class ContentBrowserConfig
 
     public string[] ExcludedExtensions { get; set; } = { ".meta", ".tmp" };
 
-    public string[] ExcludedDirectories { get; set; } = { "bin", "obj", ".git" };
+    public string[] ExcludedDirectories { get; set; } = { "bin", "obj", ".git", ".casaeditor", ".vs" };
 
     public int ThumbnailSize { get; set; } = 96;
 

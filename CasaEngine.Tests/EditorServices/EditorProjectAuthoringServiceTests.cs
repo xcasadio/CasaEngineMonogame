@@ -599,6 +599,155 @@ public class EditorProjectAuthoringServiceTests
         }
     }
 
+    [Fact]
+    public void LoadProject_WhenEnginePathPropsIsMissing_RewritesItWithCurrentEnginePath()
+    {
+        string tempDirectory = CreateTempDirectory();
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+        string previousCsproj = GameSettings.ProjectSettings.GameplayCsprojName;
+
+        try
+        {
+            EditorProjectAuthoringService.CreateProject("SampleProject", tempDirectory, buildGameplayProject: false);
+
+            string propsPath = Path.Combine(tempDirectory, "Gameplay", "CasaEngine.EnginePath.props");
+            Assert.True(File.Exists(propsPath));
+            File.Delete(propsPath);
+
+            string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            Assert.True(File.Exists(propsPath));
+            string propsContent = File.ReadAllText(propsPath);
+            Assert.Contains(AppContext.BaseDirectory, propsContent);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            GameSettings.ProjectSettings.GameplayCsprojName = previousCsproj;
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadProject_WhenEnginePathPropsIsCorrupted_RewritesItWithCurrentEnginePath()
+    {
+        string tempDirectory = CreateTempDirectory();
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+        string previousCsproj = GameSettings.ProjectSettings.GameplayCsprojName;
+
+        try
+        {
+            EditorProjectAuthoringService.CreateProject("SampleProject", tempDirectory, buildGameplayProject: false);
+
+            string propsPath = Path.Combine(tempDirectory, "Gameplay", "CasaEngine.EnginePath.props");
+            Assert.True(File.Exists(propsPath));
+
+            string staleEnginePath = Path.Combine(tempDirectory, "NoEngineHere");
+            Directory.CreateDirectory(staleEnginePath);
+            File.WriteAllText(propsPath, $"""
+                <Project>
+                  <PropertyGroup>
+                    <CasaEnginePath Condition="'$(CASAENGINE_PATH)' != ''">$(CASAENGINE_PATH)</CasaEnginePath>
+                    <CasaEnginePath Condition="'$(CasaEnginePath)' == ''">{staleEnginePath}</CasaEnginePath>
+                  </PropertyGroup>
+                </Project>
+                """);
+
+            string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            string propsContent = File.ReadAllText(propsPath);
+            Assert.Contains(AppContext.BaseDirectory, propsContent);
+            Assert.DoesNotContain(staleEnginePath, propsContent);
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            GameSettings.ProjectSettings.GameplayCsprojName = previousCsproj;
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadProject_WhenEnginePathPropsIsValid_DoesNotRewriteIt()
+    {
+        string tempDirectory = CreateTempDirectory();
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+        string previousCsproj = GameSettings.ProjectSettings.GameplayCsprojName;
+
+        try
+        {
+            EditorProjectAuthoringService.CreateProject("SampleProject", tempDirectory, buildGameplayProject: false);
+
+            string propsPath = Path.Combine(tempDirectory, "Gameplay", "CasaEngine.EnginePath.props");
+            Assert.True(File.Exists(propsPath));
+            string originalContent = File.ReadAllText(propsPath);
+            DateTime originalWriteTimeUtc = File.GetLastWriteTimeUtc(propsPath);
+
+            string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+            EditorProjectAuthoringService.LoadProject(projectFilePath);
+
+            Assert.Equal(originalContent, File.ReadAllText(propsPath));
+            Assert.Equal(originalWriteTimeUtc, File.GetLastWriteTimeUtc(propsPath));
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            GameSettings.ProjectSettings.GameplayCsprojName = previousCsproj;
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void LoadProject_WithoutGameplayCsproj_DoesNotCreateGameplayFolderAndDoesNotThrow()
+    {
+        string tempDirectory = CreateTempDirectory();
+        string projectFilePath = Path.Combine(tempDirectory, "SampleProject.json");
+
+        string? previousProjectPath = EngineEnvironment.ProjectPath;
+        string? previousProjectFilePath = EditorProjectSession.CurrentProjectFilePath;
+        var snapshot = ProjectSettingsSnapshot.Capture();
+
+        try
+        {
+            ConfigureProjectSettings(projectFilePath);
+            GameSettings.ProjectSettings.GameplayCsprojName = string.Empty;
+            ProjectSettingsHelper.Save(projectFilePath);
+
+            var exception = Record.Exception(() => EditorProjectAuthoringService.LoadProject(projectFilePath));
+
+            Assert.Null(exception);
+            Assert.False(Directory.Exists(Path.Combine(tempDirectory, "Gameplay")));
+        }
+        finally
+        {
+            EditorProjectAuthoringService.ClearProject();
+            RestoreProjectSettings(snapshot);
+            EditorProjectSessionAccessor.TryRestoreProjectFilePath(previousProjectFilePath);
+            EngineEnvironment.ProjectPath = previousProjectPath;
+            Directory.Delete(tempDirectory, recursive: true);
+        }
+    }
+
     private static void ConfigureProjectSettings(string projectFilePath)
     {
         string projectDirectory = Path.GetDirectoryName(projectFilePath)!;

@@ -17,7 +17,43 @@ public static class EditorProjectAuthoringService
         ClearProject();
         ProjectSettingsHelper.Load(fileName, runtimeContext);
         EditorProjectSession.CurrentProjectFilePath = fileName;
+
+        var loadedProjectSettings = runtimeContext?.ProjectSettings ?? GameSettings.ProjectSettings;
+        EnsureGameplayEnginePathProps(loadedProjectSettings);
+
         ProjectLoaded?.Invoke(GameSettings.ProjectSettings, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Regenerates the machine-local <c>CasaEngine.EnginePath.props</c> next to the gameplay csproj
+    /// referenced by <paramref name="projectSettings"/> when the csproj exists on disk (see
+    /// docs/editor/gameplay-csproj-scaffolding.md). This is what makes a scaffolded project portable
+    /// from one machine to another: the props is the only file the editor regenerates. Fail-soft — a
+    /// project without a gameplay csproj (assets-only project) or any error here must not prevent the
+    /// project from opening.
+    /// </summary>
+    private static void EnsureGameplayEnginePathProps(ProjectSettings projectSettings)
+    {
+        if (string.IsNullOrWhiteSpace(projectSettings.GameplayCsprojName))
+        {
+            return;
+        }
+
+        try
+        {
+            string csprojPath = Path.GetFullPath(Path.Combine(EngineEnvironment.ProjectPath, projectSettings.GameplayCsprojName));
+            if (!File.Exists(csprojPath))
+            {
+                return;
+            }
+
+            string gameplayDirectory = Path.GetDirectoryName(csprojPath)!;
+            EditorGameplayProjectScaffolder.EnsureEnginePathProps(gameplayDirectory, AppContext.BaseDirectory);
+        }
+        catch (Exception ex)
+        {
+            Logs.WriteWarning($"Could not ensure the gameplay engine path props for project '{projectSettings.ProjectName}': {ex.Message}");
+        }
     }
 
     public static void ClearProject()
