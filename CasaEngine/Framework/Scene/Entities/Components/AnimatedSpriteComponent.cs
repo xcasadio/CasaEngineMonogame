@@ -275,6 +275,13 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
         var position = new Vector2(Position.X, Position.Y);
         var scale = new Vector2(Scale.X, Scale.Y);
 
+        // All parts of a composed animation share the entity's own sort coordinate (built once
+        // here, from the component's world position, not from any per-part position); DrawOrder
+        // (via BuildPartSortKey's LocalSortOffset) is what arbitrates draw order within the entity.
+        var baseSortKey = _depthSortable2DComponent != null
+            ? _depthSortable2DComponent.BuildSortKey(Position, Owner.World.CurrentRenderFrame)
+            : default;
+
         for (var drawIndex = 0; drawIndex < runtimeState.DrawPartIndices.Count; drawIndex++)
         {
             var part = runtimeState.Parts[runtimeState.DrawPartIndices[drawIndex]];
@@ -296,8 +303,7 @@ public class AnimatedSpriteComponent : SceneComponent, ICollideableComponent, IC
 
             if (_depthSortable2DComponent != null)
             {
-                var partWorldPosition = new Vector3(partPosition.X, partPosition.Y, Position.Z);
-                var sortKey = BuildPartSortKey(_depthSortable2DComponent.BuildSortKey(partWorldPosition, Owner.World.CurrentRenderFrame), part);
+                var sortKey = BuildPartSortKey(baseSortKey, part);
                 _spriteRenderer.DrawSprite(sprite, partPosition, part.Rotation, scale, Color, Position.Z, sortKey, spriteEffects);
                 continue;
             }
