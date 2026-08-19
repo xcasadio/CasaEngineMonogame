@@ -2,18 +2,14 @@ using CasaEngine.Framework.Scene.Entities;
 
 namespace CasaEngine.Framework.Gameplay;
 
-/**
- * Pawn is the base class of all actors that can be possessed by players or AI.
- * They are the physical representations of players and creatures in a level.
- *
- * @see https://docs.unrealengine.com/latest/INT/Gameplay/Framework/Pawn/
- */
-public class Pawn : Entity // , INavAgentInterface
+/// <summary>
+/// Base entity class historically used for player/AI-controllable characters.
+/// Kept for asset compatibility: <c>PlayerStartupSettings.DefaultPawnAssetId</c>
+/// spawns one and an asset loader is registered for it. Possession itself
+/// works on any <see cref="Entity"/> via <see cref="Controller.Possess"/>.
+/// </summary>
+public class Pawn : Entity
 {
-    public bool InputEnabled { get; set; } = true;
-
-    public Controller Controller { get; set; }
-
     public Pawn()
     {
 
@@ -21,7 +17,6 @@ public class Pawn : Entity // , INavAgentInterface
 
     private Pawn(Pawn other) : base(other)
     {
-        InputEnabled = other.InputEnabled;
     }
 
     public override Pawn Clone()
