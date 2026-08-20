@@ -297,6 +297,28 @@ Cette brique est une premiere tranche du modele cible decrit plus haut : elle ne
 
 ---
 
+## Blend mode par sprite sur le chemin trie (implemente)
+
+`SpriteRendererComponent` accepte desormais un `SpriteBlendMode` par sprite sur son chemin trie (le meme chemin que l'overlay ci-dessus et les sprites Y-sortes) :
+
+```csharp
+public enum SpriteBlendMode
+{
+    Opaque,      // etat fixe existant : ColorSourceBlend = One, ColorDestinationBlend = Zero
+    AlphaBlend   // BlendState.NonPremultiplied (SourceAlpha / InverseSourceAlpha)
+}
+```
+
+Points cles :
+
+- **Pourquoi `NonPremultiplied` et pas `AlphaBlend`** : le shader sprite (`Content/Shaders/SpriteBatch.fx`) calcule `texel * Color` sans premultiplier l'alpha. `BlendState.NonPremultiplied` est donc l'etat qui correspond a cette convention de sortie : avec un alpha de sommet de 0.5 il donne exactement `0.5 * src + 0.5 * dest`, c'est-a-dire le mode "Average" du PSX. L'equivalent premultiplie (`Blend.One` / `Blend.InverseSourceAlpha`) donnerait `src + 0.5 * dest` contre une source non premultipliee, ce qui serait faux avec ce shader.
+- **Ou le declarer** : la valeur est portee par les surcharges `DrawSprite(..., in RenderSortKey2D, ...)` — au minimum le chemin `Texture2D` brut avec cle (utilise par le DLL gameplay) et le chemin `Sprite` avec cle. Toute surcharge existante continue de router vers `SpriteBlendMode.Opaque` par defaut ; aucun site d'appel existant n'a besoin de changer.
+- **Contrat de commutation par RUN** : la liste triee (`_spriteDatas`, ordonnee uniquement par `RenderSortKey2D`/Z) n'est jamais reordonnee pour le blend. La boucle de dessin applique le `BlendState` uniquement quand le mode du sprite courant differe du precedent, donc le cout est au plus un changement d'etat par RUN contigu de sprites partageant le meme mode. La correction de l'ordre de la cle prevaut toujours sur la minimisation des changements d'etat.
+- **Le depth stencil reste fixe pour cette tranche** : `DepthStencilState` n'a pas de variante par sprite. C'est sur ce meme point de la boucle (juste avant l'application du `BlendState`) que serait branche un futur flag de profondeur par sprite (vraisemblablement juste DepthWrite on/off), en reutilisant exactement le meme mecanisme par RUN. C'est sans risque aujourd'hui parce que tous les participants tries du pipeline 2D (overlay + entities Y-sortees) partagent un Z coplanaire et dessinent en ordre peintre sous `LessEqual` : un sprite alpha qui ecrit la profondeur ne peut donc pas clipper un dessin ulterieur au meme Z.
+- **Aucune allocation par frame** : les deux branches de `SpriteBlendMode` renvoient une instance mise en cache (l'etat opaque fixe du composant, ou l'instance statique `BlendState.NonPremultiplied` de MonoGame), jamais un `BlendState` construit a la volee.
+
+---
+
 ## Integration des entities
 
 L'integration facile des personnages dans une TileMap doit se faire par contrat de rendu, pas par dependance speciale a `TileMapComponent`.

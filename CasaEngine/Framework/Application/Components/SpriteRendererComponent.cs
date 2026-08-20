@@ -25,6 +25,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         public Rectangle ScissorRectangle;
         public RenderSortKey2D SortKey;
         public bool HasSortKey;
+        public SpriteBlendMode BlendMode;
     }
 
     private const int NbSprites = 10000;
@@ -130,9 +131,14 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     {
         var graphicsDevice = _effect.GraphicsDevice;
 
+        // DepthStencilState is fixed for the whole sorted-sprite pass (by design, this slice). It is
+        // safe to keep fixed even though sprites may now blend rather than draw opaque: every sorted
+        // participant (TileMap sorted overlay + Y-sorted entities) shares a coplanar Z and draws in
+        // painter order under LessEqual, so an alpha sprite writing depth cannot clip a later same-Z
+        // draw. A future per-sprite depth flag (most likely just DepthWrite on/off) would ride the
+        // exact same per-run mechanism used below for BlendState.
         graphicsDevice.DepthStencilState = _depthStencilState;
         graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-        graphicsDevice.BlendState = _blendState;
         graphicsDevice.SamplerStates[0] = SamplerState.PointClamp;
 
         graphicsDevice.SetVertexBuffer(_vertexBuffer);
@@ -142,9 +148,22 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
 
         _effect.Parameters["ViewProj"].SetValue(view * projection);
 
+        // The sorted list is ordered by SortKey/Z only and must never be reordered for blend state:
+        // BlendState is applied per contiguous RUN of sprites sharing the same blend mode, so a state
+        // change never costs more than one BlendState set per run, and correctness of the key order
+        // always prevails over minimizing state changes.
+        var currentBlendMode = SpriteBlendMode.Opaque;
+        graphicsDevice.BlendState = _blendState;
+
         for (var i = 0; i < _spriteDatas.Count; i++)
         {
             var spriteDisplayData = _spriteDatas[i];
+
+            if (spriteDisplayData.BlendMode != currentBlendMode)
+            {
+                currentBlendMode = spriteDisplayData.BlendMode;
+                graphicsDevice.BlendState = GetBlendState(currentBlendMode);
+            }
 
             _effect.Parameters["Texture"].SetValue(spriteDisplayData.Texture);
             _effect.Parameters["Color"].SetValue(spriteDisplayData.Color.ToVector4());
@@ -159,6 +178,22 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
 
         graphicsDevice.ScissorRectangle = scissorRectangle;
+    }
+
+    /// <summary>
+    /// Resolves a <see cref="SpriteBlendMode"/> to the <see cref="BlendState"/> instance to apply.
+    /// Both branches return a cached instance (the component's own fixed opaque state, or MonoGame's
+    /// static <see cref="BlendState.NonPremultiplied"/>) so the sorted draw loop never allocates a
+    /// <see cref="BlendState"/> per sprite or per run.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private BlendState GetBlendState(SpriteBlendMode blendMode)
+    {
+        return blendMode switch
+        {
+            SpriteBlendMode.AlphaBlend => BlendState.NonPremultiplied,
+            _ => _blendState
+        };
     }
 
     // DrawDirectly reads the active view camera for ViewProjection. It is used for
@@ -401,6 +436,25 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         }
     }
 
+    /// <summary>
+    /// Same as <see cref="DrawSprite(Sprite,Vector2,float,Vector2,Color,float,in RenderSortKey2D,bool,SpriteEffects,Rectangle)"/>
+    /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Sprite sprite, Vector2 pos, float rot, Vector2 scale, Color color, float zOrder, in RenderSortKey2D sortKey, bool drawDebug, SpriteEffects effects, Rectangle scissorRectangle, SpriteBlendMode blendMode)
+    {
+        DrawSprite(sprite.Texture.Resource, sprite.SpriteData.PositionInTexture, sprite.SpriteData.Origin, pos, rot, scale, color, zOrder, effects,
+            scissorRectangle, drawDebug, true, sortKey, hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+
+        if (drawDebug && IsDrawCollisionsEnabled)
+        {
+            foreach (var collision2d in sprite.SpriteData.CollisionShapes)
+            {
+                DrawCollision(collision2d, pos, zOrder, sprite.SpriteData.Origin, scale);
+            }
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawCollision(Collision2d collision2d, Vector2 position, float z, Point origin, Vector2 scale)
     {
@@ -484,6 +538,32 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
             scissorRectangle, drawDebug: false, hasSortKey: true, in sortKey);
     }
 
+    /// <summary>
+    /// Same as <see cref="DrawSprite(Texture2D,Rectangle,Point,Vector2,float,Vector2,Color,float,in RenderSortKey2D,SpriteEffects)"/>
+    /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, SpriteBlendMode blendMode)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            GraphicsDevice.ScissorRectangle, drawDebug: false, hasSortKey: true, in sortKey,
+            hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+    }
+
+    /// <summary>
+    /// Same as <see cref="DrawSprite(Texture2D,Rectangle,Point,Vector2,float,Vector2,Color,float,in RenderSortKey2D,SpriteEffects,Rectangle)"/>
+    /// but with an explicit <see cref="SpriteBlendMode"/> for the sorted draw loop's per-run blend state.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
+        Vector2 scale, Color color, float z, in RenderSortKey2D sortKey, SpriteEffects effects, Rectangle scissorRectangle, SpriteBlendMode blendMode)
+    {
+        DrawSprite(texture2d, sourceInTexture, origin, position, rotation, scale, color, z, effects,
+            scissorRectangle, drawDebug: false, hasSortKey: true, in sortKey,
+            hasWorldTransform: false, worldTransform: default, blendMode: blendMode);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug)
@@ -507,7 +587,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void DrawSprite(Texture2D texture2d, Rectangle sourceInTexture, Point origin, Vector2 position, float rotation,
         Vector2 scale, Color color, float z, SpriteEffects effects, Rectangle scissorRectangle, bool drawDebug, bool hasSortKey, in RenderSortKey2D sortKey,
-        bool hasWorldTransform = false, in Matrix worldTransform = default)
+        bool hasWorldTransform = false, in Matrix worldTransform = default, SpriteBlendMode blendMode = SpriteBlendMode.Opaque)
     {
         if (texture2d == null)
         {
@@ -555,6 +635,7 @@ public class SpriteRendererComponent : DrawableGameComponent, IViewFlushableRend
         spriteDisplayData.ScissorRectangle = scissorRectangle;
             spriteDisplayData.SortKey = sortKey;
             spriteDisplayData.HasSortKey = hasSortKey;
+            spriteDisplayData.BlendMode = blendMode;
         _spriteDatas.Add(spriteDisplayData);
 
         if (drawDebug)
