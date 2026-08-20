@@ -25,6 +25,17 @@ public abstract class Tile
     public abstract void Draw(float x, float y, float z, Vector2 scale);
     public abstract void Draw(float x, float y, float z, Rectangle uvOffset, Vector2 scale);
 
+    /// <summary>
+    /// Returns the tile's current source rectangle in the tileset texture without drawing it — the same
+    /// rectangle the next <see cref="Draw(float, float, float, Vector2)"/> call would use. An
+    /// <see cref="AnimatedTile"/> reports whichever frame its own <see cref="Update"/> has advanced to;
+    /// a <see cref="StaticTile"/> always reports the same fixed rectangle. Used by consumers that submit
+    /// a tile's sprite through a path other than <see cref="Draw(float, float, float, Vector2)"/> (e.g.
+    /// <see cref="Scene.Entities.Components.TileMapComponent"/>'s sorted overlay) but still need the tile
+    /// to animate correctly.
+    /// </summary>
+    public abstract Rectangle GetCurrentSourceRectangle();
+
     public virtual void Draw(float x, float y, float z, Vector2 scale, TileCellFlags flags)
     {
         Draw(x, y, z, scale);

@@ -21,4 +21,9 @@ public class EmptyTile : Tile
     {
         //do nothing
     }
+
+    public override Rectangle GetCurrentSourceRectangle()
+    {
+        return Rectangle.Empty;
+    }
 }

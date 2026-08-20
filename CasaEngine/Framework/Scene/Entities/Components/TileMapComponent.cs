@@ -27,17 +27,27 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
     /// </summary>
     private readonly struct SortedOverlayTile
     {
-        public SortedOverlayTile(TileMapTileReference tileReference, int gridX, int gridY, in RenderSortKey2D sortKey)
+        public SortedOverlayTile(TileMapTileReference tileReference, int gridX, int gridY, Tile tile, in RenderSortKey2D sortKey)
         {
             TileReference = tileReference;
             GridX = gridX;
             GridY = gridY;
+            Tile = tile;
             SortKey = sortKey;
         }
 
         public readonly TileMapTileReference TileReference;
         public readonly int GridX;
         public readonly int GridY;
+
+        /// <summary>
+        /// The tile instance resolved once at <see cref="AddSortedOverlayTile"/> time through the same
+        /// creation path flat layers use. An <see cref="AnimatedTile"/> instance is registered in
+        /// <see cref="_animatedTiles"/> so the component's regular per-frame update advances it exactly
+        /// like a flat-layer tile of the same kind; its current source rectangle is then read every draw
+        /// via <see cref="Assets.TileMap.Tile.GetCurrentSourceRectangle"/> instead of a static lookup.
+        /// </summary>
+        public readonly Tile Tile;
         public readonly RenderSortKey2D SortKey;
     }
 
@@ -461,10 +471,8 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 continue;
             }
 
-            if (!TryGetOverlayTileSprite(overlayTile.TileReference, out var texture, out var sourceRectangle))
-            {
-                continue;
-            }
+            var texture = _tileSetTextures[overlayTile.TileReference.TileSetIndex];
+            var sourceRectangle = overlayTile.Tile.GetCurrentSourceRectangle();
 
             var worldX = mapPosX + tileWidth * overlayTile.GridX;
             var worldY = mapPosY - tileHeight * overlayTile.GridY;
@@ -491,26 +499,6 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
                 SpriteEffects.None,
                 Rectangle.Empty);
         }
-    }
-
-    private bool TryGetOverlayTileSprite(TileMapTileReference tileReference, out Texture2D texture, out Rectangle sourceRectangle)
-    {
-        var tileSetIndex = tileReference.TileSetIndex;
-        if (tileSetIndex < 0 || tileSetIndex >= _tileSets.Count || tileSetIndex >= _tileSetTextures.Count)
-        {
-            texture = null;
-            sourceRectangle = Rectangle.Empty;
-            return false;
-        }
-
-        if (!_tileSets[tileSetIndex].TryGetTileSourceRectangle(tileReference.TileId, out sourceRectangle))
-        {
-            texture = null;
-            return false;
-        }
-
-        texture = _tileSetTextures[tileSetIndex];
-        return true;
     }
 
     /// <summary>
@@ -749,13 +737,31 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
 
         EnsureValidTileReference(tileReference);
 
-        _sortedOverlayTiles.Add(new SortedOverlayTile(tileReference, gridX, gridY, in sortKey));
+        var tile = CreateOverlayTile(tileReference);
+        _sortedOverlayTiles.Add(new SortedOverlayTile(tileReference, gridX, gridY, tile, in sortKey));
     }
 
     /// <summary>Removes every tile previously queued with <see cref="AddSortedOverlayTile"/>.</summary>
     public void ClearSortedOverlayTiles()
     {
+        if (_sortedOverlayTiles.Count == 0)
+        {
+            return;
+        }
+
+        // Overlay entries hold their own Tile instance (see AddSortedOverlayTile/CreateOverlayTile): an
+        // animated one was registered in _animatedTiles for the regular per-frame update and must be
+        // unregistered here, or it would keep being updated after the overlay entry referencing it is gone.
+        for (var index = 0; index < _sortedOverlayTiles.Count; index++)
+        {
+            if (_sortedOverlayTiles[index].Tile is AnimatedTile animatedTile)
+            {
+                _animatedTiles.Remove(animatedTile);
+            }
+        }
+
         _sortedOverlayTiles.Clear();
+        _hasAnimatedTiles = _animatedTiles.Count > 0;
     }
 
     public override void Load(JObject element)
@@ -904,6 +910,51 @@ public class TileMapComponent : SceneComponent, ICollideableComponent, IConditio
         }
 
         tile.Initialize(Owner.World.Game);
+        return tile;
+    }
+
+    /// <summary>
+    /// Resolves the <see cref="Tile"/> instance backing one sorted overlay entry (see
+    /// <see cref="AddSortedOverlayTile"/>), through the same Static/Animated creation the flat-layer path
+    /// uses in <see cref="CreateRuntimeTile"/>. Overlay tiles have no grid cell of their own for auto-tile
+    /// neighbor resolution, so <see cref="TileType.Auto"/> is not supported here.
+    /// </summary>
+    private Tile CreateOverlayTile(TileMapTileReference tileReference)
+    {
+        var tileSetIndex = tileReference.TileSetIndex;
+        var tileId = tileReference.TileId;
+
+        if (!TryGetTileData(tileSetIndex, tileId, out var tileData) || tileData == null)
+        {
+            throw new InvalidOperationException($"Unknown tile id '{tileId}' for tileset source '{tileSetIndex}'.");
+        }
+
+        var tileSetData = _tileSets[tileSetIndex];
+        var texture = _tileSetTextures[tileSetIndex];
+        Tile tile;
+
+        switch (tileData.Type)
+        {
+            case TileType.Static:
+                tile = new StaticTile(texture, tileData as StaticTileData);
+                break;
+
+            case TileType.Animated:
+                var animatedTileData = tileData as AnimatedTileData ?? throw new InvalidOperationException($"Tile {tileId} is not a valid animated tile.");
+                var animatedTile = new AnimatedTile(texture, tileSetData, animatedTileData);
+                tile = animatedTile;
+                _animatedTiles.Add(animatedTile);
+                _hasAnimatedTiles = true;
+                break;
+
+            default:
+                throw new NotSupportedException($"Sorted overlay tiles do not support tile type '{tileData.Type}' (tile id {tileId}).");
+        }
+
+        // Unlike CreateRuntimeTile, this tile is never drawn through Tile.Draw (DrawSortedOverlayTiles only
+        // calls Update and GetCurrentSourceRectangle on it, then submits the sprite itself), so it has no
+        // need for the SpriteRendererComponent Tile.Initialize resolves — skipping it also keeps overlay
+        // entries usable before the owning entity is attached to a world.
         return tile;
     }
 

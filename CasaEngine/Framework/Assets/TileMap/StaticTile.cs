@@ -66,6 +66,11 @@ public class StaticTile : Tile
         }
     }
 
+    public override Rectangle GetCurrentSourceRectangle()
+    {
+        return _positionInTexture;
+    }
+
     private static SpriteEffects GetSpriteEffects(TileCellFlags flags)
     {
         var effects = SpriteEffects.None;

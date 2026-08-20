@@ -28,6 +28,9 @@ public class TileMapComponentSortedOverlayTests
     private const int MapSize = 8;
     private const int TilePixelSize = 16;
     private const int TileId = 1;
+    private const int AnimatedTileId = 2;
+    private static readonly Rectangle AnimatedFrame0Location = new(0, 0, TilePixelSize, TilePixelSize);
+    private static readonly Rectangle AnimatedFrame1Location = new(TilePixelSize, 0, TilePixelSize, TilePixelSize);
 
     [Fact]
     public void AddSortedOverlayTile_Draw_ProducesSpriteSubmissionWithExactKey()
@@ -118,6 +121,76 @@ public class TileMapComponentSortedOverlayTests
     }
 
     [Fact]
+    public void AddSortedOverlayTile_AnimatedTile_SourceRectangleAdvancesAsItAnimates()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        component.AddSortedOverlayTile(new TileMapTileReference(0, AnimatedTileId), 2, 3, in RenderSortKey2D.Default);
+
+        var overlayTile = GetOverlayTile(component, 0);
+        Assert.Equal(AnimatedFrame0Location, overlayTile.GetCurrentSourceRectangle());
+
+        // Frame 0 lasts 100ms: advance past it so the overlay's own tile instance (resolved once at
+        // AddSortedOverlayTile time, then updated every frame through the component's regular
+        // animated-tile update loop, exactly like a flat-layer tile) has moved to frame 1. This is the
+        // exact rectangle DrawSortedOverlayTiles submits to the sprite renderer every frame.
+        component.Update(0.101f);
+
+        Assert.Equal(AnimatedFrame1Location, overlayTile.GetCurrentSourceRectangle());
+        Assert.NotEqual(AnimatedFrame0Location, overlayTile.GetCurrentSourceRectangle());
+    }
+
+    [Fact]
+    public void AddSortedOverlayTile_StaticTile_SourceRectangleStaysFixedAcrossUpdates()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        component.AddSortedOverlayTile(new TileMapTileReference(0, TileId), 2, 3, in RenderSortKey2D.Default);
+
+        var overlayTile = GetOverlayTile(component, 0);
+        var beforeRectangle = overlayTile.GetCurrentSourceRectangle();
+
+        component.Update(1f);
+
+        Assert.Equal(beforeRectangle, overlayTile.GetCurrentSourceRectangle());
+    }
+
+    [Fact]
+    public void AnimatedOverlayTile_StaysInPhaseWithAFlatLayerTileOfTheSameId()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        var flatAnimatedTile = AddFlatAnimatedTileLayer(component);
+
+        component.AddSortedOverlayTile(new TileMapTileReference(0, AnimatedTileId), 4, 4, in RenderSortKey2D.Default);
+        var overlayAnimatedTile = (AnimatedTile)GetOverlayTile(component, 0);
+
+        // Both tile instances are driven by the exact same Update calls (the component's flat-layer and
+        // overlay animated tiles are updated together, see TileMapComponent.Update), so even though they
+        // are separate per-cell instances (not a shared flyweight — see AnimatedTile's per-cell frame
+        // state), they must always report the same current frame.
+        Assert.Equal(flatAnimatedTile.CurrentFrameIndex, overlayAnimatedTile.CurrentFrameIndex);
+
+        component.Update(0.101f);
+        Assert.Equal(flatAnimatedTile.CurrentFrameIndex, overlayAnimatedTile.CurrentFrameIndex);
+        Assert.Equal(1, overlayAnimatedTile.CurrentFrameIndex);
+
+        component.Update(0.051f);
+        Assert.Equal(flatAnimatedTile.CurrentFrameIndex, overlayAnimatedTile.CurrentFrameIndex);
+        Assert.Equal(0, overlayAnimatedTile.CurrentFrameIndex);
+    }
+
+    [Fact]
+    public void ClearSortedOverlayTiles_UnregistersAnimatedOverlayTilesFromTheUpdateLoop()
+    {
+        var component = CreateComponentWithOverlaySupport(out _);
+        component.AddSortedOverlayTile(new TileMapTileReference(0, AnimatedTileId), 2, 3, in RenderSortKey2D.Default);
+        Assert.True(component.HasAnimatedTiles);
+
+        component.ClearSortedOverlayTiles();
+
+        Assert.False(component.HasAnimatedTiles);
+        Assert.Empty(GetPrivateField<IList>(component, "_animatedTiles"));
+    }
+
+    [Fact]
     public void SavedEntity_NeverContainsSortedOverlayTiles()
     {
         var component = CreateComponentWithOverlaySupport(out _);
@@ -163,6 +236,15 @@ public class TileMapComponentSortedOverlayTests
         var tileSetData = new TileSetData { TileSize = new Size(TilePixelSize, TilePixelSize) };
         tileSetData.AddTile(new StaticTileData { Id = TileId, Location = new Rectangle(0, 0, TilePixelSize, TilePixelSize) });
 
+        // A synthetic two-frame animated tile, mirroring AnimatedTileTests: frame 0 is the tile's own
+        // location, frame 1 references a second static tile id purely to give it a distinct rectangle.
+        const int frameReferenceTileId = 3;
+        var animatedTileData = new AnimatedTileData { Id = AnimatedTileId, Location = AnimatedFrame0Location };
+        animatedTileData.Frames.Add(new AnimatedTileFrameData { TileId = AnimatedTileId, DurationMilliseconds = 100 });
+        animatedTileData.Frames.Add(new AnimatedTileFrameData { TileId = frameReferenceTileId, DurationMilliseconds = 50 });
+        tileSetData.AddTile(animatedTileData);
+        tileSetData.AddTile(new StaticTileData { Id = frameReferenceTileId, Location = AnimatedFrame1Location });
+
         component.TileMapData = new TileMapData { MapSize = new Size(MapSize, MapSize) };
         component.TileSetData = tileSetData;
 
@@ -181,6 +263,66 @@ public class TileMapComponentSortedOverlayTests
     {
         var textures = GetPrivateField<IList>(component, "_tileSetTextures");
         return (Texture2D)textures[0]!;
+    }
+
+    /// <summary>Reads back the <c>Tile</c> field of one queued <c>SortedOverlayTile</c> entry.</summary>
+    private static Tile GetOverlayTile(TileMapComponent component, int index)
+    {
+        var overlayTiles = GetPrivateField<IList>(component, "_sortedOverlayTiles");
+        var entry = overlayTiles[index]!;
+        var tileField = entry.GetType().GetField("Tile", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        Assert.NotNull(tileField);
+        return (Tile)tileField!.GetValue(entry)!;
+    }
+
+    /// <summary>
+    /// Adds a flat layer whose single tile source is a real <see cref="AnimatedTile"/> instance for
+    /// <see cref="AnimatedTileId"/>, registered exactly like <c>TileMapComponent.CreateRuntimeTile</c>
+    /// would (added to the private <c>_animatedTiles</c> update list and <c>_hasAnimatedTiles</c> set),
+    /// without going through the full asset-loading <c>InitializeWithWorld</c> path.
+    /// </summary>
+    private static AnimatedTile AddFlatAnimatedTileLayer(TileMapComponent component)
+    {
+        var tileSetData = (TileSetData)GetPrivateField<IList>(component, "_tileSets")[0]!;
+        var texture = GetTexture(component);
+        var animatedTileData = (AnimatedTileData)tileSetData.GetTileData(AnimatedTileId);
+        var flatAnimatedTile = new AnimatedTile(texture, tileSetData, animatedTileData);
+
+        var layerData = new TileMapLayerData();
+        for (var index = 0; index < MapSize * MapSize; index++)
+        {
+            layerData.tiles.Add(AnimatedTileId);
+        }
+
+        component.TileMapData.Layers.Add(layerData);
+
+        var layer = new TileMapLayer(layerData);
+        for (var index = 0; index < MapSize * MapSize; index++)
+        {
+            layer.Tiles.Add(flatAnimatedTile);
+        }
+
+        GetLayers(component).Add(layer);
+        InvokeBuildChunks(component, layer);
+
+        GetPrivateField<IList>(component, "_animatedTiles").Add(flatAnimatedTile);
+        SetPrivateField(component, "_hasAnimatedTiles", true);
+
+        return flatAnimatedTile;
+    }
+
+    private static IList GetLayers(TileMapComponent component)
+    {
+        var property = typeof(TileMapComponent).GetProperty("Layers", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(property);
+        return (IList)property!.GetValue(component)!;
+    }
+
+    private static void InvokeBuildChunks(TileMapComponent component, TileMapLayer layer)
+    {
+        var method = typeof(TileMapComponent).GetMethod("BuildChunks", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.NotNull(method);
+        method!.Invoke(component, new object[] { layer, 0 });
     }
 
     private static IList GetSpriteDatas(SpriteRendererComponent spriteRendererComponent)

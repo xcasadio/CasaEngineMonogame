@@ -148,6 +148,13 @@ public class AutoTile : Tile
         }
     }
 
+    public override Rectangle GetCurrentSourceRectangle()
+    {
+        // An auto tile draws up to four independently placed sub-quads (see Draw(float,float,float,Rectangle,Vector2)),
+        // so it has no single current source rectangle to report. Not supported as a sorted overlay tile.
+        throw new NotSupportedException($"{nameof(AutoTile)} does not support {nameof(GetCurrentSourceRectangle)}: it draws multiple sub-quads, not one.");
+    }
+
     public void SetTileInfo(Size tileSize, Size mapSize, TileMapLayerData layer, int tileSourceIndex, int x, int y)
     {
         _tileSize = tileSize;

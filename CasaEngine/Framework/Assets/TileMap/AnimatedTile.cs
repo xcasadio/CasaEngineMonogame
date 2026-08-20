@@ -108,6 +108,11 @@ public class AnimatedTile : Tile
         base.Draw(_texture, _frameSources[_currentFrameIndex], x, y, z, uvOffset, scale);
     }
 
+    public override Rectangle GetCurrentSourceRectangle()
+    {
+        return _frameSources[_currentFrameIndex];
+    }
+
     private static SpriteEffects GetSpriteEffects(TileCellFlags flags)
     {
         var effects = SpriteEffects.None;
