@@ -81,7 +81,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             if (!ExecutionPolicy.UseExternalViewManagement)
             {
-            return Window.ClientBounds.Width;
+                return Window.ClientBounds.Width;
             }
 
             return _screenSizeWidth > 0
@@ -96,7 +96,7 @@ public class CasaEngineGame : Game, IObservableUpdate
         {
             if (!ExecutionPolicy.UseExternalViewManagement)
             {
-            return Window.ClientBounds.Height;
+                return Window.ClientBounds.Height;
             }
 
             return _screenSizeHeight > 0
