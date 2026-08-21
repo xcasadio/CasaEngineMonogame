@@ -168,11 +168,8 @@ public class ArcBallCameraComponent : Camera3dComponent
     /// </summary>
     public void OrbitUp(float angle)
     {
-        //update the yaw
-        _pitch -= angle;
-
-        //constrain pitch to vertical to avoid confusion
-        MathHelper.Clamp(_pitch, -(MathHelper.PiOver2) + .0001f, (MathHelper.PiOver2) - .0001f);
+        //update the pitch, constrained to vertical to avoid confusion
+        _pitch = MathHelper.Clamp(_pitch - angle, -(MathHelper.PiOver2) + .0001f, (MathHelper.PiOver2) - .0001f);
 
         //create a new aspect based on pitch and yaw
         Orientation = Quaternion.CreateFromAxisAngle(Vector3.Up, -_yaw) * Quaternion.CreateFromAxisAngle(Vector3.Right, _pitch);
@@ -250,23 +247,26 @@ public class ArcBallCameraComponent : Camera3dComponent
         Vector3 dir = position - target;
         Target = target;
 
-        //negative by convention: ComputeViewMatrix does Target - Direction * Distance and Direction
-        //points from the target towards the camera. OrbitUp reads its direction from that sign, so
-        //every caller has to store it the same way.
-        Distance = -dir.Length();
+        //Distance is positive everywhere (constructor, Distance setter, editor viewport controller):
+        //ComputeViewMatrix places the camera at Target - Direction * Distance, with Direction looking
+        //from the camera towards the target. A negative distance here would mirror every orbit /
+        //move control until the next Distance assignment flips the camera to the other side.
+        Distance = dir.Length();
 
-        Vector3 zAxis = dir;
-        zAxis.Normalize();
+        if (Distance <= float.Epsilon)
+        {
+            return;
+        }
 
-        //Direction(Yaw, Pitch) is (sin Yaw cos Pitch, sin Pitch, -cos Yaw cos Pitch), so the yaw putting
-        //the camera on zAxis is read back with Atan2. Atan2 keeps the whole 360 degrees, including the
-        //x == 0 case where a Math.Sign based reconstruction collapses to zero and mirrors the camera in Z.
-        Yaw = MathF.Atan2(zAxis.X, -zAxis.Z);
+        Vector3 zAxis = dir / Distance;
 
-        //Get the pitch from the angle formed by the Up vector and the
-        //the forward direction, then subtracting PI / 2, since
-        //we pitch is zero at Forward, not Up.
-        Pitch = (float)-(Math.Acos(Vector3.Dot(Vector3.Up, zAxis)) - MathHelper.PiOver2);
+        //Direction(Yaw, Pitch) is (sin Yaw cos Pitch, sin Pitch, -cos Yaw cos Pitch) and must equal
+        //-zAxis (camera -> target). Atan2 keeps the whole 360 degrees, including the x == 0 case where
+        //a Math.Sign based reconstruction collapses to zero and mirrors the camera in Z.
+        Yaw = MathF.Atan2(-zAxis.X, zAxis.Z);
+
+        //sin Pitch = -zAxis.Y: looking down at the target from above gives a negative pitch.
+        Pitch = -MathF.Asin(MathHelper.Clamp(zAxis.Y, -1f, 1f));
     }
 
     private void ComputeOrientation()

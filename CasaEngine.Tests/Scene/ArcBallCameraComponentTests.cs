@@ -100,15 +100,31 @@ public class ArcBallCameraComponentTests
     }
 
     [Fact]
-    public void SetCamera_KeepsTheNegativeDistanceConvention()
+    public void SetCamera_StoresAPositiveDistanceLikeTheEditorAndTheDistanceSetter()
     {
         var camera = CreateCamera();
         camera.SetCamera(new Vector3(0f, 12f, 15f), Vector3.Zero, Vector3.Up);
 
-        // OrbitUp / OrbitRight derive the camera motion from the sign of Distance: the whole engine
-        // stores it negative, so the orbit controls keep a single direction across every caller.
-        Assert.True(camera.Distance < 0f);
-        Assert.Equal(-(new Vector3(0f, 12f, 15f)).Length(), camera.Distance, Tolerance);
+        // The constructor, the Distance setter and EditorViewportCameraController all work with a
+        // positive distance (camera at Target - Direction * Distance). A negative value here would
+        // mirror the orbit / move controls until the next Distance assignment flips the camera.
+        Assert.True(camera.Distance > 0f);
+        Assert.Equal(new Vector3(0f, 12f, 15f).Length(), camera.Distance, Tolerance);
+    }
+
+    [Fact]
+    public void SetCamera_ThenZoomingWithTheDistanceSetter_KeepsTheCameraOnTheSameSide()
+    {
+        var camera = CreateCamera();
+        camera.SetCamera(new Vector3(0f, 1f, 2.4f), new Vector3(0f, 0.9f, 0f), Vector3.Up);
+        _ = camera.ViewMatrix;
+        Assert.True(camera.Position.Z > 0f);
+
+        camera.Distance /= 1.1f;
+        _ = camera.ViewMatrix;
+
+        Assert.True(camera.Position.Z > 0f);
+        Assert.True(camera.Position.Z < 2.4f);
     }
 
     [Fact]
